@@ -167,6 +167,7 @@ configure_source_front_matter(void)
         .add_sampler_initializer("fastuidraw_glyphGeometryDataStore",
                                  binding_points.glyph_atlas_geometry_store(m_uber_shader_builder_params.glyph_geometry_backing()))
         .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas())
+        .add_sampler_initializer("fastuidraw_external_texture", binding_points.external_texture())
         .add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
 
       if (m_uber_shader_builder_params.have_float_glyph_texture_atlas())

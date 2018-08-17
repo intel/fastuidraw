@@ -98,8 +98,51 @@ namespace
     fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
     fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
+    GLuint m_current_external_texture;
 
     fastuidraw::gl::PainterBackendGL *m_p;
+  };
+
+  class TextureImageBindAction:public fastuidraw::PainterDraw::Action
+  {
+  public:
+    typedef fastuidraw::gl::ImageAtlasGL::TextureImage TextureImage;
+
+    TextureImageBindAction(const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &im,
+                           PainterBackendGLPrivate *p):
+      m_p(p),
+      m_texture_unit(p->m_reg_gl->uber_shader_builder_params().binding_points().external_texture())
+    {
+      FASTUIDRAWassert(im);
+      FASTUIDRAWassert(im.dynamic_cast_ptr<const TextureImage>());
+      m_image = im.static_cast_ptr<const TextureImage>();
+    }
+
+    virtual
+    fastuidraw::gpu_dirty_state
+    execute(fastuidraw::PainterDraw::APIBase*) const
+    {
+      glActiveTexture(GL_TEXTURE0 + m_texture_unit);
+      glBindTexture(GL_TEXTURE_2D, m_image->texture());
+
+      /* if the user makes an action that affects texture
+       * unit m_texture_unit, we need to give the backend
+       * the knowledge of what is the external texture.
+       */
+      m_p->m_current_external_texture = m_image->texture();
+
+      /* we do not regard changing the texture unit
+       * as changing the GPU texture state because the
+       * restore of GL state would be all those texture
+       * states we did not change
+       */
+      return fastuidraw::gpu_dirty_state();
+    }
+
+  private:
+    fastuidraw::reference_counted_ptr<const TextureImage> m_image;
+    PainterBackendGLPrivate *m_p;
+    unsigned int m_texture_unit;
   };
 
   class DrawState
@@ -1060,6 +1103,10 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
       glBindSampler(binding_points.colorstop_atlas(), 0);
       glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.external_texture());
+      glBindTexture(GL_TEXTURE_2D, m_current_external_texture);
+      glBindSampler(binding_points.external_texture(), 0);
     }
 
   if (v & gpu_dirty_state::constant_buffers)
@@ -1771,6 +1818,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
     }
 
   d->m_uniform_ubo_ready = false;
+  d->m_current_external_texture = 0;
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
   //cache the GLSL programs for use.
@@ -1878,9 +1926,10 @@ fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::Action>
 fastuidraw::gl::PainterBackendGL::
 bind_image(const reference_counted_ptr<const Image> &im)
 {
-  /* TODO */
-  FASTUIDRAWunused(im);
-  return nullptr;
+  PainterBackendGLPrivate *d;
+
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
+  return FASTUIDRAWnew TextureImageBindAction(im, d);
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw>
