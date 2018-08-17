@@ -556,6 +556,19 @@ namespace fastuidraw
         BindingPoints&
         color_interlock_image_buffer(unsigned int);
 
+        /*!
+         * Specifies the binding point of an external texture.
+         */
+        unsigned int
+        external_texture(void) const;
+
+        /*!
+         * Set the value returned by external_texture(void) const.
+         * Default value is 8.
+         */
+        BindingPoints&
+        external_texture(unsigned int);
+
       private:
         void *m_d;
       };

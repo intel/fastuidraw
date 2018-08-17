@@ -98,6 +98,7 @@ namespace
       m_glyph_atlas_texel_store_float(5),
       m_glyph_atlas_geometry_store_texture(6),
       m_data_store_buffer_tbo(7),
+      m_external_texture(8),
       m_data_store_buffer_ubo(0),
       m_uniforms_ubo(1),
       m_glyph_atlas_geometry_store_ssbo(0),
@@ -115,6 +116,7 @@ namespace
     unsigned int m_glyph_atlas_texel_store_float;
     unsigned int m_glyph_atlas_geometry_store_texture;
     unsigned int m_data_store_buffer_tbo;
+    unsigned int m_external_texture;
 
     // UBO units
     unsigned int m_data_store_buffer_ubo;
@@ -470,6 +472,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_image_type_num_bits", PainterBrush::image_type_num_bits)
     .add_macro("fastuidraw_image_type_on_atlas", Image::on_atlas)
     .add_macro("fastuidraw_image_type_bindless_texture2d", Image::bindless_texture2d)
+    .add_macro("fastuidraw_image_type_context_texture2d", Image::context_texture2d)
 
     .add_macro("fastuidraw_image_mipmap_mask", PainterBrush::image_mipmap_mask)
     .add_macro("fastuidraw_image_mipmap_bit0", PainterBrush::image_mipmap_bit0)
@@ -1066,6 +1069,7 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
     .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", binding_params.color_interlock_image_buffer())
+    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", binding_params.external_texture())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
@@ -1151,6 +1155,7 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
     .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", binding_params.color_interlock_image_buffer())
+    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", binding_params.external_texture())
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
@@ -1410,6 +1415,8 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoint
                  BindingPointsPrivate, unsigned int, uniforms_ubo)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
                  BindingPointsPrivate, unsigned int, color_interlock_image_buffer)
+setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
+                 BindingPointsPrivate, unsigned int, external_texture)
 
 ////////////////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams methods

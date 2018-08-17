@@ -87,3 +87,5 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
   #define fastuidraw_fetch_data(block) uvec4(fastuidraw_painterStore[int(block)])
 
 #endif
+
+FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING) uniform sampler2D fastuidraw_external_texture;
