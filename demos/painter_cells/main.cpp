@@ -74,13 +74,15 @@ private:
   command_line_argument_value<int> m_num_cells_x, m_num_cells_y;
   command_line_argument_value<int> m_cell_group_size;
   command_line_argument_value<std::string> m_font;
-  enumerated_command_line_argument_value<enum fastuidraw::glyph_type> m_text_renderer;
+  enumerated_command_line_argument_value<enum glyph_type> m_text_renderer;
   command_line_argument_value<int> m_text_renderer_realized_pixel_size;
   command_line_argument_value<float> m_pixel_size;
   command_line_argument_value<float> m_fps_pixel_size;
   command_line_list<std::string> m_strings;
   command_line_list<std::string> m_files;
   command_line_list<std::string> m_images;
+  enumerated_command_line_argument_value<enum PainterBrush::image_filter> m_image_filter;
+  command_line_argument_value<unsigned int> m_image_mipmap_level;
   command_line_argument_value<bool> m_use_atlas;
   command_line_argument_value<bool> m_draw_image_name;
   command_line_argument_value<int> m_num_background_colors;
@@ -135,10 +137,10 @@ painter_cells(void):
   m_cell_group_size(1, "cell_group_size", "width and height in number of cells for cell group size", *this),
   m_font(default_font(), "font", "File from which to take font", *this),
   m_text_renderer(fastuidraw::curve_pair_glyph,
-                  enumerated_string_type<enum fastuidraw::glyph_type>()
-                  .add_entry("coverage", fastuidraw::coverage_glyph, "coverage glyphs (i.e. alpha masks)")
-                  .add_entry("distance_field", fastuidraw::distance_field_glyph, "distance field glyphs")
-                  .add_entry("curve_pair", fastuidraw::curve_pair_glyph, "curve-pair glyphs"),
+                  enumerated_string_type<enum glyph_type>()
+                  .add_entry("coverage", coverage_glyph, "coverage glyphs (i.e. alpha masks)")
+                  .add_entry("distance_field", distance_field_glyph, "distance field glyphs")
+                  .add_entry("curve_pair", curve_pair_glyph, "curve-pair glyphs"),
                   "text_renderer",
                   "Specifies how to render text", *this),
   m_text_renderer_realized_pixel_size(24,
@@ -152,6 +154,19 @@ painter_cells(void):
   m_strings("add_string", "add a string to use by the cells", *this),
   m_files("add_string_file", "add a string to use by a cell, taken from file", *this),
   m_images("add_image", "Add an image to use by the cells", *this),
+  m_image_filter(PainterBrush::image_filter_nearest,
+                 enumerated_string_type<enum PainterBrush::image_filter>()
+                 .add_entry("nearest", PainterBrush::image_filter_nearest, "nearest filtering")
+                 .add_entry("linear", PainterBrush::image_filter_linear, "(bi)linear filtering")
+                 .add_entry("cubic", PainterBrush::image_filter_cubic, "(bi)cubic filtering"),
+                 "image_filter",
+                 "Specifies how to filter the images applied to the rects",
+                 *this),
+  m_image_mipmap_level(0, "image_mipmap_levels",
+                       "Maximum level of mipmap filtering applied "
+                       "(when use_atlas is true, this is clamped to "
+                       "log2_color_tile_size)",
+                       *this),
   m_use_atlas(true, "use_atlas",
               "If false, each image is realized as a texture; if "
               "GL_ARB_bindless_texture or GL_NV_bindless_texture "
@@ -309,13 +324,15 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
   if (image_data.non_empty())
     {
       reference_counted_ptr<const Image> im;
-      int slack(0);
 
       std::cout << "\tImage \"" << filename << "\" of size "
                 << image_data.dimensions() << " loaded";
 
       if (m_use_atlas.value())
         {
+          int slack(0);
+
+          slack = PainterBrush::slack_requirement(m_image_filter.value());
           im = Image::create(m_painter->image_atlas(),
                              image_data.width(), image_data.height(),
                              image_data, slack);
@@ -331,7 +348,9 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
       switch (im->type())
         {
         case Image::on_atlas:
-          std::cout << " on atlas";
+          std::cout << " on atlas with slack = " << im->slack()
+                    << ", number_mipmap_levels = "
+                    << im->number_mipmap_levels();
           break;
         case Image::bindless_texture2d:
           std::cout << " bindlessly";
@@ -407,6 +426,8 @@ derived_init(int w, int h)
   std::sort(m_table_params.m_images.begin(),
             m_table_params.m_images.end(),
             compare_named_images);
+  m_table_params.m_image_filter = m_image_filter.value();
+  m_table_params.m_image_mipmap_level = m_image_mipmap_level.value();
 
   generate_random_colors(m_num_background_colors.value(), m_table_params.m_background_colors,
                          m_background_colors_opaque.value());

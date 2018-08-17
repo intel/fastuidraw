@@ -145,7 +145,9 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
                   PainterBrush brush;
                   if (m_params.m_images[image].first)
                     {
-                      brush.image(m_params.m_images[image].first);
+                      brush.image(m_params.m_images[image].first,
+                                  m_params.m_image_filter,
+                                  m_params.m_image_mipmap_level);
                     }
 
                   brush.pen(m_params.m_rect_colors[color]);
