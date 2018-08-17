@@ -1047,15 +1047,15 @@ add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data)
   ivec3 return_value;
   std::lock_guard<std::mutex> M(d->m_mutex);
   ivec2 dst_xy;
-  int sz, level, last_level;
+  int sz, level, end_level;
 
   return_value = d->m_color_tiles.allocate_tile();
   dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
   dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
   sz = d->m_color_tiles.tile_size();
-  last_level = image_data.num_mipmap_levels();
+  end_level = image_data.num_mipmap_levels();
 
-  for (level = 0; level < last_level && sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2)
+  for (level = 0; level < end_level && sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2)
     {
       d->m_color_store->set_data(level, dst_xy, return_value.z(), src_xy, sz, image_data);
     }
