@@ -497,25 +497,6 @@ index_texture(void) const
   return p->texture();
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
-fastuidraw::gl::ImageAtlasGL::
-create_bindless(int pw, int ph, unsigned int m, const ImageSourceBase &image,
-                GLenum min_filter, GLenum mag_filter, GLuint *tex)
-{
-  reference_counted_ptr<TextureImage> p;
-  if (pw > 0 && ph > 0 && m > 0 && !detail::bindless().not_supported())
-    {
-      p = TextureImage::create(pw, ph, m, image, min_filter, mag_filter, true);
-    }
-
-  if (tex)
-    {
-      *tex = (p) ? p->texture() : 0u;
-    }
-
-  return p;
-}
-
 //////////////////////////////////////////////////////
 // fastuidraw::gl::ImageAtlasGL::TextureImage methods
 fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>

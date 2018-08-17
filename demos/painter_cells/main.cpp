@@ -81,7 +81,7 @@ private:
   command_line_list<std::string> m_strings;
   command_line_list<std::string> m_files;
   command_line_list<std::string> m_images;
-  command_line_argument_value<bool> m_use_bindless;
+  command_line_argument_value<bool> m_use_atlas;
   command_line_argument_value<bool> m_draw_image_name;
   command_line_argument_value<int> m_num_background_colors;
   command_line_argument_value<bool> m_background_colors_opaque;
@@ -152,10 +152,15 @@ painter_cells(void):
   m_strings("add_string", "add a string to use by the cells", *this),
   m_files("add_string_file", "add a string to use by a cell, taken from file", *this),
   m_images("add_image", "Add an image to use by the cells", *this),
-  m_use_bindless(false, "use_bindless",
-                 "Use bindless texturing for images of each brush "
-                 "(requires GL_ARB_bindless_texture or GL_NV_bindless_texture)",
-                 *this),
+  m_use_atlas(true, "use_atlas",
+              "If false, each image is realized as a texture; if "
+              "GL_ARB_bindless_texture or GL_NV_bindless_texture "
+              "is supported, the Image objects are realized as bindless "
+              "texture, thus avoding draw breaks; if both of these "
+              "extensions is not present, then images are realized as "
+              "bound textures which means that a draw break will be present "
+              "whenever the image changes, harming performance.",
+              *this),
   m_draw_image_name(false, "draw_image_name", "If true draw the image name in each cell as part of the text", *this),
   m_num_background_colors(1, "num_background_colors", "Number of distinct background colors in cells", *this),
   m_background_colors_opaque(false, "background_colors_opaque",
@@ -309,23 +314,31 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
       std::cout << "\tImage \"" << filename << "\" of size "
                 << image_data.dimensions() << " loaded";
 
-      if (m_use_bindless.value())
-        {
-          im = gl::ImageAtlasGL::create_bindless(image_data.width(),
-                                                 image_data.height(),
-                                                 image_data.num_mipmap_levels(),
-                                                 image_data);
-        }
-
-      if (im)
-        {
-          std::cout << " bindlessly";
-        }
-      else
+      if (m_use_atlas.value())
         {
           im = Image::create(m_painter->image_atlas(),
                              image_data.width(), image_data.height(),
                              image_data, slack);
+        }
+      else
+        {
+          im = gl::ImageAtlasGL::TextureImage::create(image_data.width(),
+                                                      image_data.height(),
+                                                      image_data.num_mipmap_levels(),
+                                                      image_data);
+        }
+
+      switch (im->type())
+        {
+        case Image::on_atlas:
+          std::cout << " on atlas";
+          break;
+        case Image::bindless_texture2d:
+          std::cout << " bindlessly";
+          break;
+        case Image::context_texture2d:
+          std::cout << " as bound texture (WARNING: large performance impact expected)";
+          break;
         }
 
       std::cout << " @" << im.get() << ".\n";
@@ -390,6 +403,7 @@ derived_init(int w, int h)
     {
       add_images(S, m_table_params.m_images);
     }
+  std::cout << "Loaded " << m_table_params.m_images.size() << " images total\n";
   std::sort(m_table_params.m_images.begin(),
             m_table_params.m_images.end(),
             compare_named_images);

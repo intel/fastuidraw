@@ -308,31 +308,6 @@ namespace gl
     const params&
     param_values(void) const;
 
-    /*!
-     * Create an Image that is bindless that is backed directly by
-     * a texture. The returned Image object will own the GL texture;
-     * i.e. the texture is deleted when the Image is. Will return a
-     * nullptr if the current GL-context does not support bindless
-     * texturing.
-     * \param w width of the image
-     * \param h height of the image
-     * \param m number of mipmap levels for the texture to have
-     * \param image image data to copy to the texture
-     * \param min_filter value to pass to GL for the minification filter
-     * \param mag_filter value to pass to GL for the magnification filter
-     * \param tex if non-NULL write the name of the texture to tex;
-     *            do NOT delete the texture or reallocate its backing
-     *            store (i.e. glTexImage2D or glTexStorage2D). However,
-     *            one can change texture parameters (via glTexParameter)
-     *            or image data (via glTexSubImage2D) freely.
-     */
-    static
-    reference_counted_ptr<TextureImage>
-    create_bindless(int w, int h, unsigned int m, const ImageSourceBase &image,
-                    GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR,
-                    GLenum mag_filter = GL_LINEAR,
-                    GLuint *tex = nullptr);
-
   private:
     void *m_d;
   };

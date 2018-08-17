@@ -358,7 +358,7 @@ private:
   color_stop_arguments m_color_stop_args;
   command_line_argument_value<std::string> m_image_file;
   command_line_argument_value<unsigned int> m_image_slack;
-  command_line_argument_value<bool> m_use_bindless;
+  command_line_argument_value<bool> m_use_atlas;
   command_line_argument_value<int> m_sub_image_x, m_sub_image_y;
   command_line_argument_value<int> m_sub_image_w, m_sub_image_h;
   command_line_argument_value<std::string> m_font_file;
@@ -529,7 +529,15 @@ painter_stroke_test(void):
   m_color_stop_args(*this),
   m_image_file("", "image", "if a valid file name, apply an image to drawing the fill", *this),
   m_image_slack(0, "image_slack", "amount of slack on tiles when loading image", *this),
-  m_use_bindless(false, "use_bindless", "if true use bindless texturing when applying the image", *this),
+  m_use_atlas(true, "use_atlas",
+              "If false, each image is realized as a texture; if "
+              "GL_ARB_bindless_texture or GL_NV_bindless_texture "
+              "is supported, the Image objects are realized as bindless "
+              "texture, thus avoding draw breaks; if both of these "
+              "extensions is not present, then images are realized as "
+              "bound textures which means that a draw break will be present "
+              "whenever the image changes, harming performance.",
+              *this),
   m_sub_image_x(0, "sub_image_x",
                 "x-coordinate of top left corner of sub-image rectange (negative value means no-subimage)",
                 *this),
@@ -1977,19 +1985,18 @@ derived_init(int w, int h)
       ImageLoader image_data(m_image_file.value());
       if (image_data.non_empty())
         {
-          if (m_use_bindless.value())
-            {
-              m_image = gl::ImageAtlasGL::create_bindless(image_data.width(),
-                                                          image_data.height(),
-                                                          image_data.num_mipmap_levels(),
-                                                          image_data);
-            }
-
-          if (!m_image)
+          if (m_use_atlas.value())
             {
               m_image = Image::create(m_painter->image_atlas(),
                                       image_data.width(), image_data.height(),
                                       image_data, m_image_slack.value());
+            }
+          else
+            {
+              m_image = gl::ImageAtlasGL::TextureImage::create(image_data.width(),
+                                                               image_data.height(),
+                                                               image_data.num_mipmap_levels(),
+                                                               image_data);
             }
         }
     }
