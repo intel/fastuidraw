@@ -181,14 +181,16 @@ namespace
     TextureGL m_backing_store;
   };
 
-  class ImageGLBindless:public fastuidraw::Image
+  class TextureImagePrivate
   {
   public:
-    ImageGLBindless(int w, int h, unsigned int m, GLuint tex, GLuint64 handle);
-    ~ImageGLBindless();
+    TextureImagePrivate(GLuint tex, bool owns):
+      m_texture(tex),
+      m_owns_texture(owns)
+    {}
 
-  private:
     GLuint m_texture;
+    bool m_owns_texture;
   };
 
   class ImageAtlasGLParamsPrivate
@@ -381,26 +383,6 @@ store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num
   return fastuidraw::ivec3(v, v, num_layers);
 }
 
-////////////////////////////////////////////
-// ImageGLBindless methods
-ImageGLBindless::
-ImageGLBindless(int w, int h, unsigned int m,
-                GLuint tex, GLuint64 handle):
-  fastuidraw::Image(w, h, m, fastuidraw::Image::bindless_texture2d, handle),
-  m_texture(tex)
-{
-}
-
-ImageGLBindless::
-~ImageGLBindless()
-{
-  using namespace fastuidraw;
-  using namespace gl;
-
-  detail::bindless().make_texture_handle_non_resident(bindless_handle());
-  glDeleteTextures(1, &m_texture);
-}
-
 //////////////////////////////////////////////
 // fastuidraw::gl::ImageAtlasGL::params methods
 fastuidraw::gl::ImageAtlasGL::params::
@@ -515,20 +497,64 @@ index_texture(void) const
   return p->texture();
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
 fastuidraw::gl::ImageAtlasGL::
 create_bindless(int pw, int ph, unsigned int m, const ImageSourceBase &image,
                 GLenum min_filter, GLenum mag_filter, GLuint *tex)
 {
-  GLuint texture;
-  GLuint64 handle;
-  int w(pw), h(ph);
-
-  if (detail::bindless().not_supported() || w <= 0 || h <= 0 || m <= 0)
+  reference_counted_ptr<TextureImage> p;
+  if (pw > 0 && ph > 0 && m > 0 && !detail::bindless().not_supported())
     {
-      return reference_counted_ptr<fastuidraw::Image>();
+      p = TextureImage::create(pw, ph, m, image, min_filter, mag_filter, true);
     }
 
+  if (tex)
+    {
+      *tex = (p) ? p->texture() : 0u;
+    }
+
+  return p;
+}
+
+//////////////////////////////////////////////////////
+// fastuidraw::gl::ImageAtlasGL::TextureImage methods
+fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+create(int w, int h, unsigned int m, GLuint texture,
+       bool object_owns_texture)
+{
+  if (w <= 0 || h <= 0 || m <= 0 || texture == 0)
+    {
+      return nullptr;
+    }
+
+  if (detail::bindless().not_supported())
+    {
+      return FASTUIDRAWnew TextureImage(w, h, m, object_owns_texture, texture);
+    }
+  else
+    {
+      GLuint64 handle;
+
+      handle = detail::bindless().get_texture_handle(texture);
+      detail::bindless().make_texture_handle_resident(handle);
+      return FASTUIDRAWnew TextureImage(w, h, m, object_owns_texture, texture, handle);
+    }
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+create(int pw, int ph, unsigned int m, const ImageSourceBase &image,
+       GLenum min_filter, GLenum mag_filter,
+       bool object_owns_texture)
+{
+  if (pw <= 0 || ph <= 0 || m <= 0)
+    {
+      return nullptr;
+    }
+
+  GLuint texture;
+  int w(pw), h(ph);
   std::vector<u8vec4> data_storage(w * h);
   c_array<u8vec4> data(make_c_array(data_storage));
 
@@ -551,12 +577,49 @@ create_bindless(int pw, int ph, unsigned int m, const ImageSourceBase &image,
                       data.c_ptr());
     }
   glBindTexture(GL_TEXTURE_2D, 0);
-  handle = detail::bindless().get_texture_handle(texture);
-  detail::bindless().make_texture_handle_resident(handle);
-  if (tex)
+  return create(pw, ph, m, texture, object_owns_texture);
+}
+
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+TextureImage(int w, int h, unsigned int m,
+             bool object_owns_texture, GLuint texture):
+  Image(w, h, m, fastuidraw::Image::context_texture2d, -1)
+{
+  m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
+}
+
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+TextureImage(int w, int h, unsigned int m,
+             bool object_owns_texture, GLuint texture, GLuint64 handle):
+  Image(w, h, m, fastuidraw::Image::bindless_texture2d, handle)
+{
+  m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
+}
+
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+~TextureImage()
+{
+  TextureImagePrivate *d;
+  d = static_cast<TextureImagePrivate*>(m_d);
+
+  if (type() == bindless_texture2d)
     {
-      *tex = texture;
+      detail::bindless().make_texture_handle_non_resident(bindless_handle());
     }
 
-  return FASTUIDRAWnew ImageGLBindless(pw, ph, m, texture, handle);
+  if (d->m_owns_texture)
+    {
+      glDeleteTextures(1, &d->m_texture);
+    }
+
+  FASTUIDRAWdelete(d);
+}
+
+GLuint
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+texture(void) const
+{
+  TextureImagePrivate *d;
+  d = static_cast<TextureImagePrivate*>(m_d);
+  return d->m_texture;
 }

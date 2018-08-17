@@ -191,6 +191,88 @@ namespace gl
     };
 
     /*!
+     * A TextureImage is an Image that is backed by a GL texture.
+     * Creating a TextureImage requires that a GL context is
+     * current. If the GL context supports bindless (i.e one
+     * of the GL_ARB_bindless_texture or GL_NV_bindless_texture
+     * is present), then the created TextureImage will have that
+     * Image::type() is Image::bindless_texture2d, otherwise it
+     * will be Image::context_texture2d.
+     */
+    class TextureImage:public Image
+    {
+    public:
+      /*!
+       * Create a TextureImage from a previously created GL texture
+       * whose binding target is GL_TEXTURE_2D.
+       * \param w width of the texture
+       * \param h height of the texture
+       * \param m number of mipmap levels of the texture
+       * \param object_owns_texture the created TextureImage will own the
+       *                            GL texture and will delete the GL texture
+       *                            when the returned TextureImage is deleted.
+       *                            If false, the GL texture must be deleted
+       *                            by the caller AFTER the TextureImage is
+       *                            deleted.
+       */
+      static
+      reference_counted_ptr<TextureImage>
+      create(int w, int h, unsigned int m, GLuint texture,
+             bool object_owns_texture = true);
+
+      /*!
+       * Create a TextureImage from image data.
+       * \param w width of the image
+       * \param h height of the image
+       * \param m number of mipmap levels for the texture to have
+       * \param image image data to copy to the texture
+       * \param min_filter value to pass to GL for the minification filter
+       * \param mag_filter value to pass to GL for the magnification filter
+       * \param object_owns_texture the created TextureImage will own the
+       *                            GL texture and will delete the GL texture
+       *                            when the returned TextureImage is deleted.
+       *                            If false, the GL texture must be deleted
+       *                            by the caller AFTER the TextureImage is
+       *                            deleted.
+       */
+      static
+      reference_counted_ptr<TextureImage>
+      create(int w, int h, unsigned int m, const ImageSourceBase &image,
+             GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR,
+             GLenum mag_filter = GL_LINEAR,
+             bool object_owns_texture = true);
+
+      ~TextureImage();
+
+      /*!
+       * Returns the GL texture backing the TextureImage.
+       * The texture binding target is always GL_TEXTURE_2D.
+       * One can modify the -contents- of the texture via
+       * glGetTexParameter familiy of functions or the
+       * contents of the backing store via glTexSubImage2D,
+       * but one should never change its backing store
+       * (via glTexImage2D) or delete it (via glDeleteTextures).
+       * Lastly, recall that \ref Painter works by generating
+       * index and draw buffers that are sent to the GL/GLES
+       * API at Painter::end(), thus if one wants to modify
+       * the texture within a Painter::begin() / Painter::end()
+       * pair, one must modify it from a PainterDraw::Action
+       * so that the texture is consumed by the gfx API
+       * before it is modified.
+       */
+      GLuint
+      texture(void) const;
+
+    private:
+      TextureImage(int w, int h, unsigned int m,
+                   bool object_owns_texture, GLuint texture);
+      TextureImage(int w, int h, unsigned int m,
+                   bool object_owns_texture, GLuint texture, GLuint64 handle);
+
+      void *m_d;
+    };
+
+    /*!
      * Ctor.
      * \param P parameters for ImageAtlasGL
      */
@@ -225,10 +307,13 @@ namespace gl
      */
     const params&
     param_values(void) const;
+
     /*!
-     * Create an Image that is bindless that is backed directly
-     * by a texture. Will return a nullptr if the current GL-context
-     * does not support bindless texturing.
+     * Create an Image that is bindless that is backed directly by
+     * a texture. The returned Image object will own the GL texture;
+     * i.e. the texture is deleted when the Image is. Will return a
+     * nullptr if the current GL-context does not support bindless
+     * texturing.
      * \param w width of the image
      * \param h height of the image
      * \param m number of mipmap levels for the texture to have
@@ -242,7 +327,7 @@ namespace gl
      *            or image data (via glTexSubImage2D) freely.
      */
     static
-    reference_counted_ptr<Image>
+    reference_counted_ptr<TextureImage>
     create_bindless(int w, int h, unsigned int m, const ImageSourceBase &image,
                     GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR,
                     GLenum mag_filter = GL_LINEAR,
