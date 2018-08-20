@@ -19,17 +19,6 @@ Issues:
      also means that all of the layout data in GlpyhLayout except
      for m_units_per_EM is not needed either.
 
-
-  To Uber shader or not
-  ---------------------
-     The GL backend uses an uber shader. We need to also implement so that a
-     non-Uber shader is used and perform benchmarking to see if using an uber
-     shader is called for. For loads that draw the same stuff the same way,
-     the Uber will lose always, but for complicated, the Uber shader will win
-     more the more complicated the scene. However, until benchmarks are in,
-     we do not know(!).
-
-
   GL ickiness
   --------------------
    A number of dtor's in the gl_backend need a GL context
