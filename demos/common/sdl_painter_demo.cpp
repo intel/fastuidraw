@@ -369,6 +369,10 @@ sdl_painter_demo(const std::string &about_text,
                          "painter_uber_frag_use_switch",
                          "If true, use a switch statement in uber fragment shader dispatch",
                          *this),
+  m_use_uber_item_shader(m_painter_params.use_uber_item_shader(),
+                         "painter_use_uber_item_shader",
+                         "If true, use an uber-shader for all item shaders",
+                         *this),
   m_uber_composite_use_switch(m_painter_params.composite_shader_use_switch(),
                           "painter_uber_composite_use_switch",
                           "If true, use a switch statement in uber composite shader dispatch",
@@ -675,6 +679,7 @@ init_gl(int w, int h)
   APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
   APPLY_PARAM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
   APPLY_PARAM(compositing_type, m_composite_type);
+  APPLY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
 
 #undef APPLY_PARAM
 
@@ -800,6 +805,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(clipping_type, m_use_hw_clip_planes);
       LAZY_PARAM_ENUM(vert_shader_use_switch, m_uber_vert_use_switch);
       LAZY_PARAM_ENUM(frag_shader_use_switch, m_uber_frag_use_switch);
+      LAZY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
       LAZY_PARAM_ENUM(composite_shader_use_switch, m_uber_composite_use_switch);
       LAZY_PARAM_ENUM(unpack_header_and_brush_in_frag_shader, m_unpack_header_and_brush_in_frag_shader);
       LAZY_PARAM_ENUM(data_store_backing, m_data_store_backing);

@@ -125,6 +125,7 @@ private:
   command_line_argument_value<bool> m_painter_break_on_shader_change;
   command_line_argument_value<bool> m_uber_vert_use_switch;
   command_line_argument_value<bool> m_uber_frag_use_switch;
+  command_line_argument_value<bool> m_use_uber_item_shader;
   command_line_argument_value<bool> m_uber_composite_use_switch;
   command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
   command_line_argument_value<bool> m_separate_program_for_discard;
