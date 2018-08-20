@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include "ImageLoader.hpp"
 
 namespace
@@ -83,6 +84,49 @@ namespace
     SDL_UnlockSurface(img);
     return fastuidraw::ivec2(w, h);
   }
+
+  bool
+  compute_use_tex_storage(void)
+  {
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      {
+        return true;
+      }
+    #else
+      {
+        fastuidraw::gl::ContextProperties ctx;
+
+        return ctx.version() >= fastuidraw::ivec2(4, 2)
+          || ctx.has_extension("GL_ARB_texture_storage");
+      }
+    #endif
+  }
+
+  void
+  tex_storage2d_rgba8(int w, int h, int m)
+  {
+    static bool use_tex_storage(compute_use_tex_storage());
+    if (use_tex_storage)
+      {
+        glTexStorage2D(GL_TEXTURE_2D, m, GL_RGBA8, w, h);
+      }
+    else
+      {
+        for (unsigned int i = 0; i < m; ++i, w /= 2, h /= 2)
+          {
+            glTexImage2D(GL_TEXTURE_2D,
+                         i,
+                         GL_RGBA8,
+                         fastuidraw::t_max(w, 1),
+                         fastuidraw::t_max(h, 1),
+                         0,
+                         GL_RGBA,
+                         GL_UNSIGNED_BYTE,
+                         nullptr);
+          }
+      }
+  }
+
 }
 
 fastuidraw::ivec2
@@ -197,4 +241,50 @@ ImageLoaderData(const std::string &pfilename, bool flip):
     {
       m_data_as_arrays[i] = cast_c_array(m_mipmap_levels[i]);
     }
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
+create_texture_image(int pw, int ph, unsigned int m,
+                     const fastuidraw::ImageSourceBase &image,
+                     GLenum min_filter, GLenum mag_filter,
+                     bool object_owns_texture)
+{
+  if (pw <= 0 || ph <= 0 || m <= 0)
+    {
+      return nullptr;
+    }
+
+  GLuint texture;
+  int w(pw), h(ph);
+  std::vector<fastuidraw::u8vec4> data_storage(w * h);
+  fastuidraw::c_array<fastuidraw::u8vec4> data(cast_c_array(data_storage));
+
+  glGenTextures(1, &texture);
+  FASTUIDRAWassert(texture != 0u);
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  m = fastuidraw::t_min(m, image.num_mipmap_levels());
+  tex_storage2d_rgba8(w, h, m);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
+  for (unsigned int l = 0; l < m && w > 0 && h > 0; ++l, w /= 2, h /= 2)
+    {
+      image.fetch_texels(l,
+                         fastuidraw::ivec2(0, 0),
+                         fastuidraw::t_max(w, 1),
+                         fastuidraw::t_max(h, 1),
+                         data);
+
+      glTexSubImage2D(GL_TEXTURE_2D, l,
+                      0, 0,
+                      fastuidraw::t_max(w, 1),
+                      fastuidraw::t_max(h, 1),
+                      GL_RGBA, GL_UNSIGNED_BYTE,
+                      data.c_ptr());
+    }
+  glBindTexture(GL_TEXTURE_2D, 0);
+  return fastuidraw::gl::ImageAtlasGL::TextureImage::create(pw, ph, m, texture, object_owns_texture);
 }

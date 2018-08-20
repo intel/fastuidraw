@@ -1993,10 +1993,10 @@ derived_init(int w, int h)
             }
           else
             {
-              m_image = gl::ImageAtlasGL::TextureImage::create(image_data.width(),
-                                                               image_data.height(),
-                                                               image_data.num_mipmap_levels(),
-                                                               image_data);
+              m_image = create_texture_image(image_data.width(),
+                                             image_data.height(),
+                                             image_data.num_mipmap_levels(),
+                                             image_data);
             }
         }
     }

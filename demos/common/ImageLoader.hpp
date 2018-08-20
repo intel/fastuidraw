@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/image.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
+#include <fastuidraw/gl_backend/image_gl.hpp>
 
 #include "cast_c_array.hpp"
 
@@ -76,3 +78,10 @@ public:
     fastuidraw::ImageSourceCArray(dimensions(), data())
   {}
 };
+
+fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
+create_texture_image(int w, int h, unsigned int m,
+                     const fastuidraw::ImageSourceBase &image,
+                     GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR,
+                     GLenum mag_filter = GL_LINEAR,
+                     bool object_owns_texture = true);
