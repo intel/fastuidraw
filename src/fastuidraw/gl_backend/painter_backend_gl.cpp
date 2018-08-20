@@ -99,6 +99,7 @@ namespace
     bool m_uniform_ubo_ready;
     fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
     GLuint m_current_external_texture;
+    bool m_use_uber_shader;
 
     fastuidraw::gl::PainterBackendGL *m_p;
   };
@@ -283,7 +284,8 @@ namespace
       m_separate_program_for_discard(true),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz),
       m_compositing_type(fastuidraw::gl::PainterBackendGL::compositing_dual_src),
-      m_provide_auxiliary_image_buffer(fastuidraw::gl::PainterBackendGL::no_auxiliary_buffer)
+      m_provide_auxiliary_image_buffer(fastuidraw::gl::PainterBackendGL::no_auxiliary_buffer),
+      m_use_uber_item_shader(true)
     {}
 
     int m_alignment;
@@ -308,6 +310,7 @@ namespace
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     enum fastuidraw::gl::PainterBackendGL::compositing_type_t m_compositing_type;
     enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
+    bool m_use_uber_item_shader;
 
     std::string m_glsl_version_override;
   };
@@ -453,9 +456,17 @@ DrawEntry(const fastuidraw::BlendMode &mode,
           PainterBackendGLPrivate *pr,
           unsigned int pz):
   m_set_blend(true),
-  m_blend_mode(mode),
-  m_new_program(pr->m_cached_programs[pz].get())
-{}
+  m_blend_mode(mode)
+{
+  if (pr->m_use_uber_shader)
+    {
+      m_new_program = pr->m_cached_programs[pz].get();
+    }
+  else
+    {
+      m_new_program = pr->m_reg_gl->program_of_item_shader(pz).get();
+    }
+}
 
 DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode):
@@ -630,15 +641,30 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   old_mode = old_shaders.packed_composite_mode();
   new_mode = new_shaders.packed_composite_mode();
 
-  old_disc = old_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
-  new_disc = new_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
+  if (m_pr->m_use_uber_shader)
+    {
+      old_disc = old_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
+      new_disc = new_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
+    }
+  else
+    {
+      old_disc = old_shaders.item_group();
+      new_disc = new_shaders.item_group();
+    }
 
   if (old_disc != new_disc)
     {
       unsigned int pz;
-      pz = (new_disc != 0u) ?
-        PainterBackendGL::program_with_discard :
-        PainterBackendGL::program_without_discard;
+      if (m_pr->m_use_uber_shader)
+        {
+          pz = (new_disc != 0u) ?
+            PainterBackendGL::program_with_discard :
+            PainterBackendGL::program_without_discard;
+        }
+      else
+        {
+          pz = new_disc;
+        }
 
       if (!m_draws.empty())
         {
@@ -773,6 +799,7 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   FASTUIDRAWassert(reg_base.dynamic_cast_ptr<PainterShaderRegistrarGL>());
   m_reg_gl = reg_base.static_cast_ptr<PainterShaderRegistrarGL>();
 
+  m_use_uber_shader = m_reg_gl->params().use_uber_item_shader();
   m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(), m_p->configuration_base(),
                                           m_reg_gl->tex_buffer_support(),
                                           m_reg_gl->uber_shader_builder_params().binding_points());
@@ -1684,6 +1711,8 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
                  enum fastuidraw::gl::PainterBackendGL::compositing_type_t, compositing_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, use_uber_item_shader)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods

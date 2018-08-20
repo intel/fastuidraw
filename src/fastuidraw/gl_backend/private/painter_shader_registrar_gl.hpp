@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <vector>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
@@ -50,6 +51,9 @@ public:
 
   program_set
   programs(void);
+
+  program_ref
+  program_of_item_shader(unsigned int shader_group);
 
   const PainterBackendGL::ConfigurationGL&
   params(void) const
@@ -118,6 +122,9 @@ private:
   program_ref
   build_program(enum PainterBackendGL::program_type_t tp);
 
+  program_ref
+  build_program_of_item_shader(unsigned int shader, bool allow_discard);
+
   PainterBackendGL::ConfigurationGL m_params;
   UberShaderParams m_uber_shader_builder_params;
   enum interlock_type_t m_interlock_type;
@@ -130,6 +137,7 @@ private:
   glsl::ShaderSource m_front_matter_frag;
   unsigned int m_number_shaders_in_program;
   program_set m_programs;
+  std::vector<program_ref> m_item_programs;
 
   ContextProperties m_ctx_properties;
   enum tex_buffer_support_t m_tex_buffer_support;

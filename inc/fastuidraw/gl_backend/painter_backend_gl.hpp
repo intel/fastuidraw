@@ -315,6 +315,21 @@ namespace fastuidraw
         break_on_shader_change(bool v);
 
         /*!
+         * If false, each differen item shader (including sub-shaders) is
+         * realized as a separate GLSL program. This means that a GLSL
+         * shader change is invoked when item shader changes, potentially
+         * massively harming performance. Default value is true.
+         */
+        bool
+        use_uber_item_shader(void) const;
+
+        /*!
+         * Set the value for use_uber_item_shader(void) const
+         */
+        ConfigurationGL&
+        use_uber_item_shader(bool);
+
+        /*!
          * If true, unpacks the brush and fragment shader specific data
          * from the data buffer at the fragment shader. If false, unpacks
          * the data in the vertex shader and fowards the data as flats

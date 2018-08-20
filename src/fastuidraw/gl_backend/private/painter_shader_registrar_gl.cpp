@@ -103,8 +103,10 @@ compute_item_shader_group(PainterShader::Tag tag,
                           const reference_counted_ptr<PainterItemShader> &shader)
 {
   uint32_t return_value;
+  bool group_id_is_shader_id;
 
-  return_value = m_params.break_on_shader_change() ? tag.m_ID : 0u;
+  group_id_is_shader_id = (!m_params.use_uber_item_shader() || m_params.break_on_shader_change());
+  return_value = (group_id_is_shader_id) ? tag.m_ID : 0u;
   return_value |= (shader_group_discard_mask & tag.m_group);
 
   if (m_params.separate_program_for_discard())
@@ -464,6 +466,28 @@ programs(void)
   return m_programs;
 }
 
+fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
+fastuidraw::gl::detail::PainterShaderRegistrarGL::
+program_of_item_shader(unsigned int shader_group)
+{
+  unsigned int shader;
+
+  shader = shader_group & ~PainterShaderRegistrarGL::shader_group_discard_mask;
+  if (shader >= m_item_programs.size())
+    {
+      m_item_programs.resize(shader + 1);
+    }
+
+  if (!m_item_programs[shader])
+    {
+      m_item_programs[shader] =
+        build_program_of_item_shader(shader,
+                                     shader_group & ~PainterShaderRegistrarGL::shader_group_discard_mask);
+    }
+
+  return m_item_programs[shader];
+}
+
 void
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
 build_programs(void)
@@ -476,6 +500,46 @@ build_programs(void)
       m_programs[tp] = build_program(tp);
       FASTUIDRAWassert(m_programs[tp]->link_success());
     }
+}
+
+fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
+fastuidraw::gl::detail::PainterShaderRegistrarGL::
+build_program_of_item_shader(unsigned int shader, bool allow_discard)
+{
+  using namespace fastuidraw::glsl;
+
+  ShaderSource vert, frag;
+  program_ref return_value;
+  c_string discard_macro;
+
+  if (allow_discard)
+    {
+      discard_macro = "fastuidraw_do_nothing()";
+      frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
+    }
+  else
+    {
+      discard_macro = "discard";
+    }
+
+  vert
+    .specify_version(m_front_matter_vert.version())
+    .specify_extensions(m_front_matter_vert)
+    .add_source(m_front_matter_vert);
+
+  frag
+    .specify_version(m_front_matter_frag.version())
+    .specify_extensions(m_front_matter_frag)
+    .add_source(m_front_matter_frag);
+
+  construct_item_shader(m_backend_constants, vert, frag,
+                        m_uber_shader_builder_params,
+                        shader, discard_macro);
+
+  return_value = FASTUIDRAWnew Program(vert, frag,
+                                       m_attribute_binder,
+                                       m_initializer);
+  return return_value;
 }
 
 fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
