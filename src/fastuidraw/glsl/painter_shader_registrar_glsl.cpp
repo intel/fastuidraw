@@ -200,6 +200,22 @@ namespace
                      fastuidraw::c_string discard_macro_value);
 
     void
+    construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
+                     fastuidraw::glsl::ShaderSource &out_vertex,
+                     fastuidraw::glsl::ShaderSource &out_fragment,
+                     const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &contruct_params,
+                     unsigned int shader_id,
+                     fastuidraw::c_string discard_macro_value);
+
+    void
+    construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
+                            fastuidraw::glsl::ShaderSource &out_vertex,
+                            fastuidraw::glsl::ShaderSource &out_fragment,
+                            fastuidraw::glsl::detail::UberShaderVaryings &uber_shader_varyings,
+                            const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &contruct_params,
+                            fastuidraw::c_string discard_macro_value);
+
+    void
     update_varying_size(const fastuidraw::glsl::varying_list &plist);
 
     std::string
@@ -224,6 +240,7 @@ namespace
 
     enum fastuidraw::PainterCompositeShader::shader_type m_composite_type;
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders_keyed_by_id;
     unsigned int m_next_item_shader_ID;
     fastuidraw::vecN<CompositeShaderGroup, fastuidraw::PainterCompositeShader::number_types> m_composite_shaders;
     unsigned int m_next_composite_shader_ID;
@@ -763,12 +780,12 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterShaderRegistrarGLSL::Uber
 
 void
 PainterShaderRegistrarGLSLPrivate::
-construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
-                 fastuidraw::glsl::ShaderSource &vert,
-                 fastuidraw::glsl::ShaderSource &frag,
-                 const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &params,
-                 const fastuidraw::glsl::PainterShaderRegistrarGLSL::ItemShaderFilter *item_shader_filter,
-                 fastuidraw::c_string discard_macro_value)
+construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
+                        fastuidraw::glsl::ShaderSource &vert,
+                        fastuidraw::glsl::ShaderSource &frag,
+                        fastuidraw::glsl::detail::UberShaderVaryings &uber_shader_varyings,
+                        const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &params,
+                        fastuidraw::c_string discard_macro_value)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
@@ -776,33 +793,15 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
 
   std::string varying_layout_macro, binding_layout_macro;
   std::string declare_varyings;
-  UberShaderVaryings uber_shader_varyings;
   AliasVaryingLocation main_varying_datum, brush_varying_datum;
-  AliasVaryingLocation clip_varying_datum, shader_varying_datum;
+  AliasVaryingLocation clip_varying_datum;
   std::string declare_vertex_shader_ins;
   std::string declare_uniforms;
   const varying_list *main_varyings;
   const PainterShaderRegistrarGLSL::BindingPoints &binding_params(params.binding_points());
-  std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
-  c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
   enum PainterCompositeShader::shader_type composite_type;
 
   composite_type = params.composite_type();
-  if (item_shader_filter)
-    {
-      for(const auto &sh : m_item_shaders)
-        {
-          if (item_shader_filter->use_shader(sh))
-            {
-              work_shaders.push_back(sh);
-            }
-        }
-      item_shaders = make_c_array(work_shaders);
-    }
-  else
-    {
-      item_shaders = make_c_array(m_item_shaders);
-    }
 
   if (params.assign_layout_to_vertex_shader_inputs())
     {
@@ -871,12 +870,6 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
     }
 
   uber_shader_varyings.add_varyings("main", *main_varyings, &main_varying_datum);
-
-  uber_shader_varyings.add_varyings("shader",
-                                    m_number_uint_varyings,
-                                    m_number_int_varyings,
-                                    m_number_float_varyings,
-                                    &shader_varying_datum);
 
   declare_uniforms = declare_shader_uniforms(params);
   declare_varyings = uber_shader_varyings.declare_varyings("fastuidraw_varying");
@@ -1106,8 +1099,6 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
     .add_source("fastuidraw_painter_main.vert.glsl.resource_string", ShaderSource::from_resource);
 
   stream_unpack_code(backend, vert);
-  stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
-                          uber_shader_varyings, shader_varying_datum);
 
   bool blending_supported(false);
   c_string shader_composite_macro;
@@ -1210,8 +1201,6 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
     .add_source("fastuidraw_painter_main.frag.glsl.resource_string", ShaderSource::from_resource);
 
   stream_unpack_code(backend, frag);
-  stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
-                          uber_shader_varyings, shader_varying_datum);
   stream_uber_composite_shader(params.composite_shader_use_switch(), frag,
                                make_c_array(m_composite_shaders[composite_type].m_shaders),
                                composite_type);
@@ -1221,6 +1210,125 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
       stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
                                make_c_array(m_blend_shaders));
     }
+}
+
+void
+PainterShaderRegistrarGLSLPrivate::
+construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
+                 fastuidraw::glsl::ShaderSource &vert,
+                 fastuidraw::glsl::ShaderSource &frag,
+                 const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &params,
+                 const fastuidraw::glsl::PainterShaderRegistrarGLSL::ItemShaderFilter *item_shader_filter,
+                 fastuidraw::c_string discard_macro_value)
+{
+  using namespace fastuidraw;
+  using namespace fastuidraw::glsl;
+  using namespace fastuidraw::glsl::detail;
+
+  std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
+  c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
+  UberShaderVaryings uber_shader_varyings;
+  AliasVaryingLocation shader_varying_datum;
+
+  if (item_shader_filter)
+    {
+      for(const auto &sh : m_item_shaders)
+        {
+          if (item_shader_filter->use_shader(sh))
+            {
+              work_shaders.push_back(sh);
+            }
+        }
+      item_shaders = make_c_array(work_shaders);
+    }
+  else
+    {
+      item_shaders = make_c_array(m_item_shaders);
+    }
+
+  uber_shader_varyings.add_varyings("shader",
+                                    m_number_uint_varyings,
+                                    m_number_int_varyings,
+                                    m_number_float_varyings,
+                                    &shader_varying_datum);
+
+  construct_shader_common(backend, vert, frag,
+                          uber_shader_varyings,
+                          params, discard_macro_value);
+
+  stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
+                          uber_shader_varyings, shader_varying_datum);
+
+  stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
+                          uber_shader_varyings, shader_varying_datum);
+}
+
+void
+PainterShaderRegistrarGLSLPrivate::
+construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
+                 fastuidraw::glsl::ShaderSource &vert,
+                 fastuidraw::glsl::ShaderSource &frag,
+                 const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &params,
+                 unsigned int shader_id,
+                 fastuidraw::c_string discard_macro_value)
+{
+  using namespace fastuidraw;
+  using namespace fastuidraw::glsl;
+  using namespace fastuidraw::glsl::detail;
+
+  reference_counted_ptr<PainterItemShaderGLSL> shader;
+  unsigned int sub_shader_id;
+  UberShaderVaryings uber_shader_varyings;
+  AliasVaryingLocation shader_varying_datum;
+  c_string run_vert_shader, run_frag_shader;
+
+  FASTUIDRAWassert(shader_id < m_item_shaders_keyed_by_id.size());
+  FASTUIDRAWassert(m_item_shaders_keyed_by_id[shader_id]);
+
+  shader = m_item_shaders_keyed_by_id[shader_id];
+  FASTUIDRAWassert(shader_id >= shader->ID());
+
+  sub_shader_id = shader_id - shader->ID();
+
+  uber_shader_varyings.add_varyings("item",
+                                    shader->varyings(),
+                                    &shader_varying_datum);
+
+  vert
+    .add_macro("FASTUIDRAW_LOCAL(X)", "X")
+    .add_macro("fastuidraw_shader_id", shader_id)
+    .add_macro("fastuidraw_sub_shader_id", sub_shader_id);
+
+  frag
+    .add_macro("FASTUIDRAW_LOCAL(X)", "X")
+    .add_macro("fastuidraw_shader_id", shader_id)
+    .add_macro("fastuidraw_sub_shader_id", sub_shader_id);
+
+  construct_shader_common(backend, vert, frag,
+                          uber_shader_varyings,
+                          params, discard_macro_value);
+
+  uber_shader_varyings.stream_alias_varyings(vert, shader->varyings(), true, shader_varying_datum);
+  run_vert_shader =
+    "vec4 fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z)\n"
+    "{\n"
+    "  return fastuidraw_gl_vert_main(uint(fastuidraw_sub_shader_id), fastuidraw_primary_attribute,\n"
+    "                                fastuidraw_secondary_attribute, fastuidraw_uint_attribute,\n"
+    "                                h.item_shader_data_location, add_z);\n"
+    "}\n"
+    "\n";
+  vert.add_source(shader->vertex_src());
+  vert.add_source(run_vert_shader, ShaderSource::from_string);
+
+  uber_shader_varyings.stream_alias_varyings(frag, shader->varyings(), true, shader_varying_datum);
+  run_frag_shader =
+    "vec4 fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)\n"
+    "{\n"
+    "  return fastuidraw_gl_frag_main(uint(fastuidraw_sub_shader_id), frag_shader_data_location);\n"
+    "}\n"
+    "\n";
+  frag.add_source(shader->fragment_src());
+  frag.add_source(run_frag_shader, ShaderSource::from_string);
 }
 
 //////////////////////////////////////////////////////
@@ -1598,6 +1706,16 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   d->m_item_shaders.push_back(h);
   d->update_varying_size(h->varyings());
 
+  while (d->m_item_shaders_keyed_by_id.size() < d->m_next_item_shader_ID)
+    {
+      d->m_item_shaders_keyed_by_id.push_back(nullptr);
+    }
+
+  for (unsigned int i = 0, endi = h->number_sub_shaders(); i < endi; ++i)
+    {
+      d->m_item_shaders_keyed_by_id.push_back(h);
+    }
+
   return_value.m_ID = d->m_next_item_shader_ID;
   return_value.m_group = 0;
   d->m_next_item_shader_ID += h->number_sub_shaders();
@@ -1711,6 +1829,22 @@ construct_shader(const BackendConstants &backend_constants,
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
   d->construct_shader(backend_constants, out_vertex, out_fragment,
                       construct_params, item_shader_filter,
+                      discard_macro_value);
+}
+
+void
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+construct_item_shader(const BackendConstants &backend_constants,
+                      ShaderSource &out_vertex,
+                      ShaderSource &out_fragment,
+                      const UberShaderParams &construct_params,
+                      unsigned int shader_id,
+                      c_string discard_macro_value)
+{
+  PainterShaderRegistrarGLSLPrivate *d;
+  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
+  d->construct_shader(backend_constants, out_vertex, out_fragment,
+                      construct_params, shader_id,
                       discard_macro_value);
 }
 

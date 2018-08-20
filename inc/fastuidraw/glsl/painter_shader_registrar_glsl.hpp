@@ -1254,6 +1254,30 @@ namespace fastuidraw
                        const UberShaderParams &contruct_params,
                        const ItemShaderFilter *item_shader_filter = nullptr,
                        c_string discard_macro_value = "discard");
+
+      /*!
+       * Add the vertex and fragment shaders of a specific item shader to given
+       * ShaderSource values. The \ref Mutex mutex() is NOT locked during this call,
+       * a caller should lock the mutex before calling it. This way a derived class
+       * can use the same lock as used by the PainterShaderRegistrarGLSL.
+       * \param backend_constants constant values that affect the created uber-shader.
+       * \param out_vertex ShaderSource to which to add uber-vertex shader
+       * \param out_fragment ShaderSource to which to add uber-fragment shader
+       * \param contruct_params specifies how to construct the uber-shaders.
+       * \param shader_id item shader ID, i.e. PainterItemShader::ID().
+       * \param discard_macro_value macro-value definintion for the macro
+       *                            FASTUIDRAW_DISCARD. PainterItemShaderGLSL
+       *                            fragment sources use FASTUIDRAW_DISCARD
+       *                            instead of discard.
+       */
+      void
+      construct_item_shader(const BackendConstants &backend_constants,
+                            ShaderSource &out_vertex,
+                            ShaderSource &out_fragment,
+                            const UberShaderParams &contruct_params,
+                            unsigned int shader_id,
+                            c_string discard_macro_value = "discard");
+
       /*!
        * Returns the total number of shaders (item and composite)
        * registered to this PainterShaderRegistrarGLSL; a derived class
