@@ -111,7 +111,10 @@ public:
   vecN<GLsizei, 3>
   next_lod_size(vecN<GLsizei, 3> dims)
   {
-    return dims / 2;
+    vecN<GLsizei, 3> R(t_max(1, dims.x() / 2),
+                       t_max(1, dims.y() / 2),
+                       t_max(1, dims.z() / 2));
+    return R;
   }
 };
 #endif
@@ -127,7 +130,9 @@ public:
   vecN<GLsizei, 3>
   next_lod_size(vecN<GLsizei, 3> dims)
   {
-    vecN<GLsizei, 3> R(dims.x() / 2, dims.y() / 2, dims.z());
+    vecN<GLsizei, 3> R(t_max(1, dims.x() / 2),
+                       t_max(1, dims.y() / 2),
+                       dims.z());
     return R;
   }
 };
@@ -144,7 +149,9 @@ public:
   vecN<GLsizei, 3>
   next_lod_size(vecN<GLsizei, 3> dims)
   {
-    vecN<GLsizei, 3> R(dims.x() / 2, dims.y() / 2, dims.z());
+    vecN<GLsizei, 3> R(t_max(1, dims.x() / 2),
+                       t_max(1, dims.y() / 2),
+                       dims.z());
     return R;
   }
 };
@@ -204,7 +211,8 @@ public:
   vecN<GLsizei, 2>
   next_lod_size(vecN<GLsizei, 2> dims)
   {
-    vecN<GLsizei, 2> R(dims.x() / 2, dims.y() / 2);
+    vecN<GLsizei, 2> R(t_max(1, dims.x() / 2),
+                       t_max(1, dims.y() / 2));
     return R;
   }
 };
@@ -221,7 +229,8 @@ public:
   vecN<GLsizei, 2>
   next_lod_size(vecN<GLsizei, 2> dims)
   {
-    vecN<GLsizei, 2> R(dims.x() / 2, dims.y());
+    vecN<GLsizei, 2> R(t_max(1, dims.x() / 2),
+                       dims.y());
     return R;
   }
 };
@@ -258,7 +267,7 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 2> size,
       for (unsigned int i = 0; i < num_levels; ++i)
         {
           glTexImage2D(texture_target,
-                       0,
+                       i,
                        internalformat,
                        size.x(), size.y(), 0,
                        format_from_internal_format(internalformat),
@@ -298,7 +307,8 @@ public:
   vecN<GLsizei, 1>
   next_lod_size(vecN<GLsizei, 1> dims)
   {
-    return dims / 2;
+    vecN<GLsizei, 1> R(t_max(dims.x() / 2, 1));
+    return R;
   }
 };
 #endif
@@ -320,7 +330,7 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 1> size,
       for (unsigned int i = 0; i < num_levels; ++i)
         {
           glTexImage1D(texture_target,
-                       0,
+                       i,
                        internalformat,
                        size.x(), 0,
                        format_from_internal_format(internalformat),
