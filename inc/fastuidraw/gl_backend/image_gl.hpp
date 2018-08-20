@@ -221,28 +221,6 @@ namespace gl
       create(int w, int h, unsigned int m, GLuint texture,
              bool object_owns_texture = true);
 
-      /*!
-       * Create a TextureImage from image data.
-       * \param w width of the image
-       * \param h height of the image
-       * \param m number of mipmap levels for the texture to have
-       * \param image image data to copy to the texture
-       * \param min_filter value to pass to GL for the minification filter
-       * \param mag_filter value to pass to GL for the magnification filter
-       * \param object_owns_texture the created TextureImage will own the
-       *                            GL texture and will delete the GL texture
-       *                            when the returned TextureImage is deleted.
-       *                            If false, the GL texture must be deleted
-       *                            by the caller AFTER the TextureImage is
-       *                            deleted.
-       */
-      static
-      reference_counted_ptr<TextureImage>
-      create(int w, int h, unsigned int m, const ImageSourceBase &image,
-             GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR,
-             GLenum mag_filter = GL_LINEAR,
-             bool object_owns_texture = true);
-
       ~TextureImage();
 
       /*!

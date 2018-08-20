@@ -523,44 +523,6 @@ create(int w, int h, unsigned int m, GLuint texture,
     }
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
-fastuidraw::gl::ImageAtlasGL::TextureImage::
-create(int pw, int ph, unsigned int m, const ImageSourceBase &image,
-       GLenum min_filter, GLenum mag_filter,
-       bool object_owns_texture)
-{
-  if (pw <= 0 || ph <= 0 || m <= 0)
-    {
-      return nullptr;
-    }
-
-  GLuint texture;
-  int w(pw), h(ph);
-  std::vector<u8vec4> data_storage(w * h);
-  c_array<u8vec4> data(make_c_array(data_storage));
-
-  glGenTextures(1, &texture);
-  FASTUIDRAWassert(texture != 0u);
-  glBindTexture(GL_TEXTURE_2D, texture);
-
-  detail::tex_storage<GL_TEXTURE_2D>(true, GL_RGBA8, ivec2(w, h), m);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-
-  m = t_min(m, image.num_mipmap_levels());
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
-  for (unsigned int l = 0; l < m && w > 0 && h > 0; ++l, w /= 2, h /= 2)
-    {
-      image.fetch_texels(l, ivec2(0, 0), t_max(w, 1), t_max(h, 1), data);
-      glTexSubImage2D(GL_TEXTURE_2D, l, 0, 0,
-                      t_max(w, 1), t_max(h, 1),
-                      GL_RGBA, GL_UNSIGNED_BYTE,
-                      data.c_ptr());
-    }
-  glBindTexture(GL_TEXTURE_2D, 0);
-  return create(pw, ph, m, texture, object_owns_texture);
-}
-
 fastuidraw::gl::ImageAtlasGL::TextureImage::
 TextureImage(int w, int h, unsigned int m,
              bool object_owns_texture, GLuint texture):
