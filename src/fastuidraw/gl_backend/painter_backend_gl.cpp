@@ -1338,6 +1338,11 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
   d->m_assign_layout_to_vertex_shader_inputs = true;
   d->m_assign_layout_to_varyings = true;
   d->m_assign_binding_points = true;
+
+  /* Generally, we want to allow for early-Z as
+   * much as possible, so we ahve a different
+   * program for those shaders that use discard
+   */
   d->m_separate_program_for_discard = true;
 
   if (!for_msaa)
