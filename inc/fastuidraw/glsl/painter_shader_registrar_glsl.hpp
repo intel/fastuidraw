@@ -104,31 +104,27 @@ namespace fastuidraw
       enum compositing_type_t
         {
           /*!
-           * Use single source compositing; the non-seperable compositing
-           * modes are not supported.
+           * Use single source compositing; only compositing is supported
+           * and blending is not supported.
            */
           compositing_single_src,
 
           /*!
-           * Use dual soruce compositing; the non-seperable compositing
-           * modes are not supported.
+           * Use dual soruce compositing; only compositing is supported
+           * and blending is not supported.
            */
           compositing_dual_src,
 
           /*!
-           * Use framebuffer fetch compositing; all compositing modes
-           * are supported.
+           * Use framebuffer fetch compositing; both compositing and
+           * blending are supported.
            */
           compositing_framebuffer_fetch,
 
           /*!
            * Have the color buffer realized as an image2D and use
            * fragment shader interlock to get compositing order correct;
-           * all compositing modes are supported. A backend will
-           * need to define the the functions (or macros) in their
-           * GLSL preamble:
-           *   - fastuidraw_begin_color_buffer_interlock()
-           *   - fastuidraw_end_color_buffer_interlock()
+           * compositing and blending are supported.
            */
           compositing_interlock,
         };
@@ -222,11 +218,7 @@ namespace fastuidraw
            * in GLSL from any function and/or control flow. This
            * allows for cover then draw methods to be performed
            * WITHOUT any draw-breaks. The buffer is realized as
-           * an "r8" image2D in the shader source. A backend will
-           * need to define the the functions (or macros) in their
-           * GLSL preamble:
-           *  - fastuidraw_begin_aux_interlock() which is called before access
-           *  - fastuidraw_end_aux_interlock() which is called after access
+           * an "r8" image2D in the shader source.
            */
           auxiliary_buffer_interlock,
 
@@ -236,11 +228,7 @@ namespace fastuidraw
            * called in GLSL from main under NO conrol flow. This
            * allows for cover then draw methods to be performed
            * WITHOUT any draw-breaks. The buffer is realized as
-           * an "r8" image2D in the shader source. A backend will
-           * need to define the the functions (or macros) in their
-           * GLSL preamble:
-           *  - fastuidraw_begin_aux_interlock() which is called before access
-           *  - fastuidraw_end_aux_interlock() which is called after access
+           * an "r8" image2D in the shader source.
            */
           auxiliary_buffer_interlock_main_only,
 
@@ -1233,7 +1221,14 @@ namespace fastuidraw
        * Add the uber-vertex and fragment shaders to given ShaderSource values.
        * The \ref Mutex mutex() is NOT locked during this call, a caller should
        * lock the mutex before calling it. This way a derived class can use the
-       * same lock as used by the PainterShaderRegistrarGLSL.
+       * same lock as used by the PainterShaderRegistrarGLSL. A backend will
+       * need to define the the functions (or macros) in their
+       * GLSL preamble:
+       *  - fastuidraw_begin_interlock() which is called before access
+       *  - fastuidraw_end_interlock() which is called after access
+       * if UberShaderParams::compositing_type() is \ref compositing_interlock
+       * or if UberShaderParams::provide_auxiliary_image_buffer() is \ref
+       * auxiliary_buffer_interlock or \ref auxiliary_buffer_interlock_main_only.
        * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader

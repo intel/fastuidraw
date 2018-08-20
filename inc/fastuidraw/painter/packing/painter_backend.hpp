@@ -361,7 +361,7 @@ namespace fastuidraw
     /*!
      * Called to return an action to bind an Image whose backing
      * store requires API binding.
-     * \im Image backed by a gfx API surface that in order to be used,
+     * \param im Image backed by a gfx API surface that in order to be used,
      *           must be bound. In patricular im's Image::type() value
      *           is Image::context_texture2d
      */

@@ -787,7 +787,7 @@ public:
   operator<<(contour_end_arc a);
 
   /*!
-   * Operator overload to control the \ref edge_type_t
+   * Operator overload to control PathEnums::edge_type_t
    * of the next edge made via operator overloads.
    * If no edge is yet present on the current contour, then
    * the value is ignored. The tag is reset back to \ref

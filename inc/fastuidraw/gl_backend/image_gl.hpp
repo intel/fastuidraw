@@ -208,6 +208,7 @@ namespace gl
        * \param w width of the texture
        * \param h height of the texture
        * \param m number of mipmap levels of the texture
+       * \param texture GL texture name
        * \param object_owns_texture the created TextureImage will own the
        *                            GL texture and will delete the GL texture
        *                            when the returned TextureImage is deleted.
