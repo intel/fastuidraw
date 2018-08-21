@@ -89,15 +89,17 @@ define glrules
 $(eval $(call glrule,$(1),release,$(2))
 $(call glrule,$(1),debug,$(2))
 ifeq ($(2),1)
-TARGETLIST += libFastUIDraw$(1) libFastUIDraw$(1)-static
-libFastUIDraw$(1): libFastUIDraw$(1)_debug libFastUIDraw$(1)_release
+TARGETLIST += libFastUIDraw$(1) libFastUIDraw$(1)_release libFastUIDraw$(1)_debug
+TARGETLIST += libFastUIDraw$(1)-static libFastUIDraw$(1)_release-static libFastUIDraw$(1)_debug-static
+libFastUIDraw$(1): libFastUIDraw$(1)_release libFastUIDraw$(1)_debug
 libFastUIDraw$(1)-static: libFastUIDraw$(1)_release-static libFastUIDraw$(1)_debug-static
 .PHONY: libFastUIDraw$(1)
 .PHONY: libFastUIDraw$(1)_release
 .PHONY: libFastUIDraw$(1)_debug
 libN$(1): libN$(1)_debug libN$(1)_release
-libN$(1)-static: libN$(1)_debug-static libN$(1)_release-static
-TARGETLIST += libN$(1) libN$(1)-static
+libN$(1)-static: libN$(1)_release-static libN$(1)_debug-static
+TARGETLIST += libN$(1) libN$(1)_release libN$(1)_debug
+TARGETLIST += libN$(1)-static libN$(1)_release-static libN$(1)_debug-static
 all: libFastUIDraw$(1)-static libFastUIDraw$(1) libN$(1) libN$(1)-static
 .PHONY: libN$(1)
 .PHONY: libN$(1)_debug

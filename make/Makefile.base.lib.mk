@@ -55,7 +55,6 @@ build/$(1)/private/%.o: %.cpp build/$(1)/private/%.d
 build/$(1)/private/%.d: ;
 .PRECIOUS: build/$(1)/%.d
 
-TARGET_LIST += libFastUIDraw_$(1)
 ifeq ($(MINGW_BUILD),1)
 
 libFastUIDraw_$(1): libFastUIDraw_$(1).dll
@@ -83,7 +82,6 @@ libFastUIDraw_$(1)-static: libFastUIDraw_$(1).a
 libFastUIDraw_$(1).a: $(FASTUIDRAW_STRING_RESOURCES_SRCS) $$(FASTUIDRAW_$(1)_ALL_OBJS)
 	ar rcs $$@ $$(FASTUIDRAW_$(1)_ALL_OBJS)
 CLEAN_FILES += libFastUIDraw_$(1).a
-TARGETLIST += libFastUIDraw_$(1)-static
 
 -include $$(FASTUIDRAW_$(1)_DEPS)
 
@@ -91,13 +89,12 @@ libFastUIDraw: libFastUIDraw_$(1)
 )
 endef
 
-TARGETLIST += libFastUIDraw libFastUIDraw-static
+TARGETLIST += libFastUIDraw libFastUIDraw_release libFastUIDraw_debug
+TARGETLIST += libFastUIDraw-static libFastUIDraw_release-static libFastUIDraw_debug-static
 $(call librules,release)
 $(call librules,debug)
 all: libFastUIDraw
 
 ifeq ($(BUILD_NEGL),1)
-TARGETLIST += libNEGL
-TARGETLIST += libNEGL_debug libNEGL_release
 all: libNEGL
 endif

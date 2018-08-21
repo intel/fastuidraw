@@ -36,5 +36,6 @@ endef
 ifeq ($(BUILD_NEGL),1)
 $(call egllibrules,release)
 $(call egllibrules,debug)
-TARGETLIST += libNEGL libNEGL-static
+TARGETLIST += libNEGL libNEGL_debug libNEGL_release
+TARGETLIST += libNEGL-static libNEGL_debug-static libNEGL_release-static
 endif

@@ -138,6 +138,8 @@ demos-$(1)-static: demos-$(1)-release-static demos-$(1)-debug-static
 demos-release-static: demos-$(1)-release-static
 demos-debug-static: demos-$(1)-debug-static
 .PHONY: demos-$(1)-static
+demos-static: demos-$(1)-static
+.PHONY: demos-static
 TARGETLIST += demos-$(1)-static
 endif
 )
