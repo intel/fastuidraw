@@ -31,13 +31,15 @@
   #endif
 
   #if !defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK_MAIN_ONLY)
-    #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_begin_interlock()
+    bool fastuidraw_auxiliary_interlock_called = false;
+    #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_auxiliary_interlock_called = true; fastuidraw_begin_interlock()
     #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_end_interlock()
   #else
     #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_do_nothing()
     #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_do_nothing()
     #define FASTUIDRAW_AUX_NEEDS_MAIN_INTERLOCK
   #endif
+
 
   float
   fastuidraw_clear_auxiliary(void)

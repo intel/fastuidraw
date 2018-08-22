@@ -182,9 +182,10 @@ main(void)
   #elif defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
     {
       #if !defined(FASTUIDRAW_AUX_NEEDS_MAIN_INTERLOCK)
-        {
-          fastuidraw_begin_interlock();
-        }
+          #if defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK)
+          if (!fastuidraw_auxiliary_interlock_called)
+          #endif
+            fastuidraw_begin_interlock();
       #endif
 
       #ifdef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
