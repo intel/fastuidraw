@@ -412,6 +412,35 @@ public:
   }
 
   /*!
+   * Provided as a conveniance, equivalent to
+   * \code
+   * *this = this->sub_array(0, size() - 1);
+   * \endcode
+   * It is an error to call this when size() is 0.
+   */
+  void
+  pop_back(void)
+  {
+    FASTUIDRAWassert(m_size > 0);
+    --m_size;
+  }
+
+  /*!
+   * Provided as a conveniance, equivalent to
+   * \code
+   * *this = this->sub_array(1, size() - 1);
+   * \endcode
+   * It is an error to call this when size() is 0.
+   */
+  void
+  pop_front(void)
+  {
+    FASTUIDRAWassert(m_size > 0);
+    --m_size;
+    ++m_ptr;
+  }
+
+  /*!
    * Returns true if and only if the passed
    * the c_array references exactly the same
    * data as this c_array.
