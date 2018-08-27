@@ -87,24 +87,16 @@ namespace fastuidraw
     layout(void) const;
 
     /*!
-     * Returns the glyph's location within the a
+     * Returns the glyph's locations within the
      * GlyphAtlas. The size in the glyph atlas can be
      * larger than the actual glyph rendering size,
      * for example to pad for texture filtering.
      * The return value of valid() must be true.
-     * If not, debug builds FASTUIDRAWassert and release builds
-     * crash.
+     * If not, debug builds FASTUIDRAWassert and
+     * release builds crash.
      */
-    GlyphLocation
-    atlas_location(void) const;
-
-    /*!
-     * Returns the location in the glyph atlas for the
-     * secondary glyph store. Some forms of glyph
-     * rendering data require a second store of texels.
-     */
-    GlyphLocation
-    secondary_atlas_location(void) const;
+    c_array<const GlyphLocation>
+    atlas_locations(void) const;
 
     /*!
      * Returns the glyph's geometry data location within a

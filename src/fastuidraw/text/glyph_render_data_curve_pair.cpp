@@ -401,11 +401,51 @@ resize_geometry_data(int sz)
   d->m_geometry_data.resize(sz, fastuidraw::GlyphRenderDataCurvePair::entry(false));
 }
 
+unsigned int
+fastuidraw::GlyphRenderDataCurvePair::
+number_glyph_locations(void) const
+{
+  GlyphRenderDataCurvePairPrivate *d;
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+
+  /* ICK. Should change interface so that value is cached;
+   * However, if this function is getting called, it means
+   * that upload_to_atlas() will be called which requires
+   * texel walk anyways.
+   */
+  for(int y = 0, J = 0; y < d->m_resolution.y(); ++y)
+    {
+      for(int x = 0; x < d->m_resolution.x(); ++x, ++J)
+        {
+          uint16_t v;
+          v = d->m_texels[J];
+          if (v == completely_full_texel)
+            {
+              v = 1;
+            }
+          else if (v == completely_empty_texel)
+            {
+              v = 0;
+            }
+          else
+            {
+              v += 2;
+            }
+
+          if (v > 0xFF)
+            {
+              return 2;
+            }
+        }
+    }
+
+  return 1;
+}
+
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataCurvePair::
 upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                GlyphLocation &atlas_location,
-                GlyphLocation &secondary_atlas_location,
+                c_array<GlyphLocation> atlas_locations,
                 int &geometry_offset,
                 int &geometry_length) const
 {
@@ -418,12 +458,17 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
 
   std::vector<uint8_t> primary, secondary;
   std::vector<float> geometry;
-  bool has_secondary(false);
+  bool has_secondary(atlas_locations.size() >= 2);
   int num_texels(d->m_resolution.x() * d->m_resolution.y());
 
-  /* fill primary
-   */
+  FASTUIDRAWassert(atlas_locations.size() <= 2);
+
   primary.resize(num_texels, 0);
+  if (has_secondary)
+    {
+      secondary.resize(num_texels, 0);
+    }
+
   for(int y = 0, J = 0; y < d->m_resolution.y(); ++y)
     {
       for(int x = 0; x < d->m_resolution.x(); ++x, ++J)
@@ -445,29 +490,24 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
           primary[J] = v & 0xFF;
           if (v > 0xFF)
             {
-              if (!has_secondary)
-                {
-                  has_secondary = true;
-                  secondary.resize(num_texels, 0);
-                }
+              FASTUIDRAWassert(has_secondary);
               secondary[J] = (v >> 8);
             }
         }
     }
 
-  secondary_atlas_location = GlyphLocation();
   geometry_offset = -1;
   geometry_length = 0;
 
-  atlas_location = atlas->allocate(d->m_resolution, make_c_array(primary), padding);
-  if (atlas_location.valid())
+  atlas_locations[0] = atlas->allocate(d->m_resolution, make_c_array(primary), padding);
+  if (atlas_locations[0].valid())
     {
       bool success(true);
 
       if (has_secondary)
         {
-          secondary_atlas_location = atlas->allocate(d->m_resolution, make_c_array(secondary), padding);
-          success = secondary_atlas_location.valid();
+          atlas_locations[1] = atlas->allocate(d->m_resolution, make_c_array(secondary), padding);
+          success = atlas_locations[1].valid();
         }
 
       if (success && !d->m_geometry_data.empty())
@@ -477,7 +517,7 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
 
           alignment = atlas->geometry_store()->alignment();
           entry_size = round_up_to_multiple(number_elements_to_pack, alignment);
-          pack_curve_pairs(make_c_array(d->m_geometry_data), atlas_location, entry_size, geometry_data);
+          pack_curve_pairs(make_c_array(d->m_geometry_data), atlas_locations[0], entry_size, geometry_data);
           geometry_offset = atlas->allocate_geometry_data(make_c_array(geometry_data));
           geometry_length = geometry_data.size() / alignment;
 
@@ -486,17 +526,17 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
 
       if (!success)
         {
-          atlas->deallocate(atlas_location);
-          atlas_location = GlyphLocation();
-          if (secondary_atlas_location.valid())
+          atlas->deallocate(atlas_locations[0]);
+          atlas_locations[0] = GlyphLocation();
+          if (has_secondary)
             {
-              atlas->deallocate(secondary_atlas_location);
-              secondary_atlas_location = GlyphLocation();
+              atlas->deallocate(atlas_locations[1]);
+              atlas_locations[1] = GlyphLocation();
             }
         }
     }
 
-  return atlas_location.valid() ?
+  return atlas_locations[0].valid() ?
     routine_success :
     routine_fail;
 

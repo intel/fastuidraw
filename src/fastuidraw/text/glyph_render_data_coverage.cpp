@@ -97,11 +97,17 @@ resize(fastuidraw::ivec2 sz)
   d->resize(sz);
 }
 
+unsigned int
+fastuidraw::GlyphRenderDataCoverage::
+number_glyph_locations(void) const
+{
+  return 1;
+}
+
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataCoverage::
 upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                GlyphLocation &atlas_location,
-                GlyphLocation &secondary_atlas_location,
+                c_array<GlyphLocation> atlas_locations,
                 int &geometry_offset,
                 int &geometry_length) const
 {
@@ -111,12 +117,11 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
   GlyphAtlas::Padding padding;
   padding.m_right = 1;
   padding.m_bottom = 1;
-  atlas_location = atlas->allocate(d->m_resolution, make_c_array(d->m_texels), padding);
-  secondary_atlas_location = GlyphLocation();
+  atlas_locations[0] = atlas->allocate(d->m_resolution, make_c_array(d->m_texels), padding);
   geometry_offset = -1;
   geometry_length = 0;
 
-  return atlas_location.valid() ?
+  return atlas_locations[0].valid() ?
     routine_success :
     routine_fail;
 }

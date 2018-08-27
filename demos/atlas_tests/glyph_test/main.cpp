@@ -408,8 +408,19 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
   FASTUIDRAWassert(R == routine_success);
   FASTUIDRAWunused(R);
 
-  GlyphLocation atlas_location(G.atlas_location());
-  GlyphLocation secondary_atlas_location(G.secondary_atlas_location());
+  c_array<const GlyphLocation> atlas_locations(G.atlas_locations());
+  GlyphLocation atlas_location;
+  GlyphLocation secondary_atlas_location;
+
+  if (atlas_locations.size() >= 1)
+    {
+      atlas_location = atlas_locations[0];
+    }
+
+  if (atlas_locations.size() >= 2)
+    {
+      secondary_atlas_location = atlas_locations[1];
+    }
 
   float layer(atlas_location.layer());
   float layer2(secondary_atlas_location.layer());

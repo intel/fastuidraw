@@ -148,14 +148,20 @@ namespace fastuidraw
     ~GlyphRenderData();
 
     /*!
+     * To be implemented by a derived class to return
+     * the number of texel regions on the GlyphAtlas
+     * are to be used to store the glyph.
+     */
+    virtual
+    unsigned int
+    number_glyph_locations(void) const = 0;
+
+    /*!
      * To be implemented by a derived class to upload
      * data to a GlyphAtlas
      * \param atlas GlyphAtlas to which to upload
-     * \param atlas_location (output) location of primary texels (see Glyph::location())
-     * \param secondary_atlas_location (output) location of secondary texels (see
-     *                                 Glyph::secondary_atlas_location()), a value for
-     *                                 which GlyphLocation::valid() returns false
-     *                                 indicates that there are no secondary texels.
+     * \param atlas_locations (output) location of texels (see Glyph::location()); the length
+     *                                 of the array passed will be exactly number_glyph_locations().
      * \param geometry_offset (output) location of geometry data, -1 indicates no such data
      * \param geometry_length (output) number of elements, in units of GlyphAtlasGeometryBackingStoreBase::alignment(),
      *                                 of geometry data.
@@ -163,8 +169,7 @@ namespace fastuidraw
     virtual
     enum fastuidraw::return_code
     upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                    GlyphLocation &atlas_location,
-                    GlyphLocation &secondary_atlas_location,
+                    c_array<GlyphLocation> atlas_locations,
                     int &geometry_offset,
                     int &geometry_length) const = 0;
 

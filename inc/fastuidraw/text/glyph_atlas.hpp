@@ -283,8 +283,7 @@ namespace fastuidraw
 
     /*!
      * Allocate a rectangular region. If allocation is not possible,
-     * return a GlyphLocation where GlyphLocation::valid()
-     * return false.
+     * return a GlyphLocation where GlyphLocation::valid() is false.
      * \param size size of region to allocate
      * \param data data to which to set the region allocated
      * \param padding amount of padding the passed data has

@@ -53,8 +53,20 @@ namespace
   {
     FASTUIDRAWassert(glyph.valid());
 
-    fastuidraw::GlyphLocation atlas(glyph.atlas_location());
-    fastuidraw::GlyphLocation secondary_atlas(glyph.secondary_atlas_location());
+    fastuidraw::c_array<const fastuidraw::GlyphLocation> atlas_locations(glyph.atlas_locations());
+    fastuidraw::GlyphLocation atlas;
+    fastuidraw::GlyphLocation secondary_atlas;
+
+    if (atlas_locations.size() >= 1)
+      {
+        atlas = atlas_locations[0];
+      }
+
+    if (atlas_locations.size() >= 2)
+      {
+        secondary_atlas = atlas_locations[1];
+      }
+
     fastuidraw::uvec4 uint_values;
     fastuidraw::vec2 tex_size(atlas.size());
     fastuidraw::vec2 tex_xy(atlas.location());
@@ -65,7 +77,7 @@ namespace
     fastuidraw::vec2 p_bl, p_tr;
 
     /* ISSUE: we are assuming horizontal layout; we should probably
-     * change the inteface so that caller chooses how to adjust
+     * change the interface so that caller chooses how to adjust
      * positions with the choices:
      *   adjust_using_horizontal,
      *   adjust_using_vertical,

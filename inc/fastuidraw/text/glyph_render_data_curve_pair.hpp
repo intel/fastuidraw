@@ -313,10 +313,13 @@ namespace fastuidraw
     resize_geometry_data(int sz);
 
     virtual
+    unsigned int
+    number_glyph_locations(void) const;
+
+    virtual
     enum fastuidraw::return_code
     upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                    GlyphLocation &atlas_location,
-                    GlyphLocation &secondary_atlas_location,
+                    c_array<GlyphLocation> atlas_locations,
                     int &geometry_offset,
                     int &geometry_length) const;
 
