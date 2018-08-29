@@ -46,18 +46,28 @@ namespace fastuidraw
     public reference_counted<GlyphAtlasTexelBackingStoreBase>::default_base
   {
   public:
+    enum
+      {
+        /*!
+         * The maximum allowed size in each dimension for a backing store.
+         */
+        max_size = 1u << 10
+      };
+
     /*!
      * Ctor.
      * \param whl provides the dimensions of the GlyphAtlasBackingStoreBase
-     * \param presizable if true the object can be resized to be larger
+     * \param presizable if true the object can be resized to be larger;
+     *                   the size of any dimension can be no more than
+     *                   \ref max_size
      */
     GlyphAtlasTexelBackingStoreBase(ivec3 whl, bool presizable);
 
     /*!
      * Ctor.
-     * \param w width of the backing store
-     * \param h height of the backing store
-     * \param l number of layers of the backing store
+     * \param w width of the backing store, must be no more than \ref max_size
+     * \param h height of the backing store, must be no more than \ref max_size
+     * \param l number of layers of the backing store, must be no more than \ref max_size
      * \param presizable if true the object can be resized to be larger
      */
     GlyphAtlasTexelBackingStoreBase(int w, int h, int l, bool presizable);
@@ -106,11 +116,14 @@ namespace fastuidraw
      * Resize the object by increasing the number of layers.
      * The routine resizeable() must return true, if not
      * the function FASTUIDRAWasserts.
+     * \param new_num_layers new number of layers for the backing
+     *                       store to have, must be no greater than
+     *                       \ref max_size
      */
     void
     resize(int new_num_layers);
 
-  protected:
+  private:
 
     /*!
      * To be implemented by a derived class to resize the

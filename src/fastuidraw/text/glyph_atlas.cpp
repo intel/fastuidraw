@@ -51,15 +51,14 @@ namespace
   class GlyphAtlasTexelBackingStoreBasePrivate
   {
   public:
-    GlyphAtlasTexelBackingStoreBasePrivate(fastuidraw::ivec3 whl, bool presizable):
-      m_dimensions(whl),
-      m_resizeable(presizable)
-    {}
-
     GlyphAtlasTexelBackingStoreBasePrivate(int w, int h, int l, bool presizable):
       m_dimensions(w, h, l),
       m_resizeable(presizable)
-    {}
+    {
+      FASTUIDRAWassert(w > 0 && w <= fastuidraw::GlyphAtlasTexelBackingStoreBase::max_size);
+      FASTUIDRAWassert(h > 0 && h <= fastuidraw::GlyphAtlasTexelBackingStoreBase::max_size);
+      FASTUIDRAWassert(l > 0 && l <= fastuidraw::GlyphAtlasTexelBackingStoreBase::max_size);
+    }
 
     fastuidraw::ivec3 m_dimensions;
     bool m_resizeable;
@@ -122,7 +121,10 @@ namespace
 fastuidraw::GlyphAtlasTexelBackingStoreBase::
 GlyphAtlasTexelBackingStoreBase(ivec3 whl, bool presizable)
 {
-  m_d = FASTUIDRAWnew GlyphAtlasTexelBackingStoreBasePrivate(whl, presizable);
+  m_d = FASTUIDRAWnew GlyphAtlasTexelBackingStoreBasePrivate(whl.x(),
+                                                             whl.y(),
+                                                             whl.z(),
+                                                             presizable);
 }
 
 fastuidraw::GlyphAtlasTexelBackingStoreBase::
@@ -155,7 +157,7 @@ resizeable(void) const
 {
   GlyphAtlasTexelBackingStoreBasePrivate *d;
   d = static_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
-  return d->m_resizeable;
+  return d->m_resizeable && d->m_dimensions.z() < max_size;
 }
 
 void
@@ -167,6 +169,7 @@ resize(int new_num_layers)
 
   FASTUIDRAWassert(d->m_resizeable);
   FASTUIDRAWassert(new_num_layers > d->m_dimensions.z());
+  FASTUIDRAWassert(new_num_layers < max_size);
   resize_implement(new_num_layers);
   d->m_dimensions.z() = new_num_layers;
 }

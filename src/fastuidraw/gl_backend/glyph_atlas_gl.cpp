@@ -796,7 +796,7 @@ use_optimal_geometry_store_backing(void)
        */
       width = 1u << uint32_log2(max_wh);
       required_area_per_layer = required_max_size / max_layers;
-      required_height = std::min(max_wh, required_area_per_layer / width);
+      required_height = t_min(max_wh, required_area_per_layer / width);
       if (required_height * width < required_area_per_layer)
         {
           ++required_height;
@@ -810,9 +810,24 @@ use_optimal_geometry_store_backing(void)
   return *this;
 }
 
-setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
-                 GlyphAtlasGLParamsPrivate,
-                 fastuidraw::ivec3, texel_store_dimensions);
+fastuidraw::gl::GlyphAtlasGL::params&
+fastuidraw::gl::GlyphAtlasGL::params::
+texel_store_dimensions(ivec3 v)
+{
+  GlyphAtlasGLParamsPrivate *d;
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+
+  const int max_size(GlyphAtlasTexelBackingStoreBase::max_size);
+  d->m_texel_store_dimensions.x() = t_min(v.x(), max_size);
+  d->m_texel_store_dimensions.y() = t_min(v.y(), max_size);
+  d->m_texel_store_dimensions.z() = t_min(v.z(), max_size);
+
+  return *this;
+}
+
+get_implement(fastuidraw::gl::GlyphAtlasGL::params,
+              GlyphAtlasGLParamsPrivate,
+              fastuidraw::ivec3, texel_store_dimensions);
 setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
                  GlyphAtlasGLParamsPrivate,
                  unsigned int, number_floats);
