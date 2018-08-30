@@ -315,19 +315,19 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
           if (g.valid())
             {
               float ratio;
-              ratio = pixel_size / g.layout().m_units_per_EM;
+              ratio = pixel_size / g.layout().units_per_EM();
 
               if (glyph_extents)
                 {
-                  sub_extents[i].m_begin = pen.x() + ratio * g.layout().m_horizontal_layout_offset.x();
-                  sub_extents[i].m_end = sub_extents[i].m_begin + ratio * g.layout().m_size.x();
+                  sub_extents[i].m_begin = pen.x() + ratio * g.layout().horizontal_layout_offset().x();
+                  sub_extents[i].m_end = sub_extents[i].m_begin + ratio * g.layout().size().x();
                 }
 
               empty_line = false;
-              pen.x() += ratio * g.layout().m_advance.x();
+              pen.x() += ratio * g.layout().advance().x();
 
-              tallest = std::max(tallest, ratio * (g.layout().m_horizontal_layout_offset.y() + g.layout().m_size.y()));
-              negative_tallest = std::min(negative_tallest, ratio * g.layout().m_horizontal_layout_offset.y());
+              tallest = std::max(tallest, ratio * (g.layout().horizontal_layout_offset().y() + g.layout().size().y()));
+              negative_tallest = std::min(negative_tallest, ratio * g.layout().horizontal_layout_offset().y());
             }
         }
 

@@ -143,7 +143,7 @@ namespace
     FASTUIDRAWassert(glyph.valid());
 
     fastuidraw::c_array<const fastuidraw::GlyphLocation> atlas_locations(glyph.atlas_locations());
-    fastuidraw::vec2 glyph_size(SCALE * glyph.layout().m_size);
+    fastuidraw::vec2 glyph_size(SCALE * glyph.layout().size());
     fastuidraw::vec2 p_bl, p_tr;
     unsigned int geometry_offset(glyph.geometry_offset());
 
@@ -156,15 +156,15 @@ namespace
      */
     if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
-        p_bl.x() = p.x() + SCALE * glyph.layout().m_horizontal_layout_offset.x();
+        p_bl.x() = p.x() + SCALE * glyph.layout().horizontal_layout_offset().x();
         p_tr.x() = p_bl.x() + glyph_size.x();
 
-        p_bl.y() = p.y() - SCALE * glyph.layout().m_horizontal_layout_offset.y();
+        p_bl.y() = p.y() - SCALE * glyph.layout().horizontal_layout_offset().y();
         p_tr.y() = p_bl.y() - glyph_size.y();
       }
     else
       {
-        p_bl = p + SCALE * glyph.layout().m_horizontal_layout_offset;
+        p_bl = p + SCALE * glyph.layout().horizontal_layout_offset();
         p_tr = p_bl + glyph_size;
       }
 
@@ -365,7 +365,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
           unsigned int t;
 
           scale = (d->m_render_pixel_size.first) ?
-            d->m_render_pixel_size.second / d->m_glyphs[g].layout().m_units_per_EM :
+            d->m_render_pixel_size.second / d->m_glyphs[g].layout().units_per_EM() :
             (d->m_scale_factors.empty()) ? 1.0f : d->m_scale_factors[g];
 
           t = d->m_glyphs[g].type();

@@ -26,6 +26,7 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/text/glyph_location.hpp>
 #include <fastuidraw/text/glyph_layout_data.hpp>
+#include <fastuidraw/text/glyph_render_data.hpp>
 
 namespace fastuidraw
 {

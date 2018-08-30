@@ -447,8 +447,8 @@ add_glyph(Glyph glyph)
       return routine_fail;
     }
 
-  GlyphSource src(g->m_layout.m_font,
-                  g->m_layout.m_glyph_code,
+  GlyphSource src(g->m_layout.font(),
+                  g->m_layout.glyph_code(),
                   g->m_render);
 
   GlyphCachePrivate *d;
@@ -478,7 +478,7 @@ delete_glyph(Glyph G)
   FASTUIDRAWassert(p->m_cache == d);
   FASTUIDRAWassert(p->m_render.valid());
 
-  GlyphSource src(p->m_layout.m_font, p->m_layout.m_glyph_code, p->m_render);
+  GlyphSource src(p->m_layout.font(), p->m_layout.glyph_code(), p->m_render);
   d->m_glyph_map.erase(src);
   p->clear();
   d->m_free_slots.push_back(p->m_cache_location);

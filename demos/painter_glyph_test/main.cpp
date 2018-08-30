@@ -232,8 +232,8 @@ init(unsigned int num_threads,
       FASTUIDRAWassert(g.valid());
       FASTUIDRAWassert(g.cache() == glyph_cache);
 
-      tallest = std::max(tallest, g.layout().m_horizontal_layout_offset.y() + g.layout().m_size.y());
-      negative_tallest = std::min(negative_tallest, g.layout().m_horizontal_layout_offset.y());
+      tallest = std::max(tallest, g.layout().horizontal_layout_offset().y() + g.layout().size().y());
+      negative_tallest = std::min(negative_tallest, g.layout().horizontal_layout_offset().y());
     }
 
   /* Try to get the character codes for each glyph */
@@ -277,14 +277,14 @@ init(unsigned int num_threads,
       FASTUIDRAWassert(g.valid());
 
       layout = g.layout();
-      advance = scale_factor * t_max(layout.m_advance.x(),
-                                     t_max(0.0f, layout.m_horizontal_layout_offset.x()) + layout.m_size.x());
+      advance = scale_factor * t_max(layout.advance().x(),
+                                     t_max(0.0f, layout.horizontal_layout_offset().x()) + layout.size().x());
 
       m_glyph_positions[i].x() = pen.x();
       m_glyph_positions[i].y() = pen.y();
 
-      m_glyph_extents[i].m_begin = pen.x() + scale_factor * layout.m_horizontal_layout_offset.x();
-      m_glyph_extents[i].m_end = m_glyph_extents[i].m_begin + scale_factor * layout.m_size.x();
+      m_glyph_extents[i].m_begin = pen.x() + scale_factor * layout.horizontal_layout_offset().x();
+      m_glyph_extents[i].m_end = m_glyph_extents[i].m_begin + scale_factor * layout.size().x();
 
       pen.x() += advance;
 
@@ -293,10 +293,10 @@ init(unsigned int num_threads,
           float pre_layout, nxt_adv;
           GlyphLayoutData nxtL(m_glyphs[i + 1].layout());
 
-          pre_layout = t_max(0.0f, -nxtL.m_horizontal_layout_offset.x());
+          pre_layout = t_max(0.0f, -nxtL.horizontal_layout_offset().x());
           pen.x() += scale_factor * pre_layout;
-          nxt_adv = t_max(nxtL.m_advance.x(),
-                          t_max(0.0f, nxtL.m_horizontal_layout_offset.x()) + nxtL.m_size.x());
+          nxt_adv = t_max(nxtL.advance().x(),
+                          t_max(0.0f, nxtL.horizontal_layout_offset().x()) + nxtL.size().x());
           nxt = pen.x() + scale_factor * nxt_adv;
         }
       else
@@ -307,8 +307,8 @@ init(unsigned int num_threads,
       if (nxt >= line_length || i + 1 == endi)
         {
           std::ostringstream desc;
-          desc << "[" << std::setw(5) << m_glyphs[glyph_at_start].layout().m_glyph_code
-               << " - " << std::setw(5) << m_glyphs[i].layout().m_glyph_code << "]";
+          desc << "[" << std::setw(5) << m_glyphs[glyph_at_start].layout().glyph_code()
+               << " - " << std::setw(5) << m_glyphs[i].layout().glyph_code() << "]";
           navigator.push_back(std::make_pair(pen.y(), desc.str()));
           navigator_chars += navigator.back().second.length();
 
@@ -677,7 +677,7 @@ draw_frame(void)
 
               //make the scale of the path match how we scaled the text.
               float sc;
-              sc = m_render_pixel_size.value() / glyphs[i].layout().m_units_per_EM;
+              sc = m_render_pixel_size.value() / glyphs[i].layout().units_per_EM();
 
               //we are drawing with y-coordinate increasing downwards
               //which is the opposite coordinate system as the glyph's
@@ -728,7 +728,7 @@ draw_frame(void)
 
               //make the scale of the path match how we scaled the text.
               float sc;
-              sc = m_render_pixel_size.value() / glyphs[i].layout().m_units_per_EM;
+              sc = m_render_pixel_size.value() / glyphs[i].layout().units_per_EM();
 
               //we are drawing with y-coordinate increasing downwards
               //which is the opposite coordinate system as the glyph's
@@ -799,12 +799,12 @@ draw_frame(void)
 
           glyph = m_draws[src].glyphs()[G];
           layout = glyph.layout();
-          ratio = m_render_pixel_size.value() / layout.m_units_per_EM;
+          ratio = m_render_pixel_size.value() / layout.units_per_EM();
 
-          q.x() = m_draws[src].glyph_positions()[G].x() + ratio * layout.m_horizontal_layout_offset.x();
-          q.y() = m_draws[src].glyph_positions()[G].y() - ratio * layout.m_horizontal_layout_offset.y();
-          wh.x() = ratio * layout.m_size.x();
-          wh.y() = -ratio * layout.m_size.y();
+          q.x() = m_draws[src].glyph_positions()[G].x() + ratio * layout.horizontal_layout_offset().x();
+          q.y() = m_draws[src].glyph_positions()[G].y() - ratio * layout.horizontal_layout_offset().y();
+          wh.x() = ratio * layout.size().x();
+          wh.y() = -ratio * layout.size().y();
 
           if (p.x() >= t_min(q.x(), q.x() + wh.x())
              && p.x() <= t_max(q.x(), q.x() + wh.x())
@@ -813,10 +813,10 @@ draw_frame(void)
             {
               ostr << "Glyph at " << p << " is:"
                    << "\n\tcharacter_code: " << m_draws[src].character_codes()[G]
-                   << "\n\tglyph_code: " << layout.m_glyph_code
-                   << "\n\tunits_per_EM: " << layout.m_units_per_EM
-                   << "\n\tsize in EM: " << layout.m_size
-                   << "\n\tsize normalized: " << layout.m_size * ratio
+                   << "\n\tglyph_code: " << layout.glyph_code()
+                   << "\n\tunits_per_EM: " << layout.units_per_EM()
+                   << "\n\tsize in EM: " << layout.size()
+                   << "\n\tsize normalized: " << layout.size() * ratio
                    << "\n\tx-extents: [" << m_draws[src].glyph_extents()[G].m_begin
                    << ", " << m_draws[src].glyph_extents()[G].m_end << "]"
                    << "\n\tGlyphCoords in SCM=" << vec2(p.x() - q.x(), q.y() - p.y()) / ratio

@@ -429,13 +429,13 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
   vec2 secondary_atlas_loc(secondary_atlas_location.location());
   vec2 t_bl(atlas_loc), t_tr(t_bl + tex_size);
   vec2 t2_bl(secondary_atlas_loc), t2_tr(t2_bl + tex_size);
-  vec2 glyph_size(SCALE * G.layout().m_size);
+  vec2 glyph_size(SCALE * G.layout().size());
   vec2 p_bl, p_tr;
 
-  p_bl.x() = p.x() + SCALE * G.layout().m_horizontal_layout_offset.x();
+  p_bl.x() = p.x() + SCALE * G.layout().horizontal_layout_offset().x();
   p_tr.x() = p_bl.x() + glyph_size.x();
 
-  p_bl.y() = p.y() - SCALE * G.layout().m_horizontal_layout_offset.y();
+  p_bl.y() = p.y() - SCALE * G.layout().horizontal_layout_offset().y();
   p_tr.y() = p_bl.y() - glyph_size.y();
 
   m_data[0].m_pos             = vec2(p_bl.x(), p_bl.y());
@@ -460,14 +460,14 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
 
   if (layer2 != -1)
     {
-      std::cout << "Needs secondary: glyph_code = " << G.layout().m_glyph_code
+      std::cout << "Needs secondary: glyph_code = " << G.layout().glyph_code()
                 << "\n\tglyph_size=" << glyph_size << " at " << p_bl << ":" << p_tr
                 << "\n\tfrom location=" << p
                 << "\n\ttex_size=" << tex_size << " at " << t_bl << ":" << layer
                 << " and " << t2_bl << ":" << layer2
-                << "\n\tglyph_offset=" << G.layout().m_horizontal_layout_offset
-                << "\n\toriginal_size=" << G.layout().m_size
-                << "\n\tadvance=" << G.layout().m_advance
+                << "\n\tglyph_offset=" << G.layout().horizontal_layout_offset()
+                << "\n\toriginal_size=" << G.layout().size()
+                << "\n\tadvance=" << G.layout().advance()
                 << "\n\toffset = " << G.geometry_offset()
                 << "\n";
     }
@@ -885,8 +885,8 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
       FASTUIDRAWassert(g.valid());
       FASTUIDRAWassert(g.cache() == m_glyph_cache);
 
-      tallest = std::max(tallest, g.layout().m_horizontal_layout_offset.y() + g.layout().m_size.y());
-      negative_tallest = std::min(negative_tallest, g.layout().m_horizontal_layout_offset.y());
+      tallest = std::max(tallest, g.layout().horizontal_layout_offset().y() + g.layout().size().y());
+      negative_tallest = std::min(negative_tallest, g.layout().horizontal_layout_offset().y());
     }
 
   /* Try to get the character codes for each glyph */
@@ -929,8 +929,8 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
       FASTUIDRAWassert(g.valid());
 
       layout = g.layout();
-      advance = scale_factor * t_max(layout.m_advance.x(),
-                                     t_max(0.0f, layout.m_horizontal_layout_offset.x()) + layout.m_size.x());
+      advance = scale_factor * t_max(layout.advance().x(),
+                                     t_max(0.0f, layout.horizontal_layout_offset().x()) + layout.size().x());
 
       positions[i].x() = pen.x();
       positions[i].y() = pen.y();
@@ -941,10 +941,10 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
           float pre_layout, nxt_adv;
           GlyphLayoutData nxtL(glyphs[i + 1].layout());
 
-          pre_layout = t_max(0.0f, -nxtL.m_horizontal_layout_offset.x());
+          pre_layout = t_max(0.0f, -nxtL.horizontal_layout_offset().x());
           pen.x() += scale_factor * pre_layout;
-          nxt_adv = t_max(nxtL.m_advance.x(),
-                          t_max(0.0f, nxtL.m_horizontal_layout_offset.x()) + nxtL.m_size.x());
+          nxt_adv = t_max(nxtL.advance().x(),
+                          t_max(0.0f, nxtL.horizontal_layout_offset().x()) + nxtL.size().x());
           nxt = pen.x() + scale_factor * nxt_adv;
         }
       else
@@ -955,8 +955,8 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
       if (nxt >= line_length || i + 1 == endi)
         {
           std::ostringstream desc;
-          desc << "[" << std::setw(5) << glyphs[glyph_at_start].layout().m_glyph_code
-               << " - " << std::setw(5) << glyphs[i].layout().m_glyph_code << "]";
+          desc << "[" << std::setw(5) << glyphs[glyph_at_start].layout().glyph_code()
+               << " - " << std::setw(5) << glyphs[i].layout().glyph_code() << "]";
           navigator.push_back(std::make_pair(pen.y(), desc.str()));
           navigator_chars += navigator.back().second.length();
 

@@ -290,6 +290,8 @@ common_compute_rendering_data(FT_Face face, fastuidraw::FontFreeType *p,
                               fastuidraw::GlyphLayoutData &output,
                               uint32_t glyph_code)
 {
+  using namespace fastuidraw;
+
   FT_Int32 load_flags;
 
   load_flags = FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
@@ -297,17 +299,16 @@ common_compute_rendering_data(FT_Face face, fastuidraw::FontFreeType *p,
     | FT_LOAD_LINEAR_DESIGN;
 
   FT_Load_Glyph(face, glyph_code, load_flags);
-  output.m_size.x() = face->glyph->metrics.width;
-  output.m_size.y() = face->glyph->metrics.height;
-  output.m_horizontal_layout_offset.x() = face->glyph->metrics.horiBearingX;
-  output.m_horizontal_layout_offset.y() = face->glyph->metrics.horiBearingY - output.m_size.y();
-  output.m_vertical_layout_offset.x() = face->glyph->metrics.vertBearingX;
-  output.m_vertical_layout_offset.y() = face->glyph->metrics.vertBearingY - output.m_size.y();
-  output.m_advance.x() = face->glyph->linearHoriAdvance;
-  output.m_advance.y() = face->glyph->linearVertAdvance;
-  output.m_glyph_code = glyph_code;
-  output.m_units_per_EM = face->units_per_EM;
-  output.m_font = p;
+  output
+    .size(vec2(face->glyph->metrics.width, face->glyph->metrics.height))
+    .horizontal_layout_offset(vec2(face->glyph->metrics.horiBearingX,
+                                   face->glyph->metrics.horiBearingY - face->glyph->metrics.height))
+    .vertical_layout_offset(vec2(face->glyph->metrics.vertBearingX,
+                                 face->glyph->metrics.vertBearingY - face->glyph->metrics.height))
+    .advance(vec2(face->glyph->linearHoriAdvance, face->glyph->linearVertAdvance))
+    .glyph_code(glyph_code)
+    .units_per_EM(face->units_per_EM)
+    .font(p);
 }
 
 void
@@ -413,7 +414,7 @@ compute_rendering_data(uint32_t glyph_code,
   float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
 
   /* compute how many pixels we need to store the glyph. */
-  fastuidraw::vec2 image_sz_f(layout.m_size * scale_factor);
+  fastuidraw::vec2 image_sz_f(layout.size() * scale_factor);
   fastuidraw::ivec2 image_sz(ceilf(image_sz_f.x()), ceilf(image_sz_f.y()));
 
   if (image_sz.x() == 0 || image_sz.y() == 0)
@@ -480,7 +481,7 @@ compute_rendering_data(uint32_t glyph_code,
   float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
 
   /* compute how many pixels we need to store the glyph. */
-  fastuidraw::vec2 image_sz_f(layout.m_size * scale_factor);
+  fastuidraw::vec2 image_sz_f(layout.size() * scale_factor);
   fastuidraw::ivec2 image_sz(ceilf(image_sz_f.x()), ceilf(image_sz_f.y()));
 
   /* Use the same transformation as the DistanceField case */
