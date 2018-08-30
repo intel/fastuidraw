@@ -49,9 +49,14 @@ namespace fastuidraw
     enum
       {
         /*!
+         * log2 of \ref max_size
+         */
+        log2_max_size = 10,
+
+        /*!
          * The maximum allowed size in each dimension for a backing store.
          */
-        max_size = 1u << 10
+        max_size = 1 << log2_max_size
       };
 
     /*!
