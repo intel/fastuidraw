@@ -24,25 +24,114 @@
 
 namespace
 {
-  inline
-  uint32_t
-  atlas_layer(int layer)
-  {
-    FASTUIDRAWassert(layer >= -1);
-    return fastuidraw::pack_float(layer);
-  }
+
+  enum
+    {
+      is_right_corner = 1,
+      is_top_corner = 2,
+
+      bottom_left_corner = 0,
+      bottom_right_corner = is_right_corner,
+      top_left_corner = is_top_corner,
+      top_right_corner = is_right_corner | is_top_corner
+    };
 
   inline
   void
   pack_glyph_indices(fastuidraw::c_array<fastuidraw::PainterIndex> dst, unsigned int aa)
   {
     FASTUIDRAWassert(dst.size() == 6);
-    dst[0] = aa;
-    dst[1] = aa + 1;
-    dst[2] = aa + 2;
-    dst[3] = aa;
-    dst[4] = aa + 2;
-    dst[5] = aa + 3;
+    dst[0] = aa + bottom_left_corner;
+    dst[1] = aa + bottom_right_corner;
+    dst[2] = aa + top_right_corner;
+    dst[3] = aa + bottom_left_corner;
+    dst[4] = aa + top_left_corner;
+    dst[5] = aa + top_right_corner;
+  }
+
+  inline
+  uint32_t
+  pack_glyph_atlas_texel(const fastuidraw::GlyphLocation *G, unsigned int corner_enum)
+  {
+    using namespace fastuidraw;
+    if (G && G->valid())
+      {
+        ivec2 p, sz(G->size());
+        uint32_t xbits, ybits, zbits;
+
+        p = G->location();
+
+        if (corner_enum & is_right_corner)
+          {
+            p.x() += sz.x();
+          }
+
+        if (corner_enum & is_top_corner)
+          {
+            p.y() += sz.y();
+          }
+
+        xbits = pack_bits(PainterAttributeDataFillerGlyphs::bit0_x_texel,
+                          PainterAttributeDataFillerGlyphs::num_texel_coord_bits,
+                          p.x());
+        ybits = pack_bits(PainterAttributeDataFillerGlyphs::bit0_y_texel,
+                          PainterAttributeDataFillerGlyphs::num_texel_coord_bits,
+                          p.y());
+        zbits = pack_bits(PainterAttributeDataFillerGlyphs::bit0_z_texel,
+                          PainterAttributeDataFillerGlyphs::num_texel_coord_bits,
+                          G->layer());
+
+        return xbits | ybits | zbits;
+      }
+    else
+      {
+        return pack_bits(PainterAttributeDataFillerGlyphs::invalid_bit, 1, 1);
+      }
+  }
+
+  inline
+  fastuidraw::vec2
+  glyph_position(fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
+                 unsigned int corner_enum)
+  {
+    fastuidraw::vec2 v;
+
+    v.x() = (corner_enum & is_right_corner) ? p_tr.x() : p_bl.x();
+    v.y() = (corner_enum & is_top_corner)   ? p_tr.y() : p_bl.y();
+    return v;
+  }
+
+  inline
+  const fastuidraw::GlyphLocation*
+  get_element(unsigned int I, fastuidraw::c_array<const fastuidraw::GlyphLocation> G)
+  {
+    return (I < G.size()) ? &G[I] : nullptr;
+  }
+
+  inline
+  void
+  pack_glyph_attribute(fastuidraw::PainterAttribute *dst, unsigned int corner_enum,
+                       fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
+                       unsigned int geometry_offset,
+                       fastuidraw::c_array<const fastuidraw::GlyphLocation> atlas_locations)
+  {
+    fastuidraw::vec2 p(glyph_position(p_bl, p_tr, corner_enum));
+    unsigned int srcI, dstI;
+
+    dst->m_attrib0.x() = fastuidraw::pack_float(p.x());
+    dst->m_attrib0.y() = fastuidraw::pack_float(p.y());
+    dst->m_attrib0.z() = geometry_offset;
+    dst->m_attrib0.w() = pack_glyph_atlas_texel(get_element(0, atlas_locations), corner_enum);
+
+    for (srcI = 1, dstI = 0; dstI < 4; ++dstI, ++srcI)
+      {
+        dst->m_attrib1[dstI] = pack_glyph_atlas_texel(get_element(srcI, atlas_locations), corner_enum);
+      }
+
+    for (dstI = 0; dstI < 4; ++dstI, ++srcI)
+      {
+        dst->m_attrib2[dstI] = pack_glyph_atlas_texel(get_element(srcI, atlas_locations), corner_enum);
+      }
   }
 
   inline
@@ -54,27 +143,9 @@ namespace
     FASTUIDRAWassert(glyph.valid());
 
     fastuidraw::c_array<const fastuidraw::GlyphLocation> atlas_locations(glyph.atlas_locations());
-    fastuidraw::GlyphLocation atlas;
-    fastuidraw::GlyphLocation secondary_atlas;
-
-    if (atlas_locations.size() >= 1)
-      {
-        atlas = atlas_locations[0];
-      }
-
-    if (atlas_locations.size() >= 2)
-      {
-        secondary_atlas = atlas_locations[1];
-      }
-
-    fastuidraw::uvec4 uint_values;
-    fastuidraw::vec2 tex_size(atlas.size());
-    fastuidraw::vec2 tex_xy(atlas.location());
-    fastuidraw::vec2 secondary_tex_xy(secondary_atlas.location());
-    fastuidraw::vec2 t_bl(tex_xy), t_tr(t_bl + tex_size);
-    fastuidraw::vec2 t2_bl(secondary_tex_xy), t2_tr(t2_bl + tex_size);
     fastuidraw::vec2 glyph_size(SCALE * glyph.layout().m_size);
     fastuidraw::vec2 p_bl, p_tr;
+    unsigned int geometry_offset(glyph.geometry_offset());
 
     /* ISSUE: we are assuming horizontal layout; we should probably
      * change the interface so that caller chooses how to adjust
@@ -97,31 +168,12 @@ namespace
         p_tr = p_bl + glyph_size;
       }
 
-    /* secondary_atlas.layer() can be -1 to indicate that
-     * the glyph does not have secondary atlas, when changed
-     * to an unsigned value it is ungood, to compensate we
-     * will "do something".
-     */
-    uint_values.x() = 0u;
-    uint_values.y() = glyph.geometry_offset();
-    uint_values.z() = atlas_layer(atlas.layer());
-    uint_values.w() = atlas_layer(secondary_atlas.layer());
-
-    dst[0].m_attrib0 = fastuidraw::pack_vec4(t_bl.x(), t_bl.y(), t2_bl.x(), t2_bl.y());
-    dst[0].m_attrib1 = fastuidraw::pack_vec4(p_bl.x(), p_bl.y(), 0.0f, 0.0f);
-    dst[0].m_attrib2 = uint_values;
-
-    dst[1].m_attrib0 = fastuidraw::pack_vec4(t_tr.x(), t_bl.y(), t2_tr.x(), t2_bl.y());
-    dst[1].m_attrib1 = fastuidraw::pack_vec4(p_tr.x(), p_bl.y(), 0.0f, 0.0f);
-    dst[1].m_attrib2 = uint_values;
-
-    dst[2].m_attrib0 = fastuidraw::pack_vec4(t_tr.x(), t_tr.y(), t2_tr.x(), t2_tr.y());
-    dst[2].m_attrib1 = fastuidraw::pack_vec4(p_tr.x(), p_tr.y(), 0.0f, 0.0f);
-    dst[2].m_attrib2 = uint_values;
-
-    dst[3].m_attrib0 = fastuidraw::pack_vec4(t_bl.x(), t_tr.y(), t2_bl.x(), t2_tr.y());
-    dst[3].m_attrib1 = fastuidraw::pack_vec4(p_bl.x(), p_tr.y(), 0.0f, 0.0f);
-    dst[3].m_attrib2 = uint_values;
+    for (unsigned int corner_enum = 0; corner_enum < 4; ++corner_enum)
+      {
+        pack_glyph_attribute(&dst[corner_enum], corner_enum,
+                             p_bl, p_tr, geometry_offset,
+                             atlas_locations);
+      }
   }
 
   class FillGlyphsPrivate

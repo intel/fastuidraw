@@ -21,24 +21,6 @@ vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  /*
-    varyings:
-     fastuidraw_glyph_tex_coord_x
-     fastuidraw_glyph_tex_coord_y
-     fastuidraw_glyph_secondary_tex_coord_x
-     fastuidraw_glyph_secondary_tex_coord_y
-     fastuidraw_glyph_tex_coord_layer
-     fastuidraw_glyph_secondary_tex_coord_layer
-     fastuidraw_glyph_geometry_data_location
-
-    glyph texel store at:
-     fastuidraw_glyphTexelStoreUINT
-     fastuidraw_glyphTexelStoreFLOAT
-
-    glyph geometry store at:
-     fastuidraw_fetch_glyph_data (macro)
-   */
-
   float texel, dist, coverage, scale;
   vec2 dx, dy, txy;
 
@@ -82,7 +64,14 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   #endif
 
   dist = 2.0 * texel - 1.0;
-  txy = vec2(fastuidraw_glyph_secondary_tex_coord_x, fastuidraw_glyph_secondary_tex_coord_y);
+  txy = vec2(fastuidraw_glyph_tex_coord_x, fastuidraw_glyph_tex_coord_y);
+  #ifndef FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT
+    {
+      txy.x *= float(fastuidraw_glyphTexelStore_size_x);
+      txy.y *= float(fastuidraw_glyphTexelStore_size_y);
+    }
+  #endif
+
   dx = dFdx(txy);
   dy = dFdy(txy);
   scale = sqrt(0.5 * (dot(dx,dx) + dot(dy,dy)));

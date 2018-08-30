@@ -45,19 +45,63 @@ namespace fastuidraw
    * queried by number_glyphs(). If all glyphs are uploaded or
    * successfully loaded, then number_glyphs() returns the number
    * glyph in the glyph run. Data for glyphs is packed as follows:
-   *   - PainterAttribute::m_attrib0 .xy -> xy-texel location in primary atlas (float)
-   *   - PainterAttribute::m_attrib0 .zw -> xy-texel location in secondary atlas (float)
-   *   - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
-   *   - PainterAttribute::m_attrib1 .z  -> 0 (free)
-   *   - PainterAttribute::m_attrib1 .w  -> 0 (free)
-   *   - PainterAttribute::m_attrib2 .x  -> 0 (free)
-   *   - PainterAttribute::m_attrib2 .y  -> glyph offset (uint)
-   *   - PainterAttribute::m_attrib2 .z  -> layer in primary atlas (float)
-   *   - PainterAttribute::m_attrib2 .w  -> layer in secondary atlas (float)
+   *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates (float)
+   *   - PainterAttribute::m_attrib0 .z  -> glyph offset (uint)
+   *   - PainterAttribute::m_attrib0 .w  -> xyz-texel location of Glyph::atlas_locations()[0] packed (uint)
+   *   - PainterAttribute::m_attrib1 .y  -> xyz-texel location of Glyph::atlas_locations()[1] packed (uint)
+   *   - PainterAttribute::m_attrib1 .y  -> xyz-texel location of Glyph::atlas_locations()[2] packed (uint)
+   *   - PainterAttribute::m_attrib1 .z  -> xyz-texel location of Glyph::atlas_locations()[3] packed (uint)
+   *   - PainterAttribute::m_attrib1. w  -> xyz-texel location of Glyph::atlas_locations()[4] packed (uint)
+   *   - PainterAttribute::m_attrib2 .x  -> xyz-texel location of Glyph::atlas_locations()[5] packed (uint)
+   *   - PainterAttribute::m_attrib2 .y  -> xyz-texel location of Glyph::atlas_locations()[6] packed (uint)
+   *   - PainterAttribute::m_attrib2 .z  -> xyz-texel location of Glyph::atlas_locations()[7] packed (uint)
+   *   - PainterAttribute::m_attrib2 .w  -> xyz-texel location of Glyph::atlas_locations()[8] packed (uint)
+   *
+   * Where we pack a location on the glyph as according to \ref packed_glyph_layout.
    */
   class PainterAttributeDataFillerGlyphs:public PainterAttributeDataFiller
   {
   public:
+    /*!
+     * Enumeration to describe how a texel location within a \ref GlyphAtlas
+     * is packed.
+     */
+    enum packed_glyph_layout
+      {
+        /*!
+         * Number of bits used to describe the unnormalized x, y or z-coordinate
+         */
+        num_texel_coord_bits = GlyphAtlasTexelBackingStoreBase::log2_max_size,
+
+        /*!
+         * First bit used to describe the x-texel coordinate
+         */
+        bit0_x_texel = 0,
+
+        /*!
+         * First bit used to describe the y-texel coordinate
+         */
+        bit0_y_texel = bit0_x_texel + num_texel_coord_bits,
+
+        /*!
+         * First bit used to describe the z-texel coordinate
+         */
+        bit0_z_texel = bit0_y_texel + num_texel_coord_bits,
+
+        /*!
+         * If this bit is up, indicates that there is no texel location
+         * encoded (i.e. Glyph::atlas_locations()[K] for the packed
+         * location gives a \ref GlyphLocation for which
+         * GlyphLocation::valid() returns false
+         */
+        invalid_bit = bit0_z_texel + num_texel_coord_bits,
+
+        /*!
+         * Mask generated from \ref invalid_bit
+         */
+        invalid_mask = 1u << invalid_bit
+      };
+
     /*!
      * Ctor. The values behind the arrays passed are NOT copied. As such
      * the memory behind the arrays need to stay in scope for the duration

@@ -25,48 +25,35 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         in uint shader_data_offset,
                         out int z_add)
 {
-  vec4 primary_attrib, secondary_attrib;
+  vec2 p;
+  uvec3 texel;
+  vec3 texelf;
 
-  primary_attrib = uintBitsToFloat(uprimary_attrib);
-  secondary_attrib = uintBitsToFloat(usecondary_attrib);
-  /*
-    varyings:
-     fastuidraw_glyph_tex_coord_x
-     fastuidraw_glyph_tex_coord_y
-     fastuidraw_glyph_secondary_tex_coord_x
-     fastuidraw_glyph_secondary_tex_coord_y
-     fastuidraw_glyph_tex_coord_layer
-     fastuidraw_glyph_secondary_tex_coord_layer
-     fastuidraw_glyph_geometry_data_location
+  p = uintBitsToFloat(uprimary_attrib.xy);
+  texel.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_X_BIT0,
+                                    FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS,
+                                    uprimary_attrib.w);
+  texel.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Y_BIT0,
+                                    FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS,
+                                    uprimary_attrib.w);
+  texel.z = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Z_BIT0,
+                                    FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS,
+                                    uprimary_attrib.w);
+  texelf = vec3(texel);
 
-  packing:
-     - primary_attrib.xy -> xy-texel location in primary atlas
-     - primary_attrib.zw  -> xy-texel location in secondary atlas
-     - secondary_attrib.xy -> position in item coordinates
-     - secondary_attrib.z  -> (free)
-     - secondary_attrib.w  -> (free)
-     - uint_attrib.x -> 0
-     - uint_attrib.y -> glyph offset
-     - uint_attrib.z -> layer in primary atlas
-     - uint_attrib.w -> layer in secondary atlas
-  */
   #ifndef FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT
     {
-      fastuidraw_glyph_tex_coord_x = primary_attrib.x * fastuidraw_glyphTexelStore_size_reciprocal_x;
-      fastuidraw_glyph_tex_coord_y = primary_attrib.y * fastuidraw_glyphTexelStore_size_reciprocal_y;
+      fastuidraw_glyph_tex_coord_x = texelf.x * fastuidraw_glyphTexelStore_size_reciprocal_x;
+      fastuidraw_glyph_tex_coord_y = texelf.y * fastuidraw_glyphTexelStore_size_reciprocal_y;
     }
   #else
     {
-      fastuidraw_glyph_tex_coord_x = primary_attrib.x;
-      fastuidraw_glyph_tex_coord_y = primary_attrib.y;
+      fastuidraw_glyph_tex_coord_x = texelf.x;
+      fastuidraw_glyph_tex_coord_y = texelf.y;
     }
   #endif
 
-  fastuidraw_glyph_tex_coord_layer = uintBitsToFloat(uint_attrib.z);
-  fastuidraw_glyph_secondary_tex_coord_layer = uintBitsToFloat(uint_attrib.w);
-  fastuidraw_glyph_secondary_tex_coord_x = primary_attrib.x;
-  fastuidraw_glyph_secondary_tex_coord_y = primary_attrib.y;
-  fastuidraw_glyph_geometry_data_location = uint_attrib.y;
+  fastuidraw_glyph_tex_coord_layer = texelf.z;
   z_add = 0;
-  return secondary_attrib.xyxy;
+  return p.xyxy;
 }

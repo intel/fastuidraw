@@ -486,7 +486,6 @@ add_rectangle(const ivec2 &dimensions,
     {
       add_remove_return_value R;
 
-
       if (dimensions.x() > 0 && dimensions.y() > 0)
         {
           //attempt to add the rect:

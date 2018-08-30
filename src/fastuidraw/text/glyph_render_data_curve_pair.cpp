@@ -408,6 +408,11 @@ number_glyph_locations(void) const
   GlyphRenderDataCurvePairPrivate *d;
   d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
 
+  if (d->m_texels.empty())
+    {
+      return 0;
+    }
+
   /* ICK. Should change interface so that value is cached;
    * However, if this function is getting called, it means
    * that upload_to_atlas() will be called which requires
@@ -452,6 +457,13 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
   GlyphRenderDataCurvePairPrivate *d;
   d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
 
+  geometry_offset = -1;
+  geometry_length = 0;
+  if (d->m_texels.empty())
+    {
+      return routine_success;
+    }
+
   GlyphAtlas::Padding padding;
   padding.m_right = 1;
   padding.m_bottom = 1;
@@ -495,9 +507,6 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
             }
         }
     }
-
-  geometry_offset = -1;
-  geometry_length = 0;
 
   atlas_locations[0] = atlas->allocate(d->m_resolution, make_c_array(primary), padding);
   if (atlas_locations[0].valid())

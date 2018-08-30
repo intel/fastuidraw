@@ -101,7 +101,9 @@ unsigned int
 fastuidraw::GlyphRenderDataCoverage::
 number_glyph_locations(void) const
 {
-  return 1;
+  GlyphDataPrivate *d;
+  d = static_cast<GlyphDataPrivate*>(m_d);
+  return d->m_texels.empty() ? 0 : 1;
 }
 
 enum fastuidraw::return_code
@@ -114,12 +116,17 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
 
+  geometry_offset = -1;
+  geometry_length = 0;
+  if (d->m_texels.empty())
+    {
+      return routine_success;
+    }
+
   GlyphAtlas::Padding padding;
   padding.m_right = 1;
   padding.m_bottom = 1;
   atlas_locations[0] = atlas->allocate(d->m_resolution, make_c_array(d->m_texels), padding);
-  geometry_offset = -1;
-  geometry_length = 0;
 
   return atlas_locations[0].valid() ?
     routine_success :

@@ -19,6 +19,7 @@
 #include <string>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include <fastuidraw/painter/arc_stroked_point.hpp>
 #include "backend_shaders.hpp"
 
@@ -547,7 +548,21 @@ create_glyph_item_shader(const std::string &vert_src,
   reference_counted_ptr<PainterItemShader> shader;
   shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                ShaderSource()
-                                               .add_source(vert_src.c_str(), ShaderSource::from_resource),
+                                               .add_macro("FASTUIDRAW_GLYPH_TEXEL_X_BIT0", PainterAttributeDataFillerGlyphs::bit0_x_texel)
+                                               .add_macro("FASTUIDRAW_GLYPH_TEXEL_Y_BIT0", PainterAttributeDataFillerGlyphs::bit0_y_texel)
+                                               .add_macro("FASTUIDRAW_GLYPH_TEXEL_Z_BIT0", PainterAttributeDataFillerGlyphs::bit0_z_texel)
+                                               .add_macro("FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS", PainterAttributeDataFillerGlyphs::num_texel_coord_bits)
+                                               .add_macro("FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS", PainterAttributeDataFillerGlyphs::num_texel_coord_bits)
+                                               .add_macro("FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS", PainterAttributeDataFillerGlyphs::num_texel_coord_bits)
+                                               .add_macro("FASTUIDRAW_GLYPH_TEXEL_INVALID_MASK", PainterAttributeDataFillerGlyphs::invalid_mask)
+                                               .add_source(vert_src.c_str(), ShaderSource::from_resource)
+                                               .remove_macro("FASTUIDRAW_GLYPH_TEXEL_INVALID_MASK")
+                                               .remove_macro("FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS")
+                                               .remove_macro("FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS")
+                                               .remove_macro("FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS")
+                                               .remove_macro("FASTUIDRAW_GLYPH_TEXEL_Z_BIT0")
+                                               .remove_macro("FASTUIDRAW_GLYPH_TEXEL_Y_BIT0")
+                                               .remove_macro("FASTUIDRAW_GLYPH_TEXEL_X_BIT0"),
                                                ShaderSource()
                                                .add_source(frag_src.c_str(), ShaderSource::from_resource),
                                                varyings);
@@ -559,9 +574,14 @@ ShaderSetCreator::
 create_glyph_shader(bool anisotropic)
 {
   PainterGlyphShader return_value;
-  varying_list varyings;
+  varying_list curve_pair_varyings, coverage_distance_varyings;
 
-  varyings
+  coverage_distance_varyings
+    .add_float_varying("fastuidraw_glyph_tex_coord_x")
+    .add_float_varying("fastuidraw_glyph_tex_coord_y")
+    .add_float_varying("fastuidraw_glyph_tex_coord_layer");
+
+  curve_pair_varyings
     .add_float_varying("fastuidraw_glyph_tex_coord_x")
     .add_float_varying("fastuidraw_glyph_tex_coord_y")
     .add_float_varying("fastuidraw_glyph_secondary_tex_coord_x")
@@ -574,7 +594,7 @@ create_glyph_shader(bool anisotropic)
     .shader(coverage_glyph,
             create_glyph_item_shader("fastuidraw_painter_glyph_coverage.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_coverage.frag.glsl.resource_string",
-                                     varyings));
+                                     coverage_distance_varyings));
 
   if (anisotropic)
     {
@@ -582,11 +602,11 @@ create_glyph_shader(bool anisotropic)
         .shader(distance_field_glyph,
                 create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
                                          "fastuidraw_painter_glyph_distance_field_anisotropic.frag.glsl.resource_string",
-                                         varyings))
+                                         coverage_distance_varyings))
         .shader(curve_pair_glyph,
                 create_glyph_item_shader("fastuidraw_painter_glyph_curve_pair.vert.glsl.resource_string",
                                          "fastuidraw_painter_glyph_curve_pair_anisotropic.frag.glsl.resource_string",
-                                         varyings));
+                                         curve_pair_varyings));
     }
   else
     {
@@ -594,11 +614,11 @@ create_glyph_shader(bool anisotropic)
         .shader(distance_field_glyph,
                 create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
                                          "fastuidraw_painter_glyph_distance_field.frag.glsl.resource_string",
-                                         varyings))
+                                         coverage_distance_varyings))
         .shader(curve_pair_glyph,
                 create_glyph_item_shader("fastuidraw_painter_glyph_curve_pair.vert.glsl.resource_string",
                                          "fastuidraw_painter_glyph_curve_pair.frag.glsl.resource_string",
-                                         varyings));
+                                         curve_pair_varyings));
     }
 
   return return_value;

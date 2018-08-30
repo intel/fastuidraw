@@ -25,38 +25,53 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         in uint shader_data_offset,
                         out int z_add)
 {
-  vec4 primary_attrib, secondary_attrib;
+  vec2 p;
+  uvec3 texel0;
+  vec3 texel0f, texel1f;
 
-  primary_attrib = uintBitsToFloat(uprimary_attrib);
-  secondary_attrib = uintBitsToFloat(usecondary_attrib);
-  /*
-    varyings:
-     fastuidraw_glyph_tex_coord_x
-     fastuidraw_glyph_tex_coord_y
-     fastuidraw_glyph_secondary_tex_coord_x
-     fastuidraw_glyph_secondary_tex_coord_y
-     fastuidraw_glyph_tex_coord_layer
-     fastuidraw_glyph_secondary_tex_coord_layer
-     fastuidraw_glyph_geometry_data_location
+  p = uintBitsToFloat(uprimary_attrib.xy);
 
-  packing:
-     - primary_attrib.xy -> xy-texel location in primary atlas
-     - primary_attrib.zw  -> xy-texel location in secondary atlas
-     - secondary_attrib.xy -> position in item coordinates
-     - secondary_attrib.z  -> (free)
-     - secondary_attrib.w  -> (free)
-     - uint_attrib.x -> 0
-     - uint_attrib.y -> glyph offset
-     - uint_attrib.z -> layer in primary atlas
-     - uint_attrib.w -> layer in secondary atlas
-  */
-  fastuidraw_glyph_tex_coord_x = primary_attrib.x;
-  fastuidraw_glyph_tex_coord_y = primary_attrib.y;
-  fastuidraw_glyph_secondary_tex_coord_x = primary_attrib.z;
-  fastuidraw_glyph_secondary_tex_coord_y = primary_attrib.w;
-  fastuidraw_glyph_tex_coord_layer = uintBitsToFloat(uint_attrib.z);
-  fastuidraw_glyph_secondary_tex_coord_layer = uintBitsToFloat(uint_attrib.w);
-  fastuidraw_glyph_geometry_data_location = uint_attrib.y;
+  texel0.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_X_BIT0,
+                                     FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS,
+                                     uprimary_attrib.w);
+  texel0.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Y_BIT0,
+                                     FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS,
+                                     uprimary_attrib.w);
+  texel0.z = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Z_BIT0,
+                                     FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS,
+                                     uprimary_attrib.w);
+  texel0f = vec3(texel0);
+
+  if ((uint(FASTUIDRAW_GLYPH_TEXEL_INVALID_MASK) & usecondary_attrib.x) == 0u)
+    {
+      uvec3 texel1;
+
+      texel1.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_X_BIT0,
+                                         FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS,
+                                         usecondary_attrib.x);
+      texel1.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Y_BIT0,
+                                         FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS,
+                                         usecondary_attrib.x);
+      texel1.z = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Z_BIT0,
+                                         FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS,
+                                         usecondary_attrib.x);
+      texel1f = vec3(texel1);
+    }
+  else
+    {
+      texel1f.x = 0.0;
+      texel1f.y = 0.0;
+      texel1f.z = -1.0;
+    }
+
+  fastuidraw_glyph_tex_coord_x = texel0f.x;
+  fastuidraw_glyph_tex_coord_y = texel0f.y;
+  fastuidraw_glyph_tex_coord_layer = texel0f.z;
+  fastuidraw_glyph_secondary_tex_coord_x = texel1f.x;
+  fastuidraw_glyph_secondary_tex_coord_y = texel1f.y;
+  fastuidraw_glyph_secondary_tex_coord_layer = texel1f.z;
+  fastuidraw_glyph_geometry_data_location = uprimary_attrib.z;
+
   z_add = 0;
-  return secondary_attrib.xyxy;
+  return p.xyxy;
 }
