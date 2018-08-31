@@ -32,6 +32,7 @@ namespace fastuidraw
  * @{
  */
   class FontBase;
+  class GlyphCache;
 
   /*!
    * \brief

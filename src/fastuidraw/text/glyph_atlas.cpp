@@ -276,6 +276,64 @@ size(void) const
     ivec2(-1, -1);
 }
 
+//////////////////////////////////////////////
+// fastuidraw::GlyphLocation::Array methods
+unsigned int
+fastuidraw::GlyphLocation::Array::
+size(void) const
+{
+  std::vector<GlyphLocation> *d;
+  d = static_cast<std::vector<GlyphLocation>*>(m_d);
+  return d->size();
+}
+
+void
+fastuidraw::GlyphLocation::Array::
+resize(unsigned int N)
+{
+  std::vector<GlyphLocation> *d;
+  d = static_cast<std::vector<GlyphLocation>*>(m_d);
+  d->resize(N);
+}
+
+fastuidraw::GlyphLocation&
+fastuidraw::GlyphLocation::Array::
+operator[](unsigned int N)
+{
+  std::vector<GlyphLocation> *d;
+  d = static_cast<std::vector<GlyphLocation>*>(m_d);
+  FASTUIDRAWassert(N < d->size());
+  return d->operator[](N);
+}
+
+const fastuidraw::GlyphLocation&
+fastuidraw::GlyphLocation::Array::
+operator[](unsigned int N) const
+{
+  std::vector<GlyphLocation> *d;
+  d = static_cast<std::vector<GlyphLocation>*>(m_d);
+  FASTUIDRAWassert(N < d->size());
+  return d->operator[](N);
+}
+
+fastuidraw::c_array<fastuidraw::GlyphLocation>
+fastuidraw::GlyphLocation::Array::
+data(void)
+{
+  std::vector<GlyphLocation> *d;
+  d = static_cast<std::vector<GlyphLocation>*>(m_d);
+  return make_c_array(*d);
+}
+
+fastuidraw::c_array<const fastuidraw::GlyphLocation>
+fastuidraw::GlyphLocation::Array::
+data(void) const
+{
+  std::vector<GlyphLocation> *d;
+  d = static_cast<std::vector<GlyphLocation>*>(m_d);
+  return make_c_array(*d);
+}
+
 ///////////////////////////////////////////////
 // fastuidraw::GlyphAtlas methods
 fastuidraw::GlyphAtlas::

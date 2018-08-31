@@ -401,56 +401,10 @@ resize_geometry_data(int sz)
   d->m_geometry_data.resize(sz, fastuidraw::GlyphRenderDataCurvePair::entry(false));
 }
 
-unsigned int
-fastuidraw::GlyphRenderDataCurvePair::
-number_glyph_locations(void) const
-{
-  GlyphRenderDataCurvePairPrivate *d;
-  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
-
-  if (d->m_texels.empty())
-    {
-      return 0;
-    }
-
-  /* ICK. Should change interface so that value is cached;
-   * However, if this function is getting called, it means
-   * that upload_to_atlas() will be called which requires
-   * texel walk anyways.
-   */
-  for(int y = 0, J = 0; y < d->m_resolution.y(); ++y)
-    {
-      for(int x = 0; x < d->m_resolution.x(); ++x, ++J)
-        {
-          uint16_t v;
-          v = d->m_texels[J];
-          if (v == completely_full_texel)
-            {
-              v = 1;
-            }
-          else if (v == completely_empty_texel)
-            {
-              v = 0;
-            }
-          else
-            {
-              v += 2;
-            }
-
-          if (v > 0xFF)
-            {
-              return 2;
-            }
-        }
-    }
-
-  return 1;
-}
-
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataCurvePair::
 upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                c_array<GlyphLocation> atlas_locations,
+                GlyphLocation::Array &atlas_locations,
                 int &geometry_offset,
                 int &geometry_length) const
 {
@@ -470,17 +424,9 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
 
   std::vector<uint8_t> primary, secondary;
   std::vector<float> geometry;
-  bool has_secondary(atlas_locations.size() >= 2);
   int num_texels(d->m_resolution.x() * d->m_resolution.y());
 
-  FASTUIDRAWassert(atlas_locations.size() <= 2);
-
   primary.resize(num_texels, 0);
-  if (has_secondary)
-    {
-      secondary.resize(num_texels, 0);
-    }
-
   for(int y = 0, J = 0; y < d->m_resolution.y(); ++y)
     {
       for(int x = 0; x < d->m_resolution.x(); ++x, ++J)
@@ -502,10 +448,22 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
           primary[J] = v & 0xFF;
           if (v > 0xFF)
             {
-              FASTUIDRAWassert(has_secondary);
+              if (secondary.empty())
+                {
+                  secondary.resize(num_texels, 0);
+                }
               secondary[J] = (v >> 8);
             }
         }
+    }
+
+  if (secondary.empty())
+    {
+      atlas_locations.resize(1);
+    }
+  else
+    {
+      atlas_locations.resize(2);
     }
 
   atlas_locations[0] = atlas->allocate(d->m_resolution, make_c_array(primary), padding);
@@ -513,7 +471,7 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
     {
       bool success(true);
 
-      if (has_secondary)
+      if (!secondary.empty())
         {
           atlas_locations[1] = atlas->allocate(d->m_resolution, make_c_array(secondary), padding);
           success = atlas_locations[1].valid();
@@ -537,7 +495,7 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
         {
           atlas->deallocate(atlas_locations[0]);
           atlas_locations[0] = GlyphLocation();
-          if (has_secondary)
+          if (!secondary.empty())
             {
               atlas->deallocate(atlas_locations[1]);
               atlas_locations[1] = GlyphLocation();
@@ -548,5 +506,4 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
   return atlas_locations[0].valid() ?
     routine_success :
     routine_fail;
-
 }

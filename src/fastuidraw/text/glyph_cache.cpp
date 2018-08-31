@@ -40,11 +40,10 @@ namespace
     void
     clear(void);
 
-    enum fastuidraw::return_code
-    upload_to_atlas(void);
+    void
+    clear_from_cache(void);
 
-    /* owner
-     */
+    /* owner */
     GlyphCachePrivate *m_cache;
 
     /* location into m_cache->m_glyphs
@@ -145,17 +144,16 @@ GlyphDataPrivate(void):
 
 void
 GlyphDataPrivate::
-clear(void)
+clear_from_cache(void)
 {
-  m_render = fastuidraw::GlyphRender();
-  FASTUIDRAWassert(!m_render.valid());
-
   if (m_cache)
     {
       for (const fastuidraw::GlyphLocation &g : m_atlas_locations)
         {
-          FASTUIDRAWassert(g.valid());
-          m_cache->m_atlas->deallocate(g);
+          if (g.valid())
+            {
+              m_cache->m_atlas->deallocate(g);
+            }
         }
       m_atlas_locations.clear();
 
@@ -166,8 +164,17 @@ clear(void)
           m_geometry_length = 0;
         }
     }
-
   m_uploaded_to_atlas = false;
+}
+
+void
+GlyphDataPrivate::
+clear(void)
+{
+  m_render = fastuidraw::GlyphRender();
+  FASTUIDRAWassert(!m_render.valid());
+
+  clear_from_cache();
   if (m_glyph_data)
     {
       FASTUIDRAWdelete(m_glyph_data);
@@ -175,48 +182,6 @@ clear(void)
     }
   m_path.clear();
 }
-
-enum fastuidraw::return_code
-GlyphDataPrivate::
-upload_to_atlas(void)
-{
-  using namespace fastuidraw;
-
-  /* TODO:
-   * 1. this method is not thread safe if different threads
-   *    attempt to access the same glyph (or if different
-   *    threads call this routine and clear_atlas()
-   *    at the same time).
-   */
-  enum return_code return_value;
-  unsigned int num;
-
-  if (m_uploaded_to_atlas)
-    {
-      return routine_success;
-    }
-
-  if (!m_cache)
-    {
-      return routine_fail;
-    }
-
-  FASTUIDRAWassert(m_glyph_data);
-  num = m_glyph_data->number_glyph_locations();
-  m_atlas_locations.resize(num);
-  return_value = m_glyph_data->upload_to_atlas(m_cache->m_atlas,
-                                               make_c_array(m_atlas_locations),
-                                               m_geometry_offset,
-                                               m_geometry_length);
-  if (return_value == routine_success)
-    {
-      m_uploaded_to_atlas = true;
-    }
-
-  return return_value;
-}
-
-
 
 /////////////////////////////////////////////////
 // GlyphCachePrivate methods
@@ -236,7 +201,6 @@ GlyphCachePrivate::
       FASTUIDRAWdelete(m_glyphs[i]);
     }
 }
-
 
 GlyphDataPrivate*
 GlyphCachePrivate::
@@ -344,10 +308,39 @@ enum fastuidraw::return_code
 fastuidraw::Glyph::
 upload_to_atlas(void) const
 {
+  enum return_code return_value;
   GlyphDataPrivate *p;
+
   p = static_cast<GlyphDataPrivate*>(m_opaque);
   FASTUIDRAWassert(p != nullptr && p->m_render.valid());
-  return p->upload_to_atlas();
+
+  if (p->m_uploaded_to_atlas)
+    {
+      return routine_success;
+    }
+
+  if (!p->m_cache)
+    {
+      return routine_fail;
+    }
+
+  FASTUIDRAWassert(p->m_glyph_data);
+  FASTUIDRAWassert(p->m_atlas_locations.empty());
+
+  GlyphLocation::Array S(&p->m_atlas_locations);
+  return_value = p->m_glyph_data->upload_to_atlas(p->m_cache->m_atlas, S,
+                                                  p->m_geometry_offset,
+                                                  p->m_geometry_length);
+  if (return_value == routine_success)
+    {
+      p->m_uploaded_to_atlas = true;
+    }
+  else
+    {
+      p->clear_from_cache();
+    }
+
+  return return_value;
 }
 
 const fastuidraw::Path&
