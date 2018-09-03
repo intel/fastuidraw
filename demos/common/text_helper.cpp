@@ -325,8 +325,16 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
   L.m_range.m_end = glyph_codes.size();
   L.m_horizontal_spread.m_begin = 0.0f;
   L.m_horizontal_spread.m_end = pen.x();
-  L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
-  L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+  if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
+    {
+      L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
+      L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+    }
+  else
+    {
+      L.m_vertical_spread.m_begin = pen.y() + offset;
+      L.m_vertical_spread.m_end = pen.y() + offset + tallest;
+    }
 
   pen.x() = 0.0f;
   pen.y() += pen_y_advance + 1.0f;
@@ -469,8 +477,16 @@ create_formatted_text(std::istream &istr,
       L.m_range.m_end = loc + line.length();
       L.m_horizontal_spread.m_begin = 0.0f;
       L.m_horizontal_spread.m_end = pen.x();
-      L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
-      L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+      if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
+        {
+          L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
+          L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+        }
+      else
+        {
+          L.m_vertical_spread.m_begin = pen.y() + offset;
+          L.m_vertical_spread.m_end = pen.y() + offset + tallest;
+        }
 
       pen.x() = 0.0f;
       pen.y() += pen_y_advance + 1.0f;
