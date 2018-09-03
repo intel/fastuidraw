@@ -10,6 +10,7 @@
 #include "text_helper.hpp"
 #include "cycle_value.hpp"
 #include "glyph_finder.hpp"
+#include "command_line_list.hpp"
 
 using namespace fastuidraw;
 
@@ -47,6 +48,14 @@ public:
        const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &cache,
        const reference_counted_ptr<GlyphSelector> &selector,
+       float pixel_size_formatting,
+       GlyphRender renderer,
+       size_t glyphs_per_painter_draw);
+
+  void
+  init(const std::vector<uint32_t> &glyph_codes,
+       const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<GlyphCache> &glyph_cache,
        float pixel_size_formatting,
        GlyphRender renderer,
        size_t glyphs_per_painter_draw);
@@ -139,10 +148,17 @@ private:
   ready_glyph_attribute_data(void);
 
   void
-  init_glyph_draw(unsigned int I, GlyphRender renderer);
+  init_glyph_draw(unsigned int I, GlyphRender renderer,
+                  const std::vector<uint32_t> &explicit_glyph_codes);
 
   float
   update_cts_params(void);
+
+  void
+  stroke_glyph(const PainterData &d, Glyph G);
+
+  void
+  fill_glyph(const PainterData &d, Glyph G);
 
   command_line_argument_value<std::string> m_font_path;
   command_line_argument_value<std::string> m_font_style, m_font_family;
@@ -159,6 +175,7 @@ private:
   command_line_argument_value<float> m_render_pixel_size;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<int> m_glyphs_per_painter_draw;
+  command_line_list<uint32_t> m_explicit_glyph_codes;
 
   reference_counted_ptr<const FontFreeType> m_font;
 
@@ -358,6 +375,26 @@ init(unsigned int num_threads,
   set_data(pixel_size_formatting, glyphs_per_painter_draw);
 }
 
+void
+GlyphDraws::
+init(const std::vector<uint32_t> &glyph_codes,
+     const reference_counted_ptr<const FontFreeType> &font,
+     const reference_counted_ptr<GlyphCache> &glyph_cache,
+     float pixel_size_formatting,
+     GlyphRender renderer,
+     size_t glyphs_per_painter_draw)
+{
+  std::vector<LineData> lines;
+
+  create_formatted_text(glyph_codes,
+                        renderer, pixel_size_formatting,
+                        font, glyph_cache,
+                        m_glyphs, m_glyph_positions,
+                        &lines, &m_glyph_extents);
+  m_character_codes.resize(m_glyphs.size(), 0);
+  m_glyph_finder.init(lines, cast_c_array(m_glyph_extents));
+  set_data(pixel_size_formatting, glyphs_per_painter_draw);
+}
 
 void
 GlyphDraws::
@@ -379,7 +416,6 @@ init(std::istream &istr,
     }
   set_data(pixel_size_formatting, glyphs_per_painter_draw);
 }
-
 
 void
 GlyphDraws::
@@ -457,6 +493,10 @@ painter_glyph_test(void):
   m_glyphs_per_painter_draw(10000, "glyphs_per_painter_draw",
                             "Number of glyphs to draw per Painter::draw_text call",
                             *this),
+  m_explicit_glyph_codes("add_glyph_code",
+                         "Add an explicit glyph code to render, if the list "
+                         "is non-empty, takes precendence over text",
+                         *this),
   m_use_anisotropic_anti_alias(false),
   m_stroke_glyphs(false),
   m_fill_glyphs(false),
@@ -575,12 +615,20 @@ derived_init(int w, int h)
 
 void
 painter_glyph_test::
-init_glyph_draw(unsigned int I, GlyphRender renderer)
+init_glyph_draw(unsigned int I, GlyphRender renderer,
+                const std::vector<uint32_t> &explicit_glyph_codes)
 {
   if (m_draw_glyph_set.value())
     {
       m_draws[I].init(m_realize_glyphs_thread_count.value(),
                       m_font, m_glyph_cache, m_glyph_selector,
+                      m_render_pixel_size.value(), renderer,
+                      m_glyphs_per_painter_draw.value());
+    }
+  else if (!explicit_glyph_codes.empty())
+    {
+      m_draws[I].init(explicit_glyph_codes,
+                      m_font, m_glyph_cache,
                       m_render_pixel_size.value(), renderer,
                       m_glyphs_per_painter_draw.value());
     }
@@ -606,26 +654,48 @@ void
 painter_glyph_test::
 ready_glyph_attribute_data(void)
 {
+  std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
+                                             m_explicit_glyph_codes.end());
+
   {
     GlyphRender renderer(distance_field_glyph);
     FASTUIDRAWassert(renderer.m_type == distance_field_glyph);
-    init_glyph_draw(draw_glyph_distance, renderer);
+    init_glyph_draw(draw_glyph_distance, renderer, explicit_glyph_codes);
     m_draw_labels[draw_glyph_distance] = "draw_glyph_distance";
   }
 
   {
     GlyphRender renderer(curve_pair_glyph);
     FASTUIDRAWassert(renderer.m_type == curve_pair_glyph);
-    init_glyph_draw(draw_glyph_curvepair, renderer);
+    init_glyph_draw(draw_glyph_curvepair, renderer, explicit_glyph_codes);
     m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
   }
 
   {
     GlyphRender renderer(m_coverage_pixel_size.value());
     FASTUIDRAWassert(renderer.m_type == coverage_glyph);
-    init_glyph_draw(draw_glyph_coverage, renderer);
+    init_glyph_draw(draw_glyph_coverage, renderer, explicit_glyph_codes);
     m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
   }
+}
+
+void
+painter_glyph_test::
+stroke_glyph(const PainterData &d, Glyph G)
+{
+  m_painter->stroke_path(d, G.path(),
+                         true, PainterEnums::flat_caps,
+                         static_cast<enum PainterEnums::join_style>(m_join_style),
+                         m_anti_alias_path_stroking);
+}
+
+void
+painter_glyph_test::
+fill_glyph(const PainterData &d, Glyph G)
+{
+  m_painter->fill_path(d, G.path(),
+                       PainterEnums::nonzero_fill_rule,
+                       m_anti_alias_path_filling);
 }
 
 void
@@ -683,11 +753,7 @@ draw_frame(void)
               //which is the opposite coordinate system as the glyph's
               //path, thus we also need to negate in the y-direction.
               m_painter->shear(sc, -sc);
-
-              m_painter->fill_path(PainterData(pbr),
-                                   glyphs[i].path(),
-                                   PainterEnums::nonzero_fill_rule,
-                                   m_anti_alias_path_filling);
+              fill_glyph(PainterData(pbr), glyphs[i]);
               m_painter->restore();
             }
         }
@@ -729,18 +795,12 @@ draw_frame(void)
               //make the scale of the path match how we scaled the text.
               float sc;
               sc = m_render_pixel_size.value() / glyphs[i].layout().units_per_EM();
-
               //we are drawing with y-coordinate increasing downwards
               //which is the opposite coordinate system as the glyph's
               //path, thus we also need to negate in the y-direction.
               m_painter->shear(sc, -sc);
 
-              m_painter->stroke_path(PainterData(pst, pbr),
-                                     glyphs[i].path(),
-                                     true, PainterEnums::flat_caps,
-                                     static_cast<enum PainterEnums::join_style>(m_join_style),
-                                     m_anti_alias_path_stroking);
-
+              stroke_glyph(PainterData(pst, pbr), glyphs[i]);
               m_painter->restore();
             }
         }
@@ -821,7 +881,7 @@ draw_frame(void)
                    << ", " << m_draws[src].glyph_extents()[G].m_end << "]"
                    << "\n\tGlyphCoords in SCM=" << vec2(p.x() - q.x(), q.y() - p.y()) / ratio
                    << "\n\tGlyphCoords in pixel-size=" << vec2(p.x() - q.x(), q.y() - p.y())
-                   << "\n";
+                   << "\n\tHorizontal Offset = " << glyph.layout().horizontal_layout_offset();
 
               /* draw a box around the glyph(!).
                */
