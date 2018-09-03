@@ -71,6 +71,18 @@ private:
 };
 
 void
+create_formatted_text(const std::vector<uint32_t> &glyph_codes,
+                      fastuidraw::GlyphRender renderer, float pixel_size,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
+                      std::vector<fastuidraw::Glyph> &glyphs,
+                      std::vector<fastuidraw::vec2> &positions,
+                      std::vector<LineData> *line_data = nullptr,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
+                      enum fastuidraw::PainterEnums::glyph_orientation orientation
+                      = fastuidraw::PainterEnums::y_increases_downwards);
+
+void
 create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       float pixel_size,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
