@@ -336,8 +336,6 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
       L.m_vertical_spread.m_end = pen.y() + offset + tallest;
     }
 
-  pen.x() = 0.0f;
-  pen.y() += pen_y_advance + 1.0f;
   last_negative_tallest = negative_tallest;
 
   if (line_data && !empty_line)
@@ -481,15 +479,16 @@ create_formatted_text(std::istream &istr,
         {
           L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
           L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+          pen.y() += pen_y_advance + 1.0f;
         }
       else
         {
           L.m_vertical_spread.m_begin = pen.y() + offset;
           L.m_vertical_spread.m_end = pen.y() + offset + tallest;
+          pen.y() -= pen_y_advance + 1.0f;
         }
 
       pen.x() = 0.0f;
-      pen.y() += pen_y_advance + 1.0f;
       loc += line.length();
       last_negative_tallest = negative_tallest;
 
