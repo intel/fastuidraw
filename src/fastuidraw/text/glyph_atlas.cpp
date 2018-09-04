@@ -87,7 +87,12 @@ namespace
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> pgeometry_store):
       m_texel_store(ptexel_store),
       m_geometry_store(pgeometry_store),
-      m_geometry_data_allocator(pgeometry_store->size())
+      m_geometry_data_allocator(pgeometry_store->size()),
+      m_geometry_data_allocated(0),
+      m_stats_dirty(false),
+      m_number_texels_allocated(0),
+      m_number_nodes(0),
+      m_bytes_used_by_nodes(0)
     {
       FASTUIDRAWassert(m_texel_store);
       FASTUIDRAWassert(m_geometry_store);
@@ -108,11 +113,35 @@ namespace
         }
     }
 
+    void
+    compute_stats(void)
+    {
+      if (m_stats_dirty)
+        {
+          m_stats_dirty = false;
+          m_number_texels_allocated = 0;
+          m_number_nodes = 0;
+          m_bytes_used_by_nodes = 0;
+          for(auto p : m_private_data)
+            {
+              m_number_texels_allocated += p->texels_allocated();
+              m_number_nodes += p->number_nodes();
+              m_bytes_used_by_nodes += p->bytes_used_by_nodes();
+            }
+        }
+    }
+
     std::mutex m_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase> m_texel_store;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> m_geometry_store;
     std::vector<fastuidraw::reference_counted_ptr<rect_atlas_layer> > m_private_data;
     fastuidraw::interval_allocator m_geometry_data_allocator;
+
+    unsigned int m_geometry_data_allocated;
+    bool m_stats_dirty;
+    unsigned int m_number_texels_allocated;
+    unsigned int m_number_nodes;
+    unsigned int m_bytes_used_by_nodes;
   };
 }
 
@@ -352,6 +381,41 @@ fastuidraw::GlyphAtlas::
   m_d = nullptr;
 }
 
+unsigned int
+fastuidraw::GlyphAtlas::
+number_texels_allocated(void)
+{
+  GlyphAtlasPrivate *d;
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+
+  std::lock_guard<std::mutex> m(d->m_mutex);
+  d->compute_stats();
+  return d->m_number_texels_allocated;
+}
+
+unsigned int
+fastuidraw::GlyphAtlas::
+number_nodes(void)
+{
+  GlyphAtlasPrivate *d;
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+
+  std::lock_guard<std::mutex> m(d->m_mutex);
+  d->compute_stats();
+  return d->m_number_nodes;
+}
+
+unsigned int
+fastuidraw::GlyphAtlas::
+bytes_used_by_nodes(void)
+{
+  GlyphAtlasPrivate *d;
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+
+  std::lock_guard<std::mutex> m(d->m_mutex);
+  d->compute_stats();
+  return d->m_bytes_used_by_nodes;
+}
 
 fastuidraw::GlyphLocation
 fastuidraw::GlyphAtlas::
@@ -403,6 +467,7 @@ allocate(fastuidraw::ivec2 size, c_array<const uint8_t> pdata,
 
   if (r != nullptr)
     {
+      d->m_stats_dirty = true;
       return_value.m_opaque = r;
       d->m_texel_store->set_data(r->minX_minY().x(), r->minX_minY().y(), layer,
                                  size.x(), size.y(), pdata);
@@ -415,12 +480,16 @@ void
 fastuidraw::GlyphAtlas::
 deallocate(fastuidraw::GlyphLocation G)
 {
-  FASTUIDRAWassert(G.valid());
   const detail::RectAtlas::rectangle *r;
+  GlyphAtlasPrivate *d;
+
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+  FASTUIDRAWassert(G.valid());
 
   r = static_cast<const detail::RectAtlas::rectangle*>(G.m_opaque);
   if (r != nullptr)
     {
+      d->m_stats_dirty = true;
       detail::RectAtlas::delete_rectangle(r);
     }
 }
@@ -460,6 +529,7 @@ allocate_geometry_data(c_array<const generic_data> pdata)
         }
     }
 
+  d->m_geometry_data_allocated += block_count;
   d->m_geometry_store->set_values(return_value, pdata);
   return return_value;
 }
@@ -480,9 +550,20 @@ deallocate_geometry_data(int location, int count)
   std::lock_guard<std::mutex> m(d->m_mutex);
 
   FASTUIDRAWassert(count > 0);
+  d->m_geometry_data_allocated -= count;
   d->m_geometry_data_allocator.free_interval(location, count);
 }
 
+unsigned int
+fastuidraw::GlyphAtlas::
+geometry_data_allocated(void)
+{
+  GlyphAtlasPrivate *d;
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+
+  std::lock_guard<std::mutex> m(d->m_mutex);
+  return d->m_geometry_data_allocated;
+}
 
 void
 fastuidraw::GlyphAtlas::

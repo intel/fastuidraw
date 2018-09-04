@@ -109,6 +109,16 @@ public:
       m_tree(nullptr)
     {}
 
+    explicit
+    rectangle(RectAtlas *p):
+      m_atlas(p),
+      m_minX_minY(0, 0),
+      m_size(0, 0),
+      m_unpadded_minX_minY(0, 0),
+      m_unpadded_size(0, 0),
+      m_tree(nullptr)
+    {}
+
     void
     finalize(int left, int right,
              int top, int bottom)
@@ -167,6 +177,32 @@ public:
    */
   ivec2
   size(void) const;
+
+  /*!
+   * Returns the sum of the area of the rectangles
+   * that have been added.
+   */
+  unsigned int
+  texels_allocated(void) const
+  {
+    return m_total_allocated;
+  }
+
+  /*!
+   * Returns the number of nodes in the internal tree.
+   */
+  unsigned int
+  number_nodes(void) const
+  {
+    return m_root->number_nodes();
+  }
+
+  unsigned int
+  bytes_used_by_nodes(void)
+  {
+    return sizeof(*this)
+      + m_root->bytes_used_by_nodes();
+  }
 
   /*!
    * Delete a rectangle, and in doing so remove it
@@ -271,6 +307,14 @@ private:
     bool
     empty(void) = 0;
 
+    virtual
+    unsigned int
+    number_nodes(void) = 0;
+
+    virtual
+    unsigned int
+    bytes_used_by_nodes(void) = 0;
+
   private:
     ivec2 m_minX_minY, m_size;
     const tree_base *m_parent;
@@ -303,6 +347,20 @@ private:
     rectangle*
     data(void);
 
+    virtual
+    unsigned int
+    number_nodes(void)
+    {
+      return 1;
+    }
+
+    virtual
+    unsigned int
+    bytes_used_by_nodes(void)
+    {
+      return sizeof(*this);
+    }
+
   private:
     rectangle *m_rectangle;
   };
@@ -330,6 +388,25 @@ private:
     bool
     empty(void);
 
+    virtual
+    unsigned int
+    number_nodes(void)
+    {
+      return m_children[0]->number_nodes()
+        + m_children[1]->number_nodes()
+        + m_children[2]->number_nodes();
+    }
+
+    virtual
+    unsigned int
+    bytes_used_by_nodes(void)
+    {
+      return sizeof(*this)
+        + m_children[0]->bytes_used_by_nodes()
+        + m_children[1]->bytes_used_by_nodes()
+        + m_children[2]->bytes_used_by_nodes();
+    }
+
   private:
     vecN<tree_base*,3> m_children;
   };
@@ -356,6 +433,7 @@ private:
   tree_base *m_root;
   ivec2 m_rejected_request_size;
   rectangle m_empty_rect;
+  unsigned int m_total_allocated;
 };
 
 } //namespace detail_private

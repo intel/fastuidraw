@@ -347,7 +347,8 @@ fastuidraw::detail::RectAtlas::
 RectAtlas(const ivec2 &dimensions):
   m_root(nullptr),
   m_rejected_request_size(dimensions + ivec2(1, 1)),
-  m_empty_rect(this, ivec2(0, 0))
+  m_empty_rect(this),
+  m_total_allocated(0)
 {
   m_root = FASTUIDRAWnew tree_node_without_children(nullptr, ivec2(0,0), dimensions, nullptr);
 }
@@ -376,6 +377,7 @@ clear(void)
   FASTUIDRAWdelete(m_root);
   m_root = FASTUIDRAWnew tree_node_without_children(nullptr, ivec2(0,0), dimensions, nullptr);
   m_rejected_request_size = dimensions + ivec2(1, 1);
+  m_total_allocated = 0;
 }
 
 const fastuidraw::detail::RectAtlas::rectangle*
@@ -426,13 +428,13 @@ add_rectangle(const ivec2 &dimensions,
 
   if (return_value != nullptr && return_value != &m_empty_rect)
     {
+      m_total_allocated += return_value->size().x() * return_value->size().y();
       return_value->finalize(left_padding, right_padding,
                              top_padding, bottom_padding);
     }
 
   return return_value;
 }
-
 
 enum fastuidraw::return_code
 fastuidraw::detail::RectAtlas::
@@ -450,17 +452,19 @@ remove_rectangle_implement(const rectangle *im)
   else
     {
       R = m_root->api_remove(im);
-      if (R.second == routine_success && R.first != m_root)
+      if (R.second == routine_success)
         {
-          FASTUIDRAWdelete(m_root);
-          m_root = R.first;
+          if (R.first != m_root)
+            {
+              FASTUIDRAWdelete(m_root);
+              m_root = R.first;
+            }
+          m_total_allocated -= im->size().x() * im->size().y();
+          m_rejected_request_size = m_root->size() + ivec2(1, 1);
         }
-      m_rejected_request_size = m_root->size() + ivec2(1, 1);
       return R.second;
     }
 }
-
-
 
 enum fastuidraw::return_code
 fastuidraw::detail::RectAtlas::

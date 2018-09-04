@@ -317,6 +317,24 @@ namespace fastuidraw
     deallocate(GlyphLocation G);
 
     /*!
+     * Returns the number of texels allocated.
+     */
+    unsigned int
+    number_texels_allocated(void);
+
+    /*!
+     * Returns the number of bytes used by the bookkeeping tree
+     */
+    unsigned int
+    bytes_used_by_nodes(void);
+
+    /*!
+     * Returns the number of nodes of the bookkeeping tree
+     */
+    unsigned int
+    number_nodes(void);
+
+    /*!
      * Negative return value indicates failure.
      * Size of pdata must be a multiple of geometry_store()->alignment().
      */
@@ -328,6 +346,13 @@ namespace fastuidraw
      */
     void
     deallocate_geometry_data(int location, int count);
+
+    /*!
+     * Returns how much geometry data has been allocated in
+     * units of geometry_store()->alignment().
+     */
+    unsigned int
+    geometry_data_allocated(void);
 
     /*!
      * Frees all allocated regions of this GlyphAtlas;
