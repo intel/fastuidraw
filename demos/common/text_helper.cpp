@@ -240,7 +240,8 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation)
+                      enum fastuidraw::PainterEnums::glyph_orientation orientation,
+                      bool adjust_starting_baseline)
 {
   fastuidraw::vec2 pen(0.0f, 0.0f);
   float last_negative_tallest(0.0f);
@@ -299,20 +300,20 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
 
   if (empty_line)
     {
-      offset = pixel_size + 1.0f;
-      pen_y_advance = offset;
+      pen_y_advance = pixel_size + 1.0f;
+      offset = (adjust_starting_baseline) ? 0 : pen_y_advance;
     }
   else
     {
       if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
         {
-          offset = (tallest - last_negative_tallest);
-          pen_y_advance = offset;
+          pen_y_advance = tallest - last_negative_tallest;
+          offset = (adjust_starting_baseline) ? 0 : pen_y_advance;
         }
       else
         {
-          offset = -negative_tallest;
           pen_y_advance = tallest - negative_tallest;
+          offset = (adjust_starting_baseline) ? 0 : -negative_tallest;
         }
     }
 
@@ -357,13 +358,15 @@ create_formatted_text(std::istream &istr,
                       std::vector<uint32_t> &character_codes,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation)
+                      enum fastuidraw::PainterEnums::glyph_orientation orientation,
+                      bool adjust_starting_baseline)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
   fastuidraw::vec2 pen(0.0f, 0.0f);
   std::string line, original_line;
   float last_negative_tallest(0.0f);
+  bool first_line(true);
 
   current_position = istr.tellg();
   istr.seekg(0, std::ios::end);
@@ -449,20 +452,20 @@ create_formatted_text(std::istream &istr,
 
       if (empty_line)
         {
-          offset = pixel_size + 1.0f;
-          pen_y_advance = offset;
+          pen_y_advance = pixel_size + 1.0f;
+          offset = (first_line || adjust_starting_baseline) ? 0 : pen_y_advance;
         }
       else
         {
           if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
             {
-              offset = (tallest - last_negative_tallest);
-              pen_y_advance = offset;
+              pen_y_advance = tallest - last_negative_tallest;
+              offset = (first_line || adjust_starting_baseline) ? 0 : pen_y_advance;
             }
           else
             {
-              offset = -negative_tallest;
               pen_y_advance = tallest - negative_tallest;
+              offset = (first_line || adjust_starting_baseline) ? 0 : -negative_tallest;
             }
         }
 
@@ -498,6 +501,7 @@ create_formatted_text(std::istream &istr,
           L.m_vertical_spread.sanitize();
           line_data->push_back(L);
         }
+      first_line = false;
     }
 
   glyphs.resize(loc);
