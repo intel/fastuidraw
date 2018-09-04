@@ -1,11 +1,11 @@
-FASTUIDRAW_DEPS_LIBS += $(shell freetype-config --libs)
-FASTUIDRAW_DEPS_STATIC_LIBS += $(shell freetype-config --static --libs)
+FASTUIDRAW_DEPS_LIBS += $(shell pkg-config freetype2 --libs)
+FASTUIDRAW_DEPS_STATIC_LIBS += $(shell pkg-config freetype2 --static --libs)
 
 FASTUIDRAW_BASE_CFLAGS = -std=c++11 -D_USE_MATH_DEFINES
 FASTUIDRAW_debug_BASE_CFLAGS = $(FASTUIDRAW_BASE_CFLAGS) -DFASTUIDRAW_DEBUG
 FASTUIDRAW_release_BASE_CFLAGS = $(FASTUIDRAW_BASE_CFLAGS)
 
-FASTUIDRAW_DEPENDS_CFLAGS = $(shell freetype-config --cflags)
+FASTUIDRAW_DEPENDS_CFLAGS = $(shell pkg-config freetype2 --cflags)
 FASTUIDRAW_debug_CFLAGS =  $(FASTUIDRAW_DEPENDS_CFLAGS) $(FASTUIDRAW_debug_BASE_CFLAGS)
 FASTUIDRAW_release_CFLAGS = $(FASTUIDRAW_DEPENDS_CFLAGS) $(FASTUIDRAW_release_BASE_CFLAGS)
 
