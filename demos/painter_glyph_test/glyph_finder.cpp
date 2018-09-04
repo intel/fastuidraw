@@ -1,4 +1,5 @@
 #include "glyph_finder.hpp"
+#include "simple_time.hpp"
 
 //////////////////////////////////
 // GlyphFinder methods
@@ -21,10 +22,14 @@ GlyphFinder::
 init(const std::vector<LineData> &in_data,
      fastuidraw::c_array<const fastuidraw::range_type<float> > glyph_extents)
 {
+  simple_time timer;
+
+  std::cout << "Creating glyph finder..." << std::flush;
   m_glyph_extents = glyph_extents;
 
   if (in_data.empty())
     {
+      std::cout << "took " << timer.elapsed() << " ms\n";
       return;
     }
   float begin, end;
@@ -54,6 +59,7 @@ init(const std::vector<LineData> &in_data,
           p->insert_glyph(g, glyph_extents[g]);
         }
     }
+  std::cout << "took " << timer.elapsed() << " ms\n";
 }
 
 unsigned int
