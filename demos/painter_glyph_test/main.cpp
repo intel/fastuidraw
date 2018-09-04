@@ -50,7 +50,8 @@ public:
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
        GlyphRender renderer,
-       size_t glyphs_per_painter_draw);
+       size_t glyphs_per_painter_draw,
+       enum PainterEnums::glyph_orientation glyph_orientation);
 
   void
   init(const std::vector<uint32_t> &glyph_codes,
@@ -58,7 +59,8 @@ public:
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        float pixel_size_formatting,
        GlyphRender renderer,
-       size_t glyphs_per_painter_draw);
+       size_t glyphs_per_painter_draw,
+       enum PainterEnums::glyph_orientation glyph_orientation);
 
   void
   init(std::istream &istr,
@@ -66,7 +68,8 @@ public:
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
        GlyphRender renderer,
-       size_t glyphs_per_painter_draw);
+       size_t glyphs_per_painter_draw,
+       enum PainterEnums::glyph_orientation glyph_orientation);
 
   const GlyphFinder&
   glyph_finder(void) const
@@ -100,7 +103,8 @@ public:
 
 private:
   void
-  set_data(float pixel_size, size_t glyphs_per_painter_draw);
+  set_data(float pixel_size, size_t glyphs_per_painter_draw,
+           enum PainterEnums::glyph_orientation glyph_orientation);
 
   std::vector<PainterAttributeData*> m_data;
   std::vector<vec2> m_glyph_positions;
@@ -141,6 +145,8 @@ private:
       number_draw_modes
     };
 
+  typedef enum PainterEnums::glyph_orientation glyph_orientation;
+
   enum return_code
   create_and_add_font(void);
 
@@ -176,6 +182,7 @@ private:
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<int> m_glyphs_per_painter_draw;
   command_line_list<uint32_t> m_explicit_glyph_codes;
+  enumerated_command_line_argument_value<glyph_orientation> m_glyph_orientation;
 
   reference_counted_ptr<const FontFreeType> m_font;
 
@@ -215,7 +222,8 @@ init(unsigned int num_threads,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
      GlyphRender renderer,
-     size_t glyphs_per_painter_draw)
+     size_t glyphs_per_painter_draw,
+     enum PainterEnums::glyph_orientation glyph_orientation)
 {
   float tallest(0.0f), negative_tallest(0.0f), offset;
   unsigned int i, endi, glyph_at_start, navigator_chars;
@@ -362,7 +370,9 @@ init(unsigned int num_threads,
       temp_character_codes.clear();
       create_formatted_text(stream, renderer, pixel_size_formatting,
                             font, glyph_selector, temp_glyphs,
-                            temp_positions, temp_character_codes);
+                            temp_positions, temp_character_codes,
+                            nullptr, nullptr,
+                            glyph_orientation);
 
       FASTUIDRAWassert(temp_glyphs.size() == temp_positions.size());
       for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
@@ -372,7 +382,7 @@ init(unsigned int num_threads,
           m_glyph_positions.push_back(vec2(line_length + temp_positions[c].x(), nav_iter->first) );
         }
     }
-  set_data(pixel_size_formatting, glyphs_per_painter_draw);
+  set_data(pixel_size_formatting, glyphs_per_painter_draw, glyph_orientation);
 }
 
 void
@@ -382,7 +392,8 @@ init(const std::vector<uint32_t> &glyph_codes,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      float pixel_size_formatting,
      GlyphRender renderer,
-     size_t glyphs_per_painter_draw)
+     size_t glyphs_per_painter_draw,
+     enum PainterEnums::glyph_orientation glyph_orientation)
 {
   std::vector<LineData> lines;
 
@@ -390,10 +401,11 @@ init(const std::vector<uint32_t> &glyph_codes,
                         renderer, pixel_size_formatting,
                         font, glyph_cache,
                         m_glyphs, m_glyph_positions,
-                        &lines, &m_glyph_extents);
+                        &lines, &m_glyph_extents,
+                        glyph_orientation);
   m_character_codes.resize(m_glyphs.size(), 0);
   m_glyph_finder.init(lines, cast_c_array(m_glyph_extents));
-  set_data(pixel_size_formatting, glyphs_per_painter_draw);
+  set_data(pixel_size_formatting, glyphs_per_painter_draw, glyph_orientation);
 }
 
 void
@@ -403,7 +415,8 @@ init(std::istream &istr,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
      GlyphRender renderer,
-     size_t glyphs_per_painter_draw)
+     size_t glyphs_per_painter_draw,
+     enum PainterEnums::glyph_orientation glyph_orientation)
 {
   if (istr)
     {
@@ -411,15 +424,17 @@ init(std::istream &istr,
       create_formatted_text(istr, renderer, pixel_size_formatting,
                             font, glyph_selector,
                             m_glyphs, m_glyph_positions,
-                            m_character_codes, &lines, &m_glyph_extents);
+                            m_character_codes, &lines, &m_glyph_extents,
+                            glyph_orientation);
       m_glyph_finder.init(lines, cast_c_array(m_glyph_extents));
     }
-  set_data(pixel_size_formatting, glyphs_per_painter_draw);
+  set_data(pixel_size_formatting, glyphs_per_painter_draw, glyph_orientation);
 }
 
 void
 GlyphDraws::
-set_data(float pixel_size, size_t glyphs_per_painter_draw)
+set_data(float pixel_size, size_t glyphs_per_painter_draw,
+         enum PainterEnums::glyph_orientation glyph_orientation)
 {
   c_array<const vec2> in_glyph_positions(cast_c_array(m_glyph_positions));
   c_array<const Glyph> in_glyphs(cast_c_array(m_glyphs));
@@ -439,7 +454,8 @@ set_data(float pixel_size, size_t glyphs_per_painter_draw)
       in_glyph_positions = in_glyph_positions.sub_array(cnt);
 
       data = FASTUIDRAWnew PainterAttributeData();
-      data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs, pixel_size));
+      data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs, pixel_size,
+                                                      glyph_orientation));
       m_data.push_back(data);
     }
 }
@@ -497,6 +513,21 @@ painter_glyph_test(void):
                          "Add an explicit glyph code to render, if the list "
                          "is non-empty, takes precendence over text",
                          *this),
+  m_glyph_orientation(PainterEnums::y_increases_downwards,
+                      enumerated_string_type<glyph_orientation>()
+                      .add_entry("y_downwards",
+                                 PainterEnums::y_increases_downwards,
+                                 "Make coordinate system so that y-coordinate "
+                                 "increases downwards (i.e. top of the window "
+                                 "has y-coordinate is 0")
+                      .add_entry("y_upwards",
+                                 PainterEnums::y_increases_upwards,
+                                 "Make coordinate system so that y-coordinate "
+                                 "increases upwards (i.e. bottom of the window "
+                                 "has y-coordinate is 0"),
+                      "y_orientation",
+                      "Determine y-coordiante convention",
+                      *this),
   m_use_anisotropic_anti_alias(false),
   m_stroke_glyphs(false),
   m_fill_glyphs(false),
@@ -592,7 +623,6 @@ create_and_add_font(void)
   return routine_success;
 }
 
-
 void
 painter_glyph_test::
 derived_init(int w, int h)
@@ -611,6 +641,18 @@ derived_init(int w, int h)
 
   ready_glyph_attribute_data();
   m_draw_timer.restart();
+
+  if (m_glyph_orientation.value() == PainterEnums::y_increases_upwards)
+    {
+      m_zoomer.m_zoom_direction = PanZoomTracker::zoom_direction_negative_y;
+      m_zoomer.m_scale_event.y() = -1.0f;
+      m_zoomer.m_translate_event.y() = static_cast<float>(h);
+      m_zoomer.transformation(ScaleTranslate<float>(vec2(0.0f, h - m_render_pixel_size.value())));
+    }
+  else
+    {
+      m_zoomer.transformation(ScaleTranslate<float>(vec2(0.0f, m_render_pixel_size.value())));
+    }
 }
 
 void
@@ -623,32 +665,34 @@ init_glyph_draw(unsigned int I, GlyphRender renderer,
       m_draws[I].init(m_realize_glyphs_thread_count.value(),
                       m_font, m_glyph_cache, m_glyph_selector,
                       m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value());
+                      m_glyphs_per_painter_draw.value(),
+                      m_glyph_orientation.value());
     }
   else if (!explicit_glyph_codes.empty())
     {
       m_draws[I].init(explicit_glyph_codes,
                       m_font, m_glyph_cache,
                       m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value());
+                      m_glyphs_per_painter_draw.value(),
+                      m_glyph_orientation.value());
     }
   else if (m_use_file.value())
     {
       std::ifstream istr(m_text.value().c_str(), std::ios::binary);
       m_draws[I].init(istr, m_font, m_glyph_selector,
                       m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value());
+                      m_glyphs_per_painter_draw.value(),
+                      m_glyph_orientation.value());
     }
   else
     {
       std::istringstream istr(m_text.value());
       m_draws[I].init(istr, m_font, m_glyph_selector,
                       m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value());
+                      m_glyphs_per_painter_draw.value(),
+                      m_glyph_orientation.value());
     }
 }
-
-
 
 void
 painter_glyph_test::
@@ -709,7 +753,16 @@ draw_frame(void)
   m_painter->begin(m_surface);
 
   ivec2 wh(dimensions());
-  float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0)), m;
+  float3x3 proj, m;
+
+  if (m_glyph_orientation.value() == PainterEnums::y_increases_upwards)
+    {
+      proj = float_orthogonal_projection_params(0, wh.x(), 0, wh.y());
+    }
+  else
+    {
+      proj = float_orthogonal_projection_params(0, wh.x(), wh.y(), 0);
+    }
   m = proj * m_zoomer.transformation().matrix3();
   m_painter->transformation(m);
 
@@ -746,13 +799,15 @@ draw_frame(void)
               m_painter->translate(glyph_positions[i]);
 
               //make the scale of the path match how we scaled the text.
-              float sc;
+              float sc, ysign;
               sc = m_render_pixel_size.value() / glyphs[i].layout().units_per_EM();
 
-              //we are drawing with y-coordinate increasing downwards
-              //which is the opposite coordinate system as the glyph's
-              //path, thus we also need to negate in the y-direction.
-              m_painter->shear(sc, -sc);
+              /* when drawing with y-coordinate increasing downwards
+               * which is the opposite coordinate system as the glyph's
+               * path, thus we also need to negate in the y-direction.
+               */
+              ysign = (m_glyph_orientation.value() == PainterEnums::y_increases_upwards) ? 1.0f : -1.0f;
+              m_painter->shear(sc, sc * ysign);
               fill_glyph(PainterData(pbr), glyphs[i]);
               m_painter->restore();
             }
@@ -793,12 +848,15 @@ draw_frame(void)
               m_painter->translate(glyph_positions[i]);
 
               //make the scale of the path match how we scaled the text.
-              float sc;
+              float sc, ysign;
               sc = m_render_pixel_size.value() / glyphs[i].layout().units_per_EM();
-              //we are drawing with y-coordinate increasing downwards
-              //which is the opposite coordinate system as the glyph's
-              //path, thus we also need to negate in the y-direction.
-              m_painter->shear(sc, -sc);
+
+              /* when drawing with y-coordinate increasing downwards
+               * which is the opposite coordinate system as the glyph's
+               * path, thus we also need to negate in the y-direction.
+               */
+              ysign = (m_glyph_orientation.value() == PainterEnums::y_increases_upwards) ? 1.0f : -1.0f;
+              m_painter->shear(sc, sc * ysign);
 
               stroke_glyph(PainterData(pst, pbr), glyphs[i]);
               m_painter->restore();
@@ -810,7 +868,8 @@ draw_frame(void)
     {
       std::ostringstream ostr;
 
-      ostr << "FPS = ";
+      /* start with an eol so that top line is visible */
+      ostr << "\nFPS = ";
       if (us > 0.0f)
         {
           ostr << 1000.0f * 1000.0f / us;
@@ -830,13 +889,19 @@ draw_frame(void)
            << "\nNumber Headers: "
            << m_painter->query_stat(PainterPacker::num_headers)
            << "\nNumber Draws: "
-           << m_painter->query_stat(PainterPacker::num_draws)
-           << "\n";
+           << m_painter->query_stat(PainterPacker::num_draws);
 
       m_painter->transformation(proj);
+      if (m_glyph_orientation.value() == PainterEnums::y_increases_upwards)
+        {
+          m_painter->translate(vec2(0.0f, dimensions().y()));
+        }
+
       PainterBrush brush;
+
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph), PainterData(&brush));
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph),
+                PainterData(&brush), m_glyph_orientation.value());
     }
   else
     {
@@ -848,13 +913,17 @@ draw_frame(void)
       src = m_current_drawer;
 
       SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
+      if (m_glyph_orientation.value() == PainterEnums::y_increases_upwards)
+        {
+          mouse_position.y() = dimensions().y() - mouse_position.y();
+        }
       p = m_zoomer.transformation().apply_inverse_to_point(vec2(mouse_position));
       G = m_draws[src].glyph_finder().glyph_source(p);
       if (G != GlyphFinder::glyph_not_found)
         {
           Glyph glyph;
           GlyphLayoutData layout;
-          float ratio;
+          float ratio, ysign;
           vec2 wh, q;
 
           glyph = m_draws[src].glyphs()[G];
@@ -864,14 +933,17 @@ draw_frame(void)
           q.x() = m_draws[src].glyph_positions()[G].x() + ratio * layout.horizontal_layout_offset().x();
           q.y() = m_draws[src].glyph_positions()[G].y() - ratio * layout.horizontal_layout_offset().y();
           wh.x() = ratio * layout.size().x();
-          wh.y() = -ratio * layout.size().y();
+
+          ysign = (m_glyph_orientation.value() == PainterEnums::y_increases_upwards) ? 1.0f : -1.0f;
+          wh.y() = ysign * ratio * layout.size().y();
 
           if (p.x() >= t_min(q.x(), q.x() + wh.x())
              && p.x() <= t_max(q.x(), q.x() + wh.x())
              && p.y() >= t_min(q.y(), q.y() + wh.y())
              && p.y() <= t_max(q.y(), q.y() + wh.y()))
             {
-              ostr << "Glyph at " << p << " is:"
+              /* start with an eol so that top line is visible */
+              ostr << "\nGlyph at " << p << " is:"
                    << "\n\tcharacter_code: " << m_draws[src].character_codes()[G]
                    << "\n\tglyph_code: " << layout.glyph_code()
                    << "\n\tunits_per_EM: " << layout.units_per_EM()
@@ -883,8 +955,7 @@ draw_frame(void)
                    << "\n\tGlyphCoords in pixel-size=" << vec2(p.x() - q.x(), q.y() - p.y())
                    << "\n\tHorizontal Offset = " << glyph.layout().horizontal_layout_offset();
 
-              /* draw a box around the glyph(!).
-               */
+              /* draw a box around the glyph(!).*/
               PainterBrush brush;
 
               brush.pen(1.0f, 0.0f, 0.0f, 0.3f);
@@ -893,13 +964,20 @@ draw_frame(void)
         }
       else
         {
-          ostr << "No glyph at " << p << "\n";
+          ostr << "\nNo glyph at " << p << "\n";
         }
 
       m_painter->transformation(proj);
+      if (m_glyph_orientation.value() == PainterEnums::y_increases_upwards)
+        {
+          m_painter->translate(vec2(0.0f, dimensions().y()));
+        }
+
       PainterBrush brush;
+
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph), PainterData(&brush));
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph),
+                PainterData(&brush), m_glyph_orientation.value());
     }
 
   m_painter->end();
@@ -962,6 +1040,10 @@ handle_event(const SDL_Event &ev)
       if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           on_resize(ev.window.data1, ev.window.data2);
+          if (m_glyph_orientation.value() == PainterEnums::y_increases_upwards)
+            {
+              m_zoomer.m_translate_event.y() = static_cast<float>(ev.window.data2);
+            }
         }
       break;
 
