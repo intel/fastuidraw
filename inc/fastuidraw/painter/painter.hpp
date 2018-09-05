@@ -192,16 +192,22 @@ namespace fastuidraw
     }
 
     /*!
-     * Indicate to start drawing with methods of this Painter.
-     * Drawing commands sent to 3D hardware are buffered and not
-     * sent to hardware until end() is called.
-     * All draw commands must be between a begin()/end() pair.
+     * Indicate to start drawing with methods of this Painter. The
+     * ransformation matrix will be intialized with a projection
+     * matrix derived from the passed PainterEnums::screen_orientation
+     * and the viewort of the passed PainterBackend::Surface. Drawing
+     * commands sent to 3D hardware are buffered and not sent to the
+     * hardware until end() is called. All draw commands must be between
+     * a begin()/end() pair.
      * \param surface the \ref PainterBackend::Surface to which to render content
+     * \param orientation orientation convention with which to initialize the
+     *                    transformation
      * \param clear_color_buffer if true, clear the color buffer on the viewport
      *                           of the surface.
      */
     void
     begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+          enum PainterEnums::screen_orientation orientation,
           bool clear_color_buffer = true);
 
     /*!

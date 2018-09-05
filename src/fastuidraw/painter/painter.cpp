@@ -361,13 +361,13 @@ namespace
     {}
 
     void
-    reset(void)
+    reset(const fastuidraw::float3x3 &proj)
     {
       m_all_content_culled = false;
       m_item_matrix_transition_tricky = false;
       m_inverse_transpose_not_ready = false;
       m_clip_rect.m_enabled = false;
-      item_matrix(fastuidraw::float3x3(), false);
+      item_matrix(proj, false);
 
       fastuidraw::PainterClipEquations clip_eq;
       clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
@@ -1923,6 +1923,7 @@ packed_value_pool(void)
 void
 fastuidraw::Painter::
 begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+      enum PainterEnums::screen_orientation orientation,
       bool clear_color_buffer)
 {
   PainterPrivate *d;
@@ -1934,8 +1935,22 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d->m_resolution.y() = std::max(1.0f, d->m_resolution.y());
   d->m_one_pixel_width = 1.0f / d->m_resolution;
 
+  float y1, y2;
+  if (orientation == PainterEnums::y_increases_downwards)
+    {
+      y1 = d->m_resolution.y();
+      y2 = 0;
+    }
+  else
+    {
+      y1 = 0;
+      y2 = d->m_resolution.y();
+    }
+  float_orthogonal_projection_params orth(0, d->m_resolution.x(), y1, y2);
+  float3x3 proj(orth);
+
   d->m_current_z = 1;
-  d->m_clip_rect_state.reset();
+  d->m_clip_rect_state.reset(proj);
   d->m_clip_store.set_current(d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(PainterEnums::composite_porter_duff_src_over);
   blend_shader(PainterEnums::blend_w3c_normal);

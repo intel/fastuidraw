@@ -27,6 +27,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/util/matrix.hpp>
+#include <fastuidraw/painter/painter.hpp>
 
 /*!\class ScaleTranslate
   A ScaleTranslate represents the composition
@@ -38,7 +39,7 @@ template<typename T>
 class ScaleTranslate
 {
 public:
-  /*!\fn ScaleTranslate(const vecN<T, 2>&, T)
+  /*!
     Ctor. Initialize a ScaleTranslate from a
     scaling factor and translation
     \param tr translation to use
@@ -52,7 +53,7 @@ public:
     m_translation(tr)
   {}
 
-  /*!\fn ScaleTranslate(T)
+  /*!
     Ctor. Initialize a ScaleTranslate from a
     scaling factor
     \param s scaling factor to apply to both x-axis and y-axis,
@@ -64,7 +65,7 @@ public:
     m_translation(T(0), T(0))
   {}
 
-  /*!\fn ScaleTranslate inverse(void) const
+  /*!
     Returns the inverse transformation to this.
    */
   ScaleTranslate
@@ -78,7 +79,7 @@ public:
     return r;
   }
 
-  /*!\fn const vecN<T, 2>& translation(void) const
+  /*!
     Returns the translation of this
     ScaleTranslate.
    */
@@ -88,7 +89,7 @@ public:
     return m_translation;
   }
 
-  /*!\fn ScaleTranslate& translation(const vecN<T, 2>&)
+  /*!
     Sets the translation of this.
     \param tr value to set translation to.
    */
@@ -99,7 +100,7 @@ public:
     return *this;
   }
 
-  /*!\fn ScaleTranslate& translation_x(T)
+  /*!
     Sets the x-coordinate of the translation of this.
     \param x value to set translation to.
    */
@@ -110,7 +111,7 @@ public:
     return *this;
   }
 
-  /*!\fn ScaleTranslate& translation_y(T)
+  /*!
     Sets the y-coordinate of the translation of this.
     \param y value to set translation to.
    */
@@ -121,7 +122,7 @@ public:
     return *this;
   }
 
-  /*!\fn T scale(void) const
+  /*!
     Returns the scale of this.
     Scaling factor is _NEVER_
     negative.
@@ -132,7 +133,7 @@ public:
     return m_scale;
   }
 
-  /*!\fn ScaleTranslate& scale(T)
+  /*!
     Sets the scale of this.
     If a negative value is passed,
     it's absolute value is used.
@@ -145,7 +146,7 @@ public:
     return *this;
   }
 
-  /*!\fn vecN<T, 2> apply_to_point
+  /*!
     Returns the value of applying the transformation to a point.
     \param pt point to apply the transformation to.
    */
@@ -155,7 +156,7 @@ public:
     return scale() * pt + translation();
   }
 
-  /*!\fn vecN<T, 2> apply_inverse_to_point
+  /*!
     Returns the value of applying the inverse of the
     transformation to a point.
     \param pt point to apply the transformation to.
@@ -166,7 +167,7 @@ public:
     return (pt - translation()) / scale();
   }
 
-  /*!\fn matrix4x4<T> matrix4
+  /*!
     Returns the transformation of this
     ScaleTranslate as a 4x4 matrix
    */
@@ -182,7 +183,7 @@ public:
     return M;
   }
 
-  /*!\fn matrix3x3<T> matrix3
+  /*!
     Returns the transformation of this
     ScaleTranslate as a 3x3 matrix
    */
@@ -198,7 +199,14 @@ public:
     return M;
   }
 
-  /*!\fn ScaleTranslate interpolate
+  void
+  concat_to_painter(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &p) const
+  {
+    p->translate(fastuidraw::vec2(m_translation));
+    p->scale(m_scale);
+  }
+
+  /*!
     Computes the interpolation between
     two ScaleTranslate objects.
     \param a0 begin value of interpolation
@@ -223,7 +231,7 @@ private:
   fastuidraw::vecN<T, 2> m_translation;
 };
 
-/*!\fn operator*(const ScaleTranslate&, const ScaleTranslate&)
+/*!
   Compose two ScaleTranslate so that:
   a*b.apply_to_point(p) "=" a.apply_to_point( b.apply_to_point(p)).
   \param a left hand side of composition

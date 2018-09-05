@@ -580,6 +580,8 @@ painter_cells::
 draw_frame(void)
 {
   uint64_t ms, us;
+  ivec2 wh(dimensions());
+
   us = m_time.restart_us();
   ms = us / 1000;
 
@@ -613,11 +615,7 @@ draw_frame(void)
   m_cell_shared_state.m_cells_drawn = 0;
 
   m_surface->clear_color(vec4(0.5f, 0.5f, 0.5f, 1.0f));
-  m_painter->begin(m_surface);
-
-  ivec2 wh(dimensions());
-  float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
-  m_painter->transformation(proj);
+  m_painter->begin(m_surface, PainterEnums::y_increases_downwards);
 
   m_painter->save();
   m_painter->translate(m_zoomer.transformation().translation());

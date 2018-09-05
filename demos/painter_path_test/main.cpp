@@ -1835,10 +1835,7 @@ draw_frame(void)
      OUTSIDE of Painter::begin()/Painter::end().
    */
   m_surface->viewport(vwp);
-  m_painter->begin(m_surface);
-
-  float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
-  m_painter->transformation(proj);
+  m_painter->begin(m_surface, PainterEnums::y_increases_downwards);
 
   m_painter->curveFlatness(m_curve_flatness);
   m_painter->save();

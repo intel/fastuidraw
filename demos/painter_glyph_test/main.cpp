@@ -46,6 +46,10 @@ public:
       {
         FASTUIDRAWdelete(m_glyph_sequence);
       }
+    if (m_hierarchy)
+      {
+        FASTUIDRAWdelete(m_hierarchy);
+      }
   }
 
   void
@@ -815,21 +819,9 @@ draw_frame(void)
 
   us = update_cts_params();
 
-  m_painter->begin(m_surface);
-
-  ivec2 wh(dimensions());
-  float3x3 proj, m;
-
-  if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
-    {
-      proj = float_orthogonal_projection_params(0, wh.x(), 0, wh.y());
-    }
-  else
-    {
-      proj = float_orthogonal_projection_params(0, wh.x(), wh.y(), 0);
-    }
-  m = proj * m_zoomer.transformation().matrix3();
-  m_painter->transformation(m);
+  m_painter->begin(m_surface, m_screen_orientation.value());
+  m_painter->save();
+  m_zoomer.transformation().concat_to_painter(m_painter);
 
   PainterBrush brush;
   brush.pen(1.0, 1.0, 1.0, 1.0);
@@ -972,7 +964,7 @@ draw_frame(void)
            << "\nNumber Draws: "
            << m_painter->query_stat(PainterPacker::num_draws);
 
-      m_painter->transformation(proj);
+      m_painter->restore();
       if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
         {
           m_painter->translate(vec2(0.0f, dimensions().y()));
@@ -1030,7 +1022,7 @@ draw_frame(void)
           ostr << "\nNo glyph at " << p << "\n";
         }
 
-      m_painter->transformation(proj);
+      m_painter->restore();
       if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
         {
           m_painter->translate(vec2(0.0f, dimensions().y()));
