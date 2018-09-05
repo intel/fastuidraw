@@ -65,6 +65,24 @@ namespace fastuidraw
                 uint32_t glyph_code, bool upload_to_atlas = true);
 
     /*!
+     * Fetch, and if necessay create and store, a sequence of
+     * glyphs given a sequence of glyph codes of a font and a
+     * GlyphRender specifying how to render the glyph.
+     * \param render renderer of fetched Glyph
+     * \param font font from which to take the glyph
+     * \param glyph_codes sequence of glyph codes
+     * \param[out] out_glyphs location to which to write the glyphs;
+     *                        the size must be the same as glyph_codes
+     * \param upload_to_atlas if true, upload glyphs to atlas
+     */
+    void
+    fetch_glyphs(GlyphRender render,
+                 const reference_counted_ptr<const FontBase> &font,
+                 c_array<const uint32_t> glyph_codes,
+                 c_array<Glyph> out_glyphs,
+                 bool upload_to_atlas = true);
+
+    /*!
      * Add a Glyph created with Glyph::create_glyph() to
      * this GlyphCache. Will fail if a Glyph with the
      * same glyph_code (GlyphLayoutData::m_glyph_code),
