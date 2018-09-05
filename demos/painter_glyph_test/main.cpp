@@ -36,7 +36,8 @@ class GlyphDrawsShared:fastuidraw::noncopyable
 {
 public:
   GlyphDrawsShared(void):
-    m_glyph_sequence(nullptr)
+    m_glyph_sequence(nullptr),
+    m_hierarchy(nullptr)
   {}
 
   ~GlyphDrawsShared()
@@ -45,6 +46,26 @@ public:
       {
         FASTUIDRAWdelete(m_glyph_sequence);
       }
+  }
+
+  void
+  query_glyph_interesection(const BoundingBox<float> bbox,
+                            std::vector<unsigned int> *output)
+  {
+    if (m_hierarchy)
+      {
+        m_hierarchy->query(bbox, output);
+      }
+  }
+
+  unsigned int
+  query_glyph_at(const vec2 &p, BoundingBox<float> *out_bb)
+  {
+    if (m_hierarchy)
+      {
+        return m_hierarchy->query(p, out_bb);
+      }
+    return GenericHierarchy::not_found;
   }
 
   c_array<const vec2>
@@ -89,15 +110,18 @@ public:
        enum PainterEnums::glyph_orientation glyph_orientation);
 
 private:
+  void
+  make_hierarchy(void);
+
   enum PainterEnums::glyph_orientation m_glyph_orientation;
   GlyphSequence *m_glyph_sequence;
+  GenericHierarchy *m_hierarchy;
 };
 
 class GlyphDraws:fastuidraw::noncopyable
 {
 public:
-  GlyphDraws():
-    m_hierarchy(nullptr)
+  GlyphDraws()
   {}
 
   ~GlyphDraws();
@@ -115,26 +139,6 @@ public:
   }
 
   void
-  query_glyph_interesection(const BoundingBox<float> bbox,
-                            std::vector<unsigned int> *output)
-  {
-    if (m_hierarchy)
-      {
-        m_hierarchy->query(bbox, output);
-      }
-  }
-
-  unsigned int
-  query_glyph_at(const vec2 &p, BoundingBox<float> *out_bb)
-  {
-    if (m_hierarchy)
-      {
-        return m_hierarchy->query(p, out_bb);
-      }
-    return GenericHierarchy::not_found;
-  }
-
-  void
   init(GlyphDrawsShared &shared, GlyphRender renderer,
        const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
@@ -148,7 +152,6 @@ private:
 
   std::vector<PainterAttributeData*> m_data;
   c_array<const Glyph> m_glyphs;
-  GenericHierarchy *m_hierarchy;
 };
 
 class painter_glyph_test:public sdl_painter_demo
@@ -238,6 +241,56 @@ private:
 
 ///////////////////////////////////
 // GlyphDrawsShared methods
+void
+GlyphDrawsShared::
+make_hierarchy(void)
+{
+  c_array<const GlyphSource> glyph_sources(m_glyph_sequence->glyph_sources());
+  c_array<const vec2> in_glyph_positions(m_glyph_sequence->glyph_positions());
+  float pixel_size(m_glyph_sequence->pixel_size());
+  GlyphLayoutData layout;
+  BoundingBox<float> bbox;
+  std::vector<BoundingBox<float> > glyph_bboxes;
+  simple_time timer;
+
+  std::cout << "Creating GlyphHierarch..." << std::flush;
+  glyph_bboxes.resize(glyph_sources.size());
+  for(unsigned int i = 0 ; i < glyph_sources.size(); ++i)
+    {
+      if(glyph_sources[i].m_font)
+        {
+          vec2 p, min_bb, max_bb;
+          float ratio;
+
+          glyph_sources[i].m_font->compute_layout_data(glyph_sources[i].m_glyph_code, layout);
+          min_bb = layout.horizontal_layout_offset();
+          max_bb = min_bb + layout.size();
+
+          ratio = pixel_size / layout.units_per_EM();
+          min_bb *= ratio;
+          max_bb *= ratio;
+
+          if (glyph_orientation() == PainterEnums::y_increases_downwards)
+            {
+              min_bb.y() = -min_bb.y();
+              max_bb.y() = -max_bb.y();
+            }
+
+          p = in_glyph_positions[i];
+          glyph_bboxes[i].union_point(p + min_bb);
+          glyph_bboxes[i].union_point(p + max_bb);
+          bbox.union_box(glyph_bboxes[i]);
+        }
+    }
+
+  m_hierarchy = FASTUIDRAWnew GenericHierarchy(bbox);
+  for(unsigned int i = 0 ; i < glyph_sources.size(); ++i)
+    {
+      m_hierarchy->add(glyph_bboxes[i], i);
+    }
+  std::cout << "took " << timer.restart() << " ms\n";
+}
+
 void
 GlyphDrawsShared::
 init(const reference_counted_ptr<const FontFreeType> &font,
@@ -338,6 +391,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
                             vec2(line_length, nav_iter->first));
     }
   std::cout << "took " << timer.restart() << " ms\n";
+  make_hierarchy();
 }
 
 void
@@ -357,6 +411,7 @@ init(const std::vector<uint32_t> &glyph_codes,
                         nullptr, nullptr, glyph_orientation);
 
   std::cout << "took " << timer.restart() << " ms\n";
+  make_hierarchy();
 }
 
 void
@@ -380,6 +435,7 @@ init(std::istream &istr,
                             glyph_orientation);
       std::cout << "took " << timer.restart() << " ms\n";
     }
+  make_hierarchy();
 }
 
 ////////////////////////////////////
@@ -390,10 +446,6 @@ GlyphDraws::
   for(unsigned int i = 0, endi = m_data.size(); i < endi; ++i)
     {
       FASTUIDRAWdelete(m_data[i]);
-    }
-  if (m_hierarchy)
-    {
-      FASTUIDRAWdelete(m_hierarchy);
     }
 }
 
@@ -440,41 +492,6 @@ set_data(size_t glyphs_per_painter_draw,
 
   std::cout << "Uploading glyphs to atlas.." << std::flush;
   m_glyphs = shared.glyph_sequence().glyph_sequence(renderer, true);
-  std::cout << "took " << timer.restart() << " ms\n";
-
-  glyph_bboxes.resize(m_glyphs.size());
-  for(unsigned int i = 0 ; i < m_glyphs.size(); ++i)
-    {
-      Glyph g(m_glyphs[i]);
-      if(g.valid())
-        {
-          vec2 p, min_bb, max_bb;
-          float ratio;
-
-          g.path().approximate_bounding_box(&min_bb, &max_bb);
-          ratio = pixel_size / g.layout().units_per_EM();
-          min_bb *= ratio;
-          max_bb *= ratio;
-
-          if (shared.glyph_orientation() == PainterEnums::y_increases_downwards)
-            {
-              min_bb.y() = -min_bb.y();
-              max_bb.y() = -max_bb.y();
-            }
-
-          p = in_glyph_positions[i];
-          glyph_bboxes[i].union_point(p + min_bb);
-          glyph_bboxes[i].union_point(p + max_bb);
-          bbox.union_box(glyph_bboxes[i]);
-        }
-    }
-
-  std::cout << "Creating GlyphHierarch..." << std::flush;
-  m_hierarchy = FASTUIDRAWnew GenericHierarchy(bbox);
-  for(unsigned int i = 0 ; i < m_glyphs.size(); ++i)
-    {
-      m_hierarchy->add(glyph_bboxes[i], i);
-    }
   std::cout << "took " << timer.restart() << " ms\n";
 
   std::cout << "Creating attribute data " << std::flush;
@@ -830,7 +847,7 @@ draw_frame(void)
         .union_point(p0)
         .union_point(p1);
 
-      m_draws[m_current_drawer].query_glyph_interesection(screen, &glyphs_visible);
+      m_draw_shared.query_glyph_interesection(screen, &glyphs_visible);
     }
 
   if (!m_fill_glyphs)
@@ -983,7 +1000,7 @@ draw_frame(void)
           mouse_position.y() = dimensions().y() - mouse_position.y();
         }
       p = m_zoomer.transformation().apply_inverse_to_point(vec2(mouse_position));
-      G = m_draws[m_current_drawer].query_glyph_at(p, &glyph_bb);
+      G = m_draw_shared.query_glyph_at(p, &glyph_bb);
       if (G != GenericHierarchy::not_found)
         {
           Glyph glyph;
