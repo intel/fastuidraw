@@ -97,6 +97,32 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
 
 
 /*
+ * \param stream input stream from which to grab lines of text
+ * \param pixel_size pixel size to show glyphs at
+ * \param font font of the glyphs
+ * \param[out] out_sequence sequence to which to add glyphs
+ * \param[out] character_codes character codes of input stream
+ * \param[out] line_data bounding boxes of lines
+ * \param[out] glyph_extents for each glyph, its extent on the x-axis
+ * \param orientation y-coordinate convention for drawing glyphs
+ * \param adjust_starting_baseline if true, 0.0 is the baseline of the -previous-
+ *                                 line, i.e. the text starts on the line after 0.0;
+ *                                 if false the baseline of the test is a y = 0.0.
+ */
+void
+create_formatted_text(std::istream &stream, float pixel_size,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      fastuidraw::GlyphSequence &out_sequence,
+                      std::vector<uint32_t> &character_codes,
+                      std::vector<LineData> *line_data = nullptr,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
+                      enum fastuidraw::PainterEnums::glyph_orientation orientation
+                      = fastuidraw::PainterEnums::y_increases_downwards,
+                      bool adjust_starting_baseline = true);
+
+
+/*
  * \param glyph_codes sequence of glyph codes (not characater codes!)
  * \param renderer how to render glyphs
  * \param pixel_size pixel size to show glyphs at
@@ -104,6 +130,7 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
  * \param glyph_cache cache of glyphs from which to fetch glyphs
  * \param[out] glyphs glyphs of glyph codes
  * \param[out] positions positions of glyphs
+ * \param[out] character_codes character codes of input stream
  * \param[out] line_data bounding boxes of lines
  * \param[out] glyph_extents for each glyph, its extent on the x-axis
  * \param orientation y-coordinate convention for drawing glyphs
