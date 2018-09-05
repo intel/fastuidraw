@@ -71,22 +71,22 @@ namespace
     fastuidraw::GlyphRenderData *m_glyph_data;
   };
 
-  class GlyphSource
+  class GlyphSourceRender
   {
   public:
-    GlyphSource(void):
+    GlyphSourceRender(void):
       m_glyph_code(0)
     {}
 
-    GlyphSource(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
-                uint32_t gc, fastuidraw::GlyphRender r):
+    GlyphSourceRender(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
+                      uint32_t gc, fastuidraw::GlyphRender r):
       m_font(f),
       m_glyph_code(gc),
       m_render(r)
     {}
 
     bool
-    operator<(const GlyphSource &rhs) const
+    operator<(const GlyphSourceRender &rhs) const
     {
       return (m_font != rhs.m_font) ? m_font < rhs.m_font :
         (m_glyph_code != rhs.m_glyph_code) ? m_glyph_code < rhs.m_glyph_code :
@@ -114,11 +114,11 @@ namespace
      */
 
     GlyphDataPrivate*
-    fetch_or_allocate_glyph(GlyphSource src);
+    fetch_or_allocate_glyph(GlyphSourceRender src);
 
     std::mutex m_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_atlas;
-    std::map<GlyphSource, GlyphDataPrivate*> m_glyph_map;
+    std::map<GlyphSourceRender, GlyphDataPrivate*> m_glyph_map;
     std::vector<GlyphDataPrivate*> m_glyphs;
     std::vector<unsigned int> m_free_slots;
     fastuidraw::GlyphCache *m_p;
@@ -243,9 +243,9 @@ GlyphCachePrivate::
 
 GlyphDataPrivate*
 GlyphCachePrivate::
-fetch_or_allocate_glyph(GlyphSource src)
+fetch_or_allocate_glyph(GlyphSourceRender src)
 {
-  std::map<GlyphSource, GlyphDataPrivate*>::iterator iter;
+  std::map<GlyphSourceRender, GlyphDataPrivate*>::iterator iter;
   GlyphDataPrivate *G;
 
   iter = m_glyph_map.find(src);
@@ -439,7 +439,7 @@ fetch_glyph(GlyphRender render,
   d = static_cast<GlyphCachePrivate*>(m_d);
 
   GlyphDataPrivate *q;
-  GlyphSource src(font, glyph_code, render);
+  GlyphSourceRender src(font, glyph_code, render);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
   q = d->fetch_or_allocate_glyph(src);
@@ -464,6 +464,50 @@ fetch_glyph(GlyphRender render,
 void
 fastuidraw::GlyphCache::
 fetch_glyphs(GlyphRender render,
+             c_array<const GlyphSource> glyph_sources,
+             c_array<Glyph> out_glyphs,
+             bool upload_to_atlas)
+{
+  GlyphCachePrivate *d;
+  d = static_cast<GlyphCachePrivate*>(m_d);
+
+  std::lock_guard<std::mutex> m(d->m_mutex);
+  for(unsigned int i = 0; i < glyph_sources.size(); ++i)
+    {
+      if (glyph_sources[i].m_font)
+        {
+          uint32_t glyph_code(glyph_sources[i].m_glyph_code);
+          GlyphSourceRender src(glyph_sources[i].m_font, glyph_code, render);
+          GlyphDataPrivate *q;
+
+          q = d->fetch_or_allocate_glyph(src);
+          if (!q->m_render.valid())
+            {
+              q->m_render = render;
+              FASTUIDRAWassert(!q->m_glyph_data);
+              glyph_sources[i].m_font->compute_layout_data(glyph_code, q->m_layout);
+              q->m_glyph_data = glyph_sources[i].m_font->compute_rendering_data(q->m_render,
+                                                                                glyph_code, q->m_path);
+            }
+
+          if (upload_to_atlas)
+            {
+              fastuidraw::GlyphLocation::Array S(&q->m_atlas_locations);
+              q->upload_to_atlas(S);
+            }
+
+          out_glyphs[i] = Glyph(q);
+        }
+      else
+        {
+          out_glyphs[i] = Glyph();
+        }
+    }
+}
+
+void
+fastuidraw::GlyphCache::
+fetch_glyphs(GlyphRender render,
              const reference_counted_ptr<const FontBase> &font,
              c_array<const uint32_t> glyph_codes,
              c_array<Glyph> out_glyphs,
@@ -479,7 +523,7 @@ fetch_glyphs(GlyphRender render,
   for(unsigned int i = 0; i < glyph_codes.size(); ++i)
     {
       uint32_t glyph_code(glyph_codes[i]);
-      GlyphSource src(font, glyph_code, render);
+      GlyphSourceRender src(font, glyph_code, render);
       GlyphDataPrivate *q;
 
       q = d->fetch_or_allocate_glyph(src);
@@ -532,7 +576,7 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
       return routine_success;
     }
 
-  GlyphSource src(g->m_layout.font(),
+  GlyphSourceRender src(g->m_layout.font(),
                   g->m_layout.glyph_code(),
                   g->m_render);
 
@@ -567,7 +611,7 @@ delete_glyph(Glyph G)
   FASTUIDRAWassert(p->m_cache == d);
   FASTUIDRAWassert(p->m_render.valid());
 
-  GlyphSource src(p->m_layout.font(), p->m_layout.glyph_code(), p->m_render);
+  GlyphSourceRender src(p->m_layout.font(), p->m_layout.glyph_code(), p->m_render);
   std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_glyph_map.erase(src);
   p->clear();

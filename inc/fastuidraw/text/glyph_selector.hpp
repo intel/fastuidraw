@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <fastuidraw/text/font.hpp>
-#include <fastuidraw/text/glyph.hpp>
+#include <fastuidraw/text/glyph_source.hpp>
 
 namespace fastuidraw
 {
@@ -95,37 +94,6 @@ namespace fastuidraw
     private:
       friend class GlyphSelector;
       void *m_d;
-    };
-
-    /*!
-     * Class to specify the source for a glyph.
-     */
-    class GlyphSource
-    {
-    public:
-      GlyphSource(void):
-        m_glyph_code(0)
-      {}
-
-      GlyphSource(const reference_counted_ptr<const FontBase> &f, uint32_t g):
-        m_glyph_code(g),
-        m_font(f)
-      {}
-
-      GlyphSource(uint32_t g, const reference_counted_ptr<const FontBase> &f):
-        m_glyph_code(g),
-        m_font(f)
-      {}
-
-      /*!
-       * Glyph code of a \ref Glyph
-       */
-      uint32_t m_glyph_code;
-
-      /*!
-       * Font of a \ref Glyph
-       */
-      reference_counted_ptr<const FontBase> m_font;
     };
 
     /*!

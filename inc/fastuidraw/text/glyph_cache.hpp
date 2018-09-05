@@ -24,6 +24,7 @@
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph.hpp>
+#include <fastuidraw/text/glyph_source.hpp>
 
 namespace fastuidraw
 {
@@ -79,6 +80,22 @@ namespace fastuidraw
     fetch_glyphs(GlyphRender render,
                  const reference_counted_ptr<const FontBase> &font,
                  c_array<const uint32_t> glyph_codes,
+                 c_array<Glyph> out_glyphs,
+                 bool upload_to_atlas = true);
+
+    /*!
+     * Fetch, and if necessay create and store, a sequence of
+     * glyphs given a sequence of glyph codes of a font and a
+     * GlyphRender specifying how to render the glyph.
+     * \param render renderer of fetched Glyph
+     * \param glyph_sources sequence of \ref GlyphSource values
+     * \param[out] out_glyphs location to which to write the glyphs;
+     *                        the size must be the same as glyph_codes
+     * \param upload_to_atlas if true, upload glyphs to atlas
+     */
+    void
+    fetch_glyphs(GlyphRender render,
+                 c_array<const GlyphSource> glyph_sources,
                  c_array<Glyph> out_glyphs,
                  bool upload_to_atlas = true);
 
