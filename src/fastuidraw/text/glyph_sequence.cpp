@@ -24,7 +24,31 @@
 
 namespace
 {
-  typedef std::map<fastuidraw::GlyphRender, std::vector<fastuidraw::Glyph> > glyph_storage;
+  class PerGlyphSequence:
+    public std::vector<fastuidraw::Glyph>
+  {
+  public:
+    PerGlyphSequence(void):
+      m_uploaded_to_atlas(false)
+    {}
+
+    void
+    upload_to_atlas(void)
+    {
+      if(!m_uploaded_to_atlas)
+        {
+          m_uploaded_to_atlas = true;
+          for (const auto &g : *this)
+            {
+              g.upload_to_atlas();
+            }
+        }
+    }
+
+  private:
+    bool m_uploaded_to_atlas;
+  };
+
   class GlyphSequencePrivate
   {
   public:
@@ -38,7 +62,7 @@ namespace
     std::vector<fastuidraw::GlyphSource> m_glyph_sources;
     std::vector<fastuidraw::vec2> m_glyph_positions;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
-    glyph_storage m_glyphs;
+    std::map<fastuidraw::GlyphRender, PerGlyphSequence> m_glyphs;
   };
 }
 
@@ -103,24 +127,32 @@ glyph_positions(void) const
 
 fastuidraw::c_array<const fastuidraw::Glyph>
 fastuidraw::GlyphSequence::
-glyph_sequence(GlyphRender render)
+glyph_sequence(GlyphRender render, bool upload_to_atlas)
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
 
-  glyph_storage::iterator iter;
+  std::map<fastuidraw::GlyphRender, PerGlyphSequence>::iterator iter;
   iter = d->m_glyphs.find(render);
 
   if (iter != d->m_glyphs.end())
     {
+      if (upload_to_atlas)
+        {
+          iter->second.upload_to_atlas();
+        }
       return make_c_array(iter->second);
     }
 
-  std::vector<fastuidraw::Glyph> &dst(d->m_glyphs[render]);
+  PerGlyphSequence &dst(d->m_glyphs[render]);
   dst.resize(d->m_glyph_sources.size());
   d->m_cache->fetch_glyphs(render,
                            make_c_array(d->m_glyph_sources),
                            make_c_array(dst));
+  if (upload_to_atlas)
+    {
+      dst.upload_to_atlas();
+    }
 
   return make_c_array(dst);
 }

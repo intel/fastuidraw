@@ -74,7 +74,7 @@ namespace fastuidraw
      * function creates the sequence lazily on demand.
      */
     c_array<const Glyph>
-    glyph_sequence(GlyphRender render);
+    glyph_sequence(GlyphRender render, bool upload_to_atlas = true);
 
     /*!
      * Return the \ref GlyphSource sequence.
