@@ -137,6 +137,13 @@ namespace fastuidraw
     upload_to_atlas(void) const;
 
     /*!
+     * Returns true if and only if the Glyph is
+     * already uploaded to a GlyphAtlas.
+     */
+    bool
+    uploaded_to_atlas(void) const;
+
+    /*!
      * Returns the path of the Glyph; the path is in
      * coordinates of the glyph with the convention
      * that the y-coordinate increases upwards. If one
@@ -178,23 +185,6 @@ namespace fastuidraw
     static
     enum return_code
     delete_glyph(Glyph G);
-
-    /* How to use: when printing a bunch of glyphs do this:
-     *   for(each glyph G)
-     *     {
-     *       enum return_code R;
-     *       R = G.upload();
-     *       if (R == routine_fail)
-     *         {
-     *            send_render_commands_to_graphics_api();
-     *            G.cache()->clear_atlas();
-     *            R = G.upload();
-     *            FASTUIDRAWassert(R == routine_success);
-     *         }
-     *       append_render_command(G);
-     *     }
-     *
-     */
 
   private:
     friend class GlyphCache;

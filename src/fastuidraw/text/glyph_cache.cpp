@@ -354,6 +354,17 @@ upload_to_atlas(void) const
   return p->upload_to_atlas(S);
 }
 
+bool
+fastuidraw::Glyph::
+uploaded_to_atlas(void) const
+{
+  GlyphDataPrivate *p;
+
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
+  FASTUIDRAWassert(p != nullptr && p->m_render.valid());
+  return p->m_uploaded_to_atlas;
+}
+
 const fastuidraw::Path&
 fastuidraw::Glyph::
 path(void) const
