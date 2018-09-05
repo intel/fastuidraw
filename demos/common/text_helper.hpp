@@ -114,12 +114,13 @@ create_formatted_text(std::istream &stream, float pixel_size,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       fastuidraw::GlyphSequence &out_sequence,
-                      std::vector<uint32_t> &character_codes,
+                      std::vector<uint32_t> *character_codes = nullptr,
                       std::vector<LineData> *line_data = nullptr,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
                       enum fastuidraw::PainterEnums::glyph_orientation orientation
                       = fastuidraw::PainterEnums::y_increases_downwards,
-                      bool adjust_starting_baseline = true);
+                      bool adjust_starting_baseline = true,
+                      const fastuidraw::vec2 &starting_place = fastuidraw::vec2(0.0f, 0.0f));
 
 
 /*

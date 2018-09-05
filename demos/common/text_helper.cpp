@@ -386,7 +386,7 @@ create_formatted_text(std::istream &istr,
   fastuidraw::GlyphSequence G(glyph_cache);
   create_formatted_text(istr, pixel_size, font,
                         glyph_selector, G,
-                        character_codes, line_data,
+                        &character_codes, line_data,
                         glyph_extents, orientation,
                         adjust_starting_baseline);
 
@@ -407,15 +407,16 @@ create_formatted_text(std::istream &istr, float pixel_size,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       fastuidraw::GlyphSequence &out_sequence,
-                      std::vector<uint32_t> &character_codes,
+                      std::vector<uint32_t> *character_codes,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
                       enum fastuidraw::PainterEnums::glyph_orientation orientation,
-                      bool adjust_starting_baseline)
+                      bool adjust_starting_baseline,
+                      const fastuidraw::vec2 &starting_place)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
-  fastuidraw::vec2 pen(0.0f, 0.0f);
+  fastuidraw::vec2 pen(starting_place);
   std::string line, original_line;
   float last_negative_tallest(0.0f);
   bool first_line(true);
@@ -425,7 +426,10 @@ create_formatted_text(std::istream &istr, float pixel_size,
   end_position = istr.tellg();
   istr.seekg(current_position, std::ios::beg);
 
-  character_codes.resize(end_position - current_position);
+  if (character_codes)
+    {
+      character_codes->resize(end_position - current_position);
+    }
 
   if (glyph_extents)
     {
@@ -437,11 +441,16 @@ create_formatted_text(std::istream &istr, float pixel_size,
       line_data->clear();
     }
 
-  fastuidraw::c_array<uint32_t> char_codes_ptr(cast_c_array(character_codes));
+  fastuidraw::c_array<uint32_t> char_codes_ptr;;
   fastuidraw::c_array<fastuidraw::range_type<float> > extents_ptr;
   std::vector<fastuidraw::GlyphSource> glyph_sources;
   std::vector<fastuidraw::vec2> sub_p;
   fastuidraw::GlyphLayoutData layout;
+
+  if (character_codes)
+    {
+      char_codes_ptr = cast_c_array(*character_codes);
+    }
 
   if (glyph_extents)
     {
@@ -466,7 +475,12 @@ create_formatted_text(std::istream &istr, float pixel_size,
 
       sub_p.resize(line.length());
       glyph_sources.resize(line.length());
-      sub_ch = char_codes_ptr.sub_array(loc, line.length());
+
+      if(character_codes)
+        {
+          sub_ch = char_codes_ptr.sub_array(loc, line.length());
+        }
+
       if (glyph_extents)
         {
           sub_extents = extents_ptr.sub_array(loc, line.length());
@@ -476,7 +490,12 @@ create_formatted_text(std::istream &istr, float pixel_size,
       for(unsigned int i = 0, endi = glyph_sources.size(); i < endi; ++i)
         {
           sub_p[i] = pen;
-          sub_ch[i] = static_cast<uint32_t>(line[i]);
+
+          if (character_codes)
+            {
+              sub_ch[i] = static_cast<uint32_t>(line[i]);
+            }
+
           if (glyph_sources[i].m_font)
             {
               float ratio;
@@ -539,7 +558,7 @@ create_formatted_text(std::istream &istr, float pixel_size,
           pen.y() -= pen_y_advance + 1.0f;
         }
 
-      pen.x() = 0.0f;
+      pen.x() = starting_place.x();
       loc += line.length();
       last_negative_tallest = negative_tallest;
 
@@ -554,7 +573,11 @@ create_formatted_text(std::istream &istr, float pixel_size,
                               cast_c_array(sub_p));
     }
 
-  character_codes.resize(loc);
+  if (character_codes)
+    {
+      character_codes->resize(loc);
+    }
+
   if (glyph_extents)
     {
       glyph_extents->resize(loc);
