@@ -66,12 +66,6 @@ public:
     return m_glyph_orientation;
   }
 
-  float
-  pixel_size(void)
-  {
-    return m_pixel_size;
-  }
-
   void
   init(const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
@@ -95,7 +89,6 @@ public:
        enum PainterEnums::glyph_orientation glyph_orientation);
 
 private:
-  float m_pixel_size;
   enum PainterEnums::glyph_orientation m_glyph_orientation;
   GlyphSequence *m_glyph_sequence;
 };
@@ -273,9 +266,8 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   y_advance_sign = (glyph_orientation == PainterEnums::y_increases_downwards) ? 1.0f : -1.0f;
   num_glyphs = face->face()->num_glyphs;
 
-  m_pixel_size = pixel_size_formatting;
   m_glyph_orientation = glyph_orientation;
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(glyph_cache);
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting, glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
   layouts.resize(num_glyphs);
@@ -339,9 +331,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
     {
       std::istringstream stream(nav_iter->second);
 
-      create_formatted_text(stream, pixel_size_formatting,
-                            font,
-                            glyph_selector,
+      create_formatted_text(stream, font, glyph_selector,
                             *m_glyph_sequence,
                             nullptr, nullptr, nullptr,
                             glyph_orientation, false,
@@ -361,11 +351,9 @@ init(const std::vector<uint32_t> &glyph_codes,
   simple_time timer;
 
   std::cout << "Formatting glyphs ..." << std::flush;
-  m_pixel_size = pixel_size_formatting;
   m_glyph_orientation = glyph_orientation;
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(glyph_cache);
-  create_formatted_text(glyph_codes, pixel_size_formatting,
-                        font, *m_glyph_sequence,
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting, glyph_cache);
+  create_formatted_text(glyph_codes, font, *m_glyph_sequence,
                         nullptr, nullptr, glyph_orientation);
 
   std::cout << "took " << timer.restart() << " ms\n";
@@ -380,16 +368,14 @@ init(std::istream &istr,
      float pixel_size_formatting,
      enum PainterEnums::glyph_orientation glyph_orientation)
 {
-  m_pixel_size = pixel_size_formatting;
   m_glyph_orientation = glyph_orientation;
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(glyph_cache);
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting, glyph_cache);
   if (istr)
     {
       simple_time timer;
 
       std::cout << "Formatting glyphs ..." << std::flush;
-      create_formatted_text(istr, pixel_size_formatting,
-                            font, glyph_selector, *m_glyph_sequence,
+      create_formatted_text(istr, font, glyph_selector, *m_glyph_sequence,
                             nullptr, nullptr, nullptr,
                             glyph_orientation);
       std::cout << "took " << timer.restart() << " ms\n";
@@ -450,6 +436,7 @@ set_data(size_t glyphs_per_painter_draw,
   BoundingBox<float> bbox;
   std::vector<BoundingBox<float> > glyph_bboxes;
   simple_time timer;
+  float pixel_size(shared.glyph_sequence().pixel_size());
 
   std::cout << "Uploading glyphs to atlas.." << std::flush;
   m_glyphs = shared.glyph_sequence().glyph_sequence(renderer, true);
@@ -465,7 +452,7 @@ set_data(size_t glyphs_per_painter_draw,
           float ratio;
 
           g.path().approximate_bounding_box(&min_bb, &max_bb);
-          ratio = shared.pixel_size() / g.layout().units_per_EM();
+          ratio = pixel_size / g.layout().units_per_EM();
           min_bb *= ratio;
           max_bb *= ratio;
 
@@ -507,8 +494,7 @@ set_data(size_t glyphs_per_painter_draw,
 
       data = FASTUIDRAWnew PainterAttributeData();
       data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs,
-                                                      shared.pixel_size(),
-                                                      shared.glyph_orientation()));
+                                                      pixel_size, shared.glyph_orientation()));
       m_data.push_back(data);
     }
   std::cout << "took " << timer.restart() << " ms\n";

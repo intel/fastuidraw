@@ -243,8 +243,8 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       enum fastuidraw::PainterEnums::glyph_orientation orientation,
                       bool adjust_starting_baseline)
 {
-  fastuidraw::GlyphSequence G(glyph_cache);
-  create_formatted_text(glyph_codes, pixel_size, font, G,
+  fastuidraw::GlyphSequence G(pixel_size, glyph_cache);
+  create_formatted_text(glyph_codes, font, G,
                         line_data, glyph_extents, orientation,
                         adjust_starting_baseline);
 
@@ -262,7 +262,6 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
 
 void
 create_formatted_text(const std::vector<uint32_t> &glyph_codes,
-                      float pixel_size,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::GlyphSequence &out_sequence,
                       std::vector<LineData> *line_data,
@@ -272,6 +271,7 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
 {
   fastuidraw::vec2 pen(0.0f, 0.0f);
   float last_negative_tallest(0.0f);
+  float pixel_size(out_sequence.pixel_size());
 
   if (glyph_extents)
     {
@@ -383,9 +383,8 @@ create_formatted_text(std::istream &istr,
                       enum fastuidraw::PainterEnums::glyph_orientation orientation,
                       bool adjust_starting_baseline)
 {
-  fastuidraw::GlyphSequence G(glyph_cache);
-  create_formatted_text(istr, pixel_size, font,
-                        glyph_selector, G,
+  fastuidraw::GlyphSequence G(pixel_size, glyph_cache);
+  create_formatted_text(istr, font, glyph_selector, G,
                         &character_codes, line_data,
                         glyph_extents, orientation,
                         adjust_starting_baseline);
@@ -403,7 +402,7 @@ create_formatted_text(std::istream &istr,
 }
 
 void
-create_formatted_text(std::istream &istr, float pixel_size,
+create_formatted_text(std::istream &istr,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       fastuidraw::GlyphSequence &out_sequence,
@@ -415,6 +414,7 @@ create_formatted_text(std::istream &istr, float pixel_size,
                       const fastuidraw::vec2 &starting_place)
 {
   std::streampos current_position, end_position;
+  float pixel_size(out_sequence.pixel_size());
   unsigned int loc(0);
   fastuidraw::vec2 pen(starting_place);
   std::string line, original_line;
