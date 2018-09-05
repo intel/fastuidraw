@@ -1,4 +1,4 @@
-#include "glyph_hierarchy.hpp"
+#include "generic_hierarchy.hpp"
 #include "ostream_utility.hpp"
 
 namespace
@@ -66,7 +66,7 @@ public:
       }
     else
       {
-        return GlyphHierarchy::glyph_not_found;
+        return GenericHierarchy::not_found;
       }
   }
 
@@ -212,7 +212,7 @@ query_implement(const fastuidraw::vec2 &p,
 {
   int R;
   R = m_children[0]->query(p, out_bb);
-  if (R != GlyphHierarchy::glyph_not_found)
+  if (R != GenericHierarchy::not_found)
     {
       return R;
     }
@@ -263,7 +263,7 @@ query_implement(const fastuidraw::vec2 &p,
           return E.m_reference;
         }
     }
-  return GlyphHierarchy::glyph_not_found;
+  return GenericHierarchy::not_found;
 }
 
 TreeBase*
@@ -320,15 +320,15 @@ add_implement(const BoundingBox<float> &bbox, unsigned int reference)
 }
 
 ///////////////////////////////////
-// GlyphHierarchy methods
-GlyphHierarchy::
-GlyphHierarchy(const BoundingBox<float> &bbox)
+// GenericHierarchy methods
+GenericHierarchy::
+GenericHierarchy(const BoundingBox<float> &bbox)
 {
   m_root = FASTUIDRAWnew Leaf(bbox);
 }
 
-GlyphHierarchy::
-~GlyphHierarchy()
+GenericHierarchy::
+~GenericHierarchy()
 {
   TreeBase *d;
 
@@ -337,7 +337,7 @@ GlyphHierarchy::
 }
 
 void
-GlyphHierarchy::
+GenericHierarchy::
 add(const BoundingBox<float> &bbox, unsigned int reference)
 {
   TreeBase *d, *p;
@@ -352,7 +352,7 @@ add(const BoundingBox<float> &bbox, unsigned int reference)
 }
 
 void
-GlyphHierarchy::
+GenericHierarchy::
 query(const BoundingBox<float> &bbox, std::vector<unsigned int> *output)
 {
   TreeBase *d;
@@ -362,7 +362,7 @@ query(const BoundingBox<float> &bbox, std::vector<unsigned int> *output)
 }
 
 unsigned int
-GlyphHierarchy::
+GenericHierarchy::
 query(const fastuidraw::vec2 &p, BoundingBox<float> *out_bb)
 {
   TreeBase *d;

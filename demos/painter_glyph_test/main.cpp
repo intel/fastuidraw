@@ -9,7 +9,7 @@
 #include "PanZoomTracker.hpp"
 #include "text_helper.hpp"
 #include "cycle_value.hpp"
-#include "glyph_hierarchy.hpp"
+#include "generic_hierarchy.hpp"
 #include "command_line_list.hpp"
 
 using namespace fastuidraw;
@@ -110,7 +110,7 @@ public:
       {
         return m_hierarchy->query(p, out_bb);
       }
-    return GlyphHierarchy::glyph_not_found;
+    return GenericHierarchy::not_found;
   }
 
 private:
@@ -122,7 +122,7 @@ private:
   std::vector<vec2> m_glyph_positions;
   std::vector<Glyph> m_glyphs;
   std::vector<uint32_t> m_character_codes;
-  GlyphHierarchy *m_hierarchy;
+  GenericHierarchy *m_hierarchy;
 };
 
 class painter_glyph_test:public sdl_painter_demo
@@ -485,7 +485,7 @@ set_data(float pixel_size, size_t glyphs_per_painter_draw,
   std::cout << "took " << timer.restart() << " ms\n";
 
   std::cout << "Creating GlyphHierarch..." << std::flush;
-  m_hierarchy = FASTUIDRAWnew GlyphHierarchy(bbox);
+  m_hierarchy = FASTUIDRAWnew GenericHierarchy(bbox);
   for(unsigned int i = 0 ; i < in_glyphs.size(); ++i)
     {
       m_hierarchy->add(glyph_bboxes[i], i);
@@ -1003,7 +1003,7 @@ draw_frame(void)
         }
       p = m_zoomer.transformation().apply_inverse_to_point(vec2(mouse_position));
       G = m_draws[m_current_drawer].query_glyph_at(p, &glyph_bb);
-      if (G != GlyphHierarchy::glyph_not_found)
+      if (G != GenericHierarchy::not_found)
         {
           Glyph glyph;
           GlyphLayoutData layout;

@@ -6,18 +6,18 @@
 
 #pragma once
 
-class GlyphHierarchy:fastuidraw::noncopyable
+class GenericHierarchy:fastuidraw::noncopyable
 {
 public:
   enum
     {
-      glyph_not_found = ~0u
+      not_found = ~0u
     };
 
   explicit
-  GlyphHierarchy(const BoundingBox<float> &bbox);
+  GenericHierarchy(const BoundingBox<float> &bbox);
 
-  ~GlyphHierarchy();
+  ~GenericHierarchy();
 
   void
   add(const BoundingBox<float> &bbox, unsigned int reference);
