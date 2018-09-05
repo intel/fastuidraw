@@ -384,7 +384,8 @@ create_glyph(GlyphRender render,
   GlyphDataPrivate *d;
   d = FASTUIDRAWnew GlyphDataPrivate();
   d->m_render = render;
-  d->m_glyph_data = font->compute_rendering_data(d->m_render, glyph_code, d->m_layout, d->m_path);
+  font->compute_layout_data(glyph_code, d->m_layout);
+  d->m_glyph_data = font->compute_rendering_data(d->m_render, glyph_code, d->m_path);
   return Glyph(d);
 }
 
@@ -444,7 +445,8 @@ fetch_glyph(GlyphRender render,
     {
       q->m_render = render;
       FASTUIDRAWassert(!q->m_glyph_data);
-      q->m_glyph_data = font->compute_rendering_data(q->m_render, glyph_code, q->m_layout, q->m_path);
+      font->compute_layout_data(glyph_code, q->m_layout);
+      q->m_glyph_data = font->compute_rendering_data(q->m_render, glyph_code, q->m_path);
     }
 
   if (upload_to_atlas)

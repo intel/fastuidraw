@@ -209,8 +209,11 @@ namespace fastuidraw
 
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render, uint32_t glyph_code,
-                           GlyphLayoutData &layout, Path &path) const;
+    compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) const;
+
+    virtual
+    void
+    compute_layout_data(uint32_t glyph_code, GlyphLayoutData &layout) const;
 
   private:
     void *m_d;

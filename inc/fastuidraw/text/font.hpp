@@ -25,6 +25,7 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/text/font_properties.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
+#include <fastuidraw/text/glyph_layout_data.hpp>
 
 namespace fastuidraw
 {
@@ -93,13 +94,21 @@ namespace fastuidraw
      *               it is guaranteed by the caller that can_create_rendering_data()
      *               returns true on render.type()
      * \param glyph_code glyph code of glyph rendering data to create
-     * \param[out] layout location to which to place the GlyphLayoutData for the glyph
      * \param[out] path Path of the glyph
      */
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render, uint32_t glyph_code,
-                           GlyphLayoutData &layout, Path &path) const = 0;
+    compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) const = 0;
+
+    /*!
+     * To be implemented by a derived class to provide the layout
+     * data for the named glyph.
+     * \param glyph_code glyph code of glyph to compute the GlyphLayoutData
+     * \param[out] layout location to which to place the GlyphLayoutData for the glyph
+     */
+    virtual
+    void
+    compute_layout_data(uint32_t glyph_code, GlyphLayoutData &layout) const = 0;
 
   private:
     FontProperties m_props;
