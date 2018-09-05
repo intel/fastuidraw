@@ -257,17 +257,10 @@ compute_number_glyphs(void)
 {
   for(const auto &G : m_glyphs)
     {
-      enum fastuidraw::return_code R;
-
       if (G.valid())
         {
-          R = G.upload_to_atlas();
-          if (R != fastuidraw::routine_success)
-            {
-              return;
-            }
+          FASTUIDRAWassert(G.uploaded_to_atlas());
           ++m_number_glyphs;
-
           if (m_cnt_by_type.size() <= G.type())
             {
               m_cnt_by_type.resize(1 + G.type(), 0);

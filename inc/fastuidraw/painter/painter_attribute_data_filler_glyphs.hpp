@@ -38,13 +38,9 @@ namespace fastuidraw
    * The enumeration glyph_type provide the indices into
    * PainterAttributeData::attribute_data_chunks() and
    * PainterAttributeData::index_data_chunks() for the different
-   * glyph types. If a glyph is not uploaded to its GlyphCache and
-   * failed to be uploaded to its GlyphCache, then filling will
-   * only fill the PainterAttrributeData to the last glyph that
-   * successfully uploaded to its GlyphCache. That value can be
-   * queried by number_glyphs(). If all glyphs are uploaded or
-   * successfully loaded, then number_glyphs() returns the number
-   * glyph in the glyph run. Data for glyphs is packed as follows:
+   * glyph types. It is an error for any of the valid glyphs passed
+   * to not be uploaded to the GlyphAtlas.
+   * Data for glyphs is packed as follows:
    *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates (float)
    *   - PainterAttribute::m_attrib0 .z  -> glyph offset (uint)
    *   - PainterAttribute::m_attrib0 .w  -> xyz-texel location of Glyph::atlas_locations()[0] packed (uint)
@@ -149,20 +145,6 @@ namespace fastuidraw
                                      = PainterEnums::y_increases_downwards);
 
     ~PainterAttributeDataFillerGlyphs();
-
-    /*!
-     * After calling PainterAttributeData::set_data() with this object,
-     * returns the number of glyphs of the glyph runs set at the ctor
-     * that are in the filled PainterAttributeData. The filling by
-     * a PainterAttributeDataFillerGlyphs stops as soon as a glyph
-     * is not and cannot be uploaded to its GlyphCache. If all glyphs
-     * are or can be uploaded to their GlyphCache, returns the
-     * length of the glyph array passed to the ctor, otherwise returns
-     * the index into the glyph array of the first glyph that cannot
-     * be uploaded to its GlyphCache.
-     */
-    unsigned int
-    number_glyphs(void) const;
 
     virtual
     void
