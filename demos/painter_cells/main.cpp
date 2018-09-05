@@ -381,6 +381,7 @@ derived_init(int w, int h)
   reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font.value().c_str(), 0);
   m_table_params.m_glyph_selector = m_glyph_selector;
+  m_table_params.m_glyph_cache = m_glyph_cache;
   if (gen->check_creation() == routine_success)
     {
       m_table_params.m_font = FASTUIDRAWnew FontFreeType(gen,

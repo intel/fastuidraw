@@ -22,6 +22,7 @@ public:
   vec2 m_wh;
   ivec2 m_cell_count;
   reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<GlyphCache> m_glyph_cache;
   reference_counted_ptr<const FontBase> m_font;
   GlyphRender m_text_render;
   float m_pixel_size;

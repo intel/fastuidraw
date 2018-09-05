@@ -9,6 +9,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 
@@ -119,6 +120,7 @@ create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       float pixel_size,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes,

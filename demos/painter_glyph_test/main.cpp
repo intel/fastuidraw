@@ -69,6 +69,7 @@ public:
   void
   init(std::istream &istr,
        const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
        GlyphRender renderer,
@@ -372,8 +373,8 @@ init(unsigned int num_threads,
       temp_positions.clear();
       temp_character_codes.clear();
       create_formatted_text(stream, renderer, pixel_size_formatting,
-                            font, glyph_selector, temp_glyphs,
-                            temp_positions, temp_character_codes,
+                            font, glyph_selector, glyph_cache,
+                            temp_glyphs, temp_positions, temp_character_codes,
                             nullptr, nullptr,
                             glyph_orientation, false);
 
@@ -419,6 +420,7 @@ void
 GlyphDraws::
 init(std::istream &istr,
      const reference_counted_ptr<const FontFreeType> &font,
+     const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
      GlyphRender renderer,
@@ -431,7 +433,7 @@ init(std::istream &istr,
 
       std::cout << "Formatting glyphs ..." << std::flush;
       create_formatted_text(istr, renderer, pixel_size_formatting,
-                            font, glyph_selector,
+                            font, glyph_selector, glyph_cache,
                             m_glyphs, m_glyph_positions,
                             m_character_codes, nullptr, nullptr,
                             glyph_orientation);
@@ -734,7 +736,7 @@ init_glyph_draw(unsigned int I, GlyphRender renderer,
   else if (m_use_file.value())
     {
       std::ifstream istr(m_text.value().c_str(), std::ios::binary);
-      m_draws[I].init(istr, m_font, m_glyph_selector,
+      m_draws[I].init(istr, m_font, m_glyph_cache, m_glyph_selector,
                       m_render_pixel_size.value(), renderer,
                       m_glyphs_per_painter_draw.value(),
                       m_glyph_orientation.value());
@@ -742,7 +744,7 @@ init_glyph_draw(unsigned int I, GlyphRender renderer,
   else
     {
       std::istringstream istr(m_text.value());
-      m_draws[I].init(istr, m_font, m_glyph_selector,
+      m_draws[I].init(istr, m_font, m_glyph_cache, m_glyph_selector,
                       m_render_pixel_size.value(), renderer,
                       m_glyphs_per_painter_draw.value(),
                       m_glyph_orientation.value());

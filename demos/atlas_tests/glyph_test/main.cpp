@@ -656,7 +656,7 @@ init_gl(int w, int h)
 
   m_glyph_atlas = FASTUIDRAWnew gl::GlyphAtlasGL(glyph_atlas_options);
   m_glyph_cache = FASTUIDRAWnew GlyphCache(m_glyph_atlas);
-  m_glyph_selector = FASTUIDRAWnew GlyphSelector(m_glyph_cache);
+  m_glyph_selector = FASTUIDRAWnew GlyphSelector();
 
   if (create_and_add_font() == routine_fail)
     {
@@ -990,8 +990,8 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
       temp_positions.clear();
       temp_character_codes.clear();
       create_formatted_text(stream, renderer, pixel_size_formatting,
-                            m_font, m_glyph_selector, temp_glyphs,
-                            temp_positions, temp_character_codes);
+                            m_font, m_glyph_selector, m_glyph_cache,
+                            temp_glyphs, temp_positions, temp_character_codes);
 
       FASTUIDRAWassert(temp_glyphs.size() == temp_positions.size());
       for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
@@ -1020,16 +1020,16 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
       if (istr)
         {
           create_formatted_text(istr, renderer, pixel_size_formatting,
-                                m_font, m_glyph_selector, glyphs, positions,
-                                character_codes);
+                                m_font, m_glyph_selector, m_glyph_cache,
+                                glyphs, positions, character_codes);
         }
     }
   else
     {
       std::istringstream istr(m_text.value());
       create_formatted_text(istr, renderer, pixel_size_formatting,
-                            m_font, m_glyph_selector, glyphs, positions,
-                            character_codes);
+                            m_font, m_glyph_selector, m_glyph_cache,
+                            glyphs, positions, character_codes);
     }
 }
 

@@ -776,7 +776,7 @@ init_gl(int w, int h)
 
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
-  m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector(m_glyph_cache);
+  m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector();
   m_ft_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
 
   if (m_print_painter_config.value())
@@ -888,7 +888,8 @@ draw_text(const std::string &text, float pixel_size,
   fastuidraw::PainterAttributeData P;
 
   create_formatted_text(str, renderer, pixel_size, font,
-                        m_glyph_selector, glyphs, positions, chars,
+                        m_glyph_selector, m_glyph_cache,
+                        glyphs, positions, chars,
                         nullptr, nullptr, orientation);
 
   fastuidraw::PainterAttributeDataFillerGlyphs filler(cast_c_array(positions),

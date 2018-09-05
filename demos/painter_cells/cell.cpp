@@ -58,6 +58,7 @@ Cell(PainterWidget *p, const CellParams &params):
   std::vector<uint32_t> character_codes;
   create_formatted_text(str, params.m_text_render, params.m_pixel_size,
                         params.m_font, params.m_glyph_selector,
+                        params.m_glyph_cache,
                         glyphs, positions, character_codes);
 
   m_text.set_data(PainterAttributeDataFillerGlyphs(cast_c_array(positions),

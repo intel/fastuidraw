@@ -156,6 +156,7 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
 
               CellParams params;
               params.m_glyph_selector = m_params.m_glyph_selector;
+              params.m_glyph_cache = m_params.m_glyph_cache;
               params.m_font = m_params.m_font;
               params.m_background_brush = bg[bgJ];
               params.m_image_brush = im[imJ];

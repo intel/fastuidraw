@@ -44,6 +44,7 @@ class CellParams
 {
 public:
   reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<GlyphCache> m_glyph_cache;
   reference_counted_ptr<const FontBase> m_font;
   PainterPackedValue<PainterBrush> m_background_brush;
   PainterPackedValue<PainterBrush> m_image_brush;

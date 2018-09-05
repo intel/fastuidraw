@@ -353,6 +353,7 @@ create_formatted_text(std::istream &istr,
                       float pixel_size,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes,
@@ -391,6 +392,7 @@ create_formatted_text(std::istream &istr,
   fastuidraw::c_array<fastuidraw::vec2> pos_ptr(cast_c_array(positions));
   fastuidraw::c_array<uint32_t> char_codes_ptr(cast_c_array(character_codes));
   fastuidraw::c_array<fastuidraw::range_type<float> > extents_ptr;
+  std::vector<fastuidraw::GlyphSelector::GlyphSource> glyph_source;
 
   if (glyph_extents)
     {
@@ -418,17 +420,18 @@ create_formatted_text(std::istream &istr,
       sub_g = glyphs_ptr.sub_array(loc, line.length());
       sub_p = pos_ptr.sub_array(loc, line.length());
       sub_ch = char_codes_ptr.sub_array(loc, line.length());
+      glyph_source.resize(sub_g.size());
       if (glyph_extents)
         {
           sub_extents = extents_ptr.sub_array(loc, line.length());
         }
 
-      glyph_selector->create_glyph_sequence(renderer, font, line.begin(), line.end(), sub_g.begin());
+      glyph_selector->create_glyph_sequence(font, line.begin(), line.end(), glyph_source.begin());
       for(unsigned int i = 0, endi = sub_g.size(); i < endi; ++i)
         {
           fastuidraw::Glyph g;
 
-          g = sub_g[i];
+          g = sub_g[i] = glyph_cache->fetch_glyph(renderer, glyph_source[i].m_font, glyph_source[i].m_glyph_code);
           sub_p[i] = pen;
           sub_ch[i] = static_cast<uint32_t>(line[i]);
           if (g.valid())
