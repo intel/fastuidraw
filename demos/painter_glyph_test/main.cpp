@@ -10,6 +10,7 @@
 #include "text_helper.hpp"
 #include "cycle_value.hpp"
 #include "glyph_finder.hpp"
+#include "glyph_hierarchy.hpp"
 #include "command_line_list.hpp"
 
 using namespace fastuidraw;
@@ -35,6 +36,10 @@ operator<<(std::ostream &str, GlyphRender R)
 class GlyphDraws:fastuidraw::noncopyable
 {
 public:
+  GlyphDraws():
+    m_hierarchy(nullptr)
+  {}
+
   ~GlyphDraws();
 
   unsigned int
@@ -101,6 +106,16 @@ public:
     return cast_c_array(m_character_codes);
   }
 
+  void
+  query_glyph_interesection(const BoundingBox<float> bbox,
+                            std::vector<unsigned int> *output)
+  {
+    if (m_hierarchy)
+      {
+        m_hierarchy->query(bbox, output);
+      }
+  }
+
 private:
   void
   set_data(float pixel_size, size_t glyphs_per_painter_draw,
@@ -112,6 +127,7 @@ private:
   std::vector<range_type<float> > m_glyph_extents;
   std::vector<uint32_t> m_character_codes;
   GlyphFinder m_glyph_finder;
+  GlyphHierarchy *m_hierarchy;
 };
 
 class painter_glyph_test:public sdl_painter_demo
@@ -212,6 +228,7 @@ GlyphDraws::
     {
       FASTUIDRAWdelete(m_data[i]);
     }
+  FASTUIDRAWdelete(m_hierarchy);
 }
 
 void
@@ -450,15 +467,48 @@ set_data(float pixel_size, size_t glyphs_per_painter_draw,
 {
   c_array<const vec2> in_glyph_positions(cast_c_array(m_glyph_positions));
   c_array<const Glyph> in_glyphs(cast_c_array(m_glyphs));
+  BoundingBox<float> bbox;
+  std::vector<BoundingBox<float> > glyph_bboxes;
   simple_time timer;
 
+  FASTUIDRAWassert(in_glyph_positions.size() == in_glyphs.size());
+  glyph_bboxes.resize(in_glyphs.size());
+
   std::cout << "Uploading glyphs to atlas..." << std::flush;
-  for(auto g : in_glyphs)
+  for(unsigned int i = 0 ; i < in_glyphs.size(); ++i)
     {
+      Glyph g(in_glyphs[i]);
       if(g.valid())
         {
           g.upload_to_atlas();
+
+          vec2 p, min_bb, max_bb;
+          float ratio;
+
+          g.path().approximate_bounding_box(&min_bb, &max_bb);
+          ratio = pixel_size / g.layout().units_per_EM();
+          min_bb *= ratio;
+          max_bb *= ratio;
+
+          if (glyph_orientation == PainterEnums::y_increases_downwards)
+            {
+              min_bb.y() = -min_bb.y();
+              max_bb.y() = -max_bb.y();
+            }
+
+          p = in_glyph_positions[i];
+          glyph_bboxes[i].union_point(p + min_bb);
+          glyph_bboxes[i].union_point(p + max_bb);
+          bbox.union_box(glyph_bboxes[i]);
         }
+    }
+  std::cout << "took " << timer.restart() << " ms\n";
+
+  std::cout << "Creating GlyphHierarch..." << std::flush;
+  m_hierarchy = FASTUIDRAWnew GlyphHierarchy(bbox);
+  for(unsigned int i = 0 ; i < in_glyphs.size(); ++i)
+    {
+      m_hierarchy->add(glyph_bboxes[i], i);
     }
   std::cout << "took " << timer.restart() << " ms\n";
 
@@ -806,6 +856,22 @@ draw_frame(void)
   PainterBrush brush;
   brush.pen(1.0, 1.0, 1.0, 1.0);
 
+  std::vector<unsigned int> glyphs_visible;
+  if (m_fill_glyphs || m_stroke_glyphs)
+    {
+      vec2 p0, p1;
+      BoundingBox<float> screen;
+
+      p0 = m_zoomer.transformation().apply_inverse_to_point(vec2(0.0f, 0.0f));
+      p1 = m_zoomer.transformation().apply_inverse_to_point(vec2(dimensions()));
+
+      screen
+        .union_point(p0)
+        .union_point(p1);
+
+      m_draws[m_current_drawer].query_glyph_interesection(screen, &glyphs_visible);
+    }
+
   if (!m_fill_glyphs)
     {
       for(unsigned int S = 0, endS = m_draws[m_current_drawer].size(); S < endS; ++S)
@@ -828,7 +894,7 @@ draw_frame(void)
       PainterPackedValue<PainterBrush> pbr;
       pbr = m_painter->packed_value_pool().create_packed_value(fill_brush);
 
-      for(unsigned int i = 0; i < glyphs.size(); ++i)
+      for(unsigned int i : glyphs_visible)
         {
           if (glyphs[i].valid())
             {
@@ -877,7 +943,7 @@ draw_frame(void)
       PainterPackedValue<PainterItemShaderData> pst;
       pst = m_painter->packed_value_pool().create_packed_value(st);
 
-      for(unsigned int i = 0; i < glyphs.size(); ++i)
+      for(unsigned int i : glyphs_visible)
         {
           if (glyphs[i].valid())
             {
