@@ -32,6 +32,74 @@ operator<<(std::ostream &str, GlyphRender R)
   return str;
 }
 
+class GlyphDrawsShared:fastuidraw::noncopyable
+{
+public:
+  GlyphDrawsShared(void):
+    m_glyph_sequence(nullptr)
+  {}
+
+  ~GlyphDrawsShared()
+  {
+    if (m_glyph_sequence)
+      {
+        FASTUIDRAWdelete(m_glyph_sequence);
+      }
+  }
+
+  c_array<const vec2>
+  glyph_positions(void) const
+  {
+    FASTUIDRAWassert(m_glyph_sequence);
+    return m_glyph_sequence->glyph_positions();
+  }
+
+  GlyphSequence&
+  glyph_sequence(void)
+  {
+    return *m_glyph_sequence;
+  }
+
+  enum PainterEnums::glyph_orientation
+  glyph_orientation()
+  {
+    return m_glyph_orientation;
+  }
+
+  float
+  pixel_size(void)
+  {
+    return m_pixel_size;
+  }
+
+  void
+  init(const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<GlyphCache> &glyph_cache,
+       const reference_counted_ptr<GlyphSelector> &selector,
+       float pixel_size_formatting,
+       enum PainterEnums::glyph_orientation glyph_orientation);
+
+  void
+  init(const std::vector<uint32_t> &glyph_codes,
+       const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<GlyphCache> &glyph_cache,
+       float pixel_size_formatting,
+       enum PainterEnums::glyph_orientation glyph_orientation);
+
+  void
+  init(std::istream &istr,
+       const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<GlyphCache> &glyph_cache,
+       const reference_counted_ptr<GlyphSelector> &selector,
+       float pixel_size_formatting,
+       enum PainterEnums::glyph_orientation glyph_orientation);
+
+private:
+  float m_pixel_size;
+  enum PainterEnums::glyph_orientation m_glyph_orientation;
+  GlyphSequence *m_glyph_sequence;
+};
+
 class GlyphDraws:fastuidraw::noncopyable
 {
 public:
@@ -47,51 +115,10 @@ public:
   const PainterAttributeData&
   data(unsigned int I) const;
 
-  void
-  init(unsigned int num_threads,
-       const reference_counted_ptr<const FontFreeType> &font,
-       const reference_counted_ptr<GlyphCache> &cache,
-       const reference_counted_ptr<GlyphSelector> &selector,
-       float pixel_size_formatting,
-       GlyphRender renderer,
-       size_t glyphs_per_painter_draw,
-       enum PainterEnums::glyph_orientation glyph_orientation);
-
-  void
-  init(const std::vector<uint32_t> &glyph_codes,
-       const reference_counted_ptr<const FontFreeType> &font,
-       const reference_counted_ptr<GlyphCache> &glyph_cache,
-       float pixel_size_formatting,
-       GlyphRender renderer,
-       size_t glyphs_per_painter_draw,
-       enum PainterEnums::glyph_orientation glyph_orientation);
-
-  void
-  init(std::istream &istr,
-       const reference_counted_ptr<const FontFreeType> &font,
-       const reference_counted_ptr<GlyphCache> &glyph_cache,
-       const reference_counted_ptr<GlyphSelector> &selector,
-       float pixel_size_formatting,
-       GlyphRender renderer,
-       size_t glyphs_per_painter_draw,
-       enum PainterEnums::glyph_orientation glyph_orientation);
-
-  c_array<const vec2>
-  glyph_positions(void) const
-  {
-    return cast_c_array(m_glyph_positions);
-  }
-
   c_array<const Glyph>
   glyphs(void) const
   {
-    return cast_c_array(m_glyphs);
-  }
-
-  c_array<const uint32_t>
-  character_codes(void) const
-  {
-    return cast_c_array(m_character_codes);
+    return m_glyphs;
   }
 
   void
@@ -114,15 +141,20 @@ public:
     return GenericHierarchy::not_found;
   }
 
+  void
+  init(GlyphDrawsShared &shared, GlyphRender renderer,
+       const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<GlyphCache> &glyph_cache,
+       size_t glyphs_per_painter_draw, bool realize_all_glyphs,
+       int num_threads);
+
 private:
   void
-  set_data(float pixel_size, size_t glyphs_per_painter_draw,
-           enum PainterEnums::glyph_orientation glyph_orientation);
+  set_data(size_t glyphs_per_painter_draw,
+           GlyphRender renderer, GlyphDrawsShared &shared);
 
   std::vector<PainterAttributeData*> m_data;
-  std::vector<vec2> m_glyph_positions;
-  std::vector<Glyph> m_glyphs;
-  std::vector<uint32_t> m_character_codes;
+  c_array<const Glyph> m_glyphs;
   GenericHierarchy *m_hierarchy;
 };
 
@@ -165,10 +197,6 @@ private:
   void
   ready_glyph_attribute_data(void);
 
-  void
-  init_glyph_draw(unsigned int I, GlyphRender renderer,
-                  const std::vector<uint32_t> &explicit_glyph_codes);
-
   float
   update_cts_params(void);
 
@@ -198,6 +226,7 @@ private:
 
   reference_counted_ptr<const FontFreeType> m_font;
 
+  GlyphDrawsShared m_draw_shared;
   vecN<GlyphDraws, number_draw_modes> m_draws;
   vecN<std::string, number_draw_modes> m_draw_labels;
   vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
@@ -214,28 +243,14 @@ private:
   simple_time m_draw_timer;
 };
 
-
-////////////////////////////////////
-// GlyphDraws methods
-GlyphDraws::
-~GlyphDraws()
-{
-  for(unsigned int i = 0, endi = m_data.size(); i < endi; ++i)
-    {
-      FASTUIDRAWdelete(m_data[i]);
-    }
-  FASTUIDRAWdelete(m_hierarchy);
-}
-
+///////////////////////////////////
+// GlyphDrawsShared methods
 void
-GlyphDraws::
-init(unsigned int num_threads,
-     const reference_counted_ptr<const FontFreeType> &font,
+GlyphDrawsShared::
+init(const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
-     GlyphRender renderer,
-     size_t glyphs_per_painter_draw,
      enum PainterEnums::glyph_orientation glyph_orientation)
 {
   float tallest(0.0f), negative_tallest(0.0f), offset;
@@ -249,86 +264,48 @@ init(unsigned int num_threads,
   unsigned int num_glyphs;
   reference_counted_ptr<FreeTypeFace> face;
   float y_advance_sign;
+  std::vector<GlyphLayoutData> layouts;
+  simple_time timer;
 
   face = font->face_generator()->create_face(font->lib());
   div_scale_factor = static_cast<float>(face->face()->units_per_EM);
   scale_factor = pixel_size_formatting / div_scale_factor;
   y_advance_sign = (glyph_orientation == PainterEnums::y_increases_downwards) ? 1.0f : -1.0f;
+  num_glyphs = face->face()->num_glyphs;
 
-  /* Get all the glyphs */
-  simple_time timer;
-  std::vector<int> cnts;
-  std::cout << "Generating glyphs ..." << std::flush;
-  GlyphSetGenerator::generate(num_threads, renderer, font, face, m_glyphs, glyph_cache, cnts);
-  std::cout << "took " << timer.restart()
-            << " ms to generate glyphs of type "
-            << renderer << "\n";
-  for(int i = 0; i < num_threads; ++i)
-    {
-      std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
-    }
+  m_pixel_size = pixel_size_formatting;
+  m_glyph_orientation = glyph_orientation;
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
-  for(Glyph g : m_glyphs)
+  layouts.resize(num_glyphs);
+  for(unsigned int i = 0; i < num_glyphs; ++i)
     {
-      FASTUIDRAWassert(g.valid());
-      FASTUIDRAWassert(g.cache() == glyph_cache);
-
-      tallest = std::max(tallest, g.layout().horizontal_layout_offset().y() + g.layout().size().y());
-      negative_tallest = std::min(negative_tallest, g.layout().horizontal_layout_offset().y());
-    }
-
-  /* Try to get the character codes for each glyph */
-  std::vector<bool> found_character_code(m_glyphs.size(), false);
-  m_character_codes.resize(m_glyphs.size(), 0);
-
-  for(int i = 0, endi = face->face()->num_charmaps; i < endi; ++i)
-    {
-      FT_Set_Charmap(face->face(), face->face()->charmaps[i]);
-      for(character_code = FT_Get_First_Char(face->face(), &glyph_index);
-          glyph_index != 0;
-          character_code = FT_Get_Next_Char(face->face(), character_code, &glyph_index))
-        {
-          --glyph_index;
-          FASTUIDRAWassert(glyph_index < static_cast<int>(m_glyphs.size()));
-          if (!found_character_code[glyph_index])
-            {
-              m_character_codes[glyph_index] = character_code;
-              found_character_code[glyph_index] = true;
-            }
-        }
+      font->compute_layout_data(i, layouts[i]);
+      tallest = std::max(tallest, layouts[i].horizontal_layout_offset().y() + layouts[i].size().y());
+      negative_tallest = std::min(negative_tallest, layouts[i].horizontal_layout_offset().y());
     }
 
   tallest *= scale_factor;
   negative_tallest *= scale_factor;
   offset = tallest - negative_tallest;
 
-  m_glyph_positions.resize(m_glyphs.size());
-
   vec2 pen(0.0f, 0.0f);
-
-  for(navigator_chars = 0, i = 0, endi = m_glyphs.size(), glyph_at_start = 0; i < endi; ++i)
+  for(navigator_chars = 0, i = 0, endi = layouts.size(), glyph_at_start = 0; i < endi; ++i)
     {
-      Glyph g;
-      GlyphLayoutData layout;
+      const GlyphLayoutData &layout(layouts[i]);
       float advance, nxt;
 
-      g = m_glyphs[i];
-      FASTUIDRAWassert(g.valid());
-
-      layout = g.layout();
       advance = scale_factor * t_max(layout.advance().x(),
                                      t_max(0.0f, layout.horizontal_layout_offset().x()) + layout.size().x());
 
-      m_glyph_positions[i].x() = pen.x();
-      m_glyph_positions[i].y() = pen.y();
-
+      m_glyph_sequence->add_glyph(GlyphSource(i, font), pen);
       pen.x() += advance;
 
       if (i + 1 < endi)
         {
           float pre_layout, nxt_adv;
-          GlyphLayoutData nxtL(m_glyphs[i + 1].layout());
+          const GlyphLayoutData &nxtL(layouts[i + 1]);
 
           pre_layout = t_max(0.0f, -nxtL.horizontal_layout_offset().x());
           pen.x() += scale_factor * pre_layout;
@@ -344,8 +321,8 @@ init(unsigned int num_threads,
       if (nxt >= line_length || i + 1 == endi)
         {
           std::ostringstream desc;
-          desc << "[" << std::setw(5) << m_glyphs[glyph_at_start].layout().glyph_code()
-               << " - " << std::setw(5) << m_glyphs[i].layout().glyph_code() << "]";
+          desc << "[" << std::setw(5) << layouts[glyph_at_start].glyph_code()
+               << " - " << std::setw(5) << layouts[i].glyph_code() << "]";
           navigator.push_back(std::make_pair(pen.y(), desc.str()));
           navigator_chars += navigator.back().second.length();
 
@@ -358,121 +335,141 @@ init(unsigned int num_threads,
   std::cout << "took " << timer.restart() << " ms\n";
 
   std::cout << "Formatting navigation text..." << std::flush;
-  m_character_codes.reserve(m_glyphs.size() + navigator_chars);
-  m_glyph_positions.reserve(m_glyphs.size() + navigator_chars);
-  m_glyphs.reserve(m_glyphs.size() + navigator_chars);
-
-  std::vector<fastuidraw::Glyph> temp_glyphs;
-  std::vector<fastuidraw::vec2> temp_positions;
-  std::vector<uint32_t> temp_character_codes;
   for(nav_iter = navigator.begin(); nav_iter != navigator.end(); ++nav_iter)
     {
       std::istringstream stream(nav_iter->second);
 
-      temp_glyphs.clear();
-      temp_positions.clear();
-      temp_character_codes.clear();
-      create_formatted_text(stream, renderer, pixel_size_formatting,
-                            font, glyph_selector, glyph_cache,
-                            temp_glyphs, temp_positions, temp_character_codes,
-                            nullptr, nullptr,
-                            glyph_orientation, false);
-
-      FASTUIDRAWassert(temp_glyphs.size() == temp_positions.size());
-      for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
-        {
-          m_glyphs.push_back(temp_glyphs[c]);
-          m_character_codes.push_back(temp_character_codes[c]);
-          m_glyph_positions.push_back(vec2(line_length + temp_positions[c].x(), nav_iter->first) );
-        }
+      create_formatted_text(stream, pixel_size_formatting,
+                            font,
+                            glyph_selector,
+                            *m_glyph_sequence,
+                            nullptr, nullptr, nullptr,
+                            glyph_orientation, false,
+                            vec2(line_length, nav_iter->first));
     }
   std::cout << "took " << timer.restart() << " ms\n";
-
-  set_data(pixel_size_formatting, glyphs_per_painter_draw, glyph_orientation);
 }
 
 void
-GlyphDraws::
+GlyphDrawsShared::
 init(const std::vector<uint32_t> &glyph_codes,
      const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      float pixel_size_formatting,
-     GlyphRender renderer,
-     size_t glyphs_per_painter_draw,
      enum PainterEnums::glyph_orientation glyph_orientation)
 {
   simple_time timer;
 
   std::cout << "Formatting glyphs ..." << std::flush;
-  create_formatted_text(glyph_codes,
-                        renderer, pixel_size_formatting,
-                        font, glyph_cache,
-                        m_glyphs, m_glyph_positions,
-                        nullptr, nullptr,
-                        glyph_orientation);
-  m_character_codes.resize(m_glyphs.size(), 0);
-  std::cout << "took " << timer.restart() << " ms\n";
+  m_pixel_size = pixel_size_formatting;
+  m_glyph_orientation = glyph_orientation;
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(glyph_cache);
+  create_formatted_text(glyph_codes, pixel_size_formatting,
+                        font, *m_glyph_sequence,
+                        nullptr, nullptr, glyph_orientation);
 
-  set_data(pixel_size_formatting, glyphs_per_painter_draw, glyph_orientation);
+  std::cout << "took " << timer.restart() << " ms\n";
 }
 
 void
-GlyphDraws::
+GlyphDrawsShared::
 init(std::istream &istr,
      const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
-     GlyphRender renderer,
-     size_t glyphs_per_painter_draw,
      enum PainterEnums::glyph_orientation glyph_orientation)
 {
+  m_pixel_size = pixel_size_formatting;
+  m_glyph_orientation = glyph_orientation;
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(glyph_cache);
   if (istr)
     {
       simple_time timer;
 
       std::cout << "Formatting glyphs ..." << std::flush;
-      create_formatted_text(istr, renderer, pixel_size_formatting,
-                            font, glyph_selector, glyph_cache,
-                            m_glyphs, m_glyph_positions,
-                            m_character_codes, nullptr, nullptr,
+      create_formatted_text(istr, pixel_size_formatting,
+                            font, glyph_selector, *m_glyph_sequence,
+                            nullptr, nullptr, nullptr,
                             glyph_orientation);
       std::cout << "took " << timer.restart() << " ms\n";
     }
-  set_data(pixel_size_formatting, glyphs_per_painter_draw, glyph_orientation);
+}
+
+////////////////////////////////////
+// GlyphDraws methods
+GlyphDraws::
+~GlyphDraws()
+{
+  for(unsigned int i = 0, endi = m_data.size(); i < endi; ++i)
+    {
+      FASTUIDRAWdelete(m_data[i]);
+    }
+  if (m_hierarchy)
+    {
+      FASTUIDRAWdelete(m_hierarchy);
+    }
 }
 
 void
 GlyphDraws::
-set_data(float pixel_size, size_t glyphs_per_painter_draw,
-         enum PainterEnums::glyph_orientation glyph_orientation)
+init(GlyphDrawsShared &shared, GlyphRender renderer,
+     const reference_counted_ptr<const FontFreeType> &font,
+     const reference_counted_ptr<GlyphCache> &glyph_cache,
+     size_t glyphs_per_painter_draw, bool realize_all_glyphs,
+     int num_threads)
 {
-  c_array<const vec2> in_glyph_positions(cast_c_array(m_glyph_positions));
-  c_array<const Glyph> in_glyphs(cast_c_array(m_glyphs));
+  if (realize_all_glyphs)
+    {
+      /* Get all the glyphs */
+      simple_time timer;
+      std::vector<int> cnts;
+      std::vector<Glyph> glyphs;
+      reference_counted_ptr<FreeTypeFace> face;
+
+      std::cout << "Generating glyphs ..." << std::flush;
+      face = font->face_generator()->create_face(font->lib());
+      GlyphSetGenerator::generate(num_threads, renderer, font, face, glyphs, glyph_cache, cnts);
+      std::cout << "took " << timer.restart()
+                << " ms to generate glyphs of type "
+                << renderer << "\n";
+      for(int i = 0; i < num_threads; ++i)
+        {
+          std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
+        }
+    }
+  set_data(glyphs_per_painter_draw, renderer, shared);
+}
+
+void
+GlyphDraws::
+set_data(size_t glyphs_per_painter_draw,
+         GlyphRender renderer, GlyphDrawsShared &shared)
+{
+  c_array<const vec2> in_glyph_positions(shared.glyph_sequence().glyph_positions());
   BoundingBox<float> bbox;
   std::vector<BoundingBox<float> > glyph_bboxes;
   simple_time timer;
 
-  FASTUIDRAWassert(in_glyph_positions.size() == in_glyphs.size());
-  glyph_bboxes.resize(in_glyphs.size());
+  std::cout << "Uploading glyphs to atlas.." << std::flush;
+  m_glyphs = shared.glyph_sequence().glyph_sequence(renderer, true);
+  std::cout << "took " << timer.restart() << " ms\n";
 
-  std::cout << "Uploading glyphs to atlas..." << std::flush;
-  for(unsigned int i = 0 ; i < in_glyphs.size(); ++i)
+  glyph_bboxes.resize(m_glyphs.size());
+  for(unsigned int i = 0 ; i < m_glyphs.size(); ++i)
     {
-      Glyph g(in_glyphs[i]);
+      Glyph g(m_glyphs[i]);
       if(g.valid())
         {
-          g.upload_to_atlas();
-
           vec2 p, min_bb, max_bb;
           float ratio;
 
           g.path().approximate_bounding_box(&min_bb, &max_bb);
-          ratio = pixel_size / g.layout().units_per_EM();
+          ratio = shared.pixel_size() / g.layout().units_per_EM();
           min_bb *= ratio;
           max_bb *= ratio;
 
-          if (glyph_orientation == PainterEnums::y_increases_downwards)
+          if (shared.glyph_orientation() == PainterEnums::y_increases_downwards)
             {
               min_bb.y() = -min_bb.y();
               max_bb.y() = -max_bb.y();
@@ -484,18 +481,17 @@ set_data(float pixel_size, size_t glyphs_per_painter_draw,
           bbox.union_box(glyph_bboxes[i]);
         }
     }
-  std::cout << "took " << timer.restart() << " ms\n";
 
   std::cout << "Creating GlyphHierarch..." << std::flush;
   m_hierarchy = FASTUIDRAWnew GenericHierarchy(bbox);
-  for(unsigned int i = 0 ; i < in_glyphs.size(); ++i)
+  for(unsigned int i = 0 ; i < m_glyphs.size(); ++i)
     {
       m_hierarchy->add(glyph_bboxes[i], i);
     }
   std::cout << "took " << timer.restart() << " ms\n";
 
   std::cout << "Creating attribute data " << std::flush;
-  while(!in_glyphs.empty())
+  for(c_array<const Glyph> in_glyphs = m_glyphs; !in_glyphs.empty(); )
     {
       c_array<const Glyph> glyphs;
       c_array<const vec2> glyph_positions;
@@ -510,8 +506,9 @@ set_data(float pixel_size, size_t glyphs_per_painter_draw,
       in_glyph_positions = in_glyph_positions.sub_array(cnt);
 
       data = FASTUIDRAWnew PainterAttributeData();
-      data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs, pixel_size,
-                                                      glyph_orientation));
+      data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs,
+                                                      shared.pixel_size(),
+                                                      shared.glyph_orientation()));
       m_data.push_back(data);
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -714,41 +711,66 @@ derived_init(int w, int h)
 
 void
 painter_glyph_test::
-init_glyph_draw(unsigned int I, GlyphRender renderer,
-                const std::vector<uint32_t> &explicit_glyph_codes)
+ready_glyph_attribute_data(void)
 {
+  std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
+                                             m_explicit_glyph_codes.end());
+
   if (m_draw_glyph_set.value())
     {
-      m_draws[I].init(m_realize_glyphs_thread_count.value(),
-                      m_font, m_glyph_cache, m_glyph_selector,
-                      m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value(),
-                      m_glyph_orientation.value());
+      m_draw_shared.init(m_font,
+                         m_glyph_cache, m_glyph_selector,
+                         m_render_pixel_size.value(),
+                         m_glyph_orientation.value());
     }
   else if (!explicit_glyph_codes.empty())
     {
-      m_draws[I].init(explicit_glyph_codes,
-                      m_font, m_glyph_cache,
-                      m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value(),
-                      m_glyph_orientation.value());
+      m_draw_shared.init(explicit_glyph_codes,
+                         m_font, m_glyph_cache,
+                         m_render_pixel_size.value(),
+                         m_glyph_orientation.value());
     }
   else if (m_use_file.value())
     {
       std::ifstream istr(m_text.value().c_str(), std::ios::binary);
-      m_draws[I].init(istr, m_font, m_glyph_cache, m_glyph_selector,
-                      m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value(),
-                      m_glyph_orientation.value());
+      m_draw_shared.init(istr, m_font,
+                         m_glyph_cache, m_glyph_selector,
+                         m_render_pixel_size.value(),
+                         m_glyph_orientation.value());
     }
   else
     {
       std::istringstream istr(m_text.value());
-      m_draws[I].init(istr, m_font, m_glyph_cache, m_glyph_selector,
-                      m_render_pixel_size.value(), renderer,
-                      m_glyphs_per_painter_draw.value(),
-                      m_glyph_orientation.value());
+      m_draw_shared.init(istr, m_font,
+                         m_glyph_cache, m_glyph_selector,
+                         m_render_pixel_size.value(),
+                         m_glyph_orientation.value());
     }
+
+  m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
+  m_draw_labels[draw_glyph_distance] = "draw_glyph_distance";
+  m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
+
+  m_draws[draw_glyph_curvepair].init(m_draw_shared,
+                                     GlyphRender(curve_pair_glyph),
+                                     m_font, m_glyph_cache,
+                                     m_glyphs_per_painter_draw.value(),
+                                     m_draw_glyph_set.value(),
+                                     m_realize_glyphs_thread_count.value());
+
+  m_draws[draw_glyph_distance].init(m_draw_shared,
+                                    GlyphRender(distance_field_glyph),
+                                    m_font, m_glyph_cache,
+                                    m_glyphs_per_painter_draw.value(),
+                                    m_draw_glyph_set.value(),
+                                    m_realize_glyphs_thread_count.value());
+
+  m_draws[draw_glyph_coverage].init(m_draw_shared,
+                                    GlyphRender(m_coverage_pixel_size.value()),
+                                    m_font, m_glyph_cache,
+                                    m_glyphs_per_painter_draw.value(),
+                                    m_draw_glyph_set.value(),
+                                    m_realize_glyphs_thread_count.value());
 
   unsigned int texels_allocated(m_glyph_atlas->number_texels_allocated());
   ivec3 texel_store_dims(m_glyph_atlas->texel_store()->dimensions());
@@ -761,35 +783,6 @@ init_glyph_draw(unsigned int I, GlyphRender renderer,
             << "%)\nBytes geometry data allocated = "
             << m_glyph_atlas->geometry_data_allocated() * sizeof(generic_data) * m_glyph_atlas->geometry_store()->alignment()
             << "\n";
-}
-
-void
-painter_glyph_test::
-ready_glyph_attribute_data(void)
-{
-  std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
-                                             m_explicit_glyph_codes.end());
-
-  {
-    GlyphRender renderer(curve_pair_glyph);
-    FASTUIDRAWassert(renderer.m_type == curve_pair_glyph);
-    init_glyph_draw(draw_glyph_curvepair, renderer, explicit_glyph_codes);
-    m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
-  }
-
-  {
-    GlyphRender renderer(distance_field_glyph);
-    FASTUIDRAWassert(renderer.m_type == distance_field_glyph);
-    init_glyph_draw(draw_glyph_distance, renderer, explicit_glyph_codes);
-    m_draw_labels[draw_glyph_distance] = "draw_glyph_distance";
-  }
-
-  {
-    GlyphRender renderer(m_coverage_pixel_size.value());
-    FASTUIDRAWassert(renderer.m_type == coverage_glyph);
-    init_glyph_draw(draw_glyph_coverage, renderer, explicit_glyph_codes);
-    m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
-  }
 }
 
 void
@@ -867,7 +860,7 @@ draw_frame(void)
     {
       unsigned int src(m_current_drawer);
       c_array<const Glyph> glyphs(m_draws[src].glyphs());
-      c_array<const vec2> glyph_positions(m_draws[src].glyph_positions());
+      c_array<const vec2> glyph_positions(m_draw_shared.glyph_positions());
 
       PainterBrush fill_brush;
       fill_brush.pen(1.0, 1.0, 1.0, 1.0);
@@ -916,7 +909,7 @@ draw_frame(void)
       src = m_current_drawer;
 
       c_array<const Glyph> glyphs(m_draws[src].glyphs());
-      c_array<const vec2> glyph_positions(m_draws[src].glyph_positions());
+      c_array<const vec2> glyph_positions(m_draw_shared.glyph_positions());
 
       // reuse stroke and brush parameters across all glyphs
       PainterPackedValue<PainterBrush> pbr;
@@ -1017,7 +1010,6 @@ draw_frame(void)
 
           /* start with an eol so that top line is visible */
           ostr << "\nGlyph at " << p << " is:"
-               << "\n\tcharacter_code: " << m_draws[src].character_codes()[G]
                << "\n\tglyph_code: " << layout.glyph_code()
                << "\n\tunits_per_EM: " << layout.units_per_EM()
                << "\n\tsize in EM: " << layout.size()
