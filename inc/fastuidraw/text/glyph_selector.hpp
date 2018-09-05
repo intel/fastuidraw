@@ -21,7 +21,6 @@
 
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/text/glyph.hpp>
-#include <fastuidraw/text/glyph_cache.hpp>
 
 namespace fastuidraw
 {
@@ -99,11 +98,41 @@ namespace fastuidraw
     };
 
     /*!
+     * Class to specify the source for a glyph.
+     */
+    class GlyphSource
+    {
+    public:
+      GlyphSource(void):
+        m_glyph_code(0)
+      {}
+
+      GlyphSource(const reference_counted_ptr<const FontBase> &f, uint32_t g):
+        m_glyph_code(g),
+        m_font(f)
+      {}
+
+      GlyphSource(uint32_t g, const reference_counted_ptr<const FontBase> &f):
+        m_glyph_code(g),
+        m_font(f)
+      {}
+
+      /*!
+       * Glyph code of a \ref Glyph
+       */
+      uint32_t m_glyph_code;
+
+      /*!
+       * Font of a \ref Glyph
+       */
+      reference_counted_ptr<const FontBase> m_font;
+    };
+
+    /*!
      * Ctor
-     * \param cache GlyphCache to store/fetch glyphs.
      */
     explicit
-    GlyphSelector(reference_counted_ptr<GlyphCache> cache);
+    GlyphSelector(void);
 
     ~GlyphSelector();
 
@@ -126,7 +155,7 @@ namespace fastuidraw
      * value will be the closest matched font added with add_font().
      * \param props FontProperties by which to search
      * \param exact_match if true, only consider those fonts which have, except
-     *                    forFontProperties::source_label(), the same values for
+     *                    for FontProperties::source_label(), the same values for
      *                    each field of \ref FontProperties in FontBase::properties().
      */
     reference_counted_ptr<const FontBase>
@@ -136,48 +165,43 @@ namespace fastuidraw
      * Fetch a FontGroup from a FontProperties value
      * \param props font properties used to generate group.
      * \param exact_match if true, only consider those groups which have, except
-     *                    forFontProperties::source_label(), the same values for
+     *                    for FontProperties::source_label(), the same values for
      *                    each field of \ref FontProperties in FontBase::properties().
      */
     FontGroup
     fetch_group(const FontProperties &props, bool exact_match);
 
     /*!
-     * Fetch a Glyph (and if necessary generate it and place into GlyphCache)
-     * with font merging from a glyph rendering type, font properties and character code.
-     * \param tp glyph rendering type.
+     * Fetch a GlyphSource with font merging from a glyph rendering type,
+     * font properties and character code.
      * \param props font properties used to fetch font
      * \param character_code character code of glyph to fetch
      * \param exact_match if true, only consider those glyphs from those
-     *                    fonts which has, except forFontProperties::source_label(),
+     *                    fonts which has, except for FontProperties::source_label(),
      *                    the same values for each field of \ref FontProperties in
      *                    FontBase::properties().
-     * \param upload_to_atlas if true, upload the glyph to atlas upon fetching
      */
-    Glyph
-    fetch_glyph(GlyphRender tp, const FontProperties &props, uint32_t character_code,
-                bool exact_match = false, bool upload_to_atlas = true);
+    GlyphSource
+    fetch_glyph(const FontProperties &props, uint32_t character_code,
+                bool exact_match = false);
 
     /*!
-     * Fetch a Glyph (and if necessary generate it and place into GlyphCache)
-     * with font merging from a glyph rendering type, font properties and character code.
-     * \param tp glyph rendering type.
+     * Fetch a GlyphSource with font merging from a glyph rendering type, font properties
+     * and character code.
      * \param group FontGroup used to fetch font
      * \param character_code character code of glyph to fetch
      * \param exact_match if true, only consider those glyphs from those
      *                    fonts which has, except forFontProperties::source_label(),
      *                    the same values for each field of \ref FontProperties in
      *                    FontBase::properties().
-     * \param upload_to_atlas if true, upload the glyph to atlas upon fetching
      */
-    Glyph
-    fetch_glyph(GlyphRender tp, FontGroup group, uint32_t character_code,
-                bool exact_match = false, bool upload_to_atlas = true);
+    GlyphSource
+    fetch_glyph(FontGroup group, uint32_t character_code,
+                bool exact_match = false);
 
     /*!
-     * Fetch a Glyph (and if necessary generate it and place into GlyphCache)
-     * with font merging from a glyph rendering type, font preference and character code.
-     * \param tp glyph rendering type.
+     * Fetch a GlyphSource with font merging from a glyph rendering type,
+     * font preference and character code.
      * \param h handle to font from which to fetch the glyph, if the glyph
      *          is not present in the font attempt to get the glyph from
      *          a font of similiar properties
@@ -186,32 +210,26 @@ namespace fastuidraw
      *                    fonts which has, except forFontProperties::source_label(),
      *                    the same values for each field of \ref FontProperties in
      *                    FontBase::properties().
-     * \param upload_to_atlas if true, upload the glyph to atlas upon fetching
      */
-    Glyph
-    fetch_glyph(GlyphRender tp,
-                reference_counted_ptr<const FontBase> h,
-                uint32_t character_code,
-                bool exact_match = false, bool upload_to_atlas = true);
+    GlyphSource
+    fetch_glyph(reference_counted_ptr<const FontBase> h,
+                uint32_t character_code, bool exact_match = false);
 
     /*!
-     * Fetch a Glyph (and if necessary generate it and place into GlyphCache)
-     * without font merging from a glyph rendering type, font and character code.
-     * \param tp glyph rendering type
+     * Fetch a GlyphSource without font merging from a glyph rendering type,
+     * font and character code.
      * \param h handle to font from which to fetch the glyph, if the glyph
      *          is not present in the font, then return an invalid Glyph.
      * \param character_code character code of glyph to fetch
-     * \param upload_to_atlas if true, upload the glyph to atlas upon fetching
      */
-    Glyph
-    fetch_glyph_no_merging(GlyphRender tp, reference_counted_ptr<const FontBase> h,
-                           uint32_t character_code, bool upload_to_atlas = true);
+    GlyphSource
+    fetch_glyph_no_merging(reference_counted_ptr<const FontBase> h,
+                           uint32_t character_code);
 
     /*!
      * Fill Glyph values from an iterator range of character code values.
      * \tparam input_iterator read iterator to type that is castable to uint32_t
      * \tparam output_iterator write iterator to Glyph
-     * \param tp glyph rendering type
      * \param group FontGroup to choose what font
      * \param character_codes_begin iterator to 1st character code
      * \param character_codes_end iterator to one past last character code
@@ -220,23 +238,20 @@ namespace fastuidraw
      *                    fonts which has, except forFontProperties::source_label(),
      *                    the same values for each field of \ref FontProperties in
      *                    FontBase::properties().
-     * \param upload_to_atlas if true, upload the glyph to atlas upon fetching
      */
     template<typename input_iterator,
              typename output_iterator>
     void
-    create_glyph_sequence(GlyphRender tp, FontGroup group,
+    create_glyph_sequence(FontGroup group,
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
                           output_iterator output_begin,
-                          bool exact_match = false,
-                          bool upload_to_atlas = true);
+                          bool exact_match);
 
     /*!
      * Fill Glyph values from an iterator range of character code values.
      * \tparam input_iterator read iterator to type that is castable to uint32_t
      * \tparam output_iterator write iterator to Glyph
-     * \param tp glyph rendering type
      * \param h handle to font from which to fetch the glyph, if the glyph
      *          is not present in the font attempt to get the glyph from
      *          a font of similiar properties
@@ -247,18 +262,15 @@ namespace fastuidraw
      *                    fonts which has, except forFontProperties::source_label(),
      *                    the same values for each field of \ref FontProperties in
      *                    FontBase::properties().
-     * \param upload_to_atlas if true, upload the glyph to atlas upon fetching
      */
     template<typename input_iterator,
              typename output_iterator>
     void
-    create_glyph_sequence(GlyphRender tp,
-                          reference_counted_ptr<const FontBase> h,
+    create_glyph_sequence(reference_counted_ptr<const FontBase> h,
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
                           output_iterator output_begin,
-                          bool exact_match = false,
-                          bool upload_to_atlas = true);
+                          bool exact_match = false);
 
     /*!
      * Fill an array of Glyph values from an array of character code values.
@@ -271,17 +283,14 @@ namespace fastuidraw
      * \param character_codes_begin iterator to first character code
      * \param character_codes_end iterator to one pash last character code
      * \param output_begin begin iterator to output
-     * \param upload_to_atlas if true, upload the glyph to atlas upon fetching
      */
     template<typename input_iterator,
              typename output_iterator>
     void
-    create_glyph_sequence_no_merging(GlyphRender tp,
-                                     reference_counted_ptr<const FontBase> h,
+    create_glyph_sequence_no_merging(reference_counted_ptr<const FontBase> h,
                                      input_iterator character_codes_begin,
                                      input_iterator character_codes_end,
-                                     output_iterator output_begin,
-                                     bool upload_to_atlas = true);
+                                     output_iterator output_begin);
 
   private:
     void
@@ -290,21 +299,18 @@ namespace fastuidraw
     void
     unlock_mutex(void);
 
-    Glyph
-    fetch_glyph_no_lock(GlyphRender tp, FontGroup group, uint32_t character_code,
-                        bool exact_match, bool upload_to_atlas);
+    GlyphSource
+    fetch_glyph_no_lock(FontGroup group, uint32_t character_code,
+                        bool exact_match);
 
-    Glyph
-    fetch_glyph_no_lock(GlyphRender tp,
-                        reference_counted_ptr<const FontBase> h,
+    GlyphSource
+    fetch_glyph_no_lock(reference_counted_ptr<const FontBase> h,
                         uint32_t character_code,
-                        bool exact_match, bool upload_to_atlas);
+                        bool exact_match);
 
-    Glyph
-    fetch_glyph_no_merging_no_lock(GlyphRender tp,
-                                   reference_counted_ptr<const FontBase> h,
-                                   uint32_t character_code,
-                                   bool upload_to_atlas);
+    GlyphSource
+    fetch_glyph_no_merging_no_lock(reference_counted_ptr<const FontBase> h,
+                                   uint32_t character_code);
 
     void *m_d;
   };
@@ -313,18 +319,18 @@ namespace fastuidraw
            typename output_iterator>
   void
   GlyphSelector::
-  create_glyph_sequence(GlyphRender tp, FontGroup group,
+  create_glyph_sequence(FontGroup group,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
                         output_iterator output_begin,
-                        bool exact_match, bool upload_to_atlas)
+                        bool exact_match)
   {
     lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_lock(tp, group, v, exact_match, upload_to_atlas);
+        *output_begin = fetch_glyph_no_lock(group, v, exact_match);
       }
     unlock_mutex();
   }
@@ -333,19 +339,18 @@ namespace fastuidraw
            typename output_iterator>
   void
   GlyphSelector::
-  create_glyph_sequence(GlyphRender tp,
-                        reference_counted_ptr<const FontBase> h,
+  create_glyph_sequence(reference_counted_ptr<const FontBase> h,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
                         output_iterator output_begin,
-                        bool exact_match, bool upload_to_atlas)
+                        bool exact_match)
   {
     lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_lock(tp, h, v, exact_match, upload_to_atlas);
+        *output_begin = fetch_glyph_no_lock(h, v, exact_match);
       }
     unlock_mutex();
   }
@@ -354,19 +359,17 @@ namespace fastuidraw
            typename output_iterator>
   void
   GlyphSelector::
-  create_glyph_sequence_no_merging(GlyphRender tp,
-                                   reference_counted_ptr<const FontBase> h,
+  create_glyph_sequence_no_merging(reference_counted_ptr<const FontBase> h,
                                    input_iterator character_codes_begin,
                                    input_iterator character_codes_end,
-                                   output_iterator output_begin,
-                                   bool upload_to_atlas)
+                                   output_iterator output_begin)
   {
     lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_merging_no_lock(tp, h, v, upload_to_atlas);
+        *output_begin = fetch_glyph_no_merging_no_lock(h, v);
       }
     unlock_mutex();
   }
