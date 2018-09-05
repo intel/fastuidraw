@@ -31,7 +31,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A GlyphSequence repsents a sequence of glyph codes with positions.
+   * A GlyphSequence represents a sequence of glyph codes with positions.
    * A GlyphSequence provides an interface to grab the glyph-codes realized
    * as different renderers for the pupose of rendering text in reponse
    * to the transformation that a Painter currently has. The methods of
@@ -44,9 +44,13 @@ namespace fastuidraw
   public:
     /*!
      * Ctor, initailizes as empty.
+     * \param pixel_size pixel size at which glyphs added via
+     *                   add_glyphs() or add_glyph() are formatted
+     * \param cache \ref GlyphCache used to fetch Glyph values
      */
     explicit
-    GlyphSequence(const reference_counted_ptr<GlyphCache> &cache);
+    GlyphSequence(float pixel_size,
+                  const reference_counted_ptr<GlyphCache> &cache);
 
     ~GlyphSequence();
 
@@ -87,6 +91,20 @@ namespace fastuidraw
      */
     c_array<const vec2>
     glyph_positions(void) const;
+
+    /*!
+     * Return the \ref GlyphCache used by this GlyphSequence
+     * to fetch \ref Glyph values.
+     */
+    const reference_counted_ptr<GlyphCache>&
+    glyph_cache(void) const;
+
+    /*!
+     * Pixel size with which glyph sequences added by
+     * add_glyphs() and add_glyph() are formatted.
+     */
+    float
+    pixel_size(void) const;
 
   private:
     void *m_d;

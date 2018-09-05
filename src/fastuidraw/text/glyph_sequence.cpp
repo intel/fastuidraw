@@ -33,17 +33,7 @@ namespace
     {}
 
     void
-    upload_to_atlas(void)
-    {
-      if(!m_uploaded_to_atlas)
-        {
-          m_uploaded_to_atlas = true;
-          for (const auto &g : *this)
-            {
-              g.upload_to_atlas();
-            }
-        }
-    }
+    upload_to_atlas(void);
 
   private:
     bool m_uploaded_to_atlas;
@@ -53,12 +43,15 @@ namespace
   {
   public:
     explicit
-    GlyphSequencePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache):
+    GlyphSequencePrivate(float pixel_size,
+                         const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache):
+      m_pixel_size(pixel_size),
       m_cache(cache)
     {
       FASTUIDRAWassert(cache);
     }
 
+    float m_pixel_size;
     std::vector<fastuidraw::GlyphSource> m_glyph_sources;
     std::vector<fastuidraw::vec2> m_glyph_positions;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
@@ -66,10 +59,29 @@ namespace
   };
 }
 
-fastuidraw::GlyphSequence::
-GlyphSequence(const reference_counted_ptr<GlyphCache> &cache)
+////////////////////////////////////////
+// PerGlyphSequence methods
+void
+PerGlyphSequence::
+upload_to_atlas(void)
 {
-  m_d = FASTUIDRAWnew GlyphSequencePrivate(cache);
+  if(!m_uploaded_to_atlas)
+    {
+      m_uploaded_to_atlas = true;
+      for (const auto &g : *this)
+        {
+          g.upload_to_atlas();
+        }
+    }
+}
+
+////////////////////////////////////////
+// fastuidraw::GlyphSequence methods
+fastuidraw::GlyphSequence::
+GlyphSequence(float pixel_size,
+              const reference_counted_ptr<GlyphCache> &cache)
+{
+  m_d = FASTUIDRAWnew GlyphSequencePrivate(pixel_size, cache);
 }
 
 fastuidraw::GlyphSequence::
@@ -123,6 +135,24 @@ glyph_positions(void) const
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
   return make_c_array(d->m_glyph_positions);
+}
+
+float
+fastuidraw::GlyphSequence::
+pixel_size(void) const
+{
+  GlyphSequencePrivate *d;
+  d = static_cast<GlyphSequencePrivate*>(m_d);
+  return d->m_pixel_size;
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>&
+fastuidraw::GlyphSequence::
+glyph_cache(void) const
+{
+  GlyphSequencePrivate *d;
+  d = static_cast<GlyphSequencePrivate*>(m_d);
+  return d->m_cache;
 }
 
 fastuidraw::c_array<const fastuidraw::Glyph>
