@@ -9,6 +9,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/glyph_sequence.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -70,6 +71,30 @@ private:
   fastuidraw::c_array<fastuidraw::Glyph> m_dst;
   SDL_atomic_t m_counter;
 };
+
+/*
+ * \param glyph_codes sequence of glyph codes (not characater codes!)
+ * \param pixel_size pixel size to show glyphs at
+ * \param font font of the glyphs
+ * \param[out] out_sequence sequence to which to add glyphs
+ * \param[out] line_data bounding boxes of lines
+ * \param[out] glyph_extents for each glyph, its extent on the x-axis
+ * \param orientation y-coordinate convention for drawing glyphs
+ * \param adjust_starting_baseline if true, 0.0 is the baseline of the -previous-
+ *                                 line, i.e. the text starts on the line after 0.0;
+ *                                 if false the baseline of the test is a y = 0.0.
+ */
+void
+create_formatted_text(const std::vector<uint32_t> &glyph_codes,
+                      float pixel_size,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::GlyphSequence &out_sequence,
+                      std::vector<LineData> *line_data = nullptr,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
+                      enum fastuidraw::PainterEnums::glyph_orientation orientation
+                      = fastuidraw::PainterEnums::y_increases_downwards,
+                      bool adjust_starting_baseline = true);
+
 
 /*
  * \param glyph_codes sequence of glyph codes (not characater codes!)
