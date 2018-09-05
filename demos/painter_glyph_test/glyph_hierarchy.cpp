@@ -56,6 +56,20 @@ public:
       }
   }
 
+  unsigned int
+  query(const fastuidraw::vec2 &p,
+        BoundingBox<float> *out_bb)
+  {
+    if (m_bbox.intersects(p))
+      {
+        return query_implement(p, out_bb);
+      }
+    else
+      {
+        return GlyphHierarchy::glyph_not_found;
+      }
+  }
+
   const BoundingBox<float>&
   bounding_box(void)
   {
@@ -65,11 +79,18 @@ public:
 private:
   virtual
   TreeBase*
-  add_implement(const BoundingBox<float> &bbox, unsigned int reference) = 0;
+  add_implement(const BoundingBox<float> &bbox,
+                unsigned int reference) = 0;
 
   virtual
   void
-  query_implement(const BoundingBox<float> &bbox, std::vector<unsigned int> *output) = 0;
+  query_implement(const BoundingBox<float> &bbox,
+                  std::vector<unsigned int> *output) = 0;
+
+  virtual
+  unsigned int
+  query_implement(const fastuidraw::vec2 &p,
+                  BoundingBox<float> *out_bb) = 0;
 
   BoundingBox<float> m_bbox;
 };
@@ -88,11 +109,18 @@ public:
 private:
   virtual
   TreeBase*
-  add_implement(const BoundingBox<float> &bbox, unsigned int reference);
+  add_implement(const BoundingBox<float> &bbox,
+                unsigned int reference);
 
   virtual
   void
-  query_implement(const BoundingBox<float> &bbox, std::vector<unsigned int> *output);
+  query_implement(const BoundingBox<float> &bbox,
+                  std::vector<unsigned int> *output);
+
+  virtual
+  unsigned int
+  query_implement(const fastuidraw::vec2 &p,
+                  BoundingBox<float> *out_bb);
 
   fastuidraw::vecN<TreeBase*, 2> m_children;
 };
@@ -103,18 +131,26 @@ public:
   explicit
   Leaf(const BoundingBox<float> &bbox);
 
-  Leaf(const BoundingBox<float> &bbox, const std::vector<Element> &elements);
+  Leaf(const BoundingBox<float> &bbox,
+       const std::vector<Element> &elements);
 
   ~Leaf();
 
 private:
   virtual
   TreeBase*
-  add_implement(const BoundingBox<float> &bbox, unsigned int reference);
+  add_implement(const BoundingBox<float> &bbox,
+                unsigned int reference);
 
   virtual
   void
-  query_implement(const BoundingBox<float> &bbox, std::vector<unsigned int> *output);
+  query_implement(const BoundingBox<float> &bbox,
+                  std::vector<unsigned int> *output);
+
+  virtual
+  unsigned int
+  query_implement(const fastuidraw::vec2 &p,
+                BoundingBox<float> *out_bb);
 
   std::vector<Element> m_elements;
 };
@@ -169,6 +205,20 @@ query_implement(const BoundingBox<float> &bbox,
   m_children[1]->query(bbox, output);
 }
 
+unsigned int
+Node::
+query_implement(const fastuidraw::vec2 &p,
+                BoundingBox<float> *out_bb)
+{
+  int R;
+  R = m_children[0]->query(p, out_bb);
+  if (R != GlyphHierarchy::glyph_not_found)
+    {
+      return R;
+    }
+  return m_children[1]->query(p, out_bb);
+}
+
 ///////////////////////////////////////////
 // Leaf methods
 Leaf::
@@ -198,6 +248,22 @@ query_implement(const BoundingBox<float> &bbox,
           output->push_back(E.m_reference);
         }
     }
+}
+
+unsigned int
+Leaf::
+query_implement(const fastuidraw::vec2 &p,
+                BoundingBox<float> *out_bb)
+{
+  for (const auto &E : m_elements)
+    {
+      if (E.m_box.intersects(p))
+        {
+          *out_bb = E.m_box;
+          return E.m_reference;
+        }
+    }
+  return GlyphHierarchy::glyph_not_found;
 }
 
 TreeBase*
@@ -293,4 +359,14 @@ query(const BoundingBox<float> &bbox, std::vector<unsigned int> *output)
 
   d = static_cast<TreeBase*>(m_root);
   d->query(bbox, output);
+}
+
+unsigned int
+GlyphHierarchy::
+query(const fastuidraw::vec2 &p, BoundingBox<float> *out_bb)
+{
+  TreeBase *d;
+
+  d = static_cast<TreeBase*>(m_root);
+  return d->query(p, out_bb);
 }

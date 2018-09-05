@@ -129,6 +129,18 @@ public:
       && t_max(m_min.y(), v.m_min.y()) <= t_min(m_max.y(), v.m_max.y());
   }
 
+  bool
+  intersects(const pt_type &v) const
+  {
+    using namespace fastuidraw;
+
+    return !m_empty
+      && v.x() >= m_min.x()
+      && v.x() <= m_max.x()
+      && v.y() >= m_min.y()
+      && v.y() <= m_max.y();
+  }
+
   fastuidraw::vecN<BoundingBox, 2>
   split(unsigned int coordinate) const
   {
