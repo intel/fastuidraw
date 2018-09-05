@@ -53,11 +53,15 @@ namespace fastuidraw
      * Fetch, and if necessay create and store, a glyph given a
      * glyph code of a font and a GlyphRender specifying how
      * to render the glyph.
+     * \param render renderer of fetched Glyph
+     * \param font font from which to take the glyph
+     * \param glyph_code glyph code
+     * \param upload_to_atlas if true, upload to atlas
      */
     Glyph
     fetch_glyph(GlyphRender render,
                 const reference_counted_ptr<const FontBase> &font,
-                uint32_t glyph_code);
+                uint32_t glyph_code, bool upload_to_atlas = true);
 
     /*!
      * Add a Glyph created with Glyph::create_glyph() to
@@ -67,9 +71,10 @@ namespace fastuidraw
      * (Glyph::renderer()) is already present in the
      * GlyphCache.
      * \param glyph Glyph to add to cache
+     * \param upload_to_atlas if true, upload to atlas
      */
     enum return_code
-    add_glyph(Glyph glyph);
+    add_glyph(Glyph glyph, bool upload_to_atlas = true);
 
     /*!
      * Deletes and removes a glyph from the GlyphCache,

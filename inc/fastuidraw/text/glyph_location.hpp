@@ -30,6 +30,7 @@ namespace fastuidraw
  * @{
  */
   class Glyph;
+  class GlyphCache;
 
   /*!
    * \brief
@@ -96,6 +97,7 @@ namespace fastuidraw
 
     private:
       friend class fastuidraw::Glyph;
+      friend class fastuidraw::GlyphCache;
 
       Array(void *d):
         m_d(d)
