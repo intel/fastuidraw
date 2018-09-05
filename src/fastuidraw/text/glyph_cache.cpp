@@ -19,6 +19,7 @@
 
 #include <map>
 #include <vector>
+#include <mutex>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include "../private/util_private.hpp"
@@ -115,6 +116,7 @@ namespace
     GlyphDataPrivate*
     fetch_or_allocate_glyph(GlyphSource src);
 
+    std::mutex m_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_atlas;
     std::map<GlyphSource, GlyphDataPrivate*> m_glyph_map;
     std::vector<GlyphDataPrivate*> m_glyphs;
@@ -350,6 +352,7 @@ upload_to_atlas(void) const
   p = static_cast<GlyphDataPrivate*>(m_opaque);
   FASTUIDRAWassert(p != nullptr && p->m_render.valid());
 
+  std::lock_guard<std::mutex> m(p->m_cache->m_mutex);
   fastuidraw::GlyphLocation::Array S(&p->m_atlas_locations);
   return p->upload_to_atlas(S);
 }
@@ -439,6 +442,7 @@ fetch_glyph(GlyphRender render,
   GlyphDataPrivate *q;
   GlyphSource src(font, glyph_code, render);
 
+  std::lock_guard<std::mutex> m(d->m_mutex);
   q = d->fetch_or_allocate_glyph(src);
 
   if (!q->m_render.valid())
@@ -465,11 +469,20 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
   GlyphDataPrivate *g;
   g = static_cast<GlyphDataPrivate*>(glyph.m_opaque);
 
+  GlyphCachePrivate *d;
+  d = static_cast<GlyphCachePrivate*>(m_d);
+
   if (!g)
     {
       return routine_fail;
     }
 
+  if (g->m_cache && g->m_cache != d)
+    {
+      return routine_fail;
+    }
+
+  std::lock_guard<std::mutex> m(d->m_mutex);
   if (g->m_cache)
     {
       if (upload_to_atlas)
@@ -484,8 +497,6 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
                   g->m_layout.glyph_code(),
                   g->m_render);
 
-  GlyphCachePrivate *d;
-  d = static_cast<GlyphCachePrivate*>(m_d);
   if (d->m_glyph_map.find(src) != d->m_glyph_map.end())
     {
       return routine_fail;
@@ -518,6 +529,7 @@ delete_glyph(Glyph G)
   FASTUIDRAWassert(p->m_render.valid());
 
   GlyphSource src(p->m_layout.font(), p->m_layout.glyph_code(), p->m_render);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_glyph_map.erase(src);
   p->clear();
   d->m_free_slots.push_back(p->m_cache_location);
@@ -530,6 +542,7 @@ clear_atlas(void)
   GlyphCachePrivate *d;
   d = static_cast<GlyphCachePrivate*>(m_d);
 
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_atlas->clear();
   for(unsigned int i = 0, endi = d->m_glyphs.size(); i < endi; ++i)
     {
@@ -548,6 +561,7 @@ clear_cache(void)
   GlyphCachePrivate *d;
   d = static_cast<GlyphCachePrivate*>(m_d);
 
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_atlas->clear();
   d->m_glyph_map.clear();
 

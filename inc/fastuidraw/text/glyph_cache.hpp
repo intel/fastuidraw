@@ -34,8 +34,9 @@ namespace fastuidraw
   /*!
    * \brief
    * A GlyphCache represents a cache of glyphs and manages the uploading
-   * of the data to a GlyphAtlas. Methods are reentrant but NOT thread
-   * safe.
+   * of the data to a GlyphAtlas. The methods of GlyphAtlas are thread
+   * safe because it maintains an internal mutex lock for the durations
+   * of its methods.
    */
   class GlyphCache:public reference_counted<GlyphCache>::default_base
   {

@@ -39,8 +39,8 @@ namespace fastuidraw
    * The values stored can be coverage values, distance values or index values.
    * Index values are to be fetched unfiltered and other values filtered
    * (but NO mipmap filtering). An implementation of the class does NOT
-   * need to be thread safe because the user of the backing store (GlyphAtlas)
-   * performs calls to the backing store behind its own mutex.
+   * need to be thread safe because the ultimate user of the backing store
+   * (GlyphCache) performs calls to the backing store behind its own mutex.
    */
   class GlyphAtlasTexelBackingStoreBase:
     public reference_counted<GlyphAtlasTexelBackingStoreBase>::default_base
@@ -155,8 +155,8 @@ namespace fastuidraw
    * An example implementation in GL would be a buffer object that used
    * to back simultaneously a samplerBuffer, usamplerBuffer and an
    * isamplerBuffer. An implementation of the class does NOT need to be
-   * thread safe because the user of the backing store (GlyphAtlas)
-   * performs calls to the backing store behind its own mutex.
+   * thread safe because the ultimate user of the backing store
+   * (GlyphCache) performs calls to the backing store behind its own mutex.
    */
   class GlyphAtlasGeometryBackingStoreBase:
     public reference_counted<GlyphAtlasGeometryBackingStoreBase>::default_base
