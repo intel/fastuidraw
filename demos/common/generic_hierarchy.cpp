@@ -6,7 +6,6 @@ namespace
 enum
   {
     splitting_size = 20,
-    allow_split = 30
   };
 
 class Element
@@ -299,6 +298,10 @@ add_implement(const BoundingBox<float> &bbox, unsigned int reference)
           FASTUIDRAWassert(split_x_bb[0].intersects(E.m_box) || split_x_bb[1].intersects(E.m_box));
           FASTUIDRAWassert(split_y_bb[0].intersects(E.m_box) || split_y_bb[1].intersects(E.m_box));
         }
+
+      unsigned int allow_split;
+      const float max_overlap(1.5f);
+      allow_split = static_cast<unsigned int>(max_overlap * static_cast<float>(m_elements.size()));
 
       if (fastuidraw::t_min(split_x_size, split_y_size) <= allow_split)
         {
