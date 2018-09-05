@@ -76,18 +76,24 @@ namespace fastuidraw
      * Returns the Glyph values of the glyph code sequence
      * realized with a specified \ref GlyphRender. This
      * function creates the sequence lazily on demand.
+     * The return value is no longer valid if add_glyphs()
+     * or add_glyph() is called.
      */
     c_array<const Glyph>
     glyph_sequence(GlyphRender render, bool upload_to_atlas = true);
 
     /*!
-     * Return the \ref GlyphSource sequence.
+     * Return the \ref GlyphSource sequence. The return
+     * value is no longer valid if add_glyphs() or
+     * add_glyph() is called.
      */
     c_array<const GlyphSource>
     glyph_sources(void) const;
 
     /*!
-     * Returns the glyph positions
+     * Returns the glyph positions. The return
+     * value is no longer valid if add_glyphs()
+     * or add_glyph() is called.
      */
     c_array<const vec2>
     glyph_positions(void) const;

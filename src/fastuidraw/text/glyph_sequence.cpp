@@ -178,7 +178,8 @@ glyph_sequence(GlyphRender render, bool upload_to_atlas)
   dst.resize(d->m_glyph_sources.size());
   d->m_cache->fetch_glyphs(render,
                            make_c_array(d->m_glyph_sources),
-                           make_c_array(dst));
+                           make_c_array(dst),
+                           false);
   if (upload_to_atlas)
     {
       dst.upload_to_atlas();
