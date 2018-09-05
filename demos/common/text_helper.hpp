@@ -89,7 +89,7 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       fastuidraw::GlyphSequence &out_sequence,
                       std::vector<LineData> *line_data = nullptr,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation
+                      enum fastuidraw::PainterEnums::screen_orientation orientation
                       = fastuidraw::PainterEnums::y_increases_downwards,
                       bool adjust_starting_baseline = true);
 
@@ -114,7 +114,7 @@ create_formatted_text(std::istream &stream,
                       std::vector<uint32_t> *character_codes = nullptr,
                       std::vector<LineData> *line_data = nullptr,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation
+                      enum fastuidraw::PainterEnums::screen_orientation orientation
                       = fastuidraw::PainterEnums::y_increases_downwards,
                       bool adjust_starting_baseline = true,
                       const fastuidraw::vec2 &starting_place = fastuidraw::vec2(0.0f, 0.0f));
@@ -145,7 +145,7 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<LineData> *line_data = nullptr,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation
+                      enum fastuidraw::PainterEnums::screen_orientation orientation
                       = fastuidraw::PainterEnums::y_increases_downwards,
                       bool adjust_starting_baseline = true);
 
@@ -176,7 +176,7 @@ create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       std::vector<uint32_t> &character_codes,
                       std::vector<LineData> *line_data = nullptr,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation
+                      enum fastuidraw::PainterEnums::screen_orientation orientation
                       = fastuidraw::PainterEnums::y_increases_downwards,
                       bool adjust_starting_baseline = true);
 

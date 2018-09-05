@@ -33,10 +33,10 @@ namespace fastuidraw
   {
     /*!
      * \brief
-     * Enumeration for text drawing to indicating in what
-     * direction the y-coordinate increases
+     * Enumeration to indicate in what direction the
+     * y-coordinate increases
      */
-    enum glyph_orientation
+    enum screen_orientation
       {
         y_increases_downwards, /*!< y-coordinate increases downwards */
         y_increases_upwards /*!< y-coordinate increases upwards */

@@ -112,7 +112,7 @@ namespace fastuidraw
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
                                      c_array<const float> scale_factors,
-                                     enum PainterEnums::glyph_orientation orientation
+                                     enum PainterEnums::screen_orientation orientation
                                      = PainterEnums::y_increases_downwards);
 
     /*!
@@ -127,7 +127,7 @@ namespace fastuidraw
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
                                      float render_pixel_size,
-                                     enum PainterEnums::glyph_orientation orientation
+                                     enum PainterEnums::screen_orientation orientation
                                      = PainterEnums::y_increases_downwards);
 
     /*!
@@ -141,7 +141,7 @@ namespace fastuidraw
      */
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
-                                     enum PainterEnums::glyph_orientation orientation
+                                     enum PainterEnums::screen_orientation orientation
                                      = PainterEnums::y_increases_downwards);
 
     ~PainterAttributeDataFillerGlyphs();

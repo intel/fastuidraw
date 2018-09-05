@@ -240,7 +240,7 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation,
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
                       bool adjust_starting_baseline)
 {
   fastuidraw::GlyphSequence G(pixel_size, glyph_cache);
@@ -266,7 +266,7 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       fastuidraw::GlyphSequence &out_sequence,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents ,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation,
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
                       bool adjust_starting_baseline)
 {
   fastuidraw::vec2 pen(0.0f, 0.0f);
@@ -380,7 +380,7 @@ create_formatted_text(std::istream &istr,
                       std::vector<uint32_t> &character_codes,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation,
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
                       bool adjust_starting_baseline)
 {
   fastuidraw::GlyphSequence G(pixel_size, glyph_cache);
@@ -409,7 +409,7 @@ create_formatted_text(std::istream &istr,
                       std::vector<uint32_t> *character_codes,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation,
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
                       bool adjust_starting_baseline,
                       const fastuidraw::vec2 &starting_place)
 {

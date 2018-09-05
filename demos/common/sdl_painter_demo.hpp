@@ -62,7 +62,7 @@ protected:
             fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
             fastuidraw::GlyphRender renderer,
             const fastuidraw::PainterData &draw,
-            enum fastuidraw::PainterEnums::glyph_orientation orientation
+            enum fastuidraw::PainterEnums::screen_orientation orientation
             = fastuidraw::PainterEnums::y_increases_downwards);
 
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;

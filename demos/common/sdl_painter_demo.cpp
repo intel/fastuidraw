@@ -879,7 +879,7 @@ draw_text(const std::string &text, float pixel_size,
           fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
           fastuidraw::GlyphRender renderer,
           const fastuidraw::PainterData &draw,
-          enum fastuidraw::PainterEnums::glyph_orientation orientation)
+          enum fastuidraw::PainterEnums::screen_orientation orientation)
 {
   std::istringstream str(text);
   std::vector<fastuidraw::Glyph> glyphs;
