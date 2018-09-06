@@ -420,7 +420,10 @@ namespace
      * size to be even.
      */
     return_value = static_cast<uint32_t>(t_max(4.0f, pixel_size));
-    return_value &= ~1;
+    if (return_value & 1u)
+      {
+        ++return_value;
+      }
 
     return return_value;
   }
