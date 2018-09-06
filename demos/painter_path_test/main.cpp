@@ -1908,7 +1908,7 @@ draw_frame(void)
       ivec2 mouse_position;
 
       SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
-      ostr << "FPS = ";
+      ostr << "\nFPS = ";
       if (us > 0.0f)
         {
           ostr << 1000.0f * 1000.0f / us;

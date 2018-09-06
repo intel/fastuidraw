@@ -882,21 +882,11 @@ draw_text(const std::string &text, float pixel_size,
           enum fastuidraw::PainterEnums::screen_orientation orientation)
 {
   std::istringstream str(text);
-  std::vector<fastuidraw::Glyph> glyphs;
-  std::vector<fastuidraw::vec2> positions;
-  std::vector<uint32_t> chars;
-  fastuidraw::PainterAttributeData P;
+  fastuidraw::GlyphSequence sequence(pixel_size, orientation,
+                                     m_glyph_cache);
 
-  create_formatted_text(str, renderer, pixel_size, font,
-                        m_glyph_selector, m_glyph_cache,
-                        glyphs, positions, chars,
-                        nullptr, nullptr, orientation);
-
-  fastuidraw::PainterAttributeDataFillerGlyphs filler(cast_c_array(positions),
-                                                      cast_c_array(glyphs), pixel_size,
-                                                      orientation);
-  P.set_data(filler);
-  m_painter->draw_glyphs(draw, P);
+  create_formatted_text(sequence, str, font, m_glyph_selector);
+  m_painter->draw_glyphs(draw, sequence.painter_attribute_data(renderer));
 }
 
 void

@@ -78,14 +78,12 @@ private:
   void
   compute_glyphs_and_positions(GlyphRender renderer, float pixel_size_formatting,
                                std::vector<Glyph> &glyphs,
-                               std::vector<vec2> &positions,
-                               std::vector<uint32_t> &character_codes);
+                               std::vector<vec2> &positions);
 
   void
   compute_glyphs_and_positions_glyph_set(GlyphRender renderer, float pixel_size_formatting,
                                          std::vector<Glyph> &glyphs,
-                                         std::vector<vec2> &positions,
-                                         std::vector<uint32_t> &character_codes);
+                                         std::vector<vec2> &positions);
 
   enum
     {
@@ -666,6 +664,7 @@ init_gl(int w, int h)
 
   ready_program();
   ready_attributes_indices();
+  m_zoomer_text.transformation(ScaleTranslate<float>(vec2(0.0f, m_render_pixel_size.value())));
 }
 
 void
@@ -851,8 +850,7 @@ ready_program(void)
 void
 glyph_test::
 compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float pixel_size_formatting,
-                                       std::vector<Glyph> &glyphs, std::vector<vec2> &positions,
-                                       std::vector<uint32_t> &character_codes)
+                                       std::vector<Glyph> &glyphs, std::vector<vec2> &positions)
 {
   float tallest(0.0f), negative_tallest(0.0f), offset;
   unsigned int i, endi, glyph_at_start, navigator_chars;
@@ -889,36 +887,13 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
       negative_tallest = std::min(negative_tallest, g.layout().horizontal_layout_offset().y());
     }
 
-  /* Try to get the character codes for each glyph */
-  std::vector<bool> found_character_code(glyphs.size(), false);
-  character_codes.resize(glyphs.size(), 0);
-
-  for(int i = 0, endi = m_face->face()->num_charmaps; i < endi; ++i)
-    {
-      FT_Set_Charmap(m_face->face(), m_face->face()->charmaps[i]);
-      for(character_code = FT_Get_First_Char(m_face->face(), &glyph_index);
-          glyph_index != 0;
-          character_code = FT_Get_Next_Char(m_face->face(), character_code, &glyph_index))
-        {
-          --glyph_index;
-          FASTUIDRAWassert(glyph_index < static_cast<int>(glyphs.size()));
-          if (!found_character_code[glyph_index])
-            {
-              character_codes[glyph_index] = character_code;
-              found_character_code[glyph_index] = true;
-            }
-        }
-    }
-
   tallest *= scale_factor;
   negative_tallest *= scale_factor;
   offset = tallest - negative_tallest;
 
   positions.resize(glyphs.size());
 
-  std::vector<LineData> lines;
   vec2 pen(0.0f, 0.0f);
-
   for(navigator_chars = 0, i = 0, endi = glyphs.size(), glyph_at_start = 0; i < endi; ++i)
     {
       Glyph g;
@@ -959,15 +934,6 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
                << " - " << std::setw(5) << glyphs[i].layout().glyph_code() << "]";
           navigator.push_back(std::make_pair(pen.y(), desc.str()));
           navigator_chars += navigator.back().second.length();
-
-          LineData L;
-          L.m_range.m_begin = glyph_at_start;
-          L.m_range.m_end = i + 1;
-          L.m_vertical_spread.m_begin = pen.y() - tallest;
-          L.m_vertical_spread.m_end = pen.y() - negative_tallest;
-          L.m_horizontal_spread.m_begin = 0.0f;
-          L.m_horizontal_spread.m_end = pen.x();
-          lines.push_back(L);
           glyph_at_start = i + 1;
 
           pen.x() = 0.0f;
@@ -975,30 +941,26 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
         }
     }
 
-  character_codes.reserve(glyphs.size() + navigator_chars);
   positions.reserve(glyphs.size() + navigator_chars);
   glyphs.reserve(glyphs.size() + navigator_chars);
 
-  std::vector<fastuidraw::Glyph> temp_glyphs;
-  std::vector<fastuidraw::vec2> temp_positions;
-  std::vector<uint32_t> temp_character_codes;
   for(nav_iter = navigator.begin(); nav_iter != navigator.end(); ++nav_iter)
     {
       std::istringstream stream(nav_iter->second);
+      GlyphSequence seq(pixel_size_formatting,
+                        PainterEnums::y_increases_downwards,
+                        m_glyph_cache);
 
-      temp_glyphs.clear();
-      temp_positions.clear();
-      temp_character_codes.clear();
-      create_formatted_text(stream, renderer, pixel_size_formatting,
-                            m_font, m_glyph_selector, m_glyph_cache,
-                            temp_glyphs, temp_positions, temp_character_codes);
+      create_formatted_text(seq, stream, m_font, m_glyph_selector,
+                            vec2(line_length, nav_iter->first));
 
-      FASTUIDRAWassert(temp_glyphs.size() == temp_positions.size());
-      for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
+      c_array<const Glyph> src_glyphs(seq.glyph_sequence(renderer));
+      c_array<const vec2> src_pos(seq.glyph_positions());
+
+      for(unsigned int c = 0; c < src_glyphs.size(); ++c)
         {
-          glyphs.push_back(temp_glyphs[c]);
-          character_codes.push_back(temp_character_codes[c]);
-          positions.push_back(vec2(line_length + temp_positions[c].x(), nav_iter->first) );
+          glyphs.push_back(src_glyphs[c]);
+          positions.push_back(src_pos[c]);
         }
     }
 }
@@ -1006,30 +968,41 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
 void
 glyph_test::
 compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_formatting,
-                             std::vector<Glyph> &glyphs, std::vector<vec2> &positions,
-                             std::vector<uint32_t> &character_codes)
+                             std::vector<Glyph> &glyphs, std::vector<vec2> &positions)
 {
   if (m_draw_glyph_set.value())
     {
       compute_glyphs_and_positions_glyph_set(renderer, pixel_size_formatting,
-                                             glyphs, positions, character_codes);
-    }
-  else if (m_use_file.value())
-    {
-      std::ifstream istr(m_text.value().c_str(), std::ios::binary);
-      if (istr)
-        {
-          create_formatted_text(istr, renderer, pixel_size_formatting,
-                                m_font, m_glyph_selector, m_glyph_cache,
-                                glyphs, positions, character_codes);
-        }
+                                             glyphs, positions);
     }
   else
     {
-      std::istringstream istr(m_text.value());
-      create_formatted_text(istr, renderer, pixel_size_formatting,
-                            m_font, m_glyph_selector, m_glyph_cache,
-                            glyphs, positions, character_codes);
+      GlyphSequence seq(pixel_size_formatting,
+                        PainterEnums::y_increases_downwards,
+                        m_glyph_cache);
+
+      if (m_use_file.value())
+        {
+          std::ifstream istr(m_text.value().c_str(), std::ios::binary);
+          if (istr)
+            {
+              create_formatted_text(seq, istr, m_font, m_glyph_selector);
+            }
+        }
+      else
+        {
+          std::istringstream istr(m_text.value());
+          create_formatted_text(seq, istr, m_font, m_glyph_selector);
+        }
+
+      c_array<const Glyph> src_glyphs(seq.glyph_sequence(renderer));
+      c_array<const vec2> src_pos(seq.glyph_positions());
+
+      glyphs.resize(src_glyphs.size());
+      std::copy(src_glyphs.begin(), src_glyphs.end(), glyphs.begin());
+
+      positions.resize(src_pos.size());
+      std::copy(src_pos.begin(), src_pos.end(), positions.begin());
     }
 }
 
@@ -1041,7 +1014,6 @@ ready_attributes_indices(void)
 {
   std::vector<vec2> glyph_positions;
   std::vector<Glyph> glyphs;
-  std::vector<uint32_t> character_codes;
 
   {
     GlyphRender renderer(m_coverage_pixel_size.value());
@@ -1052,9 +1024,8 @@ ready_attributes_indices(void)
 
     glyph_positions.clear();
     glyphs.clear();
-    character_codes.clear();
 
-    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
+    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions);
     m_drawers[draw_glyph_coverage].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
 
@@ -1067,9 +1038,8 @@ ready_attributes_indices(void)
 
     glyph_positions.clear();
     glyphs.clear();
-    character_codes.clear();
 
-    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
+    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions);
     m_drawers[draw_glyph_distance].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
 
@@ -1082,9 +1052,8 @@ ready_attributes_indices(void)
 
     glyph_positions.clear();
     glyphs.clear();
-    character_codes.clear();
 
-    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
+    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions);
     m_drawers[draw_glyph_curvepair].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
 

@@ -232,183 +232,34 @@ generate(unsigned int num_threads,
 //////////////////////////////
 // global methods
 void
-create_formatted_text(const std::vector<uint32_t> &glyph_codes,
-                      fastuidraw::GlyphRender renderer, float pixel_size,
+create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
+                      const std::vector<uint32_t> &glyph_codes,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
-                      std::vector<fastuidraw::Glyph> &glyphs,
-                      std::vector<fastuidraw::vec2> &positions,
-                      std::vector<LineData> *line_data,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation,
-                      bool adjust_starting_baseline)
+                      const fastuidraw::vec2 &shift_by)
 {
-  fastuidraw::GlyphSequence G(pixel_size, orientation, glyph_cache);
-  create_formatted_text(glyph_codes, font, G,
-                        line_data, glyph_extents,
-                        adjust_starting_baseline);
-
-  positions.resize(G.glyph_positions().size());
-  std::copy(G.glyph_positions().begin(),
-            G.glyph_positions().end(),
-            positions.begin());
-
-  fastuidraw::c_array<const fastuidraw::Glyph> gs;
-  gs = G.glyph_sequence(renderer);
-
-  glyphs.resize(gs.size());
-  std::copy(gs.begin(), gs.end(), glyphs.begin());
-}
-
-void
-create_formatted_text(const std::vector<uint32_t> &glyph_codes,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::GlyphSequence &out_sequence,
-                      std::vector<LineData> *line_data,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      bool adjust_starting_baseline)
-{
-  fastuidraw::vec2 pen(0.0f, 0.0f);
-  float last_negative_tallest(0.0f);
+  fastuidraw::vec2 pen(shift_by);
   float pixel_size(out_sequence.pixel_size());
   enum fastuidraw::PainterEnums::screen_orientation orientation(out_sequence.orientation());
-
-  if (glyph_extents)
-    {
-      glyph_extents->resize(glyph_codes.size());
-    }
-
-  if (line_data)
-    {
-      line_data->clear();
-    }
-
-  float tallest, negative_tallest, offset;
-  std::vector<fastuidraw::vec2> pos(glyph_codes.size());
-  bool empty_line;
-  LineData L;
-  float pen_y_advance;
   fastuidraw::GlyphLayoutData layout;
   float ratio;
 
-  empty_line = true;
-  tallest = 0.0f;
-  negative_tallest = 0.0f;
-
-  for(unsigned int i = 0, endi = glyph_codes.size(); i < endi; ++i)
+  for(uint32_t glyph_code : glyph_codes)
     {
-      pos[i] = pen;
-      font->compute_layout_data(glyph_codes[i], layout);
+      font->compute_layout_data(glyph_code, layout);
+      out_sequence.add_glyph(fastuidraw::GlyphSource(glyph_code, font), pen);
 
       ratio = pixel_size / layout.units_per_EM();
-      if (glyph_extents)
-        {
-          (*glyph_extents)[i].m_begin = pen.x() + ratio * layout.horizontal_layout_offset().x();
-          (*glyph_extents)[i].m_end = (*glyph_extents)[i].m_begin + ratio * layout.size().x();
-        }
-
-      empty_line = false;
       pen.x() += ratio * layout.advance().x();
-
-      tallest = std::max(tallest, ratio * (layout.horizontal_layout_offset().y() + layout.size().y()));
-      negative_tallest = std::min(negative_tallest, ratio * layout.horizontal_layout_offset().y());
     }
 
-  if (empty_line)
-    {
-      pen_y_advance = pixel_size + 1.0f;
-      offset = (adjust_starting_baseline) ? 0 : pen_y_advance;
-    }
-  else
-    {
-      if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
-        {
-          pen_y_advance = tallest - last_negative_tallest;
-          offset = (adjust_starting_baseline) ? 0 : pen_y_advance;
-        }
-      else
-        {
-          pen_y_advance = tallest - negative_tallest;
-          offset = (adjust_starting_baseline) ? 0 : -negative_tallest;
-        }
-    }
-
-  for(fastuidraw::vec2 &p : pos)
-    {
-      p.y() += offset;
-    }
-
-  for (unsigned int i = 0, endi = glyph_codes.size(); i < endi; ++i)
-    {
-      out_sequence.add_glyph(fastuidraw::GlyphSource(glyph_codes[i], font), pos[i]);
-    }
-
-  L.m_range.m_begin = 0;
-  L.m_range.m_end = glyph_codes.size();
-  L.m_horizontal_spread.m_begin = 0.0f;
-  L.m_horizontal_spread.m_end = pen.x();
-  if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
-    {
-      L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
-      L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
-    }
-  else
-    {
-      L.m_vertical_spread.m_begin = pen.y() + offset;
-      L.m_vertical_spread.m_end = pen.y() + offset + tallest;
-    }
-
-  last_negative_tallest = negative_tallest;
-
-  if (line_data && !empty_line)
-    {
-      L.m_horizontal_spread.sanitize();
-      L.m_vertical_spread.sanitize();
-      line_data->push_back(L);
-    }
 }
 
-void
-create_formatted_text(std::istream &istr,
-                      fastuidraw::GlyphRender renderer,
-                      float pixel_size,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
-                      std::vector<fastuidraw::Glyph> &glyphs,
-                      std::vector<fastuidraw::vec2> &positions,
-                      std::vector<uint32_t> &character_codes,
-                      std::vector<LineData> *line_data,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation,
-                      bool adjust_starting_baseline)
-{
-  fastuidraw::GlyphSequence G(pixel_size, orientation, glyph_cache);
-  create_formatted_text(istr, font, glyph_selector, G,
-                        &character_codes, line_data,
-                        glyph_extents, adjust_starting_baseline);
-
-  positions.resize(G.glyph_positions().size());
-  std::copy(G.glyph_positions().begin(),
-            G.glyph_positions().end(),
-            positions.begin());
-
-  fastuidraw::c_array<const fastuidraw::Glyph> gs;
-  gs = G.glyph_sequence(renderer);
-
-  glyphs.resize(gs.size());
-  std::copy(gs.begin(), gs.end(), glyphs.begin());
-}
 
 void
-create_formatted_text(std::istream &istr,
+create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
+                      std::istream &istr,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                      fastuidraw::GlyphSequence &out_sequence,
-                      std::vector<uint32_t> *character_codes,
-                      std::vector<LineData> *line_data,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      bool adjust_starting_baseline,
                       const fastuidraw::vec2 &starting_place)
 {
   std::streampos current_position, end_position;
@@ -425,36 +276,9 @@ create_formatted_text(std::istream &istr,
   end_position = istr.tellg();
   istr.seekg(current_position, std::ios::beg);
 
-  if (character_codes)
-    {
-      character_codes->resize(end_position - current_position);
-    }
-
-  if (glyph_extents)
-    {
-      glyph_extents->resize(end_position - current_position);
-    }
-
-  if (line_data)
-    {
-      line_data->clear();
-    }
-
-  fastuidraw::c_array<uint32_t> char_codes_ptr;;
-  fastuidraw::c_array<fastuidraw::range_type<float> > extents_ptr;
   std::vector<fastuidraw::GlyphSource> glyph_sources;
   std::vector<fastuidraw::vec2> sub_p;
   fastuidraw::GlyphLayoutData layout;
-
-  if (character_codes)
-    {
-      char_codes_ptr = cast_c_array(*character_codes);
-    }
-
-  if (glyph_extents)
-    {
-      extents_ptr = cast_c_array(*glyph_extents);
-    }
 
   while(getline(istr, line))
     {
@@ -462,7 +286,6 @@ create_formatted_text(std::istream &istr,
       fastuidraw::c_array<fastuidraw::range_type<float> > sub_extents;
       float tallest, negative_tallest, offset;
       bool empty_line;
-      LineData L;
       float pen_y_advance;
 
       empty_line = true;
@@ -475,38 +298,16 @@ create_formatted_text(std::istream &istr,
       sub_p.resize(line.length());
       glyph_sources.resize(line.length());
 
-      if(character_codes)
-        {
-          sub_ch = char_codes_ptr.sub_array(loc, line.length());
-        }
-
-      if (glyph_extents)
-        {
-          sub_extents = extents_ptr.sub_array(loc, line.length());
-        }
-
       glyph_selector->create_glyph_sequence(font, line.begin(), line.end(), glyph_sources.begin());
       for(unsigned int i = 0, endi = glyph_sources.size(); i < endi; ++i)
         {
           sub_p[i] = pen;
-
-          if (character_codes)
-            {
-              sub_ch[i] = static_cast<uint32_t>(line[i]);
-            }
-
           if (glyph_sources[i].m_font)
             {
               float ratio;
 
               glyph_sources[i].m_font->compute_layout_data(glyph_sources[i].m_glyph_code, layout);
               ratio = pixel_size / layout.units_per_EM();
-
-              if (glyph_extents)
-                {
-                  sub_extents[i].m_begin = pen.x() + ratio * layout.horizontal_layout_offset().x();
-                  sub_extents[i].m_end = sub_extents[i].m_begin + ratio * layout.size().x();
-                }
 
               empty_line = false;
               pen.x() += ratio * layout.advance().x();
@@ -519,19 +320,19 @@ create_formatted_text(std::istream &istr,
       if (empty_line)
         {
           pen_y_advance = pixel_size + 1.0f;
-          offset = (first_line || adjust_starting_baseline) ? 0 : pen_y_advance;
+          offset = (first_line) ? 0 : pen_y_advance;
         }
       else
         {
           if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
             {
               pen_y_advance = tallest - last_negative_tallest;
-              offset = (first_line || adjust_starting_baseline) ? 0 : pen_y_advance;
+              offset = (first_line) ? 0 : pen_y_advance;
             }
           else
             {
               pen_y_advance = tallest - negative_tallest;
-              offset = (first_line || adjust_starting_baseline) ? 0 : -negative_tallest;
+              offset = (first_line) ? 0 : -negative_tallest;
             }
         }
 
@@ -540,46 +341,21 @@ create_formatted_text(std::istream &istr,
           sub_p[i].y() += offset;
         }
 
-      L.m_range.m_begin = loc;
-      L.m_range.m_end = loc + line.length();
-      L.m_horizontal_spread.m_begin = 0.0f;
-      L.m_horizontal_spread.m_end = pen.x();
       if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
         {
-          L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
-          L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
           pen.y() += pen_y_advance + 1.0f;
         }
       else
         {
-          L.m_vertical_spread.m_begin = pen.y() + offset;
-          L.m_vertical_spread.m_end = pen.y() + offset + tallest;
           pen.y() -= pen_y_advance + 1.0f;
         }
 
       pen.x() = starting_place.x();
       loc += line.length();
       last_negative_tallest = negative_tallest;
-
-      if (line_data && !empty_line)
-        {
-          L.m_horizontal_spread.sanitize();
-          L.m_vertical_spread.sanitize();
-          line_data->push_back(L);
-        }
       first_line = false;
-      out_sequence.add_glyphs(cast_c_array(glyph_sources),
-                              cast_c_array(sub_p));
-    }
 
-  if (character_codes)
-    {
-      character_codes->resize(loc);
-    }
-
-  if (glyph_extents)
-    {
-      glyph_extents->resize(loc);
+      out_sequence.add_glyphs(cast_c_array(glyph_sources), cast_c_array(sub_p));
     }
 }
 

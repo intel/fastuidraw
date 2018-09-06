@@ -635,7 +635,7 @@ draw_frame(void)
     {
       std::ostringstream ostr;
 
-      ostr << "FPS = ";
+      ostr << "\nFPS = ";
       if (us > 0)
         {
           ostr << static_cast<int>(1000.0f * 1000.0f / static_cast<float>(us));

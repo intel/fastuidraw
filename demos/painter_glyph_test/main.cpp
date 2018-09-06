@@ -382,9 +382,8 @@ init(const reference_counted_ptr<const FontFreeType> &font,
     {
       std::istringstream stream(nav_iter->second);
 
-      create_formatted_text(stream, font, glyph_selector,
-                            *m_glyph_sequence,
-                            nullptr, nullptr, nullptr, false,
+      create_formatted_text(*m_glyph_sequence, stream, font,
+                            glyph_selector,
                             vec2(line_length, nav_iter->first));
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -404,8 +403,7 @@ init(const std::vector<uint32_t> &glyph_codes,
   std::cout << "Formatting glyphs ..." << std::flush;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  create_formatted_text(glyph_codes, font, *m_glyph_sequence,
-                        nullptr, nullptr, screen_orientation);
+  create_formatted_text(*m_glyph_sequence, glyph_codes, font);
 
   std::cout << "took " << timer.restart() << " ms\n";
   make_hierarchy();
@@ -427,9 +425,7 @@ init(std::istream &istr,
       simple_time timer;
 
       std::cout << "Formatting glyphs ..." << std::flush;
-      create_formatted_text(istr, font, glyph_selector, *m_glyph_sequence,
-                            nullptr, nullptr, nullptr,
-                            screen_orientation);
+      create_formatted_text(*m_glyph_sequence, istr, font, glyph_selector);
       std::cout << "took " << timer.restart() << " ms\n";
     }
   make_hierarchy();

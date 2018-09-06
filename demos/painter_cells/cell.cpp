@@ -53,17 +53,16 @@ Cell(PainterWidget *p, const CellParams &params):
        << "\n" << params.m_image_name;
 
   std::istringstream str(ostr.str());
-  std::vector<Glyph> glyphs;
-  std::vector<vec2> positions;
-  std::vector<uint32_t> character_codes;
-  create_formatted_text(str, params.m_text_render, params.m_pixel_size,
-                        params.m_font, params.m_glyph_selector,
-                        params.m_glyph_cache,
-                        glyphs, positions, character_codes);
+  fastuidraw::GlyphSequence sequence(params.m_pixel_size,
+                                     fastuidraw::PainterEnums::y_increases_downwards,
+                                     params.m_glyph_cache);
 
-  m_text.set_data(PainterAttributeDataFillerGlyphs(cast_c_array(positions),
-                                                   cast_c_array(glyphs),
-                                                   params.m_pixel_size));
+  create_formatted_text(sequence, str, params.m_font,
+                        params.m_glyph_selector);
+
+  m_text.set_data(PainterAttributeDataFillerGlyphs(sequence.glyph_positions(),
+                                                   sequence.glyph_sequence(params.m_text_render),
+                                                   sequence.pixel_size()));
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);
 }
