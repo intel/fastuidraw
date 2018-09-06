@@ -108,12 +108,14 @@ namespace fastuidraw
      *                      empty (indicating no scaling factors) or the exact
      *                      same length as glyph_positions
      * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
      */
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
                                      c_array<const float> scale_factors,
-                                     enum PainterEnums::screen_orientation orientation
-                                     = PainterEnums::y_increases_downwards);
+                                     enum PainterEnums::screen_orientation orientation,
+                                     enum PainterEnums::glyph_layout_type layout
+                                     = PainterEnums::glyph_layout_horizontal);
 
     /*!
      * Ctor. The values behind the arrays passed are NOT copied. As such
@@ -123,12 +125,14 @@ namespace fastuidraw
      * \param glyphs glyphs to draw, array must be same size as glyph_positions
      * \param render_pixel_size pixel size to which to scale the glyphs
      * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
      */
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
                                      float render_pixel_size,
-                                     enum PainterEnums::screen_orientation orientation
-                                     = PainterEnums::y_increases_downwards);
+                                     enum PainterEnums::screen_orientation orientation,
+                                     enum PainterEnums::glyph_layout_type layout
+                                     = PainterEnums::glyph_layout_horizontal);
 
     /*!
      * Ctor. The values behind the arrays passed are NOT copied. As such
@@ -138,11 +142,13 @@ namespace fastuidraw
      * \param glyph_positions position of the bottom left corner of each glyph
      * \param glyphs glyphs to draw, array must be same size as glyph_positions
      * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
      */
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
-                                     enum PainterEnums::screen_orientation orientation
-                                     = PainterEnums::y_increases_downwards);
+                                     enum PainterEnums::screen_orientation orientation,
+                                     enum PainterEnums::glyph_layout_type layout
+                                     = PainterEnums::glyph_layout_horizontal);
 
     ~PainterAttributeDataFillerGlyphs();
 

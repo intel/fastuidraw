@@ -44,6 +44,28 @@ namespace fastuidraw
 
     /*!
      * \brief
+     * Enumeration to indicate if glyph layout is horizontal
+     * or vertical
+     */
+    enum glyph_layout_type
+      {
+        /*!
+         * Glyphs are layed out horizontally, thus will use
+         * \ref GlyphLayoutData::horizontal_layout_offset()
+         * to offset the glyphs.
+         */
+        glyph_layout_horizontal,
+
+        /*!
+         * Glyphs are layed out vertically, thus will use
+         * \ref GlyphLayoutData::vertical_layout_offset()
+         * to offset the glyphs.
+         */
+        glyph_layout_vertical
+      };
+
+    /*!
+     * \brief
      * Enumeration specifying if and how to draw caps when stroking.
      */
     enum cap_style

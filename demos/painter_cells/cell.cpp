@@ -62,7 +62,8 @@ Cell(PainterWidget *p, const CellParams &params):
 
   m_text.set_data(PainterAttributeDataFillerGlyphs(sequence.glyph_positions(),
                                                    sequence.glyph_sequence(params.m_text_render),
-                                                   sequence.pixel_size()));
+                                                   sequence.pixel_size(),
+                                                   sequence.orientation()));
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);
 }

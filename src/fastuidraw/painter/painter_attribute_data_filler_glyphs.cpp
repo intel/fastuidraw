@@ -137,6 +137,7 @@ namespace
   inline
   void
   pack_glyph_attributes(enum fastuidraw::PainterEnums::screen_orientation orientation,
+                        enum fastuidraw::PainterEnums::glyph_layout_type layout,
                         fastuidraw::vec2 p, fastuidraw::Glyph glyph, float SCALE,
                         fastuidraw::c_array<fastuidraw::PainterAttribute> dst)
   {
@@ -146,6 +147,11 @@ namespace
     fastuidraw::vec2 glyph_size(SCALE * glyph.layout().size());
     fastuidraw::vec2 p_bl, p_tr;
     unsigned int geometry_offset(glyph.geometry_offset());
+    fastuidraw::vec2 layout_offset;
+
+    layout_offset = (layout == fastuidraw::PainterEnums::glyph_layout_horizontal) ?
+      glyph.layout().horizontal_layout_offset() :
+      glyph.layout().vertical_layout_offset();
 
     /* ISSUE: we are assuming horizontal layout; we should probably
      * change the interface so that caller chooses how to adjust
@@ -156,10 +162,10 @@ namespace
      */
     if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
-        p_bl.x() = p.x() + SCALE * glyph.layout().horizontal_layout_offset().x();
+        p_bl.x() = p.x() + SCALE * layout_offset.x();
         p_tr.x() = p_bl.x() + glyph_size.x();
 
-        p_bl.y() = p.y() - SCALE * glyph.layout().horizontal_layout_offset().y();
+        p_bl.y() = p.y() - SCALE * layout_offset.y();
         p_tr.y() = p_bl.y() - glyph_size.y();
       }
     else
@@ -182,16 +188,19 @@ namespace
     FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
                       fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                       fastuidraw::c_array<const float> scale_factors,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation);
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
+                      enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
     FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
                       fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                       float render_pixel_size,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation);
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
+                      enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
     FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
                       fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation);
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
+                      enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
     void
     compute_number_glyphs(void);
@@ -200,6 +209,7 @@ namespace
     fastuidraw::c_array<const fastuidraw::Glyph> m_glyphs;
     fastuidraw::c_array<const float> m_scale_factors;
     enum fastuidraw::PainterEnums::screen_orientation m_orientation;
+    enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
     std::pair<bool, float> m_render_pixel_size;
     unsigned int m_number_glyphs;
     std::vector<unsigned int> m_cnt_by_type;
@@ -212,11 +222,13 @@ FillGlyphsPrivate::
 FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
                   fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                   fastuidraw::c_array<const float> scale_factors,
-                  enum fastuidraw::PainterEnums::screen_orientation orientation):
+                  enum fastuidraw::PainterEnums::screen_orientation orientation,
+                  enum fastuidraw::PainterEnums::glyph_layout_type layout):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
   m_scale_factors(scale_factors),
   m_orientation(orientation),
+  m_layout(layout),
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
@@ -228,10 +240,12 @@ FillGlyphsPrivate::
 FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
                   fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                   float render_pixel_size,
-                  enum fastuidraw::PainterEnums::screen_orientation orientation):
+                  enum fastuidraw::PainterEnums::screen_orientation orientation,
+                  enum fastuidraw::PainterEnums::glyph_layout_type layout):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
   m_orientation(orientation),
+  m_layout(layout),
   m_render_pixel_size(true, render_pixel_size),
   m_number_glyphs(0)
 {
@@ -241,10 +255,12 @@ FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
 FillGlyphsPrivate::
 FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
                   fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
-                  enum fastuidraw::PainterEnums::screen_orientation orientation):
+                  enum fastuidraw::PainterEnums::screen_orientation orientation,
+                  enum fastuidraw::PainterEnums::glyph_layout_type layout):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
   m_orientation(orientation),
+  m_layout(layout),
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
@@ -270,33 +286,38 @@ compute_number_glyphs(void)
     }
 }
 
-
 //////////////////////////////////////////
 // PainterAttributeDataFillerGlyphs methods
 fastuidraw::PainterAttributeDataFillerGlyphs::
 PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                  c_array<const Glyph> glyphs,
                                  c_array<const float> scale_factors,
-                                 enum PainterEnums::screen_orientation orientation)
+                                 enum PainterEnums::screen_orientation orientation,
+                                 enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, scale_factors, orientation);
+  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs,
+                                        scale_factors, orientation, layout);
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
 PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                  c_array<const Glyph> glyphs,
                                  float render_pixel_size,
-                                 enum PainterEnums::screen_orientation orientation)
+                                 enum PainterEnums::screen_orientation orientation,
+                                 enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, render_pixel_size, orientation);
+  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs,
+                                        render_pixel_size, orientation, layout);
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
 PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                  c_array<const Glyph> glyphs,
-                                 enum PainterEnums::screen_orientation orientation)
+                                 enum PainterEnums::screen_orientation orientation,
+                                 enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, orientation);
+  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs,
+                                        orientation, layout);
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
@@ -362,8 +383,8 @@ fill_data(c_array<PainterAttribute> attribute_data,
             (d->m_scale_factors.empty()) ? 1.0f : d->m_scale_factors[g];
 
           t = d->m_glyphs[g].type();
-          pack_glyph_attributes(d->m_orientation, d->m_glyph_positions[g],
-                                d->m_glyphs[g], scale,
+          pack_glyph_attributes(d->m_orientation, d->m_layout,
+                                d->m_glyph_positions[g], d->m_glyphs[g], scale,
                                 const_cast_c_array(attrib_chunks[t].sub_array(4 * current[t], 4)));
           pack_glyph_indices(const_cast_c_array(index_chunks[t].sub_array(6 * current[t], 6)), 4 * current[t]);
           ++current[t];
