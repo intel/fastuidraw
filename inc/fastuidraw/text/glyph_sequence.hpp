@@ -45,17 +45,22 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Ctor, initailizes as empty.
+     * Ctor.
      * \param pixel_size pixel size at which glyphs added via
      *                   add_glyphs() or add_glyph() are formatted
-     * \param orientation screen orientation at  which glyphs added via
+     * \param orientation screen orientation at which glyphs added by
      *                    add_glyphs() or add_glyph() are formatted
      * \param cache \ref GlyphCache used to fetch Glyph values
+     * \param layout specifies if glyphs added by add_glyphs()
+     *               or add_glyph() will be layed out horizontally
+     *               or vertically
      */
     explicit
     GlyphSequence(float pixel_size,
                   enum PainterEnums::screen_orientation orientation,
-                  const reference_counted_ptr<GlyphCache> &cache);
+                  const reference_counted_ptr<GlyphCache> &cache,
+                  enum PainterEnums::glyph_layout_type layout
+                  = PainterEnums::glyph_layout_horizontal);
 
     ~GlyphSequence();
 
@@ -89,7 +94,7 @@ namespace fastuidraw
      *                        on each glyph returned.
      */
     c_array<const Glyph>
-    glyph_sequence(GlyphRender render, bool upload_to_atlas = true);
+    glyph_sequence(GlyphRender render, bool upload_to_atlas = true) const;
 
     /*!
      * Return a \ref PainterAttributeData as packed by a
@@ -97,7 +102,7 @@ namespace fastuidraw
      * GlyphRender value.
      */
     const PainterAttributeData&
-    painter_attribute_data(GlyphRender render);
+    painter_attribute_data(GlyphRender render) const;
 
     /*!
      * Return the \ref GlyphSource sequence. The return

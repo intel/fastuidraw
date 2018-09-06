@@ -25,8 +25,8 @@
 
 namespace
 {
-  class PerGlyphSequence:
-    public std::vector<fastuidraw::Glyph>
+  class GlyphSequencePrivate;
+  class PerGlyphSequence
   {
   public:
     PerGlyphSequence(void):
@@ -34,12 +34,12 @@ namespace
       m_attribute_data(nullptr)
     {}
 
-    PerGlyphSequence(const PerGlyphSequence &obj):
-      std::vector<fastuidraw::Glyph>(obj)
+    PerGlyphSequence(const PerGlyphSequence &obj)
     {
-      FASTUIDRAWassert(obj.empty());
+      FASTUIDRAWassert(obj.m_glyphs.empty());
       FASTUIDRAWassert(!obj.m_uploaded_to_atlas);
       FASTUIDRAWassert(!obj.m_attribute_data);
+      FASTUIDRAWunused(obj);
     }
 
     ~PerGlyphSequence()
@@ -50,61 +50,84 @@ namespace
         }
     }
 
+    fastuidraw::c_array<const fastuidraw::Glyph>
+    glyphs(void)
+    {
+      return fastuidraw::make_c_array(m_glyphs);
+    }
+
+    void
+    set_glyphs(fastuidraw::GlyphRender render,
+               const GlyphSequencePrivate *p);
+
     void
     upload_to_atlas(void);
 
     const fastuidraw::PainterAttributeData&
-    attribute_data(const std::vector<fastuidraw::vec2> &glyph_positions,
-                   float pixel_size,
-                   enum fastuidraw::PainterEnums::screen_orientation orientation);
+    attribute_data(const GlyphSequencePrivate *p);
 
   private:
+    PerGlyphSequence&
+    operator=(const PerGlyphSequence&)
+    {
+      return *this;
+    }
+
     bool m_uploaded_to_atlas;
     fastuidraw::PainterAttributeData *m_attribute_data;
+    std::vector<fastuidraw::Glyph> m_glyphs;
   };
 
-  class GlyphSequencePrivate
+  class GlyphSequencePrivate:fastuidraw::noncopyable
   {
   public:
     explicit
     GlyphSequencePrivate(float pixel_size,
                          enum fastuidraw::PainterEnums::screen_orientation orientation,
-                         const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache):
+                         const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache,
+                         enum fastuidraw::PainterEnums::glyph_layout_type layout):
       m_pixel_size(pixel_size),
       m_orientation(orientation),
+      m_layout(layout),
       m_cache(cache)
     {
       FASTUIDRAWassert(cache);
     }
 
     float
-    pixel_size(void)
+    pixel_size(void) const
     {
       return m_pixel_size;
     }
 
     enum fastuidraw::PainterEnums::screen_orientation
-    orientation(void)
+    orientation(void) const
     {
       return m_orientation;
     }
 
-    const std::vector<fastuidraw::GlyphSource>&
-    glyph_sources(void)
+    fastuidraw::c_array<const fastuidraw::GlyphSource>
+    glyph_sources(void) const
     {
-      return m_glyph_sources;
+      return fastuidraw::make_c_array(m_glyph_sources);
     }
 
-    const std::vector<fastuidraw::vec2>&
-    glyph_positions(void)
+    fastuidraw::c_array<const fastuidraw::vec2>
+    glyph_positions(void) const
     {
-      return m_glyph_positions;
+      return fastuidraw::make_c_array(m_glyph_positions);
     }
 
     const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>&
     cache(void) const
     {
       return m_cache;
+    }
+
+    enum fastuidraw::PainterEnums::glyph_layout_type
+    layout(void) const
+    {
+      return m_layout;
     }
 
     PerGlyphSequence&
@@ -117,6 +140,7 @@ namespace
   private:
     float m_pixel_size;
     enum fastuidraw::PainterEnums::screen_orientation m_orientation;
+    enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
     std::vector<fastuidraw::GlyphSource> m_glyph_sources;
     std::vector<fastuidraw::vec2> m_glyph_positions;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
@@ -128,12 +152,27 @@ namespace
 // PerGlyphSequence methods
 void
 PerGlyphSequence::
+set_glyphs(fastuidraw::GlyphRender render,
+           const GlyphSequencePrivate *p)
+{
+  FASTUIDRAWassert(m_glyphs.empty());
+  FASTUIDRAWassert(!m_uploaded_to_atlas);
+  FASTUIDRAWassert(!m_attribute_data);
+
+  m_glyphs.resize(p->glyph_sources().size());
+  p->cache()->fetch_glyphs(render, p->glyph_sources(),
+                           fastuidraw::make_c_array(m_glyphs),
+                           false);
+}
+
+void
+PerGlyphSequence::
 upload_to_atlas(void)
 {
   if(!m_uploaded_to_atlas)
     {
       m_uploaded_to_atlas = true;
-      for (const auto &g : *this)
+      for (const auto &g : m_glyphs)
         {
           g.upload_to_atlas();
         }
@@ -142,18 +181,18 @@ upload_to_atlas(void)
 
 const fastuidraw::PainterAttributeData&
 PerGlyphSequence::
-attribute_data(const std::vector<fastuidraw::vec2> &glyph_positions,
-               float pixel_size,
-               enum fastuidraw::PainterEnums::screen_orientation orientation)
+attribute_data(const GlyphSequencePrivate *p)
 {
   using namespace fastuidraw;
 
   if (!m_attribute_data)
     {
       upload_to_atlas();
-      PainterAttributeDataFillerGlyphs filler(make_c_array(glyph_positions),
-                                              make_c_array(*this),
-                                              pixel_size, orientation);
+      PainterAttributeDataFillerGlyphs filler(p->glyph_positions(),
+                                              make_c_array(m_glyphs),
+                                              p->pixel_size(),
+                                              p->orientation(),
+                                              p->layout());
       m_attribute_data = FASTUIDRAWnew PainterAttributeData();
       m_attribute_data->set_data(filler);
     }
@@ -199,11 +238,7 @@ glyph_data(fastuidraw::GlyphRender render)
     }
 
   PerGlyphSequence &dst(m_glyphs[render]);
-  dst.resize(m_glyph_sources.size());
-  m_cache->fetch_glyphs(render,
-                        fastuidraw::make_c_array(m_glyph_sources),
-                        fastuidraw::make_c_array(dst),
-                        false);
+  dst.set_glyphs(render, this);
 
   return dst;
 }
@@ -213,9 +248,10 @@ glyph_data(fastuidraw::GlyphRender render)
 fastuidraw::GlyphSequence::
 GlyphSequence(float pixel_size,
               enum PainterEnums::screen_orientation orientation,
-              const reference_counted_ptr<GlyphCache> &cache)
+              const reference_counted_ptr<GlyphCache> &cache,
+              enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew GlyphSequencePrivate(pixel_size, orientation, cache);
+  m_d = FASTUIDRAWnew GlyphSequencePrivate(pixel_size, orientation, cache, layout);
 }
 
 fastuidraw::GlyphSequence::
@@ -232,7 +268,7 @@ glyph_sources(void) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
-  return make_c_array(d->glyph_sources());
+  return d->glyph_sources();
 }
 
 fastuidraw::c_array<const fastuidraw::vec2>
@@ -241,7 +277,7 @@ glyph_positions(void) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
-  return make_c_array(d->glyph_positions());
+  return d->glyph_positions();
 }
 
 float
@@ -283,7 +319,7 @@ add_glyphs(c_array<const GlyphSource> sources,
 
 fastuidraw::c_array<const fastuidraw::Glyph>
 fastuidraw::GlyphSequence::
-glyph_sequence(GlyphRender render, bool upload_to_atlas)
+glyph_sequence(GlyphRender render, bool upload_to_atlas) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
@@ -294,17 +330,15 @@ glyph_sequence(GlyphRender render, bool upload_to_atlas)
       v.upload_to_atlas();
     }
 
-  return make_c_array(v);
+  return v.glyphs();
 }
 
 const fastuidraw::PainterAttributeData&
 fastuidraw::GlyphSequence::
-painter_attribute_data(GlyphRender render)
+painter_attribute_data(GlyphRender render) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
 
-  return d->glyph_data(render).attribute_data(d->glyph_positions(),
-                                              d->pixel_size(),
-                                              d->orientation());
+  return d->glyph_data(render).attribute_data(d);
 }
