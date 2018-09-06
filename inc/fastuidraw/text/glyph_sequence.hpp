@@ -22,6 +22,7 @@
 #include <fastuidraw/text/glyph.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_source.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw
 {
@@ -46,10 +47,13 @@ namespace fastuidraw
      * Ctor, initailizes as empty.
      * \param pixel_size pixel size at which glyphs added via
      *                   add_glyphs() or add_glyph() are formatted
+     * \param orientation screen orientation at  which glyphs added via
+     *                    add_glyphs() or add_glyph() are formatted
      * \param cache \ref GlyphCache used to fetch Glyph values
      */
     explicit
     GlyphSequence(float pixel_size,
+                  enum PainterEnums::screen_orientation orientation,
                   const reference_counted_ptr<GlyphCache> &cache);
 
     ~GlyphSequence();
@@ -111,6 +115,13 @@ namespace fastuidraw
      */
     float
     pixel_size(void) const;
+
+    /*!
+     * Orientation with which glyph sequences added by
+     * add_glyphs() and add_glyph() are formatted.
+     */
+    enum PainterEnums::screen_orientation
+    orientation(void) const;
 
   private:
     void *m_d;

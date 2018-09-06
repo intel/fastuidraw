@@ -44,14 +44,17 @@ namespace
   public:
     explicit
     GlyphSequencePrivate(float pixel_size,
+                         enum fastuidraw::PainterEnums::screen_orientation orientation,
                          const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache):
       m_pixel_size(pixel_size),
+      m_orientation(orientation),
       m_cache(cache)
     {
       FASTUIDRAWassert(cache);
     }
 
     float m_pixel_size;
+    enum fastuidraw::PainterEnums::screen_orientation m_orientation;
     std::vector<fastuidraw::GlyphSource> m_glyph_sources;
     std::vector<fastuidraw::vec2> m_glyph_positions;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
@@ -79,9 +82,10 @@ upload_to_atlas(void)
 // fastuidraw::GlyphSequence methods
 fastuidraw::GlyphSequence::
 GlyphSequence(float pixel_size,
+              enum PainterEnums::screen_orientation orientation,
               const reference_counted_ptr<GlyphCache> &cache)
 {
-  m_d = FASTUIDRAWnew GlyphSequencePrivate(pixel_size, cache);
+  m_d = FASTUIDRAWnew GlyphSequencePrivate(pixel_size, orientation, cache);
 }
 
 fastuidraw::GlyphSequence::
@@ -153,6 +157,15 @@ glyph_cache(void) const
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
   return d->m_cache;
+}
+
+enum fastuidraw::PainterEnums::screen_orientation
+fastuidraw::GlyphSequence::
+orientation(void) const
+{
+  GlyphSequencePrivate *d;
+  d = static_cast<GlyphSequencePrivate*>(m_d);
+  return d->m_orientation;
 }
 
 fastuidraw::c_array<const fastuidraw::Glyph>
