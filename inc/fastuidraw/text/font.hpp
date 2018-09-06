@@ -49,13 +49,10 @@ namespace fastuidraw
      * \param pprops font properties describing the font
      */
     explicit
-    FontBase(const FontProperties &pprops):
-      m_props(pprops)
-    {}
+    FontBase(const FontProperties &pprops);
 
     virtual
-    ~FontBase()
-    {}
+    ~FontBase();
 
     /*!
      * Returns the properties of the font.

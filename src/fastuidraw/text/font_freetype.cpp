@@ -18,6 +18,7 @@
 
 #include <sstream>
 #include <fastuidraw/text/font_freetype.hpp>
+#include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
@@ -65,13 +66,13 @@ namespace
     float m_factor;
   };
 
-  class RenderParamsPrivate
+  class GenerateParams
   {
   public:
-    RenderParamsPrivate(void):
-      m_distance_field_pixel_size(48),
-      m_distance_field_max_distance(96.0f),
-      m_curve_pair_pixel_size(32)
+    GenerateParams(void):
+      m_distance_field_pixel_size(fastuidraw::GlyphGenerateParams::distance_field_pixel_size()),
+      m_distance_field_max_distance(fastuidraw::GlyphGenerateParams::distance_field_max_distance()),
+      m_curve_pair_pixel_size(fastuidraw::GlyphGenerateParams::curve_pair_pixel_size())
     {}
 
     unsigned int m_distance_field_pixel_size;
@@ -180,8 +181,7 @@ namespace
 
     FontFreeTypePrivate(fastuidraw::FontFreeType *p,
                         const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> &pface_generator,
-                        fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                        const fastuidraw::FontFreeType::RenderParams &render_params);
+                        fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib);
 
     ~FontFreeTypePrivate();
 
@@ -210,7 +210,7 @@ namespace
                            fastuidraw::Path &path);
 
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> m_generator;
-    fastuidraw::FontFreeType::RenderParams m_render_params;
+    GenerateParams m_generate_params;
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_lib;
     fastuidraw::FontFreeType *m_p;
 
@@ -255,10 +255,8 @@ FontFreeTypePrivate::FaceGrabber::
 FontFreeTypePrivate::
 FontFreeTypePrivate(fastuidraw::FontFreeType *p,
                     const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> &generator,
-                    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                    const fastuidraw::FontFreeType::RenderParams &render_params):
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib):
   m_generator(generator),
-  m_render_params(render_params),
   m_lib(lib),
   m_p(p),
   m_all_faces_null(true)
@@ -416,7 +414,7 @@ compute_rendering_data(uint32_t glyph_code,
     fastuidraw::PainterEnums::nonzero_fill_rule;
 
   /* compute the step value needed to create the distance field value*/
-  int pixel_size(m_render_params.distance_field_pixel_size());
+  int pixel_size(m_generate_params.m_distance_field_pixel_size);
   float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
 
   /* compute how many pixels we need to store the glyph. */
@@ -440,7 +438,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset);
   fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
   fastuidraw::ivec2 texel_distance(2 * units_per_EM);
-  float max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
+  float max_distance = (m_generate_params.m_distance_field_max_distance)
     * static_cast<float>(2 * units_per_EM);
 
   int_path_ecm.extract_render_data(texel_distance, image_sz, max_distance, tr,
@@ -485,7 +483,7 @@ compute_rendering_data(uint32_t glyph_code,
     fastuidraw::PainterEnums::odd_even_fill_rule:
     fastuidraw::PainterEnums::nonzero_fill_rule;
 
-  int pixel_size(m_render_params.curve_pair_pixel_size());
+  int pixel_size(m_generate_params.m_curve_pair_pixel_size);
   float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
 
   /* compute how many pixels we need to store the glyph. */
@@ -516,60 +514,23 @@ compute_rendering_data(uint32_t glyph_code,
                                    &output);
 }
 
-/////////////////////////////////////////////
-// fastuidraw::FontFreeType::RenderParams methods
-fastuidraw::FontFreeType::RenderParams::
-RenderParams(void)
-{
-  m_d = FASTUIDRAWnew RenderParamsPrivate();
-}
-
-fastuidraw::FontFreeType::RenderParams::
-RenderParams(const RenderParams &obj)
-{
-  RenderParamsPrivate *obj_d;
-  obj_d = static_cast<RenderParamsPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew RenderParamsPrivate(*obj_d);
-}
-
-fastuidraw::FontFreeType::RenderParams::
-~RenderParams(void)
-{
-  RenderParamsPrivate *d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-assign_swap_implement(fastuidraw::FontFreeType::RenderParams)
-setget_implement(fastuidraw::FontFreeType::RenderParams,
-                 RenderParamsPrivate,
-                 unsigned int, distance_field_pixel_size)
-setget_implement(fastuidraw::FontFreeType::RenderParams,
-                 RenderParamsPrivate,
-                 float, distance_field_max_distance)
-setget_implement(fastuidraw::FontFreeType::RenderParams,
-                 RenderParamsPrivate,
-                 unsigned int, curve_pair_pixel_size)
-
 ///////////////////////////////////////////////////
 // fastuidraw::FontFreeType methods
 fastuidraw::FontFreeType::
 FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
-             const FontProperties &props, const RenderParams &render_params,
+             const FontProperties &props,
              const reference_counted_ptr<FreeTypeLib> &plib):
   FontBase(props)
 {
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib, render_params);
+  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib);
 }
 
 fastuidraw::FontFreeType::
 FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
-             const RenderParams &render_params,
              const reference_counted_ptr<FreeTypeLib> &plib):
   FontBase(compute_font_properties_from_face(pface_generator->create_face(plib)))
 {
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib, render_params);
+  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib);
 }
 
 fastuidraw::FontFreeType::
@@ -669,15 +630,6 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) cons
       FASTUIDRAWassert(!"Invalid glyph type");
       return nullptr;
     }
-}
-
-const fastuidraw::FontFreeType::RenderParams&
-fastuidraw::FontFreeType::
-render_params(void) const
-{
-  FontFreeTypePrivate *d;
-  d = static_cast<FontFreeTypePrivate*>(m_d);
-  return d->m_render_params;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase>&

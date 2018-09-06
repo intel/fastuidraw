@@ -8,7 +8,7 @@ dir := $(d)/private
 include $(dir)/Rules.mk
 
 FASTUIDRAW_SOURCES += $(call filelist, glyph_atlas.cpp \
-	glyph_sequence.cpp \
+	glyph_sequence.cpp font.cpp \
 	glyph_render_data.cpp \
 	glyph_layout_data.cpp \
 	glyph_render_data_curve_pair.cpp \
