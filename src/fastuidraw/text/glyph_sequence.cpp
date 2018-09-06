@@ -307,6 +307,15 @@ orientation(void) const
   return d->orientation();
 }
 
+enum fastuidraw::PainterEnums::glyph_layout_type
+fastuidraw::GlyphSequence::
+layout(void) const
+{
+  GlyphSequencePrivate *d;
+  d = static_cast<GlyphSequencePrivate*>(m_d);
+  return d->layout();
+}
+
 void
 fastuidraw::GlyphSequence::
 add_glyphs(c_array<const GlyphSource> sources,

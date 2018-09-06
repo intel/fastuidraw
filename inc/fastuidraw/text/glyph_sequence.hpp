@@ -141,6 +141,13 @@ namespace fastuidraw
     enum PainterEnums::screen_orientation
     orientation(void) const;
 
+    /*!
+     * Layout with which glyph sequences added by
+     * add_glyphs() and add_glyph() are formatted.
+     */
+    PainterEnums::glyph_layout_type
+    layout(void) const;
+
   private:
     void *m_d;
   };
