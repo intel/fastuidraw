@@ -23,6 +23,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_source.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_attribute_data.hpp>
 
 namespace fastuidraw
 {
@@ -82,9 +83,21 @@ namespace fastuidraw
      * function creates the sequence lazily on demand.
      * The return value is no longer valid if add_glyphs()
      * or add_glyph() is called.
+     * \param render GlyphRender value specifing the render
+     *               type of the returned glyphs.
+     * \param upload_to_atlas if true, call Glyph::upload_to_atlas()
+     *                        on each glyph returned.
      */
     c_array<const Glyph>
     glyph_sequence(GlyphRender render, bool upload_to_atlas = true);
+
+    /*!
+     * Return a \ref PainterAttributeData as packed by a
+     * \ref PainterAttributeDataFillerGlyphs for the named
+     * GlyphRender value.
+     */
+    const PainterAttributeData&
+    painter_attribute_data(GlyphRender render);
 
     /*!
      * Return the \ref GlyphSource sequence. The return
