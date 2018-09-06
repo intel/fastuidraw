@@ -243,9 +243,9 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       enum fastuidraw::PainterEnums::screen_orientation orientation,
                       bool adjust_starting_baseline)
 {
-  fastuidraw::GlyphSequence G(pixel_size, glyph_cache);
+  fastuidraw::GlyphSequence G(pixel_size, orientation, glyph_cache);
   create_formatted_text(glyph_codes, font, G,
-                        line_data, glyph_extents, orientation,
+                        line_data, glyph_extents,
                         adjust_starting_baseline);
 
   positions.resize(G.glyph_positions().size());
@@ -265,13 +265,13 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::GlyphSequence &out_sequence,
                       std::vector<LineData> *line_data,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents ,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents,
                       bool adjust_starting_baseline)
 {
   fastuidraw::vec2 pen(0.0f, 0.0f);
   float last_negative_tallest(0.0f);
   float pixel_size(out_sequence.pixel_size());
+  enum fastuidraw::PainterEnums::screen_orientation orientation(out_sequence.orientation());
 
   if (glyph_extents)
     {
@@ -383,11 +383,10 @@ create_formatted_text(std::istream &istr,
                       enum fastuidraw::PainterEnums::screen_orientation orientation,
                       bool adjust_starting_baseline)
 {
-  fastuidraw::GlyphSequence G(pixel_size, glyph_cache);
+  fastuidraw::GlyphSequence G(pixel_size, orientation, glyph_cache);
   create_formatted_text(istr, font, glyph_selector, G,
                         &character_codes, line_data,
-                        glyph_extents, orientation,
-                        adjust_starting_baseline);
+                        glyph_extents, adjust_starting_baseline);
 
   positions.resize(G.glyph_positions().size());
   std::copy(G.glyph_positions().begin(),
@@ -409,12 +408,12 @@ create_formatted_text(std::istream &istr,
                       std::vector<uint32_t> *character_codes,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation,
                       bool adjust_starting_baseline,
                       const fastuidraw::vec2 &starting_place)
 {
   std::streampos current_position, end_position;
   float pixel_size(out_sequence.pixel_size());
+  enum fastuidraw::PainterEnums::screen_orientation orientation(out_sequence.orientation());
   unsigned int loc(0);
   fastuidraw::vec2 pen(starting_place);
   std::string line, original_line;

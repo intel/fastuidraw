@@ -85,12 +85,6 @@ public:
     return *m_glyph_sequence;
   }
 
-  enum PainterEnums::screen_orientation
-  screen_orientation()
-  {
-    return m_screen_orientation;
-  }
-
   void
   init(const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
@@ -117,7 +111,6 @@ private:
   void
   make_hierarchy(void);
 
-  enum PainterEnums::screen_orientation m_screen_orientation;
   GlyphSequence *m_glyph_sequence;
   GenericHierarchy *m_hierarchy;
 };
@@ -251,6 +244,7 @@ make_hierarchy(void)
 {
   c_array<const GlyphSource> glyph_sources(m_glyph_sequence->glyph_sources());
   c_array<const vec2> in_glyph_positions(m_glyph_sequence->glyph_positions());
+  enum PainterEnums::screen_orientation orientation(m_glyph_sequence->orientation());
   float pixel_size(m_glyph_sequence->pixel_size());
   GlyphLayoutData layout;
   BoundingBox<float> bbox;
@@ -274,7 +268,7 @@ make_hierarchy(void)
           min_bb *= ratio;
           max_bb *= ratio;
 
-          if (screen_orientation() == PainterEnums::y_increases_downwards)
+          if (orientation == PainterEnums::y_increases_downwards)
             {
               min_bb.y() = -min_bb.y();
               max_bb.y() = -max_bb.y();
@@ -323,8 +317,8 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   y_advance_sign = (screen_orientation == PainterEnums::y_increases_downwards) ? 1.0f : -1.0f;
   num_glyphs = face->face()->num_glyphs;
 
-  m_screen_orientation = screen_orientation;
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting, glyph_cache);
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+                                                 screen_orientation, glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
   layouts.resize(num_glyphs);
@@ -390,8 +384,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 
       create_formatted_text(stream, font, glyph_selector,
                             *m_glyph_sequence,
-                            nullptr, nullptr, nullptr,
-                            screen_orientation, false,
+                            nullptr, nullptr, nullptr, false,
                             vec2(line_length, nav_iter->first));
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -409,8 +402,8 @@ init(const std::vector<uint32_t> &glyph_codes,
   simple_time timer;
 
   std::cout << "Formatting glyphs ..." << std::flush;
-  m_screen_orientation = screen_orientation;
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting, glyph_cache);
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+                                                 screen_orientation, glyph_cache);
   create_formatted_text(glyph_codes, font, *m_glyph_sequence,
                         nullptr, nullptr, screen_orientation);
 
@@ -427,8 +420,8 @@ init(std::istream &istr,
      float pixel_size_formatting,
      enum PainterEnums::screen_orientation screen_orientation)
 {
-  m_screen_orientation = screen_orientation;
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting, glyph_cache);
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+                                                 screen_orientation, glyph_cache);
   if (istr)
     {
       simple_time timer;
@@ -514,8 +507,8 @@ set_data(size_t glyphs_per_painter_draw,
       in_glyph_positions = in_glyph_positions.sub_array(cnt);
 
       data = FASTUIDRAWnew PainterAttributeData();
-      data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs,
-                                                      pixel_size, shared.screen_orientation()));
+      data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs, pixel_size,
+                                                      shared.glyph_sequence().orientation()));
       m_data.push_back(data);
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -783,12 +776,16 @@ ready_glyph_attribute_data(void)
   ivec3 texel_store_dims(m_glyph_atlas->texel_store()->dimensions());
   int num_texels_total(texel_store_dims.x() * texel_store_dims.y() * texel_store_dims.z());
   float fract_allocated(float(texels_allocated) / float(num_texels_total));
+  unsigned int num_blocks(m_glyph_atlas->geometry_data_allocated());
+  unsigned int block_alignment(m_glyph_atlas->geometry_store()->alignment());
+  unsigned int block_size(sizeof(generic_data) * block_alignment);
+
   std::cout << "Number texel nodes = " << m_glyph_atlas->number_nodes()
             << ", bytes used = " << m_glyph_atlas->bytes_used_by_nodes() << "\n"
             << "Texels allocate = " << texels_allocated << " of "
             << num_texels_total << " (" << 100.0f * fract_allocated
             << "%)\nBytes geometry data allocated = "
-            << m_glyph_atlas->geometry_data_allocated() * sizeof(generic_data) * m_glyph_atlas->geometry_store()->alignment()
+            << num_blocks * block_size
             << "\n";
 }
 

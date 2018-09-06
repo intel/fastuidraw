@@ -78,7 +78,6 @@ private:
  * \param[out] out_sequence sequence to which to add glyphs
  * \param[out] line_data bounding boxes of lines
  * \param[out] glyph_extents for each glyph, its extent on the x-axis
- * \param orientation y-coordinate convention for drawing glyphs
  * \param adjust_starting_baseline if true, 0.0 is the baseline of the -previous-
  *                                 line, i.e. the text starts on the line after 0.0;
  *                                 if false the baseline of the test is a y = 0.0.
@@ -89,8 +88,6 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
                       fastuidraw::GlyphSequence &out_sequence,
                       std::vector<LineData> *line_data = nullptr,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation
-                      = fastuidraw::PainterEnums::y_increases_downwards,
                       bool adjust_starting_baseline = true);
 
 
@@ -101,7 +98,6 @@ create_formatted_text(const std::vector<uint32_t> &glyph_codes,
  * \param[out] character_codes character codes of input stream
  * \param[out] line_data bounding boxes of lines
  * \param[out] glyph_extents for each glyph, its extent on the x-axis
- * \param orientation y-coordinate convention for drawing glyphs
  * \param adjust_starting_baseline if true, 0.0 is the baseline of the -previous-
  *                                 line, i.e. the text starts on the line after 0.0;
  *                                 if false the baseline of the test is a y = 0.0.
@@ -114,8 +110,6 @@ create_formatted_text(std::istream &stream,
                       std::vector<uint32_t> *character_codes = nullptr,
                       std::vector<LineData> *line_data = nullptr,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
-                      enum fastuidraw::PainterEnums::screen_orientation orientation
-                      = fastuidraw::PainterEnums::y_increases_downwards,
                       bool adjust_starting_baseline = true,
                       const fastuidraw::vec2 &starting_place = fastuidraw::vec2(0.0f, 0.0f));
 
