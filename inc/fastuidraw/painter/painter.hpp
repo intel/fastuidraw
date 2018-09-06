@@ -284,21 +284,6 @@ namespace fastuidraw
     transformation(void);
 
     /*!
-     * Returns a handle to current state of the 3x3
-     * transformation that can be re-used by passing it to
-     * transformation_state(const PainterPackedValue<PainterItemMatrix>&)
-     */
-    const PainterPackedValue<PainterItemMatrix>&
-    transformation_state(void);
-
-    /*!
-     * Set the transformation state from a transformation state handle.
-     * \param h handle to transformation state.
-     */
-    void
-    transformation_state(const PainterPackedValue<PainterItemMatrix> &h);
-
-    /*!
      * Set clipping to the intersection of the current
      * clipping with a rectangle.
      * \param xy location of rectangle

@@ -343,6 +343,70 @@ namespace
     fastuidraw::vec2 m_min, m_max;
   };
 
+  /* Enumeration to describe the matrix type
+   */
+  enum matrix_type_t
+    {
+      non_scaling_matrix,
+      scaling_matrix,
+      shearing_matrix,
+      perspective_matrix,
+
+      unclassified_matrix,
+    };
+
+  bool
+  matrix_has_perspective(const fastuidraw::float3x3 &matrix)
+  {
+    const float tol(1e-5);
+    return fastuidraw::t_abs(matrix(2, 0)) > tol
+      || fastuidraw::t_abs(matrix(2, 1)) > tol;
+  }
+
+  enum matrix_type_t
+  classify_matrix(const fastuidraw::dvec2 &inverse_coeff,
+                  const fastuidraw::float3x3 &matrix)
+  {
+    using namespace fastuidraw;
+
+    if (matrix_has_perspective(matrix))
+      {
+        return perspective_matrix;
+      }
+
+    /* check the 2x2 matrix corner for shearing or scaling*/
+    dvec2 a(inverse_coeff.x() * matrix(0, 0), inverse_coeff.y() * matrix(1, 0));
+    dvec2 b(inverse_coeff.x() * matrix(0, 1), inverse_coeff.y() * matrix(1, 1));
+    double amag_sq(dot(a, a)), bmag_sq(dot(b, b));
+    double a_dot_b(dot(a,b)), a_dot_b_sq(a_dot_b * a_dot_b);
+
+    const double tol(1e-5);
+    const double one_minus_tol(1.0 - tol);
+    const double one_minus_tol_sq(one_minus_tol * one_minus_tol);
+    const double tol_plus_one(tol + 1.0);
+    const double tol_sq(tol * tol);
+    const double tol_plus_one_sq(tol_plus_one * tol_plus_one);
+
+    /* vectors not perpindicular */
+    if (a_dot_b_sq > tol_sq * amag_sq * bmag_sq)
+      {
+        return shearing_matrix;
+      }
+
+    /* vectors have different lengths */
+    if (t_max(amag_sq, bmag_sq) > tol_plus_one_sq * t_min(amag_sq, bmag_sq))
+      {
+        return shearing_matrix;
+      }
+
+    float w(t_abs(matrix(2, 2)));
+    return (amag_sq > tol_plus_one_sq
+            || amag_sq < one_minus_tol_sq
+            || w > tol || w <  one_minus_tol) ?
+      scaling_matrix :
+      non_scaling_matrix;
+  }
+
   /* Tracks the most recent clipping rect:
    * - the 4 clip equations in clip-coordinates
    * - the current transformation from item coordinates
@@ -361,20 +425,39 @@ namespace
     {}
 
     void
-    reset(const fastuidraw::float3x3 &proj)
+    reset(fastuidraw::vec2 dims,
+          enum fastuidraw::PainterEnums::screen_orientation orientation)
     {
+      using namespace fastuidraw;
+
+      float y1, y2;
+      PainterClipEquations clip_eq;
+
       m_all_content_culled = false;
       m_item_matrix_transition_tricky = false;
       m_inverse_transpose_not_ready = false;
       m_clip_rect.m_enabled = false;
-      item_matrix(proj, false);
-
-      fastuidraw::PainterClipEquations clip_eq;
+      m_matrix_type = non_scaling_matrix;
+      m_inverse_coeff = dvec2(2.0) / dvec2(dims);
       clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
       clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
       clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
       clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
       clip_equations(clip_eq);
+
+      if (orientation == PainterEnums::y_increases_downwards)
+        {
+          y1 = dims.y();
+          y2 = 0;
+        }
+      else
+        {
+          y1 = 0;
+          y2 = dims.y();
+        }
+      float_orthogonal_projection_params ortho(0, dims.x(), y1, y2);
+
+      item_matrix(float3x3(ortho), false, non_scaling_matrix);
     }
 
     void
@@ -398,13 +481,38 @@ namespace
       return m_item_matrix.m_item_matrix;
     }
 
+    enum matrix_type_t
+    matrix_type(void)
+    {
+      if (m_matrix_type == unclassified_matrix)
+        {
+          m_matrix_type = classify_matrix(m_inverse_coeff, item_matrix());
+        }
+      return m_matrix_type;
+    }
+
     void
-    item_matrix(const fastuidraw::float3x3 &v, bool trick_transition)
+    item_matrix(const fastuidraw::float3x3 &v,
+                bool trick_transition, enum matrix_type_t M)
     {
       m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || trick_transition;
       m_inverse_transpose_not_ready = true;
       m_item_matrix.m_item_matrix = v;
       m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+
+      if (M > m_matrix_type)
+        {
+          /* TODO: make this tighter.
+           *  It is possible that concatenation of matrices
+           *  can reduce the matrix type value (for example
+           *  first scaling by 4 then by 0.25). The most
+           *  severe example is the concatenation of two
+           *  perpsective matrices yielding a matrix
+           *  without perspective. However, recomputing the
+           *  matrix type at every change seems excessive.
+           */
+          m_matrix_type = M;
+        }
     }
 
     const fastuidraw::PainterClipEquations&
@@ -421,7 +529,7 @@ namespace
     }
 
     const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
-    current_item_marix_state(fastuidraw::PainterPackedValuePool &pool)
+    current_item_matrix_state(fastuidraw::PainterPackedValuePool &pool)
     {
       if (!m_item_matrix_state)
         {
@@ -432,7 +540,7 @@ namespace
 
     void
     item_matrix_state(const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> &v,
-                              bool mark_dirty)
+                      bool mark_dirty)
     {
       m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || mark_dirty;
       m_inverse_transpose_not_ready = m_inverse_transpose_not_ready || mark_dirty;
@@ -476,6 +584,7 @@ namespace
 
   private:
 
+    enum matrix_type_t m_matrix_type;
     bool m_item_matrix_transition_tricky;
     fastuidraw::PainterItemMatrix m_item_matrix;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_state;
@@ -483,6 +592,7 @@ namespace
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_equations_state;
     bool m_inverse_transpose_not_ready;
     fastuidraw::float3x3 m_item_matrix_inverse_transpose;
+    fastuidraw::dvec2 m_inverse_coeff;
   };
 
   class occluder_stack_entry
@@ -1341,7 +1451,7 @@ compute_path_magnification(const fastuidraw::Path &path)
   bool no_perspective;
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
 
-  no_perspective = (m(2, 0) == 0.0f && m(2, 1) == 0.0f);
+  no_perspective = !matrix_has_perspective(m);
   if (no_perspective)
     {
       return compute_path_magnification_non_perspective();
@@ -1422,7 +1532,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
   fastuidraw::PainterPackerData p(draw);
 
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
-  p.m_matrix = m_clip_rect_state.current_item_marix_state(m_pool);
+  p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
   m_core->draw_generic(shader, p, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z, call_back);
 }
 
@@ -1436,7 +1546,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 {
   fastuidraw::PainterPackerData p(draw);
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
-  p.m_matrix = m_clip_rect_state.current_item_marix_state(m_pool);
+  p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
   m_core->draw_generic(shader, p, src, z, call_back);
 }
 
@@ -1935,22 +2045,8 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d->m_resolution.y() = std::max(1.0f, d->m_resolution.y());
   d->m_one_pixel_width = 1.0f / d->m_resolution;
 
-  float y1, y2;
-  if (orientation == PainterEnums::y_increases_downwards)
-    {
-      y1 = d->m_resolution.y();
-      y2 = 0;
-    }
-  else
-    {
-      y1 = 0;
-      y2 = d->m_resolution.y();
-    }
-  float_orthogonal_projection_params orth(0, d->m_resolution.x(), y1, y2);
-  float3x3 proj(orth);
-
   d->m_current_z = 1;
-  d->m_clip_rect_state.reset(proj);
+  d->m_clip_rect_state.reset(d->m_resolution, orientation);
   d->m_clip_store.set_current(d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(PainterEnums::composite_porter_duff_src_over);
   blend_shader(PainterEnums::blend_w3c_normal);
@@ -2532,25 +2628,7 @@ transformation(const float3x3 &m)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_clip_rect_state.item_matrix(m, true);
-}
-
-const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
-fastuidraw::Painter::
-transformation_state(void)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  return d->m_clip_rect_state.current_item_marix_state(d->m_pool);
-}
-
-void
-fastuidraw::Painter::
-transformation_state(const PainterPackedValue<PainterItemMatrix> &h)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_clip_rect_state.item_matrix_state(h, true);
+  d->m_clip_rect_state.item_matrix(m, true, unclassified_matrix);
 }
 
 void
@@ -2568,12 +2646,12 @@ concat(const float3x3 &tr)
             || tr(2, 2) != 1.0f);
 
   m = d->m_clip_rect_state.item_matrix() * tr;
-  d->m_clip_rect_state.item_matrix(m, tricky);
+  d->m_clip_rect_state.item_matrix(m, tricky, unclassified_matrix);
 
   if (!tricky)
     {
       d->m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
-      d->m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0,0), 1.0f / tr(1,1));
+      d->m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0, 0), 1.0f / tr(1, 1));
     }
 }
 
@@ -2586,7 +2664,7 @@ translate(const vec2 &p)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.translate(p.x(), p.y());
-  d->m_clip_rect_state.item_matrix(m, false);
+  d->m_clip_rect_state.item_matrix(m, false, non_scaling_matrix);
   d->m_clip_rect_state.m_clip_rect.translate(-p);
 }
 
@@ -2599,7 +2677,7 @@ scale(float s)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.scale(s);
-  d->m_clip_rect_state.item_matrix(m, false);
+  d->m_clip_rect_state.item_matrix(m, false, scaling_matrix);
   d->m_clip_rect_state.m_clip_rect.scale(1.0f / s);
 }
 
@@ -2612,7 +2690,7 @@ shear(float sx, float sy)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.shear(sx, sy);
-  d->m_clip_rect_state.item_matrix(m, false);
+  d->m_clip_rect_state.item_matrix(m, false, shearing_matrix);
   d->m_clip_rect_state.m_clip_rect.shear(1.0f / sx, 1.0f / sy);
 }
 
@@ -2637,7 +2715,7 @@ rotate(float angle)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m = m * tr;
-  d->m_clip_rect_state.item_matrix(m, true);
+  d->m_clip_rect_state.item_matrix(m, true, non_scaling_matrix);
 }
 
 void
@@ -2962,7 +3040,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
    * state from being marked as dirty.
    */
   PainterPackedValue<PainterItemMatrix> matrix_state;
-  matrix_state = d->m_clip_rect_state.current_item_marix_state(d->m_pool);
+  matrix_state = d->m_clip_rect_state.current_item_matrix_state(d->m_pool);
   FASTUIDRAWassert(matrix_state);
   d->m_clip_rect_state.item_matrix_state(d->m_identiy_matrix, false);
 
