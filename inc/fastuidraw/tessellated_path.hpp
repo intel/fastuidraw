@@ -24,7 +24,6 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/stroked_caps_joins.hpp>
 #include <fastuidraw/path_enums.hpp>
 
 namespace fastuidraw  {
