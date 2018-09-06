@@ -83,7 +83,9 @@ namespace
       m_font(f),
       m_glyph_code(gc),
       m_render(r)
-    {}
+    {
+      FASTUIDRAWassert(m_render.valid());
+    }
 
     bool
     operator<(const GlyphSourceRender &rhs) const
