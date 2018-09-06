@@ -407,6 +407,24 @@ namespace
       non_scaling_matrix;
   }
 
+  int
+  choose_pixel_size(float pixel_size)
+  {
+    using namespace fastuidraw;
+
+    uint32_t return_value;
+
+    /* We enforce a minimal glyph size of 4.0 and
+     * to avoid have a large spectrum of glyphs
+     * in the glyph atlas, we enforce the pixel
+     * size to be even.
+     */
+    return_value = static_cast<uint32_t>(t_max(4.0f, pixel_size));
+    return_value &= ~1;
+
+    return return_value;
+  }
+
   /* Tracks the most recent clipping rect:
    * - the 4 clip equations in clip-coordinates
    * - the current transformation from item coordinates
@@ -2569,6 +2587,88 @@ fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &f
             with_anti_aliasing, call_back);
 }
 
+fastuidraw::GlyphRender
+fastuidraw::Painter::
+draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+            const GlyphSequence &glyph_sequence,
+            const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
+{
+  PainterPrivate *d;
+  enum matrix_type_t tp;
+  GlyphRender return_value;
+
+  d = static_cast<PainterPrivate*>(m_d);
+  tp = d->m_clip_rect_state.matrix_type();
+
+  if (tp == perspective_matrix)
+    {
+      return_value = GlyphRender(curve_pair_glyph);
+    }
+  else
+    {
+      float scale_factor, effective_pixel_width, det;
+      const float3x3 &m(d->m_clip_rect_state.item_matrix());
+
+      det = m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0);
+      scale_factor = t_sqrt(t_abs(det) * 0.25f * d->m_resolution.x() * d->m_resolution.y());
+      effective_pixel_width = glyph_sequence.pixel_size() * scale_factor;
+
+      /* TODO:
+       *  These choices are somewhat arbitrary and likely need
+       *  tuning; in addition, that the native pixel sizes for
+       *  DistanceField and CurvePair varies from font to font
+       *  make the choice of when to use distance field also
+       *  debatable.
+       */
+      if (effective_pixel_width <= 18.0f)
+        {
+          int pixel_size;
+
+          pixel_size = choose_pixel_size(effective_pixel_width);
+          return_value = GlyphRender(pixel_size);
+        }
+      else if (effective_pixel_width <= 96.0f)
+        {
+          return_value = GlyphRender(distance_field_glyph);
+        }
+      else
+        {
+          return_value = GlyphRender(curve_pair_glyph);
+        }
+
+      // std::cout << "eff = " << effective_pixel_width << ", ";
+    }
+
+  //std::cout << "Type = " << return_value.m_type;
+  //if (!GlyphRender::scalable(return_value.m_type))
+  //{
+  //  std::cout << ", sz = " << return_value.m_pixel_size;
+  //}
+  //std::cout << "\n";
+
+  draw_glyphs(shader, draw,
+              glyph_sequence.painter_attribute_data(return_value),
+              call_back);
+
+  return return_value;
+}
+
+fastuidraw::GlyphRender
+fastuidraw::Painter::
+draw_glyphs(const PainterData &draw,
+            const GlyphSequence &data, bool use_anisotropic,
+            const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
+{
+  if (use_anisotropic)
+    {
+      return draw_glyphs(default_shaders().glyph_shader_anisotropic(), draw, data, call_back);
+    }
+  else
+    {
+      return draw_glyphs(default_shaders().glyph_shader(), draw, data, call_back);
+    }
+}
+
 void
 fastuidraw::Painter::
 draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
@@ -2689,8 +2789,13 @@ shear(float sx, float sy)
   d = static_cast<PainterPrivate*>(m_d);
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
+  enum matrix_type_t tp;
+
+  tp = (t_abs(sx) != t_abs(sy)) ?
+    shearing_matrix : scaling_matrix;
+
   m.shear(sx, sy);
-  d->m_clip_rect_state.item_matrix(m, false, shearing_matrix);
+  d->m_clip_rect_state.item_matrix(m, false, tp);
   d->m_clip_rect_state.m_clip_rect.shear(1.0f / sx, 1.0f / sy);
 }
 

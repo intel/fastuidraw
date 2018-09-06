@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/text/glyph_sequence.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
@@ -406,7 +407,43 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
-     * Draw glyphs.
+     * Draw glyphs from a \ref GlyphSequence. The \ref Painter will
+     * select what attribute data (and this also what \ref GlyphRender)
+     * to use depending on the current value of transformation()
+     * and the data of the passed \ref GlyphSequence.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
+     * \param draw data for how to draw
+     * \param glyph_sequence \ref GlyphSequence providing glyphs
+     * \param call_back if non-nullptr handle, call back called when attribute data
+     *                  is added.
+     * \return Returns what \ref GlyphRender value used
+     */
+    GlyphRender
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const GlyphSequence &glyph_sequence,
+                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+     * Draw glyphs from a \ref GlyphSequence. The \ref Painter will
+     * select what attribute data (and this also what \ref GlyphRender)
+     * to use depending on the current value of transformation()
+     * and the data of the passed \ref GlyphSequence.
+     * \param draw data for how to draw
+     * \param glyph_sequence \ref GlyphSequence providing glyphs
+     * \param use_anisotropic if true, use default_shaders().glyph_shader_anisotropic()
+     *                        otherwise use default_shaders().glyph_shader()
+     * \param call_back if non-nullptr handle, call back called when attribute data
+     *                  is added.
+     * \return Returns what \ref GlyphRender value used
+     */
+    GlyphRender
+    draw_glyphs(const PainterData &draw,
+                const GlyphSequence &glyph_sequence, bool use_anisotropic = false,
+                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+     * Draw glyphs by specifying precise \ref PainterAttributeData to use.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
      * \param draw data for how to draw
      * \param data attribute and index data with which to draw the glyphs.
      * \param shader with which to draw the glyphs
@@ -419,7 +456,7 @@ namespace fastuidraw
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-     * Draw glyphs.
+     * Draw glyphs by specifying precise \ref PainterAttributeData to use.
      * \param draw data for how to draw
      * \param data attribute and index data with which to draw the glyphs
      * \param use_anisotropic if true, use default_shaders().glyph_shader_anisotropic()
