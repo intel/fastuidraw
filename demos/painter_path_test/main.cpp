@@ -1957,7 +1957,7 @@ derived_init(int w, int h)
   // generate font
   reference_counted_ptr<FreeTypeFace::GeneratorFile> gen;
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.value().c_str(), 0);
-  m_font = FASTUIDRAWnew FontFreeType(gen, FontFreeType::RenderParams(), m_ft_lib);
+  m_font = FASTUIDRAWnew FontFreeType(gen, m_ft_lib);
   if (gen->check_creation() != routine_success)
     {
       std::cout << "\n-----------------------------------------------------"

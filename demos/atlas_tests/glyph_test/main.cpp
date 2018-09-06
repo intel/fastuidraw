@@ -5,6 +5,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
@@ -480,8 +481,9 @@ glyph_test(void):
   m_font_index(0, "font_index", "face index into font file to use if font file has multiple fonts", *this),
   m_coverage_pixel_size(24, "coverage_pixel_size", "Pixel size at which to create coverage glyphs", *this),
   m_distance_pixel_size(48, "distance_pixel_size", "Pixel size at which to create distance field glyphs", *this),
-  m_max_distance(96.0f, "max_distance",
-                 "value to use for max distance in 64'ths of a pixel "
+  m_max_distance(GlyphGenerateParams::distance_field_max_distance(),
+                 "max_distance",
+                 "value to use for max distance in pixels "
                  "when generating distance field glyphs", *this),
   m_curve_pair_pixel_size(48, "curvepair_pixel_size", "Pixel size at which to create distance curve pair glyphs", *this),
   m_text("Hello World!", "text", "text to draw to the screen", *this),
@@ -565,13 +567,14 @@ create_and_add_font(void)
 
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.value().c_str(), m_font_index.value());
   m_face = gen->create_face();
+
+  GlyphGenerateParams::distance_field_max_distance(m_max_distance.value());
+  GlyphGenerateParams::distance_field_pixel_size(m_distance_pixel_size.value());
+  GlyphGenerateParams::curve_pair_pixel_size(m_curve_pair_pixel_size.value());
+
   if (m_face)
     {
-      m_font = FASTUIDRAWnew FontFreeType(gen,
-                                          FontFreeType::RenderParams()
-                                          .distance_field_max_distance(m_max_distance.value())
-                                          .distance_field_pixel_size(m_distance_pixel_size.value())
-                                          .curve_pair_pixel_size(m_curve_pair_pixel_size.value()));
+      m_font = FASTUIDRAWnew FontFreeType(gen);
       m_glyph_selector->add_font(m_font);
       return routine_success;
     }

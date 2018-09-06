@@ -2,6 +2,7 @@
 #include <sstream>
 #include <fstream>
 #include <fastuidraw/text/glyph_cache.hpp>
+#include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
 
@@ -49,6 +50,7 @@ class GlyphDrawsShared:fastuidraw::noncopyable
 public:
   GlyphDrawsShared(void):
     m_glyph_sequence(nullptr),
+    m_empty_glyph_sequence(nullptr),
     m_hierarchy(nullptr)
   {}
 
@@ -423,6 +425,8 @@ init(const std::vector<uint32_t> &glyph_codes,
   std::cout << "Formatting glyphs ..." << std::flush;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
+  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+                                                       screen_orientation, glyph_cache);
   create_formatted_text(*m_glyph_sequence, glyph_codes, font);
 
   std::cout << "took " << timer.restart() << " ms\n";
@@ -439,6 +443,8 @@ init(std::istream &istr,
 {
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
+  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+                                                       screen_orientation, glyph_cache);
   if (istr)
     {
       simple_time timer;
@@ -556,8 +562,9 @@ painter_glyph_test(void):
               *this),
   m_coverage_pixel_size(24, "coverage_pixel_size", "Pixel size at which to create coverage glyphs", *this),
   m_distance_pixel_size(48, "distance_pixel_size", "Pixel size at which to create distance field glyphs", *this),
-  m_max_distance(96.0f, "max_distance",
-                 "value to use for max distance in 64'ths of a pixel "
+  m_max_distance(GlyphGenerateParams::distance_field_max_distance(),
+                 "max_distance",
+                 "value to use for max distance in pixels "
                  "when generating distance field glyphs", *this),
   m_curve_pair_pixel_size(48, "curvepair_pixel_size", "Pixel size at which to create distance curve pair glyphs", *this),
   m_text("Hello World!", "text", "text to draw to the screen", *this),
@@ -642,26 +649,21 @@ create_and_add_font(void)
 {
   reference_counted_ptr<const FontBase> font;
 
+  GlyphGenerateParams::distance_field_max_distance(m_max_distance.value());
+  GlyphGenerateParams::distance_field_pixel_size(m_distance_pixel_size.value());
+  GlyphGenerateParams::curve_pair_pixel_size(m_curve_pair_pixel_size.value());
+
   if (!m_font_file.value().empty())
     {
       reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
       gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.value().c_str(), 0);
       if (gen->check_creation() == routine_success)
         {
-          font = FASTUIDRAWnew FontFreeType(gen,
-                                            FontFreeType::RenderParams()
-                                            .distance_field_max_distance(m_max_distance.value())
-                                            .distance_field_pixel_size(m_distance_pixel_size.value())
-                                            .curve_pair_pixel_size(m_curve_pair_pixel_size.value()),
-                                            m_ft_lib);
+          font = FASTUIDRAWnew FontFreeType(gen, m_ft_lib);
         }
     }
 
-  add_fonts_from_path(m_font_path.value(), m_ft_lib, m_glyph_selector,
-                      FontFreeType::RenderParams()
-                      .distance_field_max_distance(m_max_distance.value())
-                      .distance_field_pixel_size(m_distance_pixel_size.value())
-                      .curve_pair_pixel_size(m_curve_pair_pixel_size.value()));
+  add_fonts_from_path(m_font_path.value(), m_ft_lib, m_glyph_selector);
 
   if (!font)
     {

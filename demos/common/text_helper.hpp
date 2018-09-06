@@ -85,8 +85,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 void
 add_fonts_from_path(const std::string &path,
                     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                    fastuidraw::FontFreeType::RenderParams render_params);
+                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector);
 
 fastuidraw::c_string
 default_font(void);

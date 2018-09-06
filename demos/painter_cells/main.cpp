@@ -384,9 +384,7 @@ derived_init(int w, int h)
   m_table_params.m_glyph_cache = m_glyph_cache;
   if (gen->check_creation() == routine_success)
     {
-      m_table_params.m_font = FASTUIDRAWnew FontFreeType(gen,
-                                                         FontFreeType::RenderParams(),
-                                                         m_ft_lib);
+      m_table_params.m_font = FASTUIDRAWnew FontFreeType(gen, m_ft_lib);
     }
   else
     {

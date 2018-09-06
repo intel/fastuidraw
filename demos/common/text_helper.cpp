@@ -46,12 +46,10 @@ namespace
   public:
     FreeTypeFontGenerator(fastuidraw::reference_counted_ptr<DataBufferLoader> buffer,
                           fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                          fastuidraw::FontFreeType::RenderParams render_params,
                           int face_index,
                           const fastuidraw::FontProperties &props):
       m_buffer(buffer),
       m_lib(lib),
-      m_render_params(render_params),
       m_face_index(face_index),
       m_props(props)
     {}
@@ -65,7 +63,7 @@ namespace
       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font;
       buffer = m_buffer->buffer();
       h = FASTUIDRAWnew fastuidraw::FreeTypeFace::GeneratorMemory(buffer, m_face_index);
-      font = FASTUIDRAWnew fastuidraw::FontFreeType(h, m_props, m_render_params, m_lib);
+      font = FASTUIDRAWnew fastuidraw::FontFreeType(h, m_props, m_lib);
       return font;
     }
 
@@ -79,7 +77,6 @@ namespace
   private:
     fastuidraw::reference_counted_ptr<DataBufferLoader> m_buffer;
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_lib;
-    fastuidraw::FontFreeType::RenderParams m_render_params;
     int m_face_index;
     fastuidraw::FontProperties m_props;
   };
@@ -108,8 +105,7 @@ namespace
   void
   add_fonts_from_file(const std::string &filename,
                       fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                      fastuidraw::FontFreeType::RenderParams render_params)
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector)
   {
     FT_Error error_code;
     FT_Face face(nullptr);
@@ -139,7 +135,7 @@ namespace
             source_label << filename << ":" << i;
             props.source_label(source_label.str().c_str());
 
-            h = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, render_params, i, props);
+            h = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, i, props);
             glyph_selector->add_font_generator(h);
 
             //std::cout << "add font: " << props << "\n";
@@ -362,8 +358,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 void
 add_fonts_from_path(const std::string &filename,
                     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                    fastuidraw::FontFreeType::RenderParams render_params)
+                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector)
 {
   DIR *dir;
   struct dirent *entry;
@@ -371,7 +366,7 @@ add_fonts_from_path(const std::string &filename,
   dir = opendir(filename.c_str());
   if (!dir)
     {
-      add_fonts_from_file(filename, lib, glyph_selector, render_params);
+      add_fonts_from_file(filename, lib, glyph_selector);
       return;
     }
 
@@ -381,7 +376,7 @@ add_fonts_from_path(const std::string &filename,
       file = entry->d_name;
       if (file != ".." && file != ".")
         {
-          add_fonts_from_path(filename + "/" + file, lib, glyph_selector, render_params);
+          add_fonts_from_path(filename + "/" + file, lib, glyph_selector);
         }
     }
   closedir(dir);
