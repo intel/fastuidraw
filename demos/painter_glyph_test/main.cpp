@@ -17,17 +17,29 @@ using namespace fastuidraw;
 std::ostream&
 operator<<(std::ostream &str, GlyphRender R)
 {
-  switch(R.m_type)
+  if (R.valid())
     {
-    case coverage_glyph:
-      str << "Coverage(" << R.m_pixel_size << ")";
-      break;
-    case distance_field_glyph:
-      str << "Distance";
-      break;
-    case curve_pair_glyph:
-      str << "CurvePair";
-      break;
+      switch(R.m_type)
+        {
+        case coverage_glyph:
+          str << "Coverage(" << R.m_pixel_size << ")";
+          break;
+
+        case distance_field_glyph:
+          str << "Distance";
+          break;
+
+        case curve_pair_glyph:
+          str << "CurvePair";
+          break;
+
+        default:
+          str << "Unkown";
+        }
+    }
+  else
+    {
+      str << "Auto Adjust";
     }
   return str;
 }
@@ -76,10 +88,8 @@ public:
   }
 
   c_array<const Glyph>
-  glyphs(GlyphRender render)
-  {
-    return m_glyph_sequence->glyph_sequence(render);
-  }
+  glyphs(GlyphRender render,
+         const reference_counted_ptr<Painter> &painter);
 
   GlyphRender
   draw_glyphs(GlyphRender render,
@@ -117,7 +127,7 @@ public:
   }
 
   void
-  realize_all_glyphs(GlyphRender renderer, const std::string &label,
+  realize_all_glyphs(GlyphRender renderer,
                      const reference_counted_ptr<const FontFreeType> &font,
                      int num_threads);
 
@@ -128,7 +138,7 @@ private:
   void
   make_sub_sequences(size_t glyphs_per_painter_draw);
 
-  GlyphSequence *m_glyph_sequence;
+  GlyphSequence *m_glyph_sequence, *m_empty_glyph_sequence;
   GenericHierarchy *m_hierarchy;
   std::vector<GlyphSequence*> m_sub_glyph_sequence;
 };
@@ -161,7 +171,7 @@ private:
       draw_glyph_curvepair,
       draw_glyph_distance,
 
-      number_draw_modes
+      draw_glyph_auto
     };
 
   typedef enum PainterEnums::screen_orientation screen_orientation;
@@ -201,10 +211,13 @@ private:
 
   reference_counted_ptr<const FontFreeType> m_font;
 
-  GlyphDrawsShared m_draw_shared;
-  vecN<GlyphRender, number_draw_modes> m_draws;
-  vecN<std::string, number_draw_modes> m_draw_labels;
   vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
+  GlyphDrawsShared m_draw_shared;
+
+  /* The last entry value is left as invalid to represent
+   * to auto-choose how to render the glyphs.
+   */
+  vecN<GlyphRender, draw_glyph_auto + 1> m_draws;
 
   bool m_use_anisotropic_anti_alias;
   bool m_stroke_glyphs, m_fill_glyphs;
@@ -228,6 +241,11 @@ GlyphDrawsShared::
       FASTUIDRAWdelete(m_glyph_sequence);
     }
 
+  if (m_empty_glyph_sequence)
+    {
+      FASTUIDRAWdelete(m_empty_glyph_sequence);
+    }
+
   if (m_hierarchy)
     {
       FASTUIDRAWdelete(m_hierarchy);
@@ -238,6 +256,7 @@ GlyphDrawsShared::
       FASTUIDRAWdelete(p);
     }
 }
+
 void
 GlyphDrawsShared::
 make_hierarchy(void)
@@ -319,6 +338,8 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
+  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+                                                       screen_orientation, glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
   layouts.resize(num_glyphs);
@@ -484,9 +505,21 @@ draw_glyphs(GlyphRender render,
   return render;
 }
 
+c_array<const Glyph>
+GlyphDrawsShared::
+glyphs(GlyphRender render,
+       const reference_counted_ptr<Painter> &painter)
+{
+  if (!render.valid())
+    {
+      render = painter->draw_glyphs(PainterData(), *m_empty_glyph_sequence);
+    }
+  return m_glyph_sequence->glyph_sequence(render);
+}
+
 void
 GlyphDrawsShared::
-realize_all_glyphs(GlyphRender renderer, const std::string &label,
+realize_all_glyphs(GlyphRender renderer,
                    const reference_counted_ptr<const FontFreeType> &font,
                    int num_threads)
 {
@@ -495,7 +528,7 @@ realize_all_glyphs(GlyphRender renderer, const std::string &label,
   std::vector<Glyph> glyphs;
   reference_counted_ptr<FreeTypeFace> face;
 
-  std::cout << "Generating glyphs (" << label << ")..." << std::flush;
+  std::cout << "Generating " << renderer << " glyphs ..." << std::flush;
   face = font->face_generator()->create_face(font->lib());
   GlyphSetGenerator::generate(num_threads, renderer, font, face, glyphs,
                               m_glyph_sequence->glyph_cache(), cnts);
@@ -569,7 +602,7 @@ painter_glyph_test(void):
   m_pixel_width_stroking(true),
   m_draw_stats(false),
   m_stroke_width(1.0f),
-  m_current_drawer(draw_glyph_curvepair),
+  m_current_drawer(draw_glyph_auto),
   m_join_style(PainterEnums::miter_joins)
 {
   std::cout << "Controls:\n"
@@ -727,21 +760,16 @@ ready_glyph_attribute_data(void)
     }
   m_draw_shared.post_finalize(m_glyphs_per_painter_draw.value());
 
-  m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
   m_draws[draw_glyph_curvepair] = GlyphRender(curve_pair_glyph);
-
-  m_draw_labels[draw_glyph_distance] = "draw_glyph_distance";
   m_draws[draw_glyph_distance] = GlyphRender(distance_field_glyph);
-
-  m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
   m_draws[draw_glyph_coverage] = GlyphRender(m_coverage_pixel_size.value());
 
   if (m_draw_glyph_set.value())
     {
-      for (unsigned int i = 0; i < number_draw_modes; ++i)
+      for (unsigned int i = 0; i < draw_glyph_auto; ++i)
         {
-          m_draw_shared.realize_all_glyphs(m_draws[i], m_draw_labels[i],
-                                           m_font, m_realize_glyphs_thread_count.value());
+          m_draw_shared.realize_all_glyphs(m_draws[i], m_font,
+                                           m_realize_glyphs_thread_count.value());
 
           unsigned int texels_allocated(m_glyph_atlas->number_texels_allocated());
           ivec3 texel_store_dims(m_glyph_atlas->texel_store()->dimensions());
@@ -787,7 +815,7 @@ draw_frame(void)
 {
   float us;
   std::vector<unsigned int> glyphs_visible;
-  c_array<const Glyph> glyphs(m_draw_shared.glyphs(m_draws[m_current_drawer]));
+  GlyphRender render;
   c_array<const vec2> glyph_positions(m_draw_shared.glyph_positions());
   PainterBrush glyph_brush;
 
@@ -797,6 +825,8 @@ draw_frame(void)
   m_painter->begin(m_surface, m_screen_orientation.value());
   m_painter->save();
   m_zoomer.transformation().concat_to_painter(m_painter);
+
+  c_array<const Glyph> glyphs(m_draw_shared.glyphs(m_draws[m_current_drawer], m_painter));
 
   if (m_fill_glyphs || m_stroke_glyphs)
     {
@@ -966,7 +996,18 @@ draw_frame(void)
           /* start with an eol so that top line is visible */
           ostr << "\nGlyph at " << p << " is:"
                << "\n\tglyph_code: " << layout.glyph_code()
-               << "\n\tunits_per_EM: " << layout.units_per_EM()
+               << "\n\trenderer: ";
+
+          if (!m_fill_glyphs)
+            {
+              ostr << glyph.renderer();
+            }
+          else
+            {
+              ostr << " path-fill";
+            }
+
+          ostr << "\n\tunits_per_EM: " << layout.units_per_EM()
                << "\n\tsize in EM: " << layout.size()
                << "\n\tsize normalized: " << layout.size() * ratio
                << "\n\tHorizontal Offset = " << glyph.layout().horizontal_layout_offset();
@@ -1085,8 +1126,8 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_d:
-          cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_draw_modes);
-          std::cout << "Drawing " << m_draw_labels[m_current_drawer] << " glyphs\n";
+          cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_draws.size());
+          std::cout << "Drawing " << m_draws[m_current_drawer] << " glyphs\n";
           break;
 
         case SDLK_z:
