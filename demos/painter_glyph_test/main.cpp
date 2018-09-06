@@ -182,6 +182,9 @@ private:
   create_and_add_font(void);
 
   void
+  realize_all_glyphs(GlyphRender renderer);
+
+  void
   ready_glyph_attribute_data(void);
 
   float
@@ -266,8 +269,9 @@ make_hierarchy(void)
   c_array<const GlyphSource> glyph_sources(m_glyph_sequence->glyph_sources());
   c_array<const vec2> in_glyph_positions(m_glyph_sequence->glyph_positions());
   enum PainterEnums::screen_orientation orientation(m_glyph_sequence->orientation());
+  GlyphCache *glyph_cache(m_glyph_sequence->glyph_cache().get());
   float pixel_size(m_glyph_sequence->pixel_size());
-  GlyphLayoutData layout;
+  GlyphMetrics metrics;
   BoundingBox<float> bbox;
   std::vector<BoundingBox<float> > glyph_bboxes;
   simple_time timer;
@@ -281,11 +285,11 @@ make_hierarchy(void)
           vec2 p, min_bb, max_bb;
           float ratio;
 
-          glyph_sources[i].m_font->compute_layout_data(glyph_sources[i].m_glyph_code, layout);
-          min_bb = layout.horizontal_layout_offset();
-          max_bb = min_bb + layout.size();
+          metrics = glyph_cache->fetch_glyph_metrics(glyph_sources[i].m_font, glyph_sources[i].m_glyph_code);
+          min_bb = metrics.horizontal_layout_offset();
+          max_bb = min_bb + metrics.size();
 
-          ratio = pixel_size / layout.units_per_EM();
+          ratio = pixel_size / metrics.units_per_EM();
           min_bb *= ratio;
           max_bb *= ratio;
 
@@ -329,7 +333,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   unsigned int num_glyphs;
   reference_counted_ptr<FreeTypeFace> face;
   float y_advance_sign;
-  std::vector<GlyphLayoutData> layouts;
+  std::vector<GlyphMetrics> metrics;
   simple_time timer;
 
   face = font->face_generator()->create_face(font->lib());
@@ -344,12 +348,12 @@ init(const reference_counted_ptr<const FontFreeType> &font,
                                                        screen_orientation, glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
-  layouts.resize(num_glyphs);
+  metrics.resize(num_glyphs);
   for(unsigned int i = 0; i < num_glyphs; ++i)
     {
-      font->compute_layout_data(i, layouts[i]);
-      tallest = std::max(tallest, layouts[i].horizontal_layout_offset().y() + layouts[i].size().y());
-      negative_tallest = std::min(negative_tallest, layouts[i].horizontal_layout_offset().y());
+      metrics[i] = glyph_cache->fetch_glyph_metrics(font, i);
+      tallest = std::max(tallest, metrics[i].horizontal_layout_offset().y() + metrics[i].size().y());
+      negative_tallest = std::min(negative_tallest, metrics[i].horizontal_layout_offset().y());
     }
 
   tallest *= scale_factor;
@@ -357,13 +361,13 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   offset = tallest - negative_tallest;
 
   vec2 pen(0.0f, 0.0f);
-  for(navigator_chars = 0, i = 0, endi = layouts.size(), glyph_at_start = 0; i < endi; ++i)
+  for(navigator_chars = 0, i = 0, endi = metrics.size(), glyph_at_start = 0; i < endi; ++i)
     {
-      const GlyphLayoutData &layout(layouts[i]);
+      GlyphMetrics metric(metrics[i]);
       float advance, nxt;
 
-      advance = scale_factor * t_max(layout.advance().x(),
-                                     t_max(0.0f, layout.horizontal_layout_offset().x()) + layout.size().x());
+      advance = scale_factor * t_max(metric.advance().x(),
+                                     t_max(0.0f, metric.horizontal_layout_offset().x()) + metric.size().x());
 
       m_glyph_sequence->add_glyph(GlyphSource(i, font), pen);
       pen.x() += advance;
@@ -371,7 +375,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
       if (i + 1 < endi)
         {
           float pre_layout, nxt_adv;
-          const GlyphLayoutData &nxtL(layouts[i + 1]);
+          GlyphMetrics nxtL(metrics[i + 1]);
 
           pre_layout = t_max(0.0f, -nxtL.horizontal_layout_offset().x());
           pen.x() += scale_factor * pre_layout;
@@ -387,8 +391,8 @@ init(const reference_counted_ptr<const FontFreeType> &font,
       if (nxt >= line_length || i + 1 == endi)
         {
           std::ostringstream desc;
-          desc << "[" << std::setw(5) << layouts[glyph_at_start].glyph_code()
-               << " - " << std::setw(5) << layouts[i].glyph_code() << "]";
+          desc << "[" << std::setw(5) << metrics[glyph_at_start].glyph_code()
+               << " - " << std::setw(5) << metrics[i].glyph_code() << "]";
           navigator.push_back(std::make_pair(pen.y(), desc.str()));
           navigator_chars += navigator.back().second.length();
 
@@ -485,6 +489,7 @@ make_sub_sequences(size_t glyphs_per_painter_draw)
       in_positions = in_positions.sub_array(cnt);
       m_sub_glyph_sequence.push_back(data);
     }
+  std::cout << "took " << timer.restart() << " ms\n";
 }
 
 GlyphRender
@@ -521,30 +526,6 @@ glyphs(GlyphRender render,
       render = painter->draw_glyphs(PainterData(), *m_empty_glyph_sequence);
     }
   return m_glyph_sequence->glyph_sequence(render);
-}
-
-void
-GlyphDrawsShared::
-realize_all_glyphs(GlyphRender renderer,
-                   const reference_counted_ptr<const FontFreeType> &font,
-                   int num_threads)
-{
-  simple_time timer;
-  std::vector<int> cnts;
-  std::vector<Glyph> glyphs;
-  reference_counted_ptr<FreeTypeFace> face;
-
-  std::cout << "Generating " << renderer << " glyphs ..." << std::flush;
-  face = font->face_generator()->create_face(font->lib());
-  GlyphSetGenerator::generate(num_threads, renderer, font, face, glyphs,
-                              m_glyph_sequence->glyph_cache(), cnts);
-  std::cout << "took " << timer.restart()
-            << " ms to generate glyphs of type "
-            << renderer << "\n";
-  for(int i = 0; i < num_threads; ++i)
-    {
-      std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
-    }
 }
 
 /////////////////////////////////////
@@ -725,13 +706,67 @@ derived_init(int w, int h)
 
 void
 painter_glyph_test::
+realize_all_glyphs(GlyphRender renderer)
+{
+  unsigned int num_threads(m_realize_glyphs_thread_count.value());
+  simple_time timer;
+  std::vector<int> cnts(num_threads, 0);
+  std::vector<Glyph> glyphs;
+  reference_counted_ptr<FreeTypeFace> face;
+
+  std::cout << "Generating " << renderer << " glyphs ..." << std::flush;
+  face = m_font->face_generator()->create_face(m_font->lib());
+  GlyphSetGenerator::generate(num_threads, renderer, m_font, face, glyphs,
+                              m_glyph_cache, cnts);
+  std::cout << "took " << timer.restart()
+            << " ms to generate " << glyphs.size()
+            << " glyphs of type " << renderer << "\n";
+  for(int i = 0; i < num_threads; ++i)
+    {
+      std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
+    }
+
+  std::cout << "Uploading to atlas ..." << std::flush;
+  for (auto &g : glyphs)
+    {
+      g.upload_to_atlas();
+    }
+  std::cout << "took " << timer.restart() << " ms\n";
+
+  unsigned int texels_allocated(m_glyph_atlas->number_texels_allocated());
+  ivec3 texel_store_dims(m_glyph_atlas->texel_store()->dimensions());
+  int num_texels_total(texel_store_dims.x() * texel_store_dims.y() * texel_store_dims.z());
+  float fract_allocated(float(texels_allocated) / float(num_texels_total));
+  unsigned int num_blocks(m_glyph_atlas->geometry_data_allocated());
+  unsigned int block_alignment(m_glyph_atlas->geometry_store()->alignment());
+  unsigned int block_size(sizeof(generic_data) * block_alignment);
+
+  std::cout << "Number texel nodes = " << m_glyph_atlas->number_nodes()
+            << ", bytes used = " << m_glyph_atlas->bytes_used_by_nodes() << "\n"
+            << "Texels allocate = " << texels_allocated << " of "
+            << num_texels_total << " (" << 100.0f * fract_allocated
+            << "%)\nBytes geometry data allocated = "
+            << num_blocks * block_size
+            << "\n";
+}
+
+void
+painter_glyph_test::
 ready_glyph_attribute_data(void)
 {
   std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
                                              m_explicit_glyph_codes.end());
 
+  m_draws[draw_glyph_curvepair] = GlyphRender(curve_pair_glyph);
+  m_draws[draw_glyph_distance] = GlyphRender(distance_field_glyph);
+  m_draws[draw_glyph_coverage] = GlyphRender(m_coverage_pixel_size.value());
+
   if (m_draw_glyph_set.value())
     {
+      for (unsigned int i = 0; i < draw_glyph_auto; ++i)
+        {
+          realize_all_glyphs(m_draws[i]);
+        }
       m_draw_shared.init(m_font,
                          m_glyph_cache, m_glyph_selector,
                          m_render_pixel_size.value(),
@@ -762,33 +797,17 @@ ready_glyph_attribute_data(void)
     }
   m_draw_shared.post_finalize(m_glyphs_per_painter_draw.value());
 
-  m_draws[draw_glyph_curvepair] = GlyphRender(curve_pair_glyph);
-  m_draws[draw_glyph_distance] = GlyphRender(distance_field_glyph);
-  m_draws[draw_glyph_coverage] = GlyphRender(m_coverage_pixel_size.value());
-
-  if (m_draw_glyph_set.value())
+  for (unsigned int i = 0; i < draw_glyph_auto; ++i)
     {
-      for (unsigned int i = 0; i < draw_glyph_auto; ++i)
-        {
-          m_draw_shared.realize_all_glyphs(m_draws[i], m_font,
-                                           m_realize_glyphs_thread_count.value());
+      simple_time timer;
 
-          unsigned int texels_allocated(m_glyph_atlas->number_texels_allocated());
-          ivec3 texel_store_dims(m_glyph_atlas->texel_store()->dimensions());
-          int num_texels_total(texel_store_dims.x() * texel_store_dims.y() * texel_store_dims.z());
-          float fract_allocated(float(texels_allocated) / float(num_texels_total));
-          unsigned int num_blocks(m_glyph_atlas->geometry_data_allocated());
-          unsigned int block_alignment(m_glyph_atlas->geometry_store()->alignment());
-          unsigned int block_size(sizeof(generic_data) * block_alignment);
+      std::cout << "Generating and realizing glyphs of type " << m_draws[i] << "...";
+      m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], false);
+      std::cout << "took " << timer.restart() << "ms.\n";
 
-          std::cout << "Number texel nodes = " << m_glyph_atlas->number_nodes()
-                    << ", bytes used = " << m_glyph_atlas->bytes_used_by_nodes() << "\n"
-                    << "Texels allocate = " << texels_allocated << " of "
-                    << num_texels_total << " (" << 100.0f * fract_allocated
-                    << "%)\nBytes geometry data allocated = "
-                    << num_blocks * block_size
-                    << "\n";
-        }
+      std::cout << "Uploading (or confirming upload) glyphs of type " << m_draws[i] << "...";
+      m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], true);
+      std::cout << "took " << timer.restart() << "ms.\n";
     }
 }
 
@@ -868,7 +887,7 @@ draw_frame(void)
 
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
-              sc = m_render_pixel_size.value() / glyphs[i].layout().units_per_EM();
+              sc = m_render_pixel_size.value() / glyphs[i].metrics().units_per_EM();
 
               /* when drawing with y-coordinate increasing downwards
                * which is the opposite coordinate system as the glyph's
@@ -914,7 +933,7 @@ draw_frame(void)
 
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
-              sc = m_render_pixel_size.value() / glyphs[i].layout().units_per_EM();
+              sc = m_render_pixel_size.value() / glyphs[i].metrics().units_per_EM();
 
               /* when drawing with y-coordinate increasing downwards
                * which is the opposite coordinate system as the glyph's
@@ -988,16 +1007,16 @@ draw_frame(void)
       if (G != GenericHierarchy::not_found)
         {
           Glyph glyph;
-          GlyphLayoutData layout;
+          GlyphMetrics metrics;
           float ratio;
 
           glyph = glyphs[G];
-          layout = glyph.layout();
-          ratio = m_render_pixel_size.value() / layout.units_per_EM();
+          metrics = glyph.metrics();
+          ratio = m_render_pixel_size.value() / metrics.units_per_EM();
 
           /* start with an eol so that top line is visible */
           ostr << "\nGlyph at " << p << " is:"
-               << "\n\tglyph_code: " << layout.glyph_code()
+               << "\n\tglyph_code: " << metrics.glyph_code()
                << "\n\trenderer: ";
 
           if (!m_fill_glyphs)
@@ -1009,10 +1028,10 @@ draw_frame(void)
               ostr << " path-fill";
             }
 
-          ostr << "\n\tunits_per_EM: " << layout.units_per_EM()
-               << "\n\tsize in EM: " << layout.size()
-               << "\n\tsize normalized: " << layout.size() * ratio
-               << "\n\tHorizontal Offset = " << glyph.layout().horizontal_layout_offset();
+          ostr << "\n\tunits_per_EM: " << metrics.units_per_EM()
+               << "\n\tsize in EM: " << metrics.size()
+               << "\n\tsize normalized: " << metrics.size() * ratio
+               << "\n\tHorizontal Offset = " << metrics.horizontal_layout_offset();
 
           /* draw a box around the glyph(!).*/
           PainterBrush brush;

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <dirent.h>
 #include "text_helper.hpp"
+#include "cast_c_array.hpp"
 
 namespace
 {
@@ -220,7 +221,14 @@ generate(unsigned int num_threads,
     {
       for(fastuidraw::Glyph glyph : dst)
         {
-          glyph_cache->add_glyph(glyph);
+          if (glyph.valid())
+            {
+              enum fastuidraw::return_code R;
+
+              R = glyph_cache->add_glyph(glyph, false);
+              FASTUIDRAWassert(R == fastuidraw::routine_success);
+              FASTUIDRAWunused(R);
+            }
         }
     }
 }
@@ -236,12 +244,12 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
   fastuidraw::vec2 pen(shift_by);
   float pixel_size(out_sequence.pixel_size());
   enum fastuidraw::PainterEnums::screen_orientation orientation(out_sequence.orientation());
-  fastuidraw::GlyphLayoutData layout;
+  fastuidraw::GlyphMetrics layout;
   float ratio;
 
   for(uint32_t glyph_code : glyph_codes)
     {
-      font->compute_layout_data(glyph_code, layout);
+      layout = out_sequence.glyph_cache()->fetch_glyph_metrics(font, glyph_code);
       out_sequence.add_glyph(fastuidraw::GlyphSource(glyph_code, font), pen);
 
       ratio = pixel_size / layout.units_per_EM();
@@ -274,7 +282,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 
   std::vector<fastuidraw::GlyphSource> glyph_sources;
   std::vector<fastuidraw::vec2> sub_p;
-  fastuidraw::GlyphLayoutData layout;
+  std::vector<fastuidraw::GlyphMetrics> metrics;
 
   while(getline(istr, line))
     {
@@ -293,8 +301,10 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 
       sub_p.resize(line.length());
       glyph_sources.resize(line.length());
+      metrics.resize(line.length());
 
       glyph_selector->create_glyph_sequence(font, line.begin(), line.end(), glyph_sources.begin());
+      out_sequence.glyph_cache()->fetch_glyph_metrics(cast_c_array(glyph_sources), cast_c_array(metrics));
       for(unsigned int i = 0, endi = glyph_sources.size(); i < endi; ++i)
         {
           sub_p[i] = pen;
@@ -302,14 +312,13 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
             {
               float ratio;
 
-              glyph_sources[i].m_font->compute_layout_data(glyph_sources[i].m_glyph_code, layout);
-              ratio = pixel_size / layout.units_per_EM();
+              ratio = pixel_size / metrics[i].units_per_EM();
 
               empty_line = false;
-              pen.x() += ratio * layout.advance().x();
+              pen.x() += ratio * metrics[i].advance().x();
 
-              tallest = std::max(tallest, ratio * (layout.horizontal_layout_offset().y() + layout.size().y()));
-              negative_tallest = std::min(negative_tallest, ratio * layout.horizontal_layout_offset().y());
+              tallest = std::max(tallest, ratio * (metrics[i].horizontal_layout_offset().y() + metrics[i].size().y()));
+              negative_tallest = std::min(negative_tallest, ratio * metrics[i].horizontal_layout_offset().y());
             }
         }
 
