@@ -138,7 +138,6 @@ public:
   void
   init(GlyphDrawsShared &shared, GlyphRender renderer,
        const reference_counted_ptr<const FontFreeType> &font,
-       const reference_counted_ptr<GlyphCache> &glyph_cache,
        size_t glyphs_per_painter_draw, bool realize_all_glyphs,
        int num_threads);
 
@@ -446,10 +445,10 @@ void
 GlyphDraws::
 init(GlyphDrawsShared &shared, GlyphRender renderer,
      const reference_counted_ptr<const FontFreeType> &font,
-     const reference_counted_ptr<GlyphCache> &glyph_cache,
      size_t glyphs_per_painter_draw, bool realize_all_glyphs,
      int num_threads)
 {
+  const reference_counted_ptr<GlyphCache> &glyph_cache(shared.glyph_sequence().glyph_cache());
   if (realize_all_glyphs)
     {
       /* Get all the glyphs */
@@ -749,22 +748,19 @@ ready_glyph_attribute_data(void)
 
   m_draws[draw_glyph_curvepair].init(m_draw_shared,
                                      GlyphRender(curve_pair_glyph),
-                                     m_font, m_glyph_cache,
-                                     m_glyphs_per_painter_draw.value(),
+                                     m_font, m_glyphs_per_painter_draw.value(),
                                      m_draw_glyph_set.value(),
                                      m_realize_glyphs_thread_count.value());
 
   m_draws[draw_glyph_distance].init(m_draw_shared,
                                     GlyphRender(distance_field_glyph),
-                                    m_font, m_glyph_cache,
-                                    m_glyphs_per_painter_draw.value(),
+                                    m_font, m_glyphs_per_painter_draw.value(),
                                     m_draw_glyph_set.value(),
                                     m_realize_glyphs_thread_count.value());
 
   m_draws[draw_glyph_coverage].init(m_draw_shared,
                                     GlyphRender(m_coverage_pixel_size.value()),
-                                    m_font, m_glyph_cache,
-                                    m_glyphs_per_painter_draw.value(),
+                                    m_font, m_glyphs_per_painter_draw.value(),
                                     m_draw_glyph_set.value(),
                                     m_realize_glyphs_thread_count.value());
 
