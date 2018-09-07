@@ -22,6 +22,7 @@
 #include <algorithm>
 
 #include <fastuidraw/util/math.hpp>
+#include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
@@ -988,6 +989,7 @@ namespace
     ClipEquationStore m_clip_store;
     PainterWorkRoom m_work_room;
     unsigned int m_max_attribs_per_block, m_max_indices_per_block;
+    float m_coverage_text_cut_off, m_distance_text_cut_off;
   };
 }
 
@@ -1263,6 +1265,15 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_current_z = 1;
   m_max_attribs_per_block = backend->attribs_per_mapping();
   m_max_indices_per_block = backend->indices_per_mapping();
+
+  /* Somewhat guessing:
+   *  - using distance field up to a factor 3/8 zoom out still looks ok
+   *  - using distance field up to a factor 2.0 zoom in still looks ok
+   */
+  float distance_field_size;
+  distance_field_size = fastuidraw::GlyphGenerateParams::distance_field_pixel_size();
+  m_coverage_text_cut_off = (distance_field_size * 3.0f) / 8.0f;
+  m_distance_text_cut_off = 2.0f * distance_field_size;
 }
 
 bool
@@ -2616,21 +2627,14 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
       scale_factor = t_sqrt(t_abs(det) * 0.25f * d->m_resolution.x() * d->m_resolution.y());
       effective_pixel_width = glyph_sequence.pixel_size() * scale_factor;
 
-      /* TODO:
-       *  These choices are somewhat arbitrary and likely need
-       *  tuning; in addition, that the native pixel sizes for
-       *  DistanceField and CurvePair varies from font to font
-       *  make the choice of when to use distance field also
-       *  debatable.
-       */
-      if (effective_pixel_width <= 18.0f)
+      if (effective_pixel_width <= d->m_coverage_text_cut_off)
         {
           int pixel_size;
 
           pixel_size = choose_pixel_size(effective_pixel_width);
           return_value = GlyphRender(pixel_size);
         }
-      else if (effective_pixel_width <= 96.0f)
+      else if (effective_pixel_width <= d->m_distance_text_cut_off)
         {
           return_value = GlyphRender(distance_field_glyph);
         }
