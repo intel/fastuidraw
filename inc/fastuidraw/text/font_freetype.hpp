@@ -107,6 +107,7 @@ namespace fastuidraw
     uint32_t
     glyph_code(uint32_t pcharacter_code) const;
 
+  private:
     virtual
     bool
     can_create_rendering_data(enum glyph_type tp) const;
@@ -120,7 +121,6 @@ namespace fastuidraw
     compute_rendering_data(GlyphRender render,
                            GlyphMetrics glyph_metrics, Path &path) const;
 
-  private:
     void *m_d;
   };
 /*! @} */

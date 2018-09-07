@@ -33,6 +33,8 @@ namespace fastuidraw
 /*!\addtogroup Text
  * @{
  */
+  class Glyph;
+  class GlyphCache;
 
   /*!
    * \brief
@@ -72,6 +74,7 @@ namespace fastuidraw
     uint32_t
     glyph_code(uint32_t pcharacter_code) const = 0;
 
+  private:
     /*!
      * To be implemented by a derived class to indicate
      * that it will return non-nullptr in
@@ -107,7 +110,9 @@ namespace fastuidraw
     compute_rendering_data(GlyphRender render,
                            GlyphMetrics glyph_metrics, Path &path) const = 0;
 
-  private:
+    friend class Glyph;
+    friend class GlyphCache;
+
     FontProperties m_props;
   };
 /*! @} */
