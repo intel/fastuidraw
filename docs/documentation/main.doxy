@@ -284,19 +284,22 @@ namespace fastuidraw {
   \section Text
   The elements in the group \ref Text are for the realization of glyphs. FastUIDraw
   does <i>NOT</i> provide functions for layout of glyphs. The API exposed through
-  fastuidraw::PainterAttributeDataFillerGlyphs is that an application provides a
-  sequence of glyphs, positions and sizing from which fastuidraw::PainterAttributeData
-  can create index and attribute data to draw those glyphs. Glyph objects reside
-  on a fastuidraw::GlyphCache which provides an interface to fetch glyphs from
-  a glyph code and a fastuidraw::GlyphRender. A fastuidraw::GlyphRender specifies
-  the type of resource data on how to render glyphs. The class
+  fastuidraw::GlyphSequence is that an application provides a sequence of glyphs,
+  glyph positions and the the size at which the text has been layed out. Glyph objects
+  reside on a fastuidraw::GlyphCache which provides an interface to fetch glyphs from
+  a glyph code and a fastuidraw::GlyphRender. A fastuidraw::GlyphRender
+  specifies the type of resource data on how to render glyphs. The class
   fastuidraw::GlyphSelector provides assistance for selection of glyphs from
-  character codes, but an application can use any system it likes for
-  glyph selection. FastUIDraw has the class fastuidraw::FontFreeType to
-  construct a font via Freetype (either from a file or FT_Face). Below
-  is an example of startup code and simple layout code.
+  character codes, but an application can use any system it likes for glyph selection.
+  FastUIDraw has the class fastuidraw::FontFreeType to construct a font via Freetype
+  (either from a file or FT_Face). Below is an example of startup code and simple layout code.
   \code
   //startup
+    // choose an orientation convention
+    //  # y_increases_downwards --> y = 0 is at top of the window and increases down the window
+    //  # y_increases_upwards   --> y = 0 is at bottom of the window and increases up the window
+    enum fastuidraw::PainterEnums::screen_orientation myOrientation(PainterEnums::y_increases_downwards);
+
     //use GL backend atlas
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> myGlyphAtlas;
     myGlyphAtlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(fastuidraw::gl::GlyphAtlasGL::params());
@@ -307,10 +310,10 @@ namespace fastuidraw {
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> myGlyphCache;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> myGlyphSelector;
     myGlyphCache = FASTUIDRAWnew fastuidraw::GlyphCache(myGlyphAtlas);
-    myGlyphSelector = FASTUIDRAWnew fastuidraw::GlyphSelector(myGlyphCache);
+    myGlyphSelector = FASTUIDRAWnew fastuidraw::GlyphSelector();
 
     //create a generator object that the font uses to load the font data,
-    //in this example we load the file contents to memory.
+    //in this example we load the font contents from a file directly.
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> gen;
     gen = FASTUIDRAWnew fastuidraw::FreeTypeFace::GeneratorFile("myFont.ttf", 0);
 
@@ -320,35 +323,37 @@ namespace fastuidraw {
     //add font to GlyphSelector
     myGlyphSelector->add_font(font);
 
-  //creating text attribute/indices
+  //creating glyph sequence.
     const char *text = "Hello World";
     float layout_pixel_size(32.0f); //a pixel size by which to layout text
     std::vector<fastuidraw::Glyph> glyphs;
     std::vector<fastuidraw::vec2> glyph_positions;
-    fastuidraw::GlyphRender glyph_render(fastuidraw::curve_pair_glyph);
     fastuidraw::vec2 pen_position(0.0f, 0.0f);
     for(const char *p = text; *p; ++p)
       {
-        Glyph g;
-        g = myGlyphSelector->fetch_glyph(glyph_render, myFont, *p);
-        if(g.valid())
+        fastuidraw::GlyphSource g;
+        g = myGlyphSelector->fetch_glyph(myFont, *p);
+        if(g.m_font)
           {
             glyphs.push_back(g);
             glyph_positions.push_back(pen_positions);
 
+            fastuidraw::GlyphMetrics m;
             float ratio;
-            ratio = layout_pixel_size / g.layout().m_units_per_EM;
-            pen_positions.x() += ratio * g.layout().m_advance.x();
+
+            m = myGlyphCache->fetch_glyph_metrics(g.m_font, g.m_glyph_code);
+            ratio = layout_pixel_size / m.m_units_per_EM;
+            pen_positions.x() += ratio * m.m_advance.x();
           }
       }
-    fastuidraw::PainterAttributeData helloWorld;
-    fastuidraw::PainterAttributeDataFillerGlyphs filler(glyphs, glyph_positions, layout_pixel_size);
-    helloWorld.set_data(filler);
+    fastuidraw::GlyphSequence myHelloWorld(layout_pixel_size,
+                                           myOrientation,
+                                           myGlyphCache);
+
   \endcode
   Notes:
    - One does not need to use fastuidraw::GlyphSelector at all, one can
-     choose glyph codes directly and then use fastuidraw::GlyphCache::fetch_glyph()
-     to fetch the glyphs.
+     choose glyph codes directly
    - The above layout is very limited, but because an application can
      construct fonts from FT_Face objects, one can use text shaping
      and layout libraries of one's choice to perform layout.
@@ -369,20 +374,10 @@ namespace fastuidraw {
   The object fastuidraw::PainterItemShader encapsulates how to process vertices and
   fragments for the draw. A custom shader is tied to the backend.
   However, these classes are only the interface for fastuidraw::Painter.
-  The actual shading code is tied to the GPU API on is using. For GL (and GL ES)
+  The actual shading code is tied to the GPU API one is using. For GL (and GLES)
   backend, the shader class is the class fastuidraw::glsl::PainterItemShaderGLSL.
   In that class, one writes GLSL code. WARNING: if one write incorrect GLSL code,
   the uber-shader will fail to compile and all painting is then disabled!
-
-  [TODO: augment fastuidraw::glsl::PainterBackendGLSL to first build a known good
-  uber-shader from internal shaders, and whenever shaders are added, to work
-  backwards from adding shader until a good shader is found and provide a
-  mechanism to report that the source code in a fastuidraw::glsl::PainterShaderGLSL
-  has an error].
-
-  [TODO: develop an interface to allow for chaining shaders, and from there
-  provide a number of standard shaders (that do what?!) so that a user
-  can create shaders just from chains of shaders].
 
   All pixels are passed through the brush of fastuidraw::Painter,
   embodied by fastuidraw::PainterBrush. That brush class contains the abiltiy
@@ -393,9 +388,21 @@ namespace fastuidraw {
   \section Example
   Below is an example of how to use fastuidraw::Painter
   \code
-  // startup code, create data that is repeatedly used
 
-  // create a path to render
+  ///////////////////////////////////////////////////////
+  // startup code, create data that is repeatedly used //
+  ///////////////////////////////////////////////////////
+
+  // choose an orientation convention
+  //  # y_increases_downwards --> y = 0 is at top of the window and increases down the window
+  //  # y_increases_upwards   --> y = 0 is at bottom of the window and increases up the window
+  enum fastuidraw::PainterEnums::screen_orientation myOrientation(PainterEnums::y_increases_downwards);
+
+  // create a path to render, it is always better to save
+  // your path objects to be reused each frame. A Path
+  // caches its tessellations, how to stroke and fill
+  // components. Recreating a path means all tha data
+  // must be regenerated.
   fastuidraw::Path myPath;
   myPath
   .move(fastuidraw::vec2(0.0f, 0.0f))
@@ -403,25 +410,47 @@ namespace fastuidraw {
   .quadratic_to(fastuidraw::vec2(100, 50.0f), fastuidraw::vec2(100.0f, 100.0f))
   .end_contour_arc(45.0 * M_PI / 180.0f);
 
-  std::vector<fastuidraw::vec2> glyph_positions;
-  std::vector<fastuidraw::Glyph> glyphs;
-  // fill glyph_positions and glyphs (see fastuidraw::GlyphCache and fastuidraw::GlyphSelector)
-  fastuidraw::PainterAttributeData myStaticText;
-  myStaticText.set_data(fastuidraw::const_c_array<fastuidraw::vec2>(&glyph_positions[0], glyph_positions.size(),
-                        fastuidraw::const_c_array<fastuidraw::Glyph>(&glyphs[0], glyphs.size()),
-                        glyph_render_pixel_size);
+
+  // formatting text should also know the size of
+  // of the text. When formatting text, the class
+  // GlyphMetrics informs how to scale the glyph
+  // for any size/
+  int myTextFormattingSize;
+
+  // generate glyphs and glyph_positions, a GlyphSource
+  // specifies both a font and glyph code to use;
+  // one can load fonts directly via FontFreeType
+  // or can use GlyphSelector to select glyphs from
+  // fonts added to it
+  fastuidraw::vec2 *glyph_positions;
+  fastuidraw::GlyphSource *glyphs;
+  unsigned int number_glyphs;
+
+  // a GlyphSequence holds the formatted text and lazily generates
+  // data to feed Painter for drawing text, save and reuse this object
+  // to draw your text.
+  GlyphSequence myGlyphSequence(myTextFormattingSize,
+                                PainterEnums::y_increases_downwards,
+                                myGlyphCache);
+
+  // copy the glyph choices and positions into your GlyphSequence object that you keep.
+  myGlyphSequence.add_glyphs(fastuidraw::c_array<const fastuidraw::GlyphSource>(glyphs, number_glyphs),
+                             fastuidraw::c_array<const fastuidraw::vec2>(glyph_positions, number_glyphs));
 
   // create and save an image
-  fastuidraw::reference_counted_ptr<fastuidraw::Image>
+  fastuidraw::reference_counted_ptr<fastuidraw::Image> myImage;
   myImage = fastuidraw::Image::create(myImageAtlas, width, height, pixels,
                                      fastuidraw::PainterBrush::slack_requirement(fastuidraw::PainterBrush::image_filter_cubic));
 
-  //rendering code
+  //////////////////////////////////////
+  // rendering code called many times //
+  //////////////////////////////////////
+
   // painter is of type reference_counted_ptr<Painter>
   fastuidraw::Painter *p;
   p = painter.get(); //Only using pointer instead of handle so that doxygen links to functions correctly.
 
-  p->begin(surface); //pass the surface one made at application initialization
+  p->begin(surface, myOrientation); //pass the surface one made at application initialization
 
   bool anti_alias_stroking(true), draw_closing_edges_of_contours(true);
   fastuidraw::PainterStrokeParams stroke_params;
@@ -449,6 +478,9 @@ namespace fastuidraw {
                  fastuidraw::PainterEnums::flat_caps,
                  fastuidraw::PainterEnums::rounded_joins,
                  anti_alias_stroking);
+
+  brush.pen(0.4, 0.4, 1.0, 1.0);
+  p->draw_glyphs(fastuidraw::PainterData(&brush), myGlyphSequence);
 
   p->end(); //on end() contents of surface can be used
 

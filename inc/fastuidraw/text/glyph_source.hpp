@@ -33,15 +33,29 @@ namespace fastuidraw
   class GlyphSource
   {
   public:
+    /*!
+     * Ctor. Initialize \ref m_glyph_code as 0 and \ref m_font
+     * as nullptr.
+     */
     GlyphSource(void):
       m_glyph_code(0)
     {}
 
+    /*!
+     * Ctor.
+     * \param f value to assign to \ref m_font
+     * \param g value to assign to \ref m_glyph_code
+     */
     GlyphSource(const reference_counted_ptr<const FontBase> &f, uint32_t g):
       m_glyph_code(g),
       m_font(f)
     {}
 
+    /*!
+     * Ctor.
+     * \param f value to assign to \ref m_font
+     * \param g value to assign to \ref m_glyph_code
+     */
     GlyphSource(uint32_t g, const reference_counted_ptr<const FontBase> &f):
       m_glyph_code(g),
       m_font(f)

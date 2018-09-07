@@ -244,7 +244,6 @@ namespace fastuidraw
      * Fill an array of Glyph values from an array of character code values.
      * \tparam input_iterator read iterator to type that is castable to uint32_t
      * \tparam output_iterator write iterator to Glyph
-     * \param tp glyph rendering type
      * \param h handle to font from which to fetch the glyph, if the glyph
      *          is not present in the font attempt to get the glyph from
      *          a font of similiar properties
