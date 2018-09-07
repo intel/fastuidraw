@@ -48,6 +48,17 @@ namespace fastuidraw
     {}
 
     /*!
+     * Comparison operator
+     * \param rhs value to compare against
+     */
+    bool
+    operator<(const GlyphSource &rhs) const
+    {
+      return (m_font < rhs.m_font)
+        || (m_font == rhs.m_font && m_glyph_code < rhs.m_glyph_code);
+    }
+
+    /*!
      * Glyph code of a \ref Glyph
      */
     uint32_t m_glyph_code;

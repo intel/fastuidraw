@@ -112,12 +112,13 @@ namespace fastuidraw
     can_create_rendering_data(enum glyph_type tp) const;
 
     virtual
-    GlyphRenderData*
-    compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) const;
+    void
+    compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const;
 
     virtual
-    void
-    compute_layout_data(uint32_t glyph_code, GlyphLayoutData &layout) const;
+    GlyphRenderData*
+    compute_rendering_data(GlyphRender render,
+                           GlyphMetrics glyph_metrics, Path &path) const;
 
   private:
     void *m_d;

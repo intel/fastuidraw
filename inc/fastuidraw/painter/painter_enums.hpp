@@ -51,14 +51,14 @@ namespace fastuidraw
       {
         /*!
          * Glyphs are layed out horizontally, thus will use
-         * \ref GlyphLayoutData::horizontal_layout_offset()
+         * \ref GlyphMetrics::horizontal_layout_offset()
          * to offset the glyphs.
          */
         glyph_layout_horizontal,
 
         /*!
          * Glyphs are layed out vertically, thus will use
-         * \ref GlyphLayoutData::vertical_layout_offset()
+         * \ref GlyphMetrics::vertical_layout_offset()
          * to offset the glyphs.
          */
         glyph_layout_vertical

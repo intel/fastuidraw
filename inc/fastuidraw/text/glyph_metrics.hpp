@@ -1,6 +1,6 @@
 /*!
- * \file glyph_layout_data.hpp
- * \brief file glyph_layout_data.hpp
+ * \file glyph_metrics.hpp
+ * \brief file glyph_metrics.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -32,47 +32,36 @@ namespace fastuidraw
  * @{
  */
   class FontBase;
-  class GlyphCache;
 
   /*!
    * \brief
-   * A GlyphLayoutData provides information on how to
-   * layout text using a glyph, all the values are in
-   * units of the font glyph. The field \ref m_units_per_EM
-   * gives the conversion factor to pixel coordinates via
-   * \f$PixelCoordinates = FontCoordinates * PixelSize / m_units_per_EM\f$
+   * A GlyphMetrics provides information on the metrics
+   * of a glyph, all the values are in units of the font
+   * glyph. The function units_per_EM() provides the
+   * conversion factor to pixel coordinates via
+   * \f$PixelCoordinates = FontCoordinates * PixelSize / units_per_EM()\f$
    * where PixelSize is the pixel size in which one is
    * to render the text.
    */
-  class GlyphLayoutData
+  class GlyphMetrics
   {
   public:
     /*!
      * Ctor.
      */
-    GlyphLayoutData(void);
+    GlyphMetrics(void):
+      m_d(nullptr)
+    {}
 
     /*!
-     * Copy ctor.
-       * \param obj value from which to copy
+     * Returns true if the Glyph refers to actual
+     * glyph data
      */
-    GlyphLayoutData(const GlyphLayoutData &obj);
-
-    ~GlyphLayoutData();
-
-    /*!
-     * Assignment operator.
-     * \param obj value from which to copy
-     */
-    GlyphLayoutData&
-    operator=(const GlyphLayoutData &obj);
-
-    /*!
-     * Swap operation
-     * \param obj object with which to swap
-     */
-    void
-    swap(GlyphLayoutData &obj);
+    bool
+    valid(void) const
+    {
+      return m_d != nullptr;
+    }
 
     /*!
      * The index of the glyph into the -font- of the glyph
@@ -81,24 +70,10 @@ namespace fastuidraw
     glyph_code(void) const;
 
     /*!
-     * Set the value returned by glyph_code(void) const.
-     * Default value is 0.
-     */
-    GlyphLayoutData&
-    glyph_code(uint32_t);
-
-    /*!
      * Font of the glyph
      */
     const reference_counted_ptr<const FontBase>&
     font(void) const;
-
-    /*!
-     * Set the value returned by font(void) const.
-     * Default value is nullptr.
-     */
-    GlyphLayoutData&
-    font(const reference_counted_ptr<const FontBase>&);
 
     /*!
      * The offset (in font coordinates) from the pen
@@ -109,13 +84,6 @@ namespace fastuidraw
     horizontal_layout_offset(void) const;
 
     /*!
-     * Set the value returned by horizontal_layout_offset(void) const.
-     * Default value is (0, 0).
-     */
-    GlyphLayoutData&
-    horizontal_layout_offset(vec2);
-
-    /*!
      * The offset (in font coordinates) from the pen
      * at which to display the glyph when performing
      * horizontal text layout.
@@ -124,25 +92,11 @@ namespace fastuidraw
     vertical_layout_offset(void) const;
 
     /*!
-     * Set the value returned by vertical_layout_offset(void) const.
-     * Default value is (0, 0).
-     */
-    GlyphLayoutData&
-    vertical_layout_offset(vec2);
-
-    /*!
      * Size (in font coordinates) at which to draw
      * the glyph.
      */
     vec2
     size(void) const;
-
-    /*!
-     * Set the value returned by size(void) const.
-     * Default value is (0, 0).
-     */
-    GlyphLayoutData&
-    size(vec2);
 
     /*!
      * How much (in font coordinates) to advance the pen
@@ -154,13 +108,6 @@ namespace fastuidraw
     advance(void) const;
 
     /*!
-     * Set the value returned by advance(void) const.
-     * Default value is (0, 0).
-     */
-    GlyphLayoutData&
-    advance(vec2);
-
-    /*!
      * The number of font units per EM for the glyph.
      * The conversion from font coordinates to pixel
      * coordiantes is given by:
@@ -169,14 +116,15 @@ namespace fastuidraw
     float
     units_per_EM(void) const;
 
-    /*!
-     * Set the value returned by units_per_EM(void) const.
-     * Default value is 0.
-     */
-    GlyphLayoutData&
-    units_per_EM(float);
-
   private:
+    friend class GlyphCache;
+    friend class Glyph;
+
+    explicit
+    GlyphMetrics(void *p):
+      m_d(p)
+    {}
+
     void *m_d;
   };
 /*! @} */

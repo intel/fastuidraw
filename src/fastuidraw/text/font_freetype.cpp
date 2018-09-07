@@ -19,7 +19,6 @@
 #include <sstream>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
-#include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include <fastuidraw/text/glyph_render_data_distance_field.hpp>
@@ -190,22 +189,18 @@ namespace
     load_glyph(FT_Face face, uint32_t glyph_code);
 
     void
-    compute_layout_data(FT_Face face,
-                        fastuidraw::GlyphLayoutData &layout,
-                        uint32_t glyph_code);
-
-    void
-    compute_rendering_data(int pixel_size, uint32_t glyph_code,
+    compute_rendering_data(int pixel_size,
+                           fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataCoverage &output,
                            fastuidraw::Path &path);
 
     void
-    compute_rendering_data(uint32_t glyph_code,
+    compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataDistanceField &output,
                            fastuidraw::Path &path);
 
     void
-    compute_rendering_data(uint32_t glyph_code,
+    compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataCurvePair &output,
                            fastuidraw::Path &path);
 
@@ -299,27 +294,8 @@ load_glyph(FT_Face face, uint32_t glyph_code)
 
 void
 FontFreeTypePrivate::
-compute_layout_data(FT_Face face,
-                    fastuidraw::GlyphLayoutData &output,
-                    uint32_t glyph_code)
-{
-  using namespace fastuidraw;
-
-  output
-    .size(vec2(face->glyph->metrics.width, face->glyph->metrics.height))
-    .horizontal_layout_offset(vec2(face->glyph->metrics.horiBearingX,
-                                   face->glyph->metrics.horiBearingY - face->glyph->metrics.height))
-    .vertical_layout_offset(vec2(face->glyph->metrics.vertBearingX,
-                                 face->glyph->metrics.vertBearingY - face->glyph->metrics.height))
-    .advance(vec2(face->glyph->linearHoriAdvance, face->glyph->linearVertAdvance))
-    .glyph_code(glyph_code)
-    .units_per_EM(face->units_per_EM)
-    .font(m_p);
-}
-
-void
-FontFreeTypePrivate::
-compute_rendering_data(int pixel_size, uint32_t glyph_code,
+compute_rendering_data(int pixel_size,
+                       fastuidraw::GlyphMetrics glyph_metrics,
                        fastuidraw::GlyphRenderDataCoverage &output,
                        fastuidraw::Path &path)
 {
@@ -333,6 +309,7 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
   FT_Face face(p.m_p->face());
   fastuidraw::ivec2 bitmap_sz;
   font_coordinate_converter C(face, pixel_size);
+  uint32_t glyph_code(glyph_metrics.glyph_code());
 
   FT_Set_Pixel_Sizes(face, pixel_size, pixel_size);
   FT_Load_Glyph(face, glyph_code, FT_LOAD_RENDER | FT_LOAD_IGNORE_TRANSFORM);
@@ -368,7 +345,7 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
 
 void
 FontFreeTypePrivate::
-compute_rendering_data(uint32_t glyph_code,
+compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                        fastuidraw::GlyphRenderDataDistanceField &output,
                        fastuidraw::Path &path)
 {
@@ -377,6 +354,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 layout_offset;
   fastuidraw::vec2 layout_size;
   int outline_flags;
+  uint32_t glyph_code(glyph_metrics.glyph_code());
 
   {
     FaceGrabber p(this);
@@ -448,7 +426,7 @@ compute_rendering_data(uint32_t glyph_code,
 
 void
 FontFreeTypePrivate::
-compute_rendering_data(uint32_t glyph_code,
+compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                        fastuidraw::GlyphRenderDataCurvePair &output,
                        fastuidraw::Path &path)
 {
@@ -457,6 +435,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 layout_offset;
   fastuidraw::vec2 layout_size;
   int outline_flags;
+  uint32_t glyph_code(glyph_metrics.glyph_code());
 
   {
     FaceGrabber p(this);
@@ -575,7 +554,7 @@ can_create_rendering_data(enum glyph_type tp) const
 
 void
 fastuidraw::FontFreeType::
-compute_layout_data(uint32_t glyph_code, GlyphLayoutData &layout) const
+compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const
 {
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);
@@ -587,12 +566,22 @@ compute_layout_data(uint32_t glyph_code, GlyphLayoutData &layout) const
       return;
     }
   FontFreeTypePrivate::load_glyph(p.m_p->face(), glyph_code);
-  d->compute_layout_data(p.m_p->face(), layout, glyph_code);
+  FT_Face face(p.m_p->face());
+
+  metrics
+    .size(vec2(face->glyph->metrics.width, face->glyph->metrics.height))
+    .horizontal_layout_offset(vec2(face->glyph->metrics.horiBearingX,
+                                   face->glyph->metrics.horiBearingY - face->glyph->metrics.height))
+    .vertical_layout_offset(vec2(face->glyph->metrics.vertBearingX,
+                                 face->glyph->metrics.vertBearingY - face->glyph->metrics.height))
+    .advance(vec2(face->glyph->linearHoriAdvance, face->glyph->linearVertAdvance))
+    .units_per_EM(face->units_per_EM);
 }
 
 fastuidraw::GlyphRenderData*
 fastuidraw::FontFreeType::
-compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) const
+compute_rendering_data(GlyphRender render,
+                       GlyphMetrics glyph_metrics, Path &path) const
 {
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);
@@ -603,7 +592,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) cons
       {
         GlyphRenderDataCoverage *data;
         data = FASTUIDRAWnew GlyphRenderDataCoverage();
-        d->compute_rendering_data(render.m_pixel_size, glyph_code, *data, path);
+        d->compute_rendering_data(render.m_pixel_size, glyph_metrics, *data, path);
         return data;
       }
       break;
@@ -612,7 +601,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) cons
       {
         GlyphRenderDataDistanceField *data;
         data = FASTUIDRAWnew GlyphRenderDataDistanceField();
-        d->compute_rendering_data(glyph_code, *data, path);
+        d->compute_rendering_data(glyph_metrics, *data, path);
         return data;
       }
       break;
@@ -621,7 +610,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) cons
       {
         GlyphRenderDataCurvePair *data;
         data = FASTUIDRAWnew GlyphRenderDataCurvePair();
-        d->compute_rendering_data(glyph_code, *data, path);
+        d->compute_rendering_data(glyph_metrics, *data, path);
         return data;
       }
       break;

@@ -144,14 +144,14 @@ namespace
     FASTUIDRAWassert(glyph.valid());
 
     fastuidraw::c_array<const fastuidraw::GlyphLocation> atlas_locations(glyph.atlas_locations());
-    fastuidraw::vec2 glyph_size(SCALE * glyph.layout().size());
+    fastuidraw::vec2 glyph_size(SCALE * glyph.metrics().size());
     fastuidraw::vec2 p_bl, p_tr;
     unsigned int geometry_offset(glyph.geometry_offset());
     fastuidraw::vec2 layout_offset;
 
     layout_offset = (layout == fastuidraw::PainterEnums::glyph_layout_horizontal) ?
-      glyph.layout().horizontal_layout_offset() :
-      glyph.layout().vertical_layout_offset();
+      glyph.metrics().horizontal_layout_offset() :
+      glyph.metrics().vertical_layout_offset();
 
     /* ISSUE: we are assuming horizontal layout; we should probably
      * change the interface so that caller chooses how to adjust
@@ -170,7 +170,7 @@ namespace
       }
     else
       {
-        p_bl = p + SCALE * glyph.layout().horizontal_layout_offset();
+        p_bl = p + SCALE * glyph.metrics().horizontal_layout_offset();
         p_tr = p_bl + glyph_size;
       }
 
@@ -379,7 +379,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
           unsigned int t;
 
           scale = (d->m_render_pixel_size.first) ?
-            d->m_render_pixel_size.second / d->m_glyphs[g].layout().units_per_EM() :
+            d->m_render_pixel_size.second / d->m_glyphs[g].metrics().units_per_EM() :
             (d->m_scale_factors.empty()) ? 1.0f : d->m_scale_factors[g];
 
           t = d->m_glyphs[g].type();

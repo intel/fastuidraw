@@ -22,7 +22,7 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/text/font.hpp>
-#include <fastuidraw/text/glyph_layout_data.hpp>
+#include <fastuidraw/text/glyph_metrics.hpp>
 #include <fastuidraw/text/glyph.hpp>
 #include <fastuidraw/text/glyph_source.hpp>
 
@@ -50,6 +50,38 @@ namespace fastuidraw
     GlyphCache(reference_counted_ptr<GlyphAtlas> patlas);
 
     ~GlyphCache();
+
+    /*!
+     * Fetch, and if necessay create and store, the metrics
+     * of given a glyph code of a font.
+     * \param font font from which to take the glyph
+     * \param glyph_code glyph code
+     */
+    GlyphMetrics
+    fetch_glyph_metrics(const reference_counted_ptr<const FontBase> &font,
+                        uint32_t glyph_code);
+
+    /*!
+     * Fetch, and if necessay create and store, the metrics
+     * of given a set of glyph codes of a font.
+     * \param font font from which to take the glyph
+     * \param glyph_codes glyph codes to fetch
+     * \param out_metrics location to which to write the Glyph
+     */
+    void
+    fetch_glyph_metrics(const reference_counted_ptr<const FontBase> &font,
+                        c_array<const uint32_t> glyph_codes,
+                        c_array<GlyphMetrics> out_metrics);
+
+    /*!
+     * Fetch, and if necessay create and store, the metrics
+     * of given a set of glyph codes of a font.
+     * \param glyph_sources sequence of \ref GlyphSource values
+     * \param out_metrics location to which to write the Glyph
+     */
+    void
+    fetch_glyph_metrics(c_array<const GlyphSource> glyph_sources,
+                        c_array<GlyphMetrics> out_metrics);
 
     /*!
      * Fetch, and if necessay create and store, a glyph given a
@@ -102,8 +134,8 @@ namespace fastuidraw
     /*!
      * Add a Glyph created with Glyph::create_glyph() to
      * this GlyphCache. Will fail if a Glyph with the
-     * same glyph_code (GlyphLayoutData::m_glyph_code),
-     * font (GlyphLayoutData::m_font) and renderer
+     * same glyph_code (GlyphMetrics::glyph_code()),
+     * font (GlyphMetrics::font()) and renderer
      * (Glyph::renderer()) is already present in the
      * GlyphCache.
      * \param glyph Glyph to add to cache

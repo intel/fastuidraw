@@ -25,15 +25,14 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/text/font_properties.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
-#include <fastuidraw/text/glyph_layout_data.hpp>
+#include <fastuidraw/text/glyph_metrics.hpp>
+#include <fastuidraw/text/glyph_metrics_value.hpp>
 
 namespace fastuidraw
 {
 /*!\addtogroup Text
  * @{
  */
-
-  class GlyphLayoutData;
 
   /*!
    * \brief
@@ -85,27 +84,28 @@ namespace fastuidraw
     can_create_rendering_data(enum glyph_type tp) const = 0;
 
     /*!
+     * To be implemented by a derived class to provide the metrics
+     * data for the named glyph.
+     * \param glyph_code glyph code of glyph to compute the metric values
+     * \param[out] metrics location to which to place the metric values for the glyph
+     */
+    virtual
+    void
+    compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const = 0;
+
+    /*!
      * To be implemented by a derived class to generate glyph
      * rendering data given a glyph code and GlyphRender.
      * \param render specifies object to return via GlyphRender::type(),
      *               it is guaranteed by the caller that can_create_rendering_data()
      *               returns true on render.type()
-     * \param glyph_code glyph code of glyph rendering data to create
+     * \param glyph_metrics GlyphMetrics values as computed by compute_metrics()
      * \param[out] path Path of the glyph
      */
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render, uint32_t glyph_code, Path &path) const = 0;
-
-    /*!
-     * To be implemented by a derived class to provide the layout
-     * data for the named glyph.
-     * \param glyph_code glyph code of glyph to compute the GlyphLayoutData
-     * \param[out] layout location to which to place the GlyphLayoutData for the glyph
-     */
-    virtual
-    void
-    compute_layout_data(uint32_t glyph_code, GlyphLayoutData &layout) const = 0;
+    compute_rendering_data(GlyphRender render,
+                           GlyphMetrics glyph_metrics, Path &path) const = 0;
 
   private:
     FontProperties m_props;

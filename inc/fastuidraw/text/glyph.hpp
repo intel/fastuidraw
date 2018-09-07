@@ -25,7 +25,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/text/glyph_location.hpp>
-#include <fastuidraw/text/glyph_layout_data.hpp>
+#include <fastuidraw/text/glyph_metrics.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 
 namespace fastuidraw
@@ -84,8 +84,8 @@ namespace fastuidraw
      * must return true. If not, debug builds FASTUIDRAWassert
      * and release builds crash.
      */
-    const GlyphLayoutData&
-    layout(void) const;
+    GlyphMetrics
+    metrics(void) const;
 
     /*!
      * Returns the glyph's locations within the
