@@ -157,13 +157,12 @@ namespace
 // GlyphSetGenerator methods
 GlyphSetGenerator::
 GlyphSetGenerator(fastuidraw::GlyphRender r,
-                  fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
-                  fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> face,
+                  fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
                   std::vector<fastuidraw::Glyph> &dst):
   m_render(r),
   m_font(f)
 {
-  dst.resize(face->face()->num_glyphs);
+  dst.resize(f->number_glyphs());
   m_dst = fastuidraw::c_array<fastuidraw::Glyph>(&dst[0], dst.size());
   SDL_AtomicSet(&m_counter, 0);
 }
@@ -188,13 +187,12 @@ void
 GlyphSetGenerator::
 generate(unsigned int num_threads,
          fastuidraw::GlyphRender r,
-         fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
-         fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> face,
+         fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
          std::vector<fastuidraw::Glyph> &dst,
          fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
          std::vector<int> &cnts)
 {
-  GlyphSetGenerator generator(r, f, face, dst);
+  GlyphSetGenerator generator(r, f, dst);
   std::vector<SDL_Thread*> threads;
 
   cnts.clear();

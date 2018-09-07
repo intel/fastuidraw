@@ -324,23 +324,16 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 {
   float tallest(0.0f), negative_tallest(0.0f), offset;
   unsigned int i, endi, glyph_at_start, navigator_chars;
-  float scale_factor, div_scale_factor;
   std::list< std::pair<float, std::string> > navigator;
   std::list< std::pair<float, std::string> >::iterator nav_iter;
   float line_length(800);
-  FT_ULong character_code;
-  FT_UInt  glyph_index;
   unsigned int num_glyphs;
-  reference_counted_ptr<FreeTypeFace> face;
   float y_advance_sign;
   std::vector<GlyphMetrics> metrics;
   simple_time timer;
 
-  face = font->face_generator()->create_face(font->lib());
-  div_scale_factor = static_cast<float>(face->face()->units_per_EM);
-  scale_factor = pixel_size_formatting / div_scale_factor;
   y_advance_sign = (screen_orientation == PainterEnums::y_increases_downwards) ? 1.0f : -1.0f;
-  num_glyphs = face->face()->num_glyphs;
+  num_glyphs = font->number_glyphs();
 
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
@@ -351,21 +344,23 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   metrics.resize(num_glyphs);
   for(unsigned int i = 0; i < num_glyphs; ++i)
     {
-      metrics[i] = glyph_cache->fetch_glyph_metrics(font, i);
-      tallest = std::max(tallest, metrics[i].horizontal_layout_offset().y() + metrics[i].size().y());
-      negative_tallest = std::min(negative_tallest, metrics[i].horizontal_layout_offset().y());
-    }
+      float scale_factor;
 
-  tallest *= scale_factor;
-  negative_tallest *= scale_factor;
+      metrics[i] = glyph_cache->fetch_glyph_metrics(font, i);
+      scale_factor = pixel_size_formatting / metrics[i].units_per_EM();
+
+      tallest = scale_factor * t_max(tallest, metrics[i].horizontal_layout_offset().y() + metrics[i].size().y());
+      negative_tallest = scale_factor * t_min(negative_tallest, metrics[i].horizontal_layout_offset().y());
+    }
   offset = tallest - negative_tallest;
 
   vec2 pen(0.0f, 0.0f);
   for(navigator_chars = 0, i = 0, endi = metrics.size(), glyph_at_start = 0; i < endi; ++i)
     {
       GlyphMetrics metric(metrics[i]);
-      float advance, nxt;
+      float advance, nxt, scale_factor;
 
+      scale_factor = pixel_size_formatting / metric.units_per_EM();
       advance = scale_factor * t_max(metric.advance().x(),
                                      t_max(0.0f, metric.horizontal_layout_offset().x()) + metric.size().x());
 
@@ -710,14 +705,11 @@ realize_all_glyphs(GlyphRender renderer)
 {
   unsigned int num_threads(m_realize_glyphs_thread_count.value());
   simple_time timer;
-  std::vector<int> cnts(num_threads, 0);
+  std::vector<int> cnts;
   std::vector<Glyph> glyphs;
-  reference_counted_ptr<FreeTypeFace> face;
 
   std::cout << "Generating " << renderer << " glyphs ..." << std::flush;
-  face = m_font->face_generator()->create_face(m_font->lib());
-  GlyphSetGenerator::generate(num_threads, renderer, m_font, face, glyphs,
-                              m_glyph_cache, cnts);
+  GlyphSetGenerator::generate(num_threads, renderer, m_font, glyphs, m_glyph_cache, cnts);
   std::cout << "took " << timer.restart()
             << " ms to generate " << glyphs.size()
             << " glyphs of type " << renderer << "\n";

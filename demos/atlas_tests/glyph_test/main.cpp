@@ -872,7 +872,7 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
   simple_time timer;
   std::vector<int> cnts;
   GlyphSetGenerator::generate(m_realize_glyphs_thread_count.value(), renderer,
-                              m_font, m_face, glyphs, m_glyph_cache, cnts);
+                              m_font, glyphs, m_glyph_cache, cnts);
   std::cout << "Took " << timer.elapsed()
             << " ms to generate glyphs of type "
             << renderer << "\n";
