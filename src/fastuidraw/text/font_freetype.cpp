@@ -214,6 +214,7 @@ namespace
      */
     fastuidraw::vecN<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace>, 8> m_faces;
     bool m_all_faces_null;
+    unsigned int m_number_glyphs;
   };
 }
 
@@ -254,7 +255,8 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
   m_generator(generator),
   m_lib(lib),
   m_p(p),
-  m_all_faces_null(true)
+  m_all_faces_null(true),
+  m_number_glyphs(0)
 {
   if (!m_lib)
     {
@@ -267,6 +269,7 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
       if (m_faces[i] && m_faces[i]->face())
         {
           m_all_faces_null = false;
+          m_number_glyphs = m_faces[i]->face()->num_glyphs;
           FT_Set_Transform(m_faces[i]->face(), nullptr, nullptr);
         }
     }
@@ -550,6 +553,15 @@ can_create_rendering_data(enum glyph_type tp) const
   return tp == coverage_glyph
     || tp == distance_field_glyph
     || tp == curve_pair_glyph;
+}
+
+unsigned int
+fastuidraw::FontFreeType::
+number_glyphs(void) const
+{
+  FontFreeTypePrivate *d;
+  d = static_cast<FontFreeTypePrivate*>(m_d);
+  return d->m_number_glyphs;
 }
 
 void

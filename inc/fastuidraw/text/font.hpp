@@ -74,6 +74,18 @@ namespace fastuidraw
     uint32_t
     glyph_code(uint32_t pcharacter_code) const = 0;
 
+    /*!
+     * To be implemented by a derived class to return
+     * the number of glyph codes the instance has.
+     * In particular the return value of glyph_code()
+     * is always less than number_glyphs() and the
+     * input to compute_metrics() will also have value
+     * no more than number_glyphs().
+     */
+    virtual
+    unsigned int
+    number_glyphs(void) const = 0;
+
   private:
     /*!
      * To be implemented by a derived class to indicate

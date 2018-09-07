@@ -107,6 +107,10 @@ namespace fastuidraw
     uint32_t
     glyph_code(uint32_t pcharacter_code) const;
 
+    virtual
+    unsigned int
+    number_glyphs(void) const;
+
   private:
     virtual
     bool
