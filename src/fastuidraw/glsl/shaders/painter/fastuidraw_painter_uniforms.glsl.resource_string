@@ -40,18 +40,19 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
 #endif
 
 #ifdef FASTUIDRAW_GLYPH_DATA_STORE_SSBO
-  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING, std140) restrict readonly buffer fastuidraw_glyphGeometryDataStore
+
+  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING, std430) restrict readonly buffer fastuidraw_glyphGeometryDataStore
   {
-    vec4 fastuidraw_glyphGeometryDataStore_data[];
+    fastuidraw_glyph_atlas_geometry_store_block_type fastuidraw_glyphGeometryDataStore_data[];
   };
-  #define fastuidraw_fetch_glyph_data(block) fastuidraw_glyphGeometryDataStore_data[int(block)]
+  #define fastuidraw_fetch_glyph_data(block) fastuidraw_glyph_atlas_geometry_store_block_as4(fastuidraw_glyphGeometryDataStore_data[int(block)])
 
 #elif defined(FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY)
   /* The width and height of fastuidraw_glyphGeometryDataStore are
-     powers of 2, the values given by FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2
-     and FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2. We want to use
-     bit shifts and masking to get the correct layer, height and so on.
-  */
+   * powers of 2, the values given by FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2
+   * and FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2. We want to use
+   * bit shifts and masking to get the correct layer, height and so on.
+   */
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING) uniform sampler2DArray fastuidraw_glyphGeometryDataStore;
   #define FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_PLUS_HEIGHT_LOG2 uint(FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2 + FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2)
   #define FASTUIDRAW_GLYPH_GEOMETRY_LAYER(T) (uint(T) >> FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_PLUS_HEIGHT_LOG2)
@@ -65,26 +66,25 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_USE_DATA_TBO
+
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_STORE_TBO_BINDING) uniform usamplerBuffer fastuidraw_painterStore_tbo;
   #define fastuidraw_fetch_data(block) texelFetch(fastuidraw_painterStore_tbo, int(block))
+
 #elif defined(FASTUIDRAW_PAINTER_USE_DATA_SSBO)
-  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_SSBO_BINDING, std140) restrict readonly buffer fastuidraw_painterStore_ssbo
+
+  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_SSBO_BINDING, std430) restrict readonly buffer fastuidraw_painterStore_ssbo
   {
-    uvec4 fastuidraw_painterStore[];
+    fastuidraw_data_store_block_type fastuidraw_painterStore[];
   };
-  #define fastuidraw_fetch_data(block) uvec4(fastuidraw_painterStore[int(block)])
+ #define fastuidraw_fetch_data(block) fastuidraw_data_store_block_as4(fastuidraw_painterStore[int(block)])
+
 #elif defined(FASTUIDRAW_PAINTER_USE_DATA_UBO)
-/*
-  Type in the array for the uniform blocks:
-    FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE is uint, uvec2, uvec3 or uvec4
-  Size of the array is given by FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE
- */
+
   FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_UBO_BINDING, std140) uniform fastuidraw_painterStore_ubo
   {
-    uvec4 fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
+    fastuidraw_data_store_block_type fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
   };
-
-  #define fastuidraw_fetch_data(block) uvec4(fastuidraw_painterStore[int(block)])
+  #define fastuidraw_fetch_data(block) fastuidraw_data_store_block_as4(fastuidraw_painterStore[int(block)])
 
 #endif
 

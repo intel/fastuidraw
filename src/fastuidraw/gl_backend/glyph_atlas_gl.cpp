@@ -100,7 +100,7 @@ namespace
   {
   public:
     explicit
-    GeometryStoreGL_StorageBuffer(unsigned int number_vecNs, bool delayed);
+    GeometryStoreGL_StorageBuffer(unsigned int number_vecNs, bool delayed, unsigned int N);
 
     virtual
     void
@@ -588,10 +588,10 @@ gl_backing(void) const
 ///////////////////////////////////////////////
 // GeometryStoreGL_StorageBuffer methods
 GeometryStoreGL_StorageBuffer::
-GeometryStoreGL_StorageBuffer(unsigned int number_vecNs, bool delayed):
-  GeometryStoreGL(number_vecNs, 4, GL_SHADER_STORAGE_BUFFER,
+GeometryStoreGL_StorageBuffer(unsigned int number_vecNs, bool delayed, unsigned int N):
+  GeometryStoreGL(number_vecNs, N, GL_SHADER_STORAGE_BUFFER,
                   fastuidraw::ivec2(-1, -1), false),
-  m_backing_store(number_vecNs * 4 * sizeof(float), delayed)
+  m_backing_store(number_vecNs * N * sizeof(float), delayed)
 {
 }
 
@@ -600,9 +600,8 @@ GeometryStoreGL_StorageBuffer::
 set_values(unsigned int location,
            fastuidraw::c_array<const fastuidraw::generic_data> pdata)
 {
-  FASTUIDRAWassert(alignment() == 4);
   FASTUIDRAWassert(pdata.size() % alignment() == 0);
-  m_backing_store.set_data(location * 4 * sizeof(float),
+  m_backing_store.set_data(location * alignment() * sizeof(float),
                            pdata.reinterpret_pointer<const uint8_t>());
 }
 
@@ -653,7 +652,7 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
       break;
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo:
-      p = FASTUIDRAWnew GeometryStoreGL_StorageBuffer(number_vecNs, delayed);
+      p = FASTUIDRAWnew GeometryStoreGL_StorageBuffer(number_vecNs, delayed, N);
       break;
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array:
@@ -722,7 +721,6 @@ use_storage_buffer_geometry_store(void)
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo;
   d->m_log2_dims_geometry_store = ivec2(-1, -1);
-  d->m_alignment = 4;
   return *this;
 }
 
@@ -755,9 +753,7 @@ alignment(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  return (d->m_type == glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo) ?
-    4:
-    d->m_alignment;
+  return d->m_alignment;
 }
 
 fastuidraw::gl::GlyphAtlasGL::params&

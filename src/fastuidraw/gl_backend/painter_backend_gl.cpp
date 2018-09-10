@@ -1557,7 +1557,6 @@ adjust_for_context(const ContextProperties &ctx)
     case data_store_ssbo:
       {
         unsigned int max_ssbo_size_bytes, max_num_blocks, block_size_bytes;
-        d->m_alignment = 4;
         block_size_bytes = d->m_alignment * sizeof(generic_data);
         max_ssbo_size_bytes = context_get<GLint>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
         max_num_blocks = max_ssbo_size_bytes / block_size_bytes;

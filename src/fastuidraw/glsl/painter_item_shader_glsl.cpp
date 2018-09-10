@@ -264,8 +264,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
       str << "utemp" << temp_comp << " = fastuidraw_fetch_data(int("
           << offset_name << ") + " << b << ")" << read_components[cmp-1] << ";\n";
 
-      /* perform bit cast to correct type.
-       */
+      /* perform bit cast to correct type. */
       for(unsigned int k = 0; k < alignment && i < labels.size(); ++k, ++i)
         {
           fastuidraw::c_string ext;

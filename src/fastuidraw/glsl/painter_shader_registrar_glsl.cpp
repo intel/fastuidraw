@@ -452,6 +452,62 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
                number_blocks(alignment, PainterBrush::transformation_translation_data_size))
     .add_macro("fastuidraw_stroke_dashed_stroking_params_header_num_blocks",
                number_blocks(alignment, PainterDashedStrokeParams::stroke_static_data_size));
+
+  /* add a macro specifying the element type depending on alignment */
+  switch(alignment)
+    {
+    case 1:
+      src
+        .add_macro("fastuidraw_data_store_block_type", "uint")
+        .add_macro("fastuidraw_data_store_block_as4(X)", "uvec4(X, 0u, 0u, 0u)");
+      break;
+
+    case 2:
+      src
+        .add_macro("fastuidraw_data_store_block_type", "uvec2")
+        .add_macro("fastuidraw_data_store_block_as4(X)", "uvec4(X, 0u, 0u)");
+      break;
+
+    case 3:
+      src
+        .add_macro("fastuidraw_data_store_block_type", "uvec3")
+        .add_macro("fastuidraw_data_store_block_as4(X)", "uvec4(X, 0u)");
+      break;
+
+    case 4:
+      src
+        .add_macro("fastuidraw_data_store_block_type", "uvec4")
+        .add_macro("fastuidraw_data_store_block_as4(X)", "X");
+      break;
+    }
+
+  /* and the same for the geometry store alignment */
+  switch(backend.glyph_atlas_geometry_store_alignment())
+    {
+    case 1:
+      src
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "float")
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "vec4(X, 0.0, 0.0, 0.0)");
+      break;
+
+    case 2:
+      src
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "vec2")
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "vec4(X, 0.0, 0.0)");
+      break;
+
+    case 3:
+      src
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "vec3")
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "vec4(X, 0.0)");
+      break;
+
+    case 4:
+      src
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "vec4")
+        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "X");
+      break;
+    }
 }
 
 void
@@ -970,8 +1026,6 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
 
     case PainterShaderRegistrarGLSL::data_store_ssbo:
       {
-        FASTUIDRAWassert(backend.data_store_alignment() == 4);
-
         vert.add_macro("FASTUIDRAW_PAINTER_USE_DATA_SSBO");
         frag.add_macro("FASTUIDRAW_PAINTER_USE_DATA_SSBO");
       }
