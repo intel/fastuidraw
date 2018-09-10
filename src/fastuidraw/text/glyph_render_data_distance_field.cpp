@@ -99,31 +99,28 @@ resize(fastuidraw::ivec2 sz)
 
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataDistanceField::
-upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                GlyphLocation::Array &atlas_locations,
-                GlyphAttribute::Array &attributes,
-                int &geometry_offset,
-                int &geometry_length) const
+upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
+                GlyphAttribute::Array &attributes) const
 {
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
 
-  FASTUIDRAWunused(attributes);
-
-  geometry_offset = -1;
-  geometry_length = 0;
   if (d->m_texels.empty())
     {
       return routine_success;
     }
 
   GlyphAtlas::Padding padding;
+  GlyphLocation L;
+
   padding.m_right = 1;
   padding.m_bottom = 1;
-  atlas_locations.resize(1);
-  atlas_locations[0] = atlas->allocate(d->m_resolution, make_c_array(d->m_texels), padding);
 
-  return atlas_locations[0].valid() ?
+  L = atlas_proxy.allocate(d->m_resolution, make_c_array(d->m_texels), padding);
+  attributes.resize(1);
+  attributes[0].pack_location(L);
+
+  return L.valid() ?
     routine_success :
     routine_fail;
 }

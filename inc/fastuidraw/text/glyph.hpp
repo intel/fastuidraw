@@ -89,32 +89,10 @@ namespace fastuidraw
     metrics(void) const;
 
     /*!
-     * Returns the glyph's locations within the
-     * GlyphAtlas. The size in the glyph atlas can be
-     * larger than the actual glyph rendering size,
-     * for example to pad for texture filtering.
-     * The return value of valid() must be true.
-     * If not, debug builds FASTUIDRAWassert and
-     * release builds crash.
-     */
-    c_array<const GlyphLocation>
-    atlas_locations(void) const;
-
-    /*!
      * Returns the glyph's per-corner attribute data.
      */
     c_array<const GlyphAttribute>
     attributes(void) const;
-
-    /*!
-     * Returns the glyph's geometry data location within a
-     * GlyphAtlas, a negative value indicates that
-     * the glyph has no gometry data. The return value
-     * of valid() must be true. If not, debug builds
-     * FASTUIDRAWassert and release builds crash.
-     */
-    int
-    geometry_offset(void) const;
 
     /*!
      * Returns the GlyphCache on which the glyph

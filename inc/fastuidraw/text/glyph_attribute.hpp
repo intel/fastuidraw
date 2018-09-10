@@ -57,7 +57,7 @@ namespace fastuidraw
         bottom_left_corner = 0,
         bottom_right_corner = right_corner_mask,
         top_left_corner = top_corner_mask,
-        top_right_cornet = right_corner_mask | top_corner_mask
+        top_right_corner = right_corner_mask | top_corner_mask
       };
 
     /*!

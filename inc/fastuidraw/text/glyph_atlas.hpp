@@ -335,8 +335,9 @@ namespace fastuidraw
     number_nodes(void);
 
     /*!
-     * Negative return value indicates failure.
-     * Size of pdata must be a multiple of geometry_store()->alignment().
+     * Negative return value indicates failure. Size of pdata must be a
+     * multiple of geometry_store()->alignment(). Return value is in
+     * units of geometry_store()->alignment().
      */
     int
     allocate_geometry_data(c_array<const generic_data> pdata);

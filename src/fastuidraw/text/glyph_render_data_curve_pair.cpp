@@ -403,27 +403,16 @@ resize_geometry_data(int sz)
 
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataCurvePair::
-upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                GlyphLocation::Array &atlas_locations,
-                GlyphAttribute::Array &attributes,
-                int &geometry_offset,
-                int &geometry_length) const
+upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
+                GlyphAttribute::Array &attributes) const
 {
   GlyphRenderDataCurvePairPrivate *d;
   d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
 
-  FASTUIDRAWunused(attributes);
-
-  geometry_offset = -1;
-  geometry_length = 0;
   if (d->m_texels.empty())
     {
       return routine_success;
     }
-
-  GlyphAtlas::Padding padding;
-  padding.m_right = 1;
-  padding.m_bottom = 1;
 
   std::vector<uint8_t> primary, secondary;
   std::vector<float> geometry;
@@ -460,53 +449,52 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
         }
     }
 
-  if (secondary.empty())
+  GlyphAtlas::Padding padding;
+  GlyphLocation L1, L2;
+
+  padding.m_right = 1;
+  padding.m_bottom = 1;
+  attributes.resize(3);
+
+  L1 = atlas_proxy.allocate(d->m_resolution, make_c_array(primary), padding);
+  if (!L1.valid())
     {
-      atlas_locations.resize(1);
+      return routine_fail;
+    }
+  attributes[1].pack_location(L1);
+
+  if (!d->m_geometry_data.empty())
+    {
+      unsigned int entry_size, alignment;
+      int geometry_offset;
+      std::vector<generic_data> geometry_data;
+
+      alignment = atlas_proxy.alignment();
+      entry_size = round_up_to_multiple(number_elements_to_pack, alignment);
+      pack_curve_pairs(make_c_array(d->m_geometry_data), L1, entry_size, geometry_data);
+      geometry_offset = atlas_proxy.allocate_geometry_data(make_c_array(geometry_data));
+
+      if (geometry_offset == -1)
+        {
+          return routine_fail;
+        }
+      attributes[0].m_data = uvec4(geometry_offset, geometry_offset,
+                                   geometry_offset, geometry_offset);
     }
   else
     {
-      atlas_locations.resize(2);
+      attributes[0].m_data = uvec4(-1, -1, -1, -1);
     }
 
-  atlas_locations[0] = atlas->allocate(d->m_resolution, make_c_array(primary), padding);
-  if (atlas_locations[0].valid())
+  if (!secondary.empty())
     {
-      bool success(true);
-
-      if (!secondary.empty())
+      L2 = atlas_proxy.allocate(d->m_resolution, make_c_array(secondary), padding);
+      if (!L2.valid())
         {
-          atlas_locations[1] = atlas->allocate(d->m_resolution, make_c_array(secondary), padding);
-          success = atlas_locations[1].valid();
-        }
-
-      if (success && !d->m_geometry_data.empty())
-        {
-          unsigned int entry_size, alignment;
-          std::vector<generic_data> geometry_data;
-
-          alignment = atlas->geometry_store()->alignment();
-          entry_size = round_up_to_multiple(number_elements_to_pack, alignment);
-          pack_curve_pairs(make_c_array(d->m_geometry_data), atlas_locations[0], entry_size, geometry_data);
-          geometry_offset = atlas->allocate_geometry_data(make_c_array(geometry_data));
-          geometry_length = geometry_data.size() / alignment;
-
-          success = (geometry_offset != -1);
-        }
-
-      if (!success)
-        {
-          atlas->deallocate(atlas_locations[0]);
-          atlas_locations[0] = GlyphLocation();
-          if (!secondary.empty())
-            {
-              atlas->deallocate(atlas_locations[1]);
-              atlas_locations[1] = GlyphLocation();
-            }
+          return routine_fail;
         }
     }
+  attributes[2].pack_location(L2);
 
-  return atlas_locations[0].valid() ?
-    routine_success :
-    routine_fail;
+  return routine_success;
 }

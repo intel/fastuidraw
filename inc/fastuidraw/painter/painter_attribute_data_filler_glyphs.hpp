@@ -42,18 +42,16 @@ namespace fastuidraw
    * to not be uploaded to the GlyphAtlas.
    * Data for glyphs is packed as follows:
    *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates (float)
-   *   - PainterAttribute::m_attrib0 .z  -> glyph offset (uint)
-   *   - PainterAttribute::m_attrib0 .w  -> xyz-texel location of Glyph::atlas_locations()[0] packed (uint)
-   *   - PainterAttribute::m_attrib1 .y  -> xyz-texel location of Glyph::atlas_locations()[1] packed (uint)
-   *   - PainterAttribute::m_attrib1 .y  -> xyz-texel location of Glyph::atlas_locations()[2] packed (uint)
-   *   - PainterAttribute::m_attrib1 .z  -> xyz-texel location of Glyph::atlas_locations()[3] packed (uint)
-   *   - PainterAttribute::m_attrib1. w  -> xyz-texel location of Glyph::atlas_locations()[4] packed (uint)
-   *   - PainterAttribute::m_attrib2 .x  -> xyz-texel location of Glyph::atlas_locations()[5] packed (uint)
-   *   - PainterAttribute::m_attrib2 .y  -> xyz-texel location of Glyph::atlas_locations()[6] packed (uint)
-   *   - PainterAttribute::m_attrib2 .z  -> xyz-texel location of Glyph::atlas_locations()[7] packed (uint)
-   *   - PainterAttribute::m_attrib2 .w  -> xyz-texel location of Glyph::atlas_locations()[8] packed (uint)
-   *
-   * Where we pack a location on the glyph as according to \ref packed_glyph_layout.
+   *   - PainterAttribute::m_attrib0 .z  -> Glyph::attribute()[0]
+   *   - PainterAttribute::m_attrib0 .w  -> Glyph::attribute()[1]
+   *   - PainterAttribute::m_attrib1 .x  -> Glyph::attribute()[2]
+   *   - PainterAttribute::m_attrib1 .y  -> Glyph::attribute()[3]
+   *   - PainterAttribute::m_attrib1. z  -> Glyph::attribute()[4]
+   *   - PainterAttribute::m_attrib1 .w  -> Glyph::attribute()[5]
+   *   - PainterAttribute::m_attrib2 .x  -> Glyph::attribute()[6]
+   *   - PainterAttribute::m_attrib2 .y  -> Glyph::attribute()[7]
+   *   - PainterAttribute::m_attrib2 .z  -> Glyph::attribute()[8]
+   *   - PainterAttribute::m_attrib2 .w  -> Glyph::attribute()[9]
    */
   class PainterAttributeDataFillerGlyphs:public PainterAttributeDataFiller
   {

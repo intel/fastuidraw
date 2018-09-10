@@ -84,11 +84,8 @@ namespace fastuidraw
 
     virtual
     enum fastuidraw::return_code
-    upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
-                    GlyphLocation::Array &atlas_locations,
-                    GlyphAttribute::Array &attributes,
-                    int &geometry_offset,
-                    int &geometry_length) const;
+    upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
+                    GlyphAttribute::Array &attributes) const;
 
   private:
     void *m_d;

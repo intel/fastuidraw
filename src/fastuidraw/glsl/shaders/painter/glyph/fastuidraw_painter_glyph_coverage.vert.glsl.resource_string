@@ -32,13 +32,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   p = uintBitsToFloat(uprimary_attrib.xy);
   texel.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_X_BIT0,
                                     FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS,
-                                    uprimary_attrib.w);
+                                    uprimary_attrib.z);
   texel.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Y_BIT0,
                                     FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS,
-                                    uprimary_attrib.w);
+                                    uprimary_attrib.z);
   texel.z = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Z_BIT0,
                                     FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS,
-                                    uprimary_attrib.w);
+                                    uprimary_attrib.z);
   texelf = vec3(texel);
 
   #ifndef FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT

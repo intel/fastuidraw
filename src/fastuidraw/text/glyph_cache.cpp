@@ -30,6 +30,26 @@ namespace
 
   class GlyphCachePrivate;
 
+  class GeometryDataAlloc
+  {
+  public:
+    int m_location;
+    int m_size;
+  };
+
+  class GlyphAtlasProxyPrivate
+  {
+  public:
+    explicit
+    GlyphAtlasProxyPrivate(GlyphCachePrivate *c):
+      m_cache(c)
+    {}
+
+    std::vector<fastuidraw::GlyphLocation> m_texel_locations;
+    std::vector<GeometryDataAlloc> m_geometry_locations;
+    GlyphCachePrivate *m_cache;
+  };
+
   class GlyphMetricsPrivate
   {
   public:
@@ -80,7 +100,7 @@ namespace
     float m_units_per_EM;
   };
 
-  class GlyphDataPrivate
+  class GlyphDataPrivate:public GlyphAtlasProxyPrivate
   {
   public:
     GlyphDataPrivate(GlyphCachePrivate *c, unsigned int I);
@@ -94,11 +114,8 @@ namespace
     remove_from_atlas(void);
 
     enum fastuidraw::return_code
-    upload_to_atlas(fastuidraw::GlyphLocation::Array &S,
+    upload_to_atlas(fastuidraw::GlyphAtlasProxy &S,
                     fastuidraw::GlyphAttribute::Array &T);
-
-    /* owner */
-    GlyphCachePrivate *m_cache;
 
     /* location into m_cache->m_glyphs  */
     unsigned int m_cache_location;
@@ -107,10 +124,6 @@ namespace
     GlyphMetricsPrivate *m_metrics;
 
     std::vector<fastuidraw::GlyphAttribute> m_attributes;
-
-    /* Location in atlas */
-    std::vector<fastuidraw::GlyphLocation> m_atlas_locations;
-    int m_geometry_offset, m_geometry_length;
     bool m_uploaded_to_atlas;
 
     /* Path of the glyph */
@@ -267,22 +280,18 @@ namespace
 // GlyphDataPrivate methods
 GlyphDataPrivate::
 GlyphDataPrivate(GlyphCachePrivate *c, unsigned int I):
-  m_cache(c),
+  GlyphAtlasProxyPrivate(c),
   m_cache_location(I),
   m_metrics(nullptr),
-  m_geometry_offset(-1),
-  m_geometry_length(0),
   m_uploaded_to_atlas(false),
   m_glyph_data(nullptr)
 {}
 
 GlyphDataPrivate::
 GlyphDataPrivate(void):
-  m_cache(nullptr),
+  GlyphAtlasProxyPrivate(nullptr),
   m_cache_location(~0u),
   m_metrics(nullptr),
-  m_geometry_offset(-1),
-  m_geometry_length(0),
   m_uploaded_to_atlas(false),
   m_glyph_data(nullptr)
 {}
@@ -302,21 +311,17 @@ remove_from_atlas(void)
 {
   if (m_cache)
     {
-      for (const fastuidraw::GlyphLocation &g : m_atlas_locations)
+      for (const fastuidraw::GlyphLocation &g : m_texel_locations)
         {
-          if (g.valid())
-            {
-              m_cache->m_atlas->deallocate(g);
-            }
+          m_cache->m_atlas->deallocate(g);
         }
-      m_atlas_locations.clear();
+      m_texel_locations.clear();
 
-      if (m_geometry_offset != -1)
+      for (const GeometryDataAlloc &g : m_geometry_locations)
         {
-          m_cache->m_atlas->deallocate_geometry_data(m_geometry_offset, m_geometry_length);
-          m_geometry_offset = -1;
-          m_geometry_length = 0;
+          m_cache->m_atlas->deallocate_geometry_data(g.m_location, g.m_size);
         }
+      m_geometry_locations.clear();
     }
   m_uploaded_to_atlas = false;
 }
@@ -338,13 +343,14 @@ clear(void)
     {
       FASTUIDRAWdelete(m_metrics);
     }
+  m_attributes.clear();
   m_metrics = nullptr;
   m_path.clear();
 }
 
 enum fastuidraw::return_code
 GlyphDataPrivate::
-upload_to_atlas(fastuidraw::GlyphLocation::Array &S,
+upload_to_atlas(fastuidraw::GlyphAtlasProxy &S,
                 fastuidraw::GlyphAttribute::Array &T)
 {
   enum fastuidraw::return_code return_value;
@@ -360,12 +366,10 @@ upload_to_atlas(fastuidraw::GlyphLocation::Array &S,
     }
 
   FASTUIDRAWassert(m_glyph_data);
-  FASTUIDRAWassert(m_atlas_locations.empty());
+  FASTUIDRAWassert(m_texel_locations.empty());
   FASTUIDRAWassert(m_attributes.empty());
 
-  return_value = m_glyph_data->upload_to_atlas(m_cache->m_atlas, S, T,
-                                               m_geometry_offset,
-                                               m_geometry_length);
+  return_value = m_glyph_data->upload_to_atlas(S, T);
   if (return_value == fastuidraw::routine_success)
     {
       m_uploaded_to_atlas = true;
@@ -400,6 +404,52 @@ GlyphCachePrivate::
     {
       FASTUIDRAWdelete(p);
     }
+}
+
+//////////////////////////////////////////////
+// fastuidraw::GlyphAtlasProxy methods
+fastuidraw::GlyphLocation
+fastuidraw::GlyphAtlasProxy::
+allocate(ivec2 size, c_array<const uint8_t> data, const Padding &padding)
+{
+  GlyphLocation L;
+  GlyphAtlasProxyPrivate *d;
+
+  d = static_cast<GlyphAtlasProxyPrivate*>(m_d);
+  L = d->m_cache->m_atlas->allocate(size, data, padding);
+  if (L.valid())
+    {
+      d->m_texel_locations.push_back(L);
+    }
+  return L;
+}
+
+int
+fastuidraw::GlyphAtlasProxy::
+allocate_geometry_data(c_array<const generic_data> pdata)
+{
+  int L;
+  GlyphAtlasProxyPrivate *d;
+
+  d = static_cast<GlyphAtlasProxyPrivate*>(m_d);
+  L = d->m_cache->m_atlas->allocate_geometry_data(pdata);
+  if (L != -1)
+    {
+      GeometryDataAlloc A;
+      A.m_location = L;
+      A.m_size = pdata.size() / alignment();
+      d->m_geometry_locations.push_back(A);
+    }
+  return L;
+}
+
+int
+fastuidraw::GlyphAtlasProxy::
+alignment(void) const
+{
+  GlyphAtlasProxyPrivate *d;
+  d = static_cast<GlyphAtlasProxyPrivate*>(m_d);
+  return d->m_cache->m_atlas->geometry_store()->alignment();
 }
 
 //////////////////////////////////////////////
@@ -512,16 +562,6 @@ cache_location(void) const
   return p->m_cache_location;
 }
 
-fastuidraw::c_array<const fastuidraw::GlyphLocation>
-fastuidraw::Glyph::
-atlas_locations(void) const
-{
-  GlyphDataPrivate *p;
-  p = static_cast<GlyphDataPrivate*>(m_opaque);
-  FASTUIDRAWassert(p != nullptr && p->m_render.valid());
-  return make_c_array(p->m_atlas_locations);
-}
-
 fastuidraw::c_array<const fastuidraw::GlyphAttribute>
 fastuidraw::Glyph::
 attributes(void) const
@@ -530,16 +570,6 @@ attributes(void) const
   p = static_cast<GlyphDataPrivate*>(m_opaque);
   FASTUIDRAWassert(p != nullptr && p->m_render.valid());
   return make_c_array(p->m_attributes);
-}
-
-int
-fastuidraw::Glyph::
-geometry_offset(void) const
-{
-  GlyphDataPrivate *p;
-  p = static_cast<GlyphDataPrivate*>(m_opaque);
-  FASTUIDRAWassert(p != nullptr && p->m_render.valid());
-  return p->m_geometry_offset;
 }
 
 enum fastuidraw::return_code
@@ -556,7 +586,7 @@ upload_to_atlas(void) const
     }
 
   std::lock_guard<std::mutex> m(p->m_cache->m_glyphs_mutex);
-  fastuidraw::GlyphLocation::Array S(&p->m_atlas_locations);
+  GlyphAtlasProxy S(p);
   fastuidraw::GlyphAttribute::Array T(&p->m_attributes);
   return p->upload_to_atlas(S, T);
 }
@@ -961,9 +991,8 @@ clear_atlas(void)
   for(GlyphDataPrivate *g : d->m_glyphs.data())
     {
       g->m_uploaded_to_atlas = false;
-      g->m_atlas_locations.clear();
-      g->m_geometry_offset = -1;
-      g->m_geometry_length = 0;
+      g->m_texel_locations.clear();
+      g->m_geometry_locations.clear();
     }
 }
 

@@ -28,8 +28,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vec2 p;
   uvec3 texel0;
   vec3 texel0f, texel1f;
+  uint geometry_location;
 
   p = uintBitsToFloat(uprimary_attrib.xy);
+
+  geometry_location = uprimary_attrib.z;
 
   texel0.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_X_BIT0,
                                      FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS,
@@ -40,6 +43,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   texel0.z = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Z_BIT0,
                                      FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS,
                                      uprimary_attrib.w);
+
   texel0f = vec3(texel0);
 
   if ((uint(FASTUIDRAW_GLYPH_TEXEL_INVALID_MASK) & usecondary_attrib.x) == 0u)
@@ -70,7 +74,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_glyph_secondary_tex_coord_x = texel1f.x;
   fastuidraw_glyph_secondary_tex_coord_y = texel1f.y;
   fastuidraw_glyph_secondary_tex_coord_layer = texel1f.z;
-  fastuidraw_glyph_geometry_data_location = uprimary_attrib.z;
+  fastuidraw_glyph_geometry_data_location = geometry_location;
 
   z_add = 0;
   return p.xyxy;
