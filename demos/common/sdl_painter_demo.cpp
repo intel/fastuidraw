@@ -332,11 +332,6 @@ sdl_painter_demo(const std::string &about_text,
   m_color_stop_atlas_width(m_colorstop_atlas_params.width(),
                            "colorstop_atlas_width",
                            "width for color stop atlas", *this),
-  m_color_stop_atlas_use_optimal_width(false, "colorstop_atlas_use_optimal_width",
-                                       "if true ignore the value of colorstop_atlas_layers "
-                                       "and query the GL context for the optimal width for "
-                                       "the colorstop atlas",
-                                       *this),
   m_color_stop_atlas_layers(m_colorstop_atlas_params.num_layers(),
                             "colorstop_atlas_layers",
                             "number of layers for the color stop atlas",
@@ -585,12 +580,6 @@ init_gl(int w, int h)
                                m_texel_store_height.value(),
                                m_texel_store_num_layers.value());
 
-  if (m_painter_optimal.value())
-    {
-      m_color_stop_atlas_use_optimal_width.value() = true;
-      m_glyph_geometry_backing_store_type.value() = glyph_geometry_backing_store_auto;
-    }
-
   m_glyph_atlas_params
     .texel_store_dimensions(texel_dims)
     .number_floats(m_geometry_store_size.value())
@@ -646,7 +635,7 @@ init_gl(int w, int h)
     .num_layers(m_color_stop_atlas_layers.value())
     .delayed(m_color_stop_atlas_delayed_upload.value());
 
-  if (m_color_stop_atlas_use_optimal_width.value())
+  if (!m_color_stop_atlas_width.set_by_command_line())
     {
       m_colorstop_atlas_params.optimal_width();
       std::cout << "Colorstop Atlas optimal width selected to be "
@@ -659,7 +648,7 @@ init_gl(int w, int h)
       m_painter_params.configure_from_context(m_painter_msaa.value() > 1);
     }
 
-#define APPLY_PARAM(X, Y) do { if (Y.set_by_command_line()) { m_painter_params.X(Y.value()); } } while (0)
+#define APPLY_PARAM(X, Y) do { if (Y.set_by_command_line()) { std::cout << "Apply: "#X": " << Y.value() << "\n"; m_painter_params.X(Y.value()); } } while (0)
 
   APPLY_PARAM(alignment, m_painter_alignment);
   APPLY_PARAM(attributes_per_buffer, m_painter_attributes_per_buffer);
@@ -722,7 +711,6 @@ init_gl(int w, int h)
     }
 
   m_painter_params
-    .adjust_for_context()
     .image_atlas(m_image_atlas)
     .glyph_atlas(m_glyph_atlas)
     .colorstop_atlas(m_colorstop_atlas);
@@ -818,7 +806,13 @@ init_gl(int w, int h)
       std::cout << std::setw(40) << "default_stroke_shader_aa_type:"
 		<< std::setw(8) << make_enum_wrapper(m_backend->configuration_gl().default_stroke_shader_aa_type())
 		<< " (requested " << make_enum_wrapper(m_painter_params.default_stroke_shader_aa_type())
-		<< ")\n";
+		<< ")\n"
+                << std::setw(40) << "geometry_store_alignment:"
+                << std::setw(8) << m_glyph_atlas->param_values().alignment()
+                << "\n"
+                << std::setw(40) << "geometry_backing_store_type:"
+                << std::setw(8) << m_glyph_atlas->param_values().glyph_geometry_backing_store_type()
+                << "\n";
 
       #undef LAZY_PARAM
       #undef LAZY_ENUM_PARAM
