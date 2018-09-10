@@ -218,6 +218,8 @@ private:
   command_line_argument_value<bool> m_draw_glyph_set;
   command_line_argument_value<int> m_realize_glyphs_thread_count;
   command_line_argument_value<float> m_render_pixel_size;
+  command_line_argument_value<float> m_bg_red, m_bg_green, m_bg_blue;
+  command_line_argument_value<float> m_fg_red, m_fg_green, m_fg_blue;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<int> m_glyphs_per_painter_draw;
   command_line_list<uint32_t> m_explicit_glyph_codes;
@@ -568,6 +570,13 @@ painter_glyph_test(void):
                                 "to create the glyph data",
                                 *this),
   m_render_pixel_size(24.0f, "render_pixel_size", "pixel size at which to display glyphs", *this),
+  m_bg_red(1.0f, "bg_red", "Background Red", *this),
+  m_bg_green(1.0f, "bg_green", "Background Green", *this),
+  m_bg_blue(1.0f, "bg_blue", "Background Blue", *this),
+  m_fg_red(0.0f, "fg_red", "Foreground Red", *this),
+  m_fg_green(0.0f, "fg_green", "Foreground Green", *this),
+  m_fg_blue(0.0f, "fg_blue", "Foreground Blue", *this),
+
   m_change_stroke_width_rate(10.0f, "change_stroke_width_rate",
                              "rate of change in pixels/sec for changing stroke width "
                              "when changing stroke when key is down",
@@ -889,6 +898,10 @@ draw_frame(void)
   float us;
   us = update_cts_params();
 
+  m_surface->clear_color(vec4(m_bg_red.value(),
+                              m_bg_green.value(),
+                              m_bg_blue.value(),
+                              1.0f));
   if (m_draw_glyphs)
     {
       draw_glyphs(us);
@@ -965,7 +978,8 @@ draw_glyphs(float us)
   c_array<const vec2> glyph_positions(m_draw_shared.glyph_positions());
   PainterBrush glyph_brush;
 
-  glyph_brush.pen(1.0, 1.0, 1.0, 1.0);
+  glyph_brush.pen(m_fg_red.value(), m_fg_blue.value(),
+                  m_fg_green.value(), 1.0f);
 
   m_painter->begin(m_surface, m_screen_orientation.value());
   m_painter->save();
