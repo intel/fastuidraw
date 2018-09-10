@@ -404,8 +404,14 @@ namespace fastuidraw
      *  - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
      *  - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available
      *    if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
-     *  - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer (PainterDraw::m_store)
-     *  - teh macro fastuidraw_fetch_glyph_data(B) to read the B'th block from the glyph geometry data (GlyphAtlasGeometryBackingStoreBase)
+     *  - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer
+     *    (PainterDraw::m_store), return as uvec4 with the first N-elements from the store where
+     *    N is the block size (see PainterBackend::ConfigurationBase::alignment()). To get floating
+     *    point data use the GLSL built-in function uintBitsToFloat().
+     *  - the macro fastuidraw_fetch_glyph_data(B) to read the B'th block from the glyph geometry data
+     *    (GlyphAtlasGeometryBackingStoreBase), return as uvec4 with the first N-elements from the store where
+     *    N is the block size (see GlyphAtlasGeometryBackingStoreBase::alignment()). To get floating
+     *    point data use the GLSL built-in function uintBitsToFloat().
      *  - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
      *  - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
      *  - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels

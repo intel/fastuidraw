@@ -388,7 +388,7 @@ GeometryStoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels, b
   GeometryStoreGL(number_texels, N, GL_TEXTURE_2D_ARRAY, log2_wh, true),
   m_layer_dims(1 << log2_wh.x(), 1 << log2_wh.y()),
   m_texels_per_layer(m_layer_dims.x() * m_layer_dims.y()),
-  m_backing_store(internal_format(N), external_format(N), GL_FLOAT,
+  m_backing_store(internal_format(N), external_format(N), GL_UNSIGNED_INT,
                   GL_NEAREST, GL_NEAREST,
                   texture_size(m_layer_dims, number_texels), delayed)
 {
@@ -417,10 +417,10 @@ external_format(unsigned int N)
   FASTUIDRAWassert(1 <= N && N <= 4);
   const GLenum fmts[4] =
     {
-      GL_RED,
-      GL_RG,
-      GL_RGB,
-      GL_RGBA
+      GL_RED_INTEGER,
+      GL_RG_INTEGER,
+      GL_RGB_INTEGER,
+      GL_RGBA_INTEGER
     };
   return fmts[N - 1];
 }
@@ -432,10 +432,10 @@ internal_format(unsigned int N)
   FASTUIDRAWassert(1 <= N && N <= 4);
   const GLenum fmts[4] =
     {
-      GL_R32F,
-      GL_RG32F,
-      GL_RGB32F,
-      GL_RGBA32F
+      GL_R32UI,
+      GL_RG32UI,
+      GL_RGB32UI,
+      GL_RGBA32UI
     };
   return fmts[N - 1];
 }
@@ -567,10 +567,10 @@ gl_backing(void) const
     {
       GLenum formats[4]=
         {
-          GL_R32F,
-          GL_RG32F,
-          GL_RGB32F,
-          GL_RGBA32F,
+          GL_R32UI,
+          GL_RG32UI,
+          GL_RGB32UI,
+          GL_RGBA32UI,
         };
       GLuint bo;
 

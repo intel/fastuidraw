@@ -123,8 +123,8 @@ LoaderMacro(unsigned int alignment,
 
   for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
     {
-      str << "\ttemp" << j << " = " << geometry_store_fetch << "(start_offset + "
-          << j << ")." << texelFetchExt[alignment - 1] << ";\\\n";
+      str << "\ttemp" << j << " = uintBitsToFloat(" << geometry_store_fetch << "(start_offset + "
+          << j << ")." << texelFetchExt[alignment - 1] << ");\\\n";
     }
 
   /* this is scary, the shader code will have the macros/whatever defined for us so that

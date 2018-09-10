@@ -16,7 +16,8 @@
  *
  */
 
-
+//////////////////////////////////////////////
+// Color Stop Atlas
 #ifdef FASTUIDRAW_PAINTER_COLORSTOP_ATLAS_2D_ARRAY
 
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLORSTOP_ATLAS_BINDING) uniform sampler2DArray fastuidraw_colorStopAtlas;
@@ -28,17 +29,28 @@
   #define fastuidraw_colorStopFetch(x, L) textureLod(fastuidraw_colorStopAtlas, vec2(float(x), float(L)), 0.0)
 
 #endif
+///////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////
+// Image Atlas
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_LINEAR_BINDING) uniform sampler2DArray fastuidraw_imageAtlasLinear;
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_NEAREST_BINDING) uniform sampler2DArray fastuidraw_imageAtlasNearest;
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray fastuidraw_imageIndexAtlas;
+//////////////////////////////////////////////////
 
+//////////////////////////////////////////////////
+// Glyph Atlas texel store
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING) uniform usampler2DArray fastuidraw_glyphTexelStoreUINT;
 
 #ifndef FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sampler2DArray fastuidraw_glyphTexelStoreFLOAT;
 #endif
+/////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////
+// Glyph Atlas Geometry Store
 #ifdef FASTUIDRAW_GLYPH_DATA_STORE_SSBO
 
   FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING, std430) restrict readonly buffer fastuidraw_glyphGeometryDataStore
@@ -48,23 +60,31 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
   #define fastuidraw_fetch_glyph_data(block) fastuidraw_glyph_atlas_geometry_store_block_as4(fastuidraw_glyphGeometryDataStore_data[int(block)])
 
 #elif defined(FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY)
+
   /* The width and height of fastuidraw_glyphGeometryDataStore are
    * powers of 2, the values given by FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2
    * and FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2. We want to use
    * bit shifts and masking to get the correct layer, height and so on.
    */
-  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING) uniform sampler2DArray fastuidraw_glyphGeometryDataStore;
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING) uniform usampler2DArray fastuidraw_glyphGeometryDataStore;
   #define FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_PLUS_HEIGHT_LOG2 uint(FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2 + FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2)
   #define FASTUIDRAW_GLYPH_GEOMETRY_LAYER(T) (uint(T) >> FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_PLUS_HEIGHT_LOG2)
   #define FASTUIDRAW_GLYPH_GEOMETRY_Y(T) FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2, FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2, T)
   #define FASTUIDRAW_GLYPH_GEOMETRY_X(T) FASTUIDRAW_EXTRACT_BITS(0, FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2, T)
   #define FASTUIDRAW_GLYPH_GEOMETRY_COORD(v) ivec3(FASTUIDRAW_GLYPH_GEOMETRY_X(v), FASTUIDRAW_GLYPH_GEOMETRY_Y(v), FASTUIDRAW_GLYPH_GEOMETRY_LAYER(v))
   #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, FASTUIDRAW_GLYPH_GEOMETRY_COORD(block), 0)
-#else
-  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING) uniform samplerBuffer fastuidraw_glyphGeometryDataStore;
-  #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, int(block))
-#endif
 
+#else
+
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING) uniform usamplerBuffer fastuidraw_glyphGeometryDataStore;
+  #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, int(block))
+
+#endif
+////////////////////////////////////////////////////
+
+
+///////////////////////////////////////
+// Painter Data Store
 #ifdef FASTUIDRAW_PAINTER_USE_DATA_TBO
 
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_STORE_TBO_BINDING) uniform usamplerBuffer fastuidraw_painterStore_tbo;

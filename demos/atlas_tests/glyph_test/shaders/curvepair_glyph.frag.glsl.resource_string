@@ -14,13 +14,13 @@ flat in uint geometry_data_location;
     precision highp samplerBuffer;
   #endif
 
-  uniform samplerBuffer glyph_geometry_data_store;
+  uniform usamplerBuffer glyph_geometry_data_store;
   #define fetch_glyph_geometry_data(block) texelFetch(glyph_geometry_data_store, int(block))
 
 #elif defined(GLYPH_GEOMETRY_USE_SSBO)
   layout(std140, binding = 0) restrict readonly buffer glyph_geometry_data_store
   {
-    vec4 glyph_geometry_data_store_data[];
+    uvec4 glyph_geometry_data_store_data[];
   };
 
   #define fetch_glyph_geometry_data(block) glyph_geometry_data_store_data[int(block)]
@@ -31,7 +31,7 @@ flat in uint geometry_data_location;
     precision highp sampler2DArray;
   #endif
 
-  uniform sampler2DArray glyph_geometry_data_store;
+  uniform usampler2DArray glyph_geometry_data_store;
   #define GLYPH_GEOM_WIDTH_PLUS_HEIGHT_LOG2 uint(GLYPH_GEOM_WIDTH_LOG2 + GLYPH_GEOM_HEIGHT_LOG2)
   #define GLYPH_GEOM_LAYER(T) (uint(T) >> GLYPH_GEOM_WIDTH_PLUS_HEIGHT_LOG2)
   #define GLYPH_GEOM_Y(T) FASTUIDRAW_EXTRACT_BITS(GLYPH_GEOM_WIDTH_LOG2, GLYPH_GEOM_HEIGHT_LOG2, T)
