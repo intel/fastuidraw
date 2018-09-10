@@ -146,7 +146,8 @@ private:
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(const std::string &vert_src,
                            const std::string &frag_src,
-                           const varying_list &varyings);
+                           const varying_list &varyings,
+                           const ShaderSource::MacroSet &frag_macros);
 
   PainterGlyphShader
   create_glyph_shader(bool anisotropic);
@@ -186,6 +187,9 @@ private:
 
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass1;
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass2;
+
+  ShaderSource::MacroSet m_common_glyph_attribute_macros;
+  ShaderSource::MacroSet m_glyph_restricted_rays_macros;
 };
 
 }}}

@@ -34,6 +34,10 @@ operator<<(std::ostream &str, GlyphRender R)
           str << "CurvePair";
           break;
 
+        case restricted_rays_glyph:
+          str << "RestrictedRays";
+          break;
+
         default:
           str << "Unkown";
         }
@@ -172,6 +176,7 @@ private:
       draw_glyph_coverage,
       draw_glyph_distance,
       draw_glyph_curvepair,
+      draw_glyph_restricted_rays,
 
       draw_glyph_auto
     };
@@ -363,13 +368,15 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   metrics.resize(num_glyphs);
   for(unsigned int i = 0; i < num_glyphs; ++i)
     {
-      float scale_factor;
+      float scale_factor, min_y, max_y;
 
       metrics[i] = glyph_cache->fetch_glyph_metrics(font, i);
       scale_factor = pixel_size_formatting / metrics[i].units_per_EM();
+      max_y = scale_factor * (metrics[i].horizontal_layout_offset().y() + metrics[i].size().y());
+      min_y = scale_factor * metrics[i].horizontal_layout_offset().y();
 
-      tallest = scale_factor * t_max(tallest, metrics[i].horizontal_layout_offset().y() + metrics[i].size().y());
-      negative_tallest = scale_factor * t_min(negative_tallest, metrics[i].horizontal_layout_offset().y());
+      tallest = t_max(tallest, max_y);
+      negative_tallest = t_min(negative_tallest, min_y);
     }
   offset = tallest - negative_tallest;
 
@@ -570,12 +577,12 @@ painter_glyph_test(void):
                                 "to create the glyph data",
                                 *this),
   m_render_pixel_size(24.0f, "render_pixel_size", "pixel size at which to display glyphs", *this),
-  m_bg_red(1.0f, "bg_red", "Background Red", *this),
-  m_bg_green(1.0f, "bg_green", "Background Green", *this),
-  m_bg_blue(1.0f, "bg_blue", "Background Blue", *this),
-  m_fg_red(0.0f, "fg_red", "Foreground Red", *this),
-  m_fg_green(0.0f, "fg_green", "Foreground Green", *this),
-  m_fg_blue(0.0f, "fg_blue", "Foreground Blue", *this),
+  m_bg_red(0.0f, "bg_red", "Background Red", *this),
+  m_bg_green(0.0f, "bg_green", "Background Green", *this),
+  m_bg_blue(0.0f, "bg_blue", "Background Blue", *this),
+  m_fg_red(1.0f, "fg_red", "Foreground Red", *this),
+  m_fg_green(1.0f, "fg_green", "Foreground Green", *this),
+  m_fg_blue(1.0f, "fg_blue", "Foreground Blue", *this),
 
   m_change_stroke_width_rate(10.0f, "change_stroke_width_rate",
                              "rate of change in pixels/sec for changing stroke width "
@@ -613,7 +620,7 @@ painter_glyph_test(void):
   m_pixel_width_stroking(true),
   m_draw_stats(false),
   m_stroke_width(1.0f),
-  m_current_drawer(draw_glyph_auto),
+  m_current_drawer(draw_glyph_restricted_rays),
   m_join_style(PainterEnums::miter_joins)
 {
   std::cout << "Controls:\n"
@@ -787,6 +794,9 @@ realize_all_glyphs(GlyphRender renderer)
       std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
     }
 
+  unsigned int pre_texels_allocated(m_glyph_atlas->number_texels_allocated());
+  unsigned int pre_num_elements(m_glyph_atlas->geometry_data_allocated());
+
   std::cout << "Uploading to atlas ..." << std::flush;
   for (auto &g : glyphs)
     {
@@ -800,13 +810,15 @@ realize_all_glyphs(GlyphRender renderer)
   float fract_allocated(float(texels_allocated) / float(num_texels_total));
   unsigned int num_elements(m_glyph_atlas->geometry_data_allocated());
 
-  std::cout << "Number texel nodes = " << m_glyph_atlas->number_nodes()
-            << ", bytes used = " << m_glyph_atlas->bytes_used_by_nodes() << "\n"
-            << "Texels allocate = " << texels_allocated << " of "
+  std::cout << "Used " << num_elements - pre_num_elements << " additional geometry data elements\n"
+            << "Used " << texels_allocated - pre_texels_allocated << " additional texels\n"
+            << "Number texel nodes total = " << m_glyph_atlas->number_nodes()
+            << ", bytes total used = " << m_glyph_atlas->bytes_used_by_nodes() << "\n"
+            << "Texels allocated total = " << texels_allocated << " of "
             << num_texels_total << " (" << 100.0f * fract_allocated
-            << "%)\nBytes geometry data allocated = "
+            << "%)\nBytes geometry data total allocated = "
             << num_elements * sizeof(generic_data)
-            << "\n";
+            << "\n--------------------------------------\n\n";
 }
 
 void
@@ -818,6 +830,7 @@ ready_glyph_attribute_data(void)
 
   m_draws[draw_glyph_curvepair] = GlyphRender(curve_pair_glyph);
   m_draws[draw_glyph_distance] = GlyphRender(distance_field_glyph);
+  m_draws[draw_glyph_restricted_rays] = GlyphRender(restricted_rays_glyph);
   m_draws[draw_glyph_coverage] = GlyphRender(m_coverage_pixel_size.value());
 
   if (m_draw_glyph_set.value())

@@ -65,6 +65,13 @@ namespace fastuidraw
       curve_pair_glyph,
 
       /*!
+       * Glyph is a Restricted rays glyph, generated
+       * from a GlyphRenderDataRestrictedRays. Glyph
+       * is scalable.
+       */
+      restricted_rays_glyph,
+
+      /*!
        * Tag to indicate invalid glyph type; the value is much
        * larger than the last glyph type to allow for later ABI
        * compatibility as more glyph types are added.

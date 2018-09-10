@@ -12,6 +12,8 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, fastuidraw_painter_glyph_coverage
 	fastuidraw_painter_glyph_curve_pair.vert.glsl.resource_string \
 	fastuidraw_painter_glyph_curve_pair.frag.glsl.resource_string \
 	fastuidraw_painter_glyph_curve_pair_anisotropic.frag.glsl.resource_string \
+	fastuidraw_painter_glyph_restricted_rays.vert.glsl.resource_string \
+	fastuidraw_painter_glyph_restricted_rays.frag.glsl.resource_string \
 	)
 
 # Begin standard footer

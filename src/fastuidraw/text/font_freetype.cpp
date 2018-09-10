@@ -23,6 +23,7 @@
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include <fastuidraw/text/glyph_render_data_distance_field.hpp>
 #include <fastuidraw/text/glyph_render_data_coverage.hpp>
+#include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 
 #include "../private/array2d.hpp"
 #include "../private/util_private.hpp"
@@ -202,6 +203,11 @@ namespace
     void
     compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataCurvePair &output,
+                           fastuidraw::Path &path);
+
+    void
+    compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
+                           fastuidraw::GlyphRenderDataRestrictedRays &output,
                            fastuidraw::Path &path);
 
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> m_generator;
@@ -496,6 +502,69 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                                    &output);
 }
 
+void
+FontFreeTypePrivate::
+compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
+                       fastuidraw::GlyphRenderDataRestrictedRays &output,
+                       fastuidraw::Path &path)
+{
+  fastuidraw::detail::IntPath int_path_ecm;
+  fastuidraw::ivec2 layout_offset, layout_size;
+  int outline_flags;
+  uint32_t glyph_code(glyph_metrics.glyph_code());
+
+  {
+    FaceGrabber p(this);
+    if (!p.m_p || !p.m_p->face())
+      {
+        return;
+      }
+
+    FT_Face face(p.m_p->face());
+    load_glyph(face, glyph_code);
+    outline_flags = face->glyph->outline.flags;
+    layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
+                                      face->glyph->metrics.horiBearingY);
+    layout_offset.y() -= face->glyph->metrics.height;
+    layout_size = fastuidraw::ivec2(face->glyph->metrics.width,
+                                    face->glyph->metrics.height);
+    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
+  }
+
+  int_path_ecm.replace_cubics_with_quadratics();
+  for (const auto &contour : int_path_ecm.contours())
+    {
+      if (!contour.curves().empty())
+        {
+          output.move_to(contour.curves().front().control_pts().front());
+          for (const auto &curve: contour.curves())
+            {
+              if (curve.degree() == 2)
+                {
+                  output.quadratic_to(curve.control_pts()[1],
+                                      curve.control_pts()[2]);
+                }
+              else
+                {
+                  FASTUIDRAWassert(curve.degree() == 1);
+                  output.line_to(curve.control_pts()[1]);
+                }
+            }
+        }
+    }
+
+  enum fastuidraw::PainterEnums::fill_rule_t fill_rule;
+  fill_rule = (outline_flags & FT_OUTLINE_EVEN_ODD_FILL) ?
+    fastuidraw::PainterEnums::odd_even_fill_rule:
+    fastuidraw::PainterEnums::nonzero_fill_rule;
+
+  output.finalize(fill_rule, layout_offset, layout_offset + layout_size);
+
+  /* extract to a Path */
+  fastuidraw::detail::IntBezierCurve::transformation<float> identity_tr;
+  int_path_ecm.add_to_path(identity_tr, &path);
+}
+
 ///////////////////////////////////////////////////
 // fastuidraw::FontFreeType methods
 fastuidraw::FontFreeType::
@@ -552,7 +621,8 @@ can_create_rendering_data(enum glyph_type tp) const
 {
   return tp == coverage_glyph
     || tp == distance_field_glyph
-    || tp == curve_pair_glyph;
+    || tp == curve_pair_glyph
+    || tp == restricted_rays_glyph;
 }
 
 unsigned int
@@ -622,6 +692,15 @@ compute_rendering_data(GlyphRender render,
       {
         GlyphRenderDataCurvePair *data;
         data = FASTUIDRAWnew GlyphRenderDataCurvePair();
+        d->compute_rendering_data(glyph_metrics, *data, path);
+        return data;
+      }
+      break;
+
+    case restricted_rays_glyph:
+      {
+        GlyphRenderDataRestrictedRays *data;
+        data = FASTUIDRAWnew GlyphRenderDataRestrictedRays();
         d->compute_rendering_data(glyph_metrics, *data, path);
         return data;
       }
