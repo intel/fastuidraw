@@ -405,11 +405,14 @@ enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataCurvePair::
 upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
                 GlyphLocation::Array &atlas_locations,
+                GlyphAttribute::Array &attributes,
                 int &geometry_offset,
                 int &geometry_length) const
 {
   GlyphRenderDataCurvePairPrivate *d;
   d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+
+  FASTUIDRAWunused(attributes);
 
   geometry_offset = -1;
   geometry_length = 0;

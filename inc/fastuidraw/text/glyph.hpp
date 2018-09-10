@@ -25,6 +25,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/text/glyph_location.hpp>
+#include <fastuidraw/text/glyph_attribute.hpp>
 #include <fastuidraw/text/glyph_metrics.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 
@@ -98,6 +99,12 @@ namespace fastuidraw
      */
     c_array<const GlyphLocation>
     atlas_locations(void) const;
+
+    /*!
+     * Returns the glyph's per-corner attribute data.
+     */
+    c_array<const GlyphAttribute>
+    attributes(void) const;
 
     /*!
      * Returns the glyph's geometry data location within a

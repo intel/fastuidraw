@@ -94,7 +94,8 @@ namespace
     remove_from_atlas(void);
 
     enum fastuidraw::return_code
-    upload_to_atlas(fastuidraw::GlyphLocation::Array &S);
+    upload_to_atlas(fastuidraw::GlyphLocation::Array &S,
+                    fastuidraw::GlyphAttribute::Array &T);
 
     /* owner */
     GlyphCachePrivate *m_cache;
@@ -104,6 +105,8 @@ namespace
 
     fastuidraw::GlyphRender m_render;
     GlyphMetricsPrivate *m_metrics;
+
+    std::vector<fastuidraw::GlyphAttribute> m_attributes;
 
     /* Location in atlas */
     std::vector<fastuidraw::GlyphLocation> m_atlas_locations;
@@ -341,7 +344,8 @@ clear(void)
 
 enum fastuidraw::return_code
 GlyphDataPrivate::
-upload_to_atlas(fastuidraw::GlyphLocation::Array &S)
+upload_to_atlas(fastuidraw::GlyphLocation::Array &S,
+                fastuidraw::GlyphAttribute::Array &T)
 {
   enum fastuidraw::return_code return_value;
 
@@ -357,8 +361,9 @@ upload_to_atlas(fastuidraw::GlyphLocation::Array &S)
 
   FASTUIDRAWassert(m_glyph_data);
   FASTUIDRAWassert(m_atlas_locations.empty());
+  FASTUIDRAWassert(m_attributes.empty());
 
-  return_value = m_glyph_data->upload_to_atlas(m_cache->m_atlas, S,
+  return_value = m_glyph_data->upload_to_atlas(m_cache->m_atlas, S, T,
                                                m_geometry_offset,
                                                m_geometry_length);
   if (return_value == fastuidraw::routine_success)
@@ -395,6 +400,64 @@ GlyphCachePrivate::
     {
       FASTUIDRAWdelete(p);
     }
+}
+
+//////////////////////////////////////////////
+// fastuidraw::GlyphAttribute::Array methods
+unsigned int
+fastuidraw::GlyphAttribute::Array::
+size(void) const
+{
+  std::vector<GlyphAttribute> *d;
+  d = static_cast<std::vector<GlyphAttribute>*>(m_d);
+  return d->size();
+}
+
+void
+fastuidraw::GlyphAttribute::Array::
+resize(unsigned int N)
+{
+  std::vector<GlyphAttribute> *d;
+  d = static_cast<std::vector<GlyphAttribute>*>(m_d);
+  d->resize(N);
+}
+
+fastuidraw::GlyphAttribute&
+fastuidraw::GlyphAttribute::Array::
+operator[](unsigned int N)
+{
+  std::vector<GlyphAttribute> *d;
+  d = static_cast<std::vector<GlyphAttribute>*>(m_d);
+  FASTUIDRAWassert(N < d->size());
+  return d->operator[](N);
+}
+
+const fastuidraw::GlyphAttribute&
+fastuidraw::GlyphAttribute::Array::
+operator[](unsigned int N) const
+{
+  std::vector<GlyphAttribute> *d;
+  d = static_cast<std::vector<GlyphAttribute>*>(m_d);
+  FASTUIDRAWassert(N < d->size());
+  return d->operator[](N);
+}
+
+fastuidraw::c_array<fastuidraw::GlyphAttribute>
+fastuidraw::GlyphAttribute::Array::
+data(void)
+{
+  std::vector<GlyphAttribute> *d;
+  d = static_cast<std::vector<GlyphAttribute>*>(m_d);
+  return make_c_array(*d);
+}
+
+fastuidraw::c_array<const fastuidraw::GlyphAttribute>
+fastuidraw::GlyphAttribute::Array::
+data(void) const
+{
+  std::vector<GlyphAttribute> *d;
+  d = static_cast<std::vector<GlyphAttribute>*>(m_d);
+  return make_c_array(*d);
 }
 
 ///////////////////////////////////////////////////////
@@ -459,6 +522,16 @@ atlas_locations(void) const
   return make_c_array(p->m_atlas_locations);
 }
 
+fastuidraw::c_array<const fastuidraw::GlyphAttribute>
+fastuidraw::Glyph::
+attributes(void) const
+{
+  GlyphDataPrivate *p;
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
+  FASTUIDRAWassert(p != nullptr && p->m_render.valid());
+  return make_c_array(p->m_attributes);
+}
+
 int
 fastuidraw::Glyph::
 geometry_offset(void) const
@@ -484,7 +557,8 @@ upload_to_atlas(void) const
 
   std::lock_guard<std::mutex> m(p->m_cache->m_glyphs_mutex);
   fastuidraw::GlyphLocation::Array S(&p->m_atlas_locations);
-  return p->upload_to_atlas(S);
+  fastuidraw::GlyphAttribute::Array T(&p->m_attributes);
+  return p->upload_to_atlas(S, T);
 }
 
 bool
@@ -708,8 +782,7 @@ fetch_glyph(GlyphRender render,
 
   if (upload_to_atlas)
     {
-      fastuidraw::GlyphLocation::Array S(&q->m_atlas_locations);
-      q->upload_to_atlas(S);
+      Glyph(q).upload_to_atlas();
     }
 
   return Glyph(q);
@@ -749,8 +822,7 @@ fetch_glyphs(GlyphRender render,
 
           if (upload_to_atlas)
             {
-              fastuidraw::GlyphLocation::Array S(&q->m_atlas_locations);
-              q->upload_to_atlas(S);
+              Glyph(q).upload_to_atlas();
             }
 
           out_glyphs[i] = Glyph(q);
@@ -795,8 +867,7 @@ fetch_glyphs(GlyphRender render,
 
       if (upload_to_atlas)
         {
-          fastuidraw::GlyphLocation::Array S(&q->m_atlas_locations);
-          q->upload_to_atlas(S);
+          Glyph(q).upload_to_atlas();
         }
 
       out_glyphs[i] = Glyph(q);
@@ -829,8 +900,7 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
       /* already part of this cache, upload if necessary */
       if (upload_to_atlas)
         {
-          fastuidraw::GlyphLocation::Array S(&g->m_atlas_locations);
-          g->upload_to_atlas(S);
+          Glyph(g).upload_to_atlas();
         }
       return routine_success;
     }
@@ -853,8 +923,7 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
 
   if (upload_to_atlas)
     {
-      fastuidraw::GlyphLocation::Array S(&g->m_atlas_locations);
-      g->upload_to_atlas(S);
+      Glyph(g).upload_to_atlas();
     }
 
   return routine_success;
