@@ -294,9 +294,6 @@ sdl_painter_demo(const std::string &about_text,
                            "texel_store_num_layers", "number of layers of texel store", *this),
   m_geometry_store_size(m_glyph_atlas_params.number_floats(),
                         "geometry_store_size", "size of geometry store in floats", *this),
-  m_geometry_store_alignment(m_glyph_atlas_params.alignment(),
-                              "geometry_store_alignment",
-                              "alignment of the geometry store, must be one of 1, 2, 3 or 4", *this),
   m_glyph_atlas_delayed_upload(m_glyph_atlas_params.delayed(),
                                "glyph_atlas_delayed_upload",
                                "if true delay uploading of data to GL from glyph atlas until atlas flush",
@@ -583,7 +580,6 @@ init_gl(int w, int h)
   m_glyph_atlas_params
     .texel_store_dimensions(texel_dims)
     .number_floats(m_geometry_store_size.value())
-    .alignment(m_geometry_store_alignment.value())
     .delayed(m_glyph_atlas_delayed_upload.value());
 
   switch(m_glyph_geometry_backing_store_type.value())
@@ -807,9 +803,6 @@ init_gl(int w, int h)
 		<< std::setw(8) << make_enum_wrapper(m_backend->configuration_gl().default_stroke_shader_aa_type())
 		<< " (requested " << make_enum_wrapper(m_painter_params.default_stroke_shader_aa_type())
 		<< ")\n"
-                << std::setw(40) << "geometry_store_alignment:"
-                << std::setw(8) << m_glyph_atlas->param_values().alignment()
-                << "\n"
                 << std::setw(40) << "geometry_backing_store_type:"
                 << std::setw(8) << m_glyph_atlas->param_values().glyph_geometry_backing_store_type()
                 << "\n";

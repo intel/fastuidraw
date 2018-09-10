@@ -798,16 +798,14 @@ realize_all_glyphs(GlyphRender renderer)
   ivec3 texel_store_dims(m_glyph_atlas->texel_store()->dimensions());
   int num_texels_total(texel_store_dims.x() * texel_store_dims.y() * texel_store_dims.z());
   float fract_allocated(float(texels_allocated) / float(num_texels_total));
-  unsigned int num_blocks(m_glyph_atlas->geometry_data_allocated());
-  unsigned int block_alignment(m_glyph_atlas->geometry_store()->alignment());
-  unsigned int block_size(sizeof(generic_data) * block_alignment);
+  unsigned int num_elements(m_glyph_atlas->geometry_data_allocated());
 
   std::cout << "Number texel nodes = " << m_glyph_atlas->number_nodes()
             << ", bytes used = " << m_glyph_atlas->bytes_used_by_nodes() << "\n"
             << "Texels allocate = " << texels_allocated << " of "
             << num_texels_total << " (" << 100.0f * fract_allocated
             << "%)\nBytes geometry data allocated = "
-            << num_blocks * block_size
+            << num_elements * sizeof(generic_data)
             << "\n";
 }
 
