@@ -465,12 +465,11 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
 
   if (!d->m_geometry_data.empty())
     {
-      unsigned int entry_size, alignment;
+      unsigned int entry_size;
       int geometry_offset;
       std::vector<generic_data> geometry_data;
 
-      alignment = atlas_proxy.alignment();
-      entry_size = round_up_to_multiple(number_elements_to_pack, alignment);
+      entry_size = number_elements_to_pack;
       pack_curve_pairs(make_c_array(d->m_geometry_data), L1, entry_size, geometry_data);
       geometry_offset = atlas_proxy.allocate_geometry_data(make_c_array(geometry_data));
 

@@ -189,23 +189,6 @@ namespace gl
       params&
       use_optimal_geometry_store_backing(void);
 
-      /*!
-       * The alignment for the
-       * GlyphAtlasGeometryBackingStoreBase of the
-       * constructed GlyphAtlasGL. The value must be 1,
-       * 2, 3 or 4. The value is the number of channels
-       * the underlying texture buffer has, initial value
-       * is 4.
-       */
-      unsigned int
-      alignment(void) const;
-
-      /*!
-       * Set the value for alignment(void) const
-       */
-      params&
-      alignment(unsigned int v);
-
     private:
       void *m_d;
     };

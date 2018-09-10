@@ -164,39 +164,26 @@ namespace fastuidraw
   public:
     /*!
      * Ctor.
-     * \param palignment Specifies the alignment in units of generic_data for
-     *                   packing of seperately accessible entries in the backing
-     *                   store.
-     * \param psize number of blocks, where each block is palignment generic_data
-     *              in size, that GlyphAtlasGeometryBackingStoreBase backs
+     * \param psize number of generic_data elements that the
+                    GlyphAtlasGeometryBackingStoreBase backs
      * \param presizable if true the object can be resized to be larger
      */
-    GlyphAtlasGeometryBackingStoreBase(unsigned int palignment, unsigned int psize,
-                                       bool presizable);
+    GlyphAtlasGeometryBackingStoreBase(unsigned int psize, bool presizable);
 
     virtual
     ~GlyphAtlasGeometryBackingStoreBase();
 
     /*!
-     * Returns the number of blocks, where each block is
-     * alignment() generic_data values in size, the store
-     * holds.
+     * Returns the number of \ref generic_data backed by the store.
      */
     unsigned int
     size(void);
 
     /*!
-     * Set at ctor. Provides the alignment of the store.
-     */
-    unsigned int
-    alignment(void) const;
-
-    /*!
      * To be implemented by a derived class to load
      * data into the store.
-     * \param location given in units of blocks, where each block
-     *        is alignment() generic_data values.
-     * \param pdata data to load, must be a multiple of alignment().
+     * \param location to load data
+     * \param pdata data to load
      */
     virtual
     void
@@ -220,7 +207,7 @@ namespace fastuidraw
     /*!
      * Resize the object to a larger size. The routine resizeable()
      * must return true, if not the function FASTUIDRAWasserts.
-     * \param new_size new size of object in number of blocks.
+     * \param new_size new number of \ref generic_data for the store to back
      */
     void
     resize(unsigned int new_size);
@@ -231,7 +218,7 @@ namespace fastuidraw
      * To be implemented by a derived class to resize the
      * object. When called, the return value of size() is
      * the size before the resize completes.
-     * \param new_size new size in number of blocks
+     * \param new_size new number of \ref generic_data for the store to back
      */
     virtual
     void
@@ -335,22 +322,19 @@ namespace fastuidraw
     number_nodes(void);
 
     /*!
-     * Negative return value indicates failure. Size of pdata must be a
-     * multiple of geometry_store()->alignment(). Return value is in
-     * units of geometry_store()->alignment().
+     * Negative return value indicates failure.
      */
     int
     allocate_geometry_data(c_array<const generic_data> pdata);
 
     /*!
-     * Location and count are in units of geometry_store()->alignment().
+     * Deallocate geometry data
      */
     void
     deallocate_geometry_data(int location, int count);
 
     /*!
-     * Returns how much geometry data has been allocated in
-     * units of geometry_store()->alignment().
+     * Returns how much geometry data has been allocated
      */
     unsigned int
     geometry_data_allocated(void);

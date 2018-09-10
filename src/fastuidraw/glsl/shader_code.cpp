@@ -24,50 +24,11 @@
 
 namespace
 {
-   class Ending
-  {
-  public:
-    explicit
-    Ending(unsigned int N, enum fastuidraw::GlyphRenderDataCurvePair::geometry_packing pk):
-      m_N(N),
-      m_pk(pk)
-    {}
-
-    unsigned int m_N;
-    enum fastuidraw::GlyphRenderDataCurvePair::geometry_packing m_pk;
-
-  };
-
-  std::ostream&
-  operator<<(std::ostream &str, Ending obj)
-  {
-    int tempIndex, cc;
-    fastuidraw::c_string component[]=
-      {
-        "r",
-        "g",
-        "b",
-        "a"
-      };
-
-    tempIndex = obj.m_pk / obj.m_N;
-    cc = obj.m_pk - obj.m_N * tempIndex;
-    FASTUIDRAWassert(0<= cc && cc < 4);
-    if (obj.m_N > 1)
-      {
-        str << tempIndex << "." << component[cc];
-      }
-    else
-      {
-        str << tempIndex;
-      }
-    return str;
-  }
-
   class LoaderMacro
   {
   public:
-    LoaderMacro(unsigned int alignment, fastuidraw::c_string geometry_store_name);
+    explicit
+    LoaderMacro(fastuidraw::c_string geometry_store_name);
 
     fastuidraw::c_string
     value(void) const
@@ -82,32 +43,17 @@ namespace
 ////////////////////////////////////////////////////
 // LoaderMacro methods
 LoaderMacro::
-LoaderMacro(unsigned int alignment,
-            fastuidraw::c_string geometry_store_fetch)
+LoaderMacro(fastuidraw::c_string geometry_store_fetch)
 {
   /* we are defining a macro, so on end of lines
    * in code we need to add \\
    */
   std::ostringstream str;
-  fastuidraw::c_string texelFetchExt[4] =
-    {
-      "r",
-      "rg",
-      "rgb",
-      "rgba"
-    };
-  fastuidraw::c_string tempType[4] =
-    {
-      "float",
-      "vec2",
-      "vec3",
-      "vec4"
-    };
 
   str << "\n#define FASTUIDRAW_LOAD_CURVE_GEOMETRY(geometry_offset, texel_value) { \\\n"
-      << "\t" << tempType[alignment - 1] << " ";
+      << "\tfloat ";
 
-  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
+  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; ++c, ++j)
     {
       if (c != 0)
         {
@@ -118,19 +64,19 @@ LoaderMacro(unsigned int alignment,
   str << ";\\\n"
       << "\tint start_offset;\\\n"
       << "\tstart_offset = int(geometry_offset) + ( int(texel_value) - 2 ) * int("
-      << fastuidraw::round_up_to_multiple(fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack, alignment) / alignment
+      << fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack
       <<");\\\n";
 
-  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
+  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; ++c, ++j)
     {
       str << "\ttemp" << j << " = uintBitsToFloat(" << geometry_store_fetch << "(start_offset + "
-          << j << ")." << texelFetchExt[alignment - 1] << ");\\\n";
+          << j << ").r);\\\n";
     }
 
   /* this is scary, the shader code will have the macros/whatever defined for us so that
    * that assignment from temp "just works".
    */
-#define EXTRACT_STREAM(X) str << "\t"#X << " = temp" << Ending(alignment, fastuidraw::GlyphRenderDataCurvePair::pack_offset_##X) << ";\\\n"
+#define EXTRACT_STREAM(X) str << "\t"#X << " = temp" << fastuidraw::GlyphRenderDataCurvePair::pack_offset_##X << ";\\\n"
 
 
   EXTRACT_STREAM(p_x);
@@ -159,8 +105,7 @@ LoaderMacro(unsigned int alignment,
 // fastuidraw::glsl::code methods
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-curvepair_compute_pseudo_distance(unsigned int alignment,
-                                  c_string function_name,
+curvepair_compute_pseudo_distance(c_string function_name,
                                   c_string geometry_store_fetch,
                                   bool derivative_function)
 {
@@ -182,7 +127,7 @@ curvepair_compute_pseudo_distance(unsigned int alignment,
 
   return_value
     .add_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME", function_name)
-    .add_source(LoaderMacro(alignment, geometry_store_fetch).value(),
+    .add_source(LoaderMacro(geometry_store_fetch).value(),
                 ShaderSource::from_string);
 
   if (derivative_function)

@@ -67,16 +67,13 @@ namespace
   class GlyphAtlasGeometryBackingStoreBasePrivate
   {
   public:
-    GlyphAtlasGeometryBackingStoreBasePrivate(unsigned int palignment, unsigned int psize,
-                                              bool presizable):
+    GlyphAtlasGeometryBackingStoreBasePrivate(unsigned int psize, bool presizable):
       m_resizeable(presizable),
-      m_alignment(palignment),
       m_size(psize)
     {
     }
 
     bool m_resizeable;
-    unsigned int m_alignment;
     unsigned int m_size;
   };
 
@@ -206,10 +203,9 @@ resize(int new_num_layers)
 ///////////////////////////////////////////
 // fastuidraw::GlyphAtlasGeometryBackingStoreBase methods
 fastuidraw::GlyphAtlasGeometryBackingStoreBase::
-GlyphAtlasGeometryBackingStoreBase(unsigned int palignment, unsigned int psize,
-                                   bool presizable)
+GlyphAtlasGeometryBackingStoreBase(unsigned int psize, bool presizable)
 {
-  m_d = FASTUIDRAWnew GlyphAtlasGeometryBackingStoreBasePrivate(palignment, psize, presizable);
+  m_d = FASTUIDRAWnew GlyphAtlasGeometryBackingStoreBasePrivate(psize, presizable);
 }
 
 fastuidraw::GlyphAtlasGeometryBackingStoreBase::
@@ -228,15 +224,6 @@ size(void)
   GlyphAtlasGeometryBackingStoreBasePrivate *d;
   d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
   return d->m_size;
-}
-
-unsigned int
-fastuidraw::GlyphAtlasGeometryBackingStoreBase::
-alignment(void) const
-{
-  GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
-  return d->m_alignment;
 }
 
 bool
@@ -434,28 +421,23 @@ int
 fastuidraw::GlyphAtlas::
 allocate_geometry_data(c_array<const generic_data> pdata)
 {
+  if (pdata.empty())
+    {
+      return 0;
+    }
+
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
-  unsigned int count, alignment;
-  int block_count, return_value;
-
-  count = pdata.size();
-  alignment = d->m_geometry_store->alignment();
-
-  FASTUIDRAWassert(count > 0);
-  FASTUIDRAWassert(alignment > 0);
-  FASTUIDRAWassert(count % alignment == 0);
-
-  block_count = count / alignment;
-  return_value = d->m_geometry_data_allocator.allocate_interval(block_count);
+  int return_value;
+  return_value = d->m_geometry_data_allocator.allocate_interval(pdata.size());
   if (return_value == -1)
     {
       if (d->m_geometry_store->resizeable())
         {
-          d->m_geometry_store->resize(block_count + 2 * d->m_geometry_store->size());
+          d->m_geometry_store->resize(pdata.size() + 2 * d->m_geometry_store->size());
           d->m_geometry_data_allocator.resize(d->m_geometry_store->size());
-          return_value = d->m_geometry_data_allocator.allocate_interval(block_count);
+          return_value = d->m_geometry_data_allocator.allocate_interval(pdata.size());
           FASTUIDRAWassert(return_value != -1);
         }
       else
@@ -464,7 +446,7 @@ allocate_geometry_data(c_array<const generic_data> pdata)
         }
     }
 
-  d->m_geometry_data_allocated += block_count;
+  d->m_geometry_data_allocated += pdata.size();
   d->m_geometry_store->set_values(return_value, pdata);
   return return_value;
 }
@@ -476,7 +458,7 @@ deallocate_geometry_data(int location, int count)
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
-  if (location < 0)
+  if (location < 0 || count == 0)
     {
       FASTUIDRAWassert(count == 0);
       return;

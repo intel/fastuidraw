@@ -53,18 +53,10 @@ namespace fastuidraw
     allocate(ivec2 size, c_array<const uint8_t> data, const Padding &padding);
 
     /*!
-     * Negative return value indicates failure. Size of pdata must be a
-     * multiple of alignment(). Return value is in units of alignment().
+     * Negative return value indicates failure.
      */
     int
     allocate_geometry_data(c_array<const generic_data> pdata);
-
-    /*!
-     * Returns the alignment of the glyph geometry data,
-     * see GlyphAtlasGeometryBackingStoreBase::alignment().
-     */
-    int
-    alignment(void) const;
 
   private:
     friend class Glyph;

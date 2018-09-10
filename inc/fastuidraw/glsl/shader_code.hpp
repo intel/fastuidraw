@@ -52,9 +52,6 @@ namespace fastuidraw
        * at Glyph::atlas_location().location() and the top right
        * being at that value + Glyph::layout().m_texel_size.
        * The value geometry_offset is from Glyph::geometry_offset().
-       *
-       * \param alignment alignment of the backing geometry store,
-       *                  GlyphAtlasGeometryBackingStoreBase::alignment().
        * \param function_name name for the function
        * \param geometry_store_fetch the macro function (that returns a vec4)
        *                             to use in the produced GLSL code to fetch
@@ -65,8 +62,7 @@ namespace fastuidraw
        *                            the function with repsect to texture_coordinate.
        */
       ShaderSource
-      curvepair_compute_pseudo_distance(unsigned int alignment,
-                                        c_string function_name,
+      curvepair_compute_pseudo_distance(c_string function_name,
                                         c_string geometry_store_fetch,
                                         bool derivative_function = false);
       /*!

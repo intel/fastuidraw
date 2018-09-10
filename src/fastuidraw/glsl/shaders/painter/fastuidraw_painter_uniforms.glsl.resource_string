@@ -55,9 +55,9 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
 
   FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING, std430) restrict readonly buffer fastuidraw_glyphGeometryDataStore
   {
-    fastuidraw_glyph_atlas_geometry_store_block_type fastuidraw_glyphGeometryDataStore_data[];
+    uint fastuidraw_glyphGeometryDataStore_data[];
   };
-  #define fastuidraw_fetch_glyph_data(block) fastuidraw_glyph_atlas_geometry_store_block_as4(fastuidraw_glyphGeometryDataStore_data[int(block)])
+  #define fastuidraw_fetch_glyph_data(X) (fastuidraw_glyphGeometryDataStore_data[int(X)])
 
 #elif defined(FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY)
 
@@ -72,12 +72,12 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
   #define FASTUIDRAW_GLYPH_GEOMETRY_Y(T) FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2, FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2, T)
   #define FASTUIDRAW_GLYPH_GEOMETRY_X(T) FASTUIDRAW_EXTRACT_BITS(0, FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2, T)
   #define FASTUIDRAW_GLYPH_GEOMETRY_COORD(v) ivec3(FASTUIDRAW_GLYPH_GEOMETRY_X(v), FASTUIDRAW_GLYPH_GEOMETRY_Y(v), FASTUIDRAW_GLYPH_GEOMETRY_LAYER(v))
-  #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, FASTUIDRAW_GLYPH_GEOMETRY_COORD(block), 0)
+  #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphGeometryDataStore, FASTUIDRAW_GLYPH_GEOMETRY_COORD(X), 0).r)
 
 #else
 
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING) uniform usamplerBuffer fastuidraw_glyphGeometryDataStore;
-  #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, int(block))
+  #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphGeometryDataStore, int(X)).r)
 
 #endif
 ////////////////////////////////////////////////////

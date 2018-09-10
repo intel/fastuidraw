@@ -65,7 +65,6 @@ namespace
   public:
     BackendConstantsPrivate(void):
       m_data_store_alignment(0),
-      m_glyph_atlas_geometry_store_alignment(0),
       m_glyph_atlas_texel_store_width(0),
       m_glyph_atlas_texel_store_height(0),
       m_image_atlas_color_store_width(0),
@@ -76,7 +75,6 @@ namespace
     {}
 
     int m_data_store_alignment;
-    int m_glyph_atlas_geometry_store_alignment;
     int m_glyph_atlas_texel_store_width;
     int m_glyph_atlas_texel_store_height;
     int m_image_atlas_color_store_width;
@@ -478,34 +476,6 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
       src
         .add_macro("fastuidraw_data_store_block_type", "uvec4")
         .add_macro("fastuidraw_data_store_block_as4(X)", "X");
-      break;
-    }
-
-  /* and the same for the geometry store alignment */
-  switch(backend.glyph_atlas_geometry_store_alignment())
-    {
-    case 1:
-      src
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "uint")
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "uvec4(X, 0u, 0u, 0u)");
-      break;
-
-    case 2:
-      src
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "uvec2")
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "vuec4(X, 0u, 0u)");
-      break;
-
-    case 3:
-      src
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "uvec3")
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "uvec4(X, 0u)");
-      break;
-
-    case 4:
-      src
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_type", "uvec4")
-        .add_macro("fastuidraw_glyph_atlas_geometry_store_block_as4(X)", "X");
       break;
     }
 }
@@ -1244,12 +1214,10 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
                                                 "fastuidraw_imageIndexAtlas",
                                                 backend.image_atlas_index_tile_size(),
                                                 backend.image_atlas_color_tile_size()))
-    .add_source(code::curvepair_compute_pseudo_distance(backend.glyph_atlas_geometry_store_alignment(),
-                                                        "fastuidraw_curvepair_pseudo_distance",
+    .add_source(code::curvepair_compute_pseudo_distance("fastuidraw_curvepair_pseudo_distance",
                                                         "fastuidraw_fetch_glyph_data",
                                                         false))
-    .add_source(code::curvepair_compute_pseudo_distance(backend.glyph_atlas_geometry_store_alignment(),
-                                                        "fastuidraw_curvepair_pseudo_distance",
+    .add_source(code::curvepair_compute_pseudo_distance("fastuidraw_curvepair_pseudo_distance",
                                                         "fastuidraw_fetch_glyph_data",
                                                         true))
     .add_source("fastuidraw_painter_main.frag.glsl.resource_string", ShaderSource::from_resource);
@@ -1438,7 +1406,6 @@ set_from_atlas(const reference_counted_ptr<GlyphAtlas> &p)
       d = static_cast<BackendConstantsPrivate*>(m_d);
       d->m_glyph_atlas_texel_store_width = p->texel_store()->dimensions().x();
       d->m_glyph_atlas_texel_store_height = p->texel_store()->dimensions().y();
-      d->m_glyph_atlas_geometry_store_alignment = p->geometry_store()->alignment();
     }
   return *this;
 }
@@ -1476,8 +1443,6 @@ assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backend
 
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
                  BackendConstantsPrivate, int, data_store_alignment)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
-                 BackendConstantsPrivate, int, glyph_atlas_geometry_store_alignment)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
                  BackendConstantsPrivate, int, glyph_atlas_texel_store_width)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,

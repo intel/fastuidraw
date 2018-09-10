@@ -437,19 +437,10 @@ allocate_geometry_data(c_array<const generic_data> pdata)
     {
       GeometryDataAlloc A;
       A.m_location = L;
-      A.m_size = pdata.size() / alignment();
+      A.m_size = pdata.size();
       d->m_geometry_locations.push_back(A);
     }
   return L;
-}
-
-int
-fastuidraw::GlyphAtlasProxy::
-alignment(void) const
-{
-  GlyphAtlasProxyPrivate *d;
-  d = static_cast<GlyphAtlasProxyPrivate*>(m_d);
-  return d->m_cache->m_atlas->geometry_store()->alignment();
 }
 
 //////////////////////////////////////////////
