@@ -365,6 +365,12 @@ namespace fastuidraw
         return m_contours.empty();
       }
 
+      c_array<const IntContour>
+      contours(void)
+      {
+        return make_c_array(m_contours);
+      }
+
       /* Add this IntPath with a transforamtion tr applied to it to a
        * pre-exising (and possibly empty) Path.
        * \param tr transformation to apply to data of path
