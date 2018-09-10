@@ -826,6 +826,7 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
   std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
   if (g->m_cache)
     {
+      /* already part of this cache, upload if necessary */
       if (upload_to_atlas)
         {
           fastuidraw::GlyphLocation::Array S(&g->m_atlas_locations);
@@ -837,6 +838,13 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
   GlyphSourceRender src(g->m_metrics->m_font,
                         g->m_metrics->m_glyph_code,
                         g->m_render);
+
+  std::lock_guard<std::mutex> m2(d->m_glyphs_metrics_mutex);
+
+  /* Take the metrics if we can */
+  GlyphSource metrics_src(g->m_metrics->m_font,
+                          g->m_metrics->m_glyph_code);
+  d->m_glyph_metrics.take(g->m_metrics, d, metrics_src);
 
   if (d->m_glyphs.take(g, d, src) == routine_fail)
     {
