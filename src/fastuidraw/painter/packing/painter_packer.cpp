@@ -271,7 +271,6 @@ namespace
   class PoolSet:fastuidraw::noncopyable
   {
   public:
-
     PoolSet(void)
     {
       m_pools.push_back(FASTUIDRAWnew Pool<T>());
@@ -591,6 +590,7 @@ namespace
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterShaderSet m_default_shaders;
+    fastuidraw::PainterData::value<fastuidraw::PainterBrush> m_default_brush;
     unsigned int m_header_size;
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend_shader;
@@ -678,7 +678,15 @@ pack_painter_state(const fastuidraw::PainterPackerData &state,
   pack_state_data(p, state.m_item_shader_data, out_data.m_item_shader_data_loc);
   pack_state_data(p, state.m_composite_shader_data, out_data.m_composite_shader_data_loc);
   pack_state_data(p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
-  pack_state_data(p, state.m_brush, out_data.m_brush_shader_data_loc);
+
+  if (state.m_brush.has_data())
+    {
+      pack_state_data(p, state.m_brush, out_data.m_brush_shader_data_loc);
+    }
+  else
+    {
+      pack_state_data(p, p->m_default_brush, out_data.m_brush_shader_data_loc);
+    }
 }
 
 unsigned int
@@ -826,14 +834,17 @@ upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
     }
   m_accumulated_draws.back().pack_painter_state(draw_state, this, m_painter_state_location);
 
-  const PainterBrush &brush(draw_state.m_brush.data());
-  if (brush.image_requires_binding() && brush.image() != m_last_binded_image)
+  if (draw_state.m_brush.has_data())
     {
-      reference_counted_ptr<PainterDraw::Action> action;
+      const PainterBrush &brush(draw_state.m_brush.data());
+      if (brush.image_requires_binding() && brush.image() != m_last_binded_image)
+        {
+          reference_counted_ptr<PainterDraw::Action> action;
 
-      m_last_binded_image = brush.image();
-      action = m_backend->bind_image(m_last_binded_image);
-      m_accumulated_draws.back().draw_break(action);
+          m_last_binded_image = brush.image();
+          action = m_backend->bind_image(m_last_binded_image);
+          m_accumulated_draws.back().draw_break(action);
+        }
     }
 }
 
