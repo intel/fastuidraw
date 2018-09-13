@@ -869,7 +869,14 @@ draw_text(const std::string &text, float pixel_size,
                                      m_glyph_cache);
 
   create_formatted_text(sequence, str, font, m_glyph_selector);
-  m_painter->draw_glyphs(draw, sequence.painter_attribute_data(renderer));
+  if (renderer.valid())
+    {
+      m_painter->draw_glyphs(draw, sequence.painter_attribute_data(renderer));
+    }
+  else
+    {
+      m_painter->draw_glyphs(draw, sequence);
+    }
 }
 
 void

@@ -64,6 +64,16 @@ protected:
             const fastuidraw::PainterData &draw,
             enum fastuidraw::PainterEnums::screen_orientation orientation
             = fastuidraw::PainterEnums::y_increases_downwards);
+  void
+  draw_text(const std::string &text, float pixel_size,
+            fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+            const fastuidraw::PainterData &draw,
+            enum fastuidraw::PainterEnums::screen_orientation orientation
+            = fastuidraw::PainterEnums::y_increases_downwards)
+  {
+    draw_text(text, pixel_size, font, fastuidraw::GlyphRender(),
+              draw, orientation);
+  }
 
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
