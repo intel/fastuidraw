@@ -589,6 +589,7 @@ namespace
                            const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
+    fastuidraw::PainterPackedValuePool m_pool;
     fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterData::value<fastuidraw::PainterBrush> m_default_brush;
     unsigned int m_header_size;
@@ -1195,6 +1196,15 @@ painter_shader_registrar(void) const
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_backend->painter_shader_registrar();
+}
+
+fastuidraw::PainterPackedValuePool&
+fastuidraw::PainterPacker::
+packed_value_pool(void)
+{
+  PainterPackerPrivate *d;
+  d = static_cast<PainterPackerPrivate*>(m_d);
+  return d->m_pool;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader>&

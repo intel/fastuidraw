@@ -983,7 +983,6 @@ namespace
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_core;
-    fastuidraw::PainterPackedValuePool m_pool;
     fastuidraw::PainterPackedValue<fastuidraw::PainterBrush> m_reset_brush, m_black_brush;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_identiy_matrix;
     ClipEquationStore m_clip_store;
@@ -1254,14 +1253,13 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(1.0f),
   m_stroke_arc_path(false),
-  m_linearize_from_arc_path(false),
-  m_pool()
+  m_linearize_from_arc_path(false)
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
-  m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
-  m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
+  m_reset_brush = m_core->packed_value_pool().create_packed_value(fastuidraw::PainterBrush());
+  m_black_brush = m_core->packed_value_pool().create_packed_value(fastuidraw::PainterBrush()
                                              .pen(0.0f, 0.0f, 0.0f, 0.0f));
-  m_identiy_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
+  m_identiy_matrix = m_core->packed_value_pool().create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
   m_max_attribs_per_block = backend->attribs_per_mapping();
   m_max_indices_per_block = backend->indices_per_mapping();
@@ -1563,8 +1561,8 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 {
   fastuidraw::PainterPackerData p(draw);
 
-  p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
-  p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
+  p.m_clip = m_clip_rect_state.clip_equations_state(m_core->packed_value_pool());
+  p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_core->packed_value_pool());
   m_core->draw_generic(shader, p, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z, call_back);
 }
 
@@ -1577,8 +1575,8 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
              const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   fastuidraw::PainterPackerData p(draw);
-  p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
-  p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
+  p.m_clip = m_clip_rect_state.clip_equations_state(m_core->packed_value_pool());
+  p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_core->packed_value_pool());
   m_core->draw_generic(shader, p, src, z, call_back);
 }
 
@@ -1964,7 +1962,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
        * to prevent filling up the data buffer with repeated
        * state data.
        */
-      draw.make_packed(m_pool);
+      draw.make_packed(m_core->packed_value_pool());
     }
 
   if (with_anti_aliasing)
@@ -2059,7 +2057,7 @@ packed_value_pool(void)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_pool;
+  return d->m_core->packed_value_pool();
 }
 
 void
@@ -3118,14 +3116,14 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
    */
   PainterPackedValue<PainterClipEquations> prev_clip, current_clip;
 
-  prev_clip = d->m_clip_rect_state.clip_equations_state(d->m_pool);
+  prev_clip = d->m_clip_rect_state.clip_equations_state(d->m_core->packed_value_pool());
   FASTUIDRAWassert(prev_clip);
 
   d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
 
   std::bitset<4> skip_occluder;
   skip_occluder = d->m_clip_rect_state.set_clip_equations_to_clip_rect(prev_clip);
-  current_clip = d->m_clip_rect_state.clip_equations_state(d->m_pool);
+  current_clip = d->m_clip_rect_state.clip_equations_state(d->m_core->packed_value_pool());
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
@@ -3152,7 +3150,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
    * state from being marked as dirty.
    */
   PainterPackedValue<PainterItemMatrix> matrix_state;
-  matrix_state = d->m_clip_rect_state.current_item_matrix_state(d->m_pool);
+  matrix_state = d->m_clip_rect_state.current_item_matrix_state(d->m_core->packed_value_pool());
   FASTUIDRAWassert(matrix_state);
   d->m_clip_rect_state.item_matrix_state(d->m_identiy_matrix, false);
 

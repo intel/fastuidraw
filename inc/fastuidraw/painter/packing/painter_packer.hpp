@@ -247,6 +247,13 @@ namespace fastuidraw
     painter_shader_registrar(void) const;
 
     /*!
+     * Returns the PainterPackedValuePool used to construct
+     * PainterPackedValue objects.
+     */
+    PainterPackedValuePool&
+    packed_value_pool(void);
+
+    /*!
      * Returns the active composite shader
      */
     const reference_counted_ptr<PainterCompositeShader>&
