@@ -1255,7 +1255,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_curve_flatness(1.0f),
   m_stroke_arc_path(false),
   m_linearize_from_arc_path(false),
-  m_pool(backend->configuration_base().alignment())
+  m_pool()
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());

@@ -39,11 +39,11 @@ namespace
 
     virtual
     unsigned int
-    data_size(unsigned int alignment) const;
+    data_size(void) const;
 
     virtual
     void
-    pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
 
     float m_miter_limit;
     float m_radius;
@@ -79,16 +79,16 @@ copy(void) const
 
 unsigned int
 PainterDashedStrokeParamsData::
-data_size(unsigned int alignment) const
+data_size(void) const
 {
   using namespace fastuidraw;
-  return round_up_to_multiple(PainterDashedStrokeParams::stroke_static_data_size, alignment)
-    + round_up_to_multiple(2 * m_dash_pattern.size(), alignment);
+  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterDashedStrokeParams::stroke_static_data_size)
+    + FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2 * m_dash_pattern.size());
 }
 
 void
 PainterDashedStrokeParamsData::
-pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const
+pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
 {
   using namespace fastuidraw;
 
@@ -110,7 +110,7 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   if (!m_dash_pattern_packed.empty())
     {
       c_array<generic_data> dst_pattern;
-      dst_pattern = dst.sub_array(round_up_to_multiple(PainterDashedStrokeParams::stroke_static_data_size, alignment));
+      dst_pattern = dst.sub_array(FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterDashedStrokeParams::stroke_static_data_size));
       std::copy(m_dash_pattern_packed.begin(), m_dash_pattern_packed.end(), dst_pattern.begin());
       for(unsigned int i = m_dash_pattern_packed.size(), endi = dst_pattern.size(); i < endi; ++i)
         {

@@ -450,8 +450,6 @@ sdl_painter_demo(const std::string &about_text,
                        "painter_use_hw_clip_planes",
                        "",
                        *this),
-  m_painter_alignment(m_painter_params.alignment(), "painter_alignment",
-                       "Alignment for data store of painter, must be 1, 2, 3 or 4", *this),
   m_painter_data_blocks_per_buffer(m_painter_params.data_blocks_per_store_buffer(),
                                    "painter_blocks_per_buffer",
                                    "Number of data blocks a single API draw can hold",
@@ -646,7 +644,6 @@ init_gl(int w, int h)
 
 #define APPLY_PARAM(X, Y) do { if (Y.set_by_command_line()) { std::cout << "Apply: "#X": " << Y.value() << "\n"; m_painter_params.X(Y.value()); } } while (0)
 
-  APPLY_PARAM(alignment, m_painter_alignment);
   APPLY_PARAM(attributes_per_buffer, m_painter_attributes_per_buffer);
   APPLY_PARAM(indices_per_buffer, m_painter_indices_per_buffer);
   APPLY_PARAM(data_blocks_per_store_buffer, m_painter_data_blocks_per_buffer);
@@ -780,7 +777,6 @@ init_gl(int w, int h)
                   << ")\n";                                             \
       } while(0)
 
-      LAZY_PARAM(alignment, m_painter_alignment);
       LAZY_PARAM(attributes_per_buffer, m_painter_attributes_per_buffer);
       LAZY_PARAM(indices_per_buffer, m_painter_indices_per_buffer);
       LAZY_PARAM(data_blocks_per_store_buffer, m_painter_data_blocks_per_buffer);

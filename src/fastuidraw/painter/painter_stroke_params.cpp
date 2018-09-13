@@ -41,18 +41,17 @@ namespace
 
     virtual
     unsigned int
-    data_size(unsigned int alignment) const
+    data_size(void) const
     {
-      return fastuidraw::round_up_to_multiple(fastuidraw::PainterStrokeParams::stroke_data_size, alignment);
+      using namespace fastuidraw;
+      return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterStrokeParams::stroke_data_size);
     }
 
     virtual
     void
-    pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const
+    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
     {
       using namespace fastuidraw;
-      FASTUIDRAWunused(alignment);
-
       dst[PainterStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
       if (m_stroking_units == PainterStrokeParams::pixel_stroking_units)
         {

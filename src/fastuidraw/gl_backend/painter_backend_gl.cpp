@@ -263,7 +263,6 @@ namespace
   {
   public:
     ConfigurationGLPrivate(void):
-      m_alignment(4),
       m_attributes_per_buffer(512 * 512),
       m_indices_per_buffer((m_attributes_per_buffer * 6) / 4),
       m_data_blocks_per_store_buffer(1024 * 64),
@@ -288,7 +287,6 @@ namespace
       m_use_uber_item_shader(true)
     {}
 
-    int m_alignment;
     unsigned int m_attributes_per_buffer;
     unsigned int m_indices_per_buffer;
     unsigned int m_data_blocks_per_store_buffer;
@@ -1348,9 +1346,6 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
   interlock_type = compute_interlock_type(ctx);
   have_ffb = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
-  /* First set ideal parameters */
-  d->m_alignment = 4;
-
   d->m_break_on_shader_change = false;
   d->m_clipping_type = clipping_via_gl_clip_distance;
 
@@ -1437,7 +1432,7 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
   d->m_data_store_backing = data_store_ubo;
 
   unsigned int max_ubo_size, max_num_blocks, block_size;
-  block_size = d->m_alignment * sizeof(generic_data);
+  block_size = 4 * sizeof(generic_data);
   max_ubo_size = context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
   max_num_blocks = max_ubo_size / block_size;
   if (max_num_blocks < d->m_data_blocks_per_store_buffer)
@@ -1545,8 +1540,7 @@ adjust_for_context(const ContextProperties &ctx)
     case data_store_ubo:
       {
         unsigned int max_ubo_size_bytes, max_num_blocks, block_size_bytes;
-        d->m_alignment = 4;
-        block_size_bytes = d->m_alignment * sizeof(generic_data);
+        block_size_bytes = 4 * sizeof(generic_data);
         max_ubo_size_bytes = context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
         max_num_blocks = max_ubo_size_bytes / block_size_bytes;
         d->m_data_blocks_per_store_buffer = t_min(max_num_blocks,
@@ -1557,7 +1551,7 @@ adjust_for_context(const ContextProperties &ctx)
     case data_store_ssbo:
       {
         unsigned int max_ssbo_size_bytes, max_num_blocks, block_size_bytes;
-        block_size_bytes = d->m_alignment * sizeof(generic_data);
+        block_size_bytes = 4 * sizeof(generic_data);
         max_ssbo_size_bytes = context_get<GLint>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
         max_num_blocks = max_ssbo_size_bytes / block_size_bytes;
         d->m_data_blocks_per_store_buffer = t_min(max_num_blocks,
@@ -1667,8 +1661,6 @@ create_missing_atlases(const ContextProperties &ctx)
 assign_swap_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL)
 
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 int, alignment)
-setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, attributes_per_buffer)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, indices_per_buffer)
@@ -1762,7 +1754,6 @@ PainterBackendGL(const ConfigurationGL &config_gl,
                  config_gl.colorstop_atlas(),
                  FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl, uber_params),
                  ConfigurationBase()
-                 .alignment(config_gl.alignment())
                  .composite_type(uber_params.composite_type())
                  .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
                  shaders)
@@ -1781,7 +1772,6 @@ PainterBackendGL(const ConfigurationGL &config_gl,
                  config_gl.colorstop_atlas(),
                  p->painter_shader_registrar(),
                  ConfigurationBase()
-                 .alignment(config_gl.alignment())
                  .composite_type(uber_params.composite_type())
                  .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
                  p->default_shaders())

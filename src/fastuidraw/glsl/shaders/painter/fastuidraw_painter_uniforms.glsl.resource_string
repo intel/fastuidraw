@@ -94,17 +94,17 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
 
   FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_SSBO_BINDING, std430) restrict readonly buffer fastuidraw_painterStore_ssbo
   {
-    fastuidraw_data_store_block_type fastuidraw_painterStore[];
+    uvec4 fastuidraw_painterStore[];
   };
- #define fastuidraw_fetch_data(block) fastuidraw_data_store_block_as4(fastuidraw_painterStore[int(block)])
+ #define fastuidraw_fetch_data(block) fastuidraw_painterStore[int(block)]
 
 #elif defined(FASTUIDRAW_PAINTER_USE_DATA_UBO)
 
   FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_UBO_BINDING, std140) uniform fastuidraw_painterStore_ubo
   {
-    fastuidraw_data_store_block_type fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
+    uvec4 fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
   };
-  #define fastuidraw_fetch_data(block) fastuidraw_data_store_block_as4(fastuidraw_painterStore[int(block)])
+  #define fastuidraw_fetch_data(block) fastuidraw_painterStore[int(block)]
 
 #endif
 

@@ -69,7 +69,6 @@ PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
 {
   configure_backend();
   m_backend_constants
-    .data_store_alignment(P.alignment())
     .set_from_atlas(m_params.colorstop_atlas().static_cast_ptr<ColorStopAtlas>())
     .set_from_atlas(m_params.glyph_atlas().static_cast_ptr<GlyphAtlas>())
     .set_from_atlas(m_params.image_atlas().static_cast_ptr<ImageAtlas>());

@@ -142,22 +142,6 @@ namespace fastuidraw
         glyph_atlas(const reference_counted_ptr<GlyphAtlasGL> &v);
 
         /*!
-         * Specifies the alignment in units of generic_data for
-         * packing of seperately accessible entries of generic data
-         * in PainterDraw::m_store.
-         */
-        int
-        alignment(void) const;
-
-        /*!
-         * Specify the value returned by alignment(void) const,
-         * default value is 4
-         * \param v value
-         */
-        ConfigurationGL&
-        alignment(int v);
-
-        /*!
          * Specifies the maximum number of attributes
          * a PainterDraw returned by
          * map_draw() may store, i.e. the size
@@ -195,8 +179,7 @@ namespace fastuidraw
          * data a PainterDraw returned by
          * map_draw() may store. The size of
          * PainterDraw::m_store is given by
-         * data_blocks_per_store_buffer() *
-         * PainterBackend::ConfigurationBase::alignment(),
+         * data_blocks_per_store_buffer() * 4.
          * Initial value is 1024 * 64.
          */
         unsigned int

@@ -63,13 +63,11 @@ namespace
   public:
     ConfigurationPrivate(void):
       m_brush_shader_mask(0),
-      m_alignment(4),
       m_composite_type(fastuidraw::PainterCompositeShader::dual_src),
       m_supports_bindless_texturing(false)
     {}
 
     uint32_t m_brush_shader_mask;
-    int m_alignment;
     enum fastuidraw::PainterCompositeShader::shader_type m_composite_type;
     bool m_supports_bindless_texturing;
   };
@@ -134,9 +132,6 @@ assign_swap_implement(fastuidraw::PainterBackend::ConfigurationBase)
 setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
                  uint32_t, brush_shader_mask)
-setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
-                 ConfigurationPrivate,
-                 int, alignment)
 setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
                  enum fastuidraw::PainterCompositeShader::shader_type, composite_type)

@@ -233,9 +233,7 @@ namespace fastuidraw
      * \brief
      * Enumeration giving the packing order for data of a brush.
      * Each enumeration is an entry and when data is packed each
-     * entry starts on a multiple of the alignment (see
-     * PainterBackend::ConfigurationBase::alignment()) to the
-     * destination packing store.
+     * entry starts on a multiple of the 4.
      */
     enum packing_order_t
       {
@@ -369,11 +367,6 @@ namespace fastuidraw
      * image to the size of the master index is given by
      * pow(I, Image::number_index_lookups). where I is given
      * by ImageAtlas::index_tile_size().
-     * NOTE:
-     * - packing it into 2 elements is likely overkill since
-     *   alignment is likely to be 4. We could split the
-     *   atlas location over 3 full integers, or encode
-     *   Image::master_index_tile_dims() as floats.
      */
     enum image_offset_t
       {
@@ -787,27 +780,23 @@ namespace fastuidraw
 
     /*!
      * Returns the length of the data needed to encode the brush.
-     * Data is padded to be multiple of alignment and also
-     * sub-data of brush is padded to be along alignment
+     * Data is padded to be multiple of 4 and also
+     * sub-data of brush is padded to be along 4-alignment
      * boundaries.
-     * \param alignment alignment of the data store, see
-     *                  PainterBackend::ConfigurationBase::alignment(void) const
      */
     unsigned int
-    data_size(unsigned int alignment) const;
+    data_size(void) const;
 
     /*!
      * Encodes the data. Data is packed in the order
      * specified by \ref packing_order_t.
-     * Data is padded to be multiple of alignment and also
-     * sub-data of brush is padded to be along alignment
+     * Data is padded to be multiple of 4 and also
+     * sub-data of brush is padded to be along 4-alignment
      * boundaries.
      * \param dst location to which to encode the brush
-     * \param alignment alignment of the data store, see
-     *                  PainterBackend::ConfigurationBase::alignment(void) const
      */
     void
-    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+    pack_data(c_array<generic_data> dst) const;
 
     /*!
      * Returns the brush shader ID which when tested against the

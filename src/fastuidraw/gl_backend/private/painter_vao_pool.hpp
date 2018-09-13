@@ -113,7 +113,7 @@ private:
 
   unsigned int m_attribute_buffer_size, m_header_buffer_size;
   unsigned int m_index_buffer_size;
-  int m_alignment, m_blocks_per_data_buffer;
+  int m_blocks_per_data_buffer;
   unsigned int m_data_buffer_size;
   enum glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
   enum tex_buffer_support_t m_tex_buffer_support;

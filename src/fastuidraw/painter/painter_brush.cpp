@@ -23,41 +23,41 @@
 // fastuidraw::PainterBrush methods
 unsigned int
 fastuidraw::PainterBrush::
-data_size(unsigned int alignment) const
+data_size(void) const
 {
   unsigned int return_value(0);
   uint32_t pshader = shader();
 
-  return_value += round_up_to_multiple(pen_data_size, alignment);
+  return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(pen_data_size);
 
   if (pshader & image_mask)
     {
-      return_value += round_up_to_multiple(image_data_size, alignment);
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(image_data_size);
     }
 
   if (pshader & radial_gradient_mask)
     {
       FASTUIDRAWassert(pshader & gradient_mask);
-      return_value += round_up_to_multiple(radial_gradient_data_size, alignment);
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
     }
   else if (pshader & gradient_mask)
     {
-      return_value += round_up_to_multiple(linear_gradient_data_size, alignment);
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
     }
 
   if (pshader & repeat_window_mask)
     {
-      return_value += round_up_to_multiple(repeat_window_data_size, alignment);
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(repeat_window_data_size);
     }
 
   if (pshader & transformation_translation_mask)
     {
-      return_value += round_up_to_multiple(transformation_translation_data_size, alignment);
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_translation_data_size);
     }
 
   if (pshader & transformation_matrix_mask)
     {
-      return_value += round_up_to_multiple(transformation_matrix_data_size, alignment);
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_matrix_data_size);
     }
 
   return return_value;
@@ -65,7 +65,7 @@ data_size(unsigned int alignment) const
 
 void
 fastuidraw::PainterBrush::
-pack_data(unsigned int alignment, c_array<generic_data> dst) const
+pack_data(c_array<generic_data> dst) const
 {
   unsigned int current(0);
   unsigned int sz;
@@ -73,7 +73,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
   uint32_t pshader = shader();
 
   {
-    sz = round_up_to_multiple(pen_data_size, alignment);
+    sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(pen_data_size);
     sub_dest = dst.sub_array(current, sz);
     current += sz;
 
@@ -85,7 +85,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
 
   if (pshader & image_mask)
     {
-      sz = round_up_to_multiple(image_data_size, alignment);
+      sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(image_data_size);
       sub_dest = dst.sub_array(current, sz);
       current += sz;
 
@@ -131,11 +131,11 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
     {
       if (pshader & radial_gradient_mask)
         {
-          sz = round_up_to_multiple(radial_gradient_data_size, alignment);
+          sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
         }
       else
         {
-          sz = round_up_to_multiple(linear_gradient_data_size, alignment);
+          sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
         }
 
       sub_dest = dst.sub_array(current, sz);
@@ -169,7 +169,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
 
   if (pshader & repeat_window_mask)
     {
-      sz = round_up_to_multiple(repeat_window_data_size, alignment);
+      sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(repeat_window_data_size);
       sub_dest = dst.sub_array(current, sz);
       current += sz;
 
@@ -181,7 +181,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
 
   if (pshader & transformation_matrix_mask)
     {
-      sz = round_up_to_multiple(transformation_matrix_data_size, alignment);
+      sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_matrix_data_size);
       sub_dest = dst.sub_array(current, sz);
       current += sz;
 
@@ -193,7 +193,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
 
   if (pshader & transformation_translation_mask)
     {
-      sz = round_up_to_multiple(transformation_translation_data_size, alignment);
+      sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_translation_data_size);
       sub_dest = dst.sub_array(current, sz);
       current += sz;
 

@@ -120,10 +120,9 @@ namespace fastuidraw
        * - return -1 if on an odd interval, +1 if on an even interval
        *
        * \param function_name name to give to the function
-       * \param data_alignment the alignment of the data store (see PainterBackend::ConfigurationBase::alignemnt()).
        */
       ShaderSource
-      compute_interval(c_string function_name, unsigned int data_alignment);
+      compute_interval(c_string function_name);
     }
 /*! @} */
   }

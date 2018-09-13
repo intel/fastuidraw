@@ -65,9 +65,6 @@ namespace fastuidraw
     const void*
     raw_value(void) const;
 
-    unsigned int
-    alignment_packing(void) const;
-
     void *m_d;
   };
 
@@ -83,8 +80,6 @@ namespace fastuidraw
    * (even dtor, copy ctor and equality operator) on a fixed object cannot
    * be done from multiple threads simutaneously. A fixed
    * PainterPackedValue can be used by different Painter (and PainterPacker)
-   * objects subject to the condition that the data store alignment (see
-   * PainterPacker::Configuration::alignment()) is the same for each of these
    * objects.
    */
   template<typename T>
@@ -123,18 +118,6 @@ namespace fastuidraw
       FASTUIDRAWassert(this->m_d);
       p = static_cast<const T*>(this->raw_value());
       return *p;
-    }
-
-    /*!
-     * Returns the alignment packing for PainterPackedValue
-     * object (see PainterPacker::Configuration::alignment());
-     * If the PainterPackedValue represents a nullptr handle then
-     * returns 0.
-     */
-    unsigned int
-    alignment_packing(void) const
-    {
-      return this->alignment_packing();
     }
 
     /*!
@@ -210,21 +193,16 @@ namespace fastuidraw
    * NOT thread safe, as such it is not a safe operation to use the
    * same PainterPackedValuePool object from multiple threads at the
    * same time. A fixed PainterPackedValuePool can create PainterPackedValue
-   * objects used by different Painter (and PainterPacker) objects subject
-   * to the condition that the data store alignment (see
-   * PainterPacker::Configuration::alignment()) is the same for each of
-   * these objects.
+   * objects used by different Painter (and PainterPacker) objects.
    */
   class PainterPackedValuePool:noncopyable
   {
   public:
     /*!
      * Ctor.
-     * \param painter_alignment the alignment to create packed data, see
-     *                           PainterPacker::Configuration::alignment()
      */
     explicit
-    PainterPackedValuePool(int painter_alignment);
+    PainterPackedValuePool(void);
 
     ~PainterPackedValuePool();
 

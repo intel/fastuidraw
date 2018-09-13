@@ -28,9 +28,8 @@ painter_vao_pool(const PainterBackendGL::ConfigurationGL &params,
   m_attribute_buffer_size(params.attributes_per_buffer() * sizeof(PainterAttribute)),
   m_header_buffer_size(params.attributes_per_buffer() * sizeof(uint32_t)),
   m_index_buffer_size(params.indices_per_buffer() * sizeof(PainterIndex)),
-  m_alignment(params_base.alignment()),
   m_blocks_per_data_buffer(params.data_blocks_per_store_buffer()),
-  m_data_buffer_size(m_blocks_per_data_buffer * m_alignment * sizeof(generic_data)),
+  m_data_buffer_size(m_blocks_per_data_buffer * 4 * sizeof(generic_data)),
   m_data_store_backing(params.data_store_backing()),
   m_tex_buffer_support(tex_buffer_support),
   m_binding_points(binding_points),
@@ -186,14 +185,7 @@ void
 fastuidraw::gl::detail::painter_vao_pool::
 generate_tbos(painter_vao &vao)
 {
-  const GLenum uint_fmts[4] =
-    {
-      GL_R32UI,
-      GL_RG32UI,
-      GL_RGB32UI,
-      GL_RGBA32UI,
-    };
-  vao.m_data_tbo = generate_tbo(vao.m_data_bo, uint_fmts[m_alignment - 1],
+  vao.m_data_tbo = generate_tbo(vao.m_data_bo, GL_RGBA32UI,
                                 m_binding_points.data_store_buffer_tbo());
 }
 

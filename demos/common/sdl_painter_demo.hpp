@@ -133,7 +133,6 @@ private:
   command_separator m_painter_options_affected_by_context;
   enumerated_command_line_argument_value<auxiliary_buffer_t> m_provide_auxiliary_image_buffer;
   enumerated_command_line_argument_value<clipping_type_t> m_use_hw_clip_planes;
-  command_line_argument_value<int> m_painter_alignment;
   command_line_argument_value<int> m_painter_data_blocks_per_buffer;
   enumerated_command_line_argument_value<data_store_backing_t> m_data_store_backing;
   command_line_argument_value<bool> m_assign_layout_to_vertex_shader_inputs;

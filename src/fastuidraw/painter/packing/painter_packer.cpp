@@ -194,10 +194,6 @@ namespace
     int m_begin_id;
     unsigned int m_draw_command_id, m_offset;
 
-    /* how m_data is aligned
-     */
-    unsigned int m_alignment;
-
   protected:
     /* pointer to raw state member held
      * by derived class
@@ -226,7 +222,7 @@ namespace
     }
 
     void
-    set(const T &st, int alignment, PoolBase *p, int slot)
+    set(const T &st, PoolBase *p, int slot)
     {
       FASTUIDRAWassert(p);
       FASTUIDRAWassert(slot >= 0);
@@ -239,9 +235,8 @@ namespace
       this->m_draw_command_id = 0;
       this->m_offset = 0;
       this->m_painter = nullptr;
-      this->m_alignment = alignment;
-      this->m_data.resize(m_state.data_size(alignment));
-      m_state.pack_data(alignment, fastuidraw::make_c_array(this->m_data));
+      this->m_data.resize(m_state.data_size());
+      m_state.pack_data(fastuidraw::make_c_array(this->m_data));
     }
 
     T m_state;
@@ -254,7 +249,7 @@ namespace
     /* Returning nullptr indicates no free entries left in the pool
      */
     Entry<T>*
-    allocate(const T &st, int alignment)
+    allocate(const T &st)
     {
       Entry<T> *return_value(nullptr);
       int slot;
@@ -263,7 +258,7 @@ namespace
       if (slot >= 0)
         {
           return_value = &m_data[slot];
-          return_value->set(st, alignment, this, slot);
+          return_value->set(st, this, slot);
         }
       return return_value;
     }
@@ -283,15 +278,15 @@ namespace
     }
 
     Entry<T>*
-    allocate(const T &st, int alignment)
+    allocate(const T &st)
     {
       Entry<T> *return_value;
 
-      return_value = m_pools.back()->allocate(st, alignment);
+      return_value = m_pools.back()->allocate(st);
       if (!return_value)
         {
           m_pools.push_back(FASTUIDRAWnew Pool<T>());
-          return_value = m_pools.back()->allocate(st, alignment);
+          return_value = m_pools.back()->allocate(st);
         }
 
       FASTUIDRAWassert(return_value);
@@ -305,13 +300,6 @@ namespace
   class PainterPackedValuePoolPrivate
   {
   public:
-    explicit
-    PainterPackedValuePoolPrivate(int d):
-      m_alignment(d)
-    {}
-
-    int m_alignment;
-
     PoolSet<fastuidraw::PainterBrush> m_brush_pool;
     PoolSet<fastuidraw::PainterClipEquations> m_clip_equations_pool;
     PoolSet<fastuidraw::PainterItemMatrix> m_item_matrix_pool;
@@ -365,7 +353,7 @@ namespace
     unsigned int
     store_written(void)
     {
-      return current_block() * m_alignment;
+      return current_block() * 4;
     }
 
     void
@@ -419,9 +407,9 @@ namespace
       unsigned int data_sz;
 
       location = current_block();
-      data_sz = st.data_size(m_alignment);
+      data_sz = st.data_size();
       dst = allocate_store(data_sz);
-      st.pack_data(m_alignment, dst);
+      st.pack_data(dst);
     }
 
     template<typename T>
@@ -448,7 +436,6 @@ namespace
     }
 
     unsigned int m_store_blocks_written;
-    unsigned int m_alignment;
     uint32_t m_brush_shader_mask;
     PainterShaderGroupPrivate m_prev_state;
     fastuidraw::BlendMode m_prev_composite_mode;
@@ -585,12 +572,12 @@ namespace
         }
       else if (obj.m_value != nullptr)
         {
-          return obj.m_value->data_size(m_alignment);
+          return obj.m_value->data_size();
         }
       else
         {
           static T v;
-          return v.data_size(m_alignment);
+          return v.data_size();
         }
     };
 
@@ -604,7 +591,6 @@ namespace
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterShaderSet m_default_shaders;
-    unsigned int m_alignment;
     unsigned int m_header_size;
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend_shader;
@@ -634,7 +620,6 @@ per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::Paint
   m_attributes_written(0),
   m_indices_written(0),
   m_store_blocks_written(0),
-  m_alignment(config.alignment()),
   m_brush_shader_mask(config.brush_shader_mask())
 {
   m_prev_state.m_item_group = 0;
@@ -648,9 +633,9 @@ per_draw_command::
 allocate_store(unsigned int num_elements)
 {
   fastuidraw::c_array<fastuidraw::generic_data> return_value;
-  FASTUIDRAWassert(num_elements % m_alignment == 0);
+  FASTUIDRAWassert(num_elements % 4 == 0);
   return_value = m_draw_command->m_store.sub_array(store_written(), num_elements);
-  m_store_blocks_written += num_elements / m_alignment;
+  m_store_blocks_written += num_elements >> 2;
   return return_value;
 }
 
@@ -750,7 +735,7 @@ pack_header(unsigned int header_size,
   header.m_composite_shader = composite.m_ID;
   header.m_blend_shader = blend.m_ID;
   header.m_z = z;
-  header.pack_data(m_alignment, dst);
+  header.pack_data(dst);
 
   if (current.m_item_group != m_prev_state.m_item_group
      || current.m_composite_group != m_prev_state.m_composite_group
@@ -780,8 +765,7 @@ PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_clear_color_buffer(false),
   m_p(p)
 {
-  m_alignment = m_backend->configuration_base().alignment();
-  m_header_size = fastuidraw::PainterHeader::data_size(m_alignment);
+  m_header_size = fastuidraw::PainterHeader::data_size();
   // By calling PainterBackend::default_shaders(), we make the shaders
   // registered. By setting m_default_shaders to its return value,
   // and using that for the return value of PainterPacker::default_shaders(),
@@ -1332,15 +1316,6 @@ operator=(const PainterPackedValueBase &obj)
   return *this;
 }
 
-unsigned int
-fastuidraw::PainterPackedValueBase::
-alignment_packing(void) const
-{
-  EntryBase *d;
-  d = static_cast<EntryBase*>(m_d);
-  return (d != nullptr) ? d->m_alignment : 0;
-}
-
 const void*
 fastuidraw::PainterPackedValueBase::
 raw_value(void) const
@@ -1355,9 +1330,9 @@ raw_value(void) const
 /////////////////////////////////////////////////////
 // PainterPackedValuePool methods
 fastuidraw::PainterPackedValuePool::
-PainterPackedValuePool(int alignment)
+PainterPackedValuePool(void)
 {
-  m_d = FASTUIDRAWnew PainterPackedValuePoolPrivate(alignment);
+  m_d = FASTUIDRAWnew PainterPackedValuePoolPrivate();
 }
 
 fastuidraw::PainterPackedValuePool::
@@ -1377,7 +1352,7 @@ create_packed_value(const PainterBrush &value)
   Entry<PainterBrush> *e;
 
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_brush_pool.allocate(value, d->m_alignment);
+  e = d->m_brush_pool.allocate(value);
   return fastuidraw::PainterPackedValue<PainterBrush>(e);
 }
 
@@ -1389,7 +1364,7 @@ create_packed_value(const PainterClipEquations &value)
   Entry<PainterClipEquations> *e;
 
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_clip_equations_pool.allocate(value, d->m_alignment);
+  e = d->m_clip_equations_pool.allocate(value);
   return fastuidraw::PainterPackedValue<PainterClipEquations>(e);
 }
 
@@ -1401,7 +1376,7 @@ create_packed_value(const PainterItemMatrix &value)
   Entry<PainterItemMatrix> *e;
 
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_item_matrix_pool.allocate(value, d->m_alignment);
+  e = d->m_item_matrix_pool.allocate(value);
   return fastuidraw::PainterPackedValue<PainterItemMatrix>(e);
 }
 
@@ -1413,7 +1388,7 @@ create_packed_value(const PainterItemShaderData &value)
   Entry<PainterItemShaderData> *e;
 
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_item_shader_data_pool.allocate(value, d->m_alignment);
+  e = d->m_item_shader_data_pool.allocate(value);
   return fastuidraw::PainterPackedValue<PainterItemShaderData>(e);
 }
 
@@ -1425,7 +1400,7 @@ create_packed_value(const PainterCompositeShaderData &value)
   Entry<PainterCompositeShaderData> *e;
 
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_composite_shader_data_pool.allocate(value, d->m_alignment);
+  e = d->m_composite_shader_data_pool.allocate(value);
   return fastuidraw::PainterPackedValue<PainterCompositeShaderData>(e);
 }
 
@@ -1437,6 +1412,6 @@ create_packed_value(const PainterBlendShaderData &value)
   Entry<PainterBlendShaderData> *e;
 
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_blend_shader_data_pool.allocate(value, d->m_alignment);
+  e = d->m_blend_shader_data_pool.allocate(value);
   return fastuidraw::PainterPackedValue<PainterBlendShaderData>(e);
 }

@@ -52,16 +52,13 @@ namespace fastuidraw
 
           /*!
            * Data store is backed by a uniform buffer object
-           * that is an array of uvec4. The data store alignment
-           * (see PainterBackend::ConfigurationBase::alignment())
-           * must then be 4.
+           * that is an array of uvec4.
            */
           data_store_ubo,
 
           /*!
            * Data store is backed by a shader storage buffer object
-           * that is an array of uvec4. The data store alignment
-           * (see PainterBackend::ConfigurationBase::alignment())
+           * that is an array of uvec4.
            */
           data_store_ssbo
         };
@@ -830,7 +827,7 @@ namespace fastuidraw
          * has value data_store_ubo. Gives the size in
          * blocks of PainterDraw::m_store which
          * is PainterDraw::m_store.size() divided
-         * by PainterBackend::ConfigurationBase::alignment().
+         * by 4.
          */
         int
         data_blocks_per_store_buffer(void) const;
@@ -1010,19 +1007,6 @@ namespace fastuidraw
          */
         void
         swap(BackendConstants &obj);
-
-        /*!
-         * Should be the same value as PainterBackend::ConfigurationBase::alignment()
-         * of PainterBackend::configuration_base().
-         */
-        int
-        data_store_alignment(void) const;
-
-        /*!
-         * Set the value returned by data_store_alignment(void) const.
-         */
-        BackendConstants&
-        data_store_alignment(int);
 
         /*!
          * Should be the same value as GlyphAtlasTexelBackingStoreBase::dimensions() .x()

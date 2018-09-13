@@ -25,6 +25,7 @@
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 
 #include "../private/util_private.hpp"
@@ -91,7 +92,7 @@ namespace
 
     static
     unsigned int
-    stream_unpack_code(unsigned int alignment, std::ostream &str,
+    stream_unpack_code(std::ostream &str,
                        fastuidraw::c_array<const fastuidraw::glsl::shader_unpack_value> labels,
                        fastuidraw::c_string offset_name,
                        fastuidraw::c_string prefix);
@@ -203,20 +204,11 @@ implement_set(unsigned int slot, const std::string &pname)
 // GLSLShaderUnpackValuePrivate methods
 unsigned int
 GLSLShaderUnpackValuePrivate::
-stream_unpack_code(unsigned int alignment, std::ostream &str,
+stream_unpack_code(std::ostream &str,
                    fastuidraw::c_array<const fastuidraw::glsl::shader_unpack_value> labels,
                    fastuidraw::c_string offset_name,
                    fastuidraw::c_string prefix)
 {
-  fastuidraw::c_string uint_types[5] =
-    {
-      "",
-      "uint",
-      "uvec2",
-      "uvec3",
-      "uvec4"
-    };
-
   fastuidraw::c_string temp_components[] =
     {
       ".x",
@@ -242,14 +234,10 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
     };
 
   unsigned int number_blocks;
-  number_blocks = labels.size() / alignment;
-  if (number_blocks * alignment < labels.size())
-    {
-      ++number_blocks;
-    }
+  number_blocks = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(labels.size());
+  FASTUIDRAWassert(4 * number_blocks >= labels.size());
 
-  str << "{\n"
-      << uint_types[alignment] << " utemp;\n";
+  str << "{\nuvec4 utemp;\n";
 
   for(unsigned int b = 0, i = 0; b < number_blocks; ++b)
     {
@@ -257,18 +245,18 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
       fastuidraw::c_string temp_comp;
 
       li = labels.size() - i;
-      cmp = std::min(alignment, li);
+      cmp = fastuidraw::t_min(4u, li);
       FASTUIDRAWassert(cmp >= 1 && cmp <= 4);
 
-      temp_comp = (alignment == 1) ? "" : temp_components[cmp - 1];
+      temp_comp = temp_components[cmp - 1];
       str << "utemp" << temp_comp << " = fastuidraw_fetch_data(int("
-          << offset_name << ") + " << b << ")" << read_components[cmp-1] << ";\n";
+          << offset_name << ") + " << b << ")" << read_components[cmp - 1] << ";\n";
 
       /* perform bit cast to correct type. */
-      for(unsigned int k = 0; k < alignment && i < labels.size(); ++k, ++i)
+      for(unsigned int k = 0; k < 4 && i < labels.size(); ++k, ++i)
         {
           fastuidraw::c_string ext;
-          ext = (alignment == 1) ? "" : ext_components[k];
+          ext = ext_components[k];
           switch(labels[i].type())
             {
             case fastuidraw::glsl::shader_unpack_value::int_type:
@@ -452,7 +440,7 @@ type(void) const
 
 unsigned int
 fastuidraw::glsl::shader_unpack_value::
-stream_unpack_code(unsigned int alignment, glsl::ShaderSource &src,
+stream_unpack_code(glsl::ShaderSource &src,
                    c_array<const shader_unpack_value> labels,
                    c_string offset_name,
                    c_string prefix)
@@ -460,7 +448,7 @@ stream_unpack_code(unsigned int alignment, glsl::ShaderSource &src,
   std::ostringstream str;
   unsigned int return_value;
 
-  return_value = GLSLShaderUnpackValuePrivate::stream_unpack_code(alignment, str, labels, offset_name, prefix);
+  return_value = GLSLShaderUnpackValuePrivate::stream_unpack_code(str, labels, offset_name, prefix);
   src.add_source(str.str().c_str(), glsl::ShaderSource::from_string);
 
   return return_value;
@@ -469,7 +457,7 @@ stream_unpack_code(unsigned int alignment, glsl::ShaderSource &src,
 
 unsigned int
 fastuidraw::glsl::shader_unpack_value::
-stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
+stream_unpack_function(glsl::ShaderSource &src,
                        c_array<const shader_unpack_value> labels,
                        c_string function_name,
                        c_string out_type,
@@ -489,7 +477,7 @@ stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
   str << function_name << "(in uint location, out " << out_type << " out_value)\n"
       << "{";
 
-  number_blocks = GLSLShaderUnpackValuePrivate::stream_unpack_code(alignment, str, labels, "location", "out_value");
+  number_blocks = GLSLShaderUnpackValuePrivate::stream_unpack_code(str, labels, "location", "out_value");
 
   if (has_return_value)
     {

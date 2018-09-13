@@ -235,8 +235,6 @@ namespace fastuidraw
        * Adds to a ShaderSource the GLSL code to unpack a
        * stream of values. Returns the number of blocks needed to unpack
        * the data in GLSL.
-       * \param alignment the alignment of the data store used (i.e. the
-       *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param labels GLSL names and types to which to unpack
        * \param offset_name GLSL name for offset from which to unpack
@@ -245,7 +243,7 @@ namespace fastuidraw
        */
       static
       unsigned int
-      stream_unpack_code(unsigned int alignment, ShaderSource &str,
+      stream_unpack_code(ShaderSource &str,
                          c_array<const shader_unpack_value> labels,
                          c_string offset_name,
                          c_string prefix = "");
@@ -259,8 +257,6 @@ namespace fastuidraw
        * whose body is the unpacking of the values into an
        * out. Returns the number of blocks needed to unpack
        * the data in GLSL.
-       * \param alignment the alignment of the data store used (i.e. the
-       *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param labels GLSL names of the fields and their types
        * \param function_name name to give the function
@@ -270,7 +266,7 @@ namespace fastuidraw
        */
       static
       unsigned int
-      stream_unpack_function(unsigned int alignment, ShaderSource &str,
+      stream_unpack_function(ShaderSource &str,
                              c_array<const shader_unpack_value> labels,
                              c_string function_name,
                              c_string out_type,
@@ -306,31 +302,27 @@ namespace fastuidraw
       /*!
        * Provided as an API convenience, equivalent to
        * \code
-       * shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name);
+       * shader_unpack_value::stream_unpack_code(str, *this, offset_name);
        * \endcode
-       * \param alignment the alignment of the data store used (i.e. the
-       *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param offset_name GLSL name for offset from which to unpack
        *                    values
        * \param prefix string prefix by which to prefix the name values of labels
        */
       unsigned int
-      stream_unpack_code(unsigned int alignment, ShaderSource &str,
+      stream_unpack_code(ShaderSource &str,
                          c_string offset_name,
                          c_string prefix = "")
       {
-        return shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name, prefix);
+        return shader_unpack_value::stream_unpack_code(str, *this, offset_name, prefix);
       }
 
       /*!
        * Provided as an API convenience, equivalent to
        * \code
-       * shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
-       *                                                  out_type, returns_new_offset);
+       * shader_unpack_value::stream_unpack_function(str, *this, function_name,
+       *                                             out_type, returns_new_offset);
        * \endcode
-       * \param alignment the alignment of the data store used (i.e. the
-       *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param function_name name to give the function
        * \param out_type the out type of the function
@@ -338,12 +330,12 @@ namespace fastuidraw
        *                           the data it unpacks.
        */
       unsigned int
-      stream_unpack_function(unsigned int alignment, ShaderSource &str,
+      stream_unpack_function(ShaderSource &str,
                              c_string function_name,
                              c_string out_type,
                              bool returns_new_offset = true)
       {
-        return shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
+        return shader_unpack_value::stream_unpack_function(str, *this, function_name,
                                                            out_type, returns_new_offset);
       }
     };
@@ -405,13 +397,11 @@ namespace fastuidraw
      *  - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available
      *    if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
      *  - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer
-     *    (PainterDraw::m_store), return as uvec4 with the first N-elements from the store where
-     *    N is the block size (see PainterBackend::ConfigurationBase::alignment()). To get floating
-     *    point data use the GLSL built-in function uintBitsToFloat().
+     *    (PainterDraw::m_store), return as uvec4. To get floating point data use the GLSL
+     *    built-in function uintBitsToFloat().
      *  - the macro fastuidraw_fetch_glyph_data(B) to read the B'th block from the glyph geometry data
-     *    (GlyphAtlasGeometryBackingStoreBase), return as uvec4 with the first N-elements from the store where
-     *    N is the block size (see GlyphAtlasGeometryBackingStoreBase::alignment()). To get floating
-     *    point data use the GLSL built-in function uintBitsToFloat().
+     *    (GlyphAtlasGeometryBackingStoreBase), return as uvec4. To get floating point data use the GLSL
+     *    built-in function uintBitsToFloat().
      *  - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
      *  - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
      *  - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels
@@ -422,11 +412,7 @@ namespace fastuidraw
      * \code
      * fastuidraw_fetch_data(shader_data_offset)
      * \endcode
-     * to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data() is
-     * - uint if PainterBackend::ConfigurationBase::alignment() is 1,
-     * - uvec2 if PainterBackend::ConfigurationBase::alignment() is 2,
-     * - uvec3 if PainterBackend::ConfigurationBase::alignment() is 3 and
-     * - uvec4 if PainterBackend::ConfigurationBase::alignment() is 4.
+     * to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data()
      *
      * Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
      * and just cast int() to get the value as an integer.

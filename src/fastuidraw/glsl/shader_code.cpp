@@ -177,10 +177,14 @@ image_atlas_compute_coord(c_string function_name,
 
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-compute_interval(c_string function_name, unsigned int data_alignment)
+compute_interval(c_string function_name)
 {
+  /* TODO:
+   *   - rewrite this to dedicated glsl since alignment is now always 4
+   */
   ShaderSource return_value;
   std::ostringstream ostr;
+  unsigned int data_alignment(4);
 
   c_string xyzw = "xyzw";
   c_string itypes[] =

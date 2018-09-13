@@ -69,26 +69,19 @@ namespace fastuidraw
       /*!
        * To be implemented by a derived class to return
        * the length of the data needed to encode the data.
-       * Data is padded to be multiple of alignment.
-       * \param alignment alignment of the data store
-       *        in units of generic_data, see
-       *        PainterBackend::ConfigurationBase::alignment()
        */
       virtual
       unsigned int
-      data_size(unsigned int alignment) const = 0;
+      data_size(void) const = 0;
 
 
       /*!
-       * To be implemtend by a derive dclass to pack its data.
-       * \param alignment alignment of the data store
-       *        in units of generic_data, see
-       *        PainterBackend::ConfigurationBase::alignment()
+       * To be implemtend by a derive class to pack its data.
        * \param dst place to which to pack data
        */
       virtual
       void
-      pack_data(unsigned int alignment, c_array<generic_data> dst) const = 0;
+      pack_data(c_array<generic_data> dst) const = 0;
     };
 
     /*!
@@ -120,23 +113,17 @@ namespace fastuidraw
 
     /*!
      * Returns the length of the data needed to encode the data.
-     * Data is padded to be multiple of alignment.
-     * \param alignment alignment of the data store
-     *                  in units of generic_data, see
-     *                  PainterBackend::ConfigurationBase::alignment()
+     * The returned value is guaranteed to be a multiple of 4.
      */
     unsigned int
-    data_size(unsigned int alignment) const;
+    data_size(void) const;
 
     /*!
      * Pack the values of this object
-     * \param alignment alignment of the data store
-     *                  in units of generic_data, see
-     *                  PainterBackend::ConfigurationBase::alignment()
      * \param dst place to which to pack data
      */
     void
-    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+    pack_data(c_array<generic_data> dst) const;
 
     /*!
      * Returns a pointer to the underlying object holding

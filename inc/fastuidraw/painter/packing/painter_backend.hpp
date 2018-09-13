@@ -91,22 +91,6 @@ namespace fastuidraw
       brush_shader_mask(uint32_t v);
 
       /*!
-       * Specifies the alignment in units of generic_data for
-       * packing of seperately accessible entries of generic data
-       * in PainterDraw::m_store.
-       */
-      int
-      alignment(void) const;
-
-      /*!
-       * Specify the value returned by alignment(void) const,
-       * default value is 4
-       * \param v value
-       */
-      ConfigurationBase&
-      alignment(int v);
-
-      /*!
        * Returns the PainterCompositeShader::shader_type the \ref
        * PainterBackend accepts for \ref PainterCompositeShader
        * objects.

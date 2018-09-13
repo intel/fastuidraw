@@ -28,6 +28,18 @@
  * @{
  */
 
+/*!
+ * Macro to round up an uint32_t to a multiple or 4
+ */
+#define FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(X) (((X) + 3u) & ~3u)
+
+/*!
+ * Macro to return how many blocks of size 4 to contain
+ * a given size, i.e. the smallest integer N so that
+ * 4 * N >= X where X is an uint32_t.
+ */
+#define FASTUIDRAW_NUMBER_BLOCK4_NEEDED(X) (FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(X) >> 2u)
+
 /*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS
  * Macro that gives the maximum value that can be
  * held with a given number of bits. Caveat:
@@ -235,24 +247,6 @@ namespace fastuidraw
       input_value | bitfield_value:
       input_value & (~bitfield_value);
   }
-
-  /*!
-   * Returns a value rounded up to the nearest multiple of an
-   * alignment value
-   * \param v value to round up
-   * \param alignment value of which the return value is to be
-   *        a multiple
-   */
-  unsigned int
-  round_up_to_multiple(unsigned int v, unsigned int alignment);
-
-  /*!
-   * Returns the number blocks of a given size to hold data.
-   * \param block_size size of block
-   * \param size size query
-   */
-  unsigned int
-  number_blocks(unsigned int block_size, unsigned int size);
 
   /*!
    * Pack the lowest N bits of a value at a bit.

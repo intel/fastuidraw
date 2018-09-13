@@ -60,67 +60,66 @@ namespace fastuidraw
       };
 
     /*!
-     * The offset, in units of PainterBackend::ConfigurationBase::alignment()
-     * generic_data tuples, to the location in the data store buffer
-     * (PainterDraw::m_store) for the clip equations. I.e.
-     * the PainterClipEquations value is stored (packed) at the location
-     * \code
-     * PainterDraw::m_store[m_clip_equations_location * PainterBackend::ConfigurationBase::alignment()]
+     * The offset, in units of vecN<generic_data, 4> tuples, to the
+     * location in the data store buffer (PainterDraw::m_store) for the
+     * clip equations. I.e. the PainterClipEquations value is stored
+     * (packed) at the location \code
+     * PainterDraw::m_store[m_clip_equations_location * 4]
      * \endcode
      */
     uint32_t m_clip_equations_location;
 
     /*!
-     * The location, in units of PainterBackend::ConfigurationBase::alignment()
-     * generic_data tuples, to the location in the data store buffer
-     * (PainterDraw::m_store) for the item matrix. I.e.
-     * the PainterItemMatrix value is stored (packed) at the location
+     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * location in the data store buffer (PainterDraw::m_store) for the
+     * item matrix. I.e. the PainterItemMatrix value is stored (packed)
+     * at the location
      * \code
-     * PainterDraw::m_store[m_item_matrix_location * PainterBackend::ConfigurationBase::alignment()]
+     * PainterDraw::m_store[m_item_matrix_location * 4]
      * \endcode
      */
     uint32_t m_item_matrix_location;
 
     /*!
-     * The location, in units of PainterBackend::ConfigurationBase::alignment()
-     * generic_data tuples, to the location in the data store buffer
-     * (PainterDraw::m_store) for the brush shader data. I.e.
-     * the data for a brush is stored (packed) at the location
+     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * location in the data store buffer (PainterDraw::m_store) for the
+     * brush shader data. I.e. the data for a brush is stored (packed)
+     * at the location
      * \code
-     * PainterDraw::m_store[m_brush_shader_data_location * PainterBackend::ConfigurationBase::alignment()]
+     * PainterDraw::m_store[m_brush_shader_data_location * 4]
      * \endcode
      */
     uint32_t m_brush_shader_data_location;
 
     /*!
-     * The location, in units of PainterBackend::ConfigurationBase::alignment()
-     * generic_data tuples, to the location in the data store buffer
-     * (PainterDraw::m_store) for the item shader data. I.e.
-     * the PainterItemShaderData value is stored (packed) at the location
+     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * location in the data store buffer (PainterDraw::m_store) for the
+     * item shader data. I.e. the PainterItemShaderData value is stored
+     * (packed) at the location
      * \code
-     * PainterDraw::m_store[m_item_shader_data_location * PainterBackend::ConfigurationBase::alignment()]
+     * PainterDraw::m_store[m_item_shader_data_location * 4]
      * \endcode
      */
     uint32_t m_item_shader_data_location;
 
     /*!
-     * The location, in units of PainterBackend::ConfigurationBase::alignment()
-     * generic_data tuples, to the location in the data store buffer
-     * (PainterDraw::m_store) for the composite shader data. I.e.
-     * the PainterCompositeShaderData value is stored (packed) at the location
+     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * location in the data store buffer (PainterDraw::m_store) for the
+     * composite shader data. I.e. the PainterCompositeShaderData value
+     * is stored (packed) at the location
      * \code
-     * PainterDraw::m_store[m_composite_shader_data_location * PainterBackend::ConfigurationBase::alignment()]
+     * PainterDraw::m_store[m_composite_shader_data_location * 4]
      * \endcode
      */
     uint32_t m_composite_shader_data_location;
 
     /*!
-     * The location, in units of PainterBackend::ConfigurationBase::alignment()
-     * generic_data tuples, to the location in the data store buffer
-     * (PainterDraw::m_store) for the blend shader data. I.e.
-     * the PainterBlendShaderData value is stored (packed) at the location
+     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * location in the data store buffer (PainterDraw::m_store) for the
+     * blend shader data. I.e. the PainterBlendShaderData value is stored
+     * (packed) at the location
      * \code
-     * PainterDraw::m_store[m_blend_shader_data_location * PainterBackend::ConfigurationBase::alignment()]
+     * PainterDraw::m_store[m_blend_shader_data_location * 4]
      * \endcode
      */
     uint32_t m_blend_shader_data_location;
@@ -153,26 +152,20 @@ namespace fastuidraw
 
     /*!
      * Pack the values of this PainterHeader
-     * \param alignment alignment of the data store
-     * in units of generic_data, see
-     * PainterBackend::ConfigurationBase::alignment()
      * \param dst place to which to pack data
      */
     void
-    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+    pack_data(c_array<generic_data> dst) const;
 
     /*!
      * Returns the length of the data needed to encode the data.
-     * Data is padded to be multiple of alignment.
-     * \param alignment alignment of the data store
-     *                  in units of generic_data, see
-     *                  PainterBackend::ConfigurationBase::alignment()
+     * Data is padded to be multiple of 4.
      */
     static
     unsigned int
-    data_size(unsigned int alignment)
+    data_size(void)
     {
-      return round_up_to_multiple(header_size, alignment);
+      return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(header_size);
     }
   };
 
