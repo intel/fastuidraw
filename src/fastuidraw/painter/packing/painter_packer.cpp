@@ -782,6 +782,7 @@ PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   // the shaders as well.
   m_default_shaders = m_backend->default_shaders();
   m_number_begins = 0;
+  m_default_brush.make_packed(m_pool);
 }
 
 void
