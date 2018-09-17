@@ -120,6 +120,73 @@ namespace fastuidraw
     {
       return m_max;
     }
+
+    pt_type
+    corner_point(bool max_x, bool max_y) const
+    {
+      pt_type R;
+
+      R.x() = (max_x) ? m_max.x() : m_min.x();
+      R.y() = (max_y) ? m_max.y() : m_min.y();
+      return R;
+    }
+
+    vecN<BoundingBox<T>, 2>
+    split_x(void) const
+    {
+      vecN<BoundingBox<T>, 2> R;
+
+      if (empty())
+        {
+          return R;
+        }
+
+      pt_type center;
+
+      center = (m_min + m_max) / T(2);
+      R[0] = BoundingBox(m_min, pt_type(center.x(), m_max.y()));
+      R[1] = BoundingBox(pt_type(center.x(), m_min.y()), m_max);
+      return R;
+    }
+
+    vecN<BoundingBox<T>, 2>
+    split_y(void) const
+    {
+      vecN<BoundingBox<T>, 2> R;
+
+      if (empty())
+        {
+          return R;
+        }
+
+      pt_type center;
+
+      center = (m_min + m_max) / T(2);
+      R[0] = BoundingBox(m_min, pt_type(m_max.x(), center.y()));
+      R[1] = BoundingBox(pt_type(m_min.x(), center.y()), m_max);
+      return R;
+    }
+
+    bool
+    intersects(const BoundingBox &obj) const
+    {
+      return !m_empty &&
+        !(obj.m_min.x() > m_max.x()
+          || m_min.x() > obj.m_max.x()
+          || obj.m_min.y() > m_max.y()
+          || m_min.y() > obj.m_max.y());
+    }
+
+    bool
+    contains(const pt_type &p) const
+    {
+      return !m_empty
+        && p.x() >= m_min.x()
+        && p.x() <= m_max.x()
+        && p.y() >= m_min.y()
+        && p.y() <= m_max.y();
+    }
+
   private:
     pt_type m_min, m_max;
     bool m_empty;
