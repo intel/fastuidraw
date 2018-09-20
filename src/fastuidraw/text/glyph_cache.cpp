@@ -570,8 +570,7 @@ upload_to_atlas(void) const
   GlyphDataPrivate *p;
 
   p = static_cast<GlyphDataPrivate*>(m_opaque);
-  FASTUIDRAWassert(p != nullptr && p->m_render.valid());
-  if (!p->m_cache)
+  if (!p || !p->m_render.valid() || !p->m_cache)
     {
       return routine_fail;
     }

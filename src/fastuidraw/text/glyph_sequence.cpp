@@ -174,7 +174,10 @@ upload_to_atlas(void)
       m_uploaded_to_atlas = true;
       for (const auto &g : m_glyphs)
         {
-          g.upload_to_atlas();
+          if (g.valid())
+            {
+              g.upload_to_atlas();
+            }
         }
     }
 }
