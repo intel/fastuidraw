@@ -815,9 +815,6 @@ init_gl(int w, int h)
       std::cout << "\tGlyph Shaders:\n";
       print_glyph_shader_ids(sh.glyph_shader());
 
-      std::cout << "\tAnisoptropic Glyph shaders\n";
-      print_glyph_shader_ids(sh.glyph_shader_anisotropic());
-
       std::cout << "\tSolid StrokeShaders:\n";
       print_stroke_shader_ids(sh.stroke_shader());
 

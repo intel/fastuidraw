@@ -96,8 +96,7 @@ public:
   GlyphRender
   draw_glyphs(GlyphRender render,
               const reference_counted_ptr<Painter> &painter,
-              const PainterData &data,
-              bool anisotropic_ant_ialias) const;
+              const PainterData &data) const;
 
   void
   init(const reference_counted_ptr<const FontFreeType> &font,
@@ -236,7 +235,6 @@ private:
   bool m_draw_glyphs;
   unsigned int m_glyph_texel_page;
 
-  bool m_use_anisotropic_anti_alias;
   bool m_stroke_glyphs, m_fill_glyphs;
   bool m_anti_alias_path_stroking, m_anti_alias_path_filling;
   bool m_pixel_width_stroking;
@@ -511,20 +509,17 @@ GlyphRender
 GlyphDrawsShared::
 draw_glyphs(GlyphRender render,
             const reference_counted_ptr<Painter> &painter,
-            const PainterData &draw,
-            bool anisotropic_anti_alias) const
+            const PainterData &draw) const
 {
   for (GlyphSequence *p : m_sub_glyph_sequence)
     {
       if (render.valid())
         {
-          painter->draw_glyphs(draw,
-                               p->painter_attribute_data(render),
-                               anisotropic_anti_alias);
+          painter->draw_glyphs(draw, p->painter_attribute_data(render));
         }
       else
         {
-          render = painter->draw_glyphs(draw, *p, anisotropic_anti_alias);
+          render = painter->draw_glyphs(draw, *p);
         }
     }
 
@@ -605,7 +600,6 @@ painter_glyph_test(void):
                       *this),
   m_draw_glyphs(true),
   m_glyph_texel_page(0),
-  m_use_anisotropic_anti_alias(false),
   m_stroke_glyphs(false),
   m_fill_glyphs(false),
   m_anti_alias_path_stroking(false),
@@ -619,7 +613,6 @@ painter_glyph_test(void):
   std::cout << "Controls:\n"
             << "\td: cycle drawing mode: draw coverage glyph, draw distance glyphs "
             << "[hold shift, control or mode to reverse cycle]\n"
-            << "\ta: Toggle using anistropic anti-alias glyph rendering\n"
             << "\td: Cycle though text renderer\n"
             << "\tf: Toggle rendering text as filled path\n"
             << "\tq: Toggle anti-aliasing filled path rendering\n"
@@ -1007,8 +1000,7 @@ draw_glyphs(float us)
   if (!m_fill_glyphs)
     {
       m_draw_shared.draw_glyphs(m_draws[m_current_drawer],
-                                m_painter, PainterData(&glyph_brush),
-                                m_use_anisotropic_anti_alias);
+                                m_painter, PainterData(&glyph_brush));
     }
   else
     {
@@ -1292,21 +1284,6 @@ handle_event(const SDL_Event &ev)
             {
               cycle_value(m_glyph_texel_page, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
                           m_glyph_atlas->texel_store()->dimensions().z());
-            }
-          break;
-
-        case SDLK_a:
-          if (!m_fill_glyphs)
-            {
-              m_use_anisotropic_anti_alias = !m_use_anisotropic_anti_alias;
-              if (m_use_anisotropic_anti_alias)
-                {
-                  std::cout << "Using Anistropic anti-alias filtering\n";
-                }
-              else
-                {
-                  std::cout << "Using Istropic anti-alias filtering\n";
-                }
             }
           break;
 
