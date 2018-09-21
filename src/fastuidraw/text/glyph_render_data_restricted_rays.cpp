@@ -102,6 +102,7 @@ namespace
       m_offset(-1),
       m_start(a),
       m_end(b),
+      m_control((a + b) / 2),
       m_fstart(a),
       m_fend(b),
       m_fcontrol((m_fstart + m_fend) * 0.5f),
