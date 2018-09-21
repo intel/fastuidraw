@@ -19,7 +19,7 @@
 
 void
 FASTUIDRAW_LOCAL(compute_offset_default)(in uint point_packed_data,
-                                         in int offset_type,
+                                         in uint offset_type,
                                          in vec2 position,
                                          in vec2 pre_offset,
                                          in vec2 auxiliary_offset,
@@ -31,7 +31,7 @@ FASTUIDRAW_LOCAL(compute_offset_default)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_miter_clip)(in uint point_packed_data,
-                                            in int offset_type,
+                                            in uint offset_type,
                                             in vec2 position,
                                             in vec2 pre_offset,
                                             in vec2 auxiliary_offset,
@@ -46,7 +46,7 @@ FASTUIDRAW_LOCAL(compute_offset_miter_clip)(in uint point_packed_data,
   lambda = -sign(det);
   r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
 
-  if ((uint(fastuidraw_stroke_lambda_negated_mask) & point_packed_data) != 0u)
+  if ((fastuidraw_stroke_lambda_negated_mask & point_packed_data) != 0u)
     {
       lambda = -lambda;
     }
@@ -64,7 +64,7 @@ FASTUIDRAW_LOCAL(compute_offset_miter_clip)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_miter)(in uint point_packed_data,
-                                       in int offset_type,
+                                       in uint offset_type,
                                        in vec2 position,
                                        in vec2 pre_offset,
                                        in vec2 auxiliary_offset,
@@ -104,7 +104,7 @@ FASTUIDRAW_LOCAL(compute_offset_miter)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_rounded_join)(in uint point_packed_data,
-                                              in int offset_type,
+                                              in uint offset_type,
                                               in vec2 position,
                                               in vec2 pre_offset,
                                               in vec2 auxiliary_offset,
@@ -113,13 +113,13 @@ FASTUIDRAW_LOCAL(compute_offset_rounded_join)(in uint point_packed_data,
 {
   vec2 cs;
   cs = fastuidraw_unpack_unit_vector(auxiliary_offset.y,
-                                     uint(fastuidraw_stroke_sin_sign_mask) & point_packed_data);
+                                     fastuidraw_stroke_sin_sign_mask & point_packed_data);
   offset = cs;
 }
 
 void
 FASTUIDRAW_LOCAL(compute_offset_square_cap)(in uint point_packed_data,
-                                            in int offset_type,
+                                            in uint offset_type,
                                             in vec2 position,
                                             in vec2 pre_offset,
                                             in vec2 auxiliary_offset,
@@ -131,7 +131,7 @@ FASTUIDRAW_LOCAL(compute_offset_square_cap)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_rounded_cap)(in uint point_packed_data,
-                                             in int offset_type,
+                                             in uint offset_type,
                                              in vec2 position,
                                              in vec2 pre_offset,
                                              in vec2 auxiliary_offset,
@@ -144,7 +144,7 @@ FASTUIDRAW_LOCAL(compute_offset_rounded_cap)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset)(in uint point_packed_data,
-                                 in int offset_type,
+                                 in uint offset_type,
                                  in vec2 position,
                                  in vec2 pre_offset,
                                  in vec2 auxiliary_offset,
@@ -192,7 +192,7 @@ FASTUIDRAW_LOCAL(compute_offset)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_pixels_default)(in uint point_packed_data,
-                                                in int offset_type,
+                                                in uint offset_type,
                                                 in vec2 position,
                                                 in vec2 pre_offset,
                                                 in vec2 auxiliary_offset,
@@ -202,7 +202,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_default)(in uint point_packed_data,
 {
   vec3 clip_direction, clip_p;
   vec2 n;
-  if ((point_packed_data & uint(fastuidraw_stroke_end_sub_edge_mask)) != 0u)
+  if ((point_packed_data & fastuidraw_stroke_end_sub_edge_mask) != 0u)
     {
       clip_p = fastuidraw_item_matrix * vec3(position + auxiliary_offset, 1.0);
     }
@@ -218,7 +218,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_default)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_pixels_miter_clip)(in uint point_packed_data,
-                                                   in int offset_type,
+                                                   in uint offset_type,
                                                    in vec2 position,
                                                    in vec2 pre_offset,
                                                    in vec2 auxiliary_offset,
@@ -234,7 +234,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_miter_clip)(in uint point_packed_data,
 
   lambda = -sign(dot(v1, n0));
 
-  if ((uint(fastuidraw_stroke_lambda_negated_mask) & point_packed_data) != 0u)
+  if ((fastuidraw_stroke_lambda_negated_mask & point_packed_data) != 0u)
     {
       lambda = -lambda;
     }
@@ -299,7 +299,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_miter_clip)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_pixels_miter)(in uint point_packed_data,
-                                              in int offset_type,
+                                              in uint offset_type,
                                               in vec2 position,
                                               in vec2 pre_offset,
                                               in vec2 auxiliary_offset,
@@ -376,7 +376,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_miter)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_pixels_rounded_join)(in uint point_packed_data,
-                                                     in int offset_type,
+                                                     in uint offset_type,
                                                      in vec2 position,
                                                      in vec2 pre_offset,
                                                      in vec2 auxiliary_offset,
@@ -392,9 +392,9 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_rounded_join)(in uint point_packed_data,
   float d;
 
   n0 = fastuidraw_unpack_unit_vector(pre_offset.x,
-                                     uint(fastuidraw_stroke_normal0_y_sign_mask) & point_packed_data);
+                                     fastuidraw_stroke_normal0_y_sign_mask & point_packed_data);
   n1 = fastuidraw_unpack_unit_vector(pre_offset.y,
-                                     uint(fastuidraw_stroke_normal1_y_sign_mask) & point_packed_data);
+                                     fastuidraw_stroke_normal1_y_sign_mask & point_packed_data);
   interpolate = auxiliary_offset.x;
 
   clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
@@ -427,7 +427,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_rounded_join)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_pixels_square_cap)(in uint point_packed_data,
-                                                   in int offset_type,
+                                                   in uint offset_type,
                                                    in vec2 position,
                                                    in vec2 pre_offset,
                                                    in vec2 auxiliary_offset,
@@ -456,7 +456,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_square_cap)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_pixels_rounded_cap)(in uint point_packed_data,
-                                                    in int offset_type,
+                                                    in uint offset_type,
                                                     in vec2 position,
                                                     in vec2 pre_offset,
                                                     in vec2 auxiliary_offset,
@@ -483,7 +483,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_rounded_cap)(in uint point_packed_data,
 
 void
 FASTUIDRAW_LOCAL(compute_offset_pixels)(in uint point_packed_data,
-                                        in int offset_type,
+                                        in uint offset_type,
                                         in vec2 position,
                                         in vec2 pre_offset,
                                         in vec2 auxiliary_offset,

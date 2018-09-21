@@ -50,7 +50,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
   offset = fastuidraw_glyph_geometry_data_location;
   v = fastuidraw_fetch_glyph_data(offset);
 
-  while((v & uint(HIERARCHY_NODE_MASK)) != 0u)
+  while((v & HIERARCHY_NODE_MASK) != 0u)
     {
       uint c, bit0;
       float split_pt;
@@ -255,7 +255,7 @@ FASTUIDRAW_LOCAL(load_curve)(in uint raw,
   ivec2 ip1, ip3, iA, i2B, iC;
 
   curve_src = glyph_data_location + FASTUIDRAW_EXTRACT_BITS(CURVE_BIT0, CURVE_NUM_BITS, raw);
-  curve.is_quadratic = (raw & uint(CURVE_IS_QUADRATIC_MASK)) != 0u;
+  curve.is_quadratic = (raw & CURVE_IS_QUADRATIC_MASK) != 0u;
 
   if (curve.is_quadratic)
     {
