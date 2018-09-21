@@ -2660,18 +2660,10 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 
 fastuidraw::GlyphRender
 fastuidraw::Painter::
-draw_glyphs(const PainterData &draw,
-            const GlyphSequence &data, bool use_anisotropic,
+draw_glyphs(const PainterData &draw, const GlyphSequence &data,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  if (use_anisotropic)
-    {
-      return draw_glyphs(default_shaders().glyph_shader_anisotropic(), draw, data, call_back);
-    }
-  else
-    {
-      return draw_glyphs(default_shaders().glyph_shader(), draw, data, call_back);
-    }
+  return draw_glyphs(default_shaders().glyph_shader(), draw, data, call_back);
 }
 
 void
@@ -2704,18 +2696,10 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 
 void
 fastuidraw::Painter::
-draw_glyphs(const PainterData &draw,
-            const PainterAttributeData &data, bool use_anistopic_antialias,
+draw_glyphs(const PainterData &draw, const PainterAttributeData &data,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  if (use_anistopic_antialias)
-    {
-      draw_glyphs(default_shaders().glyph_shader_anisotropic(), draw, data, call_back);
-    }
-  else
-    {
-      draw_glyphs(default_shaders().glyph_shader(), draw, data, call_back);
-    }
+  draw_glyphs(default_shaders().glyph_shader(), draw, data, call_back);
 }
 
 const fastuidraw::PainterItemMatrix&

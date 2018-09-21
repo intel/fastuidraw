@@ -85,20 +85,6 @@ namespace fastuidraw
     glyph_shader(const PainterGlyphShader &sh);
 
     /*!
-     * Shader set for rendering glyphs with anisotropic
-     * anti-aliasing.
-     */
-    const PainterGlyphShader&
-    glyph_shader_anisotropic(void) const;
-
-    /*!
-     * Set the value returned by glyph_shader_anisotropic(void) const.
-     * \param sh value to use
-     */
-    PainterShaderSet&
-    glyph_shader_anisotropic(const PainterGlyphShader &sh);
-
-    /*!
      * Shader set for stroking of paths; the stroking
      * parameters are given by a \ref PainterStrokeParams
      * value.

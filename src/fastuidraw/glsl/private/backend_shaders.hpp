@@ -150,7 +150,7 @@ private:
                            const ShaderSource::MacroSet &frag_macros);
 
   PainterGlyphShader
-  create_glyph_shader(bool anisotropic);
+  create_glyph_shader(void);
 
   /*
    * stroke_dash_style having value number_cap_styles means

@@ -607,7 +607,7 @@ create_glyph_item_shader(const std::string &vert_src,
 
 PainterGlyphShader
 ShaderSetCreator::
-create_glyph_shader(bool anisotropic)
+create_glyph_shader(void)
 {
   PainterGlyphShader return_value;
   varying_list coverage_distance_varyings;
@@ -636,23 +636,11 @@ create_glyph_shader(bool anisotropic)
             create_glyph_item_shader("fastuidraw_painter_glyph_restricted_rays.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_restricted_rays.frag.glsl.resource_string",
                                      restricted_rays_varyings, m_glyph_restricted_rays_macros));
-
-  if (anisotropic)
-    {
-      return_value
-        .shader(distance_field_glyph,
-                create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
-                                         "fastuidraw_painter_glyph_distance_field_anisotropic.frag.glsl.resource_string",
-                                         coverage_distance_varyings, ShaderSource::MacroSet()));
-    }
-  else
-    {
-      return_value
-        .shader(distance_field_glyph,
-                create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
-                                         "fastuidraw_painter_glyph_distance_field.frag.glsl.resource_string",
-                                         coverage_distance_varyings, ShaderSource::MacroSet()));
-    }
+  return_value
+    .shader(distance_field_glyph,
+            create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
+                                     "fastuidraw_painter_glyph_distance_field.frag.glsl.resource_string",
+                                     coverage_distance_varyings, ShaderSource::MacroSet()));
 
   return return_value;
 }
@@ -835,8 +823,7 @@ create_shader_set(void)
   se = PainterStrokeParams::stroking_data_selector();
 
   return_value
-    .glyph_shader(create_glyph_shader(false))
-    .glyph_shader_anisotropic(create_glyph_shader(true))
+    .glyph_shader(create_glyph_shader())
     .stroke_shader(create_stroke_shader(number_cap_styles, se))
     .dashed_stroke_shader(create_dashed_stroke_shader_set())
     .fill_shader(create_fill_shader())

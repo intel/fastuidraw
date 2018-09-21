@@ -25,7 +25,7 @@ namespace
   class PainterShaderSetPrivate
   {
   public:
-    fastuidraw::PainterGlyphShader m_glyph_shader, m_glyph_shader_anisotropic;
+    fastuidraw::PainterGlyphShader m_glyph_shader;
     fastuidraw::PainterStrokeShader m_stroke_shader;
     fastuidraw::PainterDashedStrokeShaderSet m_dashed_stroke_shader;
     fastuidraw::PainterFillShader m_fill_shader;
@@ -62,9 +62,6 @@ fastuidraw::PainterShaderSet::
 assign_swap_implement(fastuidraw::PainterShaderSet)
 setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
                  const fastuidraw::PainterGlyphShader&, glyph_shader)
-
-setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
-                 const fastuidraw::PainterGlyphShader&, glyph_shader_anisotropic)
 
 setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
                  const fastuidraw::PainterStrokeShader&, stroke_shader)

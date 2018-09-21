@@ -193,7 +193,6 @@ register_shader(const PainterShaderSet &shaders)
   register_shader(shaders.dashed_stroke_shader());
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
-  register_shader(shaders.glyph_shader_anisotropic());
   register_shader(shaders.composite_shaders());
   register_shader(shaders.blend_shaders());
 }
