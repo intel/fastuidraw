@@ -381,6 +381,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
       scale_factor = pixel_size_formatting / metric.units_per_EM();
       advance = scale_factor * t_max(metric.advance().x(),
                                      t_max(0.0f, metric.horizontal_layout_offset().x()) + metric.size().x());
+      advance += 1.0; //a little additional slack between glyphs.
 
       m_glyph_sequence->add_glyph(GlyphSource(i, font), pen);
       pen.x() += advance;
