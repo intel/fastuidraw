@@ -19,9 +19,9 @@
 
 vec4
 fastuidraw_gl_vert_main(in uint sub_shader,
-                        in uvec4 uprimary_attrib,
-                        in uvec4 usecondary_attrib,
-                        in uvec4 uint_attrib,
+                        in uvec4 in_attrib0,
+                        in uvec4 in_attrib1,
+                        in uvec4 in_attrib2,
                         in uint shader_data_offset,
                         out int z_add)
 {
@@ -30,35 +30,35 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vec3 texel0f, texel1f;
   uint geometry_location;
 
-  p = uintBitsToFloat(uprimary_attrib.xy);
+  p = uintBitsToFloat(in_attrib0.xy);
 
-  geometry_location = uprimary_attrib.z;
+  geometry_location = in_attrib0.z;
 
   texel0.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_X_BIT0,
                                      FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS,
-                                     uprimary_attrib.w);
+                                     in_attrib0.w);
   texel0.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Y_BIT0,
                                      FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS,
-                                     uprimary_attrib.w);
+                                     in_attrib0.w);
   texel0.z = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Z_BIT0,
                                      FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS,
-                                     uprimary_attrib.w);
+                                     in_attrib0.w);
 
   texel0f = vec3(texel0);
 
-  if ((uint(FASTUIDRAW_GLYPH_TEXEL_INVALID_MASK) & usecondary_attrib.x) == 0u)
+  if ((uint(FASTUIDRAW_GLYPH_TEXEL_INVALID_MASK) & in_attrib1.x) == 0u)
     {
       uvec3 texel1;
 
       texel1.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_X_BIT0,
                                          FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS,
-                                         usecondary_attrib.x);
+                                         in_attrib1.x);
       texel1.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Y_BIT0,
                                          FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS,
-                                         usecondary_attrib.x);
+                                         in_attrib1.x);
       texel1.z = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_TEXEL_Z_BIT0,
                                          FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS,
-                                         usecondary_attrib.x);
+                                         in_attrib1.x);
       texel1f = vec3(texel1);
     }
   else

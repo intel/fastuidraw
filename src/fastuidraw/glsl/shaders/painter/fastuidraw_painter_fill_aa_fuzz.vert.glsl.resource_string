@@ -19,9 +19,9 @@
 
 vec4
 fastuidraw_gl_vert_main(in uint sub_shader,
-                        in uvec4 uprimary_attrib,
-                        in uvec4 usecondary_attrib,
-                        in uvec4 uint_attrib,
+                        in uvec4 in_attrib0,
+                        in uvec4 in_attrib1,
+                        in uvec4 in_attrib2,
                         in uint shader_data_offset,
                         out int z_add)
 {
@@ -30,8 +30,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vec2 n, p;
   float dist, sgn;
 
-  position_normal = uintBitsToFloat(uprimary_attrib);
-  sgn = uintBitsToFloat(usecondary_attrib.x);
+  position_normal = uintBitsToFloat(in_attrib0);
+  sgn = uintBitsToFloat(in_attrib1.x);
 
   if (abs(sgn) > 0.5)
     {
@@ -48,7 +48,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
 
   fastuidraw_aa_fuzz = sgn;
-  z_add = int(usecondary_attrib.y);
+  z_add = int(in_attrib1.y);
 
   return p.xyxy;
 }
