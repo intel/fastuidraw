@@ -87,7 +87,7 @@ namespace
   macro_value_as_string(uint32_t v)
   {
     std::ostringstream str;
-    str << v;
+    str << v << "u";
     return str.str();
   }
 
