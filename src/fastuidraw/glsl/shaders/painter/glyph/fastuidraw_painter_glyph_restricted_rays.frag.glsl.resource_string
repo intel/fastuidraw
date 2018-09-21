@@ -43,7 +43,7 @@ struct FASTUIDRAW_LOCAL(box_type)
   uint box_flags;
 };
 
-uint FASTUIDRAW_LOCAL(box_depth) = 0;
+uint FASTUIDRAW_LOCAL(box_depth) = 0u;
 
 uint
 FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
@@ -276,8 +276,8 @@ FASTUIDRAW_LOCAL(load_curve)(in uint raw,
       ivec2 ip2;
 
       ip1 = FASTUIDRAW_LOCAL(unpack_point)(curve_src);
-      ip2 = FASTUIDRAW_LOCAL(unpack_point)(curve_src + 1);
-      ip3 = FASTUIDRAW_LOCAL(unpack_point)(curve_src + 2);
+      ip2 = FASTUIDRAW_LOCAL(unpack_point)(curve_src + 1u);
+      ip3 = FASTUIDRAW_LOCAL(unpack_point)(curve_src + 2u);
 
       iA = ip1 - 2 * ip2 + ip3;
       i2B = 2 * (ip1 - ip2);
@@ -290,7 +290,7 @@ FASTUIDRAW_LOCAL(load_curve)(in uint raw,
       ivec2 ip2;
 
       ip1 = FASTUIDRAW_LOCAL(unpack_point)(curve_src);
-      ip3 = FASTUIDRAW_LOCAL(unpack_point)(curve_src + 1);
+      ip3 = FASTUIDRAW_LOCAL(unpack_point)(curve_src + 1u);
 
       /* ip2 is 0.5 * (ip1 + ip3) */
       iA = ivec2(0, 0);

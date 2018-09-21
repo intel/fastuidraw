@@ -30,24 +30,21 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   primary_attrib = uintBitsToFloat(in_attrib0);
   secondary_attrib = uintBitsToFloat(in_attrib1);
 
-  uint render_pass;
   bool stroke_width_pixels;
-  int stroking_pass;
+  uint stroking_pass;
   const float anti_alias_thickness = 1.5;
 
   #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
     {
-      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                            sub_shader);
+      stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                              fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                              sub_shader);
     }
   #else
     {
-      render_pass = fastuidraw_stroke_non_aa;
+      stroking_pass = fastuidraw_stroke_non_aa;
     }
   #endif
-
-  stroking_pass = int(render_pass);
 
   vec2 p;
   vec2 position, pre_offset, auxiliary_offset, offset;
@@ -110,11 +107,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             {
               fastuidraw_dashed_struct_edge_extend extend_edge;
               float delta_mag;
-              int dash_style;
+              uint dash_style;
 
-              dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                                       fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                                       sub_shader));
+              dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                                   fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                                   sub_shader);
 
               delta_mag = length(auxiliary_offset);
               fastuidraw_dashed_helper_vert_extend_edge(shader_data_offset,

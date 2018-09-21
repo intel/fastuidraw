@@ -141,7 +141,7 @@ fastuidraw_stroke_compute_dash_coverage(in bool add_rounded_caps,
   uint dash_pattern_at;
   fastuidraw_dashed_stroking_params_header stroke_params;
 
-  dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
+  dash_pattern_at = shader_data_offset + fastuidraw_stroke_dashed_stroking_params_header_num_blocks;
   fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
   if (skip_interval_lookup)
@@ -184,7 +184,7 @@ fastuidraw_stroke_compute_dash_coverage(in uint shader_data_offset,
   uint dash_pattern_at;
   fastuidraw_dashed_stroking_params_header stroke_params;
 
-  dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
+  dash_pattern_at = shader_data_offset + fastuidraw_stroke_dashed_stroking_params_header_num_blocks;
   fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
   if (skip_interval_lookup)

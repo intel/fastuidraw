@@ -22,13 +22,13 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
   float alpha = 1.0;
-  int render_pass, dash_style;
+  uint render_pass, dash_style;
 
   #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
     {
-      render_pass = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                                fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                                sub_shader));
+      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                            sub_shader);
     }
   #else
     {
@@ -55,7 +55,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   R = fastuidraw_arc_stroking_arc_radius;
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
-      if ((fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_arc_stroke_inverted_inner_region_mask)) != 0u)
+      if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_inverted_inner_region_mask) != 0u)
         {
           S = fastuidraw_arc_stroking_stroke_radius - fastuidraw_arc_stroking_arc_radius;
           R = 0.0;
@@ -74,9 +74,9 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     {
       float theta, thetaw, dist, distw, bd, bdw;
 
-      dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                               sub_shader));
+      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                           fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                           sub_shader);
 
       theta = atan(fastuidraw_arc_stroking_relative_to_center_y,
                    fastuidraw_arc_stroking_relative_to_center_x);
@@ -84,15 +84,15 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       dist = fastuidraw_arc_stroking_distance;
       distw = fwidth(fastuidraw_arc_stroking_distance);
 
-      if ((fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
+      if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) == 0u)
         {
           if (fastuidraw_arc_stroking_arc_radius > -0.5)
             {
-              if ((fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_arc_stroke_negative_arc_angle_mask)) != 0u)
+              if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_negative_arc_angle_mask) != 0u)
                 {
                   theta = -theta;
                 }
-              if ((fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) != 0u)
+              if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) != 0u)
                 {
                   theta = -theta;
                 }
@@ -112,10 +112,10 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           bool dont_anti_alias_dash_boundary, skip_lookup;
 
           skip_lookup =
-            (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u;
+            (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_skip_dash_interval_lookup_mask) != 0u;
 
           dont_anti_alias_dash_boundary = (render_pass == fastuidraw_stroke_non_aa)
-            || (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u;
+            || (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) != 0u;
 
           if (dash_style == fastuidraw_stroke_dashed_flat_caps)
             {

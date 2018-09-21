@@ -17,8 +17,8 @@
  */
 
 
-#define fastuidraw_stroke_gauranteed_to_be_covered_mask 1
-#define fastuidraw_stroke_skip_dash_interval_lookup_mask 2
-#define fastuidraw_stroke_distance_constant 4
-#define fastuidraw_arc_stroke_negative_arc_angle_mask 8
-#define fastuidraw_arc_stroke_inverted_inner_region_mask 16
+#define fastuidraw_stroke_gauranteed_to_be_covered_mask 1u
+#define fastuidraw_stroke_skip_dash_interval_lookup_mask 2u
+#define fastuidraw_stroke_distance_constant 4u
+#define fastuidraw_arc_stroke_negative_arc_angle_mask 8u
+#define fastuidraw_arc_stroke_inverted_inner_region_mask 16u

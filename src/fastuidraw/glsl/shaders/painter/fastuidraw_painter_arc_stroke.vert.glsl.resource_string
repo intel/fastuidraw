@@ -30,24 +30,21 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   primary_attrib = uintBitsToFloat(in_attrib0);
   secondary_attrib = uintBitsToFloat(in_attrib1);
 
-  uint render_pass;
   bool stroke_width_pixels;
-  int stroking_pass;
+  uint stroking_pass;
   const float anti_alias_thickness = 1.5;
 
   #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
     {
-      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                            sub_shader);
+      stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                              fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                              sub_shader);
     }
   #else
     {
-      render_pass = uint(fastuidraw_stroke_non_aa);
+      stroking_pass = fastuidraw_stroke_non_aa;
     }
   #endif
-
-  stroking_pass = int(render_pass);
 
   vec2 vector_from_center, p;
   vec2 position, center, offset_direction;
@@ -58,7 +55,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   float stroke_radius_for_outer_boundary, arc_radius_for_outer_boundary;
 
   float stroke_radius;
-  int on_boundary, offset_type;
+  uint on_boundary, offset_type;
   uint point_packed_data;
 
   #ifdef FASTUIDRAW_STROKE_DASHED
@@ -81,12 +78,12 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   total_closed_contour_length = uintBitsToFloat(in_attrib2.w);
   point_packed_data = in_attrib2.x;
 
-  offset_type = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_offset_type_bit0,
-                                            fastuidraw_arc_stroke_offset_type_num_bits,
-                                            point_packed_data));
-  on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_boundary_bit,
-                                            1,
-                                            point_packed_data));
+  offset_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_offset_type_bit0,
+                                        fastuidraw_arc_stroke_offset_type_num_bits,
+                                        point_packed_data);
+  on_boundary = FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_boundary_bit,
+                                        1,
+                                        point_packed_data);
 
   stroke_width_pixels = (stroke_params.radius < 0.0);
   stroke_radius = abs(stroke_params.radius);
@@ -104,11 +101,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       float edge_start, edge_end, stroke_distance;
       bool is_constant_distance, is_edge_end;
       fastuidraw_dashed_struct_base base, base_start, base_end;
-      int dash_style;
+      uint dash_style;
 
-      dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                               sub_shader));
+      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                           fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                           sub_shader);
 
       stroke_distance = distance_from_contour_start + stroke_params.dash_offset;
       fastuidraw_dashed_helper_vert_base(stroke_distance, shader_data_offset, stroke_params, base);
@@ -125,11 +122,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
           fastuidraw_arc_stroking_distance_sub_edge_end = (base_end.s < 0.0) ? base_end.interval_begin : base_end.interval_end + stroke_radius;
         }
 
-      is_edge_end = (point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u;
-      is_constant_distance = (point_packed_data & uint(fastuidraw_arc_stroke_distance_constant_on_primitive_mask)) != 0u;
+      is_edge_end = (point_packed_data & fastuidraw_arc_stroke_end_segment_mask) != 0u;
+      is_constant_distance = (point_packed_data & fastuidraw_arc_stroke_distance_constant_on_primitive_mask) != 0u;
       if (offset_type == fastuidraw_arc_stroke_dashed_capper)
         {
-          fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_skip_dash_interval_lookup_mask);
+          fastuidraw_arc_stroking_dash_bits = fastuidraw_stroke_skip_dash_interval_lookup_mask;
 
           if (dash_style != fastuidraw_stroke_dashed_flat_caps)
             {
@@ -142,7 +139,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               fastuidraw_arc_stroking_distance = 1.0;
             }
 
-          if ((point_packed_data & uint(fastuidraw_arc_stroke_extend_mask)) != 0u)
+          if ((point_packed_data & fastuidraw_arc_stroke_extend_mask) != 0u)
             {
               float d = 0.0;
 
@@ -187,10 +184,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
       else if (is_constant_distance)
         {
-          fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_distance_constant);
-          if ((point_packed_data & uint(fastuidraw_arc_stroke_join_mask)) != 0u)
+          fastuidraw_arc_stroking_dash_bits = fastuidraw_stroke_distance_constant;
+          if ((point_packed_data & fastuidraw_arc_stroke_join_mask) != 0u)
             {
-              fastuidraw_arc_stroking_dash_bits |= uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
+              fastuidraw_arc_stroking_dash_bits |= fastuidraw_stroke_gauranteed_to_be_covered_mask;
               if (base.s < 0.0)
                 {
                   offset_type = fastuidraw_arc_stroke_line_segment;
@@ -241,7 +238,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             {
               if (arc_angle < 0.0)
                 {
-                  fastuidraw_arc_stroking_dash_bits |= uint(fastuidraw_arc_stroke_negative_arc_angle_mask);
+                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_negative_arc_angle_mask;
                 }
 
               if (is_edge_end)
@@ -257,7 +254,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                 mat2(offset_direction.x, -offset_direction.y,
                      offset_direction.y, offset_direction.x);
 
-              if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
+              if ((point_packed_data & fastuidraw_arc_stroke_end_segment_mask) != 0u)
                 {
                   /* we rotated by the offset_direction, which means we rotated
                    * back by the end-angle, rotate forward by arc-angle to get
@@ -288,13 +285,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   #endif
 
   if(offset_type == fastuidraw_arc_stroke_arc_point
-     && (point_packed_data & uint(fastuidraw_arc_stroke_move_to_arc_center_mask)) != 0u)
+     && (point_packed_data & fastuidraw_arc_stroke_move_to_arc_center_mask) != 0u)
     {
       if (stroke_radius > radius)
         {
           position = center;
           scale_factor = 0.0;
-          if ((point_packed_data & uint(fastuidraw_arc_stroke_inner_stroking_mask)) == 0u)
+          if ((point_packed_data & fastuidraw_arc_stroke_inner_stroking_mask) == 0u)
             {
               /* this point is used to make a triangle with the inverted inner
                * stroking region; do the same to it as we would inner stroking
@@ -303,7 +300,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               #ifdef FASTUIDRAW_STROKE_DASHED
                 {
                   rotate_by *= -1.0;
-                  fastuidraw_arc_stroking_dash_bits |= uint(fastuidraw_arc_stroke_inverted_inner_region_mask);
+                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
                 }
               #else
                 {
@@ -316,7 +313,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
 
   if (offset_type == fastuidraw_arc_stroke_arc_point
-      && (point_packed_data & uint(fastuidraw_arc_stroke_inner_stroking_mask)) != 0u)
+      && (point_packed_data & fastuidraw_arc_stroke_inner_stroking_mask) != 0u)
     {
       if (stroke_radius < radius)
         {
@@ -330,7 +327,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
            * to be the same location as inner_stroking_boundary since they
            * are only needed/used when the stroke_radius > radius.
            */
-          point_packed_data &= ~uint(fastuidraw_arc_stroke_beyond_boundary_mask);
+          point_packed_data &= ~fastuidraw_arc_stroke_beyond_boundary_mask;
         }
       else
         {
@@ -342,7 +339,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
            * between the center and the path, not the center and the invereted
            * inner-stroking region.
            */
-          if ((point_packed_data & uint(fastuidraw_arc_stroke_move_to_arc_center_mask)) == 0u)
+          if ((point_packed_data & fastuidraw_arc_stroke_move_to_arc_center_mask) == 0u)
             {
               position = center;
               scale_factor = stroke_radius - radius;
@@ -362,7 +359,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                    * the values of fastuidraw_arc_stroking_arc_radius and
                    * fastuidraw_arc_stroking_stroke_radius for radial inclusion
                    */
-                  fastuidraw_arc_stroking_dash_bits |= uint(fastuidraw_arc_stroke_inverted_inner_region_mask);
+                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
                 }
               #else
                 {
@@ -377,13 +374,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   p = position + scale_factor * offset_direction;
 
   if (offset_type == fastuidraw_arc_stroke_arc_point
-      && (point_packed_data & uint(fastuidraw_arc_stroke_beyond_boundary_mask)) != 0u)
+      && (point_packed_data & fastuidraw_arc_stroke_beyond_boundary_mask) != 0u)
     {
       float half_angle, L, D, c, s;
       vec2 v;
 
       half_angle = 0.5 * arc_angle;
-      if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
+      if ((point_packed_data & fastuidraw_arc_stroke_end_segment_mask) != 0u)
         {
           half_angle = -half_angle;
         }
