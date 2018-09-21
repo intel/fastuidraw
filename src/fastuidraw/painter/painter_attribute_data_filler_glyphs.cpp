@@ -229,7 +229,9 @@ compute_number_glyphs(void)
 {
   for(const auto &G : m_glyphs)
     {
-      if (G.valid())
+      if (G.valid()
+          && G.metrics().size().x() > 0
+          && G.metrics().size().y() > 0)
         {
           FASTUIDRAWassert(G.uploaded_to_atlas());
           ++m_number_glyphs;
@@ -327,9 +329,11 @@ fill_data(c_array<PainterAttribute> attribute_data,
   FASTUIDRAWunused(zranges);
 
   std::vector<unsigned int> current(attrib_chunks.size(), 0);
-  for(unsigned int g = 0; g < d->m_number_glyphs; ++g)
+  for(unsigned int g = 0, endg = d->m_glyphs.size(); g < endg; ++g)
     {
-      if (d->m_glyphs[g].valid())
+      if (d->m_glyphs[g].valid()
+          && d->m_glyphs[g].metrics().size().x() > 0
+          && d->m_glyphs[g].metrics().size().y() > 0)
         {
           float scale;
           unsigned int t;
