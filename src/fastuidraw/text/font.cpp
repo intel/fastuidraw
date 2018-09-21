@@ -35,7 +35,6 @@ namespace
 
     unsigned int m_distance_field_pixel_size;
     float m_distance_field_max_distance;
-    unsigned int m_curve_pair_pixel_size;
 
     std::mutex m_mutex;
     unsigned int m_number_fonts_alive;
@@ -44,7 +43,6 @@ namespace
     GlyphGenerateParamValues(void):
       m_distance_field_pixel_size(48),
       m_distance_field_max_distance(1.5f),
-      m_curve_pair_pixel_size(32),
       m_number_fonts_alive(0)
     {}
   };
@@ -75,7 +73,6 @@ namespace
 
 IMPLEMENT(unsigned int, distance_field_pixel_size)
 IMPLEMENT(float, distance_field_max_distance)
-IMPLEMENT(unsigned int, curve_pair_pixel_size)
 
 ///////////////////////////////////////////
 // fastuidraw::FontBase methods

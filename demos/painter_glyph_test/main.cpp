@@ -30,10 +30,6 @@ operator<<(std::ostream &str, GlyphRender R)
           str << "Distance";
           break;
 
-        case curve_pair_glyph:
-          str << "CurvePair";
-          break;
-
         case restricted_rays_glyph:
           str << "RestrictedRays";
           break;
@@ -175,7 +171,6 @@ private:
     {
       draw_glyph_coverage,
       draw_glyph_distance,
-      draw_glyph_curvepair,
       draw_glyph_restricted_rays,
 
       draw_glyph_auto
@@ -217,7 +212,6 @@ private:
   command_line_argument_value<int> m_coverage_pixel_size;
   command_line_argument_value<int> m_distance_pixel_size;
   command_line_argument_value<float> m_max_distance;
-  command_line_argument_value<int> m_curve_pair_pixel_size;
   command_line_argument_value<std::string> m_text;
   command_line_argument_value<bool> m_use_file;
   command_line_argument_value<bool> m_draw_glyph_set;
@@ -568,7 +562,6 @@ painter_glyph_test(void):
                  "max_distance",
                  "value to use for max distance in pixels "
                  "when generating distance field glyphs", *this),
-  m_curve_pair_pixel_size(48, "curvepair_pixel_size", "Pixel size at which to create distance curve pair glyphs", *this),
   m_text("Hello World!", "text", "text to draw to the screen", *this),
   m_use_file(false, "use_file", "if true the value for text gives a filename to display", *this),
   m_draw_glyph_set(false, "draw_glyph_set", "if true, display all glyphs of font instead of text", *this),
@@ -665,7 +658,6 @@ create_and_add_font(void)
 
   GlyphGenerateParams::distance_field_max_distance(m_max_distance.value());
   GlyphGenerateParams::distance_field_pixel_size(m_distance_pixel_size.value());
-  GlyphGenerateParams::curve_pair_pixel_size(m_curve_pair_pixel_size.value());
 
   if (!m_font_file.value().empty())
     {
@@ -828,7 +820,6 @@ ready_glyph_attribute_data(void)
   std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
                                              m_explicit_glyph_codes.end());
 
-  m_draws[draw_glyph_curvepair] = GlyphRender(curve_pair_glyph);
   m_draws[draw_glyph_distance] = GlyphRender(distance_field_glyph);
   m_draws[draw_glyph_restricted_rays] = GlyphRender(restricted_rays_glyph);
   m_draws[draw_glyph_coverage] = GlyphRender(m_coverage_pixel_size.value());

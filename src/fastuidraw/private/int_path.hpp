@@ -27,7 +27,6 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
-#include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include <fastuidraw/text/glyph_render_data_distance_field.hpp>
 
 #include "array2d.hpp"
@@ -439,21 +438,6 @@ namespace fastuidraw
                           IntBezierCurve::transformation<int> tr,
                           const CustomFillRuleBase &fill_rule,
                           GlyphRenderDataDistanceField *dst) const;
-
-
-      /* Compute curve-pair render data. The caller should have applied
-       * filter() before calling to reduce cubics and collapse tiny
-       * curves.
-       * \param texel_size the size of each texel in coordinates
-       *                   AFTER tr is applied
-       * \param image_sz size of the distance field to make
-       * \param tr transformation to apply to data of path
-       */
-      void
-      extract_render_data(const ivec2 &texel_size, const ivec2 &image_sz,
-                          IntBezierCurve::transformation<int> tr,
-                          const CustomFillRuleBase &fill_rule,
-                          GlyphRenderDataCurvePair *dst) const;
 
     private:
       IntBezierCurve::ID_t

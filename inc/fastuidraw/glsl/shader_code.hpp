@@ -35,37 +35,6 @@ namespace fastuidraw
     namespace code
     {
       /*!
-       * Construct/returns a ShaderSource value that
-       * implements the function:
-       * \code
-       * float
-       * function_name(in int texel_value,
-       *               in vec2 texture_coordinate,
-       *               in int geometry_offset)
-       * \endcode
-       *
-       * which returns the signed pseudo-distance to the glyph boundary
-       * for a glyph of type \ref curve_pair_glyph (these glyphs are
-       * backed by data produced from a \ref GlyphRenderDataCurvePair).
-       * The value texel_value is value in the texel store from the
-       * position texture_coordinate (the bottom left for the glyph being
-       * at Glyph::atlas_location().location() and the top right
-       * being at that value + Glyph::layout().m_texel_size.
-       * The value geometry_offset is from Glyph::geometry_offset().
-       * \param function_name name for the function
-       * \param geometry_store_fetch the macro function (that returns a vec4)
-       *                             to use in the produced GLSL code to fetch
-       *                             the geometry store data.
-       * \param derivative_function if true, give the GLSL function with the
-       *                            argument signature (in int, in vec2, in int, out vec2)
-       *                            where the last argument is the gradient of
-       *                            the function with repsect to texture_coordinate.
-       */
-      ShaderSource
-      curvepair_compute_pseudo_distance(c_string function_name,
-                                        c_string geometry_store_fetch,
-                                        bool derivative_function = false);
-      /*!
        * Gives the shader source code for a function with
        * the signature:
        * \code

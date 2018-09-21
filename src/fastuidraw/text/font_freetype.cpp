@@ -20,7 +20,6 @@
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
-#include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include <fastuidraw/text/glyph_render_data_distance_field.hpp>
 #include <fastuidraw/text/glyph_render_data_coverage.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
@@ -71,13 +70,11 @@ namespace
   public:
     GenerateParams(void):
       m_distance_field_pixel_size(fastuidraw::GlyphGenerateParams::distance_field_pixel_size()),
-      m_distance_field_max_distance(fastuidraw::GlyphGenerateParams::distance_field_max_distance()),
-      m_curve_pair_pixel_size(fastuidraw::GlyphGenerateParams::curve_pair_pixel_size())
+      m_distance_field_max_distance(fastuidraw::GlyphGenerateParams::distance_field_max_distance())
     {}
 
     unsigned int m_distance_field_pixel_size;
     float m_distance_field_max_distance;
-    unsigned int m_curve_pair_pixel_size;
   };
 
   class IntPathCreator
@@ -198,11 +195,6 @@ namespace
     void
     compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataDistanceField &output,
-                           fastuidraw::Path &path);
-
-    void
-    compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
-                           fastuidraw::GlyphRenderDataCurvePair &output,
                            fastuidraw::Path &path);
 
     void
@@ -436,75 +428,6 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
 void
 FontFreeTypePrivate::
 compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
-                       fastuidraw::GlyphRenderDataCurvePair &output,
-                       fastuidraw::Path &path)
-{
-  fastuidraw::detail::IntPath int_path_ecm;
-  int units_per_EM;
-  fastuidraw::ivec2 layout_offset;
-  fastuidraw::vec2 layout_size;
-  int outline_flags;
-  uint32_t glyph_code(glyph_metrics.glyph_code());
-
-  {
-    FaceGrabber p(this);
-    if (!p.m_p || !p.m_p->face())
-      {
-        return;
-      }
-
-    FT_Face face(p.m_p->face());
-    load_glyph(face, glyph_code);
-    units_per_EM = face->units_per_EM;
-    outline_flags = face->glyph->outline.flags;
-    layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
-                                      face->glyph->metrics.horiBearingY);
-    layout_offset.y() -= face->glyph->metrics.height;
-    layout_size = fastuidraw::vec2(face->glyph->metrics.width,
-                                   face->glyph->metrics.height);
-    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
-  }
-
-  /* choose the correct fill rule as according to outline_flags */
-  enum fastuidraw::PainterEnums::fill_rule_t fill_rule;
-  fill_rule = (outline_flags & FT_OUTLINE_EVEN_ODD_FILL) ?
-    fastuidraw::PainterEnums::odd_even_fill_rule:
-    fastuidraw::PainterEnums::nonzero_fill_rule;
-
-  int pixel_size(m_generate_params.m_curve_pair_pixel_size);
-  float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
-
-  /* compute how many pixels we need to store the glyph. */
-  fastuidraw::vec2 image_sz_f(layout_size * scale_factor);
-  fastuidraw::ivec2 image_sz(ceilf(image_sz_f.x()), ceilf(image_sz_f.y()));
-
-  /* Use the same transformation as the DistanceField case */
-  int tr_scale(2 * pixel_size);
-  fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset);
-  fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
-  fastuidraw::ivec2 texel_distance(2 * units_per_EM);
-  float curvature_collapse(0.05f);
-
-  int_path_ecm.filter(curvature_collapse, tr, texel_distance);
-  if (int_path_ecm.empty() || image_sz.x() == 0 || image_sz.y() == 0)
-    {
-      output.resize_active_curve_pair(fastuidraw::ivec2(0, 0));
-      return;
-    }
-
-  /* extract to a Path */
-  fastuidraw::detail::IntBezierCurve::transformation<float> identity_tr;
-  int_path_ecm.add_to_path(identity_tr, &path);
-
-  /* extract render data*/
-  int_path_ecm.extract_render_data(texel_distance, image_sz, tr,
-                                   fastuidraw::CustomFillRuleFunction(fill_rule),
-                                   &output);
-}
-
-void
-FontFreeTypePrivate::
-compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                        fastuidraw::GlyphRenderDataRestrictedRays &output,
                        fastuidraw::Path &path)
 {
@@ -621,7 +544,6 @@ can_create_rendering_data(enum glyph_type tp) const
 {
   return tp == coverage_glyph
     || tp == distance_field_glyph
-    || tp == curve_pair_glyph
     || tp == restricted_rays_glyph;
 }
 
@@ -683,15 +605,6 @@ compute_rendering_data(GlyphRender render,
       {
         GlyphRenderDataDistanceField *data;
         data = FASTUIDRAWnew GlyphRenderDataDistanceField();
-        d->compute_rendering_data(glyph_metrics, *data, path);
-        return data;
-      }
-      break;
-
-    case curve_pair_glyph:
-      {
-        GlyphRenderDataCurvePair *data;
-        data = FASTUIDRAWnew GlyphRenderDataCurvePair();
         d->compute_rendering_data(glyph_metrics, *data, path);
         return data;
       }

@@ -1160,12 +1160,6 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
                                                 "fastuidraw_imageIndexAtlas",
                                                 backend.image_atlas_index_tile_size(),
                                                 backend.image_atlas_color_tile_size()))
-    .add_source(code::curvepair_compute_pseudo_distance("fastuidraw_curvepair_pseudo_distance",
-                                                        "fastuidraw_fetch_glyph_data",
-                                                        false))
-    .add_source(code::curvepair_compute_pseudo_distance("fastuidraw_curvepair_pseudo_distance",
-                                                        "fastuidraw_fetch_glyph_data",
-                                                        true))
     .add_source("fastuidraw_painter_main.frag.glsl.resource_string", ShaderSource::from_resource);
 
   stream_unpack_code(frag);

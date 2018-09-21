@@ -136,11 +136,11 @@ painter_cells(void):
   m_num_cells_y(10, "num_cells_y", "Number of cells down", *this),
   m_cell_group_size(1, "cell_group_size", "width and height in number of cells for cell group size", *this),
   m_font(default_font(), "font", "File from which to take font", *this),
-  m_text_renderer(fastuidraw::curve_pair_glyph,
+  m_text_renderer(fastuidraw::restricted_rays_glyph,
                   enumerated_string_type<enum glyph_type>()
                   .add_entry("coverage", coverage_glyph, "coverage glyphs (i.e. alpha masks)")
                   .add_entry("distance_field", distance_field_glyph, "distance field glyphs")
-                  .add_entry("curve_pair", curve_pair_glyph, "curve-pair glyphs"),
+                  .add_entry("restricted_rays", restricted_rays_glyph, "restricted rays glyphs"),
                   "text_renderer",
                   "Specifies how to render text", *this),
   m_text_renderer_realized_pixel_size(24,

@@ -67,20 +67,5 @@ namespace fastuidraw
      */
     enum return_code
     distance_field_max_distance(float v);
-
-    /*!
-     * Pixel size at which to generate curve pair scalable glyphs.
-     */
-    unsigned int
-    curve_pair_pixel_size(void);
-
-    /*!
-     * Set the value returned by curve_pair_pixel_size(void) const,
-     * initial value is 32. Return \ref routine_success if value is
-     * successfully changed.
-     * \param v value
-     */
-    enum return_code
-    curve_pair_pixel_size(unsigned int v);
   }
 }

@@ -1936,7 +1936,7 @@ draw_frame(void)
 
       PainterBrush brush;
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+      draw_text(ostr.str(), 32.0f, m_font, PainterData(&brush));
     }
 
   m_painter->end();

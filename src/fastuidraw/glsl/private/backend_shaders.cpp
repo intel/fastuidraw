@@ -610,22 +610,13 @@ ShaderSetCreator::
 create_glyph_shader(bool anisotropic)
 {
   PainterGlyphShader return_value;
-  varying_list curve_pair_varyings, coverage_distance_varyings;
+  varying_list coverage_distance_varyings;
   varying_list restricted_rays_varyings;
 
   coverage_distance_varyings
     .add_float_varying("fastuidraw_glyph_tex_coord_x")
     .add_float_varying("fastuidraw_glyph_tex_coord_y")
     .add_float_varying("fastuidraw_glyph_tex_coord_layer");
-
-  curve_pair_varyings
-    .add_float_varying("fastuidraw_glyph_tex_coord_x")
-    .add_float_varying("fastuidraw_glyph_tex_coord_y")
-    .add_float_varying("fastuidraw_glyph_secondary_tex_coord_x")
-    .add_float_varying("fastuidraw_glyph_secondary_tex_coord_y")
-    .add_float_varying("fastuidraw_glyph_tex_coord_layer")
-    .add_float_varying("fastuidraw_glyph_secondary_tex_coord_layer")
-    .add_uint_varying("fastuidraw_glyph_geometry_data_location");
 
   restricted_rays_varyings
     .add_float_varying("fastuidraw_glyph_coord_x")
@@ -652,11 +643,7 @@ create_glyph_shader(bool anisotropic)
         .shader(distance_field_glyph,
                 create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
                                          "fastuidraw_painter_glyph_distance_field_anisotropic.frag.glsl.resource_string",
-                                         coverage_distance_varyings, ShaderSource::MacroSet()))
-        .shader(curve_pair_glyph,
-                create_glyph_item_shader("fastuidraw_painter_glyph_curve_pair.vert.glsl.resource_string",
-                                         "fastuidraw_painter_glyph_curve_pair_anisotropic.frag.glsl.resource_string",
-                                         curve_pair_varyings, ShaderSource::MacroSet()));
+                                         coverage_distance_varyings, ShaderSource::MacroSet()));
     }
   else
     {
@@ -664,11 +651,7 @@ create_glyph_shader(bool anisotropic)
         .shader(distance_field_glyph,
                 create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
                                          "fastuidraw_painter_glyph_distance_field.frag.glsl.resource_string",
-                                         coverage_distance_varyings, ShaderSource::MacroSet()))
-        .shader(curve_pair_glyph,
-                create_glyph_item_shader("fastuidraw_painter_glyph_curve_pair.vert.glsl.resource_string",
-                                         "fastuidraw_painter_glyph_curve_pair.frag.glsl.resource_string",
-                                         curve_pair_varyings, ShaderSource::MacroSet()));
+                                         coverage_distance_varyings, ShaderSource::MacroSet()));
     }
 
   return return_value;

@@ -58,13 +58,6 @@ namespace fastuidraw
       distance_field_glyph,
 
       /*!
-       * Glyph is a curvepair glyph, generated
-       * from a GlyphRenderDataCurvePair. Glyph
-       * is scalable.
-       */
-      curve_pair_glyph,
-
-      /*!
        * Glyph is a Restricted rays glyph, generated
        * from a GlyphRenderDataRestrictedRays. Glyph
        * is scalable.
@@ -116,8 +109,8 @@ namespace fastuidraw
 
     /*!
      * Returns true if and only if the data for a glyph type
-     * is scalable, for example distance_field_glyph and
-     * curve_pair_glyph are scalable
+     * is scalable, for example \ref distance_field_glyph and
+     * \ref restricted_rays_glyph are scalable
      */
     static
     bool

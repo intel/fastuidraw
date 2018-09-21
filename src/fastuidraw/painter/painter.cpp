@@ -2614,7 +2614,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 
   if (tp == perspective_matrix)
     {
-      return_value = GlyphRender(curve_pair_glyph);
+      return_value = GlyphRender(restricted_rays_glyph);
     }
   else
     {
@@ -2638,7 +2638,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
         }
       else
         {
-          return_value = GlyphRender(curve_pair_glyph);
+          return_value = GlyphRender(restricted_rays_glyph);
         }
 
       // std::cout << "eff = " << effective_pixel_width << ", ";
