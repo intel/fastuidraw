@@ -16,6 +16,14 @@
  *
  */
 
+#ifndef BOX_FLAGS_DEFINED
+#define BOX_FLAGS_DEFINED
+#define MIN_X_BOX_FLAG (1u)
+#define MAX_X_BOX_FLAG (2u)
+#define MIN_Y_BOX_FLAG (4u)
+#define MAX_Y_BOX_FLAG (8u)
+#endif
+
 struct FASTUIDRAW_LOCAL(transformation_type)
 {
   vec2 translation;
@@ -31,7 +39,8 @@ struct FASTUIDRAW_LOCAL(curve_type)
 
 struct FASTUIDRAW_LOCAL(box_type)
 {
-  vec2 min_point, max_point;
+  vec2 min_point, max_point, center_point;
+  uint box_flags;
 };
 
 uint FASTUIDRAW_LOCAL(box_depth) = 0;
@@ -44,6 +53,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
 {
   uint v, offset;
 
+  box.box_flags = (MIN_X_BOX_FLAG | MAX_X_BOX_FLAG | MIN_Y_BOX_FLAG | MAX_Y_BOX_FLAG);
   box.min_point = vec2(0.0, 0.0);
   box.max_point = vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y);
 
@@ -52,7 +62,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
 
   while((v & HIERARCHY_NODE_MASK) != 0u)
     {
-      uint c, bit0;
+      uint c, bit0, and_flags = 0u;
       float split_pt;
       bool take_max_choice;
 
@@ -63,6 +73,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
           take_max_choice = (p.x > split_pt);
           box.min_point.x = (take_max_choice) ? split_pt : box.min_point.x;
           box.max_point.x = (take_max_choice) ? box.max_point.x : split_pt;
+          and_flags = (take_max_choice) ? (~MIN_X_BOX_FLAG) : (~MAX_X_BOX_FLAG);
         }
       else
         {
@@ -70,16 +81,19 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
           take_max_choice = (p.y > split_pt);
           box.min_point.y = (take_max_choice) ? split_pt : box.min_point.y;
           box.max_point.y = (take_max_choice) ? box.max_point.y : split_pt;
+          and_flags = (take_max_choice) ? (~MIN_Y_BOX_FLAG) : (~MAX_Y_BOX_FLAG);
         }
 
       bit0 = (take_max_choice) ? HIERARCHY_CHILD1_BIT : HIERARCHY_CHILD0_BIT;
       offset = FASTUIDRAW_EXTRACT_BITS(bit0, HIERARCHY_CHILD_NUM_BITS, v);
       offset += fastuidraw_glyph_geometry_data_location;
       v = fastuidraw_fetch_glyph_data(offset);
+      box.box_flags &= and_flags;
 
       ++FASTUIDRAW_LOCAL(box_depth);
     }
 
+  box.center_point = 0.5 * (box.min_point + box.max_point);
   curve_list = FASTUIDRAW_EXTRACT_BITS(HIERARCHY_CURVE_LIST_BIT0, HIERARCHY_CURVE_LIST_NUM_BITS, v);
   num_curves = FASTUIDRAW_EXTRACT_BITS(HIERARCHY_CURVE_LIST_SIZE_BIT0, HIERARCHY_CURVE_LIST_SIZE_NUM_BITS, v);
 
@@ -340,11 +354,44 @@ int
 FASTUIDRAW_LOCAL(load_winding_reference)(in uint location,
                                          in FASTUIDRAW_LOCAL(box_type) box,
                                          in uint sample_choice,
+                                         in vec2 frag_position,
                                          out vec2 position)
 {
   uint texel, biased_winding;
   uvec2 biased_delta;
   vec2 delta;
+
+  if ((sample_choice & RIGHT_CORNER_MASK) == 0u
+      && (box.box_flags & MIN_X_BOX_FLAG) != 0u)
+    {
+      position.x = -box.max_point.x;
+      position.y = frag_position.y;
+      return 0;
+    }
+
+  if ((sample_choice & RIGHT_CORNER_MASK) != 0u
+      && (box.box_flags & MAX_X_BOX_FLAG) != 0u)
+    {
+      position.x = 2.0 * box.max_point.x;
+      position.y = frag_position.y;
+      return 0;
+    }
+
+  if ((sample_choice & TOP_CORNER_MASK) == 0u
+      && (box.box_flags & MIN_Y_BOX_FLAG) != 0u)
+    {
+      position.x = frag_position.x;
+      position.y = -box.max_point.y;
+      return 0;
+    }
+
+  if ((sample_choice & TOP_CORNER_MASK) != 0u
+      && (box.box_flags & MAX_Y_BOX_FLAG) != 0u)
+    {
+      position.x = frag_position.x;
+      position.y = 2.0 * box.max_point.y;
+      return 0;
+    }
 
   position.x = ((sample_choice & RIGHT_CORNER_MASK) != 0u) ?
     box.max_point.x:
@@ -392,22 +439,22 @@ fastuidraw_gl_frag_main(in uint sub_shader,
    * each corner.
    */
   uint sample_choice0 = 0u, sample_choice1;
-  vec2 texel_box_center;
 
-  texel_box_center = 0.5 * (texel_box.min_point + texel_box.max_point);
-  if (frag_coord.x < texel_box_center.x)
+  if (frag_coord.x < texel_box.center_point.x)
     {
       sample_choice0 |= RIGHT_CORNER_MASK;
     }
-  if (frag_coord.y < texel_box_center.y)
+  if (frag_coord.y < texel_box.center_point.y)
     {
       sample_choice0 |= TOP_CORNER_MASK;
     }
 
-  startw_01.x = FASTUIDRAW_LOCAL(load_winding_reference)(data_location, texel_box, sample_choice0, z0);
+  startw_01.x = FASTUIDRAW_LOCAL(load_winding_reference)(data_location, texel_box,
+                                                         sample_choice0, frag_coord, z0);
 
   sample_choice1 = sample_choice0 ^ 1u;
-  startw_01.y = FASTUIDRAW_LOCAL(load_winding_reference)(data_location, texel_box, sample_choice1, z1);
+  startw_01.y = FASTUIDRAW_LOCAL(load_winding_reference)(data_location, texel_box,
+                                                         sample_choice1, frag_coord, z1);
 
   alpha_01 = vec2(startw_01);
   FASTUIDRAW_LOCAL(compute_transformation)(frag_coord,
