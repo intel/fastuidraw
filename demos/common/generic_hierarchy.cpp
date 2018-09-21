@@ -35,14 +35,8 @@ public:
   TreeBase*
   add(const BoundingBox<float> &bbox, unsigned int reference)
   {
-    if (bbox.intersects(m_bbox))
-      {
-        return add_implement(bbox, reference);
-      }
-    else
-      {
-        return this;
-      }
+    FASTUIDRAWassert(bbox.intersects(m_bbox));
+    return add_implement(bbox, reference);
   }
 
   void
@@ -122,6 +116,7 @@ private:
                   BoundingBox<float> *out_bb);
 
   fastuidraw::vecN<TreeBase*, 2> m_children;
+  std::vector<Element> m_elements;
 };
 
 class Leaf:public TreeBase
@@ -181,14 +176,29 @@ TreeBase*
 Node::
 add_implement(const BoundingBox<float> &bbox, unsigned int reference)
 {
+  fastuidraw::vecN<bool, 2> child_takes;
+
   for (unsigned int i = 0; i < 2; ++i)
     {
+      child_takes[i] = m_children[i]->bounding_box().intersects(bbox);
+    }
+
+  if (child_takes[0] && child_takes[1])
+    {
+      Element E(bbox, reference);
+      m_elements.push_back(E);
+    }
+  else
+    {
+      unsigned int IDX;
       TreeBase *p;
-      p = m_children[i]->add(bbox, reference);
-      if (p != m_children[i])
+
+      IDX = child_takes[0] ? 0u : 1u;
+      p = m_children[IDX]->add(bbox, reference);
+      if (p != m_children[IDX])
         {
-          FASTUIDRAWdelete(m_children[i]);
-          m_children[i] = p;
+          FASTUIDRAWdelete(m_children[IDX]);
+          m_children[IDX] = p;
         }
     }
 
@@ -202,6 +212,13 @@ query_implement(const BoundingBox<float> &bbox,
 {
   m_children[0]->query(bbox, output);
   m_children[1]->query(bbox, output);
+  for (const auto &E : m_elements)
+    {
+      if (E.m_box.intersects(bbox))
+        {
+          output->push_back(E.m_reference);
+        }
+    }
 }
 
 unsigned int
@@ -210,12 +227,27 @@ query_implement(const fastuidraw::vec2 &p,
                 BoundingBox<float> *out_bb)
 {
   int R;
+
   R = m_children[0]->query(p, out_bb);
   if (R != GenericHierarchy::not_found)
     {
       return R;
     }
-  return m_children[1]->query(p, out_bb);
+  R = m_children[1]->query(p, out_bb);
+  if (R != GenericHierarchy::not_found)
+    {
+      return R;
+    }
+
+  for (const auto &E : m_elements)
+    {
+      if (E.m_box.intersects(p))
+        {
+          *out_bb = E.m_box;
+          return E.m_reference;
+        }
+    }
+  return GenericHierarchy::not_found;
 }
 
 ///////////////////////////////////////////
