@@ -42,16 +42,17 @@ namespace fastuidraw
    * to not be uploaded to the GlyphAtlas.
    * Data for glyphs is packed as follows:
    *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates (float)
-   *   - PainterAttribute::m_attrib0 .z  -> Glyph::attribute()[0]
-   *   - PainterAttribute::m_attrib0 .w  -> Glyph::attribute()[1]
-   *   - PainterAttribute::m_attrib1 .x  -> Glyph::attribute()[2]
-   *   - PainterAttribute::m_attrib1 .y  -> Glyph::attribute()[3]
-   *   - PainterAttribute::m_attrib1. z  -> Glyph::attribute()[4]
-   *   - PainterAttribute::m_attrib1 .w  -> Glyph::attribute()[5]
-   *   - PainterAttribute::m_attrib2 .x  -> Glyph::attribute()[6]
-   *   - PainterAttribute::m_attrib2 .y  -> Glyph::attribute()[7]
-   *   - PainterAttribute::m_attrib2 .z  -> Glyph::attribute()[8]
-   *   - PainterAttribute::m_attrib2 .w  -> Glyph::attribute()[9]
+   *   - PainterAttribute::m_attrib0 .zw -> the difference in item coordinates
+   *                                        between the bottom-left vertex position
+   *                                        and the top-right vertex position.
+   *   - PainterAttribute::m_attrib1 .x  -> Glyph::attribute()[0]
+   *   - PainterAttribute::m_attrib1 .y  -> Glyph::attribute()[1]
+   *   - PainterAttribute::m_attrib1. z  -> Glyph::attribute()[2]
+   *   - PainterAttribute::m_attrib1 .w  -> Glyph::attribute()[3]
+   *   - PainterAttribute::m_attrib2 .x  -> Glyph::attribute()[4]
+   *   - PainterAttribute::m_attrib2 .y  -> Glyph::attribute()[5]
+   *   - PainterAttribute::m_attrib2 .z  -> Glyph::attribute()[6]
+   *   - PainterAttribute::m_attrib2 .w  -> Glyph::attribute()[7]
    */
   class PainterAttributeDataFillerGlyphs:public PainterAttributeDataFiller
   {

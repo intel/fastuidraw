@@ -71,14 +71,17 @@ namespace
                        fastuidraw::c_array<const fastuidraw::GlyphAttribute> glyph_attribs)
   {
     fastuidraw::vec2 p(glyph_position(p_bl, p_tr, corner_enum));
+    fastuidraw::vec2 wh;
     unsigned int srcI, dstI;
+
+    wh = (p_tr - p_bl);
 
     dst->m_attrib0.x() = fastuidraw::pack_float(p.x());
     dst->m_attrib0.y() = fastuidraw::pack_float(p.y());
-    dst->m_attrib0.z() = pack_single_attribute(0, glyph_attribs, corner_enum);
-    dst->m_attrib0.w() = pack_single_attribute(1, glyph_attribs, corner_enum);
+    dst->m_attrib0.z() = fastuidraw::pack_float(wh.x());
+    dst->m_attrib0.w() = fastuidraw::pack_float(wh.y());
 
-    for (srcI = 2, dstI = 0; dstI < 4; ++dstI, ++srcI)
+    for (srcI = 0, dstI = 0; dstI < 4; ++dstI, ++srcI)
       {
         dst->m_attrib1[dstI] = pack_single_attribute(srcI, glyph_attribs, corner_enum);
       }
