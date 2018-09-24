@@ -35,8 +35,14 @@ public:
   TreeBase*
   add(const BoundingBox<float> &bbox, unsigned int reference)
   {
-    FASTUIDRAWassert(bbox.intersects(m_bbox));
-    return add_implement(bbox, reference);
+    if (bbox.intersects(m_bbox))
+      {
+	return add_implement(bbox, reference);
+      }
+    else
+      {
+	return this;
+      }
   }
 
   void
