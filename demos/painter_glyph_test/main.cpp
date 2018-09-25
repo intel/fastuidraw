@@ -204,6 +204,9 @@ private:
   void
   draw_atlas(float us);
 
+  vec2
+  item_coordinates(ivec2 src);
+
   command_line_argument_value<std::string> m_font_path;
   command_line_argument_value<std::string> m_font_style, m_font_family;
   command_line_argument_value<bool> m_font_bold, m_font_italic;
@@ -242,6 +245,8 @@ private:
   float m_stroke_width;
   unsigned int m_current_drawer;
   unsigned int m_join_style;
+  vec2 m_shear, m_shear2;
+  float m_angle;
 
   reference_counted_ptr<PainterItemShader> m_atlas_shader;
   vecN<PainterAttribute, 4> m_draw_atlas_attributes;
@@ -609,6 +614,9 @@ painter_glyph_test(void):
   m_draw_stats(false),
   m_stroke_width(1.0f),
   m_current_drawer(draw_glyph_restricted_rays),
+  m_shear(1.0f, 1.0f),
+  m_shear2(1.0f, 1.0f),
+  m_angle(0.0f),
   m_join_style(PainterEnums::miter_joins)
 {
   std::cout << "Controls:\n"
@@ -628,6 +636,10 @@ painter_glyph_test(void):
             << "\tl: draw Painter stats\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
+            << "\t6: x-shear (hold ctrl to decrease, hold enter for shear2)\n"
+            << "\t7: y-shear (hold ctrl to decrease, hold enter for shear2)\n"
+            << "\t0: Rotate left\n"
+            << "\t9: Rotate right\n"
             << "\tMouse Drag (left button): pan\n"
             << "\tHold Mouse (left button), then drag up/down: zoom out/in\n";
 
@@ -868,6 +880,32 @@ ready_glyph_attribute_data(void)
     }
 }
 
+vec2
+painter_glyph_test::
+item_coordinates(ivec2 scr)
+{
+  vec2 p(scr);
+
+  p = m_zoomer.transformation().apply_inverse_to_point(p);
+  p /= m_shear;
+
+  float s, c, a;
+  float2x2 tr;
+  a = -m_angle * M_PI / 180.0f;
+  s = t_sin(a);
+  c = t_cos(a);
+
+  tr(0, 0) = c;
+  tr(1, 0) = s;
+  tr(0, 1) = -s;
+  tr(1, 1) = c;
+
+  p = tr * p;
+  p /= m_shear2;
+
+  return p;
+}
+
 void
 painter_glyph_test::
 stroke_glyph(const PainterData &d, Glyph G)
@@ -980,6 +1018,9 @@ draw_glyphs(float us)
   m_painter->begin(m_surface, m_screen_orientation.value());
   m_painter->save();
   m_zoomer.transformation().concat_to_painter(m_painter);
+  m_painter->shear(m_shear.x(), m_shear.y());
+  m_painter->shear(m_shear2.x(), m_shear2.y());
+  m_painter->rotate(m_angle * M_PI / 180.0f);
 
   c_array<const Glyph> glyphs(m_draw_shared.glyphs(m_draws[m_current_drawer], m_painter));
 
@@ -988,8 +1029,8 @@ draw_glyphs(float us)
       vec2 p0, p1;
       BoundingBox<float> screen;
 
-      p0 = m_zoomer.transformation().apply_inverse_to_point(vec2(0.0f, 0.0f));
-      p1 = m_zoomer.transformation().apply_inverse_to_point(vec2(dimensions()));
+      p0 = item_coordinates(ivec2(0,0));
+      p1 = item_coordinates(dimensions());
 
       screen
         .union_point(p0)
@@ -1135,7 +1176,7 @@ draw_glyphs(float us)
         {
           mouse_position.y() = dimensions().y() - mouse_position.y();
         }
-      p = m_zoomer.transformation().apply_inverse_to_point(vec2(mouse_position));
+      p = item_coordinates(mouse_position);
       G = m_draw_shared.query_glyph_at(p, &glyph_bb);
       if (G != GenericHierarchy::not_found)
         {
@@ -1201,7 +1242,7 @@ update_cts_params(void)
   const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
   FASTUIDRAWassert(keyboard_state != nullptr);
 
-  float speed;
+  float speed, speed_shear;
   return_value = static_cast<float>(m_draw_timer.restart_us());
   speed = return_value * m_change_stroke_width_rate.value();
 
@@ -1212,6 +1253,12 @@ update_cts_params(void)
   if (keyboard_state[SDL_SCANCODE_RSHIFT])
     {
       speed *= 10.0f;
+    }
+
+  speed_shear = 0.05f * speed;
+  if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
+    {
+      speed_shear = -speed_shear;
     }
 
   if (keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
@@ -1229,6 +1276,38 @@ update_cts_params(void)
     {
       std::cout << "Stroke width set to: " << m_stroke_width << "\n";
     }
+  /**/
+  vec2 *pshear(&m_shear);
+  c_string shear_txt = "";
+  if (keyboard_state[SDL_SCANCODE_RETURN])
+    {
+      pshear = &m_shear2;
+      shear_txt = "2";
+    }
+
+  if (keyboard_state[SDL_SCANCODE_6])
+    {
+      pshear->x() += speed_shear;
+      std::cout << "Shear" << shear_txt << " set to: " << *pshear << "\n";
+    }
+  if (keyboard_state[SDL_SCANCODE_7])
+    {
+      pshear->y() += speed_shear;
+      std::cout << "Shear " << shear_txt << " set to: " << *pshear << "\n";
+    }
+
+  if (keyboard_state[SDL_SCANCODE_9])
+    {
+      m_angle += speed * 0.5f;
+      std::cout << "Angle set to: " << m_angle << "\n";
+    }
+  if (keyboard_state[SDL_SCANCODE_0])
+    {
+      m_angle -= speed * 0.5f;
+      std::cout << "Angle set to: " << m_angle << "\n";
+    }
+  /**/
+
   return return_value;
 }
 
