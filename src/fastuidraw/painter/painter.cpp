@@ -1396,8 +1396,7 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
     {
       /* it does not matter, since the path is essentially
        * empty. By using a negative value, we get the
-       * default tessellation of the path (which is based
-       * off of curvature).
+       * default tessellation of the path.
        */
       return -1.0f;
     }
@@ -1431,8 +1430,7 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
   /* Get the area of the polygon in item coordinates
    * and in pixel coodinates. The square root of that
    * ratio of the area is what we are going to use as
-   * our "d". Bad things happen if the clipped polygon
-   * still has points where w == 0.0.
+   * our "d".
    *
    * TODO: is using area wise? With perpsective, different
    * portions of the path will be zoomed in more than
@@ -1455,9 +1453,20 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
       c_p = m * fastuidraw::vec3(p.x(), p.y(), 1.0f);
       c_q = m * fastuidraw::vec3(q.x(), q.y(), 1.0f);
 
-      p = m_resolution * fastuidraw::vec2(c_p.x(), c_p.y()) / c_p.z();
-      q = m_resolution * fastuidraw::vec2(c_q.x(), c_q.y()) / c_q.z();
-      area_pixel_coords += p.x() * q.y() - q.x() * p.y();
+      /* if the z() value (which represents the w of clip-divide)
+       * is zero, then both the x() and y() coordinates are
+       * zero; thus the value added to the surveyor's formula
+       * from such points is zero and we can safely skip it.
+       * For the sake of floating point round off, we ignore if
+       * the z() value is smaller than a fixed tolerance.
+       */
+      const float tol(0.00001f);
+      if (c_p.z() > tol && c_q.z() > tol)
+	{
+	  p = m_resolution * fastuidraw::vec2(c_p.x(), c_p.y()) / c_p.z();
+	  q = m_resolution * fastuidraw::vec2(c_q.x(), c_q.y()) / c_q.z();
+	  area_pixel_coords += p.x() * q.y() - q.x() * p.y();
+	}
     }
 
   area_local_coords = fastuidraw::t_abs(area_local_coords);
