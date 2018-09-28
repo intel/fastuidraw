@@ -27,6 +27,7 @@
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
+#include "../private/util_private_math.hpp"
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
 
@@ -443,7 +444,8 @@ namespace
     clip_rect_state(void):
       m_all_content_culled(false),
       m_item_matrix_transition_tricky(false),
-      m_inverse_transpose_not_ready(false)
+      m_inverse_transpose_not_ready(false),
+      m_item_matrix_operator_norm_ready(false)
     {}
 
     void
@@ -501,6 +503,23 @@ namespace
     item_matrix(void)
     {
       return m_item_matrix.m_item_matrix;
+    }
+
+    float
+    item_matrix_operator_norm(float x_res, float y_res)
+    {
+      if (!m_item_matrix_operator_norm_ready)
+	{
+	  fastuidraw::float2x2 M;
+
+	  M(0, 0) = 0.5f * x_res * m_item_matrix.m_item_matrix(0, 0);
+	  M(0, 1) = 0.5f * x_res * m_item_matrix.m_item_matrix(0, 1);
+	  M(1, 0) = 0.5f * y_res * m_item_matrix.m_item_matrix(1, 0);
+	  M(1, 1) = 0.5f * y_res * m_item_matrix.m_item_matrix(1, 1);
+	  m_item_matrix_operator_norm = fastuidraw::detail::compute_singular_values(M).x();
+	  m_item_matrix_operator_norm_ready = true;
+	}
+      return m_item_matrix_operator_norm;
     }
 
     enum matrix_type_t
@@ -615,6 +634,8 @@ namespace
     bool m_inverse_transpose_not_ready;
     fastuidraw::float3x3 m_item_matrix_inverse_transpose;
     fastuidraw::dvec2 m_inverse_coeff;
+    bool m_item_matrix_operator_norm_ready;
+    float m_item_matrix_operator_norm;
   };
 
   class occluder_stack_entry
@@ -1354,28 +1375,8 @@ float
 PainterPrivate::
 compute_path_magnification_non_perspective(void)
 {
-  float d;
-  const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
-
-  /* Use the sqrt of the area distortion to determine the dividing factor,
-   * for matrices with a great deal of skew, this will choose a lower a
-   * level of detail that taking the operator norm of the matrix. For
-   * reference, the sqrt of the area distortion is the geometric mean
-   * of the 2 singular values of a 2x2 matrix.
-   *
-   * The multiplier 0.25 comes from that normalized device
-   * coordinates are [-1, 1]x[-1, 1] and thus the scaling
-   * factor to pixel coordinates is half of m_resolution
-   * for each dimension.
-   *
-   * QUESTION: should we instead take the maxiumum of the two
-   * singular values instead?
-   */
-  d = fastuidraw::t_abs(m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0));
-  d *= 0.25f * m_resolution.x() * m_resolution.y() / fastuidraw::t_abs(m(2, 2));
-  d = fastuidraw::t_sqrt(d);
-
-  return d;
+  return m_clip_rect_state.item_matrix_operator_norm(m_resolution.x(),
+						     m_resolution.y());
 }
 
 float
