@@ -1891,7 +1891,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
   c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass2;
   StrokingItems stroking_items(with_anti_aliasing);
   reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode;
+  BlendMode::packed_value old_composite_mode(0u);
   PainterData draw(pdraw);
 
   m_work_room.m_stroke_attrib_chunks.resize(total_chunks);
@@ -3152,7 +3152,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
 
   fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode;
+  BlendMode::packed_value old_composite_mode(0u);
   old_composite = composite_shader();
   old_composite_mode = composite_mode();
   composite_shader(PainterEnums::composite_porter_duff_dst);
