@@ -26,7 +26,7 @@ uniform uint uniform_image_num_lookups;
 
 uniform float filtered_lookup;
 
-uniform float index_boundary_mix[MAX_IMAGE_NUM_LOOKUPS + 1];
+uniform float index_boundary_mix[MAX_IMAGE_NUM_LOOKUPS + 1u];
 uniform float index_tile_size;
 
 void
