@@ -31,9 +31,9 @@ namespace fastuidraw {
 
 /*!
  * \brief
- * A generic matrix class whose
- * entries are packed in a form
- * suitable for OpenGL.
+ * A generic matrix class whose entries are packed in a form
+ * suitable for API's expecting with the same convention
+ * as OpenGL.
  *
  * The packing of data is
  * \verbatim
@@ -44,9 +44,8 @@ namespace fastuidraw {
  * data[N - 1] data[2 * N - 1] data[3 * N - 1] ... data[ N * M - 1]
  * \endverbatim
  *
- * i.e. data[ row + col * N] --> matrix(row,col),
+ * i.e. data[row + col * N] <--> matrix(row, col),
  * with 0 <= row < N, 0 <= col < M
- * operator()(row,col) --> data[row + col * N]
  *
  *\tparam N hieght of matrix
  *\tparam M width of matrix
@@ -333,12 +332,11 @@ typedef matrixNxM<2, 2, float> float2x2;
 
 /*!
  * \brief
- * A projection_params holds the
- * data to describe a projection
- * matrix with and without perspective.
+ * An orthogonal_projection_params holds the data to describe an
+ * orthogonal projection matrix without perspective.
  */
 template<typename T>
-class projection_params
+class orthogonal_projection_params
 {
 public:
   T m_top; ///< Top edge of the clipping plane
@@ -350,7 +348,7 @@ public:
    * Default constructor for projection parameters,
    * values are unitialized.
    */
-  projection_params(void)
+  orthogonal_projection_params(void)
   {}
 
   /*!
@@ -360,30 +358,69 @@ public:
    * \param t Top
    * \param b Bottom
    */
-  projection_params(T l, T r, T b, T t):
+  orthogonal_projection_params(T l, T r, T b, T t):
     m_top(t), m_bottom(b), m_left(l), m_right(r)
   {}
 };
 
 /*!
  * \brief
- * An extension to projection parameters to provide projection parameters
- * better suited for orthogonal projection.
+ * A projection_params holds the data to describe a projection matrix with
+ * perspective.
  */
 template<typename T>
-class orthogonal_projection_params:public projection_params<T>
+class projection_params
 {
 public:
+  T m_top; ///< Top edge of the clipping plane
+  T m_bottom; ///< Bottom edge of the clipping plane
+  T m_left; ///< Left edge of the clipping plane
+  T m_right; ///< Right edge of the clipping plane
+  T m_near; ///< Near clipping plane distance
+  T m_far; ///< Far clipping plane distance
+
   /*!
-   * Creates projection parameters defined by the given parameters.
-   * Equivalent to projection_params<T>(l, r, b, t).
+   * True when the far clipping plane is not set (and is thus in infinity).
+   */
+  bool m_farAtinfinity;
+
+  /*!
+   * Default constructor for projection parameters,
+   * values are unitialized except for \ref
+   * m_farAtinfinity which is initialized as false.
+   */
+  projection_params(void):
+    m_farAtinfinity(false)
+   {}
+
+  /*!
+   * Creates the projection parameters instance according to the given parameters.
    * \param l Left
    * \param r Right
    * \param t Top
    * \param b Bottom
+   * \param n Near clipping plane
+   * \param f Far clipping plane
    */
-  orthogonal_projection_params(T l, T r, T b, T t):
-    projection_params<T>(l, r, b, t)
+  projection_params(T l, T r, T b, T t, T n, T f):
+    m_top(t), m_bottom(b), m_left(l), m_right(r),
+    m_near(n), m_far(f),
+    m_farAtinfinity(false)
+  {}
+
+  /*!
+   * Creates the projection parameters instance according to the given parameters,
+   * where far clipping plane is set to infinity.
+   * \param l Left
+   * \param r Right
+   * \param t Top
+   * \param b Bottom
+   * \param n Near clipping plane
+   */
+  projection_params(T l, T r, T b, T t, T n):
+    m_top(t), m_bottom(b), m_left(l), m_right(r),
+    m_near(n), m_far(100000.0f * n),
+    m_farAtinfinity(true)
   {}
 };
 
@@ -463,6 +500,17 @@ public:
     base_class()
   {
     orthogonal_projection_matrix(P);
+  }
+
+  /*!fn matrix3x3(const orthogonal_projection_params<T>&)
+   * Creates a 3x3 projection matrix from the given projection
+   * parameters.
+   * \param P projection parameters for the matrix
+   */
+  matrix3x3(const projection_params<T> &P):
+    base_class()
+  {
+    projection_matrix(P);
   }
 
   /*!
@@ -582,7 +630,7 @@ public:
    * \param P orthogonal projection parameters for this matrix
    */
   void
-  orthogonal_projection_matrix(const projection_params<T> &P)
+  orthogonal_projection_matrix(const orthogonal_projection_params<T> &P)
   {
     this->operator()(0, 0) = T(2) / (P.m_right - P.m_left);
     this->operator()(1, 0) = T(0);
@@ -607,7 +655,39 @@ public:
   void
   orthogonal_projection_matrix(T l, T r, T b, T t)
   {
-    orthogonal_projection_matrix(projection_params<T>(l, r, b, t));
+    orthogonal_projection_matrix(orthogonal_projection_params<T>(l, r, b, t));
+  }
+
+  /*!
+   * Sets the matrix values to correspond the projection matrix
+   * determined by the given projection parameters.
+   * \param P projection parameters for this matrix
+   */
+  void
+  projection_matrix(const projection_params<T> &P)
+  {
+    this->operator()(0, 0) = T(2) * P.m_near / (P.m_right - P.m_left);
+    this->operator()(1, 0) = T(0);
+    this->operator()(2, 0) = T(0);
+    this->operator()(3, 0) = T(0);
+
+    this->operator()(0, 1) = T(0);
+    this->operator()(1, 1) = T(2) * P.m_near / (P.m_top - P.m_bottom);
+    this->operator()(2, 1) = T(0);
+    this->operator()(3, 1) = T(0);
+
+    this->operator()(0, 3) = T(0);
+    this->operator()(1, 3) = T(0);
+    this->operator()(3, 3) = T(0);
+
+    if (!P.m_farAtinfinity)
+      {
+        this->operator()(2, 3) = T(2) * P.m_near * P.m_far / (P.m_near - P.m_far);
+      }
+    else
+      {
+        this->operator()(2, 3)=T(-2) * P.m_near;
+      }
   }
 
   /*!
@@ -702,7 +782,6 @@ public:
 
 };
 
-
 /*!
  * \brief
  * Convenience typedef to matrix3x3\<float\>
@@ -721,8 +800,5 @@ typedef projection_params<float> float_projection_params;
  */
 typedef orthogonal_projection_params<float> float_orthogonal_projection_params;
 
-} //namespace
-
-
-
 /*! @} */
+} //namespace
