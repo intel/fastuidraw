@@ -169,22 +169,6 @@ public:
 
   /*!
     Returns the transformation of this
-    ScaleTranslate as a 4x4 matrix
-   */
-  fastuidraw::matrix4x4<T>
-  matrix4(void) const
-  {
-    fastuidraw::matrix4x4<T> M;
-
-    M(0,0) = M(1,1) = scale();
-    M(0,3) = translation().x();
-    M(1,3) = translation().y();
-
-    return M;
-  }
-
-  /*!
-    Returns the transformation of this
     ScaleTranslate as a 3x3 matrix
    */
   fastuidraw::matrix3x3<T>
