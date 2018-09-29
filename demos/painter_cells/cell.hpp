@@ -54,7 +54,6 @@ public:
   std::string m_image_name;
   vec2 m_pixels_per_ms;
   int m_degrees_per_s;
-  GlyphRender m_text_render;
   float m_pixel_size;
   vec2 m_size;
   ivec2 m_table_pos;
@@ -97,7 +96,7 @@ private:
 
   vec2 m_item_location;
   float m_item_rotation;
-  PainterAttributeData m_text;
+  GlyphSequence m_text;
   CellSharedState *m_shared_state;
   bool m_timer_based_animation;
 };

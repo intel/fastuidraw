@@ -74,8 +74,6 @@ private:
   command_line_argument_value<int> m_num_cells_x, m_num_cells_y;
   command_line_argument_value<int> m_cell_group_size;
   command_line_argument_value<std::string> m_font;
-  enumerated_command_line_argument_value<enum glyph_type> m_text_renderer;
-  command_line_argument_value<int> m_text_renderer_realized_pixel_size;
   command_line_argument_value<float> m_pixel_size;
   command_line_argument_value<float> m_fps_pixel_size;
   command_line_list<std::string> m_strings;
@@ -136,19 +134,6 @@ painter_cells(void):
   m_num_cells_y(10, "num_cells_y", "Number of cells down", *this),
   m_cell_group_size(1, "cell_group_size", "width and height in number of cells for cell group size", *this),
   m_font(default_font(), "font", "File from which to take font", *this),
-  m_text_renderer(fastuidraw::restricted_rays_glyph,
-                  enumerated_string_type<enum glyph_type>()
-                  .add_entry("coverage", coverage_glyph, "coverage glyphs (i.e. alpha masks)")
-                  .add_entry("distance_field", distance_field_glyph, "distance field glyphs")
-                  .add_entry("restricted_rays", restricted_rays_glyph, "restricted rays glyphs"),
-                  "text_renderer",
-                  "Specifies how to render text", *this),
-  m_text_renderer_realized_pixel_size(24,
-                                      "text_renderer_stored_pixel_size_non_scalable",
-                                      "Only has effect if text_renderer value is a text rendering value "
-                                      "where the font data is not scalable (i.e. coverage). Specifies "
-                                      "the value to realize the glyph data to render",
-                                      *this),
   m_pixel_size(24.0f, "font_pixel_size", "Render size for text rendering", *this),
   m_fps_pixel_size(24.0f, "fps_font_pixel_size", "Render size for text rendering of fps", *this),
   m_strings("add_string", "add a string to use by the cells", *this),
@@ -394,18 +379,7 @@ derived_init(int w, int h)
                 << "-----------------------------------------------------\n";
     }
 
-  if (!fastuidraw::GlyphRender::scalable(m_text_renderer.value()))
-    {
-      fastuidraw::GlyphRender r(m_text_renderer_realized_pixel_size.value());
-      r.m_type = m_text_renderer.value();
-      m_table_params.m_text_render = r;
-    }
-  else
-    {
-      m_table_params.m_text_render = GlyphRender(m_text_renderer.value());
-    }
   m_table_params.m_pixel_size = m_pixel_size.value();
-
   m_table_params.m_texts.reserve(m_strings.size() + m_files.size());
   for(const auto &S : m_strings)
     {
@@ -660,8 +634,7 @@ draw_frame(void)
           m_text_brush = m_painter->packed_value_pool().create_packed_value(brush);
         }
       draw_text(ostr.str(), m_fps_pixel_size.value(),
-                m_table_params.m_font, m_table_params.m_text_render,
-                PainterData(m_text_brush));
+                m_table_params.m_font, PainterData(m_text_brush));
     }
 
   m_painter->end();

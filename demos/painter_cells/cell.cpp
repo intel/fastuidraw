@@ -44,6 +44,9 @@ Cell(PainterWidget *p, const CellParams &params):
   m_text_brush(params.m_text_brush),
   m_line_brush(params.m_line_brush),
   m_item_location(params.m_size * 0.5f),
+  m_text(params.m_pixel_size,
+	 fastuidraw::PainterEnums::y_increases_downwards,
+	 params.m_glyph_cache),
   m_shared_state(params.m_state),
   m_timer_based_animation(params.m_timer_based_animation)
 {
@@ -53,17 +56,9 @@ Cell(PainterWidget *p, const CellParams &params):
        << "\n" << params.m_image_name;
 
   std::istringstream str(ostr.str());
-  fastuidraw::GlyphSequence sequence(params.m_pixel_size,
-                                     fastuidraw::PainterEnums::y_increases_downwards,
-                                     params.m_glyph_cache);
-
-  create_formatted_text(sequence, str, params.m_font,
+  create_formatted_text(m_text, str, params.m_font,
                         params.m_glyph_selector);
 
-  m_text.set_data(PainterAttributeDataFillerGlyphs(sequence.glyph_positions(),
-                                                   sequence.glyph_sequence(params.m_text_render),
-                                                   sequence.pixel_size(),
-                                                   sequence.orientation()));
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);
 }
