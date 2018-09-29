@@ -3,13 +3,15 @@ in vec2 attrib_pos;
 
 out vec2 image_coord;
 
-uniform mat4 pvm;
+uniform mat3 pvm;
 uniform float scale;
 uniform vec2 translate;
 
 void main(void)
 {
   vec2 p;
+  vec3 q;
   image_coord = attrib_pos;
-  gl_Position = pvm * vec4(scale * attrib_pos + translate, 0.0, 1.0);
+  q = pvm * vec3(scale * attrib_pos + translate, 1.0);
+  gl_Position = vec4(q.xy, 0.0, q.z);
 }

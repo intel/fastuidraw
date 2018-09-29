@@ -499,7 +499,7 @@ private:
   on_resize(int w, int h)
   {
     float_orthogonal_projection_params proj(0, w, h, 0);
-    m_pvm = float4x4(proj);
+    m_pvm = float3x3(proj);
     glViewport(0, 0, w, h);
   }
 
@@ -681,7 +681,7 @@ private:
   GLuint m_sampler;
   GLuint m_ibo;
 
-  float4x4 m_pvm;
+  float3x3 m_pvm;
 };
 
 
