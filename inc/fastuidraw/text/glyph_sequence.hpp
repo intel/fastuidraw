@@ -35,7 +35,7 @@ namespace fastuidraw
    * \brief
    * A GlyphSequence represents a sequence of glyph codes with positions.
    * A GlyphSequence provides an interface to grab the glyph-codes realized
-   * as different renderers for the pupose of rendering text in reponse
+   * as different renderers for the pupose of rendering text in response
    * to the transformation that a Painter currently has. The methods of
    * GlyphSequence are re-entrant but not thread safe, i.e. if an application
    * uses the same GlyphSequence from multiple threads it needs to explicitely
@@ -50,7 +50,7 @@ namespace fastuidraw
      *                   add_glyphs() or add_glyph() are formatted
      * \param orientation screen orientation at which glyphs added by
      *                    add_glyphs() or add_glyph() are formatted
-     * \param cache \ref GlyphCache used to fetch Glyph values
+     * \param cache \ref GlyphCache used to fetch \ref Glyph values
      * \param layout specifies if glyphs added by add_glyphs()
      *               or add_glyph() will be layed out horizontally
      *               or vertically
@@ -99,7 +99,11 @@ namespace fastuidraw
     /*!
      * Return a \ref PainterAttributeData as packed by a
      * \ref PainterAttributeDataFillerGlyphs for the named
-     * GlyphRender value.
+     * GlyphRender value.  This function creates the attribute
+     * data lazily on demand. The return value is no longer
+     * valid if add_glyphs() or add_glyph() is called.
+     * \param render GlyphRender value specifing the render
+     *               type of the returned attribute data
      */
     const PainterAttributeData&
     painter_attribute_data(GlyphRender render) const;
