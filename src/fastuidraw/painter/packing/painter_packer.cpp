@@ -460,7 +460,7 @@ namespace
     {
       FASTUIDRAWassert((m_attrib_chunk_selector.empty() && m_attrib_chunks.size() == m_index_chunks.size())
              || (m_attrib_chunk_selector.size() == m_index_chunks.size()) );
-      FASTUIDRAWassert(m_index_adjusts.size() == m_index_chunks.size());
+      FASTUIDRAWassert(m_index_adjusts.size() == m_index_chunks.size() || m_index_adjusts.empty());
     }
 
     unsigned int
@@ -511,8 +511,11 @@ namespace
       FASTUIDRAWassert(dst.size() == src.size());
       for(unsigned int i = 0; i < dst.size(); ++i)
         {
-          FASTUIDRAWassert(int(src[i]) + m_index_adjusts[index_chunk] >= 0);
-          dst[i] = int(src[i] + index_offset_value) + m_index_adjusts[index_chunk];
+	  int adjust;
+
+	  adjust = (m_index_adjusts.empty()) ? 0 : m_index_adjusts[index_chunk];
+          FASTUIDRAWassert(int(src[i]) + adjust >= 0);
+          dst[i] = int(src[i] + index_offset_value) + adjust;
         }
     }
 

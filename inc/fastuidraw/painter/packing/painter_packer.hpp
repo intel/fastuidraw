@@ -328,7 +328,9 @@ namespace fastuidraw
      * \param data data for how to draw
      * \param attrib_chunks attribute data to draw
      * \param index_chunks the i'th element is index data into attrib_chunks[i]
-     * \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
      * \param z z-value z value placed into the header
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
@@ -349,7 +351,9 @@ namespace fastuidraw
      * \param attrib_chunks attribute data to draw
      * \param index_chunks the i'th element is index data into attrib_chunks[K]
      *                     where K = attrib_chunk_selector[i]
-     * \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
      * \param attrib_chunk_selector selects which attribute chunk to use for
      *        each index chunk
      * \param z z-value z value placed into the header
