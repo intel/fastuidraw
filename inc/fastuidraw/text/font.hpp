@@ -59,10 +59,21 @@ namespace fastuidraw
      * Returns the properties of the font.
      */
     const FontProperties&
-    properties(void) const
-    {
-      return m_props;
-    }
+    properties(void) const;
+
+    /*!
+     * Returns the unique ID of the \ref FontBase object.
+     * The value is gauranteed to be unique and different
+     * from any previously created fonts (even those that
+     * have been destroyed). The value is assigned by the
+     * first \ref Fontbase created gets the value 0 and
+     * each subsequence \ref FontBase created increments
+     * the global value by 1. Thus it is reasonable, to
+     * use arrays instead of associative keys for font
+     * choosing.
+     */
+    unsigned int
+    unique_id(void) const;
 
     /*!
      * To be implemented by a derived class to return an
@@ -125,7 +136,7 @@ namespace fastuidraw
     friend class Glyph;
     friend class GlyphCache;
 
-    FontProperties m_props;
+    void *m_d;
   };
 /*! @} */
 }

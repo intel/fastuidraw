@@ -19,6 +19,7 @@
 #include <mutex>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/font.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -38,13 +39,37 @@ namespace
 
     std::mutex m_mutex;
     unsigned int m_number_fonts_alive;
+    unsigned int m_current_unqiue_id;
 
   private:
     GlyphGenerateParamValues(void):
       m_distance_field_pixel_size(48),
       m_distance_field_max_distance(1.5f),
-      m_number_fonts_alive(0)
+      m_number_fonts_alive(0),
+      m_current_unqiue_id(0)
     {}
+  };
+
+  class FontBasePrivate
+  {
+  public:
+    explicit
+    FontBasePrivate(const fastuidraw::FontProperties &pprops):
+      m_properties(pprops)
+    {
+      std::lock_guard<std::mutex> m(GlyphGenerateParamValues::object().m_mutex);
+      ++GlyphGenerateParamValues::object().m_number_fonts_alive;
+      m_unique_id = ++GlyphGenerateParamValues::object().m_current_unqiue_id;
+    }
+
+    ~FontBasePrivate()
+    {
+      std::lock_guard<std::mutex> m(GlyphGenerateParamValues::object().m_mutex);
+      --GlyphGenerateParamValues::object().m_number_fonts_alive;
+    }
+
+    unsigned int m_unique_id;
+    fastuidraw::FontProperties m_properties;
   };
 }
 
@@ -77,16 +102,21 @@ IMPLEMENT(float, distance_field_max_distance)
 ///////////////////////////////////////////
 // fastuidraw::FontBase methods
 fastuidraw::FontBase::
-FontBase(const FontProperties &pprops):
-  m_props(pprops)
+FontBase(const FontProperties &pprops)
 {
-  std::lock_guard<std::mutex> m(GlyphGenerateParamValues::object().m_mutex);
-  ++GlyphGenerateParamValues::object().m_number_fonts_alive;
+  m_d = FASTUIDRAWnew FontBasePrivate(pprops);
 }
 
 fastuidraw::FontBase::
 ~FontBase()
 {
-  std::lock_guard<std::mutex> m(GlyphGenerateParamValues::object().m_mutex);
-  --GlyphGenerateParamValues::object().m_number_fonts_alive;
+  FontBasePrivate *d;
+  d = static_cast<FontBasePrivate*>(m_d);
+  FASTUIDRAWdelete(d);
 }
+
+get_implement(fastuidraw::FontBase, FontBasePrivate,
+	      const fastuidraw::FontProperties&, properties)
+
+get_implement(fastuidraw::FontBase, FontBasePrivate,
+	      unsigned int, unique_id)
