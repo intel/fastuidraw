@@ -365,50 +365,6 @@ namespace
       || fastuidraw::t_abs(matrix(2, 1)) > tol;
   }
 
-  enum matrix_type_t
-  classify_matrix(const fastuidraw::dvec2 &inverse_coeff,
-                  const fastuidraw::float3x3 &matrix)
-  {
-    using namespace fastuidraw;
-
-    if (matrix_has_perspective(matrix))
-      {
-        return perspective_matrix;
-      }
-
-    /* check the 2x2 matrix corner for shearing or scaling*/
-    dvec2 a(inverse_coeff.x() * matrix(0, 0), inverse_coeff.y() * matrix(1, 0));
-    dvec2 b(inverse_coeff.x() * matrix(0, 1), inverse_coeff.y() * matrix(1, 1));
-    double amag_sq(dot(a, a)), bmag_sq(dot(b, b));
-    double a_dot_b(dot(a,b)), a_dot_b_sq(a_dot_b * a_dot_b);
-
-    const double tol(1e-5);
-    const double one_minus_tol(1.0 - tol);
-    const double one_minus_tol_sq(one_minus_tol * one_minus_tol);
-    const double tol_plus_one(tol + 1.0);
-    const double tol_sq(tol * tol);
-    const double tol_plus_one_sq(tol_plus_one * tol_plus_one);
-
-    /* vectors not perpindicular */
-    if (a_dot_b_sq > tol_sq * amag_sq * bmag_sq)
-      {
-        return shearing_matrix;
-      }
-
-    /* vectors have different lengths */
-    if (t_max(amag_sq, bmag_sq) > tol_plus_one_sq * t_min(amag_sq, bmag_sq))
-      {
-        return shearing_matrix;
-      }
-
-    float w(t_abs(matrix(2, 2)));
-    return (amag_sq > tol_plus_one_sq
-            || amag_sq < one_minus_tol_sq
-            || w > tol || w <  one_minus_tol) ?
-      scaling_matrix :
-      non_scaling_matrix;
-  }
-
   int
   choose_pixel_size(float pixel_size)
   {
@@ -445,44 +401,12 @@ namespace
       m_all_content_culled(false),
       m_item_matrix_transition_tricky(false),
       m_inverse_transpose_not_ready(false),
-      m_item_matrix_operator_norm_ready(false)
+      m_item_matrix_singular_values_ready(false)
     {}
 
     void
     reset(fastuidraw::vec2 dims,
-          enum fastuidraw::PainterEnums::screen_orientation orientation)
-    {
-      using namespace fastuidraw;
-
-      float y1, y2;
-      PainterClipEquations clip_eq;
-
-      m_all_content_culled = false;
-      m_item_matrix_transition_tricky = false;
-      m_inverse_transpose_not_ready = false;
-      m_clip_rect.m_enabled = false;
-      m_matrix_type = non_scaling_matrix;
-      m_inverse_coeff = dvec2(2.0) / dvec2(dims);
-      clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
-      clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
-      clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
-      clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
-      clip_equations(clip_eq);
-
-      if (orientation == PainterEnums::y_increases_downwards)
-        {
-          y1 = dims.y();
-          y2 = 0;
-        }
-      else
-        {
-          y1 = 0;
-          y2 = dims.y();
-        }
-      float_orthogonal_projection_params ortho(0, dims.x(), y1, y2);
-
-      item_matrix(float3x3(ortho), false, non_scaling_matrix);
-    }
+          enum fastuidraw::PainterEnums::screen_orientation orientation);
 
     void
     set_clip_equations_to_clip_rect(void);
@@ -505,32 +429,17 @@ namespace
       return m_item_matrix.m_item_matrix;
     }
 
-    float
-    item_matrix_operator_norm(float x_res, float y_res)
-    {
-      if (!m_item_matrix_operator_norm_ready)
-	{
-	  fastuidraw::float2x2 M;
+    const fastuidraw::vec2&
+    item_matrix_singular_values(void);
 
-	  M(0, 0) = 0.5f * x_res * m_item_matrix.m_item_matrix(0, 0);
-	  M(0, 1) = 0.5f * x_res * m_item_matrix.m_item_matrix(0, 1);
-	  M(1, 0) = 0.5f * y_res * m_item_matrix.m_item_matrix(1, 0);
-	  M(1, 1) = 0.5f * y_res * m_item_matrix.m_item_matrix(1, 1);
-	  m_item_matrix_operator_norm = fastuidraw::detail::compute_singular_values(M).x();
-	  m_item_matrix_operator_norm_ready = true;
-	}
-      return m_item_matrix_operator_norm;
+    float
+    item_matrix_operator_norm(void)
+    {
+      return item_matrix_singular_values()[0];
     }
 
     enum matrix_type_t
-    matrix_type(void)
-    {
-      if (m_matrix_type == unclassified_matrix)
-        {
-          m_matrix_type = classify_matrix(m_inverse_coeff, item_matrix());
-        }
-      return m_matrix_type;
-    }
+    matrix_type(void);
 
     void
     item_matrix(const fastuidraw::float3x3 &v,
@@ -632,10 +541,10 @@ namespace
     fastuidraw::PainterClipEquations m_clip_equations;
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_equations_state;
     bool m_inverse_transpose_not_ready;
+    fastuidraw::vec2 m_resolution;
     fastuidraw::float3x3 m_item_matrix_inverse_transpose;
-    fastuidraw::dvec2 m_inverse_coeff;
-    bool m_item_matrix_operator_norm_ready;
-    float m_item_matrix_operator_norm;
+    bool m_item_matrix_singular_values_ready;
+    fastuidraw::vec2 m_item_matrix_singular_values;
   };
 
   class occluder_stack_entry
@@ -977,13 +886,11 @@ namespace
                                 const fastuidraw::vec2 &pmax);
 
     float
-    compute_path_magnification(const fastuidraw::Path &path);
+    compute_magnification(const fastuidraw::vec2 &pmin,
+			  const fastuidraw::vec2 &pmax);
 
     float
-    compute_path_magnification_non_perspective(void);
-
-    float
-    compute_path_magnification_perspective(const fastuidraw::Path &path);
+    compute_magnification(const fastuidraw::Path &path);
 
     const fastuidraw::StrokedPath*
     select_stroked_path(const fastuidraw::Path &path,
@@ -1063,8 +970,6 @@ scale(float s)
   m_max *= s;
 }
 
-
-
 ////////////////////////////////////////
 // occluder_stack_entry methods
 void
@@ -1087,6 +992,97 @@ on_pop(fastuidraw::Painter *p)
 
 ///////////////////////////////////////////////
 // clip_rect_stat methods
+
+void
+clip_rect_state::
+reset(fastuidraw::vec2 dims,
+      enum fastuidraw::PainterEnums::screen_orientation orientation)
+{
+  using namespace fastuidraw;
+
+  float y1, y2;
+  PainterClipEquations clip_eq;
+
+  m_all_content_culled = false;
+  m_item_matrix_transition_tricky = false;
+  m_inverse_transpose_not_ready = false;
+  m_clip_rect.m_enabled = false;
+  m_matrix_type = non_scaling_matrix;
+  m_resolution = dims;
+  clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
+  clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
+  clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
+  clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
+  clip_equations(clip_eq);
+
+  if (orientation == PainterEnums::y_increases_downwards)
+    {
+      y1 = dims.y();
+      y2 = 0;
+    }
+  else
+    {
+      y1 = 0;
+      y2 = dims.y();
+    }
+  float_orthogonal_projection_params ortho(0, dims.x(), y1, y2);
+
+  item_matrix(float3x3(ortho), false, non_scaling_matrix);
+}
+
+const fastuidraw::vec2&
+clip_rect_state::
+item_matrix_singular_values(void)
+{
+  if (!m_item_matrix_singular_values_ready)
+    {
+      fastuidraw::float2x2 M;
+
+      M(0, 0) = 0.5f * m_resolution.x() * m_item_matrix.m_item_matrix(0, 0);
+      M(0, 1) = 0.5f * m_resolution.x() * m_item_matrix.m_item_matrix(0, 1);
+      M(1, 0) = 0.5f * m_resolution.y() * m_item_matrix.m_item_matrix(1, 0);
+      M(1, 1) = 0.5f * m_resolution.y() * m_item_matrix.m_item_matrix(1, 1);
+      m_item_matrix_singular_values = fastuidraw::detail::compute_singular_values(M);
+      m_item_matrix_singular_values_ready = true;
+    }
+  return m_item_matrix_singular_values;
+}
+
+enum matrix_type_t
+clip_rect_state::
+matrix_type(void)
+{
+  if (m_matrix_type == unclassified_matrix)
+    {
+      if (matrix_has_perspective(m_item_matrix.m_item_matrix))
+	{
+	  m_matrix_type = perspective_matrix;
+	}
+      else
+	{
+	  const fastuidraw::vec2 &svd(item_matrix_singular_values());
+	  float diff, sc;
+	  const float tol(1e-5), one_plus_tol(1.0f + tol), one_minus_tol(1.0f - tol);
+
+	  diff = fastuidraw::t_abs(svd[0] - svd[1]);
+	  sc = fastuidraw::t_abs(svd[0] * m_item_matrix.m_item_matrix(2, 2));
+	  if (diff > tol)
+	    {
+	      m_matrix_type = shearing_matrix;
+	    }
+	  else if (sc > one_plus_tol || sc < one_minus_tol)
+	    {
+	      m_matrix_type = scaling_matrix;
+	    }
+	  else
+	    {
+	      m_matrix_type = non_scaling_matrix;
+	    }
+	}
+    }
+  return m_matrix_type;
+}
+
 const fastuidraw::float3x3&
 clip_rect_state::
 item_matrix_inverse_transpose(void)
@@ -1300,6 +1296,13 @@ PainterPrivate::
 update_clip_equation_series(const fastuidraw::vec2 &pmin,
                             const fastuidraw::vec2 &pmax)
 {
+  /* We compute the rectangle clipped against the current
+   * clipping planes which gives us a convex polygon.
+   * That convex polygon then satsifies all of the
+   * previous clip equations. We then generate the
+   * clip equations coming from that polygon and REPLACE
+   * the old clip equations with the new ones.
+   */
   fastuidraw::vec2 center(0.0f, 0.0f);
   unsigned int src;
 
@@ -1319,8 +1322,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
 
   m_clip_store.clear_current();
 
-  /* if the rectangle clipped is empty, then we are completely clipped.
-   */
+  /* if the rectangle clipped is empty, then we are completely clipped. */
   if (poly.empty())
     {
       return true;
@@ -1373,24 +1375,17 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
 
 float
 PainterPrivate::
-compute_path_magnification_non_perspective(void)
+compute_magnification(const fastuidraw::Path &path)
 {
-  return m_clip_rect_state.item_matrix_operator_norm(m_resolution.x(),
-						     m_resolution.y());
-}
-
-float
-PainterPrivate::
-compute_path_magnification_perspective(const fastuidraw::Path &path)
-{
-  /* Clip the path bounding box against all the clip
-   * equations and compute the area of the polygon
-   * clipped.
-   */
   fastuidraw::vec2 bb_min, bb_max;
   bool r;
-  unsigned int src;
 
+  /* TODO: for stroking, it might be that although the
+   * original path is completely clipped, the stroke of
+   * is not. It might be wise to inflate the geometry
+   * of the path by how much slack the stroking parameters
+   * require.
+   */
   r = path.approximate_bounding_box(&bb_min, &bb_max);
   if (!r)
     {
@@ -1400,106 +1395,70 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
        */
       return -1.0f;
     }
+  return compute_magnification(bb_min, bb_max);
+}
+
+float
+PainterPrivate::
+compute_magnification(const fastuidraw::vec2 &bb_min,
+		      const fastuidraw::vec2 &bb_max)
+{
+  using namespace fastuidraw;
+
+  float op_norm, perspective_factor;
+  const float3x3 &m(m_clip_rect_state.item_matrix());
+  unsigned int src;
+
+  perspective_factor = t_max(t_abs(m(2, 0)), t_abs(m(2, 1)));
+  op_norm = m_clip_rect_state.item_matrix_operator_norm();
+
+  if (!matrix_has_perspective(m))
+    {
+      return op_norm / fastuidraw::t_abs(m(2, 2));
+    }
+
+  /* clip the bounding box given by bb_min, bb_max */
   m_work_room.m_clipper_vec2s[0].resize(4);
   m_work_room.m_clipper_vec2s[0][0] = bb_min;
   m_work_room.m_clipper_vec2s[0][1] = fastuidraw::vec2(bb_min.x(), bb_max.y());
   m_work_room.m_clipper_vec2s[0][2] = bb_max;
   m_work_room.m_clipper_vec2s[0][3] = fastuidraw::vec2(bb_max.x(), bb_min.y());
 
-  /* TODO: for stroking, it might be that although the
-   * original path is completely clipped, the stroke of
-   * is not. It might be wise to inflate the geometry
-   * of the path by how much slack the stroking parameters
-   * require.
-   */
-  const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
-  src = m_clip_store.clip_against_current(m,
-                                          m_work_room.m_clipper_vec2s);
+  src = m_clip_store.clip_against_current(m, m_work_room.m_clipper_vec2s);
 
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = make_c_array(m_work_room.m_clipper_vec2s[src]);
 
   if (poly.empty())
     {
-      /* bounding box of path is clipped, just take default
-       * tessellation and call it a day (!).
-       */
+      /* bounding box is completely clipped */
       return -1.0f;
     }
 
-  /* Get the area of the polygon in item coordinates
-   * and in pixel coodinates. The square root of that
-   * ratio of the area is what we are going to use as
-   * our "d".
-   *
-   * TODO: is using area wise? With perpsective, different
-   * portions of the path will be zoomed in more than
-   * others. The area represents a kind of average. Perhaps
-   * we should take at each point the distortion of the
-   * transformation at the point and take the worse of
-   * the bunch.
-   */
-  float area_local_coords(0.0f), area_pixel_coords(0.0f), ratio;
+  float min_w;
+
+  /* initalize min_w to some obsecenely large value */
+  min_w = 1e+6;
+
+  /* find the smallest w of all the clipped points */
   for(unsigned int i = 0, endi = poly.size(); i < endi; ++i)
     {
-      unsigned int next_i;
-      next_i = (i == endi - 1) ? 0 : i + 1u;
+      vec3 q;
+      const float tol_w = 1e-6;
 
-      fastuidraw::vec2 p(poly[i]);
-      fastuidraw::vec2 q(poly[next_i]);
-      area_local_coords += p.x() * q.y() - q.x() * p.y();
-
-      fastuidraw::vec3 c_p, c_q;
-      c_p = m * fastuidraw::vec3(p.x(), p.y(), 1.0f);
-      c_q = m * fastuidraw::vec3(q.x(), q.y(), 1.0f);
-
-      /* if the z() value (which represents the w of clip-divide)
-       * is zero, then both the x() and y() coordinates are
-       * zero; thus the value added to the surveyor's formula
-       * from such points is zero and we can safely skip it.
-       * For the sake of floating point round off, we ignore if
-       * the z() value is smaller than a fixed tolerance.
+      q = m * vec3(poly[i].x(), poly[i].y(), 1.0f);
+      /* the clip equations from the start guarnatee that
+       * q.z() >= 0. If it is zero, then the edge of q satsifies
+       * |x| = w and |y| = w which means we should probably
+       * ignore q.
        */
-      const float tol(0.00001f);
-      if (c_p.z() > tol && c_q.z() > tol)
+      if (q.z() > tol_w)
 	{
-	  p = m_resolution * fastuidraw::vec2(c_p.x(), c_p.y()) / c_p.z();
-	  q = m_resolution * fastuidraw::vec2(c_q.x(), c_q.y()) / c_q.z();
-	  area_pixel_coords += p.x() * q.y() - q.x() * p.y();
+	  min_w = t_min(min_w, q.z());
 	}
     }
 
-  area_local_coords = fastuidraw::t_abs(area_local_coords);
-  area_pixel_coords = fastuidraw::t_abs(area_pixel_coords);
-  if (area_local_coords <= 0.0f || area_pixel_coords <= 0.0f)
-    {
-      return -1.0f;
-    }
-  ratio = area_pixel_coords / area_local_coords;
-
-  /* in the loop above, the pixel coordinates were NOT scaled
-   * by 0.5 (needed because the normalized coordinates are in
-   * range [-1.0, 1.0], so we scale the final ratio now.
-   */
-  return 0.5f * fastuidraw::t_sqrt(ratio);
-}
-
-float
-PainterPrivate::
-compute_path_magnification(const fastuidraw::Path &path)
-{
-  bool no_perspective;
-  const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
-
-  no_perspective = !matrix_has_perspective(m);
-  if (no_perspective)
-    {
-      return compute_path_magnification_non_perspective();
-    }
-  else
-    {
-      return compute_path_magnification_perspective(path);
-    }
+  return op_norm * (1.0f + perspective_factor) / min_w;
 }
 
 const fastuidraw::StrokedPath*
@@ -1512,7 +1471,7 @@ select_stroked_path(const fastuidraw::Path &path,
   using namespace fastuidraw;
   float mag, t;
 
-  mag = compute_path_magnification(path);
+  mag = compute_magnification(path);
   thresh = shader.stroking_data_selector()->compute_thresh(draw.m_item_shader_data.data().data_base(),
                                                            mag, m_curve_flatness);
   t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
@@ -1544,7 +1503,7 @@ select_filled_path(const fastuidraw::Path &path)
   float mag, thresh;
   const TessellatedPath *tess;
 
-  mag = compute_path_magnification(path);
+  mag = compute_magnification(path);
   thresh = m_curve_flatness / mag;
   if (m_linearize_from_arc_path)
     {
