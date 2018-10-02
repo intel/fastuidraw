@@ -47,9 +47,10 @@ namespace fastuidraw
      * \param g value to assign to \ref m_glyph_code
      */
     GlyphSource(const reference_counted_ptr<const FontBase> &f, uint32_t g):
-      m_glyph_code(g),
-      m_font(f)
-    {}
+      m_glyph_code(g)
+    {
+      m_font = (f && g < f->number_glyphs()) ? f : nullptr;
+    }
 
     /*!
      * Ctor.
@@ -57,9 +58,10 @@ namespace fastuidraw
      * \param g value to assign to \ref m_glyph_code
      */
     GlyphSource(uint32_t g, const reference_counted_ptr<const FontBase> &f):
-      m_glyph_code(g),
-      m_font(f)
-    {}
+      m_glyph_code(g)
+    {
+      m_font = (f && g < f->number_glyphs()) ? f : nullptr;
+    }
 
     /*!
      * Comparison operator
