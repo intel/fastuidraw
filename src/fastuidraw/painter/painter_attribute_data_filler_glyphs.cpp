@@ -351,3 +351,95 @@ fill_data(c_array<PainterAttribute> attribute_data,
         }
     }
 }
+
+enum fastuidraw::return_code
+fastuidraw::PainterAttributeDataFillerGlyphs::
+compute_number_attributes_indices_needed(c_array<const Glyph> glyphs,
+					 unsigned int *out_number_attributes,
+					 unsigned int *out_number_indices)
+{
+  enum glyph_type tp(invalid_glyph);
+  unsigned int a(0u), i(0u);
+
+  for (Glyph G : glyphs)
+    {
+      if (G.valid()
+	  && G.metrics().size().x() > 0
+	  && G.metrics().size().y() > 0)
+	{
+	  if (tp == invalid_glyph)
+	    {
+	      tp = G.type();
+	    }
+	  else if (tp != G.type())
+	    {
+	      *out_number_attributes = 0u;
+	      *out_number_indices = 0u;
+	      return routine_fail;
+	    }
+
+	  a += 4u;
+	  i += 6u;
+	}
+    }
+
+  *out_number_attributes = a;
+  *out_number_indices = i;
+
+  return routine_success;
+}
+
+enum fastuidraw::return_code
+fastuidraw::PainterAttributeDataFillerGlyphs::
+pack_attributes_indices(c_array<const vec2> glyph_positions,
+			c_array<const Glyph> glyphs,
+			float render_pixel_size,
+			enum PainterEnums::screen_orientation orientation,
+			enum PainterEnums::glyph_layout_type layout,
+			c_array<PainterAttribute> dst_attribs,
+			c_array<PainterIndex> dst_indices)
+{
+  unsigned int current_attr(0), current_idx(0);
+  enum glyph_type tp(invalid_glyph);
+
+  for (unsigned int i = 0; i < glyphs.size(); ++i)
+    {
+      Glyph G(glyphs[i]);
+
+      if (G.valid()
+	  && G.metrics().size().x() > 0
+	  && G.metrics().size().y() > 0)
+	{
+	  if (tp == invalid_glyph)
+	    {
+	      tp = G.type();
+	    }
+	  else if (tp != G.type())
+	    {
+	      return routine_fail;
+	    }
+
+	  if (current_attr + 4 > dst_attribs.size())
+	    {
+	      return routine_fail;
+	    }
+
+	  if (current_idx + 6 > dst_indices.size())
+	    {
+	      return routine_fail;
+	    }
+
+	  float scale;
+
+	  scale = render_pixel_size / G.metrics().units_per_EM();
+	  pack_glyph_attributes(orientation, layout, glyph_positions[i], G, scale,
+				dst_attribs.sub_array(current_attr, 4));
+	  pack_glyph_indices(dst_indices.sub_array(current_idx, 6), current_attr);
+
+	  current_attr += 4u;
+	  current_idx += 6u;
+	}
+    }
+
+  return routine_success;
+}

@@ -151,6 +151,49 @@ namespace fastuidraw
 
     ~PainterAttributeDataFillerGlyphs();
 
+    /*!
+     * Utility function to return the number of indices and attributes
+     * that are needed to realize a sequence of Glyphs with the
+     * requirement that each valid \ref Glyph has the same value
+     * for Glyph::type().
+     * \param glyphs sequence of glyps to query
+     * \param[out] number of indices needed
+     * \param[out] number of attributes needed
+     * \returns routine_success if all value \ref Glyph values are
+     *          the same renderer type and \ref routine_fail if they
+     *          are not. For returning \ref routine_fail both output
+     *          values will beset to zero.
+     */
+    static
+    enum return_code
+    compute_number_attributes_indices_needed(c_array<const Glyph> glyphs,
+					     unsigned int *out_number_attributes,
+					     unsigned int *out_number_indices);
+
+    /*!
+     * Utility function to pack a sequence of \ref Glyph values with
+     * each valid glyph having the same value for Glyph::type().
+     * Will return \ref routine_fail if either of the arrays to
+     * write to is not large enough or there are two (or more)
+     * valid \ref Glyph values for which Glyph::type() is different.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param render_pixel_size pixel size to which to scale the glyphs
+     * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
+     * \param[out] dst_attribs location to which to write attribute data
+     * \param[out] dst_indices location to which to write index data
+     */
+    static
+    enum return_code
+    pack_attributes_indices(c_array<const vec2> glyph_positions,
+			    c_array<const Glyph> glyphs,
+			    float render_pixel_size,
+			    enum PainterEnums::screen_orientation orientation,
+			    enum PainterEnums::glyph_layout_type layout,
+			    c_array<PainterAttribute> dst_attribs,
+			    c_array<PainterIndex> dst_indices);
+
     virtual
     void
     compute_sizes(unsigned int &number_attributes,
