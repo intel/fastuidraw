@@ -110,13 +110,6 @@ namespace
       glyph.metrics().horizontal_layout_offset() :
       glyph.metrics().vertical_layout_offset();
 
-    /* ISSUE: we are assuming horizontal layout; we should probably
-     * change the interface so that caller chooses how to adjust
-     * positions with the choices:
-     *   adjust_using_horizontal,
-     *   adjust_using_vertical,
-     *   no_adjust
-     */
     if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
         p_bl.x() = p.x() + SCALE * layout_offset.x();
@@ -127,7 +120,7 @@ namespace
       }
     else
       {
-        p_bl = p + SCALE * glyph.metrics().horizontal_layout_offset();
+        p_bl = p + SCALE * layout_offset;
         p_tr = p_bl + glyph_size;
       }
 
