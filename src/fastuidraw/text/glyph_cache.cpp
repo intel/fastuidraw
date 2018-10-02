@@ -270,7 +270,6 @@ namespace
     std::mutex m_glyphs_mutex, m_glyphs_metrics_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_atlas;
     Store<GlyphSourceRender, GlyphDataPrivate> m_glyphs;
-    std::vector<fastuidraw::GlyphMetrics> m_tmp_metrics;
     Store<fastuidraw::GlyphSource, GlyphMetricsPrivate> m_glyph_metrics;
     fastuidraw::GlyphCache *m_p;
   };
@@ -811,33 +810,63 @@ fetch_glyph(GlyphRender render,
 void
 fastuidraw::GlyphCache::
 fetch_glyphs(GlyphRender render,
+             const reference_counted_ptr<const FontBase> &font,
+             c_array<const uint32_t> glyph_codes,
+             c_array<Glyph> out_glyphs,
+             bool upload_to_atlas)
+{
+  std::vector<GlyphMetrics> tmp_metrics_store(glyph_codes.size());
+  c_array<GlyphMetrics> tmp_metrics(make_c_array(tmp_metrics_store));
+  c_array<const GlyphMetrics> tmp_metrics_c(tmp_metrics);
+
+  fetch_glyph_metrics(font, glyph_codes, tmp_metrics);
+  fetch_glyphs(render, tmp_metrics_c, out_glyphs, upload_to_atlas);
+}
+
+void
+fastuidraw::GlyphCache::
+fetch_glyphs(GlyphRender render,
              c_array<const GlyphSource> glyph_sources,
              c_array<Glyph> out_glyphs,
              bool upload_to_atlas)
+{
+  std::vector<GlyphMetrics> tmp_metrics_store(glyph_sources.size());
+  c_array<GlyphMetrics> tmp_metrics(make_c_array(tmp_metrics_store));
+  c_array<const GlyphMetrics> tmp_metrics_c(tmp_metrics);
+
+  fetch_glyph_metrics(glyph_sources, tmp_metrics);
+  fetch_glyphs(render, tmp_metrics_c, out_glyphs, upload_to_atlas);
+}
+
+void
+fastuidraw::GlyphCache::
+fetch_glyphs(GlyphRender render,
+	     c_array<const GlyphMetrics> glyph_metrics,
+	     c_array<Glyph> out_glyphs,
+	     bool upload_to_atlas)
 {
   GlyphCachePrivate *d;
   d = static_cast<GlyphCachePrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
-  d->m_tmp_metrics.resize(glyph_sources.size());
-  fetch_glyph_metrics(glyph_sources, make_c_array(d->m_tmp_metrics));
-
-  for(unsigned int i = 0; i < glyph_sources.size(); ++i)
+  for(unsigned int i = 0; i < glyph_metrics.size(); ++i)
     {
-      if (glyph_sources[i].m_font)
+      if (glyph_metrics[i].valid())
         {
-          GlyphSourceRender src(glyph_sources[i].m_font, glyph_sources[i].m_glyph_code, render);
+          GlyphSourceRender src(glyph_metrics[i].font(),
+				glyph_metrics[i].glyph_code(),
+				render);
           GlyphDataPrivate *q;
 
           q = d->m_glyphs.fetch_or_allocate(d, src);
           if (!q->m_render.valid())
             {
-              GlyphMetrics m(d->m_tmp_metrics[i]);
+              GlyphMetrics m(glyph_metrics[i]);
 
               q->m_render = render;
               FASTUIDRAWassert(!q->m_glyph_data);
               q->m_metrics = static_cast<GlyphMetricsPrivate*>(m.m_d);
-              q->m_glyph_data = glyph_sources[i].m_font->compute_rendering_data(q->m_render, m, q->m_path);
+              q->m_glyph_data = src.m_font->compute_rendering_data(q->m_render, m, q->m_path);
             }
 
           if (upload_to_atlas)
@@ -851,46 +880,6 @@ fetch_glyphs(GlyphRender render,
         {
           out_glyphs[i] = Glyph();
         }
-    }
-}
-
-void
-fastuidraw::GlyphCache::
-fetch_glyphs(GlyphRender render,
-             const reference_counted_ptr<const FontBase> &font,
-             c_array<const uint32_t> glyph_codes,
-             c_array<Glyph> out_glyphs,
-             bool upload_to_atlas)
-{
-  GlyphCachePrivate *d;
-  d = static_cast<GlyphCachePrivate*>(m_d);
-
-  std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
-  d->m_tmp_metrics.resize(glyph_codes.size());
-  fetch_glyph_metrics(font, glyph_codes, make_c_array(d->m_tmp_metrics));
-
-  for(unsigned int i = 0; i < glyph_codes.size(); ++i)
-    {
-      GlyphSourceRender src(font, glyph_codes[i], render);
-      GlyphDataPrivate *q;
-
-      q = d->m_glyphs.fetch_or_allocate(d, src);
-      if (!q->m_render.valid())
-        {
-          GlyphMetrics m(d->m_tmp_metrics[i]);
-
-          q->m_render = render;
-          FASTUIDRAWassert(!q->m_glyph_data);
-          q->m_metrics = static_cast<GlyphMetricsPrivate*>(m.m_d);
-          q->m_glyph_data = font->compute_rendering_data(q->m_render, m, q->m_path);
-        }
-
-      if (upload_to_atlas)
-        {
-          Glyph(q).upload_to_atlas();
-        }
-
-      out_glyphs[i] = Glyph(q);
     }
 }
 
