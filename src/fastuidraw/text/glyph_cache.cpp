@@ -221,15 +221,16 @@ namespace
     std::vector<unsigned int> m_free_slots;
   };
 
-  class GlyphSourceRender
+  class glyph_key
   {
   public:
-    GlyphSourceRender(void):
+    glyph_key(void):
+      m_font(nullptr),
       m_glyph_code(0)
     {}
 
-    GlyphSourceRender(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
-                      uint32_t gc, fastuidraw::GlyphRender r):
+    glyph_key(const fastuidraw::FontBase *f,
+	      uint32_t gc, fastuidraw::GlyphRender r):
       m_font(f),
       m_glyph_code(gc),
       m_render(r)
@@ -238,18 +239,51 @@ namespace
     }
 
     bool
-    operator<(const GlyphSourceRender &rhs) const
+    operator<(const glyph_key &rhs) const
     {
       return (m_font != rhs.m_font) ? m_font < rhs.m_font :
         (m_glyph_code != rhs.m_glyph_code) ? m_glyph_code < rhs.m_glyph_code :
         m_render < rhs.m_render;
     }
 
-    fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> m_font;
+    const fastuidraw::FontBase *m_font;
     uint32_t m_glyph_code;
     fastuidraw::GlyphRender m_render;
+  };
 
-    std::vector<fastuidraw::GlyphMetrics> m_temp_metrics;
+  class glyph_metrics_key
+  {
+  public:
+    glyph_metrics_key(void):
+      m_font(nullptr),
+      m_glyph_code(0)
+    {}
+
+    glyph_metrics_key(const fastuidraw::FontBase *f, uint32_t gc):
+      m_font(f),
+      m_glyph_code(gc)
+    {}
+
+    glyph_metrics_key(uint32_t gc, const fastuidraw::FontBase *f):
+      m_font(f),
+      m_glyph_code(gc)
+    {}
+
+    explicit
+    glyph_metrics_key(const fastuidraw::GlyphSource &src):
+      m_font(src.m_font.get()),
+      m_glyph_code(src.m_glyph_code)
+    {}
+
+    bool
+    operator<(const glyph_metrics_key &rhs) const
+    {
+      return (m_font != rhs.m_font) ? m_font < rhs.m_font :
+        m_glyph_code < rhs.m_glyph_code;
+    }
+
+    const fastuidraw::FontBase *m_font;
+    uint32_t m_glyph_code;
   };
 
   class GlyphCachePrivate
@@ -269,8 +303,8 @@ namespace
 
     std::mutex m_glyphs_mutex, m_glyphs_metrics_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_atlas;
-    Store<GlyphSourceRender, GlyphDataPrivate> m_glyphs;
-    Store<fastuidraw::GlyphSource, GlyphMetricsPrivate> m_glyph_metrics;
+    Store<glyph_key, GlyphDataPrivate> m_glyphs;
+    Store<glyph_metrics_key, GlyphMetricsPrivate> m_glyph_metrics;
     fastuidraw::GlyphCache *m_p;
   };
 }
@@ -679,7 +713,7 @@ fastuidraw::GlyphCache::
 fetch_glyph_metrics(const fastuidraw::reference_counted_ptr<const FontBase> &font,
                     uint32_t glyph_code)
 {
-  if (!font)
+  if (!font || glyph_code >= font->number_glyphs())
     {
       return GlyphMetrics();
     }
@@ -688,8 +722,10 @@ fetch_glyph_metrics(const fastuidraw::reference_counted_ptr<const FontBase> &fon
   GlyphMetricsPrivate *p;
 
   d = static_cast<GlyphCachePrivate*>(m_d);
+  glyph_metrics_key K(glyph_code, font.get());
+
   std::lock_guard<std::mutex> m(d->m_glyphs_metrics_mutex);
-  p = d->m_glyph_metrics.fetch_or_allocate(d, GlyphSource(glyph_code, font));
+  p = d->m_glyph_metrics.fetch_or_allocate(d, K);
   if (!p->m_ready)
     {
       GlyphMetricsValue v(p);
@@ -716,22 +752,31 @@ fetch_glyph_metrics(const reference_counted_ptr<const FontBase> &font,
       return std::fill(out_metrics.begin(), out_metrics.end(), GlyphMetrics());
     }
 
+  unsigned int num_glyphs_of_font(font->number_glyphs());
   std::lock_guard<std::mutex> m(d->m_glyphs_metrics_mutex);
 
   for (unsigned int i = 0; i < glyph_codes.size(); ++i)
     {
-      GlyphMetricsPrivate *p;
+      if (glyph_codes[i] < num_glyphs_of_font)
+	{
+	  GlyphMetricsPrivate *p;
+	  glyph_metrics_key K(glyph_codes[i], font.get());
 
-      p = d->m_glyph_metrics.fetch_or_allocate(d, GlyphSource(glyph_codes[i], font));
-      if (!p->m_ready)
-        {
-          GlyphMetricsValue v(p);
-          p->m_font = font;
-          p->m_glyph_code = glyph_codes[i];
-          font->compute_metrics(glyph_codes[i], v);
-          p->m_ready = true;
-        }
-      out_metrics[i] = GlyphMetrics(p);
+	  p = d->m_glyph_metrics.fetch_or_allocate(d, K);
+	  if (!p->m_ready)
+	    {
+	      GlyphMetricsValue v(p);
+	      p->m_font = font;
+	      p->m_glyph_code = glyph_codes[i];
+	      font->compute_metrics(glyph_codes[i], v);
+	      p->m_ready = true;
+	    }
+	  out_metrics[i] = GlyphMetrics(p);
+	}
+      else
+	{
+	  out_metrics[i] = GlyphMetrics();
+	}
     }
 }
 
@@ -750,7 +795,8 @@ fetch_glyph_metrics(c_array<const GlyphSource> glyph_sources,
 
       if (glyph_sources[i].m_font)
         {
-          p = d->m_glyph_metrics.fetch_or_allocate(d, glyph_sources[i]);
+	  glyph_metrics_key K(glyph_sources[i]);
+          p = d->m_glyph_metrics.fetch_or_allocate(d, K);
           if (!p->m_ready)
             {
               GlyphMetricsValue v(p);
@@ -774,7 +820,9 @@ fetch_glyph(GlyphRender render,
             const fastuidraw::reference_counted_ptr<const FontBase> &font,
             uint32_t glyph_code, bool upload_to_atlas)
 {
-  if (!font || !font->can_create_rendering_data(render.m_type))
+  if (!font
+      || !font->can_create_rendering_data(render.m_type)
+      || glyph_code >= font->number_glyphs())
     {
       return Glyph();
     }
@@ -783,7 +831,7 @@ fetch_glyph(GlyphRender render,
   d = static_cast<GlyphCachePrivate*>(m_d);
 
   GlyphDataPrivate *q;
-  GlyphSourceRender src(font, glyph_code, render);
+  glyph_key src(font.get(), glyph_code, render);
 
   std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
   q = d->m_glyphs.fetch_or_allocate(d, src);
@@ -853,9 +901,9 @@ fetch_glyphs(GlyphRender render,
     {
       if (glyph_metrics[i].valid())
         {
-          GlyphSourceRender src(glyph_metrics[i].font(),
-				glyph_metrics[i].glyph_code(),
-				render);
+          glyph_key src(glyph_metrics[i].font().get(),
+			glyph_metrics[i].glyph_code(),
+			render);
           GlyphDataPrivate *q;
 
           q = d->m_glyphs.fetch_or_allocate(d, src);
@@ -914,15 +962,15 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
       return routine_success;
     }
 
-  GlyphSourceRender src(g->m_metrics->m_font,
-                        g->m_metrics->m_glyph_code,
-                        g->m_render);
+  glyph_key src(g->m_metrics->m_font.get(),
+		g->m_metrics->m_glyph_code,
+		g->m_render);
 
   std::lock_guard<std::mutex> m2(d->m_glyphs_metrics_mutex);
 
   /* Take the metrics if we can */
-  GlyphSource metrics_src(g->m_metrics->m_font,
-                          g->m_metrics->m_glyph_code);
+  glyph_metrics_key metrics_src(g->m_metrics->m_font.get(),
+				g->m_metrics->m_glyph_code);
   d->m_glyph_metrics.take(g->m_metrics, d, metrics_src);
 
   if (d->m_glyphs.take(g, d, src) == routine_fail)
@@ -951,9 +999,9 @@ delete_glyph(Glyph G)
   FASTUIDRAWassert(g->m_cache == d);
   FASTUIDRAWassert(g->m_render.valid());
 
-  GlyphSourceRender src(g->m_metrics->m_font,
-                        g->m_metrics->m_glyph_code,
-                        g->m_render);
+  glyph_key src(g->m_metrics->m_font.get(),
+		g->m_metrics->m_glyph_code,
+		g->m_render);
   std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
   d->m_glyphs.remove_value(src);
 }
