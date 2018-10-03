@@ -82,6 +82,9 @@ public:
     return *m_glyph_sequence;
   }
 
+  void
+  realize_glyphs(GlyphRender R);
+
   GlyphSequence&
   empty_glyph_sequence(void)
   {
@@ -119,7 +122,6 @@ public:
   post_finalize(size_t glyphs_per_painter_draw)
   {
     make_hierarchy();
-    make_sub_sequences(glyphs_per_painter_draw);
   }
 
   void
@@ -131,12 +133,8 @@ private:
   void
   make_hierarchy(void);
 
-  void
-  make_sub_sequences(size_t glyphs_per_painter_draw);
-
   GlyphSequence *m_glyph_sequence, *m_empty_glyph_sequence;
   GenericHierarchy *m_hierarchy;
-  std::vector<GlyphSequence*> m_sub_glyph_sequence;
 };
 
 class painter_glyph_test:public sdl_painter_demo
@@ -270,11 +268,6 @@ GlyphDrawsShared::
   if (m_hierarchy)
     {
       FASTUIDRAWdelete(m_hierarchy);
-    }
-
-  for (GlyphSequence *p : m_sub_glyph_sequence)
-    {
-      FASTUIDRAWdelete(p);
     }
 }
 
@@ -473,33 +466,19 @@ init(std::istream &istr,
 
 void
 GlyphDrawsShared::
-make_sub_sequences(size_t glyphs_per_painter_draw)
+realize_glyphs(GlyphRender R)
 {
-  unsigned int num(m_glyph_sequence->number_glyphs());
-  unsigned int current(0);
-  simple_time timer;
+  unsigned int num;
 
-  std::cout << "Creating sub-glyph sequences..." << std::flush;
-  while (current < num)
+  num = m_glyph_sequence->number_sub_sequences();
+  for (unsigned int i = 0; i < num; ++i)
     {
-      unsigned int cnt;
-      GlyphSequence *data;
+      GlyphSequence::SubSequence S(m_glyph_sequence->sub_sequence(i));
+      c_array<const PainterAttribute> out_attributes;
+      c_array<const PainterIndex> out_indices;
 
-      data = FASTUIDRAWnew GlyphSequence(glyph_sequence().pixel_size(),
-                                         glyph_sequence().orientation(),
-                                         glyph_sequence().glyph_cache(),
-                                         glyph_sequence().layout());
-      for (cnt = 0; cnt < glyphs_per_painter_draw && current < num; ++current, ++cnt)
-	{
-	  GlyphMetrics M;
-	  vec2 p;
-
-	  m_glyph_sequence->added_glyph(current, &M, &p);
-	  data->add_glyph(GlyphSource(M.font(), M.glyph_code()), p);
-	}
-      m_sub_glyph_sequence.push_back(data);
+      S.attributes_and_indices(R, &out_attributes, &out_indices);
     }
-  std::cout << "took " << timer.restart() << " ms\n";
 }
 
 GlyphRender
@@ -508,12 +487,7 @@ draw_glyphs(GlyphRender render,
             const reference_counted_ptr<Painter> &painter,
             const PainterData &draw) const
 {
-  for (GlyphSequence *p : m_sub_glyph_sequence)
-    {
-      render = painter->draw_glyphs(draw, *p, render);
-    }
-
-  return render;
+  return painter->draw_glyphs(draw, *m_glyph_sequence, render);
 }
 
 /////////////////////////////////////
@@ -842,13 +816,9 @@ ready_glyph_attribute_data(void)
     {
       simple_time timer;
 
-      std::cout << "Generating and realizing glyphs of type " << m_draws[i] << "...";
-      //m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], false);
-      std::cout << "took " << timer.restart() << "ms.\n";
-
-      std::cout << "Uploading (or confirming upload) glyphs of type " << m_draws[i] << "...";
-      //m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], true);
-      std::cout << "took " << timer.restart() << "ms.\n";
+      std::cout << "Generating, realizing and uploading to atlas glyphs of type " << m_draws[i] << "...";
+      m_draw_shared.realize_glyphs(m_draws[i]);
+      std::cout << "took " << timer.restart() << "ms.\n" << std::flush;
     }
 }
 
