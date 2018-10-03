@@ -377,20 +377,13 @@ public:
   T m_left; ///< Left edge of the clipping plane
   T m_right; ///< Right edge of the clipping plane
   T m_near; ///< Near clipping plane distance
-  T m_far; ///< Far clipping plane distance
-
-  /*!
-   * True when the far clipping plane is not set (and is thus in infinity).
-   */
-  bool m_farAtinfinity;
 
   /*!
    * Default constructor for projection parameters,
    * values are unitialized except for \ref
    * m_farAtinfinity which is initialized as false.
    */
-  projection_params(void):
-    m_farAtinfinity(false)
+  projection_params(void)
    {}
 
   /*!
@@ -400,27 +393,10 @@ public:
    * \param t Top
    * \param b Bottom
    * \param n Near clipping plane
-   * \param f Far clipping plane
-   */
-  projection_params(T l, T r, T b, T t, T n, T f):
-    m_top(t), m_bottom(b), m_left(l), m_right(r),
-    m_near(n), m_far(f),
-    m_farAtinfinity(false)
-  {}
-
-  /*!
-   * Creates the projection parameters instance according to the given parameters,
-   * where far clipping plane is set to infinity.
-   * \param l Left
-   * \param r Right
-   * \param t Top
-   * \param b Bottom
-   * \param n Near clipping plane
    */
   projection_params(T l, T r, T b, T t, T n):
     m_top(t), m_bottom(b), m_left(l), m_right(r),
-    m_near(n), m_far(100000.0f * n),
-    m_farAtinfinity(true)
+    m_near(n)
   {}
 };
 
@@ -669,25 +645,14 @@ public:
     this->operator()(0, 0) = T(2) * P.m_near / (P.m_right - P.m_left);
     this->operator()(1, 0) = T(0);
     this->operator()(2, 0) = T(0);
-    this->operator()(3, 0) = T(0);
 
     this->operator()(0, 1) = T(0);
     this->operator()(1, 1) = T(2) * P.m_near / (P.m_top - P.m_bottom);
     this->operator()(2, 1) = T(0);
-    this->operator()(3, 1) = T(0);
 
-    this->operator()(0, 3) = T(0);
-    this->operator()(1, 3) = T(0);
-    this->operator()(3, 3) = T(0);
-
-    if (!P.m_farAtinfinity)
-      {
-        this->operator()(2, 3) = T(2) * P.m_near * P.m_far / (P.m_near - P.m_far);
-      }
-    else
-      {
-        this->operator()(2, 3)=T(-2) * P.m_near;
-      }
+    this->operator()(0, 2) = T(0);
+    this->operator()(1, 2) = T(0);
+    this->operator()(2, 2) = T(-1);
   }
 
   /*!
