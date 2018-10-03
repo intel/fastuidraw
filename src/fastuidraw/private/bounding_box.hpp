@@ -57,9 +57,12 @@ namespace fastuidraw
       out_data[3] = pt_type(m_min.x() - rad, m_max.y() + rad);
     }
 
-    void
+    bool //returns true if box became larger
     union_point(const pt_type &pt)
     {
+      bool R;
+
+      R = !contains(pt);
       if (m_empty)
         {
           m_empty = false;
@@ -73,26 +76,32 @@ namespace fastuidraw
           m_max.x() = t_max(m_max.x(), pt.x());
           m_max.y() = t_max(m_max.y(), pt.y());
         }
+      return R;
     }
 
     template<typename iterator>
-    void
+    bool
     union_points(iterator begin, iterator end)
     {
+      bool R(false);
       for(; begin != end; ++begin)
         {
-          union_point(*begin);
+          R = union_point(*begin) || R;
         }
+      return R;
     }
 
-    void
+    bool
     union_box(const BoundingBox &b)
     {
       if (!b.m_empty)
         {
-          union_point(b.m_min);
-          union_point(b.m_max);
+	  bool r0, r1;
+          r0 = union_point(b.m_min);
+          r1 = union_point(b.m_max);
+	  return r0 || r1;
         }
+      return false;
     }
 
     pt_type
