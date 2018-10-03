@@ -610,7 +610,7 @@ upload_to_atlas(void) const
 
   std::lock_guard<std::mutex> m(p->m_cache->m_glyphs_mutex);
   GlyphAtlasProxy S(p);
-  fastuidraw::GlyphAttribute::Array T(&p->m_attributes);
+  GlyphAttribute::Array T(&p->m_attributes);
   return p->upload_to_atlas(S, T);
 }
 
@@ -849,7 +849,9 @@ fetch_glyph(GlyphRender render,
 
   if (upload_to_atlas)
     {
-      Glyph(q).upload_to_atlas();
+      GlyphAtlasProxy S(q);
+      GlyphAttribute::Array T(&q->m_attributes);
+      q->upload_to_atlas(S, T);
     }
 
   return Glyph(q);
@@ -919,7 +921,9 @@ fetch_glyphs(GlyphRender render,
 
           if (upload_to_atlas)
             {
-              Glyph(q).upload_to_atlas();
+	      GlyphAtlasProxy S(q);
+	      GlyphAttribute::Array T(&q->m_attributes);
+              q->upload_to_atlas(S, T);
             }
 
           out_glyphs[i] = Glyph(q);
@@ -957,7 +961,9 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
       /* already part of this cache, upload if necessary */
       if (upload_to_atlas)
         {
-          Glyph(g).upload_to_atlas();
+	  GlyphAtlasProxy S(g);
+	  GlyphAttribute::Array T(&g->m_attributes);
+	  g->upload_to_atlas(S, T);
         }
       return routine_success;
     }
@@ -973,6 +979,7 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
 				g->m_metrics->m_glyph_code);
   d->m_glyph_metrics.take(g->m_metrics, d, metrics_src);
 
+  /* take the glyph */
   if (d->m_glyphs.take(g, d, src) == routine_fail)
     {
       return routine_fail;
@@ -980,7 +987,9 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
 
   if (upload_to_atlas)
     {
-      Glyph(g).upload_to_atlas();
+      GlyphAtlasProxy S(g);
+      GlyphAttribute::Array T(&g->m_attributes);
+      g->upload_to_atlas(S, T);
     }
 
   return routine_success;
