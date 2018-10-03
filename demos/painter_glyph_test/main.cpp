@@ -119,7 +119,7 @@ public:
        enum PainterEnums::screen_orientation screen_orientation);
 
   void
-  post_finalize(size_t glyphs_per_painter_draw)
+  post_finalize(void)
   {
     make_hierarchy();
   }
@@ -215,7 +215,6 @@ private:
   command_line_argument_value<float> m_bg_red, m_bg_green, m_bg_blue;
   command_line_argument_value<float> m_fg_red, m_fg_green, m_fg_blue;
   command_line_argument_value<float> m_change_stroke_width_rate;
-  command_line_argument_value<int> m_glyphs_per_painter_draw;
   command_line_list<uint32_t> m_explicit_glyph_codes;
   enumerated_command_line_argument_value<screen_orientation> m_screen_orientation;
 
@@ -528,9 +527,6 @@ painter_glyph_test(void):
                              "rate of change in pixels/sec for changing stroke width "
                              "when changing stroke when key is down",
                              *this),
-  m_glyphs_per_painter_draw(10000, "glyphs_per_painter_draw",
-                            "Number of glyphs to draw per Painter::draw_text call",
-                            *this),
   m_explicit_glyph_codes("add_glyph_code",
                          "Add an explicit glyph code to render, if the list "
                          "is non-empty, takes precendence over text",
@@ -810,7 +806,7 @@ ready_glyph_attribute_data(void)
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
     }
-  m_draw_shared.post_finalize(m_glyphs_per_painter_draw.value());
+  m_draw_shared.post_finalize();
 
   for (unsigned int i = 0; i < draw_glyph_auto; ++i)
     {
