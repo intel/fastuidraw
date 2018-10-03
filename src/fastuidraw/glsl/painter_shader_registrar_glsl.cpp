@@ -286,7 +286,8 @@ PainterShaderRegistrarGLSLPrivate(void):
                 ShaderSource::from_resource)
     .add_source("fastuidraw_align.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_stroke_util.constants.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_stroke_util.vert.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_painter_stroke_util.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_read_texels_from_geometry_data.glsl.resource_string", ShaderSource::from_resource);
 
   m_frag_shader_utils
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
@@ -294,7 +295,8 @@ PainterShaderRegistrarGLSLPrivate(void):
     .add_macro("FASTUIDRAW_PORTER_DUFF_MACRO(src_factor, dst_factor)", "( (src_factor) * in_src + (dst_factor) * in_fb )")
     .add_source("fastuidraw_painter_stroke_util.constants.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_stroke_util.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_blend_util.frag.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_blend_util.frag.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_read_texels_from_geometry_data.glsl.resource_string", ShaderSource::from_resource);
 }
 
 PainterShaderRegistrarGLSLPrivate::

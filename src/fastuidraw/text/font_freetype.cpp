@@ -324,7 +324,7 @@ compute_rendering_data(int pixel_size,
       int pitch;
 
       pitch = face->glyph->bitmap.pitch;
-      output.resize(bitmap_sz + fastuidraw::ivec2(1, 1));
+      output.resize(bitmap_sz);
       std::fill(output.coverage_values().begin(), output.coverage_values().end(), 0);
       for(int y = 0; y < bitmap_sz.y(); ++y)
         {

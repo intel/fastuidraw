@@ -8,7 +8,8 @@ FASTUIDRAW_PRIVATE_SOURCES += $(call filelist, \
 	interval_allocator.cpp \
 	path_util_private.cpp \
 	clip.cpp int_path.cpp \
-	util_private_math.cpp)
+	util_private_math.cpp \
+	pack_texels.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

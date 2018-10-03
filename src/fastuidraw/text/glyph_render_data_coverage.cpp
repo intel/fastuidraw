@@ -19,7 +19,9 @@
 
 #include <vector>
 #include <fastuidraw/text/glyph_render_data_coverage.hpp>
+#include "../private/pack_texels.hpp"
 #include "../private/util_private.hpp"
+#include "../private/util_private_ostream.hpp"
 
 namespace
 {
@@ -105,24 +107,27 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
 
-  FASTUIDRAWunused(attributes);
+  attributes.resize(2);
+  attributes[0].pack_texel_rect(d->m_resolution.x(),
+				d->m_resolution.y());
 
   if (d->m_texels.empty())
     {
+      attributes[1].m_data = vecN<uint32_t, 4>(0u);
       return routine_success;
     }
 
-  GlyphAtlas::Padding padding;
-  GlyphLocation L;
+  std::vector<generic_data> data;
+  int location;
 
-  padding.m_right = 1;
-  padding.m_bottom = 1;
-
-  L = atlas_proxy.allocate(d->m_resolution, make_c_array(d->m_texels), padding);
-  attributes.resize(1);
-  attributes[0].pack_location(L);
-
-  return L.valid() ?
-    routine_success :
-    routine_fail;
+  detail::pack_texels(uvec2(d->m_resolution),
+		      make_c_array(d->m_texels),
+		      &data);
+  location = atlas_proxy.allocate_geometry_data(make_c_array(data));
+  if (location == -1)
+    {
+      return routine_fail;
+    }
+  attributes[1].m_data = vecN<uint32_t, 4>(location);
+  return routine_success;
 }

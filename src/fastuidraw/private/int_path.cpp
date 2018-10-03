@@ -1779,7 +1779,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
 
   compute.compute_distance_values(step, image_sz, tr, radius, dist_values);
 
-  dst->resize(image_sz + ivec2(1, 1));
+  dst->resize(image_sz);
   std::fill(dst->distance_values().begin(), dst->distance_values().end(), 0);
   for(int y = 0; y < image_sz.y(); ++y)
     {
@@ -1806,7 +1806,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
               dist = 0.0f;
             }
           v = DistanceFieldGenerator::pixel_value_from_distance(dist, outside1);
-          location = x + y * (1 + image_sz.x());
+          location = x + y * image_sz.x();
           dst->distance_values()[location] = v;
         }
     }
