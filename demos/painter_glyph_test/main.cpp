@@ -76,22 +76,17 @@ public:
     return GenericHierarchy::not_found;
   }
 
-  c_array<const vec2>
-  glyph_positions(void) const
-  {
-    FASTUIDRAWassert(m_glyph_sequence);
-    return m_glyph_sequence->glyph_positions();
-  }
-
   GlyphSequence&
   glyph_sequence(void)
   {
     return *m_glyph_sequence;
   }
 
-  c_array<const Glyph>
-  glyphs(GlyphRender render,
-         const reference_counted_ptr<Painter> &painter);
+  GlyphSequence&
+  empty_glyph_sequence(void)
+  {
+    return *m_empty_glyph_sequence;
+  }
 
   GlyphRender
   draw_glyphs(GlyphRender render,
@@ -193,10 +188,10 @@ private:
   update_cts_params(void);
 
   void
-  stroke_glyph(const PainterData &d, Glyph G);
+  stroke_glyph(const PainterData &d, GlyphMetrics G, GlyphRender R);
 
   void
-  fill_glyph(const PainterData &d, Glyph G);
+  fill_glyph(const PainterData &d, GlyphMetrics G, GlyphRender R);
 
   void
   draw_glyphs(float us);
@@ -287,26 +282,25 @@ void
 GlyphDrawsShared::
 make_hierarchy(void)
 {
-  c_array<const GlyphSource> glyph_sources(m_glyph_sequence->glyph_sources());
-  c_array<const vec2> in_glyph_positions(m_glyph_sequence->glyph_positions());
   enum PainterEnums::screen_orientation orientation(m_glyph_sequence->orientation());
   GlyphCache *glyph_cache(m_glyph_sequence->glyph_cache().get());
   float pixel_size(m_glyph_sequence->pixel_size());
   GlyphMetrics metrics;
+  vec2 p;
   BoundingBox<float> bbox;
   std::vector<BoundingBox<float> > glyph_bboxes;
   simple_time timer;
 
   std::cout << "Creating GlyphHierarch..." << std::flush;
-  glyph_bboxes.resize(glyph_sources.size());
-  for(unsigned int i = 0 ; i < glyph_sources.size(); ++i)
+  glyph_bboxes.resize(m_glyph_sequence->number_glyphs());
+  for(unsigned int i = 0, endi = m_glyph_sequence->number_glyphs(); i < endi; ++i)
     {
-      if(glyph_sources[i].m_font)
+      m_glyph_sequence->added_glyph(i, &metrics, &p);
+      if(metrics.valid())
         {
-          vec2 p, min_bb, max_bb;
+          vec2 min_bb, max_bb;
           float ratio;
 
-          metrics = glyph_cache->fetch_glyph_metrics(glyph_sources[i].m_font, glyph_sources[i].m_glyph_code);
           min_bb = metrics.horizontal_layout_offset();
           max_bb = min_bb + metrics.size();
 
@@ -320,7 +314,6 @@ make_hierarchy(void)
               max_bb.y() = -max_bb.y();
             }
 
-          p = in_glyph_positions[i];
           glyph_bboxes[i].union_point(p + min_bb);
           glyph_bboxes[i].union_point(p + max_bb);
           bbox.union_box(glyph_bboxes[i]);
@@ -328,7 +321,7 @@ make_hierarchy(void)
     }
 
   m_hierarchy = FASTUIDRAWnew GenericHierarchy(bbox);
-  for(unsigned int i = 0 ; i < glyph_sources.size(); ++i)
+  for(unsigned int i = 0, endi = m_glyph_sequence->number_glyphs(); i < endi; ++i)
     {
       m_hierarchy->add(glyph_bboxes[i], i);
     }
@@ -482,30 +475,28 @@ void
 GlyphDrawsShared::
 make_sub_sequences(size_t glyphs_per_painter_draw)
 {
-  c_array<const vec2> in_positions(glyph_sequence().glyph_positions());
-  c_array<const GlyphSource> in_glyphs(glyph_sequence().glyph_sources());
+  unsigned int num(m_glyph_sequence->number_glyphs());
+  unsigned int current(0);
   simple_time timer;
 
   std::cout << "Creating sub-glyph sequences..." << std::flush;
-  while (!in_glyphs.empty())
+  while (current < num)
     {
-      c_array<const GlyphSource> glyphs;
-      c_array<const vec2> glyph_positions;
       unsigned int cnt;
       GlyphSequence *data;
-
-      cnt = t_min(in_glyphs.size(), glyphs_per_painter_draw);
-      glyphs = in_glyphs.sub_array(0, cnt);
-      glyph_positions = in_positions.sub_array(0, cnt);
 
       data = FASTUIDRAWnew GlyphSequence(glyph_sequence().pixel_size(),
                                          glyph_sequence().orientation(),
                                          glyph_sequence().glyph_cache(),
                                          glyph_sequence().layout());
-      data->add_glyphs(glyphs, glyph_positions);
+      for (cnt = 0; cnt < glyphs_per_painter_draw && current < num; ++current, ++cnt)
+	{
+	  GlyphMetrics M;
+	  vec2 p;
 
-      in_glyphs = in_glyphs.sub_array(cnt);
-      in_positions = in_positions.sub_array(cnt);
+	  m_glyph_sequence->added_glyph(current, &M, &p);
+	  data->add_glyph(GlyphSource(M.font(), M.glyph_code()), p);
+	}
       m_sub_glyph_sequence.push_back(data);
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -519,29 +510,10 @@ draw_glyphs(GlyphRender render,
 {
   for (GlyphSequence *p : m_sub_glyph_sequence)
     {
-      if (render.valid())
-        {
-          painter->draw_glyphs(draw, p->painter_attribute_data(render));
-        }
-      else
-        {
-          render = painter->draw_glyphs(draw, *p);
-        }
+      render = painter->draw_glyphs(draw, *p, render);
     }
 
   return render;
-}
-
-c_array<const Glyph>
-GlyphDrawsShared::
-glyphs(GlyphRender render,
-       const reference_counted_ptr<Painter> &painter)
-{
-  if (!render.valid())
-    {
-      render = painter->draw_glyphs(PainterData(), *m_empty_glyph_sequence);
-    }
-  return m_glyph_sequence->glyph_sequence(render);
 }
 
 /////////////////////////////////////
@@ -871,11 +843,11 @@ ready_glyph_attribute_data(void)
       simple_time timer;
 
       std::cout << "Generating and realizing glyphs of type " << m_draws[i] << "...";
-      m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], false);
+      //m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], false);
       std::cout << "took " << timer.restart() << "ms.\n";
 
       std::cout << "Uploading (or confirming upload) glyphs of type " << m_draws[i] << "...";
-      m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], true);
+      //m_draw_shared.glyph_sequence().glyph_sequence(m_draws[i], true);
       std::cout << "took " << timer.restart() << "ms.\n";
     }
 }
@@ -908,8 +880,12 @@ item_coordinates(ivec2 scr)
 
 void
 painter_glyph_test::
-stroke_glyph(const PainterData &d, Glyph G)
+stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
 {
+  Glyph G;
+
+  FASTUIDRAWassert(R.valid());
+  G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
   m_painter->stroke_path(d, G.path(),
                          true, PainterEnums::flat_caps,
                          static_cast<enum PainterEnums::join_style>(m_join_style),
@@ -918,8 +894,12 @@ stroke_glyph(const PainterData &d, Glyph G)
 
 void
 painter_glyph_test::
-fill_glyph(const PainterData &d, Glyph G)
+fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
 {
+  Glyph G;
+
+  FASTUIDRAWassert(R.valid());
+  G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
   m_painter->fill_path(d, G.path(),
                        PainterEnums::nonzero_fill_rule,
                        m_anti_alias_path_filling);
@@ -1009,7 +989,6 @@ draw_glyphs(float us)
 {
   std::vector<unsigned int> glyphs_visible;
   GlyphRender render;
-  c_array<const vec2> glyph_positions(m_draw_shared.glyph_positions());
   PainterBrush glyph_brush;
 
   glyph_brush.pen(m_fg_red.value(), m_fg_blue.value(),
@@ -1021,8 +1000,6 @@ draw_glyphs(float us)
   m_painter->shear(m_shear.x(), m_shear.y());
   m_painter->shear(m_shear2.x(), m_shear2.y());
   m_painter->rotate(m_angle * M_PI / 180.0f);
-
-  c_array<const Glyph> glyphs(m_draw_shared.glyphs(m_draws[m_current_drawer], m_painter));
 
   if (m_fill_glyphs || m_stroke_glyphs)
     {
@@ -1041,10 +1018,16 @@ draw_glyphs(float us)
 
   if (!m_fill_glyphs)
     {
-      m_draw_shared.draw_glyphs(m_draws[m_current_drawer],
-                                m_painter, PainterData(&glyph_brush));
+      render = m_draw_shared.draw_glyphs(m_draws[m_current_drawer], m_painter,
+					 PainterData(&glyph_brush));
     }
   else
+    {
+      render = m_painter->draw_glyphs(PainterData(&glyph_brush),
+				      m_draw_shared.empty_glyph_sequence());
+    }
+
+  if (m_fill_glyphs)
     {
       unsigned int src(m_current_drawer);
 
@@ -1054,14 +1037,18 @@ draw_glyphs(float us)
 
       for(unsigned int i : glyphs_visible)
         {
-          if (glyphs[i].valid())
+	  GlyphMetrics metrics;
+	  vec2 position;
+
+	  m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
+          if (metrics.valid())
             {
               m_painter->save();
-              m_painter->translate(glyph_positions[i]);
+              m_painter->translate(position);
 
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
-              sc = m_render_pixel_size.value() / glyphs[i].metrics().units_per_EM();
+              sc = m_render_pixel_size.value() / metrics.units_per_EM();
 
               /* when drawing with y-coordinate increasing downwards
                * which is the opposite coordinate system as the glyph's
@@ -1069,7 +1056,7 @@ draw_glyphs(float us)
                */
               ysign = (m_screen_orientation.value() == PainterEnums::y_increases_upwards) ? 1.0f : -1.0f;
               m_painter->shear(sc, sc * ysign);
-              fill_glyph(PainterData(pbr), glyphs[i]);
+              fill_glyph(PainterData(pbr), metrics, render);
               m_painter->restore();
             }
         }
@@ -1100,14 +1087,18 @@ draw_glyphs(float us)
 
       for(unsigned int i : glyphs_visible)
         {
-          if (glyphs[i].valid())
+          GlyphMetrics metrics;
+	  vec2 position;
+
+	  m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
+	  if (metrics.valid())
             {
               m_painter->save();
-              m_painter->translate(glyph_positions[i]);
+              m_painter->translate(position);
 
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
-              sc = m_render_pixel_size.value() / glyphs[i].metrics().units_per_EM();
+              sc = m_render_pixel_size.value() / metrics.units_per_EM();
 
               /* when drawing with y-coordinate increasing downwards
                * which is the opposite coordinate system as the glyph's
@@ -1116,7 +1107,7 @@ draw_glyphs(float us)
               ysign = (m_screen_orientation.value() == PainterEnums::y_increases_upwards) ? 1.0f : -1.0f;
               m_painter->shear(sc, sc * ysign);
 
-              stroke_glyph(PainterData(pst, pbr), glyphs[i]);
+              stroke_glyph(PainterData(pst, pbr), metrics, render);
               m_painter->restore();
             }
         }
@@ -1180,12 +1171,11 @@ draw_glyphs(float us)
       G = m_draw_shared.query_glyph_at(p, &glyph_bb);
       if (G != GenericHierarchy::not_found)
         {
-          Glyph glyph;
           GlyphMetrics metrics;
           float ratio;
+	  vec2 glyph_position;
 
-          glyph = glyphs[G];
-          metrics = glyph.metrics();
+	  m_draw_shared.glyph_sequence().added_glyph(G, &metrics, &glyph_position);
           ratio = m_render_pixel_size.value() / metrics.units_per_EM();
 
           /* start with an eol so that top line is visible */
@@ -1195,7 +1185,7 @@ draw_glyphs(float us)
 
           if (!m_fill_glyphs)
             {
-              ostr << glyph.renderer();
+              ostr << render;
             }
           else
             {
