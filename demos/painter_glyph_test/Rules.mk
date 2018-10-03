@@ -6,8 +6,6 @@ d		:= $(dir)
 
 DEMOS += painter-glyph-test
 painter-glyph-test_SOURCES := $(call filelist, main.cpp)
-painter-glyph-test_RESOURCE_STRING := $(call filelist, show_atlas.frag.glsl.resource_string \
-	show_atlas.vert.glsl.resource_string)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))
