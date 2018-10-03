@@ -100,12 +100,38 @@ namespace fastuidraw
       };
 
     /*!
+     * When packing 8-bit texel data into the geometry store,
+     * each 32-bit value of the store holds a 2x2 block of
+     * 8-bit texels. This enumeratoin describues the packing
+     * an attribute to get the texel data.
+     */
+    enum rect_glyph_layout
+      {
+	rect_width_num_bits = 8,
+	rect_height_num_bits = 8,
+	rect_x_num_bits = 8,
+	rect_y_num_bits = 8,
+
+	rect_width_bit0 = 0,
+	rect_height_bit0 = rect_width_bit0 + rect_width_num_bits,
+	rect_x_bit0 = rect_height_bit0 + rect_height_num_bits,
+	rect_y_bit0 = rect_x_bit0 + rect_x_num_bits,
+      };
+
+    /*!
      * Pack into this GlyphAttribute a GlyphLocation so that
      * the 4 corners of the location correspond with the values
      * packing into this GlyphAttribute.
      */
     void
     pack_location(GlyphLocation);
+
+    /*!
+     * Pack into this GlyphAttribute via \ref rect_glyph_layout
+     * to access texel data from the geometry store.
+     */
+    void
+    pack_texel_rect(unsigned int width, unsigned int height);
 
     /*!
      * \brief
