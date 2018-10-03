@@ -58,46 +58,6 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Enumeration to describe how a texel location within a \ref GlyphAtlas
-     * is packed.
-     */
-    enum packed_glyph_layout
-      {
-        /*!
-         * Number of bits used to describe the unnormalized x, y or z-coordinate
-         */
-        num_texel_coord_bits = GlyphAtlasTexelBackingStoreBase::log2_max_size,
-
-        /*!
-         * First bit used to describe the x-texel coordinate
-         */
-        bit0_x_texel = 0,
-
-        /*!
-         * First bit used to describe the y-texel coordinate
-         */
-        bit0_y_texel = bit0_x_texel + num_texel_coord_bits,
-
-        /*!
-         * First bit used to describe the z-texel coordinate
-         */
-        bit0_z_texel = bit0_y_texel + num_texel_coord_bits,
-
-        /*!
-         * If this bit is up, indicates that there is no texel location
-         * encoded (i.e. Glyph::atlas_locations()[K] for the packed
-         * location gives a \ref GlyphLocation for which
-         * GlyphLocation::valid() returns false
-         */
-        invalid_bit = bit0_z_texel + num_texel_coord_bits,
-
-        /*!
-         * Mask generated from \ref invalid_bit
-         */
-        invalid_mask = 1u << invalid_bit
-      };
-
-    /*!
      * Ctor. The values behind the arrays passed are NOT copied. As such
      * the memory behind the arrays need to stay in scope for the duration
      * of the call to PainterAttributeData::set_data() when passed this.
