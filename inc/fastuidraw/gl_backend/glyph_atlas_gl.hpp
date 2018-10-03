@@ -37,10 +37,7 @@ namespace gl
    * for \ref GlyphAtlas.
    *
    * A GlyphAtlasGL on creation, creates an object derived from \ref
-   * GlyphAtlasTexelBackingStoreBase and an object derived from \ref
-   * GlyphAtlasGeometryBackingStoreBase. The texels of the \ref
-   * GlyphAtlasTexelBackingStoreBase derived object are backed by a
-   * GL_TEXTURE_2D_ARRAY texture.
+   * GlyphAtlasGeometryBackingStoreBase.
    *
    * The method flush() must be called with a GL context current.
    * If the GlyphAtlasGL was constructed delayed, then the loading
@@ -85,19 +82,6 @@ namespace gl
        */
       void
       swap(params &obj);
-
-      /*!
-       * Initial dimension for the texel backing store,
-       * initial value is (1024, 1024, 16)
-       */
-      ivec3
-      texel_store_dimensions(void) const;
-
-      /*!
-       * Set the value for texel_store_dimensions(void) const
-       */
-      params&
-      texel_store_dimensions(ivec3 v);
 
       /*!
        * Number floats that can be held in the geometry data
@@ -201,22 +185,6 @@ namespace gl
     GlyphAtlasGL(const params &P);
 
     ~GlyphAtlasGL();
-
-    /*!
-     * Returns the GL texture ID of the GlyphAtlasTexelBackingStoreBase
-     * derived object used by this GlyphAtlasGL. If the
-     * GlyphAtlasGL was constructed as delayed, then the first time
-     * texel_texture() is called, a GL context must be current (and that
-     * GL context is the context to which the texture will belong).
-     * \param as_integer if true, returns a view to the texture whose internal
-     *                   format is GL_R8UI. If false returns a view to the
-     *                   texture whose internal format is GL_R8. NOTE:
-     *                   if the GL implementation does not support the
-     *                   glTextureView API (in ES via GL_OES_texture_view),
-     *                   will return 0 if as_integer is false.
-     */
-    GLuint
-    texel_texture(bool as_integer) const;
 
     /*!
      * Returns true if and only if the GlyphAtlasGeometryBackingStoreBase

@@ -24,7 +24,6 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/path.hpp>
-#include <fastuidraw/text/glyph_location.hpp>
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include <fastuidraw/text/glyph_metrics.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>

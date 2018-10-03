@@ -22,11 +22,9 @@
 #include <stdint.h>
 
 #include <fastuidraw/util/util.hpp>
-#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
-#include <fastuidraw/text/glyph_location.hpp>
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include <fastuidraw/text/glyph_atlas_proxy.hpp>
 
@@ -153,7 +151,6 @@ namespace fastuidraw
     /*!
      * To be implemented by a derived class to upload data to a
      * GlyphAtlas.
-     * and clear the passed GlyphLocation::Array object.
      * \param atlas_proxy GlyphAtlasProxy to which to upload data
      * \param attributes (output) glyph attributes (see Glyph::attributes())
      */

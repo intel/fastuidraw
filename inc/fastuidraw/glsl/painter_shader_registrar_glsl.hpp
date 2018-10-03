@@ -364,36 +364,6 @@ namespace fastuidraw
         image_atlas_index_tiles(unsigned int);
 
         /*!
-         * Specifies the binding point for the usampler2DArray
-         * backed by GlyphAtlas::texel_store().
-         */
-        unsigned int
-        glyph_atlas_texel_store_uint(void) const;
-
-        /*!
-         * Set the value returned by glyph_atlas_texel_store_uint(void) const.
-         * Default value is 4.
-         */
-        BindingPoints&
-        glyph_atlas_texel_store_uint(unsigned int);
-
-        /*!
-         * Specifies the binding point for the sampler2DArray
-         * backed by GlyphAtlas::texel_store(). Only active
-         * if UberShaderParams::have_float_glyph_texture_atlas()
-         * is true.
-         */
-        unsigned int
-        glyph_atlas_texel_store_float(void) const;
-
-        /*!
-         * Set the value returned by glyph_atlas_texel_store_float(void) const.
-         * Default value is 5.
-         */
-        BindingPoints&
-        glyph_atlas_texel_store_float(unsigned int);
-
-        /*!
          * Specifies the binding point for the sampler2DArray
          * or samplerBuffer backed by GlyphAtlas::geometry_store().
          * The data type for the uniform is decided from the value
@@ -407,7 +377,7 @@ namespace fastuidraw
         /*!
          * Set the value returned by
          * glyph_atlas_geometry_store_texture(void) const.
-         * Default value is 6.
+         * Default value is 4.
          */
         BindingPoints&
         glyph_atlas_geometry_store_texture(unsigned int);
@@ -464,7 +434,7 @@ namespace fastuidraw
 
         /*!
          * Set the value returned by data_store_buffer_tbo(void) const.
-         * Default value is 7.
+         * Default value is 5.
          */
         BindingPoints&
         data_store_buffer_tbo(unsigned int);
@@ -872,20 +842,6 @@ namespace fastuidraw
         glyph_geometry_backing_log2_dims(ivec2);
 
         /*!
-         * If true, can access the data of GlyphAtlas::texel_store() as a
-         * sampler2DArray as well.
-         */
-        bool
-        have_float_glyph_texture_atlas(void) const;
-
-        /*!
-         * Set the value returned by have_float_glyph_texture_atlas(void) const.
-         * Default value is true.
-         */
-        UberShaderParams&
-        have_float_glyph_texture_atlas(bool);
-
-        /*!
          * Specifies how the bakcing store to the color stop atlas
          * (ColorStopAtlas::backing_store()) is accessed from the
          * uber-shaders.
@@ -1009,32 +965,6 @@ namespace fastuidraw
         swap(BackendConstants &obj);
 
         /*!
-         * Should be the same value as GlyphAtlasTexelBackingStoreBase::dimensions() .x()
-         * of GlyphAtlas::texel_store()
-         */
-        int
-        glyph_atlas_texel_store_width(void) const;
-
-        /*!
-         * Set the value returned by glyph_atlas_texel_store_width(void) const.
-         */
-        BackendConstants&
-        glyph_atlas_texel_store_width(int);
-
-        /*!
-         * Should be the same value as GlyphAtlasTexelBackingStoreBase::dimensions() .y()
-         * of GlyphAtlas::texel_store()
-         */
-        int
-        glyph_atlas_texel_store_height(void) const;
-
-        /*!
-         * Set the value returned by glyph_atlas_texel_store_height(void) const.
-         */
-        BackendConstants&
-        glyph_atlas_texel_store_height(int);
-
-        /*!
          * Should be the same value as AtlasColorBackingStoreBase::dimensions() .x()
          * of ImageAtlas::color_store()
          */
@@ -1111,13 +1041,6 @@ namespace fastuidraw
          */
         BackendConstants&
         set_from_atlas(const reference_counted_ptr<ImageAtlas> &p);
-
-        /*!
-         * Set all values of this BackendConstant by taking values
-         * from a PainterBackend.
-         */
-        BackendConstants&
-        set_from_atlas(const reference_counted_ptr<GlyphAtlas> &p);
 
         /*!
          * Set all values of this BackendConstant by taking values

@@ -405,14 +405,6 @@ ShaderSetCreator(enum PainterCompositeShader::shader_type composite_tp,
     }
 
   m_common_glyph_attribute_macros
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_X_BIT0", uint32_t(GlyphAttribute::bit0_x_texel))
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_Y_BIT0", uint32_t(GlyphAttribute::bit0_y_texel))
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_Z_BIT0", uint32_t(GlyphAttribute::bit0_z_texel))
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_X_NUMBITS", uint32_t(GlyphAttribute::num_texel_coord_bits))
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_Y_NUMBITS", uint32_t(GlyphAttribute::num_texel_coord_bits))
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_Z_NUMBITS", uint32_t(GlyphAttribute::num_texel_coord_bits))
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_INVALID_MASK", uint32_t(GlyphAttribute::invalid_mask))
-
     .add_macro("FASTUIDRAW_GLYPH_RECT_WIDTH_NUMBITS", uint32_t(GlyphAttribute::rect_width_num_bits))
     .add_macro("FASTUIDRAW_GLYPH_RECT_HEIGHT_NUMBITS", uint32_t(GlyphAttribute::rect_height_num_bits))
     .add_macro("FASTUIDRAW_GLYPH_RECT_X_NUMBITS", uint32_t(GlyphAttribute::rect_x_num_bits))

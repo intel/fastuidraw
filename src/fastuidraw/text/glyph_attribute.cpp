@@ -20,46 +20,6 @@
 
 void
 fastuidraw::GlyphAttribute::
-pack_location(GlyphLocation G)
-{
-  if (G.valid())
-    {
-      ivec2 p(G.location()), sz(G.size());
-      int layer(G.layer());
-
-      for (unsigned int c = 0; c < 4; ++c)
-        {
-          uint32_t xbits, ybits, zbits;
-          ivec2 q(p);
-
-          if (c & right_corner_mask)
-            {
-              q.x() += sz.x();
-            }
-
-          if (c & top_corner_mask)
-            {
-              q.y() += sz.y();
-            }
-
-          xbits = pack_bits(bit0_x_texel, num_texel_coord_bits, q.x());
-          ybits = pack_bits(bit0_y_texel, num_texel_coord_bits, q.y());
-          zbits = pack_bits(bit0_z_texel, num_texel_coord_bits, layer);
-
-          m_data[c] = xbits | ybits| zbits;
-        }
-    }
-  else
-    {
-      for (int c = 0; c < 4; ++c)
-        {
-          m_data[c] = invalid_mask;
-        }
-    }
-}
-
-void
-fastuidraw::GlyphAttribute::
 pack_texel_rect(unsigned int width, unsigned int height)
 {
   for (unsigned int c = 0; c < 4; ++c)

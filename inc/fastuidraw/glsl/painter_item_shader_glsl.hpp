@@ -394,8 +394,6 @@ namespace fastuidraw
      *  - sampler2DArray fastuidraw_imageAtlasLinear the color texels (AtlasColorBackingStoreBase) for images unfiltered
      *  - sampler2DArray fastuidraw_imageAtlasLinearFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
      *  - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
-     *  - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available
-     *    if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
      *  - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer
      *    (PainterDraw::m_store), return as uvec4. To get floating point data use, the GLSL
      *    built-in function uintBitsToFloat().

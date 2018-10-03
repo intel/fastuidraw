@@ -29,46 +29,6 @@
 
 namespace
 {
-  class TexelStoreGL:public fastuidraw::GlyphAtlasTexelBackingStoreBase
-  {
-  public:
-    TexelStoreGL(fastuidraw::ivec3 dims, bool delayed);
-
-    ~TexelStoreGL(void);
-
-    void
-    set_data(int x, int y, int l, int w, int h,
-             fastuidraw::c_array<const uint8_t> data);
-
-    void
-    flush(void)
-    {
-      m_backing_store.flush();
-    }
-
-    GLuint
-    texture(bool as_integer) const;
-
-    static
-    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase>
-    create(fastuidraw::ivec3 dims, bool delayed);
-
-  protected:
-
-    virtual
-    void
-    resize_implement(int new_num_layers);
-
-
-  private:
-    typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
-                                              GL_R8UI, GL_RED_INTEGER,
-                                              GL_UNSIGNED_BYTE,
-                                              GL_NEAREST, GL_NEAREST> TextureGL;
-    TextureGL m_backing_store;
-    mutable GLuint m_texture_as_r8;
-  };
-
   class GeometryStoreGL:public fastuidraw::GlyphAtlasGeometryBackingStoreBase
   {
   public:
@@ -205,14 +165,12 @@ namespace
   {
   public:
     GlyphAtlasGLParamsPrivate(void):
-      m_texel_store_dimensions(1024, 1024, 16),
       m_number_floats(1024 * 1024),
       m_delayed(false),
       m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo),
       m_log2_dims_geometry_store(-1, -1)
     {}
 
-    fastuidraw::ivec3 m_texel_store_dimensions;
     unsigned int m_number_floats;
     bool m_delayed;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t m_type;
@@ -229,150 +187,6 @@ namespace
 
     fastuidraw::gl::GlyphAtlasGL::params m_params;
   };
-}
-
-
-
-/////////////////////////////////////////
-// TexelStoreGL methods
-TexelStoreGL::
-TexelStoreGL(fastuidraw::ivec3 dims, bool delayed):
-  fastuidraw::GlyphAtlasTexelBackingStoreBase(dims, true),
-  m_backing_store(dims, delayed),
-  m_texture_as_r8(0)
-{
-  /* clear the right and bottom border
-   * of the texture
-   */
-  std::vector<uint8_t> right(dims.y(), 0), bottom(dims.x(), 0);
-  for(int layer = 0; layer < dims.z(); ++layer)
-    {
-      set_data(dims.x() - 1, 0, layer, //top right
-               1, dims.y(), //entire height
-               fastuidraw::make_c_array(right));
-
-      set_data(0, dims.y() - 1, layer, //bottom left
-               dims.x() - 1, 1, //entire width
-               fastuidraw::make_c_array(bottom));
-    }
-}
-
-TexelStoreGL::
-~TexelStoreGL(void)
-{
-  if (m_texture_as_r8 != 0)
-    {
-      glDeleteTextures(1, &m_texture_as_r8);
-    }
-}
-
-void
-TexelStoreGL::
-resize_implement(int new_num_layers)
-{
-  fastuidraw::ivec3 dims(dimensions());
-  int old_num_layers(dims.z());
-
-  if (m_texture_as_r8 != 0)
-    {
-      /* a resize generates a new texture which then has
-       * a new backing store. The texture view would then
-       * be using the old backing store which is useless.
-       * We delete the old texture view and let texture()
-       * recreate the view on demand.
-       */
-      glDeleteTextures(1, &m_texture_as_r8);
-      m_texture_as_r8 = 0;
-    }
-
-  dims.z() = new_num_layers;
-  m_backing_store.resize(dims);
-
-  std::vector<uint8_t> right(dims.y(), 0), bottom(dims.x(), 0);
-  for(int layer = old_num_layers; layer < new_num_layers; ++layer)
-    {
-      set_data(dims.x() - 1, 0, layer, //top right
-               1, dims.y(), //entire height
-               fastuidraw::make_c_array(right));
-
-      set_data(0, dims.y() - 1, layer, //bottom left
-               dims.x() - 1, 1, //entire width
-               fastuidraw::make_c_array(bottom));
-    }
-}
-
-void
-TexelStoreGL::
-set_data(int x, int y, int l, int w, int h,
-         fastuidraw::c_array<const uint8_t> data)
-{
-  TextureGL::EntryLocation V;
-
-  V.m_location.x() = x;
-  V.m_location.y() = y;
-  V.m_location.z() = l;
-  V.m_size.x() = w;
-  V.m_size.y() = h;
-  V.m_size.z() = 1;
-  m_backing_store.set_data_c_array(V, data);
-}
-
-GLuint
-TexelStoreGL::
-texture(bool as_integer) const
-{
-  GLuint tex_as_r8ui;
-  tex_as_r8ui = m_backing_store.texture();
-
-  FASTUIDRAWassert(tex_as_r8ui != 0);
-
-  if (as_integer)
-    {
-      return tex_as_r8ui;
-    }
-
-  if (m_texture_as_r8 == 0)
-    {
-      enum fastuidraw::gl::detail::texture_view_support_t md;
-
-      md = fastuidraw::gl::detail::compute_texture_view_support();
-      if (md != fastuidraw::gl::detail::texture_view_not_supported)
-        {
-          glGenTextures(1, &m_texture_as_r8);
-          FASTUIDRAWassert(m_texture_as_r8 != 0);
-
-          fastuidraw::gl::detail::texture_view(md,
-                                              m_texture_as_r8, //texture to become view
-                                              GL_TEXTURE_2D_ARRAY, //texture target for m_texture_as_r8
-                                              tex_as_r8ui, //source of backing store for m_texture_as_r8
-                                              GL_R8, //internal format for m_texture_as_r8
-                                              0, //mipmap level start
-                                              1, //number of mips to take
-                                              0, //min layer
-                                              dimensions().z()); //number layers to take
-
-          glBindTexture(GL_TEXTURE_2D_ARRAY, m_texture_as_r8);
-          glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-          glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-          /* we do GL_REPEAT because glyphs are stored with padding (always to
-           * right/bottom). This way filtering works.
-           */
-          glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-          glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-          glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_REPEAT);
-        }
-    }
-  return m_texture_as_r8;
-}
-
-fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase>
-TexelStoreGL::
-create(fastuidraw::ivec3 dims, bool delayed)
-{
-  TexelStoreGL *p;
-  p = FASTUIDRAWnew TexelStoreGL(dims, delayed);
-  return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase>(p);
 }
 
 ///////////////////////////////////////////////
@@ -741,24 +555,6 @@ use_optimal_geometry_store_backing(void)
   return *this;
 }
 
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-texel_store_dimensions(ivec3 v)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-
-  const int max_size(GlyphAtlasTexelBackingStoreBase::max_size);
-  d->m_texel_store_dimensions.x() = t_min(v.x(), max_size);
-  d->m_texel_store_dimensions.y() = t_min(v.y(), max_size);
-  d->m_texel_store_dimensions.z() = t_min(v.z(), max_size);
-
-  return *this;
-}
-
-get_implement(fastuidraw::gl::GlyphAtlasGL::params,
-              GlyphAtlasGLParamsPrivate,
-              fastuidraw::ivec3, texel_store_dimensions);
 setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
                  GlyphAtlasGLParamsPrivate,
                  unsigned int, number_floats);
@@ -770,8 +566,7 @@ setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
 // fastuidraw::gl::GlyphAtlasGL methods
 fastuidraw::gl::GlyphAtlasGL::
 GlyphAtlasGL(const params &P):
-  GlyphAtlas(TexelStoreGL::create(P.texel_store_dimensions(), P.delayed()),
-             GeometryStoreGL::create(P))
+  GlyphAtlas(GeometryStoreGL::create(P))
 {
   m_d = FASTUIDRAWnew GlyphAtlasGLPrivate(P);
 }
@@ -792,17 +587,6 @@ param_values(void) const
   GlyphAtlasGLPrivate *d;
   d = static_cast<GlyphAtlasGLPrivate*>(m_d);
   return d->m_params;
-}
-
-GLuint
-fastuidraw::gl::GlyphAtlasGL::
-texel_texture(bool as_integer) const
-{
-  flush();
-  const TexelStoreGL *p;
-  FASTUIDRAWassert(dynamic_cast<const TexelStoreGL*>(texel_store().get()));
-  p = static_cast<const TexelStoreGL*>(texel_store().get());
-  return p->texture(as_integer);
 }
 
 GLenum

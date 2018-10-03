@@ -286,12 +286,6 @@ sdl_painter_demo(const std::string &about_text,
                                *this),
 
   m_glyph_atlas_options("Glyph Atlas options", *this),
-  m_texel_store_width(m_glyph_atlas_params.texel_store_dimensions().x(),
-                      "texel_store_width", "width of texel store", *this),
-  m_texel_store_height(m_glyph_atlas_params.texel_store_dimensions().y(),
-                       "texel_store_height", "height of texel store", *this),
-  m_texel_store_num_layers(m_glyph_atlas_params.texel_store_dimensions().z(),
-                           "texel_store_num_layers", "number of layers of texel store", *this),
   m_geometry_store_size(m_glyph_atlas_params.number_floats(),
                         "geometry_store_size", "size of geometry store in floats", *this),
   m_glyph_atlas_delayed_upload(m_glyph_atlas_params.delayed(),
@@ -571,12 +565,7 @@ init_gl(int w, int h)
     .delayed(m_image_atlas_delayed_upload.value());
   m_image_atlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(m_image_atlas_params);
 
-  fastuidraw::ivec3 texel_dims(m_texel_store_width.value(),
-                               m_texel_store_height.value(),
-                               m_texel_store_num_layers.value());
-
   m_glyph_atlas_params
-    .texel_store_dimensions(texel_dims)
     .number_floats(m_geometry_store_size.value())
     .delayed(m_glyph_atlas_delayed_upload.value());
 

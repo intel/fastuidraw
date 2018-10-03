@@ -865,7 +865,6 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     .data_blocks_per_store_buffer(params.data_blocks_per_store_buffer())
     .glyph_geometry_backing(params.glyph_atlas()->param_values().glyph_geometry_backing_store_type())
     .glyph_geometry_backing_log2_dims(params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
-    .have_float_glyph_texture_atlas(params.glyph_atlas()->texel_texture(false) != 0)
     .colorstop_atlas_backing(colorstop_tp)
     .provide_auxiliary_image_buffer(params.provide_auxiliary_image_buffer())
     .use_uvec2_for_bindless_handle(ctx.has_extension("GL_ARB_bindless_texture"));
@@ -1109,14 +1108,6 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_index_tiles());
       glBindSampler(binding_points.image_atlas_index_tiles(), 0);
       glBindTexture(GL_TEXTURE_2D_ARRAY, image->index_texture());
-
-      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_uint());
-      glBindSampler(binding_points.glyph_atlas_texel_store_uint(), 0);
-      glBindTexture(GL_TEXTURE_2D_ARRAY, glyphs->texel_texture(true));
-
-      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_float());
-      glBindSampler(binding_points.glyph_atlas_texel_store_float(), 0);
-      glBindTexture(GL_TEXTURE_2D_ARRAY, glyphs->texel_texture(false));
 
       if (glyphs->geometry_backed_by_texture())
         {
@@ -1873,12 +1864,6 @@ on_post_draw(void)
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
   glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_index_tiles());
-  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_uint());
-  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_float());
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
   GlyphAtlasGL *glyphs;

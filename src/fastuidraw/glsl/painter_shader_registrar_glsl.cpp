@@ -64,8 +64,6 @@ namespace
   {
   public:
     BackendConstantsPrivate(void):
-      m_glyph_atlas_texel_store_width(0),
-      m_glyph_atlas_texel_store_height(0),
       m_image_atlas_color_store_width(0),
       m_image_atlas_color_store_height(0),
       m_image_atlas_index_tile_size(0),
@@ -73,8 +71,6 @@ namespace
       m_colorstop_atlas_store_width(0)
     {}
 
-    int m_glyph_atlas_texel_store_width;
-    int m_glyph_atlas_texel_store_height;
     int m_image_atlas_color_store_width;
     int m_image_atlas_color_store_height;
     int m_image_atlas_index_tile_size;
@@ -90,11 +86,9 @@ namespace
       m_image_atlas_color_tiles_nearest(1),
       m_image_atlas_color_tiles_linear(2),
       m_image_atlas_index_tiles(3),
-      m_glyph_atlas_texel_store_uint(4),
-      m_glyph_atlas_texel_store_float(5),
-      m_glyph_atlas_geometry_store_texture(6),
-      m_data_store_buffer_tbo(7),
-      m_external_texture(8),
+      m_glyph_atlas_geometry_store_texture(4),
+      m_data_store_buffer_tbo(5),
+      m_external_texture(6),
       m_data_store_buffer_ubo(0),
       m_uniforms_ubo(1),
       m_glyph_atlas_geometry_store_ssbo(0),
@@ -108,8 +102,6 @@ namespace
     unsigned int m_image_atlas_color_tiles_nearest;
     unsigned int m_image_atlas_color_tiles_linear;
     unsigned int m_image_atlas_index_tiles;
-    unsigned int m_glyph_atlas_texel_store_uint;
-    unsigned int m_glyph_atlas_texel_store_float;
     unsigned int m_glyph_atlas_geometry_store_texture;
     unsigned int m_data_store_buffer_tbo;
     unsigned int m_external_texture;
@@ -413,14 +405,6 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
-    .add_macro("fastuidraw_glyphTexelStore_size_x", backend.glyph_atlas_texel_store_width())
-    .add_macro("fastuidraw_glyphTexelStore_size_y", backend.glyph_atlas_texel_store_height())
-    .add_macro("fastuidraw_glyphTexelStore_size",
-               "ivec2(fastuidraw_glyphTexelStore_size_x, fastuidraw_glyphTexelStore_size_y)")
-    .add_macro("fastuidraw_glyphTexelStore_size_reciprocal_x", "(1.0 / float(fastuidraw_glyphTexelStore_size_x) )")
-    .add_macro("fastuidraw_glyphTexelStore_size_reciprocal_y", "(1.0 / float(fastuidraw_glyphTexelStore_size_y) )")
-    .add_macro("fastuidraw_glyphTexelStore_size_reciprocal",
-               "vec2(fastuidraw_glyphTexelStore_size_reciprocal_x, fastuidraw_glyphTexelStore_size_reciprocal_y)")
 
     .add_macro("fastuidraw_imageAtlasLinear_size_x", backend.image_atlas_color_store_width())
     .add_macro("fastuidraw_imageAtlasLinear_size_y", backend.image_atlas_color_store_height())
@@ -953,12 +937,6 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
       FASTUIDRAWassert(!"Invalid data_store_backing() value");
     }
 
-  if (!params.have_float_glyph_texture_atlas())
-    {
-      vert.add_macro("FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT");
-      frag.add_macro("FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT");
-    }
-
   switch(params.glyph_geometry_backing())
     {
     case PainterShaderRegistrarGLSL::glyph_geometry_texture_array:
@@ -1026,8 +1004,6 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", binding_params.image_atlas_color_tiles_linear())
     .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", binding_params.image_atlas_color_tiles_nearest())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
     .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store(params.glyph_geometry_backing()))
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
@@ -1110,8 +1086,6 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", binding_params.image_atlas_color_tiles_linear())
     .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", binding_params.image_atlas_color_tiles_nearest())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
-    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
     .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store(params.glyph_geometry_backing()))
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
@@ -1327,23 +1301,8 @@ set_from_backend(PainterBackend *p)
 {
   if (p)
     {
-      set_from_atlas(p->glyph_atlas());
       set_from_atlas(p->image_atlas());
       set_from_atlas(p->colorstop_atlas());
-    }
-  return *this;
-}
-
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants&
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
-set_from_atlas(const reference_counted_ptr<GlyphAtlas> &p)
-{
-  if (p)
-    {
-      BackendConstantsPrivate *d;
-      d = static_cast<BackendConstantsPrivate*>(m_d);
-      d->m_glyph_atlas_texel_store_width = p->texel_store()->dimensions().x();
-      d->m_glyph_atlas_texel_store_height = p->texel_store()->dimensions().y();
     }
   return *this;
 }
@@ -1379,10 +1338,6 @@ set_from_atlas(const reference_counted_ptr<ColorStopAtlas> &p)
 
 assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants)
 
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
-                 BackendConstantsPrivate, int, glyph_atlas_texel_store_width)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
-                 BackendConstantsPrivate, int, glyph_atlas_texel_store_height)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
                  BackendConstantsPrivate, int, image_atlas_color_store_width)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
@@ -1458,10 +1413,6 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoint
                  BindingPointsPrivate, unsigned int, image_atlas_color_tiles_nearest)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
                  BindingPointsPrivate, unsigned int, image_atlas_index_tiles)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, glyph_atlas_texel_store_uint)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, glyph_atlas_texel_store_float)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
                  BindingPointsPrivate, unsigned int, glyph_atlas_geometry_store_texture)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
@@ -1566,8 +1517,6 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t, glyph_geometry_backing)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, bool, have_float_glyph_texture_atlas)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t, colorstop_atlas_backing)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,

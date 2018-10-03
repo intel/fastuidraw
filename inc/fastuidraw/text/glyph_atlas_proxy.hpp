@@ -31,27 +31,11 @@ namespace fastuidraw
   /*!
    * !\brief
    * An \ref GlyphAtlasProxy is a proxy for a GlyphAtlas; one can allocate
-   * through it both geometry data and texel data. Internally it tracks
-   * all that was allocated with it.
+   * through it. Internally it tracks all that was allocated with it.
    */
   class GlyphAtlasProxy:noncopyable
   {
   public:
-    /*!
-     * Conveniance typedef to GlyphAtlas::Padding
-     */
-    typedef GlyphAtlas::Padding Padding;
-
-    /*!
-     * Allocate a rectangular region. If allocation is not possible,
-     * return a GlyphLocation where GlyphLocation::valid() is false.
-     * \param size size of region to allocate
-     * \param data data to which to set the region allocated
-     * \param padding amount of padding the passed data has
-     */
-    GlyphLocation
-    allocate(ivec2 size, c_array<const uint8_t> data, const Padding &padding);
-
     /*!
      * Negative return value indicates failure.
      */

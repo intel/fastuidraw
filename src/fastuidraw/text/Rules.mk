@@ -4,9 +4,6 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-dir := $(d)/private
-include $(dir)/Rules.mk
-
 FASTUIDRAW_SOURCES += $(call filelist, glyph_atlas.cpp \
 	glyph_sequence.cpp font.cpp \
 	glyph_attribute.cpp \

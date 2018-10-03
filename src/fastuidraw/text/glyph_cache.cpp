@@ -45,7 +45,6 @@ namespace
       m_cache(c)
     {}
 
-    std::vector<fastuidraw::GlyphLocation> m_texel_locations;
     std::vector<GeometryDataAlloc> m_geometry_locations;
     GlyphCachePrivate *m_cache;
   };
@@ -344,12 +343,6 @@ remove_from_atlas(void)
 {
   if (m_cache)
     {
-      for (const fastuidraw::GlyphLocation &g : m_texel_locations)
-        {
-          m_cache->m_atlas->deallocate(g);
-        }
-      m_texel_locations.clear();
-
       for (const GeometryDataAlloc &g : m_geometry_locations)
         {
           m_cache->m_atlas->deallocate_geometry_data(g.m_location, g.m_size);
@@ -399,7 +392,6 @@ upload_to_atlas(fastuidraw::GlyphAtlasProxy &S,
     }
 
   FASTUIDRAWassert(m_glyph_data);
-  FASTUIDRAWassert(m_texel_locations.empty());
   FASTUIDRAWassert(m_attributes.empty());
 
   return_value = m_glyph_data->upload_to_atlas(S, T);
@@ -441,22 +433,6 @@ GlyphCachePrivate::
 
 //////////////////////////////////////////////
 // fastuidraw::GlyphAtlasProxy methods
-fastuidraw::GlyphLocation
-fastuidraw::GlyphAtlasProxy::
-allocate(ivec2 size, c_array<const uint8_t> data, const Padding &padding)
-{
-  GlyphLocation L;
-  GlyphAtlasProxyPrivate *d;
-
-  d = static_cast<GlyphAtlasProxyPrivate*>(m_d);
-  L = d->m_cache->m_atlas->allocate(size, data, padding);
-  if (L.valid())
-    {
-      d->m_texel_locations.push_back(L);
-    }
-  return L;
-}
-
 int
 fastuidraw::GlyphAtlasProxy::
 allocate_geometry_data(c_array<const generic_data> pdata)
@@ -1027,7 +1003,6 @@ clear_atlas(void)
   for(GlyphDataPrivate *g : d->m_glyphs.data())
     {
       g->m_uploaded_to_atlas = false;
-      g->m_texel_locations.clear();
       g->m_geometry_locations.clear();
     }
 }

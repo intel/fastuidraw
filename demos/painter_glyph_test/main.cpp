@@ -179,9 +179,6 @@ private:
   void
   ready_glyph_attribute_data(void);
 
-  void
-  ready_atlas_drawer(void);
-
   float
   update_cts_params(void);
 
@@ -193,9 +190,6 @@ private:
 
   void
   draw_glyphs(float us);
-
-  void
-  draw_atlas(float us);
 
   vec2
   item_coordinates(ivec2 src);
@@ -227,7 +221,6 @@ private:
    * to auto-choose how to render the glyphs.
    */
   vecN<GlyphRender, draw_glyph_auto + 1> m_draws;
-  bool m_draw_glyphs;
   unsigned int m_glyph_texel_page;
 
   bool m_stroke_glyphs, m_fill_glyphs;
@@ -240,12 +233,7 @@ private:
   vec2 m_shear, m_shear2;
   float m_angle;
 
-  reference_counted_ptr<PainterItemShader> m_atlas_shader;
-  vecN<PainterAttribute, 4> m_draw_atlas_attributes;
-  vecN<PainterIndex, 6> m_draw_atlas_indices;
-
   PanZoomTrackerSDLEvent m_zoomer;
-  PanZoomTrackerSDLEvent m_atlas_zoomer;
   simple_time m_draw_timer;
 };
 
@@ -546,7 +534,6 @@ painter_glyph_test(void):
                       "y_orientation",
                       "Determine y-coordiante convention",
                       *this),
-  m_draw_glyphs(true),
   m_glyph_texel_page(0),
   m_stroke_glyphs(false),
   m_fill_glyphs(false),
@@ -570,10 +557,7 @@ painter_glyph_test(void):
             << "\tw: Toggle anti-aliasing stroked path rendering\n"
             << "\tp: Toggle pixel width stroking\n"
             << "\tz: reset zoom factor to 1.0\n"
-            << "\tg: toggle drawing glyphs or glyph texel atlas\n"
-            << "\tn: show next page in glyph atlas\n"
-            << "\tctrl-n: show previous page in glyph atlas\n"
-            << "\ts: toggle stroking glyph path\n"
+	    << "\ts: toggle stroking glyph path\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tl: draw Painter stats\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -647,43 +631,6 @@ create_and_add_font(void)
 
 void
 painter_glyph_test::
-ready_atlas_drawer(void)
-{
-  m_atlas_shader =
-    FASTUIDRAWnew glsl::PainterItemShaderGLSL(false,
-                                              glsl::ShaderSource()
-                                              .add_source("show_atlas.vert.glsl.resource_string", glsl::ShaderSource::from_resource),
-                                              glsl::ShaderSource()
-                                              .add_source("show_atlas.frag.glsl.resource_string", glsl::ShaderSource::from_resource),
-                                              glsl::varying_list()
-                                              .add_float_varying("show_atlas_tex_coords_x")
-                                              .add_float_varying("show_atlas_tex_coords_y")
-                                              .add_float_varying("show_atlas_tex_coords_layer"));
-  m_painter->painter_shader_registrar()->register_shader(m_atlas_shader);
-
-  ivec3 dims(m_glyph_atlas->texel_store()->dimensions());
-
-  m_draw_atlas_attributes[0].m_attrib0 = uvec4(0u, 0u, 0u, 0u);
-  m_draw_atlas_attributes[1].m_attrib0 = uvec4(dims.x(), 0u, 0u, 0u);
-  m_draw_atlas_attributes[2].m_attrib0 = uvec4(dims.x(), dims.y(), 0u, 0u);
-  m_draw_atlas_attributes[3].m_attrib0 = uvec4(0, dims.y(), 0u, 0u);
-
-  for (int i = 0; i < 4; ++i)
-    {
-      m_draw_atlas_attributes[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
-      m_draw_atlas_attributes[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
-    }
-
-  m_draw_atlas_indices[0] = 0;
-  m_draw_atlas_indices[1] = 1;
-  m_draw_atlas_indices[2] = 2;
-  m_draw_atlas_indices[3] = 0;
-  m_draw_atlas_indices[4] = 2;
-  m_draw_atlas_indices[5] = 3;
-}
-
-void
-painter_glyph_test::
 derived_init(int w, int h)
 {
   FASTUIDRAWunused(w);
@@ -699,7 +646,6 @@ derived_init(int w, int h)
   m_change_stroke_width_rate.value() /= (1000.0f * 1000.0f);
 
   ready_glyph_attribute_data();
-  ready_atlas_drawer();
   m_draw_timer.restart();
 
   if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
@@ -734,7 +680,6 @@ realize_all_glyphs(GlyphRender renderer)
       std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
     }
 
-  unsigned int pre_texels_allocated(m_glyph_atlas->number_texels_allocated());
   unsigned int pre_num_elements(m_glyph_atlas->geometry_data_allocated());
 
   std::cout << "Uploading to atlas ..." << std::flush;
@@ -744,19 +689,10 @@ realize_all_glyphs(GlyphRender renderer)
     }
   std::cout << "took " << timer.restart() << " ms\n";
 
-  unsigned int texels_allocated(m_glyph_atlas->number_texels_allocated());
-  ivec3 texel_store_dims(m_glyph_atlas->texel_store()->dimensions());
-  int num_texels_total(texel_store_dims.x() * texel_store_dims.y() * texel_store_dims.z());
-  float fract_allocated(float(texels_allocated) / float(num_texels_total));
   unsigned int num_elements(m_glyph_atlas->geometry_data_allocated());
 
   std::cout << "Used " << num_elements - pre_num_elements << " additional geometry data elements\n"
-            << "Used " << texels_allocated - pre_texels_allocated << " additional texels\n"
-            << "Number texel nodes total = " << m_glyph_atlas->number_nodes()
-            << ", bytes total used = " << m_glyph_atlas->bytes_used_by_nodes() << "\n"
-            << "Texels allocated total = " << texels_allocated << " of "
-            << num_texels_total << " (" << 100.0f * fract_allocated
-            << "%)\nBytes geometry data total allocated = "
+	    << "Total bytes geometry data total allocated = "
             << num_elements * sizeof(generic_data)
             << "\n--------------------------------------\n\n";
 }
@@ -882,71 +818,11 @@ draw_frame(void)
                               m_bg_green.value(),
                               m_bg_blue.value(),
                               1.0f));
-  if (m_draw_glyphs)
-    {
-      draw_glyphs(us);
-    }
-  else
-    {
-      draw_atlas(us);
-    }
+  draw_glyphs(us);
+
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   m_surface->blit_surface(GL_NEAREST);
-}
-
-void
-painter_glyph_test::
-draw_atlas(float us)
-{
-  PainterBrush brush;
-
-  for (int i = 0; i < 4; ++i)
-    {
-      m_draw_atlas_attributes[i].m_attrib0.z() = m_glyph_texel_page;
-    }
-
-  m_painter->begin(m_surface, m_screen_orientation.value());
-  m_painter->save();
-  m_atlas_zoomer.transformation().concat_to_painter(m_painter);
-  m_painter->draw_generic(m_atlas_shader, PainterData(&brush),
-                          m_draw_atlas_attributes, m_draw_atlas_indices, 0);
-  m_painter->restore();
-
-
-  std::ostringstream ostr;
-  /* start with an eol so that top line is visible */
-  ostr << "\nShowing Texel Page " << m_glyph_texel_page
-       << " / " << m_glyph_atlas->texel_store()->dimensions().z()
-       << "\nFPS = ";
-  if (us > 0.0f)
-    {
-      ostr << 1000.0f * 1000.0f / us;
-    }
-  else
-    {
-      ostr << "NAN";
-    }
-
-  ostr << "\nms = " << us / 1000.0f
-       << "\nAttribs: "
-       << m_painter->query_stat(PainterPacker::num_attributes)
-       << "\nIndices: "
-       << m_painter->query_stat(PainterPacker::num_indices)
-       << "\nGenericData: "
-       << m_painter->query_stat(PainterPacker::num_generic_datas)
-       << "\nNumber Headers: "
-       << m_painter->query_stat(PainterPacker::num_headers)
-       << "\nNumber Draws: "
-       << m_painter->query_stat(PainterPacker::num_draws);
-  if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
-    {
-      m_painter->translate(vec2(0.0f, dimensions().y()));
-    }
-  brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-  draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph),
-            PainterData(&brush), m_screen_orientation.value());
-  m_painter->end();
 }
 
 void
@@ -1271,14 +1147,7 @@ void
 painter_glyph_test::
 handle_event(const SDL_Event &ev)
 {
-  if (m_draw_glyphs)
-    {
-      m_zoomer.handle_event(ev);
-    }
-  else
-    {
-      m_atlas_zoomer.handle_event(ev);
-    }
+  m_zoomer.handle_event(ev);
   switch(ev.type)
     {
     case SDL_QUIT:
@@ -1301,26 +1170,6 @@ handle_event(const SDL_Event &ev)
         {
         case SDLK_ESCAPE:
           end_demo(0);
-          break;
-
-        case SDLK_g:
-          m_draw_glyphs = !m_draw_glyphs;
-          if (m_draw_glyphs)
-            {
-              std::cout << "Set to draw glyphs.\n";
-            }
-          else
-            {
-              std::cout << "Set to draw glyph atlas.\n";
-            }
-          break;
-
-        case SDLK_n:
-          if (!m_draw_glyphs)
-            {
-              cycle_value(m_glyph_texel_page, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                          m_glyph_atlas->texel_store()->dimensions().z());
-            }
           break;
 
         case SDLK_d:

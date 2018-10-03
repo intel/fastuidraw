@@ -23,7 +23,6 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
-#include <fastuidraw/text/glyph_location.hpp>
 
 namespace fastuidraw
 {
@@ -61,45 +60,6 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to describe how a \ref GlyphLocation is packed.
-     */
-    enum packed_glyph_layout
-      {
-        /*!
-         * Number of bits used to describe the unnormalized x, y or z-coordinate
-         */
-        num_texel_coord_bits = GlyphAtlasTexelBackingStoreBase::log2_max_size,
-
-        /*!
-         * First bit used to describe the x-texel coordinate
-         */
-        bit0_x_texel = 0,
-
-        /*!
-         * First bit used to describe the y-texel coordinate
-         */
-        bit0_y_texel = bit0_x_texel + num_texel_coord_bits,
-
-        /*!
-         * First bit used to describe the z-texel coordinate
-         */
-        bit0_z_texel = bit0_y_texel + num_texel_coord_bits,
-
-        /*!
-         * If this bit is up, indicates that there is no texel location
-         * encoded (i.e. Glyph::atlas_locations()[K] for the packed
-         * location gives a \ref GlyphLocation for which
-         * GlyphLocation::valid() returns false
-         */
-        invalid_bit = bit0_z_texel + num_texel_coord_bits,
-
-        /*!
-         * Mask generated from \ref invalid_bit
-         */
-        invalid_mask = 1u << invalid_bit
-      };
-
-    /*!
      * When packing 8-bit texel data into the geometry store,
      * each 32-bit value of the store holds a 2x2 block of
      * 8-bit texels. This enumeratoin describues the packing
@@ -117,14 +77,6 @@ namespace fastuidraw
 	rect_x_bit0 = rect_height_bit0 + rect_height_num_bits,
 	rect_y_bit0 = rect_x_bit0 + rect_x_num_bits,
       };
-
-    /*!
-     * Pack into this GlyphAttribute a GlyphLocation so that
-     * the 4 corners of the location correspond with the values
-     * packing into this GlyphAttribute.
-     */
-    void
-    pack_location(GlyphLocation);
 
     /*!
      * Pack into this GlyphAttribute via \ref rect_glyph_layout

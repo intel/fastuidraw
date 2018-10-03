@@ -70,7 +70,6 @@ PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
   configure_backend();
   m_backend_constants
     .set_from_atlas(m_params.colorstop_atlas().static_cast_ptr<ColorStopAtlas>())
-    .set_from_atlas(m_params.glyph_atlas().static_cast_ptr<GlyphAtlas>())
     .set_from_atlas(m_params.image_atlas().static_cast_ptr<ImageAtlas>());
 }
 
@@ -175,19 +174,11 @@ configure_source_front_matter(void)
         .add_sampler_initializer("fastuidraw_imageAtlasLinear", binding_points.image_atlas_color_tiles_linear())
         .add_sampler_initializer("fastuidraw_imageAtlasNearest", binding_points.image_atlas_color_tiles_nearest())
         .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
-        .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", binding_points.glyph_atlas_texel_store_uint())
         .add_sampler_initializer("fastuidraw_glyphGeometryDataStore",
                                  binding_points.glyph_atlas_geometry_store(m_uber_shader_builder_params.glyph_geometry_backing()))
         .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas())
         .add_sampler_initializer("fastuidraw_external_texture", binding_points.external_texture())
         .add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
-
-      if (m_uber_shader_builder_params.have_float_glyph_texture_atlas())
-        {
-          m_initializer
-            .add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT",
-                                     binding_points.glyph_atlas_texel_store_float());
-        }
 
       switch(m_uber_shader_builder_params.data_store_backing())
         {
