@@ -407,13 +407,13 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
-     * Draw glyphs from a \ref GlyphSequence. The \ref Painter will
-     * select what attribute data (and this also what \ref GlyphRender)
-     * to use depending on the current value of transformation()
-     * and the data of the passed \ref GlyphSequence.
+     * Draw glyphs from a \ref GlyphSequence.
      * \param shader \ref PainterGlyphShader to draw the glyphs
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRender::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRender suitable
+     *                 for the current transformation() value.
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      * \return Returns what \ref GlyphRender value used
@@ -421,21 +421,24 @@ namespace fastuidraw
     GlyphRender
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphSequence &glyph_sequence,
+		GlyphRender renderer = GlyphRender(),
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-     * Draw glyphs from a \ref GlyphSequence. The \ref Painter will
-     * select what attribute data (and this also what \ref GlyphRender)
-     * to use depending on the current value of transformation()
+     * Draw glyphs from a \ref GlyphSequence.
      * and the data of the passed \ref GlyphSequence.
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRender::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRender suitable
+     *                 for the current transformation() value.
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      * \return Returns what \ref GlyphRender value used
      */
     GlyphRender
     draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
+		GlyphRender renderer = GlyphRender(),
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -821,7 +824,9 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param attrib_chunks attribute data to draw
      * \param index_chunks the i'th element is index data into attrib_chunks[i]
-     * \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
      * \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
@@ -839,7 +844,9 @@ namespace fastuidraw
      * \param attrib_chunks attribute data to draw
      * \param index_chunks the i'th element is index data into attrib_chunks[K]
      *                     where K = attrib_chunk_selector[i]
-     * \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
      * \param attrib_chunk_selector selects which attribute chunk to use for
      *        each index chunk
      * \param call_back if non-nullptr handle, call back called when attribute data

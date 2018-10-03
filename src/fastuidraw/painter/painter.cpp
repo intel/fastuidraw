@@ -798,6 +798,12 @@ namespace
     std::vector<int> m_fill_aa_fuzz_index_adjusts;
     std::vector<int> m_fill_aa_fuzz_start_zs;
     std::vector<int> m_fill_aa_fuzz_z_increments;
+
+    // work room for GlyphSequence drawing
+    fastuidraw::GlyphSequence::ScratchSpace m_glyph_seq_scratch;
+    std::vector<unsigned int> m_glyph_sub_sequences;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_glyph_attribs;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_glyph_indices;
   };
 
   class PainterPrivate
@@ -2572,67 +2578,85 @@ fastuidraw::GlyphRender
 fastuidraw::Painter::
 draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
             const GlyphSequence &glyph_sequence,
+	    GlyphRender renderer,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
   enum matrix_type_t tp;
-  GlyphRender return_value;
 
   d = static_cast<PainterPrivate*>(m_d);
+
   tp = d->m_clip_rect_state.matrix_type();
 
-  if (tp == perspective_matrix)
+  if (!renderer.valid())
     {
-      return_value = GlyphRender(restricted_rays_glyph);
-    }
-  else
-    {
-      float scale_factor, effective_pixel_width, det;
-      const float3x3 &m(d->m_clip_rect_state.item_matrix());
-
-      det = m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0);
-      scale_factor = t_sqrt(t_abs(det) * 0.25f * d->m_resolution.x() * d->m_resolution.y());
-      effective_pixel_width = glyph_sequence.pixel_size() * scale_factor;
-
-      if (effective_pixel_width <= d->m_coverage_text_cut_off)
-        {
-          int pixel_size;
-
-          pixel_size = choose_pixel_size(effective_pixel_width);
-          return_value = GlyphRender(pixel_size);
-        }
-      else if (effective_pixel_width <= d->m_distance_text_cut_off)
-        {
-          return_value = GlyphRender(distance_field_glyph);
-        }
+      if (tp == perspective_matrix)
+	{
+	  renderer = GlyphRender(restricted_rays_glyph);
+	}
       else
-        {
-          return_value = GlyphRender(restricted_rays_glyph);
-        }
+	{
+	  float scale_factor, effective_pixel_width;
+	  scale_factor = d->m_clip_rect_state.item_matrix_operator_norm();
+	  effective_pixel_width = glyph_sequence.pixel_size() * scale_factor;
 
-      // std::cout << "eff = " << effective_pixel_width << ", ";
+	  if (effective_pixel_width <= d->m_coverage_text_cut_off)
+	    {
+	      int pixel_size;
+
+	      pixel_size = choose_pixel_size(effective_pixel_width);
+	      renderer = GlyphRender(pixel_size);
+	    }
+	  else if (effective_pixel_width <= d->m_distance_text_cut_off)
+	    {
+	      renderer = GlyphRender(distance_field_glyph);
+	    }
+	  else
+	    {
+	      renderer = GlyphRender(restricted_rays_glyph);
+	    }
+	}
     }
 
-  //std::cout << "Type = " << return_value.m_type;
-  //if (!GlyphRender::scalable(return_value.m_type))
-  //{
-  //  std::cout << ", sz = " << return_value.m_pixel_size;
-  //}
-  //std::cout << "\n";
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      return renderer;
+    }
 
-  draw_glyphs(shader, draw,
-              glyph_sequence.painter_attribute_data(return_value),
-              call_back);
+  unsigned int num;
+  d->m_work_room.m_glyph_sub_sequences.resize(glyph_sequence.number_sub_sequences());
+  num = glyph_sequence.select_sub_sequences(d->m_work_room.m_glyph_seq_scratch,
+					    d->m_clip_store.current(),
+					    d->m_clip_rect_state.item_matrix(),
+					    make_c_array(d->m_work_room.m_glyph_sub_sequences));
+  d->m_work_room.m_glyph_attribs.resize(num);
+  d->m_work_room.m_glyph_indices.resize(num);
+  for (unsigned int k = 0; k < num; ++k)
+    {
+      unsigned int I(d->m_work_room.m_glyph_sub_sequences[k]);
+      GlyphSequence::SubSequence S(glyph_sequence.sub_sequence(I));
+      S.attributes_and_indices(renderer,
+			       &d->m_work_room.m_glyph_attribs[k],
+			       &d->m_work_room.m_glyph_indices[k]);
+    }
+  d->draw_generic(shader.shader(renderer.m_type),
+		  draw,
+		  make_c_array(d->m_work_room.m_glyph_attribs),
+		  make_c_array(d->m_work_room.m_glyph_indices),
+		  c_array<const int>(),
+		  c_array<const unsigned int>(),
+		  d->m_current_z, call_back);
 
-  return return_value;
+  return renderer;
 }
 
 fastuidraw::GlyphRender
 fastuidraw::Painter::
 draw_glyphs(const PainterData &draw, const GlyphSequence &data,
+	    GlyphRender render,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  return draw_glyphs(default_shaders().glyph_shader(), draw, data, call_back);
+  return draw_glyphs(default_shaders().glyph_shader(), draw, data, render, call_back);
 }
 
 void

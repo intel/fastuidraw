@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <fastuidraw/util/matrix.hpp>
+#include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/text/glyph.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
@@ -44,6 +46,71 @@ namespace fastuidraw
   class GlyphSequence:fastuidraw::noncopyable
   {
   public:
+    /*!
+     * A \ref SubSequence represents a subset of the glyphs
+     * of a \ref GlyphSequence for the purpose of culling
+     * when rendering. Different SubSequence values from the
+     * same \ref GlyphSequence are guaranteed to have disjoint
+     * glyphs.
+     */
+    class SubSequence
+    {
+    public:
+      /*!
+       * Given a \ref GlyphRender, returns \ref PainterAttribute
+       * and \ref PainterIndex data for specified \ref GlyphRender
+       * value. The data is constructed lazily on demand.
+       */
+      void
+      attributes_and_indices(GlyphRender render,
+			     c_array<const PainterAttribute> *out_attributes,
+			     c_array<const PainterIndex> *out_indices);
+
+      /*!
+       * Returns indices into GlyphSequence::glyph_sequence() and
+       * \ref GlyphSequence::glyph_sources() of the glyphs that
+       * are in this SubSequence.
+       */
+      unsigned int
+      glyphs(c_array<unsigned int> dst);
+
+      /*!
+       * Returns the bounding box of the glyphs of this
+       * SubSequence object. Returns false if the
+       * bounding box is empty.
+       */
+      bool
+      bounding_box(vec2 *out_min_bb, vec2 *out_max_bb);
+
+      /*!
+       * Returns the \ref Path made from the bounding
+       * box of the SubSequence.
+       */
+      const Path&
+      path(void);
+
+    private:
+      friend class GlyphSequence;
+      explicit
+      SubSequence(void *d);
+      void *m_d;
+    };
+
+    /*!
+     * \brief
+     * Opaque object to hold work room needed for functions
+     * of GlyphSequence that require scratch space.
+     */
+    class ScratchSpace:fastuidraw::noncopyable
+    {
+    public:
+      ScratchSpace(void);
+      ~ScratchSpace();
+    private:
+      friend class GlyphSequence;
+      void *m_d;
+    };
+
     /*!
      * Ctor.
      * \param pixel_size pixel size at which glyphs added via
@@ -83,46 +150,20 @@ namespace fastuidraw
     }
 
     /*!
-     * Returns the Glyph values of the glyph code sequence
-     * realized with a specified \ref GlyphRender. This
-     * function creates the sequence lazily on demand.
-     * The return value is no longer valid if add_glyphs()
-     * or add_glyph() is called.
-     * \param render GlyphRender value specifing the render
-     *               type of the returned glyphs.
-     * \param upload_to_atlas if true, call Glyph::upload_to_atlas()
-     *                        on each glyph returned.
+     * Returns the number of \ref GlyphSource values added via
+     * add_glyph() and add_glyphs().
      */
-    c_array<const Glyph>
-    glyph_sequence(GlyphRender render, bool upload_to_atlas = true) const;
+    unsigned int
+    number_glyphs(void) const;
 
     /*!
-     * Return a \ref PainterAttributeData as packed by a
-     * \ref PainterAttributeDataFillerGlyphs for the named
-     * GlyphRender value.  This function creates the attribute
-     * data lazily on demand. The return value is no longer
-     * valid if add_glyphs() or add_glyph() is called.
-     * \param render GlyphRender value specifing the render
-     *               type of the returned attribute data
+     * Returns the \ref GlyphSource and position value for
+     * the i'th glyph added via add_glyph() or add_glyphs().
      */
-    const PainterAttributeData&
-    painter_attribute_data(GlyphRender render) const;
-
-    /*!
-     * Return the \ref GlyphSource sequence. The return
-     * value is no longer valid if add_glyphs() or
-     * add_glyph() is called.
-     */
-    c_array<const GlyphSource>
-    glyph_sources(void) const;
-
-    /*!
-     * Returns the glyph positions. The return
-     * value is no longer valid if add_glyphs()
-     * or add_glyph() is called.
-     */
-    c_array<const vec2>
-    glyph_positions(void) const;
+    void
+    added_glyph(unsigned int I,
+		GlyphMetrics *out_glyph_metrics,
+		vec2 *out_position) const;
 
     /*!
      * Return the \ref GlyphCache used by this GlyphSequence
@@ -151,6 +192,42 @@ namespace fastuidraw
      */
     PainterEnums::glyph_layout_type
     layout(void) const;
+
+    /*!
+     * Returns the total number of \ref SubSequence objects of this
+     * \ref GlyphSequence. This value can change when add_glyph() or
+     * add_glyphs() is called.
+     */
+    unsigned int
+    number_sub_sequences(void) const;
+
+    /*!
+     * Fetch a \ref SubSequence of this \ref GlyphSequence.
+     * The returned object may no longer be valid if add_glyph()
+     * or add_glyphs() is called. In addition, any returned
+     * object is no longer valid if the owning \ref GlyphSequence
+     * goes out of scope.
+     */
+    SubSequence
+    sub_sequence(unsigned int I) const;
+
+    /*!
+     * Fetch those SubSequence objects that intersect a region
+     * specified by clip equations.
+     * \param scratch_space scratch space for computations.
+     * \param clip_equations array of clip equations
+     * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
+     *                          coordinates to clip coordinates.
+     * \param[out] dst location to which to write the \ref SubSequence
+     *                 ID values
+     * \returns the number of SubSequence object ID's written to dst, that
+     *          number is guaranteed to be no more than number_sub_sequences().
+     */
+    unsigned int
+    select_sub_sequences(ScratchSpace &scratch_space,
+			 c_array<const vec3> clip_equations,
+			 const float3x3 &clip_matrix_local,
+			 c_array<unsigned int> dst) const;
 
   private:
     void *m_d;
