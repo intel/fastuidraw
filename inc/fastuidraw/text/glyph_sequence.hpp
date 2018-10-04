@@ -60,6 +60,12 @@ namespace fastuidraw
        * Given a \ref GlyphRender, returns \ref PainterAttribute
        * and \ref PainterIndex data for specified \ref GlyphRender
        * value. The data is constructed lazily on demand.
+       * \param render GlyphRender how to render the glyphs of this
+       *               \ref SubSequence
+       * \param out_attributes location to which to write the array
+       *                       of the attributes to render the glyphs
+       * \param out_indices location to which to write the array
+       *                    of the indices to render the glyphs
        */
       void
       attributes_and_indices(GlyphRender render,
@@ -67,17 +73,20 @@ namespace fastuidraw
 			     c_array<const PainterIndex> *out_indices);
 
       /*!
-       * Returns indices into GlyphSequence::glyph_sequence() and
-       * \ref GlyphSequence::glyph_sources() of the glyphs that
-       * are in this SubSequence.
+       * Returns an array of index values to pass to GlyphSequence::add_glyph()
+       * of the glyphs of this \ref SubSequence.
        */
-      unsigned int
-      glyphs(c_array<unsigned int> dst);
+      c_array<const unsigned int>
+      glyphs(void);
 
       /*!
        * Returns the bounding box of the glyphs of this
        * SubSequence object. Returns false if the
        * bounding box is empty.
+       * \param out_min_bb location to which to write the
+       *                   min-corner of the bounding box
+       * \param out_max_bb location to which to write the
+       *                   max-corner of the bounding box
        */
       bool
       bounding_box(vec2 *out_min_bb, vec2 *out_max_bb);
@@ -133,6 +142,8 @@ namespace fastuidraw
 
     /*!
      * Add \ref GlyphSource values and positions; values are -copied-.
+     * \param glyph_sources specifies what glyphs to add
+     * \param positions specifies the positions of each glyph added
      */
     void
     add_glyphs(c_array<const GlyphSource> glyph_sources,
@@ -140,6 +151,8 @@ namespace fastuidraw
 
     /*!
      * Add a single \ref GlyphSource and position
+     * \param glyph_source specifies what glyph to add
+     * \param position specifies the position of the glyph added
      */
     void
     add_glyph(const GlyphSource &glyph_source, const vec2 &position)
@@ -159,6 +172,13 @@ namespace fastuidraw
     /*!
      * Returns the \ref GlyphSource and position value for
      * the i'th glyph added via add_glyph() or add_glyphs().
+     * \param I index to selct which glyph, must be that
+     *          0 <= I < number_glyphs()
+     * \param *out_glyph_metrics location to which to write
+     *                           the \ref GlyphMetrics value
+     *                           describing the glyph
+     * \param *out_position location to which to write the
+     *                      position of the glyph
      */
     void
     added_glyph(unsigned int I,
@@ -207,6 +227,7 @@ namespace fastuidraw
      * or add_glyphs() is called. In addition, any returned
      * object is no longer valid if the owning \ref GlyphSequence
      * goes out of scope.
+     * \param I which SubSequence to fetch with 0 <= I < number_sub_sequences()
      */
     SubSequence
     sub_sequence(unsigned int I) const;

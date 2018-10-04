@@ -188,8 +188,11 @@ namespace
     const GlyphAttributesIndices&
     attributes_indices(fastuidraw::GlyphRender R);
 
-    unsigned int
-    glyph_elements(fastuidraw::c_array<unsigned int> dst) const;
+    fastuidraw::c_array<const unsigned int>
+    glyph_elements(void) const
+    {
+      return fastuidraw::make_c_array(m_glyph_list);
+    }
 
     unsigned int
     ID(void) const
@@ -751,18 +754,6 @@ attributes_indices(fastuidraw::GlyphRender R)
   return dst;
 }
 
-unsigned int
-GlyphSubSequencePrivate::
-glyph_elements(fastuidraw::c_array<unsigned int> dst) const
-{
-  unsigned int return_value(0u);
-  for (unsigned int I : m_glyph_list)
-    {
-      dst[return_value++] = I;
-    }
-  return return_value;
-}
-
 /////////////////////////////////
 // GlyphSequencePrivate methods
 void
@@ -858,14 +849,14 @@ attributes_and_indices(GlyphRender render,
   *out_indices = values.indices();
 }
 
-unsigned int
+fastuidraw::c_array<const unsigned int>
 fastuidraw::GlyphSequence::SubSequence::
-glyphs(c_array<unsigned int> dst)
+glyphs(void)
 {
   GlyphSubSequencePrivate *d;
 
   d = static_cast<GlyphSubSequencePrivate*>(m_d);
-  return d->glyph_elements(dst);
+  return d->glyph_elements();
 }
 
 bool

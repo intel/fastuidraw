@@ -66,7 +66,7 @@ namespace fastuidraw
      * The value is gauranteed to be unique and different
      * from any previously created fonts (even those that
      * have been destroyed). The value is assigned by the
-     * first \ref Fontbase created gets the value 0 and
+     * first \ref FontBase created gets the value 0 and
      * each subsequence \ref FontBase created increments
      * the global value by 1. Thus it is reasonable, to
      * use arrays instead of associative keys for font

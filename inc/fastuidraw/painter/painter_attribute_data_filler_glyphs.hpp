@@ -117,8 +117,8 @@ namespace fastuidraw
      * requirement that each valid \ref Glyph has the same value
      * for Glyph::type().
      * \param glyphs sequence of glyps to query
-     * \param[out] number of indices needed
-     * \param[out] number of attributes needed
+     * \param[out] out_number_attributes number of indices needed
+     * \param[out] out_number_indices number of attributes needed
      * \returns routine_success if all value \ref Glyph values are
      *          the same renderer type and \ref routine_fail if they
      *          are not. For returning \ref routine_fail both output

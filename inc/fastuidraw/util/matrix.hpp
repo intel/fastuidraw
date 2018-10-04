@@ -380,8 +380,7 @@ public:
 
   /*!
    * Default constructor for projection parameters,
-   * values are unitialized except for \ref
-   * m_farAtinfinity which is initialized as false.
+   * values are unitialized.
    */
   projection_params(void)
    {}
