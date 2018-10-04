@@ -160,31 +160,8 @@ TODO.
           return_value.z = float(tile_origin.z);
 
           return return_value;
-        }
 
- 8. Have a new analytic glyph type that handles arbitary complexity within a texel.
-    The idea is that a texel holds:
-      a. The winding number at the center of the texel
-      b. A list of edges (linear or quadratic) that intersect the texel.
-    The shader would compute the intersection of the line segment against each
-    of the edges within the texel. From there, the direction of the tangent
-    of the curve against the line segment determines if we increment or
-    decrement the winding number value. From there, we know the winding
-    number at the fragment location and use that to decide to fill or not.
-    We can use the intersection to the nearest edge via smoothstep to do
-    antialiasing. However, we then need to check edges also that go though
-    any neighbor texels well. One easy solution is for each texel T to list
-    all edges that go though the 3x3 texel region centered at T and when
-    computing the distance, the intersections that happen outside of T
-    texel do not influence the winding number computation and the intersection
-    that flips inside/outside that is closest would be the distance value
-    to use for smoothstep().
-
-    Storage would be LOD-style storage enabled by item 7 first form. The
-    data would then be an offset into the geometry store buffer listing
-    the curves to compute against.
-
- 9. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 8. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
