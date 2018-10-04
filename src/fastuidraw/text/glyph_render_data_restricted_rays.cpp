@@ -1444,9 +1444,9 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
 
   FASTUIDRAWassert(!d->m_glyph);
 
-  int geometry_offset;
-  geometry_offset = atlas_proxy.allocate_geometry_data(make_c_array(d->m_render_data));
-  if (geometry_offset == -1)
+  int data_offset;
+  data_offset = atlas_proxy.allocate_data(make_c_array(d->m_render_data));
+  if (data_offset == -1)
     {
       return routine_fail;
     }
@@ -1464,7 +1464,7 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
     }
   attributes[2].m_data = uvec4(d->m_size.x());
   attributes[3].m_data = uvec4(d->m_size.y());
-  attributes[4].m_data = uvec4(geometry_offset);
+  attributes[4].m_data = uvec4(data_offset);
 
   return routine_success;
 }

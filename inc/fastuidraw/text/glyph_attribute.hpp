@@ -60,7 +60,7 @@ namespace fastuidraw
       };
 
     /*!
-     * When packing 8-bit texel data into the geometry store,
+     * When packing 8-bit texel data into the  store,
      * each 32-bit value of the store holds a 2x2 block of
      * 8-bit texels. This enumeratoin describues the packing
      * an attribute to get the texel data.
@@ -80,7 +80,7 @@ namespace fastuidraw
 
     /*!
      * Pack into this GlyphAttribute via \ref rect_glyph_layout
-     * to access texel data from the geometry store.
+     * to access texel data from the  store.
      */
     void
     pack_texel_rect(unsigned int width, unsigned int height);

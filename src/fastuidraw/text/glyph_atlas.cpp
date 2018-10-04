@@ -25,10 +25,10 @@
 
 namespace
 {
-  class GlyphAtlasGeometryBackingStoreBasePrivate
+  class GlyphAtlasBackingStoreBasePrivate
   {
   public:
-    GlyphAtlasGeometryBackingStoreBasePrivate(unsigned int psize, bool presizable):
+    GlyphAtlasBackingStoreBasePrivate(unsigned int psize, bool presizable):
       m_resizeable(presizable),
       m_size(psize)
     {
@@ -42,61 +42,61 @@ namespace
   {
   public:
     explicit
-    GlyphAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> pgeometry_store):
-      m_geometry_store(pgeometry_store),
-      m_geometry_data_allocator(pgeometry_store->size()),
-      m_geometry_data_allocated(0)
+    GlyphAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase> pstore):
+      m_store(pstore),
+      m_data_allocator(pstore->size()),
+      m_data_allocated(0)
     {
-      FASTUIDRAWassert(m_geometry_store);
+      FASTUIDRAWassert(m_store);
     };
 
-    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> m_geometry_store;
-    fastuidraw::interval_allocator m_geometry_data_allocator;
-    unsigned int m_geometry_data_allocated;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase> m_store;
+    fastuidraw::interval_allocator m_data_allocator;
+    unsigned int m_data_allocated;
   };
 }
 
 ///////////////////////////////////////////
-// fastuidraw::GlyphAtlasGeometryBackingStoreBase methods
-fastuidraw::GlyphAtlasGeometryBackingStoreBase::
-GlyphAtlasGeometryBackingStoreBase(unsigned int psize, bool presizable)
+// fastuidraw::GlyphAtlasBackingStoreBase methods
+fastuidraw::GlyphAtlasBackingStoreBase::
+GlyphAtlasBackingStoreBase(unsigned int psize, bool presizable)
 {
-  m_d = FASTUIDRAWnew GlyphAtlasGeometryBackingStoreBasePrivate(psize, presizable);
+  m_d = FASTUIDRAWnew GlyphAtlasBackingStoreBasePrivate(psize, presizable);
 }
 
-fastuidraw::GlyphAtlasGeometryBackingStoreBase::
-~GlyphAtlasGeometryBackingStoreBase()
+fastuidraw::GlyphAtlasBackingStoreBase::
+~GlyphAtlasBackingStoreBase()
 {
-  GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  GlyphAtlasBackingStoreBasePrivate *d;
+  d = static_cast<GlyphAtlasBackingStoreBasePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
 }
 
 unsigned int
-fastuidraw::GlyphAtlasGeometryBackingStoreBase::
+fastuidraw::GlyphAtlasBackingStoreBase::
 size(void)
 {
-  GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  GlyphAtlasBackingStoreBasePrivate *d;
+  d = static_cast<GlyphAtlasBackingStoreBasePrivate*>(m_d);
   return d->m_size;
 }
 
 bool
-fastuidraw::GlyphAtlasGeometryBackingStoreBase::
+fastuidraw::GlyphAtlasBackingStoreBase::
 resizeable(void) const
 {
-  GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  GlyphAtlasBackingStoreBasePrivate *d;
+  d = static_cast<GlyphAtlasBackingStoreBasePrivate*>(m_d);
   return d->m_resizeable;
 }
 
 void
-fastuidraw::GlyphAtlasGeometryBackingStoreBase::
+fastuidraw::GlyphAtlasBackingStoreBase::
 resize(unsigned int new_size)
 {
-  GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  GlyphAtlasBackingStoreBasePrivate *d;
+  d = static_cast<GlyphAtlasBackingStoreBasePrivate*>(m_d);
   FASTUIDRAWassert(d->m_resizeable);
   FASTUIDRAWassert(new_size > d->m_size);
   resize_implement(new_size);
@@ -106,9 +106,9 @@ resize(unsigned int new_size)
 ///////////////////////////////////////////////
 // fastuidraw::GlyphAtlas methods
 fastuidraw::GlyphAtlas::
-GlyphAtlas(reference_counted_ptr<GlyphAtlasGeometryBackingStoreBase> pgeometry_store)
+GlyphAtlas(reference_counted_ptr<GlyphAtlasBackingStoreBase> pstore)
 {
-  m_d = FASTUIDRAWnew GlyphAtlasPrivate(pgeometry_store);
+  m_d = FASTUIDRAWnew GlyphAtlasPrivate(pstore);
 };
 
 fastuidraw::GlyphAtlas::
@@ -122,7 +122,7 @@ fastuidraw::GlyphAtlas::
 
 int
 fastuidraw::GlyphAtlas::
-allocate_geometry_data(c_array<const generic_data> pdata)
+allocate_data(c_array<const generic_data> pdata)
 {
   if (pdata.empty())
     {
@@ -133,14 +133,14 @@ allocate_geometry_data(c_array<const generic_data> pdata)
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
   int return_value;
-  return_value = d->m_geometry_data_allocator.allocate_interval(pdata.size());
+  return_value = d->m_data_allocator.allocate_interval(pdata.size());
   if (return_value == -1)
     {
-      if (d->m_geometry_store->resizeable())
+      if (d->m_store->resizeable())
         {
-          d->m_geometry_store->resize(pdata.size() + 2 * d->m_geometry_store->size());
-          d->m_geometry_data_allocator.resize(d->m_geometry_store->size());
-          return_value = d->m_geometry_data_allocator.allocate_interval(pdata.size());
+          d->m_store->resize(pdata.size() + 2 * d->m_store->size());
+          d->m_data_allocator.resize(d->m_store->size());
+          return_value = d->m_data_allocator.allocate_interval(pdata.size());
           FASTUIDRAWassert(return_value != -1);
         }
       else
@@ -149,14 +149,14 @@ allocate_geometry_data(c_array<const generic_data> pdata)
         }
     }
 
-  d->m_geometry_data_allocated += pdata.size();
-  d->m_geometry_store->set_values(return_value, pdata);
+  d->m_data_allocated += pdata.size();
+  d->m_store->set_values(return_value, pdata);
   return return_value;
 }
 
 void
 fastuidraw::GlyphAtlas::
-deallocate_geometry_data(int location, int count)
+deallocate_data(int location, int count)
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
@@ -168,18 +168,18 @@ deallocate_geometry_data(int location, int count)
     }
 
   FASTUIDRAWassert(count > 0);
-  d->m_geometry_data_allocated -= count;
-  d->m_geometry_data_allocator.free_interval(location, count);
+  d->m_data_allocated -= count;
+  d->m_data_allocator.free_interval(location, count);
 }
 
 unsigned int
 fastuidraw::GlyphAtlas::
-geometry_data_allocated(void)
+data_allocated(void)
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
-  return d->m_geometry_data_allocated;
+  return d->m_data_allocated;
 }
 
 void
@@ -188,7 +188,7 @@ clear(void)
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
-  d->m_geometry_data_allocator.reset(d->m_geometry_data_allocator.size());
+  d->m_data_allocator.reset(d->m_data_allocator.size());
 }
 
 void
@@ -197,14 +197,14 @@ flush(void) const
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
-  d->m_geometry_store->flush();
+  d->m_store->flush();
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasGeometryBackingStoreBase>
+fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasBackingStoreBase>
 fastuidraw::GlyphAtlas::
-geometry_store(void) const
+store(void) const
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
-  return d->m_geometry_store;
+  return d->m_store;
 }

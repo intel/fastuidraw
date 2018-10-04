@@ -680,7 +680,7 @@ realize_all_glyphs(GlyphRender renderer)
       std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
     }
 
-  unsigned int pre_num_elements(m_glyph_atlas->geometry_data_allocated());
+  unsigned int pre_num_elements(m_glyph_atlas->data_allocated());
 
   std::cout << "Uploading to atlas ..." << std::flush;
   for (auto &g : glyphs)
@@ -689,10 +689,10 @@ realize_all_glyphs(GlyphRender renderer)
     }
   std::cout << "took " << timer.restart() << " ms\n";
 
-  unsigned int num_elements(m_glyph_atlas->geometry_data_allocated());
+  unsigned int num_elements(m_glyph_atlas->data_allocated());
 
-  std::cout << "Used " << num_elements - pre_num_elements << " additional geometry data elements\n"
-	    << "Total bytes geometry data total allocated = "
+  std::cout << "Used " << num_elements - pre_num_elements << " additional glyph data elements\n"
+	    << "Total bytes glyph data total allocated = "
             << num_elements * sizeof(generic_data)
             << "\n--------------------------------------\n\n";
 }

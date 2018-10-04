@@ -51,7 +51,7 @@ namespace fastuidraw
   public:
     /*!
      * Enumeration to describe the hierarchy of bounding
-     * boxes as packed into the geometry data. A node
+     * boxes as packed into the  data. A node
      * in the hierarchy is a single 32-bit value. A leaf
      * in the hierarchy is a single 32-bit value followed
      * by 4 sample winding positions each packed as according
@@ -341,10 +341,10 @@ namespace fastuidraw
 
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the offset into the geometry store for the glyph
+         * the offset into the  store for the glyph
          * data.
          */
-        glyph_geometry_offset = 4,
+        glyph_offset = 4,
 
         /*!
          * Number attribute values needed.

@@ -90,12 +90,12 @@ private:
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t auxiliary_buffer_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t clipping_type_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t compositing_type_t;
-  enum glyph_geometry_backing_store_t
+  enum glyph_backing_store_t
     {
-      glyph_geometry_backing_store_texture_buffer,
-      glyph_geometry_backing_store_texture_array,
-      glyph_geometry_backing_store_ssbo,
-      glyph_geometry_backing_store_auto,
+      glyph_backing_store_texture_buffer,
+      glyph_backing_store_texture_array,
+      glyph_backing_store_ssbo,
+      glyph_backing_store_auto,
     };
 
   fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
@@ -113,10 +113,10 @@ private:
 
   /* Glyph atlas parameters */
   command_separator m_glyph_atlas_options;
-  command_line_argument_value<int> m_geometry_store_size;
+  command_line_argument_value<int> m_glyph_atlas_size;
   command_line_argument_value<bool> m_glyph_atlas_delayed_upload;
-  enumerated_command_line_argument_value<enum glyph_geometry_backing_store_t> m_glyph_geometry_backing_store_type;
-  command_line_argument_value<int> m_glyph_geometry_backing_texture_log2_w, m_glyph_geometry_backing_texture_log2_h;
+  enumerated_command_line_argument_value<enum glyph_backing_store_t> m_glyph_backing_store_type;
+  command_line_argument_value<int> m_glyph_backing_texture_log2_w, m_glyph_backing_texture_log2_h;
 
   /* ColorStop atlas parameters */
   command_separator m_colorstop_atlas_options;

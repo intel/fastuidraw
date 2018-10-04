@@ -37,10 +37,10 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   coord11 = coord00 + ivec2(1, 1);
   mixer = tau_plus_half - ivec2(tau_plus_half);
 
-  v00 = fastuidraw_read_texel_from_geometry_data(coord00, dims, fastuidraw_glyph_geometry_data_location);
-  v01 = fastuidraw_read_texel_from_geometry_data(coord01, dims, fastuidraw_glyph_geometry_data_location);
-  v10 = fastuidraw_read_texel_from_geometry_data(coord10, dims, fastuidraw_glyph_geometry_data_location);
-  v11 = fastuidraw_read_texel_from_geometry_data(coord11, dims, fastuidraw_glyph_geometry_data_location);
+  v00 = fastuidraw_read_texel_from_data(coord00, dims, fastuidraw_glyph_data_location);
+  v01 = fastuidraw_read_texel_from_data(coord01, dims, fastuidraw_glyph_data_location);
+  v10 = fastuidraw_read_texel_from_data(coord10, dims, fastuidraw_glyph_data_location);
+  v11 = fastuidraw_read_texel_from_data(coord11, dims, fastuidraw_glyph_data_location);
 
   f00 = float(v00);
   f10 = float(v10);

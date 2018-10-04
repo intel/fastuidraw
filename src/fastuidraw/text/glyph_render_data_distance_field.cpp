@@ -122,7 +122,7 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   detail::pack_texels(uvec2(d->m_resolution),
 		      make_c_array(d->m_texels),
 		      &data);
-  location = atlas_proxy.allocate_geometry_data(make_c_array(data));
+  location = atlas_proxy.allocate_data(make_c_array(data));
   if (location == -1)
     {
       return routine_fail;

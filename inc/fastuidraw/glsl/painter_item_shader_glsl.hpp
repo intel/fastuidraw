@@ -397,8 +397,8 @@ namespace fastuidraw
      *  - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer
      *    (PainterDraw::m_store), return as uvec4. To get floating point data use, the GLSL
      *    built-in function uintBitsToFloat().
-     *  - the macro fastuidraw_fetch_glyph_data(B) to read the B'th value from the glyph geometry data
-     *    (GlyphAtlasGeometryBackingStoreBase), return as uint. To get floating point data, use the GLSL
+     *  - the macro fastuidraw_fetch_glyph_data(B) to read the B'th value from the glyph data
+     *    (GlyphAtlasBackingStoreBase), return as uint. To get floating point data, use the GLSL
      *    built-in function uintBitsToFloat().
      *  - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
      *  - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels

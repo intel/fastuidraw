@@ -37,7 +37,7 @@ namespace gl
    * for \ref GlyphAtlas.
    *
    * A GlyphAtlasGL on creation, creates an object derived from \ref
-   * GlyphAtlasGeometryBackingStoreBase.
+   * GlyphAtlasBackingStoreBase.
    *
    * The method flush() must be called with a GL context current.
    * If the GlyphAtlasGL was constructed delayed, then the loading
@@ -84,7 +84,7 @@ namespace gl
       swap(params &obj);
 
       /*!
-       * Number floats that can be held in the geometry data
+       * Number floats that can be held in the data
        * backing store, initial value is 1024 * 1024
        */
       unsigned int
@@ -114,64 +114,64 @@ namespace gl
 
       /*!
        * Returns what kind of GL object is used to back
-       * the glyph geometry data. Default value is
-       * \ref glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo.
+       * the glyph data. Default value is
+       * \ref glsl::PainterShaderRegistrarGLSL::glyph_data_tbo.
        */
-      enum glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t
-      glyph_geometry_backing_store_type(void) const;
+      enum glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t
+      glyph_data_backing_store_type(void) const;
 
       /*!
-       * Set glyph_geometry_backing_store() to \ref
-       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo,
-       * i.e. for the glyph geometry data to be stored
+       * Set glyph_data_backing_store() to \ref
+       * glsl::PainterShaderRegistrarGLSL::glyph_data_tbo,
+       * i.e. for the glyph data to be stored
        * on a GL texture buffer object.
        */
       params&
-      use_texture_buffer_geometry_store(void);
+      use_texture_buffer_store(void);
 
       /*!
-       * Set glyph_geometry_backing_store() to \ref
-       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo,
-       * i.e. for the glyph geometry data to be stored
+       * Set glyph_data_backing_store() to \ref
+       * glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo,
+       * i.e. for the glyph data to be stored
        * on a GL texture buffer object.
        */
       params&
-      use_storage_buffer_geometry_store(void);
+      use_storage_buffer_store(void);
 
       /*!
-       * Set glyph_geometry_backing_store() to \ref
-       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array,
+       * Set glyph_data_backing_store() to \ref
+       * glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array,
        * i.e. to use a 2D texture array to store the
-       * glyph geometry data. The depth of the
+       * glyph data. The depth of the
        * array is set implicitely by the size given by
-       * GlyphAtlasGeometryBackingStoreBase::size().
+       * GlyphAtlasBackingStoreBase::size().
        * NOTE: if either parameter is made negative, the
        * call is ignored.
        * \param log2_width Log2 of the width of the 2D texture array
        * \param log2_height Log2 of the height of the 2D texture array
        */
       params&
-      use_texture_2d_array_geometry_store(int log2_width,
+      use_texture_2d_array_store(int log2_width,
                                           int log2_height = 0);
 
       /*!
-       * If glyph_geometry_backing_store() returns \ref
-       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array,
+       * If glyph_data_backing_store() returns \ref
+       * glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array,
        * returns the values
-       * set in use_texture_2d_array_geometry_store(), otherwise
+       * set in use_texture_2d_array_store(), otherwise
        * returns a value where both components are -1.
        */
       ivec2
-      texture_2d_array_geometry_store_log2_dims(void) const;
+      texture_2d_array_store_log2_dims(void) const;
 
       /*!
        * Query the GL context to decide what is the optimal settings
-       * to back the GlyphAtlasGeometryBackingStoreBase returned by
-       * GlyphAtlas::geometry_store(). A GL context must be current
+       * to back the GlyphAtlasBackingStoreBase returned by
+       * GlyphAtlas::store(). A GL context must be current
        * so that GL capabilities may be queried.
        */
       params&
-      use_optimal_geometry_store_backing(void);
+      use_optimal_store_backing(void);
 
     private:
       void *m_d;
@@ -187,39 +187,39 @@ namespace gl
     ~GlyphAtlasGL();
 
     /*!
-     * Returns true if and only if the GlyphAtlasGeometryBackingStoreBase
+     * Returns true if and only if the GlyphAtlasBackingStoreBase
      * is backed by a texture.
      */
     bool
-    geometry_backed_by_texture(void) const;
+    data_backed_by_texture(void) const;
 
     /*!
-     * Returns the GL object ID of the GlyphAtlasGeometryBackingStoreBase
+     * Returns the GL object ID of the GlyphAtlasBackingStoreBase
      * derived object used by this GlyphAtlasGL. If the
      * GlyphAtlasGL was constructed as delayed, then the first time
-     * geometry_texture() is called, a GL context must be current (and that
+     * data_texture() is called, a GL context must be current (and that
      * GL context is the context to which the texture will belong).
      * If backed by a texture, returns the name of a texture. If backed
      * by a buffer returns the name of a GL buffer object.
      */
     GLuint
-    geometry_backing(void) const;
+    data_backing(void) const;
 
     /*!
      * Returns the binding point to which to bind the texture returned
-     * by geometry_texture().
+     * by data_texture().
      */
     GLenum
-    geometry_binding_point(void) const;
+    data_binding_point(void) const;
 
     /*!
-     * In the case that the geometry data is stored in a texture
+     * In the case that the data is stored in a texture
      * array (GL_TEXTURE_2D_ARRAY) instead of a texture buffer
      * object, returns the log2 of the width and height of the
      * backing texture 2D array.
      */
     ivec2
-    geometry_texture_as_2d_array_log2_dims(void) const;
+    data_texture_as_2d_array_log2_dims(void) const;
 
     /*!
      * Returns the params value used to construct

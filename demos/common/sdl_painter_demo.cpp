@@ -286,39 +286,39 @@ sdl_painter_demo(const std::string &about_text,
                                *this),
 
   m_glyph_atlas_options("Glyph Atlas options", *this),
-  m_geometry_store_size(m_glyph_atlas_params.number_floats(),
-                        "geometry_store_size", "size of geometry store in floats", *this),
+  m_glyph_atlas_size(m_glyph_atlas_params.number_floats(),
+		     "glyph_atlas_size", "size of glyph store in floats", *this),
   m_glyph_atlas_delayed_upload(m_glyph_atlas_params.delayed(),
                                "glyph_atlas_delayed_upload",
                                "if true delay uploading of data to GL from glyph atlas until atlas flush",
                                *this),
-  m_glyph_geometry_backing_store_type(glyph_geometry_backing_store_auto,
-                                      enumerated_string_type<enum glyph_geometry_backing_store_t>()
-                                      .add_entry("texture_buffer",
-                                                 glyph_geometry_backing_store_texture_buffer,
-                                                 "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
-                                                 "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
-                                                 "extension GL_EXT_texture_buffer")
-                                      .add_entry("texture_array",
-                                                 glyph_geometry_backing_store_texture_array,
-                                                 "use a 2D texture array to store the glyph geometry data, "
-                                                 "GL and GLES have feature in core")
-                                      .add_entry("storage_buffer",
-                                                 glyph_geometry_backing_store_ssbo,
-                                                 "use a shader storage buffer, feature is core starting in GLES 3.1 and available "
-                                                 "in GL starting at version 4.2 or via the extension GL_ARB_shader_storage_buffer")
-                                      .add_entry("auto",
-                                                 glyph_geometry_backing_store_auto,
-                                                 "query context and decide optimal value"),
-                                      "geometry_backing_store_type",
-                                      "Determines how the glyph geometry store is backed.",
-                                      *this),
-  m_glyph_geometry_backing_texture_log2_w(10, "glyph_geometry_backing_texture_log2_w",
-                                          "If glyph_geometry_backing_store_type is set to texture_array, then "
-                                          "this gives the log2 of the width of the texture array", *this),
-  m_glyph_geometry_backing_texture_log2_h(10, "glyph_geometry_backing_texture_log2_h",
-                                          "If glyph_geometry_backing_store_type is set to texture_array, then "
-                                          "this gives the log2 of the height of the texture array", *this),
+  m_glyph_backing_store_type(glyph_backing_store_auto,
+			     enumerated_string_type<enum glyph_backing_store_t>()
+			     .add_entry("texture_buffer",
+					glyph_backing_store_texture_buffer,
+					"use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
+					"for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
+					"extension GL_EXT_texture_buffer")
+			     .add_entry("texture_array",
+					glyph_backing_store_texture_array,
+					"use a 2D texture array to store the glyph data, "
+					"GL and GLES have feature in core")
+			     .add_entry("storage_buffer",
+					glyph_backing_store_ssbo,
+					"use a shader storage buffer, feature is core starting in GLES 3.1 and available "
+					"in GL starting at version 4.2 or via the extension GL_ARB_shader_storage_buffer")
+			     .add_entry("auto",
+					glyph_backing_store_auto,
+					"query context and decide optimal value"),
+			     "geometry_backing_store_type",
+			     "Determines how the glyph store is backed.",
+			     *this),
+  m_glyph_backing_texture_log2_w(10, "glyph_backing_texture_log2_w",
+				 "If glyph_backing_store_type is set to texture_array, then "
+				 "this gives the log2 of the width of the texture array", *this),
+  m_glyph_backing_texture_log2_h(10, "glyph_backing_texture_log2_h",
+				 "If glyph_backing_store_type is set to texture_array, then "
+				 "this gives the log2 of the height of the texture array", *this),
   m_colorstop_atlas_options("ColorStop Atlas options", *this),
   m_color_stop_atlas_width(m_colorstop_atlas_params.width(),
                            "colorstop_atlas_width",
@@ -566,44 +566,44 @@ init_gl(int w, int h)
   m_image_atlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(m_image_atlas_params);
 
   m_glyph_atlas_params
-    .number_floats(m_geometry_store_size.value())
+    .number_floats(m_glyph_atlas_size.value())
     .delayed(m_glyph_atlas_delayed_upload.value());
 
-  switch(m_glyph_geometry_backing_store_type.value())
+  switch(m_glyph_backing_store_type.value())
     {
-    case glyph_geometry_backing_store_texture_buffer:
-      m_glyph_atlas_params.use_texture_buffer_geometry_store();
+    case glyph_backing_store_texture_buffer:
+      m_glyph_atlas_params.use_texture_buffer_store();
       break;
 
-    case glyph_geometry_backing_store_texture_array:
-      m_glyph_atlas_params.use_texture_2d_array_geometry_store(m_glyph_geometry_backing_texture_log2_w.value(),
-                                                               m_glyph_geometry_backing_texture_log2_h.value());
+    case glyph_backing_store_texture_array:
+      m_glyph_atlas_params.use_texture_2d_array_store(m_glyph_backing_texture_log2_w.value(),
+						      m_glyph_backing_texture_log2_h.value());
       break;
 
-    case glyph_geometry_backing_store_ssbo:
-      m_glyph_atlas_params.use_storage_buffer_geometry_store();
+    case glyph_backing_store_ssbo:
+      m_glyph_atlas_params.use_storage_buffer_store();
       break;
 
     default:
-      m_glyph_atlas_params.use_optimal_geometry_store_backing();
-      switch(m_glyph_atlas_params.glyph_geometry_backing_store_type())
+      m_glyph_atlas_params.use_optimal_store_backing();
+      switch(m_glyph_atlas_params.glyph_data_backing_store_type())
         {
-        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo:
+        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
           {
-            std::cout << "Glyph Geometry Store: auto selected texture buffer\n";
+            std::cout << "Glyph  Store: auto selected texture buffer\n";
           }
           break;
 
-        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo:
+        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
           {
-            std::cout << "Glyph Geometry Store: auto selected storage buffer\n";
+            std::cout << "Glyph  Store: auto selected storage buffer\n";
           }
           break;
 
-        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array:
+        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
           {
-            fastuidraw::ivec2 log2_dims(m_glyph_atlas_params.texture_2d_array_geometry_store_log2_dims());
-            std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
+            fastuidraw::ivec2 log2_dims(m_glyph_atlas_params.texture_2d_array_store_log2_dims());
+            std::cout << "Glyph  Store: auto selected texture with dimensions: (2^"
                       << log2_dims.x() << ", 2^" << log2_dims.y() << ") = "
                       << fastuidraw::ivec2(1 << log2_dims.x(), 1 << log2_dims.y())
                       << "\n";
@@ -789,7 +789,7 @@ init_gl(int w, int h)
 		<< " (requested " << make_enum_wrapper(m_painter_params.default_stroke_shader_aa_type())
 		<< ")\n"
                 << std::setw(40) << "geometry_backing_store_type:"
-                << std::setw(8) << m_glyph_atlas->param_values().glyph_geometry_backing_store_type()
+                << std::setw(8) << m_glyph_atlas->param_values().glyph_data_backing_store_type()
                 << "\n";
 
       #undef LAZY_PARAM

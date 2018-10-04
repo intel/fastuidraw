@@ -46,7 +46,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_glyph_coord_y = float(xy.y);
   fastuidraw_glyph_width = float(wh.x);
   fastuidraw_glyph_height = float(wh.y);
-  fastuidraw_glyph_geometry_data_location = in_attrib1.y;
+  fastuidraw_glyph_data_location = in_attrib1.y;
 
   z_add = 0;
   return p.xyxy;

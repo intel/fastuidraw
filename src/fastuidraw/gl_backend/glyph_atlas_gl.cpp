@@ -29,13 +29,13 @@
 
 namespace
 {
-  class GeometryStoreGL:public fastuidraw::GlyphAtlasGeometryBackingStoreBase
+  class StoreGL:public fastuidraw::GlyphAtlasBackingStoreBase
   {
   public:
-    GeometryStoreGL(unsigned int number,
+    StoreGL(unsigned int number,
                     GLenum pbinding_point, const fastuidraw::ivec2 &log2_dims,
                     bool backed_by_texture):
-      fastuidraw::GlyphAtlasGeometryBackingStoreBase(number, true),
+      fastuidraw::GlyphAtlasBackingStoreBase(number, true),
       m_binding_point(pbinding_point),
       m_log2_dims(log2_dims),
       m_backed_by_texture(backed_by_texture)
@@ -47,7 +47,7 @@ namespace
     gl_backing(void) const = 0;
 
     static
-    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase>
     create(const fastuidraw::gl::GlyphAtlasGL::params &P);
 
     GLenum m_binding_point;
@@ -55,11 +55,11 @@ namespace
     bool m_backed_by_texture;
   };
 
-  class GeometryStoreGL_StorageBuffer:public GeometryStoreGL
+  class StoreGL_StorageBuffer:public StoreGL
   {
   public:
     explicit
-    GeometryStoreGL_StorageBuffer(unsigned int number, bool delayed);
+    StoreGL_StorageBuffer(unsigned int number, bool delayed);
 
     virtual
     void
@@ -86,11 +86,11 @@ namespace
     BufferGL m_backing_store;
   };
 
-  class GeometryStoreGL_TextureBuffer:public GeometryStoreGL
+  class StoreGL_TextureBuffer:public StoreGL
   {
   public:
     explicit
-    GeometryStoreGL_TextureBuffer(unsigned int number, bool delayed);
+    StoreGL_TextureBuffer(unsigned int number, bool delayed);
 
     virtual
     void
@@ -119,11 +119,11 @@ namespace
     mutable bool m_tbo_dirty;
   };
 
-  class GeometryStoreGL_Texture:public GeometryStoreGL
+  class StoreGL_Texture:public StoreGL
   {
   public:
     explicit
-    GeometryStoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number, bool delayed);
+    StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number, bool delayed);
 
     virtual
     void
@@ -167,14 +167,14 @@ namespace
     GlyphAtlasGLParamsPrivate(void):
       m_number_floats(1024 * 1024),
       m_delayed(false),
-      m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo),
-      m_log2_dims_geometry_store(-1, -1)
+      m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
+      m_log2_dims_store(-1, -1)
     {}
 
     unsigned int m_number_floats;
     bool m_delayed;
-    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t m_type;
-    fastuidraw::ivec2 m_log2_dims_geometry_store;
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_type;
+    fastuidraw::ivec2 m_log2_dims_store;
   };
 
   class GlyphAtlasGLPrivate
@@ -190,10 +190,10 @@ namespace
 }
 
 ///////////////////////////////////////////////
-// GeometryStoreGL_Texture methods
-GeometryStoreGL_Texture::
-GeometryStoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels, bool delayed):
-  GeometryStoreGL(number_texels, GL_TEXTURE_2D_ARRAY, log2_wh, true),
+// StoreGL_Texture methods
+StoreGL_Texture::
+StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels, bool delayed):
+  StoreGL(number_texels, GL_TEXTURE_2D_ARRAY, log2_wh, true),
   m_layer_dims(1 << log2_wh.x(), 1 << log2_wh.y()),
   m_texels_per_layer(m_layer_dims.x() * m_layer_dims.y()),
   m_backing_store(texture_size(m_layer_dims, number_texels), delayed)
@@ -201,7 +201,7 @@ GeometryStoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels, b
 }
 
 fastuidraw::ivec3
-GeometryStoreGL_Texture::
+StoreGL_Texture::
 texture_size(fastuidraw::uvec2 wh, unsigned int number_texels)
 {
   unsigned int A, L;
@@ -216,28 +216,28 @@ texture_size(fastuidraw::uvec2 wh, unsigned int number_texels)
 }
 
 void
-GeometryStoreGL_Texture::
+StoreGL_Texture::
 resize_implement(unsigned int new_size)
 {
   m_backing_store.resize(texture_size(m_layer_dims, new_size));
 }
 
 void
-GeometryStoreGL_Texture::
+StoreGL_Texture::
 flush(void)
 {
   m_backing_store.flush();
 }
 
 GLuint
-GeometryStoreGL_Texture::
+StoreGL_Texture::
 gl_backing(void) const
 {
   return m_backing_store.texture();
 }
 
 void
-GeometryStoreGL_Texture::
+StoreGL_Texture::
 set_values(unsigned int location,
            fastuidraw::c_array<const fastuidraw::generic_data> pdata)
 {
@@ -290,10 +290,10 @@ set_values(unsigned int location,
 }
 
 ///////////////////////////////////////////////
-// GeometryStoreGL_TextureBuffer methods
-GeometryStoreGL_TextureBuffer::
-GeometryStoreGL_TextureBuffer(unsigned int number, bool delayed):
-  GeometryStoreGL(number, GL_TEXTURE_BUFFER,
+// StoreGL_TextureBuffer methods
+StoreGL_TextureBuffer::
+StoreGL_TextureBuffer(unsigned int number, bool delayed):
+  StoreGL(number, GL_TEXTURE_BUFFER,
                   fastuidraw::ivec2(-1, -1), true),
   m_backing_store(number * sizeof(float), delayed),
   m_texture(0),
@@ -302,7 +302,7 @@ GeometryStoreGL_TextureBuffer(unsigned int number, bool delayed):
 }
 
 void
-GeometryStoreGL_TextureBuffer::
+StoreGL_TextureBuffer::
 set_values(unsigned int location,
            fastuidraw::c_array<const fastuidraw::generic_data> pdata)
 {
@@ -311,14 +311,14 @@ set_values(unsigned int location,
 }
 
 void
-GeometryStoreGL_TextureBuffer::
+StoreGL_TextureBuffer::
 flush(void)
 {
   m_backing_store.flush();
 }
 
 void
-GeometryStoreGL_TextureBuffer::
+StoreGL_TextureBuffer::
 resize_implement(unsigned int new_size)
 {
   m_backing_store.resize(new_size * sizeof(float));
@@ -326,7 +326,7 @@ resize_implement(unsigned int new_size)
 }
 
 GLuint
-GeometryStoreGL_TextureBuffer::
+StoreGL_TextureBuffer::
 gl_backing(void) const
 {
   if (m_texture == 0)
@@ -351,17 +351,17 @@ gl_backing(void) const
 }
 
 ///////////////////////////////////////////////
-// GeometryStoreGL_StorageBuffer methods
-GeometryStoreGL_StorageBuffer::
-GeometryStoreGL_StorageBuffer(unsigned int number, bool delayed):
-  GeometryStoreGL(number, GL_SHADER_STORAGE_BUFFER,
+// StoreGL_StorageBuffer methods
+StoreGL_StorageBuffer::
+StoreGL_StorageBuffer(unsigned int number, bool delayed):
+  StoreGL(number, GL_SHADER_STORAGE_BUFFER,
                   fastuidraw::ivec2(-1, -1), false),
   m_backing_store(number * sizeof(float), delayed)
 {
 }
 
 void
-GeometryStoreGL_StorageBuffer::
+StoreGL_StorageBuffer::
 set_values(unsigned int location,
            fastuidraw::c_array<const fastuidraw::generic_data> pdata)
 {
@@ -370,58 +370,58 @@ set_values(unsigned int location,
 }
 
 void
-GeometryStoreGL_StorageBuffer::
+StoreGL_StorageBuffer::
 flush(void)
 {
   m_backing_store.flush();
 }
 
 void
-GeometryStoreGL_StorageBuffer::
+StoreGL_StorageBuffer::
 resize_implement(unsigned int new_size)
 {
   m_backing_store.resize(new_size * sizeof(float));
 }
 
 GLuint
-GeometryStoreGL_StorageBuffer::
+StoreGL_StorageBuffer::
 gl_backing(void) const
 {
   return m_backing_store.buffer();
 }
 
 ////////////////////////////////////////
-// GeometryStoreGL methods
-fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>
-GeometryStoreGL::
+// StoreGL methods
+fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase>
+StoreGL::
 create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 {
   unsigned int number;
-  GeometryStoreGL *p(nullptr);
+  StoreGL *p(nullptr);
   bool delayed;
 
   number = P.number_floats();
   delayed = P.delayed();
 
-  switch(P.glyph_geometry_backing_store_type())
+  switch(P.glyph_data_backing_store_type())
     {
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo:
-      p = FASTUIDRAWnew GeometryStoreGL_TextureBuffer(number, delayed);
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
+      p = FASTUIDRAWnew StoreGL_TextureBuffer(number, delayed);
       break;
 
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo:
-      p = FASTUIDRAWnew GeometryStoreGL_StorageBuffer(number, delayed);
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
+      p = FASTUIDRAWnew StoreGL_StorageBuffer(number, delayed);
       break;
 
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array:
-      p = FASTUIDRAWnew GeometryStoreGL_Texture(P.texture_2d_array_geometry_store_log2_dims(),
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
+      p = FASTUIDRAWnew StoreGL_Texture(P.texture_2d_array_store_log2_dims(),
                                                 number, delayed);
       break;
 
     default:
-      FASTUIDRAWassert(!"Bad glyph geometry store backing type");
+      FASTUIDRAWassert(!"Bad glyph data store backing type");
     }
-  return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>(p);
+  return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase>(p);
 }
 
 //////////////////////////////////////////////////////
@@ -451,9 +451,9 @@ fastuidraw::gl::GlyphAtlasGL::params::
 
 assign_swap_implement(fastuidraw::gl::GlyphAtlasGL::params);
 
-enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t
+enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t
 fastuidraw::gl::GlyphAtlasGL::params::
-glyph_geometry_backing_store_type(void) const
+glyph_data_backing_store_type(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
@@ -462,52 +462,52 @@ glyph_geometry_backing_store_type(void) const
 
 fastuidraw::gl::GlyphAtlasGL::params&
 fastuidraw::gl::GlyphAtlasGL::params::
-use_texture_buffer_geometry_store(void)
+use_texture_buffer_store(void)
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo;
-  d->m_log2_dims_geometry_store = ivec2(-1, -1);
+  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_tbo;
+  d->m_log2_dims_store = ivec2(-1, -1);
   return *this;
 }
 
 fastuidraw::gl::GlyphAtlasGL::params&
 fastuidraw::gl::GlyphAtlasGL::params::
-use_storage_buffer_geometry_store(void)
+use_storage_buffer_store(void)
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo;
-  d->m_log2_dims_geometry_store = ivec2(-1, -1);
+  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo;
+  d->m_log2_dims_store = ivec2(-1, -1);
   return *this;
 }
 
 fastuidraw::gl::GlyphAtlasGL::params&
 fastuidraw::gl::GlyphAtlasGL::params::
-use_texture_2d_array_geometry_store(int log2_width, int log2_height)
+use_texture_2d_array_store(int log2_width, int log2_height)
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   if (log2_width >= 0 && log2_height >= 0)
     {
-      d->m_log2_dims_geometry_store = ivec2(log2_width, log2_height);
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array;
+      d->m_log2_dims_store = ivec2(log2_width, log2_height);
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array;
     }
   return *this;
 }
 
 fastuidraw::ivec2
 fastuidraw::gl::GlyphAtlasGL::params::
-texture_2d_array_geometry_store_log2_dims(void) const
+texture_2d_array_store_log2_dims(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  return d->m_log2_dims_geometry_store;
+  return d->m_log2_dims_store;
 }
 
 fastuidraw::gl::GlyphAtlasGL::params&
 fastuidraw::gl::GlyphAtlasGL::params::
-use_optimal_geometry_store_backing(void)
+use_optimal_store_backing(void)
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
@@ -517,14 +517,14 @@ use_optimal_geometry_store_backing(void)
 
   if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= required_max_size)
     {
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo;
-      d->m_log2_dims_geometry_store = ivec2(-1, -1);
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo;
+      d->m_log2_dims_store = ivec2(-1, -1);
     }
   else if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
            && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
     {
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo;
-      d->m_log2_dims_geometry_store = ivec2(-1, -1);
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_tbo;
+      d->m_log2_dims_store = ivec2(-1, -1);
     }
   else
     {
@@ -547,9 +547,9 @@ use_optimal_geometry_store_backing(void)
           ++required_height;
         }
 
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array;
-      d->m_log2_dims_geometry_store.x() = uint32_log2(width);
-      d->m_log2_dims_geometry_store.y() = (required_height <= 1) ?
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array;
+      d->m_log2_dims_store.x() = uint32_log2(width);
+      d->m_log2_dims_store.y() = (required_height <= 1) ?
         0 : uint32_log2(required_height);
     }
   return *this;
@@ -566,7 +566,7 @@ setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
 // fastuidraw::gl::GlyphAtlasGL methods
 fastuidraw::gl::GlyphAtlasGL::
 GlyphAtlasGL(const params &P):
-  GlyphAtlas(GeometryStoreGL::create(P))
+  GlyphAtlas(StoreGL::create(P))
 {
   m_d = FASTUIDRAWnew GlyphAtlasGLPrivate(P);
 }
@@ -591,41 +591,41 @@ param_values(void) const
 
 GLenum
 fastuidraw::gl::GlyphAtlasGL::
-geometry_binding_point(void) const
+data_binding_point(void) const
 {
-  const GeometryStoreGL *p;
-  FASTUIDRAWassert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
-  p = static_cast<const GeometryStoreGL*>(geometry_store().get());
+  const StoreGL *p;
+  FASTUIDRAWassert(dynamic_cast<const StoreGL*>(store().get()));
+  p = static_cast<const StoreGL*>(store().get());
   return p->m_binding_point;
 }
 
 GLuint
 fastuidraw::gl::GlyphAtlasGL::
-geometry_backing(void) const
+data_backing(void) const
 {
   flush();
-  const GeometryStoreGL *p;
-  FASTUIDRAWassert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
-  p = static_cast<const GeometryStoreGL*>(geometry_store().get());
+  const StoreGL *p;
+  FASTUIDRAWassert(dynamic_cast<const StoreGL*>(store().get()));
+  p = static_cast<const StoreGL*>(store().get());
   return p->gl_backing();
 }
 
 bool
 fastuidraw::gl::GlyphAtlasGL::
-geometry_backed_by_texture(void) const
+data_backed_by_texture(void) const
 {
-  const GeometryStoreGL *p;
-  FASTUIDRAWassert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
-  p = static_cast<const GeometryStoreGL*>(geometry_store().get());
+  const StoreGL *p;
+  FASTUIDRAWassert(dynamic_cast<const StoreGL*>(store().get()));
+  p = static_cast<const StoreGL*>(store().get());
   return p->m_backed_by_texture;
 }
 
 fastuidraw::ivec2
 fastuidraw::gl::GlyphAtlasGL::
-geometry_texture_as_2d_array_log2_dims(void) const
+data_texture_as_2d_array_log2_dims(void) const
 {
-  const GeometryStoreGL *p;
-  FASTUIDRAWassert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
-  p = static_cast<const GeometryStoreGL*>(geometry_store().get());
+  const StoreGL *p;
+  FASTUIDRAWassert(dynamic_cast<const StoreGL*>(store().get()));
+  p = static_cast<const StoreGL*>(store().get());
   return p->m_log2_dims;
 }

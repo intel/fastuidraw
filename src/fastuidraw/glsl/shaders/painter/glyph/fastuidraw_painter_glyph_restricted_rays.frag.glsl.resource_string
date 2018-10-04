@@ -57,7 +57,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
   box.min_point = vec2(0.0, 0.0);
   box.max_point = vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y);
 
-  offset = fastuidraw_glyph_geometry_data_location;
+  offset = fastuidraw_glyph_data_location;
   v = fastuidraw_fetch_glyph_data(offset);
 
   while((v & HIERARCHY_NODE_MASK) != 0u)
@@ -86,7 +86,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
 
       bit0 = (take_max_choice) ? HIERARCHY_CHILD1_BIT : HIERARCHY_CHILD0_BIT;
       offset = FASTUIDRAW_EXTRACT_BITS(bit0, HIERARCHY_CHILD_NUM_BITS, v);
-      offset += fastuidraw_glyph_geometry_data_location;
+      offset += fastuidraw_glyph_data_location;
       v = fastuidraw_fetch_glyph_data(offset);
       box.box_flags &= and_flags;
 
@@ -318,7 +318,7 @@ FASTUIDRAW_LOCAL(load_and_process_curve)(in uint raw,
   vec2 return_value;
 
   FASTUIDRAW_LOCAL(load_curve)(raw,
-                               fastuidraw_glyph_geometry_data_location,
+                               fastuidraw_glyph_data_location,
                                curve_data);
 
 
@@ -467,7 +467,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                            frag_coord_dy,
                                            z1, tr1);
 
-  src = curve_list + fastuidraw_glyph_geometry_data_location;
+  src = curve_list + fastuidraw_glyph_data_location;
   for (c = 0u; c < num_curves; c += 2u)
     {
       uint cA, cB, curve_pair;
@@ -476,12 +476,12 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       ++src;
 
       cA = FASTUIDRAW_EXTRACT_BITS(CURVE_ENTRY0_BIT0, CURVE_ENTRY_NUM_BITS, curve_pair);
-      alpha_01 += FASTUIDRAW_LOCAL(load_and_process_curve)(cA, fastuidraw_glyph_geometry_data_location, tr0, tr1);
+      alpha_01 += FASTUIDRAW_LOCAL(load_and_process_curve)(cA, fastuidraw_glyph_data_location, tr0, tr1);
 
       if (c + 1u < num_curves)
         {
           cB = FASTUIDRAW_EXTRACT_BITS(CURVE_ENTRY1_BIT0, CURVE_ENTRY_NUM_BITS, curve_pair);
-          alpha_01 += FASTUIDRAW_LOCAL(load_and_process_curve)(cB, fastuidraw_glyph_geometry_data_location, tr0, tr1);
+          alpha_01 += FASTUIDRAW_LOCAL(load_and_process_curve)(cB, fastuidraw_glyph_data_location, tr0, tr1);
         }
     }
 

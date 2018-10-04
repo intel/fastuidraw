@@ -863,8 +863,8 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     .unpack_header_and_brush_in_frag_shader(params.unpack_header_and_brush_in_frag_shader())
     .data_store_backing(params.data_store_backing())
     .data_blocks_per_store_buffer(params.data_blocks_per_store_buffer())
-    .glyph_geometry_backing(params.glyph_atlas()->param_values().glyph_geometry_backing_store_type())
-    .glyph_geometry_backing_log2_dims(params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
+    .glyph_data_backing(params.glyph_atlas()->param_values().glyph_data_backing_store_type())
+    .glyph_data_backing_log2_dims(params.glyph_atlas()->param_values().texture_2d_array_store_log2_dims())
     .colorstop_atlas_backing(colorstop_tp)
     .provide_auxiliary_image_buffer(params.provide_auxiliary_image_buffer())
     .use_uvec2_for_bindless_handle(ctx.has_extension("GL_ARB_bindless_texture"));
@@ -1109,11 +1109,11 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       glBindSampler(binding_points.image_atlas_index_tiles(), 0);
       glBindTexture(GL_TEXTURE_2D_ARRAY, image->index_texture());
 
-      if (glyphs->geometry_backed_by_texture())
+      if (glyphs->data_backed_by_texture())
         {
-          glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store_texture());
-          glBindSampler(binding_points.glyph_atlas_geometry_store_texture(), 0);
-          glBindTexture(glyphs->geometry_binding_point(), glyphs->geometry_backing());
+          glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_store_texture());
+          glBindSampler(binding_points.glyph_atlas_store_texture(), 0);
+          glBindTexture(glyphs->data_binding_point(), glyphs->data_backing());
         }
 
       glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
@@ -1155,11 +1155,11 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   if (v & gpu_dirty_state::storage_buffers)
     {
-      if (!glyphs->geometry_backed_by_texture())
+      if (!glyphs->data_backed_by_texture())
         {
           glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                           binding_points.glyph_atlas_geometry_store_ssbo(),
-                           glyphs->geometry_backing());
+                           binding_points.glyph_atlas_store_ssbo(),
+                           glyphs->data_backing());
         }
     }
 }
@@ -1635,7 +1635,7 @@ create_missing_atlases(const ContextProperties &ctx)
   if (!d->m_glyph_atlas)
     {
       GlyphAtlasGL::params params;
-      params.use_optimal_geometry_store_backing();
+      params.use_optimal_store_backing();
       d->m_glyph_atlas = FASTUIDRAWnew GlyphAtlasGL(params);
     }
 
@@ -1870,15 +1870,15 @@ on_post_draw(void)
   FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get()));
   glyphs = static_cast<GlyphAtlasGL*>(glyph_atlas().get());
 
-  if (glyphs->geometry_backed_by_texture())
+  if (glyphs->data_backed_by_texture())
     {
-      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store_texture());
-      glBindTexture(glyphs->geometry_binding_point(), 0);
+      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_store_texture());
+      glBindTexture(glyphs->data_binding_point(), 0);
     }
   else
     {
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                       binding_points.glyph_atlas_geometry_store_ssbo(),
+                       binding_points.glyph_atlas_store_ssbo(),
                        0);
     }
 

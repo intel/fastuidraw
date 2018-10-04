@@ -619,21 +619,21 @@ create_glyph_shader(void)
     .add_float_varying("fastuidraw_glyph_coord_y")
     .add_float_varying("fastuidraw_glyph_width")
     .add_float_varying("fastuidraw_glyph_height")
-    .add_uint_varying("fastuidraw_glyph_geometry_data_location");
+    .add_uint_varying("fastuidraw_glyph_data_location");
 
   coverage_varyings
     .add_float_varying("fastuidraw_glyph_coord_x")
     .add_float_varying("fastuidraw_glyph_coord_y")
     .add_float_varying("fastuidraw_glyph_width")
     .add_float_varying("fastuidraw_glyph_height")
-    .add_uint_varying("fastuidraw_glyph_geometry_data_location");
+    .add_uint_varying("fastuidraw_glyph_data_location");
 
   restricted_rays_varyings
     .add_float_varying("fastuidraw_glyph_coord_x")
     .add_float_varying("fastuidraw_glyph_coord_y")
     .add_float_varying("fastuidraw_glyph_max_x")
     .add_float_varying("fastuidraw_glyph_max_y")
-    .add_uint_varying("fastuidraw_glyph_geometry_data_location");
+    .add_uint_varying("fastuidraw_glyph_data_location");
 
   return_value
     .shader(coverage_glyph,

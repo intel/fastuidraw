@@ -129,24 +129,24 @@ namespace fastuidraw
       /*!
        * \brief
        * Enumeration to specify how to access the backing store
-       * of the glyph geometry stored in GlyphAtlas::geometry_store()
+       * of the glyph data stored in GlyphAtlas::store()
        */
-      enum glyph_geometry_backing_t
+      enum glyph_data_backing_t
         {
           /*!
            * Use a samplerBuffer to access the data
            */
-          glyph_geometry_tbo,
+          glyph_data_tbo,
 
           /*!
            * Use a sampler2DArray to access the data
            */
-          glyph_geometry_texture_array,
+          glyph_data_texture_array,
 
           /*!
            * Use a buffer block to access the data
            */
-          glyph_geometry_ssbo,
+          glyph_data_ssbo,
         };
 
       /*!
@@ -365,48 +365,48 @@ namespace fastuidraw
 
         /*!
          * Specifies the binding point for the sampler2DArray
-         * or samplerBuffer backed by GlyphAtlas::geometry_store().
+         * or samplerBuffer backed by GlyphAtlas::store().
          * The data type for the uniform is decided from the value
-         * of UberShaderParams::glyph_geometry_backing():
-         * - sampler2DArray if value is glyph_geometry_texture_array
-         * - samplerBuffer if value is glyph_geometry_tbo
+         * of UberShaderParams::glyph_data_backing():
+         * - sampler2DArray if value is glyph_data_texture_array
+         * - samplerBuffer if value is glyph_data_tbo
          */
         unsigned int
-        glyph_atlas_geometry_store_texture(void) const;
+        glyph_atlas_store_texture(void) const;
 
         /*!
          * Set the value returned by
-         * glyph_atlas_geometry_store_texture(void) const.
+         * glyph_atlas_store_texture(void) const.
          * Default value is 4.
          */
         BindingPoints&
-        glyph_atlas_geometry_store_texture(unsigned int);
+        glyph_atlas_store_texture(unsigned int);
 
         /*!
          * Specifies the binding point for an SSBO that backs
-         * GlyphAtlas::geometry_store(); only active if the
-         * geometry strore is backed by an SSBO.
+         * GlyphAtlas::store(); only active if the
+         * data store is backed by an SSBO.
          */
         unsigned int
-        glyph_atlas_geometry_store_ssbo(void) const;
+        glyph_atlas_store_ssbo(void) const;
 
         /*!
          * Set the value returned by
-         * glyph_atlas_geometry_store_ssbo(void) const.
+         * glyph_atlas_store_ssbo(void) const.
          * Default value is 0.
          */
         BindingPoints&
-        glyph_atlas_geometry_store_ssbo(unsigned int);
+        glyph_atlas_store_ssbo(unsigned int);
 
         /*!
          * Provided as a conveniance, returns one of \ref
-         * glyph_atlas_geometry_store_texture() or
-         * glyph_atlas_geometry_store_ssbo() based off of
+         * glyph_atlas_store_texture() or
+         * glyph_atlas_store_ssbo() based off of
          * the value of the passed \ref
-         * glyph_geometry_backing_t.
+         * glyph_data_backing_t.
          */
         unsigned int
-        glyph_atlas_geometry_store(enum glyph_geometry_backing_t) const;
+        glyph_atlas_store(enum glyph_data_backing_t) const;
 
         /*!
          * Specifies the binding point of the UBO for uniforms.
@@ -810,36 +810,36 @@ namespace fastuidraw
         data_blocks_per_store_buffer(int);
 
         /*!
-         * Specifies how the glyph geometry data (GlyphAtlas::geometry_store())
+         * Specifies how the glyph data (GlyphAtlas::store())
          * is accessed from the uber-shaders.
          */
-        enum glyph_geometry_backing_t
-        glyph_geometry_backing(void) const;
+        enum glyph_data_backing_t
+        glyph_data_backing(void) const;
 
         /*!
-         * Set the value returned by glyph_geometry_backing(void) const.
-         * Default value is glyph_geometry_tbo.
+         * Set the value returned by glyph_data_backing(void) const.
+         * Default value is glyph_data_tbo.
          */
         UberShaderParams&
-        glyph_geometry_backing(enum glyph_geometry_backing_t);
+        glyph_data_backing(enum glyph_data_backing_t);
 
         /*!
-         * Only used if glyph_geometry_backing(void) const has value
-         * glyph_geometry_texture_array. Gives the log2 of the
+         * Only used if glyph_data_backing(void) const has value
+         * glyph_data_texture_array. Gives the log2 of the
          * width and height of the texture array backing the
-         * glyph geometry data (GlyphAtlas::geometry_store()).
+         * glyph data (GlyphAtlas::store()).
          * Note: it must be that the width and height of the backing
          * 2D texture array are powers of 2.
          */
         ivec2
-        glyph_geometry_backing_log2_dims(void) const;
+        glyph_data_backing_log2_dims(void) const;
 
         /*!
-         * Set the value returned by glyph_geometry_backing_log2_dims(void) const.
+         * Set the value returned by glyph_data_backing_log2_dims(void) const.
          * Default value is (-1, -1).
          */
         UberShaderParams&
-        glyph_geometry_backing_log2_dims(ivec2);
+        glyph_data_backing_log2_dims(ivec2);
 
         /*!
          * Specifies how the bakcing store to the color stop atlas

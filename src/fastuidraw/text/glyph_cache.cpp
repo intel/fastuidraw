@@ -30,7 +30,7 @@ namespace
 
   class GlyphCachePrivate;
 
-  class GeometryDataAlloc
+  class GlyphDataAlloc
   {
   public:
     int m_location;
@@ -45,7 +45,7 @@ namespace
       m_cache(c)
     {}
 
-    std::vector<GeometryDataAlloc> m_geometry_locations;
+    std::vector<GlyphDataAlloc> m_data_locations;
     GlyphCachePrivate *m_cache;
   };
 
@@ -343,11 +343,11 @@ remove_from_atlas(void)
 {
   if (m_cache)
     {
-      for (const GeometryDataAlloc &g : m_geometry_locations)
+      for (const GlyphDataAlloc &g : m_data_locations)
         {
-          m_cache->m_atlas->deallocate_geometry_data(g.m_location, g.m_size);
+          m_cache->m_atlas->deallocate_data(g.m_location, g.m_size);
         }
-      m_geometry_locations.clear();
+      m_data_locations.clear();
     }
   m_uploaded_to_atlas = false;
 }
@@ -435,19 +435,19 @@ GlyphCachePrivate::
 // fastuidraw::GlyphAtlasProxy methods
 int
 fastuidraw::GlyphAtlasProxy::
-allocate_geometry_data(c_array<const generic_data> pdata)
+allocate_data(c_array<const generic_data> pdata)
 {
   int L;
   GlyphAtlasProxyPrivate *d;
 
   d = static_cast<GlyphAtlasProxyPrivate*>(m_d);
-  L = d->m_cache->m_atlas->allocate_geometry_data(pdata);
+  L = d->m_cache->m_atlas->allocate_data(pdata);
   if (L != -1)
     {
-      GeometryDataAlloc A;
+      GlyphDataAlloc A;
       A.m_location = L;
       A.m_size = pdata.size();
-      d->m_geometry_locations.push_back(A);
+      d->m_data_locations.push_back(A);
     }
   return L;
 }
@@ -1003,7 +1003,7 @@ clear_atlas(void)
   for(GlyphDataPrivate *g : d->m_glyphs.data())
     {
       g->m_uploaded_to_atlas = false;
-      g->m_geometry_locations.clear();
+      g->m_data_locations.clear();
     }
 }
 

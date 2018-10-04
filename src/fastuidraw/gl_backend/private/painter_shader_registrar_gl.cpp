@@ -174,8 +174,8 @@ configure_source_front_matter(void)
         .add_sampler_initializer("fastuidraw_imageAtlasLinear", binding_points.image_atlas_color_tiles_linear())
         .add_sampler_initializer("fastuidraw_imageAtlasNearest", binding_points.image_atlas_color_tiles_nearest())
         .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
-        .add_sampler_initializer("fastuidraw_glyphGeometryDataStore",
-                                 binding_points.glyph_atlas_geometry_store(m_uber_shader_builder_params.glyph_geometry_backing()))
+        .add_sampler_initializer("fastuidraw_glyphDataStore",
+                                 binding_points.glyph_atlas_store(m_uber_shader_builder_params.glyph_data_backing()))
         .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas())
         .add_sampler_initializer("fastuidraw_external_texture", binding_points.external_texture())
         .add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
@@ -321,7 +321,7 @@ configure_source_front_matter(void)
       bool require_ssbo, require_image_load_store;
 
       require_ssbo = (m_uber_shader_builder_params.data_store_backing() == data_store_ssbo)
-        || (glyphs->geometry_binding_point() == GL_SHADER_STORAGE_BUFFER);
+        || (glyphs->data_binding_point() == GL_SHADER_STORAGE_BUFFER);
 
       require_image_load_store = (m_params.compositing_type() == compositing_interlock)
         || (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)

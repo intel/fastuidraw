@@ -31,7 +31,7 @@ namespace fastuidraw
  */
   /*!
    * \brief
-   * GlyphAtlasGeometryStoreBase represents an interface to an aray of
+   * GlyphAtlasStoreBase represents an interface to an aray of
    * generic_data values.
    *
    * An example implementation in GL would be a buffer object that backs
@@ -39,20 +39,20 @@ namespace fastuidraw
    * thread safe because the ultimate user of the backing store
    * (GlyphCache) performs calls to the backing store behind its own mutex.
    */
-  class GlyphAtlasGeometryBackingStoreBase:
-    public reference_counted<GlyphAtlasGeometryBackingStoreBase>::default_base
+  class GlyphAtlasBackingStoreBase:
+    public reference_counted<GlyphAtlasBackingStoreBase>::default_base
   {
   public:
     /*!
      * Ctor.
      * \param psize number of generic_data elements that the
-                    GlyphAtlasGeometryBackingStoreBase backs
+                    GlyphAtlasBackingStoreBase backs
      * \param presizable if true the object can be resized to be larger
      */
-    GlyphAtlasGeometryBackingStoreBase(unsigned int psize, bool presizable);
+    GlyphAtlasBackingStoreBase(unsigned int psize, bool presizable);
 
     virtual
-    ~GlyphAtlasGeometryBackingStoreBase();
+    ~GlyphAtlasBackingStoreBase();
 
     /*!
      * Returns the number of \ref generic_data backed by the store.
@@ -122,10 +122,10 @@ namespace fastuidraw
   public:
     /*!
      * Ctor.
-     * \param pgeometry_store GlyphAtlasGeometryBackingStoreBase to which to store geometry data
+     * \param pstore GlyphAtlasBackingStoreBase to which to store  data
      */
     explicit
-    GlyphAtlas(reference_counted_ptr<GlyphAtlasGeometryBackingStoreBase> pgeometry_store);
+    GlyphAtlas(reference_counted_ptr<GlyphAtlasBackingStoreBase> pstore);
 
     virtual
     ~GlyphAtlas();
@@ -134,19 +134,19 @@ namespace fastuidraw
      * Negative return value indicates failure.
      */
     int
-    allocate_geometry_data(c_array<const generic_data> pdata);
+    allocate_data(c_array<const generic_data> pdata);
 
     /*!
-     * Deallocate geometry data
+     * Deallocate  data
      */
     void
-    deallocate_geometry_data(int location, int count);
+    deallocate_data(int location, int count);
 
     /*!
-     * Returns how much geometry data has been allocated
+     * Returns how much  data has been allocated
      */
     unsigned int
-    geometry_data_allocated(void);
+    data_allocated(void);
 
     /*!
      * Frees all allocated regions of this GlyphAtlas;
@@ -155,17 +155,17 @@ namespace fastuidraw
     clear(void);
 
     /*!
-     * Calls GlyphAtlasGeometryBackingStoreBase::flush() on
-     * the geometry backing store (see geometry_store()).
+     * Calls GlyphAtlasBackingStoreBase::flush() on
+     * the  backing store (see store()).
      */
     void
     flush(void) const;
 
     /*!
-     * Returns the geometry store for this GlyphAtlas.
+     * Returns the  store for this GlyphAtlas.
      */
-    reference_counted_ptr<const GlyphAtlasGeometryBackingStoreBase>
-    geometry_store(void) const;
+    reference_counted_ptr<const GlyphAtlasBackingStoreBase>
+    store(void) const;
 
   private:
     void *m_d;

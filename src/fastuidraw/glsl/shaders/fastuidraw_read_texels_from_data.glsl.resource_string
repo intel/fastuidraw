@@ -1,6 +1,6 @@
 /*!
- * \file fastuidraw_read_texels_from_geometry_data.glsl.resource_string
- * \brief file fastuidraw_read_texels_from_geometry_data.glsl.resource_string
+ * \file fastuidraw_read_texels_from_data.glsl.resource_string
+ * \brief file fastuidraw_read_texels_from_data.glsl.resource_string
  *
  * Copyright 2018 by Intel.
  *
@@ -17,7 +17,7 @@
  */
 
 uint
-fastuidraw_read_texel_from_geometry_data(in ivec2 coord, in uvec2 dims, in uint location)
+fastuidraw_read_texel_from_data(in ivec2 coord, in uvec2 dims, in uint location)
 {
   uint x, y, block_offset, block;
   uint bit0x, bit0y;

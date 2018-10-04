@@ -40,7 +40,7 @@ namespace fastuidraw
      * Negative return value indicates failure.
      */
     int
-    allocate_geometry_data(c_array<const generic_data> pdata);
+    allocate_data(c_array<const generic_data> pdata);
 
   private:
     friend class Glyph;
