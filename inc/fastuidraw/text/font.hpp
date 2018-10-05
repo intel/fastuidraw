@@ -126,12 +126,14 @@ namespace fastuidraw
      *               it is guaranteed by the caller that can_create_rendering_data()
      *               returns true on render.type()
      * \param glyph_metrics GlyphMetrics values as computed by compute_metrics()
-     * \param[out] path Path of the glyph
+     * \param[out] path location to which to write the Path of the glyph
+     * \param[out] render_size location to which to write the render size
+     *                         of the glyph
      */
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render,
-                           GlyphMetrics glyph_metrics, Path &path) const = 0;
+    compute_rendering_data(GlyphRender render, GlyphMetrics glyph_metrics,
+			   Path &path, vec2 &render_size) const = 0;
 
     friend class Glyph;
     friend class GlyphCache;

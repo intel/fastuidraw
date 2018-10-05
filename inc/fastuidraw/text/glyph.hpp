@@ -80,6 +80,16 @@ namespace fastuidraw
     renderer(void) const;
 
     /*!
+     * Returne ths rendering size of the glpyh (in
+     * font coordinates). This value is similair in
+     * value to GlyphMetrics:size() but not necesaarily
+     * idential (differnces come from discreitzation to
+     * pixels for example).
+     */
+    vec2
+    render_size(void) const;
+
+    /*!
      * Returns the glyph's layout data, valid()
      * must return true. If not, debug builds FASTUIDRAWassert
      * and release builds crash.
