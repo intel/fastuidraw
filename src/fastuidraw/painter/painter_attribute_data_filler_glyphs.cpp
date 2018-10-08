@@ -102,7 +102,7 @@ namespace
     FASTUIDRAWassert(glyph.valid());
 
     fastuidraw::c_array<const fastuidraw::GlyphAttribute> glyph_attributes(glyph.attributes());
-    fastuidraw::vec2 glyph_size(SCALE * glyph.metrics().size());
+    fastuidraw::vec2 glyph_size(SCALE * glyph.render_size());
     fastuidraw::vec2 p_bl, p_tr;
     fastuidraw::vec2 layout_offset;
 
@@ -223,8 +223,8 @@ compute_number_glyphs(void)
   for(const auto &G : m_glyphs)
     {
       if (G.valid()
-          && G.metrics().size().x() > 0
-          && G.metrics().size().y() > 0)
+          && G.render_size().x() > 0
+          && G.render_size().y() > 0)
         {
           FASTUIDRAWassert(G.uploaded_to_atlas());
           ++m_number_glyphs;
@@ -325,8 +325,8 @@ fill_data(c_array<PainterAttribute> attribute_data,
   for(unsigned int g = 0, endg = d->m_glyphs.size(); g < endg; ++g)
     {
       if (d->m_glyphs[g].valid()
-          && d->m_glyphs[g].metrics().size().x() > 0
-          && d->m_glyphs[g].metrics().size().y() > 0)
+          && d->m_glyphs[g].render_size().x() > 0
+          && d->m_glyphs[g].render_size().y() > 0)
         {
           float scale;
           unsigned int t;
@@ -357,8 +357,8 @@ compute_number_attributes_indices_needed(c_array<const Glyph> glyphs,
   for (Glyph G : glyphs)
     {
       if (G.valid()
-	  && G.metrics().size().x() > 0
-	  && G.metrics().size().y() > 0)
+	  && G.render_size().x() > 0
+	  && G.render_size().y() > 0)
 	{
 	  if (tp == invalid_glyph)
 	    {
@@ -400,8 +400,8 @@ pack_attributes_indices(c_array<const vec2> glyph_positions,
       Glyph G(glyphs[i]);
 
       if (G.valid()
-	  && G.metrics().size().x() > 0
-	  && G.metrics().size().y() > 0)
+	  && G.render_size().x() > 0
+	  && G.render_size().y() > 0)
 	{
 	  if (tp == invalid_glyph)
 	    {
