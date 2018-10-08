@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/text/glyph_sequence.hpp>
+#include <fastuidraw/painter/glyph_sequence.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include <vector>
 #include <map>

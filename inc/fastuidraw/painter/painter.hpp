@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/path.hpp>
-#include <fastuidraw/text/glyph_sequence.hpp>
+#include <fastuidraw/painter/glyph_sequence.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
