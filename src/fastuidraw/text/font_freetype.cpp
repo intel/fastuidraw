@@ -321,7 +321,7 @@ compute_rendering_data(int pixel_size,
   IntPathCreator::decompose_to_path(&face->glyph->outline, path, C);
   bitmap_sz.x() = face->glyph->bitmap.width;
   bitmap_sz.y() = face->glyph->bitmap.rows;
-  render_size = fastuidraw::vec2(bitmap_sz) * float(pixel_size) / float(face->units_per_EM);
+  render_size = fastuidraw::vec2(bitmap_sz) * float(face->units_per_EM) / float(pixel_size);
 
   /* add one pixel slack on glyph */
   if (bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
