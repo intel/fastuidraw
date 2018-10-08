@@ -213,6 +213,49 @@ namespace fastuidraw
   }
 
   /*!
+   * Given v > 0, compute N so that N is a power
+   * of 2 and so that N / 2 < v <= N. When v is 0,
+   * returns 0.
+   */
+  inline
+  uint32_t
+  next_power_of_2(uint32_t v)
+  {
+    /* taken from Bithacks */
+    --v;
+    v |= v >> 1u;
+    v |= v >> 2u;
+    v |= v >> 4u;
+    v |= v >> 8u;
+    v |= v >> 16u;
+    ++v;
+
+    return v;
+  }
+
+  /*!
+   * Given v > 0, compute N so that N is a power
+   * of 2 and so that N / 2 < v <= N. When v is 0,
+   * returns 0.
+   */
+  inline
+  uint64_t
+  uint64_next_power_of_2(uint64_t v)
+  {
+    /* taken from Bithacks */
+    --v;
+    v |= v >> 1u;
+    v |= v >> 2u;
+    v |= v >> 4u;
+    v |= v >> 8u;
+    v |= v >> 16u;
+    v |= v >> 32u;
+    ++v;
+
+    return v;
+  }
+
+  /*!
    * Given if a bit should be up or down returns
    * an input value with that bit made to be up
    * or down.
