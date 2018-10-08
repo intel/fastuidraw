@@ -372,15 +372,13 @@ namespace
 
     uint32_t return_value;
 
-    /* We enforce a minimal glyph size of 4.0 and
-     * to avoid have a large spectrum of glyphs
-     * in the glyph atlas, we enforce the pixel
-     * size to be even.
-     */
+    /* We enforce a minimal glyph size of 4.0 */
     return_value = static_cast<uint32_t>(t_max(4.0f, pixel_size));
-    if (return_value & 1u)
+
+    /* larger glyph sizes can be stretched more */
+    if (return_value & 1u && return_value >= 16u)
       {
-        ++return_value;
+        --return_value;
       }
 
     return return_value;
