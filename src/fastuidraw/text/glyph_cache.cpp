@@ -128,6 +128,9 @@ namespace
     /* Path of the glyph */
     fastuidraw::Path m_path;
 
+    /* rendeirng size of the glyph */
+    fastuidraw::vec2 m_render_size;
+
     /* data to generate glyph data */
     fastuidraw::GlyphRenderData *m_glyph_data;
   };
@@ -611,6 +614,16 @@ path(void) const
   return p->m_path;
 }
 
+fastuidraw::vec2
+fastuidraw::Glyph::
+render_size(void) const
+{
+  GlyphDataPrivate *p;
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
+  FASTUIDRAWassert(p != nullptr && p->m_render.valid());
+  return p->m_render_size;
+}
+
 fastuidraw::Glyph
 fastuidraw::Glyph::
 create_glyph(GlyphRender render,
@@ -629,7 +642,8 @@ create_glyph(GlyphRender render,
 
   d->m_render = render;
   font->compute_metrics(glyph_code, v);
-  d->m_glyph_data = font->compute_rendering_data(d->m_render, cv, d->m_path);
+  d->m_glyph_data = font->compute_rendering_data(d->m_render, cv, d->m_path,
+						 d->m_render_size);
   return Glyph(d);
 }
 
@@ -820,7 +834,8 @@ fetch_glyph(GlyphRender render,
       FASTUIDRAWassert(!q->m_glyph_data);
       m = fetch_glyph_metrics(font, glyph_code);
       q->m_metrics = static_cast<GlyphMetricsPrivate*>(m.m_d);
-      q->m_glyph_data = font->compute_rendering_data(q->m_render, m, q->m_path);
+      q->m_glyph_data = font->compute_rendering_data(q->m_render, m,
+						     q->m_path, q->m_render_size);
     }
 
   if (upload_to_atlas)
@@ -892,7 +907,8 @@ fetch_glyphs(GlyphRender render,
               q->m_render = render;
               FASTUIDRAWassert(!q->m_glyph_data);
               q->m_metrics = static_cast<GlyphMetricsPrivate*>(m.m_d);
-              q->m_glyph_data = src.m_font->compute_rendering_data(q->m_render, m, q->m_path);
+              q->m_glyph_data = src.m_font->compute_rendering_data(q->m_render, m,
+								   q->m_path, q->m_render_size);
             }
 
           if (upload_to_atlas)

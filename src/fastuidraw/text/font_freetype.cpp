@@ -190,17 +190,20 @@ namespace
     compute_rendering_data(int pixel_size,
                            fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataCoverage &output,
-                           fastuidraw::Path &path);
+                           fastuidraw::Path &path,
+			   fastuidraw::vec2 &render_size);
 
     void
     compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataDistanceField &output,
-                           fastuidraw::Path &path);
+                           fastuidraw::Path &path,
+			   fastuidraw::vec2 &render_size);
 
     void
     compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                            fastuidraw::GlyphRenderDataRestrictedRays &output,
-                           fastuidraw::Path &path);
+                           fastuidraw::Path &path,
+			   fastuidraw::vec2 &render_size);
 
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> m_generator;
     GenerateParams m_generate_params;
@@ -298,7 +301,8 @@ FontFreeTypePrivate::
 compute_rendering_data(int pixel_size,
                        fastuidraw::GlyphMetrics glyph_metrics,
                        fastuidraw::GlyphRenderDataCoverage &output,
-                       fastuidraw::Path &path)
+                       fastuidraw::Path &path,
+		       fastuidraw::vec2 &render_size)
 {
   FaceGrabber p(this);
 
@@ -317,6 +321,7 @@ compute_rendering_data(int pixel_size,
   IntPathCreator::decompose_to_path(&face->glyph->outline, path, C);
   bitmap_sz.x() = face->glyph->bitmap.width;
   bitmap_sz.y() = face->glyph->bitmap.rows;
+  render_size = fastuidraw::vec2(bitmap_sz) * float(pixel_size) / float(face->units_per_EM);
 
   /* add one pixel slack on glyph */
   if (bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
@@ -348,7 +353,8 @@ void
 FontFreeTypePrivate::
 compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                        fastuidraw::GlyphRenderDataDistanceField &output,
-                       fastuidraw::Path &path)
+                       fastuidraw::Path &path,
+		       fastuidraw::vec2 &render_size)
 {
   fastuidraw::detail::IntPath int_path_ecm;
   int units_per_EM;
@@ -377,6 +383,9 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
     IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
     int_path_ecm.replace_cubics_with_quadratics();
   }
+
+  /* TODO: adjust for the discretization to pixels */
+  render_size = glyph_metrics.size();
 
   if (int_path_ecm.empty())
     {
@@ -429,7 +438,8 @@ void
 FontFreeTypePrivate::
 compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                        fastuidraw::GlyphRenderDataRestrictedRays &output,
-                       fastuidraw::Path &path)
+                       fastuidraw::Path &path,
+		       fastuidraw::vec2 &render_size)
 {
   fastuidraw::detail::IntPath int_path_ecm;
   fastuidraw::ivec2 layout_offset, layout_size;
@@ -453,6 +463,10 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
                                     face->glyph->metrics.height);
     IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
   }
+  /* render size is identical to metric's size because there is
+   * no discretization from the glyph'sp outline data.
+   */
+  render_size = glyph_metrics.size();
 
   int_path_ecm.replace_cubics_with_quadratics();
   for (const auto &contour : int_path_ecm.contours())
@@ -584,8 +598,8 @@ compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const
 
 fastuidraw::GlyphRenderData*
 fastuidraw::FontFreeType::
-compute_rendering_data(GlyphRender render,
-                       GlyphMetrics glyph_metrics, Path &path) const
+compute_rendering_data(GlyphRender render, GlyphMetrics glyph_metrics,
+		       Path &path, vec2 &render_size) const
 {
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);
@@ -596,7 +610,8 @@ compute_rendering_data(GlyphRender render,
       {
         GlyphRenderDataCoverage *data;
         data = FASTUIDRAWnew GlyphRenderDataCoverage();
-        d->compute_rendering_data(render.m_pixel_size, glyph_metrics, *data, path);
+        d->compute_rendering_data(render.m_pixel_size, glyph_metrics, *data,
+				  path, render_size);
         return data;
       }
       break;
@@ -605,7 +620,7 @@ compute_rendering_data(GlyphRender render,
       {
         GlyphRenderDataDistanceField *data;
         data = FASTUIDRAWnew GlyphRenderDataDistanceField();
-        d->compute_rendering_data(glyph_metrics, *data, path);
+        d->compute_rendering_data(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;
@@ -614,7 +629,7 @@ compute_rendering_data(GlyphRender render,
       {
         GlyphRenderDataRestrictedRays *data;
         data = FASTUIDRAWnew GlyphRenderDataRestrictedRays();
-        d->compute_rendering_data(glyph_metrics, *data, path);
+        d->compute_rendering_data(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;
