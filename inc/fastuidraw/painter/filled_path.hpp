@@ -176,6 +176,20 @@ public:
   ~FilledPath();
 
   /*!
+   * Returns the minimum point of the bounding box of
+   * the \ref FilledPath.
+   */
+  vec2
+  bounding_box_min(void) const;
+
+  /*!
+   * Returns the maximum point of the bounding box of
+   * the \ref FilledPath.
+   */
+  vec2
+  bounding_box_max(void) const;
+
+  /*!
    * Returns the number of Subset objects of the FilledPath.
    */
   unsigned int

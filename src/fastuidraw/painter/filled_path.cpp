@@ -1102,6 +1102,7 @@ namespace
 
     SubsetPrivate *m_root;
     std::vector<SubsetPrivate*> m_subsets;
+    fastuidraw::vec2 m_bounding_box_min, m_bounding_box_max;
   };
 }
 
@@ -3061,7 +3062,9 @@ make_ready_from_sub_path(void)
 /////////////////////////////////
 // FilledPathPrivate methods
 FilledPathPrivate::
-FilledPathPrivate(const fastuidraw::TessellatedPath &P)
+FilledPathPrivate(const fastuidraw::TessellatedPath &P):
+  m_bounding_box_min(P.bounding_box_min()),
+  m_bounding_box_max(P.bounding_box_max())
 {
   SubPath *q;
   q = FASTUIDRAWnew SubPath(P);
@@ -3187,6 +3190,24 @@ fastuidraw::FilledPath::
   m_d = nullptr;
 }
 
+fastuidraw::vec2
+fastuidraw::FilledPath::
+bounding_box_min(void) const
+{
+  FilledPathPrivate *d;
+  d = static_cast<FilledPathPrivate*>(m_d);
+  return d->m_bounding_box_min;
+}
+
+fastuidraw::vec2
+fastuidraw::FilledPath::
+bounding_box_max(void) const
+{
+  FilledPathPrivate *d;
+  d = static_cast<FilledPathPrivate*>(m_d);
+  return d->m_bounding_box_max;
+}
+
 unsigned int
 fastuidraw::FilledPath::
 number_subsets(void) const
@@ -3195,7 +3216,6 @@ number_subsets(void) const
   d = static_cast<FilledPathPrivate*>(m_d);
   return d->m_subsets.size();
 }
-
 
 fastuidraw::FilledPath::Subset
 fastuidraw::FilledPath::
