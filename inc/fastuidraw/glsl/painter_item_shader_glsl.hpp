@@ -348,13 +348,15 @@ namespace fastuidraw
      *
      * The vertex shader code needs to implement the function:
      * \code
-     *   vec4
+     *   void
      *   fastuidraw_gl_vert_main(in uint sub_shader,
      *                           in uvec4 attrib0,
      *                           in uvec4 attrib1,
      *                           in uvec4 attrib2,
      *                           in uint shader_data_offset,
-     *                           out uint z_add)
+     *                           out uint z_add,
+     *                           out vec2 brush_p,
+     *                           out vec3 clip_p)
      * \endcode
      * where
      *  - sub_shader corresponds to PainterItemShader::sub_shader()
@@ -367,13 +369,12 @@ namespace fastuidraw
      *    \ref PainterPacker) call; use the macro fastuidraw_fetch_data()
      *    to read the data.
      *
-     * The function's return value's .xy gives the position of
-     * the vertex in item coordinates and the .zw give the
-     * position to feed the brush. The out z_add must be written
-     * to as well and it is how much to add to the value in \ref
-     * PainterHeader::m_z (the value is the value of
-     * Painter::current_z()) for the purpose of intra-item
-     * z-occluding.
+     * The output clip_p is to hold the clip-coordinate of the vertex.
+     * The output brush_p is to hold the coordinate for the brush of
+     * the vertex. The out z_add must be written to as well and it
+     * is how much to add to the value in \ref PainterHeader::m_z
+     * (the value is the value of Painter::current_z()) for the purpose
+     * of intra-item z-occluding.
      *
      * The fragment shader code needs to implement the function:
      * \code

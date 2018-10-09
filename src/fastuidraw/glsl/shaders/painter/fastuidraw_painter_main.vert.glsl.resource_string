@@ -52,7 +52,7 @@ void
 main(void)
 {
   fastuidraw_shader_header h;
-  vec4 item_p_brush_p;
+  vec2 brush_p;
   vec3 clip_p;
   fastuidraw_clipping_data clipping;
   float normalized_depth, raw_depth;
@@ -77,16 +77,15 @@ main(void)
     }
   #endif
 
-  item_p_brush_p = fastuidraw_run_vert_shader(h, add_z);
-  fastuidraw_vert_brush_processing(item_p_brush_p.zw, h);
+  fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
+  fastuidraw_vert_brush_processing(brush_p, h);
 
-  clip_p = fastuidraw_item_matrix * vec3(item_p_brush_p.xy, 1.0);
   fastuidraw_apply_clipping(clip_p, clipping);
 
   /* and finally emit gl_Position; the value needed in the
-     depth buffer is stored in h.z, but it is an integer that
-     starts at 0 and is incremented by one, we need to convert it
-     to normalized coords.
+   * depth buffer is stored in h.z, but it is an integer that
+   * starts at 0 and is incremented by one, we need to convert it
+   * to normalized coords.
    */
   raw_depth = float(add_z + h.z);
 

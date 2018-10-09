@@ -246,22 +246,22 @@ namespace fastuidraw
       enum vertex_shader_in_layout
         {
           /*!
-           * Slot for the values of PainterAttribute::m_primary_attrib
+           * Slot for the values of PainterAttribute::m_attrib0
            * of PainterDraw::m_attributes
            */
-          primary_attrib_slot = 0,
+          attribute0_slot = 0,
 
           /*!
-           * Slot for the values of PainterAttribute::m_secondary_attributes
+           * Slot for the values of PainterAttribute::m_attrib1
            * of PainterDraw::m_attributes
            */
-          secondary_attrib_slot,
+          attribute1_slot,
 
           /*!
-           * Slot for the values of PainterAttribute::m_uint_attrib
+           * Slot for the values of PainterAttribute::m_attrib2
            * of PainterDraw::m_attributes
            */
-          uint_attrib_slot,
+          attribute2_slot,
 
           /*!
            * Slot for the values of PainterDraw::m_header_attributes

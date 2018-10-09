@@ -211,9 +211,9 @@ configure_source_front_matter(void)
   if (!m_uber_shader_builder_params.assign_layout_to_vertex_shader_inputs())
     {
       m_attribute_binder
-        .add_binding("fastuidraw_primary_attribute", primary_attrib_slot)
-        .add_binding("fastuidraw_secondary_attribute", secondary_attrib_slot)
-        .add_binding("fastuidraw_uint_attribute", uint_attrib_slot)
+        .add_binding("fastuidraw_attribute0", attribute0_slot)
+        .add_binding("fastuidraw_attribute1", attribute1_slot)
+        .add_binding("fastuidraw_attribute2", attribute2_slot)
         .add_binding("fastuidraw_header_attribute", header_attrib_slot);
     }
 

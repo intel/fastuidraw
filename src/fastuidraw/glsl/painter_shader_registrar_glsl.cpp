@@ -766,12 +766,12 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
   if (params.assign_layout_to_vertex_shader_inputs())
     {
       std::ostringstream ostr;
-      ostr << "layout(location = " << PainterShaderRegistrarGLSL::primary_attrib_slot
-           << ") in uvec4 fastuidraw_primary_attribute;\n"
-           << "layout(location = " << PainterShaderRegistrarGLSL::secondary_attrib_slot
-           << ") in uvec4 fastuidraw_secondary_attribute;\n"
-           << "layout(location = " << PainterShaderRegistrarGLSL::uint_attrib_slot
-           << ") in uvec4 fastuidraw_uint_attribute;\n"
+      ostr << "layout(location = " << PainterShaderRegistrarGLSL::attribute0_slot
+           << ") in uvec4 fastuidraw_attribute0;\n"
+           << "layout(location = " << PainterShaderRegistrarGLSL::attribute1_slot
+           << ") in uvec4 fastuidraw_attribute1;\n"
+           << "layout(location = " << PainterShaderRegistrarGLSL::attribute2_slot
+           << ") in uvec4 fastuidraw_attribute2;\n"
            << "layout(location = " << PainterShaderRegistrarGLSL::header_attrib_slot
            << ") in uint fastuidraw_header_attribute;\n";
       declare_vertex_shader_ins = ostr.str();
@@ -779,9 +779,9 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
   else
     {
       std::ostringstream ostr;
-      ostr << "in uvec4 fastuidraw_primary_attribute;\n"
-           << "in uvec4 fastuidraw_secondary_attribute;\n"
-           << "in uvec4 fastuidraw_uint_attribute;\n"
+      ostr << "in uvec4 fastuidraw_attribute0;\n"
+           << "in uvec4 fastuidraw_attribute1;\n"
+           << "in uvec4 fastuidraw_attribute2;\n"
            << "in uint fastuidraw_header_attribute;\n";
       declare_vertex_shader_ins = ostr.str();
     }
@@ -1250,8 +1250,8 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
   run_vert_shader =
     "vec4 fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z)\n"
     "{\n"
-    "  return fastuidraw_gl_vert_main(uint(fastuidraw_sub_shader_id), fastuidraw_primary_attribute,\n"
-    "                                fastuidraw_secondary_attribute, fastuidraw_uint_attribute,\n"
+    "  return fastuidraw_gl_vert_main(uint(fastuidraw_sub_shader_id), fastuidraw_attribute0,\n"
+    "                                fastuidraw_attribute1, fastuidraw_attribute2,\n"
     "                                h.item_shader_data_location, add_z);\n"
     "}\n"
     "\n";

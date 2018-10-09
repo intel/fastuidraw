@@ -138,20 +138,20 @@ request_vao(void)
       m_vaos[m_pool][m_current].m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
 
-      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::primary_attrib_slot);
+      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute0_slot);
       v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
                                      offsetof(PainterAttribute, m_attrib0));
-      VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::primary_attrib_slot, v);
+      VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute0_slot, v);
 
-      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::secondary_attrib_slot);
+      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute1_slot);
       v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
                                      offsetof(PainterAttribute, m_attrib1));
-      VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::secondary_attrib_slot, v);
+      VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute1_slot, v);
 
-      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::uint_attrib_slot);
+      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute2_slot);
       v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
                                      offsetof(PainterAttribute, m_attrib2));
-      VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::uint_attrib_slot, v);
+      VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute2_slot, v);
 
       m_vaos[m_pool][m_current].m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
       glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::header_attrib_slot);

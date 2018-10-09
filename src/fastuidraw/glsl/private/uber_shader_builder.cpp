@@ -658,10 +658,11 @@ stream_uber_vert_shader(bool use_switch,
                                                          &PainterItemShaderGLSL::vertex_src,
                                                          pre_stream_varyings(declare_varyings, datum),
                                                          post_stream_varyings(declare_varyings, datum),
-                                                         "vec4", "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z)",
+                                                         "void",
+                                                         "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)",
                                                          "fastuidraw_gl_vert_main",
-                                                         ", fastuidraw_primary_attribute, fastuidraw_secondary_attribute, "
-                                                         "fastuidraw_uint_attribute, h.item_shader_data_location, add_z",
+                                                         ", fastuidraw_attribute0, fastuidraw_attribute1, "
+                                                         "fastuidraw_attribute2, h.item_shader_data_location, add_z, brush_p, clip_p",
                                                          "h.item_shader");
 }
 
