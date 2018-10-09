@@ -789,9 +789,9 @@ stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
   FASTUIDRAWassert(R.valid());
   G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
   m_painter->stroke_path(d, G.path(),
-                         true, PainterEnums::flat_caps,
-                         static_cast<enum PainterEnums::join_style>(m_join_style),
-                         m_anti_alias_path_stroking);
+                         StrokingStyle()
+                         .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
+                         .stroke_with_shader_aa(m_anti_alias_path_stroking));
 }
 
 void
@@ -958,6 +958,19 @@ draw_glyphs(float us)
   if (m_draw_stats)
     {
       std::ostringstream ostr;
+      uint32_t glyph_atlas_size_bytes, glyph_atlas_size_kb(0u), glyph_atlas_size_mb(0u);
+
+      glyph_atlas_size_bytes = 4u * m_glyph_atlas->data_allocated();
+      if (glyph_atlas_size_bytes > 1000u)
+        {
+          glyph_atlas_size_kb = glyph_atlas_size_bytes / 1000u;
+          glyph_atlas_size_bytes %= 1000u;
+        }
+      if (glyph_atlas_size_kb > 1000u)
+        {
+          glyph_atlas_size_mb = glyph_atlas_size_kb / 1000u;
+          glyph_atlas_size_kb %= 1000u;
+        }
 
       /* start with an eol so that top line is visible */
       ostr << "\nFPS = ";
@@ -980,7 +993,18 @@ draw_glyphs(float us)
            << "\nNumber Headers: "
            << m_painter->query_stat(PainterPacker::num_headers)
            << "\nNumber Draws: "
-           << m_painter->query_stat(PainterPacker::num_draws);
+           << m_painter->query_stat(PainterPacker::num_draws)
+           << "\nGlyph Atlas size: ";
+
+      if (glyph_atlas_size_mb > 0u)
+        {
+          ostr << glyph_atlas_size_mb << ".";
+        }
+      if (glyph_atlas_size_kb > 0u)
+        {
+          ostr << glyph_atlas_size_kb << ".";
+        }
+      ostr << glyph_atlas_size_bytes << " Bytes";
 
       m_painter->restore();
       if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)

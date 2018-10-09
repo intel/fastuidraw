@@ -329,13 +329,16 @@ paint_post_children(const reference_counted_ptr<Painter> &painter)
 
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_outline_path,
-                           true, PainterEnums::flat_caps,
-                           PainterEnums::rounded_joins,
-                           m_params.m_cell_state->m_anti_alias_stroking);
+                           StrokingStyle()
+                           .join_style(PainterEnums::rounded_joins)
+                           .stroke_with_shader_aa(m_params.m_cell_state->m_anti_alias_stroking));
+
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_grid_path,
-                           false, PainterEnums::flat_caps,
-                           PainterEnums::no_joins,
-                           m_params.m_cell_state->m_anti_alias_stroking);
+                           StrokingStyle()
+                           .stroke_closing_edges_of_contours(false)
+                           .cap_style(PainterEnums::flat_caps)
+                           .join_style(PainterEnums::no_joins)
+                           .stroke_with_shader_aa(m_params.m_cell_state->m_anti_alias_stroking));
     }
 }
