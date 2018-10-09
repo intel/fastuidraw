@@ -2952,6 +2952,46 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
+  clipOutPath(d->select_filled_path(path), fill_rule);
+}
+
+void
+fastuidraw::Painter::
+clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  clipOutPath(d->select_filled_path(path), fill_rule);
+}
+
+void
+fastuidraw::Painter::
+clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  clipInPath(d->select_filled_path(path), fill_rule);
+}
+
+void
+fastuidraw::Painter::
+clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  clipInPath(d->select_filled_path(path), fill_rule);
+}
+
+void
+fastuidraw::Painter::
+clipOutPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
   if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* everything is clipped anyways, adding more clipping does not matter
@@ -2973,7 +3013,9 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   old_composite_mode = composite_mode();
 
   composite_shader(PainterEnums::composite_porter_duff_dst);
-  fill_path(PainterData(d->m_black_brush), path, fill_rule, false, zdatacallback);
+  fill_path(default_shaders().fill_shader(),
+            PainterData(d->m_black_brush),
+            path, fill_rule, false, zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -2981,7 +3023,7 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
 
 void
 fastuidraw::Painter::
-clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
+clipOutPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3007,7 +3049,9 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
   old_composite_mode = composite_mode();
 
   composite_shader(PainterEnums::composite_porter_duff_dst);
-  fill_path(PainterData(d->m_black_brush), path, fill_rule, false, zdatacallback);
+  fill_path(default_shaders().fill_shader(),
+            PainterData(d->m_black_brush),
+            path, fill_rule, false, zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -3015,7 +3059,7 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
 
 void
 fastuidraw::Painter::
-clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
+clipInPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3028,15 +3072,15 @@ clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
     }
 
   vec2 pmin, pmax;
-  pmin = path.tessellation()->bounding_box_min();
-  pmax = path.tessellation()->bounding_box_max();
+  pmin = path.bounding_box_min();
+  pmax = path.bounding_box_max();
   clipInRect(pmin, pmax - pmin);
   clipOutPath(path, PainterEnums::complement_fill_rule(fill_rule));
 }
 
 void
 fastuidraw::Painter::
-clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
+clipInPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3049,8 +3093,8 @@ clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
     }
 
   vec2 pmin, pmax;
-  pmin = path.tessellation()->bounding_box_min();
-  pmax = path.tessellation()->bounding_box_max();
+  pmin = path.bounding_box_min();
+  pmax = path.bounding_box_max();
   clipInRect(pmin, pmax - pmin);
   clipOutPath(path, ComplementFillRule(&fill_rule));
 }

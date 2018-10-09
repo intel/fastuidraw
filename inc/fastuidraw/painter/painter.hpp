@@ -304,6 +304,16 @@ namespace fastuidraw
     clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule);
 
     /*!
+     * Clip-out by a path, i.e. set the clipping to be
+     * the intersection of the current clipping against
+     * the -complement- of the fill of a path.
+     * \param path path by which to clip out
+     * \param fill_rule fill rule to apply to path
+     */
+    void
+    clipOutPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule);
+
+    /*!
      * Clip-in by a path, i.e. set the clipping to be
      * the intersection of the current clipping against
      * the the fill of a path.
@@ -312,6 +322,16 @@ namespace fastuidraw
      */
     void
     clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule);
+
+    /*!
+     * Clip-in by a path, i.e. set the clipping to be
+     * the intersection of the current clipping against
+     * the the fill of a path.
+     * \param path path by which to clip out
+     * \param fill_rule fill rule to apply to path
+     */
+    void
+    clipInPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -324,6 +344,16 @@ namespace fastuidraw
     clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule);
 
     /*!
+     * Clip-out by a path, i.e. set the clipping to be
+     * the intersection of the current clipping against
+     * the -complement- of the fill of a path.
+     * \param path path by which to clip out
+     * \param fill_rule custom fill rule to apply to path
+     */
+    void
+    clipOutPath(const FilledPath &path, const CustomFillRuleBase &fill_rule);
+
+    /*!
      * Clip-in by a path, i.e. set the clipping to be
      * the intersection of the current clipping against
      * the the fill of a path.
@@ -332,6 +362,16 @@ namespace fastuidraw
      */
     void
     clipInPath(const Path &path, const CustomFillRuleBase &fill_rule);
+
+    /*!
+     * Clip-in by a path, i.e. set the clipping to be
+     * the intersection of the current clipping against
+     * the the fill of a path.
+     * \param path path by which to clip out
+     * \param fill_rule custom fill rule to apply to path
+     */
+    void
+    clipInPath(const FilledPath &path, const CustomFillRuleBase &fill_rule);
 
     /*!
      * Set the curve flatness requirement for TessellatedPath
