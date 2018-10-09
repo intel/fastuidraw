@@ -579,7 +579,7 @@ painter_stroke_test(void):
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
-  m_draw_fill(false), m_aa_fill_by_stroking(false),
+  m_draw_fill(false), m_aa_fill_by_stroking(true),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_image_filter(image_nearest_filter),
@@ -596,7 +596,7 @@ painter_stroke_test(void):
   std::cout << "Controls:\n"
             << "\tn: toogle using arc-paths for stroking\n"
             << "\tk: select next path\n"
-            << "\ta: toggle anti-aliased stroking\n"
+            << "\ta: toggle anti-aliased stroking/filling\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tc: cycle through cap style for stroking\n"
             << "\tx: toggle closing contour on stroking\n"
@@ -617,6 +617,7 @@ painter_stroke_test(void):
             << "\tf: toggle drawing path fill\n"
             << "\tr: cycle through fill rules\n"
             << "\te: toggle fill by drawing clip rect\n"
+            << "\tu: toggle perform fill anti-alias by stroking\n"
             << "\ti: cycle through image filter to apply to fill (no image, nearest, linear, cubic)\n"
             << "\tctrl-i: toggle mipmap filtering when applying an image\n"
             << "\ts: cycle through defined color stops for gradient\n"
@@ -1281,12 +1282,15 @@ handle_event(const SDL_Event &ev)
           if (m_draw_fill & m_with_aa)
             {
               m_aa_fill_by_stroking = !m_aa_fill_by_stroking;
-              std::cout << "Set to ";
-              if (!m_aa_fill_by_stroking)
+              std::cout << "Set to anti-alias filling by ";
+              if (m_aa_fill_by_stroking)
                 {
-                  std::cout << "NOT ";
+                  std::cout << "stroking\n";
                 }
-              std::cout << "AA fill by stroking\n";
+              else
+                {
+                  std::cout << "draw anti-alias fuzz\n";
+                }
             }
           break;
 
@@ -1563,9 +1567,9 @@ draw_scene(bool drawing_wire_frame)
       m_painter->save();
       m_painter->clipOutPath(m_clip_window_path, PainterEnums::nonzero_fill_rule);
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
-                             true, PainterEnums::flat_caps,
-                             PainterEnums::miter_clip_joins,
-                             false);
+                             StrokingStyle()
+                             .join_style(PainterEnums::miter_clip_joins)
+                             .stroke_with_shader_aa(false));
       m_painter->restore();
       m_painter->clipInRect(clipping_xy(), clipping_wh());
     }
@@ -1696,17 +1700,21 @@ draw_scene(bool drawing_wire_frame)
 
       if (m_aa_fill_by_stroking && m_with_aa && !drawing_wire_frame)
         {
+          bool arc_stroking;
           PainterStrokeParams st;
+
+          arc_stroking = m_painter->stroke_arc_path();
           st
-            .miter_limit(-1.0f)
-            .width(2.0f)
+            .miter_limit(2.4f)
+            .width(2.5f)
             .stroking_units(PainterStrokeParams::pixel_stroking_units);
 
+          m_painter->stroke_arc_path(false);
           m_painter->stroke_path(PainterData(&fill_brush, &st),
-                                 path(), true,
-                                 PainterEnums::flat_caps,
-                                 PainterEnums::bevel_joins,
-                                 true);
+                                 path(),
+                                 StrokingStyle()
+                                 .join_style(PainterEnums::miter_joins));
+          m_painter->stroke_arc_path(arc_stroking);
         }
     }
 
@@ -1744,12 +1752,13 @@ draw_scene(bool drawing_wire_frame)
               st.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
 
-
           m_painter->stroke_dashed_path(PainterData(*stroke_pen, &st),
-                                        path(), m_close_contour,
-                                        static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                        static_cast<enum PainterEnums::join_style>(m_join_style),
-                                        m_with_aa);
+                                        path(),
+                                        StrokingStyle()
+                                        .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
+                                        .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
+                                        .stroke_closing_edges_of_contours(m_close_contour)
+                                        .stroke_with_shader_aa(m_with_aa));
 
         }
       else
@@ -1770,11 +1779,12 @@ draw_scene(bool drawing_wire_frame)
             }
 
           m_painter->stroke_path(PainterData(*stroke_pen, &st),
-                                 path(), m_close_contour,
-                                 static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                 static_cast<enum PainterEnums::join_style>(m_join_style),
-                                 m_with_aa);
-
+                                 path(),
+                                 StrokingStyle()
+                                 .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
+                                 .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
+                                 .stroke_closing_edges_of_contours(m_close_contour)
+                                 .stroke_with_shader_aa(m_with_aa));
         }
     }
 
@@ -1871,8 +1881,11 @@ draw_frame(void)
 
       m_painter->stroke_path(PainterData(&stroke_pen, &st),
                              m_grid_path,
-                             false, PainterEnums::flat_caps, PainterEnums::no_joins,
-                             false);
+                             StrokingStyle()
+                             .stroke_closing_edges_of_contours(false)
+                             .cap_style(PainterEnums::flat_caps)
+                             .join_style(PainterEnums::no_joins)
+                             .stroke_with_shader_aa(false));
     }
 
   /* apply zoomer() */
