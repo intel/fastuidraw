@@ -21,6 +21,7 @@
 
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/stroking_style.hpp>
+#include <fastuidraw/painter/rounded_rect.hpp>
 #include <fastuidraw/painter/glyph_sequence.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
@@ -292,6 +293,14 @@ namespace fastuidraw
      */
     void
     clipInRect(const vec2 &xy, const vec2 &wh);
+
+    /*!
+     * Set clipping to the intersection of the current
+     * clipping with a rounded rectangle.
+     * \param R rounded rectangle
+     */
+    void
+    clipInRoundedRect(const RoundedRect &R);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -797,6 +806,19 @@ namespace fastuidraw
     void
     draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+     * Draw a rounded rect using a fill shader
+     * \param shader shader with which to draw the rounded rectangle
+     * \param draw data for how to draw
+     * \param R \ref RoundedRect to draw
+     * \param call_back if non-nullptr handle, call back called when attribute data
+     *                  is added.
+     */
+    void
+    draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
+                      const RoundedRect &R,
+                      const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
      * Draw generic attribute data.

@@ -925,6 +925,7 @@ namespace
     PainterWorkRoom m_work_room;
     unsigned int m_max_attribs_per_block, m_max_indices_per_block;
     float m_coverage_text_cut_off, m_distance_text_cut_off;
+    fastuidraw::Path m_rounded_corner_path;
   };
 }
 
@@ -968,6 +969,16 @@ shear(float sx, float sy)
   fastuidraw::vec2 s(sx, sy);
   m_min *= s;
   m_max *= s;
+
+  if (sx < 0.0f)
+    {
+      std::swap(m_min.x(), m_max.x());
+    }
+
+  if (sy < 0.0f)
+    {
+      std::swap(m_min.y(), m_max.y());
+    }
 }
 
 void
@@ -976,6 +987,10 @@ scale(float s)
 {
   m_min *= s;
   m_max *= s;
+  if (s < 0.0f)
+    {
+      std::swap(m_min, m_max);
+    }
 }
 
 ////////////////////////////////////////
@@ -1297,6 +1312,15 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   distance_field_size = fastuidraw::GlyphGenerateParams::distance_field_pixel_size();
   m_coverage_text_cut_off = (distance_field_size * 3.0f) / 8.0f;
   m_distance_text_cut_off = 2.0f * distance_field_size;
+
+  /* Create a path representing a corner of rounded rectangle.
+   * This path will be used/resued to clip against rounded
+   * rectangles
+   */
+  m_rounded_corner_path << fastuidraw::vec2(0.0f, 0.0f)
+                        << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
+                        << fastuidraw::vec2(1.0f, 0.0f)
+                        << fastuidraw::Path::contour_end();
 }
 
 bool
@@ -2245,6 +2269,65 @@ draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
   draw_rect(default_shaders().fill_shader(), draw, p, wh, call_back);
 }
 
+void
+fastuidraw::Painter::
+draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
+                  const RoundedRect &R,
+                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter */
+      return;
+    }
+
+  /* Save our transformation and clipping state */
+  clip_rect_state m(d->m_clip_rect_state);
+
+  /* Draw interior of rect (which is 3 rects) */
+  draw_rect(shader, draw,
+            R.m_min_point + vec2(R.m_min_corner_radii.x(), 0.0f),
+            R.m_max_point - R.m_min_point - vec2(R.m_max_corner_radii.x() + R.m_min_corner_radii.x(), 0.0f));
+  draw_rect(shader, draw,
+            R.m_min_point + vec2(0.0f, R.m_min_corner_radii.y()),
+            vec2(R.m_min_corner_radii.x(),
+                 R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()));
+  draw_rect(shader, draw,
+            vec2(R.m_max_point.x() - R.m_max_corner_radii.x(),
+                 R.m_min_point.y() + R.m_min_corner_radii.y()),
+            vec2(R.m_max_corner_radii.x(),
+                 R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()));
+
+  /* min-x/max-y */
+  translate(vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()));
+  shear(R.m_min_corner_radii.x(), R.m_max_corner_radii.y());
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  d->m_clip_rect_state = m;
+
+  /* max-x/max-y */
+  translate(vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()));
+  shear(-R.m_max_corner_radii.x(), R.m_max_corner_radii.y());
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  d->m_clip_rect_state = m;
+
+  /* min-x/min-y */
+  translate(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()));
+  shear(R.m_min_corner_radii.x(), -R.m_min_corner_radii.y());
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  d->m_clip_rect_state = m;
+
+  /* max-x/min-y */
+  translate(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()));
+  shear(-R.m_max_corner_radii.x(), -R.m_min_corner_radii.y());
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  d->m_clip_rect_state = m;
+
+  /* TODO: draw anti-alias fuzz occluded by the above geometry */
+}
+
 float
 fastuidraw::Painter::
 compute_path_thresh(const fastuidraw::Path &path)
@@ -3097,6 +3180,78 @@ clipInPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
   pmax = path.bounding_box_max();
   clipInRect(pmin, pmax - pmin);
   clipOutPath(path, ComplementFillRule(&fill_rule));
+}
+
+void
+fastuidraw::Painter::
+clipInRoundedRect(const RoundedRect &R)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter */
+      return;
+    }
+
+  clipInRect(R.m_min_point, R.m_max_point - R.m_min_point);
+
+  /* Save our transformation and clipping state because
+   * we are going to shear and translate the transformation
+   * matrix to draw the corner occluders.
+   */
+  clip_rect_state m(d->m_clip_rect_state);
+
+  fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
+  BlendMode::packed_value old_composite_mode;
+  reference_counted_ptr<ZDataCallBack> zdatacallback;
+
+  /* zdatacallback generates a list of PainterDraw::DelayedAction
+   * objects (held in m_actions) who's action is to write the correct
+   * z-value to occlude elements drawn after clipOut but not after
+   * the next time m_occluder_stack is popped.
+   */
+  zdatacallback = FASTUIDRAWnew ZDataCallBack();
+  old_composite = composite_shader();
+  old_composite_mode = composite_mode();
+  composite_shader(PainterEnums::composite_porter_duff_dst);
+
+  /* min-x/max-y */
+  translate(vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()));
+  shear(R.m_min_corner_radii.x(), R.m_max_corner_radii.y());
+  fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
+            d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
+            false, zdatacallback);
+  d->m_clip_rect_state = m;
+
+  /* max-x/max-y */
+  translate(vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()));
+  shear(-R.m_max_corner_radii.x(), R.m_max_corner_radii.y());
+  fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
+            d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
+            false, zdatacallback);
+  d->m_clip_rect_state = m;
+
+  /* min-x/min-y */
+  translate(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()));
+            shear(R.m_min_corner_radii.x(), -R.m_min_corner_radii.y());
+  fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
+            d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
+            false, zdatacallback);
+  d->m_clip_rect_state = m;
+
+  /* max-x/min-y */
+  translate(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()));
+  shear(-R.m_max_corner_radii.x(), -R.m_min_corner_radii.y());
+  fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
+            d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
+            false, zdatacallback);
+  d->m_clip_rect_state = m;
+
+  /* restore composite mode and shader */
+  composite_shader(old_composite, old_composite_mode);
+  d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 }
 
 void
