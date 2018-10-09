@@ -51,9 +51,23 @@ private:
       number_zoomers
     };
 
+  enum
+    {
+      separate_clipping,
+      path1_then_path2,
+      path2_then_path1,
+
+      number_combine_clip_modes
+    };
+
   void
   draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
                const float3x3 &matrix);
+
+  void
+  draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix1,
+                const Path &path2, unsigned int clip_mode2, const float3x3 &matrix2,
+                const vec4 &pen_color);
 
   enum return_code
   load_path(Path &out_path, const std::string &file);
@@ -67,10 +81,12 @@ private:
   Path m_path1, m_path2;
 
   unsigned int m_path1_clip_mode, m_path2_clip_mode;
+  unsigned int m_combine_clip_mode;
   unsigned int m_active_zoomer;
   vecN<PanZoomTrackerSDLEvent, number_zoomers> m_zoomers;
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_zoomers> m_zoomer_labels;
+  vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
 };
 
 painter_clip_test::
@@ -85,6 +101,7 @@ painter_clip_test():
                *this),
   m_path1_clip_mode(no_clip),
   m_path2_clip_mode(no_clip),
+  m_combine_clip_mode(separate_clipping),
   m_active_zoomer(view_zoomer)
 {
   std::cout << "Controls:\n"
@@ -99,6 +116,10 @@ painter_clip_test():
   m_zoomer_labels[view_zoomer] = "view_zoomer";
   m_zoomer_labels[path1_zoomer] = "path1_zoomer";
   m_zoomer_labels[path2_zoomer] = "path2_zoomer";
+
+  m_combine_clip_labels[separate_clipping] = "separate_clipping";
+  m_combine_clip_labels[path1_then_path2] = "path1_then_path2";
+  m_combine_clip_labels[path2_then_path1] = "path2_then_path1";
 }
 
 void
@@ -147,6 +168,10 @@ handle_event(const SDL_Event &ev)
           cycle_value(m_active_zoomer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_zoomers);
           std::cout << "Active zoomer set to: " << m_zoomer_labels[m_active_zoomer] << "\n";
           break;
+        case SDLK_c:
+          cycle_value(m_combine_clip_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_combine_clip_modes);
+          std::cout << "Combine clip mode set to: " << m_combine_clip_labels[m_combine_clip_mode] << "\n";
+          break;
         }
       break;
     };
@@ -191,8 +216,6 @@ make_paths(void)
               << vec2(100.0f, 100.0f)
               << Path::contour_end();
     }
-
-
 }
 
 
@@ -240,16 +263,82 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
 
 void
 painter_clip_test::
+draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix1,
+              const Path &path2, unsigned int clip_mode2, const float3x3 &matrix2,
+              const vec4 &pen_color)
+{
+  PainterItemMatrix M(m_painter->transformation());
+  PainterBrush brush;
+
+  brush.pen(pen_color);
+  m_painter->save();
+  m_painter->concat(matrix1);
+  switch (clip_mode1)
+    {
+    default:
+      break;
+    case clip_in:
+      m_painter->clipInPath(path1, PainterEnums::nonzero_fill_rule);
+      break;
+    case clip_out:
+      m_painter->clipOutPath(path1, PainterEnums::nonzero_fill_rule);
+      break;
+    }
+
+  m_painter->transformation(M);
+  m_painter->concat(matrix2);
+  switch (clip_mode2)
+    {
+    default:
+      break;
+    case clip_in:
+      m_painter->clipInPath(path2, PainterEnums::nonzero_fill_rule);
+      break;
+    case clip_out:
+      m_painter->clipOutPath(path2, PainterEnums::nonzero_fill_rule);
+      break;
+    }
+
+  m_painter->transformation(M);
+  m_painter->concat(matrix1);
+
+  vec2 p0, p1, sz;
+  p0 = path1.tessellation()->bounding_box_min();
+  p1 = path1.tessellation()->bounding_box_max();
+  sz = p1 - p0;
+
+  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->restore();
+}
+
+void
+painter_clip_test::
 draw_frame(void)
 {
   m_painter->begin(m_surface, PainterEnums::y_increases_downwards);
   m_zoomers[view_zoomer].transformation().concat_to_painter(m_painter);
 
-  draw_element(m_path1, m_path1_clip_mode, vec4(1.0f, 0.0f, 0.0f, 1.0f),
-               m_zoomers[path1_zoomer].transformation().matrix3());
+  switch(m_combine_clip_mode)
+    {
+    case separate_clipping:
+      draw_element(m_path1, m_path1_clip_mode, vec4(1.0f, 0.0f, 0.0f, 1.0f),
+                   m_zoomers[path1_zoomer].transformation().matrix3());
+      draw_element(m_path2, m_path2_clip_mode, vec4(0.0f, 1.0f, 0.0f, 1.0f),
+                   m_zoomers[path2_zoomer].transformation().matrix3());
+      break;
 
-  draw_element(m_path2, m_path2_clip_mode, vec4(0.0f, 1.0f, 0.0f, 1.0f),
-               m_zoomers[path2_zoomer].transformation().matrix3());
+    case path1_then_path2:
+      draw_combined(m_path1, m_path1_clip_mode, m_zoomers[path1_zoomer].transformation().matrix3(),
+                    m_path2, m_path2_clip_mode, m_zoomers[path2_zoomer].transformation().matrix3(),
+                    vec4(0.0f, 1.0f, 1.0f, 1.0f));
+      break;
+
+    case path2_then_path1:
+      draw_combined(m_path2, m_path2_clip_mode, m_zoomers[path2_zoomer].transformation().matrix3(),
+                    m_path1, m_path1_clip_mode, m_zoomers[path1_zoomer].transformation().matrix3(),
+                    vec4(1.0f, 0.0f, 1.0f, 1.0f));
+      break;
+    }
 
   m_painter->end();
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
