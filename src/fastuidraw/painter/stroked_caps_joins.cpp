@@ -2885,7 +2885,7 @@ add_cap(const PerCapData &C, unsigned int depth,
   pt.m_position = C.m_p;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = v;
-  pt.m_packed_data = pack_data(1, type, depth | mask);
+  pt.m_packed_data = pack_data(1, type, depth) | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
