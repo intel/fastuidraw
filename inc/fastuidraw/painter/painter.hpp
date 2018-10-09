@@ -466,6 +466,16 @@ namespace fastuidraw
     void
     draw_glyphs(const PainterData &draw, const PainterAttributeData &data,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+     * Returns what value Painter currently uses for Path::tessellation(float) const
+     * and Path::arc_tessellation(float) const to fetch the \ref TessellatedPath
+     * from which it will fetch the \ref FilledPath to perform a path fill.
+     * \param path \ref Path to choose the thresh for
+     */
+    float
+    compute_path_thresh(const fastuidraw::Path &path);
+
     /*!
      * Stroke a path.
      * \param shader shader with which to stroke the attribute data

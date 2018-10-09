@@ -897,6 +897,9 @@ namespace
     float
     compute_magnification(const fastuidraw::Path &path);
 
+    float
+    compute_path_thresh(const fastuidraw::Path &path);
+
     const fastuidraw::StrokedPath*
     select_stroked_path(const fastuidraw::Path &path,
                         const fastuidraw::PainterStrokeShader &shader,
@@ -1500,16 +1503,26 @@ select_stroked_path(const fastuidraw::Path &path,
   return tess->stroked().get();
 }
 
+float
+PainterPrivate::
+compute_path_thresh(const fastuidraw::Path &path)
+{
+  float mag, thresh;
+
+  mag = compute_magnification(path);
+  thresh = m_curve_flatness / mag;
+  return thresh;
+}
+
 const fastuidraw::FilledPath&
 PainterPrivate::
 select_filled_path(const fastuidraw::Path &path)
 {
   using namespace fastuidraw;
-  float mag, thresh;
+  float thresh;
   const TessellatedPath *tess;
 
-  mag = compute_magnification(path);
-  thresh = m_curve_flatness / mag;
+  thresh = compute_path_thresh(path);
   if (m_linearize_from_arc_path)
     {
       tess = path.arc_tessellation(thresh)->path().tessellation(thresh).get();
@@ -2230,6 +2243,15 @@ draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   draw_rect(default_shaders().fill_shader(), draw, p, wh, call_back);
+}
+
+float
+fastuidraw::Painter::
+compute_path_thresh(const fastuidraw::Path &path)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->compute_path_thresh(path);
 }
 
 void
