@@ -47,6 +47,7 @@ private:
       view_zoomer,
       path1_zoomer,
       path2_zoomer,
+      rect_zoomer,
 
       number_zoomers
     };
@@ -58,6 +59,14 @@ private:
       path2_then_path1,
 
       number_combine_clip_modes
+    };
+
+  enum
+    {
+      draw_rounded_rect,
+      rounded_rect_clips,
+
+      number_rounded_rect_modes
     };
 
   void
@@ -77,16 +86,24 @@ private:
 
   command_line_argument_value<std::string> m_path1_file;
   command_line_argument_value<std::string> m_path2_file;
+  command_line_argument_value<float> m_rect_width;
+  command_line_argument_value<float> m_rect_height;
+  command_line_argument_value<float> m_rect_min_radii_x;
+  command_line_argument_value<float> m_rect_min_radii_y;
+  command_line_argument_value<float> m_rect_max_radii_x;
+  command_line_argument_value<float> m_rect_max_radii_y;
 
   Path m_path1, m_path2;
+  RoundedRect m_rect;
 
   unsigned int m_path1_clip_mode, m_path2_clip_mode;
-  unsigned int m_combine_clip_mode;
+  unsigned int m_combine_clip_mode, m_rounded_rect_mode;
   unsigned int m_active_zoomer;
   vecN<PanZoomTrackerSDLEvent, number_zoomers> m_zoomers;
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_zoomers> m_zoomer_labels;
   vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
+  vecN<std::string, number_rounded_rect_modes> m_rounded_rect_mode_labels;
 };
 
 painter_clip_test::
@@ -99,9 +116,16 @@ painter_clip_test():
               "if non-empty read the geometry of the path1 from the specified file, "
               "otherwise use a default path",
                *this),
+  m_rect_width(100.0f, "rect_width", "Rounded rectangle width", *this),
+  m_rect_height(50.0f, "rect_height", "Rounded rectangle height", *this),
+  m_rect_min_radii_x(10.0f, "rect_min_radii_x", "Rounded rectangle min-radii-x", *this),
+  m_rect_min_radii_y(5.0f, "rect_min_radii_y", "Rounded rectangle min-radii-y", *this),
+  m_rect_max_radii_x(10.0f, "rect_max_radii_x", "Rounded rectangle max-radii-x", *this),
+  m_rect_max_radii_y(5.0f, "rect_max_radii_y", "Rounded rectangle max-radii-y", *this),
   m_path1_clip_mode(no_clip),
   m_path2_clip_mode(no_clip),
   m_combine_clip_mode(separate_clipping),
+  m_rounded_rect_mode(draw_rounded_rect),
   m_active_zoomer(view_zoomer)
 {
   std::cout << "Controls:\n"
@@ -120,6 +144,9 @@ painter_clip_test():
   m_combine_clip_labels[separate_clipping] = "separate_clipping";
   m_combine_clip_labels[path1_then_path2] = "path1_then_path2";
   m_combine_clip_labels[path2_then_path1] = "path2_then_path1";
+
+  m_rounded_rect_mode_labels[draw_rounded_rect] = "draw_rounded_rect";
+  m_rounded_rect_mode_labels[rounded_rect_clips] = "rounded_rect_clips";
 }
 
 void
@@ -172,6 +199,9 @@ handle_event(const SDL_Event &ev)
           cycle_value(m_combine_clip_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_combine_clip_modes);
           std::cout << "Combine clip mode set to: " << m_combine_clip_labels[m_combine_clip_mode] << "\n";
           break;
+        case SDLK_r:
+          cycle_value(m_rounded_rect_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_rounded_rect_modes);
+          std::cout << "Rounded rect mode set to: " << m_rounded_rect_mode_labels[m_rounded_rect_mode] << "\n";
         }
       break;
     };
@@ -218,15 +248,17 @@ make_paths(void)
     }
 }
 
-
 void
 painter_clip_test::
 derived_init(int, int)
 {
   make_paths();
+
+  m_rect.m_min_point = vec2(0.0f, 0.0f);
+  m_rect.m_max_point = vec2(m_rect_width.value(), m_rect_height.value());
+  m_rect.m_min_corner_radii = vec2(m_rect_min_radii_x.value(), m_rect_min_radii_y.value());
+  m_rect.m_max_corner_radii = vec2(m_rect_max_radii_x.value(), m_rect_max_radii_y.value());
 }
-
-
 
 void
 painter_clip_test::
@@ -318,25 +350,44 @@ draw_frame(void)
   m_painter->begin(m_surface, PainterEnums::y_increases_downwards);
   m_zoomers[view_zoomer].transformation().concat_to_painter(m_painter);
 
+  PainterItemMatrix M(m_painter->transformation());
+  m_zoomers[rect_zoomer].transformation().concat_to_painter(m_painter);
+  switch(m_rounded_rect_mode)
+    {
+    case draw_rounded_rect:
+      {
+        PainterBrush brush;
+        brush.pen(vec4(1.0f, 1.0f, 0.0f, 1.0f));
+        m_painter->draw_rounded_rect(m_painter->default_shaders().fill_shader(),
+                                     PainterData(&brush), m_rect);
+      }
+      break;
+
+    case rounded_rect_clips:
+      m_painter->clipInRoundedRect(m_rect);
+      break;
+    }
+  m_painter->transformation(M);
+
   switch(m_combine_clip_mode)
     {
     case separate_clipping:
-      draw_element(m_path1, m_path1_clip_mode, vec4(1.0f, 0.0f, 0.0f, 1.0f),
+      draw_element(m_path1, m_path1_clip_mode, vec4(1.0f, 0.0f, 0.0f, 0.5f),
                    m_zoomers[path1_zoomer].transformation().matrix3());
-      draw_element(m_path2, m_path2_clip_mode, vec4(0.0f, 1.0f, 0.0f, 1.0f),
+      draw_element(m_path2, m_path2_clip_mode, vec4(0.0f, 1.0f, 0.0f, 0.5f),
                    m_zoomers[path2_zoomer].transformation().matrix3());
       break;
 
     case path1_then_path2:
       draw_combined(m_path1, m_path1_clip_mode, m_zoomers[path1_zoomer].transformation().matrix3(),
                     m_path2, m_path2_clip_mode, m_zoomers[path2_zoomer].transformation().matrix3(),
-                    vec4(0.0f, 1.0f, 1.0f, 1.0f));
+                    vec4(0.0f, 1.0f, 1.0f, 0.5f));
       break;
 
     case path2_then_path1:
       draw_combined(m_path2, m_path2_clip_mode, m_zoomers[path2_zoomer].transformation().matrix3(),
                     m_path1, m_path1_clip_mode, m_zoomers[path1_zoomer].transformation().matrix3(),
-                    vec4(1.0f, 0.0f, 1.0f, 1.0f));
+                    vec4(1.0f, 0.0f, 1.0f, 0.5f));
       break;
     }
 
