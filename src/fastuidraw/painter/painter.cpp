@@ -447,6 +447,7 @@ namespace
       m_inverse_transpose_not_ready = true;
       m_item_matrix.m_item_matrix = v;
       m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+      m_item_matrix_singular_values_ready = false;
 
       if (M > m_matrix_type)
         {
