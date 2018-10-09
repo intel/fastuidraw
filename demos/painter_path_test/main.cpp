@@ -1685,17 +1685,33 @@ draw_scene(bool drawing_wire_frame)
           D = PainterData(&fill_brush);
         }
 
+      float thresh;
+      reference_counted_ptr<const TessellatedPath> tess_path;
+      reference_counted_ptr<const FilledPath> filled_path;
+
+      thresh = m_painter->compute_path_thresh(path());
+      if (m_painter->linearize_from_arc_path())
+        {
+          tess_path = path().arc_tessellation(thresh)->path().tessellation(thresh).get();
+        }
+      else
+        {
+          tess_path = path().tessellation(thresh);
+        }
+      filled_path = tess_path->filled();
+
       if (m_fill_by_clipping)
         {
           m_painter->save();
-          m_painter->clipInPath(path(), *fill_rule);
+          m_painter->clipInPath(*filled_path, *fill_rule);
           m_painter->transformation(float3x3());
           m_painter->draw_rect(D, vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
           m_painter->restore();
         }
       else
         {
-          m_painter->fill_path(D, path(), *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
+          m_painter->fill_path(m_painter->default_shaders().fill_shader(),
+                               D, *filled_path, *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
         }
 
       if (m_aa_fill_by_stroking && m_with_aa && !drawing_wire_frame)
@@ -1709,12 +1725,11 @@ draw_scene(bool drawing_wire_frame)
             .width(2.5f)
             .stroking_units(PainterStrokeParams::pixel_stroking_units);
 
-          m_painter->stroke_arc_path(false);
-          m_painter->stroke_path(PainterData(&fill_brush, &st),
-                                 path(),
+          m_painter->stroke_path(m_painter->default_shaders().stroke_shader(),
+                                 PainterData(&fill_brush, &st),
+                                 *tess_path->stroked(), thresh,
                                  StrokingStyle()
                                  .join_style(PainterEnums::miter_joins));
-          m_painter->stroke_arc_path(arc_stroking);
         }
     }
 
