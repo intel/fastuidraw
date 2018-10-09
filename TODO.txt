@@ -37,15 +37,11 @@ TODO.
        point to the start of A, then A, and then from
        end point of A to pt2.
 
- 4. An interface to build attribute and text data from string(s). Currently
-    an application needs to do this by itself, the example code being in
-    demos/common/text_helper.[ch]pp.
+ 4. An interface to perform text layout. Currently an application needs to do
+    this by itself, the example code being in demos/common/text_helper.[ch]pp.
+    Likely the best solution is a seperate library that integrates Harfbuzz.
 
- 5. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
-    the glyph data is generated). Should have an interface that is "take scalable glyph
-    that is best" in GlyphSelector class.
-
- 6. Consider implementing multi-channel distance field as seen in
+ 5. Consider implementing multi-channel distance field as seen in
     https://github.com/Chlumsky/msdfgen. The thesis on it is at
     https://dspace.cvut.cz/bitstream/handle/10467/62770/F8-DP-2015-Chlumsky-Viktor-thesis.pdf;
     an article is also avalaible at https://onlinelibrary.wiley.com/doi/abs/10.1111/cgf.13265.
@@ -53,116 +49,26 @@ TODO.
     to the L1-metric (which makes distance computation fast) and that
     may have additional ramitifications in general.
 
- 7. Add to the GlyphAtlas a dynamic LOD surface that like ImageAtlas but allows
-    having dynamic tile sizes and depths.
-     a. There is in index-texture that is R32UI (i.e. 32-bit unsigned integer)
-     b. There is a single channel R8 texture (as before).
-     c. The "texture coordinates" of a Glyph are:
-        i. The location of the origin of level0 index-tile (common to all verts)
-        ii. The offset from the origin of the level0 index tile in TILE units
-            (interpolated across quad of a glyph)
-     d. The index-texture values store 4-values via packed bits:
-        i. B where B is
-           B = 0 --> means that there is no next level and the remaining
-                     bits are a coordinate or data
-           B  > 0 is the log2 size of the next level tile there
-        ii. If B > 0, coordinate of origin of next tile level (X, Y, Z);
-            if B = 0, the raw value to use.
-        iii: expect B to use 3-5 bits (so max tile size is 8, 16 or 32)
-             X and Y are 9-bits and Z is all remaining bits (11, 10, 9)
-     e. Fetching of the value looks like this:
-
-        uint fetch_value(in uvec3 tile_origin,
-                         in uint log2_tile_size,
-                         in vec2 tile_coordinate)
-        {
-          uvec3 texel_coordinate;
-          uint log2_tile_size, raw;
-
-          do
-            {
-              uint new_log2_tile_size, new_tile_size;
-              uvec2 uint_tile_coordinate;
-
-              uint_tile_coordinate = uvec2(tile_coordinate);
-              texel_coordinate.xy = tile_origin.xy + uint_tile_coordinate;
-              texel_coordinate.z = tile_origin.z;
-              raw = texelFetch(IndexSurface, texel_coordinate).r;
-
-              new_tile_origin.x = UNPACK_BITS(X_BIT0, X_NUM_BITS, raw);
-              new_tile_origin.y = UNPACK_BITS(Y_BIT0, Y_NUM_BITS, raw);
-              new_tile_origin.z = UNPACK_BITS(Z_BIT0, Z_NUM_BITS, raw);
-              new_log2_tile_size = UNPACK_BITS(B_BIT0, B_NUM_BITS, raw);
-              new_tile_size = 1u << new_log2_tile_size;
-
-              /* compute the tile coordinate within the new_tile;
-               * K-texels at tile_coordinate means K * new_log2_tile_size
-               * texels of the new_tile
-               */
-              tile_coordinate -= vec2(uint_tile_coordinate);
-              tile_coordinate *= float(new_tile_size);
-
-              tile_origin = new_tile_origin;
-              log2_tile_size = new_log2_tile_size;
-            }
-          while(log2_tile_size > 0u)
-
-          texel_coordinate.xy = tile_origin.xy + uint_tile_coordinate;
-          texel_coordinate.z = tile_origin.z;
-          raw = texelFetch(IndexSurface, texel_coordinate).r;
-          raw &= ~BIT_MASK(B_BIT0, B_NUM_BITS);
-
-          return raw;
-        }
-
-        If we want to use the IndexTexture to just be used to generate texture
-        coordinates, we can instead require that tile-children of a tile are all
-        the same size. The meaning of B is instead the log2 size of the children
-        and then we also need to feed in the log2 of the size of the children
-        of the level0 tile. It might be worth considering using this for ImageAtlas
-        as well. The code to get the texture coordinate is:
-
-        vec3 fetch_coordinate(in uvec3 tile_origin,
-                              in uint log2_child_size,
-                              in vec2 tile_coordinate)
-        {
-          while(log2_child_size > 0u)
-            {
-              uint new_log2_child_tile_size, child_tile_size;
-              uvec2 uint_tile_coordinate;
-              uvec3 texel_coordinate;
-              uint raw;
-
-              uint_tile_coordinate = uvec2(tile_coordinate);
-              texel_coordinate.xy = tile_origin.xy + uint_tile_coordinate;
-              texel_coordinate.z = tile_origin.z;
-              raw = texelFetch(IndexSurface, texel_coordinate).r;
-
-              child_size = 1u << log2_child_size;
-              new_tile_origin.x = UNPACK_BITS(X_BIT0, X_NUM_BITS, raw);
-              new_tile_origin.y = UNPACK_BITS(Y_BIT0, Y_NUM_BITS, raw);
-              new_tile_origin.z = UNPACK_BITS(Z_BIT0, Z_NUM_BITS, raw);
-              new_log2_child_tile_size = UNPACK_BITS(B_BIT0, B_NUM_BITS, raw);
-
-              /* compute the tile coordinate within the new_tile;
-               * K-texels at tile_coordinate means K * new_log2_tile_size
-               * texels of the new_tile
-               */
-              tile_coordinate -= vec2(uint_tile_coordinate);
-              tile_coordinate *= float(child_size);
-
-              tile_origin = new_tile_origin;
-              log2_child_size = new_log2_child_tile_size;
-            }
-
-          vec3 return_value;
-          return_value.xy = vec2(tile_origin.xy) + tile_coordinate;
-          return_value.z = float(tile_origin.z);
-
-          return return_value;
-
- 8. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 6. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
             b) glslang from Khronos at https://github.com/KhronosGroup/glslang
+
+ 7. Fix filename and type name values. The naming scheme of files vs
+    objects is bad. Files are all named underscore_style, where as classes
+    are named PascalCaseStyle. Should make this consistent. Also, a number
+    of base classes are defined in files without the _base suffix, for example
+    FontBase is defined in font.hpp.
+
+ 8. GlyphSelector is a -very- poor man's method of selecting glyphs and
+    performing font merging. It can be argued that it has no real place
+    in FastUIDraw since FastUIDraw is just for drawing.
+
+ 9. Proper GL classes dtor'ing is needed. A number of dtor's in the
+    gl_backend need a GL context to operate. However, these objects
+    are reference counted and thus their dtors can happen outside of
+    the GL context that created them being current. The way out is to
+    have a concept of "GL context worker" where functors are added to
+    the worker and the worker runs these functors "whenever it gets a
+    chance" to do so within a GL context.

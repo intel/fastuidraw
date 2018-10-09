@@ -1,0 +1,101 @@
+FastUIDraw currently only supports clipping against a Path
+(clipIn or clipOut) or RoundedRect (clipIn only).
+WebCore::GraphicsContext in WebKit/Blink has the following
+additional clipping methods:
+
+    void clip(const IntRect&);
+    void clip(const FloatRect&);
+    void clipRoundedRect(const FloatRoundedRect&);
+
+    void clipOut(const FloatRect&);
+    void clipOutRoundedRect(const FloatRoundedRect&);
+    void clipPath(const Path&, WindRule);
+    void clipConvexPolygon(size_t numPoints, const FloatPoint*, bool antialias = true);
+    void clipToImageBuffer(ImageBuffer&, const FloatRect&);
+
+    void clip(const Path&, WindRule = RULE_EVENODD);
+    void clipOut(const Path&);
+
+Of the above, we do not yet have clipOutRoundedRect(),
+clipConvexPolygon() and clipToImageBuffer(). Implementing
+clipOutRoundedRect() is trivial since we can already
+draw rounded rectangles. Clipping to a convex polygon
+should be doable directly (without needing to contruct
+a path) by making triangle fans get emitted from the
+corners of the bounding rect of the polygon. The last
+one, clipToImageBuffer() is ugly since it would involve
+a shader that uses discard which is BAD. One semi-fix
+would be to introduce another auxiliary buffer whose
+values get incremented on doing clip and the shader would
+check against the value if it is high enough and clipping
+against an image buffer would increment that value.
+The bad part is then the frag-shader will read from
+yet another buffer (in the render-cache) and have more
+logic and for platforms without framebuffer_fetch or
+fragment shader ordering/interlock, then the other way
+would be to do discard on a shader that only writes
+to depth.
+
+----------------------------------------------------------
+
+FastUIDraw only supports clipIn and clipOut methods, where as most
+traditional canvas renderers also support additional clip-combine
+modes: Union, XOR, Reverse Difference and Replace.
+
+We can support clipping directly to a specified path by
+just popping the entire occluder stack (and resetting the
+clip-equations to not clip). However, that plays havoc with
+save()/restore(). The only way to support arbitary set is
+to save the occluder stack (and other state potentially)
+to allow for setClip. This is possible, but really, really
+messy and potentially inefficient.
+
+In addition, having the other region combine modes is
+not fun. Supporting the other modes can be done with
+the following. A SimplePath is a path so that the winding
+number for any point is 1 or 0.
+
+    1. const SimplePath& Path::pathOutline(fill_rule f)
+        This method returns a SimplePath P so that the path P
+        with the winding rule windind_number == 1
+        gives the exact same fill of the original path
+        with the fill rule f. The implementation of this
+        is esentially get the contours of the original
+        Path of the fill rule and use them to define the
+        return value.
+
+    2. SimplePath::SimplePath(const_c_array<SimplePath> paths, union)
+        Constructs a path as the union of a set of paths.
+        The implementation is essentially:
+        Path temp;
+        for(each P of paths)
+          {
+            temp.addContours(P);
+          }
+        *this = temp.pathOutline(winding_number >= 1)
+
+    3. SimplePath::SimplePath(const_c_array<SimplePath> paths, intersect)
+        Constructs a path as the intersection of a set of paths.
+        The implementation is essentially:
+        Path temp;
+        for(each P of paths)
+          {
+            temp.addContours(P);
+          }
+        *this = temp.pathOutline(winding_number == paths.size())
+
+   4. SimplePath::SimplePath(const SimplePath &p1, const SimplePath &p2, xor)
+       {
+          Path temp;
+          temp.addCountours(p1);
+          temp.addCountours(p2);
+          *this = temp.pathOutline(odd_even_fill_rule);
+       }
+
+   5. SimplePath::SimplePath(const SimplePath &p1, const SimplePath &p2, Difference)
+      {
+        Path temp;
+        temp.addCountours(p1);
+        temp.addCountorus(p2.reversed());
+        *this = temp.pathOutline( winding_rule >= 1);
+      }
