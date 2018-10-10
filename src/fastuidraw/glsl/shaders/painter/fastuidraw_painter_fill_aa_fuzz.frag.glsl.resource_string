@@ -16,18 +16,29 @@
  *
  */
 
-
 vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  /* the vertex shader made the quad exactly two-pixels
-     wide and fastuidraw_aa_fuzz goes from -1 to 1, thus
-     1 - abs(fastuidraw_aa_fuzz) is the exact value
-     needed for coverage and we have no need to divide
-     by derivative magnitudes to normalize correctly.
-   */
-  float alpha;
-  alpha = 1.0 - abs(fastuidraw_aa_fuzz);
-  return vec4(1.0, 1.0, 1.0, alpha);
+  #if defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2)
+    {
+      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
+    }
+  #else
+    {
+      float dd, q, alpha;
+      q = 1.0 - fastuidraw_aa_fuzz;
+      dd = max(q, fwidth(q));
+      alpha = q / dd;
+
+      #if defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1)
+        {
+          fastuidraw_max_auxiliary(alpha);
+          alpha = 0.0;
+        }
+      #endif
+
+      return vec4(1.0, 1.0, 1.0, alpha);
+    }
+  #endif
 }

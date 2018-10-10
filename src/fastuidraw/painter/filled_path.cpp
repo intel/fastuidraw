@@ -852,8 +852,8 @@ namespace
   public:
     explicit
     AAFuzzAttributeDataFiller(fastuidraw::c_array<const int> windings,
-                            const std::vector<fastuidraw::dvec2> *pts,
-                            const builder *b):
+                              const std::vector<fastuidraw::dvec2> *pts,
+                              const builder *b):
       m_windings(windings),
       m_pts(*pts),
       m_builder(*b)
@@ -1130,7 +1130,7 @@ add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
           m_current.pop_back();
           return;
         }
-      m_current.back().m_draw_bevel_to_next = false
+      m_current.back().m_draw_bevel_to_next = true
         && edge_drawn
         && m_current.back().m_draw_edge;
       m_current.back().m_next = p1;
@@ -1155,25 +1155,20 @@ end_boundary(void)
   FASTUIDRAWassert(m_current.back().m_end == m_current.front().m_start);
   m_current.back().m_next = m_current.front().m_end;
   m_current.back().m_is_closing_edge = true;
-  m_current.back().m_draw_bevel_to_next = m_current.back().m_draw_edge
+  m_current.back().m_draw_bevel_to_next = true
+    && m_current.back().m_draw_edge
     && m_current.front().m_draw_edge;
 
   for(const AAEdge &e : m_current)
     {
       if (e.m_draw_edge)
         {
-          m_edge_counts.m_attribute_count += 4;
-          m_edge_counts.m_index_count += 6;
+          m_edge_counts.m_attribute_count += 6;
+          m_edge_counts.m_index_count += 12;
           ++m_edge_counts.m_depth_count;
 
           if (e.m_draw_bevel_to_next)
             {
-              /* we are guaranteed that the next edge
-               * will be drawn, so we need only one
-               * additional attribute, the attribute
-               * for on the path.
-               */
-              m_edge_counts.m_attribute_count += 1;
               m_edge_counts.m_index_count += 3;
 
               /* except for the closing edge, beause
@@ -2520,23 +2515,38 @@ pack_edge(const AAEdge &E, int z,
 {
   using namespace fastuidraw;
 
+  unsigned int current_start(vertex_offset);
   vec2 tangent, normal;
-  const float sgn[4] = { -1.0f, +1.0f, -1.0f, +1.0f };
-  const unsigned int tris[6] = { 0, 1, 2, 2, 1, 3};
+  const float sgn[6] =
+    {
+      -1.0f,
+       0.0f,
+      +1.0f,
+      -1.0f,
+       0.0f,
+      +1.0f
+    };
+  const unsigned int tris[12] =
+    {
+      0, 3, 4,
+      0, 4, 1,
+      1, 4, 5,
+      1, 5, 2
+    };
 
   tangent = vec2(m_pts[E.m_end] - m_pts[E.m_start]);
   normal = vec2(-tangent.y(), tangent.x());
   normal /= normal.magnitude();
 
-  for (unsigned int k = 0; k < 6; ++k, ++index_offset)
+  for (unsigned int k = 0; k < 12; ++k, ++index_offset)
     {
       dst_idx[index_offset] = tris[k] + vertex_offset;
     }
 
-  for (unsigned int k = 0; k < 4; ++k, ++vertex_offset)
+  for (unsigned int k = 0; k < 6; ++k, ++vertex_offset)
     {
       unsigned int q;
-      q = (k < 2) ? E.m_start : E.m_end;
+      q = (k < 3) ? E.m_start : E.m_end;
       pack_attribute(vec2(m_pts[q]),
                      sgn[k], normal, z,
                      &dst_attr[vertex_offset]);
@@ -2544,43 +2554,47 @@ pack_edge(const AAEdge &E, int z,
 
   if (E.m_draw_bevel_to_next)
     {
-      unsigned int current_end(vertex_offset);
-      unsigned int next_outer, current_outer, on_path, next_begin;
       vec2 t, n;
-      float sgn;
-
-      on_path = vertex_offset;
-      pack_attribute(vec2(m_pts[E.m_end]), 0.0, vec2(0.0), z,
-                     &dst_attr[vertex_offset++]);
-      next_begin = vertex_offset;
+      unsigned int center, next_start(vertex_offset);
+      unsigned int current_outer, next_outer;
 
       t = vec2(m_pts[E.m_next] - m_pts[E.m_end]);
       n = vec2(-t.y(), t.x());
       n /= n.magnitude();
 
-      if (dot(normal, t) > 0.0f)
+      center = current_start + 4;
+      if (dot(normal, t) < 0.0f)
         {
-          sgn = -1.0f;
-          current_outer = current_end - 2u;
-          next_outer = next_begin + 0u;
+          current_outer = current_start + 5u;
+          if (E.m_is_closing_edge)
+            {
+              next_outer = vertex_offset;
+              pack_attribute(vec2(m_pts[E.m_end]), 1.0f, vec2(0.0), z,
+                             &dst_attr[vertex_offset++]);
+            }
+          else
+            {
+              next_outer = next_start + 2u;
+            }
         }
       else
         {
-          sgn = +1.0f;
-          current_outer = current_end - 1u;
-          next_outer = next_begin + 1u;
-        }
-
-      if (E.m_is_closing_edge)
-        {
-          next_outer = vertex_offset;
-          pack_attribute(vec2(m_pts[E.m_end]), sgn, n, z,
-                         &dst_attr[vertex_offset++]);
+          current_outer = current_start + 3u;
+          if (E.m_is_closing_edge)
+            {
+              next_outer = vertex_offset;
+              pack_attribute(vec2(m_pts[E.m_end]), -1.0f, vec2(0.0), z,
+                             &dst_attr[vertex_offset++]);
+            }
+          else
+            {
+              next_outer = next_start + 0u;
+            }
         }
 
       dst_idx[index_offset++] = current_outer;
       dst_idx[index_offset++] = next_outer;
-      dst_idx[index_offset++] = on_path;
+      dst_idx[index_offset++] = center;
     }
 }
 
