@@ -361,14 +361,12 @@ create_macro_set(ShaderSource::MacroSet &dst, bool render_pass_varies) const
 //////////////////////////////////////////
 //  ShaderSetCreator methods
 ShaderSetCreator::
-ShaderSetCreator(enum PainterCompositeShader::shader_type composite_tp,
-                 enum PainterStrokeShader::type_t stroke_tp,
-                 const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
-                 const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2):
+ShaderSetCreator(bool has_auxiliary_coverage_buffer,
+                 enum PainterCompositeShader::shader_type composite_tp,
+                 const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws):
   CompositeShaderSetCreator(composite_tp),
-  m_stroke_tp(stroke_tp),
-  m_stroke_action_pass1(stroke_action_pass1),
-  m_stroke_action_pass2(stroke_action_pass2)
+  m_has_auxiliary_coverage_buffer(has_auxiliary_coverage_buffer),
+  m_flush_auxiliary_buffer_between_draws(flush_auxiliary_buffer_between_draws)
 {
   unsigned int num_undashed_sub_shaders, num_dashed_sub_shaders;
 
@@ -381,7 +379,7 @@ ShaderSetCreator(enum PainterCompositeShader::shader_type composite_tp,
   m_uber_arc_stroke_shader = build_uber_stroke_shader(arc_shader, num_undashed_sub_shaders);
   m_uber_arc_dashed_stroke_shader = build_uber_stroke_shader(arc_shader | dashed_shader, num_dashed_sub_shaders);
 
-  if (stroke_tp != PainterStrokeShader::draws_solid_then_fuzz)
+  if (m_has_auxiliary_coverage_buffer)
     {
       /* we need a special stroke non-aa dashed shader that does discard */
       unsigned int num_dashed_sub_shaders_non_aa;
@@ -498,7 +496,7 @@ build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const
   const ShaderSource::MacroSet *stroke_constants_ptr;
   c_string extra_macro, src, src_util(nullptr);
 
-  if (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz
+  if (!m_has_auxiliary_coverage_buffer
       || (flags & only_supports_non_aa) != 0)
     {
       extra_macro = "FASTUIDRAW_STROKE_SOLID_THEN_FUZZ";
@@ -576,7 +574,7 @@ build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
   bool uses_discard;
 
   uses_discard = (flags & only_supports_non_aa) != 0
-    || (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz && (flags & (arc_shader | dashed_shader)) != 0);
+    || (!m_has_auxiliary_coverage_buffer && (flags & (arc_shader | dashed_shader)) != 0);
 
   return FASTUIDRAWnew PainterItemShaderGLSL(uses_discard,
                                              build_uber_stroke_source(flags, true),
@@ -664,7 +662,7 @@ create_stroke_item_shader(bool arc_shader,
   reference_counted_ptr<PainterItemShader> shader, return_value;
   uint32_t sub_shader;
 
-  if (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz || render_pass != uber_stroke_non_aa)
+  if (!m_has_auxiliary_coverage_buffer || render_pass != uber_stroke_non_aa)
     {
       if (stroke_dash_style == fastuidraw::PainterEnums::number_cap_styles)
         {
@@ -713,10 +711,12 @@ create_stroke_shader(enum PainterEnums::cap_style stroke_style,
   PainterStrokeShader return_value;
 
   return_value
-    .aa_type(m_stroke_tp)
+    .aa_type(m_has_auxiliary_coverage_buffer ?
+             PainterStrokeShader::cover_then_draw :
+             PainterStrokeShader::draws_solid_then_fuzz)
     .stroking_data_selector(stroke_data_selector)
-    .aa_action_pass1(m_stroke_action_pass1)
-    .aa_action_pass2(m_stroke_action_pass2)
+    .aa_action_pass1(m_flush_auxiliary_buffer_between_draws)
+    .aa_action_pass2(m_flush_auxiliary_buffer_between_draws)
     .aa_shader_pass1(create_stroke_item_shader(false, stroke_style, uber_stroke_aa_pass1))
     .aa_shader_pass2(create_stroke_item_shader(false, stroke_style, uber_stroke_aa_pass2))
     .non_aa_shader(create_stroke_item_shader(false, stroke_style, uber_stroke_non_aa))

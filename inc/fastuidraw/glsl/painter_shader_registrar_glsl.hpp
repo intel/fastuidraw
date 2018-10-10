@@ -919,9 +919,8 @@ namespace fastuidraw
          * of this UberShaderParams.
          */
         PainterShaderSet
-        default_shaders(enum PainterStrokeShader::type_t stroke_tp,
-                        const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
-                        const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2) const;
+        default_shaders(bool has_auxiliary_coverage_buffer,
+                        const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws) const;
 
       private:
         void *m_d;

@@ -118,10 +118,9 @@ class ShaderSetCreator:
 {
 public:
   explicit
-  ShaderSetCreator(enum PainterCompositeShader::shader_type composite_tp,
-                   enum PainterStrokeShader::type_t stroke_tp,
-                   const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
-                   const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2);
+  ShaderSetCreator(bool has_auxiliary_coverage_buffer,
+                   enum PainterCompositeShader::shader_type composite_tp,
+                   const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws);
 
   PainterShaderSet
   create_shader_set(void);
@@ -177,7 +176,7 @@ private:
   PainterBlendShaderSet
   create_blend_shaders(void);
 
-  enum PainterStrokeShader::type_t m_stroke_tp;
+  bool m_has_auxiliary_coverage_buffer;
 
   reference_counted_ptr<PainterItemShaderGLSL> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
   reference_counted_ptr<PainterItemShaderGLSL> m_dashed_discard_stroke_shader;
@@ -185,8 +184,7 @@ private:
   reference_counted_ptr<PainterItemShaderGLSL> m_arc_discard_stroke_shader;
   reference_counted_ptr<PainterItemShaderGLSL> m_dashed_arc_discard_stroke_shader;
 
-  reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass1;
-  reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass2;
+  reference_counted_ptr<const PainterDraw::Action> m_flush_auxiliary_buffer_between_draws;
 
   ShaderSource::MacroSet m_common_glyph_attribute_macros;
   ShaderSource::MacroSet m_glyph_restricted_rays_macros;

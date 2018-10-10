@@ -1466,12 +1466,11 @@ composite_type(void) const
 
 fastuidraw::PainterShaderSet
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
-default_shaders(enum PainterStrokeShader::type_t stroke_tp,
-                const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
-                const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2) const
+default_shaders(bool has_auxiliary_coverage_buffer,
+                const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws) const
 {
-  detail::ShaderSetCreator S(composite_type(), stroke_tp,
-                             stroke_action_pass1, stroke_action_pass2);
+  detail::ShaderSetCreator S(has_auxiliary_coverage_buffer, composite_type(),
+                             flush_auxiliary_buffer_between_draws);
   return S.create_shader_set();
 }
 

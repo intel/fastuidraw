@@ -898,8 +898,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
         }
     }
 
-  out_shaders = out_params.default_shaders(params.default_stroke_shader_aa_type(),
-                                           q, q);
+  out_shaders = out_params.default_shaders(aux_type != PainterBackendGL::no_auxiliary_buffer, q);
 }
 
 void
