@@ -365,7 +365,7 @@ namespace
     pack_painter_state(const fastuidraw::PainterPackerData &state,
                        PainterPackerPrivate *p, painter_state_location &out_data);
 
-    unsigned int
+    bool //returns true if a draw break was needed
     pack_header(unsigned int header_size,
                 uint32_t brush_shader,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &blend_shader,
@@ -374,12 +374,13 @@ namespace
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
                 int z,
                 const painter_state_location &loc,
-                const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+                const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back,
+                unsigned int *header_location);
 
-    void
+    bool
     draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action)
     {
-      m_draw_command->draw_break(action, m_indices_written);
+      return m_draw_command->draw_break(action, m_indices_written);
     }
 
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> m_draw_command;
@@ -693,7 +694,7 @@ pack_painter_state(const fastuidraw::PainterPackerData &state,
     }
 }
 
-unsigned int
+bool
 per_draw_command::
 pack_header(unsigned int header_size,
             uint32_t brush_shader,
@@ -703,13 +704,14 @@ pack_header(unsigned int header_size,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
             int z,
             const painter_state_location &loc,
-            const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+            const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back,
+            unsigned int *header_location)
 {
-  unsigned int return_value;
+  bool return_value(false);
   fastuidraw::c_array<fastuidraw::generic_data> dst;
   fastuidraw::PainterHeader header;
 
-  return_value = current_block();
+  *header_location = current_block();
   dst = allocate_store(header_size);
 
   if (call_back)
@@ -754,8 +756,8 @@ pack_header(unsigned int header_size,
      || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u
      || current.m_composite_mode != m_prev_state.m_composite_mode)
     {
-      m_draw_command->draw_break(m_prev_state, current,
-                                 m_indices_written);
+      return_value = m_draw_command->draw_break(m_prev_state, current,
+                                                m_indices_written);
     }
 
   m_prev_state = current;
@@ -848,7 +850,10 @@ upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
 
           m_last_binded_image = brush.image();
           action = m_backend->bind_image(m_last_binded_image);
-          m_accumulated_draws.back().draw_break(action);
+          if (m_accumulated_draws.back().draw_break(action))
+            {
+              ++m_stats[fastuidraw::PainterPacker::num_draws];
+            }
         }
     }
 }
@@ -936,16 +941,23 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
       per_draw_command &cmd(m_accumulated_draws.back());
       if (allocate_header)
         {
+          bool draw_break_added;
+
           ++m_stats[fastuidraw::PainterPacker::num_headers];
           allocate_header = false;
-          header_loc = cmd.pack_header(m_header_size,
-                                       fetch_value(draw.m_brush).shader(),
-                                       m_blend_shader,
-                                       m_composite_shader,
-                                       m_composite_mode,
-                                       shader,
-                                       z, m_painter_state_location,
-                                       call_back);
+          draw_break_added = cmd.pack_header(m_header_size,
+                                             fetch_value(draw.m_brush).shader(),
+                                             m_blend_shader,
+                                             m_composite_shader,
+                                             m_composite_mode,
+                                             shader,
+                                             z, m_painter_state_location,
+                                             call_back,
+                                             &header_loc);
+          if (draw_break_added)
+            {
+              ++m_stats[fastuidraw::PainterPacker::num_draws];
+            }
         }
 
       /* copy attribute data and get offset into attribute buffer
@@ -1075,7 +1087,7 @@ query_stat(enum stats_t st) const
       tmp[num_attributes] = c.m_attributes_written;
       tmp[num_indices] = c.m_indices_written;
       tmp[num_generic_datas] = c.store_written();
-      tmp[num_draws] = 1u;
+      tmp[num_draws] = 0u;
     }
   return d->m_stats[st] + tmp[st];
 }
@@ -1117,7 +1129,10 @@ draw_break(const reference_counted_ptr<const PainterDraw::Action> &action)
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_accumulated_draws.back().draw_break(action);
+  if (d->m_accumulated_draws.back().draw_break(action))
+    {
+      ++d->m_stats[fastuidraw::PainterPacker::num_draws];
+    }
 }
 
 void

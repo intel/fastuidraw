@@ -172,9 +172,10 @@ namespace fastuidraw
      * \param old_groups PainterShaderGroup before state change
      * \param new_groups PainterShaderGroup after state change
      * \param indices_written total number of indices written to m_indices -before- the change
+     * \returns true if the \ref PainterShaderGroup resulted in a draw break
      */
     virtual
-    void
+    bool
     draw_break(const PainterShaderGroup &old_groups,
                const PainterShaderGroup &new_groups,
                unsigned int indices_written) const = 0;
@@ -183,9 +184,10 @@ namespace fastuidraw
      * Called to execute an action (and thus also cause a draw-call break).
      * \param action action to execute
      * \param indices_written total number of indices written to m_indices -before- the change
+     * \returns true if the \ref PainterShaderGroup resulted in a draw break
      */
     virtual
-    void
+    bool
     draw_break(const reference_counted_ptr<const Action> &action,
                unsigned int indices_written) const = 0;
 

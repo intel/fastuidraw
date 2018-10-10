@@ -214,13 +214,13 @@ namespace
     {}
 
     virtual
-    void
+    bool
     draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
                const fastuidraw::PainterShaderGroup &new_shaders,
                unsigned int indices_written) const;
 
     virtual
-    void
+    bool
     draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
                unsigned int indices_written) const;
 
@@ -607,7 +607,7 @@ DrawCommand(fastuidraw::gl::detail::painter_vao_pool *hnd,
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void
+bool
 DrawCommand::
 draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
            unsigned int indices_written) const
@@ -619,10 +619,12 @@ draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw
           add_entry(indices_written);
         }
       m_draws.push_back(action);
+      return true;
     }
+  return false;
 }
 
-void
+bool
 DrawCommand::
 draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
            const fastuidraw::PainterShaderGroup &new_shaders,
@@ -669,6 +671,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
           add_entry(indices_written);
         }
       m_draws.push_back(DrawEntry(fastuidraw::BlendMode(new_mode), m_pr, pz));
+      return true;
     }
   else if (old_mode != new_mode)
     {
@@ -677,6 +680,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
           add_entry(indices_written);
         }
       m_draws.push_back(fastuidraw::BlendMode(new_mode));
+      return true;
     }
   else
     {
@@ -684,6 +688,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
        * entry to the current draw entry.
        */
       add_entry(indices_written);
+      return false;
     }
 }
 
