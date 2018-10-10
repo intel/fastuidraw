@@ -456,8 +456,15 @@ namespace fastuidraw
         glsl_version_override(c_string);
 
         /*!
-         * Set the values for optimal performance by quering the
-         * GL context.
+         * Set the values for optimal performance or rendering quality
+         * by quering the GL context.
+         * \param optimal_rendering_quality if true, select parameters
+         *                                  that give optimal rendering
+         *                                  quality (at potential sacrifice
+         *                                  of performance). If false,
+         *                                  choose for optimal performance
+         *                                  even at the cost of rendering
+         *                                  quality.
          * \param for_msaa if false, assume surface targets will
          *                 not have MSAA (i.e. SurfaceGL::msaa() is
          *                 0 or 1).
@@ -465,7 +472,8 @@ namespace fastuidraw
          *            the current GL context for extension and version
          */
         ConfigurationGL&
-        configure_from_context(bool for_msaa = false,
+        configure_from_context(bool optimal_rendering_quality,
+                               bool for_msaa = false,
                                const ContextProperties &ctx = ContextProperties());
 
         /*!
@@ -686,6 +694,13 @@ namespace fastuidraw
        * according to the current GL context. In addition, the current GL
        * context or a GL context of its share group must be current when
        * the PainterBackendGL is used.
+       * \param optimal_rendering_quality if true, select parameters
+       *                                  that give optimal rendering
+       *                                  quality (at potential sacrifice
+       *                                  of performance). If false,
+       *                                  choose for optimal performance
+       *                                  even at the cost of rendering
+       *                                  quality.
        * \param for_msaa if false, assume surface targets will
        *                 not have MSAA (i.e. SurfaceGL::msaa() is
        *                 0 or 1).
@@ -694,7 +709,9 @@ namespace fastuidraw
        */
       static
       reference_counted_ptr<PainterBackendGL>
-      create(bool for_msaa = false, const ContextProperties &ctx = ContextProperties());
+      create(bool optimal_rendering_quality,
+             bool for_msaa = false,
+             const ContextProperties &ctx = ContextProperties());
 
       /*!
        * Create another PainterBackendGL of the exact same configuration

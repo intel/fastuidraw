@@ -1329,7 +1329,8 @@ glsl_version_override(c_string v)
 
 fastuidraw::gl::PainterBackendGL::ConfigurationGL&
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
-configure_from_context(bool for_msaa, const ContextProperties &ctx)
+configure_from_context(bool choose_optimal_rendering_quality,
+                       bool for_msaa, const ContextProperties &ctx)
 {
   using namespace fastuidraw::gl::detail;
 
@@ -1357,7 +1358,7 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
   d->m_assign_binding_points = true;
 
   /* Generally, we want to allow for early-Z as
-   * much as possible, so we ahve a different
+   * much as possible, so we have a different
    * program for those shaders that use discard
    */
   d->m_separate_program_for_discard = true;
@@ -1370,7 +1371,7 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
        * for the auxiliary buffer because the auxiliary buffer
        * is not always written (or read).
        */
-      if (interlock_type == no_interlock)
+      if (interlock_type == no_interlock && !choose_optimal_rendering_quality)
         {
           d->m_provide_auxiliary_image_buffer = have_ffb ?
             auxiliary_buffer_framebuffer_fetch :
@@ -1384,15 +1385,22 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
     }
   else
     {
-      /* if one is drawing with MSAA, one should NOT use shader based anti-aliasing
-       * when stroking or filling anways.
+      /* if one is drawing with MSAA, one should NOT use shader based
+       *  anti-aliasing when stroking or filling anways.
        */
       d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
-
-      /* compositing_interlock does NOT work with MSAA and compositing_framebuffer_fetch would
-       * force the fragment shader to work per-sample.
-       */
-      d->m_compositing_type = compositing_dual_src;
+      if (have_ffb && choose_optimal_rendering_quality)
+        {
+          d->m_compositing_type = compositing_framebuffer_fetch;
+        }
+      else
+        {
+          /* compositing_interlock does NOT work with MSAA and
+           * compositing_framebuffer_fetch would force the
+           * fragment shader to work per-sample.
+           */
+          d->m_compositing_type = compositing_dual_src;
+        }
     }
 
   if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
@@ -1406,8 +1414,8 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
 
   /* Adjust compositing type from GL context properties */
   d->m_compositing_type = compute_compositing_type(d->m_provide_auxiliary_image_buffer,
-                                             interlock_type, d->m_compositing_type,
-                                             ctx);
+                                                   interlock_type, d->m_compositing_type,
+                                                   ctx);
 
   /* Adjust clipping type from GL context properties */
   d->m_clipping_type = compute_clipping_type(d->m_compositing_type,
@@ -1720,11 +1728,12 @@ create(ConfigurationGL config_gl, const ContextProperties &ctx)
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL>
 fastuidraw::gl::PainterBackendGL::
-create(bool for_msaa, const ContextProperties &ctx)
+create(bool optimal_rendering_quality,
+       bool for_msaa, const ContextProperties &ctx)
 {
   ConfigurationGL config_gl;
   config_gl
-    .configure_from_context(for_msaa, ctx);
+    .configure_from_context(optimal_rendering_quality, for_msaa, ctx);
 
   return create(config_gl, ctx);
 }
