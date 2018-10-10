@@ -907,7 +907,8 @@ draw_rect(const vec2 &pt, float r, const PainterData &d)
   m_painter->save();
   m_painter->translate(pt);
   m_painter->scale(r);
-  m_painter->fill_path(d, m_rect, PainterEnums::odd_even_fill_rule, true);
+  m_painter->fill_path(d, m_rect, PainterEnums::odd_even_fill_rule,
+                       PainterEnums::fill_anti_alias_high_quality);
   m_painter->restore();
 }
 
@@ -1711,7 +1712,10 @@ draw_scene(bool drawing_wire_frame)
       else
         {
           m_painter->fill_path(m_painter->default_shaders().fill_shader(),
-                               D, *filled_path, *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
+                               D, *filled_path, *fill_rule,
+                               (m_with_aa && !m_aa_fill_by_stroking) ?
+                               PainterEnums::fill_anti_alias_high_quality :
+                               PainterEnums::fill_anti_alias_none);
         }
 
       if (m_aa_fill_by_stroking && m_with_aa && !drawing_wire_frame)
@@ -1954,6 +1958,8 @@ draw_frame(void)
            << m_painter->query_stat(PainterPacker::num_indices)
            << "\nGenericData: "
            << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\nNumber Draws: "
+           << m_painter->query_stat(PainterPacker::num_draws)
            << "\nPainter Z: " << m_painter->current_z()
            << "\nMouse position:"
            << item_coordinates(mouse_position)

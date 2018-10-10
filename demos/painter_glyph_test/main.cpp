@@ -804,7 +804,9 @@ fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
   G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
   m_painter->fill_path(d, G.path(),
                        PainterEnums::nonzero_fill_rule,
-                       m_anti_alias_path_filling);
+                       (m_anti_alias_path_filling) ?
+                       PainterEnums::fill_anti_alias_high_quality :
+                       PainterEnums::fill_anti_alias_none);
 }
 
 void
