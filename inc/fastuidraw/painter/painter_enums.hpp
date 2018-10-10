@@ -136,6 +136,36 @@ namespace fastuidraw
       };
 
     /*!
+     * Enumeration to specify the anti-aliasing quality
+     * to apply when performing path fills. If the surface
+     * to which one is painting is multi-sampled, one should
+     * NOT use shader based anti-aliasing.
+     */
+    enum fill_anti_alias_t
+      {
+        /*!
+         * Do not apply any shader based anti-aliasing
+         * to the fill.
+         */
+        fill_anti_alias_none,
+
+        /*!
+         * Apply single pass anti-aliasing shading to fill.
+         * This will potentially give under coverage to
+         * fragments (typically where the path crosses
+         * itself or when the path is filled highly minified).
+         */
+        fill_anti_alias,
+
+        /*!
+         * Apply two pass anti-aliasing shading to fill.
+         * This option will give the highest quality
+         * anti-aliasing at the potential cost of performance.
+         */
+        fill_anti_alias_high_quality,
+      };
+
+    /*!
      * \brief
      * Enumeration specifying composite modes
      */

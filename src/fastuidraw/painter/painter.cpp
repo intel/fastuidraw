@@ -830,12 +830,24 @@ namespace
 
     int
     pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path, fastuidraw::c_array<const unsigned int> subsets,
+                             enum fastuidraw::PainterEnums::fill_anti_alias_t anti_alias_quality,
                              const WindingSet &wset,
                              std::vector<int> &z_increments,
                              std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > &attrib_chunks,
                              std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > &index_chunks,
                              std::vector<int> &index_adjusts,
                              std::vector<int> &start_zs);
+
+    void
+    draw_anti_alias_fuzz_common(const fastuidraw::PainterFillShader &shader,
+                                const fastuidraw::PainterData &draw,
+                                enum fastuidraw::PainterEnums::fill_anti_alias_t anti_alias_quality,
+                                fastuidraw::c_array<const int> z_increments, int incr_z,
+                                fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                                fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                                fastuidraw::c_array<const int> index_adjusts,
+                                fastuidraw::c_array<const int> start_zs,
+                                const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     void
     draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
@@ -1595,6 +1607,7 @@ int
 PainterPrivate::
 pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
                          fastuidraw::c_array<const unsigned int> subsets,
+                         enum fastuidraw::PainterEnums::fill_anti_alias_t anti_alias_quality,
                          const WindingSet &wset,
                          std::vector<int> &z_increments,
                          std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > &attrib_chunks,
@@ -1629,15 +1642,67 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               index_chunks.push_back(data.index_data_chunk(ch));
               index_adjusts.push_back(data.index_adjust_chunk(ch));
 
-              z_increments.push_back(R.difference());
-              start_zs.push_back(R.m_begin);
-
-              return_value += z_increments.back();
+              if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias)
+                {
+                  z_increments.push_back(R.difference());
+                  start_zs.push_back(R.m_begin);
+                  return_value += z_increments.back();
+                }
+              else
+                {
+                  z_increments.push_back(0);
+                  start_zs.push_back(0);
+                }
             }
         }
     }
 
+  if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias_high_quality
+      && !attrib_chunks.empty())
+    {
+      ++return_value;
+    }
+
   return return_value;
+}
+
+void
+PainterPrivate::
+draw_anti_alias_fuzz_common(const fastuidraw::PainterFillShader &shader,
+                            const fastuidraw::PainterData &draw,
+                            enum fastuidraw::PainterEnums::fill_anti_alias_t anti_alias_quality,
+                            fastuidraw::c_array<const int> z_increments, int incr_z,
+                            fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                            fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                            fastuidraw::c_array<const int> index_adjusts,
+                            fastuidraw::c_array<const int> start_zs,
+                            const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias)
+    {
+      draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
+                             z_increments, incr_z,
+                             attrib_chunks, index_chunks,
+                             index_adjusts, start_zs,
+                             m_current_z, call_back);
+
+    }
+  else if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias_high_quality)
+    {
+      draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
+                   attrib_chunks, index_chunks,
+                   index_adjusts,
+                   fastuidraw::c_array<const unsigned int>(),
+                   m_current_z, call_back);
+      m_core->draw_break(shader.aa_hq_action_pass1());
+
+      draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
+                   attrib_chunks, index_chunks,
+                   index_adjusts,
+                   fastuidraw::c_array<const unsigned int>(),
+                   m_current_z, call_back);
+      m_core->draw_break(shader.aa_hq_action_pass2());
+    }
 }
 
 void
@@ -2304,25 +2369,25 @@ draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
   /* min-x/max-y */
   translate(vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()));
   shear(R.m_min_corner_radii.x(), R.m_max_corner_radii.y());
-  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, PainterEnums::fill_anti_alias_none, call_back);
   d->m_clip_rect_state = m;
 
   /* max-x/max-y */
   translate(vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()));
   shear(-R.m_max_corner_radii.x(), R.m_max_corner_radii.y());
-  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, PainterEnums::fill_anti_alias_none, call_back);
   d->m_clip_rect_state = m;
 
   /* min-x/min-y */
   translate(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()));
   shear(R.m_min_corner_radii.x(), -R.m_min_corner_radii.y());
-  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, PainterEnums::fill_anti_alias_none, call_back);
   d->m_clip_rect_state = m;
 
   /* max-x/min-y */
   translate(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()));
   shear(-R.m_max_corner_radii.x(), -R.m_min_corner_radii.y());
-  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, false, call_back);
+  fill_path(shader, draw, d->m_rounded_corner_path, PainterEnums::nonzero_fill_rule, PainterEnums::fill_anti_alias_none, call_back);
   d->m_clip_rect_state = m;
 
   /* TODO: draw anti-alias fuzz occluded by the above geometry */
@@ -2432,7 +2497,7 @@ void
 fastuidraw::Painter::
 fill_path(const PainterFillShader &shader, const PainterData &draw,
           const FilledPath &filled_path, enum PainterEnums::fill_rule_t fill_rule,
-          bool with_anti_aliasing,
+          enum PainterEnums::fill_anti_alias_t anti_alias_quality,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -2460,6 +2525,12 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
+  if (anti_alias_quality == PainterEnums::fill_anti_alias_high_quality
+      && !shader.supports_hq_aa_shading())
+    {
+      anti_alias_quality = PainterEnums::fill_anti_alias;
+    }
+
   fastuidraw::c_array<const unsigned int> subset_list;
   subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
 
@@ -2476,11 +2547,11 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       d->m_work_room.m_fill_index_adjusts.push_back(data.index_adjust_chunk(idx_chunk));
     }
 
-  if (with_anti_aliasing)
+  if (anti_alias_quality != PainterEnums::fill_anti_alias_none)
     {
       d->m_work_room.m_fill_ws.set(filled_path, subset_list,
                                    CustomFillRuleFunction(fill_rule));
-      incr_z = d->pre_draw_anti_alias_fuzz(filled_path, subset_list,
+      incr_z = d->pre_draw_anti_alias_fuzz(filled_path, subset_list, anti_alias_quality,
                                            d->m_work_room.m_fill_ws,
                                            d->m_work_room.m_fill_aa_fuzz_z_increments,
                                            d->m_work_room.m_fill_aa_fuzz_attrib_chunks,
@@ -2500,48 +2571,46 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                   c_array<const unsigned int>(), //chunk selector
                   d->m_current_z + incr_z, call_back);
 
-  if (with_anti_aliasing)
-    {
-      d->draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_z_increments), incr_z,
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_attrib_chunks),
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_chunks),
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_adjusts),
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_start_zs),
-                                d->m_current_z, call_back);
-      d->m_current_z += incr_z;
-    }
+  d->draw_anti_alias_fuzz_common(shader, draw, anti_alias_quality,
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_z_increments), incr_z,
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_attrib_chunks),
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_index_chunks),
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_index_adjusts),
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_start_zs),
+                                 call_back);
+
+  d->m_current_z += incr_z;
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterFillShader &shader, const PainterData &draw,
           const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-          bool with_anti_aliasing,
+          enum PainterEnums::fill_anti_alias_t anti_alias_quality,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
 
   d = static_cast<PainterPrivate*>(m_d);
   fill_path(shader, draw, d->select_filled_path(path),
-            fill_rule, with_anti_aliasing, call_back);
+            fill_rule, anti_alias_quality, call_back);
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-          bool with_anti_aliasing,
+          enum PainterEnums::fill_anti_alias_t anti_alias_quality,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   fill_path(default_shaders().fill_shader(), draw, path, fill_rule,
-            with_anti_aliasing, call_back);
+            anti_alias_quality, call_back);
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterFillShader &shader, const PainterData &draw,
           const FilledPath &filled_path, const CustomFillRuleBase &fill_rule,
-          bool with_anti_aliasing,
+          enum PainterEnums::fill_anti_alias_t anti_alias_quality,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   unsigned int num_subsets;
@@ -2566,7 +2635,13 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  fastuidraw::c_array<const unsigned int> subset_list;
+  if (anti_alias_quality == PainterEnums::fill_anti_alias_high_quality
+      && !shader.supports_hq_aa_shading())
+    {
+      anti_alias_quality = PainterEnums::fill_anti_alias;
+    }
+
+  c_array<const unsigned int> subset_list;
   int incr_z;
 
   subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
@@ -2617,9 +2692,9 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  if (with_anti_aliasing)
+  if (anti_alias_quality != PainterEnums::fill_anti_alias_none)
     {
-      incr_z = d->pre_draw_anti_alias_fuzz(filled_path, subset_list,
+      incr_z = d->pre_draw_anti_alias_fuzz(filled_path, subset_list, anti_alias_quality,
                                            d->m_work_room.m_fill_ws,
                                            d->m_work_room.m_fill_aa_fuzz_z_increments,
                                            d->m_work_room.m_fill_aa_fuzz_attrib_chunks,
@@ -2639,41 +2714,38 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                   make_c_array(d->m_work_room.m_fill_selector),
                   d->m_current_z + incr_z, call_back);
 
-  if (with_anti_aliasing)
-    {
-      d->draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_z_increments), incr_z,
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_attrib_chunks),
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_chunks),
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_adjusts),
-                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_start_zs),
-                                d->m_current_z, call_back);
-      d->m_current_z += incr_z;
-    }
+  d->draw_anti_alias_fuzz_common(shader, draw, anti_alias_quality,
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_z_increments), incr_z,
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_attrib_chunks),
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_index_chunks),
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_index_adjusts),
+                                 make_c_array(d->m_work_room.m_fill_aa_fuzz_start_zs),
+                                 call_back);
+  d->m_current_z += incr_z;
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterFillShader &shader,
           const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-          bool with_anti_aliasing,
+          enum PainterEnums::fill_anti_alias_t anti_alias_quality,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
 
   d = static_cast<PainterPrivate*>(m_d);
   fill_path(shader, draw, d->select_filled_path(path),
-            fill_rule, with_anti_aliasing, call_back);
+            fill_rule, anti_alias_quality, call_back);
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-          bool with_anti_aliasing,
+          enum PainterEnums::fill_anti_alias_t anti_alias_quality,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   fill_path(default_shaders().fill_shader(), draw, path, fill_rule,
-            with_anti_aliasing, call_back);
+            anti_alias_quality, call_back);
 }
 
 fastuidraw::GlyphRender
@@ -3098,7 +3170,7 @@ clipOutPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule)
   composite_shader(PainterEnums::composite_porter_duff_dst);
   fill_path(default_shaders().fill_shader(),
             PainterData(d->m_black_brush),
-            path, fill_rule, false, zdatacallback);
+            path, fill_rule, PainterEnums::fill_anti_alias_none, zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -3134,7 +3206,7 @@ clipOutPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
   composite_shader(PainterEnums::composite_porter_duff_dst);
   fill_path(default_shaders().fill_shader(),
             PainterData(d->m_black_brush),
-            path, fill_rule, false, zdatacallback);
+            path, fill_rule, PainterEnums::fill_anti_alias_none, zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -3222,7 +3294,7 @@ clipInRoundedRect(const RoundedRect &R)
   shear(R.m_min_corner_radii.x(), R.m_max_corner_radii.y());
   fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
             d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
-            false, zdatacallback);
+            PainterEnums::fill_anti_alias_none, zdatacallback);
   d->m_clip_rect_state = m;
 
   /* max-x/max-y */
@@ -3230,7 +3302,7 @@ clipInRoundedRect(const RoundedRect &R)
   shear(-R.m_max_corner_radii.x(), R.m_max_corner_radii.y());
   fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
             d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
-            false, zdatacallback);
+            PainterEnums::fill_anti_alias_none, zdatacallback);
   d->m_clip_rect_state = m;
 
   /* min-x/min-y */
@@ -3238,7 +3310,7 @@ clipInRoundedRect(const RoundedRect &R)
             shear(R.m_min_corner_radii.x(), -R.m_min_corner_radii.y());
   fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
             d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
-            false, zdatacallback);
+            PainterEnums::fill_anti_alias_none, zdatacallback);
   d->m_clip_rect_state = m;
 
   /* max-x/min-y */
@@ -3246,7 +3318,7 @@ clipInRoundedRect(const RoundedRect &R)
   shear(-R.m_max_corner_radii.x(), -R.m_min_corner_radii.y());
   fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
             d->m_rounded_corner_path, PainterEnums::complement_nonzero_fill_rule,
-            false, zdatacallback);
+            PainterEnums::fill_anti_alias_none, zdatacallback);
   d->m_clip_rect_state = m;
 
   /* restore composite mode and shader */
