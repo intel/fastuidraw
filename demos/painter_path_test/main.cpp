@@ -201,7 +201,8 @@ private:
   enum fill_anti_alias_mode_t
     {
       fill_by_stroking,
-      fill_by_anti_alias,
+      fill_by_anti_alias_default,
+      fill_by_anti_alias_fast,
       fill_by_anti_alias_hq,
 
       number_fill_anti_alias_modes
@@ -678,7 +679,8 @@ painter_stroke_test(void):
   m_image_filter_mode_labels[image_cubic_filter] = "image_cubic_filter";
 
   m_fill_anti_alias_mode_labels[fill_by_stroking] = "fill_by_stroking";
-  m_fill_anti_alias_mode_labels[fill_by_anti_alias] = "fill_by_anti_alias";
+  m_fill_anti_alias_mode_labels[fill_by_anti_alias_default] = "fill_by_anti_alias_default";
+  m_fill_anti_alias_mode_labels[fill_by_anti_alias_fast] = "fill_by_anti_alias_fast";
   m_fill_anti_alias_mode_labels[fill_by_anti_alias_hq] = "fill_by_anti_alias_hq";
 
   m_rect << vec2(-0.5f, -0.5f)
@@ -1731,8 +1733,12 @@ draw_scene(bool drawing_wire_frame)
               m = PainterEnums::fill_anti_alias_none;
               break;
 
-            case fill_by_anti_alias:
-              m = PainterEnums::fill_anti_alias;
+            case fill_by_anti_alias_default:
+              m = PainterEnums::fill_anti_alias_default;
+              break;
+
+            case fill_by_anti_alias_fast:
+              m = PainterEnums::fill_anti_alias_fast;
               break;
 
             case fill_by_anti_alias_hq:
