@@ -26,7 +26,12 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_item_shader;
+    bool m_supports_hq_aa_shading;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_hq_shader_pass1;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_hq_shader_pass2;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_hq_action_pass1;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_hq_action_pass2;
   };
 }
 
@@ -59,4 +64,16 @@ assign_swap_implement(fastuidraw::PainterFillShader)
 setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
 setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 bool, supports_hq_aa_shading)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_hq_shader_pass1)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_hq_shader_pass2)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 aa_hq_action_pass1)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 aa_hq_action_pass2)

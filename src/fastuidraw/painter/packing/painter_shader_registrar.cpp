@@ -215,6 +215,8 @@ register_shader(const PainterFillShader &p)
 {
   register_shader(p.item_shader());
   register_shader(p.aa_fuzz_shader());
+  register_shader(p.aa_fuzz_hq_shader_pass1());
+  register_shader(p.aa_fuzz_hq_shader_pass2());
 }
 
 void
