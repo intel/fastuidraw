@@ -747,9 +747,23 @@ ShaderSetCreator::
 create_fill_shader(void)
 {
   PainterFillShader fill_shader;
+  enum PainterFillShader::hq_anti_alias_support_t hq_support;
+
+  if (!m_has_auxiliary_coverage_buffer)
+    {
+      hq_support = PainterFillShader::hq_anti_alias_no_support;
+    }
+  else if(m_flush_auxiliary_buffer_between_draws)
+    {
+      hq_support =  PainterFillShader::hq_anti_alias_slow;
+    }
+  else
+    {
+      hq_support =  PainterFillShader::hq_anti_alias_fast;
+    }
 
   fill_shader
-    .supports_hq_aa_shading(m_has_auxiliary_coverage_buffer)
+    .hq_anti_alias_support(hq_support)
     .item_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                      ShaderSource()
                                                      .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",

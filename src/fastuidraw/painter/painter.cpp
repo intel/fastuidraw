@@ -225,6 +225,32 @@ namespace
       && cl.z() <= 0.0f;
   }
 
+  inline
+  enum fastuidraw::PainterEnums::fill_anti_alias_t
+  select_anti_alias_from_default(enum fastuidraw::PainterFillShader::hq_anti_alias_support_t support)
+  {
+    return (support == fastuidraw::PainterFillShader::hq_anti_alias_fast) ?
+      fastuidraw::PainterEnums::fill_anti_alias_high_quality :
+      fastuidraw::PainterEnums::fill_anti_alias_fast;
+  }
+
+  inline
+  enum fastuidraw::PainterEnums::fill_anti_alias_t
+  compute_fill_anti_alias(enum fastuidraw::PainterEnums::fill_anti_alias_t v,
+                          enum fastuidraw::PainterFillShader::hq_anti_alias_support_t support)
+  {
+    v = (v == fastuidraw::PainterEnums::fill_anti_alias_default) ?
+      select_anti_alias_from_default(support):
+      v;
+
+    v = (v == fastuidraw::PainterEnums::fill_anti_alias_high_quality
+         && support == fastuidraw::PainterFillShader::hq_anti_alias_no_support) ?
+      fastuidraw::PainterEnums::fill_anti_alias_fast :
+      v;
+
+    return v;
+  }
+
   void
   draw_half_plane_complement(const fastuidraw::PainterData &draw,
                              fastuidraw::Painter *painter,
@@ -1673,7 +1699,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               index_chunks.push_back(data.index_data_chunk(ch));
               index_adjusts.push_back(data.index_adjust_chunk(ch));
 
-              if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias)
+              if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias_fast)
                 {
                   z_increments.push_back(R.difference());
                   start_zs.push_back(R.m_begin);
@@ -1709,7 +1735,7 @@ draw_anti_alias_fuzz_common(const fastuidraw::PainterFillShader &shader,
                             fastuidraw::c_array<const int> start_zs,
                             const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
-  if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias)
+  if (anti_alias_quality == fastuidraw::PainterEnums::fill_anti_alias_fast)
     {
       draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
                              z_increments, incr_z,
@@ -2556,11 +2582,8 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  if (anti_alias_quality == PainterEnums::fill_anti_alias_high_quality
-      && !shader.supports_hq_aa_shading())
-    {
-      anti_alias_quality = PainterEnums::fill_anti_alias;
-    }
+  anti_alias_quality = compute_fill_anti_alias(anti_alias_quality,
+                                               shader.hq_anti_alias_support());
 
   fastuidraw::c_array<const unsigned int> subset_list;
   subset_list = make_c_array(d->m_work_room.m_fill_subset.m_subsets).sub_array(0, num_subsets);
@@ -2668,11 +2691,8 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  if (anti_alias_quality == PainterEnums::fill_anti_alias_high_quality
-      && !shader.supports_hq_aa_shading())
-    {
-      anti_alias_quality = PainterEnums::fill_anti_alias;
-    }
+  anti_alias_quality = compute_fill_anti_alias(anti_alias_quality,
+                                               shader.hq_anti_alias_support());
 
   c_array<const unsigned int> subset_list;
   int incr_z;

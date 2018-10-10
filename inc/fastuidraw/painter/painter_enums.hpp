@@ -150,12 +150,19 @@ namespace fastuidraw
         fill_anti_alias_none,
 
         /*!
+         * Represents to use \ref fill_anti_alias_high_quality
+         * if using it does not have a large performance impact
+         * and otherwise to use \ref fill_anti_alias_fast.
+         */
+        fill_anti_alias_default,
+
+        /*!
          * Apply single pass anti-aliasing shading to fill.
          * This will potentially give under coverage to
          * fragments (typically where the path crosses
          * itself or when the path is filled highly minified).
          */
-        fill_anti_alias,
+        fill_anti_alias_fast,
 
         /*!
          * Apply two pass anti-aliasing shading to fill.
