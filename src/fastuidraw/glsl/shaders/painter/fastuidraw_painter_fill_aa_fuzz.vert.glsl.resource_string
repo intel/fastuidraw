@@ -48,9 +48,15 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       p = position_normal.xy;
     }
 
-  fastuidraw_aa_fuzz = abs(sgn);
   out_clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
   out_brush_p = p;
+
+  #if !defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2)
+    {
+      fastuidraw_aa_fuzz = abs(sgn);
+    }
+  #endif
+
   #if defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2) || defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1)
     {
       z_add = 0;
