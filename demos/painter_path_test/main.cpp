@@ -926,7 +926,7 @@ draw_rect(const vec2 &pt, float r, const PainterData &d)
   m_painter->translate(pt);
   m_painter->scale(r);
   m_painter->fill_path(d, m_rect, PainterEnums::odd_even_fill_rule,
-                       PainterEnums::fill_anti_alias_high_quality);
+                       PainterEnums::shader_anti_alias_high_quality);
   m_painter->restore();
 }
 
@@ -1725,29 +1725,29 @@ draw_scene(bool drawing_wire_frame)
         }
       else
         {
-          enum PainterEnums::fill_anti_alias_t m;
+          enum PainterEnums::shader_anti_alias_t m;
           switch(m_aa_fill_by)
             {
             default:
             case fill_by_stroking:
-              m = PainterEnums::fill_anti_alias_none;
+              m = PainterEnums::shader_anti_alias_none;
               break;
 
             case fill_by_anti_alias_default:
-              m = PainterEnums::fill_anti_alias_default;
+              m = PainterEnums::shader_anti_alias_default;
               break;
 
             case fill_by_anti_alias_fast:
-              m = PainterEnums::fill_anti_alias_fast;
+              m = PainterEnums::shader_anti_alias_fast;
               break;
 
             case fill_by_anti_alias_hq:
-              m = PainterEnums::fill_anti_alias_high_quality;
+              m = PainterEnums::shader_anti_alias_high_quality;
               break;
             }
           m_painter->fill_path(m_painter->default_shaders().fill_shader(),
                                D, *filled_path, *fill_rule,
-                               m_with_aa ? m : PainterEnums::fill_anti_alias_none);
+                               m_with_aa ? m : PainterEnums::shader_anti_alias_none);
         }
 
       if (m_aa_fill_by == fill_by_stroking && m_with_aa && !drawing_wire_frame)

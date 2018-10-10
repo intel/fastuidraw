@@ -26,7 +26,7 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_item_shader;
-    enum fastuidraw::PainterFillShader::hq_anti_alias_support_t m_hq_anti_alias_support;
+    enum fastuidraw::PainterEnums::hq_anti_alias_support_t m_hq_anti_alias_support;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_shader;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_hq_shader_pass1;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_hq_shader_pass2;
@@ -64,7 +64,7 @@ assign_swap_implement(fastuidraw::PainterFillShader)
 setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
 setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
-                 enum fastuidraw::PainterFillShader::hq_anti_alias_support_t,
+                 enum fastuidraw::PainterEnums::hq_anti_alias_support_t,
                  hq_anti_alias_support)
 setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)

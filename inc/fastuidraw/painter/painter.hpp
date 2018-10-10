@@ -629,7 +629,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, enum PainterEnums::fill_rule_t fill_rule,
-              enum PainterEnums::fill_anti_alias_t anti_alias_quality,
+              enum PainterEnums::shader_anti_alias_t anti_alias_quality,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -646,7 +646,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              enum PainterEnums::fill_anti_alias_t anti_alias_quality,
+              enum PainterEnums::shader_anti_alias_t anti_alias_quality,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -661,7 +661,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              enum PainterEnums::fill_anti_alias_t anti_alias_quality,
+              enum PainterEnums::shader_anti_alias_t anti_alias_quality,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -678,7 +678,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, const CustomFillRuleBase &fill_rule,
-              enum PainterEnums::fill_anti_alias_t anti_alias_quality,
+              enum PainterEnums::shader_anti_alias_t anti_alias_quality,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -695,7 +695,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, const CustomFillRuleBase &fill_rule,
-              enum PainterEnums::fill_anti_alias_t anti_alias_quality,
+              enum PainterEnums::shader_anti_alias_t anti_alias_quality,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -710,7 +710,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-              enum PainterEnums::fill_anti_alias_t anti_alias_quality,
+              enum PainterEnums::shader_anti_alias_t anti_alias_quality,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!

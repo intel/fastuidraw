@@ -136,40 +136,69 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to specify the anti-aliasing quality
-     * to apply when performing path fills. If the surface
-     * to which one is painting is multi-sampled, one should
-     * NOT use shader based anti-aliasing.
+     * Enumeration to describe high quality shader
+     * anti-aliasing support in \ref PainterFillShader
+     * and \ref PainterStrokeShader.
      */
-    enum fill_anti_alias_t
+    enum hq_anti_alias_support_t
+      {
+        /*!
+         * Indicates that high quality anti-aliasing is NOT
+         * supported.
+         */
+        hq_anti_alias_no_support,
+
+        /*!
+         * Indicates that high quality anti-aliasing is
+         * supported with significant performance impact.
+         */
+        hq_anti_alias_slow,
+
+        /*!
+         * Indicates that high quality anti-aliasing is
+         * supported with no or minimal performance impact.
+         */
+        hq_anti_alias_fast,
+      };
+
+    /*!
+     * Enumeration to specify the anti-aliasing quality
+     * to apply when performing path fills or strokes. If
+     * the surface to which one is painting is multi-sampled,
+     * one should NOT use shader based anti-aliasing.
+     */
+    enum shader_anti_alias_t
       {
         /*!
          * Do not apply any shader based anti-aliasing
          * to the fill.
          */
-        fill_anti_alias_none,
+        shader_anti_alias_none,
 
         /*!
-         * Represents to use \ref fill_anti_alias_high_quality
+         * Represents to use \ref shader_anti_alias_high_quality
          * if using it does not have a large performance impact
-         * and otherwise to use \ref fill_anti_alias_fast.
+         * and otherwise to use \ref shader_anti_alias_fast.
          */
-        fill_anti_alias_default,
+        shader_anti_alias_default,
 
         /*!
-         * Apply single pass anti-aliasing shading to fill.
-         * This will potentially give under coverage to
-         * fragments (typically where the path crosses
-         * itself or when the path is filled highly minified).
+         * Applies faster anti-aliasing shading to path
+         * fill or stroke. This will potentially give under
+         * coverage to fragments (typically where the path
+         * crosses itself or when the path is filled or
+         * stroke highly minified).
          */
-        fill_anti_alias_fast,
+        shader_anti_alias_fast,
 
         /*!
-         * Apply two pass anti-aliasing shading to fill.
-         * This option will give the highest quality
-         * anti-aliasing at the potential cost of performance.
+         * Applies higher quality anti-aliasing shading
+         * that avoids the issues that come from \ref
+         * shader_anti_alias_fast. This option will give
+         * the highest quality anti-aliasing at the
+         * potential cost of performance.
          */
-        fill_anti_alias_high_quality,
+        shader_anti_alias_high_quality,
       };
 
     /*!

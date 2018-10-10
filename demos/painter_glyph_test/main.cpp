@@ -621,8 +621,10 @@ create_and_add_font(void)
     }
   else
     {
-      std::cout << "\n-----------------------------------------------------"
-                << "\nWarning: unable to create font\n"
+      std::cout << "\n-----------------------------------------------------\n"
+                << "Warning: unable to create font, either choose a font\n"
+                << "file explicitly with font_file or select a path with\n"
+                << "fonts via font_path\n"
                 << "-----------------------------------------------------\n";
     }
 
@@ -805,8 +807,8 @@ fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
   m_painter->fill_path(d, G.path(),
                        PainterEnums::nonzero_fill_rule,
                        (m_anti_alias_path_filling) ?
-                       PainterEnums::fill_anti_alias_high_quality :
-                       PainterEnums::fill_anti_alias_none);
+                       PainterEnums::shader_anti_alias_fast :
+                       PainterEnums::shader_anti_alias_none);
 }
 
 void

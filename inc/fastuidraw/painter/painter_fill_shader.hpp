@@ -33,44 +33,21 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterFillShader holds the shaders for drawing filled paths.
+   * Anti-aliasing is accomplished by drawing 1-pixel thick rects
+   * about the boundary of the filled path. The high quality method
+   * \ref PainterEnums::shader_anti_alias_high_quality renders the
+   * anti-alias pixels in two passes; the first pass to a coverage
+   * buffer and the second pass returns the value as the coverage
+   * and clears the auxilary buffer. The other renering method,
+   * \ref PainterEnums::shader_anti_alias_fast, is a single pass
+   * solution that relies on the depth buffer to avoid overdraw at
+   * the possible expense than some fragments (typically where the
+   * path crosses itself or when the path is drawn very minified)
+   * will have lower coverage than they should.
    */
   class PainterFillShader
   {
   public:
-    /*!
-     * Enumeration to describe high quality two-pass
-     * anti-aliasing support. In the two pass shader,
-     * the first pass writes a coverage to an auxiliary
-     * buffer and the second pass returns the value as
-     * the coverage and clears the auxilary buffer. The
-     * non-high quality shader is a single pass solution
-     * that relies on the depth buffer to avoid overdraw
-     * at the possible expense than some fragments (typically
-     * where the path crosses itself or when the path is
-     * drawn very minified) will have lower coverage than
-     * they should.
-     */
-    enum hq_anti_alias_support_t
-      {
-        /*!
-         * Indicates that high quality anti-aliasing is NOT
-         * supported.
-         */
-        hq_anti_alias_no_support,
-
-        /*!
-         * Indicates that high quality anti-aliasing is
-         * supported with significant performance impact.
-         */
-        hq_anti_alias_slow,
-
-        /*!
-         * Indicates that high quality anti-aliasing is
-         * supported with no or minimal performance impact.
-         */
-        hq_anti_alias_fast,
-      };
-
     /*!
      * Ctor
      */
@@ -117,7 +94,7 @@ namespace fastuidraw
      * Returns if high quality two pass anti-alias shading
      * is supported.
      */
-    enum hq_anti_alias_support_t
+    enum PainterEnums::hq_anti_alias_support_t
     hq_anti_alias_support(void) const;
 
     /*!
@@ -125,7 +102,7 @@ namespace fastuidraw
      * \param sh value to use
      */
     PainterFillShader&
-    hq_anti_alias_support(enum hq_anti_alias_support_t sh);
+    hq_anti_alias_support(enum PainterEnums::hq_anti_alias_support_t sh);
 
     /*!
      * Returns the PainterItemShader to use to draw
