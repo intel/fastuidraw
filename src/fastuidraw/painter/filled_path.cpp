@@ -1130,8 +1130,7 @@ add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
           m_current.pop_back();
           return;
         }
-      m_current.back().m_draw_bevel_to_next = true
-        && edge_drawn
+      m_current.back().m_draw_bevel_to_next = edge_drawn
         && m_current.back().m_draw_edge;
       m_current.back().m_next = p1;
     }
@@ -1155,8 +1154,7 @@ end_boundary(void)
   FASTUIDRAWassert(m_current.back().m_end == m_current.front().m_start);
   m_current.back().m_next = m_current.front().m_end;
   m_current.back().m_is_closing_edge = true;
-  m_current.back().m_draw_bevel_to_next = true
-    && m_current.back().m_draw_edge
+  m_current.back().m_draw_bevel_to_next = m_current.back().m_draw_edge
     && m_current.front().m_draw_edge;
 
   for(const AAEdge &e : m_current)
@@ -1268,12 +1266,39 @@ compute_splitting_location(int coord, std::vector<double> &work_room,
     {
       for(const SubContourPoint &P : C)
         {
-          work_room.push_back(P[coord]);
+          /* don't push a value if it is the same
+           * as the previous value.
+           */
+          if (work_room.empty() || work_room.back() != P[coord])
+            {
+              work_room.push_back(P[coord]);
+            }
         }
     }
 
   std::sort(work_room.begin(), work_room.end());
-  return_value = work_room[work_room.size() / 2];
+
+  /* choose a value that is strictly between two
+   * points so that no vertical or horizontal
+   * edge from the original path hugs the partition
+   * edge.
+   */
+  unsigned int idx;
+  double next_p, prev_p, p;
+
+  idx = work_room.size() / 2;
+  p = work_room[idx];
+  next_p = (idx + 1u < work_room.size()) ? work_room[idx + 1u] : p;
+  prev_p = (idx > 0u) ? work_room[idx - 1u] : p;
+
+  if (fastuidraw::t_abs(next_p - p) >  fastuidraw::t_abs(prev_p - p))
+    {
+      return_value = 0.5 * (next_p + p);
+    }
+  else
+    {
+      return_value = 0.5 * (prev_p + p);
+    }
 
   number_points_before = 0;
   number_points_after = 0;
