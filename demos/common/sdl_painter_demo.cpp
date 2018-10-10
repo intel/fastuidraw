@@ -477,37 +477,53 @@ sdl_painter_demo(const std::string &about_text,
                           "painter_assign_binding_points",
                           "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
   m_composite_type(m_painter_params.compositing_type(),
-               enumerated_string_type<compositing_type_t>()
-               .add_entry("framebuffer_fetch",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch,
-                          "use a framebuffer fetch (if available) to perform compositing, "
-                          "thus all compositing operations are part of uber-shader giving "
-                          "more flexibility for composite types (namely W3C support) and "
-                          "composite mode changes do not induce pipeline state changes")
-               .add_entry("interlock",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock,
-                          "use image-load store together with interlock (if both available) "
-                          "to perform compositing, tus all compositing operations are part of "
-                          "uber-shader giving more flexibility for composite types (namely "
-                          "W3C support) and composite mode changes do not induce pipeline "
-                          "state changes")
-               .add_entry("dual_src",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_dual_src,
-                          "use a dual source compositing (if available) to perform compositing, "
-                          "which has far less flexibility for compositing than framebuffer-fetch "
-                          "but has far few pipeline states (there are 3 composite mode pipeline states "
-                          "and hald of the Porter-Duff composite modes are in one composite mode pipeline state")
-               .add_entry("single_src",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_single_src,
-                          "use single source compositing to perform compositing, "
-                          "which is even less flexible than dual_src compositing and "
-                          "every Porter-Duff composite mode is a different pipeline state"),
-               "painter_composite_type",
-               "specifies how the painter will perform compositing",
-               *this),
-  m_painter_optimal(true, "painter_optimal_auto",
-                    "If set to true, override all painter options and "
-                    "query the GL/GLES context to configure the options",
+                   enumerated_string_type<compositing_type_t>()
+                   .add_entry("framebuffer_fetch",
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch,
+                              "use a framebuffer fetch (if available) to perform compositing, "
+                              "thus all compositing operations are part of uber-shader giving "
+                              "more flexibility for composite types (namely W3C support) and "
+                              "composite mode changes do not induce pipeline state changes")
+                   .add_entry("interlock",
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock,
+                              "use image-load store together with interlock (if both available) "
+                              "to perform compositing, tus all compositing operations are part of "
+                              "uber-shader giving more flexibility for composite types (namely "
+                              "W3C support) and composite mode changes do not induce pipeline "
+                              "state changes")
+                   .add_entry("dual_src",
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_dual_src,
+                              "use a dual source compositing (if available) to perform compositing, "
+                              "which has far less flexibility for compositing than framebuffer-fetch "
+                              "but has far few pipeline states (there are 3 composite mode pipeline states "
+                              "and hald of the Porter-Duff composite modes are in one composite mode pipeline state")
+                   .add_entry("single_src",
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_single_src,
+                              "use single source compositing to perform compositing, "
+                              "which is even less flexible than dual_src compositing and "
+                              "every Porter-Duff composite mode is a different pipeline state"),
+                   "painter_composite_type",
+                   "specifies how the painter will perform compositing",
+                   *this),
+  m_painter_optimal(painter_optimal_rendering,
+                    enumerated_string_type<enum painter_optimal_t>()
+                    .add_entry("painter_no_optimal",
+                               painter_no_optimal,
+                               "Do not query GL/GLES context to configure options and rely "
+                               "on the values passed to the command line. Values not possible "
+                               "to do by the GL/GLES context will be overriden")
+                    .add_entry("painter_optimal_performance",
+                               painter_optimal_performance,
+                               "Query the GL/GLES context to configure options for optimal "
+                               "performance. Additional options set by command line will "
+                               "override the values")
+                    .add_entry("painter_optimal_rendering",
+                               painter_optimal_rendering,
+                               "Query the GL/GLES context to configure options for optimal "
+                               "rendering quality. Additional options set by command line will "
+                               "override the values"),
+                    "painter_optimal_auto",
+                    "Decide how to initially configure the Painter",
                     *this),
   m_demo_options("Demo Options", *this),
   m_print_painter_config(default_value_for_print_painter,
@@ -626,9 +642,10 @@ init_gl(int w, int h)
     }
 
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
-  if (m_painter_optimal.value())
+  if (m_painter_optimal.value() != painter_no_optimal)
     {
-      m_painter_params.configure_from_context(m_painter_msaa.value() > 1);
+      m_painter_params.configure_from_context(m_painter_optimal.value() == painter_optimal_rendering,
+                                              m_painter_msaa.value() > 1);
     }
 
 #define APPLY_PARAM(X, Y) do { if (Y.set_by_command_line()) { std::cout << "Apply: "#X": " << Y.value() << "\n"; m_painter_params.X(Y.value()); } } while (0)

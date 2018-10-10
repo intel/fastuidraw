@@ -98,6 +98,13 @@ private:
       glyph_backing_store_auto,
     };
 
+  enum painter_optimal_t
+    {
+      painter_no_optimal,
+      painter_optimal_performance,
+      painter_optimal_rendering,
+    };
+
   fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
   fastuidraw::gl::ColorStopAtlasGL::params m_colorstop_atlas_params;
   fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
@@ -148,7 +155,7 @@ private:
   command_line_argument_value<bool> m_assign_layout_to_varyings;
   command_line_argument_value<bool> m_assign_binding_points;
   enumerated_command_line_argument_value<compositing_type_t> m_composite_type;
-  command_line_argument_value<bool> m_painter_optimal;
+  enumerated_command_line_argument_value<enum painter_optimal_t> m_painter_optimal;
 
   command_separator m_demo_options;
   command_line_argument_value<bool> m_print_painter_config;
