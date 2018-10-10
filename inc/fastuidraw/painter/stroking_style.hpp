@@ -39,7 +39,7 @@ namespace fastuidraw
       m_draw_closing_edges_of_contours(true),
       m_cap_style(PainterEnums::square_caps),
       m_join_style(PainterEnums::miter_clip_joins),
-      m_stroke_with_shader_aa(true)
+      m_stroke_with_shader_aa(PainterEnums::shader_anti_alias_default)
     {}
 
     /*!
@@ -79,10 +79,30 @@ namespace fastuidraw
      * to the specified value.
      */
     StrokingStyle&
-    stroke_with_shader_aa(bool v)
+    stroke_with_shader_aa(enum PainterEnums::shader_anti_alias_t v)
     {
       m_stroke_with_shader_aa = v;
       return *this;
+    }
+
+    /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * enum PainterEnums::shader_anti_alias_t value;
+     * value = v ?
+     *    PainterEnums::shader_anti_alias_default :
+     *    PainterEnums::shader_anti_alias_none;
+     * return stroke_with_shader_aa(value);
+     * \endcode
+     */
+    StrokingStyle&
+    stroke_with_shader_aa(bool v)
+    {
+      enum PainterEnums::shader_anti_alias_t value;
+      value = v ?
+         PainterEnums::shader_anti_alias_default :
+         PainterEnums::shader_anti_alias_none;
+      return stroke_with_shader_aa(value);
     }
 
     /*!
@@ -106,13 +126,11 @@ namespace fastuidraw
     enum PainterEnums::join_style m_join_style;
 
     /*!
-     * If true, apply shader based anti-aliasing to the
-     * stroking. This value should never be true if
-     * the target surface is a multi-sampled surface
-     * (because the MSAA is what will do the anti-aliasing).
-     * Default value is true.
+     * Specifies if and how to do shader anti-aliasing
+     * when stroking the path. Default value is \ref
+     * PainterEnums::shader_anti_alias_default.
      */
-    bool m_stroke_with_shader_aa;
+    enum PainterEnums::shader_anti_alias_t m_stroke_with_shader_aa;
   };
 /*! @} */
 }

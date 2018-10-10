@@ -2479,7 +2479,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                         stroke_style.m_draw_closing_edges_of_contours,
                         stroke_style.m_cap_style,
                         stroke_style.m_join_style,
-                        stroke_style.m_stroke_with_shader_aa,
+                        stroke_style.m_stroke_with_shader_aa != PainterEnums::shader_anti_alias_none,
                         call_back);
 }
 
@@ -2525,7 +2525,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                         stroke_style.m_draw_closing_edges_of_contours,
                         PainterEnums::number_cap_styles,
                         stroke_style.m_join_style,
-                        stroke_style.m_stroke_with_shader_aa,
+                        stroke_style.m_stroke_with_shader_aa != PainterEnums::shader_anti_alias_none,
                         call_back);
 }
 
