@@ -198,6 +198,15 @@ private:
       number_image_filter_modes
     };
 
+  enum fill_anti_alias_mode_t
+    {
+      fill_by_stroking,
+      fill_by_anti_alias,
+      fill_by_anti_alias_hq,
+
+      number_fill_anti_alias_modes
+    };
+
   typedef std::pair<std::string,
                     reference_counted_ptr<ColorStopSequenceOnAtlas> > named_color_stop;
 
@@ -392,6 +401,7 @@ private:
   vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
   vecN<std::string, PainterEnums::fill_rule_data_count> m_fill_labels;
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
+  vecN<std::string, number_fill_anti_alias_modes> m_fill_anti_alias_mode_labels;
 
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
@@ -425,7 +435,8 @@ private:
 
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
-  bool m_draw_fill, m_aa_fill_by_stroking;
+  bool m_draw_fill;
+  unsigned int m_aa_fill_by;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
   unsigned int m_image_filter;
@@ -579,7 +590,8 @@ painter_stroke_test(void):
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
-  m_draw_fill(false), m_aa_fill_by_stroking(true),
+  m_draw_fill(false),
+  m_aa_fill_by(fill_by_anti_alias_hq),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_image_filter(image_nearest_filter),
@@ -617,7 +629,7 @@ painter_stroke_test(void):
             << "\tf: toggle drawing path fill\n"
             << "\tr: cycle through fill rules\n"
             << "\te: toggle fill by drawing clip rect\n"
-            << "\tu: toggle perform fill anti-alias by stroking\n"
+            << "\tu: cycle through how to anti-alias fill\n"
             << "\ti: cycle through image filter to apply to fill (no image, nearest, linear, cubic)\n"
             << "\tctrl-i: toggle mipmap filtering when applying an image\n"
             << "\ts: cycle through defined color stops for gradient\n"
@@ -664,6 +676,10 @@ painter_stroke_test(void):
   m_image_filter_mode_labels[image_nearest_filter] = "image_nearest_filter";
   m_image_filter_mode_labels[image_linear_filter] = "image_linear_filter";
   m_image_filter_mode_labels[image_cubic_filter] = "image_cubic_filter";
+
+  m_fill_anti_alias_mode_labels[fill_by_stroking] = "fill_by_stroking";
+  m_fill_anti_alias_mode_labels[fill_by_anti_alias] = "fill_by_anti_alias";
+  m_fill_anti_alias_mode_labels[fill_by_anti_alias_hq] = "fill_by_anti_alias_hq";
 
   m_rect << vec2(-0.5f, -0.5f)
          << vec2(-0.5f, +0.5f)
@@ -1282,16 +1298,12 @@ handle_event(const SDL_Event &ev)
         case SDLK_u:
           if (m_draw_fill & m_with_aa)
             {
-              m_aa_fill_by_stroking = !m_aa_fill_by_stroking;
-              std::cout << "Set to anti-alias filling by ";
-              if (m_aa_fill_by_stroking)
-                {
-                  std::cout << "stroking\n";
-                }
-              else
-                {
-                  std::cout << "draw anti-alias fuzz\n";
-                }
+              cycle_value(m_aa_fill_by,
+                          ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
+                          number_fill_anti_alias_modes);
+              std::cout << "Set to anti-alias filling by "
+                        << m_fill_anti_alias_mode_labels[m_aa_fill_by]
+                        << "\n";
             }
           break;
 
@@ -1711,14 +1723,28 @@ draw_scene(bool drawing_wire_frame)
         }
       else
         {
+          enum PainterEnums::fill_anti_alias_t m;
+          switch(m_aa_fill_by)
+            {
+            default:
+            case fill_by_stroking:
+              m = PainterEnums::fill_anti_alias_none;
+              break;
+
+            case fill_by_anti_alias:
+              m = PainterEnums::fill_anti_alias;
+              break;
+
+            case fill_by_anti_alias_hq:
+              m = PainterEnums::fill_anti_alias_high_quality;
+              break;
+            }
           m_painter->fill_path(m_painter->default_shaders().fill_shader(),
                                D, *filled_path, *fill_rule,
-                               (m_with_aa && !m_aa_fill_by_stroking) ?
-                               PainterEnums::fill_anti_alias_high_quality :
-                               PainterEnums::fill_anti_alias_none);
+                               m_with_aa ? m : PainterEnums::fill_anti_alias_none);
         }
 
-      if (m_aa_fill_by_stroking && m_with_aa && !drawing_wire_frame)
+      if (m_aa_fill_by == fill_by_stroking && m_with_aa && !drawing_wire_frame)
         {
           bool arc_stroking;
           PainterStrokeParams st;
