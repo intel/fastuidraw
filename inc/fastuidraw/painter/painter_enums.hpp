@@ -183,6 +183,12 @@ namespace fastuidraw
         shader_anti_alias_auto,
 
         /*!
+         * Represents to use the fastest anti-alias mode
+         * (which is not shader_anti_alias_none).
+         */
+        shader_anti_alias_fastest,
+
+        /*!
          * Applies simpler anti-aliasing shading to path
          * fill or stroke. This will potentially give under
          * coverage to fragments (typically where the path

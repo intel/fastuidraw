@@ -737,6 +737,22 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
       enum PainterStrokeShader::stroke_type_t e_tp;
 
       e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
+
+      /* If hq is fast (i.e. no actions to call), then it will be
+       * faster than the simple whenever the simple would do discard;
+       * simple does discard on arc-stroking and dashed-stroking.
+       */
+      if (m_hq_support == PainterEnums::hq_anti_alias_fast &&
+          (e_tp == PainterStrokeShader::arc_stroke_type
+           || cap_style != PainterEnums::number_cap_styles))
+        {
+          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_high_quality);
+        }
+      else
+        {
+          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_simple);
+        }
+
       for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
         {
           enum PainterStrokeShader::shader_type_t e_sh;
@@ -780,6 +796,7 @@ create_fill_shader(void)
 
   fill_shader
     .hq_anti_alias_support(m_hq_support)
+    .fastest_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
     .item_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                      ShaderSource()
                                                      .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",

@@ -237,8 +237,13 @@ namespace
   inline
   enum fastuidraw::PainterEnums::shader_anti_alias_t
   compute_shader_anti_alias(enum fastuidraw::PainterEnums::shader_anti_alias_t v,
-                            enum fastuidraw::PainterEnums::hq_anti_alias_support_t support)
+                            enum fastuidraw::PainterEnums::hq_anti_alias_support_t support,
+                            enum fastuidraw::PainterEnums::shader_anti_alias_t fastest)
   {
+    v = (v == fastuidraw::PainterEnums::shader_anti_alias_fastest) ?
+      fastest :
+      v;
+
     v = (v == fastuidraw::PainterEnums::shader_anti_alias_auto) ?
       select_anti_alias_from_auto(support):
       v;
@@ -2014,8 +2019,15 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
       return;
     }
 
+  enum PainterEnums::shader_anti_alias_t fastest;
+
+  fastest = (edge_use_arc_shaders) ?
+    shader.fastest_anti_alias_mode(PainterStrokeShader::arc_stroke_type) :
+    shader.fastest_anti_alias_mode(PainterStrokeShader::linear_stroke_type);
+
   anti_aliasing = compute_shader_anti_alias(anti_aliasing,
-                                            shader.hq_anti_alias_support());
+                                            shader.hq_anti_alias_support(),
+                                            fastest);
 
   unsigned int zinc_sum(0), current(0), modify_z_coeff;
   bool modify_z;
@@ -2600,7 +2612,8 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support());
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
 
   fastuidraw::c_array<const unsigned int> subset_list;
   subset_list = make_c_array(d->m_work_room.m_fill_subset.m_subsets).sub_array(0, num_subsets);
@@ -2709,7 +2722,8 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                               shader.hq_anti_alias_support());
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
 
   c_array<const unsigned int> subset_list;
   int incr_z;

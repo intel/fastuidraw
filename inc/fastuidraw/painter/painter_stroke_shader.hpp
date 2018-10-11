@@ -226,7 +226,23 @@ namespace fastuidraw
     hq_anti_alias_support(enum PainterEnums::hq_anti_alias_support_t sh);
 
     /*!
-     * Shader .
+     * Used by \ref Painter for the \ref shader_anti_alias_t value
+     * to use when \ref shader_anti_alias_fastest is requested.
+     */
+    enum PainterEnums::shader_anti_alias_t
+    fastest_anti_alias_mode(enum stroke_type_t tp) const;
+
+    /*!
+     * Set the value returned by fastest_anti_alias_mode(void) const.
+     * \param sh value to use
+     */
+    PainterStrokeShader&
+    fastest_anti_alias_mode(enum stroke_type_t tp,
+                            enum PainterEnums::shader_anti_alias_t sh);
+
+    /*!
+     * Returns the \ref PainterItemShader for a given pass of a given
+     * type of stroking.
      * \param tp specify to return a shader for arc or linear stroking
      * \param sh spcify which shader to return
      */
