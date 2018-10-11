@@ -22,6 +22,7 @@
 #include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include <fastuidraw/painter/stroked_point.hpp>
 #include <fastuidraw/painter/arc_stroked_point.hpp>
+#include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include "backend_shaders.hpp"
@@ -598,6 +599,11 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
       m_hq_support = PainterEnums::hq_anti_alias_fast;
     }
 
+  m_fill_macros
+    .add_macro("fastuidraw_aa_fuzz_type_on_path", uint32_t(FilledPath::Subset::aa_fuzz_type_on_path))
+    .add_macro("fastuidraw_aa_fuzz_type_on_boundary", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary))
+    .add_macro("fastuidraw_aa_fuzz_type_on_boundary_miter", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary_miter));
+
   m_common_glyph_attribute_macros
     .add_macro("FASTUIDRAW_GLYPH_RECT_WIDTH_NUMBITS", uint32_t(GlyphAttribute::rect_width_num_bits))
     .add_macro("FASTUIDRAW_GLYPH_RECT_HEIGHT_NUMBITS", uint32_t(GlyphAttribute::rect_height_num_bits))
@@ -801,8 +807,10 @@ create_fill_shader(void)
                                                      varying_list()))
     .aa_fuzz_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                         ShaderSource()
+                                                        .add_macros(m_fill_macros)
                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
-                                                                    ShaderSource::from_resource),
+                                                                    ShaderSource::from_resource)
+                                                        .remove_macros(m_fill_macros),
                                                         ShaderSource()
                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
                                                                     ShaderSource::from_resource),
@@ -814,10 +822,12 @@ create_fill_shader(void)
 
       hq1 = FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                 ShaderSource()
+                                                .add_macros(m_fill_macros)
                                                 .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1")
                                                 .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
                                                             ShaderSource::from_resource)
-                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1"),
+                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1")
+                                                .remove_macros(m_fill_macros),
                                                 ShaderSource()
                                                 .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1")
                                                 .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
@@ -827,10 +837,12 @@ create_fill_shader(void)
 
       hq2 = FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                 ShaderSource()
+                                                .add_macros(m_fill_macros)
                                                 .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2")
                                                 .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
                                                             ShaderSource::from_resource)
-                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2"),
+                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2")
+                                                .remove_macros(m_fill_macros),
                                                 ShaderSource()
                                                 .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2")
                                                 .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",

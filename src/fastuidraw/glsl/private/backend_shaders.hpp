@@ -183,6 +183,7 @@ private:
   reference_counted_ptr<const PainterDraw::Action> m_flush_auxiliary_buffer_between_draws;
   enum PainterEnums::hq_anti_alias_support_t m_hq_support;
 
+  ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;
   ShaderSource::MacroSet m_glyph_restricted_rays_macros;
 };

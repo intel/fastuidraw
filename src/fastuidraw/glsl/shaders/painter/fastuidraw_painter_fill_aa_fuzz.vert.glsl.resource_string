@@ -39,11 +39,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   n0 = uintBitsToFloat(in_attrib1.xy);
   n1 = uintBitsToFloat(in_attrib1.zw);
 
-  if (type == 0u)
+  if (type == fastuidraw_aa_fuzz_type_on_path)
     {
       p = position;
     }
-  else if (type == 1u)
+  else if (type == fastuidraw_aa_fuzz_type_on_boundary)
     {
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
       n0 = fastuidraw_align_normal_to_screen(clip_p, n0);
