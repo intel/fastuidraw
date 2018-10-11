@@ -87,40 +87,101 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterStrokeShader holds shaders for
-   * stroking with and without anit-aliasing.
+   * A PainterStrokeShader holds shaders for stroking. Both
+   * \ref PainterEnums::shader_anti_alias_high_quality and
+   * \ref PainterEnums::shader_anti_alias_fast are two pass
+   * solutions. For PainterEnums::shader_anti_alias_fast,
+   * the first pass draws the portions of the path that have
+   * 100% coverage and the 2nd pass draws those portions with
+   * less than 100% coverage; both of these passes rely on
+   * depth testing to prevent overdraw. For \ref
+   * PainterEnums::shader_anti_alias_high_quality, the first
+   * pass draws to an offscreen coverage buffer the coverage
+   * values and the 2nd pass reads and clears the coverage
+   * values.
    */
   class PainterStrokeShader
   {
   public:
     /*!
-     * Specifies how a PainterStrokeShader implements anti-alias stroking.
+     * Enumeration to specify stroking arc or linear stroke data.
      */
-    enum type_t
+    enum stroke_type_t
       {
         /*!
-         * In this anti-aliasing mode, first the solid portions are drawn
-         * and then the anti-alias boundary is drawn. When anti-alias
-         * stroking is done this way, the depth-test is used to make
-         * sure that there is no overdraw when stroking the path.
-         * In this case, for aa_shader_pass1(), the vertex shader needs
-         * to emit the depth value of the z-value from the painter header
-         * (the value is Painter::current_z()) PLUS the value written
-         * to in PainterAttribute::m_uint_attrib.x() by PainterAttributeData.
-         * The vertex shader of aa_shader_pass2() should emit the depth
-         * value the same as the z-value from the painter header.
+         * Shader is for drawing linearly stroke data with
+         * attribute data packed by StrokedPoint::pack_data().
          */
-        draws_solid_then_fuzz,
+        linear_stroke_type,
 
         /*!
-         * In this anti-aliasing mode, the first pass draws to an auxiliary
-         * buffer the coverage values and in the second pass draws to
-         * the color buffer using the coverage buffer value to set the
-         * alpha. The second pass should also clear the coverage buffer
-         * too. Both passes have that the vertex shader should emit the
-         * depth value as the z-value from the painter header.
+         * Shader is for drawing arc stroke data with
+         * attribute data packed by ArcStrokedPoint::pack_data().
          */
-        cover_then_draw,
+        arc_stroke_type,
+
+        number_stroke_types,
+      };
+
+    /*!
+     * Enumeration to specify what shader
+     */
+    enum shader_type_t
+      {
+        /*!
+         * Specify the shader for rendering a stroked path without
+         * anti-aliasing. The depth value emitted in vertex shading
+         * should be z-value from the painter header (the value is
+         * Painter::current_z()) PLUS a depth value to guarantee that
+         * there is no overdraw, see \ref StrokedPoint::depth() and
+         * \ref ArcStrokedPoint::depth().
+         */
+        non_aa_shader,
+
+        /*!
+         * Specify the shader for the 1st pass of anti-alias stroking
+         * for \ref PainterEnums::shader_anti_alias_fast which draws
+         * the portions of the stroked path that cover 100% of the
+         * sample area of a fragment. The depth value emitted in
+         * vertex shading should be z-value from the painter header
+         * (the value is Painter::current_z()) PLUS a depth value to
+         * guarantee that there is no overdraw, see \ref
+         * StrokedPoint::depth() and \ref ArcStrokedPoint::depth().
+         */
+        aa_shader_pass1,
+
+        /*!
+         * Specify the shader for the 2nd pass of anti-alias stroking
+         * for \ref PainterEnums::shader_anti_alias_fast which draws
+         * the portions of the stroked path that cover less than 100%
+         * of the sample area of a fragment. The depth value emitted
+         * in vertex shading should be z-value from the painter header
+         * (the value is Painter::current_z()) PLUS a depth value to
+         * guarantee that there is no overdraw, see \ref
+         * StrokedPoint::depth() and \ref ArcStrokedPoint::depth().
+         */
+        aa_shader_pass2,
+
+        /*!
+         * Specify the shader for the 1st pass of anti-alias stroking
+         * for \ref PainterEnums::shader_anti_alias_high_quality which
+         * draws to an offscreen auxiliary buffer the coverage of a
+         * fragment area by the stroked path. The vertex shader is to
+         * emit the same z-value as from the painter header.
+         */
+        hq_aa_shader_pass1,
+
+        /*!
+         * Specify the shader for the 2nd pass of anti-alias stroking
+         * for \ref PainterEnums::shader_anti_alias_high_quality which
+         * draws emits the coverae value from an offscreen auxiliary
+         * buffer the coverage and clears the value from the buffer as
+         * well. The vertex shader is to emit the same z-value as from
+         * the painter header.
+         */
+        hq_aa_shader_pass2,
+
+        number_shader_types,
       };
 
     /*!
@@ -149,151 +210,68 @@ namespace fastuidraw
     swap(PainterStrokeShader &obj);
 
     /*!
-     * Specifies how the stroke shader performs
-     * anti-aliased stroking.
+     * Returns if high quality two pass anti-alias shading
+     * is supported.
      */
-    enum type_t
-    aa_type(void) const;
+    enum PainterEnums::hq_anti_alias_support_t
+    hq_anti_alias_support(void) const;
 
     /*!
-     * Set the value returned by aa_type(void) const.
-     * Initial value is draws_solid_then_fuzz.
+     * Set the value returned by hq_anti_alias_support(void) const.
+     * \param sh value to use
+     */
+    PainterStrokeShader&
+    hq_anti_alias_support(enum PainterEnums::hq_anti_alias_support_t sh);
+
+    /*!
+     * Shader .
+     * \param tp specify to return a shader for arc or linear stroking
+     * \param sh spcify which shader to return
+     */
+    const reference_counted_ptr<PainterItemShader>&
+    shader(enum stroke_type_t tp, enum shader_type_t sh) const;
+
+    /*!
+     * Set the value returned by shader(enum stroke_type_t, enum shader_type_t) const.
+     * \param tp specify to return non-aa shader for arc or linear stroking
+     * \param sh spcify which shader to return
      * \param v value to use
      */
     PainterStrokeShader&
-    aa_type(enum type_t v);
+    shader(enum stroke_type_t tp, enum shader_type_t sh,
+           const reference_counted_ptr<PainterItemShader> &v);
 
     /*!
-     * Shader for rendering a stroked path without anti-aliasing. The
-     * depth value emitted in vertex shading should be z-value from
-     * the painter header (the value is Painter::current_z()) PLUS a
-     * depth value to guarantee that there is no overdraw, see for
-     * example \ref StrokedPoint::depth(). This shader is expected
-     * to handle attribute data as packed by StrokedPoint::pack_data().
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    non_aa_shader(void) const;
-
-    /*!
-     * Set the value returned by non_aa_shader(void) const.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
-
-    /*!
-     * The 1st pass of stroking with anti-aliasing. This shader is expected
-     * to handle attribute data as packed by StrokedPoint::pack_data().
-     * via alpha-coverage.
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    aa_shader_pass1(void) const;
-
-    /*!
-     * Set the value returned by aa_shader_pass1(void) const.
-     * Initial value is nullptr.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    aa_shader_pass1(const reference_counted_ptr<PainterItemShader> &sh);
-
-    /*!
-     * The 2nd pass of stroking with anti-aliasing. This shader is expected
-     * to handle attribute data as packed by StrokedPoint::pack_data().
-     * via alpha-coverage.
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    aa_shader_pass2(void) const;
-
-    /*!
-     * Set the value returned by aa_shader_pass2(void) const.
-     * Initial value is nullptr.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    aa_shader_pass2(const reference_counted_ptr<PainterItemShader> &sh);
-
-    /*!
-     * Shader for rendering a stroked path without anti-aliasing. The
-     * depth value emitted in vertex shading should be z-value from
-     * the painter header (the value is Painter::current_z()) PLUS a
-     * depth value to guarantee that there is no overdraw, see for
-     * example \ref ArcStrokedPoint::depth(). This shader is expected
-     * to handle attribute data as packed by ArcStrokedPoint::pack_data().
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    arc_non_aa_shader(void) const;
-
-    /*!
-     * Set the value returned by arc_non_aa_shader(void) const.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    arc_non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
-
-    /*!
-     * The 1st pass of stroking with anti-aliasing. This shader is expected
-     * to handle attribute data as packed by ArcStrokedPoint::pack_data().
-     * via alpha-coverage.
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    arc_aa_shader_pass1(void) const;
-
-    /*!
-     * Set the value returned by arc_aa_shader_pass1(void) const.
-     * Initial value is nullptr.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    arc_aa_shader_pass1(const reference_counted_ptr<PainterItemShader> &sh);
-
-    /*!
-     * The 2nd pass of stroking with anti-aliasing. This shader is expected
-     * to handle attribute data as packed by ArcStrokedPoint::pack_data().
-     * via alpha-coverage.
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    arc_aa_shader_pass2(void) const;
-
-    /*!
-     * Set the value returned by arc_aa_shader_pass2(void) const.
-     * Initial value is nullptr.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    arc_aa_shader_pass2(const reference_counted_ptr<PainterItemShader> &sh);
-
-    /*!
-     * Returns the action to be called before the 1st pass,
-     * a return value of nullptr indicates to not have an action
+     * Returns the action to be called before the 1st high quality
+     * pass, a return value of nullptr indicates to not have an action
      * (and thus no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    aa_action_pass1(void) const;
+    hq_aa_action_pass1(void) const;
 
     /*!
-     * Set the value returned by aa_action_pass1(void) const.
+     * Set the value returned by hq_aa_action_pass1(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterStrokeShader&
-    aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
+    hq_aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
-     * Returns the action to be called before the 2nd pass,
-     * a return value of nullptr indicates to not have an action
+     * Returns the action to be called before the 2nd high quality
+     * pass a return value of nullptr indicates to not have an action
      * (and thus no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    aa_action_pass2(void) const;
+    hq_aa_action_pass2(void) const;
 
     /*!
-     * Set the value returned by aa_action_pass2(void) const.
+     * Set the value returned by hq_aa_action_pass2(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterStrokeShader&
-    aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
+    hq_aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
      * Returns the StrokingDataSelectorBase associated to this

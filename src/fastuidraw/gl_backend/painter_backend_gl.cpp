@@ -281,7 +281,6 @@ namespace
       m_assign_layout_to_varyings(false),
       m_assign_binding_points(true),
       m_separate_program_for_discard(true),
-      m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz),
       m_compositing_type(fastuidraw::gl::PainterBackendGL::compositing_dual_src),
       m_provide_auxiliary_image_buffer(fastuidraw::gl::PainterBackendGL::no_auxiliary_buffer),
       m_use_uber_item_shader(true)
@@ -305,7 +304,6 @@ namespace
     bool m_assign_layout_to_varyings;
     bool m_assign_binding_points;
     bool m_separate_program_for_discard;
-    enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     enum fastuidraw::gl::PainterBackendGL::compositing_type_t m_compositing_type;
     enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
     bool m_use_uber_item_shader;
@@ -877,8 +875,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
   reference_counted_ptr<const PainterDraw::Action> q;
 
   aux_type = params.provide_auxiliary_image_buffer();
-  if (params.default_stroke_shader_aa_type() == PainterStrokeShader::cover_then_draw
-      && aux_type == PainterBackendGL::auxiliary_buffer_atomic)
+  if (aux_type == PainterBackendGL::auxiliary_buffer_atomic)
     {
       bool use_by_region;
 
@@ -1403,15 +1400,6 @@ configure_from_context(bool choose_optimal_rendering_quality,
         }
     }
 
-  if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
-    {
-      d->m_default_stroke_shader_aa_type = PainterStrokeShader::draws_solid_then_fuzz;
-    }
-  else
-    {
-      d->m_default_stroke_shader_aa_type = PainterStrokeShader::cover_then_draw;
-    }
-
   /* Adjust compositing type from GL context properties */
   d->m_compositing_type = compute_compositing_type(d->m_provide_auxiliary_image_buffer,
                                                    interlock_type, d->m_compositing_type,
@@ -1614,11 +1602,6 @@ adjust_for_context(const ContextProperties &ctx)
                                              interlock_type,
                                              d->m_compositing_type, ctx);
 
-  if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
-    {
-      d->m_default_stroke_shader_aa_type = PainterStrokeShader::draws_solid_then_fuzz;
-    }
-
   /* if have to use discard for clipping, then there is zero point to
    * separate the discarding and non-discarding item shaders.
    */
@@ -1699,8 +1682,6 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
                  bool, assign_binding_points)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, separate_program_for_discard)
-setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterBackendGL::compositing_type_t, compositing_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,

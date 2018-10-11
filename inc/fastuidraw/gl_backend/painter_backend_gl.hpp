@@ -385,28 +385,6 @@ namespace fastuidraw
         separate_program_for_discard(bool v);
 
         /*!
-         * Sets how the default stroke shaders perform anti-aliasing.
-         * For value \ref PainterStrokeShader::draws_solid_then_fuzz,
-         * the first pass strokes 1-pixel less and views all such
-         * such covered pixels as entirely covered. The 2nd pass draws
-         * underneath the 1st pass (so that it is obscured by it)
-         * the entire stroke width with a shader-computed coverage value.
-         * However, the anti-alias pass for not obscure itself, thus
-         * some pixels might be double covered on the anti-aliasing
-         * which will result in rendering artifacts when stroking a
-         * path transparently.
-         */
-        enum PainterStrokeShader::type_t
-        default_stroke_shader_aa_type(void) const;
-
-        /*!
-         * Set the value returned by default_stroke_shader_aa_type(void) const.
-         * Default value is \ref PainterStrokeShader::draws_solid_then_fuzz.
-         */
-        ConfigurationGL&
-        default_stroke_shader_aa_type(enum PainterStrokeShader::type_t);
-
-        /*!
          * Returns how the painter will perform compositing.
          */
         enum compositing_type_t

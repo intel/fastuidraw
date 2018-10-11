@@ -29,22 +29,6 @@ namespace fastuidraw { namespace glsl { namespace detail {
 enum fastuidraw::PainterCompositeShader::shader_type
 shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value);
 
-/* Values for render pass for stroke shading */
-enum uber_stroke_render_pass_t
-  {
-    /*
-     * uber_stroke_non_aa must be 0 because when we make a special shader
-     * with only supporting this render pass, that pass takes no bits,
-     * which means bit-extract always returns 0
-     */
-    uber_stroke_non_aa,
-
-    uber_stroke_aa_pass1,
-    uber_stroke_aa_pass2,
-
-    uber_number_passes
-  };
-
 class CompositeShaderSetCreator
 {
 public:
@@ -96,41 +80,48 @@ private:
 class ShaderSetCreatorStrokingConstants
 {
 public:
+  enum render_pass_t
+    {
+      render_aa_pass1,
+      render_aa_pass2,
+      render_non_aa_pass,
+      number_render_passes
+    };
+
   ShaderSetCreatorStrokingConstants(void);
 
 protected:
+  uint32_t
+  compute_sub_shader(enum PainterEnums::cap_style stroke_dash_style,
+                     enum render_pass_t render_pass);
+
   uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
   uint32_t m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
   ShaderSource::MacroSet m_subshader_constants;
-  ShaderSource::MacroSet m_subshader_constants_non_aa_only;
   ShaderSource::MacroSet m_stroke_constants;
   ShaderSource::MacroSet m_arc_stroke_constants;
 
 private:
   void
-  create_macro_set(ShaderSource::MacroSet &dst,
-                   bool render_pass_varies) const;
+  create_macro_set(ShaderSource::MacroSet &dst) const;
 };
 
-class ShaderSetCreator:
-  private ShaderSetCreatorStrokingConstants,
-  private CompositeShaderSetCreator
+class StrokeShaderCreator:private ShaderSetCreatorStrokingConstants
 {
 public:
   explicit
-  ShaderSetCreator(bool has_auxiliary_coverage_buffer,
-                   enum PainterCompositeShader::shader_type composite_tp,
-                   const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws);
+  StrokeShaderCreator(bool create_hq_shaders);
 
-  PainterShaderSet
-  create_shader_set(void);
-
+  reference_counted_ptr<PainterItemShader>
+  create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
+                            enum PainterStrokeShader::stroke_type_t tp,
+                            enum PainterStrokeShader::shader_type_t pass);
 private:
   enum
     {
       arc_shader = 1,
       dashed_shader = 2,
-      only_supports_non_aa = 4,
+      hq_shader = 4,
     };
 
   PainterItemShaderGLSL*
@@ -142,6 +133,23 @@ private:
   ShaderSource
   build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const;
 
+  vecN<reference_counted_ptr<PainterItemShaderGLSL>, 8> m_shaders;
+};
+
+class ShaderSetCreator:
+  private CompositeShaderSetCreator,
+  private StrokeShaderCreator
+{
+public:
+  explicit
+  ShaderSetCreator(bool has_auxiliary_coverage_buffer,
+                   enum PainterCompositeShader::shader_type composite_tp,
+                   const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws);
+
+  PainterShaderSet
+  create_shader_set(void);
+
+private:
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(const std::string &vert_src,
                            const std::string &frag_src,
@@ -162,11 +170,6 @@ private:
   PainterDashedStrokeShaderSet
   create_dashed_stroke_shader_set(void);
 
-  reference_counted_ptr<PainterItemShader>
-  create_stroke_item_shader(bool arc_shader,
-                            enum PainterEnums::cap_style stroke_dash_style,
-                            enum uber_stroke_render_pass_t render_pass_macro);
-
   PainterFillShader
   create_fill_shader(void);
 
@@ -177,14 +180,8 @@ private:
   create_blend_shaders(void);
 
   bool m_has_auxiliary_coverage_buffer;
-
-  reference_counted_ptr<PainterItemShaderGLSL> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
-  reference_counted_ptr<PainterItemShaderGLSL> m_dashed_discard_stroke_shader;
-  reference_counted_ptr<PainterItemShaderGLSL> m_uber_arc_stroke_shader, m_uber_arc_dashed_stroke_shader;
-  reference_counted_ptr<PainterItemShaderGLSL> m_arc_discard_stroke_shader;
-  reference_counted_ptr<PainterItemShaderGLSL> m_dashed_arc_discard_stroke_shader;
-
   reference_counted_ptr<const PainterDraw::Action> m_flush_auxiliary_buffer_between_draws;
+  enum PainterEnums::hq_anti_alias_support_t m_hq_support;
 
   ShaderSource::MacroSet m_common_glyph_attribute_macros;
   ShaderSource::MacroSet m_glyph_restricted_rays_macros;

@@ -201,12 +201,17 @@ void
 fastuidraw::PainterShaderRegistrar::
 register_shader(const PainterStrokeShader &p)
 {
-  register_shader(p.non_aa_shader());
-  register_shader(p.aa_shader_pass1());
-  register_shader(p.aa_shader_pass2());
-  register_shader(p.arc_non_aa_shader());
-  register_shader(p.arc_aa_shader_pass1());
-  register_shader(p.arc_aa_shader_pass2());
+  for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
+    {
+      enum PainterStrokeShader::stroke_type_t e_tp;
+      e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
+      for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
+        {
+          enum PainterStrokeShader::shader_type_t e_sh;
+          e_sh = static_cast<enum PainterStrokeShader::shader_type_t>(sh);
+          register_shader(p.shader(e_tp, e_sh));
+        }
+    }
 }
 
 void

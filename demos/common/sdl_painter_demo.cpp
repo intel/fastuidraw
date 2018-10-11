@@ -89,27 +89,6 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::PainterStrokeShader::type_t> v)
-  {
-    switch(v.m_v)
-      {
-      case fastuidraw::PainterStrokeShader::draws_solid_then_fuzz:
-        str << "draws_solid_then_fuzz";
-        break;
-
-      case fastuidraw::PainterStrokeShader::cover_then_draw:
-        str << "cover_then_draw";
-        break;
-
-      default:
-        str << "invalid value";
-      }
-
-    return str;
-  }
-
-  std::ostream&
-  operator<<(std::ostream &str,
              enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t> v)
   {
     switch(v.m_v)
@@ -189,12 +168,46 @@ namespace
   }
 
   void
-  print_stroke_shader_ids(const fastuidraw::PainterStrokeShader &sh,
+  print_stroke_shader_ids(const fastuidraw::PainterStrokeShader &shader,
                           const std::string &prefix = "\t\t")
   {
-    std::cout << prefix << "aa_shader_pass1: " << sh.aa_shader_pass1()->tag() << "\n"
-              << prefix << "aa_shader_pass2: " << sh.aa_shader_pass2()->tag() << "\n"
-              << prefix << "non_aa_shader: " << sh.non_aa_shader()->tag() << "\n";
+    using namespace fastuidraw;
+    vecN<c_string, PainterStrokeShader::number_stroke_types> stroke_type_labels;
+    vecN<c_string, PainterStrokeShader::number_shader_types> shader_type_labels;
+
+    stroke_type_labels[PainterStrokeShader::linear_stroke_type] = "linear_stroke_type";
+    stroke_type_labels[PainterStrokeShader::arc_stroke_type] = "arc_stroke_type";
+
+    shader_type_labels[PainterStrokeShader::non_aa_shader] = "non_aa_shader";
+    shader_type_labels[PainterStrokeShader::aa_shader_pass1] = "aa_shader_pass1";
+    shader_type_labels[PainterStrokeShader::aa_shader_pass2] = "aa_shader_pass2";
+    shader_type_labels[PainterStrokeShader::hq_aa_shader_pass1] = "hq_aa_shader_pass1";
+    shader_type_labels[PainterStrokeShader::hq_aa_shader_pass2] = "hq_aa_shader_pass2";
+
+    for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
+      {
+        enum PainterStrokeShader::stroke_type_t e_tp;
+
+        e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
+        for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
+          {
+            enum PainterStrokeShader::shader_type_t e_sh;
+
+            e_sh = static_cast<enum PainterStrokeShader::shader_type_t>(sh);
+            std::cout << prefix << "(" << stroke_type_labels[e_tp]
+                      << ", " << shader_type_labels[e_sh] << "): ";
+
+            if (shader.shader(e_tp, e_sh))
+              {
+                std::cout << shader.shader(e_tp, e_sh)->tag();
+              }
+            else
+              {
+                std::cout << "null-shader";
+              }
+            std::cout << "\n";
+          }
+      }
   }
 
   void
@@ -671,19 +684,6 @@ init_gl(int w, int h)
 
 #undef APPLY_PARAM
 
-  if (!m_painter_optimal.value() || m_provide_auxiliary_image_buffer.set_by_command_line())
-    {
-      bool use_cover_then_draw;
-
-      use_cover_then_draw = (m_painter_params.provide_auxiliary_image_buffer()
-                             != fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer);
-      m_painter_params
-        .default_stroke_shader_aa_type(use_cover_then_draw?
-                                       fastuidraw::PainterStrokeShader::cover_then_draw :
-                                       fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
-    }
-
-
   if (m_painter_msaa.value() > 1)
     {
       if (m_provide_auxiliary_image_buffer.value() != fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer)
@@ -801,11 +801,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(separate_program_for_discard, m_separate_program_for_discard);
       LAZY_PARAM_ENUM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
       LAZY_PARAM_ENUM(compositing_type, m_composite_type);
-      std::cout << std::setw(40) << "default_stroke_shader_aa_type:"
-		<< std::setw(8) << make_enum_wrapper(m_backend->configuration_gl().default_stroke_shader_aa_type())
-		<< " (requested " << make_enum_wrapper(m_painter_params.default_stroke_shader_aa_type())
-		<< ")\n"
-                << std::setw(40) << "geometry_backing_store_type:"
+      std::cout << std::setw(40) << "geometry_backing_store_type:"
                 << std::setw(8) << m_glyph_atlas->param_values().glyph_data_backing_store_type()
                 << "\n";
 
