@@ -2594,7 +2594,7 @@ pack_edge(const AAEdge &E, int z,
           if (E.m_is_closing_edge)
             {
               next_outer = vertex_offset;
-              pack_attribute(vec2(m_pts[E.m_end]), 1.0f, vec2(0.0), z,
+              pack_attribute(vec2(m_pts[E.m_end]), 1.0f, n, z,
                              &dst_attr[vertex_offset++]);
             }
           else
@@ -2608,7 +2608,7 @@ pack_edge(const AAEdge &E, int z,
           if (E.m_is_closing_edge)
             {
               next_outer = vertex_offset;
-              pack_attribute(vec2(m_pts[E.m_end]), -1.0f, vec2(0.0), z,
+              pack_attribute(vec2(m_pts[E.m_end]), -1.0f, n, z,
                              &dst_attr[vertex_offset++]);
             }
           else
