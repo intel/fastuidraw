@@ -39,7 +39,7 @@ namespace fastuidraw
    * anti-alias pixels in two passes; the first pass to a coverage
    * buffer and the second pass returns the value as the coverage
    * and clears the auxilary buffer. The other renering method,
-   * \ref PainterEnums::shader_anti_alias_fast, is a single pass
+   * \ref PainterEnums::shader_anti_alias_simple, is a single pass
    * solution that relies on the depth buffer to avoid overdraw at
    * the possible expense than some fragments (typically where the
    * path crosses itself or when the path is drawn very minified)

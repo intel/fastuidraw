@@ -89,16 +89,18 @@ namespace fastuidraw
    * \brief
    * A PainterStrokeShader holds shaders for stroking. Both
    * \ref PainterEnums::shader_anti_alias_high_quality and
-   * \ref PainterEnums::shader_anti_alias_fast are two pass
-   * solutions. For PainterEnums::shader_anti_alias_fast,
+   * \ref PainterEnums::shader_anti_alias_simple are two pass
+   * solutions. For PainterEnums::shader_anti_alias_simple,
    * the first pass draws the portions of the path that have
    * 100% coverage and the 2nd pass draws those portions with
    * less than 100% coverage; both of these passes rely on
    * depth testing to prevent overdraw. For \ref
    * PainterEnums::shader_anti_alias_high_quality, the first
    * pass draws to an offscreen coverage buffer the coverage
-   * values and the 2nd pass reads and clears the coverage
-   * values.
+   * values so that when a fragment is hit multiple times
+   * the largest coverage value is retained and the 2nd pass
+   * reads and clears the coverage values using the value
+   * from the coverage buffer for the coverage.
    */
   class PainterStrokeShader
   {
@@ -140,7 +142,7 @@ namespace fastuidraw
 
         /*!
          * Specify the shader for the 1st pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_fast which draws
+         * for \ref PainterEnums::shader_anti_alias_simple which draws
          * the portions of the stroked path that cover 100% of the
          * sample area of a fragment. The depth value emitted in
          * vertex shading should be z-value from the painter header
@@ -152,7 +154,7 @@ namespace fastuidraw
 
         /*!
          * Specify the shader for the 2nd pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_fast which draws
+         * for \ref PainterEnums::shader_anti_alias_simple which draws
          * the portions of the stroked path that cover less than 100%
          * of the sample area of a fragment. The depth value emitted
          * in vertex shading should be z-value from the painter header

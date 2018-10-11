@@ -227,25 +227,25 @@ namespace
 
   inline
   enum fastuidraw::PainterEnums::shader_anti_alias_t
-  select_anti_alias_from_default(enum fastuidraw::PainterEnums::hq_anti_alias_support_t support)
+  select_anti_alias_from_auto(enum fastuidraw::PainterEnums::hq_anti_alias_support_t support)
   {
     return (support == fastuidraw::PainterEnums::hq_anti_alias_fast) ?
       fastuidraw::PainterEnums::shader_anti_alias_high_quality :
-      fastuidraw::PainterEnums::shader_anti_alias_fast;
+      fastuidraw::PainterEnums::shader_anti_alias_simple;
   }
 
   inline
   enum fastuidraw::PainterEnums::shader_anti_alias_t
   compute_shader_anti_alias(enum fastuidraw::PainterEnums::shader_anti_alias_t v,
-                          enum fastuidraw::PainterEnums::hq_anti_alias_support_t support)
+                            enum fastuidraw::PainterEnums::hq_anti_alias_support_t support)
   {
-    v = (v == fastuidraw::PainterEnums::shader_anti_alias_default) ?
-      select_anti_alias_from_default(support):
+    v = (v == fastuidraw::PainterEnums::shader_anti_alias_auto) ?
+      select_anti_alias_from_auto(support):
       v;
 
     v = (v == fastuidraw::PainterEnums::shader_anti_alias_high_quality
          && support == fastuidraw::PainterEnums::hq_anti_alias_no_support) ?
-      fastuidraw::PainterEnums::shader_anti_alias_fast :
+      fastuidraw::PainterEnums::shader_anti_alias_simple :
       v;
 
     return v;
@@ -1711,7 +1711,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               index_chunks.push_back(data.index_data_chunk(ch));
               index_adjusts.push_back(data.index_adjust_chunk(ch));
 
-              if (anti_alias_quality == fastuidraw::PainterEnums::shader_anti_alias_fast)
+              if (anti_alias_quality == fastuidraw::PainterEnums::shader_anti_alias_simple)
                 {
                   z_increments.push_back(R.difference());
                   start_zs.push_back(R.m_begin);
@@ -1747,7 +1747,7 @@ draw_anti_alias_fuzz_common(const fastuidraw::PainterFillShader &shader,
                             fastuidraw::c_array<const int> start_zs,
                             const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
-  if (anti_alias_quality == fastuidraw::PainterEnums::shader_anti_alias_fast)
+  if (anti_alias_quality == fastuidraw::PainterEnums::shader_anti_alias_simple)
     {
       draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
                              z_increments, incr_z,
@@ -2531,20 +2531,6 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  /* Dashed stroke "fast" shaders will use discard where as hq variants
-   * rely on the coverage buffer. If the hq is marked as fast (i.e. no
-   * action to exececute), then hq is faster than fast so override it
-   * here.
-   */
-  enum PainterEnums::shader_anti_alias_t anti_aliasing;
-
-  anti_aliasing = stroke_style.m_stroke_with_shader_aa;
-  if (anti_aliasing == PainterEnums::shader_anti_alias_fast
-      && shader.shader(stroke_style.m_cap_style).hq_anti_alias_support() == PainterEnums::hq_anti_alias_fast)
-    {
-      anti_aliasing = PainterEnums::shader_anti_alias_high_quality;
-    }
-
   FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < PainterEnums::number_cap_styles);
   FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < PainterEnums::number_join_styles);
   d->stroke_path_common(shader.shader(stroke_style.m_cap_style), draw,
@@ -2552,7 +2538,8 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                         stroke_style.m_draw_closing_edges_of_contours,
                         PainterEnums::number_cap_styles,
                         stroke_style.m_join_style,
-                        anti_aliasing, call_back);
+                        stroke_style.m_stroke_with_shader_aa,
+                        call_back);
 }
 
 void

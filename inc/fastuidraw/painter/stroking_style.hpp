@@ -39,7 +39,7 @@ namespace fastuidraw
       m_draw_closing_edges_of_contours(true),
       m_cap_style(PainterEnums::square_caps),
       m_join_style(PainterEnums::miter_clip_joins),
-      m_stroke_with_shader_aa(PainterEnums::shader_anti_alias_default)
+      m_stroke_with_shader_aa(PainterEnums::shader_anti_alias_auto)
     {}
 
     /*!
@@ -90,7 +90,7 @@ namespace fastuidraw
      * \code
      * enum PainterEnums::shader_anti_alias_t value;
      * value = v ?
-     *    PainterEnums::shader_anti_alias_default :
+     *    PainterEnums::shader_anti_alias_auto :
      *    PainterEnums::shader_anti_alias_none;
      * return stroke_with_shader_aa(value);
      * \endcode
@@ -100,7 +100,7 @@ namespace fastuidraw
     {
       enum PainterEnums::shader_anti_alias_t value;
       value = v ?
-         PainterEnums::shader_anti_alias_default :
+         PainterEnums::shader_anti_alias_auto :
          PainterEnums::shader_anti_alias_none;
       return stroke_with_shader_aa(value);
     }
@@ -128,7 +128,7 @@ namespace fastuidraw
     /*!
      * Specifies if and how to do shader anti-aliasing
      * when stroking the path. Default value is \ref
-     * PainterEnums::shader_anti_alias_default.
+     * PainterEnums::shader_anti_alias_auto.
      */
     enum PainterEnums::shader_anti_alias_t m_stroke_with_shader_aa;
   };

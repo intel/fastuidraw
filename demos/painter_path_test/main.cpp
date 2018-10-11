@@ -201,8 +201,8 @@ private:
   enum anti_alias_mode_t
     {
       no_anti_alias,
-      by_anti_alias_default,
-      by_anti_alias_fast,
+      by_anti_alias_auto,
+      by_anti_alias_simple,
       by_anti_alias_hq,
 
       number_anti_alias_modes
@@ -593,8 +593,8 @@ painter_stroke_test(void):
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
   m_draw_fill(false),
-  m_aa_stroke_mode(by_anti_alias_default),
-  m_aa_fill_mode(by_anti_alias_default),
+  m_aa_stroke_mode(by_anti_alias_auto),
+  m_aa_fill_mode(by_anti_alias_auto),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_image_filter(image_nearest_filter),
@@ -680,13 +680,13 @@ painter_stroke_test(void):
   m_image_filter_mode_labels[image_cubic_filter] = "image_cubic_filter";
 
   m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
-  m_anti_alias_mode_labels[by_anti_alias_default] = "by_anti_alias_default";
-  m_anti_alias_mode_labels[by_anti_alias_fast] = "by_anti_alias_fast";
+  m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
+  m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
   m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
 
   m_shader_anti_alias_mode_values[no_anti_alias] = PainterEnums::shader_anti_alias_none;
-  m_shader_anti_alias_mode_values[by_anti_alias_default] = PainterEnums::shader_anti_alias_default;
-  m_shader_anti_alias_mode_values[by_anti_alias_fast] = PainterEnums::shader_anti_alias_fast;
+  m_shader_anti_alias_mode_values[by_anti_alias_auto] = PainterEnums::shader_anti_alias_auto;
+  m_shader_anti_alias_mode_values[by_anti_alias_simple] = PainterEnums::shader_anti_alias_simple;
   m_shader_anti_alias_mode_values[by_anti_alias_hq] = PainterEnums::shader_anti_alias_high_quality;
 
   m_rect << vec2(-0.5f, -0.5f)

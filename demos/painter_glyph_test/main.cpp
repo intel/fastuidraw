@@ -807,7 +807,7 @@ fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
   m_painter->fill_path(d, G.path(),
                        PainterEnums::nonzero_fill_rule,
                        (m_anti_alias_path_filling) ?
-                       PainterEnums::shader_anti_alias_fast :
+                       PainterEnums::shader_anti_alias_auto :
                        PainterEnums::shader_anti_alias_none);
 }
 

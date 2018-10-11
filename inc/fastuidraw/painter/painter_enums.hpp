@@ -178,23 +178,23 @@ namespace fastuidraw
         /*!
          * Represents to use \ref shader_anti_alias_high_quality
          * if using it does not have a large performance impact
-         * and otherwise to use \ref shader_anti_alias_fast.
+         * and otherwise to use \ref shader_anti_alias_simple.
          */
-        shader_anti_alias_default,
+        shader_anti_alias_auto,
 
         /*!
-         * Applies faster anti-aliasing shading to path
+         * Applies simpler anti-aliasing shading to path
          * fill or stroke. This will potentially give under
          * coverage to fragments (typically where the path
          * crosses itself or when the path is filled or
          * stroke highly minified).
          */
-        shader_anti_alias_fast,
+        shader_anti_alias_simple,
 
         /*!
          * Applies higher quality anti-aliasing shading
          * that avoids the issues that come from \ref
-         * shader_anti_alias_fast. This option will give
+         * shader_anti_alias_simple. This option will give
          * the highest quality anti-aliasing at the
          * potential cost of performance.
          */
