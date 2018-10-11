@@ -202,6 +202,7 @@ private:
     {
       no_anti_alias,
       by_anti_alias_auto,
+      by_anti_alias_fastest,
       by_anti_alias_simple,
       by_anti_alias_hq,
 
@@ -682,11 +683,13 @@ painter_stroke_test(void):
   m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
   m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
   m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
+  m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
   m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
 
   m_shader_anti_alias_mode_values[no_anti_alias] = PainterEnums::shader_anti_alias_none;
   m_shader_anti_alias_mode_values[by_anti_alias_auto] = PainterEnums::shader_anti_alias_auto;
   m_shader_anti_alias_mode_values[by_anti_alias_simple] = PainterEnums::shader_anti_alias_simple;
+  m_shader_anti_alias_mode_values[by_anti_alias_fastest] = PainterEnums::shader_anti_alias_fastest;
   m_shader_anti_alias_mode_values[by_anti_alias_hq] = PainterEnums::shader_anti_alias_high_quality;
 
   m_rect << vec2(-0.5f, -0.5f)
