@@ -2580,24 +2580,28 @@ pack_edge(const AAEdge &E, int z,
   if (E.m_draw_bevel_to_next)
     {
       vec2 t, n;
+      float d, sd;
       unsigned int center, next_start(vertex_offset);
       unsigned int current_outer, next_outer;
 
       t = vec2(m_pts[E.m_next] - m_pts[E.m_end]);
       n = vec2(-t.y(), t.x());
       n /= n.magnitude();
+      d = dot(normal, t);
+      sd = t_sign(d);
 
       center = current_start + 4;
-      if (dot(normal, t) < 0.0f)
+      if (E.m_is_closing_edge)
+        {
+          next_outer = vertex_offset;
+          pack_attribute(vec2(m_pts[E.m_end]), -sd, n, z,
+                         &dst_attr[vertex_offset++]);
+        }
+
+      if (d < 0.0f)
         {
           current_outer = current_start + 5u;
-          if (E.m_is_closing_edge)
-            {
-              next_outer = vertex_offset;
-              pack_attribute(vec2(m_pts[E.m_end]), 1.0f, n, z,
-                             &dst_attr[vertex_offset++]);
-            }
-          else
+          if (!E.m_is_closing_edge)
             {
               next_outer = next_start + 2u;
             }
@@ -2605,13 +2609,7 @@ pack_edge(const AAEdge &E, int z,
       else
         {
           current_outer = current_start + 3u;
-          if (E.m_is_closing_edge)
-            {
-              next_outer = vertex_offset;
-              pack_attribute(vec2(m_pts[E.m_end]), -1.0f, n, z,
-                             &dst_attr[vertex_offset++]);
-            }
-          else
+          if (!E.m_is_closing_edge)
             {
               next_outer = next_start + 0u;
             }
