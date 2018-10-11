@@ -1948,8 +1948,19 @@ draw_frame(void)
         }
 
       ostr << "\nms = " << us / 1000.0f
-           << "\nDrawing Path: " << m_paths[m_selected_path].m_label
-           << "\nAttribs: "
+           << "\nDrawing Path: " << m_paths[m_selected_path].m_label;
+
+      if (m_stroke_width > 0.0f)
+        {
+          ostr << "\n\tStroking mode:" << m_anti_alias_mode_labels[m_aa_stroke_mode];
+        }
+
+      if (m_draw_fill)
+        {
+          ostr << "\n\tFilling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode];
+        }
+
+      ostr << "\nAttribs: "
            << m_painter->query_stat(PainterPacker::num_attributes)
            << "\nIndices: "
            << m_painter->query_stat(PainterPacker::num_indices)
