@@ -198,14 +198,14 @@ private:
       number_image_filter_modes
     };
 
-  enum fill_anti_alias_mode_t
+  enum anti_alias_mode_t
     {
-      fill_by_stroking,
-      fill_by_anti_alias_default,
-      fill_by_anti_alias_fast,
-      fill_by_anti_alias_hq,
+      no_anti_alias,
+      by_anti_alias_default,
+      by_anti_alias_fast,
+      by_anti_alias_hq,
 
-      number_fill_anti_alias_modes
+      number_anti_alias_modes
     };
 
   typedef std::pair<std::string,
@@ -402,7 +402,8 @@ private:
   vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
   vecN<std::string, PainterEnums::fill_rule_data_count> m_fill_labels;
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
-  vecN<std::string, number_fill_anti_alias_modes> m_fill_anti_alias_mode_labels;
+  vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
+  vecN<enum PainterEnums::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
 
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
@@ -437,7 +438,8 @@ private:
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
   bool m_draw_fill;
-  unsigned int m_aa_fill_by;
+  unsigned int m_aa_stroke_mode;
+  unsigned int m_aa_fill_mode;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
   unsigned int m_image_filter;
@@ -445,7 +447,6 @@ private:
   bool m_draw_stats;
   float m_curve_flatness;
 
-  bool m_with_aa;
   bool m_wire_frame;
   bool m_stroke_width_in_pixels;
 
@@ -592,13 +593,13 @@ painter_stroke_test(void):
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
   m_draw_fill(false),
-  m_aa_fill_by(fill_by_anti_alias_hq),
+  m_aa_stroke_mode(by_anti_alias_default),
+  m_aa_fill_mode(by_anti_alias_default),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_image_filter(image_nearest_filter),
   m_apply_mipmapping(false),
   m_draw_stats(false),
-  m_with_aa(true),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
   m_fill_by_clipping(false),
@@ -609,7 +610,8 @@ painter_stroke_test(void):
   std::cout << "Controls:\n"
             << "\tn: toogle using arc-paths for stroking\n"
             << "\tk: select next path\n"
-            << "\ta: toggle anti-aliased stroking/filling\n"
+            << "\ta: cycle through anti-aliased modes for stroking\n"
+            << "\tu: cycle through anti-aliased modes for filling\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tc: cycle through cap style for stroking\n"
             << "\tx: toggle closing contour on stroking\n"
@@ -630,7 +632,6 @@ painter_stroke_test(void):
             << "\tf: toggle drawing path fill\n"
             << "\tr: cycle through fill rules\n"
             << "\te: toggle fill by drawing clip rect\n"
-            << "\tu: cycle through how to anti-alias fill\n"
             << "\ti: cycle through image filter to apply to fill (no image, nearest, linear, cubic)\n"
             << "\tctrl-i: toggle mipmap filtering when applying an image\n"
             << "\ts: cycle through defined color stops for gradient\n"
@@ -678,10 +679,15 @@ painter_stroke_test(void):
   m_image_filter_mode_labels[image_linear_filter] = "image_linear_filter";
   m_image_filter_mode_labels[image_cubic_filter] = "image_cubic_filter";
 
-  m_fill_anti_alias_mode_labels[fill_by_stroking] = "fill_by_stroking";
-  m_fill_anti_alias_mode_labels[fill_by_anti_alias_default] = "fill_by_anti_alias_default";
-  m_fill_anti_alias_mode_labels[fill_by_anti_alias_fast] = "fill_by_anti_alias_fast";
-  m_fill_anti_alias_mode_labels[fill_by_anti_alias_hq] = "fill_by_anti_alias_hq";
+  m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
+  m_anti_alias_mode_labels[by_anti_alias_default] = "by_anti_alias_default";
+  m_anti_alias_mode_labels[by_anti_alias_fast] = "by_anti_alias_fast";
+  m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
+
+  m_shader_anti_alias_mode_values[no_anti_alias] = PainterEnums::shader_anti_alias_none;
+  m_shader_anti_alias_mode_values[by_anti_alias_default] = PainterEnums::shader_anti_alias_default;
+  m_shader_anti_alias_mode_values[by_anti_alias_fast] = PainterEnums::shader_anti_alias_fast;
+  m_shader_anti_alias_mode_values[by_anti_alias_hq] = PainterEnums::shader_anti_alias_high_quality;
 
   m_rect << vec2(-0.5f, -0.5f)
          << vec2(-0.5f, +0.5f)
@@ -926,7 +932,7 @@ draw_rect(const vec2 &pt, float r, const PainterData &d)
   m_painter->translate(pt);
   m_painter->scale(r);
   m_painter->fill_path(d, m_rect, PainterEnums::odd_even_fill_rule,
-                       PainterEnums::shader_anti_alias_high_quality);
+                       m_shader_anti_alias_mode_values[m_aa_fill_mode]);
   m_painter->restore();
 }
 
@@ -1066,15 +1072,6 @@ handle_event(const SDL_Event &ev)
           cycle_value(m_selected_path, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_paths.size());
           std::cout << "Path " << m_paths[m_selected_path].m_label << " selected\n";
           m_clip_window_path_dirty = true;
-          break;
-
-        case SDLK_a:
-          m_with_aa = !m_with_aa;
-          std::cout << "Anti-aliasing stroking and filling = " << m_with_aa << "\n";
-          if (m_with_aa && m_surface->properties().msaa() > 1)
-            {
-              std::cout << "WARNING: doing shader based anti-aliasing with an MSAA render target is BAD\n";
-            }
           break;
 
         case SDLK_5:
@@ -1298,14 +1295,36 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_u:
-          if (m_draw_fill & m_with_aa)
+          if (m_draw_fill)
             {
-              cycle_value(m_aa_fill_by,
+              cycle_value(m_aa_fill_mode,
                           ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                          number_fill_anti_alias_modes);
-              std::cout << "Set to anti-alias filling by "
-                        << m_fill_anti_alias_mode_labels[m_aa_fill_by]
+                          number_anti_alias_modes);
+              std::cout << "Filling anti-alias mode set to: "
+                        << m_anti_alias_mode_labels[m_aa_fill_mode]
                         << "\n";
+
+              if (m_aa_fill_mode != no_anti_alias && m_surface->properties().msaa() > 1)
+                {
+                  std::cout << "WARNING: doing shader based anti-aliasing filling with an MSAA render target is BAD\n";
+                }
+            }
+          break;
+
+        case SDLK_a:
+          if (m_stroke_width > 0.0f)
+            {
+              cycle_value(m_aa_stroke_mode,
+                          ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
+                          number_anti_alias_modes);
+              std::cout << "Stroking anti-alias mode set to: "
+                        << m_anti_alias_mode_labels[m_aa_stroke_mode]
+                        << "\n";
+
+              if (m_aa_stroke_mode != no_anti_alias && m_surface->properties().msaa() > 1)
+                {
+                  std::cout << "WARNING: doing shader based anti-aliasing stroking with an MSAA render target is BAD\n";
+                }
             }
           break;
 
@@ -1700,72 +1719,18 @@ draw_scene(bool drawing_wire_frame)
           D = PainterData(&fill_brush);
         }
 
-      float thresh;
-      reference_counted_ptr<const TessellatedPath> tess_path;
-      reference_counted_ptr<const FilledPath> filled_path;
-
-      thresh = m_painter->compute_path_thresh(path());
-      if (m_painter->linearize_from_arc_path())
-        {
-          tess_path = path().arc_tessellation(thresh)->path().tessellation(thresh).get();
-        }
-      else
-        {
-          tess_path = path().tessellation(thresh);
-        }
-      filled_path = tess_path->filled();
-
       if (m_fill_by_clipping)
         {
           m_painter->save();
-          m_painter->clipInPath(*filled_path, *fill_rule);
+          m_painter->clipInPath(path(), *fill_rule);
           m_painter->transformation(float3x3());
           m_painter->draw_rect(D, vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
           m_painter->restore();
         }
       else
         {
-          enum PainterEnums::shader_anti_alias_t m;
-          switch(m_aa_fill_by)
-            {
-            default:
-            case fill_by_stroking:
-              m = PainterEnums::shader_anti_alias_none;
-              break;
-
-            case fill_by_anti_alias_default:
-              m = PainterEnums::shader_anti_alias_default;
-              break;
-
-            case fill_by_anti_alias_fast:
-              m = PainterEnums::shader_anti_alias_fast;
-              break;
-
-            case fill_by_anti_alias_hq:
-              m = PainterEnums::shader_anti_alias_high_quality;
-              break;
-            }
-          m_painter->fill_path(m_painter->default_shaders().fill_shader(),
-                               D, *filled_path, *fill_rule,
-                               m_with_aa ? m : PainterEnums::shader_anti_alias_none);
-        }
-
-      if (m_aa_fill_by == fill_by_stroking && m_with_aa && !drawing_wire_frame)
-        {
-          bool arc_stroking;
-          PainterStrokeParams st;
-
-          arc_stroking = m_painter->stroke_arc_path();
-          st
-            .miter_limit(2.4f)
-            .width(2.5f)
-            .stroking_units(PainterStrokeParams::pixel_stroking_units);
-
-          m_painter->stroke_path(m_painter->default_shaders().stroke_shader(),
-                                 PainterData(&fill_brush, &st),
-                                 *tess_path->stroked(), thresh,
-                                 StrokingStyle()
-                                 .join_style(PainterEnums::miter_joins));
+          m_painter->fill_path(D, path(), *fill_rule,
+                               m_shader_anti_alias_mode_values[m_aa_fill_mode]);
         }
     }
 
@@ -1809,7 +1774,7 @@ draw_scene(bool drawing_wire_frame)
                                         .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
                                         .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
                                         .stroke_closing_edges_of_contours(m_close_contour)
-                                        .stroke_with_shader_aa(m_with_aa));
+                                        .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]));
 
         }
       else
@@ -1835,7 +1800,7 @@ draw_scene(bool drawing_wire_frame)
                                  .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
                                  .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
                                  .stroke_closing_edges_of_contours(m_close_contour)
-                                 .stroke_with_shader_aa(m_with_aa));
+                                 .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]));
         }
     }
 
@@ -2040,7 +2005,7 @@ derived_init(int w, int h)
   /* set shader anti-alias to false if doing msaa rendering */
   if (m_surface->properties().msaa() > 1)
     {
-      m_with_aa = false;
+      m_aa_stroke_mode = m_aa_fill_mode = no_anti_alias;
     }
 
   if (!m_image_file.value().empty())
