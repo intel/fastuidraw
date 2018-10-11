@@ -153,7 +153,8 @@ namespace
   public:
     unsigned int m_start, m_end, m_next;
     bool m_is_closing_edge;
-    bool m_draw_edge, m_draw_bevel_to_next;
+    bool m_draw_edge, m_draw_join_to_next;
+    bool m_draw_join_as_miter;
   };
 
   class AAFuzzCounts
@@ -185,7 +186,8 @@ namespace
     end_boundary(void);
 
     void
-    add_edge(unsigned int p0, unsigned int p1, bool edge_drawn);
+    add_edge(unsigned int p0, unsigned int p1,
+             bool edge_drawn, bool p1_is_path_join);
 
     const std::list<Contour>&
     contours(void) const
@@ -358,6 +360,8 @@ namespace
 
         on_min_boundary = on_min_y_boundary | on_min_x_boundary,
         on_max_boundary = on_max_y_boundary | on_max_x_boundary,
+
+        is_path_join = 16,
       };
 
     enum corner_t
@@ -612,6 +616,14 @@ namespace
     bool
     edge_hugs_boundary(unsigned int a, unsigned int b) const;
 
+    bool
+    point_is_path_join(unsigned int v)
+    {
+      FASTUIDRAWassert(v < m_pt_is_path_join.size());
+      FASTUIDRAWassert(m_pt_is_path_join.size() == m_pts.size());
+      return m_pt_is_path_join[v];
+    }
+
   private:
     int
     add_contour_to_path(const SubPath::SubContour &input, Path &output);
@@ -630,6 +642,7 @@ namespace
     std::map<fastuidraw::ivec2, unsigned int> m_map;
     std::vector<fastuidraw::ivec2> m_ipts;
     std::vector<fastuidraw::dvec2> &m_pts;
+    std::vector<bool> m_pt_is_path_join;
   };
 
   /* Trickery on winding numbers. There are two different winding numbers:
@@ -1117,7 +1130,8 @@ begin_boundary(void)
 
 void
 AAFuzz::
-add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
+add_edge(unsigned int p0, unsigned int p1,
+         bool edge_drawn, bool p1_is_path_join)
 {
   AAEdge E;
 
@@ -1130,7 +1144,7 @@ add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
           m_current.pop_back();
           return;
         }
-      m_current.back().m_draw_bevel_to_next = edge_drawn
+      m_current.back().m_draw_join_to_next = edge_drawn
         && m_current.back().m_draw_edge;
       m_current.back().m_next = p1;
     }
@@ -1138,6 +1152,7 @@ add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
   E.m_start = p0;
   E.m_end = p1;
   E.m_draw_edge = edge_drawn;
+  E.m_draw_join_as_miter = p1_is_path_join;
   E.m_is_closing_edge = false;
   m_current.push_back(E);
 }
@@ -1154,7 +1169,7 @@ end_boundary(void)
   FASTUIDRAWassert(m_current.back().m_end == m_current.front().m_start);
   m_current.back().m_next = m_current.front().m_end;
   m_current.back().m_is_closing_edge = true;
-  m_current.back().m_draw_bevel_to_next = m_current.back().m_draw_edge
+  m_current.back().m_draw_join_to_next = m_current.back().m_draw_edge
     && m_current.front().m_draw_edge;
 
   for(const AAEdge &e : m_current)
@@ -1165,7 +1180,7 @@ end_boundary(void)
           m_edge_counts.m_index_count += 12;
           ++m_edge_counts.m_depth_count;
 
-          if (e.m_draw_bevel_to_next)
+          if (e.m_draw_join_to_next)
             {
               m_edge_counts.m_index_count += 3;
 
@@ -1184,7 +1199,7 @@ end_boundary(void)
         }
       else
         {
-          FASTUIDRAWassert(!e.m_draw_bevel_to_next);
+          FASTUIDRAWassert(!e.m_draw_join_to_next);
         }
     }
   m_contours.push_back(Contour());
@@ -1239,11 +1254,15 @@ copy_contour(SubContour &dst,
   for(unsigned int e = 0, ende = src.number_edges(C); e < ende; ++e)
     {
       fastuidraw::range_type<unsigned int> R;
+      uint32_t flags;
 
       R = src.edge_range(C, e);
+      flags = (src.edge_type(C, e) == fastuidraw::PathEnums::starts_new_edge) ?
+        uint32_t(SubContourPoint::is_path_join) :
+        0u;
 
       FASTUIDRAWassert(src.segment_data()[R.m_begin].m_type == fastuidraw::TessellatedPath::line_segment);
-      dst.push_back(SubContourPoint(src.segment_data()[R.m_begin].m_start_pt, 0u));
+      dst.push_back(SubContourPoint(src.segment_data()[R.m_begin].m_start_pt, flags));
       for(unsigned int v = R.m_begin + 1; v < R.m_end; ++v)
         {
           FASTUIDRAWassert(src.segment_data()[v].m_type == fastuidraw::TessellatedPath::line_segment);
@@ -1455,8 +1474,10 @@ split_contour(const SubContour &src,
             SubContourPoint::on_min_y_boundary;
 
           flags = new_flag | (~remove_flag & pt.flags() & prev_pt.flags());
+          flags &= ~SubContourPoint::is_path_join;
 
           C0.push_back(SubContourPoint(split_pt, flags));
+          FASTUIDRAWassert((C0.back().flags() & SubContourPoint::is_path_join) == 0u);
         }
 
       if (b0)
@@ -1481,7 +1502,10 @@ split_contour(const SubContour &src,
             SubContourPoint::on_max_y_boundary;
 
           flags = new_flag | (~remove_flag & pt.flags() & prev_pt.flags());
+          flags &= ~SubContourPoint::is_path_join;
+
           C1.push_back(SubContourPoint(split_pt, flags));
+          FASTUIDRAWassert((C1.back().flags() & SubContourPoint::is_path_join) == 0u);
         }
 
       if (b1)
@@ -1606,6 +1630,7 @@ fetch_discretized(const fastuidraw::dvec2 &pt, uint32_t flags)
       return_value = m_pts.size();
       m_pts.push_back(pt);
       m_ipts.push_back(ipt);
+      m_pt_is_path_join.push_back(flags & SubContourPoint::is_path_join);
       m_map[ipt] = return_value;
     }
   return return_value;
@@ -1619,6 +1644,7 @@ fetch_undiscretized(const fastuidraw::dvec2 &pt)
 
   m_ipts.push_back(m_converter.iapply(pt));
   m_pts.push_back(pt);
+  m_pt_is_path_join.push_back(false);
 
   return return_value;
 }
@@ -1654,6 +1680,7 @@ fetch_corner(bool is_max_x, bool is_max_y)
       return_value = m_pts.size();
       m_pts.push_back(P);
       m_ipts.push_back(ipt);
+      m_pt_is_path_join.push_back(false);
       m_map[ipt] = return_value;
     }
 
@@ -2142,12 +2169,14 @@ emitboundary_callback(int glu_tess_winding,
       unsigned int va, vb;
       unsigned int next_i;
       bool draw_edge;
+      bool vb_is_path_join;
 
       next_i = (i + 1u == count) ? 0u: i + 1u;
       va = vertex_ids[i];
       vb = vertex_ids[next_i];
       draw_edge = !p->m_points.edge_hugs_boundary(va, vb);
-      h->m_aa_fuzz.add_edge(va, vb, draw_edge);
+      vb_is_path_join = p->m_points.point_is_path_join(vb);
+      h->m_aa_fuzz.add_edge(va, vb, draw_edge, vb_is_path_join);
     }
   h->m_aa_fuzz.end_boundary();
 }
@@ -2577,7 +2606,7 @@ pack_edge(const AAEdge &E, int z,
                      &dst_attr[vertex_offset]);
     }
 
-  if (E.m_draw_bevel_to_next)
+  if (E.m_draw_join_to_next)
     {
       vec2 t, n;
       float d, sd;
