@@ -898,8 +898,15 @@ namespace
               unsigned int &index_offset) const;
 
     void
-    pack_attribute(fastuidraw::vec2 position, float sgn,
-                   fastuidraw::vec2 normal, int z,
+    pack_attribute(fastuidraw::dvec2 position, uint32_t type,
+                   fastuidraw::dvec2 normal, int z,
+                   fastuidraw::PainterAttribute *dst) const;
+
+    void
+    pack_attribute(fastuidraw::dvec2 position,
+                   fastuidraw::dvec2 normal,
+                   fastuidraw::dvec2 normal_next,
+                   int z,
                    fastuidraw::PainterAttribute *dst) const;
 
     fastuidraw::c_array<const int> m_windings;
@@ -1193,6 +1200,15 @@ end_boundary(void)
                */
               if (e.m_is_closing_edge)
                 {
+                  m_edge_counts.m_attribute_count += 1;
+                }
+
+              if (e.m_draw_join_as_miter)
+                {
+                  /* Miter join requires an additional triangle
+                   * and an additional point.
+                   */
+                  m_edge_counts.m_index_count += 3;
                   m_edge_counts.m_attribute_count += 1;
                 }
             }
@@ -2570,15 +2586,25 @@ pack_edge(const AAEdge &E, int z,
   using namespace fastuidraw;
 
   unsigned int current_start(vertex_offset);
-  vec2 tangent, normal;
-  const float sgn[6] =
+  dvec2 tangent, normal;
+  const double sgn[6] =
     {
-      -1.0f,
-       0.0f,
-      +1.0f,
-      -1.0f,
-       0.0f,
-      +1.0f
+      -1.0,
+       0.0,
+      +1.0,
+      -1.0,
+       0.0,
+      +1.0
+    };
+  const uint32_t types[6] =
+    {
+      FilledPath::Subset::aa_fuzz_type_on_boundary,
+      FilledPath::Subset::aa_fuzz_type_on_path,
+      FilledPath::Subset::aa_fuzz_type_on_boundary,
+
+      FilledPath::Subset::aa_fuzz_type_on_boundary,
+      FilledPath::Subset::aa_fuzz_type_on_path,
+      FilledPath::Subset::aa_fuzz_type_on_boundary,
     };
   const unsigned int tris[12] =
     {
@@ -2588,9 +2614,9 @@ pack_edge(const AAEdge &E, int z,
       1, 5, 2
     };
 
-  tangent = vec2(m_pts[E.m_end] - m_pts[E.m_start]);
-  normal = vec2(-tangent.y(), tangent.x());
-  normal /= normal.magnitude();
+  tangent = m_pts[E.m_end] - m_pts[E.m_start];
+  tangent /= tangent.magnitude();
+  normal = dvec2(-tangent.y(), tangent.x());
 
   for (unsigned int k = 0; k < 12; ++k, ++index_offset)
     {
@@ -2601,33 +2627,43 @@ pack_edge(const AAEdge &E, int z,
     {
       unsigned int q;
       q = (k < 3) ? E.m_start : E.m_end;
-      pack_attribute(vec2(m_pts[q]),
-                     sgn[k], normal, z,
+      pack_attribute(m_pts[q], types[k],
+                     sgn[k] * normal, z,
                      &dst_attr[vertex_offset]);
     }
 
   if (E.m_draw_join_to_next)
     {
-      vec2 t, n;
-      float d, sd;
+      dvec2 t, n;
+      double d, sd;
       unsigned int center, next_start(vertex_offset);
       unsigned int current_outer, next_outer;
 
-      t = vec2(m_pts[E.m_next] - m_pts[E.m_end]);
-      n = vec2(-t.y(), t.x());
-      n /= n.magnitude();
+      t = m_pts[E.m_next] - m_pts[E.m_end];
+      t /= t.magnitude();
+      n = dvec2(-t.y(), t.x());
       d = dot(normal, t);
       sd = t_sign(d);
 
-      center = current_start + 4;
+      if (E.m_draw_join_as_miter)
+        {
+          /* Miter join will add a point, thus the next_start
+           * will come one vertex later.
+           */
+          ++next_start;
+        }
+
+      center = current_start + 4u;
       if (E.m_is_closing_edge)
         {
           next_outer = vertex_offset;
-          pack_attribute(vec2(m_pts[E.m_end]), -sd, n, z,
+          pack_attribute(m_pts[E.m_end],
+                         FilledPath::Subset::aa_fuzz_type_on_boundary,
+                         -sd * n, z,
                          &dst_attr[vertex_offset++]);
         }
 
-      if (d < 0.0f)
+      if (d < 0.0)
         {
           current_outer = current_start + 5u;
           if (!E.m_is_closing_edge)
@@ -2644,23 +2680,79 @@ pack_edge(const AAEdge &E, int z,
             }
         }
 
-      dst_idx[index_offset++] = current_outer;
-      dst_idx[index_offset++] = next_outer;
-      dst_idx[index_offset++] = center;
+      if (E.m_draw_join_as_miter)
+        {
+          const double d_tol(0.00001f);
+          unsigned int miter;
+
+          miter = vertex_offset;
+          if (t_abs(d) > d_tol)
+            {
+              pack_attribute(m_pts[E.m_end],
+                             -sd * normal, -sd * n, z,
+                             &dst_attr[vertex_offset++]);
+            }
+          else
+            {
+              pack_attribute(m_pts[E.m_end],
+                             FilledPath::Subset::aa_fuzz_type_on_boundary,
+                             -sd * n, z,
+                             &dst_attr[vertex_offset++]);
+            }
+
+          dst_idx[index_offset++] = current_outer;
+          dst_idx[index_offset++] = miter;
+          dst_idx[index_offset++] = center;
+
+          dst_idx[index_offset++] = center;
+          dst_idx[index_offset++] = next_outer;
+          dst_idx[index_offset++] = miter;
+        }
+      else
+        {
+          dst_idx[index_offset++] = current_outer;
+          dst_idx[index_offset++] = next_outer;
+          dst_idx[index_offset++] = center;
+        }
     }
 }
 
 void
 AAFuzzAttributeDataFiller::
-pack_attribute(fastuidraw::vec2 position, float sgn,
-               fastuidraw::vec2 normal, int z,
+pack_attribute(fastuidraw::dvec2 position, uint32_t type,
+               fastuidraw::dvec2 normal, int z,
                fastuidraw::PainterAttribute *dst) const
 {
   FASTUIDRAWassert(z >= 0);
-  dst->m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
-                                         normal.x(), normal.y());
-  dst->m_attrib1.x() = fastuidraw::pack_float(sgn);
-  dst->m_attrib1.y() = z;
+
+  dst->m_attrib0.x() = fastuidraw::pack_float(position.x());
+  dst->m_attrib0.y() = fastuidraw::pack_float(position.y());
+  dst->m_attrib0.z() = type;
+  dst->m_attrib0.w() = z;
+
+  dst->m_attrib1.x() = fastuidraw::pack_float(normal.x());
+  dst->m_attrib1.y() = fastuidraw::pack_float(normal.y());
+}
+
+void
+AAFuzzAttributeDataFiller::
+pack_attribute(fastuidraw::dvec2 position,
+               fastuidraw::dvec2 normal,
+               fastuidraw::dvec2 normal_next,
+               int z,
+               fastuidraw::PainterAttribute *dst) const
+{
+  FASTUIDRAWassert(z >= 0);
+
+  dst->m_attrib0.x() = fastuidraw::pack_float(position.x());
+  dst->m_attrib0.y() = fastuidraw::pack_float(position.y());
+  dst->m_attrib0.z() = fastuidraw::FilledPath::Subset::aa_fuzz_type_on_boundary_miter;
+  dst->m_attrib0.w() = z;
+
+  dst->m_attrib1.x() = fastuidraw::pack_float(normal.x());
+  dst->m_attrib1.y() = fastuidraw::pack_float(normal.y());
+  dst->m_attrib1.z() = fastuidraw::pack_float(normal_next.x());
+  dst->m_attrib1.w() = fastuidraw::pack_float(normal_next.y());
 }
 
 ////////////////////////////////////

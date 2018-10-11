@@ -26,26 +26,54 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         out vec2 out_brush_p,
                         out vec3 out_clip_p)
 {
-  vec4 position_normal;
+  vec2 position;
+  vec2 p, n0, n1;
   vec3 clip_direction, clip_p;
-  vec2 n, p;
   float dist, sgn;
+  uint type;
+  const float radius = 1.25;
 
-  position_normal = uintBitsToFloat(in_attrib0);
-  sgn = uintBitsToFloat(in_attrib1.x);
+  position = uintBitsToFloat(in_attrib0.xy);
+  type = in_attrib0.z;
 
-  if (abs(sgn) > 0.5)
+  n0 = uintBitsToFloat(in_attrib1.xy);
+  n1 = uintBitsToFloat(in_attrib1.zw);
+
+  if (type == 0u)
     {
-      position_normal.zw *= sgn;
-      clip_p = fastuidraw_item_matrix * vec3(position_normal.xy, 1.0);
-      n = fastuidraw_align_normal_to_screen(clip_p, position_normal.zw);
-      clip_direction = fastuidraw_item_matrix * vec3(n, 0.0);
-      dist = fastuidraw_local_distance_from_pixel_distance(1.25, clip_p, clip_direction);
-      p = position_normal.xy + dist * n;
+      p = position;
+    }
+  else if (type == 1u)
+    {
+      clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+      n0 = fastuidraw_align_normal_to_screen(clip_p, n0);
+      clip_direction = fastuidraw_item_matrix * vec3(n0, 0.0);
+      dist = fastuidraw_local_distance_from_pixel_distance(radius, clip_p, clip_direction);
+      p = position + dist * n0;
     }
   else
     {
-      p = position_normal.xy;
+      float r, r0, r1, det;
+      vec2 v0 = vec2(n0.y, -n0.x), v1 = vec2(n1.y, -n1.x);
+      vec2 d0, d1, delta_d;
+
+      clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+
+      n0 = fastuidraw_align_normal_to_screen(clip_p, n0);
+      clip_direction = fastuidraw_item_matrix * vec3(n0, 0.0);
+      r0 = fastuidraw_local_distance_from_pixel_distance(radius, clip_p, clip_direction);
+      d0 = r0 * n0;
+
+      n1 = fastuidraw_align_normal_to_screen(clip_p, n1);
+      clip_direction = fastuidraw_item_matrix * vec3(n1, 0.0);
+      r1 = fastuidraw_local_distance_from_pixel_distance(radius, clip_p, clip_direction);
+      d1 = r1 * n1;
+
+      delta_d = d1 - d0;
+      det = v0.x * v1.y - v0.y * v1.x;
+
+      r = (v1.y * delta_d.x - v1.x * delta_d.y) / det;
+      p = position + d0 + r * v0;
     }
 
   out_clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
@@ -53,7 +81,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   #if !defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2)
     {
-      fastuidraw_aa_fuzz = abs(sgn);
+      fastuidraw_aa_fuzz = (type == 0u) ? 0.0 : 1.0;
     }
   #endif
 
@@ -63,7 +91,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   #else
     {
-      z_add = int(in_attrib1.y);
+      z_add = int(in_attrib0.w);
     }
   #endif
 }

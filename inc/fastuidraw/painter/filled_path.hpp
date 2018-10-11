@@ -62,6 +62,29 @@ public:
   {
   public:
     /*!
+     * Enumeration to specify type for an attribute of
+     * aa_fuzz_painter_data().
+     */
+    enum aa_fuzz_type_t
+      {
+        /*!
+         * Point is a point on the path.
+         */
+        aa_fuzz_type_on_path,
+
+        /*!
+         * Point is a point on the boundary of the aa-fuzz
+         */
+        aa_fuzz_type_on_boundary,
+
+        /*!
+         * Point is a point on the boundary of the aa-fuzz
+         * as a miter-join point.
+         */
+        aa_fuzz_type_on_boundary_miter,
+      };
+
+    /*!
      * Returns the PainterAttributeData to draw the triangles
      * for the portion of the FilledPath the Subset represents.
      * The attribute data is packed as follows:
@@ -80,14 +103,10 @@ public:
      * of the boudnary of a filled component.
      * The attribute data is packed as follows:
      * - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
-     * - PainterAttribute::m_attrib0 .zw -> normal (not necessarily unit length) vector to edge
-     * - PainterAttribute::m_attrib1 .x  -> -1 or +1 (float); indicates by what to multiply
-     *                                      the normal vector to push in a single pixel and
-     *                                      this value should be interpolated across the quad
-     *                                      so that (1 - abs()) of the value is to be used in
-     *                                      the fragment shader to compute a coverage value.
-     * - PainterAttribute::m_attrib1 .y  -> The z-offset value (uint)
-     * - PainterAttribute::m_attrib1 .zw -> 0 (free)
+     * - PainterAttribute::m_attrib0 .z  -> (uint) classification, given by \ref aa_fuzz_type_t
+     * - PainterAttribute::m_attrib0 .w  -> the z-offset value (uint)
+     * - PainterAttribute::m_attrib1 .xy -> normal vector to edge
+     * - PainterAttribute::m_attrib1 .zw -> normal vector to next edge
      * - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
      */
     const PainterAttributeData&
