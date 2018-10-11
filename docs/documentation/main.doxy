@@ -429,9 +429,9 @@ namespace fastuidraw {
   // a GlyphSequence holds the formatted text and lazily generates
   // data to feed Painter for drawing text, save and reuse this object
   // to draw your text.
-  GlyphSequence myGlyphSequence(myTextFormattingSize,
-                                PainterEnums::y_increases_downwards,
-                                myGlyphCache);
+  fastuidraw::GlyphSequence myGlyphSequence(myTextFormattingSize,
+                                            PainterEnums::y_increases_downwards,
+                                            myGlyphCache);
 
   // copy the glyph choices and positions into your GlyphSequence object that you keep.
   myGlyphSequence.add_glyphs(fastuidraw::c_array<const fastuidraw::GlyphSource>(glyphs, number_glyphs),
@@ -452,8 +452,6 @@ namespace fastuidraw {
 
   p->begin(surface, myOrientation); //pass the surface one made at application initialization
 
-  bool anti_alias_stroking(true), draw_closing_edges_of_contours(true);
-  fastuidraw::PainterStrokeParams stroke_params;
   fastuidraw::PainterBrush brush;
 
   brush.pen(0.0f, 0.0f, 1.0f, 0.5f);
@@ -468,16 +466,23 @@ namespace fastuidraw {
   p->draw_glyphs(fastuidraw::PainterData(&brush), myStaticText);
   p->restore();
 
+  // brush controls the brush applied to the stroking
   brush.pen(1.0f, 1.0f, 1.0f, 1.0f);
   brush.image(myImage, fastuidraw::PainterBrush::image_filter_cubic);
+
+  // stroke_params controls the stroking width and miter-limit
+  fastuidraw::PainterStrokeParams stroke_params;
   stroke_params.miter_limit(2.0f);
   stroke_params.width(10.0f);
+
+  // stroking style controls cap-style, join-style, if to draw
+  // the closing edge of the contours and how to anti-alias
+  fastuidraw::StrokingStyle stroking_style;
+  stroking_style.cap_style(fastuidraw::PainterEnums::flat_caps);
+  stroking_style.join_style(fastuidraw::PainterEnums::rounded_joins);
+
   p->stroke_path(fastuidraw::PainterData(&brush, &stroke_params),
-                 myPath,
-                 draw_closing_edges_of_contours,
-                 fastuidraw::PainterEnums::flat_caps,
-                 fastuidraw::PainterEnums::rounded_joins,
-                 anti_alias_stroking);
+                 myPath, stroking_style);
 
   brush.pen(0.4, 0.4, 1.0, 1.0);
   p->draw_glyphs(fastuidraw::PainterData(&brush), myGlyphSequence);
