@@ -2531,6 +2531,20 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
+  /* Dashed stroke "fast" shaders will use discard where as hq variants
+   * rely on the coverage buffer. If the hq is marked as fast (i.e. no
+   * action to exececute), then hq is faster than fast so override it
+   * here.
+   */
+  enum PainterEnums::shader_anti_alias_t anti_aliasing;
+
+  anti_aliasing = stroke_style.m_stroke_with_shader_aa;
+  if (anti_aliasing == PainterEnums::shader_anti_alias_fast
+      && shader.shader(stroke_style.m_cap_style).hq_anti_alias_support() == PainterEnums::hq_anti_alias_fast)
+    {
+      anti_aliasing = PainterEnums::shader_anti_alias_high_quality;
+    }
+
   FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < PainterEnums::number_cap_styles);
   FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < PainterEnums::number_join_styles);
   d->stroke_path_common(shader.shader(stroke_style.m_cap_style), draw,
@@ -2538,8 +2552,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                         stroke_style.m_draw_closing_edges_of_contours,
                         PainterEnums::number_cap_styles,
                         stroke_style.m_join_style,
-                        stroke_style.m_stroke_with_shader_aa,
-                        call_back);
+                        anti_aliasing, call_back);
 }
 
 void

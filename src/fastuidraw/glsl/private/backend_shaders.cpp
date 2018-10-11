@@ -740,28 +740,11 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
       for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
         {
           enum PainterStrokeShader::shader_type_t e_sh;
-          bool is_hq_pass, is_non_hq_aa_pass;
+          bool is_hq_pass;
 
           e_sh = static_cast<enum PainterStrokeShader::shader_type_t>(sh);
-
           is_hq_pass = (e_sh == PainterStrokeShader::hq_aa_shader_pass1
                         || e_sh == PainterStrokeShader::hq_aa_shader_pass2);
-
-          is_non_hq_aa_pass = (e_sh == PainterStrokeShader::aa_shader_pass1
-                               || e_sh == PainterStrokeShader::aa_shader_pass2);
-
-          if (m_hq_support == PainterEnums::hq_anti_alias_fast
-              && is_non_hq_aa_pass && cap_style == PainterEnums::number_cap_styles)
-            {
-              /* The non-hq passes for dashed stroking use discard.
-               * If we have fast hq, then using hq is going to be
-               * faster (probably) than having a shader that does
-               * discard.
-               */
-              e_sh = (e_sh == PainterStrokeShader::aa_shader_pass1) ?
-                PainterStrokeShader::hq_aa_shader_pass1 :
-                PainterStrokeShader::hq_aa_shader_pass2;
-            }
 
           if (!is_hq_pass || m_has_auxiliary_coverage_buffer)
             {
