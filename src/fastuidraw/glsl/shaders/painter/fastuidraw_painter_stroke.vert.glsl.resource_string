@@ -35,25 +35,39 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   uint stroking_pass;
   const float anti_alias_thickness = 1.5;
 
-  stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                          fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                          sub_shader);
-
   vec2 p;
   vec2 position, pre_offset, auxiliary_offset, offset;
   float distance_from_edge_start, distance_from_contour_start;
   float total_edge_length, total_open_contour_length, total_closed_contour_length;
-  float miter_distance, stroke_radius;
-  uint on_boundary, offset_type;
-  uint point_packed_data;
-
-  #ifdef FASTUIDRAW_STROKE_DASHED
-  fastuidraw_dashed_stroking_params_header stroke_params;
-  fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
-  #else
+  float miter_limit, stroke_radius;
+  uint on_boundary, offset_type, point_packed_data, dash_style, aa_method;
+  fastuidraw_dashed_stroking_params_header dashed_stroke_params;
   fastuidraw_stroking_params stroke_params;
-  fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
-  #endif
+
+  stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                          fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                          sub_shader);
+
+  dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                       fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                       sub_shader);
+
+  aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
+
+  if (dash_style != fastuidraw_stroke_not_dashed)
+    {
+      fastuidraw_read_dashed_stroking_params_header(shader_data_offset, dashed_stroke_params);
+      stroke_width_pixels = (dashed_stroke_params.radius < 0.0);
+      stroke_radius = abs(dashed_stroke_params.radius);
+      miter_limit = dashed_stroke_params.miter_limit;
+    }
+  else
+    {
+      fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+      stroke_width_pixels = (stroke_params.radius < 0.0);
+      stroke_radius = abs(stroke_params.radius);
+      miter_limit = stroke_params.miter_limit;
+    }
 
   position = primary_attrib.xy;
   pre_offset = primary_attrib.zw;
@@ -71,16 +85,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                         1,
                                         point_packed_data);
 
-  stroke_width_pixels = (stroke_params.radius < 0.0);
-  stroke_radius = abs(stroke_params.radius);
-
-  #ifdef FASTUIDRAW_STROKE_DASHED
+  if (dash_style != fastuidraw_stroke_not_dashed)
     {
       fastuidraw_dashed_struct_base base;
       float stroke_distance;
 
-      stroke_distance = distance_from_contour_start + stroke_params.dash_offset;
-      fastuidraw_dashed_helper_vert_base(stroke_distance, shader_data_offset, stroke_params, base);
+      stroke_distance = distance_from_contour_start + dashed_stroke_params.dash_offset;
+      fastuidraw_dashed_helper_vert_base(stroke_distance, shader_data_offset, dashed_stroke_params, base);
 
       if (offset_type == fastuidraw_stroke_offset_sub_edge)
         {
@@ -100,15 +111,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             {
               fastuidraw_dashed_struct_edge_extend extend_edge;
               float delta_mag;
-              uint dash_style;
-
-              dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                                   fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                                   sub_shader);
 
               delta_mag = length(auxiliary_offset);
               fastuidraw_dashed_helper_vert_extend_edge(shader_data_offset,
-                                                        stroke_params, stroke_radius,
+                                                        dashed_stroke_params, stroke_radius,
                                                         (point_packed_data & fastuidraw_stroke_end_sub_edge_mask) != 0u,
                                                         delta_mag,
                                                         dash_style != fastuidraw_stroke_dashed_flat_caps,
@@ -180,57 +186,51 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             }
         }
     }
-  #endif
 
-  #if !defined(FASTUIDRAW_STROKE_DASHED) && !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
+  if (dash_style == fastuidraw_stroke_not_dashed
+      && aa_method != fastuidraw_stroke_cover_then_draw
+      && stroking_pass == fastuidraw_stroke_aa_pass1
+      && stroke_width_pixels)
     {
       /* Reduce the stroking width by 1-pixel when doing 2-pass non-dashed stroking
          without auxiliary buffer
        */
-      if (stroking_pass == fastuidraw_stroke_aa_pass1 && stroke_width_pixels)
-        {
-          stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
-        }
+      stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
     }
-  #endif
 
   if (on_boundary != 0u)
     {
       if (stroke_width_pixels)
         {
           FASTUIDRAW_LOCAL(compute_offset_pixels)(point_packed_data, offset_type, position,
-                                                  pre_offset, auxiliary_offset,
-                                                  stroke_params.miter_limit,
+                                                  pre_offset, auxiliary_offset, miter_limit,
                                                   offset, stroke_radius);
         }
       else
         {
           FASTUIDRAW_LOCAL(compute_offset)(point_packed_data, offset_type, position,
-                                           pre_offset, auxiliary_offset,
-                                           stroke_params.miter_limit,
+                                           pre_offset, auxiliary_offset, miter_limit,
                                            offset);
         }
 
      p = position + stroke_radius * offset;
 
-     #if !defined(FASTUIDRAW_STROKE_DASHED) && !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
-        {
-          /* Reduce the stroking width by 1-pixel when doing 2-pass non-dashed stroking
-             without auxiliary buffer
+     if (dash_style == fastuidraw_stroke_not_dashed
+         && aa_method != fastuidraw_stroke_cover_then_draw
+         && stroking_pass == fastuidraw_stroke_aa_pass1
+         && !stroke_width_pixels)
+       {
+         vec3 clip_p, clip_direction;
+         float r;
+
+         /* Reduce the stroking width by 1-pixel when doing 2-pass non-dashed stroking
+          * without auxiliary buffer
           */
-          if (stroking_pass == fastuidraw_stroke_aa_pass1 && !stroke_width_pixels)
-            {
-              vec3 clip_p, clip_direction;
-              float r;
-
-              clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
-              clip_direction = fastuidraw_item_matrix * vec3(offset, 0);
-              r = fastuidraw_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_direction);
-              p -= min(stroke_radius, r) * offset;
-            }
-        }
-      #endif
-
+         clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
+         clip_direction = fastuidraw_item_matrix * vec3(offset, 0);
+         r = fastuidraw_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_direction);
+         p -= min(stroke_radius, r) * offset;
+       }
     }
   else
     {
@@ -239,7 +239,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   fastuidraw_stroking_on_boundary = float(on_boundary);
 
-  #if defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
+  if (aa_method == fastuidraw_stroke_cover_then_draw)
     {
       if (stroking_pass != fastuidraw_stroke_non_aa)
         {
@@ -252,13 +252,12 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                               point_packed_data));
         }
     }
-  #else
+  else
     {
       z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
                                           fastuidraw_stroke_depth_num_bits,
                                           point_packed_data));
     }
-  #endif
 
   out_clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
   out_brush_p = p;

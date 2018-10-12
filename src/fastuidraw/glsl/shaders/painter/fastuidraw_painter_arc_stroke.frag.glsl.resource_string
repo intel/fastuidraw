@@ -22,28 +22,22 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
   float alpha = 1.0;
-  uint render_pass, dash_style;
+  uint render_pass, aa_method, dash_style;
 
-  #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
-    {
-      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                            sub_shader);
-    }
-  #else
-    {
-      render_pass = fastuidraw_stroke_non_aa;
-    }
-  #endif
+  render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                        fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                        sub_shader);
 
-  #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
+  dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                       fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                       sub_shader);
+
+  aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
+
+  if (aa_method == fastuidraw_stroke_cover_then_draw && render_pass == fastuidraw_stroke_aa_pass2)
     {
-      if (render_pass == fastuidraw_stroke_aa_pass2)
-        {
-          return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
-        }
+      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
     }
-  #endif
 
   float r, d, q, qw, ql, qlw;
   float S, R;
@@ -53,7 +47,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   S = fastuidraw_arc_stroking_stroke_radius;
   R = fastuidraw_arc_stroking_arc_radius;
-  #ifdef FASTUIDRAW_STROKE_DASHED
+  if (dash_style != fastuidraw_stroke_not_dashed)
     {
       if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_inverted_inner_region_mask) != 0u)
         {
@@ -61,7 +55,6 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           R = 0.0;
         }
     }
-  #endif
 
   q = S - abs(r - R);
   qw = fwidth(q);
@@ -70,7 +63,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   ql = 1.0 - fastuidraw_arc_stroking_relative_to_center_x;
   qlw = fwidth(ql);
 
-  #ifdef FASTUIDRAW_STROKE_DASHED
+  if (dash_style != fastuidraw_stroke_not_dashed)
     {
       float theta, thetaw, dist, distw, bd, bdw;
 
@@ -133,29 +126,26 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                               skip_lookup, dont_anti_alias_dash_boundary);
             }
 
-          #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
+          if (aa_method != fastuidraw_stroke_cover_then_draw
+              && render_pass == fastuidraw_stroke_aa_pass1
+              && alpha < 1.0 - 1.0 / 255.0)
             {
-              if (render_pass == fastuidraw_stroke_aa_pass1 && alpha < 1.0 - 1.0 / 255.0)
+              alpha = 0.0;
+            }
+
+          if (render_pass == fastuidraw_stroke_non_aa)
+            {
+              if (alpha < 1.0 - 1.0 / 255.0)
                 {
-                  alpha = 0.0;
+                  FASTUIDRAW_DISCARD;
+                }
+              else
+                {
+                  alpha = 1.0;
                 }
             }
-          #endif
-
-           if (render_pass == fastuidraw_stroke_non_aa)
-             {
-               if (alpha < 1.0 - 1.0 / 255.0)
-                 {
-                   FASTUIDRAW_DISCARD;
-                 }
-               else
-                 {
-                   alpha = 1.0;
-                 }
-             }
         }
     }
-  #endif
 
   /* A negtive arc_radius indicates that it is a segment */
   if (fastuidraw_arc_stroking_arc_radius > -0.5)
@@ -189,7 +179,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
         }
     }
 
-  #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
+  if (aa_method == fastuidraw_stroke_cover_then_draw)
     {
       if (render_pass == fastuidraw_stroke_aa_pass1)
         {
@@ -197,21 +187,20 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           alpha = 0.0;
         }
     }
-  #elif defined(FASTUIDRAW_STROKE_DASHED)
+  else if (dash_style != fastuidraw_stroke_not_dashed)
     {
       if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
         {
           FASTUIDRAW_DISCARD;
         }
     }
-  #else
+  else
     {
       if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
         {
           FASTUIDRAW_DISCARD;
         }
     }
-  #endif
 
   return vec4(1.0, 1.0, 1.0, alpha);
 }

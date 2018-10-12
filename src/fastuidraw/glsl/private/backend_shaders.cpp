@@ -269,10 +269,11 @@ ShaderSetCreatorStrokingConstants(void)
   m_stroke_dash_style_num_bits = number_bits_required(number_cap_styles);
   FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_render_pass_num_bits) >= number_render_passes);
   FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_dash_style_num_bits) >= number_cap_styles);
-  FASTUIDRAWassert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u <= 32u);
+  FASTUIDRAWassert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 2u <= 32u);
 
   m_stroke_render_pass_bit0 = 0;
   m_stroke_dash_style_bit0 = m_stroke_render_pass_bit0 + m_stroke_render_pass_num_bits;
+  m_stroke_aa_method_bit = m_stroke_dash_style_bit0 + m_stroke_dash_style_num_bits;
 
   create_macro_set(m_subshader_constants);
 
@@ -337,30 +338,38 @@ create_macro_set(ShaderSource::MacroSet &dst) const
     .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", uint32_t(m_stroke_render_pass_num_bits))
     .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", uint32_t(m_stroke_dash_style_bit0))
     .add_macro("fastuidraw_stroke_sub_shader_dash_style_num_bits", uint32_t(m_stroke_dash_style_num_bits))
+    .add_macro("fastuidraw_stroke_sub_shader_aa_method_bit0", uint32_t(m_stroke_aa_method_bit))
     .add_macro("fastuidraw_stroke_dashed_flat_caps", uint32_t(PainterEnums::flat_caps))
     .add_macro("fastuidraw_stroke_dashed_rounded_caps", uint32_t(PainterEnums::rounded_caps))
     .add_macro("fastuidraw_stroke_dashed_square_caps", uint32_t(PainterEnums::square_caps))
+    .add_macro("fastuidraw_stroke_not_dashed", uint32_t(PainterEnums::number_cap_styles))
     .add_macro("fastuidraw_stroke_aa_pass1", uint32_t(render_aa_pass1))
     .add_macro("fastuidraw_stroke_aa_pass2", uint32_t(render_aa_pass2))
-    .add_macro("fastuidraw_stroke_non_aa", uint32_t(render_non_aa_pass));
+    .add_macro("fastuidraw_stroke_non_aa", uint32_t(render_non_aa_pass))
+    .add_macro("fastuidraw_stroke_solid_then_fuzz", uint32_t(0u))
+    .add_macro("fastuidraw_stroke_cover_then_draw", uint32_t(1u));
 }
 
 uint32_t
 ShaderSetCreatorStrokingConstants::
-compute_sub_shader(enum PainterEnums::cap_style dash_style,
+compute_sub_shader(bool is_hq,
+                   enum PainterEnums::cap_style dash_style,
                    enum render_pass_t render_pass)
 {
   uint32_t return_value(0u);
-  if (dash_style != fastuidraw::PainterEnums::number_cap_styles)
-    {
-      return_value |= pack_bits(m_stroke_dash_style_bit0,
-                                m_stroke_dash_style_num_bits,
-                                dash_style);
-    }
+
+  FASTUIDRAWassert(!is_hq || render_pass != render_non_aa_pass);
+
+  return_value |= pack_bits(m_stroke_dash_style_bit0,
+                            m_stroke_dash_style_num_bits,
+                            dash_style);
 
   return_value |= pack_bits(m_stroke_render_pass_bit0,
                             m_stroke_render_pass_num_bits,
                             render_pass);
+
+  return_value |= pack_bits(m_stroke_aa_method_bit, 1u,
+                            is_hq ? 1u : 0u);
 
   return return_value;
 }
@@ -370,33 +379,19 @@ compute_sub_shader(enum PainterEnums::cap_style dash_style,
 StrokeShaderCreator::
 StrokeShaderCreator(bool create_hq_shaders)
 {
-  unsigned int num_undashed_sub_shaders, num_dashed_sub_shaders;
+  unsigned int num_sub_shaders;
 
-  num_undashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + 1);
-  num_dashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u);
+  num_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u);
 
-  m_shaders[0] = build_uber_stroke_shader(0u, num_undashed_sub_shaders);
-  m_shaders[dashed_shader] = build_uber_stroke_shader(dashed_shader, num_dashed_sub_shaders);
+  m_shaders[0] = build_uber_stroke_shader(0u, num_sub_shaders);
+  m_shaders[discard_shader] = build_uber_stroke_shader(discard_shader, num_sub_shaders);
   FASTUIDRAWassert(!m_shaders[0]->uses_discard());
-  FASTUIDRAWassert(m_shaders[dashed_shader]->uses_discard());
+  FASTUIDRAWassert(m_shaders[discard_shader]->uses_discard());
 
-  m_shaders[arc_shader] = build_uber_stroke_shader(arc_shader, num_undashed_sub_shaders);
-  m_shaders[arc_shader | dashed_shader] = build_uber_stroke_shader(arc_shader | dashed_shader, num_dashed_sub_shaders);
-  FASTUIDRAWassert(m_shaders[arc_shader]->uses_discard());
-  FASTUIDRAWassert(m_shaders[arc_shader | dashed_shader]->uses_discard());
-
-  if (create_hq_shaders)
-    {
-      m_shaders[hq_shader] = build_uber_stroke_shader(hq_shader, num_undashed_sub_shaders);
-      m_shaders[hq_shader | dashed_shader] = build_uber_stroke_shader(hq_shader | dashed_shader, num_dashed_sub_shaders);
-      FASTUIDRAWassert(!m_shaders[hq_shader]->uses_discard());
-      FASTUIDRAWassert(!m_shaders[hq_shader | dashed_shader]->uses_discard());
-
-      m_shaders[hq_shader | arc_shader] = build_uber_stroke_shader(hq_shader | arc_shader, num_undashed_sub_shaders);
-      m_shaders[hq_shader | arc_shader | dashed_shader] = build_uber_stroke_shader(hq_shader | arc_shader | dashed_shader, num_dashed_sub_shaders);
-      FASTUIDRAWassert(!m_shaders[hq_shader | arc_shader]->uses_discard());
-      FASTUIDRAWassert(!m_shaders[hq_shader | arc_shader | dashed_shader]->uses_discard());
-    }
+  m_shaders[arc_shader] = build_uber_stroke_shader(arc_shader, num_sub_shaders);
+  m_shaders[arc_shader | discard_shader] = build_uber_stroke_shader(arc_shader | discard_shader, num_sub_shaders);
+  FASTUIDRAWassert(!m_shaders[arc_shader]->uses_discard());
+  FASTUIDRAWassert(m_shaders[arc_shader | discard_shader]->uses_discard());
 }
 
 reference_counted_ptr<PainterItemShader>
@@ -408,15 +403,11 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
   reference_counted_ptr<PainterItemShader> shader, return_value;
   uint32_t shader_choice(0u), sub_shader(0u);
   enum render_pass_t render_pass;
+  bool is_hq_shader;
 
   if (tp == PainterStrokeShader::arc_stroke_type)
     {
       shader_choice |= arc_shader;
-    }
-
-  if (stroke_dash_style != fastuidraw::PainterEnums::number_cap_styles)
-    {
-      shader_choice |= dashed_shader;
     }
 
   switch (pass)
@@ -427,28 +418,37 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
 
     case PainterStrokeShader::non_aa_shader:
       render_pass = render_non_aa_pass;
+      is_hq_shader = false;
       break;
 
     case PainterStrokeShader::aa_shader_pass1:
       render_pass = render_aa_pass1;
+      is_hq_shader = false;
       break;
 
     case PainterStrokeShader::aa_shader_pass2:
       render_pass = render_aa_pass2;
+      is_hq_shader = false;
       break;
 
     case PainterStrokeShader::hq_aa_shader_pass1:
       render_pass = render_aa_pass1;
-      shader_choice |= hq_shader;
+      is_hq_shader = true;
       break;
 
     case PainterStrokeShader::hq_aa_shader_pass2:
       render_pass = render_aa_pass2;
-      shader_choice |= hq_shader;
+      is_hq_shader = true;
       break;
     }
 
-  sub_shader = compute_sub_shader(stroke_dash_style, render_pass);
+  if (!is_hq_shader &&
+      (tp == PainterStrokeShader::arc_stroke_type || stroke_dash_style != fastuidraw::PainterEnums::number_cap_styles))
+    {
+      shader_choice |= discard_shader;
+    }
+
+  sub_shader = compute_sub_shader(is_hq_shader, stroke_dash_style, render_pass);
   return_value = FASTUIDRAWnew PainterItemShader(sub_shader, m_shaders[shader_choice]);
   return return_value;
 }
@@ -465,30 +465,20 @@ build_uber_stroke_varyings(uint32_t flags) const
         .add_float_varying("fastuidraw_arc_stroking_relative_to_center_x")
         .add_float_varying("fastuidraw_arc_stroking_relative_to_center_y")
         .add_float_varying("fastuidraw_arc_stroking_arc_radius")
-        .add_float_varying("fastuidraw_arc_stroking_stroke_radius");
-
-      if (flags & dashed_shader)
-        {
-          return_value
-            .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_start")
-            .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_end")
-            .add_float_varying("fastuidraw_arc_stroking_distance")
-            .add_uint_varying("fastuidraw_arc_stroking_dash_bits");
-        }
+        .add_float_varying("fastuidraw_arc_stroking_stroke_radius")
+        .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_start")
+        .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_end")
+        .add_float_varying("fastuidraw_arc_stroking_distance")
+        .add_uint_varying("fastuidraw_arc_stroking_dash_bits");
     }
   else
     {
       return_value
-        .add_float_varying("fastuidraw_stroking_on_boundary");
-
-      if (flags & dashed_shader)
-        {
-          return_value
-            .add_float_varying("fastuidraw_stroking_distance")
-            .add_float_varying("fastuidraw_stroking_distance_sub_edge_start")
-            .add_float_varying("fastuidraw_stroking_distance_sub_edge_end")
-            .add_uint_varying("fastuidraw_stroking_dash_bits");
-        }
+        .add_float_varying("fastuidraw_stroking_on_boundary")
+        .add_float_varying("fastuidraw_stroking_distance")
+        .add_float_varying("fastuidraw_stroking_distance_sub_edge_start")
+        .add_float_varying("fastuidraw_stroking_distance_sub_edge_end")
+        .add_uint_varying("fastuidraw_stroking_dash_bits");
     }
 
   return return_value;
@@ -499,25 +489,9 @@ StrokeShaderCreator::
 build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const
 {
   ShaderSource return_value;
-  const ShaderSource::MacroSet *subpass_constants_ptr;
   const ShaderSource::MacroSet *stroke_constants_ptr;
-  c_string extra_macro, src, src_util(nullptr);
+  c_string src, src_util(nullptr);
 
-  if ((flags & hq_shader) == 0u)
-    {
-      extra_macro = "FASTUIDRAW_STROKE_SOLID_THEN_FUZZ";
-    }
-  else
-    {
-      extra_macro = "FASTUIDRAW_STROKE_COVER_THEN_DRAW";
-    }
-
-  if (flags & dashed_shader)
-    {
-      return_value.add_macro("FASTUIDRAW_STROKE_DASHED");
-    }
-
-  subpass_constants_ptr = &m_subshader_constants;
   if (flags & arc_shader)
     {
       stroke_constants_ptr = &m_arc_stroke_constants;
@@ -538,8 +512,7 @@ build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const
     }
 
   return_value
-    .add_macro(extra_macro)
-    .add_macros(*subpass_constants_ptr)
+    .add_macros(m_subshader_constants)
     .add_macros(*stroke_constants_ptr);
 
   if (src_util)
@@ -550,13 +523,7 @@ build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const
   return_value
     .add_source(src, ShaderSource::from_resource)
     .remove_macros(*stroke_constants_ptr)
-    .remove_macros(*subpass_constants_ptr)
-    .remove_macro(extra_macro);
-
-  if (flags & dashed_shader)
-    {
-      return_value.remove_macro("FASTUIDRAW_STROKE_DASHED");
-    }
+    .remove_macros(m_subshader_constants);
 
   return return_value;
 }
@@ -565,10 +532,7 @@ PainterItemShaderGLSL*
 StrokeShaderCreator::
 build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
 {
-  bool uses_discard;
-
-  uses_discard = ((flags & hq_shader) == 0u && (flags & (arc_shader | dashed_shader)) != 0);
-  return FASTUIDRAWnew PainterItemShaderGLSL(uses_discard,
+  return FASTUIDRAWnew PainterItemShaderGLSL(flags & discard_shader,
                                              build_uber_stroke_source(flags, true),
                                              build_uber_stroke_source(flags, false),
                                              build_uber_stroke_varyings(flags),

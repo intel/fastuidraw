@@ -92,11 +92,14 @@ public:
 
 protected:
   uint32_t
-  compute_sub_shader(enum PainterEnums::cap_style stroke_dash_style,
+  compute_sub_shader(bool is_hq,
+                     enum PainterEnums::cap_style stroke_dash_style,
                      enum render_pass_t render_pass);
 
-  uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
+  uint32_t m_stroke_render_pass_num_bits;
+  uint32_t m_stroke_dash_style_num_bits;
   uint32_t m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
+  uint32_t m_stroke_aa_method_bit;
   ShaderSource::MacroSet m_subshader_constants;
   ShaderSource::MacroSet m_stroke_constants;
   ShaderSource::MacroSet m_arc_stroke_constants;
@@ -120,8 +123,7 @@ private:
   enum
     {
       arc_shader = 1,
-      dashed_shader = 2,
-      hq_shader = 4,
+      discard_shader = 2,
     };
 
   PainterItemShaderGLSL*
@@ -133,7 +135,7 @@ private:
   ShaderSource
   build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const;
 
-  vecN<reference_counted_ptr<PainterItemShaderGLSL>, 8> m_shaders;
+  vecN<reference_counted_ptr<PainterItemShaderGLSL>, 4> m_shaders;
 };
 
 class ShaderSetCreator:
