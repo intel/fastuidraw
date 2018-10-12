@@ -32,6 +32,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   float dist, sgn;
   uint type;
   const float radius = 1.25;
+  const float miter_limit = 1.0;
 
   position = uintBitsToFloat(in_attrib0.xy);
   type = in_attrib0.z;
@@ -53,7 +54,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   else
     {
-      float r, r0, r1, det;
+      float m, mm, r, r0, r1, det;
       vec2 v0 = vec2(n0.y, -n0.x), v1 = vec2(n1.y, -n1.x);
       vec2 d0, d1, delta_d;
 
@@ -73,6 +74,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       det = v0.x * v1.y - v0.y * v1.x;
 
       r = (v1.y * delta_d.x - v1.x * delta_d.y) / det;
+      r = clamp(r, -miter_limit, miter_limit);
       p = position + d0 + r * v0;
     }
 
