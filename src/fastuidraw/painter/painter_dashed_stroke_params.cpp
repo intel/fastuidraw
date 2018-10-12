@@ -342,7 +342,7 @@ stroking_units(enum PainterStrokeParams::stroking_units_t v)
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterDashedStrokeParams::
-stroking_data_selector(void)
+stroking_data_selector(bool pixel_arc_stroking_possible)
 {
-  return PainterStrokeParams::stroking_data_selector();
+  return PainterStrokeParams::stroking_data_selector(pixel_arc_stroking_possible);
 }

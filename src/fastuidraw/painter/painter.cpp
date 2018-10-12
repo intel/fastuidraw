@@ -1588,20 +1588,21 @@ select_stroked_path(const fastuidraw::Path &path,
 {
   using namespace fastuidraw;
   float mag, t;
+  const PainterShaderData::DataBase *data(draw.m_item_shader_data.data().data_base());
 
   mag = compute_magnification(path);
-  thresh = shader.stroking_data_selector()->compute_thresh(draw.m_item_shader_data.data().data_base(),
-                                                           mag, m_curve_flatness);
+  thresh = shader.stroking_data_selector()->compute_thresh(data, mag, m_curve_flatness);
   t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
 
   const TessellatedPath *tess;
-  if (m_stroke_arc_path)
+  if (m_stroke_arc_path
+      && shader.stroking_data_selector()->arc_stroking_possible(data))
     {
       tess = path.arc_tessellation(t).get();
     }
   else
     {
-      if (m_linearize_from_arc_path)
+      if (m_linearize_from_arc_path || m_stroke_arc_path)
         {
           tess = path.arc_tessellation(t)->path().tessellation(t).get();
         }

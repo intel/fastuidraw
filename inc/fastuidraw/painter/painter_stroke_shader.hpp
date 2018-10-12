@@ -40,7 +40,9 @@ namespace fastuidraw
    * \brief
    * A StrokingDataSelector is an interface to assist Painter
    * to select correct LOD for rounded joins and caps when
-   * drawing rounded joins and caps.
+   * drawing rounded joins and caps. In addition it also
+   * informs Painter if stroking via arcs is possible with
+   * the stroking parameters.
    */
   class StrokingDataSelectorBase:
     public reference_counted<StrokingDataSelectorBase>::default_base
@@ -83,6 +85,16 @@ namespace fastuidraw
     stroking_distances(const PainterShaderData::DataBase *data,
                        float *out_pixel_space_distance,
                        float *out_item_space_distance) const = 0;
+
+    /*!
+     * To be implemented by a derived class to specify if
+     * arc-stroking is possible with the stroking parameters.
+     * \param data PainterItemShaderData::DataBase object holding
+     *             the data to be sent to the shader
+     */
+    virtual
+    bool
+    arc_stroking_possible(const PainterShaderData::DataBase *data) const = 0;
   };
 
   /*!

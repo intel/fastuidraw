@@ -26,6 +26,7 @@ namespace
   class PainterStrokeParamsData:public fastuidraw::PainterShaderData::DataBase
   {
   public:
+    explicit
     PainterStrokeParamsData(void):
       m_miter_limit(15.0f),
       m_radius(1.0f),
@@ -72,7 +73,7 @@ namespace
   {
   public:
     explicit
-    StrokingDataSelector(void);
+    StrokingDataSelector(bool pixel_arc_stroking_possible);
 
     virtual
     float
@@ -83,6 +84,11 @@ namespace
     stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
                        float *out_pixel_distance,
                        float *out_item_space_distance) const;
+    bool
+    arc_stroking_possible(const fastuidraw::PainterShaderData::DataBase *data) const;
+
+  private:
+    bool m_pixel_arc_stroking_possible;
   };
 
 }
@@ -90,7 +96,8 @@ namespace
 ////////////////////////////////
 // StrokingDataSelector methods
 StrokingDataSelector::
-StrokingDataSelector(void)
+StrokingDataSelector(bool pixel_arc_stroking_possible):
+  m_pixel_arc_stroking_possible(pixel_arc_stroking_possible)
 {}
 
 float
@@ -141,6 +148,17 @@ stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
       *out_pixel_distance = d->m_radius;
       *out_item_space_distance = 0.0f;
     }
+}
+
+bool
+StrokingDataSelector::
+arc_stroking_possible(const fastuidraw::PainterShaderData::DataBase *data) const
+{
+  const PainterStrokeParamsData *d;
+  d = static_cast<const PainterStrokeParamsData*>(data);
+
+  return m_pixel_arc_stroking_possible
+    || d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units;
 }
 
 ///////////////////////////////////
@@ -237,7 +255,7 @@ stroking_units(enum stroking_units_t v)
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterStrokeParams::
-stroking_data_selector(void)
+stroking_data_selector(bool pixel_arc_stroking_possible)
 {
-  return FASTUIDRAWnew StrokingDataSelector();
+  return FASTUIDRAWnew StrokingDataSelector(pixel_arc_stroking_possible);
 }

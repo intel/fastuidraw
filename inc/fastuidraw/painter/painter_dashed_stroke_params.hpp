@@ -185,12 +185,14 @@ namespace fastuidraw
     dash_pattern(c_array<const DashPatternElement> v);
 
     /*!
-     * Returns a StrokingDataSelectorBase suitable for
-     * PainterDashedStrokeParams.
+     * Returns a StrokingDataSelectorBase suitable for PainterDashedStrokeParams.
+     * \param pixel_arc_stroking_possible if true, will inform that arc-stroking
+     *                                    width in \ref pixel_stroking_units is
+     *                                    possible.
      */
     static
     reference_counted_ptr<const StrokingDataSelectorBase>
-    stroking_data_selector(void);
+    stroking_data_selector(bool pixel_arc_stroking_possible);
   };
 /*! @} */
 

@@ -112,8 +112,7 @@ private:
 class StrokeShaderCreator:private ShaderSetCreatorStrokingConstants
 {
 public:
-  explicit
-  StrokeShaderCreator(bool create_hq_shaders);
+  StrokeShaderCreator(void);
 
   reference_counted_ptr<PainterItemShader>
   create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,

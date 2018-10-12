@@ -377,7 +377,7 @@ compute_sub_shader(bool is_hq,
 /////////////////////////////////
 // StrokeShaderCreator methods
 StrokeShaderCreator::
-StrokeShaderCreator(bool create_hq_shaders)
+StrokeShaderCreator(void)
 {
   unsigned int num_sub_shaders;
 
@@ -546,7 +546,7 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
                  enum PainterCompositeShader::shader_type composite_tp,
                  const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws):
   CompositeShaderSetCreator(composite_tp),
-  StrokeShaderCreator(has_auxiliary_coverage_buffer),
+  StrokeShaderCreator(),
   m_has_auxiliary_coverage_buffer(has_auxiliary_coverage_buffer),
   m_flush_auxiliary_buffer_between_draws(flush_auxiliary_buffer_between_draws)
 {
@@ -747,7 +747,7 @@ create_dashed_stroke_shader_set(void)
   PainterDashedStrokeShaderSet return_value;
   reference_counted_ptr<const StrokingDataSelectorBase> se;
 
-  se = PainterDashedStrokeParams::stroking_data_selector();
+  se = PainterDashedStrokeParams::stroking_data_selector(false);
   return_value
     .shader(flat_caps, create_stroke_shader(flat_caps, se))
     .shader(rounded_caps, create_stroke_shader(rounded_caps, se))
@@ -872,7 +872,7 @@ create_shader_set(void)
   PainterShaderSet return_value;
   reference_counted_ptr<const StrokingDataSelectorBase> se;
 
-  se = PainterStrokeParams::stroking_data_selector();
+  se = PainterStrokeParams::stroking_data_selector(false);
 
   return_value
     .glyph_shader(create_glyph_shader())
