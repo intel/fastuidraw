@@ -152,6 +152,15 @@ public:
   create_shader_set(void);
 
 private:
+  enum
+    {
+      fill_aa_fuzz_direct_pass,
+      fill_aa_fuzz_hq_pass1,
+      fill_aa_fuzz_hq_pass2,
+
+      fill_aa_fuzz_number_passes
+    };
+
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(const std::string &vert_src,
                            const std::string &frag_src,

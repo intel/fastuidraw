@@ -76,22 +76,16 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       p = position + d0 + r * v0;
     }
 
+  fastuidraw_aa_fuzz = (type == 0u) ? 0.0 : 1.0;
   out_clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
   out_brush_p = p;
 
-  #if !defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2)
-    {
-      fastuidraw_aa_fuzz = (type == 0u) ? 0.0 : 1.0;
-    }
-  #endif
-
-  #if defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2) || defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1)
-    {
-      z_add = 0;
-    }
-  #else
+  if (sub_shader == fastuidraw_aa_fuzz_direct_pass)
     {
       z_add = int(in_attrib0.w);
     }
-  #endif
+  else
+    {
+      z_add = 0;
+    }
 }

@@ -566,7 +566,10 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
   m_fill_macros
     .add_macro("fastuidraw_aa_fuzz_type_on_path", uint32_t(FilledPath::Subset::aa_fuzz_type_on_path))
     .add_macro("fastuidraw_aa_fuzz_type_on_boundary", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary))
-    .add_macro("fastuidraw_aa_fuzz_type_on_boundary_miter", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary_miter));
+    .add_macro("fastuidraw_aa_fuzz_type_on_boundary_miter", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary_miter))
+    .add_macro("fastuidraw_aa_fuzz_direct_pass", uint32_t(fill_aa_fuzz_direct_pass))
+    .add_macro("fastuidraw_aa_fuzz_hq_pass1", uint32_t(fill_aa_fuzz_hq_pass1))
+    .add_macro("fastuidraw_aa_fuzz_hq_pass2", uint32_t(fill_aa_fuzz_hq_pass2));
 
   m_common_glyph_attribute_macros
     .add_macro("FASTUIDRAW_GLYPH_RECT_WIDTH_NUMBITS", uint32_t(GlyphAttribute::rect_width_num_bits))
@@ -757,62 +760,47 @@ ShaderSetCreator::
 create_fill_shader(void)
 {
   PainterFillShader fill_shader;
+  reference_counted_ptr<PainterItemShader> item_shader;
+  reference_counted_ptr<PainterItemShader> uber_fuzz_shader;
+  reference_counted_ptr<PainterItemShader> aa_fuzz_direct_shader;
 
+  item_shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                                    ShaderSource()
+                                                    .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",
+                                                                ShaderSource::from_resource),
+                                                    ShaderSource()
+                                                    .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
+                                                                ShaderSource::from_resource),
+                                                    varying_list());
+
+  uber_fuzz_shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                                         ShaderSource()
+                                                         .add_macros(m_fill_macros)
+                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
+                                                                     ShaderSource::from_resource)
+                                                         .remove_macros(m_fill_macros),
+                                                         ShaderSource()
+                                                         .add_macros(m_fill_macros)
+                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
+                                                                     ShaderSource::from_resource)
+                                                         .remove_macros(m_fill_macros),
+                                                         varying_list().add_float_varying("fastuidraw_aa_fuzz"),
+                                                         fill_aa_fuzz_number_passes);
+
+  aa_fuzz_direct_shader = FASTUIDRAWnew PainterItemShader(fill_aa_fuzz_direct_pass, uber_fuzz_shader);
   fill_shader
     .hq_anti_alias_support(m_hq_support)
     .fastest_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
-    .item_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                                     ShaderSource()
-                                                     .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",
-                                                                 ShaderSource::from_resource),
-                                                     ShaderSource()
-                                                     .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
-                                                                 ShaderSource::from_resource),
-                                                     varying_list()))
-    .aa_fuzz_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                                        ShaderSource()
-                                                        .add_macros(m_fill_macros)
-                                                        .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
-                                                                    ShaderSource::from_resource)
-                                                        .remove_macros(m_fill_macros),
-                                                        ShaderSource()
-                                                        .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
-                                                                    ShaderSource::from_resource),
-                                                        varying_list().add_float_varying("fastuidraw_aa_fuzz")));
+    .item_shader(item_shader)
+    .aa_fuzz_shader(aa_fuzz_direct_shader);
 
   if (m_has_auxiliary_coverage_buffer)
     {
       reference_counted_ptr<PainterItemShader> hq1, hq2;
 
-      hq1 = FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                                ShaderSource()
-                                                .add_macros(m_fill_macros)
-                                                .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1")
-                                                .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
-                                                            ShaderSource::from_resource)
-                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1")
-                                                .remove_macros(m_fill_macros),
-                                                ShaderSource()
-                                                .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1")
-                                                .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
-                                                            ShaderSource::from_resource)
-                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1"),
-                                                varying_list().add_float_varying("fastuidraw_aa_fuzz"));
+      hq1 = FASTUIDRAWnew PainterItemShader(fill_aa_fuzz_hq_pass1, uber_fuzz_shader);
+      hq2 = FASTUIDRAWnew PainterItemShader(fill_aa_fuzz_hq_pass2, uber_fuzz_shader);
 
-      hq2 = FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                                ShaderSource()
-                                                .add_macros(m_fill_macros)
-                                                .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2")
-                                                .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
-                                                            ShaderSource::from_resource)
-                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2")
-                                                .remove_macros(m_fill_macros),
-                                                ShaderSource()
-                                                .add_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2")
-                                                .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
-                                                            ShaderSource::from_resource)
-                                                .remove_macro("FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2"),
-                                                varying_list());
       fill_shader
         .aa_fuzz_hq_shader_pass1(hq1)
         .aa_fuzz_hq_shader_pass2(hq2)

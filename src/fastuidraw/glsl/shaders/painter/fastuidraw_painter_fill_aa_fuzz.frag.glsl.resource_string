@@ -20,25 +20,23 @@ vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  #if defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS2)
+  if (sub_shader == fastuidraw_aa_fuzz_hq_pass2)
     {
       return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
     }
-  #else
+  else
     {
       float dd, q, alpha;
       q = 1.0 - fastuidraw_aa_fuzz;
       dd = max(q, fwidth(q));
       alpha = q / dd;
 
-      #if defined(FASTUIDRAW_FILL_COVER_THEN_DRAW_PASS1)
+      if (sub_shader == fastuidraw_aa_fuzz_hq_pass1)
         {
           fastuidraw_max_auxiliary(alpha);
           alpha = 0.0;
         }
-      #endif
 
       return vec4(1.0, 1.0, 1.0, alpha);
     }
-  #endif
 }
