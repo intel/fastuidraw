@@ -106,17 +106,17 @@ namespace fastuidraw
 
     /*!
      * Used by \ref Painter for the \ref shader_anti_alias_t value
-     * to use when \ref shader_anti_alias_fastest is requested.
+     * to use when \ref shader_anti_alias_auto is requested.
      */
     enum PainterEnums::shader_anti_alias_t
-    fastest_anti_alias_mode(void) const;
+    auto_anti_alias_mode(void) const;
 
     /*!
-     * Set the value returned by fastest_anti_alias_mode(void) const.
+     * Set the value returned by auto_anti_alias_mode(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    fastest_anti_alias_mode(enum PainterEnums::shader_anti_alias_t sh);
+    auto_anti_alias_mode(enum PainterEnums::shader_anti_alias_t sh);
 
     /*!
      * Returns the PainterItemShader to use to draw

@@ -29,7 +29,7 @@ namespace
 
     fastuidraw::vecN<shader_set, 2> m_shaders;
     enum fastuidraw::PainterEnums::hq_anti_alias_support_t m_hq_anti_alias_support;
-    fastuidraw::vecN<enum fastuidraw::PainterEnums::shader_anti_alias_t, 2> m_fastest_anti_alias_mode;
+    fastuidraw::vecN<enum fastuidraw::PainterEnums::shader_anti_alias_t, 2> m_auto_anti_alias_mode;
     fastuidraw::vecN<bool, 5> m_arc_stroking_is_fast;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> m_stroking_data_selector;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_hq_aa_action_pass1;
@@ -86,21 +86,21 @@ shader(enum stroke_type_t tp, enum shader_type_t sh,
 
 enum fastuidraw::PainterEnums::shader_anti_alias_t
 fastuidraw::PainterStrokeShader::
-fastest_anti_alias_mode(enum stroke_type_t tp) const
+auto_anti_alias_mode(enum stroke_type_t tp) const
 {
   PainterStrokeShaderPrivate *d;
   d = static_cast<PainterStrokeShaderPrivate*>(m_d);
-  return d->m_fastest_anti_alias_mode[tp];
+  return d->m_auto_anti_alias_mode[tp];
 }
 
 fastuidraw::PainterStrokeShader&
 fastuidraw::PainterStrokeShader::
-fastest_anti_alias_mode(enum stroke_type_t tp,
-                        enum PainterEnums::shader_anti_alias_t sh)
+auto_anti_alias_mode(enum stroke_type_t tp,
+                     enum PainterEnums::shader_anti_alias_t sh)
 {
   PainterStrokeShaderPrivate *d;
   d = static_cast<PainterStrokeShaderPrivate*>(m_d);
-  d->m_fastest_anti_alias_mode[tp] = sh;
+  d->m_auto_anti_alias_mode[tp] = sh;
   return *this;
 }
 

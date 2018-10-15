@@ -703,30 +703,20 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_high_quality,
                           m_hq_support == PainterEnums::hq_anti_alias_fast)
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_auto,
-                          m_hq_support == PainterEnums::hq_anti_alias_fast)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_fastest,
-                          m_hq_support == PainterEnums::hq_anti_alias_fast
-                          && cap_style != PainterEnums::number_cap_styles);
+                          m_hq_support == PainterEnums::hq_anti_alias_fast);
 
   for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
     {
       enum PainterStrokeShader::stroke_type_t e_tp;
 
       e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
-
-      /* If hq is fast (i.e. no actions to call), then it will be
-       * faster than the simple whenever the simple would do discard;
-       * simple does discard on arc-stroking and dashed-stroking.
-       */
-      if (m_hq_support == PainterEnums::hq_anti_alias_fast &&
-          (e_tp == PainterStrokeShader::arc_stroke_type
-           || cap_style != PainterEnums::number_cap_styles))
+      if (m_hq_support == PainterEnums::hq_anti_alias_fast)
         {
-          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_high_quality);
+          return_value.auto_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_high_quality);
         }
       else
         {
-          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_simple);
+          return_value.auto_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_simple);
         }
 
       for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
@@ -799,7 +789,7 @@ create_fill_shader(void)
   aa_fuzz_direct_shader = FASTUIDRAWnew PainterItemShader(fill_aa_fuzz_direct_pass, uber_fuzz_shader);
   fill_shader
     .hq_anti_alias_support(m_hq_support)
-    .fastest_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
+    .auto_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
     .item_shader(item_shader)
     .aa_fuzz_shader(aa_fuzz_direct_shader);
 
