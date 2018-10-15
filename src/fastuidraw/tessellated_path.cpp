@@ -350,14 +350,16 @@ TessellatedPathPrivate(const fastuidraw::TessellatedPath &with_arcs,
       start_contour(builder, C, with_arcs.number_edges(C));
       for (unsigned int E = 0, endE = with_arcs.number_edges(C); E < endE; ++E)
         {
-          float d;
+          float d(m_max_distance);
           std::vector<TessellatedPath::segment> tmp;
           c_array<const TessellatedPath::segment> segs;
 
           segs = with_arcs.edge_segment_data(C, E);
           for (const TessellatedPath::segment &S : segs)
             {
-              d = add_linearization_of_segment(thresh, S, &tmp);
+	      float f;
+              f = add_linearization_of_segment(thresh, S, &tmp);
+	      d = t_max(f, d);
             }
           add_edge(builder, C, E, tmp, d);
         }
