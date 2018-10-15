@@ -403,19 +403,6 @@ namespace fastuidraw
     curveFlatness(void);
 
     /*!
-     * If true, use arc-tessellation to stroke paths when passed
-     * a \ref Path to a stroke_path() method.
-     */
-    void
-    stroke_arc_path(bool);
-
-    /*!
-     * Returns the value set by stroke_arc_path(bool).
-     */
-    bool
-    stroke_arc_path(void);
-
-    /*!
      * If true, when filling or stroking paths with stroke_arc_path() false,
      * first take the arc_tessellation() of the path to be stroked or filled
      * and then take its linear tessellation from which to take its FilledPath
@@ -549,12 +536,14 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
+     * \param stroking_method stroking method to select what \ref StrokedPath to use
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
+                enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -562,12 +551,14 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
+     * \param stroking_method stroking method to select what \ref StrokedPath to use
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
+                enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -594,12 +585,14 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
+     * \param stroking_method stroking method to select what \ref StrokedPath to use
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
+                       enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -607,12 +600,14 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
+     * \param stroking_method stroking method to select what \ref StrokedPath to use
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
+                       enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!

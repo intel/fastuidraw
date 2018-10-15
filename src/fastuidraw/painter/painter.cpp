@@ -990,6 +990,8 @@ namespace
     select_stroked_path(const fastuidraw::Path &path,
                         const fastuidraw::PainterStrokeShader &shader,
                         const fastuidraw::PainterData &draw,
+                        enum fastuidraw::PainterEnums::shader_anti_alias_t aa_mode,
+                        enum fastuidraw::PainterEnums::stroking_method_t stroking_method,
                         float &out_thresh);
 
     const fastuidraw::FilledPath&
@@ -998,7 +1000,6 @@ namespace
     fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
-    bool m_stroke_arc_path;
     bool m_linearize_from_arc_path;
     int m_current_z;
     clip_rect_state m_clip_rect_state;
@@ -1378,7 +1379,6 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_resolution(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(0.25f),
-  m_stroke_arc_path(false),
   m_linearize_from_arc_path(true)
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
@@ -1584,6 +1584,8 @@ PainterPrivate::
 select_stroked_path(const fastuidraw::Path &path,
                     const fastuidraw::PainterStrokeShader &shader,
                     const fastuidraw::PainterData &draw,
+                    enum fastuidraw::PainterEnums::shader_anti_alias_t aa_mode,
+                    enum fastuidraw::PainterEnums::stroking_method_t stroking_method,
                     float &thresh)
 {
   using namespace fastuidraw;
@@ -1594,22 +1596,20 @@ select_stroked_path(const fastuidraw::Path &path,
   thresh = shader.stroking_data_selector()->compute_thresh(data, mag, m_curve_flatness);
   t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
 
-  const TessellatedPath *tess;
-  if (m_stroke_arc_path
-      && shader.stroking_data_selector()->arc_stroking_possible(data))
+  if (stroking_method == PainterEnums::stroking_method_auto)
     {
-      tess = path.arc_tessellation(t).get();
+      stroking_method = shader.arc_stroking_is_fast(aa_mode) ?
+        PainterEnums::stroking_method_arc:
+        PainterEnums::stroking_method_linear;
     }
-  else
+
+  const TessellatedPath *tess;
+  tess = path.arc_tessellation(t).get();
+
+  if (stroking_method != PainterEnums::stroking_method_arc
+      || !shader.stroking_data_selector()->arc_stroking_possible(data))
     {
-      if (m_linearize_from_arc_path || m_stroke_arc_path)
-        {
-          tess = path.arc_tessellation(t)->path().tessellation(t).get();
-        }
-      else
-        {
-          tess = path.tessellation(t).get();
-        }
+      tess = tess->path().tessellation(t).get();
     }
   return tess->stroked().get();
 }
@@ -1631,19 +1631,9 @@ select_filled_path(const fastuidraw::Path &path)
 {
   using namespace fastuidraw;
   float thresh;
-  const TessellatedPath *tess;
 
   thresh = compute_path_thresh(path);
-  if (m_linearize_from_arc_path)
-    {
-      tess = path.arc_tessellation(thresh)->path().tessellation(thresh).get();
-    }
-  else
-    {
-      tess = path.tessellation(thresh).get();
-    }
-
-  return *tess->filled();
+  return *path.tessellation(thresh)->filled();
 }
 
 void
@@ -2513,6 +2503,7 @@ void
 fastuidraw::Painter::
 stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
             const StrokingStyle &stroke_style,
+            enum PainterEnums::stroking_method_t stroking_method,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -2520,7 +2511,9 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
   float thresh;
 
   d = static_cast<PainterPrivate*>(m_d);
-  stroked_path = d->select_stroked_path(path, shader, draw, thresh);
+  stroked_path = d->select_stroked_path(path, shader, draw,
+                                        stroke_style.m_stroke_with_shader_aa,
+                                        stroking_method, thresh);
   stroke_path(shader, draw, *stroked_path, thresh, stroke_style, call_back);
 }
 
@@ -2528,10 +2521,11 @@ void
 fastuidraw::Painter::
 stroke_path(const PainterData &draw, const Path &path,
             const StrokingStyle &stroke_style,
+            enum PainterEnums::stroking_method_t stroking_method,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   stroke_path(default_shaders().stroke_shader(), draw, path,
-              stroke_style, call_back);
+              stroke_style, stroking_method, call_back);
 }
 
 void
@@ -2559,6 +2553,7 @@ void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                    const StrokingStyle &stroke_style,
+                   enum PainterEnums::stroking_method_t stroking_method,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -2566,7 +2561,9 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   float thresh;
 
   d = static_cast<PainterPrivate*>(m_d);
-  stroked_path = d->select_stroked_path(path, shader.shader(stroke_style.m_cap_style), draw, thresh);
+  stroked_path = d->select_stroked_path(path, shader.shader(stroke_style.m_cap_style), draw,
+                                        stroke_style.m_stroke_with_shader_aa,
+                                        stroking_method, thresh);
   stroke_dashed_path(shader, draw, *stroked_path, thresh, stroke_style, call_back);
 }
 
@@ -2574,10 +2571,11 @@ void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterData &draw, const Path &path,
                    const StrokingStyle &stroke_style,
+                   enum PainterEnums::stroking_method_t stroking_method,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
-                     stroke_style, call_back);
+                     stroke_style, stroking_method, call_back);
 }
 
 void
@@ -3065,24 +3063,6 @@ rotate(float angle)
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m = m * tr;
   d->m_clip_rect_state.item_matrix(m, true, non_scaling_matrix);
-}
-
-void
-fastuidraw::Painter::
-stroke_arc_path(bool b)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_stroke_arc_path = b;
-}
-
-bool
-fastuidraw::Painter::
-stroke_arc_path(void)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  return d->m_stroke_arc_path;
 }
 
 void

@@ -697,7 +697,16 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
     .hq_anti_alias_support(m_hq_support)
     .stroking_data_selector(stroke_data_selector)
     .hq_aa_action_pass1(m_flush_auxiliary_buffer_between_draws)
-    .hq_aa_action_pass2(m_flush_auxiliary_buffer_between_draws);
+    .hq_aa_action_pass2(m_flush_auxiliary_buffer_between_draws)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_none, false) //because of discard
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_simple, false) //because of discard
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_high_quality,
+                          m_hq_support == PainterEnums::hq_anti_alias_fast)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_auto,
+                          m_hq_support == PainterEnums::hq_anti_alias_fast)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_fastest,
+                          m_hq_support == PainterEnums::hq_anti_alias_fast
+                          && cap_style != PainterEnums::number_cap_styles);
 
   for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
     {

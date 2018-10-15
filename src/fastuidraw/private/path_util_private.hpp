@@ -30,6 +30,15 @@ namespace fastuidraw
 {
   namespace detail
   {
+    enum
+      {
+        /* The starting data is floating point which has
+         * a 23-bit significand; arc-tessellation needs more
+         * accuracy to not produce garbage.
+         */
+        MAX_REFINE_RECURSION_LIMIT = 16
+      };
+
     unsigned int
     number_segments_for_tessellation(float radius, float arc_angle,
                                      const TessellatedPath::TessellationParams &P);
