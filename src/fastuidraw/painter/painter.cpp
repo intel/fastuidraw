@@ -1581,12 +1581,12 @@ select_stroked_path(const fastuidraw::Path &path,
     }
 
   const TessellatedPath *tess;
-  tess = path.arc_tessellation(t).get();
+  tess = path.tessellation(t).get();
 
   if (stroking_method != PainterEnums::stroking_method_arc
       || !shader.stroking_data_selector()->arc_stroking_possible(data))
     {
-      tess = tess->path().tessellation(t).get();
+      tess = tess->linearization(t);
     }
   return tess->stroked().get();
 }
@@ -1610,7 +1610,7 @@ select_filled_path(const fastuidraw::Path &path)
   float thresh;
 
   thresh = compute_path_thresh(path);
-  return *path.tessellation(thresh)->filled();
+  return *path.tessellation(thresh)->filled(thresh);
 }
 
 void

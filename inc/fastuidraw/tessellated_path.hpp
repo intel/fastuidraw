@@ -92,8 +92,7 @@ public:
      */
     TessellationParams(void):
       m_max_distance(-1.0f),
-      m_max_recursion(5),
-      m_allow_arcs(true)
+      m_max_recursion(5)
     {}
 
     /*!
@@ -122,20 +121,6 @@ public:
     }
 
     /*!
-     * Provided as a conveniance. Equivalent to
-     * \code
-     * m_allow_arcs = p;
-     * \endcode
-     * \param p value to which to assign to \ref m_allow_arcs
-     */
-    TessellationParams&
-    allow_arcs(bool p)
-    {
-      m_allow_arcs = p;
-      return *this;
-    }
-
-    /*!
      * Maximum distance to attempt between the actual curve and the
      * tessellation. A value less than or equal to zero indicates to
      * accept any distance value between the tessellation and the
@@ -148,13 +133,6 @@ public:
      * Default value is 5.
      */
     unsigned int m_max_recursion;
-
-    /*!
-     * If true, the produces tessellation will have \ref arc_segment
-     * typed \ref segment objects. If false, all segment objects
-     * will be of type \ref line_segment. Default value is true.
-     */
-    bool m_allow_arcs;
   };
 
   /*!
@@ -371,12 +349,6 @@ public:
   max_distance(void) const;
 
   /*!
-   * Returns the maximum number of segments any edge needed
-   */
-  unsigned int
-  max_segments(void) const;
-
-  /*!
    * Returns the maximum recursion employed by any edge
    */
   unsigned int
@@ -482,27 +454,54 @@ public:
   bounding_box_size(void) const;
 
   /*!
-   * Returns this TessellatedPath realized as a \ref Path;
-   * this is rarely the same value as the original \ref Path
-   * that created this TessellatedPath because the original
-   * \ref Path will have curves that are approximated by line
-   * segments and/or arcs of a circle.
+   * Returns this \ref TessellatedPath where any arcs are
+   * realized as segments. If this \ref TessellatedPath has
+   * no arcs, returns this object. If a non-positive value
+   * is passed, returns a linearization where arc-segments
+   * are tessellated into very few line segments.
+   * \param thresh threshhold at which to linearize
+   *               arc-segments.
    */
-  const Path&
-  path(void) const;
+  const TessellatedPath*
+  linearization(float thresh) const;
 
   /*!
-   * Returns this TessellatedPath linearly-stroked. The StrokedPath
-   * object is constructed lazily. NOTE: will return a null-reference
-   * if \ref has_arcs() returns true.
+   * Provided as a conveniance, returns the starting point tessellation.
+   * Equivalent to
+   * \code
+   * linearization(-1.0f)
+   * \endcode
+   */
+  const TessellatedPath*
+  linearization(void) const;
+
+  /*!
+   * Returns this \ref TessellatedPath stroked. The \ref
+   * StrokedPath object is constructed lazily.
    */
   const reference_counted_ptr<const StrokedPath>&
   stroked(void) const;
 
   /*!
-   * Returns this TessellatedPath linearly-filled. The FilledPath
-   * object is constructed lazily. NOTE: will return a null-reference
-   * if \ref has_arcs() returns true.
+   * Returns this \ref TessellatedPath filled. If this
+   * \ref TessellatedPath has arcs will return
+   * the fill associated to the linearization() of
+   * this \ref TessellatedPath. If a non-positive value
+   * is passed, returns the fill of the linearization
+   * where arc-segments are tessellated into very few
+   * line segments.
+   * \param thresh threshhold at which to linearize
+   *               arc-segments.
+   */
+  const reference_counted_ptr<const FilledPath>&
+  filled(float thresh) const;
+
+  /*!
+   * Provided as a conveniance, returns the starting point tessellation.
+   * Equivalent to
+   * \code
+   * filled(-1.0f)
+   * \endcode
    */
   const reference_counted_ptr<const FilledPath>&
   filled(void) const;
@@ -510,6 +509,10 @@ public:
 private:
   TessellatedPath(Refiner *p, float threshhold,
                   unsigned int additional_recursion_count);
+
+  TessellatedPath(const TessellatedPath &with_arcs,
+                  float thresh);
+
   void *m_d;
 };
 

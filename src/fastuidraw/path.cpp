@@ -29,22 +29,6 @@
 
 namespace
 {
-  enum
-    {
-      /* The starting data is floating point which has
-       * a 23-bit significand; going past 20 sub-divisions
-       * will likely start to produce numerical garbage
-       * as there are then so few bits left for accuracy.
-       */
-      MAX_LINEAR_REFINE_RECURSION_LIMIT = 20,
-
-      /* The starting data is floating point which has
-       * a 23-bit significand; arc-tessellation needs more
-       * accuracy to not produce garbage.
-       */
-      MAX_ARC_REFINE_RECURSION_LIMIT = 16
-    };
-
   inline
   float
   compute_distance(const fastuidraw::vec2 &a,
@@ -80,47 +64,6 @@ namespace
         return r;
       }
   }
-
-  class LinearTessellatorStateNode
-  {
-  public:
-    explicit
-    LinearTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h);
-
-    float
-    max_distance(void) const
-    {
-      return m_max_distance;
-    }
-
-    void
-    add_segment(fastuidraw::TessellatedPath::SegmentStorage *out_data) const;
-
-    unsigned int
-    recursion_depth(void) const
-    {
-      return m_recursion_depth;
-    }
-
-    LinearTessellatorStateNode
-    splitL(const fastuidraw::PathContour::interpolator_generic *h) const;
-
-    LinearTessellatorStateNode
-    splitR(const fastuidraw::PathContour::interpolator_generic *h) const;
-
-  private:
-    LinearTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h,
-                               const fastuidraw::vec2 &p0,
-                               const fastuidraw::vec2 &p1,
-                               fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> rgn,
-                               unsigned int depth);
-
-    fastuidraw::vec2 m_pt0, m_pt1, m_mid_pt;
-    fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> m_L, m_R;
-
-    float m_max_distance;
-    unsigned int m_recursion_depth;
-  };
 
   class ArcSegment
   {
@@ -192,7 +135,6 @@ namespace
     ArcSegment m_arc;
   };
 
-  template<typename T>
   class TessellationState:public fastuidraw::PathContour::tessellation_state
   {
   public:
@@ -213,13 +155,13 @@ namespace
                         float *out_max_distance);
   private:
     void
-    resume_tessellation_worker(const T &node,
+    resume_tessellation_worker(const ArcTessellatorStateNode &node,
                                const fastuidraw::TessellatedPath::TessellationParams &tess_params,
-                               std::vector<T> *dst);
+                               std::vector<ArcTessellatorStateNode> *dst);
 
 
     fastuidraw::reference_counted_ptr<const fastuidraw::PathContour::interpolator_generic> m_h;
-    std::vector<T> m_nodes;
+    std::vector<ArcTessellatorStateNode> m_nodes;
     unsigned int m_recursion_depth;
     unsigned int m_minimum_tessellation_recursion;
   };
@@ -372,44 +314,6 @@ namespace
     fastuidraw::BoundingBox<float> m_bb;
   };
 
-  class ArcRefiner
-    :public fastuidraw::PathContour::tessellation_state
-  {
-  public:
-    ArcRefiner(const ArcPrivate &d,
-               const fastuidraw::vec2 &start_pt,
-               const fastuidraw::vec2 &end_pt):
-      m_values(d),
-      m_start_pt(start_pt),
-      m_end_pt(end_pt),
-      m_recursion_depth(0)
-    {}
-
-    virtual
-    unsigned int
-    recursion_depth(void) const
-    {
-      return m_recursion_depth;
-    }
-
-    virtual
-    void
-    resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
-                        fastuidraw::TessellatedPath::SegmentStorage *out_data,
-                        float *out_max_distance);
-
-  private:
-    unsigned int
-    recursion_allowed_size(unsigned int d);
-
-    void
-    update_recursion_depth(unsigned int num_points);
-
-    ArcPrivate m_values;
-    fastuidraw::vec2 m_start_pt, m_end_pt;
-    unsigned int m_recursion_depth;
-  };
-
   class PathContourPrivate
   {
   public:
@@ -436,8 +340,7 @@ namespace
     typedef fastuidraw::reference_counted_ptr<const TessellatedPath> TessellatedPathRef;
 
     explicit
-    TessellatedPathList(bool allow_arcs):
-      m_allow_arcs(allow_arcs),
+    TessellatedPathList(void):
       m_done(false)
     {}
 
@@ -470,7 +373,7 @@ namespace
       }
     };
 
-    bool m_allow_arcs, m_done;
+    bool m_done;
     fastuidraw::reference_counted_ptr<TessellatedPath::Refiner> m_refiner;
     std::vector<TessellatedPathRef> m_data;
   };
@@ -504,7 +407,6 @@ namespace
     enum fastuidraw::PathEnums::edge_type_t m_next_edge_type;
 
     TessellatedPathList m_tess_list;
-    TessellatedPathList m_arc_tess_list;
 
     /* m_start_check_bb gives the index into m_contours that
      * have not had their bounding box absorbed m_bb
@@ -514,60 +416,6 @@ namespace
     bool m_is_flat;
     fastuidraw::Path *m_p;
   };
-}
-
-///////////////////////////////////
-// LinearTessellatorStateNode methods
-LinearTessellatorStateNode::
-LinearTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h):
-  m_pt0(h->start_pt()),
-  m_pt1(h->end_pt()),
-  m_recursion_depth(0)
-{
-  h->tessellate(nullptr, &m_L, &m_R, &m_mid_pt);
-  m_max_distance = fastuidraw::t_max(m_L->distance_to_line_segment(),
-                                     m_R->distance_to_line_segment());
-}
-
-LinearTessellatorStateNode::
-LinearTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h,
-                           const fastuidraw::vec2 &p0,
-                           const fastuidraw::vec2 &p1,
-                           fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> rgn,
-                           unsigned int depth):
-  m_pt0(p0),
-  m_pt1(p1),
-  m_recursion_depth(depth)
-{
-  FASTUIDRAWassert(rgn);
-  h->tessellate(rgn, &m_L, &m_R, &m_mid_pt);
-  m_max_distance = fastuidraw::t_max(m_L->distance_to_line_segment(),
-                                     m_R->distance_to_line_segment());
-}
-
-void
-LinearTessellatorStateNode::
-add_segment(fastuidraw::TessellatedPath::SegmentStorage *out_data) const
-{
-  /* We add the two segments because the value of m_max_distance
-   * is the error estimate using the two segments.
-   */
-  out_data->add_line_segment(m_pt0, m_mid_pt);
-  out_data->add_line_segment(m_mid_pt, m_pt1);
-}
-
-LinearTessellatorStateNode
-LinearTessellatorStateNode::
-splitL(const fastuidraw::PathContour::interpolator_generic *h) const
-{
-  return LinearTessellatorStateNode(h, m_pt0, m_mid_pt, m_L, m_recursion_depth + 1);
-}
-
-LinearTessellatorStateNode
-LinearTessellatorStateNode::
-splitR(const fastuidraw::PathContour::interpolator_generic *h) const
-{
-  return LinearTessellatorStateNode(h, m_mid_pt, m_pt1, m_R, m_recursion_depth + 1);
 }
 
 /////////////////////////////////
@@ -741,26 +589,24 @@ splitR(const fastuidraw::PathContour::interpolator_generic *h) const
 
 /////////////////////////////////
 // TessellationState methods
-template<typename T>
-TessellationState<T>::
+TessellationState::
 TessellationState(const fastuidraw::PathContour::interpolator_generic *h):
   m_h(h),
   m_recursion_depth(0),
   m_minimum_tessellation_recursion(h->minimum_tessellation_recursion())
 {
-  m_nodes.push_back(T(h));
+  m_nodes.push_back(ArcTessellatorStateNode(h));
 }
 
-template<typename T>
 void
-TessellationState<T>::
+TessellationState::
 resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
                     fastuidraw::TessellatedPath::SegmentStorage *out_data,
                     float *out_max_distance)
 {
-  std::vector<T> new_nodes;
+  std::vector<ArcTessellatorStateNode> new_nodes;
 
-  for(const T &node : m_nodes)
+  for(const ArcTessellatorStateNode &node : m_nodes)
     {
       resume_tessellation_worker(node, tess_params, &new_nodes);
     }
@@ -768,7 +614,7 @@ resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_
   std::swap(new_nodes, m_nodes);
   *out_max_distance = 0.0f;
   m_recursion_depth = 0;
-  for(const T &node : m_nodes)
+  for(const ArcTessellatorStateNode &node : m_nodes)
     {
       node.add_segment(out_data);
       m_recursion_depth = fastuidraw::t_max(m_recursion_depth, node.recursion_depth());
@@ -776,12 +622,11 @@ resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_
     }
 }
 
-template<typename T>
 void
-TessellationState<T>::
-resume_tessellation_worker(const T &node,
+TessellationState::
+resume_tessellation_worker(const ArcTessellatorStateNode &node,
                            const fastuidraw::TessellatedPath::TessellationParams &tess_params,
-                           std::vector<T> *dst)
+                           std::vector<ArcTessellatorStateNode> *dst)
 {
   unsigned int recurse_level;
 
@@ -879,14 +724,7 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
 {
   fastuidraw::reference_counted_ptr<fastuidraw::PathContour::tessellation_state> return_value;
 
-  if (tess_params.m_allow_arcs)
-    {
-      return_value = FASTUIDRAWnew TessellationState<ArcTessellatorStateNode>(this);
-    }
-  else
-    {
-      return_value = FASTUIDRAWnew TessellationState<LinearTessellatorStateNode>(this);
-    }
+  return_value = FASTUIDRAWnew TessellationState(this);
   return_value->resume_tessellation(tess_params, out_data, out_max_distance);
   return return_value;
 }
@@ -1223,113 +1061,6 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
   out_max_bb->y() = fastuidraw::t_max(p0.y(), p1.y());
 }
 
-///////////////////////////////////////////
-// ArcRefiner methods
-unsigned int
-ArcRefiner::
-recursion_allowed_size(unsigned int d)
-{
-  using namespace fastuidraw;
-
-  const float pi(M_PI), two_pi(2.0f * pi);
-  float max_size_f;
-  const unsigned int max_d(MAX_ARC_REFINE_RECURSION_LIMIT);
-  unsigned int max_size;
-
-  d = t_min(d, max_d);
-  max_size_f = static_cast<float>(1u << d) / two_pi;
-  max_size_f *= t_abs(m_values.m_angle_speed);
-
-  max_size = static_cast<unsigned int>(max_size_f);
-  return t_max(max_size, 3u);
-}
-
-void
-ArcRefiner::
-update_recursion_depth(unsigned int num_points)
-{
-  const unsigned int max_d(MAX_ARC_REFINE_RECURSION_LIMIT);
-  while(m_recursion_depth <= max_d
-        && num_points > recursion_allowed_size(m_recursion_depth))
-    {
-      ++m_recursion_depth;
-    }
-}
-
-void
-ArcRefiner::
-resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
-                    fastuidraw::TessellatedPath::SegmentStorage *out_data,
-                    float *out_max_distance)
-{
-  using namespace fastuidraw;
-
-  if (tess_params.m_allow_arcs)
-    {
-      out_data->add_arc_segment(m_start_pt, m_end_pt,
-                                m_values.m_center, m_values.m_radius,
-                                range_type<float>(m_values.m_start_angle,
-                                                  m_values.m_start_angle + m_values.m_angle_speed));
-      *out_max_distance = 0.0f;
-      m_recursion_depth = 0;
-    }
-  else
-    {
-      float a, da, delta_angle;
-      vec2 prev_pt;
-      unsigned int needed_size, max_size_allowed;
-
-      max_size_allowed = recursion_allowed_size(m_recursion_depth);
-      needed_size = detail::number_segments_for_tessellation(m_values.m_radius,
-                                                             t_abs(m_values.m_angle_speed),
-                                                             tess_params);
-      if (needed_size > max_size_allowed)
-        {
-          max_size_allowed = recursion_allowed_size(tess_params.m_max_recursion);
-          if (needed_size >= max_size_allowed)
-            {
-              needed_size = max_size_allowed;
-              m_recursion_depth = tess_params.m_max_recursion;
-            }
-          else
-            {
-              update_recursion_depth(needed_size);
-            }
-        }
-
-      delta_angle = m_values.m_angle_speed / static_cast<float>(needed_size);
-      a = m_values.m_start_angle + delta_angle;
-      da = delta_angle;
-      prev_pt = m_start_pt;
-
-      for(unsigned int i = 1; i <= needed_size; ++i, a += delta_angle, da += delta_angle)
-        {
-          TessellatedPath::segment S;
-          vec2 p;
-
-          if (i == needed_size)
-            {
-              p = m_end_pt;
-            }
-          else
-            {
-              float c, s;
-
-              c = m_values.m_radius * t_cos(a);
-              s = m_values.m_radius * t_sin(a);
-              p = m_values.m_center + vec2(c, s);
-            }
-          out_data->add_line_segment(prev_pt, p);
-          prev_pt = p;
-        }
-
-      const float pi(M_PI);
-      float eff(t_min(pi, t_abs(0.5f * delta_angle)));
-
-      *out_max_distance = m_values.m_radius * (1.0f - t_cos(eff));
-    }
-}
-
 //////////////////////////////////////
 // fastuidraw::PathContour::arc methods
 fastuidraw::PathContour::arc::
@@ -1414,12 +1145,16 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                      float *out_max_distance) const
 {
   ArcPrivate *d;
-  reference_counted_ptr<ArcRefiner> ref;
 
   d = static_cast<ArcPrivate*>(m_d);
-  ref = FASTUIDRAWnew ArcRefiner(*d, start_pt(), end_pt());
-  ref->resume_tessellation(tess_params, out_data, out_max_distance);
-  return ref;
+  out_data->add_arc_segment(start_pt(), end_pt(),
+                            d->m_center, d->m_radius,
+                            range_type<float>(d->m_start_angle,
+                                              d->m_start_angle + d->m_angle_speed));
+  *out_max_distance = 0.0f;
+  FASTUIDRAWunused(tess_params);
+
+  return nullptr;
 }
 
 void
@@ -1766,12 +1501,11 @@ TessellatedPathList::
 tessellation(const fastuidraw::Path &path, float max_distance)
 {
   using namespace fastuidraw;
+  using namespace detail;
 
   if (m_data.empty())
     {
       TessellationParams params;
-
-      params.allow_arcs(m_allow_arcs);
       m_data.push_back(FASTUIDRAWnew TessellatedPath(path, params, &m_refiner));
     }
 
@@ -1799,12 +1533,7 @@ tessellation(const fastuidraw::Path &path, float max_distance)
       return m_data.back();
     }
 
-  unsigned int max_refine_recursion_limit;
   float current_max_distance;
-
-  max_refine_recursion_limit = m_allow_arcs ?
-    MAX_ARC_REFINE_RECURSION_LIMIT :
-    MAX_LINEAR_REFINE_RECURSION_LIMIT;
 
   current_max_distance = m_data.back()->max_distance();
 
@@ -1839,7 +1568,7 @@ tessellation(const fastuidraw::Path &path, float max_distance)
            * which represents that after sub-dividing that much, one
            * is just handling numerical garbage.
            */
-          if (ref->max_recursion() > max_refine_recursion_limit)
+          if (ref->max_recursion() > MAX_REFINE_RECURSION_LIMIT)
             {
               m_done = true;
               m_refiner = nullptr;
@@ -1863,8 +1592,7 @@ tessellation(const fastuidraw::Path &path, float max_distance)
 PathPrivate::
 PathPrivate(fastuidraw::Path *p):
   m_next_edge_type(fastuidraw::PathEnums::starts_new_edge),
-  m_tess_list(false),
-  m_arc_tess_list(true),
+  m_tess_list(),
   m_start_check_bb(0),
   m_is_flat(true),
   m_p(p)
@@ -1876,7 +1604,6 @@ PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
   m_contours(obj.m_contours),
   m_next_edge_type(obj.m_next_edge_type),
   m_tess_list(obj.m_tess_list),
-  m_arc_tess_list(obj.m_arc_tess_list),
   m_start_check_bb(obj.m_start_check_bb),
   m_bb(obj.m_bb),
   m_is_flat(obj.m_is_flat),
@@ -1920,7 +1647,6 @@ PathPrivate::
 clear_tesses(void)
 {
   m_tess_list.clear();
-  m_arc_tess_list.clear();
 }
 
 /////////////////////////////////////////
@@ -2143,23 +1869,6 @@ tessellation(float max_distance) const
   d = static_cast<PathPrivate*>(m_d);
   d->close_back_contour();
   return d->m_tess_list.tessellation(*this, max_distance);
-}
-
-const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath>&
-fastuidraw::Path::
-arc_tessellation(void) const
-{
-  return arc_tessellation(-1.0f);
-}
-
-const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath>&
-fastuidraw::Path::
-arc_tessellation(float max_distance) const
-{
-  PathPrivate *d;
-  d = static_cast<PathPrivate*>(m_d);
-  d->close_back_contour();
-  return d->m_arc_tess_list.tessellation(*this, max_distance);
 }
 
 bool

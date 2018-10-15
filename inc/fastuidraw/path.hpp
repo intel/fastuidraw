@@ -1042,30 +1042,6 @@ public:
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;
 
-  /*!
-   * Return the arc-tessellation of this Path at a specific
-   * level of detail. The TessellatedPath is constructed
-   * lazily. Additionally, if this Path changes its geometry,
-   * then a new TessellatedPath will be contructed on the
-   * next call to arc_tessellation().
-   * \param max_distance the returned tessellated path will be so that
-   *                     TessellatedPath::effective_max_distance()
-   *                     is no more than thresh. A non-positive value
-   *                     will return the starting point tessellation.
-   */
-  const reference_counted_ptr<const TessellatedPath>&
-  arc_tessellation(float max_distance) const;
-
-  /*!
-   * Provided as a conveniance, returns the starting point tessellation.
-   * Equivalent to
-   * \code
-   * arc_tessellation(-1.0f)
-   * \endcode
-   */
-  const reference_counted_ptr<const TessellatedPath>&
-  arc_tessellation(void) const;
-
 private:
   void *m_d;
 };

@@ -24,14 +24,6 @@
 
 unsigned int
 fastuidraw::detail::
-number_segments_for_tessellation(float radius, float arc_angle,
-                                 const TessellatedPath::TessellationParams &P)
-{
-  return number_segments_for_tessellation(arc_angle, P.m_max_distance / radius);
-}
-
-unsigned int
-fastuidraw::detail::
 number_segments_for_tessellation(float arc_angle, float distance_thresh)
 {
   if (distance_thresh <= 0.0f)
