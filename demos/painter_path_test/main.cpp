@@ -202,11 +202,19 @@ private:
     {
       no_anti_alias,
       by_anti_alias_auto,
-      by_anti_alias_fastest,
       by_anti_alias_simple,
       by_anti_alias_hq,
 
       number_anti_alias_modes
+    };
+
+  enum stroking_mode_t
+    {
+      stroke_linear_path,
+      stroke_arc_path,
+      stroke_auto_path,
+
+      number_stroking_modes
     };
 
   typedef std::pair<std::string,
@@ -404,6 +412,8 @@ private:
   vecN<std::string, PainterEnums::fill_rule_data_count> m_fill_labels;
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
   vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
+  vecN<std::string, number_stroking_modes> m_stroke_mode_labels;
+  vecN<enum PainterEnums::stroking_method_t, number_stroking_modes> m_stroke_mode_values;
   vecN<enum PainterEnums::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
 
   PainterPackedValue<PainterBrush> m_black_pen;
@@ -440,6 +450,7 @@ private:
   float m_miter_limit, m_stroke_width;
   bool m_draw_fill;
   unsigned int m_aa_stroke_mode;
+  unsigned int m_stroking_mode;
   unsigned int m_aa_fill_mode;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
@@ -595,6 +606,7 @@ painter_stroke_test(void):
   m_stroke_width(10.0f),
   m_draw_fill(false),
   m_aa_stroke_mode(by_anti_alias_auto),
+  m_stroking_mode(stroke_auto_path),
   m_aa_fill_mode(by_anti_alias_auto),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
@@ -609,7 +621,7 @@ painter_stroke_test(void):
   m_clip_window_path_dirty(true)
 {
   std::cout << "Controls:\n"
-            << "\tn: toogle using arc-paths for stroking\n"
+            << "\tv: cycle through stroking modes\n"
             << "\tk: select next path\n"
             << "\ta: cycle through anti-aliased modes for stroking\n"
             << "\tu: cycle through anti-aliased modes for filling\n"
@@ -626,7 +638,6 @@ painter_stroke_test(void):
             << "\t7: y-shear (hold ctrl to decrease, hold enter for shear2)\n"
             << "\t0: Rotate left\n"
             << "\t9: Rotate right\n"
-            << "\tv: toggle linearize from arc-path\n"
             << "\tb: decrease miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tn: increase miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tm: toggle miter limit enforced\n"
@@ -683,14 +694,20 @@ painter_stroke_test(void):
   m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
   m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
   m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
-  m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
   m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
 
   m_shader_anti_alias_mode_values[no_anti_alias] = PainterEnums::shader_anti_alias_none;
   m_shader_anti_alias_mode_values[by_anti_alias_auto] = PainterEnums::shader_anti_alias_auto;
   m_shader_anti_alias_mode_values[by_anti_alias_simple] = PainterEnums::shader_anti_alias_simple;
-  m_shader_anti_alias_mode_values[by_anti_alias_fastest] = PainterEnums::shader_anti_alias_fastest;
   m_shader_anti_alias_mode_values[by_anti_alias_hq] = PainterEnums::shader_anti_alias_high_quality;
+
+  m_stroke_mode_labels[stroke_linear_path] = "stroke_linear_path";
+  m_stroke_mode_labels[stroke_arc_path] = "stroke_arc_path";
+  m_stroke_mode_labels[stroke_auto_path] = "stroke_auto_path";
+
+  m_stroke_mode_values[stroke_linear_path] = PainterEnums::stroking_method_linear;
+  m_stroke_mode_values[stroke_arc_path] = PainterEnums::stroking_method_arc;
+  m_stroke_mode_values[stroke_auto_path] = PainterEnums::stroking_method_auto;
 
   m_rect << vec2(-0.5f, -0.5f)
          << vec2(-0.5f, +0.5f)
@@ -1047,28 +1064,9 @@ handle_event(const SDL_Event &ev)
           end_demo(0);
           break;
 
-        case SDLK_n:
-          m_painter->stroke_arc_path(!m_painter->stroke_arc_path());
-          if (m_painter->stroke_arc_path())
-            {
-              std::cout << "Arc-path stroking\n";
-            }
-          else
-            {
-              std::cout << "Linear stroking\n";
-            }
-          break;
-
         case SDLK_v:
-          m_painter->linearize_from_arc_path(!m_painter->linearize_from_arc_path());
-          if (m_painter->linearize_from_arc_path())
-            {
-              std::cout << "Linearize from arc-path\n";
-            }
-          else
-            {
-              std::cout << "Linearize from original path\n";
-            }
+          cycle_value(m_stroking_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_stroking_modes);
+          std::cout << "Stroking mode set to: " << m_stroke_mode_labels[m_stroking_mode] << "\n";
           break;
 
         case SDLK_k:
@@ -1777,7 +1775,8 @@ draw_scene(bool drawing_wire_frame)
                                         .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
                                         .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
                                         .stroke_closing_edges_of_contours(m_close_contour)
-                                        .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]));
+                                        .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]),
+                                        m_stroke_mode_values[m_stroking_mode]);
 
         }
       else
@@ -1803,7 +1802,8 @@ draw_scene(bool drawing_wire_frame)
                                  .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
                                  .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
                                  .stroke_closing_edges_of_contours(m_close_contour)
-                                 .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]));
+                                 .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]),
+                                 m_stroke_mode_values[m_stroking_mode]);
         }
     }
 
