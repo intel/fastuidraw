@@ -39,11 +39,16 @@ namespace fastuidraw
         MAX_REFINE_RECURSION_LIMIT = 16
       };
 
+    inline
+    bool
+    reverse_compare_max_distance(const reference_counted_ptr<const TessellatedPath> &lhs,
+                                 float rhs)
+    {
+      return lhs->max_distance() > rhs;
+    }
+
     unsigned int
     number_segments_for_tessellation(float arc_angle, float distance_thresh);
-
-    float
-    distance_to_line(const vec2 &q, const vec2 &p0, const vec2 &p1);
 
     void
     bouding_box_union_arc(const vec2 &center, float radius,

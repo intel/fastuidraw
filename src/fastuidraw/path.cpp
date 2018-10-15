@@ -24,7 +24,6 @@
 #include <fastuidraw/tessellated_path.hpp>
 #include "private/util_private.hpp"
 #include "private/path_util_private.hpp"
-#include "private/util_private_ostream.hpp"
 #include "private/bounding_box.hpp"
 
 namespace
@@ -356,23 +355,6 @@ namespace
     }
 
   private:
-    class reverse_compare_max_distance
-    {
-    public:
-      bool
-      operator()(const TessellatedPathRef &lhs, float rhs) const
-      {
-        return lhs->max_distance() > rhs;
-      }
-
-      bool
-      operator()(const TessellatedPathRef &lhs,
-                 const TessellatedPathRef &rhs) const
-      {
-        return lhs->max_distance() > rhs->max_distance();
-      }
-    };
-
     bool m_done;
     fastuidraw::reference_counted_ptr<TessellatedPath::Refiner> m_refiner;
     std::vector<TessellatedPathRef> m_data;
@@ -1520,7 +1502,7 @@ tessellation(const fastuidraw::Path &path, float max_distance)
       iter = std::lower_bound(m_data.begin(),
                               m_data.end(),
                               max_distance,
-                              reverse_compare_max_distance());
+                              reverse_compare_max_distance);
 
       FASTUIDRAWassert(iter != m_data.end());
       FASTUIDRAWassert(*iter);
@@ -1554,13 +1536,6 @@ tessellation(const fastuidraw::Path &path, float max_distance)
            */
           if (m_data.back()->max_distance() > ref->max_distance())
             {
-              /**
-              std::cout << "added on allow arcs = " << m_allow_arcs
-                        << "(max_segs = "  << ref->max_segments()
-                        << ", tess_factor = " << ref->max_distance()
-                        << ", max_recursion = " << ref->max_recursion()
-                        << ")\n";
-              **/
               m_data.push_back(ref);
             }
 
@@ -1572,14 +1547,6 @@ tessellation(const fastuidraw::Path &path, float max_distance)
             {
               m_done = true;
               m_refiner = nullptr;
-
-              /**
-              std::cout << "Tapped out on allow arcs = " << m_allow_arcs
-                        << "(max_segs = "  << ref->max_segments() << ", tess_factor = "
-                        << ref->max_distance() << ", max_recursion_limit = "
-                        << max_refine_recursion_limit << "), aiming for "
-                        << current_max_distance << "\n";
-              **/
             }
         }
     }

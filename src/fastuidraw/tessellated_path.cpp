@@ -114,24 +114,6 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> > m_linearization;
   };
 
-  class reverse_compare_max_distance
-  {
-  public:
-    bool
-    operator()(const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> &lhs,
-               float rhs) const
-    {
-      return lhs->max_distance() > rhs;
-    }
-
-    bool
-    operator()(const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> &lhs,
-               const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> &rhs) const
-    {
-      return lhs->max_distance() > rhs->max_distance();
-    }
-  };
-
   void
   union_segment(const fastuidraw::TessellatedPath::segment &S,
                 fastuidraw::BoundingBox<float> &BB)
@@ -970,7 +952,7 @@ linearization(float thresh) const
       typename std::vector<reference_counted_ptr<const TessellatedPath> >::const_iterator iter;
       iter = std::lower_bound(d->m_linearization.begin(),
                               d->m_linearization.end(),
-                              thresh, reverse_compare_max_distance());
+                              thresh, detail::reverse_compare_max_distance);
       FASTUIDRAWassert(iter != d->m_linearization.end());
       FASTUIDRAWassert(*iter);
       FASTUIDRAWassert((*iter)->max_distance() <= thresh);
