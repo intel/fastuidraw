@@ -227,10 +227,33 @@ namespace
 
   inline
   enum fastuidraw::PainterEnums::shader_anti_alias_t
-  compute_shader_anti_alias(enum fastuidraw::PainterEnums::shader_anti_alias_t v,
-                            enum fastuidraw::PainterEnums::shader_anti_alias_t auto_v)
+  select_anti_alias_from_auto(enum fastuidraw::PainterEnums::hq_anti_alias_support_t support)
   {
-    return (v == fastuidraw::PainterEnums::shader_anti_alias_auto) ? auto_v : v;
+    return (support == fastuidraw::PainterEnums::hq_anti_alias_fast) ?
+      fastuidraw::PainterEnums::shader_anti_alias_high_quality :
+      fastuidraw::PainterEnums::shader_anti_alias_simple;
+  }
+
+  inline
+  enum fastuidraw::PainterEnums::shader_anti_alias_t
+  compute_shader_anti_alias(enum fastuidraw::PainterEnums::shader_anti_alias_t v,
+                            enum fastuidraw::PainterEnums::hq_anti_alias_support_t support,
+                            enum fastuidraw::PainterEnums::shader_anti_alias_t fastest)
+  {
+    v = (v == fastuidraw::PainterEnums::shader_anti_alias_fastest) ?
+      fastest :
+      v;
+
+    v = (v == fastuidraw::PainterEnums::shader_anti_alias_auto) ?
+      select_anti_alias_from_auto(support):
+      v;
+
+    v = (v == fastuidraw::PainterEnums::shader_anti_alias_high_quality
+         && support == fastuidraw::PainterEnums::hq_anti_alias_no_support) ?
+      fastuidraw::PainterEnums::shader_anti_alias_simple :
+      v;
+
+    return v;
   }
 
   void
@@ -1987,13 +2010,15 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
       return;
     }
 
-  enum PainterEnums::shader_anti_alias_t auto_a;
+  enum PainterEnums::shader_anti_alias_t fastest;
 
-  auto_a = (edge_use_arc_shaders) ?
-    shader.auto_anti_alias_mode(PainterStrokeShader::arc_stroke_type) :
-    shader.auto_anti_alias_mode(PainterStrokeShader::linear_stroke_type);
+  fastest = (edge_use_arc_shaders) ?
+    shader.fastest_anti_alias_mode(PainterStrokeShader::arc_stroke_type) :
+    shader.fastest_anti_alias_mode(PainterStrokeShader::linear_stroke_type);
 
-  anti_aliasing = compute_shader_anti_alias(anti_aliasing, auto_a);
+  anti_aliasing = compute_shader_anti_alias(anti_aliasing,
+                                            shader.hq_anti_alias_support(),
+                                            fastest);
 
   unsigned int zinc_sum(0), current(0), modify_z_coeff;
   bool modify_z;
@@ -2586,7 +2611,8 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.auto_anti_alias_mode());
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
 
   fastuidraw::c_array<const unsigned int> subset_list;
   subset_list = make_c_array(d->m_work_room.m_fill_subset.m_subsets).sub_array(0, num_subsets);
@@ -2695,7 +2721,8 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.auto_anti_alias_mode());
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
 
   c_array<const unsigned int> subset_list;
   int incr_z;

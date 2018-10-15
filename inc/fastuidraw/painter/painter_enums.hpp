@@ -193,12 +193,23 @@ namespace fastuidraw
          */
         shader_anti_alias_high_quality,
 
+        /* make the modes that indicate for Painter to choose
+         * to come after the modes that precisely specify a
+         * choice.
+         */
+
         /*!
          * Represents to use \ref shader_anti_alias_high_quality
          * if using it does not have a large performance impact
          * and otherwise to use \ref shader_anti_alias_simple.
          */
         shader_anti_alias_auto,
+
+        /*!
+         * Represents to use the fastest anti-alias mode
+         * (which is not shader_anti_alias_none).
+         */
+        shader_anti_alias_fastest,
       };
 
     /*!
@@ -221,6 +232,10 @@ namespace fastuidraw
          * computing per-pixel coverage.
          */
         stroking_method_arc,
+
+        /* make the modes that indicate to choose to come
+         * after the modes that precisely specify a value.
+         */
 
         /*!
          * Choose for optimal performance.
