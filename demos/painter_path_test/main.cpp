@@ -204,6 +204,7 @@ private:
       by_anti_alias_auto,
       by_anti_alias_simple,
       by_anti_alias_hq,
+      by_anti_alias_fastest,
 
       number_anti_alias_modes
     };
@@ -695,11 +696,13 @@ painter_stroke_test(void):
   m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
   m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
   m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
+  m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
 
   m_shader_anti_alias_mode_values[no_anti_alias] = PainterEnums::shader_anti_alias_none;
   m_shader_anti_alias_mode_values[by_anti_alias_auto] = PainterEnums::shader_anti_alias_auto;
   m_shader_anti_alias_mode_values[by_anti_alias_simple] = PainterEnums::shader_anti_alias_simple;
   m_shader_anti_alias_mode_values[by_anti_alias_hq] = PainterEnums::shader_anti_alias_high_quality;
+  m_shader_anti_alias_mode_values[by_anti_alias_fastest] = PainterEnums::shader_anti_alias_fastest;
 
   m_stroke_mode_labels[stroke_linear_path] = "stroke_linear_path";
   m_stroke_mode_labels[stroke_arc_path] = "stroke_arc_path";
@@ -1955,12 +1958,13 @@ draw_frame(void)
 
       if (m_stroke_width > 0.0f)
         {
-          ostr << "\n\tStroking mode:" << m_anti_alias_mode_labels[m_aa_stroke_mode];
+          ostr << "\n\tAA-Stroking mode:" << m_anti_alias_mode_labels[m_aa_stroke_mode]
+	       << "\n\tStroke by: " <<  m_stroke_mode_labels[m_stroking_mode];
         }
 
       if (m_draw_fill)
         {
-          ostr << "\n\tFilling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode];
+          ostr << "\n\tAA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode];
         }
 
       ostr << "\nAttribs: "
