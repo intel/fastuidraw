@@ -323,6 +323,12 @@ namespace
       return m_sub_sequences[I];
     }
 
+    bool
+    empty(void) const
+    {
+      return m_added_glyphs.empty();
+    }
+
     GlyphSubSequencePrivate*
     root(void)
     {
@@ -1023,6 +1029,8 @@ select_sub_sequences(ScratchSpace &scratch_space,
   GlyphSequencePrivate *d;
 
   d = static_cast<GlyphSequencePrivate*>(m_d);
-  return d->root()->select(*static_cast<ScratchSpacePrivate*>(scratch_space.m_d),
-			   clip_equations, clip_matrix_local, dst);
+  return (!d->empty()) ?
+    d->root()->select(*static_cast<ScratchSpacePrivate*>(scratch_space.m_d),
+                      clip_equations, clip_matrix_local, dst) :
+    0u;
 }
