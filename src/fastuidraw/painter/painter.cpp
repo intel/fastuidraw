@@ -1378,7 +1378,7 @@ PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
   m_resolution(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
-  m_curve_flatness(0.25f),
+  m_curve_flatness(0.5f),
   m_linearize_from_arc_path(true)
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);

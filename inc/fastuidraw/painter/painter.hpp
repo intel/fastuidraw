@@ -389,9 +389,9 @@ namespace fastuidraw
      * represents the distance, in pixels, requested for between
      * the approximated curve (realized in TessellatedPath) and
      * the true curve (realized in Path). This value is combined
-     * with a value derived from the current transformation matrix
-     * to pass to Path::tessellation(float) to fetch a
-     * TessellatedPath.
+     * with a value derived from the current transformation
+     * matrix to pass to Path::tessellation(float) to fetch a
+     *  \ref TessellatedPath. Default value is 0.5.
      */
     void
     curveFlatness(float thresh);
