@@ -29,7 +29,7 @@
 
 #ifdef FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD
 
-  void
+  bool
   fastuidraw_apply_clipping(void)
   {
     /* hardware clipping is slightly different in output (on GEN atleast)
@@ -47,6 +47,7 @@
       {
         FASTUIDRAW_DISCARD;
       }
+    return false;
   }
 
 #elif defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
@@ -54,30 +55,33 @@
     #error "Using FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE without FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH or FASTUIDRAW_PAINTER_BLEND_INTERLOCK"
   #endif
 
-  bool fastuidraw_fragment_discarded;
-
-  void
+  bool
   fastuidraw_apply_clipping(void)
   {
     float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
-    fastuidraw_fragment_discarded = (fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
-                                     || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon);
+    return (fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
+            || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon);
   }
 
 #else
 
-  void
+  bool
   fastuidraw_apply_clipping(void)
-  {}
+  {
+    return false;
+  }
 
 #endif
+
 
 void
 main(void)
 {
-  vec4 c, b, v;
+  vec4 v;
   vec2 pbrush, pbrush_dx, pbrush_dy;
+  bool fragment_discarded;
 
+  fragment_discarded = fastuidraw_apply_clipping();
   pbrush = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
   pbrush_dx = dFdx(pbrush);
   pbrush_dy = dFdy(pbrush);
@@ -90,16 +94,16 @@ main(void)
     }
   #endif
 
-  /* Please forgive me for placing an if() inside an #ifdef */
-  #ifdef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
-  if (!fastuidraw_fragment_discarded)
-  #endif
+  if (!fragment_discarded)
     {
+      vec4 b, c;
+
       #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
         {
           fastuidraw_shader_header h;
 
           fastuidraw_read_header(fastuidraw_header_varying, h);
+          fastuidraw_process_header(h);
 
           fastuidraw_frag_shader = h.item_shader;
           fastuidraw_frag_shader_data_location = h.item_shader_data_location;
@@ -114,9 +118,17 @@ main(void)
         }
       #endif
 
-      c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
-      b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
-      v = b * c;
+      if (fastuidraw_composite_shader != ~0u)
+        {
+          c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
+          b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
+          v = b * c;
+        }
+      else
+        {
+          v = vec4(0.0);
+          fragment_discarded = true;
+        }
     }
 
   /* NV and ARB fragment_shader_interlock specify that the
@@ -146,8 +158,9 @@ main(void)
   #elif defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH)
     {
       vec4 in_fb, out_fb, out_blend;
+
       in_fb = fastuidraw_final_color;
-      #ifndef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
+      if(!fragment_discarded)
         {
           fastuidraw_run_blend_shader(fastuidraw_blend_shader,
                                       fastuidraw_composite_shader_data_location,
@@ -158,25 +171,10 @@ main(void)
                                           fastuidraw_composite_shader_data_location,
                                           out_blend, in_fb, out_fb);
         }
-      #else
+      else
         {
-          if(fastuidraw_fragment_discarded)
-            {
-              out_fb = in_fb;
-            }
-          else
-            {
-              fastuidraw_run_blend_shader(fastuidraw_blend_shader,
-                                          fastuidraw_composite_shader_data_location,
-                                          v.rgb, in_fb.rgb, out_blend.rgb);
-              out_blend.a = v.a;
-              out_blend.rgb *= out_blend.a;
-              fastuidraw_run_composite_shader(fastuidraw_composite_shader,
-                                              fastuidraw_composite_shader_data_location,
-                                              out_blend, in_fb, out_fb);
-            }
+          out_fb = in_fb;
         }
-      #endif
       fastuidraw_final_color = out_fb;
     }
   #elif defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
@@ -188,9 +186,7 @@ main(void)
             fastuidraw_begin_interlock();
       #endif
 
-      #ifdef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
-      if(!fastuidraw_fragment_discarded)
-      #endif
+      if(!fragment_discarded)
         {
           vec4 in_fb, out_fb, out_blend;
           ivec2 pos = ivec2(gl_FragCoord.xy);

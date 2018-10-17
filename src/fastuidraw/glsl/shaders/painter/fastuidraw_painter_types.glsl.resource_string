@@ -54,3 +54,15 @@ struct fastuidraw_dashed_stroking_params_header
   float first_interval_start_on_looping;
   uint number_intervals;
 };
+
+void
+fastuidraw_process_header(inout fastuidraw_shader_header h)
+{
+  if ((h.flags & FASTUIDRAW_HEADER_DRAWING_OCCLUDER) != 0u)
+    {
+      /* We pass along that the drawing is for drawing an occluder
+       * by setting the composite shader to all bits up.
+       */
+      h.composite_shader = ~0u;
+    }
+}

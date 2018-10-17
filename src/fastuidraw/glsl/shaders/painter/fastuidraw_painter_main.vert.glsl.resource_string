@@ -59,6 +59,7 @@ main(void)
   int add_z;
 
   fastuidraw_read_header(fastuidraw_header_attribute, h);
+  fastuidraw_process_header(h);
   fastuidraw_read_clipping(h.clipping_location, clipping);
   fastuidraw_read_item_matrix(h.item_matrix_location, fastuidraw_item_matrix);
 
@@ -79,6 +80,10 @@ main(void)
 
   fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
   fastuidraw_vert_brush_processing(brush_p, h);
+  if ((h.flags & FASTUIDRAW_HEADER_DRAWING_OCCLUDER) != 0u)
+    {
+      add_z = 0;
+    }
 
   fastuidraw_apply_clipping(clip_p, clipping);
 

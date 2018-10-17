@@ -451,6 +451,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   src
     .add_macro("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
     .add_macro("fastuidraw_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported))
+    .add_macro("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", uint32_t(PainterHeader::drawing_occluder))
 
     .add_macro("fastuidraw_shader_image_mask", PainterBrush::image_mask)
     .add_macro("fastuidraw_shader_image_filter_bit0", PainterBrush::image_filter_bit0)
