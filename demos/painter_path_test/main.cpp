@@ -218,6 +218,15 @@ private:
       number_stroking_modes
     };
 
+  enum fill_mode_t
+    {
+      draw_fill_path,
+      draw_fill_path_occludes_stroking,
+      dont_draw_fill_path,
+
+      number_fill_modes,
+    };
+
   typedef std::pair<std::string,
                     reference_counted_ptr<ColorStopSequenceOnAtlas> > named_color_stop;
 
@@ -414,6 +423,7 @@ private:
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
   vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
   vecN<std::string, number_stroking_modes> m_stroke_mode_labels;
+  vecN<std::string, number_fill_modes> m_draw_fill_labels;
   vecN<enum PainterEnums::stroking_method_t, number_stroking_modes> m_stroke_mode_values;
   vecN<enum PainterEnums::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
 
@@ -449,7 +459,7 @@ private:
 
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
-  bool m_draw_fill;
+  unsigned int m_draw_fill;
   unsigned int m_aa_stroke_mode;
   unsigned int m_stroking_mode;
   unsigned int m_aa_fill_mode;
@@ -605,7 +615,7 @@ painter_stroke_test(void):
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
-  m_draw_fill(false),
+  m_draw_fill(draw_fill_path),
   m_aa_stroke_mode(by_anti_alias_auto),
   m_stroking_mode(stroke_auto_path),
   m_aa_fill_mode(by_anti_alias_auto),
@@ -642,7 +652,7 @@ painter_stroke_test(void):
             << "\tb: decrease miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tn: increase miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tm: toggle miter limit enforced\n"
-            << "\tf: toggle drawing path fill\n"
+            << "\tf: cycle drawing path filled (not filled, filled, filled and occludes stroking)\n"
             << "\tr: cycle through fill rules\n"
             << "\te: toggle fill by drawing clip rect\n"
             << "\ti: cycle through image filter to apply to fill (no image, nearest, linear, cubic)\n"
@@ -711,6 +721,10 @@ painter_stroke_test(void):
   m_stroke_mode_values[stroke_linear_path] = PainterEnums::stroking_method_linear;
   m_stroke_mode_values[stroke_arc_path] = PainterEnums::stroking_method_arc;
   m_stroke_mode_values[stroke_auto_path] = PainterEnums::stroking_method_auto;
+
+  m_draw_fill_labels[draw_fill_path] = "draw_fill";
+  m_draw_fill_labels[draw_fill_path_occludes_stroking] = "draw_fill_path_occludes_stroking";
+  m_draw_fill_labels[dont_draw_fill_path] = "dont_draw_fill_path";
 
   m_rect << vec2(-0.5f, -0.5f)
          << vec2(-0.5f, +0.5f)
@@ -1152,7 +1166,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_i:
-          if (m_image && m_draw_fill)
+          if (m_image && m_draw_fill != dont_draw_fill_path)
             {
               if (ev.key.keysym.mod & (KMOD_CTRL|KMOD_ALT))
                 {
@@ -1183,7 +1197,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_s:
-          if (m_draw_fill)
+          if (m_draw_fill != dont_draw_fill_path)
             {
               cycle_value(m_active_color_stop, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_color_stops.size());
               std::cout << "Drawing color stop: " << m_color_stops[m_active_color_stop].first << "\n";
@@ -1191,7 +1205,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_g:
-          if (m_draw_fill)
+          if (m_draw_fill != dont_draw_fill_path)
             {
               cycle_value(m_gradient_draw_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_gradient_draw_modes);
               std::cout << "Gradient mode set to: " << m_gradient_mode_labels[m_gradient_draw_mode] << "\n";
@@ -1247,7 +1261,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_r:
-          if (m_draw_fill)
+          if (m_draw_fill != dont_draw_fill_path)
             {
               cycle_value(current_fill_rule(),
                           ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
@@ -1273,7 +1287,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_e:
-          if (m_draw_fill)
+          if (m_draw_fill != dont_draw_fill_path)
             {
               m_fill_by_clipping = !m_fill_by_clipping;
               std::cout << "Set to ";
@@ -1289,17 +1303,14 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_f:
-          m_draw_fill = !m_draw_fill;
-          std::cout << "Set to ";
-          if (!m_draw_fill)
-            {
-              std::cout << "NOT ";
-            }
-          std::cout << "draw path fill\n";
+          cycle_value(m_draw_fill,
+                      ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
+                      number_fill_modes);
+          std::cout << "Draw Fill by " << m_draw_fill_labels[m_draw_fill] << "\n";
           break;
 
         case SDLK_u:
-          if (m_draw_fill)
+          if (m_draw_fill != dont_draw_fill_path)
             {
               cycle_value(m_aa_fill_mode,
                           ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
@@ -1602,7 +1613,11 @@ draw_scene(bool drawing_wire_frame)
       m_painter->clipInRect(clipping_xy(), clipping_wh());
     }
 
-  if (m_draw_fill)
+  CustomFillRuleFunction fill_rule_function(everything_filled);
+  WindingValueFillRule value_fill_rule;
+  CustomFillRuleBase *fill_rule(&fill_rule_function);
+
+  if (m_draw_fill != dont_draw_fill_path)
     {
       PainterBrush fill_brush;
 
@@ -1654,7 +1669,6 @@ draw_scene(bool drawing_wire_frame)
           fill_brush.no_gradient();
         }
 
-
       if (!m_image || m_image_filter == no_image)
         {
           fill_brush.no_image();
@@ -1684,10 +1698,6 @@ draw_scene(bool drawing_wire_frame)
                                mip_max_level);
         }
 
-      CustomFillRuleFunction fill_rule_function(everything_filled);
-      WindingValueFillRule value_fill_rule;
-      CustomFillRuleBase *fill_rule(&fill_rule_function);
-
       if (current_fill_rule() < PainterEnums::fill_rule_data_count)
         {
           fill_rule_function = CustomFillRuleFunction(static_cast<PainterEnums::fill_rule_t>(current_fill_rule()));
@@ -1715,10 +1725,12 @@ draw_scene(bool drawing_wire_frame)
 
       if (m_fill_by_clipping)
         {
+          vec2 a, b;
+
+          path().approximate_bounding_box(&a, &b);
           m_painter->save();
           m_painter->clipInPath(path(), *fill_rule);
-          m_painter->transformation(float3x3());
-          m_painter->draw_rect(D, vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
+          m_painter->draw_rect(D, a, b - a);
           m_painter->restore();
         }
       else
@@ -1739,6 +1751,12 @@ draw_scene(bool drawing_wire_frame)
     {
       PainterPackedValue<PainterBrush> *stroke_pen;
       stroke_pen = (!drawing_wire_frame) ? &m_stroke_pen : &m_draw_line_pen;
+
+      if (m_draw_fill == draw_fill_path_occludes_stroking)
+        {
+          m_painter->save();
+          m_painter->clipOutPath(path(), *fill_rule);
+        }
 
       if (is_dashed_stroking())
         {
@@ -1798,9 +1816,14 @@ draw_scene(bool drawing_wire_frame)
                                  .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]),
                                  m_stroke_mode_values[m_stroking_mode]);
         }
+
+      if (m_draw_fill == draw_fill_path_occludes_stroking)
+        {
+          m_painter->restore();
+        }
     }
 
-  if (m_draw_fill && m_gradient_draw_mode != draw_no_gradient && !drawing_wire_frame)
+  if (m_draw_fill != dont_draw_fill_path && m_gradient_draw_mode != draw_no_gradient && !drawing_wire_frame)
     {
       float r0, r1;
       vec2 p0, p1;
@@ -1952,7 +1975,7 @@ draw_frame(void)
 	       << "\n\tStroke by: " <<  m_stroke_mode_labels[m_stroking_mode];
         }
 
-      if (m_draw_fill)
+      if (m_draw_fill != dont_draw_fill_path)
         {
           ostr << "\n\tAA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode];
         }
