@@ -33,4 +33,5 @@ pack_data(c_array<generic_data> dst) const
   dst[composite_shader_offset].u               = m_composite_shader;
   dst[blend_shader_offset].u                   = m_blend_shader;
   dst[z_offset].i                              = m_z;
+  dst[flags_offset].u                          = m_flags;
 }

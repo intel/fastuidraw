@@ -749,6 +749,7 @@ pack_header(unsigned int header_size,
   header.m_composite_shader = composite.m_ID;
   header.m_blend_shader = blend.m_ID;
   header.m_z = z;
+  header.m_flags = 0u;
   header.pack_data(dst);
 
   if (current.m_item_group != m_prev_state.m_item_group

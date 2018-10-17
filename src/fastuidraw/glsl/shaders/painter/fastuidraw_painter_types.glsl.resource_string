@@ -30,6 +30,7 @@ struct fastuidraw_shader_header
   uint composite_shader;
   uint blend_shader;
   int z;
+  uint flags;
 };
 
 struct fastuidraw_clipping_data

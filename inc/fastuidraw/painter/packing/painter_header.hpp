@@ -39,6 +39,19 @@ namespace fastuidraw
   {
   public:
     /*!
+     * Bit-masks for \ref m_flags.
+     */
+    enum flags_t
+      {
+        /*!
+         * Indicates that the drawing is for drawing
+         * an occluder; These draws are to have no
+         * net-effect on the color framebuffer.
+         */
+        drawing_occluder = 1u
+      };
+
+    /*!
      * Enumerations specifying how the contents of a PainterHeader
      * are packed into a data store buffer (PainterDraw::m_store).
      */
@@ -55,6 +68,7 @@ namespace fastuidraw
         composite_shader_offset, /*!< offset to \ref m_composite_shader */
         blend_shader_offset, /*!< offset to \ref m_blend_shader */
         z_offset, /*!< offset to \ref m_z */
+        flags_offset, /*!< offset to \ref m_flags */
 
         header_size /*!< size of header */
       };
@@ -146,9 +160,14 @@ namespace fastuidraw
 
     /*!
      * The z-value to use for the item. The z-value is used
-     * by Painter to implement clipping.
+     * by Painter to implement clipping and to prevent overdraw.
      */
     int32_t m_z;
+
+    /*!
+     * Additional flags for information about a painter draw.
+     */
+    uint32_t m_flags;
 
     /*!
      * Pack the values of this PainterHeader

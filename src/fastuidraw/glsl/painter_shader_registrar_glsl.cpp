@@ -600,6 +600,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterHeader::item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
       .set(PainterHeader::composite_shader_offset, ".composite_shader", shader_unpack_value::uint_type)
       .set(PainterHeader::blend_shader_offset, ".blend_shader", shader_unpack_value::uint_type)
+      .set(PainterHeader::flags_offset, ".flags", shader_unpack_value::uint_type)
       .stream_unpack_function(str, "fastuidraw_read_header",
                               "fastuidraw_shader_header", false);
   }

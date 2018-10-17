@@ -126,20 +126,6 @@ namespace
     std::vector<uint32_t> m_values;
   };
 
-  class change_header_z
-  {
-  public:
-    change_header_z(const fastuidraw::PainterHeader &header,
-                    fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
-    {
-      FASTUIDRAWunused(header);
-      m_mapped = &mapped_location[fastuidraw::PainterHeader::z_offset].i;
-    }
-
-    //location to which to write to overwrite value.
-    int32_t *m_mapped;
-  };
-
   class ZDelayedAction:public fastuidraw::PainterDraw::DelayedAction
   {
   public:
@@ -156,16 +142,17 @@ namespace
     void
     action(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &)
     {
-      for(change_header_z &d : m_dests)
+      for(const fastuidraw::c_array<fastuidraw::generic_data> &d : m_dests)
         {
-          *d.m_mapped = m_z_to_write;
+          d[fastuidraw::PainterHeader::z_offset].i = m_z_to_write;
+          d[fastuidraw::PainterHeader::flags_offset].u = fastuidraw::PainterHeader::drawing_occluder;
         }
     }
 
   private:
     friend class ZDataCallBack;
     int32_t m_z_to_write;
-    std::vector<change_header_z> m_dests;
+    std::vector<fastuidraw::c_array<fastuidraw::generic_data> > m_dests;
   };
 
   class ZDataCallBack:public fastuidraw::PainterPacker::DataCallBack
@@ -189,7 +176,8 @@ namespace
     header_added(const fastuidraw::PainterHeader &original_value,
                  fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
-      m_current->m_dests.push_back(change_header_z(original_value, mapped_location));
+      FASTUIDRAWunused(original_value);
+      m_current->m_dests.push_back(mapped_location);
     }
 
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > m_actions;
