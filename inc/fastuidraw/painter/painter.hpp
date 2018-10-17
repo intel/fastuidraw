@@ -625,6 +625,28 @@ namespace fastuidraw
                    c_array<unsigned int> dst);
 
     /*!
+     * Calls StrokedCapsJoins::compute_chunks() passing arguments derived
+     * from the current state of the Painter.
+     * \param caps_joins \ref StrokedCapsJoins from which to compute chunk selection
+     * \param pixels_additional_room additional slack in -pixels- in selecting
+     *                               subsets from the StrokedPath geometry data
+     * \param item_space_additional_room amount additional slack in -local coordinate-
+     *                                   in selecting subsets from the StrokedPath
+     *                                   geometry data
+     * \param include_closing_edges if true, include the joins of the closing edges
+     * \param select_joins_for_miter_style if true join selection reflects those joins
+     *                                     that would be visible if drawn as miter-joins.
+     * \param[out] dst location to which to write what chunks
+     */
+    void
+    select_chunks(const StrokedCapsJoins &caps_joins,
+                  float pixels_additional_room,
+                  float item_space_additional_room,
+                  bool include_closing_edges,
+                  bool take_all_joins,
+                  StrokedCapsJoins::ChunkSet *dst);
+
+    /*!
      * Stroke a path.
      * \param shader shader with which to stroke the attribute data
      * \param draw data for how to draw

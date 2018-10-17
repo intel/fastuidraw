@@ -2556,6 +2556,38 @@ select_subsets(const StrokedPath &path,
 
 void
 fastuidraw::Painter::
+select_chunks(const StrokedCapsJoins &caps_joins,
+              float pixels_additional_room,
+              float item_space_additional_room,
+              bool include_closing_edges,
+              bool select_joins_for_miter_style,
+              StrokedCapsJoins::ChunkSet *dst)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(dst);
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      dst->reset();
+      return;
+    }
+
+  caps_joins.compute_chunks(d->m_work_room.m_stroke.m_caps_joins_scratch,
+                            d->m_clip_store.current(),
+                            d->m_clip_rect_state.item_matrix(),
+                            d->m_one_pixel_width,
+                            pixels_additional_room,
+                            item_space_additional_room,
+                            include_closing_edges,
+                            d->m_max_attribs_per_block,
+                            d->m_max_indices_per_block,
+                            select_joins_for_miter_style,
+                            *dst);
+}
+
+void
+fastuidraw::Painter::
 stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
             const StrokedPath &path, float thresh,
             const StrokingStyle &stroke_style,
