@@ -15,8 +15,6 @@ FASTUIDRAW_SOURCES += $(call filelist, fill_rule.cpp \
 	painter_dashed_stroke_params.cpp \
 	painter.cpp painter_enums.cpp \
 	painter_shader_data.cpp \
-	painter_clip_equations.cpp \
-	painter_item_matrix.cpp \
 	painter_shader.cpp painter_shader_set.cpp \
 	painter_dashed_stroke_shader_set.cpp \
 	painter_stroke_shader.cpp \

@@ -6,6 +6,8 @@ d		:= $(dir)
 
 FASTUIDRAW_SOURCES += $(call filelist, \
 	painter_backend.cpp painter_header.cpp \
+	painter_clip_equations.cpp \
+	painter_item_matrix.cpp \
 	painter_shader_registrar.cpp \
 	painter_draw.cpp painter_packer.cpp)
 

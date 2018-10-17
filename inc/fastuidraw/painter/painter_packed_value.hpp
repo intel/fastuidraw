@@ -21,10 +21,10 @@
 
 
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/painter_item_matrix.hpp>
-#include <fastuidraw/painter/painter_clip_equations.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
+#include <fastuidraw/painter/packing/painter_item_matrix.hpp>
+#include <fastuidraw/painter/packing/painter_clip_equations.hpp>
 
 namespace fastuidraw
 {

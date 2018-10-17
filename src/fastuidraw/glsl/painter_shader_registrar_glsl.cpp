@@ -23,13 +23,13 @@
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/painter/stroked_point.hpp>
 #include <fastuidraw/painter/arc_stroked_point.hpp>
-#include <fastuidraw/painter/painter_item_matrix.hpp>
-#include <fastuidraw/painter/painter_clip_equations.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/packing/painter_header.hpp>
+#include <fastuidraw/painter/packing/painter_item_matrix.hpp>
+#include <fastuidraw/painter/packing/painter_clip_equations.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>

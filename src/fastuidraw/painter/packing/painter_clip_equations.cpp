@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/painter_clip_equations.hpp>
+#include <fastuidraw/painter/packing/painter_clip_equations.hpp>
 
 //////////////////////////////////////////////
 // fastuidraw::PainterClipEquations methods
