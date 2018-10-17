@@ -95,6 +95,13 @@ public:
     c_array<const unsigned int>
     cap_chunks(void) const;
 
+    /*!
+     * Clear the values (i.e. make join_chunks() and cap_chunks()
+     * empty).
+     */
+    void
+    reset(void);
+
   private:
     friend class StrokedCapsJoins;
     void *m_d;

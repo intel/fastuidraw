@@ -417,7 +417,6 @@ namespace
     {
       m_ignore_join_adds = false;
       m_join_chunks.clear();
-      m_join_ranges.clear();
       m_cap_chunks.clear();
     }
 
@@ -447,7 +446,6 @@ namespace
 
   private:
     std::vector<unsigned int> m_join_chunks, m_cap_chunks;
-    std::vector<fastuidraw::range_type<unsigned int> > m_join_ranges;
     bool m_ignore_join_adds;
   };
 
@@ -3078,7 +3076,6 @@ add_join_chunk(const RangeAndChunk &j)
   if (j.non_empty() && !m_ignore_join_adds)
     {
       m_join_chunks.push_back(j.m_chunk);
-      m_join_ranges.push_back(j.m_elements);
     }
 }
 
@@ -3124,6 +3121,15 @@ cap_chunks(void) const
   ChunkSetPrivate *d;
   d = static_cast<ChunkSetPrivate*>(m_d);
   return d->cap_chunks();
+}
+
+void
+fastuidraw::StrokedCapsJoins::ChunkSet::
+reset(void)
+{
+  ChunkSetPrivate *d;
+  d = static_cast<ChunkSetPrivate*>(m_d);
+  d->reset();
 }
 
 ////////////////////////////////////////
