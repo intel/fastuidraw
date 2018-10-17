@@ -383,6 +383,70 @@ namespace fastuidraw
     clipInPath(const FilledPath &path, const CustomFillRuleBase &fill_rule);
 
     /*!
+     * Clipout by custom data.
+     * \param shader shader with which to draw the attribute/index data
+     * \param shader_data shader data to pass to shader
+     * \param attrib_chunks attribute data to draw
+     * \param index_chunks the i'th element is index data into attrib_chunks[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
+     * \param attrib_chunk_selector selects which attribute chunk to use for
+     *                              each index chunk
+     */
+    void
+    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
+                  const PainterData::value<PainterItemShaderData> &shader_data,
+                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                  c_array<const c_array<const PainterIndex> > index_chunks,
+                  c_array<const int> index_adjusts,
+                  c_array<const unsigned int> attrib_chunk_selector);
+
+    /*!
+     * Clipout by custom data.
+     * \param shader shader with which to draw the attribute/index data
+     * \param shader_data shader data to pass to shader
+     * \param attrib_chunks attribute data to draw
+     * \param index_chunks the i'th element is index data into attrib_chunks[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
+     */
+    void
+    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
+                  const PainterData::value<PainterItemShaderData> &shader_data,
+                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                  c_array<const c_array<const PainterIndex> > index_chunks,
+                  c_array<const int> index_adjusts)
+    {
+      clipOutCustom(shader, shader_data,
+                    attrib_chunks, index_chunks, index_adjusts,
+                    c_array<const unsigned int>());
+    }
+
+    /*!
+     * Clipout by custom data.
+     * \param shader shader with which to draw the attribute/index data
+     * \param shader_data shader data to pass to shader
+     * \param attrib_chunk attribute data to draw
+     * \param index_chunk index data into attrib_chunk
+     * \param index_adjust amount by which to adjust the values in index_chunk
+     * \param call_back handle to PainterPacker::DataCallBack for the draw
+     */
+    void
+    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
+                  const PainterData::value<PainterItemShaderData> &shader_data,
+                  c_array<const PainterAttribute> attrib_chunk,
+                  c_array<const PainterIndex> index_chunk,
+                  int index_adjust)
+    {
+      vecN<c_array<const PainterAttribute>, 1> aa(attrib_chunk);
+      vecN<c_array<const PainterIndex>, 1> ii(index_chunk);
+      vecN<int, 1> ia(index_adjust);
+      clipOutCustom(shader, shader_data, aa, ii, ia);
+    }
+
+    /*!
      * Set the curve flatness requirement for TessellatedPath
      * and StrokedPath selection when stroking or filling paths
      * when passing to drawing methods a Path object. The value
@@ -505,12 +569,12 @@ namespace fastuidraw
 
     /*!
      * Returns what value Painter currently uses for Path::tessellation(float) const
-     * and Path::arc_tessellation(float) const to fetch the \ref TessellatedPath
-     * from which it will fetch the \ref FilledPath to perform a path fill.
+     * to fetch the \ref TessellatedPath from which it will fetch the \ref FilledPath
+     * to perform a path fill.
      * \param path \ref Path to choose the thresh for
      */
     float
-    compute_path_thresh(const fastuidraw::Path &path);
+    compute_path_thresh(const Path &path);
 
     /*!
      * Stroke a path.
@@ -856,7 +920,7 @@ namespace fastuidraw
      *                      to adjust all of index_chunks[i]; if empty the index
      *                      values are not adjusted.
      * \param attrib_chunk_selector selects which attribute chunk to use for
-     *        each index chunk
+     *                              each index chunk
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */

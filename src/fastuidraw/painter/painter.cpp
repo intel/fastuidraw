@@ -3270,6 +3270,49 @@ clipOutPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 
 void
 fastuidraw::Painter::
+clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
+              const PainterData::value<PainterItemShaderData> &shader_data,
+              c_array<const c_array<const PainterAttribute> > attrib_chunks,
+              c_array<const c_array<const PainterIndex> > index_chunks,
+              c_array<const int> index_adjusts,
+              c_array<const unsigned int> attrib_chunk_selector)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter
+       */
+      return;
+    }
+
+  fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
+  BlendMode::packed_value old_composite_mode;
+  reference_counted_ptr<ZDataCallBack> zdatacallback;
+
+  /* zdatacallback generates a list of PainterDraw::DelayedAction
+   * objects (held in m_actions) who's action is to write the correct
+   * z-value to occlude elements drawn after clipOut but not after
+   * the next time m_occluder_stack is popped.
+   */
+  zdatacallback = FASTUIDRAWnew ZDataCallBack();
+  old_composite = composite_shader();
+  old_composite_mode = composite_mode();
+
+  composite_shader(PainterEnums::composite_porter_duff_dst);
+  draw_generic(shader,
+               PainterData(shader_data, d->m_black_brush),
+               attrib_chunks, index_chunks,
+               index_adjusts, attrib_chunk_selector,
+               zdatacallback);
+  composite_shader(old_composite, old_composite_mode);
+
+  d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
+}
+
+void
+fastuidraw::Painter::
 clipInPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule)
 {
   PainterPrivate *d;
