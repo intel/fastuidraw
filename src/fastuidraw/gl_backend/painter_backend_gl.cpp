@@ -1364,15 +1364,17 @@ configure_from_context(bool choose_optimal_rendering_quality,
     {
       d->m_compositing_type = compositing_framebuffer_fetch;
 
-      /* We are prefering interlock over framebuffer fetch
-       * for the auxiliary buffer because the auxiliary buffer
-       * is not always written (or read).
+      /* Performance testing indicates that framebuffer_fetch
+       * is faster than interlock so use framebuffer_fetch if
+       * it is available.
        */
-      if (interlock_type == no_interlock && !choose_optimal_rendering_quality)
+      if (have_ffb)
         {
-          d->m_provide_auxiliary_image_buffer = have_ffb ?
-            auxiliary_buffer_framebuffer_fetch :
-            no_auxiliary_buffer;
+          d->m_provide_auxiliary_image_buffer = auxiliary_buffer_framebuffer_fetch;
+        }
+      else if (interlock_type == no_interlock && !choose_optimal_rendering_quality)
+        {
+          d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
         }
       else
         {
@@ -1383,7 +1385,7 @@ configure_from_context(bool choose_optimal_rendering_quality,
   else
     {
       /* if one is drawing with MSAA, one should NOT use shader based
-       *  anti-aliasing when stroking or filling anways.
+       * anti-aliasing when stroking or filling anways.
        */
       d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
       if (have_ffb && choose_optimal_rendering_quality)
@@ -1599,8 +1601,8 @@ adjust_for_context(const ContextProperties &ctx)
     compute_provide_auxiliary_buffer(d->m_provide_auxiliary_image_buffer, ctx);
 
   d->m_compositing_type = compute_compositing_type(d->m_provide_auxiliary_image_buffer,
-                                             interlock_type,
-                                             d->m_compositing_type, ctx);
+                                                   interlock_type,
+                                                   d->m_compositing_type, ctx);
 
   /* if have to use discard for clipping, then there is zero point to
    * separate the discarding and non-discarding item shaders.
