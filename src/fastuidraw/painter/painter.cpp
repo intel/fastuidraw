@@ -2503,6 +2503,57 @@ compute_path_thresh(const Path &path,
   return d->compute_path_thresh(path, shader_data, selector, *thresh);
 }
 
+unsigned int
+fastuidraw::Painter::
+select_subsets(const FilledPath &path, c_array<unsigned int> dst)
+{
+  PainterPrivate *d;
+
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(dst.size() >= path.number_subsets());
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      return 0u;
+    }
+
+  return path.select_subsets(d->m_work_room.m_fill_subset.m_scratch,
+                             d->m_clip_store.current(),
+                             d->m_clip_rect_state.item_matrix(),
+                             d->m_max_attribs_per_block,
+                             d->m_max_indices_per_block,
+                             dst);
+}
+
+unsigned int
+fastuidraw::Painter::
+select_subsets(const StrokedPath &path,
+               float pixels_additional_room,
+               float item_space_additional_room,
+               c_array<unsigned int> dst)
+{
+  PainterPrivate *d;
+
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(dst.size() >= path.number_subsets());
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      return 0u;
+    }
+
+  FASTUIDRAWassert(dst.size() >= path.number_subsets());
+  return path.select_subsets(d->m_work_room.m_stroke.m_path_scratch,
+                             d->m_clip_store.current(),
+                             d->m_clip_rect_state.item_matrix(),
+                             d->m_one_pixel_width,
+                             pixels_additional_room,
+                             item_space_additional_room,
+                             d->m_max_attribs_per_block,
+                             d->m_max_indices_per_block,
+                             dst);
+}
+
 void
 fastuidraw::Painter::
 stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
@@ -2600,28 +2651,6 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
 {
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
                      stroke_style, stroking_method, call_back);
-}
-
-unsigned int
-fastuidraw::Painter::
-select_subsets(const FilledPath &path, c_array<unsigned int> dst)
-{
-  PainterPrivate *d;
-
-  d = static_cast<PainterPrivate*>(m_d);
-
-  FASTUIDRAWassert(dst.size() >= path.number_subsets());
-  if (d->m_clip_rect_state.m_all_content_culled)
-    {
-      return 0u;
-    }
-
-  return path.select_subsets(d->m_work_room.m_fill_subset.m_scratch,
-                             d->m_clip_store.current(),
-                             d->m_clip_rect_state.item_matrix(),
-                             d->m_max_attribs_per_block,
-                             d->m_max_indices_per_block,
-                             dst);
 }
 
 void

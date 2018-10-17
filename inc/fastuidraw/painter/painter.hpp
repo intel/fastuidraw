@@ -606,6 +606,25 @@ namespace fastuidraw
     select_subsets(const FilledPath &path, c_array<unsigned int> dst);
 
     /*!
+     * Calls StrokedPath::select_subsets() passing arguments derived from the
+     * current state of the Painter.
+     * \param path \ref StrokedPath from which to compute subset selection
+     * \param pixels_additional_room additional slack in -pixels- in selecting
+     *                               subsets from the StrokedPath geometry data
+     * \param item_space_additional_room amount additional slack in -local coordinate-
+     *                                   in selecting subsets from the StrokedPath
+     *                                   geometry data
+     * \param[out] dst location to which to write the \ref Subset ID values
+     * \returns the number of Subset object ID's written to dst, that
+     *          number is guaranteed to be no more than StrokedPath::number_subsets().
+     */
+    unsigned int
+    select_subsets(const StrokedPath &path,
+                   float pixels_additional_room,
+                   float item_space_additional_room,
+                   c_array<unsigned int> dst);
+
+    /*!
      * Stroke a path.
      * \param shader shader with which to stroke the attribute data
      * \param draw data for how to draw
