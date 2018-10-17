@@ -2602,6 +2602,28 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
                      stroke_style, stroking_method, call_back);
 }
 
+unsigned int
+fastuidraw::Painter::
+select_subsets(const FilledPath &path, c_array<unsigned int> dst)
+{
+  PainterPrivate *d;
+
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(dst.size() >= path.number_subsets());
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      return 0u;
+    }
+
+  return path.select_subsets(d->m_work_room.m_fill_subset.m_scratch,
+                             d->m_clip_store.current(),
+                             d->m_clip_rect_state.item_matrix(),
+                             d->m_max_attribs_per_block,
+                             d->m_max_indices_per_block,
+                             dst);
+}
+
 void
 fastuidraw::Painter::
 fill_path(const PainterFillShader &shader, const PainterData &draw,
@@ -2613,21 +2635,9 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   unsigned int idx_chunk, atr_chunk, num_subsets, incr_z;
 
   d = static_cast<PainterPrivate*>(m_d);
-  if (d->m_clip_rect_state.m_all_content_culled)
-    {
-      return;
-    }
-
-  idx_chunk = FilledPath::Subset::fill_chunk_from_fill_rule(fill_rule);
-  atr_chunk = 0;
 
   d->m_work_room.m_fill_subset.m_subsets.resize(filled_path.number_subsets());
-  num_subsets = filled_path.select_subsets(d->m_work_room.m_fill_subset.m_scratch,
-                                           d->m_clip_store.current(),
-                                           d->m_clip_rect_state.item_matrix(),
-                                           d->m_max_attribs_per_block,
-                                           d->m_max_indices_per_block,
-                                           make_c_array(d->m_work_room.m_fill_subset.m_subsets));
+  num_subsets = select_subsets(filled_path, make_c_array(d->m_work_room.m_fill_subset.m_subsets));
 
   if (num_subsets == 0)
     {
@@ -2644,6 +2654,9 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   d->m_work_room.m_fill_opaque.m_attrib_chunks.clear();
   d->m_work_room.m_fill_opaque.m_index_chunks.clear();
   d->m_work_room.m_fill_opaque.m_index_adjusts.clear();
+
+  idx_chunk = FilledPath::Subset::fill_chunk_from_fill_rule(fill_rule);
+  atr_chunk = 0;
   for(unsigned int s : subset_list)
     {
       FilledPath::Subset subset(filled_path.subset(s));
@@ -2726,18 +2739,9 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   PainterPrivate *d;
 
   d = static_cast<PainterPrivate*>(m_d);
-  if (d->m_clip_rect_state.m_all_content_culled)
-    {
-      return;
-    }
 
   d->m_work_room.m_fill_subset.m_subsets.resize(filled_path.number_subsets());
-  num_subsets = filled_path.select_subsets(d->m_work_room.m_fill_subset.m_scratch,
-                                           d->m_clip_store.current(),
-                                           d->m_clip_rect_state.item_matrix(),
-                                           d->m_max_attribs_per_block,
-                                           d->m_max_indices_per_block,
-                                           make_c_array(d->m_work_room.m_fill_subset.m_subsets));
+  num_subsets = select_subsets(filled_path, make_c_array(d->m_work_room.m_fill_subset.m_subsets));
 
   if (num_subsets == 0)
     {

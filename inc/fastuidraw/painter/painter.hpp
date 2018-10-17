@@ -595,6 +595,17 @@ namespace fastuidraw
                         float *out_rounded_thresh);
 
     /*!
+     * Calls FilledPath::select_subsets() passing arguments derived from the
+     * current state of the Painter.
+     * \param path \ref FilledPath from which to compute subset selection
+     * \param[out] dst location to which to write the \ref Subset ID values
+     * \returns the number of Subset object ID's written to dst, that
+     *          number is guaranteed to be no more than FilledPath::number_subsets().
+     */
+    unsigned int
+    select_subsets(const FilledPath &path, c_array<unsigned int> dst);
+
+    /*!
      * Stroke a path.
      * \param shader shader with which to stroke the attribute data
      * \param draw data for how to draw
