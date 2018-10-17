@@ -23,7 +23,7 @@
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
-#include <fastuidraw/painter/painter_header.hpp>
+#include <fastuidraw/painter/packing/painter_header.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"

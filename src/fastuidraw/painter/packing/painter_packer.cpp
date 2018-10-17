@@ -23,7 +23,7 @@
 #include <cstring>
 
 #include <fastuidraw/painter/packing/painter_packer.hpp>
-#include <fastuidraw/painter/painter_header.hpp>
+#include <fastuidraw/painter/packing/painter_header.hpp>
 #include "../../private/util_private.hpp"
 
 namespace

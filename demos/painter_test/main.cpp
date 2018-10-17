@@ -5,7 +5,7 @@
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/painter/painter.hpp>
-#include <fastuidraw/painter/painter_header.hpp>
+#include <fastuidraw/painter/packing/painter_header.hpp>
 
 #include "sdl_painter_demo.hpp"
 

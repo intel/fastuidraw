@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/painter_header.hpp>
+#include <fastuidraw/painter/packing/painter_header.hpp>
 
 void
 fastuidraw::PainterHeader::
