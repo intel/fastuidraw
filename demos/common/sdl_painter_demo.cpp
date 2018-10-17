@@ -387,11 +387,6 @@ sdl_painter_demo(const std::string &about_text,
                                  "one for those item shaders that have discard and one for "
                                  "those that do not",
                                  *this),
-  m_painter_msaa(1, "painter_msaa",
-                 "If greater than one, use MSAA for the backing store of the SurfaceGL "
-                 "to which the Painter will draw, the value indicates the number of samples "
-                 "to use for the backing store",
-                 *this),
 
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
@@ -657,8 +652,7 @@ init_gl(int w, int h)
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
   if (m_painter_optimal.value() != painter_no_optimal)
     {
-      m_painter_params.configure_from_context(m_painter_optimal.value() == painter_optimal_rendering,
-                                              m_painter_msaa.value() > 1);
+      m_painter_params.configure_from_context(m_painter_optimal.value() == painter_optimal_rendering);
     }
 
 #define APPLY_PARAM(X, Y) do { if (Y.set_by_command_line()) { std::cout << "Apply: "#X": " << Y.value() << "\n"; m_painter_params.X(Y.value()); } } while (0)
@@ -683,31 +677,6 @@ init_gl(int w, int h)
   APPLY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
 
 #undef APPLY_PARAM
-
-  if (m_painter_msaa.value() > 1)
-    {
-      if (m_provide_auxiliary_image_buffer.value() != fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer)
-        {
-          std::cout << "Auxilary buffer cannot be used with painter_msaa "
-                    << "(and there is little reason since it is used only for shader-based anti-aliasing)\n"
-                    << std::flush;
-          m_provide_auxiliary_image_buffer.value() = fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer;
-        }
-
-      if (m_composite_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock)
-        {
-          std::cout << "WARNING: using interlock with painter_msaa is not possible, falling back to "
-                    << ") framebuffer_fetch\n"
-                    << std::flush;
-        }
-
-      if (m_composite_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch)
-        {
-          std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen "
-                    << "per sample (which is terribly expensive)\n"
-                    << std::flush;
-        }
-    }
 
   m_painter_params
     .image_atlas(m_image_atlas)
@@ -827,13 +796,7 @@ init_gl(int w, int h)
     }
 
   m_painter_params = m_backend->configuration_gl();
-
-  fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
-  props
-    .dimensions(fastuidraw::ivec2(w, h))
-    .msaa(m_painter_msaa.value());
-
-  m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(props);
+  m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(fastuidraw::ivec2(w, h));
   derived_init(w, h);
 }
 
@@ -844,13 +807,9 @@ on_resize(int w, int h)
   fastuidraw::ivec2 wh(w, h);
   if (wh != m_surface->dimensions())
     {
-      fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
       fastuidraw::PainterBackend::Surface::Viewport vwp(0, 0, w, h);
 
-      props
-        .dimensions(fastuidraw::ivec2(w, h))
-        .msaa(m_painter_msaa.value());
-      m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(props);
+      m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(fastuidraw::ivec2(w, h));
       m_surface->viewport(vwp);
     }
 }

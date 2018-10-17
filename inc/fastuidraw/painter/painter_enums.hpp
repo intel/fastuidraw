@@ -163,9 +163,7 @@ namespace fastuidraw
 
     /*!
      * Enumeration to specify the anti-aliasing quality
-     * to apply when performing path fills or strokes. If
-     * the surface to which one is painting is multi-sampled,
-     * one should NOT use shader based anti-aliasing.
+     * to apply when performing path fills or strokes.
      */
     enum shader_anti_alias_t
       {

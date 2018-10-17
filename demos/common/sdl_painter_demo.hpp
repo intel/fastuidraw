@@ -143,7 +143,6 @@ private:
   command_line_argument_value<bool> m_uber_composite_use_switch;
   command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
   command_line_argument_value<bool> m_separate_program_for_discard;
-  command_line_argument_value<unsigned int> m_painter_msaa;
 
   /* Painter params that can be overridden by properties of GL context */
   command_separator m_painter_options_affected_by_context;

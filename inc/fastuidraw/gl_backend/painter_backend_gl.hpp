@@ -443,15 +443,11 @@ namespace fastuidraw
          *                                  choose for optimal performance
          *                                  even at the cost of rendering
          *                                  quality.
-         * \param for_msaa if false, assume surface targets will
-         *                 not have MSAA (i.e. SurfaceGL::msaa() is
-         *                 0 or 1).
          * \param ctx Optional argument to pass to avoid re-querying
          *            the current GL context for extension and version
          */
         ConfigurationGL&
-        configure_from_context(bool optimal_rendering_quality,
-                               bool for_msaa = false,
+        configure_from_context(bool optimal_rendering_quality = false,
                                const ContextProperties &ctx = ContextProperties());
 
         /*!
@@ -487,80 +483,11 @@ namespace fastuidraw
       {
       public:
         /*!
-         * Properties class to define a backing color buffer
-         * of a \ref SurfaceGL
-         */
-        class Properties
-        {
-        public:
-          /*!
-           * Ctor.
-           */
-          Properties(void);
-
-          /*!
-           * Copy ctor.
-           * \param obj value from which to copy
-           */
-          Properties(const Properties &obj);
-
-          ~Properties();
-
-          /*!
-           * Assignment operator
-           * \param rhs value from which to copy
-           */
-          Properties&
-          operator=(const Properties &rhs);
-
-          /*!
-           * Swap operation
-           * \param obj object with which to swap
-           */
-          void
-          swap(Properties &obj);
-
-          /*!
-           * Dimensions of the backing store
-           */
-          ivec2
-          dimensions(void) const;
-
-          /*!
-           * Set the value returned by dimension(void) const.
-           * Initial value is (1, 1).
-           */
-          Properties&
-          dimensions(ivec2);
-
-          /*!
-           * Number of samplers per pixel for MSAA; If one
-           * uses a multi-sampled backing surface, one should
-           * NOT used shader based stroking or filling of paths
-           * (but shader based glyph rendering is fine). A value
-           * of 0 or 1 indicates no MSAA).
-           */
-          unsigned int
-          msaa(void) const;
-
-          /*!
-           * Set the value returned by msaa(void) const.
-           * Initial value is 0.
-           */
-          Properties&
-          msaa(unsigned int);
-
-        private:
-          void *m_d;
-        };
-
-        /*!
-         * Ctor. Creates and uses a backing color texture
-         * as specified by the passed \ref Properties
-         * object.
+         * Ctor. Creates and uses a backing color texture.
+         * \param dims the width and height of the SurfaceGL
          */
         explicit
-        SurfaceGL(const Properties &prop);
+        SurfaceGL(ivec2 dims);
 
         /*!
          * Ctor. Use the passed GL texture to which to render
@@ -573,19 +500,13 @@ namespace fastuidraw
          * the texture (with GL) and the texture must not be
          * deleted (or have its backing store changed via
          * glTexImage) until the SurfaceGL is deleted.
-         * \param prop properties of the texture
+         * \param dimes width and height of the GL texture
          * \param gl_texture GL name of texture
          */
         explicit
-        SurfaceGL(const Properties &prop, GLuint gl_texture);
+        SurfaceGL(ivec2 dims, GLuint gl_texture);
 
         ~SurfaceGL();
-
-        /*!
-         * Return the \ref Properties of the \ref SurfaceGL.
-         */
-        const Properties&
-        properties(void) const;
 
         /*!
          * Returns the GL name of the texture backing
@@ -679,16 +600,12 @@ namespace fastuidraw
        *                                  choose for optimal performance
        *                                  even at the cost of rendering
        *                                  quality.
-       * \param for_msaa if false, assume surface targets will
-       *                 not have MSAA (i.e. SurfaceGL::msaa() is
-       *                 0 or 1).
        * \param ctx Optional argument to pass to avoid re-querying
        *            the current GL context for extension and version
        */
       static
       reference_counted_ptr<PainterBackendGL>
       create(bool optimal_rendering_quality,
-             bool for_msaa = false,
              const ContextProperties &ctx = ContextProperties());
 
       /*!

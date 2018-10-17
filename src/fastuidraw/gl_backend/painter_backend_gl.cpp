@@ -251,12 +251,10 @@ namespace
   {
   public:
     SurfacePropertiesPrivate(void):
-      m_dimensions(1, 1),
-      m_msaa(0)
+      m_dimensions(1, 1)
     {}
 
     fastuidraw::ivec2 m_dimensions;
-    unsigned int m_msaa;
   };
 
   class ConfigurationGLPrivate
@@ -916,7 +914,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
   enum PainterBackendGL::auxiliary_buffer_t aux_type;
   enum PainterBackendGL::compositing_type_t compositing_type;
   const PainterBackend::Surface::Viewport &vwp(m_surface_gl->m_viewport);
-  ivec2 dimensions(m_surface_gl->m_properties.dimensions());
+  ivec2 dimensions(m_surface_gl->m_dimensions);
   bool has_images;
 
   aux_type = uber_params.provide_auxiliary_image_buffer();
@@ -1165,51 +1163,18 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
     }
 }
 
-/////////////////////////////////////////////////////////////////
-// fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties methods
-fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties::
-Properties(void)
-{
-  m_d = FASTUIDRAWnew SurfacePropertiesPrivate();
-}
-
-fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties::
-Properties(const Properties &obj)
-{
-  SurfacePropertiesPrivate *d;
-  d = static_cast<SurfacePropertiesPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew SurfacePropertiesPrivate(*d);
-}
-
-fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties::
-~Properties()
-{
-  SurfacePropertiesPrivate *d;
-  d = static_cast<SurfacePropertiesPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-}
-
-assign_swap_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties)
-
-setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties,
-                 SurfacePropertiesPrivate,
-                 fastuidraw::ivec2, dimensions);
-
-setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties,
-                 SurfacePropertiesPrivate,
-                 unsigned int, msaa);
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::SurfaceGL methods
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
-SurfaceGL(const Properties &props)
+SurfaceGL(ivec2 dims)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(0u, props);
+  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(0u, dims);
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
-SurfaceGL(const Properties &prop, GLuint color_buffer_texture)
+SurfaceGL(ivec2 dims, GLuint color_buffer_texture)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(color_buffer_texture, prop);
+  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(color_buffer_texture, dims);
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
@@ -1262,17 +1227,9 @@ blit_surface(GLenum filter) const
   blit_surface(vwp, vwp, filter);
 }
 
-fastuidraw::ivec2
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
-dimensions(void) const
-{
-  return properties().dimensions();
-}
-
 get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
-              const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties&,
-              properties)
+              fastuidraw::ivec2, dimensions)
 setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
                  fastuidraw::gl::detail::SurfaceGLPrivate,
                  fastuidraw::PainterBackend::Surface::Viewport, viewport);
@@ -1327,7 +1284,7 @@ glsl_version_override(c_string v)
 fastuidraw::gl::PainterBackendGL::ConfigurationGL&
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 configure_from_context(bool choose_optimal_rendering_quality,
-                       bool for_msaa, const ContextProperties &ctx)
+                       const ContextProperties &ctx)
 {
   using namespace fastuidraw::gl::detail;
 
@@ -1360,46 +1317,24 @@ configure_from_context(bool choose_optimal_rendering_quality,
    */
   d->m_separate_program_for_discard = true;
 
-  if (!for_msaa)
-    {
-      d->m_compositing_type = compositing_framebuffer_fetch;
+  d->m_compositing_type = compositing_framebuffer_fetch;
 
-      /* Performance testing indicates that framebuffer_fetch
-       * is faster than interlock so use framebuffer_fetch if
-       * it is available.
-       */
-      if (have_ffb)
-        {
-          d->m_provide_auxiliary_image_buffer = auxiliary_buffer_framebuffer_fetch;
-        }
-      else if (interlock_type == no_interlock && !choose_optimal_rendering_quality)
-        {
-          d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
-        }
-      else
-        {
-          d->m_provide_auxiliary_image_buffer =
-            compute_provide_auxiliary_buffer(auxiliary_buffer_interlock, ctx);
-        }
+  /* Performance testing indicates that framebuffer_fetch
+   * is faster than interlock so use framebuffer_fetch if
+   * it is available.
+   */
+  if (have_ffb)
+    {
+      d->m_provide_auxiliary_image_buffer = auxiliary_buffer_framebuffer_fetch;
+    }
+  else if (interlock_type == no_interlock && !choose_optimal_rendering_quality)
+    {
+      d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
     }
   else
     {
-      /* if one is drawing with MSAA, one should NOT use shader based
-       * anti-aliasing when stroking or filling anways.
-       */
-      d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
-      if (have_ffb && choose_optimal_rendering_quality)
-        {
-          d->m_compositing_type = compositing_framebuffer_fetch;
-        }
-      else
-        {
-          /* compositing_interlock does NOT work with MSAA and
-           * compositing_framebuffer_fetch would force the
-           * fragment shader to work per-sample.
-           */
-          d->m_compositing_type = compositing_dual_src;
-        }
+      d->m_provide_auxiliary_image_buffer =
+        compute_provide_auxiliary_buffer(auxiliary_buffer_interlock, ctx);
     }
 
   /* Adjust compositing type from GL context properties */
@@ -1712,11 +1647,11 @@ create(ConfigurationGL config_gl, const ContextProperties &ctx)
 fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL>
 fastuidraw::gl::PainterBackendGL::
 create(bool optimal_rendering_quality,
-       bool for_msaa, const ContextProperties &ctx)
+       const ContextProperties &ctx)
 {
   ConfigurationGL config_gl;
   config_gl
-    .configure_from_context(optimal_rendering_quality, for_msaa, ctx);
+    .configure_from_context(optimal_rendering_quality, ctx);
 
   return create(config_gl, ctx);
 }

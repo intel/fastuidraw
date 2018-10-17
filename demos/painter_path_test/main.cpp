@@ -1307,11 +1307,6 @@ handle_event(const SDL_Event &ev)
               std::cout << "Filling anti-alias mode set to: "
                         << m_anti_alias_mode_labels[m_aa_fill_mode]
                         << "\n";
-
-              if (m_aa_fill_mode != no_anti_alias && m_surface->properties().msaa() > 1)
-                {
-                  std::cout << "WARNING: doing shader based anti-aliasing filling with an MSAA render target is BAD\n";
-                }
             }
           break;
 
@@ -1324,11 +1319,6 @@ handle_event(const SDL_Event &ev)
               std::cout << "Stroking anti-alias mode set to: "
                         << m_anti_alias_mode_labels[m_aa_stroke_mode]
                         << "\n";
-
-              if (m_aa_stroke_mode != no_anti_alias && m_surface->properties().msaa() > 1)
-                {
-                  std::cout << "WARNING: doing shader based anti-aliasing stroking with an MSAA render target is BAD\n";
-                }
             }
           break;
 
@@ -2019,12 +2009,6 @@ derived_init(int w, int h)
   per_path_processing();
   construct_color_stops();
   construct_dash_patterns();
-
-  /* set shader anti-alias to false if doing msaa rendering */
-  if (m_surface->properties().msaa() > 1)
-    {
-      m_aa_stroke_mode = m_aa_fill_mode = no_anti_alias;
-    }
 
   if (!m_image_file.value().empty())
     {

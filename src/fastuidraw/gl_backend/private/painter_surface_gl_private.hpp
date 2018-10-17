@@ -47,8 +47,7 @@ public:
     };
 
   explicit
-  SurfaceGLPrivate(GLuint texture,
-                   const PainterBackendGL::SurfaceGL::Properties &props);
+  SurfaceGLPrivate(GLuint texture, ivec2 dimensions);
 
   ~SurfaceGLPrivate();
 
@@ -101,7 +100,7 @@ public:
 
   PainterBackend::Surface::Viewport m_viewport;
   vec4 m_clear_color;
-  PainterBackendGL::SurfaceGL::Properties m_properties;
+  ivec2 m_dimensions;
 
 private:
   enum buffer_t

@@ -23,17 +23,16 @@
 /////////////////////////////
 //SurfaceGLPrivate methods
 fastuidraw::gl::detail::SurfaceGLPrivate::
-SurfaceGLPrivate(GLuint texture,
-                 const PainterBackendGL::SurfaceGL::Properties &props):
+SurfaceGLPrivate(GLuint texture, ivec2 dimensions):
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
-  m_properties(props),
+  m_dimensions(dimensions),
   m_auxiliary_buffer(0),
   m_buffers(0),
   m_fbo(0),
   m_own_texture(texture != 0)
 {
   m_buffers[buffer_color] = texture;
-  m_viewport.m_dimensions = props.dimensions();
+  m_viewport.m_dimensions = m_dimensions;
   m_viewport.m_origin = fastuidraw::ivec2(0, 0);
 }
 
@@ -77,11 +76,11 @@ auxiliary_buffer(enum auxiliary_buffer_t tp)
       glBindTexture(GL_TEXTURE_2D, m_auxiliary_buffer[tp]);
       tex_storage<GL_TEXTURE_2D>(true,
                                  internalFormat,
-                                 m_properties.dimensions());
+                                 m_dimensions);
 
       clearer.clear<GL_TEXTURE_2D>(m_auxiliary_buffer[tp], 0,
                                    0, 0, 0, //origin
-                                   m_properties.dimensions().x(), m_properties.dimensions().y(), 1, //dimensions
+                                   m_dimensions.x(), m_dimensions.y(), 1, //dimensions
                                    format_from_internal_format(internalFormat),
                                    type_from_internal_format(internalFormat));
     }
@@ -99,13 +98,8 @@ buffer(enum buffer_t tp)
       GLenum internalFormat;
       GLint old_tex;
 
-      tex_target = (m_properties.msaa() <= 1) ?
-        GL_TEXTURE_2D :
-        GL_TEXTURE_2D_MULTISAMPLE;
-
-      tex_target_binding = (tex_target == GL_TEXTURE_2D) ?
-        GL_TEXTURE_BINDING_2D :
-        GL_TEXTURE_BINDING_2D_MULTISAMPLE;
+      tex_target = GL_TEXTURE_2D;
+      tex_target_binding = GL_TEXTURE_BINDING_2D;
 
       internalFormat = (tp == buffer_color) ?
         GL_RGBA8 :
@@ -116,21 +110,10 @@ buffer(enum buffer_t tp)
       FASTUIDRAWassert(m_buffers[tp] != 0);
       glBindTexture(tex_target, m_buffers[tp]);
 
-      if (tex_target == GL_TEXTURE_2D)
-        {
-          detail::tex_storage<GL_TEXTURE_2D>(true, internalFormat,
-                                             m_properties.dimensions());
-          glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-          glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        }
-      else
-        {
-          glTexStorage2DMultisample(tex_target, m_properties.msaa(),
-                                    internalFormat,
-                                    m_properties.dimensions().x(),
-                                    m_properties.dimensions().y(),
-                                    GL_TRUE);
-        }
+      detail::tex_storage<GL_TEXTURE_2D>(true, internalFormat,
+                                         m_dimensions);
+      glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glBindTexture(tex_target, old_tex);
     }
 
@@ -146,9 +129,7 @@ fbo(uint32_t tp)
       GLint old_fbo;
       GLenum tex_target;
 
-      tex_target = (m_properties.msaa() <= 1) ?
-        GL_TEXTURE_2D :
-        GL_TEXTURE_2D_MULTISAMPLE;
+      tex_target = GL_TEXTURE_2D;
 
       glGenFramebuffers(1, &m_fbo[tp]);
       FASTUIDRAWassert(m_fbo[tp] != 0);
@@ -164,14 +145,9 @@ fbo(uint32_t tp)
           glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                  tex_target, buffer(buffer_color), 0);
         }
-      else
-        {
-          FASTUIDRAWassert(m_properties.msaa() <= 1);
-        }
 
       if (tp & fbo_auxiliary_buffer)
         {
-          FASTUIDRAWassert(m_properties.msaa() <= 1);
           glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
                                  tex_target, auxiliary_buffer(auxiliary_buffer_u8), 0);
         }
