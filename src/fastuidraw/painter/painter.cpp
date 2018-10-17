@@ -974,6 +974,12 @@ namespace
     float
     compute_path_thresh(const fastuidraw::Path &path);
 
+    float
+    compute_path_thresh(const fastuidraw::Path &path,
+                        const fastuidraw::PainterShaderData::DataBase *shader_data,
+                        const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
+                        float &thresh);
+
     const fastuidraw::StrokedPath*
     select_stroked_path(const fastuidraw::Path &path,
                         const fastuidraw::PainterStrokeShader &shader,
@@ -1567,6 +1573,22 @@ compute_magnification(const fastuidraw::vec2 &bb_min,
   return op_norm * (1.0f + perspective_factor) / min_w;
 }
 
+float
+PainterPrivate::
+compute_path_thresh(const fastuidraw::Path &path,
+                    const fastuidraw::PainterShaderData::DataBase *shader_data,
+                    const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
+                    float &thresh)
+{
+  float mag, t;
+
+  mag = compute_magnification(path);
+  thresh = selector->compute_thresh(shader_data, mag, m_curve_flatness);
+  t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
+
+  return t;
+}
+
 const fastuidraw::StrokedPath*
 PainterPrivate::
 select_stroked_path(const fastuidraw::Path &path,
@@ -1577,12 +1599,14 @@ select_stroked_path(const fastuidraw::Path &path,
                     float &thresh)
 {
   using namespace fastuidraw;
-  float mag, t;
-  const PainterShaderData::DataBase *data(draw.m_item_shader_data.data().data_base());
 
-  mag = compute_magnification(path);
-  thresh = shader.stroking_data_selector()->compute_thresh(data, mag, m_curve_flatness);
-  t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
+  float t;
+  const fastuidraw::PainterShaderData::DataBase *data;
+
+  data = draw.m_item_shader_data.data().data_base();
+  t = compute_path_thresh(path, data,
+                          shader.stroking_data_selector(),
+                          thresh);
 
   if (stroking_method == PainterEnums::stroking_method_auto)
     {
@@ -2465,6 +2489,18 @@ compute_path_thresh(const fastuidraw::Path &path)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   return d->compute_path_thresh(path);
+}
+
+float
+fastuidraw::Painter::
+compute_path_thresh(const Path &path,
+                    const PainterShaderData::DataBase *shader_data,
+                    const reference_counted_ptr<const StrokingDataSelectorBase> &selector,
+                    float *thresh)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->compute_path_thresh(path, shader_data, selector, *thresh);
 }
 
 void
