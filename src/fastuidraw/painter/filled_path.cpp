@@ -2244,7 +2244,8 @@ emitboundary_callback(int glu_tess_winding,
 
       draw_edge = !p->m_points.edge_hugs_boundary(p->m_edge_flags, va, vb)
         && ((vertex_ids[i] & corner_vert_mask) == 0u ||
-            (vertex_ids[next_i] & corner_vert_mask) == 0u);
+            (vertex_ids[next_i] & corner_vert_mask) == 0u
+            || winding == 0);
       
       vb_is_path_join = p->m_points.point_is_path_join(vb);
       h->m_aa_fuzz.add_edge(va, vb, draw_edge, vb_is_path_join);
