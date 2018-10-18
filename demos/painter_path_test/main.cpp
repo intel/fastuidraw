@@ -1971,13 +1971,62 @@ draw_frame(void)
 
       if (m_stroke_width > 0.0f)
         {
-          ostr << "\n\tAA-Stroking mode:" << m_anti_alias_mode_labels[m_aa_stroke_mode]
-	       << "\n\tStroke by: " <<  m_stroke_mode_labels[m_stroking_mode];
+          ostr << "\n\t[a]AA-Stroking mode:" << m_anti_alias_mode_labels[m_aa_stroke_mode]
+	       << "\n\t[v]Stroke by: " <<  m_stroke_mode_labels[m_stroking_mode]
+               << "\n\tStroke Width: " << m_stroke_width;
+          if (m_stroke_width_in_pixels)
+            {
+              ostr << "([p]in pixels)";
+            }
+          else
+            {
+              ostr << "([p]in item units)";
+            }
+          if (is_dashed_stroking())
+            {
+              ostr << "([d]dashed)";
+            }
+          else
+            {
+              ostr << "([d]non-dashed)";
+            }
+          if (m_close_contour)
+            {
+              ostr << "{[x]Closed}";
+            }
+          else
+            {
+              ostr << "{[x]Open}";
+            }
+          ostr << "\n\t[c]CapStyle: " << m_cap_labels[m_cap_style]
+               << "\n\t[j]JoinStyle: " << m_join_labels[m_join_style];
         }
 
       if (m_draw_fill != dont_draw_fill_path)
         {
-          ostr << "\n\tAA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode];
+          ostr << "\n\t[u]AA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode]
+               << "\n\t[f]Fill Mode: " << m_draw_fill_labels[m_draw_fill];
+          if (m_fill_by_clipping)
+            {
+              ostr << "(via clipping)";
+            }
+          ostr << "\n\t[r]Fill Rule: ";
+          if (current_fill_rule() < Painter::fill_rule_data_count)
+            {
+              ostr << m_fill_labels[current_fill_rule()];
+            }
+          else if (current_fill_rule() == current_end_fill_rule())
+            {
+              ostr << "Custom (All Windings Filled)";
+            }
+          else
+            {
+              c_array<const int> wnd;
+              int value;
+              wnd = path().tessellation()->filled()->subset(0).winding_numbers();
+              value = wnd[current_fill_rule() - Painter::fill_rule_data_count];
+              ostr << "Custom (Winding == " << value << ")";
+            }
         }
 
       ostr << "\nAttribs: "
