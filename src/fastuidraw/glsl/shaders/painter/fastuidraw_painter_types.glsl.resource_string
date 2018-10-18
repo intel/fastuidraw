@@ -63,6 +63,6 @@ fastuidraw_process_header(inout fastuidraw_shader_header h)
       /* We pass along that the drawing is for drawing an occluder
        * by setting the composite shader to all bits up.
        */
-      h.composite_shader = ~0u;
+      h.blend_shader = ~0u;
     }
 }
