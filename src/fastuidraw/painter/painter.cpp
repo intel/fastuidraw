@@ -1017,6 +1017,7 @@ namespace
     unsigned int m_max_attribs_per_block, m_max_indices_per_block;
     float m_coverage_text_cut_off, m_distance_text_cut_off;
     fastuidraw::Path m_rounded_corner_path;
+    fastuidraw::Path m_rounded_corner_path_complement;
   };
 }
 
@@ -1411,6 +1412,17 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
                         << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
                         << fastuidraw::vec2(1.0f, 0.0f)
                         << fastuidraw::Path::contour_end();
+
+  /* we use the complement path to draw the occluders;
+   * we need to rely on the complement instead of using
+   * the original path with the zero-fill rule because
+   * FilledPath adds fuzz along the boundary and sometimes
+   * that fuzz is present in drawing.
+   */
+  m_rounded_corner_path_complement << fastuidraw::vec2(0.0f, 0.0f)
+                                   << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
+                                   << fastuidraw::vec2(0.0f, 1.0f)
+                                   << fastuidraw::Path::contour_end();
 }
 
 bool
@@ -2564,7 +2576,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
                                         vec2(b, +1.0f)),
                           callback);
     }
-  else if (fastuidraw::t_abs(plane.y()) > 0.0f)
+  else if (t_abs(plane.y()) > 0.0f)
     {
       float a, b, c, d;
       a = (+plane.x() - plane.z()) / plane.y();
@@ -3625,8 +3637,8 @@ clipInRoundedRect(const RoundedRect &R)
       translate(rect_transforms.m_translates[i]);
       shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
       d->fill_path(default_shaders().fill_shader(), PainterData(d->m_black_brush),
-                   d->select_filled_path(d->m_rounded_corner_path),
-                   complement_nonzero_fill_rule,
+                   d->select_filled_path(d->m_rounded_corner_path_complement),
+                   nonzero_fill_rule,
                    shader_anti_alias_none, zdatacallback);
       d->m_clip_rect_state = m;
     }
