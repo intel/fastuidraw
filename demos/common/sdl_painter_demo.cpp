@@ -214,13 +214,13 @@ namespace
   print_dashed_stroke_shader_ids(const fastuidraw::PainterDashedStrokeShaderSet &sh)
   {
     std::cout << "\t\tflat_caps:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::flat_caps), "\t\t\t");
+    print_stroke_shader_ids(sh.shader(fastuidraw::Painter::flat_caps), "\t\t\t");
 
     std::cout << "\t\trounded_caps:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::rounded_caps), "\t\t\t");
+    print_stroke_shader_ids(sh.shader(fastuidraw::Painter::rounded_caps), "\t\t\t");
 
     std::cout << "\t\tsquare_caps:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::square_caps), "\t\t\t");
+    print_stroke_shader_ids(sh.shader(fastuidraw::Painter::square_caps), "\t\t\t");
   }
 
   GLuint
@@ -820,7 +820,7 @@ draw_text(const std::string &text, float pixel_size,
           fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
           fastuidraw::GlyphRender renderer,
           const fastuidraw::PainterData &draw,
-          enum fastuidraw::PainterEnums::screen_orientation orientation)
+          enum fastuidraw::Painter::screen_orientation orientation)
 {
   std::istringstream str(text);
   fastuidraw::GlyphSequence sequence(pixel_size, orientation,

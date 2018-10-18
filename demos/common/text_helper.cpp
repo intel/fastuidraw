@@ -241,7 +241,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 {
   fastuidraw::vec2 pen(shift_by);
   float pixel_size(out_sequence.pixel_size());
-  enum fastuidraw::PainterEnums::screen_orientation orientation(out_sequence.orientation());
+  enum fastuidraw::Painter::screen_orientation orientation(out_sequence.orientation());
   fastuidraw::GlyphMetrics layout;
   float ratio;
 
@@ -266,7 +266,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 {
   std::streampos current_position, end_position;
   float pixel_size(out_sequence.pixel_size());
-  enum fastuidraw::PainterEnums::screen_orientation orientation(out_sequence.orientation());
+  enum fastuidraw::Painter::screen_orientation orientation(out_sequence.orientation());
   unsigned int loc(0);
   fastuidraw::vec2 pen(starting_place);
   std::string line, original_line;
@@ -327,7 +327,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
         }
       else
         {
-          if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
+          if (orientation == fastuidraw::Painter::y_increases_downwards)
             {
               pen_y_advance = tallest - last_negative_tallest;
               offset = (first_line) ? 0 : pen_y_advance;
@@ -344,7 +344,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
           sub_p[i].y() += offset;
         }
 
-      if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
+      if (orientation == fastuidraw::Painter::y_increases_downwards)
         {
           pen.y() += pen_y_advance + 1.0f;
         }

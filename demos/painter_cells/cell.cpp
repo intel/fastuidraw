@@ -45,7 +45,7 @@ Cell(PainterWidget *p, const CellParams &params):
   m_line_brush(params.m_line_brush),
   m_item_location(params.m_size * 0.5f),
   m_text(params.m_pixel_size,
-	 fastuidraw::PainterEnums::y_increases_downwards,
+	 fastuidraw::Painter::y_increases_downwards,
 	 params.m_glyph_cache),
   m_shared_state(params.m_state),
   m_timer_based_animation(params.m_timer_based_animation)
@@ -169,18 +169,18 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   if (m_shared_state->m_rotating && m_shared_state->m_stroke_width > 0.0f)
     {
       PainterStrokeParams st;
-      enum PainterEnums::shader_anti_alias_t aa_mode;
+      enum Painter::shader_anti_alias_t aa_mode;
 
       st.miter_limit(-1.0f);
       st.width(m_shared_state->m_stroke_width);
       aa_mode = (m_shared_state->m_anti_alias_stroking) ?
-        PainterEnums::shader_anti_alias_auto :
-        PainterEnums::shader_anti_alias_none;
+        Painter::shader_anti_alias_auto :
+        Painter::shader_anti_alias_none;
 
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_shared_state->m_path,
                            StrokingStyle()
-                           .join_style(PainterEnums::miter_clip_joins),
+                           .join_style(Painter::miter_clip_joins),
                            aa_mode);
     }
   m_shared_state->m_cells_drawn++;

@@ -11,7 +11,7 @@
 #include <fastuidraw/text/glyph_selector.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
-#include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/painter/glyph_sequence.hpp>
 
 #include "cast_c_array.hpp"

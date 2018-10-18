@@ -118,7 +118,7 @@ void
 painter_clip_test::
 draw_frame(void)
 {
-  m_painter->begin(m_surface, PainterEnums::y_increases_downwards);
+  m_painter->begin(m_surface, Painter::y_increases_downwards);
   m_zoomer.transformation().concat_to_painter(m_painter);
 
   m_painter->save();

@@ -101,14 +101,14 @@ public:
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
-       enum PainterEnums::screen_orientation screen_orientation);
+       enum Painter::screen_orientation screen_orientation);
 
   void
   init(const std::vector<uint32_t> &glyph_codes,
        const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        float pixel_size_formatting,
-       enum PainterEnums::screen_orientation screen_orientation);
+       enum Painter::screen_orientation screen_orientation);
 
   void
   init(std::istream &istr,
@@ -116,7 +116,7 @@ public:
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
-       enum PainterEnums::screen_orientation screen_orientation);
+       enum Painter::screen_orientation screen_orientation);
 
   void
   post_finalize(void)
@@ -168,7 +168,7 @@ private:
       draw_glyph_auto
     };
 
-  typedef enum PainterEnums::screen_orientation screen_orientation;
+  typedef enum Painter::screen_orientation screen_orientation;
 
   enum return_code
   create_and_add_font(void);
@@ -214,7 +214,7 @@ private:
 
   reference_counted_ptr<const FontFreeType> m_font;
 
-  vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
+  vecN<std::string, Painter::number_join_styles> m_join_labels;
   GlyphDrawsShared m_draw_shared;
 
   /* The last entry value is left as invalid to represent
@@ -262,7 +262,7 @@ void
 GlyphDrawsShared::
 make_hierarchy(void)
 {
-  enum PainterEnums::screen_orientation orientation(m_glyph_sequence->orientation());
+  enum Painter::screen_orientation orientation(m_glyph_sequence->orientation());
   GlyphCache *glyph_cache(m_glyph_sequence->glyph_cache().get());
   float pixel_size(m_glyph_sequence->pixel_size());
   GlyphMetrics metrics;
@@ -288,7 +288,7 @@ make_hierarchy(void)
           min_bb *= ratio;
           max_bb *= ratio;
 
-          if (orientation == PainterEnums::y_increases_downwards)
+          if (orientation == Painter::y_increases_downwards)
             {
               min_bb.y() = -min_bb.y();
               max_bb.y() = -max_bb.y();
@@ -314,7 +314,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
-     enum PainterEnums::screen_orientation screen_orientation)
+     enum Painter::screen_orientation screen_orientation)
 {
   float tallest(0.0f), negative_tallest(0.0f), offset;
   unsigned int i, endi, glyph_at_start, navigator_chars;
@@ -326,7 +326,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   std::vector<GlyphMetrics> metrics;
   simple_time timer;
 
-  y_advance_sign = (screen_orientation == PainterEnums::y_increases_downwards) ? 1.0f : -1.0f;
+  y_advance_sign = (screen_orientation == Painter::y_increases_downwards) ? 1.0f : -1.0f;
   num_glyphs = font->number_glyphs();
 
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
@@ -414,7 +414,7 @@ init(const std::vector<uint32_t> &glyph_codes,
      const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      float pixel_size_formatting,
-     enum PainterEnums::screen_orientation screen_orientation)
+     enum Painter::screen_orientation screen_orientation)
 {
   simple_time timer;
 
@@ -435,7 +435,7 @@ init(std::istream &istr,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
-     enum PainterEnums::screen_orientation screen_orientation)
+     enum Painter::screen_orientation screen_orientation)
 {
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
@@ -519,15 +519,15 @@ painter_glyph_test(void):
                          "Add an explicit glyph code to render, if the list "
                          "is non-empty, takes precendence over text",
                          *this),
-  m_screen_orientation(PainterEnums::y_increases_downwards,
+  m_screen_orientation(Painter::y_increases_downwards,
                       enumerated_string_type<screen_orientation>()
                       .add_entry("y_downwards",
-                                 PainterEnums::y_increases_downwards,
+                                 Painter::y_increases_downwards,
                                  "Make coordinate system so that y-coordinate "
                                  "increases downwards (i.e. top of the window "
                                  "has y-coordinate is 0")
                       .add_entry("y_upwards",
-                                 PainterEnums::y_increases_upwards,
+                                 Painter::y_increases_upwards,
                                  "Make coordinate system so that y-coordinate "
                                  "increases upwards (i.e. bottom of the window "
                                  "has y-coordinate is 0"),
@@ -546,7 +546,7 @@ painter_glyph_test(void):
   m_shear(1.0f, 1.0f),
   m_shear2(1.0f, 1.0f),
   m_angle(0.0f),
-  m_join_style(PainterEnums::miter_joins)
+  m_join_style(Painter::miter_joins)
 {
   std::cout << "Controls:\n"
             << "\td: cycle drawing mode: draw coverage glyph, draw distance glyphs "
@@ -569,12 +569,12 @@ painter_glyph_test(void):
             << "\tMouse Drag (left button): pan\n"
             << "\tHold Mouse (left button), then drag up/down: zoom out/in\n";
 
-  m_join_labels[PainterEnums::no_joins] = "no_joins";
-  m_join_labels[PainterEnums::rounded_joins] = "rounded_joins";
-  m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
-  m_join_labels[PainterEnums::miter_clip_joins] = "miter_clip_joins";
-  m_join_labels[PainterEnums::miter_bevel_joins] = "miter_bevel_joins";
-  m_join_labels[PainterEnums::miter_joins] = "miter_joins";
+  m_join_labels[Painter::no_joins] = "no_joins";
+  m_join_labels[Painter::rounded_joins] = "rounded_joins";
+  m_join_labels[Painter::bevel_joins] = "bevel_joins";
+  m_join_labels[Painter::miter_clip_joins] = "miter_clip_joins";
+  m_join_labels[Painter::miter_bevel_joins] = "miter_bevel_joins";
+  m_join_labels[Painter::miter_joins] = "miter_joins";
 }
 
 painter_glyph_test::
@@ -650,7 +650,7 @@ derived_init(int w, int h)
   ready_glyph_attribute_data();
   m_draw_timer.restart();
 
-  if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
+  if (m_screen_orientation.value() == Painter::y_increases_upwards)
     {
       m_zoomer.m_zoom_direction = PanZoomTracker::zoom_direction_negative_y;
       m_zoomer.m_scale_event.y() = -1.0f;
@@ -787,16 +787,16 @@ painter_glyph_test::
 stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
 {
   Glyph G;
-  enum PainterEnums::shader_anti_alias_t aa_mode;
+  enum Painter::shader_anti_alias_t aa_mode;
 
   FASTUIDRAWassert(R.valid());
   G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
   aa_mode = (m_anti_alias_path_stroking) ?
-    PainterEnums::shader_anti_alias_auto :
-    PainterEnums::shader_anti_alias_none;
+    Painter::shader_anti_alias_auto :
+    Painter::shader_anti_alias_none;
   m_painter->stroke_path(d, G.path(),
                          StrokingStyle()
-                         .join_style(static_cast<enum PainterEnums::join_style>(m_join_style)),
+                         .join_style(static_cast<enum Painter::join_style>(m_join_style)),
                          aa_mode);
 }
 
@@ -809,10 +809,10 @@ fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
   FASTUIDRAWassert(R.valid());
   G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
   m_painter->fill_path(d, G.path(),
-                       PainterEnums::nonzero_fill_rule,
+                       Painter::nonzero_fill_rule,
                        (m_anti_alias_path_filling) ?
-                       PainterEnums::shader_anti_alias_auto :
-                       PainterEnums::shader_anti_alias_none);
+                       Painter::shader_anti_alias_auto :
+                       Painter::shader_anti_alias_none);
 }
 
 void
@@ -904,7 +904,7 @@ draw_glyphs(float us)
                * which is the opposite coordinate system as the glyph's
                * path, thus we also need to negate in the y-direction.
                */
-              ysign = (m_screen_orientation.value() == PainterEnums::y_increases_upwards) ? 1.0f : -1.0f;
+              ysign = (m_screen_orientation.value() == Painter::y_increases_upwards) ? 1.0f : -1.0f;
               m_painter->shear(sc, sc * ysign);
               fill_glyph(PainterData(pbr), metrics, render);
               m_painter->restore();
@@ -954,7 +954,7 @@ draw_glyphs(float us)
                * which is the opposite coordinate system as the glyph's
                * path, thus we also need to negate in the y-direction.
                */
-              ysign = (m_screen_orientation.value() == PainterEnums::y_increases_upwards) ? 1.0f : -1.0f;
+              ysign = (m_screen_orientation.value() == Painter::y_increases_upwards) ? 1.0f : -1.0f;
               m_painter->shear(sc, sc * ysign);
 
               stroke_glyph(PainterData(pst, pbr), metrics, render);
@@ -1015,7 +1015,7 @@ draw_glyphs(float us)
       ostr << glyph_atlas_size_bytes << " Bytes";
 
       m_painter->restore();
-      if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
+      if (m_screen_orientation.value() == Painter::y_increases_upwards)
         {
           m_painter->translate(vec2(0.0f, dimensions().y()));
         }
@@ -1037,7 +1037,7 @@ draw_glyphs(float us)
       src = m_current_drawer;
 
       SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
-      if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
+      if (m_screen_orientation.value() == Painter::y_increases_upwards)
         {
           mouse_position.y() = dimensions().y() - mouse_position.y();
         }
@@ -1083,7 +1083,7 @@ draw_glyphs(float us)
         }
 
       m_painter->restore();
-      if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
+      if (m_screen_orientation.value() == Painter::y_increases_upwards)
         {
           m_painter->translate(vec2(0.0f, dimensions().y()));
         }
@@ -1190,7 +1190,7 @@ handle_event(const SDL_Event &ev)
       if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           on_resize(ev.window.data1, ev.window.data2);
-          if (m_screen_orientation.value() == PainterEnums::y_increases_upwards)
+          if (m_screen_orientation.value() == Painter::y_increases_upwards)
             {
               m_zoomer.m_translate_event.y() = static_cast<float>(ev.window.data2);
             }
@@ -1234,7 +1234,7 @@ handle_event(const SDL_Event &ev)
         case SDLK_j:
           if (m_stroke_glyphs)
             {
-              cycle_value(m_join_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_join_styles);
+              cycle_value(m_join_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), Painter::number_join_styles);
               std::cout << "Join drawing mode set to: " << m_join_labels[m_join_style] << "\n";
             }
           break;

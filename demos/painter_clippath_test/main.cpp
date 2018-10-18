@@ -276,10 +276,10 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
       break;
 
     case clip_in:
-      m_painter->clipInPath(path, PainterEnums::nonzero_fill_rule);
+      m_painter->clipInPath(path, Painter::nonzero_fill_rule);
       break;
     case clip_out:
-      m_painter->clipOutPath(path, PainterEnums::nonzero_fill_rule);
+      m_painter->clipOutPath(path, Painter::nonzero_fill_rule);
       break;
     }
 
@@ -310,10 +310,10 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix
     default:
       break;
     case clip_in:
-      m_painter->clipInPath(path1, PainterEnums::nonzero_fill_rule);
+      m_painter->clipInPath(path1, Painter::nonzero_fill_rule);
       break;
     case clip_out:
-      m_painter->clipOutPath(path1, PainterEnums::nonzero_fill_rule);
+      m_painter->clipOutPath(path1, Painter::nonzero_fill_rule);
       break;
     }
 
@@ -324,10 +324,10 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix
     default:
       break;
     case clip_in:
-      m_painter->clipInPath(path2, PainterEnums::nonzero_fill_rule);
+      m_painter->clipInPath(path2, Painter::nonzero_fill_rule);
       break;
     case clip_out:
-      m_painter->clipOutPath(path2, PainterEnums::nonzero_fill_rule);
+      m_painter->clipOutPath(path2, Painter::nonzero_fill_rule);
       break;
     }
 
@@ -347,7 +347,7 @@ void
 painter_clip_test::
 draw_frame(void)
 {
-  m_painter->begin(m_surface, PainterEnums::y_increases_downwards);
+  m_painter->begin(m_surface, Painter::y_increases_downwards);
   m_zoomers[view_zoomer].transformation().concat_to_painter(m_painter);
 
   PainterItemMatrix M(m_painter->transformation());

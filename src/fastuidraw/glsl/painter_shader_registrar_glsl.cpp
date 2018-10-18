@@ -434,7 +434,6 @@ PainterShaderRegistrarGLSLPrivate::
 add_enums(fastuidraw::glsl::ShaderSource &src)
 {
   using namespace fastuidraw;
-  using namespace fastuidraw::PainterEnums;
 
   /* fp32 can store a 24-bit integer exactly,
    * however, the operation of converting from

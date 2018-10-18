@@ -63,7 +63,9 @@ namespace fastuidraw
    * PainterAttributeData can be used to generate and save attribute and
    * index data to be used repeatedly.
    */
-  class Painter:public reference_counted<Painter>::default_base
+  class Painter:
+    public PainterEnums,
+    public reference_counted<Painter>::default_base
   {
   public:
     /*!
@@ -149,7 +151,7 @@ namespace fastuidraw
      */
     void
     composite_shader(const PainterCompositeShaderSet &shader_set,
-                     enum PainterEnums::composite_mode_t m)
+                     enum composite_mode_t m)
     {
       composite_shader(shader_set.shader(m), shader_set.composite_mode(m));
     }
@@ -162,7 +164,7 @@ namespace fastuidraw
      * \param m Composite mode to use
      */
     void
-    composite_shader(enum PainterEnums::composite_mode_t m)
+    composite_shader(enum composite_mode_t m)
     {
       composite_shader(default_shaders().composite_shaders(), m);
     }
@@ -188,7 +190,7 @@ namespace fastuidraw
      * \param m blend mode to use
      */
     void
-    blend_shader(enum PainterEnums::blend_w3c_mode_t m)
+    blend_shader(enum blend_w3c_mode_t m)
     {
       blend_shader(default_shaders().blend_shaders().shader(m));
     }
@@ -196,7 +198,7 @@ namespace fastuidraw
     /*!
      * Indicate to start drawing with methods of this Painter. The
      * ransformation matrix will be intialized with a projection
-     * matrix derived from the passed PainterEnums::screen_orientation
+     * matrix derived from the passed screen_orientation
      * and the viewort of the passed PainterBackend::Surface. Drawing
      * commands sent to 3D hardware are buffered and not sent to the
      * hardware until end() is called. All draw commands must be between
@@ -209,7 +211,7 @@ namespace fastuidraw
      */
     void
     begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
-          enum PainterEnums::screen_orientation orientation,
+          enum screen_orientation orientation,
           bool clear_color_buffer = true);
 
     /*!
@@ -310,7 +312,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule);
+    clipOutPath(const Path &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -320,7 +322,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipOutPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule);
+    clipOutPath(const FilledPath &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-in by a path, i.e. set the clipping to be
@@ -330,7 +332,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule);
+    clipInPath(const Path &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-in by a path, i.e. set the clipping to be
@@ -340,7 +342,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipInPath(const FilledPath &path, enum PainterEnums::fill_rule_t fill_rule);
+    clipInPath(const FilledPath &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -664,7 +666,7 @@ namespace fastuidraw
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                 const StrokedPath &path, float rounded_thresh,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -682,8 +684,8 @@ namespace fastuidraw
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
-                enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
+                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
+                enum stroking_method_t stroking_method = stroking_method_auto,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -700,8 +702,8 @@ namespace fastuidraw
     void
     stroke_path(const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
-                enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
+                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
+                enum stroking_method_t stroking_method = stroking_method_auto,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -722,7 +724,7 @@ namespace fastuidraw
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
                        const StrokedPath &path, float rounded_thresh,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -740,8 +742,8 @@ namespace fastuidraw
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
-                       enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
+                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
+                       enum stroking_method_t stroking_method = stroking_method_auto,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -758,8 +760,8 @@ namespace fastuidraw
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
-                       enum PainterEnums::stroking_method_t stroking_method = PainterEnums::stroking_method_auto,
+                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
+                       enum stroking_method_t stroking_method = stroking_method_auto,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -775,8 +777,8 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
-              const FilledPath &data, enum PainterEnums::fill_rule_t fill_rule,
-              enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+              const FilledPath &data, enum fill_rule_t fill_rule,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -792,8 +794,8 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
-              const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+              const Path &path, enum fill_rule_t fill_rule,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -807,8 +809,8 @@ namespace fastuidraw
      *                  is added.
      */
     void
-    fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+    fill_path(const PainterData &draw, const Path &path, enum fill_rule_t fill_rule,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -825,7 +827,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, const CustomFillRuleBase &fill_rule,
-              enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -842,7 +844,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, const CustomFillRuleBase &fill_rule,
-              enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -857,7 +859,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-              enum PainterEnums::shader_anti_alias_t anti_alias_quality = PainterEnums::shader_anti_alias_auto,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!

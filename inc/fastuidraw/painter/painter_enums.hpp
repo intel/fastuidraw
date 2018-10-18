@@ -26,11 +26,12 @@ namespace fastuidraw
  */
 
   /*!
-   * \brief Namespace to encapsulate enumerations used in Painter
+   * \brief Class to encapsulate enumerations used in Painter
    *        interface, part of the main library libFastUIDraw.
    */
-  namespace PainterEnums
+  class PainterEnums
   {
+  public:
     /*!
      * \brief
      * Enumeration to indicate in what direction the
@@ -344,6 +345,7 @@ namespace fastuidraw
     /*!
      * Given a fill rule, return the fill rule for the complement.
      */
+    static
     enum fill_rule_t
     complement_fill_rule(enum fill_rule_t f);
   };

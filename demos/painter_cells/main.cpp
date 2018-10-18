@@ -50,8 +50,8 @@ protected:
   handle_event(const SDL_Event &ev);
 
 private:
-  typedef std::pair<enum PainterEnums::composite_mode_t, std::string> named_composite_mode;
-  typedef std::pair<enum PainterEnums::blend_w3c_mode_t, std::string> named_blend_mode;
+  typedef std::pair<enum Painter::composite_mode_t, std::string> named_composite_mode;
+  typedef std::pair<enum Painter::blend_w3c_mode_t, std::string> named_blend_mode;
 
   static
   void
@@ -477,7 +477,7 @@ derived_init(int w, int h)
     }
 
 #define ADD_COMPOSITE_MODE(X)                                           \
-  m_composite_labels.push_back(named_composite_mode(PainterEnums::X, #X))
+  m_composite_labels.push_back(named_composite_mode(Painter::X, #X))
 
   ADD_COMPOSITE_MODE(composite_porter_duff_src_over);
   ADD_COMPOSITE_MODE(composite_porter_duff_clear);
@@ -493,9 +493,9 @@ derived_init(int w, int h)
   ADD_COMPOSITE_MODE(composite_porter_duff_xor);
 
 #define ADD_BLEND_MODE(X) do {                                          \
-    if (m_painter->default_shaders().blend_shaders().shader(PainterEnums::X)) \
+    if (m_painter->default_shaders().blend_shaders().shader(Painter::X)) \
       {                                                                 \
-        m_blend_labels.push_back(named_blend_mode(PainterEnums::X, #X)); \
+        m_blend_labels.push_back(named_blend_mode(Painter::X, #X)); \
       }                                                                 \
   } while(0)
 
@@ -587,7 +587,7 @@ draw_frame(void)
   m_cell_shared_state.m_cells_drawn = 0;
 
   m_surface->clear_color(vec4(0.5f, 0.5f, 0.5f, 1.0f));
-  m_painter->begin(m_surface, PainterEnums::y_increases_downwards);
+  m_painter->begin(m_surface, Painter::y_increases_downwards);
 
   m_painter->save();
   m_painter->translate(m_zoomer.transformation().translation());
