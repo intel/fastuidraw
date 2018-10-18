@@ -1607,8 +1607,8 @@ draw_scene(bool drawing_wire_frame)
       m_painter->clipOutPath(m_clip_window_path, PainterEnums::nonzero_fill_rule);
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
                              StrokingStyle()
-                             .join_style(PainterEnums::miter_clip_joins)
-                             .stroke_with_shader_aa(false));
+                             .join_style(PainterEnums::miter_clip_joins),
+                             PainterEnums::shader_anti_alias_none);
       m_painter->restore();
       m_painter->clipInRect(clipping_xy(), clipping_wh());
     }
@@ -1785,8 +1785,8 @@ draw_scene(bool drawing_wire_frame)
                                         StrokingStyle()
                                         .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
                                         .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
-                                        .stroke_closing_edges_of_contours(m_close_contour)
-                                        .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]),
+                                        .stroke_closing_edges_of_contours(m_close_contour),
+                                        m_shader_anti_alias_mode_values[m_aa_stroke_mode],
                                         m_stroke_mode_values[m_stroking_mode]);
 
         }
@@ -1812,8 +1812,8 @@ draw_scene(bool drawing_wire_frame)
                                  StrokingStyle()
                                  .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
                                  .cap_style(static_cast<enum PainterEnums::cap_style>(m_cap_style))
-                                 .stroke_closing_edges_of_contours(m_close_contour)
-                                 .stroke_with_shader_aa(m_shader_anti_alias_mode_values[m_aa_stroke_mode]),
+                                 .stroke_closing_edges_of_contours(m_close_contour),
+                                 m_shader_anti_alias_mode_values[m_aa_stroke_mode],
                                  m_stroke_mode_values[m_stroking_mode]);
         }
 
@@ -1919,8 +1919,8 @@ draw_frame(void)
                              StrokingStyle()
                              .stroke_closing_edges_of_contours(false)
                              .cap_style(PainterEnums::flat_caps)
-                             .join_style(PainterEnums::no_joins)
-                             .stroke_with_shader_aa(false));
+                             .join_style(PainterEnums::no_joins),
+                             PainterEnums::shader_anti_alias_none);
     }
 
   /* apply zoomer() */

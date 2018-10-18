@@ -38,8 +38,7 @@ namespace fastuidraw
     StrokingStyle(void):
       m_draw_closing_edges_of_contours(true),
       m_cap_style(PainterEnums::square_caps),
-      m_join_style(PainterEnums::miter_clip_joins),
-      m_stroke_with_shader_aa(PainterEnums::shader_anti_alias_auto)
+      m_join_style(PainterEnums::miter_clip_joins)
     {}
 
     /*!
@@ -75,37 +74,6 @@ namespace fastuidraw
     }
 
     /*!
-     * Set the value of \ref m_stroke_with_shader_aa
-     * to the specified value.
-     */
-    StrokingStyle&
-    stroke_with_shader_aa(enum PainterEnums::shader_anti_alias_t v)
-    {
-      m_stroke_with_shader_aa = v;
-      return *this;
-    }
-
-    /*!
-     * Provided as a conveniance, equivalent to
-     * \code
-     * enum PainterEnums::shader_anti_alias_t value;
-     * value = v ?
-     *    PainterEnums::shader_anti_alias_auto :
-     *    PainterEnums::shader_anti_alias_none;
-     * return stroke_with_shader_aa(value);
-     * \endcode
-     */
-    StrokingStyle&
-    stroke_with_shader_aa(bool v)
-    {
-      enum PainterEnums::shader_anti_alias_t value;
-      value = v ?
-         PainterEnums::shader_anti_alias_auto :
-         PainterEnums::shader_anti_alias_none;
-      return stroke_with_shader_aa(value);
-    }
-
-    /*!
      * If true, stroke the closing edge of each of the
      * contours of the \ref Path or \ref StrokedPath.
      * Default value is true.
@@ -124,13 +92,6 @@ namespace fastuidraw
      * path. Default value is PainterEnums::miter_clip_joins
      */
     enum PainterEnums::join_style m_join_style;
-
-    /*!
-     * Specifies if and how to do shader anti-aliasing
-     * when stroking the path. Default value is \ref
-     * PainterEnums::shader_anti_alias_auto.
-     */
-    enum PainterEnums::shader_anti_alias_t m_stroke_with_shader_aa;
   };
 /*! @} */
 }

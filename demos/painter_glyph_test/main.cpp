@@ -787,13 +787,17 @@ painter_glyph_test::
 stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
 {
   Glyph G;
+  enum PainterEnums::shader_anti_alias_t aa_mode;
 
   FASTUIDRAWassert(R.valid());
   G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
+  aa_mode = (m_anti_alias_path_stroking) ?
+    PainterEnums::shader_anti_alias_auto :
+    PainterEnums::shader_anti_alias_none;
   m_painter->stroke_path(d, G.path(),
                          StrokingStyle()
-                         .join_style(static_cast<enum PainterEnums::join_style>(m_join_style))
-                         .stroke_with_shader_aa(m_anti_alias_path_stroking));
+                         .join_style(static_cast<enum PainterEnums::join_style>(m_join_style)),
+                         aa_mode);
 }
 
 void

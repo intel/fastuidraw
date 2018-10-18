@@ -2591,6 +2591,7 @@ fastuidraw::Painter::
 stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
             const StrokedPath &path, float thresh,
             const StrokingStyle &stroke_style,
+            enum PainterEnums::shader_anti_alias_t anti_alias_quality,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -2602,7 +2603,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                         stroke_style.m_draw_closing_edges_of_contours,
                         stroke_style.m_cap_style,
                         stroke_style.m_join_style,
-                        stroke_style.m_stroke_with_shader_aa,
+                        anti_alias_quality,
                         call_back);
 }
 
@@ -2610,6 +2611,7 @@ void
 fastuidraw::Painter::
 stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
             const StrokingStyle &stroke_style,
+            enum PainterEnums::shader_anti_alias_t anti_alias_quality,
             enum PainterEnums::stroking_method_t stroking_method,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
@@ -2619,20 +2621,22 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
 
   d = static_cast<PainterPrivate*>(m_d);
   stroked_path = d->select_stroked_path(path, shader, draw,
-                                        stroke_style.m_stroke_with_shader_aa,
+                                        anti_alias_quality,
                                         stroking_method, thresh);
-  stroke_path(shader, draw, *stroked_path, thresh, stroke_style, call_back);
+  stroke_path(shader, draw, *stroked_path, thresh, stroke_style,
+              anti_alias_quality, call_back);
 }
 
 void
 fastuidraw::Painter::
 stroke_path(const PainterData &draw, const Path &path,
             const StrokingStyle &stroke_style,
+            enum PainterEnums::shader_anti_alias_t anti_alias_quality,
             enum PainterEnums::stroking_method_t stroking_method,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   stroke_path(default_shaders().stroke_shader(), draw, path,
-              stroke_style, stroking_method, call_back);
+              stroke_style, anti_alias_quality, stroking_method, call_back);
 }
 
 void
@@ -2640,6 +2644,7 @@ fastuidraw::Painter::
 stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
                    const StrokedPath &path, float thresh,
                    const StrokingStyle &stroke_style,
+                   enum PainterEnums::shader_anti_alias_t anti_alias_quality,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -2652,7 +2657,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                         stroke_style.m_draw_closing_edges_of_contours,
                         PainterEnums::number_cap_styles,
                         stroke_style.m_join_style,
-                        stroke_style.m_stroke_with_shader_aa,
+                        anti_alias_quality,
                         call_back);
 }
 
@@ -2660,6 +2665,7 @@ void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                    const StrokingStyle &stroke_style,
+                   enum PainterEnums::shader_anti_alias_t anti_alias_quality,
                    enum PainterEnums::stroking_method_t stroking_method,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
@@ -2669,20 +2675,22 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
 
   d = static_cast<PainterPrivate*>(m_d);
   stroked_path = d->select_stroked_path(path, shader.shader(stroke_style.m_cap_style), draw,
-                                        stroke_style.m_stroke_with_shader_aa,
+                                        anti_alias_quality,
                                         stroking_method, thresh);
-  stroke_dashed_path(shader, draw, *stroked_path, thresh, stroke_style, call_back);
+  stroke_dashed_path(shader, draw, *stroked_path, thresh,
+                     stroke_style, anti_alias_quality, call_back);
 }
 
 void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterData &draw, const Path &path,
                    const StrokingStyle &stroke_style,
+                   enum PainterEnums::shader_anti_alias_t anti_alias_quality,
                    enum PainterEnums::stroking_method_t stroking_method,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
-                     stroke_style, stroking_method, call_back);
+                     stroke_style, anti_alias_quality, stroking_method, call_back);
 }
 
 void

@@ -324,21 +324,26 @@ paint_post_children(const reference_counted_ptr<Painter> &painter)
   if (!m_params.m_cell_state->m_rotating && m_params.m_cell_state->m_stroke_width > 0.0f)
     {
       PainterStrokeParams st;
+      enum PainterEnums::shader_anti_alias_t aa_mode;
+
       st.miter_limit(-1.0f);
       st.width(m_params.m_cell_state->m_stroke_width);
+      aa_mode = (m_params.m_cell_state->m_anti_alias_stroking) ?
+        PainterEnums::shader_anti_alias_auto :
+        PainterEnums::shader_anti_alias_none;
 
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_outline_path,
                            StrokingStyle()
-                           .join_style(PainterEnums::rounded_joins)
-                           .stroke_with_shader_aa(m_params.m_cell_state->m_anti_alias_stroking));
+                           .join_style(PainterEnums::rounded_joins),
+                           aa_mode);
 
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_grid_path,
                            StrokingStyle()
                            .stroke_closing_edges_of_contours(false)
                            .cap_style(PainterEnums::flat_caps)
-                           .join_style(PainterEnums::no_joins)
-                           .stroke_with_shader_aa(m_params.m_cell_state->m_anti_alias_stroking));
+                           .join_style(PainterEnums::no_joins),
+                           aa_mode);
     }
 }
