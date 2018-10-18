@@ -133,6 +133,11 @@ namespace
 {
   class PointHoard;
 
+  enum
+    {
+      corner_vert_mask = (1u << 31u)
+    };
+
   unsigned int
   signed_to_unsigned(int w)
   {
@@ -465,6 +470,16 @@ namespace
   class SubPath
   {
   public:
+    enum
+      {
+        min_x_edge_of_original_path = 1u,
+        max_x_edge_of_original_path = 2u,
+        min_y_edge_of_original_path = 4u,
+        max_y_edge_of_original_path = 8u,
+
+        starting_subpath = 15u,
+      };
+    
     typedef std::vector<SubContourPoint> SubContour;
 
     explicit
@@ -497,6 +512,12 @@ namespace
     fastuidraw::vecN<SubPath*, 2>
     split(int &splitting_coordinate) const;
 
+    uint32_t
+    edge_flags(void) const
+    {
+      return m_edge_flags;
+    }
+
     static
     bool
     contour_is_reducable(const SubContour &C);
@@ -504,7 +525,8 @@ namespace
   private:
     SubPath(const fastuidraw::BoundingBox<double> &bb,
             std::vector<SubContour> &contours,
-            int gen, const std::string &name);
+            int gen, const std::string &name,
+            uint32_t pedge_flags);
 
     int
     choose_splitting_coordinate(double &s) const;
@@ -534,6 +556,7 @@ namespace
     fastuidraw::BoundingBox<double> m_bounds;
     std::vector<SubContour> m_contours;
     int m_gen;
+    uint32_t m_edge_flags;
     std::string m_name;
   };
 
@@ -614,7 +637,8 @@ namespace
     }
 
     bool
-    edge_hugs_boundary(unsigned int a, unsigned int b) const;
+    edge_hugs_boundary(uint32_t valid_edges,
+                       unsigned int a, unsigned int b) const;
 
     bool
     point_is_path_join(unsigned int v)
@@ -655,7 +679,8 @@ namespace
   class tesser:fastuidraw::noncopyable
   {
   public:
-    tesser(PointHoard &points,
+    tesser(uint32_t edge_flags,
+           PointHoard &points,
            const PointHoard::Path &P,
            int winding_offset,
            PerWindingComponentData &hoard);
@@ -716,7 +741,8 @@ namespace
                           const unsigned int vertex_ids[],
                           unsigned int count,
                           void *tess);
-
+    
+    uint32_t m_edge_flags;
     unsigned int m_point_count;
     fastuidraw_GLUtesselator *m_tess;
     PointHoard &m_points;
@@ -1227,10 +1253,12 @@ end_boundary(void)
 SubPath::
 SubPath(const fastuidraw::BoundingBox<double> &bb,
         std::vector<SubContour> &contours,
-        int gen, const std::string &name):
+        int gen, const std::string &name,
+        uint32_t pedge_flags):
   m_num_points(0),
   m_bounds(bb),
   m_gen(gen),
+  m_edge_flags(pedge_flags),
   m_name(name)
 {
   m_contours.swap(contours);
@@ -1247,10 +1275,11 @@ SubPath(const fastuidraw::BoundingBox<double> &bb,
 SubPath::
 SubPath(const fastuidraw::TessellatedPath &P):
   m_num_points(0),
-  m_bounds(fastuidraw::dvec2(P.bounding_box_min() - 0.01 * P.bounding_box_size()),
-           fastuidraw::dvec2(P.bounding_box_max() + 0.01 * P.bounding_box_size())),
+  m_bounds(fastuidraw::dvec2(P.bounding_box_min()),
+           fastuidraw::dvec2(P.bounding_box_max())),
   m_contours(P.number_contours()),
-  m_gen(0)
+  m_gen(0),
+  m_edge_flags(starting_subpath)
 {
   for(unsigned int c = 0, endc = P.number_contours(); c < endc; ++c)
     {
@@ -1553,6 +1582,18 @@ split(int &splitting_coordinate) const
   fastuidraw::BoundingBox<double> B0(m_bounds.min_point(), B0_max);
   fastuidraw::BoundingBox<double> B1(B1_min, m_bounds.max_point());
   std::vector<SubContour> C0, C1;
+  uint32_t flags0(m_edge_flags), flags1(m_edge_flags);
+
+  if (splitting_coordinate == 0)
+    {
+      flags0 &= ~max_x_edge_of_original_path;
+      flags1 &= ~min_x_edge_of_original_path;
+    }
+  else
+    {
+      flags0 &= ~max_y_edge_of_original_path;
+      flags1 &= ~min_y_edge_of_original_path;
+    }
 
   C0.reserve(m_contours.size());
   C1.reserve(m_contours.size());
@@ -1574,8 +1615,8 @@ split(int &splitting_coordinate) const
         }
     }
 
-  return_value[0] = FASTUIDRAWnew SubPath(B0, C0, m_gen + 1, m_name + "0");
-  return_value[1] = FASTUIDRAWnew SubPath(B1, C1, m_gen + 1, m_name + "1");
+  return_value[0] = FASTUIDRAWnew SubPath(B0, C0, m_gen + 1, m_name + "0", flags0);
+  return_value[1] = FASTUIDRAWnew SubPath(B1, C1, m_gen + 1, m_name + "1", flags1);
 
   return return_value;
 }
@@ -1705,19 +1746,27 @@ fetch_corner(bool is_max_x, bool is_max_y)
 
 bool
 PointHoard::
-edge_hugs_boundary(unsigned int a, unsigned int b) const
+edge_hugs_boundary(uint32_t valid_edges,
+                   unsigned int a, unsigned int b) const
 {
   fastuidraw::ivec2 pA(m_ipts[a]), pB(m_ipts[b]);
+  const fastuidraw::vecN<uint32_t, 2> min_edges(SubPath::min_x_edge_of_original_path,
+                                                SubPath::min_y_edge_of_original_path);
+  const fastuidraw::vecN<uint32_t, 2> max_edges(SubPath::max_x_edge_of_original_path,
+                                                SubPath::max_y_edge_of_original_path);
   const int slack(1);
 
   for(int coord = 0; coord < 2; ++coord)
     {
-      if(pA[coord] <= slack && pB[coord] <= slack)
+      if(pA[coord] <= slack && pB[coord] <= slack
+         && (valid_edges & min_edges[coord]) == 0u)
         {
           return true;
         }
+
       if(pA[coord] >= CoordinateConverterConstants::box_dim - slack
-         && pB[coord] >= CoordinateConverterConstants::box_dim - slack)
+         && pB[coord] >= CoordinateConverterConstants::box_dim - slack
+         && (valid_edges & max_edges[coord]) == 0u)
         {
           return true;
         }
@@ -1891,10 +1940,12 @@ unloop_contour(std::list<ContourPoint> &C, std::vector<Contour> &output)
 ////////////////////////////////////////
 // tesser methods
 tesser::
-tesser(PointHoard &points,
+tesser(uint32_t edge_flags,
+       PointHoard &points,
        const PointHoard::Path &P,
        int winding_offset,
        PerWindingComponentData &hoard):
+  m_edge_flags(edge_flags),
   m_point_count(0),
   m_points(points),
   m_triangulation_failed(false),
@@ -2052,7 +2103,7 @@ vertex_callBack(unsigned int vertex_id, void *tess)
    * then if all vertices are NOT FASTUIDRAW_GLU_nullptr_CLIENT_ID,
    * then add them.
    */
-  p->m_temp_verts[p->m_temp_vert_count] = vertex_id;
+  p->m_temp_verts[p->m_temp_vert_count] = vertex_id & ~corner_vert_mask;
   p->m_temp_vert_count++;
   if (p->m_temp_vert_count == 3)
     {
@@ -2095,7 +2146,7 @@ combine_callback(double x, double y, unsigned int data[4],
       for(unsigned int i = 0; i < 4; ++i)
         {
           FASTUIDRAWassert(data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
-          pt += weight[i] * p->m_points[data[i]];
+          pt += weight[i] * p->m_points[data[i] & ~corner_vert_mask];
         }
     }
   else
@@ -2126,7 +2177,7 @@ boundary_callback(double *x, double *y,
 
   if (outData)
     {
-      *outData = idx;
+      *outData = idx | corner_vert_mask;
       FASTUIDRAWassert(istep == 0);
     }
   else
@@ -2188,9 +2239,13 @@ emitboundary_callback(int glu_tess_winding,
       bool vb_is_path_join;
 
       next_i = (i + 1u == count) ? 0u: i + 1u;
-      va = vertex_ids[i];
-      vb = vertex_ids[next_i];
-      draw_edge = !p->m_points.edge_hugs_boundary(va, vb);
+      va = vertex_ids[i] & ~corner_vert_mask;
+      vb = vertex_ids[next_i] & ~corner_vert_mask;
+
+      draw_edge = !p->m_points.edge_hugs_boundary(p->m_edge_flags, va, vb)
+        && ((vertex_ids[i] & corner_vert_mask) == 0u ||
+            (vertex_ids[next_i] & corner_vert_mask) == 0u);
+      
       vb_is_path_join = p->m_points.point_is_path_join(vb);
       h->m_aa_fuzz.add_edge(va, vb, draw_edge, vb_is_path_join);
     }
@@ -2207,7 +2262,7 @@ builder(const SubPath &P, std::vector<fastuidraw::dvec2> &points):
   int winding_offset;
 
   winding_offset = m_points.generate_path(P, path);
-  tesser T(m_points, path, winding_offset, m_hoard);
+  tesser T(P.edge_flags(), m_points, path, winding_offset, m_hoard);
 
   m_failed = T.triangulation_failed();
 
