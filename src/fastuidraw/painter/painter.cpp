@@ -1004,7 +1004,6 @@ namespace
     fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
-    bool m_linearize_from_arc_path;
     int m_current_z;
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
@@ -1383,8 +1382,7 @@ PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
   m_resolution(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
-  m_curve_flatness(0.5f),
-  m_linearize_from_arc_path(true)
+  m_curve_flatness(0.5f)
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
   m_reset_brush = m_core->packed_value_pool().create_packed_value(fastuidraw::PainterBrush());
@@ -3294,24 +3292,6 @@ rotate(float angle)
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m = m * tr;
   d->m_clip_rect_state.item_matrix(m, true, non_scaling_matrix);
-}
-
-void
-fastuidraw::Painter::
-linearize_from_arc_path(bool b)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_linearize_from_arc_path = b;
-}
-
-bool
-fastuidraw::Painter::
-linearize_from_arc_path(void)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  return d->m_linearize_from_arc_path;
 }
 
 void

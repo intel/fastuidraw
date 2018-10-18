@@ -468,21 +468,6 @@ namespace fastuidraw
     curveFlatness(void);
 
     /*!
-     * If true, when filling or stroking paths with stroke_arc_path() false,
-     * first take the arc_tessellation() of the path to be stroked or filled
-     * and then take its linear tessellation from which to take its FilledPath
-     * to fill or StrokedPath to stroke.
-     */
-    void
-    linearize_from_arc_path(bool);
-
-    /*!
-     * Returns the value set by linearize_from_arc_path(bool).
-     */
-    bool
-    linearize_from_arc_path(void);
-
-    /*!
      * Save the current state of this Painter onto the save state stack.
      * The state is restored (and the stack popped) by called restore().
      * The state saved is:
