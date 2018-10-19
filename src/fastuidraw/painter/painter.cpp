@@ -823,6 +823,9 @@ namespace
     std::vector<fastuidraw::vec2> m_pts;
     std::vector<fastuidraw::PainterIndex> m_indices;
     std::vector<fastuidraw::PainterAttribute> m_attribs;
+    std::vector<fastuidraw::PainterIndex> m_aa_fuzz_indices;
+    std::vector<fastuidraw::PainterAttribute> m_aa_fuzz_attribs;
+    int m_fuzz_increment_z;
   };
 
   class StrokingWorkRoom:fastuidraw::noncopyable
@@ -1037,7 +1040,7 @@ namespace
                                     FillSubsetWorkRoom &workroom,
                                     OpaqueFillWorkRoom *output);
 
-    void
+    int
     draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
@@ -1045,17 +1048,17 @@ namespace
                         int z,
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
-    void
+    int
     draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
     {
-      draw_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z, call_back);
+      return draw_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z, call_back);
     }
 
-    void
+    int
     draw_rect(const fastuidraw::PainterFillShader &shader,
               const fastuidraw::PainterData &draw,
               const fastuidraw::vec2 &p, const fastuidraw::vec2 &wh,
@@ -1069,7 +1072,7 @@ namespace
       pts[1] = p + fastuidraw::vec2(wh.x(), 0.0f);
       pts[2] = p + fastuidraw::vec2(wh.x(), wh.y());
       pts[3] = p + fastuidraw::vec2(0.0f, wh.y());
-      draw_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
+      return draw_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
     }
 
     void
@@ -2420,13 +2423,13 @@ fill_path_compute_opaque_chunks(const fastuidraw::FilledPath &filled_path,
 
   workroom.m_subsets.resize(filled_path.number_subsets());
   num_subsets = select_subsets(filled_path, make_c_array(workroom.m_subsets));
+  workroom.m_subsets.resize(num_subsets);
 
   if (num_subsets == 0)
     {
       return;
     }
 
-  workroom.m_subsets.resize(num_subsets);
   workroom.m_ws.set(filled_path, make_c_array(workroom.m_subsets),
                     CustomFillRuleFunction(fill_rule));
 
@@ -2461,13 +2464,13 @@ fill_path_compute_opaque_chunks(const fastuidraw::FilledPath &filled_path,
 
   workroom.m_subsets.resize(filled_path.number_subsets());
   num_subsets = select_subsets(filled_path, make_c_array(workroom.m_subsets));
+  workroom.m_subsets.resize(num_subsets);
 
   if (num_subsets == 0)
     {
       return;
     }
 
-  workroom.m_subsets.resize(num_subsets);
   workroom.m_ws.set(filled_path, make_c_array(workroom.m_subsets), fill_rule);
 
   output->m_attrib_chunks.clear();
@@ -2526,7 +2529,8 @@ fill_path(const fastuidraw::PainterFillShader &shader,
                                   m_work_room.m_fill_subset,
                                   &m_work_room.m_fill_opaque);
 
-  if (m_work_room.m_fill_opaque.m_index_chunks.empty())
+  if (m_work_room.m_fill_opaque.m_index_chunks.empty()
+      || m_work_room.m_fill_subset.m_subsets.empty())
     {
       return;
     }
@@ -2563,7 +2567,7 @@ fill_path(const fastuidraw::PainterFillShader &shader,
   m_current_z += m_work_room.m_fill_aa_fuzz.m_total_increment_z;
 }
 
-void
+int
 PainterPrivate::
 draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                     const fastuidraw::PainterData &draw,
@@ -2576,7 +2580,7 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
 
   if (pts.size() < 3 || m_clip_rect_state.m_all_content_culled)
     {
-      return;
+      return 0;
     }
 
   if (!m_core->hints().clipping_via_hw_clip_planes())
@@ -2586,7 +2590,85 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
       pts = make_c_array(m_work_room.m_polygon.m_pts);
       if (pts.size() < 3)
         {
-          return;
+          return 0;
+        }
+    }
+
+  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
+  if (anti_alias_quality != Painter::shader_anti_alias_none)
+    {
+      int mult;
+
+      mult = (anti_alias_quality == Painter::shader_anti_alias_simple) ? 1 : 0;
+      m_work_room.m_polygon.m_aa_fuzz_attribs.clear();
+      m_work_room.m_polygon.m_aa_fuzz_indices.clear();
+      m_work_room.m_polygon.m_fuzz_increment_z = 0;
+
+      for (unsigned int i = 0; i < pts.size(); ++i, m_work_room.m_polygon.m_fuzz_increment_z += mult)
+        {
+          unsigned int next_i, next_next_i;
+          unsigned int center, current_start, current_outer;
+          unsigned int next_start, next_outer;
+          bool is_closing_edge;
+          vec2 t, n;
+          float d, sd;
+
+          next_i = (i + 1u == pts.size()) ? 0 : i + 1u;
+          next_next_i = (next_i + 1u == pts.size()) ? 0 : next_i + 1u;
+          is_closing_edge = (i + 1u == pts.size());
+
+          current_start = m_work_room.m_polygon.m_aa_fuzz_attribs.size();
+          pack_anti_alias_edge(pts[i], pts[next_i],
+                               m_work_room.m_polygon.m_fuzz_increment_z,
+                               m_work_room.m_polygon.m_aa_fuzz_attribs,
+                               m_work_room.m_polygon.m_aa_fuzz_indices);
+          next_start = m_work_room.m_polygon.m_aa_fuzz_attribs.size();
+
+          t = pts[next_next_i] - pts[next_i];
+          t /= t.magnitude();
+          n = vec2(-t.y(), t.x());
+          d = dot(pts[next_i] - pts[i], -n);
+          sd = t_sign(d);
+
+          center = current_start + 4;
+          if (is_closing_edge)
+            {
+              PainterAttribute A;
+
+              next_outer = m_work_room.m_polygon.m_aa_fuzz_attribs.size();
+              A = anti_alias_edge_attribute(pts[next_i],
+                                            FilledPath::Subset::aa_fuzz_type_on_boundary,
+                                            -sd * n, m_work_room.m_polygon.m_fuzz_increment_z);
+              m_work_room.m_polygon.m_aa_fuzz_attribs.push_back(A);
+            }
+
+          if (d < 0.0)
+            {
+              current_outer = current_start + 5u;
+              if (!is_closing_edge)
+                {
+                  next_outer = next_start + 2u;
+                }
+            }
+          else
+            {
+              current_outer = current_start + 3u;
+              if (!is_closing_edge)
+                {
+                  next_outer = next_start + 0u;
+                }
+            }
+
+          m_work_room.m_polygon.m_aa_fuzz_indices.push_back(current_outer);
+          m_work_room.m_polygon.m_aa_fuzz_indices.push_back(next_outer);
+          m_work_room.m_polygon.m_aa_fuzz_indices.push_back(center);
+        }
+
+      if (anti_alias_quality == Painter::shader_anti_alias_high_quality)
+        {
+          m_work_room.m_polygon.m_fuzz_increment_z = 1u;
         }
     }
 
@@ -2611,11 +2693,35 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                make_c_array(m_work_room.m_polygon.m_attribs),
                make_c_array(m_work_room.m_polygon.m_indices),
                0,
-               z,
+               m_work_room.m_polygon.m_fuzz_increment_z + z,
                call_back);
 
-  /* TODO: anti-alias according to anti_alias_quality */
-  FASTUIDRAWunused(anti_alias_quality);
+  if (anti_alias_quality != Painter::shader_anti_alias_none)
+    {
+      if (anti_alias_quality == Painter::shader_anti_alias_simple)
+        {
+          draw_generic(shader.aa_fuzz_shader(), draw,
+                       make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
+                       make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
+                       0, z, call_back);
+        }
+      else
+        {
+          draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
+                       make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
+                       make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
+                       0, z, call_back);
+          m_core->draw_break(shader.aa_hq_action_pass1());
+
+          draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
+                       make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
+                       make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
+                       0, z, call_back);
+          m_core->draw_break(shader.aa_hq_action_pass2());
+        }
+    }
+
+  return m_work_room.m_polygon.m_fuzz_increment_z;
 }
 
 void
@@ -2839,7 +2945,7 @@ draw_convex_polygon(const PainterFillShader &shader,
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->draw_convex_polygon(shader, draw, pts, anti_alias_quality, nullptr);
+  d->m_current_z += d->draw_convex_polygon(shader, draw, pts, anti_alias_quality, nullptr);
 }
 
 void
