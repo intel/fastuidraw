@@ -709,6 +709,9 @@ namespace
     bool
     temp_verts_non_degenerate_triangle(void);
 
+    uint64_t
+    region_area(const unsigned int vertex_ids[], unsigned int count) const;
+
     static
     void
     begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess);
@@ -2067,6 +2070,36 @@ temp_verts_non_degenerate_triangle(void)
   return true;
 }
 
+uint64_t
+tesser::
+region_area(const unsigned int vertex_ids[], unsigned int count) const
+{
+  if (count == 0)
+    {
+      return 0u;
+    }
+
+  /* Use the Surveyor's formula in integer arithmetic
+   * to decide if the region whose boundar is passed
+   * has area; to keep the numbers smaller center the
+   * computation around the first point of the polygon.
+   */
+  fastuidraw::ivec2 origin(m_points.ipt(vertex_ids[0] & ~corner_vert_mask));
+  int64_t twice_signed_area(0);
+  for (unsigned int i = 0; i < count; ++i)
+    {
+      unsigned int next_i;
+
+      next_i = (i + 1u == count) ? 0u: i + 1u;
+
+      fastuidraw::vecN<int64_t, 2> a(m_points.ipt(vertex_ids[i] & ~corner_vert_mask) - origin);
+      fastuidraw::vecN<int64_t, 2> b(m_points.ipt(vertex_ids[next_i] & ~corner_vert_mask) - origin);
+      twice_signed_area += a.x() * b.y() - b.x() * a.y();
+    }
+
+  return uint64_t(fastuidraw::t_abs(twice_signed_area)) >> 1u;
+}
+
 void
 tesser::
 begin_callBack(FASTUIDRAW_GLUenum type, int glu_tess_winding_number, void *tess)
@@ -2222,6 +2255,13 @@ emitboundary_callback(int glu_tess_winding,
                       void *tess)
 {
   tesser *p(static_cast<tesser*>(tess));
+  uint64_t area;
+
+  area = p->region_area(vertex_ids, count);
+  if (area == 0u)
+    {
+      return;
+    }
 
   int winding(p->m_winding_offset + glu_tess_winding);
   fastuidraw::reference_counted_ptr<WindingComponentData> &h(p->m_hoard[winding]);
