@@ -909,7 +909,7 @@ namespace fastuidraw
                  const PainterData &draw,
                  c_array<const PainterAttribute> attrib_chunk,
                  c_array<const PainterIndex> index_chunk,
-                 int index_adjust,
+                 int index_adjust = 0,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back
                  = reference_counted_ptr<PainterPacker::DataCallBack>())
     {
