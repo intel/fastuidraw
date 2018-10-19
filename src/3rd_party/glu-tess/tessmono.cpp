@@ -186,8 +186,15 @@ int glu_fastuidraw_gl_meshKeepOnly( GLUmesh *mesh, int winding_number)
   GLUface *f;
   int value(1), just_started;
 
+  /* We mark regions that containing a boundary corner point as outside
+   * when winding_number != 0. In addition,  glu_fastuidraw_gl_excludeFace()
+   * will crash on those GLUface objects that correspond to the unbounded
+   * component of the mesh. These components always have 0 as their winding
+   * numbers and we prevent merging with these components.
+   */
   for (f = mesh->fHead.next, just_started = 1; f != mesh->fHead.next || just_started; f = f->next) {
-    f->inside = (f->winding_number == winding_number);
+    f->inside = (f->winding_number == winding_number)
+      && (f->winding_number == 0 || !glu_fastuidraw_gl_excludeFace(f));
     just_started = 0;
   }
 
