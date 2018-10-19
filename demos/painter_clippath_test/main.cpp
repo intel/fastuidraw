@@ -44,12 +44,12 @@ private:
 
   enum
     {
-      view_zoomer,
-      path1_zoomer,
-      path2_zoomer,
-      rect_zoomer,
+      view_transformer,
+      path1_transformer,
+      path2_transformer,
+      rect_transformer,
 
-      number_zoomers
+      number_transformers
     };
 
   enum
@@ -98,10 +98,10 @@ private:
 
   unsigned int m_path1_clip_mode, m_path2_clip_mode;
   unsigned int m_combine_clip_mode, m_rounded_rect_mode;
-  unsigned int m_active_zoomer;
-  vecN<PanZoomTrackerSDLEvent, number_zoomers> m_zoomers;
+  unsigned int m_active_transformer;
+  vecN<PanZoomTrackerSDLEvent, number_transformers> m_transformers;
   vecN<std::string, number_clip_modes> m_clip_labels;
-  vecN<std::string, number_zoomers> m_zoomer_labels;
+  vecN<std::string, number_transformers> m_transformer_labels;
   vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
   vecN<std::string, number_rounded_rect_modes> m_rounded_rect_mode_labels;
 };
@@ -126,20 +126,23 @@ painter_clip_test():
   m_path2_clip_mode(no_clip),
   m_combine_clip_mode(separate_clipping),
   m_rounded_rect_mode(draw_rounded_rect),
-  m_active_zoomer(view_zoomer)
+  m_active_transformer(view_transformer)
 {
   std::cout << "Controls:\n"
             << "\t1: cycle through clip modes for path1\n"
             << "\t2: cycle through clip modes for path2\n"
-            << "\ts: cycle through active zoomer controls\n";
+            << "\ts: cycle through active transformer controls\n"
+            << "\tc: change combine clip mode\n"
+            << "\tr: change rounded rect mode\n";
 
   m_clip_labels[clip_in] = "clip_in";
   m_clip_labels[clip_out] = "clip_out";
   m_clip_labels[no_clip] = "no_clip";
 
-  m_zoomer_labels[view_zoomer] = "view_zoomer";
-  m_zoomer_labels[path1_zoomer] = "path1_zoomer";
-  m_zoomer_labels[path2_zoomer] = "path2_zoomer";
+  m_transformer_labels[view_transformer] = "view_transformer";
+  m_transformer_labels[path1_transformer] = "path1_transformer";
+  m_transformer_labels[path2_transformer] = "path2_transformer";
+  m_transformer_labels[rect_transformer] = "rect_transformer";
 
   m_combine_clip_labels[separate_clipping] = "separate_clipping";
   m_combine_clip_labels[path1_then_path2] = "path1_then_path2";
@@ -153,17 +156,17 @@ void
 painter_clip_test::
 handle_event(const SDL_Event &ev)
 {
-  if (m_active_zoomer != view_zoomer)
+  if (m_active_transformer != view_transformer)
     {
       ScaleTranslate<float> inv;
 
-      inv = m_zoomers[view_zoomer].transformation().inverse();
-      m_zoomers[m_active_zoomer].m_scale_event = vec2(inv.scale(), inv.scale());
-      m_zoomers[m_active_zoomer].m_scale_zooming = inv.scale();
-      m_zoomers[m_active_zoomer].m_translate_event = inv.translation();
+      inv = m_transformers[view_transformer].transformation().inverse();
+      m_transformers[m_active_transformer].m_scale_event = vec2(inv.scale(), inv.scale());
+      m_transformers[m_active_transformer].m_scale_zooming = inv.scale();
+      m_transformers[m_active_transformer].m_translate_event = inv.translation();
     }
 
-  m_zoomers[m_active_zoomer].handle_event(ev);
+  m_transformers[m_active_transformer].handle_event(ev);
   switch(ev.type)
     {
     case SDL_WINDOWEVENT:
@@ -192,8 +195,8 @@ handle_event(const SDL_Event &ev)
           std::cout << "Path2 clip mode set to: " << m_clip_labels[m_path2_clip_mode] << "\n";
           break;
         case SDLK_s:
-          cycle_value(m_active_zoomer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_zoomers);
-          std::cout << "Active zoomer set to: " << m_zoomer_labels[m_active_zoomer] << "\n";
+          cycle_value(m_active_transformer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_transformers);
+          std::cout << "Active zoomer set to: " << m_transformer_labels[m_active_transformer] << "\n";
           break;
         case SDLK_c:
           cycle_value(m_combine_clip_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_combine_clip_modes);
@@ -348,10 +351,10 @@ painter_clip_test::
 draw_frame(void)
 {
   m_painter->begin(m_surface, Painter::y_increases_downwards);
-  m_zoomers[view_zoomer].transformation().concat_to_painter(m_painter);
+  m_transformers[view_transformer].transformation().concat_to_painter(m_painter);
 
   PainterItemMatrix M(m_painter->transformation());
-  m_zoomers[rect_zoomer].transformation().concat_to_painter(m_painter);
+  m_transformers[rect_transformer].transformation().concat_to_painter(m_painter);
   switch(m_rounded_rect_mode)
     {
     case draw_rounded_rect:
@@ -373,20 +376,20 @@ draw_frame(void)
     {
     case separate_clipping:
       draw_element(m_path1, m_path1_clip_mode, vec4(1.0f, 0.0f, 0.0f, 0.5f),
-                   m_zoomers[path1_zoomer].transformation().matrix3());
+                   m_transformers[path1_transformer].transformation().matrix3());
       draw_element(m_path2, m_path2_clip_mode, vec4(0.0f, 1.0f, 0.0f, 0.5f),
-                   m_zoomers[path2_zoomer].transformation().matrix3());
+                   m_transformers[path2_transformer].transformation().matrix3());
       break;
 
     case path1_then_path2:
-      draw_combined(m_path1, m_path1_clip_mode, m_zoomers[path1_zoomer].transformation().matrix3(),
-                    m_path2, m_path2_clip_mode, m_zoomers[path2_zoomer].transformation().matrix3(),
+      draw_combined(m_path1, m_path1_clip_mode, m_transformers[path1_transformer].transformation().matrix3(),
+                    m_path2, m_path2_clip_mode, m_transformers[path2_transformer].transformation().matrix3(),
                     vec4(0.0f, 1.0f, 1.0f, 0.5f));
       break;
 
     case path2_then_path1:
-      draw_combined(m_path2, m_path2_clip_mode, m_zoomers[path2_zoomer].transformation().matrix3(),
-                    m_path1, m_path1_clip_mode, m_zoomers[path1_zoomer].transformation().matrix3(),
+      draw_combined(m_path2, m_path2_clip_mode, m_transformers[path2_transformer].transformation().matrix3(),
+                    m_path1, m_path1_clip_mode, m_transformers[path1_transformer].transformation().matrix3(),
                     vec4(1.0f, 0.0f, 1.0f, 0.5f));
       break;
     }
