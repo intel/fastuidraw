@@ -868,15 +868,15 @@ namespace
                              std::vector<int> &start_zs);
 
     void
-    draw_anti_alias_fuzz_common(const fastuidraw::PainterFillShader &shader,
-                                const fastuidraw::PainterData &draw,
-                                enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-                                fastuidraw::c_array<const int> z_increments, int incr_z,
-                                fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
-                                fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
-                                fastuidraw::c_array<const int> index_adjusts,
-                                fastuidraw::c_array<const int> start_zs,
-                                const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+    draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
+                         const fastuidraw::PainterData &draw,
+                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                         fastuidraw::c_array<const int> z_increments, int incr_z,
+                         fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                         fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                         fastuidraw::c_array<const int> index_adjusts,
+                         fastuidraw::c_array<const int> start_zs,
+                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     void
     draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
@@ -924,21 +924,26 @@ namespace
                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias,
                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
+    template<typename T>
     void
     fill_path(const fastuidraw::PainterFillShader &shader,
               const fastuidraw::PainterData &draw,
               const fastuidraw::FilledPath &filled_path,
-              enum fastuidraw::Painter::fill_rule_t fill_rule,
+              const T &fill_rule,
               enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
               const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     void
-    fill_path(const fastuidraw::PainterFillShader &shader,
-              const fastuidraw::PainterData &draw,
-              const fastuidraw::FilledPath &filled_path,
-              const fastuidraw::CustomFillRuleBase &fill_rule,
-              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-              const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+    fill_path_compute_opaque_chunks(const fastuidraw::FilledPath &filled_path,
+                                    enum fastuidraw::Painter::fill_rule_t fill_rule,
+                                    FillSubsetWorkRoom &workroom,
+                                    OpaqueFillWorkRoom *output);
+
+    void
+    fill_path_compute_opaque_chunks(const fastuidraw::FilledPath &filled_path,
+                                    const fastuidraw::CustomFillRuleBase &fill_rule,
+                                    FillSubsetWorkRoom &workroom,
+                                    OpaqueFillWorkRoom *output);
 
     void
     draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
@@ -1838,15 +1843,15 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
 
 void
 PainterPrivate::
-draw_anti_alias_fuzz_common(const fastuidraw::PainterFillShader &shader,
-                            const fastuidraw::PainterData &draw,
-                            enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-                            fastuidraw::c_array<const int> z_increments, int incr_z,
-                            fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
-                            fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
-                            fastuidraw::c_array<const int> index_adjusts,
-                            fastuidraw::c_array<const int> start_zs,
-                            const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
+                     const fastuidraw::PainterData &draw,
+                     enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                     fastuidraw::c_array<const int> z_increments, int incr_z,
+                     fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                     fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                     fastuidraw::c_array<const int> index_adjusts,
+                     fastuidraw::c_array<const int> start_zs,
+                     const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_simple)
     {
@@ -2290,120 +2295,72 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
 
 void
 PainterPrivate::
-fill_path(const fastuidraw::PainterFillShader &shader,
-          const fastuidraw::PainterData &draw,
-          const fastuidraw::FilledPath &filled_path,
-          enum fastuidraw::Painter::fill_rule_t fill_rule,
-          enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-          const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+fill_path_compute_opaque_chunks(const fastuidraw::FilledPath &filled_path,
+                                enum fastuidraw::Painter::fill_rule_t fill_rule,
+                                FillSubsetWorkRoom &workroom,
+                                OpaqueFillWorkRoom *output)
 {
   using namespace fastuidraw;
-  unsigned int idx_chunk, atr_chunk, num_subsets, incr_z;
 
-  m_work_room.m_fill_subset.m_subsets.resize(filled_path.number_subsets());
-  num_subsets = select_subsets(filled_path, make_c_array(m_work_room.m_fill_subset.m_subsets));
+  unsigned int idx_chunk, atr_chunk, num_subsets;
+
+  workroom.m_subsets.resize(filled_path.number_subsets());
+  num_subsets = select_subsets(filled_path, make_c_array(workroom.m_subsets));
 
   if (num_subsets == 0)
     {
       return;
     }
 
-  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support(),
-                                                 shader.fastest_anti_alias_mode());
+  workroom.m_subsets.resize(num_subsets);
+  workroom.m_ws.set(filled_path, make_c_array(workroom.m_subsets),
+                    CustomFillRuleFunction(fill_rule));
 
-  fastuidraw::c_array<const unsigned int> subset_list;
-  subset_list = make_c_array(m_work_room.m_fill_subset.m_subsets).sub_array(0, num_subsets);
-
-  m_work_room.m_fill_opaque.m_attrib_chunks.clear();
-  m_work_room.m_fill_opaque.m_index_chunks.clear();
-  m_work_room.m_fill_opaque.m_index_adjusts.clear();
+  output->m_attrib_chunks.clear();
+  output->m_index_chunks.clear();
+  output->m_index_adjusts.clear();
+  output->m_chunk_selector.clear();
 
   idx_chunk = FilledPath::Subset::fill_chunk_from_fill_rule(fill_rule);
   atr_chunk = 0;
-  for(unsigned int s : subset_list)
+  for(unsigned int s : workroom.m_subsets)
     {
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
 
-      m_work_room.m_fill_opaque.m_attrib_chunks.push_back(data.attribute_data_chunk(atr_chunk));
-      m_work_room.m_fill_opaque.m_index_chunks.push_back(data.index_data_chunk(idx_chunk));
-      m_work_room.m_fill_opaque.m_index_adjusts.push_back(data.index_adjust_chunk(idx_chunk));
+      output->m_attrib_chunks.push_back(data.attribute_data_chunk(atr_chunk));
+      output->m_index_chunks.push_back(data.index_data_chunk(idx_chunk));
+      output->m_index_adjusts.push_back(data.index_adjust_chunk(idx_chunk));
     }
-
-  if (anti_alias_quality != Painter::shader_anti_alias_none)
-    {
-      m_work_room.m_fill_subset.m_ws.set(filled_path, subset_list, CustomFillRuleFunction(fill_rule));
-      incr_z = pre_draw_anti_alias_fuzz(filled_path, subset_list, anti_alias_quality,
-                                           m_work_room.m_fill_subset.m_ws,
-                                           m_work_room.m_fill_aa_fuzz.m_z_increments,
-                                           m_work_room.m_fill_aa_fuzz.m_attrib_chunks,
-                                           m_work_room.m_fill_aa_fuzz.m_index_chunks,
-                                           m_work_room.m_fill_aa_fuzz.m_index_adjusts,
-                                           m_work_room.m_fill_aa_fuzz.m_start_zs);
-    }
-  else
-    {
-      incr_z = 0;
-    }
-
-  draw_generic(shader.item_shader(), draw,
-                  make_c_array(m_work_room.m_fill_opaque.m_attrib_chunks),
-                  make_c_array(m_work_room.m_fill_opaque.m_index_chunks),
-                  make_c_array(m_work_room.m_fill_opaque.m_index_adjusts),
-                  c_array<const unsigned int>(), //chunk selector
-                  m_current_z + incr_z, call_back);
-
-  if (anti_alias_quality != Painter::shader_anti_alias_none)
-    {
-      draw_anti_alias_fuzz_common(shader, draw, anti_alias_quality,
-                                     make_c_array(m_work_room.m_fill_aa_fuzz.m_z_increments), incr_z,
-                                     make_c_array(m_work_room.m_fill_aa_fuzz.m_attrib_chunks),
-                                     make_c_array(m_work_room.m_fill_aa_fuzz.m_index_chunks),
-                                     make_c_array(m_work_room.m_fill_aa_fuzz.m_index_adjusts),
-                                     make_c_array(m_work_room.m_fill_aa_fuzz.m_start_zs),
-                                     call_back);
-    }
-
-  m_current_z += incr_z;
 }
 
 void
 PainterPrivate::
-fill_path(const fastuidraw::PainterFillShader &shader,
-          const fastuidraw::PainterData &draw,
-          const fastuidraw::FilledPath &filled_path,
-          const fastuidraw::CustomFillRuleBase &fill_rule,
-          enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-          const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+fill_path_compute_opaque_chunks(const fastuidraw::FilledPath &filled_path,
+                                const fastuidraw::CustomFillRuleBase &fill_rule,
+                                FillSubsetWorkRoom &workroom,
+                                OpaqueFillWorkRoom *output)
 {
   using namespace fastuidraw;
 
   unsigned int num_subsets;
 
-  m_work_room.m_fill_subset.m_subsets.resize(filled_path.number_subsets());
-  num_subsets = select_subsets(filled_path, make_c_array(m_work_room.m_fill_subset.m_subsets));
+  workroom.m_subsets.resize(filled_path.number_subsets());
+  num_subsets = select_subsets(filled_path, make_c_array(workroom.m_subsets));
 
   if (num_subsets == 0)
     {
       return;
     }
 
-  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support(),
-                                                 shader.fastest_anti_alias_mode());
+  workroom.m_subsets.resize(num_subsets);
+  workroom.m_ws.set(filled_path, make_c_array(workroom.m_subsets), fill_rule);
 
-  c_array<const unsigned int> subset_list;
-  int incr_z;
-
-  subset_list = make_c_array(m_work_room.m_fill_subset.m_subsets).sub_array(0, num_subsets);
-  m_work_room.m_fill_subset.m_ws.set(filled_path, subset_list, fill_rule);
-
-  m_work_room.m_fill_opaque.m_attrib_chunks.clear();
-  m_work_room.m_fill_opaque.m_index_chunks.clear();
-  m_work_room.m_fill_opaque.m_index_adjusts.clear();
-  m_work_room.m_fill_opaque.m_chunk_selector.clear();
-  for(unsigned int s : subset_list)
+  output->m_attrib_chunks.clear();
+  output->m_index_chunks.clear();
+  output->m_index_adjusts.clear();
+  output->m_chunk_selector.clear();
+  for(unsigned int s : workroom.m_subsets)
     {
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
@@ -2413,7 +2370,7 @@ fill_path(const fastuidraw::PainterFillShader &shader,
       bool added_chunk;
 
       added_chunk = false;
-      attrib_selector_value = m_work_room.m_fill_opaque.m_attrib_chunks.size();
+      attrib_selector_value = output->m_attrib_chunks.size();
 
       for(int winding_number : winding_numbers)
         {
@@ -2422,11 +2379,11 @@ fill_path(const fastuidraw::PainterFillShader &shader,
 
           chunk = FilledPath::Subset::fill_chunk_from_winding_number(winding_number);
           index_chunk = data.index_data_chunk(chunk);
-          if (!index_chunk.empty() && m_work_room.m_fill_subset.m_ws(winding_number))
+          if (!index_chunk.empty() && workroom.m_ws(winding_number))
             {
-              m_work_room.m_fill_opaque.m_chunk_selector.push_back(attrib_selector_value);
-              m_work_room.m_fill_opaque.m_index_chunks.push_back(index_chunk);
-              m_work_room.m_fill_opaque.m_index_adjusts.push_back(data.index_adjust_chunk(chunk));
+              output->m_chunk_selector.push_back(attrib_selector_value);
+              output->m_index_chunks.push_back(index_chunk);
+              output->m_index_adjusts.push_back(data.index_adjust_chunk(chunk));
               added_chunk = true;
             }
         }
@@ -2434,18 +2391,43 @@ fill_path(const fastuidraw::PainterFillShader &shader,
       if (added_chunk)
         {
           attrib_chunk = data.attribute_data_chunk(0);
-          m_work_room.m_fill_opaque.m_attrib_chunks.push_back(attrib_chunk);
+          output->m_attrib_chunks.push_back(attrib_chunk);
         }
     }
+}
+
+template<typename T>
+void
+PainterPrivate::
+fill_path(const fastuidraw::PainterFillShader &shader,
+          const fastuidraw::PainterData &draw,
+          const fastuidraw::FilledPath &filled_path,
+          const T &fill_rule,
+          enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+          const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  using namespace fastuidraw;
+
+  fill_path_compute_opaque_chunks(filled_path, fill_rule,
+                                  m_work_room.m_fill_subset,
+                                  &m_work_room.m_fill_opaque);
 
   if (m_work_room.m_fill_opaque.m_index_chunks.empty())
     {
       return;
     }
 
+  int incr_z;
+
+  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
+
   if (anti_alias_quality != Painter::shader_anti_alias_none)
     {
-      incr_z = pre_draw_anti_alias_fuzz(filled_path, subset_list, anti_alias_quality,
+      incr_z = pre_draw_anti_alias_fuzz(filled_path,
+                                        make_c_array(m_work_room.m_fill_subset.m_subsets),
+                                        anti_alias_quality,
                                         m_work_room.m_fill_subset.m_ws,
                                         m_work_room.m_fill_aa_fuzz.m_z_increments,
                                         m_work_room.m_fill_aa_fuzz.m_attrib_chunks,
@@ -2467,13 +2449,13 @@ fill_path(const fastuidraw::PainterFillShader &shader,
 
   if (anti_alias_quality != Painter::shader_anti_alias_none)
     {
-      draw_anti_alias_fuzz_common(shader, draw, anti_alias_quality,
-                                  make_c_array(m_work_room.m_fill_aa_fuzz.m_z_increments), incr_z,
-                                  make_c_array(m_work_room.m_fill_aa_fuzz.m_attrib_chunks),
-                                  make_c_array(m_work_room.m_fill_aa_fuzz.m_index_chunks),
-                                  make_c_array(m_work_room.m_fill_aa_fuzz.m_index_adjusts),
-                                  make_c_array(m_work_room.m_fill_aa_fuzz.m_start_zs),
-                                  call_back);
+      draw_anti_alias_fuzz(shader, draw, anti_alias_quality,
+                           make_c_array(m_work_room.m_fill_aa_fuzz.m_z_increments), incr_z,
+                           make_c_array(m_work_room.m_fill_aa_fuzz.m_attrib_chunks),
+                           make_c_array(m_work_room.m_fill_aa_fuzz.m_index_chunks),
+                           make_c_array(m_work_room.m_fill_aa_fuzz.m_index_adjusts),
+                           make_c_array(m_work_room.m_fill_aa_fuzz.m_start_zs),
+                           call_back);
     }
 
   m_current_z += incr_z;
