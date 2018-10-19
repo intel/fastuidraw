@@ -408,10 +408,10 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
       break;
 
     case clip_in:
-      m_painter->clipInPath(path, Painter::nonzero_fill_rule);
+      m_painter->clip_in_path(path, Painter::nonzero_fill_rule);
       break;
     case clip_out:
-      m_painter->clipOutPath(path, Painter::nonzero_fill_rule);
+      m_painter->clip_out_path(path, Painter::nonzero_fill_rule);
       break;
     }
 
@@ -442,10 +442,10 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &mat
     default:
       break;
     case clip_in:
-      m_painter->clipInPath(path1, Painter::nonzero_fill_rule);
+      m_painter->clip_in_path(path1, Painter::nonzero_fill_rule);
       break;
     case clip_out:
-      m_painter->clipOutPath(path1, Painter::nonzero_fill_rule);
+      m_painter->clip_out_path(path1, Painter::nonzero_fill_rule);
       break;
     }
 
@@ -456,10 +456,10 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &mat
     default:
       break;
     case clip_in:
-      m_painter->clipInPath(path2, Painter::nonzero_fill_rule);
+      m_painter->clip_in_path(path2, Painter::nonzero_fill_rule);
       break;
     case clip_out:
-      m_painter->clipOutPath(path2, Painter::nonzero_fill_rule);
+      m_painter->clip_out_path(path2, Painter::nonzero_fill_rule);
       break;
     }
 
@@ -498,7 +498,7 @@ draw_frame(void)
       break;
 
     case rounded_rect_clips:
-      m_painter->clipInRoundedRect(m_rect);
+      m_painter->clip_in_rounded_rect(m_rect);
       break;
     }
   m_painter->transformation(M);

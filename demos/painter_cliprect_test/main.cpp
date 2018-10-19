@@ -59,7 +59,7 @@ draw_scene(bool with_clipping)
    */
   if (with_clipping)
     {
-      m_painter->clipInRect(vec2(wh.x(), wh.y()) * 0.25f, vec2(wh.x(), wh.y()) * 0.5f);
+      m_painter->clip_in_rect(vec2(wh.x(), wh.y()) * 0.25f, vec2(wh.x(), wh.y()) * 0.5f);
     }
 
   /* draw a green quad over the clipped region
@@ -96,7 +96,7 @@ draw_scene(bool with_clipping)
    */
   if (with_clipping)
     {
-      m_painter->clipInRect(vec2(wh) * 0.125f, vec2(wh) * 0.25f);
+      m_painter->clip_in_rect(vec2(wh) * 0.125f, vec2(wh) * 0.25f);
     }
 
   /* draw a blue quad

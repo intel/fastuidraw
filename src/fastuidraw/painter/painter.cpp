@@ -3624,7 +3624,7 @@ rotate(float angle)
 
 void
 fastuidraw::Painter::
-curveFlatness(float thresh)
+curve_flatness(float thresh)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3633,7 +3633,7 @@ curveFlatness(float thresh)
 
 float
 fastuidraw::Painter::
-curveFlatness(void)
+curve_flatness(void)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3709,47 +3709,47 @@ restore(void)
 
 void
 fastuidraw::Painter::
-clipOutPath(const Path &path, enum fill_rule_t fill_rule)
+clip_out_path(const Path &path, enum fill_rule_t fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  clipOutPath(d->select_filled_path(path), fill_rule);
+  clip_out_path(d->select_filled_path(path), fill_rule);
 }
 
 void
 fastuidraw::Painter::
-clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
+clip_out_path(const Path &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  clipOutPath(d->select_filled_path(path), fill_rule);
+  clip_out_path(d->select_filled_path(path), fill_rule);
 }
 
 void
 fastuidraw::Painter::
-clipInPath(const Path &path, enum fill_rule_t fill_rule)
+clip_in_path(const Path &path, enum fill_rule_t fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  clipInPath(d->select_filled_path(path), fill_rule);
+  clip_in_path(d->select_filled_path(path), fill_rule);
 }
 
 void
 fastuidraw::Painter::
-clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
+clip_in_path(const Path &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  clipInPath(d->select_filled_path(path), fill_rule);
+  clip_in_path(d->select_filled_path(path), fill_rule);
 }
 
 void
 fastuidraw::Painter::
-clipOutPath(const FilledPath &path, enum fill_rule_t fill_rule)
+clip_out_path(const FilledPath &path, enum fill_rule_t fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3785,7 +3785,7 @@ clipOutPath(const FilledPath &path, enum fill_rule_t fill_rule)
 
 void
 fastuidraw::Painter::
-clipOutPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
+clip_out_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3864,7 +3864,7 @@ clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
 
 void
 fastuidraw::Painter::
-clipInPath(const FilledPath &path, enum fill_rule_t fill_rule)
+clip_in_path(const FilledPath &path, enum fill_rule_t fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3879,13 +3879,13 @@ clipInPath(const FilledPath &path, enum fill_rule_t fill_rule)
   vec2 pmin, pmax;
   pmin = path.bounding_box_min();
   pmax = path.bounding_box_max();
-  clipInRect(pmin, pmax - pmin);
-  clipOutPath(path, complement_fill_rule(fill_rule));
+  clip_in_rect(pmin, pmax - pmin);
+  clip_out_path(path, complement_fill_rule(fill_rule));
 }
 
 void
 fastuidraw::Painter::
-clipInPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
+clip_in_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3900,13 +3900,13 @@ clipInPath(const FilledPath &path, const CustomFillRuleBase &fill_rule)
   vec2 pmin, pmax;
   pmin = path.bounding_box_min();
   pmax = path.bounding_box_max();
-  clipInRect(pmin, pmax - pmin);
-  clipOutPath(path, ComplementFillRule(&fill_rule));
+  clip_in_rect(pmin, pmax - pmin);
+  clip_out_path(path, ComplementFillRule(&fill_rule));
 }
 
 void
 fastuidraw::Painter::
-clipInRoundedRect(const RoundedRect &R)
+clip_in_rounded_rect(const RoundedRect &R)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3917,7 +3917,7 @@ clipInRoundedRect(const RoundedRect &R)
       return;
     }
 
-  clipInRect(R.m_min_point, R.m_max_point - R.m_min_point);
+  clip_in_rect(R.m_min_point, R.m_max_point - R.m_min_point);
 
   /* Save our transformation and clipping state because
    * we are going to shear and translate the transformation
@@ -3958,7 +3958,7 @@ clipInRoundedRect(const RoundedRect &R)
 
 void
 fastuidraw::Painter::
-clipInRect(const vec2 &pmin, const vec2 &wh)
+clip_in_rect(const vec2 &pmin, const vec2 &wh)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);

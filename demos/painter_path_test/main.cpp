@@ -963,14 +963,12 @@ update_cts_params(void)
 
 void
 painter_stroke_test::
-draw_rect(const vec2 &pt, float r, const PainterData &d)
+draw_rect(const vec2 &pt, float r, const PainterData &draw)
 {
-  m_painter->save();
-  m_painter->translate(pt);
-  m_painter->scale(r);
-  m_painter->fill_path(d, m_rect, Painter::odd_even_fill_rule,
+  m_painter->draw_rect(draw,
+                       pt - 0.5f * vec2(r, r),
+                       vec2(r, r),
                        m_shader_anti_alias_mode_values[m_aa_fill_mode]);
-  m_painter->restore();
 }
 
 vec2
@@ -1351,7 +1349,7 @@ handle_event(const SDL_Event &ev)
             {
               m_curve_flatness *= 2.0f;
             }
-          std::cout << "Painter::curveFlatness set to " << m_curve_flatness << "\n";
+          std::cout << "Painter::curve_flatness set to " << m_curve_flatness << "\n";
           break;
         }
       break;
@@ -1604,13 +1602,13 @@ draw_scene(bool drawing_wire_frame)
       st.miter_limit(-1.0f);
       st.width(4.0f);
       m_painter->save();
-      m_painter->clipOutPath(m_clip_window_path, Painter::nonzero_fill_rule);
+      m_painter->clip_out_path(m_clip_window_path, Painter::nonzero_fill_rule);
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
                              StrokingStyle()
                              .join_style(Painter::miter_clip_joins),
                              Painter::shader_anti_alias_none);
       m_painter->restore();
-      m_painter->clipInRect(clipping_xy(), clipping_wh());
+      m_painter->clip_in_rect(clipping_xy(), clipping_wh());
     }
 
   CustomFillRuleFunction fill_rule_function(everything_filled);
@@ -1729,7 +1727,7 @@ draw_scene(bool drawing_wire_frame)
 
           path().approximate_bounding_box(&a, &b);
           m_painter->save();
-          m_painter->clipInPath(path(), *fill_rule);
+          m_painter->clip_in_path(path(), *fill_rule);
           m_painter->draw_rect(D, a, b - a);
           m_painter->restore();
         }
@@ -1755,7 +1753,7 @@ draw_scene(bool drawing_wire_frame)
       if (m_draw_fill == draw_fill_path_occludes_stroking)
         {
           m_painter->save();
-          m_painter->clipOutPath(path(), *fill_rule);
+          m_painter->clip_out_path(path(), *fill_rule);
         }
 
       if (is_dashed_stroking())
@@ -1882,7 +1880,7 @@ draw_frame(void)
   m_surface->viewport(vwp);
   m_painter->begin(m_surface, Painter::y_increases_downwards);
 
-  m_painter->curveFlatness(m_curve_flatness);
+  m_painter->curve_flatness(m_curve_flatness);
   m_painter->save();
 
   /* draw grid using painter. */
@@ -2040,7 +2038,7 @@ draw_frame(void)
            << "\nPainter Z: " << m_painter->current_z()
            << "\nMouse position:"
            << item_coordinates(mouse_position)
-           << "\ncurveFlatness: " << m_curve_flatness
+           << "\ncurve_flatness: " << m_curve_flatness
            << "\nView:\n\tzoom = " << zoomer().transformation().scale()
            << "\n\ttranslation = " << zoomer().transformation().translation()
            << "\n";
@@ -2118,7 +2116,7 @@ derived_init(int w, int h)
         }
     }
 
-  m_curve_flatness = m_painter->curveFlatness();
+  m_curve_flatness = m_painter->curve_flatness();
   m_draw_timer.restart();
   m_fps_timer.restart();
 }

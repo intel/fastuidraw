@@ -294,7 +294,7 @@ namespace fastuidraw
      * \param wh width and height of rectange
      */
     void
-    clipInRect(const vec2 &xy, const vec2 &wh);
+    clip_in_rect(const vec2 &xy, const vec2 &wh);
 
     /*!
      * Set clipping to the intersection of the current
@@ -302,7 +302,7 @@ namespace fastuidraw
      * \param R rounded rectangle
      */
     void
-    clipInRoundedRect(const RoundedRect &R);
+    clip_in_rounded_rect(const RoundedRect &R);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -312,7 +312,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipOutPath(const Path &path, enum fill_rule_t fill_rule);
+    clip_out_path(const Path &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -322,7 +322,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipOutPath(const FilledPath &path, enum fill_rule_t fill_rule);
+    clip_out_path(const FilledPath &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-in by a path, i.e. set the clipping to be
@@ -332,7 +332,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipInPath(const Path &path, enum fill_rule_t fill_rule);
+    clip_in_path(const Path &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-in by a path, i.e. set the clipping to be
@@ -342,7 +342,7 @@ namespace fastuidraw
      * \param fill_rule fill rule to apply to path
      */
     void
-    clipInPath(const FilledPath &path, enum fill_rule_t fill_rule);
+    clip_in_path(const FilledPath &path, enum fill_rule_t fill_rule);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -352,7 +352,7 @@ namespace fastuidraw
      * \param fill_rule custom fill rule to apply to path
      */
     void
-    clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule);
+    clip_out_path(const Path &path, const CustomFillRuleBase &fill_rule);
 
     /*!
      * Clip-out by a path, i.e. set the clipping to be
@@ -362,7 +362,7 @@ namespace fastuidraw
      * \param fill_rule custom fill rule to apply to path
      */
     void
-    clipOutPath(const FilledPath &path, const CustomFillRuleBase &fill_rule);
+    clip_out_path(const FilledPath &path, const CustomFillRuleBase &fill_rule);
 
     /*!
      * Clip-in by a path, i.e. set the clipping to be
@@ -372,7 +372,7 @@ namespace fastuidraw
      * \param fill_rule custom fill rule to apply to path
      */
     void
-    clipInPath(const Path &path, const CustomFillRuleBase &fill_rule);
+    clip_in_path(const Path &path, const CustomFillRuleBase &fill_rule);
 
     /*!
      * Clip-in by a path, i.e. set the clipping to be
@@ -382,7 +382,7 @@ namespace fastuidraw
      * \param fill_rule custom fill rule to apply to path
      */
     void
-    clipInPath(const FilledPath &path, const CustomFillRuleBase &fill_rule);
+    clip_in_path(const FilledPath &path, const CustomFillRuleBase &fill_rule);
 
     /*!
      * Clipout by custom data.
@@ -459,13 +459,13 @@ namespace fastuidraw
      *  \ref TessellatedPath. Default value is 0.5.
      */
     void
-    curveFlatness(float thresh);
+    curve_flatness(float thresh);
 
     /*!
-     * Returns the value set by curveFlatness(float).
+     * Returns the value set by curve_flatness(float).
      */
     float
-    curveFlatness(void);
+    curve_flatness(void);
 
     /*!
      * Save the current state of this Painter onto the save state stack.
@@ -473,8 +473,8 @@ namespace fastuidraw
      * The state saved is:
      * - transformation state (see concat(), transformation(), translate(),
      *   shear(), scale(), rotate()).
-     * - clip state (see clipInRect(), clipOutPath(), clipInPath())
-     * - curve flatness requirement (see curveFlatness(float))
+     * - clip state (see clip_in_rect(), clip_out_path(), clip_in_path())
+     * - curve flatness requirement (see curve_flatness(float))
      * - composite shader (see composite_shader()).
      */
     void

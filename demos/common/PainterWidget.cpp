@@ -80,7 +80,7 @@ paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter)
 
   if (m_clipped)
     {
-      painter->clipInRect(fastuidraw::vec2(0.0f, 0.0f), m_dimensions);
+      painter->clip_in_rect(fastuidraw::vec2(0.0f, 0.0f), m_dimensions);
     }
 
   painter->save();
