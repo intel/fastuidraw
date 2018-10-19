@@ -941,6 +941,7 @@ namespace
     draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
+                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     void
@@ -2444,6 +2445,7 @@ PainterPrivate::
 draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                     const fastuidraw::PainterData &draw,
                     fastuidraw::c_array<const fastuidraw::vec2> pts,
+                    enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                     const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   using namespace fastuidraw;
@@ -2487,6 +2489,9 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                0,
                m_current_z,
                call_back);
+
+  /* TODO: anti-alias according to anti_alias_quality */
+  FASTUIDRAWunused(anti_alias_quality);
 }
 
 void
@@ -2532,6 +2537,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
                                         vec2(c, -1.0f),
                                         vec2(d, +1.0f),
                                         vec2(b, +1.0f)),
+                          Painter::shader_anti_alias_none,
                           callback);
     }
   else if (t_abs(plane.y()) > 0.0f)
@@ -2556,6 +2562,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
                                         vec2(-1.0f, c),
                                         vec2(+1.0f, d),
                                         vec2(+1.0f, b)),
+                          Painter::shader_anti_alias_none,
                           callback);
 
     }
@@ -2568,6 +2575,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
                                         vec2(-1.0f, +1.0f),
                                         vec2(+1.0f, +1.0f),
                                         vec2(+1.0f, -1.0f)),
+                          Painter::shader_anti_alias_none,
                           callback);
     }
 }
@@ -2702,60 +2710,72 @@ queue_action(const reference_counted_ptr<const PainterDraw::Action> &action)
 void
 fastuidraw::Painter::
 draw_convex_polygon(const PainterFillShader &shader,
-                    const PainterData &draw, c_array<const vec2> pts)
+                    const PainterData &draw, c_array<const vec2> pts,
+                    enum shader_anti_alias_t anti_alias_quality)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->draw_convex_polygon(shader, draw, pts, nullptr);
+  d->draw_convex_polygon(shader, draw, pts, anti_alias_quality, nullptr);
 }
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts)
+draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
+                    enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_convex_polygon(default_shaders().fill_shader(), draw, pts);
+  draw_convex_polygon(default_shaders().fill_shader(), draw, pts, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const PainterFillShader &shader,
-          const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3)
+draw_quad(const PainterFillShader &shader, const PainterData &draw,
+          const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+          enum shader_anti_alias_t anti_alias_quality)
 {
   vecN<vec2, 4> pts;
   pts[0] = p0;
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(shader, draw, pts);
+  draw_convex_polygon(shader, draw, pts, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3)
+draw_quad(const PainterData &draw,
+          const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+          enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3);
+  draw_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3,
+            anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
 draw_rect(const PainterFillShader &shader,
-          const PainterData &draw, const vec2 &p, const vec2 &wh)
+          const PainterData &draw, const vec2 &p, const vec2 &wh,
+          enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_quad(shader, draw, p, p + vec2(0.0f, wh.y()),
-            p + wh, p + vec2(wh.x(), 0.0f));
+  draw_quad(shader, draw,
+            p, p + vec2(0.0f, wh.y()),
+            p + wh, p + vec2(wh.x(), 0.0f),
+            anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh)
+draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+          enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_rect(default_shaders().fill_shader(), draw, p, wh);
+  draw_rect(default_shaders().fill_shader(), draw, p, wh,
+            anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
 draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
-                  const RoundedRect &R)
+                  const RoundedRect &R,
+                  enum shader_anti_alias_t anti_alias_quality)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -2795,6 +2815,7 @@ draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
     }
 
   /* TODO: draw anti-alias fuzz occluded by the above geometry */
+  FASTUIDRAWunused(anti_alias_quality);
 }
 
 float

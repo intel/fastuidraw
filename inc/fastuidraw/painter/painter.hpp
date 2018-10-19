@@ -804,19 +804,25 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
      *            are the edges of the polygon.
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
      */
     void
     draw_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
-                        c_array<const vec2> pts);
+                        c_array<const vec2> pts,
+                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Draw a convex polygon using the default fill shader.
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
      *            are the edges of the polygon.
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
      */
     void
-    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts);
+    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
+                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Draw a convex quad using a custom shader.
@@ -826,10 +832,13 @@ namespace fastuidraw
      * \param p1 point after p0, shares an edge with p0
      * \param p2 point after p1, shares an edge with p1
      * \param p3 point after p2, shares an edge with p2
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
      */
     void
     draw_quad(const PainterFillShader &shader, const PainterData &draw,
-              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3);
+              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Draw a quad using the default fill shader.
@@ -838,10 +847,13 @@ namespace fastuidraw
      * \param p1 point after p0, shares an edge with p0
      * \param p2 point after p1, shares an edge with p1
      * \param p3 point after p2, shares an edge with p2
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
      */
     void
     draw_quad(const PainterData &draw,
-              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3);
+              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Draw a rect using a custom shader.
@@ -849,29 +861,38 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param p min-corner of rect
      * \param wh width and height of rect
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
      */
     void
     draw_rect(const PainterFillShader &shader, const PainterData &draw,
-              const vec2 &p, const vec2 &wh);
+              const vec2 &p, const vec2 &wh,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Draw a rect using the default fill shader.
      * \param draw data for how to draw
      * \param p min-corner of rect
      * \param wh width and height of rect
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
      */
     void
-    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh);
+    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Draw a rounded rect using a fill shader
      * \param shader shader with which to draw the rounded rectangle
      * \param draw data for how to draw
      * \param R \ref RoundedRect to draw
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
      */
     void
     draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
-                      const RoundedRect &R);
+                      const RoundedRect &R,
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Draw generic attribute data.
