@@ -82,9 +82,9 @@ namespace
   public:
     static
     void
-    decompose_to_path(FT_Outline *outline, fastuidraw::detail::IntPath &p)
+    decompose_to_path(FT_Outline *outline, fastuidraw::detail::IntPath &p, int factor)
     {
-      IntPathCreator datum(p);
+      IntPathCreator datum(p, factor);
       FT_Outline_Funcs funcs;
 
       funcs.move_to = &ft_outline_move_to;
@@ -104,14 +104,15 @@ namespace
       fastuidraw::detail::IntPath ip;
       fastuidraw::detail::IntBezierCurve::transformation<float> tr(C.factor());
 
-      decompose_to_path(outline, ip);
+      decompose_to_path(outline, ip, 1);
       ip.add_to_path(tr, &p);
     }
 
   private:
     explicit
-    IntPathCreator(fastuidraw::detail::IntPath &P):
-      m_path(P)
+    IntPathCreator(fastuidraw::detail::IntPath &P, int factor):
+      m_path(P),
+      m_factor(factor)
     {}
 
     static
@@ -120,7 +121,7 @@ namespace
     {
       IntPathCreator *p;
       p = static_cast<IntPathCreator*>(user);
-      p->m_path.move_to(fastuidraw::ivec2(pt->x, pt->y));
+      p->m_path.move_to(p->m_factor * fastuidraw::ivec2(pt->x, pt->y));
       return 0;
     }
 
@@ -130,7 +131,7 @@ namespace
     {
       IntPathCreator *p;
       p = static_cast<IntPathCreator*>(user);
-      p->m_path.line_to(fastuidraw::ivec2(pt->x, pt->y));
+      p->m_path.line_to(p->m_factor * fastuidraw::ivec2(pt->x, pt->y));
       return 0;
     }
 
@@ -141,8 +142,8 @@ namespace
     {
       IntPathCreator *p;
       p = static_cast<IntPathCreator*>(user);
-      p->m_path.conic_to(fastuidraw::ivec2(control_pt->x, control_pt->y),
-                         fastuidraw::ivec2(pt->x, pt->y));
+      p->m_path.conic_to(p->m_factor * fastuidraw::ivec2(control_pt->x, control_pt->y),
+                         p->m_factor * fastuidraw::ivec2(pt->x, pt->y));
       return 0;
     }
 
@@ -154,13 +155,14 @@ namespace
     {
       IntPathCreator *p;
       p = static_cast<IntPathCreator*>(user);
-      p->m_path.cubic_to(fastuidraw::ivec2(control_pt0->x, control_pt0->y),
-                         fastuidraw::ivec2(control_pt1->x, control_pt1->y),
-                         fastuidraw::ivec2(pt->x, pt->y));
+      p->m_path.cubic_to(p->m_factor * fastuidraw::ivec2(control_pt0->x, control_pt0->y),
+                         p->m_factor * fastuidraw::ivec2(control_pt1->x, control_pt1->y),
+                         p->m_factor * fastuidraw::ivec2(pt->x, pt->y));
       return 0;
     }
 
     fastuidraw::detail::IntPath &m_path;
+    int m_factor;
   };
 
   class FontFreeTypePrivate
@@ -380,8 +382,7 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
     layout_offset.y() -= face->glyph->metrics.height;
     layout_size = fastuidraw::vec2(face->glyph->metrics.width,
                                    face->glyph->metrics.height);
-    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
-    int_path_ecm.replace_cubics_with_quadratics();
+    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm, 1);
   }
 
   /* TODO: adjust for the discretization to pixels */
@@ -394,6 +395,8 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
 
   fastuidraw::detail::IntBezierCurve::transformation<float> identity_tr;
   int_path_ecm.add_to_path(identity_tr, &path);
+
+  int_path_ecm.replace_cubics_with_quadratics();
 
   /* choose the correct fill rule as according to outline_flags */
   enum fastuidraw::PainterEnums::fill_rule_t fill_rule;
@@ -445,6 +448,7 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
   fastuidraw::ivec2 layout_offset, layout_size;
   int outline_flags;
   uint32_t glyph_code(glyph_metrics.glyph_code());
+  int scale_factor;
 
   {
     FaceGrabber p(this);
@@ -461,12 +465,42 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
     layout_offset.y() -= face->glyph->metrics.height;
     layout_size = fastuidraw::ivec2(face->glyph->metrics.width,
                                     face->glyph->metrics.height);
-    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
+
+    /* RestrictedRays gives 16-bits to store the x/y value of a
+     * point which means the max value is 2^15 - 1 = 32767;
+     * if the glyph contains cubics, we need to give scale
+     * the glyph data up so that when a cubic is reduced to
+     * (up to 4) quadratics, so that the two halvings do not
+     * lose too much information. Each halving introduces a
+     * divide by up to 8, leaving a worse case scenario of
+     * dividing by 64. Trying to keep all the values would
+     * leave a way too small value of 32 as a max. We futz
+     * and choose a scaling factor of 8 and hope for the best.
+     *
+     * TODO: examine the values of the outline to determine the
+     * range of the points and use that to give the best possible
+     * scale_factor possible. In addition, perhaps tweak
+     * GlyphRenderDataRestrictedRays so that the bias of points
+     * is per-glyph (passed on via an attribute) instead of
+     * an absolute constant. Possibly for glyphs with large values,
+     * we allow for the x/y coordinates to each take 32-bits
+     * instead of 16.
+     */
+    scale_factor = 8;
+
+    layout_offset *= scale_factor;
+    layout_size *= scale_factor;
+    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm, scale_factor);
   }
+
   /* render size is identical to metric's size because there is
    * no discretization from the glyph'sp outline data.
    */
   render_size = glyph_metrics.size();
+
+  /* extract to a Path */
+  fastuidraw::detail::IntBezierCurve::transformation<float> tr(1.0f / float(scale_factor));
+  int_path_ecm.add_to_path(tr, &path);
 
   int_path_ecm.replace_cubics_with_quadratics();
   for (const auto &contour : int_path_ecm.contours())
@@ -496,10 +530,6 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
     fastuidraw::PainterEnums::nonzero_fill_rule;
 
   output.finalize(fill_rule, layout_offset, layout_offset + layout_size);
-
-  /* extract to a Path */
-  fastuidraw::detail::IntBezierCurve::transformation<float> identity_tr;
-  int_path_ecm.add_to_path(identity_tr, &path);
 }
 
 ///////////////////////////////////////////////////

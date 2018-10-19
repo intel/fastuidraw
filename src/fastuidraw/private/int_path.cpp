@@ -85,34 +85,51 @@ namespace
       }
   }
 
-  template<typename T>
-  class CubicDecomposerHelper
+  fastuidraw::vecN<fastuidraw::ivec2, 3>
+  quadratic_from_cubic(fastuidraw::c_array<const fastuidraw::ivec2> pts)
   {
-  public:
-    typedef fastuidraw::vecN<T, 2> point;
+    using namespace fastuidraw;
 
-    template<typename P>
-    CubicDecomposerHelper(const P &q0,
-                          const P &q1,
-                          const P &q2,
-                          const P &q3):
-      p(point(q0), point(q1), point(q2), point(q3))
-    {
-       p0_1 = compute_midpoint(p[0], p[1]);
-       p1_2 = compute_midpoint(p[1], p[2]);
-       p2_3 = compute_midpoint(p[2], p[3]);
+    int det;
+    ivec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
+    ivec2 d10(p1 - p0), d23(p2 - p3);
+    ivec2 Jd23(d23.y(), -d23.x());
+    float s;
+    vec2 C;
 
-       p01_12 = compute_midpoint(p0_1, p1_2);
-       p12_23 = compute_midpoint(p1_2, p2_3);
+    det = d10.x() * d23.y() - d10.y() * d23.x();
+    if (det == 0)
+      {
+        return vecN<ivec2, 3>(p0, (p1 + p2) / 2, p3);
+      }
 
-       pMid = compute_midpoint(p01_12, p12_23);
-    }
+    s = float(dot(Jd23, p3 - p0)) / float(det);
+    C = vec2(p0) + s * vec2(d10);
 
-    fastuidraw::vecN<point, 4> p;
-    point p0_1, p1_2, p2_3; // p_i_j --> midpoint of pi and pj
-    point p01_12, p12_23;   // p_ab_ij --> midpoint of p_a_b and p_i_j
-    point pMid; // midpoint of p01_12 and p12_23
-  };
+    vecN<ivec2, 3> return_value;
+    return_value = vecN<ivec2, 3>(p0, ivec2(C), p3);
+    return return_value;
+  }
+
+  fastuidraw::vecN<fastuidraw::vecN<fastuidraw::ivec2, 4>, 2>
+  split_cubic(fastuidraw::c_array<const fastuidraw::ivec2> pts)
+  {
+    using namespace fastuidraw;
+
+    vecN<vecN<ivec2, 4>, 2> return_value;
+    ivec2 p01, p23, pA, pB, pC;
+
+    p01 = (pts[0] + pts[1]) / 2;
+    p23 = (pts[2] + pts[3]) / 2;
+    pA = (pts[0] + 2 * pts[1] + pts[2]) / 4;
+    pB = (pts[1] + 2 * pts[2] + pts[3]) / 4;
+    pC = (pts[0] + 3 * pts[1] + 3 * pts[2] + pts[3]) / 8;
+
+    return_value[0] = vecN<ivec2, 4>(pts[0], p01, pA, pC);
+    return_value[1] = vecN<ivec2, 4>(pC, pB, p23, pts[3]);
+
+    return return_value;
+  }
 
   class QuadraticBezierCurve:public fastuidraw::vecN<fastuidraw::ivec2, 3>
   {
@@ -156,26 +173,6 @@ namespace
       tt = desc / fastuidraw::t_max(epsilon, fastuidraw::t_abs(2.0f * a + b));
       return 2.0 * R * atanf(tt) / desc;
     }
-  };
-
-  class CubicBezierCurve:public fastuidraw::vecN<fastuidraw::ivec2, 4>
-  {
-  public:
-    CubicBezierCurve(const fastuidraw::ivec2 &p0,
-                     const fastuidraw::ivec2 &c0,
-                     const fastuidraw::ivec2 &c1,
-                     const fastuidraw::ivec2 &p1):
-      fastuidraw::vecN<fastuidraw::ivec2, 4>(p0, c0, c1, p1)
-    {}
-
-    void
-    approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 4> *out_curves) const;
-
-    void
-    approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 2> *out_curves) const;
-
-    void
-    approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 1> *out_curves) const;
   };
 
   class Solver
@@ -536,69 +533,6 @@ namespace
 
     const std::vector<fastuidraw::detail::IntContour> &m_contours;
   };
-}
-
-//////////////////////////////////////
-// CubicBezierCurve methods
-void
-CubicBezierCurve::
-approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 4> *out_curves) const
-{
-  /*
-   * Should we do the arithmatic in 64bit ints
-   * and scale the input before and after hand
-   * to avoid successive rounding uglies?
-   *
-   * To get perfect avoiding of such, requires multiplying
-   * by _64_ since this_curve.pMid has an 8 in the denomitor
-   * of the source m_raw_curve and each of alpha and beta
-   * are from that, another factor of 8, together it is 64.
-   */
-  const CubicBezierCurve &in_curve(*this);
-  CubicDecomposerHelper<int> this_curve(in_curve[0], in_curve[1], in_curve[2], in_curve[3]);
-  CubicDecomposerHelper<int> alpha(this_curve.p[0], this_curve.p0_1, this_curve.p01_12, this_curve.pMid);
-  CubicDecomposerHelper<int> beta(this_curve.pMid, this_curve.p12_23, this_curve.p2_3, this_curve.p[3]);
-
-  fastuidraw::ivec2 pA, pB, pC, pD;
-
-  pA = compute_midpoint(this_curve.p0_1, compute_midpoint(this_curve.p0_1, this_curve.p[0]));
-  pB = compute_midpoint(this_curve.p01_12, compute_midpoint(this_curve.p01_12, this_curve.pMid));
-  pC = compute_midpoint(this_curve.p12_23, compute_midpoint(this_curve.p12_23, this_curve.pMid));
-  pD = compute_midpoint(this_curve.p2_3, compute_midpoint(this_curve.p2_3, this_curve.p[3]));
-
-  /*
-   * the curves are:
-   *  [p0, pA, alpha.pMid]
-   *  [alpha.pMid, pB, pMid]
-   *  [pMid, pC, beta.pMid]
-   *  [beta.pMid, pD, p3]
-   */
-  (*out_curves)[0] = QuadraticBezierCurve(this_curve.p[0], pA, alpha.pMid);
-  (*out_curves)[1] = QuadraticBezierCurve(alpha.pMid, pB, this_curve.pMid);
-  (*out_curves)[2] = QuadraticBezierCurve(this_curve.pMid, pC, beta.pMid);
-  (*out_curves)[3] = QuadraticBezierCurve(beta.pMid, pD, this_curve.p[3]);
-}
-
-void
-CubicBezierCurve::
-approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 2> *out_curves) const
-{
-  const CubicBezierCurve &in_curve(*this);
-  CubicDecomposerHelper<int> this_curve(in_curve[0], in_curve[1], in_curve[2], in_curve[3]);
-
-  (*out_curves)[0] = QuadraticBezierCurve(this_curve.p[0], this_curve.p[1], this_curve.pMid);
-  (*out_curves)[1] = QuadraticBezierCurve(this_curve.pMid, this_curve.p[2], this_curve.p[3]);
-}
-
-void
-CubicBezierCurve::
-approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 1> *out_curves) const
-{
-  fastuidraw::ivec2 q;
-  const CubicBezierCurve &in_curve(*this);
-
-  q = compute_midpoint(in_curve[1], in_curve[2]);
-  (*out_curves)[0] = QuadraticBezierCurve(in_curve[0], q, in_curve[3]);
 }
 
 //////////////////////////////////////////////
@@ -1429,40 +1363,50 @@ replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
       if (curve.degree() == 3)
         {
           fastuidraw::c_array<const fastuidraw::ivec2> pts(curve.control_pts());
-          CubicBezierCurve cubic(pts[0], pts[1], pts[2], pts[3]);
-
-          fastuidraw::ivec2 t0, t1;
-          fastuidraw::vecN<QuadraticBezierCurve, 4> quads_4;
-          fastuidraw::vecN<QuadraticBezierCurve, 2> quads_2;
-          fastuidraw::vecN<QuadraticBezierCurve, 1> quads_1;
-          fastuidraw::c_array<QuadraticBezierCurve> quads;
           int l1_dist;
+          fastuidraw::ivec2 t0, t1;
 
           t0 = tr(curve.control_pts().front()) / texel_size;
           t1 = tr(curve.control_pts().back())  / texel_size;
           l1_dist = (t0 - t1).L1norm();
 
-          if (l1_dist > thresh_4_quads)
+          if (l1_dist > thresh_2_quads)
             {
-              quads = quads_4;
-              cubic.approximate_with_quadratics(&quads_4);
-            }
-          else if (l1_dist > thresh_2_quads)
-            {
-              quads = quads_2;
-              cubic.approximate_with_quadratics(&quads_2);
+              fastuidraw::vecN<fastuidraw::vecN<ivec2, 4>, 2> split;
+
+              split = split_cubic(pts);
+              if (l1_dist > thresh_4_quads)
+                {
+                  fastuidraw::vecN<fastuidraw::vecN<ivec2, 4>, 2> splitL, splitR;
+
+                  splitL = split_cubic(split[0]);
+                  splitR = split_cubic(split[1]);
+
+                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitL[0])));
+                  ++id.m_curveID;
+
+                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitL[1])));
+                  ++id.m_curveID;
+
+                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitR[0])));
+                  ++id.m_curveID;
+
+                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitR[1])));
+                  ++id.m_curveID;
+                }
+              else
+                {
+                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(split[0])));
+                  ++id.m_curveID;
+
+                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(split[1])));
+                  ++id.m_curveID;
+                }
             }
           else
             {
-              quads = quads_1;
-              cubic.approximate_with_quadratics(&quads_1);
-            }
-
-          for(unsigned int q = 0, endq = quads.size(); q < endq; ++q, ++id.m_curveID)
-            {
-              const QuadraticBezierCurve &Q(quads[q]);
-              IntBezierCurve C(id, Q.front(), Q.control_pt(), Q.back());
-              m_curves.push_back(C);
+              m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(pts)));
+              ++id.m_curveID;
             }
         }
       else

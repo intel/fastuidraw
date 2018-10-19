@@ -144,6 +144,15 @@ namespace fastuidraw
         process_control_pts();
       }
 
+      IntBezierCurve(const ID_t &pID, c_array<const ivec2> pts):
+        m_ID(pID),
+        m_num_control_pts(pts.size())
+      {
+        FASTUIDRAWassert(pts.size() <= 4);
+        std::copy(pts.begin(), pts.end(), m_control_pts.begin());
+        process_control_pts();
+      }
+
       ~IntBezierCurve()
       {}
 
@@ -291,10 +300,6 @@ namespace fastuidraw
         return m_curves[curveID];
       }
 
-      /* replace each cubic with 4 quadratics */
-      void
-      replace_cubics_with_quadratics(void);
-
       /* Convert cubic curves into quadratic curves; A given cubic
        * is converted into 1, 2, or 4 quadratic curves depending
        * on the distance between its end points. If the distance
@@ -303,12 +308,16 @@ namespace fastuidraw
        * thresh_4_quads), then it is broken into 2 quadratic curves.
        * If the distance is less than thresh_2_quads, then it is realized
        * as a line quadratic. The distance values are the distances
-       * of the points AFTER tr is applied.
+      * of the points AFTER tr is applied.
        */
       void
       replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
                                      int thresh_4_quads, int thresh_2_quads,
                                      ivec2 texel_size);
+
+      /* replace each cubic with 4 quadratics */
+      void
+      replace_cubics_with_quadratics(void);
 
       /* Convert those quadratic curves that have small curvature into
        * line segments.
@@ -365,7 +374,7 @@ namespace fastuidraw
       }
 
       c_array<const IntContour>
-      contours(void)
+      contours(void) const
       {
         return make_c_array(m_contours);
       }
