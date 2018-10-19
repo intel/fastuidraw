@@ -69,13 +69,46 @@ private:
       number_rounded_rect_modes
     };
 
-  void
-  draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
-               const float3x3 &matrix);
+  enum anti_alias_mode_t
+    {
+      no_anti_alias,
+      by_anti_alias_auto,
+      by_anti_alias_simple,
+      by_anti_alias_hq,
+      by_anti_alias_fastest,
+
+      number_anti_alias_modes
+    };
+
+  class Transformer
+  {
+  public:
+    Transformer(void):
+      m_shear(1.0f, 1.0f),
+      m_angle(0.0f)
+    {}
+
+    void
+    concat_to_painter(const reference_counted_ptr<Painter> &ref) const
+    {
+      const float conv(M_PI / 180.0f);
+      m_zoomer.transformation().concat_to_painter(ref);
+      ref->shear(m_shear.x(), m_shear.y());
+      ref->rotate(m_angle * conv);
+    }
+
+    PanZoomTrackerSDLEvent m_zoomer;
+    vec2 m_shear;
+    float m_angle;
+  };
 
   void
-  draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix1,
-                const Path &path2, unsigned int clip_mode2, const float3x3 &matrix2,
+  draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
+               const Transformer &matrix);
+
+  void
+  draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &matrix1,
+                const Path &path2, unsigned int clip_mode2, const Transformer &matrix2,
                 const vec4 &pen_color);
 
   enum return_code
@@ -83,6 +116,9 @@ private:
 
   void
   make_paths(void);
+
+  void
+  update_cts_params(void);
 
   command_line_argument_value<std::string> m_path1_file;
   command_line_argument_value<std::string> m_path2_file;
@@ -99,11 +135,15 @@ private:
   unsigned int m_path1_clip_mode, m_path2_clip_mode;
   unsigned int m_combine_clip_mode, m_rounded_rect_mode;
   unsigned int m_active_transformer;
-  vecN<PanZoomTrackerSDLEvent, number_transformers> m_transformers;
+  unsigned int m_aa_mode;
+  vecN<Transformer, number_transformers> m_transformers;
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_transformers> m_transformer_labels;
   vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
   vecN<std::string, number_rounded_rect_modes> m_rounded_rect_mode_labels;
+  vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
+  vecN<enum Painter::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
+  simple_time m_draw_timer;
 };
 
 painter_clip_test::
@@ -126,14 +166,20 @@ painter_clip_test():
   m_path2_clip_mode(no_clip),
   m_combine_clip_mode(separate_clipping),
   m_rounded_rect_mode(draw_rounded_rect),
-  m_active_transformer(view_transformer)
+  m_active_transformer(view_transformer),
+  m_aa_mode(by_anti_alias_auto)
 {
   std::cout << "Controls:\n"
             << "\t1: cycle through clip modes for path1\n"
             << "\t2: cycle through clip modes for path2\n"
             << "\ts: cycle through active transformer controls\n"
             << "\tc: change combine clip mode\n"
-            << "\tr: change rounded rect mode\n";
+            << "\tr: change rounded rect mode\n"
+            << "\tu: change anti-alias mode\n"
+            << "\t6: x-shear (hold ctrl to decrease)\n"
+            << "\t7: y-shear (hold ctrl to decrease)\n"
+            << "\t0: Rotate left\n"
+            << "\t9: Rotate right\n";
 
   m_clip_labels[clip_in] = "clip_in";
   m_clip_labels[clip_out] = "clip_out";
@@ -150,6 +196,18 @@ painter_clip_test():
 
   m_rounded_rect_mode_labels[draw_rounded_rect] = "draw_rounded_rect";
   m_rounded_rect_mode_labels[rounded_rect_clips] = "rounded_rect_clips";
+
+  m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
+  m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
+  m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
+  m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
+  m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
+
+  m_shader_anti_alias_mode_values[no_anti_alias] = Painter::shader_anti_alias_none;
+  m_shader_anti_alias_mode_values[by_anti_alias_auto] = Painter::shader_anti_alias_auto;
+  m_shader_anti_alias_mode_values[by_anti_alias_simple] = Painter::shader_anti_alias_simple;
+  m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_high_quality;
+  m_shader_anti_alias_mode_values[by_anti_alias_fastest] = Painter::shader_anti_alias_fastest;
 }
 
 void
@@ -158,15 +216,16 @@ handle_event(const SDL_Event &ev)
 {
   if (m_active_transformer != view_transformer)
     {
+      /* invert y-direction for the other transformers */
       ScaleTranslate<float> inv;
 
-      inv = m_transformers[view_transformer].transformation().inverse();
-      m_transformers[m_active_transformer].m_scale_event = vec2(inv.scale(), inv.scale());
-      m_transformers[m_active_transformer].m_scale_zooming = inv.scale();
-      m_transformers[m_active_transformer].m_translate_event = inv.translation();
+      inv = m_transformers[view_transformer].m_zoomer.transformation().inverse();
+      m_transformers[m_active_transformer].m_zoomer.m_scale_event = vec2(inv.scale(), inv.scale());
+      m_transformers[m_active_transformer].m_zoomer.m_scale_zooming = inv.scale();
+      m_transformers[m_active_transformer].m_zoomer.m_translate_event = inv.translation();
     }
 
-  m_transformers[m_active_transformer].handle_event(ev);
+  m_transformers[m_active_transformer].m_zoomer.handle_event(ev);
   switch(ev.type)
     {
     case SDL_WINDOWEVENT:
@@ -205,11 +264,80 @@ handle_event(const SDL_Event &ev)
         case SDLK_r:
           cycle_value(m_rounded_rect_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_rounded_rect_modes);
           std::cout << "Rounded rect mode set to: " << m_rounded_rect_mode_labels[m_rounded_rect_mode] << "\n";
+          break;
+        case SDLK_u:
+          cycle_value(m_aa_mode,
+                      ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
+                      number_anti_alias_modes);
+          std::cout << "RoundedRect drawing anti-alias mode set to: "
+                    << m_anti_alias_mode_labels[m_aa_mode]
+                    << "\n";
+          break;
         }
       break;
     };
 }
 
+void
+painter_clip_test::
+update_cts_params(void)
+{
+  const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
+  FASTUIDRAWassert(keyboard_state != nullptr);
+
+  float speed = static_cast<float>(m_draw_timer.restart_us()), speed_shear;
+  if (m_active_transformer == view_transformer)
+    {
+      return;
+    }
+
+  speed /= 1000.0f;
+  if (keyboard_state[SDL_SCANCODE_LSHIFT])
+    {
+      speed *= 0.1f;
+    }
+  if (keyboard_state[SDL_SCANCODE_RSHIFT])
+    {
+      speed *= 10.0f;
+    }
+
+  speed_shear = 0.01f * speed;
+  if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
+    {
+      speed_shear = -speed_shear;
+    }
+
+  speed_shear = 0.01f * speed;
+  if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
+    {
+      speed_shear = -speed_shear;
+    }
+
+  vec2 *pshear(&m_transformers[m_active_transformer].m_shear);
+  float *pangle(&m_transformers[m_active_transformer].m_angle);
+
+  if (keyboard_state[SDL_SCANCODE_6])
+    {
+      pshear->x() += speed_shear;
+      std::cout << "Shear set to: " << *pshear << "\n";
+    }
+  if (keyboard_state[SDL_SCANCODE_7])
+    {
+      pshear->y() += speed_shear;
+      std::cout << "Shear set to: " << *pshear << "\n";
+    }
+
+  if (keyboard_state[SDL_SCANCODE_9])
+    {
+      *pangle += speed * 0.1f;
+      std::cout << "Angle set to: " << *pangle << "\n";
+    }
+  if (keyboard_state[SDL_SCANCODE_0])
+    {
+      *pangle -= speed * 0.1f;
+      std::cout << "Angle set to: " << *pangle << "\n";
+    }
+}
 
 enum return_code
 painter_clip_test::
@@ -261,17 +389,18 @@ derived_init(int, int)
   m_rect.m_max_point = vec2(m_rect_width.value(), m_rect_height.value());
   m_rect.m_min_corner_radii = vec2(m_rect_min_radii_x.value(), m_rect_min_radii_y.value());
   m_rect.m_max_corner_radii = vec2(m_rect_max_radii_x.value(), m_rect_max_radii_y.value());
+  m_draw_timer.restart();
 }
 
 void
 painter_clip_test::
 draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
-             const float3x3 &matrix)
+             const Transformer &matrix)
 {
   PainterBrush brush;
 
   m_painter->save();
-  m_painter->concat(matrix);
+  matrix.concat_to_painter(m_painter);
   brush.pen(pen_color);
   switch(clip_mode)
     {
@@ -298,8 +427,8 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
 
 void
 painter_clip_test::
-draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix1,
-              const Path &path2, unsigned int clip_mode2, const float3x3 &matrix2,
+draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &matrix1,
+              const Path &path2, unsigned int clip_mode2, const Transformer &matrix2,
               const vec4 &pen_color)
 {
   PainterItemMatrix M(m_painter->transformation());
@@ -307,7 +436,7 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix
 
   brush.pen(pen_color);
   m_painter->save();
-  m_painter->concat(matrix1);
+  matrix1.concat_to_painter(m_painter);
   switch (clip_mode1)
     {
     default:
@@ -321,7 +450,7 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix
     }
 
   m_painter->transformation(M);
-  m_painter->concat(matrix2);
+  matrix2.concat_to_painter(m_painter);
   switch (clip_mode2)
     {
     default:
@@ -335,7 +464,7 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const float3x3 &matrix
     }
 
   m_painter->transformation(M);
-  m_painter->concat(matrix1);
+  matrix1.concat_to_painter(m_painter);
 
   vec2 p0, p1, sz;
   p0 = path1.tessellation()->bounding_box_min();
@@ -350,11 +479,12 @@ void
 painter_clip_test::
 draw_frame(void)
 {
+  update_cts_params();
   m_painter->begin(m_surface, Painter::y_increases_downwards);
-  m_transformers[view_transformer].transformation().concat_to_painter(m_painter);
+  m_transformers[view_transformer].concat_to_painter(m_painter);
 
   PainterItemMatrix M(m_painter->transformation());
-  m_transformers[rect_transformer].transformation().concat_to_painter(m_painter);
+  m_transformers[rect_transformer].concat_to_painter(m_painter);
   switch(m_rounded_rect_mode)
     {
     case draw_rounded_rect:
@@ -362,7 +492,8 @@ draw_frame(void)
         PainterBrush brush;
         brush.pen(vec4(1.0f, 1.0f, 0.0f, 1.0f));
         m_painter->draw_rounded_rect(m_painter->default_shaders().fill_shader(),
-                                     PainterData(&brush), m_rect);
+                                     PainterData(&brush), m_rect,
+                                     m_shader_anti_alias_mode_values[m_aa_mode]);
       }
       break;
 
@@ -376,20 +507,20 @@ draw_frame(void)
     {
     case separate_clipping:
       draw_element(m_path1, m_path1_clip_mode, vec4(1.0f, 0.0f, 0.0f, 0.5f),
-                   m_transformers[path1_transformer].transformation().matrix3());
+                   m_transformers[path1_transformer]);
       draw_element(m_path2, m_path2_clip_mode, vec4(0.0f, 1.0f, 0.0f, 0.5f),
-                   m_transformers[path2_transformer].transformation().matrix3());
+                   m_transformers[path2_transformer]);
       break;
 
     case path1_then_path2:
-      draw_combined(m_path1, m_path1_clip_mode, m_transformers[path1_transformer].transformation().matrix3(),
-                    m_path2, m_path2_clip_mode, m_transformers[path2_transformer].transformation().matrix3(),
+      draw_combined(m_path1, m_path1_clip_mode, m_transformers[path1_transformer],
+                    m_path2, m_path2_clip_mode, m_transformers[path2_transformer],
                     vec4(0.0f, 1.0f, 1.0f, 0.5f));
       break;
 
     case path2_then_path1:
-      draw_combined(m_path2, m_path2_clip_mode, m_transformers[path2_transformer].transformation().matrix3(),
-                    m_path1, m_path1_clip_mode, m_transformers[path1_transformer].transformation().matrix3(),
+      draw_combined(m_path2, m_path2_clip_mode, m_transformers[path2_transformer],
+                    m_path1, m_path1_clip_mode, m_transformers[path1_transformer],
                     vec4(1.0f, 0.0f, 1.0f, 0.5f));
       break;
     }
