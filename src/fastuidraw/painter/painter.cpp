@@ -735,14 +735,89 @@ namespace
     fastuidraw::vecN<fastuidraw::vec2, 4> m_shears;
   };
 
-  class ClipperWorkRoom
+  fastuidraw::PainterAttribute
+  anti_alias_edge_attribute(const fastuidraw::vec2 &position, uint32_t type,
+                            const fastuidraw::vec2 &normal, int z)
+  {
+    fastuidraw::PainterAttribute A;
+    FASTUIDRAWassert(z >= 0);
+
+    A.m_attrib0.x() = fastuidraw::pack_float(position.x());
+    A.m_attrib0.y() = fastuidraw::pack_float(position.y());
+    A.m_attrib0.z() = type;
+    A.m_attrib0.w() = z;
+
+    A.m_attrib1.x() = fastuidraw::pack_float(normal.x());
+    A.m_attrib1.y() = fastuidraw::pack_float(normal.y());
+
+    return A;
+  }
+
+  void
+  pack_anti_alias_edge(const fastuidraw::vec2 &start, const fastuidraw::vec2 &end,
+                       int z,
+                       std::vector<fastuidraw::PainterAttribute> &dst_attribs,
+                       std::vector<fastuidraw::PainterIndex> &dst_idx)
+  {
+    using namespace fastuidraw;
+
+    const unsigned int tris[12] =
+      {
+        0, 3, 4,
+        0, 4, 1,
+        1, 4, 5,
+        1, 5, 2
+      };
+
+    const double sgn[6] =
+      {
+        -1.0,
+        0.0,
+        +1.0,
+        -1.0,
+        0.0,
+        +1.0
+      };
+
+    const uint32_t types[6] =
+      {
+        FilledPath::Subset::aa_fuzz_type_on_boundary,
+        FilledPath::Subset::aa_fuzz_type_on_path,
+        FilledPath::Subset::aa_fuzz_type_on_boundary,
+        FilledPath::Subset::aa_fuzz_type_on_boundary,
+        FilledPath::Subset::aa_fuzz_type_on_path,
+        FilledPath::Subset::aa_fuzz_type_on_boundary,
+      };
+
+    for (unsigned int k = 0; k < 12; ++k)
+      {
+        dst_idx.push_back(tris[k] + dst_attribs.size());
+      }
+
+    vec2 tangent, normal;
+
+    tangent = end - start;
+    tangent /= tangent.magnitude();
+    normal = vec2(-tangent.y(), tangent.x());
+    for (unsigned int k = 0; k < 6; ++k)
+      {
+        const vec2 *p;
+        PainterAttribute A;
+
+        p = (k < 3) ? &start : &end;
+        A = anti_alias_edge_attribute(*p, types[k], sgn[k] * normal, z);
+        dst_attribs.push_back(A);
+      }
+  }
+
+  class ClipperWorkRoom:fastuidraw::noncopyable
   {
   public:
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_series;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_vec2s;
   };
 
-  class PolygonWorkRoom
+  class PolygonWorkRoom:fastuidraw::noncopyable
   {
   public:
     std::vector<fastuidraw::vec2> m_pts;
@@ -750,7 +825,7 @@ namespace
     std::vector<fastuidraw::PainterAttribute> m_attribs;
   };
 
-  class StrokingWorkRoom
+  class StrokingWorkRoom:fastuidraw::noncopyable
   {
   public:
     std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attrib_chunks;
@@ -766,7 +841,7 @@ namespace
     fastuidraw::StrokedCapsJoins::ScratchSpace m_caps_joins_scratch;
   };
 
-  class AntiAliasFillWorkRoom
+  class AntiAliasFillWorkRoom:fastuidraw::noncopyable
   {
   public:
     std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attrib_chunks;
@@ -777,7 +852,7 @@ namespace
     int m_total_increment_z;
   };
 
-  class OpaqueFillWorkRoom
+  class OpaqueFillWorkRoom:fastuidraw::noncopyable
   {
   public:
     std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attrib_chunks;
@@ -786,7 +861,7 @@ namespace
     std::vector<unsigned int> m_chunk_selector;
   };
 
-  class FillSubsetWorkRoom
+  class FillSubsetWorkRoom:fastuidraw::noncopyable
   {
   public:
     WindingSet m_ws;
@@ -794,7 +869,7 @@ namespace
     std::vector<unsigned int> m_subsets;
   };
 
-  class GlyphSequneceWorkRoom
+  class GlyphSequenceWorkRoom:fastuidraw::noncopyable
   {
   public:
     fastuidraw::GlyphSequence::ScratchSpace m_scratch;
@@ -803,7 +878,18 @@ namespace
     std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_indices;
   };
 
-  class PainterWorkRoom
+  class RoundedRectWorkRoom:fastuidraw::noncopyable
+  {
+  public:
+    fastuidraw::vecN<OpaqueFillWorkRoom, 4> m_opaque_fill;
+    fastuidraw::vecN<AntiAliasFillWorkRoom, 4> m_aa_fuzz;
+    fastuidraw::vecN<FillSubsetWorkRoom, 4> m_subsets;
+    fastuidraw::vecN<const fastuidraw::FilledPath*, 4> m_filled_paths;
+    std::vector<fastuidraw::PainterAttribute> m_rect_fuzz_attributes;
+    std::vector<fastuidraw::PainterIndex> m_rect_fuzz_indices;
+  };
+
+  class PainterWorkRoom:fastuidraw::noncopyable
   {
   public:
     ClipperWorkRoom m_clipper;
@@ -812,7 +898,8 @@ namespace
     FillSubsetWorkRoom m_fill_subset;
     OpaqueFillWorkRoom m_fill_opaque;
     AntiAliasFillWorkRoom m_fill_aa_fuzz;
-    GlyphSequneceWorkRoom m_glyph;
+    GlyphSequenceWorkRoom m_glyph;
+    RoundedRectWorkRoom m_rounded_rect;
   };
 
   class PainterPrivate
@@ -915,7 +1002,19 @@ namespace
                          const fastuidraw::PainterData &draw,
                          enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                          const AntiAliasFillWorkRoom &data,
+                         int z,
                          const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+
+    void
+    draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
+                         const fastuidraw::PainterData &draw,
+                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                         const AntiAliasFillWorkRoom &data,
+                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+    {
+      draw_anti_alias_fuzz(shader, draw, anti_alias_quality,
+                           data, m_current_z, call_back);
+    }
 
     template<typename T>
     void
@@ -943,7 +1042,35 @@ namespace
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                        int z,
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+
+    void
+    draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
+                        const fastuidraw::PainterData &draw,
+                        fastuidraw::c_array<const fastuidraw::vec2> pts,
+                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+    {
+      draw_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z, call_back);
+    }
+
+    void
+    draw_rect(const fastuidraw::PainterFillShader &shader,
+              const fastuidraw::PainterData &draw,
+              const fastuidraw::vec2 &p, const fastuidraw::vec2 &wh,
+              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+              int z,
+              const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+    {
+      fastuidraw::vecN<fastuidraw::vec2, 4> pts;
+
+      pts[0] = p + fastuidraw::vec2(0.0f, 0.0f);
+      pts[1] = p + fastuidraw::vec2(wh.x(), 0.0f);
+      pts[2] = p + fastuidraw::vec2(wh.x(), wh.y());
+      pts[3] = p + fastuidraw::vec2(0.0f, wh.y());
+      draw_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
+    }
 
     void
     draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
@@ -1833,6 +1960,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                      const fastuidraw::PainterData &draw,
                      enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                      const AntiAliasFillWorkRoom &data,
+                     int z,
                      const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   using namespace fastuidraw;
@@ -1845,7 +1973,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                              make_c_array(data.m_index_chunks),
                              make_c_array(data.m_index_adjusts),
                              make_c_array(data.m_start_zs),
-                             m_current_z, call_back);
+                             z, call_back);
 
     }
   else if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_high_quality)
@@ -1855,7 +1983,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
-                   m_current_z, call_back);
+                   z, call_back);
       m_core->draw_break(shader.aa_hq_action_pass1());
 
       draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
@@ -1863,7 +1991,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
-                   m_current_z, call_back);
+                   z, call_back);
       m_core->draw_break(shader.aa_hq_action_pass2());
     }
 }
@@ -2441,6 +2569,7 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                     const fastuidraw::PainterData &draw,
                     fastuidraw::c_array<const fastuidraw::vec2> pts,
                     enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                    int z,
                     const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   using namespace fastuidraw;
@@ -2482,7 +2611,7 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                make_c_array(m_work_room.m_polygon.m_attribs),
                make_c_array(m_work_room.m_polygon.m_indices),
                0,
-               m_current_z,
+               z,
                call_back);
 
   /* TODO: anti-alias according to anti_alias_quality */
@@ -2783,37 +2912,151 @@ draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
 
   /* Save our transformation and clipping state */
   clip_rect_state m(d->m_clip_rect_state);
-
-  /* Draw interior of rect (which is 3 rects) */
-  draw_rect(shader, draw,
-            R.m_min_point + vec2(R.m_min_corner_radii.x(), 0.0f),
-            R.m_max_point - R.m_min_point - vec2(R.m_max_corner_radii.x() + R.m_min_corner_radii.x(), 0.0f),
-            Painter::shader_anti_alias_none);
-  draw_rect(shader, draw,
-            R.m_min_point + vec2(0.0f, R.m_min_corner_radii.y()),
-            vec2(R.m_min_corner_radii.x(),
-                 R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
-            Painter::shader_anti_alias_none);
-  draw_rect(shader, draw,
-            vec2(R.m_max_point.x() - R.m_max_corner_radii.x(),
-                 R.m_min_point.y() + R.m_min_corner_radii.y()),
-            vec2(R.m_max_corner_radii.x(),
-                 R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
-            Painter::shader_anti_alias_none);
-
   RoundedRectTransformations rect_transforms(R);
+  int total_incr_z(0);
+
+  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
+
+  if (anti_alias_quality != shader_anti_alias_none)
+    {
+      int incr;
+
+      incr = (anti_alias_quality == shader_anti_alias_simple) ? 1 : 0;
+
+      d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes.clear();
+      d->m_work_room.m_rounded_rect.m_rect_fuzz_indices.clear();
+      pack_anti_alias_edge(vec2(R.m_min_point.x() + R.m_min_corner_radii.x(), R.m_min_point.y()),
+                           vec2(R.m_max_point.x() - R.m_max_corner_radii.x(), R.m_min_point.y()),
+                           total_incr_z,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      pack_anti_alias_edge(vec2(R.m_min_point.x() + R.m_min_corner_radii.x(), R.m_max_point.y()),
+                           vec2(R.m_max_point.x() - R.m_max_corner_radii.x(), R.m_max_point.y()),
+                           total_incr_z,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      pack_anti_alias_edge(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()),
+                           vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()),
+                           total_incr_z,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      pack_anti_alias_edge(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()),
+                           vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()),
+                           total_incr_z,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      if (anti_alias_quality != shader_anti_alias_simple)
+        {
+          /* one for the above edges */
+          total_incr_z = 1;
+        }
+    }
+
   for (int i = 0; i < 4; ++i)
     {
       translate(rect_transforms.m_translates[i]);
       shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-      fill_path(shader, draw,
-                d->select_filled_path(d->m_rounded_corner_path),
-                nonzero_fill_rule, shader_anti_alias_none);
+      d->m_work_room.m_rounded_rect.m_filled_paths[i] = &d->select_filled_path(d->m_rounded_corner_path);
+      d->fill_path_compute_opaque_chunks(*d->m_work_room.m_rounded_rect.m_filled_paths[i],
+                                         nonzero_fill_rule,
+                                         d->m_work_room.m_rounded_rect.m_subsets[i],
+                                         &d->m_work_room.m_rounded_rect.m_opaque_fill[i]);
+
+      if (anti_alias_quality != shader_anti_alias_none)
+        {
+          d->pre_draw_anti_alias_fuzz(*d->m_work_room.m_rounded_rect.m_filled_paths[i],
+                                      anti_alias_quality,
+                                      d->m_work_room.m_rounded_rect.m_subsets[i],
+                                      &d->m_work_room.m_rounded_rect.m_aa_fuzz[i]);
+          total_incr_z += d->m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
+        }
+      else
+        {
+          d->m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z = 0;
+        }
       d->m_clip_rect_state = m;
     }
 
-  /* TODO: draw anti-alias fuzz occluded by the above geometry */
-  FASTUIDRAWunused(anti_alias_quality);
+  /* Draw interior of rect (which is 3 rects) */
+  d->draw_rect(shader, draw,
+               R.m_min_point + vec2(R.m_min_corner_radii.x(), 0.0f),
+               R.m_max_point - R.m_min_point - vec2(R.m_max_corner_radii.x() + R.m_min_corner_radii.x(), 0.0f),
+               Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
+  d->draw_rect(shader, draw,
+               R.m_min_point + vec2(0.0f, R.m_min_corner_radii.y()),
+               vec2(R.m_min_corner_radii.x(),
+                    R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
+               Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
+  d->draw_rect(shader, draw,
+               vec2(R.m_max_point.x() - R.m_max_corner_radii.x(),
+                    R.m_min_point.y() + R.m_min_corner_radii.y()),
+               vec2(R.m_max_corner_radii.x(),
+                    R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
+               Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
+
+  for (int i = 0; i < 4; ++i)
+    {
+      translate(rect_transforms.m_translates[i]);
+      shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
+      d->draw_generic(shader.item_shader(), draw,
+                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_attrib_chunks),
+                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_chunks),
+                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_adjusts),
+                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_chunk_selector),
+                      d->m_current_z + total_incr_z, nullptr);
+      d->m_clip_rect_state = m;
+    }
+
+  if (anti_alias_quality != shader_anti_alias_none)
+    {
+      int incr_z(total_incr_z);
+
+      if (anti_alias_quality == Painter::shader_anti_alias_simple)
+        {
+          incr_z -= 4;
+          d->draw_generic(shader.aa_fuzz_shader(), draw,
+                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
+                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
+                          0, d->m_current_z + incr_z, nullptr);
+        }
+      else
+        {
+          incr_z -= 1;
+          d->draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
+                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
+                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
+                          0, d->m_current_z + incr_z, nullptr);
+          d->m_core->draw_break(shader.aa_hq_action_pass1());
+
+          d->draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
+                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
+                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
+                          0, d->m_current_z + incr_z, nullptr);
+          d->m_core->draw_break(shader.aa_hq_action_pass2());
+        }
+
+      for (int i = 0; i < 4; ++i)
+        {
+          incr_z -= d->m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
+          translate(rect_transforms.m_translates[i]);
+          shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
+          d->draw_anti_alias_fuzz(shader, draw, anti_alias_quality,
+                                  d->m_work_room.m_rounded_rect.m_aa_fuzz[i],
+                                  d->m_current_z + incr_z, nullptr);
+          d->m_clip_rect_state = m;
+        }
+    }
+  d->m_current_z += total_incr_z;
 }
 
 float
