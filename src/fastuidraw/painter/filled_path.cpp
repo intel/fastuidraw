@@ -133,11 +133,6 @@ namespace
 {
   class PointHoard;
 
-  enum
-    {
-      corner_vert_mask = (1u << 31u)
-    };
-
   unsigned int
   signed_to_unsigned(int w)
   {
@@ -2084,7 +2079,7 @@ region_area(const unsigned int vertex_ids[], unsigned int count) const
    * has area; to keep the numbers smaller center the
    * computation around the first point of the polygon.
    */
-  fastuidraw::ivec2 origin(m_points.ipt(vertex_ids[0] & ~corner_vert_mask));
+  fastuidraw::ivec2 origin(m_points.ipt(vertex_ids[0]));
   int64_t twice_signed_area(0);
   for (unsigned int i = 0; i < count; ++i)
     {
@@ -2092,8 +2087,8 @@ region_area(const unsigned int vertex_ids[], unsigned int count) const
 
       next_i = (i + 1u == count) ? 0u: i + 1u;
 
-      fastuidraw::vecN<int64_t, 2> a(m_points.ipt(vertex_ids[i] & ~corner_vert_mask) - origin);
-      fastuidraw::vecN<int64_t, 2> b(m_points.ipt(vertex_ids[next_i] & ~corner_vert_mask) - origin);
+      fastuidraw::vecN<int64_t, 2> a(m_points.ipt(vertex_ids[i]) - origin);
+      fastuidraw::vecN<int64_t, 2> b(m_points.ipt(vertex_ids[next_i]) - origin);
       twice_signed_area += a.x() * b.y() - b.x() * a.y();
     }
 
@@ -2136,7 +2131,7 @@ vertex_callBack(unsigned int vertex_id, void *tess)
    * then if all vertices are NOT FASTUIDRAW_GLU_nullptr_CLIENT_ID,
    * then add them.
    */
-  p->m_temp_verts[p->m_temp_vert_count] = vertex_id & ~corner_vert_mask;
+  p->m_temp_verts[p->m_temp_vert_count] = vertex_id;
   p->m_temp_vert_count++;
   if (p->m_temp_vert_count == 3)
     {
@@ -2179,7 +2174,7 @@ combine_callback(double x, double y, unsigned int data[4],
       for(unsigned int i = 0; i < 4; ++i)
         {
           FASTUIDRAWassert(data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
-          pt += weight[i] * p->m_points[data[i] & ~corner_vert_mask];
+          pt += weight[i] * p->m_points[data[i]];
         }
     }
   else
@@ -2210,7 +2205,7 @@ boundary_callback(double *x, double *y,
 
   if (outData)
     {
-      *outData = idx | corner_vert_mask;
+      *outData = idx;
       FASTUIDRAWassert(istep == 0);
     }
   else
@@ -2279,14 +2274,10 @@ emitboundary_callback(int glu_tess_winding,
       bool vb_is_path_join;
 
       next_i = (i + 1u == count) ? 0u: i + 1u;
-      va = vertex_ids[i] & ~corner_vert_mask;
-      vb = vertex_ids[next_i] & ~corner_vert_mask;
+      va = vertex_ids[i];
+      vb = vertex_ids[next_i];
 
-      draw_edge = !p->m_points.edge_hugs_boundary(p->m_edge_flags, va, vb)
-        && ((vertex_ids[i] & corner_vert_mask) == 0u ||
-            (vertex_ids[next_i] & corner_vert_mask) == 0u
-            || winding == 0);
-      
+      draw_edge = !p->m_points.edge_hugs_boundary(p->m_edge_flags, va, vb);
       vb_is_path_join = p->m_points.point_is_path_join(vb);
       h->m_aa_fuzz.add_edge(va, vb, draw_edge, vb_is_path_join);
     }
