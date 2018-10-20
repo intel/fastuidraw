@@ -161,6 +161,12 @@ namespace fastuidraw
     }
 
     pt_type
+    center_point(void) const
+    {
+      return (m_min + m_max) / T(2);
+    }
+
+    pt_type
     corner_point(bool max_x, bool max_y) const
     {
       pt_type R;
@@ -182,7 +188,7 @@ namespace fastuidraw
 
       pt_type center;
 
-      center = (m_min + m_max) / T(2);
+      center = center_point();
       R[0] = BoundingBox(m_min, pt_type(center.x(), m_max.y()));
       R[1] = BoundingBox(pt_type(center.x(), m_min.y()), m_max);
       return R;
@@ -200,7 +206,7 @@ namespace fastuidraw
 
       pt_type center;
 
-      center = (m_min + m_max) / T(2);
+      center = center_point();
       R[0] = BoundingBox(m_min, pt_type(m_max.x(), center.y()));
       R[1] = BoundingBox(pt_type(m_min.x(), center.y()), m_max);
       return R;
