@@ -592,7 +592,6 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
     .add_macro("HIERARCHY_CURVE_LIST_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_numbits))
     .add_macro("HIERARCHY_CURVE_LIST_SIZE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_bit0))
     .add_macro("HIERARCHY_CURVE_LIST_SIZE_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_numbits))
-    .add_macro("POINT_COORDINATE_BIAS", uint32_t(GlyphRenderDataRestrictedRays::point_coordinate_bias))
     .add_macro("POINT_COORDINATE_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::point_coordinate_numbits))
     .add_macro("POINT_X_COORDINATE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::point_x_coordinate_bit0))
     .add_macro("POINT_Y_COORDINATE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::point_y_coordinate_bit0))
@@ -661,6 +660,8 @@ create_glyph_shader(void)
   restricted_rays_varyings
     .add_float_varying("fastuidraw_glyph_coord_x")
     .add_float_varying("fastuidraw_glyph_coord_y")
+    .add_float_varying("fastuidraw_glyph_min_x")
+    .add_float_varying("fastuidraw_glyph_min_y")
     .add_float_varying("fastuidraw_glyph_max_x")
     .add_float_varying("fastuidraw_glyph_max_y")
     .add_uint_varying("fastuidraw_glyph_data_location");

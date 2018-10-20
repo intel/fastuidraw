@@ -280,13 +280,6 @@ namespace fastuidraw
     enum point_packing_t
       {
         /*!
-         * The point value is stored biased by this value.
-         * Subtract this value from the unpacked value to
-         * get the coordiante value.
-         */
-        point_coordinate_bias = 32768,
-
-        /*!
          * The number of bits to store a coordinate value
          */
         point_coordinate_numbits = 16u,

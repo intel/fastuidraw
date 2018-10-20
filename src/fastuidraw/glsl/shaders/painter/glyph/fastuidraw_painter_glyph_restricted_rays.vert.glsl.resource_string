@@ -34,7 +34,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   fastuidraw_glyph_max_x = float(in_attrib1.z);
   fastuidraw_glyph_max_y = float(in_attrib1.w);
-  fastuidraw_glyph_data_location = in_attrib2.x;
+  fastuidraw_glyph_min_x  = float(in_attrib2.x);
+  fastuidraw_glyph_min_y  = float(in_attrib2.y);
+  fastuidraw_glyph_data_location = in_attrib2.z;
 
   is_min_side = equal(in_attrib1.xy, uvec2(0u, 0u));
 
@@ -64,8 +66,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   p0.x = (is_min_side.x) ? p.x : p.x - wh.x;
   p0.y = (is_min_side.y) ? p.y : p.y - wh.y;
 
-  fastuidraw_glyph_coord_x = fastuidraw_glyph_max_x * (q.x - p0.x) / (wh.x);
-  fastuidraw_glyph_coord_y = fastuidraw_glyph_max_y * (q.y - p0.y) / (wh.y);
+  fastuidraw_glyph_coord_x = fastuidraw_glyph_min_x + fastuidraw_glyph_max_x * (q.x - p0.x) / (wh.x);
+  fastuidraw_glyph_coord_y = fastuidraw_glyph_min_y + fastuidraw_glyph_max_y * (q.y - p0.y) / (wh.y);
 
   z_add = 0;
   out_clip_p = fastuidraw_item_matrix * vec3(q, 1.0);

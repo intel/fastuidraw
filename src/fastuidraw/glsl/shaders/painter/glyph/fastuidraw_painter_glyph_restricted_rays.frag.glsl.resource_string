@@ -54,7 +54,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
   uint v, offset;
 
   box.box_flags = (MIN_X_BOX_FLAG | MAX_X_BOX_FLAG | MIN_Y_BOX_FLAG | MAX_Y_BOX_FLAG);
-  box.min_point = vec2(0.0, 0.0);
+  box.min_point = vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y);
   box.max_point = vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y);
 
   offset = fastuidraw_glyph_data_location;
@@ -112,7 +112,7 @@ FASTUIDRAW_LOCAL(unpack_point)(in uint ptr)
 
   pt_u.x = FASTUIDRAW_EXTRACT_BITS(POINT_X_COORDINATE_BIT0, POINT_COORDINATE_NUM_BITS, pt_packed);
   pt_u.y = FASTUIDRAW_EXTRACT_BITS(POINT_Y_COORDINATE_BIT0, POINT_COORDINATE_NUM_BITS, pt_packed);
-  pt_i = ivec2(pt_u) - ivec2(POINT_COORDINATE_BIAS);
+  pt_i = ivec2(pt_u);
 
   return pt_i;
 }
