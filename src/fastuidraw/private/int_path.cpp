@@ -90,24 +90,28 @@ namespace
   {
     using namespace fastuidraw;
 
-    int det;
-    ivec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
-    ivec2 d10(p1 - p0), d23(p2 - p3);
-    ivec2 Jd23(d23.y(), -d23.x());
+    int64_t det;
+    i64vec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
+    i64vec2 d10(p1 - p0), d23(p2 - p3);
+    i64vec2 Jd23(d23.y(), -d23.x());
     float s;
     vec2 C;
 
     det = d10.x() * d23.y() - d10.y() * d23.x();
     if (det == 0)
       {
-        return vecN<ivec2, 3>(p0, (p1 + p2) / 2, p3);
+        C = 0.5f * (vec2(p1 + p2));
+      }
+    else
+      {
+        s = float(dot(Jd23, p3 - p0)) / float(det);
+        C = vec2(p0) + s * vec2(d10);
       }
 
-    s = float(dot(Jd23, p3 - p0)) / float(det);
-    C = vec2(p0) + s * vec2(d10);
-
     vecN<ivec2, 3> return_value;
-    return_value = vecN<ivec2, 3>(p0, ivec2(C), p3);
+    return_value[0] = pts[0];
+    return_value[1] = ivec2(C);
+    return_value[2] = pts[3];
     return return_value;
   }
 
@@ -117,16 +121,17 @@ namespace
     using namespace fastuidraw;
 
     vecN<vecN<ivec2, 4>, 2> return_value;
-    ivec2 p01, p23, pA, pB, pC;
+    i64vec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
+    i64vec2 p01, p23, pA, pB, pC;
 
-    p01 = (pts[0] + pts[1]) / 2;
-    p23 = (pts[2] + pts[3]) / 2;
-    pA = (pts[0] + 2 * pts[1] + pts[2]) / 4;
-    pB = (pts[1] + 2 * pts[2] + pts[3]) / 4;
-    pC = (pts[0] + 3 * pts[1] + 3 * pts[2] + pts[3]) / 8;
+    p01 = (p0 + p1) / 2;
+    p23 = (p2 + p3) / 2;
+    pA = (p0 + 2 * p1 + p2) / 4;
+    pB = (p1 + 2 * p2 + p3) / 4;
+    pC = (p0 + 3 * p1 + 3 * p2 + p3) / 8;
 
-    return_value[0] = vecN<ivec2, 4>(pts[0], p01, pA, pC);
-    return_value[1] = vecN<ivec2, 4>(pC, pB, p23, pts[3]);
+    return_value[0] = vecN<ivec2, 4>(pts[0], ivec2(p01), ivec2(pA), ivec2(pC));
+    return_value[1] = vecN<ivec2, 4>(ivec2(pC), ivec2(pB), ivec2(p23), pts[3]);
 
     return return_value;
   }
