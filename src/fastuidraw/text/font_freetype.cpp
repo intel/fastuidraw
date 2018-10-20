@@ -77,6 +77,68 @@ namespace
     float m_distance_field_max_distance;
   };
 
+  class ComputeOutlineDegree
+  {
+  public:
+    static
+    int
+    compute(FT_Outline *outline)
+    {
+      int return_value(0);
+      FT_Outline_Funcs funcs;
+
+      funcs.move_to = &ft_outline_move_to;
+      funcs.line_to = &ft_outline_line_to;
+      funcs.conic_to = &ft_outline_conic_to;
+      funcs.cubic_to = &ft_outline_cubic_to;
+      funcs.shift = 0;
+      funcs.delta = 0;
+      FT_Outline_Decompose(outline, &funcs, &return_value);
+      return return_value;
+    }
+
+  private:
+    static
+    int
+    ft_outline_move_to(const FT_Vector*, void*)
+    {
+      return 0;
+    }
+
+    static
+    int
+    ft_outline_line_to(const FT_Vector*, void *user)
+    {
+      int *p;
+      p = static_cast<int*>(user);
+      *p = fastuidraw::t_max(1, *p);
+      return 0;
+    }
+
+    static
+    int
+    ft_outline_conic_to(const FT_Vector*,
+                        const FT_Vector*, void *user)
+    {
+      int *p;
+      p = static_cast<int*>(user);
+      *p = fastuidraw::t_max(2, *p);
+      return 0;
+    }
+
+    static
+    int
+    ft_outline_cubic_to(const FT_Vector*,
+                        const FT_Vector*,
+                        const FT_Vector*, void *user)
+    {
+      int *p;
+      p = static_cast<int*>(user);
+      *p = fastuidraw::t_max(3, *p);
+      return 0;
+    }
+  };
+
   class IntPathCreator
   {
   public:
@@ -466,27 +528,22 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
     layout_size = fastuidraw::ivec2(face->glyph->metrics.width,
                                     face->glyph->metrics.height);
 
-    /* RestrictedRays gives 16-bits to store the x/y value of a
-     * point which means the max value is 2^15 - 1 = 32767;
-     * if the glyph contains cubics, we need to give scale
-     * the glyph data up so that when a cubic is reduced to
-     * (up to 4) quadratics, so that the two halvings do not
-     * lose too much information. Each halving introduces a
-     * divide by up to 8, leaving a worse case scenario of
-     * dividing by 64. Trying to keep all the values would
-     * leave a way too small value of 32 as a max. We futz
-     * and choose a scaling factor of 8 and hope for the best.
-     *
-     * TODO: examine the values of the outline to determine the
-     * range of the points and use that to give the best possible
-     * scale_factor possible. In addition, perhaps tweak
-     * GlyphRenderDataRestrictedRays so that the bias of points
-     * is per-glyph (passed on via an attribute) instead of
-     * an absolute constant. Possibly for glyphs with large values,
-     * we allow for the x/y coordinates to each take 32-bits
-     * instead of 16.
-     */
-    scale_factor = 8;
+    if (ComputeOutlineDegree::compute(&face->glyph->outline) > 2)
+      {
+        /* When breaking cubics into quadratics, the first step is
+         * to break each cubic into 4 (via De Casteljau's algorithm)
+         * and then approximate each cubic with a single quadratic.
+         * Each run of De Casteljau's algorithm on a cubic invokes
+         * a dived by 8, running it twice gives a divide by 64; thus
+         * to avoid losing any information from that, we scale up by
+         * 64.
+         */
+        scale_factor = 64;
+      }
+    else
+      {
+        scale_factor = 1;
+      }
 
     layout_offset *= scale_factor;
     layout_size *= scale_factor;
