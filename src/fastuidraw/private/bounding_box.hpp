@@ -57,6 +57,36 @@ namespace fastuidraw
       out_data[3] = pt_type(m_min.x() - rad, m_max.y() + rad);
     }
 
+    void
+    translate(const pt_type &tr)
+    {
+      if (!m_empty)
+        {
+          m_min += tr;
+          m_max += tr;
+        }
+    }
+
+    void
+    scale_down(const pt_type &tr)
+    {
+      if (!m_empty)
+        {
+          m_min /= tr;
+          m_max /= tr;
+        }
+    }
+
+    void
+    scale_up(const pt_type &tr)
+    {
+      if (!m_empty)
+        {
+          m_min *= tr;
+          m_max *= tr;
+        }
+    }
+
     bool //returns true if box became larger
     union_point(const pt_type &pt)
     {
