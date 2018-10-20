@@ -30,7 +30,7 @@ namespace
 {
   enum
     {
-      MAX_RECURSION = 8,
+      MAX_RECURSION = 12,
 
       /* number of curves in a texel that we stop splitting at */
       SPLIT_THRESH = 4,
@@ -115,7 +115,7 @@ namespace
       m_fstart(a),
       m_fend(b),
       m_fcontrol(ct),
-      m_has_control(true)
+      m_has_control(!is_flat(a, ct, b))
     {
       m_fbbox.union_point(m_fstart);
       m_fbbox.union_point(m_fcontrol);
@@ -130,7 +130,7 @@ namespace
       m_fstart(m_start),
       m_fend(m_end),
       m_fcontrol(m_control),
-      m_has_control(C.m_has_control)
+      m_has_control(C.m_has_control && !is_flat(m_start, m_control, m_end))
     {
       FASTUIDRAWassert(C.m_offset == -1);
       m_fbbox.union_point(m_fstart);
@@ -224,6 +224,19 @@ namespace
     int m_offset;
 
   private:
+    static
+    bool
+    is_flat(fastuidraw::ivec2 a,
+                 fastuidraw::ivec2 b,
+                 fastuidraw::ivec2 c)
+    {
+      fastuidraw::i64vec2 v(b - a), w(c - a);
+      int64_t det;
+
+      det = v.x() * w.y() - v.y() * w.x();
+      return (det == 0);
+    }
+
     float
     compute_at(float t, int coordinate) const;
 
@@ -260,21 +273,40 @@ namespace
       m_num_pts(1)
     {}
 
+    Contour(fastuidraw::ivec2 scale_down,
+            const Contour &contour)
+    {
+      for (const Curve &C : contour.m_curves)
+        {
+          Curve D(scale_down, C);
+          if (D.start() != D.end())
+            {
+              m_curves.push_back(D);
+            }
+        }
+    }
+
     void
     line_to(fastuidraw::ivec2 pt)
     {
-      m_curves.push_back(Curve(m_last_pt, pt));
-      m_last_pt = pt;
-      ++m_num_pts;
+      if (m_last_pt != pt)
+        {
+          m_curves.push_back(Curve(m_last_pt, pt));
+          m_last_pt = pt;
+          ++m_num_pts;
+        }
     }
 
     void
     quadratic_to(fastuidraw::ivec2 ct,
                  fastuidraw::ivec2 pt)
     {
-      m_curves.push_back(Curve(m_last_pt, ct, pt));
-      m_last_pt = pt;
-      m_num_pts += 2;
+      if (m_last_pt != pt)
+        {
+          m_curves.push_back(Curve(m_last_pt, ct, pt));
+          m_last_pt = pt;
+          m_num_pts += 2;
+        }
     }
 
     unsigned int
@@ -306,19 +338,16 @@ namespace
         }
     }
 
-    void
-    scale_down(const fastuidraw::ivec2 &v)
-    {
-      for (Curve &C : m_curves)
-        {
-          C = Curve(v, C);
-        }
-    }
-
     unsigned int
     num_curves(void) const
     {
       return m_curves.size();
+    }
+
+    bool
+    empty(void) const
+    {
+      return m_curves.empty();
     }
 
     void
@@ -529,15 +558,14 @@ namespace
 
     void
     pack_sample_point(unsigned int &offset,
-                      enum fastuidraw::GlyphAttribute::corner_t tp,
                       fastuidraw::c_array<fastuidraw::generic_data> dst) const;
 
     fastuidraw::vecN<CurveListHierarchy*, 2> m_child;
     unsigned int m_offset, m_splitting_coordinate, m_generation;
     CurveList m_curves;
 
-    fastuidraw::ivec4 m_windings;
-    fastuidraw::vecN<fastuidraw::ivec2, 4> m_deltas;
+    int m_winding;
+    fastuidraw::ivec2 m_delta;
   };
 
   class GlyphPath
@@ -551,6 +579,10 @@ namespace
     void
     move_to(const fastuidraw::ivec2 &pt)
     {
+      if (!m_contours.empty() && m_contours.back().empty())
+        {
+          m_contours.pop_back();
+        }
       FASTUIDRAWassert(m_contours.empty() || m_contours.back().is_good());
       m_bbox.union_point(pt);
       m_contours.push_back(Contour(pt));
@@ -609,9 +641,16 @@ namespace
     void
     scale_down(const fastuidraw::ivec2 &v)
     {
-      for (Contour &C : m_contours)
+      std::vector<Contour> tmp;
+
+      std::swap(tmp, m_contours);
+      for (const Contour &C : tmp)
         {
-          C.scale_down(v);
+          Contour D(v, C);
+          if (!D.empty())
+            {
+              m_contours.push_back(D);
+            }
         }
       m_bbox.scale_down(v);
       m_glyph_bound_min /= v;
@@ -711,29 +750,26 @@ namespace
     else
       {
         uint32_t curve_list, curve_list_size;
-        fastuidraw::uvec4 biased_winding;
-        fastuidraw::vecN<fastuidraw::ivec2, 4> deltas;
+        unsigned int biased_winding;
+        fastuidraw::ivec2 delta;
 
-        ++offset;
         curve_list = fastuidraw::unpack_bits(G::hierarchy_leaf_curve_list_bit0,
                                              G::hierarchy_leaf_curve_list_numbits,
                                              v);
         curve_list_size = fastuidraw::unpack_bits(G::hierarchy_leaf_curve_list_size_bit0,
                                                   G::hierarchy_leaf_curve_list_size_numbits,
                                                   v);
-        for (unsigned int i = 0; i < 4; ++i, ++offset)
-          {
-            v = data[offset].u;
-            biased_winding[i] = fastuidraw::unpack_bits(G::winding_value_bit0,
-                                                        G::winding_value_numbits, v);
-            deltas[i].x() = fastuidraw::unpack_bits(G::delta_x_bit0, G::delta_numbits, v);
-            deltas[i].y() = fastuidraw::unpack_bits(G::delta_y_bit0, G::delta_numbits, v);
+        ++offset;
+        v = data[offset].u;
+        biased_winding = fastuidraw::unpack_bits(G::winding_value_bit0,
+                                                 G::winding_value_numbits, v);
+        delta.x() = fastuidraw::unpack_bits(G::delta_x_bit0, G::delta_numbits, v);
+        delta.y() = fastuidraw::unpack_bits(G::delta_y_bit0, G::delta_numbits, v);
+        delta -= fastuidraw::ivec2(G::delta_bias);
 
-            deltas[i] -= fastuidraw::ivec2(G::delta_bias);
-          }
-        std::cout << "\n" << prefix << "windings = "
-                  << fastuidraw::ivec4(biased_winding) - fastuidraw::ivec4(G::winding_bias)
-                  << "\n" << prefix << "delta's = " << deltas << "\n";
+        std::cout << "\n" << prefix << "winding = "
+                  << int(biased_winding) - int(G::winding_bias)
+                  << "\n" << prefix << "delta = " << delta << "\n";
 
         if (curve_list_size != 0u)
           {
@@ -1177,21 +1213,20 @@ pack_element(const GlyphPath *p,
 void
 CurveListHierarchy::
 pack_sample_point(unsigned int &offset,
-                  enum fastuidraw::GlyphAttribute::corner_t tp,
                   fastuidraw::c_array<fastuidraw::generic_data> dst) const
 {
   using namespace fastuidraw;
   typedef GlyphRenderDataRestrictedRays G;
 
   /* bits 0-15 for winding, biased
-   * bits 16-23 for dx, biased by 127
-   * bits 24-31 for dy, biased by 127
+   * bits 16-23 for dx, biased by G::delta_bias
+   * bits 24-31 for dy, biased by G::delta_bias
    */
   dst[offset++].u = pack_bits(G::winding_value_bit0,
                               G::winding_value_numbits,
-                              bias_winding(m_windings[tp]))
-    | pack_bits(G::delta_x_bit0, G::delta_numbits, m_deltas[tp].x() + G::delta_bias)
-    | pack_bits(G::delta_y_bit0, G::delta_numbits, m_deltas[tp].y() + G::delta_bias);
+                              bias_winding(m_winding))
+    | pack_bits(G::delta_x_bit0, G::delta_numbits, m_delta.x() + G::delta_bias)
+    | pack_bits(G::delta_y_bit0, G::delta_numbits, m_delta.y() + G::delta_bias);
 }
 
 void
@@ -1212,10 +1247,7 @@ pack_texel(fastuidraw::c_array<fastuidraw::generic_data> dst) const
                     G::hierarchy_leaf_curve_list_size_numbits,
                     m_curves.curves().size());
 
-      pack_sample_point(offset, GlyphAttribute::bottom_left_corner, dst);
-      pack_sample_point(offset, GlyphAttribute::bottom_right_corner, dst);
-      pack_sample_point(offset, GlyphAttribute::top_left_corner, dst);
-      pack_sample_point(offset, GlyphAttribute::top_right_corner, dst);
+      pack_sample_point(offset, dst);
     }
   else
     {
@@ -1258,8 +1290,8 @@ assign_tree_offsets(unsigned int &current)
     }
   else
     {
-      /* room needed for the texels */
-      current += 4u;
+      /* room needed for the sample point */
+      current += 1u;
     }
 }
 
@@ -1310,25 +1342,16 @@ subdivide(void)
 
   if (!has_children())
     {
-      /* TODO: Gaurantee that the sample points chosen do
-       *       NOT have any of the curves go through them.
+      /* TODO: Gaurantee that the sample point chosen does
+       *       NOT have any of the curves go through it.
        */
-      m_deltas[GlyphAttribute::bottom_left_corner]  = ivec2(+3, +5);
-      m_deltas[GlyphAttribute::bottom_right_corner] = ivec2(-3, +5);
-      m_deltas[GlyphAttribute::top_left_corner]     = ivec2(+3, -5);
-      m_deltas[GlyphAttribute::top_right_corner]    = ivec2(-3, -5);
+      m_delta = ivec2(1, 3);
 
-      for (int tp = 0; tp < 4; ++tp)
-        {
-          vec2 s, delta(m_deltas[tp]);
-          bool max_x, max_y;
+      vec2 s, delta;
 
-          delta /= 7.0f;
-          max_x = (tp & GlyphAttribute::right_corner_mask) != 0u;
-          max_y = (tp & GlyphAttribute::top_corner_mask) != 0u;
-          s = m_curves.box().corner_point(max_x, max_y) + delta;
-          m_windings[tp] = m_curves.glyph_path().compute_winding_number(s);
-        }
+      delta = vec2(m_delta) / float(GlyphRenderDataRestrictedRays::delta_div_factor);
+      s = m_curves.box().center_point() + delta ;
+      m_winding = m_curves.glyph_path().compute_winding_number(s);
     }
 }
 
@@ -1356,8 +1379,8 @@ print_tree(std::string prefix) const
     {
       unsigned int cnt(0);
 
-      std::cout << "\n" << prefix << "windings = " << m_windings << "\n"
-                << prefix << "delta's = " << m_deltas << "\n"
+      std::cout << "\n" << prefix << "winding = " << m_winding << "\n"
+                << prefix << "delta = " << m_delta << "\n"
                 << prefix << "curve_list with " << m_curves.curves().size() << " elements\n";
       prefix += "\t";
 
@@ -1514,7 +1537,6 @@ finalize(enum PainterEnums::fill_rule_t f,
 
   if (div_scale != ivec2(1, 1))
     {
-      std::cout << div_scale << std::flush;
       d->m_glyph->scale_down(div_scale);
     }
 

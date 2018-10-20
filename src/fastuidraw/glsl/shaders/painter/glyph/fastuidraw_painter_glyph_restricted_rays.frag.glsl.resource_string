@@ -16,19 +16,10 @@
  *
  */
 
-#ifndef BOX_FLAGS_DEFINED
-#define BOX_FLAGS_DEFINED
-#define MIN_X_BOX_FLAG (1u)
-#define MAX_X_BOX_FLAG (2u)
-#define MIN_Y_BOX_FLAG (4u)
-#define MAX_Y_BOX_FLAG (8u)
-#endif
-
 struct FASTUIDRAW_LOCAL(transformation_type)
 {
   vec2 translation;
   vec2 r_vector, jr_vector;
-  vec2 em;
 };
 
 struct FASTUIDRAW_LOCAL(curve_type)
@@ -39,11 +30,13 @@ struct FASTUIDRAW_LOCAL(curve_type)
 
 struct FASTUIDRAW_LOCAL(box_type)
 {
-  vec2 min_point, max_point, center_point;
-  uint box_flags;
+  vec2 min_point, max_point, center_point, size;
 };
 
-uint FASTUIDRAW_LOCAL(box_depth) = 0u;
+struct FASTUIDRAW_LOCAL(distance_values)
+{
+  float distance;
+};
 
 uint
 FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
@@ -53,7 +46,6 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
 {
   uint v, offset;
 
-  box.box_flags = (MIN_X_BOX_FLAG | MAX_X_BOX_FLAG | MIN_Y_BOX_FLAG | MAX_Y_BOX_FLAG);
   box.min_point = vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y);
   box.max_point = vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y);
 
@@ -62,7 +54,7 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
 
   while((v & HIERARCHY_NODE_MASK) != 0u)
     {
-      uint c, bit0, and_flags = 0u;
+      uint c, bit0;
       float split_pt;
       bool take_max_choice;
 
@@ -73,7 +65,6 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
           take_max_choice = (p.x > split_pt);
           box.min_point.x = (take_max_choice) ? split_pt : box.min_point.x;
           box.max_point.x = (take_max_choice) ? box.max_point.x : split_pt;
-          and_flags = (take_max_choice) ? (~MIN_X_BOX_FLAG) : (~MAX_X_BOX_FLAG);
         }
       else
         {
@@ -81,25 +72,21 @@ FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
           take_max_choice = (p.y > split_pt);
           box.min_point.y = (take_max_choice) ? split_pt : box.min_point.y;
           box.max_point.y = (take_max_choice) ? box.max_point.y : split_pt;
-          and_flags = (take_max_choice) ? (~MIN_Y_BOX_FLAG) : (~MAX_Y_BOX_FLAG);
         }
 
       bit0 = (take_max_choice) ? HIERARCHY_CHILD1_BIT : HIERARCHY_CHILD0_BIT;
       offset = FASTUIDRAW_EXTRACT_BITS(bit0, HIERARCHY_CHILD_NUM_BITS, v);
       offset += fastuidraw_glyph_data_location;
       v = fastuidraw_fetch_glyph_data(offset);
-      box.box_flags &= and_flags;
-
-      ++FASTUIDRAW_LOCAL(box_depth);
     }
 
+  box.size = box.max_point - box.min_point;
   box.center_point = 0.5 * (box.min_point + box.max_point);
   curve_list = FASTUIDRAW_EXTRACT_BITS(HIERARCHY_CURVE_LIST_BIT0, HIERARCHY_CURVE_LIST_NUM_BITS, v);
   num_curves = FASTUIDRAW_EXTRACT_BITS(HIERARCHY_CURVE_LIST_SIZE_BIT0, HIERARCHY_CURVE_LIST_SIZE_NUM_BITS, v);
 
   return offset + 1u;
 }
-
 
 ivec2
 FASTUIDRAW_LOCAL(unpack_point)(in uint ptr)
@@ -119,8 +106,6 @@ FASTUIDRAW_LOCAL(unpack_point)(in uint ptr)
 
 void
 FASTUIDRAW_LOCAL(compute_transformation)(in vec2 frag_point,
-                                         in vec2 frag_point_dx,
-                                         in vec2 frag_point_dy,
                                          in vec2 reference_point,
                                          out FASTUIDRAW_LOCAL(transformation_type) tr)
 {
@@ -133,9 +118,24 @@ FASTUIDRAW_LOCAL(compute_transformation)(in vec2 frag_point,
   tr.r_vector = q;
   tr.jr_vector.x = -tr.r_vector.y;
   tr.jr_vector.y = tr.r_vector.x;
+}
 
-  tr.em.x = 1.0 / (abs(dot(tr.r_vector, frag_point_dx)) + abs(dot(tr.r_vector, frag_point_dy)));
-  tr.em.y = 1.0 / (abs(dot(tr.jr_vector, frag_point_dx)) + abs(dot(tr.jr_vector, frag_point_dy)));
+void
+FASTUIDRAW_LOCAL(compute_frag_transformation)(in vec2 frag_point,
+                                              in vec2 uv_dx,
+                                              in vec2 uv_dy,
+                                              out FASTUIDRAW_LOCAL(transformation_type) tr)
+{
+  float det, recip_det;
+
+  det = uv_dx.x * uv_dy.y - uv_dx.y * uv_dy.x;
+  recip_det = 1.0 / det;
+
+  tr.r_vector.x = uv_dy.y * recip_det;
+  tr.r_vector.y = -uv_dy.x * recip_det;
+  tr.jr_vector.x = -uv_dx.y * recip_det;
+  tr.jr_vector.y = uv_dx.x * recip_det;
+  tr.translation = frag_point;
 }
 
 vec2
@@ -156,20 +156,9 @@ FASTUIDRAW_LOCAL(apply_rotation_only)(in vec2 p,
 }
 
 float
-FASTUIDRAW_LOCAL(choose_closest)(in vec2 v)
-{
-  vec2 w, s;
-
-  s = vec2(sign(v));
-  v *= s;
-  w = abs(v - vec2(0.5, 0.5));
-  return (w.x < w.y) ? v.x : v.y;
-}
-
-float
 FASTUIDRAW_LOCAL(process_curve)(in vec2 p1, in vec2 p2, in vec2 p3,
                                 in vec2 A, in vec2 B, in vec2 C,
-                                in bool is_curve, in vec2 em)
+                                in bool is_curve)
 {
   float R = 0.0;
   uint code;
@@ -181,83 +170,177 @@ FASTUIDRAW_LOCAL(process_curve)(in vec2 p1, in vec2 p2, in vec2 p3,
   code = (0x2E74u >> code) & 0x3u;
   if (code != 0u)
     {
-      float t1, t2, x1, x2, x1_incr, x2_incr;
-      float x1_pixel, x2_pixel;
-      float d1, d2, v_inverse_norm;
-      vec2 v;
-      const float close_tol = 1.0;
+      float t1, t2, x1, x2;
       const float quad_tol = 0.0001;
 
-      /* compute at what times the curve intersects the
-       * horizontal line y = 0. For line segments,
-       * we also compute the tangential unit vector
-       * along the edge to compute an analytic distance
-       * between the curve and fragment used when the
-       * curve intersection is within one pixel of the
-       * segment; This improves the anti-aliasing quality
-       * for line segments because the coverage value is
-       * then getting computed more accurately. For curves
-       * we do not do this because the needed value is
-       * more complicated in order to improve render
-       * quality.
-       */
       if (is_curve && abs(A.y) > quad_tol)
         {
           float D, rA = 1.0 / A.y;
 
-          D = sqrt(max(B.y * B.y - A.y * C.y, 0.0));
+          D = B.y * B.y - A.y * C.y;
+
+          D = sqrt(max(D, 0.0));
           t1 = (B.y - D) * rA;
           t2 = (B.y + D) * rA;
-          v = vec2(0.0, 1.0);
-          v_inverse_norm = 1.0;
         }
       else
         {
           t1 = t2 = 0.5 * C.y / B.y;
-          v = em * (p3 - p1);
-          v_inverse_norm = 1.0 / length(v);
         }
 
       x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      /* make position in pixel units */
-      x1_pixel = x1 * em.x;
-      x2_pixel = x2 * em.x;
-
-      if (abs(x1_pixel) < close_tol)
+      if ((code & 1u) != 0u && x1 < 1.0 && x1 > 0.0)
         {
-          d1 = x1_pixel * abs(v.y) * v_inverse_norm;
-        }
-      else
-        {
-          d1 = x1_pixel;
+          R += 1.0;
         }
 
-      if (abs(x2_pixel) < close_tol)
+      if (code > 1u && x2 < 1.0 && x2 > 0.0)
         {
-          d2 = x2_pixel * abs(v.y) * v_inverse_norm;
-        }
-      else
-        {
-          d2 = x2_pixel;
-        }
-
-      x1_incr = clamp(d1 + 0.5, 0.0, 1.0);
-      x2_incr = clamp(d2 + 0.5, 0.0, 1.0);
-
-      if ((code & 1u) != 0u && x1 < 1.0)
-        {
-          R += x1_incr;
-        }
-
-      if (code > 1u && x2 < 1.0)
-        {
-          R -= x2_incr;
+          R -= 1.0;
         }
     }
 
   return R;
+}
+
+void
+FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(in vec2 p1, in vec2 p2, in vec2 p3,
+                                              in vec2 A, in vec2 B, in vec2 C,
+                                              in bool is_curve,
+                                              inout float value)
+{
+  uint code;
+
+  code = (p1.y > 0.0 ? 2u : 0u)
+    + (p2.y > 0.0 ? 4u : 0u)
+    + (p3.y > 0.0 ? 8u : 0u);
+
+  code = (0x2E74u >> code) & 0x3u;
+  if (code != 0u)
+    {
+      float t1, t2;
+      vec2 p1, p2;
+      const float quad_tol = 0.0001;
+
+      if (is_curve && abs(A.y) > quad_tol)
+        {
+          float D, rA = 1.0 / A.y;
+
+          D = B.y * B.y - A.y * C.y;
+          D = sqrt(max(D, 0.0));
+          t1 = (B.y - D) * rA;
+          t2 = (B.y + D) * rA;
+        }
+      else
+        {
+          t1 = t2 = 0.5 * C.y / B.y;
+        }
+
+      t1 = clamp(t1, 0.0, 1.0);
+      t2 = clamp(t2, 0.0, 1.0);
+
+      p1 = (A * t1 - B * 2.0) * t1 + C;
+      p2 = (A * t2 - B * 2.0) * t2 + C;
+
+      if ((code & 1u) != 0u)
+        {
+          //R += 1.0;
+          value = min(value, abs(p1.x) + abs(p1.y));
+        }
+
+      if (code > 1u)
+        {
+          //R -= 1.0;
+          value = min(value, abs(p2.x) + abs(p2.y));
+        }
+    }
+}
+
+void
+FASTUIDRAW_LOCAL(compute_l1_distance_endpoints)(in vec2 p1, in vec2 p2, in vec2 p3,
+                                                inout float value)
+{
+  float v;
+  v = min(abs(p1.x) + abs(p1.y), abs(p3.x) + abs(p3.y));
+  value = min(value, v);
+}
+
+void
+FASTUIDRAW_LOCAL(compute_l1_distance_curve_critical)(in vec2 p1, in vec2 p2, in vec2 p3,
+                                                     in vec2 A, in vec2 B, in vec2 C,
+                                                     inout float value)
+{
+  /* find those t for which |x'(t)| = |y'(t)|
+   * which is just those t for which
+   *
+   *  x'(t) - y'(t) = 0 or x'(t) + y'(t) = 0
+   *
+   * Now,
+   *
+   *   p(t) = (A * t - B * 2.0) * t + C
+   *
+   * thus,
+   *
+   *   p'(t) = 2.0 * ( A * t - B)
+   *
+   * thus the t's are t0 and t1 where
+   *
+   *  (A.x * t0 - B.x) + (A.y * t0 - B.y) = 0 --> t0 = (B.x + B.y) / (A.x + A.y)
+   *  (A.x * t1 - B.x) - (A.y * t1 - B.y) = 0 --> t1 = (B.x - B.y) / (A.x - A.y)
+   */
+
+  float d0, d1, n0, n1;
+  const float tol = 0.0001;
+
+  n0 = B.x + B.y;
+  d0 = A.x + A.y;
+  n0 *= sign(d0);
+  d0 = abs(d0);
+
+  n1 = B.x - B.y;
+  d1 = A.x - A.y;
+  n1 *= sign(d1);
+  d1 = abs(d1);
+
+  if (n0 > 0.0 && d0 > n0)
+    {
+      float t0, v;
+      vec2 p;
+
+      t0 = n0 / d0;
+      p = (A * t0 - 2.0 * B) * t0 + C;
+      v = abs(p.x) + abs(p.y);
+      value = min(value, v);
+    }
+
+  if (n1 > 0.0 && d1 > n1)
+    {
+      float t1, v;
+      vec2 p;
+
+      t1 = n1 / d1;
+      p = (A * t1 - 2.0 * B) * t1 + C;
+      v = abs(p.x) + abs(p.y);
+      value = min(value, v);
+    }
+}
+
+
+void
+FASTUIDRAW_LOCAL(compute_l1_distance)(in vec2 p1, in vec2 p2, in vec2 p3,
+                                      in vec2 A, in vec2 B, in vec2 C,
+                                      in bool is_curve,
+                                      inout float value)
+{
+  FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(p1, p2, p3, A, B, C, is_curve, value);
+  FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(p1.yx, p2.yx, p3.yx, A.yx, B.yx, C.yx, is_curve, value);
+  FASTUIDRAW_LOCAL(compute_l1_distance_endpoints)(p1, p2, p3, value);
+  if (is_curve)
+    {
+      FASTUIDRAW_LOCAL(compute_l1_distance_curve_critical)(p1, p2, p3, A, B, C, value);
+    }
 }
 
 void
@@ -308,14 +391,15 @@ FASTUIDRAW_LOCAL(load_curve)(in uint raw,
   curve.C = vec2(iC);
 }
 
-vec2
+float
 FASTUIDRAW_LOCAL(load_and_process_curve)(in uint raw,
                                          in uint glyph_data_location,
-                                         in FASTUIDRAW_LOCAL(transformation_type) tr0,
-                                         in FASTUIDRAW_LOCAL(transformation_type) tr1)
+                                         in FASTUIDRAW_LOCAL(transformation_type) tr,
+                                         in FASTUIDRAW_LOCAL(transformation_type) frag_tr,
+                                         inout FASTUIDRAW_LOCAL(distance_values) nv)
 {
   FASTUIDRAW_LOCAL(curve_type) curve_data;
-  vec2 return_value;
+  float return_value;
 
   FASTUIDRAW_LOCAL(load_curve)(raw,
                                fastuidraw_glyph_data_location,
@@ -331,29 +415,28 @@ FASTUIDRAW_LOCAL(load_and_process_curve)(in uint raw,
    *   C = p3               --> applying transformation to each of p's and computing C
    *                            gives that C IS affected by the translation
    */
-  return_value.x = FASTUIDRAW_LOCAL(process_curve)(FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p1, tr0),
-                                                   FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p2, tr0),
-                                                   FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p3, tr0),
-                                                   FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.A, tr0),
-                                                   FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.B, tr0),
-                                                   FASTUIDRAW_LOCAL(apply_transformation)(curve_data.C, tr0),
-                                                   curve_data.is_quadratic, tr0.em);
+  return_value = FASTUIDRAW_LOCAL(process_curve)(FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p1, tr),
+                                                 FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p2, tr),
+                                                 FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p3, tr),
+                                                 FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.A, tr),
+                                                 FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.B, tr),
+                                                 FASTUIDRAW_LOCAL(apply_transformation)(curve_data.C, tr),
+                                                 curve_data.is_quadratic);
 
-  return_value.y = FASTUIDRAW_LOCAL(process_curve)(FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p1, tr1),
-                                                   FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p2, tr1),
-                                                   FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p3, tr1),
-                                                   FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.A, tr1),
-                                                   FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.B, tr1),
-                                                   FASTUIDRAW_LOCAL(apply_transformation)(curve_data.C, tr1),
-                                                   curve_data.is_quadratic, tr1.em);
-
+  FASTUIDRAW_LOCAL(compute_l1_distance)(FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p1, frag_tr),
+                                        FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p2, frag_tr),
+                                        FASTUIDRAW_LOCAL(apply_transformation)(curve_data.p3, frag_tr),
+                                        FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.A, frag_tr),
+                                        FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.B, frag_tr),
+                                        FASTUIDRAW_LOCAL(apply_transformation)(curve_data.C, frag_tr),
+                                        curve_data.is_quadratic,
+                                        nv.distance);
   return return_value;
 }
 
 int
 FASTUIDRAW_LOCAL(load_winding_reference)(in uint location,
                                          in FASTUIDRAW_LOCAL(box_type) box,
-                                         in uint sample_choice,
                                          in vec2 frag_position,
                                          out vec2 position)
 {
@@ -361,47 +444,8 @@ FASTUIDRAW_LOCAL(load_winding_reference)(in uint location,
   uvec2 biased_delta;
   vec2 delta;
 
-  if ((sample_choice & RIGHT_CORNER_MASK) == 0u
-      && (box.box_flags & MIN_X_BOX_FLAG) != 0u)
-    {
-      position.x = -box.max_point.x;
-      position.y = frag_position.y;
-      return 0;
-    }
-
-  if ((sample_choice & RIGHT_CORNER_MASK) != 0u
-      && (box.box_flags & MAX_X_BOX_FLAG) != 0u)
-    {
-      position.x = 2.0 * box.max_point.x;
-      position.y = frag_position.y;
-      return 0;
-    }
-
-  if ((sample_choice & TOP_CORNER_MASK) == 0u
-      && (box.box_flags & MIN_Y_BOX_FLAG) != 0u)
-    {
-      position.x = frag_position.x;
-      position.y = -box.max_point.y;
-      return 0;
-    }
-
-  if ((sample_choice & TOP_CORNER_MASK) != 0u
-      && (box.box_flags & MAX_Y_BOX_FLAG) != 0u)
-    {
-      position.x = frag_position.x;
-      position.y = 2.0 * box.max_point.y;
-      return 0;
-    }
-
-  position.x = ((sample_choice & RIGHT_CORNER_MASK) != 0u) ?
-    box.max_point.x:
-    box.min_point.x;
-
-  position.y = ((sample_choice & TOP_CORNER_MASK) != 0u) ?
-    box.max_point.y:
-    box.min_point.y;
-
-  texel = fastuidraw_fetch_glyph_data(location + sample_choice);
+  position = box.center_point;
+  texel = fastuidraw_fetch_glyph_data(location);
 
   biased_winding = FASTUIDRAW_EXTRACT_BITS(WINDING_VALUE_BIT0, WINDING_VALUE_NUM_BITS, texel);
   biased_delta.x = FASTUIDRAW_EXTRACT_BITS(POSITION_DELTA_X_BIT0, POSITION_DELTA_NUM_BITS, texel);
@@ -418,54 +462,34 @@ vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  uint src, num_curves, c, curve_list, data_location;
-  vec2 z0, z1, alpha_01;
-  vec2 frag_coord, frag_coord_dx, frag_coord_dy;
-  ivec2 startw_01;
-  float alpha;
+  uint src, num_curves, c, curve_list, winding_sample_data_location;
+  vec2 z, glyph_coord, glyph_coord_dx, glyph_coord_dy;
+  int startw;
+  float winding_number;
   FASTUIDRAW_LOCAL(box_type) texel_box;
-  FASTUIDRAW_LOCAL(transformation_type) tr0, tr1;
+  FASTUIDRAW_LOCAL(transformation_type) tr, frag_tr;
+  FASTUIDRAW_LOCAL(distance_values) nv;
 
-  frag_coord = vec2(fastuidraw_glyph_coord_x,
+  glyph_coord = vec2(fastuidraw_glyph_coord_x,
                     fastuidraw_glyph_coord_y);
-  frag_coord_dx = dFdx(frag_coord);
-  frag_coord_dy = dFdy(frag_coord);
+  glyph_coord_dx = dFdx(glyph_coord);
+  glyph_coord_dy = dFdy(glyph_coord);
 
-  data_location = FASTUIDRAW_LOCAL(compute_box)(frag_coord, texel_box,
-                                                curve_list, num_curves);
+  winding_sample_data_location = FASTUIDRAW_LOCAL(compute_box)(glyph_coord, texel_box,
+                                                               curve_list, num_curves);
+  nv.distance = 0.5;
 
-  /* choose the two sample points furthest from the fragment position.
-   * There are 4 sample points to choose from, one at (essentially)
-   * each corner.
+  startw = FASTUIDRAW_LOCAL(load_winding_reference)(winding_sample_data_location,
+                                                    texel_box, glyph_coord, z);
+
+  winding_number = float(startw);
+  FASTUIDRAW_LOCAL(compute_transformation)(glyph_coord, z, tr);
+
+  /* To perform anisotropic anti-aliasing, we simply compute the L1-distance
+   * function is (local) pixel coordinates. To do so, we comptue the transformation
+   * from glyph coordinates to window coordinates and do the computation there.
    */
-  uint sample_choice0 = 0u, sample_choice1;
-
-  if (frag_coord.x < texel_box.center_point.x)
-    {
-      sample_choice0 |= RIGHT_CORNER_MASK;
-    }
-  if (frag_coord.y < texel_box.center_point.y)
-    {
-      sample_choice0 |= TOP_CORNER_MASK;
-    }
-
-  startw_01.x = FASTUIDRAW_LOCAL(load_winding_reference)(data_location, texel_box,
-                                                         sample_choice0, frag_coord, z0);
-
-  sample_choice1 = sample_choice0 ^ 1u;
-  startw_01.y = FASTUIDRAW_LOCAL(load_winding_reference)(data_location, texel_box,
-                                                         sample_choice1, frag_coord, z1);
-
-  alpha_01 = vec2(startw_01);
-  FASTUIDRAW_LOCAL(compute_transformation)(frag_coord,
-                                           frag_coord_dx,
-                                           frag_coord_dy,
-                                           z0, tr0);
-
-  FASTUIDRAW_LOCAL(compute_transformation)(frag_coord,
-                                           frag_coord_dx,
-                                           frag_coord_dy,
-                                           z1, tr1);
+  FASTUIDRAW_LOCAL(compute_frag_transformation)(glyph_coord, glyph_coord_dx, glyph_coord_dy, frag_tr);
 
   src = curve_list + fastuidraw_glyph_data_location;
   for (c = 0u; c < num_curves; c += 2u)
@@ -476,28 +500,57 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       ++src;
 
       cA = FASTUIDRAW_EXTRACT_BITS(CURVE_ENTRY0_BIT0, CURVE_ENTRY_NUM_BITS, curve_pair);
-      alpha_01 += FASTUIDRAW_LOCAL(load_and_process_curve)(cA, fastuidraw_glyph_data_location, tr0, tr1);
+      winding_number += FASTUIDRAW_LOCAL(load_and_process_curve)(cA, fastuidraw_glyph_data_location, tr, frag_tr, nv);
 
       if (c + 1u < num_curves)
         {
           cB = FASTUIDRAW_EXTRACT_BITS(CURVE_ENTRY1_BIT0, CURVE_ENTRY_NUM_BITS, curve_pair);
-          alpha_01 += FASTUIDRAW_LOCAL(load_and_process_curve)(cB, fastuidraw_glyph_data_location, tr0, tr1);
+          winding_number += FASTUIDRAW_LOCAL(load_and_process_curve)(cB, fastuidraw_glyph_data_location, tr, frag_tr, nv);
         }
     }
 
-  alpha = FASTUIDRAW_LOCAL(choose_closest)(alpha_01);
+  float cvg;
+
+  /* TODO: rather than tracking the minimum L1-distance,
+   * we should track two minimum values: minimum distance
+   * to a curve that increments the winding number and the
+   * minimum distance to a curve that decrements the winding
+   * number. If the winding number at the fragment is 0, use
+   * the minimum of those two; if the winding value is 1
+   * use the decrement value and if the winding is -1 use the
+   * increment winding number; if the absolute value of the
+   * winding value is greater than two, we will view the
+   * fragment as fully covered.
+   */
+  cvg = (abs(winding_number) > 0.5) ?
+    (0.5 + nv.distance) :
+    (0.5 - nv.distance);
 
   /**
-  float bd = 0.0, tol_x = 3.0 * fwidth(frag_coord.x), tol_y = 3.0 * fwidth(frag_coord.y);
-  if (abs(frag_coord.x - texel_box.min_point.x) < tol_x
-      || abs(frag_coord.x - texel_box.max_point.x) < tol_x
-      || abs(frag_coord.y - texel_box.min_point.y) < tol_y
-      || abs(frag_coord.y - texel_box.max_point.y) < tol_y)
+  const float tol = 3.0;
+  float tol_x = tol * fwidth(glyph_coord.x);
+  float tol_y = tol * fwidth(glyph_coord.y);
+  vec3 ff = vec3(0.0, 0.0, cvg);
+  if (abs(glyph_coord.x - texel_box.min_point.x) < tol_x
+      || abs(glyph_coord.x - texel_box.max_point.x) < tol_x
+      || abs(glyph_coord.y - texel_box.min_point.y) < tol_y
+      || abs(glyph_coord.y - texel_box.max_point.y) < tol_y)
     {
-      bd = 1.0;
+      //ff.x = 1.0;
     }
-  return vec4(bd, float(FASTUIDRAW_LOCAL(box_depth)) / 8.0, alpha, 1.0);
+
+  if (length(z - glyph_coord) < tol * min(fwidth(glyph_coord.x), fwidth(glyph_coord.y)))
+    {
+      //ff.y = 1.0;
+    }
+
+  if (startw == 0)
+    {
+      // ff.xy = ff.yx;
+    }
+
+  return vec4(ff, 1.0);
   **/
 
-  return vec4(1.0, 1.0, 1.0, alpha);
+  return vec4(1.0, 1.0, 1.0, cvg);
 }

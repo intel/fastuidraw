@@ -54,11 +54,9 @@ namespace fastuidraw
      * boxes as packed into the  data. A node
      * in the hierarchy is a single 32-bit value. A leaf
      * in the hierarchy is a single 32-bit value followed
-     * by 4 sample winding positions each packed as according
-     * to \ref winding_sample_packing_t. Each sample point
-     * is associated to a corner of the box. The order of
-     * winding sample points is given by \ref
-     * GlyphAttribute::corner_t.
+     * by a single sample point which has a winding value
+     * and offset position packed as according to \ref
+     * winding_sample_packing_t.
      */
     enum hierarchy_packing_t
       {
@@ -158,17 +156,16 @@ namespace fastuidraw
 
     /*!
      * Enumeration to describe how the winding samples
-     * of a leaf-box of the hierarchy are packed. Each
-     * winding sample value is 32-bits and they come in
-     * the order specified by \ref GlyphAttribute::corner_t.
-     * The sample point is located at the named corner
-     * offset by a delta. The sample point is offset from
-     * the corner to which it is associated. The offset is
-     * stored with a bias and fractionally. The value of
-     * the offset from the corner in each coordinate is
-     * given by
-     * $ float(PackedValue - \ref delta_bias) / float(\ref delta_div_factor) $
-     * where PackedValue is extracted from the 32-bit value.
+     * of a leaf-box of the hierarchy are packed. The
+     * position of the sample is the center of the node
+     * offset by a delta:
+     * $ Delta = (PackedDelta - DeltaBias) / DeltaFactor $
+     * where PackedDelta is extracted from the 32-bit
+     * value as a pair of 8-bit values located at bits
+     * \ref delta_x_bit0 and \ref delta_y_bit0, DeltaBias
+     * is given by \ref delta_bias and DeltaFactor is given
+     * by \ref delta_div_factor. Note that the delta is
+     * absolute not relative to the box node.
      */
     enum winding_sample_packing_t
       {
@@ -200,10 +197,10 @@ namespace fastuidraw
         delta_bias = 127,
 
         /*!
-         * The amount by which to divide the x and y-coordinate
-         * of the delta after applying the bias \ref delta_bias.
+         * The amount by which to divide the delta after applying
+         * the bias of \ref delta_bias.
          */
-        delta_div_factor = 7,
+        delta_div_factor = 255,
 
         /*!
          * The first bit used to store the delta x-coordinate
