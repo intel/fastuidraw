@@ -848,20 +848,25 @@ draw_glyphs(float us)
   m_painter->save();
   m_zoomer.transformation().concat_to_painter(m_painter);
   m_painter->shear(m_shear.x(), m_shear.y());
-  m_painter->shear(m_shear2.x(), m_shear2.y());
   m_painter->rotate(m_angle * M_PI / 180.0f);
+  m_painter->shear(m_shear2.x(), m_shear2.y());
 
   if (m_fill_glyphs || m_stroke_glyphs)
     {
-      vec2 p0, p1;
+      vec2 p0, p1, p2, p3;
       BoundingBox<float> screen;
+      ivec2 dims(dimensions());
 
-      p0 = item_coordinates(ivec2(0,0));
-      p1 = item_coordinates(dimensions());
+      p0 = item_coordinates(ivec2(0, 0));
+      p1 = item_coordinates(dims);
+      p2 = item_coordinates(ivec2(0, dims.y()));
+      p3 = item_coordinates(ivec2(dims.x(), dims.y()));
 
       screen
         .union_point(p0)
-        .union_point(p1);
+        .union_point(p1)
+        .union_point(p2)
+        .union_point(p3);
 
       m_draw_shared.query_glyph_interesection(screen, &glyphs_visible);
     }
