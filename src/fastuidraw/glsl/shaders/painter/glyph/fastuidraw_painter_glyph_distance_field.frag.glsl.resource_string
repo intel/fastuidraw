@@ -35,7 +35,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   coord10 = coord00 + ivec2(1, 0);
   coord01 = coord00 + ivec2(0, 1);
   coord11 = coord00 + ivec2(1, 1);
-  mixer = tau_plus_half - ivec2(tau_plus_half);
+  mixer = tau_plus_half - vec2(ivec2(tau_plus_half));
 
   v00 = fastuidraw_read_texel_from_data(coord00, dims, fastuidraw_glyph_data_location);
   v01 = fastuidraw_read_texel_from_data(coord01, dims, fastuidraw_glyph_data_location);
