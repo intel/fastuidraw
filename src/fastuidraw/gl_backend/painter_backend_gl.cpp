@@ -935,28 +935,19 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
           fbo = m_surface_gl->fbo(aux_type, compositing_type);
           draw_buffers = m_surface_gl->draw_buffers(aux_type, compositing_type);
 
-          if (clear_color_buffer)
-            {
-              glClearColor(m_surface_gl->m_clear_color.x(),
-                           m_surface_gl->m_clear_color.y(),
-                           m_surface_gl->m_clear_color.z(),
-                           m_surface_gl->m_clear_color.w());
-              mask |= GL_COLOR_BUFFER_BIT;
-
-              /* Compositeing interlock does not have the color buffer as
-               * part of the FBO, so to clear the color buffer we need
-               * bind an FBO that has it; in addition we need to make
-               * sure that we do NOT clear the auxiliary buffer with
-               * the above clear color in the case it is non-zero.
-               */
-              enum PainterBackendGL::compositing_type_t bl(PainterBackendGL::compositing_dual_src);
-              fbo = m_surface_gl->fbo(PainterBackendGL::no_auxiliary_buffer, bl);
-              draw_buffers = m_surface_gl->draw_buffers(PainterBackendGL::no_auxiliary_buffer, bl);
-            }
-
           glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
           glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
           glClear(mask);
+
+          if (clear_color_buffer)
+            {
+              glClearBufferfv(GL_COLOR, 0, m_surface_gl->m_clear_color.c_ptr());
+              if (aux_type == PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
+                {
+                  vec4 zero(0.0f);
+                  glClearBufferfv(GL_COLOR, 1, zero.c_ptr());
+                }
+            }
 
           last_fbo = fbo;
         }
