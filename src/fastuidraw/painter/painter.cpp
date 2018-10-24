@@ -509,7 +509,7 @@ namespace
     unsigned int m_occluder_stack_position;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> m_composite;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend;
-    fastuidraw::BlendMode::packed_value m_composite_mode;
+    fastuidraw::BlendMode m_composite_mode;
     fastuidraw::range_type<unsigned int> m_clip_equation_series;
 
     clip_rect_state m_clip_rect_state;
@@ -2258,7 +2258,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
   c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass2;
   StrokingItems stroking_items(anti_aliasing);
   reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode(0u);
+  BlendMode old_composite_mode;
   PainterData draw(pdraw);
 
   m_work_room.m_stroke.m_attrib_chunks.resize(total_chunks);
@@ -3762,7 +3762,7 @@ clip_out_path(const FilledPath &path, enum fill_rule_t fill_rule)
     }
 
   reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode;
+  BlendMode old_composite_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDraw::DelayedAction
@@ -3798,7 +3798,7 @@ clip_out_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
     }
 
   fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode;
+  BlendMode old_composite_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDraw::DelayedAction
@@ -3839,7 +3839,7 @@ clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
     }
 
   fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode;
+  BlendMode old_composite_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDraw::DelayedAction
@@ -3926,7 +3926,7 @@ clip_in_rounded_rect(const RoundedRect &R)
   clip_rect_state m(d->m_clip_rect_state);
 
   fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode;
+  BlendMode old_composite_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
   RoundedRectTransformations rect_transforms(R);
 
@@ -4055,7 +4055,7 @@ clip_in_rect(const vec2 &pmin, const vec2 &wh)
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
 
   fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
-  BlendMode::packed_value old_composite_mode(0u);
+  BlendMode old_composite_mode;
   old_composite = composite_shader();
   old_composite_mode = composite_mode();
   composite_shader(composite_porter_duff_dst);
@@ -4142,7 +4142,7 @@ composite_shader(void) const
   return d->m_core->composite_shader();
 }
 
-fastuidraw::BlendMode::packed_value
+fastuidraw::BlendMode
 fastuidraw::Painter::
 composite_mode(void) const
 {
@@ -4154,7 +4154,7 @@ composite_mode(void) const
 void
 fastuidraw::Painter::
 composite_shader(const fastuidraw::reference_counted_ptr<PainterCompositeShader> &h,
-                 fastuidraw::BlendMode::packed_value mode)
+                 fastuidraw::BlendMode mode)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);

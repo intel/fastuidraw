@@ -27,7 +27,7 @@ namespace
   {
   public:
     typedef fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> shader_ref;
-    typedef std::pair<shader_ref, fastuidraw::BlendMode::packed_value> entry;
+    typedef std::pair<shader_ref, fastuidraw::BlendMode> entry;
     std::vector<entry> m_shaders;
     entry m_null;
   };
@@ -69,7 +69,7 @@ shader(enum PainterEnums::composite_mode_t tp) const
   return (tp < d->m_shaders.size()) ? d->m_shaders[tp].first : d->m_null.first;
 }
 
-fastuidraw::BlendMode::packed_value
+fastuidraw::BlendMode
 fastuidraw::PainterCompositeShaderSet::
 composite_mode(enum PainterEnums::composite_mode_t tp) const
 {
@@ -90,7 +90,7 @@ shader(enum PainterEnums::composite_mode_t tp,
     {
       d->m_shaders.resize(tp + 1);
     }
-  d->m_shaders[tp] = PainterCompositeShaderSetPrivate::entry(sh, mode.packed());
+  d->m_shaders[tp] = PainterCompositeShaderSetPrivate::entry(sh, mode);
   return *this;
 }
 

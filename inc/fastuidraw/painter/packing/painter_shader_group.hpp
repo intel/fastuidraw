@@ -57,10 +57,10 @@ namespace fastuidraw
     brush(void) const;
 
     /*!
-     * The BlendMode as packed by BlendMode::packed().
+     * The \ref BlendMode value for the active composite shader.
      */
-    BlendMode::packed_value
-    packed_composite_mode(void) const;
+    BlendMode
+    composite_mode(void) const;
 
   protected:
     /*!

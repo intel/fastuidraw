@@ -124,19 +124,19 @@ namespace fastuidraw
     composite_shader(void) const;
 
     /*!
-     * Returns the active 3D API composite mode
+     * Returns the active 3D API blend mode
      */
-    BlendMode::packed_value
+    BlendMode
     composite_mode(void) const;
 
     /*!
      * Sets the composite shader.
      * \param h composite shader to use for compositing.
-     * \param packed_composite_mode 3D API composite mode packed by BlendMode::packed()
+     * \param packed_composite_mode 3D API blend mode
      */
     void
     composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
-                     BlendMode::packed_value packed_composite_mode);
+                     BlendMode blend_mode);
 
     /*!
      * Equivalent to

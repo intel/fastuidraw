@@ -166,7 +166,7 @@ namespace
   private:
     static
     GLenum
-    convert_blend_op(enum fastuidraw::BlendMode::op_t v);
+    convert_blend_op(enum fastuidraw::BlendMode::equation_t v);
 
     static
     GLenum
@@ -383,7 +383,7 @@ restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
 
 GLenum
 DrawState::
-convert_blend_op(enum fastuidraw::BlendMode::op_t v)
+convert_blend_op(enum fastuidraw::BlendMode::equation_t v)
 {
 #define C(X) case fastuidraw::BlendMode::X: return GL_FUNC_##X
 #define D(X) case fastuidraw::BlendMode::X: return GL_##X
@@ -631,11 +631,11 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   using namespace fastuidraw::gl::detail;
 
   /* if the composite mode changes, then we need to start a new DrawEntry */
-  BlendMode::packed_value old_mode, new_mode;
+  BlendMode old_mode, new_mode;
   uint32_t new_disc, old_disc;
 
-  old_mode = old_shaders.packed_composite_mode();
-  new_mode = new_shaders.packed_composite_mode();
+  old_mode = old_shaders.composite_mode();
+  new_mode = new_shaders.composite_mode();
 
   if (m_pr->m_use_uber_shader)
     {
@@ -675,7 +675,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
         {
           add_entry(indices_written);
         }
-      m_draws.push_back(fastuidraw::BlendMode(new_mode));
+      m_draws.push_back(new_mode);
       return true;
     }
   else

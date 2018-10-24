@@ -21,6 +21,7 @@
 #include <stdint.h>
 
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/util.hpp>
 
 namespace fastuidraw
 {
@@ -39,7 +40,7 @@ namespace fastuidraw
      * \brief
      * Enumeration to specify blend equation, i.e. glBlendEquation.
      */
-    enum op_t
+    enum equation_t
       {
         ADD,
         SUBTRACT,
@@ -81,29 +82,36 @@ namespace fastuidraw
       };
 
     /*!
-     * \brief
-     * Represents a BlendMode packed as a single
-     * 32-bit integer value, see also packed().
-     */
-    typedef uint32_t packed_value;
-
-    /*!
      * Ctor.
      */
     BlendMode(void)
     {
-      m_blending_on = true;
-      m_blend_equation[Kequation_rgb] = m_blend_equation[Kequation_alpha] = ADD;
-      m_blend_func[Kfunc_src_rgb] = m_blend_func[Kfunc_src_alpha] = ONE;
-      m_blend_func[Kfunc_dst_rgb] = m_blend_func[Kfunc_dst_alpha] = ZERO;
+      m_value = pack_bits(blending_on_bit, 1u, 1u)
+        | pack_bits(equation_rgb_bit0, equation_num_bits, ADD)
+        | pack_bits(equation_alpha_bit0, equation_num_bits, ADD)
+        | pack_bits(src_func_rgb_bit0, func_num_bits, ONE)
+        | pack_bits(src_func_alpha_bit0, func_num_bits, ONE)
+        | pack_bits(dst_func_rgb_bit0, func_num_bits, ZERO)
+        | pack_bits(dst_func_alpha_bit0, func_num_bits, ZERO);
     }
 
     /*!
-     * Construct a BlendMode from a value as packed by
-     * packed().
+     * Equality comparison operator.
      */
-    explicit
-    BlendMode(packed_value v);
+    bool
+    operator==(BlendMode rhs) const
+    {
+      return m_value == rhs.m_value;
+    }
+
+    /*!
+     * Inequality comparison operator.
+     */
+    bool
+    operator!=(BlendMode rhs) const
+    {
+      return m_value != rhs.m_value;
+    }
 
     /*!
      * Set that 3D API blending is on or off.
@@ -112,17 +120,18 @@ namespace fastuidraw
     BlendMode&
     blending_on(bool v)
     {
-      m_blending_on = v;
+      m_value &= ~FASTUIDRAW_MASK(blending_on_bit, 1u);
+      m_value |= pack_bits(blending_on_bit, 1u, uint32_t(v));
       return *this;
     }
 
     /*!
-     * Return the value as set by equation_rgb(enum op_t).
+     * Return the value as set by blending_on(bool).
      */
     bool
     blending_on(void) const
     {
-      return m_blending_on;
+      return unpack_bits(blending_on_bit, 1u, m_value) != 0u;
     }
 
     /*!
@@ -130,26 +139,42 @@ namespace fastuidraw
      * Default value is ADD.
      */
     BlendMode&
-    equation_rgb(enum op_t v) { m_blend_equation[Kequation_rgb] = v; return *this; }
+    equation_rgb(enum equation_t v)
+    {
+      m_value &= ~FASTUIDRAW_MASK(equation_rgb_bit0, equation_num_bits);
+      m_value |= pack_bits(equation_rgb_bit0, equation_num_bits, v);
+      return *this;
+    }
 
     /*!
-     * Return the value as set by equation_rgb(enum op_t).
+     * Return the value as set by equation_rgb(enum equation_t).
      */
-    enum op_t
-    equation_rgb(void) const { return m_blend_equation[Kequation_rgb]; }
+    enum equation_t
+    equation_rgb(void) const
+    {
+      return static_cast<enum equation_t>(unpack_bits(equation_rgb_bit0, equation_num_bits, m_value));
+    }
 
     /*!
      * Set the blend equation for the Alpha channel.
      * Default value is ADD.
      */
     BlendMode&
-    equation_alpha(enum op_t v) { m_blend_equation[Kequation_alpha] = v; return *this; }
+    equation_alpha(enum equation_t v)
+    {
+      m_value &= ~FASTUIDRAW_MASK(equation_alpha_bit0, equation_num_bits);
+      m_value |= pack_bits(equation_alpha_bit0, equation_num_bits, v);
+      return *this;
+    }
 
     /*!
-     * Return the value as set by equation_alpha(enum op_t).
+     * Return the value as set by equation_alpha(enum equation_t).
      */
-    enum op_t
-    equation_alpha(void) const { return m_blend_equation[Kequation_alpha]; }
+    enum equation_t
+    equation_alpha(void) const
+    {
+      return static_cast<enum equation_t>(unpack_bits(equation_alpha_bit0, equation_num_bits, m_value));
+    }
 
     /*!
      * Provided as a conveniance, equivalent to
@@ -159,11 +184,10 @@ namespace fastuidraw
      * \endcode
      */
     BlendMode&
-    equation(enum op_t v)
+    equation(enum equation_t v)
     {
-      m_blend_equation[Kequation_rgb] = v;
-      m_blend_equation[Kequation_alpha] = v;
-      return *this;
+      equation_rgb(v);
+      return equation_alpha(v);
     }
 
     /*!
@@ -171,26 +195,42 @@ namespace fastuidraw
      * Default value is ONE.
      */
     BlendMode&
-    func_src_rgb(enum func_t v) { m_blend_func[Kfunc_src_rgb] = v; return *this; }
+    func_src_rgb(enum func_t v)
+    {
+      m_value &= ~FASTUIDRAW_MASK(src_func_rgb_bit0, func_num_bits);
+      m_value |= pack_bits(src_func_rgb_bit0, func_num_bits, v);
+      return *this;
+    }
 
     /*!
      * Return the value as set by func_src_rgb(enum t).
      */
     enum func_t
-    func_src_rgb(void) const { return m_blend_func[Kfunc_src_rgb]; }
+    func_src_rgb(void) const
+    {
+      return static_cast<enum func_t>(unpack_bits(src_func_rgb_bit0, func_num_bits, m_value));
+    }
 
     /*!
      * Set the source coefficient for the Alpha channel.
      * Default value is ONE.
      */
     BlendMode&
-    func_src_alpha(enum func_t v) { m_blend_func[Kfunc_src_alpha] = v; return *this; }
+    func_src_alpha(enum func_t v)
+    {
+      m_value &= ~FASTUIDRAW_MASK(src_func_alpha_bit0, func_num_bits);
+      m_value |= pack_bits(src_func_alpha_bit0, func_num_bits, v);
+      return *this;
+    }
 
     /*!
      * Return the value as set by func_src_alpha(enum t).
      */
     enum func_t
-    func_src_alpha(void) const { return m_blend_func[Kfunc_src_alpha]; }
+    func_src_alpha(void) const
+    {
+      return static_cast<enum func_t>(unpack_bits(src_func_alpha_bit0, func_num_bits, m_value));
+    }
 
     /*!
      * Provided as a conveniance, equivalent to
@@ -202,8 +242,8 @@ namespace fastuidraw
     BlendMode&
     func_src(enum func_t v)
     {
-      m_blend_func[Kfunc_src_rgb] = m_blend_func[Kfunc_src_alpha] = v;
-      return *this;
+      func_src_rgb(v);
+      return func_src_alpha(v);
     }
 
     /*!
@@ -211,26 +251,42 @@ namespace fastuidraw
      * Default value is ZERO.
      */
     BlendMode&
-    func_dst_rgb(enum func_t v) { m_blend_func[Kfunc_dst_rgb] = v; return *this; }
+    func_dst_rgb(enum func_t v)
+    {
+      m_value &= ~FASTUIDRAW_MASK(dst_func_rgb_bit0, func_num_bits);
+      m_value |= pack_bits(dst_func_rgb_bit0, func_num_bits, v);
+      return *this;
+    }
 
     /*!
      * Return the value as set by func_dst_rgb(enum t).
      */
     enum func_t
-    func_dst_rgb(void) const { return m_blend_func[Kfunc_dst_rgb]; }
+    func_dst_rgb(void) const
+    {
+      return static_cast<enum func_t>(unpack_bits(dst_func_rgb_bit0, func_num_bits, m_value));
+    }
 
     /*!
      * Set the destication coefficient for the Alpha channel.
      * Default value is ZERO.
      */
     BlendMode&
-    func_dst_alpha(enum func_t v) { m_blend_func[Kfunc_dst_alpha] = v; return *this; }
+    func_dst_alpha(enum func_t v)
+    {
+      m_value &= ~FASTUIDRAW_MASK(dst_func_alpha_bit0, func_num_bits);
+      m_value |= pack_bits(dst_func_alpha_bit0, func_num_bits, v);
+      return *this;
+    }
 
     /*!
      * Return the value as set by func_dst_alpha(enum t).
      */
     enum func_t
-    func_dst_alpha(void) const { return m_blend_func[Kfunc_dst_alpha]; }
+    func_dst_alpha(void) const
+    {
+      return static_cast<enum func_t>(unpack_bits(dst_func_alpha_bit0, func_num_bits, m_value));
+    }
 
     /*!
      * Provided as a conveniance, equivalent to
@@ -242,8 +298,8 @@ namespace fastuidraw
     BlendMode&
     func_dst(enum func_t v)
     {
-      m_blend_func[Kfunc_dst_rgb] = m_blend_func[Kfunc_dst_alpha] = v;
-      return *this;
+      func_dst_alpha(v);
+      return func_dst_alpha(v);
     }
 
     /*!
@@ -256,38 +312,32 @@ namespace fastuidraw
     BlendMode&
     func(enum func_t src, enum func_t dst)
     {
-      m_blend_func[Kfunc_src_rgb] = m_blend_func[Kfunc_src_alpha] = src;
-      m_blend_func[Kfunc_dst_rgb] = m_blend_func[Kfunc_dst_alpha] = dst;
-      return *this;
+      func_src(src);
+      return func_dst(dst);
     }
-
-    /*!
-     * Return the blend mode as a single packed 64-bit
-     * unsigned integer.
-     */
-    packed_value
-    packed(void) const;
 
   private:
     enum
       {
-        Kequation_rgb,
-        Kequation_alpha,
-        Knumber_blend_equation_args
+        equation_num_bits = 3,
+        func_num_bits = 5,
       };
 
     enum
       {
-        Kfunc_src_rgb,
-        Kfunc_src_alpha,
-        Kfunc_dst_rgb,
-        Kfunc_dst_alpha,
-        Knumber_blend_args
+        blending_on_bit = 0,
+
+        equation_rgb_bit0 = 1,
+        equation_alpha_bit0 = equation_rgb_bit0 + equation_num_bits,
+
+        src_func_rgb_bit0 = equation_alpha_bit0 + equation_num_bits,
+        src_func_alpha_bit0 = src_func_rgb_bit0 + func_num_bits,
+
+        dst_func_rgb_bit0 = src_func_alpha_bit0 + func_num_bits,
+        dst_func_alpha_bit0 = dst_func_rgb_bit0 + func_num_bits
       };
 
-    bool m_blending_on;
-    vecN<enum op_t, Knumber_blend_equation_args> m_blend_equation;
-    vecN<enum func_t, Knumber_blend_args> m_blend_func;
+    uint32_t m_value;
   };
 /*! @} */
 }

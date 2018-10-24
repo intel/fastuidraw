@@ -73,11 +73,10 @@ namespace fastuidraw
     shader(enum PainterEnums::composite_mode_t tp) const;
 
     /*!
-     * Returns the BlendMode packed via BlendMode::packed()
-     * for a given PainterEnums::composite_mode_t.
+     * Returns the BlendMode for a given PainterEnums::composite_mode_t.
      * \param tp composite mode
      */
-    BlendMode::packed_value
+    BlendMode
     composite_mode(enum PainterEnums::composite_mode_t tp) const;
 
     /*!

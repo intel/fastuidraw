@@ -72,7 +72,7 @@ namespace fastuidraw
      */
     explicit
     PainterCompositeShader(enum shader_type tp,
-                       unsigned int num_sub_shaders = 1):
+                           unsigned int num_sub_shaders = 1):
       PainterShader(num_sub_shaders),
       m_type(tp)
     {}
@@ -84,7 +84,7 @@ namespace fastuidraw
      * \param parent parent PainterCompositeShader that has sub-shaders
      */
     PainterCompositeShader(unsigned int sub_shader,
-                       reference_counted_ptr<PainterCompositeShader> parent):
+                           reference_counted_ptr<PainterCompositeShader> parent):
       PainterShader(sub_shader, parent),
       m_type(parent->type())
     {}
