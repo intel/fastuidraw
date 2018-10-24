@@ -323,14 +323,17 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
       if (empty_line)
         {
           pen_y_advance = pixel_size + 1.0f;
-          offset = (first_line) ? 0 : pen_y_advance;
+          offset = 0.0f;
         }
       else
         {
           if (orientation == fastuidraw::Painter::y_increases_downwards)
             {
-              pen_y_advance = tallest - last_negative_tallest;
-              offset = (first_line) ? 0 : pen_y_advance;
+              float v;
+
+              v = tallest - last_negative_tallest;
+              offset = (first_line) ? 0 : v;
+              pen_y_advance = (first_line) ? 0 : v;
             }
           else
             {
