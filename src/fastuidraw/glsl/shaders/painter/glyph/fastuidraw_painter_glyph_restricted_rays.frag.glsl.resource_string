@@ -155,12 +155,12 @@ FASTUIDRAW_LOCAL(apply_rotation_only)(in vec2 p,
               dot(tr.jr_vector, p));
 }
 
-float
+int
 FASTUIDRAW_LOCAL(process_curve)(in vec2 p1, in vec2 p2, in vec2 p3,
                                 in vec2 A, in vec2 B, in vec2 C,
                                 in bool is_curve)
 {
-  float R = 0.0;
+  int R = 0;
   uint code;
 
   code = (p1.y > 0.0 ? 2u : 0u)
@@ -193,12 +193,12 @@ FASTUIDRAW_LOCAL(process_curve)(in vec2 p1, in vec2 p2, in vec2 p3,
 
       if ((code & 1u) != 0u && x1 < 1.0 && x1 > 0.0)
         {
-          R += 1.0;
+          R += 1;
         }
 
       if (code > 1u && x2 < 1.0 && x2 > 0.0)
         {
-          R -= 1.0;
+          R -= 1;
         }
     }
 
@@ -402,7 +402,7 @@ FASTUIDRAW_LOCAL(load_curve)(in uint raw,
   curve.C = vec2(iC);
 }
 
-float
+int
 FASTUIDRAW_LOCAL(load_and_process_curve)(in uint raw,
                                          in uint glyph_data_location,
                                          in FASTUIDRAW_LOCAL(transformation_type) tr,
@@ -410,7 +410,7 @@ FASTUIDRAW_LOCAL(load_and_process_curve)(in uint raw,
                                          inout FASTUIDRAW_LOCAL(distance_values) nv)
 {
   FASTUIDRAW_LOCAL(curve_type) curve_data;
-  float return_value;
+  int return_value;
 
   FASTUIDRAW_LOCAL(load_curve)(raw,
                                fastuidraw_glyph_data_location,
@@ -475,8 +475,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 {
   uint src, num_curves, c, curve_list, winding_sample_data_location;
   vec2 z, glyph_coord, glyph_coord_dx, glyph_coord_dy;
-  int startw;
-  float winding_number;
+  int startw, winding_number;
   FASTUIDRAW_LOCAL(box_type) texel_box;
   FASTUIDRAW_LOCAL(transformation_type) tr, frag_tr;
   FASTUIDRAW_LOCAL(distance_values) nv;
@@ -493,7 +492,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   startw = FASTUIDRAW_LOCAL(load_winding_reference)(winding_sample_data_location,
                                                     texel_box, glyph_coord, z);
 
-  winding_number = float(startw);
+  winding_number = startw;
   FASTUIDRAW_LOCAL(compute_transformation)(glyph_coord, z, tr);
 
   /* To perform anisotropic anti-aliasing, we simply compute the L1-distance
@@ -533,7 +532,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
    * winding value is greater than two, we will view the
    * fragment as fully covered.
    */
-  cvg = (abs(winding_number) > 0.5) ?
+  cvg = (abs(winding_number) != 0) ?
     (0.5 + nv.distance) :
     (0.5 - nv.distance);
 
