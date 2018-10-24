@@ -209,7 +209,7 @@ void
 FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(in vec2 p1, in vec2 p2, in vec2 p3,
                                               in vec2 A, in vec2 B, in vec2 C,
                                               in bool is_curve,
-                                              inout float value)
+                                              inout FASTUIDRAW_LOCAL(distance_values) value)
 {
   uint code;
 
@@ -247,30 +247,30 @@ FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(in vec2 p1, in vec2 p2, in vec2 p3
       if ((code & 1u) != 0u)
         {
           //R += 1.0;
-          value = min(value, abs(p1.x) + abs(p1.y));
+          value.distance = min(value.distance, abs(p1.x) + abs(p1.y));
         }
 
       if (code > 1u)
         {
           //R -= 1.0;
-          value = min(value, abs(p2.x) + abs(p2.y));
+          value.distance = min(value.distance, abs(p2.x) + abs(p2.y));
         }
     }
 }
 
 void
 FASTUIDRAW_LOCAL(compute_l1_distance_endpoints)(in vec2 p1, in vec2 p2, in vec2 p3,
-                                                inout float value)
+                                                inout FASTUIDRAW_LOCAL(distance_values) value)
 {
   float v;
   v = min(abs(p1.x) + abs(p1.y), abs(p3.x) + abs(p3.y));
-  value = min(value, v);
+  value.distance = min(value.distance, v);
 }
 
 void
 FASTUIDRAW_LOCAL(compute_l1_distance_curve_critical)(in vec2 p1, in vec2 p2, in vec2 p3,
                                                      in vec2 A, in vec2 B, in vec2 C,
-                                                     inout float value)
+                                                     inout FASTUIDRAW_LOCAL(distance_values) value)
 {
   /* find those t for which |x'(t)| = |y'(t)|
    * which is just those t for which
@@ -312,7 +312,7 @@ FASTUIDRAW_LOCAL(compute_l1_distance_curve_critical)(in vec2 p1, in vec2 p2, in 
       t0 = n0 / d0;
       p = (A * t0 - 2.0 * B) * t0 + C;
       v = abs(p.x) + abs(p.y);
-      value = min(value, v);
+      value.distance = min(value.distance, v);
     }
 
   if (n1 > 0.0 && d1 > n1)
@@ -323,19 +323,30 @@ FASTUIDRAW_LOCAL(compute_l1_distance_curve_critical)(in vec2 p1, in vec2 p2, in 
       t1 = n1 / d1;
       p = (A * t1 - 2.0 * B) * t1 + C;
       v = abs(p.x) + abs(p.y);
-      value = min(value, v);
+      value.distance = min(value.distance, v);
     }
 }
 
+vec2
+FASTUIDRAW_LOCAL(rotate_90_degrees)(vec2 v)
+{
+  return vec2(v.y, -v.x);
+}
 
 void
 FASTUIDRAW_LOCAL(compute_l1_distance)(in vec2 p1, in vec2 p2, in vec2 p3,
                                       in vec2 A, in vec2 B, in vec2 C,
                                       in bool is_curve,
-                                      inout float value)
+                                      inout FASTUIDRAW_LOCAL(distance_values) value)
 {
   FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(p1, p2, p3, A, B, C, is_curve, value);
-  FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(p1.yx, p2.yx, p3.yx, A.yx, B.yx, C.yx, is_curve, value);
+  FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(FASTUIDRAW_LOCAL(rotate_90_degrees)(p1),
+                                                FASTUIDRAW_LOCAL(rotate_90_degrees)(p2),
+                                                FASTUIDRAW_LOCAL(rotate_90_degrees)(p3),
+                                                FASTUIDRAW_LOCAL(rotate_90_degrees)(A),
+                                                FASTUIDRAW_LOCAL(rotate_90_degrees)(B),
+                                                FASTUIDRAW_LOCAL(rotate_90_degrees)(C),
+                                                is_curve, value);
   FASTUIDRAW_LOCAL(compute_l1_distance_endpoints)(p1, p2, p3, value);
   if (is_curve)
     {
@@ -430,7 +441,7 @@ FASTUIDRAW_LOCAL(load_and_process_curve)(in uint raw,
                                         FASTUIDRAW_LOCAL(apply_rotation_only)(curve_data.B, frag_tr),
                                         FASTUIDRAW_LOCAL(apply_transformation)(curve_data.C, frag_tr),
                                         curve_data.is_quadratic,
-                                        nv.distance);
+                                        nv);
   return return_value;
 }
 
