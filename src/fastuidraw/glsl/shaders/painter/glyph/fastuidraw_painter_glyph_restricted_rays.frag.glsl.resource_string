@@ -35,8 +35,33 @@ struct FASTUIDRAW_LOCAL(box_type)
 
 struct FASTUIDRAW_LOCAL(distance_values)
 {
-  float distance;
+  float distance_increment;
+  float distance_decrement;
 };
+
+void
+FASTUIDRAW_LOCAL(update_distance_value)(in float dist, in bool is_increment,
+                                        inout  FASTUIDRAW_LOCAL(distance_values) nv)
+{
+  if (is_increment)
+    {
+      nv.distance_increment = min(nv.distance_increment, dist);
+    }
+  else
+    {
+      nv.distance_decrement = min(nv.distance_decrement, dist);
+    }
+}
+
+void
+FASTUIDRAW_LOCAL(update_distance_value)(in vec2 p, in vec2 dp,
+                                        inout FASTUIDRAW_LOCAL(distance_values) nv)
+{
+  float z;
+
+  z = p.x * dp.y - p.y * dp.x;
+  FASTUIDRAW_LOCAL(update_distance_value)(abs(p.x) + abs(p.y), z > 0.0, nv);
+}
 
 uint
 FASTUIDRAW_LOCAL(compute_box)(in vec2 p,
@@ -229,42 +254,58 @@ FASTUIDRAW_LOCAL(compute_l1_distance_y_fixed)(in vec2 p1, in vec2 p2, in vec2 p3
           float D, rA = 1.0 / A.y;
 
           D = B.y * B.y - A.y * C.y;
-          D = sqrt(max(D, 0.0));
-          t1 = (B.y - D) * rA;
-          t2 = (B.y + D) * rA;
+          if (D >= 0.0)
+            {
+              D = sqrt(D);
+              t1 = (B.y - D) * rA;
+              t2 = (B.y + D) * rA;
+            }
+          else
+            {
+              t1 = t2 = -2.0;
+            }
         }
       else
         {
           t1 = t2 = 0.5 * C.y / B.y;
         }
 
-      t1 = clamp(t1, 0.0, 1.0);
-      t2 = clamp(t2, 0.0, 1.0);
-
       p1 = (A * t1 - B * 2.0) * t1 + C;
       p2 = (A * t2 - B * 2.0) * t2 + C;
 
-      if ((code & 1u) != 0u)
+      if ((code & 1u) != 0u && t1 >= 0.0 && t1 <= 1.0)
         {
-          //R += 1.0;
-          value.distance = min(value.distance, abs(p1.x) + abs(p1.y));
+          FASTUIDRAW_LOCAL(update_distance_value)(abs(p1.x) + abs(p1.y),
+                                                  p1.x < 0.0,
+                                                  value);
         }
 
-      if (code > 1u)
+      if (code > 1u && t2 >= 0.0 && t2 <= 1.0)
         {
-          //R -= 1.0;
-          value.distance = min(value.distance, abs(p2.x) + abs(p2.y));
+          FASTUIDRAW_LOCAL(update_distance_value)(abs(p2.x) + abs(p2.y),
+                                                  p2.x > 0.0,
+                                                  value);
         }
     }
 }
 
 void
 FASTUIDRAW_LOCAL(compute_l1_distance_endpoints)(in vec2 p1, in vec2 p2, in vec2 p3,
+                                                in vec2 A, in vec2 B, in vec2 C,
                                                 inout FASTUIDRAW_LOCAL(distance_values) value)
 {
-  float v;
-  v = min(abs(p1.x) + abs(p1.y), abs(p3.x) + abs(p3.y));
-  value.distance = min(value.distance, v);
+  /* We have:
+   *   p(t) = (A * t - 2B) * t + C
+   * so
+   *   p'(t) = 2At - 2B
+   * and we only care about the direction, so we drop the 2 as well.
+   */
+  vec2 dp1, dp3;
+
+  dp1 = -B;
+  dp3 = A - B;
+  FASTUIDRAW_LOCAL(update_distance_value)(p1, dp1, value);
+  FASTUIDRAW_LOCAL(update_distance_value)(p3, dp3, value);
 }
 
 void
@@ -306,24 +347,24 @@ FASTUIDRAW_LOCAL(compute_l1_distance_curve_critical)(in vec2 p1, in vec2 p2, in 
 
   if (n0 > 0.0 && d0 > n0)
     {
-      float t0, v;
-      vec2 p;
+      float t0;
+      vec2 p, dp;
 
       t0 = n0 / d0;
       p = (A * t0 - 2.0 * B) * t0 + C;
-      v = abs(p.x) + abs(p.y);
-      value.distance = min(value.distance, v);
+      dp = A * t0 - B;
+      FASTUIDRAW_LOCAL(update_distance_value)(p, dp, value);
     }
 
   if (n1 > 0.0 && d1 > n1)
     {
-      float t1, v;
-      vec2 p;
+      float t1;
+      vec2 p, dp;
 
       t1 = n1 / d1;
       p = (A * t1 - 2.0 * B) * t1 + C;
-      v = abs(p.x) + abs(p.y);
-      value.distance = min(value.distance, v);
+      dp = A * t1 - B;
+      FASTUIDRAW_LOCAL(update_distance_value)(p, dp, value);
     }
 }
 
@@ -347,7 +388,7 @@ FASTUIDRAW_LOCAL(compute_l1_distance)(in vec2 p1, in vec2 p2, in vec2 p3,
                                                 FASTUIDRAW_LOCAL(rotate_90_degrees)(B),
                                                 FASTUIDRAW_LOCAL(rotate_90_degrees)(C),
                                                 is_curve, value);
-  FASTUIDRAW_LOCAL(compute_l1_distance_endpoints)(p1, p2, p3, value);
+  FASTUIDRAW_LOCAL(compute_l1_distance_endpoints)(p1, p2, p3, A, B, C, value);
   if (is_curve)
     {
       FASTUIDRAW_LOCAL(compute_l1_distance_curve_critical)(p1, p2, p3, A, B, C, value);
@@ -487,7 +528,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   winding_sample_data_location = FASTUIDRAW_LOCAL(compute_box)(glyph_coord, texel_box,
                                                                curve_list, num_curves);
-  nv.distance = 0.5;
+  nv.distance_increment = nv.distance_decrement = 0.5;
 
   startw = FASTUIDRAW_LOCAL(load_winding_reference)(winding_sample_data_location,
                                                     texel_box, glyph_coord, z);
@@ -519,22 +560,36 @@ fastuidraw_gl_frag_main(in uint sub_shader,
         }
     }
 
-  float cvg;
+  float cvg, distance;
 
-  /* TODO: rather than tracking the minimum L1-distance,
-   * we should track two minimum values: minimum distance
-   * to a curve that increments the winding number and the
-   * minimum distance to a curve that decrements the winding
-   * number. If the winding number at the fragment is 0, use
+  /* If the winding number at the fragment is 0, use
    * the minimum of those two; if the winding value is 1
    * use the decrement value and if the winding is -1 use the
    * increment winding number; if the absolute value of the
    * winding value is greater than two, we will view the
    * fragment as fully covered.
    */
-  cvg = (abs(winding_number) != 0) ?
-    (0.5 + nv.distance) :
-    (0.5 - nv.distance);
+  if (winding_number == 0)
+    {
+      distance = min(nv.distance_increment,
+                     nv.distance_decrement);
+    }
+  else if (winding_number == -1)
+    {
+      distance = nv.distance_increment;
+    }
+  else if (winding_number == 1)
+    {
+      distance = nv.distance_decrement;
+    }
+  else
+    {
+      distance = 0.5;
+    }
+
+  cvg = (winding_number != 0) ?
+    (0.5 + distance) :
+    (0.5 - distance);
 
   /**
   const float tol = 3.0;
