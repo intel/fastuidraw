@@ -12,6 +12,7 @@
 #include "cycle_value.hpp"
 #include "generic_hierarchy.hpp"
 #include "command_line_list.hpp"
+#include "print_utils.hpp"
 
 using namespace fastuidraw;
 
@@ -692,10 +693,11 @@ realize_all_glyphs(GlyphRender renderer)
   std::cout << "took " << timer.restart() << " ms\n";
 
   unsigned int num_elements(m_glyph_atlas->data_allocated());
+  unsigned int num_used(num_elements - pre_num_elements);
 
-  std::cout << "Used " << num_elements - pre_num_elements << " additional glyph data elements\n"
-	    << "Total bytes glyph data total allocated = "
-            << num_elements * sizeof(generic_data)
+  std::cout << "Used additional " << PrintBytes(num_used * sizeof(generic_data))
+            << " for glyph data\nTotal bytes glyph data total allocated = "
+            << PrintBytes(num_elements * sizeof(generic_data))
             << "\n--------------------------------------\n\n";
 }
 
@@ -749,9 +751,19 @@ ready_glyph_attribute_data(void)
   for (unsigned int i = 0; i < draw_glyph_auto; ++i)
     {
       simple_time timer;
+      unsigned int pre_num_elements(m_glyph_atlas->data_allocated());
 
       std::cout << "Generating, realizing and uploading to atlas glyphs of type " << m_draws[i] << "...";
       m_draw_shared.realize_glyphs(m_draws[i]);
+
+      if (!m_draw_glyph_set.value())
+        {
+          unsigned int num_elements(m_glyph_atlas->data_allocated());
+          unsigned int num_used(num_elements - pre_num_elements);
+          std::cout << "Used " << PrintBytes(num_used * sizeof(generic_data))
+                    << " glyph data, total used = "
+                    << PrintBytes(num_elements * sizeof(generic_data)) << ", ";
+        }
       std::cout << "took " << timer.restart() << "ms.\n" << std::flush;
     }
 }
