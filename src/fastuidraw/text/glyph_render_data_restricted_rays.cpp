@@ -650,6 +650,7 @@ namespace
           if (!D.empty())
             {
               m_contours.push_back(D);
+              FASTUIDRAWassert(D.is_good());
             }
         }
       m_bbox.scale_down(v);
@@ -661,6 +662,10 @@ namespace
     set_glyph_bounds(fastuidraw::ivec2 min_pt,
                      fastuidraw::ivec2 max_pt)
     {
+      if (!m_contours.empty() && m_contours.back().empty())
+        {
+          m_contours.pop_back();
+        }
       m_glyph_bound_min = min_pt;
       m_glyph_bound_max = max_pt;
       m_bbox.union_point(min_pt);
