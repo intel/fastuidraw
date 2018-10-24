@@ -61,7 +61,7 @@ surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::S
 
 GLuint
 fastuidraw::gl::detail::SurfaceGLPrivate::
-auxiliary_buffer(enum auxiliary_buffer_t tp)
+auxiliary_buffer(enum auxiliary_buffer_fmt_t tp)
 {
   if (!m_auxiliary_buffer[tp])
     {
@@ -149,7 +149,7 @@ fbo(uint32_t tp)
       if (tp & fbo_auxiliary_buffer)
         {
           glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                                 tex_target, auxiliary_buffer(auxiliary_buffer_u8), 0);
+                                 tex_target, auxiliary_buffer(auxiliary_buffer_fmt_u8), 0);
         }
       glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
     }

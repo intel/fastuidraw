@@ -38,12 +38,12 @@ public:
       number_fbo_t = FASTUIDRAW_MASK(0, fbo_num_bits) + 1
     };
 
-  enum auxiliary_buffer_t
+  enum auxiliary_buffer_fmt_t
     {
-      auxiliary_buffer_u8,
-      auxiliary_buffer_u32,
+      auxiliary_buffer_fmt_u8,
+      auxiliary_buffer_fmt_u32,
 
-      number_auxiliary_buffer_t
+      number_auxiliary_buffer_fmt_t
     };
 
   explicit
@@ -56,13 +56,13 @@ public:
   surface_gl(const reference_counted_ptr<PainterBackend::Surface> &surface);
 
   GLuint
-  auxiliary_buffer(enum auxiliary_buffer_t tp);
+  auxiliary_buffer(enum auxiliary_buffer_fmt_t tp);
 
   static
   GLenum
-  auxiliaryBufferInternalFmt(enum auxiliary_buffer_t tp)
+  auxiliaryBufferInternalFmt(enum auxiliary_buffer_fmt_t tp)
   {
-    return tp == auxiliary_buffer_u8 ?
+    return tp == auxiliary_buffer_fmt_u8 ?
       GL_R8 :
       GL_R32UI;
   }
@@ -114,7 +114,7 @@ private:
   GLuint
   buffer(enum buffer_t);
 
-  vecN<GLuint, number_auxiliary_buffer_t> m_auxiliary_buffer;
+  vecN<GLuint, number_auxiliary_buffer_fmt_t> m_auxiliary_buffer;
   vecN<GLuint, number_buffer_t> m_buffers;
   vecN<GLuint, number_fbo_t> m_fbo;
   vecN<vecN<GLenum, 2>, 4> m_draw_buffer_values;

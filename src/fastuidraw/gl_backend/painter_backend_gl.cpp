@@ -945,16 +945,13 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
               /* Compositeing interlock does not have the color buffer as
                * part of the FBO, so to clear the color buffer we need
-               * bind an FBO that has it; note that if the aux type
-               * is framebuffer_fetch it also gets cleared which is
-               * a good thing for tiled-based renderers.
+               * bind an FBO that has it; in addition we need to make
+               * sure that we do NOT clear the auxiliary buffer with
+               * the above clear color in the case it is non-zero.
                */
-              if (compositing_type == PainterBackendGL::compositing_interlock)
-                {
-                  enum PainterBackendGL::compositing_type_t bl(PainterBackendGL::compositing_dual_src);
-                  fbo = m_surface_gl->fbo(aux_type, bl);
-                  draw_buffers = m_surface_gl->draw_buffers(aux_type, bl);
-                }
+              enum PainterBackendGL::compositing_type_t bl(PainterBackendGL::compositing_dual_src);
+              fbo = m_surface_gl->fbo(PainterBackendGL::no_auxiliary_buffer, bl);
+              draw_buffers = m_surface_gl->draw_buffers(PainterBackendGL::no_auxiliary_buffer, bl);
             }
 
           glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
@@ -986,14 +983,14 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   if ((v & gpu_dirty_state::images) != 0 && has_images)
     {
-      detail::SurfaceGLPrivate::auxiliary_buffer_t tp;
+      detail::SurfaceGLPrivate::auxiliary_buffer_fmt_t tp;
 
       if (aux_type != PainterBackendGL::no_auxiliary_buffer
           && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
         {
           tp = (aux_type == gl::PainterBackendGL::auxiliary_buffer_atomic) ?
-            detail::SurfaceGLPrivate::auxiliary_buffer_u32 :
-            detail::SurfaceGLPrivate::auxiliary_buffer_u8;
+            detail::SurfaceGLPrivate::auxiliary_buffer_fmt_u32 :
+            detail::SurfaceGLPrivate::auxiliary_buffer_fmt_u8;
 
           glBindImageTexture(binding_points.auxiliary_image_buffer(),
                              m_surface_gl->auxiliary_buffer(tp), //texture
