@@ -92,20 +92,37 @@ namespace
 
     int64_t det;
     i64vec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
-    i64vec2 d10(p1 - p0), d23(p2 - p3);
-    i64vec2 Jd23(d23.y(), -d23.x());
-    float s;
+    i64vec2 d10(p1 - p0), d32(p3 - p2);
+    i64vec2 Jd32(d32.y(), -d32.x());
+    i64vec2 Jd10(d10.y(), -d10.x());
     vec2 C;
 
-    det = d10.x() * d23.y() - d10.y() * d23.x();
+    det = d10.x() * d32.y() - d10.y() * d32.x();
     if (det == 0)
       {
         C = 0.5f * (vec2(p1 + p2));
       }
     else
       {
-        s = float(dot(Jd23, p3 - p0)) / float(det);
-        C = vec2(p0) + s * vec2(d10);
+        /* Compute where the lines [p0, p1] and [p2, p3]
+         * intersect. If the intersection point goes
+         * to far beyond p1 or p3, take the average
+         * of clamping it going out upto 3 times the
+         * length of [p0, p1] or [p2, p3].
+         */
+        vec2 Cs, Ct;
+        float s, t;
+
+        s = float(dot(Jd32, p3 - p0)) / float(det);
+        t = float(dot(Jd10, p0 - p3)) / float(det);
+
+        s = t_max(0.0f, t_min(s, 3.0f));
+        t = t_max(0.0f, t_min(t, 3.0f));
+
+        Cs = vec2(p0) + s * vec2(d10);
+        Ct = vec2(p3) - t * vec2(d32);
+
+        C = 0.5f * (Cs + Ct);
       }
 
     vecN<ivec2, 3> return_value;
@@ -1387,6 +1404,7 @@ replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
                   for (int j = 0; j < 2; ++j)
                     {
                       fastuidraw::vecN<fastuidraw::vecN<ivec2, 4>, 2> S;
+
                       S = split_cubic(split[j]);
                       for (int k = 0; k < 2; ++k)
                         {
