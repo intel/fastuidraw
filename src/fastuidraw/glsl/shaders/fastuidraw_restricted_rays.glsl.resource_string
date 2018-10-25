@@ -45,6 +45,7 @@ struct fastuidraw_restricted_rays_distance_type
 {
   float distance_increment;
   float distance_decrement;
+  float nearest_point;
 };
 
 struct fastuidraw_restricted_rays_winding_sample_type
@@ -322,6 +323,9 @@ fastuidraw_restricted_rays_apply_endpoints(in vec2 p1, in vec2 p2, in vec2 p3,
   dp3 = A - B;
   fastuidraw_restricted_rays_update_distance(p1, dp1, value);
   fastuidraw_restricted_rays_update_distance(p3, dp3, value);
+
+  value.nearest_point = min(value.nearest_point, abs(p1.x) + abs(p1.y));
+  value.nearest_point = min(value.nearest_point, abs(p3.x) + abs(p3.y));
 }
 
 void
@@ -536,18 +540,18 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 bb_box_max,
                                             out fastuidraw_restricted_rays_box_type texel_box,
                                             out fastuidraw_restricted_rays_winding_sample_type S,
-                                            out int winding_number)
+                                            out int winding_number,
+                                            out fastuidraw_restricted_rays_distance_type nv)
 {
   uint src, num_curves, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation tr, frag_tr;
-  fastuidraw_restricted_rays_distance_type nv;
 
   winding_sample_data_location =
     fastuidaw_restricted_rays_compute_box(glyph_coord,
                                           bb_box_min, bb_box_max,
                                           glyph_data_location,
                                           texel_box, curve_list, num_curves);
-  nv.distance_increment = nv.distance_decrement = 0.5;
+  nv.distance_increment = nv.distance_decrement = nv.nearest_point = texel_box.size.x + texel_box.size.y;
 
   fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
                                                     texel_box, S);
@@ -606,6 +610,7 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
       distance = 0.5;
     }
 
+  distance = min(distance, 0.5);
   cvg = (winding_number != 0) ?
     (0.5 + distance) :
     (0.5 - distance);
@@ -623,10 +628,12 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
 {
   fastuidraw_restricted_rays_box_type texel_box;
   fastuidraw_restricted_rays_winding_sample_type S;
+  fastuidraw_restricted_rays_distance_type nv;
+
   int winding_number;
   return fastuidraw_restricted_rays_compute_coverage(glyph_data_location,
                                                      glyph_coord,
                                                      glyph_coord_dx, glyph_coord_dy,
                                                      bb_box_min, bb_box_max,
-                                                     texel_box, S, winding_number);
+                                                     texel_box, S, winding_number, nv);
 }
