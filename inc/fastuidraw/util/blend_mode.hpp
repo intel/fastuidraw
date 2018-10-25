@@ -298,7 +298,7 @@ namespace fastuidraw
     BlendMode&
     func_dst(enum func_t v)
     {
-      func_dst_alpha(v);
+      func_dst_rgb(v);
       return func_dst_alpha(v);
     }
 
