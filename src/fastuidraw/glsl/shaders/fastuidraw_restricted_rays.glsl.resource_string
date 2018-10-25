@@ -47,6 +47,12 @@ struct fastuidraw_restricted_rays_distance_type
   float distance_decrement;
 };
 
+struct fastuidraw_restricted_rays_winding_sample_type
+{
+  int reference_winding;
+  vec2 reference_position;
+};
+
 void
 fastuidraw_restricted_rays_update_distance(in float dist, in bool is_increment,
                                            inout fastuidraw_restricted_rays_distance_type nv)
@@ -226,12 +232,12 @@ fastuidraw_restricted_rays_compute_winding_contribution(in vec2 p1, in vec2 p2, 
       x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      if ((code & 1u) != 0u && x1 < 1.0 && x1 > 0.0)
+      if ((code & 1u) != 0u && x1 <= 1.0 && x1 >= 0.0)
         {
           R += 1;
         }
 
-      if (code > 1u && x2 < 1.0 && x2 > 0.0)
+      if (code > 1u && x2 <= 1.0 && x2 >= 0.0)
         {
           R -= 1;
         }
@@ -497,15 +503,14 @@ fastuidraw_restricted_rays_load_and_process_curve(in uint raw,
   return return_value;
 }
 
-int
+void
 fastuidraw_restricted_rays_load_winding_reference(in uint location,
-                                         in fastuidraw_restricted_rays_box_type box,
-                                         in vec2 frag_position,
-                                         out vec2 position)
+                                                  in fastuidraw_restricted_rays_box_type box,
+                                                  out fastuidraw_restricted_rays_winding_sample_type s)
 {
   uint texel, biased_winding;
   uvec2 biased_delta;
-  vec2 delta;
+  vec2 position, delta;
 
   position = box.center_point;
   texel = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(location);
@@ -518,7 +523,8 @@ fastuidraw_restricted_rays_load_winding_reference(in uint location,
   delta /= float(fastuidraw_restricted_rays_position_delta_divide);
   position += delta;
 
-  return int(biased_winding) - int(fastuidraw_restricted_rays_winding_value_bias);
+  s.reference_position = position;
+  s.reference_winding = int(biased_winding) - int(fastuidraw_restricted_rays_winding_value_bias);
 }
 
 float
@@ -528,11 +534,11 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord_dy,
                                             in vec2 bb_box_min,
                                             in vec2 bb_box_max,
-                                            out fastuidraw_restricted_rays_box_type texel_box)
+                                            out fastuidraw_restricted_rays_box_type texel_box,
+                                            out fastuidraw_restricted_rays_winding_sample_type S,
+                                            out int winding_number)
 {
   uint src, num_curves, c, curve_list, winding_sample_data_location;
-  vec2 z;
-  int startw, winding_number;
   fastuidraw_restricted_rays_transformation tr, frag_tr;
   fastuidraw_restricted_rays_distance_type nv;
 
@@ -543,11 +549,11 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                           texel_box, curve_list, num_curves);
   nv.distance_increment = nv.distance_decrement = 0.5;
 
-  startw = fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
-                                                             texel_box, glyph_coord, z);
+  fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
+                                                    texel_box, S);
 
-  winding_number = startw;
-  fastuidraw_restricted_rays_compute_transformation(glyph_coord, z, tr);
+  winding_number = S.reference_winding;
+  fastuidraw_restricted_rays_compute_transformation(glyph_coord, S.reference_position, tr);
 
   /* To perform anisotropic anti-aliasing, we simply compute the L1-distance
    * function is (local) pixel coordinates. To do so, we comptue the transformation
@@ -616,9 +622,11 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 bb_box_max)
 {
   fastuidraw_restricted_rays_box_type texel_box;
+  fastuidraw_restricted_rays_winding_sample_type S;
+  int winding_number;
   return fastuidraw_restricted_rays_compute_coverage(glyph_data_location,
                                                      glyph_coord,
                                                      glyph_coord_dx, glyph_coord_dy,
                                                      bb_box_min, bb_box_max,
-                                                     texel_box);
+                                                     texel_box, S, winding_number);
 }

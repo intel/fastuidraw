@@ -21,6 +21,8 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 {
   vec2 glyph_coord;
   fastuidraw_restricted_rays_box_type texel_box;
+  fastuidraw_restricted_rays_winding_sample_type S;
+  int winding_number;
   float cvg;
 
   glyph_coord = vec2(fastuidraw_glyph_coord_x,
@@ -32,28 +34,28 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                     dFdy(glyph_coord),
                                                     vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
                                                     vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
-                                                    texel_box);
+                                                    texel_box, S, winding_number);
   /**
   const float tol = 3.0;
   float tol_x = tol * fwidth(glyph_coord.x);
   float tol_y = tol * fwidth(glyph_coord.y);
-  vec3 ff = vec3(0.0, 0.0, cvg);
+  vec3 ff = vec3(0.0, 0.0, abs(winding_number));
   if (abs(glyph_coord.x - texel_box.min_point.x) < tol_x
       || abs(glyph_coord.x - texel_box.max_point.x) < tol_x
       || abs(glyph_coord.y - texel_box.min_point.y) < tol_y
       || abs(glyph_coord.y - texel_box.max_point.y) < tol_y)
     {
-      //ff.x = 1.0;
+      ff.x = 1.0;
     }
 
-  if (length(z - glyph_coord) < tol * min(fwidth(glyph_coord.x), fwidth(glyph_coord.y)))
+  if (length(S.reference_position - glyph_coord) < tol * min(fwidth(glyph_coord.x), fwidth(glyph_coord.y)))
     {
-      //ff.y = 1.0;
+      ff.y = 1.0;
     }
 
-  if (startw == 0)
+  if (S.reference_winding == 0)
     {
-      // ff.xy = ff.yx;
+      ff.xy = ff.yx;
     }
 
   return vec4(ff, 1.0);
