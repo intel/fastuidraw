@@ -1666,11 +1666,10 @@ compute_magnification(const fastuidraw::vec2 &bb_min,
 {
   using namespace fastuidraw;
 
-  float op_norm, perspective_factor;
+  float op_norm;
   const float3x3 &m(m_clip_rect_state.item_matrix());
   unsigned int src;
 
-  perspective_factor = t_max(t_abs(m(2, 0)), t_abs(m(2, 1)));
   op_norm = m_clip_rect_state.item_matrix_operator_norm();
 
   if (!matrix_has_perspective(m))
@@ -1696,6 +1695,85 @@ compute_magnification(const fastuidraw::vec2 &bb_min,
       return -1.0f;
     }
 
+  /* To figure out the magnification, we need to maximize
+   *
+   *   || DF ||
+   *
+   * where
+   *
+   *  F(x, y) = S * P( M(x, y, 1) )
+   *
+   * where
+   *
+   *  P(x, y, w) = (x/w, y/w)
+   *
+   * and M is our 3x3 matrix and S is the scaling factor from
+   * normalized device coordinate to pixel coordinates.
+   *
+   *  DF = DS * DP * T
+   *
+   * where T is given by
+   *
+   *   | R    |
+   *   | A  B |
+   *
+   * where R is the upper 2x2 matrix of M and (A, B, C)
+   * is the bottom row of M. DS is given by:
+   *
+   *  | sx  0 |
+   *  |  0 sy |
+   *
+   * where sx and sy are the normalized device to pixel
+   * coordinate scaling factors. DP is given by
+   *
+   *    1     |    1         0    -x_c/w_c |
+   *  ----- * |    0         1    -y_c/w_c |
+   *   w_c
+   *
+   * where x_c, y_c, w_c are the clip-coordinates.
+   * A small abount of linear algebra gives that
+   *
+   *   DS * DP = DP * DSS
+   *
+   * where
+   *        | sx  0 |
+   *   SS = |  0 sy |
+   *        | sx sy |
+   *
+   * then DF can be simplified to
+   *
+   *   DF = DP * | S * R           |
+   *             | sx * A + sx * B |
+   *
+   *         1   /          A * sx * x_c / w_c   \
+   *      = ---  | S * R +  B + sy * y_c / w_c   |
+   *        w_c  \                               /
+   *
+   *         1    /           \
+   *      = --- * | S * R + V |
+   *        w_c   \           /
+   *
+   * where
+   *
+   *         | A * sx * x_c / w_c          0         |
+   *    V =  | 0                  B + sy * y_c / w_c |
+   *
+   * Thus,
+   *              1
+   *  ||DF|| <= ----- * ( ||S * R || + ||V||)
+   *            |w_c|
+   *
+   *  ||S * R|| is given by m_clip_rect_state.item_matrix_operator_norm().
+   *
+   * and
+   *
+   *  ||V|| = max( |A * sx * x_c / w_c|, |B * sy * y_c / w_c| )
+   *
+   * now, |x_c| <= |w_c| and |y_c| <= |w_c|, this simplifies ||V|| to:
+   *
+   *  ||V|| <= max( |A * sx|, |B * sy|)
+   */
+
   float min_w;
 
   /* initalize min_w to some obsecenely large value */
@@ -1719,7 +1797,11 @@ compute_magnification(const fastuidraw::vec2 &bb_min,
 	}
     }
 
-  return op_norm * (1.0f + perspective_factor) / min_w;
+  float v_norm;
+  v_norm = 0.5f * t_max(t_abs(m(2, 0) * m_resolution.x()),
+                        t_abs(m(2, 1) * m_resolution.y()));
+
+  return (op_norm + v_norm) / min_w;
 }
 
 float
