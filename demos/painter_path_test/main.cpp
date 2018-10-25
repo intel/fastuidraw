@@ -140,6 +140,8 @@ public:
           int w, int h, bool from_gylph);
 
   Path m_path;
+  std::vector<vec2> m_pts;
+  std::vector<vec2> m_ctl_pts;
   std::string m_label;
   bool m_from_glyph;
   unsigned int m_fill_rule;
@@ -431,6 +433,8 @@ private:
   PainterPackedValue<PainterBrush> m_white_pen;
   PainterPackedValue<PainterBrush> m_stroke_pen;
   PainterPackedValue<PainterBrush> m_draw_line_pen;
+  PainterPackedValue<PainterBrush> m_blue_pen;
+  PainterPackedValue<PainterBrush> m_red_pen;
 
   Path m_rect;
 
@@ -469,6 +473,7 @@ private:
   bool m_apply_mipmapping;
   bool m_draw_stats;
   float m_curve_flatness;
+  bool m_draw_path_pts;
 
   bool m_wire_frame;
   bool m_stroke_width_in_pixels;
@@ -624,6 +629,7 @@ painter_stroke_test(void):
   m_image_filter(image_nearest_filter),
   m_apply_mipmapping(false),
   m_draw_stats(false),
+  m_draw_path_pts(false),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
   m_fill_by_clipping(false),
@@ -1107,14 +1113,29 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_p:
-          m_stroke_width_in_pixels = !m_stroke_width_in_pixels;
-          if (m_stroke_width_in_pixels)
+          if (ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT))
             {
-              std::cout << "Stroke width specified in pixels\n";
+              m_draw_path_pts = !m_draw_path_pts;
+              if (m_draw_path_pts)
+                {
+                  "Draw Path Points\n";
+                }
+              else
+                {
+                  "Do not draw Path Points\n";
+                }
             }
           else
             {
-              std::cout << "Stroke width specified in local coordinates\n";
+              m_stroke_width_in_pixels = !m_stroke_width_in_pixels;
+              if (m_stroke_width_in_pixels)
+                {
+                  std::cout << "Stroke width specified in pixels\n";
+                }
+              else
+                {
+                  std::cout << "Stroke width specified in local coordinates\n";
+                }
             }
           break;
 
@@ -1367,12 +1388,15 @@ construct_paths(int w, int h)
         {
           std::stringstream buffer;
           Path P;
+          std::vector<vec2> pts, ctl_pts;
 
           buffer << path_file.rdbuf();
-          read_path(P, buffer.str());
+          read_path(P, buffer.str(), &pts, &ctl_pts);
           if (P.number_contours() > 0)
             {
               m_paths.push_back(PerPath(P, file, w, h, false));
+              std::swap(m_paths.back().m_pts, pts);
+              std::swap(m_paths.back().m_ctl_pts, ctl_pts);
             }
         }
     }
@@ -1735,6 +1759,30 @@ draw_scene(bool drawing_wire_frame)
         {
           m_painter->fill_path(D, path(), *fill_rule,
                                m_shader_anti_alias_mode_values[m_aa_fill_mode]);
+        }
+    }
+
+  if (m_draw_path_pts)
+    {
+      float inv_scale, r;
+
+      inv_scale = 1.0f / zoomer().transformation().scale();
+      r = 15.0f * inv_scale;
+      if (!m_blue_pen)
+        {
+          FASTUIDRAWassert(!m_red_pen);
+          m_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 1.0, 1.0));
+          m_red_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 0.0, 0.0, 1.0));
+        }
+
+      for (const vec2 &pt : m_paths[m_selected_path].m_pts)
+        {
+          draw_rect(pt, r, PainterData(m_blue_pen));
+        }
+
+      for (const vec2 &pt : m_paths[m_selected_path].m_ctl_pts)
+        {
+          draw_rect(pt, r, PainterData(m_red_pen));
         }
     }
 
