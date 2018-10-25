@@ -112,6 +112,7 @@ namespace
     return_value[0] = pts[0];
     return_value[1] = ivec2(C);
     return_value[2] = pts[3];
+
     return return_value;
   }
 
@@ -123,12 +124,13 @@ namespace
     vecN<vecN<ivec2, 4>, 2> return_value;
     i64vec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
     i64vec2 p01, p23, pA, pB, pC;
+    const int64_t two(2), three(3), four(4), eight(8);
 
-    p01 = (p0 + p1) / 2;
-    p23 = (p2 + p3) / 2;
-    pA = (p0 + 2 * p1 + p2) / 4;
-    pB = (p1 + 2 * p2 + p3) / 4;
-    pC = (p0 + 3 * p1 + 3 * p2 + p3) / 8;
+    p01 = (p0 + p1) / two;
+    p23 = (p2 + p3) / two;
+    pA = (p0 + two * p1 + p2) / four;
+    pB = (p1 + two * p2 + p3) / four;
+    pC = (p0 + three * p1 + three * p2 + p3) / eight;
 
     return_value[0] = vecN<ivec2, 4>(pts[0], ivec2(p01), ivec2(pA), ivec2(pC));
     return_value[1] = vecN<ivec2, 4>(ivec2(pC), ivec2(pB), ivec2(p23), pts[3]);
@@ -1382,30 +1384,30 @@ replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
               split = split_cubic(pts);
               if (l1_dist > thresh_4_quads)
                 {
-                  fastuidraw::vecN<fastuidraw::vecN<ivec2, 4>, 2> splitL, splitR;
+                  for (int j = 0; j < 2; ++j)
+                    {
+                      fastuidraw::vecN<fastuidraw::vecN<ivec2, 4>, 2> S;
+                      S = split_cubic(split[j]);
+                      for (int k = 0; k < 2; ++k)
+                        {
+                          fastuidraw::vecN<fastuidraw::ivec2, 3> q;
 
-                  splitL = split_cubic(split[0]);
-                  splitR = split_cubic(split[1]);
-
-                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitL[0])));
-                  ++id.m_curveID;
-
-                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitL[1])));
-                  ++id.m_curveID;
-
-                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitR[0])));
-                  ++id.m_curveID;
-
-                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(splitR[1])));
-                  ++id.m_curveID;
+                          q = quadratic_from_cubic(S[k]);
+                          m_curves.push_back(IntBezierCurve(id, q));
+                          ++id.m_curveID;
+                        }
+                    }
                 }
               else
                 {
-                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(split[0])));
-                  ++id.m_curveID;
+                  for (int j = 0; j < 2; ++j)
+                    {
+                      fastuidraw::vecN<fastuidraw::ivec2, 3> q;
 
-                  m_curves.push_back(IntBezierCurve(id, quadratic_from_cubic(split[1])));
-                  ++id.m_curveID;
+                      q = quadratic_from_cubic(split[j]);
+                      m_curves.push_back(IntBezierCurve(id, q));
+                      ++id.m_curveID;
+                    }
                 }
             }
           else
