@@ -23,7 +23,6 @@
 #include <fastuidraw/painter/stroked_point.hpp>
 #include <fastuidraw/painter/arc_stroked_point.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
-#include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include "backend_shaders.hpp"
 
@@ -580,58 +579,26 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
     .add_macro("FASTUIDRAW_GLYPH_RECT_HEIGHT_BIT0", uint32_t(GlyphAttribute::rect_height_bit0))
     .add_macro("FASTUIDRAW_GLYPH_RECT_X_BIT0", uint32_t(GlyphAttribute::rect_x_bit0))
     .add_macro("FASTUIDRAW_GLYPH_RECT_Y_BIT0", uint32_t(GlyphAttribute::rect_y_bit0));
-
-  m_glyph_restricted_rays_macros
-    .add_macro("HIERARCHY_NODE_BIT", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_is_node_bit))
-    .add_macro("HIERARCHY_NODE_MASK", uint32_t(FASTUIDRAW_MASK(GlyphRenderDataRestrictedRays::hierarchy_is_node_bit, 1u)))
-    .add_macro("HIERARCHY_SPLIT_COORD_BIT", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_splitting_coordinate_bit))
-    .add_macro("HIERARCHY_CHILD0_BIT", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_child0_offset_bit0))
-    .add_macro("HIERARCHY_CHILD1_BIT", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_child1_offset_bit0))
-    .add_macro("HIERARCHY_CHILD_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_child_offset_numbits))
-    .add_macro("HIERARCHY_CURVE_LIST_BIT0", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_bit0))
-    .add_macro("HIERARCHY_CURVE_LIST_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_numbits))
-    .add_macro("HIERARCHY_CURVE_LIST_SIZE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_bit0))
-    .add_macro("HIERARCHY_CURVE_LIST_SIZE_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_numbits))
-    .add_macro("POINT_COORDINATE_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::point_coordinate_numbits))
-    .add_macro("POINT_X_COORDINATE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::point_x_coordinate_bit0))
-    .add_macro("POINT_Y_COORDINATE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::point_y_coordinate_bit0))
-    .add_macro("RIGHT_CORNER_MASK", uint32_t(GlyphAttribute::right_corner_mask))
-    .add_macro("TOP_CORNER_MASK", uint32_t(GlyphAttribute::top_corner_mask))
-    .add_macro("WINDING_VALUE_BIAS", uint32_t(GlyphRenderDataRestrictedRays::winding_bias))
-    .add_macro("WINDING_VALUE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::winding_value_bit0))
-    .add_macro("WINDING_VALUE_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::winding_value_numbits))
-    .add_macro("POSITION_DELTA_BIAS", uint32_t(GlyphRenderDataRestrictedRays::delta_bias))
-    .add_macro("POSITION_DELTA_DIVIDE", uint32_t(GlyphRenderDataRestrictedRays::delta_div_factor))
-    .add_macro("POSITION_DELTA_X_BIT0", uint32_t(GlyphRenderDataRestrictedRays::delta_x_bit0))
-    .add_macro("POSITION_DELTA_Y_BIT0", uint32_t(GlyphRenderDataRestrictedRays::delta_y_bit0))
-    .add_macro("POSITION_DELTA_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::delta_numbits))
-    .add_macro("CURVE_ENTRY_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::curve_numbits))
-    .add_macro("CURVE_ENTRY0_BIT0", uint32_t(GlyphRenderDataRestrictedRays::curve_entry0_bit0))
-    .add_macro("CURVE_ENTRY1_BIT0", uint32_t(GlyphRenderDataRestrictedRays::curve_entry1_bit0))
-    .add_macro("CURVE_IS_QUADRATIC_BIT", uint32_t(GlyphRenderDataRestrictedRays::curve_is_quadratic_bit))
-    .add_macro("CURVE_IS_QUADRATIC_MASK", uint32_t(FASTUIDRAW_MASK(GlyphRenderDataRestrictedRays::curve_is_quadratic_bit, 1u)))
-    .add_macro("CURVE_BIT0", uint32_t(GlyphRenderDataRestrictedRays::curve_location_bit0))
-    .add_macro("CURVE_NUM_BITS", uint32_t(GlyphRenderDataRestrictedRays::curve_location_numbits));
 }
 
 reference_counted_ptr<PainterItemShader>
 ShaderSetCreator::
-create_glyph_item_shader(const std::string &vert_src,
-                         const std::string &frag_src,
-                         const varying_list &varyings,
-                         const ShaderSource::MacroSet &frag_macros)
+create_glyph_item_shader(c_string vert_src,
+                         c_string frag_src,
+                         const varying_list &varyings)
 {
+  ShaderSource vert, frag;
   reference_counted_ptr<PainterItemShader> shader;
-  shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                               ShaderSource()
-                                               .add_macros(m_common_glyph_attribute_macros)
-                                               .add_source(vert_src.c_str(), ShaderSource::from_resource)
-                                               .remove_macros(m_common_glyph_attribute_macros),
-                                               ShaderSource()
-                                               .add_macros(frag_macros)
-                                               .add_source(frag_src.c_str(), ShaderSource::from_resource)
-                                               .remove_macros(frag_macros),
-                                               varyings);
+
+  vert
+    .add_macros(m_common_glyph_attribute_macros)
+    .add_source(vert_src, ShaderSource::from_resource)
+    .remove_macros(m_common_glyph_attribute_macros);
+
+  frag
+    .add_source(frag_src, ShaderSource::from_resource);
+
+  shader = FASTUIDRAWnew PainterItemShaderGLSL(false, vert, frag, varyings);
   return shader;
 }
 
@@ -670,18 +637,18 @@ create_glyph_shader(void)
     .shader(coverage_glyph,
             create_glyph_item_shader("fastuidraw_painter_glyph_coverage.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_coverage.frag.glsl.resource_string",
-                                     coverage_varyings, ShaderSource::MacroSet()));
+                                     coverage_varyings));
 
   return_value
     .shader(restricted_rays_glyph,
             create_glyph_item_shader("fastuidraw_painter_glyph_restricted_rays.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_restricted_rays.frag.glsl.resource_string",
-                                     restricted_rays_varyings, m_glyph_restricted_rays_macros));
+                                     restricted_rays_varyings));
   return_value
     .shader(distance_field_glyph,
             create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_distance_field.frag.glsl.resource_string",
-                                     distance_varyings, ShaderSource::MacroSet()));
+                                     distance_varyings));
 
   return return_value;
 }

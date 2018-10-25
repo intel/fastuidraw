@@ -95,6 +95,35 @@ namespace fastuidraw
       ShaderSource
       compute_interval(c_string function_name,
                        c_string fetch_macro_function);
+
+      /*!
+       * Construct/returns a ShaderSource value that
+       * implements the functions:
+       * \code
+       * fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
+       *                                            in vec2 glyph_coord,
+       *                                            in vec2 glyph_coord_dx,
+       *                                            in vec2 glyph_coord_dy,
+       *                                            in vec2 bb_box_min,
+       *                                            in vec2 bb_box_max)
+       *
+       * fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
+       *                                            in vec2 glyph_coord,
+       *                                            in vec2 glyph_coord_dx,
+       *                                            in vec2 glyph_coord_dy,
+       *                                            in vec2 bb_box_min,
+       *                                            in vec2 bb_box_max,
+       *                                            out fastuidraw_restricted_rays_box_type texel_box)
+       * \endcode
+       * That computes the coverage from glyph data as packed by \ref
+       * GlyphRenderDataRestrictedRays. The returned \ref ShaderSource
+       * also includes a large number of utility functions that assist
+       * in implementing the functions.
+       * \param fetch_macro_function function or macro taking one argument
+       *                             that returns a single uint of data
+       */
+      ShaderSource
+      restricted_rays_compute_coverage(c_string fetch_macro_function);
     }
 /*! @} */
   }

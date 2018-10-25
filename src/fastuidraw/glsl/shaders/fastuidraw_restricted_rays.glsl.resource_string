@@ -1,0 +1,624 @@
+/*!
+ * \file fastuidraw_restricted_rays.glsl.resource_string
+ * \brief file fastuidraw_restricted_rays.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+/* must have the macro/function
+ *
+ *  FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(X)
+ *
+ * that returns a single 32-bit uint value at index X of
+ * a large array of 32-bit uint values storing the data
+ */
+
+struct fastuidraw_restricted_rays_transformation
+{
+  vec2 translation;
+  vec2 r_vector, jr_vector;
+};
+
+struct fastuidraw_restricted_rays_curve_type
+{
+  vec2 A, B, C, p1, p2, p3;
+  bool is_quadratic;
+};
+
+struct fastuidraw_restricted_rays_box_type
+{
+  vec2 min_point, max_point, center_point, size;
+};
+
+struct fastuidraw_restricted_rays_distance_type
+{
+  float distance_increment;
+  float distance_decrement;
+};
+
+void
+fastuidraw_restricted_rays_update_distance(in float dist, in bool is_increment,
+                                           inout fastuidraw_restricted_rays_distance_type nv)
+{
+  if (is_increment)
+    {
+      nv.distance_increment = min(nv.distance_increment, dist);
+    }
+  else
+    {
+      nv.distance_decrement = min(nv.distance_decrement, dist);
+    }
+}
+
+void
+fastuidraw_restricted_rays_update_distance(in vec2 p, in vec2 dp,
+                                           inout fastuidraw_restricted_rays_distance_type nv)
+{
+  float z;
+
+  z = p.x * dp.y - p.y * dp.x;
+  fastuidraw_restricted_rays_update_distance(abs(p.x) + abs(p.y), z > 0.0, nv);
+}
+
+uint
+fastuidaw_restricted_rays_compute_box(in vec2 p,
+                                      in vec2 bb_box_min, in vec2 bb_box_max,
+                                      in uint data_location,
+                                      out fastuidraw_restricted_rays_box_type box,
+                                      out uint curve_list,
+                                      out uint num_curves)
+{
+  uint v, offset;
+
+  box.min_point = bb_box_min;
+  box.max_point = bb_box_max;
+
+  offset = data_location;
+  v = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(offset);
+
+  while((v & fastuidraw_restricted_rays_hierarchy_node_mask) != 0u)
+    {
+      uint c, bit0;
+      float split_pt;
+      bool take_max_choice;
+
+      c = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_hierarchy_split_coord_bit, 1u, v);
+      if (c == 0u)
+        {
+          split_pt = 0.5 * (box.min_point.x + box.max_point.x);
+          take_max_choice = (p.x > split_pt);
+          box.min_point.x = (take_max_choice) ? split_pt : box.min_point.x;
+          box.max_point.x = (take_max_choice) ? box.max_point.x : split_pt;
+        }
+      else
+        {
+          split_pt = 0.5 * (box.min_point.y + box.max_point.y);
+          take_max_choice = (p.y > split_pt);
+          box.min_point.y = (take_max_choice) ? split_pt : box.min_point.y;
+          box.max_point.y = (take_max_choice) ? box.max_point.y : split_pt;
+        }
+
+      bit0 = (take_max_choice) ? fastuidraw_restricted_rays_hierarchy_child1_bit : fastuidraw_restricted_rays_hierarchy_child0_bit;
+      offset = FASTUIDRAW_EXTRACT_BITS(bit0, fastuidraw_restricted_rays_hierarchy_child_num_bits, v);
+      offset += data_location;
+      v = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(offset);
+    }
+
+  box.size = box.max_point - box.min_point;
+  box.center_point = 0.5 * (box.min_point + box.max_point);
+  curve_list = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_hierarchy_curve_list_bit0, fastuidraw_restricted_rays_hierarchy_curve_list_num_bits, v);
+  num_curves = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_hierarchy_curve_list_size_bit0, fastuidraw_restricted_rays_hierarchy_curve_list_size_num_bits, v);
+
+  return offset + 1u;
+}
+
+ivec2
+fastuidraw_restricted_rays_unpack_point(in uint ptr)
+{
+  uint pt_packed;
+  uvec2 pt_u;
+  ivec2 pt_i;
+
+  pt_packed = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(ptr);
+
+  pt_u.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_point_x_coordinate_bit0, fastuidraw_restricted_rays_point_coordinate_num_bits, pt_packed);
+  pt_u.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_point_y_coordinate_bit0, fastuidraw_restricted_rays_point_coordinate_num_bits, pt_packed);
+  pt_i = ivec2(pt_u);
+
+  return pt_i;
+}
+
+void
+fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
+                                                  in vec2 reference_point,
+                                                  out fastuidraw_restricted_rays_transformation tr)
+{
+  vec2 q;
+
+  q = reference_point - frag_point;
+  q /= dot(q, q);
+
+  tr.translation = frag_point;
+  tr.r_vector = q;
+  tr.jr_vector.x = -tr.r_vector.y;
+  tr.jr_vector.y = tr.r_vector.x;
+}
+
+void
+fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
+                                                  in vec2 uv_dx,
+                                                  in vec2 uv_dy,
+                                                  out fastuidraw_restricted_rays_transformation tr)
+{
+  float det, recip_det;
+
+  det = uv_dx.x * uv_dy.y - uv_dx.y * uv_dy.x;
+  recip_det = 1.0 / det;
+
+  tr.r_vector.x = uv_dy.y * recip_det;
+  tr.r_vector.y = -uv_dy.x * recip_det;
+  tr.jr_vector.x = -uv_dx.y * recip_det;
+  tr.jr_vector.y = uv_dx.x * recip_det;
+  tr.translation = frag_point;
+}
+
+vec2
+fastuidraw_restricted_rays_apply_transformation(in vec2 p,
+                                                in fastuidraw_restricted_rays_transformation tr)
+{
+  p -= tr.translation;
+  return vec2(dot(tr.r_vector, p),
+              dot(tr.jr_vector, p));
+}
+
+vec2
+fastuidraw_restricted_rays_apply_rotation(in vec2 p,
+                                          in fastuidraw_restricted_rays_transformation tr)
+{
+  return vec2(dot(tr.r_vector, p),
+              dot(tr.jr_vector, p));
+}
+
+int
+fastuidraw_restricted_rays_compute_winding_contribution(in vec2 p1, in vec2 p2, in vec2 p3,
+                                                        in vec2 A, in vec2 B, in vec2 C,
+                                                        in bool is_curve)
+{
+  int R = 0;
+  uint code;
+
+  code = (p1.y > 0.0 ? 2u : 0u)
+    + (p2.y > 0.0 ? 4u : 0u)
+    + (p3.y > 0.0 ? 8u : 0u);
+
+  code = (0x2E74u >> code) & 0x3u;
+  if (code != 0u)
+    {
+      float t1, t2, x1, x2;
+      const float quad_tol = 0.0001;
+
+      if (is_curve && abs(A.y) > quad_tol)
+        {
+          float D, rA = 1.0 / A.y;
+
+          D = B.y * B.y - A.y * C.y;
+
+          D = sqrt(max(D, 0.0));
+          t1 = (B.y - D) * rA;
+          t2 = (B.y + D) * rA;
+        }
+      else
+        {
+          t1 = t2 = 0.5 * C.y / B.y;
+        }
+
+      x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
+      x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
+
+      if ((code & 1u) != 0u && x1 < 1.0 && x1 > 0.0)
+        {
+          R += 1;
+        }
+
+      if (code > 1u && x2 < 1.0 && x2 > 0.0)
+        {
+          R -= 1;
+        }
+    }
+
+  return R;
+}
+
+void
+fastuidraw_restricted_rays_apply_y_fixed_line(in vec2 p1, in vec2 p2, in vec2 p3,
+                                              in vec2 A, in vec2 B, in vec2 C,
+                                              in bool is_curve,
+                                              inout fastuidraw_restricted_rays_distance_type value)
+{
+  uint code;
+
+  code = (p1.y > 0.0 ? 2u : 0u)
+    + (p2.y > 0.0 ? 4u : 0u)
+    + (p3.y > 0.0 ? 8u : 0u);
+
+  code = (0x2E74u >> code) & 0x3u;
+  if (code != 0u)
+    {
+      float t1, t2;
+      vec2 p1, p2;
+      const float quad_tol = 0.0001;
+
+      if (is_curve && abs(A.y) > quad_tol)
+        {
+          float D, rA = 1.0 / A.y;
+
+          D = B.y * B.y - A.y * C.y;
+          if (D >= 0.0)
+            {
+              D = sqrt(D);
+              t1 = (B.y - D) * rA;
+              t2 = (B.y + D) * rA;
+            }
+          else
+            {
+              t1 = t2 = -2.0;
+            }
+        }
+      else
+        {
+          t1 = t2 = 0.5 * C.y / B.y;
+        }
+
+      p1 = (A * t1 - B * 2.0) * t1 + C;
+      p2 = (A * t2 - B * 2.0) * t2 + C;
+
+      if ((code & 1u) != 0u && t1 >= 0.0 && t1 <= 1.0)
+        {
+          fastuidraw_restricted_rays_update_distance(abs(p1.x) + abs(p1.y),
+                                                     p1.x < 0.0,
+                                                     value);
+        }
+
+      if (code > 1u && t2 >= 0.0 && t2 <= 1.0)
+        {
+          fastuidraw_restricted_rays_update_distance(abs(p2.x) + abs(p2.y),
+                                                     p2.x > 0.0,
+                                                     value);
+        }
+    }
+}
+
+void
+fastuidraw_restricted_rays_apply_endpoints(in vec2 p1, in vec2 p2, in vec2 p3,
+                                                in vec2 A, in vec2 B, in vec2 C,
+                                                inout fastuidraw_restricted_rays_distance_type value)
+{
+  /* We have:
+   *   p(t) = (A * t - 2B) * t + C
+   * so
+   *   p'(t) = 2At - 2B
+   * and we only care about the direction, so we drop the 2 as well.
+   */
+  vec2 dp1, dp3;
+
+  dp1 = -B;
+  dp3 = A - B;
+  fastuidraw_restricted_rays_update_distance(p1, dp1, value);
+  fastuidraw_restricted_rays_update_distance(p3, dp3, value);
+}
+
+void
+fastuidraw_restricted_rays_apply_critical_points(in vec2 p1, in vec2 p2, in vec2 p3,
+                                                 in vec2 A, in vec2 B, in vec2 C,
+                                                 inout fastuidraw_restricted_rays_distance_type value)
+{
+  /* find those t for which |x'(t)| = |y'(t)|
+   * which is just those t for which
+   *
+   *  x'(t) - y'(t) = 0 or x'(t) + y'(t) = 0
+   *
+   * Now,
+   *
+   *   p(t) = (A * t - B * 2.0) * t + C
+   *
+   * thus,
+   *
+   *   p'(t) = 2.0 * ( A * t - B)
+   *
+   * thus the t's are t0 and t1 where
+   *
+   *  (A.x * t0 - B.x) + (A.y * t0 - B.y) = 0 --> t0 = (B.x + B.y) / (A.x + A.y)
+   *  (A.x * t1 - B.x) - (A.y * t1 - B.y) = 0 --> t1 = (B.x - B.y) / (A.x - A.y)
+   */
+
+  float d0, d1, n0, n1;
+  const float tol = 0.0001;
+
+  n0 = B.x + B.y;
+  d0 = A.x + A.y;
+  n0 *= sign(d0);
+  d0 = abs(d0);
+
+  n1 = B.x - B.y;
+  d1 = A.x - A.y;
+  n1 *= sign(d1);
+  d1 = abs(d1);
+
+  if (n0 > 0.0 && d0 > n0)
+    {
+      float t0;
+      vec2 p, dp;
+
+      t0 = n0 / d0;
+      p = (A * t0 - 2.0 * B) * t0 + C;
+      dp = A * t0 - B;
+      fastuidraw_restricted_rays_update_distance(p, dp, value);
+    }
+
+  if (n1 > 0.0 && d1 > n1)
+    {
+      float t1;
+      vec2 p, dp;
+
+      t1 = n1 / d1;
+      p = (A * t1 - 2.0 * B) * t1 + C;
+      dp = A * t1 - B;
+      fastuidraw_restricted_rays_update_distance(p, dp, value);
+    }
+}
+
+vec2
+fastuidraw_restricted_rays_rotate_90_degrees(vec2 v)
+{
+  return vec2(v.y, -v.x);
+}
+
+void
+fastuidraw_restricted_rays_compute_distance(in vec2 p1, in vec2 p2, in vec2 p3,
+                                      in vec2 A, in vec2 B, in vec2 C,
+                                      in bool is_curve,
+                                      inout fastuidraw_restricted_rays_distance_type value)
+{
+  fastuidraw_restricted_rays_apply_y_fixed_line(p1, p2, p3, A, B, C, is_curve, value);
+  fastuidraw_restricted_rays_apply_y_fixed_line(fastuidraw_restricted_rays_rotate_90_degrees(p1),
+                                                fastuidraw_restricted_rays_rotate_90_degrees(p2),
+                                                fastuidraw_restricted_rays_rotate_90_degrees(p3),
+                                                fastuidraw_restricted_rays_rotate_90_degrees(A),
+                                                fastuidraw_restricted_rays_rotate_90_degrees(B),
+                                                fastuidraw_restricted_rays_rotate_90_degrees(C),
+                                                is_curve, value);
+  fastuidraw_restricted_rays_apply_endpoints(p1, p2, p3, A, B, C, value);
+  if (is_curve)
+    {
+      fastuidraw_restricted_rays_apply_critical_points(p1, p2, p3, A, B, C, value);
+    }
+}
+
+void
+fastuidraw_restricted_rays_load_curve(in uint raw,
+                                      in uint glyph_data_location,
+                                      out fastuidraw_restricted_rays_curve_type curve)
+{
+  uint curve_src;
+  ivec2 ip1, ip3, iA, i2B, iC;
+
+  curve_src = glyph_data_location + FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_bit0, fastuidraw_restricted_rays_curve_num_bits, raw);
+  curve.is_quadratic = (raw & fastuidraw_restricted_rays_curve_is_quadratic_mask) != 0u;
+
+  if (curve.is_quadratic)
+    {
+      ivec2 ip2;
+
+      ip1 = fastuidraw_restricted_rays_unpack_point(curve_src);
+      ip2 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
+      ip3 = fastuidraw_restricted_rays_unpack_point(curve_src + 2u);
+
+      iA = ip1 - 2 * ip2 + ip3;
+      i2B = 2 * (ip1 - ip2);
+      iC = ip1;
+
+      curve.p2 = vec2(ip2);
+    }
+  else
+    {
+      ivec2 ip2;
+
+      ip1 = fastuidraw_restricted_rays_unpack_point(curve_src);
+      ip3 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
+
+      /* ip2 is 0.5 * (ip1 + ip3) */
+      iA = ivec2(0, 0);
+      i2B = ip1 - ip3;
+      iC = ip1;
+
+      curve.p2 = 0.5 * vec2(ip1 + ip3);
+    }
+
+  curve.p1 = vec2(ip1);
+  curve.p3 = vec2(ip3);
+
+  curve.A = vec2(iA);
+  curve.B = vec2(i2B) * 0.5;
+  curve.C = vec2(iC);
+}
+
+int
+fastuidraw_restricted_rays_load_and_process_curve(in uint raw,
+                                                  in uint glyph_data_location,
+                                                  in fastuidraw_restricted_rays_transformation tr,
+                                                  in fastuidraw_restricted_rays_transformation frag_tr,
+                                                  inout fastuidraw_restricted_rays_distance_type nv)
+{
+  fastuidraw_restricted_rays_curve_type curve_data;
+  int return_value;
+
+  fastuidraw_restricted_rays_load_curve(raw,
+                                        glyph_data_location,
+                                        curve_data);
+
+
+  /* We need to process the curve transformed by the given transformation.
+   * However, the values of A, B, C require more care:
+   *   A = p1 - 2 * p2 + p3 --> applying transformation to each of p's and computing A
+   *                            gives that A is NOT affected by the translation
+   *   B = 2 * (p1 - p2)    --> applying transformation to each of p's and computing B
+   *                            gives that B is NOT affected by the translation
+   *   C = p3               --> applying transformation to each of p's and computing C
+   *                            gives that C IS affected by the translation
+   */
+  return_value =
+    fastuidraw_restricted_rays_compute_winding_contribution(fastuidraw_restricted_rays_apply_transformation(curve_data.p1, tr),
+                                                            fastuidraw_restricted_rays_apply_transformation(curve_data.p2, tr),
+                                                            fastuidraw_restricted_rays_apply_transformation(curve_data.p3, tr),
+                                                            fastuidraw_restricted_rays_apply_rotation(curve_data.A, tr),
+                                                            fastuidraw_restricted_rays_apply_rotation(curve_data.B, tr),
+                                                            fastuidraw_restricted_rays_apply_transformation(curve_data.C, tr),
+                                                            curve_data.is_quadratic);
+
+  fastuidraw_restricted_rays_compute_distance(fastuidraw_restricted_rays_apply_transformation(curve_data.p1, frag_tr),
+                                              fastuidraw_restricted_rays_apply_transformation(curve_data.p2, frag_tr),
+                                              fastuidraw_restricted_rays_apply_transformation(curve_data.p3, frag_tr),
+                                              fastuidraw_restricted_rays_apply_rotation(curve_data.A, frag_tr),
+                                              fastuidraw_restricted_rays_apply_rotation(curve_data.B, frag_tr),
+                                              fastuidraw_restricted_rays_apply_transformation(curve_data.C, frag_tr),
+                                              curve_data.is_quadratic,
+                                              nv);
+  return return_value;
+}
+
+int
+fastuidraw_restricted_rays_load_winding_reference(in uint location,
+                                         in fastuidraw_restricted_rays_box_type box,
+                                         in vec2 frag_position,
+                                         out vec2 position)
+{
+  uint texel, biased_winding;
+  uvec2 biased_delta;
+  vec2 delta;
+
+  position = box.center_point;
+  texel = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(location);
+
+  biased_winding = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_winding_value_bit0, fastuidraw_restricted_rays_winding_value_num_bits, texel);
+  biased_delta.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_x_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
+  biased_delta.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_y_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
+
+  delta = vec2(biased_delta) - vec2(float(fastuidraw_restricted_rays_position_delta_bias));
+  delta /= float(fastuidraw_restricted_rays_position_delta_divide);
+  position += delta;
+
+  return int(biased_winding) - int(fastuidraw_restricted_rays_winding_value_bias);
+}
+
+float
+fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
+                                            in vec2 glyph_coord,
+                                            in vec2 glyph_coord_dx,
+                                            in vec2 glyph_coord_dy,
+                                            in vec2 bb_box_min,
+                                            in vec2 bb_box_max,
+                                            out fastuidraw_restricted_rays_box_type texel_box)
+{
+  uint src, num_curves, c, curve_list, winding_sample_data_location;
+  vec2 z;
+  int startw, winding_number;
+  fastuidraw_restricted_rays_transformation tr, frag_tr;
+  fastuidraw_restricted_rays_distance_type nv;
+
+  winding_sample_data_location =
+    fastuidaw_restricted_rays_compute_box(glyph_coord,
+                                          bb_box_min, bb_box_max,
+                                          glyph_data_location,
+                                          texel_box, curve_list, num_curves);
+  nv.distance_increment = nv.distance_decrement = 0.5;
+
+  startw = fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
+                                                             texel_box, glyph_coord, z);
+
+  winding_number = startw;
+  fastuidraw_restricted_rays_compute_transformation(glyph_coord, z, tr);
+
+  /* To perform anisotropic anti-aliasing, we simply compute the L1-distance
+   * function is (local) pixel coordinates. To do so, we comptue the transformation
+   * from glyph coordinates to window coordinates and do the computation there.
+   */
+  fastuidraw_restricted_rays_compute_transformation(glyph_coord, glyph_coord_dx, glyph_coord_dy, frag_tr);
+
+  src = curve_list + glyph_data_location;
+  for (c = 0u; c < num_curves; c += 2u)
+    {
+      uint cA, cB, curve_pair;
+
+      curve_pair = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(src);
+      ++src;
+
+      cA = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_entry0_bit0, fastuidraw_restricted_rays_curve_entry_num_bits, curve_pair);
+      winding_number += fastuidraw_restricted_rays_load_and_process_curve(cA, glyph_data_location, tr, frag_tr, nv);
+
+      if (c + 1u < num_curves)
+        {
+          cB = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_entry1_bit0, fastuidraw_restricted_rays_curve_entry_num_bits, curve_pair);
+          winding_number += fastuidraw_restricted_rays_load_and_process_curve(cB, glyph_data_location, tr, frag_tr, nv);
+        }
+    }
+
+  float cvg, distance;
+
+  /* If the winding number at the fragment is 0, use
+   * the minimum of those two; if the winding value is 1
+   * use the decrement value and if the winding is -1 use the
+   * increment winding number; if the absolute value of the
+   * winding value is greater than two, we will view the
+   * fragment as fully covered.
+   */
+  if (winding_number == 0)
+    {
+      distance = min(nv.distance_increment,
+                     nv.distance_decrement);
+    }
+  else if (winding_number == -1)
+    {
+      distance = nv.distance_increment;
+    }
+  else if (winding_number == 1)
+    {
+      distance = nv.distance_decrement;
+    }
+  else
+    {
+      distance = 0.5;
+    }
+
+  cvg = (winding_number != 0) ?
+    (0.5 + distance) :
+    (0.5 - distance);
+
+  return cvg;
+}
+
+float
+fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
+                                            in vec2 glyph_coord,
+                                            in vec2 glyph_coord_dx,
+                                            in vec2 glyph_coord_dy,
+                                            in vec2 bb_box_min,
+                                            in vec2 bb_box_max)
+{
+  fastuidraw_restricted_rays_box_type texel_box;
+  return fastuidraw_restricted_rays_compute_coverage(glyph_data_location,
+                                                     glyph_coord,
+                                                     glyph_coord_dx, glyph_coord_dy,
+                                                     bb_box_min, bb_box_max,
+                                                     texel_box);
+}

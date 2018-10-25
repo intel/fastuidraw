@@ -15,6 +15,7 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_unpack_unit_vector.glsl.resource_string \
 	fastuidraw_align.vert.glsl.resource_string \
 	fastuidraw_read_texels_from_data.glsl.resource_string \
+	fastuidraw_restricted_rays.glsl.resource_string \
 	fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string)
 
 # Begin standard footer

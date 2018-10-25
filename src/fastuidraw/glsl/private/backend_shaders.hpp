@@ -161,10 +161,9 @@ private:
     };
 
   reference_counted_ptr<PainterItemShader>
-  create_glyph_item_shader(const std::string &vert_src,
-                           const std::string &frag_src,
-                           const varying_list &varyings,
-                           const ShaderSource::MacroSet &frag_macros);
+  create_glyph_item_shader(c_string vert_src,
+                           c_string frag_src,
+                           const varying_list &varyings);
 
   PainterGlyphShader
   create_glyph_shader(void);
@@ -195,7 +194,6 @@ private:
 
   ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;
-  ShaderSource::MacroSet m_glyph_restricted_rays_macros;
 };
 
 }}}
