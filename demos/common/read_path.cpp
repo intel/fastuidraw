@@ -46,7 +46,9 @@ namespace
 
 
 void
-read_path(fastuidraw::Path &path, const std::string &source)
+read_path(fastuidraw::Path &path, const std::string &source,
+          std::vector<fastuidraw::vec2> *out_pts,
+          std::vector<fastuidraw::vec2> *out_ctl_pts)
 {
   std::string filtered(source);
 
@@ -155,6 +157,10 @@ read_path(fastuidraw::Path &path, const std::string &source)
       if (!current_outline.empty())
         {
           path << current_outline[0].m_pt;
+          if (out_pts)
+            {
+              out_pts->push_back(current_outline[0].m_pt);
+            }
           for(unsigned int i = 0; i + 1 < current_outline.size(); ++i)
             {
               const edge &current_edge(current_outline[i]);
@@ -165,12 +171,24 @@ read_path(fastuidraw::Path &path, const std::string &source)
                   for(unsigned int c = 0; c < current_edge.m_control_pts.size(); ++c)
                     {
                       path << fastuidraw::Path::control_point(current_edge.m_control_pts[c]);
+                      if (out_ctl_pts)
+                        {
+                          out_ctl_pts->push_back(current_edge.m_control_pts[c]);
+                        }
                     }
                   path << next_edge.m_pt;
+                  if (out_pts)
+                    {
+                      out_pts->push_back(next_edge.m_pt);
+                    }
                 }
               else
                 {
                   path << fastuidraw::Path::arc_degrees(current_edge.m_angle, next_edge.m_pt);
+                  if (out_pts)
+                    {
+                      out_pts->push_back(next_edge.m_pt);
+                    }
                 }
             }
 
@@ -180,6 +198,10 @@ read_path(fastuidraw::Path &path, const std::string &source)
               for(unsigned int c = 0; c < current_edge.m_control_pts.size(); ++c)
                 {
                   path << fastuidraw::Path::control_point(current_edge.m_control_pts[c]);
+                  if (out_ctl_pts)
+                    {
+                      out_ctl_pts->push_back(current_edge.m_control_pts[c]);
+                    }
                 }
               path << fastuidraw::Path::contour_end();
             }
