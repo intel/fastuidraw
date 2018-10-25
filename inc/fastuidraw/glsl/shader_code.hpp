@@ -89,9 +89,12 @@ namespace fastuidraw
        * - return -1 if on an odd interval, +1 if on an even interval
        *
        * \param function_name name to give to the function
+       * \param fetch_macro_function function or macro taking one argument
+       *                             that returns a uvec4 of data
        */
       ShaderSource
-      compute_interval(c_string function_name);
+      compute_interval(c_string function_name,
+                       c_string fetch_macro_function);
     }
 /*! @} */
   }

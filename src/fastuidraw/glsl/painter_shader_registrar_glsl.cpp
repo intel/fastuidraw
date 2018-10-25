@@ -1043,7 +1043,7 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", ShaderSource::from_resource)
-    .add_source(code::compute_interval("fastuidraw_compute_interval"))
+    .add_source(code::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
     .add_source(m_vert_shader_utils)
     .add_source("fastuidraw_painter_main.vert.glsl.resource_string", ShaderSource::from_resource);
 
@@ -1131,7 +1131,7 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
 
   frag
     .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source(code::compute_interval("fastuidraw_compute_interval"))
+    .add_source(code::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
     .add_source(m_frag_shader_utils)
     .add_source(code::image_atlas_compute_coord("fastuidraw_compute_image_atlas_coord",
                                                 "fastuidraw_imageIndexAtlas",

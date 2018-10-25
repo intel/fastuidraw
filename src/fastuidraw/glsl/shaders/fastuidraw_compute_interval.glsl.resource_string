@@ -18,6 +18,7 @@
 
 /* Must be defined:
  *  - FASTUIDRAW_COMPUTE_INTERVAL_NAME to be name of the function
+ *  - FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA(X) to loads a uvec4 value at X
  */
 
 float
@@ -48,7 +49,7 @@ FASTUIDRAW_COMPUTE_INTERVAL_NAME(in uint intervals_location, in float total_dist
       uvec4 V;
       vec4 fV;
 
-      V = fastuidraw_fetch_data(loc + int(intervals_location)).xyzw;
+      V = FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA(loc + int(intervals_location)).xyzw;
       fV = uintBitsToFloat(V);
 
       if (d < fV.x)

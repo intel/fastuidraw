@@ -48,13 +48,16 @@ image_atlas_compute_coord(c_string function_name,
 
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-compute_interval(c_string function_name)
+compute_interval(c_string function_name,
+                 c_string fetch_macro_function)
 {
   ShaderSource return_value;
 
   return_value
     .add_macro("FASTUIDRAW_COMPUTE_INTERVAL_NAME", function_name)
+    .add_macro("FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA", fetch_macro_function)
     .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
+    .remove_macro("FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA")
     .remove_macro("FASTUIDRAW_COMPUTE_INTERVAL_NAME");
 
   return return_value;
