@@ -1063,11 +1063,14 @@ draw_glyphs(float us)
       if (G != GenericHierarchy::not_found)
         {
           GlyphMetrics metrics;
-          float ratio;
-	  vec2 glyph_position;
+          float ratio, ysign;
+	  vec2 glyph_position, glyph_coord;
 
 	  m_draw_shared.glyph_sequence().added_glyph(G, &metrics, &glyph_position);
           ratio = m_render_pixel_size.value() / metrics.units_per_EM();
+
+          ysign = (m_screen_orientation.value() == Painter::y_increases_upwards) ? 1.0f : -1.0f;
+          glyph_coord = (p - glyph_position) / vec2(ratio, ratio * ysign);
 
           /* start with an eol so that top line is visible */
           ostr << "\nGlyph at " << p << " is:"
@@ -1083,7 +1086,8 @@ draw_glyphs(float us)
               ostr << " path-fill";
             }
 
-          ostr << "\n\tunits_per_EM: " << metrics.units_per_EM()
+          ostr << "\n\tglyph_coord: " << glyph_coord
+               << "\n\tunits_per_EM: " << metrics.units_per_EM()
                << "\n\tsize in EM: " << metrics.size()
                << "\n\tsize normalized: " << metrics.size() * ratio
                << "\n\tHorizontal Offset = " << metrics.horizontal_layout_offset();
