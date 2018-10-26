@@ -140,8 +140,7 @@ public:
           int w, int h, bool from_gylph);
 
   Path m_path;
-  std::vector<vec2> m_pts;
-  std::vector<vec2> m_ctl_pts;
+  std::vector<vec2> m_pts, m_ctl_pts, m_arc_center_pts;
   std::string m_label;
   bool m_from_glyph;
   unsigned int m_fill_rule;
@@ -435,6 +434,7 @@ private:
   PainterPackedValue<PainterBrush> m_draw_line_pen;
   PainterPackedValue<PainterBrush> m_blue_pen;
   PainterPackedValue<PainterBrush> m_red_pen;
+  PainterPackedValue<PainterBrush> m_green_pen;
 
   Path m_rect;
 
@@ -538,6 +538,34 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
 
   m_clipping_xy = m_path.tessellation()->bounding_box_min();
   m_clipping_wh = m_repeat_wh;
+
+  for (unsigned int c = 0, endc = m_path.number_contours(); c < endc; ++c)
+    {
+      reference_counted_ptr<const PathContour> C(m_path.contour(c));
+      for (unsigned int e = 0, end_e = C->number_points(); e < end_e; ++e)
+        {
+          reference_counted_ptr<const PathContour::interpolator_base> E(C->interpolator(e));
+          const PathContour::arc *a;
+          const PathContour::bezier *b;
+
+          m_pts.push_back(C->point(e));
+          a = dynamic_cast<const PathContour::arc*>(E.get());
+          b = dynamic_cast<const PathContour::bezier*>(E.get());
+          if (a)
+            {
+              m_arc_center_pts.push_back(a->center());
+            }
+          else if (b)
+            {
+              c_array<const vec2> pts;
+              pts = b->pts().sub_array(1, b->pts().size() - 2);
+              for (const vec2 &p : pts)
+                {
+                  m_ctl_pts.push_back(p);
+                }
+            }
+        }
+    }
 }
 
 //////////////////////////////////////
@@ -1388,15 +1416,12 @@ construct_paths(int w, int h)
         {
           std::stringstream buffer;
           Path P;
-          std::vector<vec2> pts, ctl_pts;
 
           buffer << path_file.rdbuf();
-          read_path(P, buffer.str(), &pts, &ctl_pts);
+          read_path(P, buffer.str());
           if (P.number_contours() > 0)
             {
               m_paths.push_back(PerPath(P, file, w, h, false));
-              std::swap(m_paths.back().m_pts, pts);
-              std::swap(m_paths.back().m_ctl_pts, ctl_pts);
             }
         }
     }
@@ -1771,8 +1796,10 @@ draw_scene(bool drawing_wire_frame)
       if (!m_blue_pen)
         {
           FASTUIDRAWassert(!m_red_pen);
+          FASTUIDRAWassert(!m_green_pen);
           m_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 1.0, 1.0));
           m_red_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 0.0, 0.0, 1.0));
+          m_green_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 1.0, 0.0, 1.0));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_pts)
@@ -1783,6 +1810,11 @@ draw_scene(bool drawing_wire_frame)
       for (const vec2 &pt : m_paths[m_selected_path].m_ctl_pts)
         {
           draw_rect(pt, r, PainterData(m_red_pen));
+        }
+
+      for (const vec2 &pt : m_paths[m_selected_path].m_arc_center_pts)
+        {
+          draw_rect(pt, r, PainterData(m_green_pen));
         }
     }
 
