@@ -140,6 +140,7 @@ public:
           int w, int h, bool from_gylph);
 
   Path m_path;
+  std::string m_path_string;
   std::vector<vec2> m_pts, m_ctl_pts, m_arc_center_pts;
   std::string m_label;
   bool m_from_glyph;
@@ -539,9 +540,12 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_clipping_xy = m_path.tessellation()->bounding_box_min();
   m_clipping_wh = m_repeat_wh;
 
+  std::ostringstream str;
   for (unsigned int c = 0, endc = m_path.number_contours(); c < endc; ++c)
     {
       reference_counted_ptr<const PathContour> C(m_path.contour(c));
+
+      str << "[ ";
       for (unsigned int e = 0, end_e = C->number_points(); e < end_e; ++e)
         {
           reference_counted_ptr<const PathContour::interpolator_base> E(C->interpolator(e));
@@ -549,23 +553,35 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
           const PathContour::bezier *b;
 
           m_pts.push_back(C->point(e));
+          str << C->point(e) << " ";
+
           a = dynamic_cast<const PathContour::arc*>(E.get());
           b = dynamic_cast<const PathContour::bezier*>(E.get());
           if (a)
             {
+              range_type<float> angle(a->angle());
+              float delta_angle(angle.m_end - angle.m_begin);
+
               m_arc_center_pts.push_back(a->center());
+              str << "arc " << delta_angle * 180.0f / M_PI;
             }
           else if (b)
             {
               c_array<const vec2> pts;
+
               pts = b->pts().sub_array(1, b->pts().size() - 2);
+              str << "[[";
               for (const vec2 &p : pts)
                 {
                   m_ctl_pts.push_back(p);
+                  str << p << " ";
                 }
+              str << "]]";
             }
         }
+      str << "]\n";
     }
+  m_path_string = str.str();
 }
 
 //////////////////////////////////////
@@ -677,6 +693,8 @@ painter_stroke_test(void):
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\tp: toggle stroke width in pixels or local coordinates\n"
+            << "\tctrl-p: toggle showing points (blue), control pts(blue) and arc-center(green) of Path\n"
+            << "\tshift-p: print current path to console\n"
             << "\t5: toggle drawing grid\n"
             << "\tq: reset shear to 1.0\n"
             << "\t6: x-shear (hold ctrl to decrease, hold enter for shear2)\n"
@@ -1141,17 +1159,21 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_p:
-          if (ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT))
+          if (ev.key.keysym.mod & KMOD_CTRL)
             {
               m_draw_path_pts = !m_draw_path_pts;
               if (m_draw_path_pts)
                 {
-                  "Draw Path Points\n";
+                  std::cout << "Draw Path Points\n";
                 }
               else
                 {
-                  "Do not draw Path Points\n";
+                  std::cout << "Do not draw Path Points\n";
                 }
+            }
+          else if(ev.key.keysym.mod & KMOD_SHIFT)
+            {
+              std::cout << m_paths[m_selected_path].m_path_string;
             }
           else
             {
