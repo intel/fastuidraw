@@ -351,6 +351,15 @@ public:
     virtual
     ~bezier();
 
+    /*!
+     * Returns the control points of the Bezier curve with
+     * c_array<const vec2>::front() having the same value as
+     * start_pt() and c_array<const vec2>::back() having the
+     * same vale as end_pt().
+     */
+    c_array<const vec2>
+    pts(void) const;
+
     virtual
     bool
     is_flat(void) const;
@@ -403,6 +412,19 @@ public:
         float angle, const vec2 &end, enum PathEnums::edge_type_t tp);
 
     ~arc();
+
+    /*!
+     * Returns the center of the arc.
+     */
+    vec2
+    center(void) const;
+
+    /*!
+     * Returns the starting and ending angle of the arc
+     * each in radians.
+     */
+    range_type<float>
+    angle(void) const;
 
     virtual
     bool

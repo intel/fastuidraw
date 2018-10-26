@@ -949,6 +949,15 @@ is_flat(void) const
   return d->m_start_region->pts().size() <= 2;
 }
 
+fastuidraw::c_array<const fastuidraw::vec2>
+fastuidraw::PathContour::bezier::
+pts(void) const
+{
+  BezierPrivate *d;
+  d = static_cast<BezierPrivate*>(m_d);
+  return make_c_array(d->m_start_region->pts());
+}
+
 void
 fastuidraw::PathContour::bezier::
 approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
@@ -1111,6 +1120,25 @@ fastuidraw::PathContour::arc::
   d = static_cast<ArcPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
+}
+
+fastuidraw::vec2
+fastuidraw::PathContour::arc::
+center(void) const
+{
+  ArcPrivate *d;
+  d = static_cast<ArcPrivate*>(m_d);
+  return d->m_center;
+}
+
+fastuidraw::range_type<float>
+fastuidraw::PathContour::arc::
+angle(void) const
+{
+  ArcPrivate *d;
+  d = static_cast<ArcPrivate*>(m_d);
+  return range_type<float>(d->m_start_angle,
+                           d->m_start_angle + d->m_angle_speed);
 }
 
 bool
