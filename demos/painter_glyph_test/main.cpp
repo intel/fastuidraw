@@ -9,6 +9,7 @@
 #include "sdl_painter_demo.hpp"
 #include "PanZoomTracker.hpp"
 #include "text_helper.hpp"
+#include "path_util.hpp"
 #include "cycle_value.hpp"
 #include "generic_hierarchy.hpp"
 #include "command_line_list.hpp"
@@ -224,7 +225,7 @@ private:
   vecN<GlyphRender, draw_glyph_auto + 1> m_draws;
   unsigned int m_glyph_texel_page;
 
-  bool m_stroke_glyphs, m_fill_glyphs;
+  bool m_stroke_glyphs, m_fill_glyphs, m_draw_path_pts;
   bool m_anti_alias_path_stroking, m_anti_alias_path_filling;
   bool m_pixel_width_stroking;
   bool m_draw_stats;
@@ -538,6 +539,7 @@ painter_glyph_test(void):
   m_glyph_texel_page(0),
   m_stroke_glyphs(false),
   m_fill_glyphs(false),
+  m_draw_path_pts(false),
   m_anti_alias_path_stroking(false),
   m_anti_alias_path_filling(false),
   m_pixel_width_stroking(true),
@@ -557,6 +559,7 @@ painter_glyph_test(void):
             << "\tq: Toggle anti-aliasing filled path rendering\n"
             << "\tw: Toggle anti-aliasing stroked path rendering\n"
             << "\tp: Toggle pixel width stroking\n"
+            << "\tctrl-p: toggle showing points (blue), control pts(blue) and arc-center(green) of glyphs"
             << "\tz: reset zoom factor to 1.0\n"
 	    << "\ts: toggle stroking glyph path\n"
             << "\tj: cycle through join styles for stroking\n"
@@ -863,7 +866,7 @@ draw_glyphs(float us)
   m_painter->rotate(m_angle * M_PI / 180.0f);
   m_painter->shear(m_shear2.x(), m_shear2.y());
 
-  if (m_fill_glyphs || m_stroke_glyphs)
+  if (m_fill_glyphs || m_stroke_glyphs || m_draw_path_pts)
     {
       vec2 p0, p1, p2, p3;
       BoundingBox<float> screen;
@@ -975,6 +978,75 @@ draw_glyphs(float us)
               m_painter->shear(sc, sc * ysign);
 
               stroke_glyph(PainterData(pst, pbr), metrics, render);
+              m_painter->restore();
+            }
+        }
+    }
+
+  if (m_draw_path_pts)
+    {
+      vecN<PainterBrush, 3> brs;
+      vecN<PainterPackedValue<PainterBrush>, 3 > pbrs;
+
+      brs[0].pen(1.0f, 0.0f, 0.0f, 0.5f);
+      brs[1].pen(0.0f, 1.0f, 0.0f, 0.5f);
+      brs[2].pen(0.0f, 0.0f, 1.0f, 0.5f);
+      for (int i = 0; i < 3; ++i)
+        {
+          pbrs[i] = m_painter->packed_value_pool().create_packed_value(brs[i]);
+        }
+
+      for(unsigned int i : glyphs_visible)
+        {
+          GlyphMetrics metrics;
+	  vec2 position;
+
+	  m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
+	  if (metrics.valid())
+            {
+              std::vector<vec2> pts, ctl_pts, arc_center_pts;
+              std::string descr;
+              Glyph G;
+              vec2 min_bb, max_bb, sz_bb, r;
+              float rad;
+
+              G = m_glyph_cache->fetch_glyph(render, metrics.font(), metrics.glyph_code());
+              extract_path_info(G.path(), &pts, &ctl_pts, &arc_center_pts, &descr);
+              G.path().approximate_bounding_box(&min_bb, &max_bb);
+              sz_bb = max_bb - min_bb;
+              rad = 0.02f * t_max(sz_bb.x(), sz_bb.y());
+              r = vec2(rad, rad);
+
+              m_painter->save();
+              m_painter->translate(position);
+
+              //make the scale of the path match how we scaled the text.
+              float sc, ysign;
+              sc = m_render_pixel_size.value() / metrics.units_per_EM();
+
+
+              /* when drawing with y-coordinate increasing downwards
+               * which is the opposite coordinate system as the glyph's
+               * path, thus we also need to negate in the y-direction.
+               */
+              ysign = (m_screen_orientation.value() == Painter::y_increases_upwards) ? 1.0f : -1.0f;
+              m_painter->shear(sc, sc * ysign);
+
+              for (const vec2 &pt : pts)
+                {
+                  m_painter->draw_rect(PainterData(pbrs[2]), pt - r, 2.0f * r);
+                }
+
+              for (const vec2 &pt : ctl_pts)
+                {
+                  m_painter->draw_rect(PainterData(pbrs[0]), pt - r, 2.0f * r);
+                }
+
+              for (const vec2 &pt : arc_center_pts)
+                {
+                  m_painter->draw_rect(PainterData(pbrs[1]), pt - r, 2.0f * r);
+                }
+
               m_painter->restore();
             }
         }
@@ -1277,7 +1349,19 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_p:
-          if (m_stroke_glyphs)
+          if (ev.key.keysym.mod & KMOD_CTRL)
+            {
+              m_draw_path_pts = !m_draw_path_pts;
+              if (m_draw_path_pts)
+                {
+                  std::cout << "Draw Path Points\n";
+                }
+              else
+                {
+                  std::cout << "Do not draw Path Points\n";
+                }
+            }
+          else if (m_stroke_glyphs)
             {
               m_pixel_width_stroking = !m_pixel_width_stroking;
               if (m_pixel_width_stroking)
