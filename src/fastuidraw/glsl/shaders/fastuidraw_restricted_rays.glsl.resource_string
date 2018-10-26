@@ -32,7 +32,7 @@ struct fastuidraw_restricted_rays_transformation
 
 struct fastuidraw_restricted_rays_curve_type
 {
-  vec2 A, B, C, p1, p2, p3;
+  vec2 p1, p2, p3;
   bool is_quadratic;
 };
 
@@ -199,11 +199,15 @@ fastuidraw_restricted_rays_apply_rotation(in vec2 p,
 
 int
 fastuidraw_restricted_rays_compute_winding_contribution(in vec2 p1, in vec2 p2, in vec2 p3,
-                                                        in vec2 A, in vec2 B, in vec2 C,
                                                         in bool is_curve)
 {
+  vec2 A, B, C;
   int R = 0;
   uint code;
+
+  A = p1 - 2.0 * p2 + p3;
+  B = p1 - p2;
+  C = p1;
 
   code = (p1.y > 0.0 ? 2u : 0u)
     + (p2.y > 0.0 ? 4u : 0u)
@@ -249,11 +253,15 @@ fastuidraw_restricted_rays_compute_winding_contribution(in vec2 p1, in vec2 p2, 
 
 void
 fastuidraw_restricted_rays_apply_y_fixed_line(in vec2 p1, in vec2 p2, in vec2 p3,
-                                              in vec2 A, in vec2 B, in vec2 C,
                                               in bool is_curve,
                                               inout fastuidraw_restricted_rays_distance_type value)
 {
+  vec2 A, B, C;
   uint code;
+
+  A = p1 - 2.0 * p2 + p3;
+  B = p1 - p2;
+  C = p1;
 
   code = (p1.y > 0.0 ? 2u : 0u)
     + (p2.y > 0.0 ? 4u : 0u)
@@ -308,8 +316,8 @@ fastuidraw_restricted_rays_apply_y_fixed_line(in vec2 p1, in vec2 p2, in vec2 p3
 
 void
 fastuidraw_restricted_rays_apply_endpoints(in vec2 p1, in vec2 p2, in vec2 p3,
-                                                in vec2 A, in vec2 B, in vec2 C,
-                                                inout fastuidraw_restricted_rays_distance_type value)
+					   in vec2 A, in vec2 B, in vec2 C,
+					   inout fastuidraw_restricted_rays_distance_type value)
 {
   /* We have:
    *   p(t) = (A * t - 2B) * t + C
@@ -396,18 +404,19 @@ fastuidraw_restricted_rays_rotate_90_degrees(vec2 v)
 
 void
 fastuidraw_restricted_rays_compute_distance(in vec2 p1, in vec2 p2, in vec2 p3,
-                                      in vec2 A, in vec2 B, in vec2 C,
-                                      in bool is_curve,
-                                      inout fastuidraw_restricted_rays_distance_type value)
+					    in bool is_curve,
+					    inout fastuidraw_restricted_rays_distance_type value)
 {
-  fastuidraw_restricted_rays_apply_y_fixed_line(p1, p2, p3, A, B, C, is_curve, value);
+  vec2 A, B, C;
+  fastuidraw_restricted_rays_apply_y_fixed_line(p1, p2, p3, is_curve, value);
   fastuidraw_restricted_rays_apply_y_fixed_line(fastuidraw_restricted_rays_rotate_90_degrees(p1),
                                                 fastuidraw_restricted_rays_rotate_90_degrees(p2),
                                                 fastuidraw_restricted_rays_rotate_90_degrees(p3),
-                                                fastuidraw_restricted_rays_rotate_90_degrees(A),
-                                                fastuidraw_restricted_rays_rotate_90_degrees(B),
-                                                fastuidraw_restricted_rays_rotate_90_degrees(C),
                                                 is_curve, value);
+
+  A = p1 - 2.0 * p2 + p3;
+  B = p1 - p2;
+  C = p1;
   fastuidraw_restricted_rays_apply_endpoints(p1, p2, p3, A, B, C, value);
   if (is_curve)
     {
@@ -434,10 +443,6 @@ fastuidraw_restricted_rays_load_curve(in uint raw,
       ip2 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
       ip3 = fastuidraw_restricted_rays_unpack_point(curve_src + 2u);
 
-      iA = ip1 - 2 * ip2 + ip3;
-      i2B = 2 * (ip1 - ip2);
-      iC = ip1;
-
       curve.p2 = vec2(ip2);
     }
   else
@@ -447,20 +452,11 @@ fastuidraw_restricted_rays_load_curve(in uint raw,
       ip1 = fastuidraw_restricted_rays_unpack_point(curve_src);
       ip3 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
 
-      /* ip2 is 0.5 * (ip1 + ip3) */
-      iA = ivec2(0, 0);
-      i2B = ip1 - ip3;
-      iC = ip1;
-
       curve.p2 = 0.5 * vec2(ip1 + ip3);
     }
 
   curve.p1 = vec2(ip1);
   curve.p3 = vec2(ip3);
-
-  curve.A = vec2(iA);
-  curve.B = vec2(i2B) * 0.5;
-  curve.C = vec2(iC);
 }
 
 int
@@ -478,30 +474,15 @@ fastuidraw_restricted_rays_load_and_process_curve(in uint raw,
                                         curve_data);
 
 
-  /* We need to process the curve transformed by the given transformation.
-   * However, the values of A, B, C require more care:
-   *   A = p1 - 2 * p2 + p3 --> applying transformation to each of p's and computing A
-   *                            gives that A is NOT affected by the translation
-   *   B = 2 * (p1 - p2)    --> applying transformation to each of p's and computing B
-   *                            gives that B is NOT affected by the translation
-   *   C = p3               --> applying transformation to each of p's and computing C
-   *                            gives that C IS affected by the translation
-   */
   return_value =
     fastuidraw_restricted_rays_compute_winding_contribution(fastuidraw_restricted_rays_apply_transformation(curve_data.p1, tr),
                                                             fastuidraw_restricted_rays_apply_transformation(curve_data.p2, tr),
                                                             fastuidraw_restricted_rays_apply_transformation(curve_data.p3, tr),
-                                                            fastuidraw_restricted_rays_apply_rotation(curve_data.A, tr),
-                                                            fastuidraw_restricted_rays_apply_rotation(curve_data.B, tr),
-                                                            fastuidraw_restricted_rays_apply_transformation(curve_data.C, tr),
                                                             curve_data.is_quadratic);
 
   fastuidraw_restricted_rays_compute_distance(fastuidraw_restricted_rays_apply_transformation(curve_data.p1, frag_tr),
                                               fastuidraw_restricted_rays_apply_transformation(curve_data.p2, frag_tr),
                                               fastuidraw_restricted_rays_apply_transformation(curve_data.p3, frag_tr),
-                                              fastuidraw_restricted_rays_apply_rotation(curve_data.A, frag_tr),
-                                              fastuidraw_restricted_rays_apply_rotation(curve_data.B, frag_tr),
-                                              fastuidraw_restricted_rays_apply_transformation(curve_data.C, frag_tr),
                                               curve_data.is_quadratic,
                                               nv);
   return return_value;
