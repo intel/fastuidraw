@@ -70,6 +70,54 @@ private:
   std::string m_desc;
 };
 
+class character_code_range:public command_line_argument
+{
+public:
+  explicit
+  character_code_range(command_line_list<uint32_t> *p):
+    command_line_argument(*p->parent()),
+    m_p(p)
+  {
+    m_desc = produce_formatted_detailed_description("add_path_character_codes first last",
+                                                    "add a set of paths from an inclusive range of character codes");
+  }
+
+  virtual
+  int
+  check_arg(const std::vector<std::string> &args, int location)
+  {
+    if (static_cast<unsigned int>(location + 2) < args.size() && args[location] == "add_path_character_codes")
+      {
+        uint32_t first, last;
+
+        readvalue_from_string(first, args[location + 1]);
+        readvalue_from_string(last, args[location + 2]);
+        for (; first != last + 1; ++first)
+          {
+            m_p->insert(first);
+          }
+      }
+  }
+
+  virtual
+  void
+  print_command_line_description(std::ostream &ostr) const
+  {
+    ostr << "[add_path_character_codes first last] ";
+  }
+
+  virtual
+  void
+  print_detailed_description(std::ostream &ostr) const
+  {
+    ostr << m_desc;
+  }
+
+private:
+  std::string m_desc;
+  command_line_list<uint32_t> *m_p;
+};
+
 class WindingValueFillRule:public CustomFillRuleBase
 {
 public:
@@ -394,6 +442,7 @@ private:
   command_line_argument_value<int> m_sub_image_w, m_sub_image_h;
   command_line_argument_value<std::string> m_font_file;
   command_line_list<uint32_t> m_character_code_list;
+  character_code_range m_character_code_list_range_adder;
   command_line_argument_value<float> m_stroke_red;
   command_line_argument_value<float> m_stroke_green;
   command_line_argument_value<float> m_stroke_blue;
@@ -638,6 +687,7 @@ painter_stroke_test(void):
   m_font_file(default_font(), "font", "File from which to take font", *this),
   m_character_code_list("add_path_character_code",
                         "add a path of a glyph selected via character code", *this),
+  m_character_code_list_range_adder(&m_character_code_list),
   m_stroke_red(1.0f, "stroke_red", "red component of stroking pen color", *this),
   m_stroke_green(1.0f, "stroke_green", "green component of stroking pen color", *this),
   m_stroke_blue(1.0f, "stroke_blue", "blue component of stroking pen olor", *this),
