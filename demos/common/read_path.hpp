@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <fastuidraw/path.hpp>
 
 /* Read path data from an std::string and append that
@@ -15,6 +14,4 @@
    value0 value1 marks a coordinate (control point of edge point)
  */
 void
-read_path(fastuidraw::Path &path, const std::string &source,
-          std::vector<fastuidraw::vec2> *out_pts = nullptr,
-          std::vector<fastuidraw::vec2> *out_ctl_pts = nullptr);
+read_path(fastuidraw::Path &path, const std::string &source);
