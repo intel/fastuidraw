@@ -11,6 +11,7 @@
 #include "simple_time.hpp"
 #include "PanZoomTracker.hpp"
 #include "read_path.hpp"
+#include "path_util.hpp"
 #include "read_dash_pattern.hpp"
 #include "ImageLoader.hpp"
 #include "colorstop_command_line.hpp"
@@ -589,48 +590,7 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_clipping_xy = m_path.tessellation()->bounding_box_min();
   m_clipping_wh = m_repeat_wh;
 
-  std::ostringstream str;
-  for (unsigned int c = 0, endc = m_path.number_contours(); c < endc; ++c)
-    {
-      reference_counted_ptr<const PathContour> C(m_path.contour(c));
-
-      str << "[ ";
-      for (unsigned int e = 0, end_e = C->number_points(); e < end_e; ++e)
-        {
-          reference_counted_ptr<const PathContour::interpolator_base> E(C->interpolator(e));
-          const PathContour::arc *a;
-          const PathContour::bezier *b;
-
-          m_pts.push_back(C->point(e));
-          str << C->point(e) << " ";
-
-          a = dynamic_cast<const PathContour::arc*>(E.get());
-          b = dynamic_cast<const PathContour::bezier*>(E.get());
-          if (a)
-            {
-              range_type<float> angle(a->angle());
-              float delta_angle(angle.m_end - angle.m_begin);
-
-              m_arc_center_pts.push_back(a->center());
-              str << "arc " << delta_angle * 180.0f / M_PI;
-            }
-          else if (b)
-            {
-              c_array<const vec2> pts;
-
-              pts = b->pts().sub_array(1, b->pts().size() - 2);
-              str << "[[";
-              for (const vec2 &p : pts)
-                {
-                  m_ctl_pts.push_back(p);
-                  str << p << " ";
-                }
-              str << "]]";
-            }
-        }
-      str << "]\n";
-    }
-  m_path_string = str.str();
+  extract_path_info(m_path, &m_pts, &m_ctl_pts, &m_arc_center_pts, &m_path_string);
 }
 
 //////////////////////////////////////
