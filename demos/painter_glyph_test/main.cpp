@@ -1000,6 +1000,9 @@ draw_glyphs(float us)
         {
           GlyphMetrics metrics;
 	  vec2 position;
+          float inv_scale;
+
+          inv_scale = 1.0f / m_zoomer.transformation().scale();
 
 	  m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
 	  if (metrics.valid())
@@ -1014,8 +1017,6 @@ draw_glyphs(float us)
               extract_path_info(G.path(), &pts, &ctl_pts, &arc_center_pts, &descr);
               G.path().approximate_bounding_box(&min_bb, &max_bb);
               sz_bb = max_bb - min_bb;
-              rad = 0.02f * t_max(sz_bb.x(), sz_bb.y());
-              r = vec2(rad, rad);
 
               m_painter->save();
               m_painter->translate(position);
@@ -1032,6 +1033,9 @@ draw_glyphs(float us)
               ysign = (m_screen_orientation.value() == Painter::y_increases_upwards) ? 1.0f : -1.0f;
               m_painter->shear(sc, sc * ysign);
 
+              rad = 8.0f * inv_scale / sc;
+              rad = t_min(rad, 0.02f * t_max(sz_bb.x(), sz_bb.y()));
+              r = vec2(rad, rad);
               for (const vec2 &pt : pts)
                 {
                   m_painter->draw_rect(PainterData(pbrs[2]), pt - r, 2.0f * r);
