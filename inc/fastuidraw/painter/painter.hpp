@@ -132,7 +132,7 @@ namespace fastuidraw
     /*!
      * Sets the composite shader.
      * \param h composite shader to use for compositing.
-     * \param packed_composite_mode 3D API blend mode
+     * \param blend_mode 3D API blend mode
      */
     void
     composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
@@ -572,7 +572,7 @@ namespace fastuidraw
      * Calls FilledPath::select_subsets() passing arguments derived from the
      * current state of the Painter.
      * \param path \ref FilledPath from which to compute subset selection
-     * \param[out] dst location to which to write the \ref Subset ID values
+     * \param[out] dst location to which to write the FilledPath::Subset ID values
      * \returns the number of Subset object ID's written to dst, that
      *          number is guaranteed to be no more than FilledPath::number_subsets().
      */
@@ -588,7 +588,7 @@ namespace fastuidraw
      * \param item_space_additional_room amount additional slack in -local coordinate-
      *                                   in selecting subsets from the StrokedPath
      *                                   geometry data
-     * \param[out] dst location to which to write the \ref Subset ID values
+     * \param[out] dst location to which to write the StrokedPath::Subset ID values
      * \returns the number of Subset object ID's written to dst, that
      *          number is guaranteed to be no more than StrokedPath::number_subsets().
      */
@@ -608,8 +608,8 @@ namespace fastuidraw
      *                                   in selecting subsets from the StrokedPath
      *                                   geometry data
      * \param include_closing_edges if true, include the joins of the closing edges
-     * \param select_joins_for_miter_style if true join selection reflects those joins
-     *                                     that would be visible if drawn as miter-joins.
+     * \param take_all_joins if true, filtering of joins is not performed, i.e. all
+     *                       joins of the \ref StrokedCapsJoins are selected
      * \param[out] dst location to which to write what chunks
      */
     void
@@ -625,8 +625,8 @@ namespace fastuidraw
      * \param shader shader with which to stroke the attribute data
      * \param draw data for how to draw
      * \param path StrokedPath to stroke
-     * \param rounded_thresh value to feed to \ref StrokedPath::rounded_joins()
-     *                       and/or \ref StrokedPath::rounded_caps() if rounded
+     * \param rounded_thresh value to feed to StrokedCapsJoins::rounded_joins()
+     *                       and/or StrokedCapsJoins::rounded_caps() if rounded
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
@@ -674,8 +674,8 @@ namespace fastuidraw
      * \param shader shader with which to draw
      * \param draw data for how to draw
      * \param path StrokedPath to stroke
-     * \param rounded_thresh value to feed to \ref StrokedPath::rounded_joins()
-     *                       and/or \ref StrokedPath::rounded_caps() if rounded
+     * \param rounded_thresh value to feed to StrokedCapsJoins::rounded_joins()
+     *                       and/or StrokedCapsJoins::rounded_caps() if rounded
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias

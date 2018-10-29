@@ -186,9 +186,9 @@ namespace fastuidraw
 
     /*!
      * Returns a StrokingDataSelectorBase suitable for PainterDashedStrokeParams.
-     * \param pixel_arc_stroking_possible if true, will inform that arc-stroking
-     *                                    width in \ref pixel_stroking_units is
-     *                                    possible.
+     * \param pixel_arc_stroking_possible if true, will inform that arc-stroking width
+     *                                    in PainterStrokeParams::pixel_stroking_units
+     *                                    is possible.
      */
     static
     reference_counted_ptr<const StrokingDataSelectorBase>

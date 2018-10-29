@@ -500,7 +500,7 @@ namespace fastuidraw
          * the texture (with GL) and the texture must not be
          * deleted (or have its backing store changed via
          * glTexImage) until the SurfaceGL is deleted.
-         * \param dimes width and height of the GL texture
+         * \param dims width and height of the GL texture
          * \param gl_texture GL name of texture
          */
         explicit

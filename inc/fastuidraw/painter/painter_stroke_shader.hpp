@@ -238,8 +238,8 @@ namespace fastuidraw
     hq_anti_alias_support(enum PainterEnums::hq_anti_alias_support_t sh);
 
     /*!
-     * Used by \ref Painter for the \ref shader_anti_alias_t value
-     * to use when \ref shader_anti_alias_fastest is requested.
+     * Used by \ref Painter for the PainterEnums::shader_anti_alias_t value
+     * to use when PainterEnums::shader_anti_alias_fastest is requested.
      * \param tp specify to return non-aa shader for arc or linear stroking
      */
     enum PainterEnums::shader_anti_alias_t
