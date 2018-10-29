@@ -1035,6 +1035,8 @@ split(CurveList &out_pre, CurveList &out_post) const
   vecN<std::vector<CurveID>, 2> splitY;
   vecN<BoundingBox<float>, 2> splitX_box(m_box.split_x());
   vecN<BoundingBox<float>, 2> splitY_box(m_box.split_y());
+  ivec2 sz;
+  int return_value;
 
   /* choose the partition with the smallest sum of curves */
   FASTUIDRAWassert(std::is_sorted(m_curves.begin(), m_curves.end()));
@@ -1057,22 +1059,41 @@ split(CurveList &out_pre, CurveList &out_post) const
   out_pre.m_p = m_p;
   out_post.m_p = m_p;
 
-  if (splitX[0].size() + splitX[1].size() < splitY[0].size() + splitY[1].size())
+  sz.x() = splitX[0].size() + splitX[1].size();
+  sz.y() = splitY[0].size() + splitY[1].size();
+
+  if (sz.x() == sz.y())
+    {
+      vec2 box_size(m_box.size());
+      return_value = (box_size.x() > box_size.y()) ?
+        0 : 1;
+    }
+  else if (sz.x() < sz.y())
+    {
+      return_value = 0;
+    }
+  else
+    {
+      return_value = 1;
+    }
+
+  if (return_value == 0)
     {
       std::swap(out_pre.m_curves, splitX[0]);
       std::swap(out_post.m_curves, splitX[1]);
       out_pre.m_box = splitX_box[0];
       out_post.m_box = splitX_box[1];
-      return 0;
     }
   else
     {
+      FASTUIDRAWassert(return_value == 1);
       std::swap(out_pre.m_curves, splitY[0]);
       std::swap(out_post.m_curves, splitY[1]);
       out_pre.m_box = splitY_box[0];
       out_post.m_box = splitY_box[1];
-      return 1;
     }
+
+  return return_value;
 }
 
 //////////////////////////////////
