@@ -28,6 +28,7 @@ struct fastuidraw_restricted_rays_transformation
 {
   vec2 translation;
   vec2 r_vector, jr_vector;
+  float rot_mag;
 };
 
 struct fastuidraw_restricted_rays_curve_type
@@ -154,8 +155,8 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
   vec2 q;
 
   q = reference_point - frag_point;
-  q /= dot(q, q);
 
+  tr.rot_mag = dot(q, q);
   tr.translation = frag_point;
   tr.r_vector = q;
   tr.jr_vector.x = -tr.r_vector.y;
@@ -199,7 +200,7 @@ fastuidraw_restricted_rays_apply_rotation(in vec2 p,
 
 int
 fastuidraw_restricted_rays_compute_winding_contribution(in vec2 p1, in vec2 p2, in vec2 p3,
-                                                        in bool is_curve)
+                                                        in bool is_curve, float rot_mag)
 {
   vec2 A, B, C;
   int R = 0;
@@ -237,12 +238,12 @@ fastuidraw_restricted_rays_compute_winding_contribution(in vec2 p1, in vec2 p2, 
       x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      if ((code & 1u) != 0u && x1 <= 1.0 && x1 >= 0.0)
+      if ((code & 1u) != 0u && x1 <= rot_mag && x1 >= 0.0)
         {
           R += 1;
         }
 
-      if (code > 1u && x2 <= 1.0 && x2 >= 0.0)
+      if (code > 1u && x2 <= rot_mag && x2 >= 0.0)
         {
           R -= 1;
         }
@@ -478,7 +479,7 @@ fastuidraw_restricted_rays_load_and_process_curve(in uint raw,
     fastuidraw_restricted_rays_compute_winding_contribution(fastuidraw_restricted_rays_apply_transformation(curve_data.p1, tr),
                                                             fastuidraw_restricted_rays_apply_transformation(curve_data.p2, tr),
                                                             fastuidraw_restricted_rays_apply_transformation(curve_data.p3, tr),
-                                                            curve_data.is_quadratic);
+                                                            curve_data.is_quadratic, tr.rot_mag);
 
   fastuidraw_restricted_rays_compute_distance(fastuidraw_restricted_rays_apply_transformation(curve_data.p1, frag_tr),
                                               fastuidraw_restricted_rays_apply_transformation(curve_data.p2, frag_tr),
