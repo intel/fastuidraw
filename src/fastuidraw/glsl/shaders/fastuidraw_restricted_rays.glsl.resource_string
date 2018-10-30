@@ -495,17 +495,17 @@ fastuidraw_restricted_rays_load_winding_reference(in uint location,
                                                   out fastuidraw_restricted_rays_winding_sample_type s)
 {
   uint texel, biased_winding;
-  uvec2 biased_delta;
+  uvec2 uint_delta;
   vec2 position, delta;
 
-  position = box.center_point;
+  position = box.min_point;
   texel = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(location);
 
   biased_winding = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_winding_value_bit0, fastuidraw_restricted_rays_winding_value_num_bits, texel);
-  biased_delta.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_x_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
-  biased_delta.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_y_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
+  uint_delta.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_x_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
+  uint_delta.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_y_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
 
-  delta = vec2(biased_delta) - vec2(float(fastuidraw_restricted_rays_position_delta_bias));
+  delta = vec2(uint_delta) * box.size;
   delta /= float(fastuidraw_restricted_rays_position_delta_divide);
   position += delta;
 

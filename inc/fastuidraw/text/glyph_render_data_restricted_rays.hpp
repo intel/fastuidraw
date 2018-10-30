@@ -157,15 +157,14 @@ namespace fastuidraw
     /*!
      * Enumeration to describe how the winding samples
      * of a leaf-box of the hierarchy are packed. The
-     * position of the sample is the center of the node
-     * offset by a delta:
-     * $ Delta = (PackedDelta - DeltaBias) / DeltaFactor $
+     * position of the sample is the bottom left corner
+     * of the node offset by a delta:
+     * $ Delta = RelativeDelta * BoxDimensions / DeltaFactor $
      * where PackedDelta is extracted from the 32-bit
      * value as a pair of 8-bit values located at bits
-     * \ref delta_x_bit0 and \ref delta_y_bit0, DeltaBias
-     * is given by \ref delta_bias and DeltaFactor is given
-     * by \ref delta_div_factor. Note that the delta is
-     * absolute not relative to the box node.
+     * \ref delta_x_bit0 and \ref delta_y_bit0; DeltaFactor
+     * is given by \ref delta_div_factor and BoxDimensions
+     * is the width and height of the box of the leaf.
      */
     enum winding_sample_packing_t
       {
@@ -189,12 +188,6 @@ namespace fastuidraw
          * (which is stored biased by \ref winding_bias).
          */
         winding_value_numbits = 16u,
-
-        /*!
-         * The amount by which to bias the x and y-coordinate
-         * of the delta before applying \ref delta_div_factor.
-         */
-        delta_bias = 127,
 
         /*!
          * The amount by which to divide the delta after applying

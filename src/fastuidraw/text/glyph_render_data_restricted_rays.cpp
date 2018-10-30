@@ -770,7 +770,6 @@ namespace
                                                  G::winding_value_numbits, v);
         delta.x() = fastuidraw::unpack_bits(G::delta_x_bit0, G::delta_numbits, v);
         delta.y() = fastuidraw::unpack_bits(G::delta_y_bit0, G::delta_numbits, v);
-        delta -= fastuidraw::ivec2(G::delta_bias);
 
         std::cout << "\n" << prefix << "winding = "
                   << int(biased_winding) - int(G::winding_bias)
@@ -1245,14 +1244,14 @@ pack_sample_point(unsigned int &offset,
   typedef GlyphRenderDataRestrictedRays G;
 
   /* bits 0-15 for winding, biased
-   * bits 16-23 for dx, biased by G::delta_bias
-   * bits 24-31 for dy, biased by G::delta_bias
+   * bits 16-23 for dx
+   * bits 24-31 for dy
    */
   dst[offset++].u = pack_bits(G::winding_value_bit0,
                               G::winding_value_numbits,
                               bias_winding(m_winding))
-    | pack_bits(G::delta_x_bit0, G::delta_numbits, m_delta.x() + G::delta_bias)
-    | pack_bits(G::delta_y_bit0, G::delta_numbits, m_delta.y() + G::delta_bias);
+    | pack_bits(G::delta_x_bit0, G::delta_numbits, m_delta.x())
+    | pack_bits(G::delta_y_bit0, G::delta_numbits, m_delta.y());
 }
 
 void
@@ -1376,7 +1375,8 @@ subdivide(void)
       vec2 s, delta;
 
       delta = vec2(m_delta) / float(GlyphRenderDataRestrictedRays::delta_div_factor);
-      s = m_curves.box().center_point() + delta ;
+      delta *= m_curves.box().size();
+      s = m_curves.box().min_point() + delta;
       m_winding = m_curves.glyph_path().compute_winding_number(s);
     }
 }
