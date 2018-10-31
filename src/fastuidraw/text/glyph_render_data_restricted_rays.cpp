@@ -20,6 +20,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <cstdlib>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include "../private/bounding_box.hpp"
@@ -103,6 +104,7 @@ namespace
     {
       m_fbbox.union_point(m_fstart);
       m_fbbox.union_point(m_fend);
+      compute_crits();
     }
 
     Curve(const fastuidraw::ivec2 &a,
@@ -120,6 +122,7 @@ namespace
       m_fbbox.union_point(m_fstart);
       m_fbbox.union_point(m_fcontrol);
       m_fbbox.union_point(m_fend);
+      compute_crits();
     }
 
     Curve(fastuidraw::ivec2 scale_down, const Curve &C):
@@ -139,6 +142,7 @@ namespace
         {
           m_fbbox.union_point(m_fcontrol);
         }
+      compute_crits();
     }
 
     const fastuidraw::ivec2&
@@ -187,8 +191,8 @@ namespace
       dst[p++].u = pack_point(end());
     }
 
-    int
-    compute_winding_contribution(fastuidraw::vec2 xy) const;
+    fastuidraw::ivec2
+    compute_winding_contribution(fastuidraw::vec2 xy, float *dist) const;
 
     friend
     std::ostream&
@@ -237,6 +241,17 @@ namespace
       return (det == 0);
     }
 
+    void
+    compute_crits(void);
+
+    int
+    compute_winding_contribution_impl(int coord,
+                                      fastuidraw::vec2 A,
+                                      fastuidraw::vec2 B,
+                                      fastuidraw::vec2 C,
+                                      uint32_t code,
+                                      float *dist) const;
+
     float
     compute_at(float t, int coordinate) const;
 
@@ -262,6 +277,8 @@ namespace
     fastuidraw::vec2 m_fstart, m_fend, m_fcontrol;
     fastuidraw::BoundingBox<float> m_fbbox;
     bool m_has_control;
+    unsigned int m_num_crits;
+    fastuidraw::vecN<fastuidraw::vec2, 2> m_crits;
   };
 
   class Contour
@@ -574,7 +591,7 @@ namespace
     GlyphPath(void);
 
     int
-    compute_winding_number(fastuidraw::vec2 xy) const;
+    compute_winding_number(fastuidraw::vec2 xy, float *dist) const;
 
     void
     move_to(const fastuidraw::ivec2 &pt)
@@ -819,54 +836,145 @@ namespace
 
 ////////////////////////////////////////////////
 // Curve methods
-int
+void
 Curve::
-compute_winding_contribution(fastuidraw::vec2 p) const
+compute_crits(void)
+{
+  using namespace fastuidraw;
+
+  m_num_crits = 0;
+  if (m_has_control)
+    {
+      vec2 A, B, C;
+      float d0, d1, n0, n1;
+
+      A = m_fstart - 2.0 * m_fcontrol + m_fend;
+      B = m_fstart - m_fcontrol;
+      C = m_fstart;
+
+      /* curve is given by
+       *
+       *   f(t) = (A * t - 2 * B) * t + C
+       *
+       * thus,
+       *
+       *   f'(t) = 2 * A * t - 2 * B
+       *
+       * and we are hunting for x'(t) = y'(t) and x'(t) - y'(t) = 0;
+       * those occur at:
+       *
+       *   A_x * t - B_x = +A_y * t - B_y  --> t = (B_x - B_y) / (A_x - A_y)
+       *   A_x * t - B_x = -A_y * t + B_y  --> t = (B_x + B_y) / (A_x + A_y)
+       */
+
+      n0 = B.x() + B.y();
+      d0 = A.x() + A.y();
+      n0 *= t_sign(d0);
+      d0 = t_abs(d0);
+
+      n1 = B.x() - B.y();
+      d1 = A.x() - A.y();
+      n1 *= t_sign(d1);
+      d1 = t_abs(d1);
+
+      if (n0 > 0.0 && d0 > n0)
+        {
+          float t0;
+
+          t0 = n0 / d0;
+          m_crits[m_num_crits++] = (A * t0 - 2.0 * B) * t0 + C;
+        }
+
+      if (n1 > 0.0 && d1 > n1)
+        {
+          float t1;
+
+          t1 = n1 / d1;
+          m_crits[m_num_crits++] = (A * t1 - 2.0 * B) * t1 + C;
+        }
+    }
+}
+
+fastuidraw::ivec2
+Curve::
+compute_winding_contribution(fastuidraw::vec2 p, float *dist) const
 {
   using namespace fastuidraw;
   vec2 p1(m_fstart - p), p2(m_fcontrol - p), p3(m_fend - p);
-  uint32_t code;
-
-  code = (p1.y() > 0.0f ? 2u : 0u)
-    + (p2.y() > 0.0f ? 4u : 0u)
-    + (p3.y() > 0.0f ? 8u : 0u);
-
-  code = (0x2E74u >> code) & 0x3u;
-  if (code == 0u)
-    {
-      return 0;
-    }
-
-  int iA;
+  uint32_t codex, codey;
+  ivec2 R;
   vec2 A, B, C;
-  float t1, t2, x1, x2;
 
-  iA = m_start.y() - 2 * m_control.y() + m_end.y();
   A = p1 - 2.0 * p2 + p3;
   B = p1 - p2;
   C = p1;
 
+  *dist = t_min(*dist, p1.L1norm());
+  *dist = t_min(*dist, p3.L1norm());
+  for (unsigned int crit = 0; crit < m_num_crits; ++crit)
+    {
+      vec2 q(m_crits[crit] - p);
+      *dist = t_min(*dist, q.L1norm());
+    }
+
+  codex = (p1.x() > 0.0f ? 2u : 0u)
+    + (p2.x() > 0.0f ? 4u : 0u)
+    + (p3.x() > 0.0f ? 8u : 0u);
+
+  codey = (p1.y() > 0.0f ? 2u : 0u)
+    + (p2.y() > 0.0f ? 4u : 0u)
+    + (p3.y() > 0.0f ? 8u : 0u);
+
+  R.x() = -compute_winding_contribution_impl(0, A, B, C, codex, dist);
+  R.y() = compute_winding_contribution_impl(1, A, B, C, codey, dist);
+
+  return R;
+}
+
+int
+Curve::
+compute_winding_contribution_impl(int coord,
+                                  fastuidraw::vec2 A,
+                                  fastuidraw::vec2 B,
+                                  fastuidraw::vec2 C,
+                                  uint32_t code,
+                                  float *dist) const
+{
+  using namespace fastuidraw;
+
+  code = (0x2E74u >> code) & 0x3u;
+
+  int iA;
+  float t1, t2, x1, x2;
+
+  iA = m_start[coord] - 2 * m_control[coord] + m_end[coord];
+
   if (m_has_control && iA != 0)
     {
-      float D, rA = 1.0f / A.y();
+      float D, rA = 1.0f / A[coord];
 
-      D = B.y() * B.y() - A.y() * C.y();
-      if (D < 0.0f)
-        {
-          return 0;
-        }
-
-      D = t_sqrt(D);
-      t1 = (B.y() - D) * rA;
-      t2 = (B.y() + D) * rA;
+      D = B[coord] * B[coord] - A[coord] * C[coord];
+      D = t_sqrt(t_max(0.0f, D));
+      t1 = (B[coord] - D) * rA;
+      t2 = (B[coord] + D) * rA;
     }
   else
     {
-      t1 = t2 = 0.5f * C.y() / B.y();
+      t1 = t2 = 0.5f * C[coord] / B[coord];
     }
 
-  x1 = (A.x() * t1 - B.x() * 2.0f) * t1 + C.x();
-  x2 = (A.x() * t2 - B.x() * 2.0f) * t2 + C.x();
+  x1 = (A[1 - coord] * t1 - B[1 - coord] * 2.0f) * t1 + C[1 - coord];
+  x2 = (A[1 - coord] * t2 - B[1 - coord] * 2.0f) * t2 + C[1 - coord];
+
+  if (t1 <= 1.0 && t1 >= 0.0f)
+    {
+      *dist = t_min(*dist, t_abs(x1));
+    }
+
+  if (t2 <= 1.0 && t2 >= 0.0f)
+    {
+      *dist = t_min(*dist, t_abs(x2));
+    }
 
   int r(0);
   if ((code & 1u) != 0u && x1 > 0.0f)
@@ -1367,17 +1475,35 @@ subdivide(void)
 
   if (!has_children())
     {
-      /* TODO: Gaurantee that the sample point chosen does
-       *       NOT have any of the curves go through it.
-       */
-      m_delta = ivec2(1, 3);
+      float best_dist, thresh;
+      vec2 pt(m_curves.box().min_point());
+      vec2 box_size(m_curves.box().size());
+      vec2 factor(box_size / float(GlyphRenderDataRestrictedRays::delta_div_factor));
+      const int MAX_TRIES = 50;
 
-      vec2 s, delta;
+      thresh = t_min(box_size.x(), box_size.y()) * 0.25f;
+      m_delta = ivec2(0, 0);
+      m_winding = m_curves.glyph_path().compute_winding_number(pt, &best_dist);
 
-      delta = vec2(m_delta) / float(GlyphRenderDataRestrictedRays::delta_div_factor);
-      delta *= m_curves.box().size();
-      s = m_curves.box().min_point() + delta;
-      m_winding = m_curves.glyph_path().compute_winding_number(s);
+      for (int i = 0; i < MAX_TRIES && best_dist < thresh; ++i)
+        {
+          ivec2 idelta;
+          vec2 delta;
+          float dist;
+          int winding;
+
+          idelta.x() = std::rand() % GlyphRenderDataRestrictedRays::delta_div_factor;
+          idelta.y() = std::rand() % GlyphRenderDataRestrictedRays::delta_div_factor;
+          delta = vec2(idelta) * factor;
+
+          winding = m_curves.glyph_path().compute_winding_number(delta + pt, &dist);
+          if (dist > best_dist)
+            {
+              m_delta = idelta;
+              m_winding = winding;
+              best_dist = dist;
+            }
+        }
     }
 }
 
@@ -1451,19 +1577,23 @@ pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
 
 int
 GlyphPath::
-compute_winding_number(fastuidraw::vec2 xy) const
+compute_winding_number(fastuidraw::vec2 xy, float *dist) const
 {
-  /* just compute it from scratch */
-  int w(0);
+  fastuidraw::ivec2 w(0, 0);
+
+  *dist = 65535.0f;
   for (const Contour &contour : m_contours)
     {
       for (unsigned int i = 0, endi = contour.num_curves(); i < endi; ++i)
         {
-          w += contour[i].compute_winding_contribution(xy);
+          w += contour[i].compute_winding_contribution(xy, dist);
         }
     }
 
-  return w;
+  /* NOTE: if the point is on the curve, then the
+   * winding value can be different in x and y.
+   */
+  return w.y();
 }
 
 /////////////////////////////////////////////////
