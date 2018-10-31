@@ -1356,10 +1356,6 @@ init(const GlyphPath *p,
                                  .curve(c)
                                  .contour(o));
             }
-          else
-            {
-              std::cout << "*";
-            }
         }
     }
   return m_curves.size();
