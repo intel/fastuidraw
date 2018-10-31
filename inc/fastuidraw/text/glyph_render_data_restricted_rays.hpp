@@ -193,7 +193,7 @@ namespace fastuidraw
          * The amount by which to divide the delta after applying
          * the bias of \ref delta_bias.
          */
-        delta_div_factor = 255,
+        delta_div_factor = 256,
 
         /*!
          * The first bit used to store the delta x-coordinate
