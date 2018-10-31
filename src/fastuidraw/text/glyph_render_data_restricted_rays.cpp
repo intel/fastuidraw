@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <set>
 #include <map>
 #include <cstdlib>
 #include <fastuidraw/util/matrix.hpp>
@@ -88,12 +89,82 @@ namespace
 
   class GlyphPath;
 
+  class CurveID
+  {
+  public:
+    CurveID& contour(int v) { m_ID.x() = v; return *this; }
+    CurveID& curve(int v) { m_ID.y() = v; return *this; }
+    unsigned int contour(void) const { return m_ID.x(); }
+    unsigned int curve(void) const { return m_ID.y(); }
+    bool operator<(const CurveID &rhs) const { return m_ID < rhs.m_ID; }
+  private:
+    fastuidraw::uvec2 m_ID;
+  };
+
+  class Edge
+  {
+  public:
+    Edge(int a, int b):
+      m_start(a),
+      m_end(b)
+    {}
+
+    int m_start, m_end;
+  };
+
+  class SortableEdge:public std::pair<int, int>
+  {
+  public:
+    SortableEdge(const Edge &E):
+      std::pair<int, int>(fastuidraw::t_min(E.m_start, E.m_end),
+                          fastuidraw::t_max(E.m_start, E.m_end))
+    {}
+  };
+
+  class TrackedEdge:public std::pair<Edge, CurveID>
+  {
+  public:
+    TrackedEdge(const Edge &E, const CurveID &C):
+      std::pair<Edge, CurveID>(E, C)
+    {}
+
+    const Edge&
+    edge(void) const { return first; }
+
+    const CurveID&
+    curve_id(void) const { return second; }
+  };
+
+  class CancellableEdge:public std::pair<Edge, bool>
+  {
+  public:
+    CancellableEdge(const Edge &E, bool b):
+      std::pair<Edge, bool>(E, b)
+    {}
+
+    const Edge&
+    edge(void) const { return first; }
+
+    bool
+    cancelled(void) const { return second; }
+
+    bool
+    operator<(const CancellableEdge &rhs) const
+    {
+      return edge().m_start < rhs.edge().m_end;
+    }
+  };
+
+  typedef std::map<int, std::vector<CancellableEdge> > EdgesOfContour; //keyed by CurveID::curve()
+  typedef std::map<int, EdgesOfContour> EdgesOfPath; //keyed by CurveID::contour()
+
   class Curve
   {
   public:
     Curve(const fastuidraw::ivec2 &a,
           const fastuidraw::ivec2 &b):
       m_offset(-1),
+      m_cancelled_edge(false),
       m_start(a),
       m_end(b),
       m_control((a + b) / 2),
@@ -111,6 +182,7 @@ namespace
           const fastuidraw::ivec2 &ct,
           const fastuidraw::ivec2 &b):
       m_offset(-1),
+      m_cancelled_edge(false),
       m_start(a),
       m_end(b),
       m_control(ct),
@@ -127,6 +199,7 @@ namespace
 
     Curve(fastuidraw::ivec2 scale_down, const Curve &C):
       m_offset(-1),
+      m_cancelled_edge(false),
       m_start(C.m_start / scale_down),
       m_end(C.m_end / scale_down),
       m_control(C.m_control / scale_down),
@@ -169,6 +242,13 @@ namespace
     {
       FASTUIDRAWassert(m_has_control);
       return m_fcontrol;
+    }
+
+    bool
+    is_fixed_line(int coord, int *fixed_value) const
+    {
+      *fixed_value = m_start[coord];
+      return (m_start[coord] == m_end[coord] && !m_has_control);
     }
 
     bool
@@ -226,6 +306,7 @@ namespace
 
     /* Assigned in GlyphRenderDataRestrictedRays::finalize() */
     int m_offset;
+    bool m_cancelled_edge;
 
   private:
     static
@@ -284,24 +365,20 @@ namespace
   class Contour
   {
   public:
+    Contour(void)
+    {}
+
     explicit
     Contour(fastuidraw::ivec2 pt):
-      m_last_pt(pt),
-      m_num_pts(1)
+      m_last_pt(pt)
     {}
 
     Contour(fastuidraw::ivec2 scale_down,
-            const Contour &contour)
-    {
-      for (const Curve &C : contour.m_curves)
-        {
-          Curve D(scale_down, C);
-          if (D.start() != D.end())
-            {
-              m_curves.push_back(D);
-            }
-        }
-    }
+            const Contour &contour);
+
+    Contour(const Contour &C,
+            const EdgesOfContour *cH,
+            const EdgesOfContour *cV);
 
     void
     line_to(fastuidraw::ivec2 pt)
@@ -310,7 +387,6 @@ namespace
         {
           m_curves.push_back(Curve(m_last_pt, pt));
           m_last_pt = pt;
-          ++m_num_pts;
         }
     }
 
@@ -322,14 +398,7 @@ namespace
         {
           m_curves.push_back(Curve(m_last_pt, ct, pt));
           m_last_pt = pt;
-          m_num_pts += 2;
         }
-    }
-
-    unsigned int
-    num_points(void) const
-    {
-      return m_num_pts;
     }
 
     bool
@@ -347,13 +416,7 @@ namespace
     }
 
     void
-    translate(const fastuidraw::ivec2 &v)
-    {
-      for (Curve &C : m_curves)
-        {
-          C.translate(v);
-        }
-    }
+    translate(const fastuidraw::ivec2 &v);
 
     unsigned int
     num_curves(void) const
@@ -374,21 +437,13 @@ namespace
     pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
 
   private:
+    void
+    add_curve(int curve_id, const Curve &curve,
+              const EdgesOfContour *cH,
+              const EdgesOfContour *cV);
+
     fastuidraw::ivec2 m_last_pt;
     std::vector<Curve> m_curves;
-    unsigned int m_num_pts;
-  };
-
-  class CurveID
-  {
-  public:
-    CurveID& contour(int v) { m_ID.x() = v; return *this; }
-    CurveID& curve(int v) { m_ID.y() = v; return *this; }
-    unsigned int contour(void) const { return m_ID.x(); }
-    unsigned int curve(void) const { return m_ID.y(); }
-    bool operator<(const CurveID &rhs) const { return m_ID < rhs.m_ID; }
-  private:
-    fastuidraw::uvec2 m_ID;
   };
 
   class CurveList
@@ -585,6 +640,43 @@ namespace
     fastuidraw::ivec2 m_delta;
   };
 
+  class EdgeTracker
+  {
+  public:
+    void
+    add_edge(const TrackedEdge &T)
+    {
+      const Edge &E(T.edge());
+      m_pts.insert(E.m_start);
+      m_pts.insert(E.m_end);
+      m_edges.push_back(T);
+    }
+
+    void
+    finalize(void);
+
+    const EdgesOfPath&
+    data(void) const
+    {
+      return m_data;
+    }
+
+  private:
+    std::set<int> m_pts;
+    std::vector<TrackedEdge> m_edges;
+    EdgesOfPath m_data;
+  };
+
+  class Counter
+  {
+  public:
+    Counter(void):
+      m_value(0)
+    {}
+
+    int m_value;
+  };
+
   class GlyphPath
   {
   public:
@@ -644,36 +736,13 @@ namespace
     }
 
     void
-    translate(const fastuidraw::ivec2 &v)
-    {
-      for (Contour &C : m_contours)
-        {
-          C.translate(v);
-        }
-      m_bbox.translate(v);
-      m_glyph_bound_min += v;
-      m_glyph_bound_max += v;
-    }
+    mark_cancel_curves(void);
 
     void
-    scale_down(const fastuidraw::ivec2 &v)
-    {
-      std::vector<Contour> tmp;
+    translate(const fastuidraw::ivec2 &v);
 
-      std::swap(tmp, m_contours);
-      for (const Contour &C : tmp)
-        {
-          Contour D(v, C);
-          if (!D.empty())
-            {
-              m_contours.push_back(D);
-              FASTUIDRAWassert(D.is_good());
-            }
-        }
-      m_bbox.scale_down(v);
-      m_glyph_bound_min /= v;
-      m_glyph_bound_max /= v;
-    }
+    void
+    scale_down(const fastuidraw::ivec2 &v);
 
     void
     set_glyph_bounds(fastuidraw::ivec2 min_pt,
@@ -1077,6 +1146,96 @@ intersects_edge(float v, int i, float min, float max) const
 
 /////////////////////////////////////////
 // Contour methods
+Contour::
+Contour(fastuidraw::ivec2 scale_down,
+        const Contour &contour)
+{
+  for (const Curve &C : contour.m_curves)
+    {
+      Curve D(scale_down, C);
+      if (D.start() != D.end())
+        {
+          m_curves.push_back(D);
+        }
+    }
+  FASTUIDRAWassert(is_good());
+}
+
+Contour::
+Contour(const Contour &contour,
+        const EdgesOfContour *cH,
+        const EdgesOfContour *cV)
+{
+  for (unsigned int c = 0, endc = contour.m_curves.size(); c < endc; ++c)
+    {
+      add_curve(c, contour.m_curves[c], cH, cV);
+    }
+  FASTUIDRAWassert(is_good());
+}
+
+void
+Contour::
+add_curve(int c, const Curve &curve,
+          const EdgesOfContour *cH,
+          const EdgesOfContour *cV)
+{
+  using namespace fastuidraw;
+
+  if (cH != nullptr)
+    {
+      EdgesOfContour::const_iterator iter;
+      iter = cH->find(c);
+      if (iter != cH->end())
+        {
+          for (const CancellableEdge &E : iter->second)
+            {
+              int f(curve.start()[0]);
+              Curve C(ivec2(f, E.edge().m_start),
+                      ivec2(f, E.edge().m_end));
+
+              FASTUIDRAWassert(f == curve.end()[0]);
+              m_curves.push_back(C);
+              m_curves.back().m_cancelled_edge = E.second;
+            }
+          return;
+        }
+    }
+
+  if (cV != nullptr)
+    {
+      EdgesOfContour::const_iterator iter;
+      iter = cV->find(c);
+      if (iter != cV->end())
+        {
+          for (const CancellableEdge &E : iter->second)
+            {
+              int f(curve.start()[1]);
+              Curve C(ivec2(E.edge().m_start, f),
+                      ivec2(E.edge().m_end, f));
+
+              FASTUIDRAWassert(f == curve.end()[1]);
+              m_curves.push_back(C);
+              m_curves.back().m_cancelled_edge = E.second;
+            }
+          return;
+        }
+    }
+
+  m_curves.push_back(curve);
+}
+
+void
+Contour::
+translate(const fastuidraw::ivec2 &v)
+{
+  FASTUIDRAWassert(is_good());
+  for (Curve &C : m_curves)
+    {
+      C.translate(v);
+    }
+  FASTUIDRAWassert(is_good());
+}
+
 void
 Contour::
 assign_curve_offsets(unsigned int &current_offset)
@@ -1125,9 +1284,12 @@ init(const GlyphPath *p,
     {
       for (unsigned int c = 0, endc = g[o].num_curves(); c < endc; ++c)
         {
-          m_curves.push_back(CurveID()
-                             .curve(c)
-                             .contour(o));
+          if (!g[o][c].m_cancelled_edge)
+            {
+              m_curves.push_back(CurveID()
+                                 .curve(c)
+                                 .contour(o));
+            }
         }
     }
   return m_curves.size();
@@ -1547,11 +1709,224 @@ print_tree(std::string prefix) const
     }
 }
 
+//////////////////////////////////////////
+// EdgeTracker methods
+void
+EdgeTracker::
+finalize(void)
+{
+  /* break each edge into edges that have no
+   * points in m_pts interior to them.
+   */
+  std::vector<TrackedEdge> tmp;
+
+  for (const TrackedEdge &t : m_edges)
+    {
+      const Edge &e(t.edge());
+      std::set<int>::const_iterator a, b;
+      int prev;
+
+      a = m_pts.find(e.m_start);
+      b = m_pts.find(e.m_end);
+      FASTUIDRAWassert(a != m_pts.end());
+      FASTUIDRAWassert(b != m_pts.end());
+
+      if (e.m_start > e.m_end)
+        {
+          std::swap(a, b);
+        }
+
+      for (prev = *a, ++a, ++b; a != b; ++a)
+        {
+          int st(prev), ed(*a);
+          if (e.m_start > e.m_end)
+            {
+              std::swap(st, ed);
+            }
+          tmp.push_back(TrackedEdge(Edge(st, ed), t.curve_id()));
+          prev = *a;
+        }
+    }
+
+  /* tmp now holds each edge partitioned so that they have
+   * no interior points as a value from m_pts; Now we need
+   * to classify each edge as a cancelled edge or not.
+   * To do that, we need to give each edge a counting value;
+   * that counting value is incremented or decremented
+   * depending on the orientation of each edge.
+   */
+  std::map<SortableEdge, Counter> S;
+  for (const TrackedEdge &t : tmp)
+    {
+      const Edge &E(t.edge());
+      if (E.m_start < E.m_end)
+        {
+          S[E].m_value += 1;
+        }
+      else
+        {
+          S[E].m_value -= 1;
+        }
+    }
+
+  bool has_cancelled_edges(false);
+
+  for (const TrackedEdge &T : tmp)
+    {
+      const Counter &C(S[T.edge()]);
+      const CurveID &id(T.curve_id());
+      CancellableEdge E(T.edge(), C.m_value == 0);
+
+      m_data[id.contour()][id.curve()].push_back(E);
+      has_cancelled_edges = has_cancelled_edges || E.cancelled();
+    }
+
+  if (!has_cancelled_edges)
+    {
+      m_data.clear();
+    }
+}
+
 ////////////////////////////////////////////////
 //GlyphPath methods
 GlyphPath::
 GlyphPath(void)
 {
+}
+
+void
+GlyphPath::
+translate(const fastuidraw::ivec2 &v)
+{
+  for (Contour &C : m_contours)
+    {
+      C.translate(v);
+    }
+  m_bbox.translate(v);
+  m_glyph_bound_min += v;
+  m_glyph_bound_max += v;
+}
+
+void
+GlyphPath::
+scale_down(const fastuidraw::ivec2 &v)
+{
+  std::vector<Contour> tmp;
+
+  std::swap(tmp, m_contours);
+  for (const Contour &C : tmp)
+    {
+      Contour D(v, C);
+      if (!D.empty())
+        {
+          m_contours.push_back(D);
+          FASTUIDRAWassert(D.is_good());
+        }
+    }
+  m_bbox.scale_down(v);
+  m_glyph_bound_min /= v;
+  m_glyph_bound_max /= v;
+}
+
+void
+GlyphPath::
+mark_cancel_curves(void)
+{
+  /* walk through all horizontal and vertical curves and save where
+   * they are; if there are two curves that overlap horizontally
+   * or vertically, break them into overlapping and non-overlapping
+   * portions and mark the overlapping portions as to be skipped
+   * in curve lists always.
+   */
+  fastuidraw::vecN<EdgesOfPath, 2> replacements;
+
+  for (int coord = 0; coord < 2; ++coord)
+    {
+      std::map<int, std::vector<CurveID> > hoard;
+
+      for (unsigned int i = 0, endi = m_contours.size(); i < endi; ++i)
+        {
+          const Contour &contour(m_contours[i]);
+          for (unsigned int j = 0, endj = contour.num_curves(); j < endj; ++j)
+            {
+              const Curve &curve(contour[j]);
+              int fixed_coord;
+
+              if (curve.is_fixed_line(coord, &fixed_coord))
+                {
+                  hoard[fixed_coord].push_back(CurveID().contour(i).curve(j));
+                }
+            }
+        }
+
+      for (const auto &v : hoard)
+        {
+          if (v.second.size() > 1)
+            {
+              EdgeTracker E;
+
+              /* split curves so that areas of overlap
+               * have identical endpoints.
+               */
+              for (const CurveID &ID : v.second)
+                {
+                  const Curve &curve(m_contours[ID.contour()][ID.curve()]);
+                  Edge edge(curve.start()[1 - coord], curve.end()[1 - coord]);
+
+                  E.add_edge(TrackedEdge(edge, ID));
+                }
+              E.finalize();
+              replacements[coord].insert(E.data().begin(), E.data().end());
+            }
+        }
+    }
+
+  if (replacements[0].empty() && replacements[1].empty())
+    {
+      return;
+    }
+
+  for (int coord = 0; coord < 2; ++coord)
+    {
+      for (auto &v : replacements[coord])
+        {
+          for (auto &w : v.second)
+            {
+              const Curve &C(m_contours[v.first][w.first]);
+
+              FASTUIDRAWassert(C.start()[coord] == C.end()[coord]);
+              std::sort(w.second.begin(), w.second.end());
+              if (C.start()[1 - coord] > C.end()[1 - coord])
+                {
+                  std::reverse(w.second.begin(), w.second.end());
+                }
+            }
+        }
+    }
+
+  std::vector<Contour> tmp;
+
+  std::swap(tmp, m_contours);
+  for (unsigned int i = 0, endi = tmp.size(); i < endi; ++i)
+    {
+      EdgesOfPath::const_iterator iH, iV;
+
+      iH = replacements[0].find(i);
+      iV = replacements[1].find(i);
+      if (iH == replacements[0].end() && iV == replacements[1].end())
+        {
+          m_contours.push_back(Contour());
+          std::swap(m_contours.back(), tmp[i]);
+        }
+      else
+        {
+          const EdgesOfContour *cH, *cV;
+
+          cH = (iH != replacements[0].end()) ? &iH->second : nullptr;
+          cV = (iV != replacements[1].end()) ? &iV->second : nullptr;
+          m_contours.push_back(Contour(tmp[i], cH, cV));
+        }
+    }
 }
 
 unsigned int
@@ -1670,7 +2045,12 @@ finalize(enum PainterEnums::fill_rule_t f,
       return;
     }
 
-  /* Step 0: Scale the value to be in the range [0, 65535] */
+  /* Step 1: Mark any curve or portions of curves that are
+   * cancelled another curve
+   */
+  d->m_glyph->mark_cancel_curves();
+
+  /* Step 2: Scale the value to be in the range [0, 65535] */
   d->m_glyph->translate(-d->m_glyph->bbox().min_point());
 
   FASTUIDRAWassert(d->m_glyph->bbox().min_point().x() == 0);
@@ -1696,23 +2076,23 @@ finalize(enum PainterEnums::fill_rule_t f,
       d->m_glyph->scale_down(div_scale);
     }
 
-  /* step 1: create the tree */
+  /* step 3: create the tree */
   CurveListHierarchy hierarchy(d->m_glyph,
                                d->m_glyph->glyph_bound_min(),
                                d->m_glyph->glyph_bound_max());
 
-  /* step 2: assign tree offsets */
+  /* step 4: assign tree offsets */
   unsigned int tree_size, total_size;
   tree_size = hierarchy.assign_tree_offsets();
 
-  /* step 3: assign the curve list offsets */
+  /* step 5: assign the curve list offsets */
   CurveListCollection curve_lists(tree_size);
   hierarchy.assign_curve_list_offsets(curve_lists);
 
-  /* step 4: assign the offsets to each of the curves */
+  /* step 6: assign the offsets to each of the curves */
   total_size = d->m_glyph->assign_curve_offsets(curve_lists.current_offset());
 
-  /* step 5: pack the data */
+  /* step 7: pack the data */
   d->m_render_data.resize(total_size);
   c_array<generic_data> render_data(make_c_array(d->m_render_data));
 
@@ -1720,7 +2100,7 @@ finalize(enum PainterEnums::fill_rule_t f,
   curve_lists.pack_data(d->m_glyph, render_data);
   d->m_glyph->pack_data(render_data);
 
-  /* step 7: record the data neeed for shading */
+  /* step 8: record the data neeed for shading */
   d->m_min = d->m_glyph->glyph_bound_min();
   d->m_max = d->m_glyph->glyph_bound_max();
   d->m_size = d->m_max - d->m_min;
