@@ -59,12 +59,10 @@ void
 fastuidraw_restricted_rays_update_distance(in vec2 p, in bool is_increment,
                                            inout fastuidraw_restricted_rays_distance_type nv)
 {
-  /* TODO: There are glyphs that have cancelling curves (for example glyph 25561
-   * of simsun.ttc. If it turns out that the closest curves are from a
-   * cancelling curve pair, we should ignore it. One hack is to save the
-   * position (instead of the distance) and if the positions of the
-   * increment and decrement are the same to then say that there is no
-   * nearest curve.
+  /* We are assuming that there are no cancelling curves in the glyph data.
+   * The class GlyphRenderDataRestrictedRays has code to detect most forms
+   * of cancelling curves (it detects partially overlapping vertical and
+   * horizontal curves along with perfectly overlapping general curves).
    */
   float dist;
 
