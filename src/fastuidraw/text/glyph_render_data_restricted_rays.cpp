@@ -739,6 +739,19 @@ namespace
     mark_cancel_curves(void);
 
     void
+    compute_edges_of_path(int coord, EdgesOfPath *dst);
+
+    void
+    sort_edges_of_path(int coord, EdgesOfPath *dst);
+
+    void
+    rebuild_path(const EdgesOfPath &sH, const EdgesOfPath &sV);
+
+    void
+    rebuild_contour(Contour &contour, unsigned int contourID,
+                    const EdgesOfPath &sH, const EdgesOfPath &sV);
+
+    void
     translate(const fastuidraw::ivec2 &v);
 
     void
@@ -1830,6 +1843,108 @@ scale_down(const fastuidraw::ivec2 &v)
 
 void
 GlyphPath::
+compute_edges_of_path(int coord, EdgesOfPath *dst)
+{
+  std::map<int, std::vector<CurveID> > hoard;
+
+  for (unsigned int i = 0, endi = m_contours.size(); i < endi; ++i)
+    {
+      const Contour &contour(m_contours[i]);
+      for (unsigned int j = 0, endj = contour.num_curves(); j < endj; ++j)
+        {
+          const Curve &curve(contour[j]);
+          int fixed_coord;
+
+          if (curve.is_fixed_line(coord, &fixed_coord))
+            {
+              hoard[fixed_coord].push_back(CurveID().contour(i).curve(j));
+            }
+        }
+    }
+
+  for (const auto &v : hoard)
+    {
+      if (v.second.size() > 1)
+        {
+          EdgeTracker E;
+
+          /* split curves so that areas of overlap
+           * have identical endpoints.
+           */
+          for (const CurveID &ID : v.second)
+            {
+              const Curve &curve(m_contours[ID.contour()][ID.curve()]);
+              Edge edge(curve.start()[1 - coord], curve.end()[1 - coord]);
+
+              E.add_edge(TrackedEdge(edge, ID));
+            }
+          E.finalize();
+          dst->insert(E.data().begin(), E.data().end());
+        }
+    }
+
+  sort_edges_of_path(coord, dst);
+}
+
+void
+GlyphPath::
+sort_edges_of_path(int coord, EdgesOfPath *dst)
+{
+  for (auto &v : *dst)
+    {
+      for (auto &w : v.second)
+        {
+          const Curve &C(m_contours[v.first][w.first]);
+
+          FASTUIDRAWassert(C.start()[coord] == C.end()[coord]);
+          std::sort(w.second.begin(), w.second.end());
+          if (C.start()[1 - coord] > C.end()[1 - coord])
+            {
+              std::reverse(w.second.begin(), w.second.end());
+            }
+        }
+    }
+}
+
+void
+GlyphPath::
+rebuild_contour(Contour &contour, unsigned int contourID,
+                const EdgesOfPath &sH, const EdgesOfPath &sV)
+{
+  EdgesOfPath::const_iterator iH, iV;
+
+  iH = sH.find(contourID);
+  iV = sV.find(contourID);
+  if (iH == sH.end() && iV == sV.end())
+    {
+      m_contours.push_back(Contour());
+      std::swap(m_contours.back(), contour);
+    }
+  else
+    {
+      const EdgesOfContour *cH, *cV;
+
+      cH = (iH != sH.end()) ? &iH->second : nullptr;
+      cV = (iV != sV.end()) ? &iV->second : nullptr;
+      m_contours.push_back(Contour(contour, cH, cV));
+    }
+}
+
+void
+GlyphPath::
+rebuild_path(const EdgesOfPath &sH, const EdgesOfPath &sV)
+{
+  std::vector<Contour> tmp;
+
+  std::swap(tmp, m_contours);
+  for (unsigned int i = 0, endi = tmp.size(); i < endi; ++i)
+    {
+      rebuild_contour(tmp[i], i, sH, sV);
+    }
+}
+
+void
+GlyphPath::
 mark_cancel_curves(void)
 {
   /* walk through all horizontal and vertical curves and save where
@@ -1839,93 +1954,14 @@ mark_cancel_curves(void)
    * in curve lists always.
    */
   fastuidraw::vecN<EdgesOfPath, 2> replacements;
-
   for (int coord = 0; coord < 2; ++coord)
     {
-      std::map<int, std::vector<CurveID> > hoard;
-
-      for (unsigned int i = 0, endi = m_contours.size(); i < endi; ++i)
-        {
-          const Contour &contour(m_contours[i]);
-          for (unsigned int j = 0, endj = contour.num_curves(); j < endj; ++j)
-            {
-              const Curve &curve(contour[j]);
-              int fixed_coord;
-
-              if (curve.is_fixed_line(coord, &fixed_coord))
-                {
-                  hoard[fixed_coord].push_back(CurveID().contour(i).curve(j));
-                }
-            }
-        }
-
-      for (const auto &v : hoard)
-        {
-          if (v.second.size() > 1)
-            {
-              EdgeTracker E;
-
-              /* split curves so that areas of overlap
-               * have identical endpoints.
-               */
-              for (const CurveID &ID : v.second)
-                {
-                  const Curve &curve(m_contours[ID.contour()][ID.curve()]);
-                  Edge edge(curve.start()[1 - coord], curve.end()[1 - coord]);
-
-                  E.add_edge(TrackedEdge(edge, ID));
-                }
-              E.finalize();
-              replacements[coord].insert(E.data().begin(), E.data().end());
-            }
-        }
+      compute_edges_of_path(coord, &replacements[coord]);
     }
 
-  if (replacements[0].empty() && replacements[1].empty())
+  if (!replacements[0].empty() || !replacements[1].empty())
     {
-      return;
-    }
-
-  for (int coord = 0; coord < 2; ++coord)
-    {
-      for (auto &v : replacements[coord])
-        {
-          for (auto &w : v.second)
-            {
-              const Curve &C(m_contours[v.first][w.first]);
-
-              FASTUIDRAWassert(C.start()[coord] == C.end()[coord]);
-              std::sort(w.second.begin(), w.second.end());
-              if (C.start()[1 - coord] > C.end()[1 - coord])
-                {
-                  std::reverse(w.second.begin(), w.second.end());
-                }
-            }
-        }
-    }
-
-  std::vector<Contour> tmp;
-
-  std::swap(tmp, m_contours);
-  for (unsigned int i = 0, endi = tmp.size(); i < endi; ++i)
-    {
-      EdgesOfPath::const_iterator iH, iV;
-
-      iH = replacements[0].find(i);
-      iV = replacements[1].find(i);
-      if (iH == replacements[0].end() && iV == replacements[1].end())
-        {
-          m_contours.push_back(Contour());
-          std::swap(m_contours.back(), tmp[i]);
-        }
-      else
-        {
-          const EdgesOfContour *cH, *cV;
-
-          cH = (iH != replacements[0].end()) ? &iH->second : nullptr;
-          cV = (iV != replacements[1].end()) ? &iV->second : nullptr;
-          m_contours.push_back(Contour(tmp[i], cH, cV));
-        }
+      rebuild_path(replacements[0], replacements[1]);
     }
 }
 
