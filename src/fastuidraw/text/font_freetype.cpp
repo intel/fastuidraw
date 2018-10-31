@@ -379,7 +379,7 @@ compute_rendering_data_coverage(int pixel_size,
   uint32_t glyph_code(glyph_metrics.glyph_code());
 
   FT_Set_Pixel_Sizes(face, pixel_size, pixel_size);
-  FT_Load_Glyph(face, glyph_code, FT_LOAD_RENDER);
+  FT_Load_Glyph(face, glyph_code, FT_LOAD_RENDER | FT_LOAD_NO_BITMAP);
   IntPathCreator::decompose_to_path(&face->glyph->outline, path, C);
   bitmap_sz.x() = face->glyph->bitmap.width;
   bitmap_sz.y() = face->glyph->bitmap.rows;
