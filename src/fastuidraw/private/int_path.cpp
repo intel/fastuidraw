@@ -1729,7 +1729,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
                     float max_distance,
                     IntBezierCurve::transformation<int> tr,
                     const CustomFillRuleBase &fill_rule,
-                    GlyphRenderDataDistanceField *dst) const
+                    GlyphRenderDataTexels *dst) const
 {
   DistanceFieldGenerator compute(m_contours);
   array2d<distance_value> dist_values(image_sz.x(), image_sz.y());
@@ -1749,7 +1749,9 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
   compute.compute_distance_values(step, image_sz, tr, radius, dist_values);
 
   dst->resize(image_sz);
-  std::fill(dst->distance_values().begin(), dst->distance_values().end(), 0);
+  c_array<uint8_t> texel_data(dst->texel_data());
+
+  std::fill(texel_data.begin(), texel_data.end(), 0);
   for(int y = 0; y < image_sz.y(); ++y)
     {
       for(int x = 0; x < image_sz.x(); ++x)
@@ -1776,7 +1778,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
             }
           v = DistanceFieldGenerator::pixel_value_from_distance(dist, outside1);
           location = x + y * image_sz.x();
-          dst->distance_values()[location] = v;
+          texel_data[location] = v;
         }
     }
 }

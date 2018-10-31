@@ -1,6 +1,6 @@
 /*!
- * \file glyph_render_data_distance_field.cpp
- * \brief file glyph_render_data_distance_field.cpp
+ * \file glyph_render_data_texels.cpp
+ * \brief file glyph_render_data_texles.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -18,9 +18,10 @@
 
 
 #include <vector>
-#include <fastuidraw/text/glyph_render_data_distance_field.hpp>
+#include <fastuidraw/text/glyph_render_data_texels.hpp>
 #include "../private/pack_texels.hpp"
 #include "../private/util_private.hpp"
+#include "../private/util_private_ostream.hpp"
 
 namespace
 {
@@ -45,16 +46,16 @@ namespace
   };
 }
 
-/////////////////////////////////////////////
-// fastuidraw::GlyphRenderDataDistanceField methods
-fastuidraw::GlyphRenderDataDistanceField::
-GlyphRenderDataDistanceField(void)
+////////////////////////////////////
+// fastuidraw::GlyphRenderDataTexels methods
+fastuidraw::GlyphRenderDataTexels::
+GlyphRenderDataTexels(void)
 {
   m_d = FASTUIDRAWnew GlyphDataPrivate();
 }
 
-fastuidraw::GlyphRenderDataDistanceField::
-~GlyphRenderDataDistanceField(void)
+fastuidraw::GlyphRenderDataTexels::
+~GlyphRenderDataTexels(void)
 {
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
@@ -63,7 +64,7 @@ fastuidraw::GlyphRenderDataDistanceField::
 }
 
 fastuidraw::ivec2
-fastuidraw::GlyphRenderDataDistanceField::
+fastuidraw::GlyphRenderDataTexels::
 resolution(void) const
 {
   GlyphDataPrivate *d;
@@ -72,8 +73,8 @@ resolution(void) const
 }
 
 fastuidraw::c_array<const uint8_t>
-fastuidraw::GlyphRenderDataDistanceField::
-distance_values(void) const
+fastuidraw::GlyphRenderDataTexels::
+texel_data(void) const
 {
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
@@ -81,8 +82,8 @@ distance_values(void) const
 }
 
 fastuidraw::c_array<uint8_t>
-fastuidraw::GlyphRenderDataDistanceField::
-distance_values(void)
+fastuidraw::GlyphRenderDataTexels::
+texel_data(void)
 {
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
@@ -90,7 +91,7 @@ distance_values(void)
 }
 
 void
-fastuidraw::GlyphRenderDataDistanceField::
+fastuidraw::GlyphRenderDataTexels::
 resize(fastuidraw::ivec2 sz)
 {
   GlyphDataPrivate *d;
@@ -99,7 +100,7 @@ resize(fastuidraw::ivec2 sz)
 }
 
 enum fastuidraw::return_code
-fastuidraw::GlyphRenderDataDistanceField::
+fastuidraw::GlyphRenderDataTexels::
 upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
                 GlyphAttribute::Array &attributes) const
 {

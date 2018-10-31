@@ -27,7 +27,7 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
-#include <fastuidraw/text/glyph_render_data_distance_field.hpp>
+#include <fastuidraw/text/glyph_render_data_texels.hpp>
 
 #include "array2d.hpp"
 #include "bounding_box.hpp"
@@ -446,7 +446,7 @@ namespace fastuidraw
                           float max_distance,
                           IntBezierCurve::transformation<int> tr,
                           const CustomFillRuleBase &fill_rule,
-                          GlyphRenderDataDistanceField *dst) const;
+                          GlyphRenderDataTexels *dst) const;
 
     private:
       IntBezierCurve::ID_t

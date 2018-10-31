@@ -34,17 +34,17 @@ namespace
 
 void
 fastuidraw::detail::
-pack_texels(uvec2 dims,
+pack_texels(const uvec2 &dims,
 	    c_array<const uint8_t> texels,
 	    std::vector<generic_data> *out_packed_texels)
 {
   uvec2 wh(dims);
-  if (wh.x() & 1)
+  if (wh.x() & 1u)
     {
       ++wh.x();
     }
 
-  if (wh.y() & 1)
+  if (wh.y() & 1u)
     {
       ++wh.y();
     }
@@ -52,6 +52,7 @@ pack_texels(uvec2 dims,
   std::vector<generic_data> &data(*out_packed_texels);
   uint32_t num_texels(wh.x() * wh.y());
 
+  FASTUIDRAWassert((num_texels & 0x3u) == 0u);
   data.resize(num_texels >> 2u);
   for (unsigned int y = 0, dst = 0; y < wh.y(); y += 2u)
     {

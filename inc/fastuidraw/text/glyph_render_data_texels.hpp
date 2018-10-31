@@ -1,6 +1,6 @@
 /*!
- * \file glyph_render_data_coverage.hpp
- * \brief file glyph_render_data_coverage.hpp
+ * \file glyph_render_data_texels.hpp
+ * \brief file glyph_render_data_texels.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -29,48 +29,43 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A GlyphRenderDataCoverage represents the data needed
-   * to build a coverage (non-scalable) glyph. Such
-   * glyphs are for rendering glyphs small where
-   * hinting plays a crucial role.
+   * A GlyphRenderDataTexels holds texel data for
+   * rendering a glyph. Such texel data can be for
+   * both distance field and coverage glyph rendeding.
    */
-  class GlyphRenderDataCoverage:public GlyphRenderData
+  class GlyphRenderDataTexels:public GlyphRenderData
   {
   public:
     /*!
      * Ctor, initialized the resolution as (0,0).
      */
-    GlyphRenderDataCoverage(void);
+    GlyphRenderDataTexels(void);
 
-    ~GlyphRenderDataCoverage();
+    ~GlyphRenderDataTexels();
 
     /*!
-     * Returns the resolution of the glyph including
-     * padding. The padding is to be 1 pixel wide
-     * on the bottom and on the right, i.e.
-     * GlyphAtlas::Padding::m_right = GlyphAtlas::Padding::m_bottom = 1
-     * and GlyphAtlas::Padding::m_left = GlyphAtlas::Padding::m_top = 0.
+     * Returns the resolution of the glyph.
      */
     ivec2
     resolution(void) const;
 
     /*!
-     * Returns the coverage values for rendering.
+     * Returns the texel data for rendering.
      * The texel (x,y) is located at I where I is
      * given by I = x + y * resolution().x(). Value
-     * is an 8-bit coverage value.
+     * is an 8-bit value.
      */
     c_array<const uint8_t>
-    coverage_values(void) const;
+    texel_data(void) const;
 
     /*!
      * Returns the coverage values for rendering.
      * The texel (x,y) is located at I where I is
      * given by I = x + y * resolution().x(). Value
-     * is an 8-bit coverage value.
+     * is an 8-bit value.
      */
     c_array<uint8_t>
-    coverage_values(void);
+    texel_data(void);
 
     /*!
      * Change the resolution

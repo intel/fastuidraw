@@ -33,7 +33,7 @@ namespace fastuidraw
      * 32-bit value holds a 2x2 block of texels.
      */
     void
-    pack_texels(uvec2 in_dims,
+    pack_texels(const uvec2 &in_dims,
 		c_array<const uint8_t> texels,
 		std::vector<generic_data> *out_packed_texels);
   }
