@@ -304,6 +304,15 @@ namespace
       m_fbbox.translate(fv);
     }
 
+    bool
+    is_opposite(const Curve &C)
+    {
+      return (C.start() == end()
+              && C.end() == start()
+              && C.has_control() == has_control()
+              && (!has_control() || C.control() == control()));
+    }
+
     /* Assigned in GlyphRenderDataRestrictedRays::finalize() */
     int m_offset;
     bool m_cancelled_edge;
@@ -312,8 +321,8 @@ namespace
     static
     bool
     is_flat(fastuidraw::ivec2 a,
-                 fastuidraw::ivec2 b,
-                 fastuidraw::ivec2 c)
+            fastuidraw::ivec2 b,
+            fastuidraw::ivec2 c)
     {
       fastuidraw::i64vec2 v(b - a), w(c - a);
       int64_t det;
@@ -360,6 +369,68 @@ namespace
     bool m_has_control;
     unsigned int m_num_crits;
     fastuidraw::vecN<fastuidraw::vec2, 2> m_crits;
+  };
+
+  class SortableCurve
+  {
+  public:
+    SortableCurve(const Curve &C):
+      m_has_control(C.has_control()),
+      m_a(fastuidraw::t_min(C.start(), C.end())),
+      m_b(fastuidraw::t_max(C.start(), C.end()))
+    {
+      if (m_has_control)
+        {
+          m_ctl = C.control();
+        }
+    }
+
+    bool
+    operator<(const SortableCurve &rhs) const
+    {
+      if (m_has_control != rhs.m_has_control)
+        {
+          return m_has_control < rhs.m_has_control;
+        }
+
+      if (m_has_control && m_ctl != rhs.m_ctl)
+        {
+          return m_ctl < rhs.m_ctl;
+        }
+
+      if (m_a != rhs.m_a)
+        {
+          return m_a < rhs.m_a;
+        }
+
+      return m_b < rhs.m_b;
+    }
+
+    static
+    bool
+    compare_curves(const Curve *lhs, const Curve *rhs)
+    {
+      if (lhs->has_control() != rhs->has_control())
+        {
+          return lhs->has_control() < rhs->has_control();
+        }
+
+      if (lhs->has_control() && lhs->control() != rhs->control())
+        {
+          return lhs->control() < rhs->control();
+        }
+
+      if (lhs->start() != rhs->start())
+        {
+          return lhs->start() < rhs->start();
+        }
+
+      return lhs->end() < rhs->end();
+    }
+
+  private:
+    bool m_has_control;
+    fastuidraw::ivec2 m_a, m_b, m_ctl;
   };
 
   class Contour
@@ -410,6 +481,13 @@ namespace
 
     const Curve&
     operator[](unsigned int C) const
+    {
+      FASTUIDRAWassert(C < m_curves.size());
+      return m_curves[C];
+    }
+
+    Curve&
+    operator[](unsigned int C)
     {
       FASTUIDRAWassert(C < m_curves.size());
       return m_curves[C];
@@ -750,6 +828,9 @@ namespace
     void
     rebuild_contour(Contour &contour, unsigned int contourID,
                     const EdgesOfPath &sH, const EdgesOfPath &sV);
+
+    void
+    mark_exact_cancel_edges(void);
 
     void
     translate(const fastuidraw::ivec2 &v);
@@ -1194,6 +1275,12 @@ add_curve(int c, const Curve &curve,
 {
   using namespace fastuidraw;
 
+  /* Check if the passed curve is in either cH or cV.
+   * If it is, it is in only one of them and replace
+   * that edge with the edge broken into pieces listed
+   * in cH or cV with the edge each piece being cancelled
+   * as according to CancellableEdge::cancelled().
+   */
   if (cH != nullptr)
     {
       EdgesOfContour::const_iterator iter;
@@ -1208,7 +1295,7 @@ add_curve(int c, const Curve &curve,
 
               FASTUIDRAWassert(f == curve.end()[0]);
               m_curves.push_back(C);
-              m_curves.back().m_cancelled_edge = E.second;
+              m_curves.back().m_cancelled_edge = E.cancelled();
             }
           return;
         }
@@ -1847,6 +1934,10 @@ compute_edges_of_path(int coord, EdgesOfPath *dst)
 {
   std::map<int, std::vector<CurveID> > hoard;
 
+  /* find all curves that have the named coordinate fixed
+   * and add them to a map keyed by coordinate value with
+   * values as an array of CurveID values.
+   */
   for (unsigned int i = 0, endi = m_contours.size(); i < endi; ++i)
     {
       const Contour &contour(m_contours[i]);
@@ -1864,12 +1955,14 @@ compute_edges_of_path(int coord, EdgesOfPath *dst)
 
   for (const auto &v : hoard)
     {
+      /* Use EdgeTracker to split overlapping curves so that
+       * end points of overlapping curves precisely match
+       */
       if (v.second.size() > 1)
         {
           EdgeTracker E;
 
-          /* split curves so that areas of overlap
-           * have identical endpoints.
+          /* split curves so that areas of overlap have identical endpoints.
            */
           for (const CurveID &ID : v.second)
             {
@@ -1883,6 +1976,9 @@ compute_edges_of_path(int coord, EdgesOfPath *dst)
         }
     }
 
+  /* We need to sort the produced edges so that they are
+   * ordered exactly as the original curves were.
+   */
   sort_edges_of_path(coord, dst);
 }
 
@@ -1913,6 +2009,11 @@ rebuild_contour(Contour &contour, unsigned int contourID,
 {
   EdgesOfPath::const_iterator iH, iV;
 
+  /* Check if the named contour is within sH or sV;
+   * if it is in atleast one of them, rebuild the contour
+   * with partitioned edges in sH and sV replacing the
+   * original edges.
+   */
   iH = sH.find(contourID);
   iV = sV.find(contourID);
   if (iH == sH.end() && iV == sV.end())
@@ -1945,14 +2046,39 @@ rebuild_path(const EdgesOfPath &sH, const EdgesOfPath &sV)
 
 void
 GlyphPath::
+mark_exact_cancel_edges(void)
+{
+  /* simple code to detect exact opposite edges and to mark
+   * them in pairs as cancelled.
+   */
+  std::map<SortableCurve, std::vector<Curve*> > tmp;
+  for (Contour &C : m_contours)
+    {
+      for (unsigned int i = 0, endi = C.num_curves(); i < endi; ++i)
+        {
+          SortableCurve S(C[i]);
+          tmp[S].push_back(&C[i]);
+        }
+    }
+
+  for (auto &v : tmp)
+    {
+      fastuidraw::c_array<Curve*> curves(fastuidraw::make_c_array(v.second));
+      std::sort(curves.begin(), curves.end(), SortableCurve::compare_curves);
+
+      while(curves.size() >= 2 && curves.front()->is_opposite(*curves.back()))
+        {
+          curves.front()->m_cancelled_edge = true;
+          curves.back()->m_cancelled_edge = true;
+          curves = curves.sub_array(1, curves.size() - 2);
+        }
+    }
+}
+
+void
+GlyphPath::
 mark_cancel_curves(void)
 {
-  /* walk through all horizontal and vertical curves and save where
-   * they are; if there are two curves that overlap horizontally
-   * or vertically, break them into overlapping and non-overlapping
-   * portions and mark the overlapping portions as to be skipped
-   * in curve lists always.
-   */
   fastuidraw::vecN<EdgesOfPath, 2> replacements;
   for (int coord = 0; coord < 2; ++coord)
     {
@@ -1963,6 +2089,8 @@ mark_cancel_curves(void)
     {
       rebuild_path(replacements[0], replacements[1]);
     }
+
+  mark_exact_cancel_edges();
 }
 
 unsigned int
