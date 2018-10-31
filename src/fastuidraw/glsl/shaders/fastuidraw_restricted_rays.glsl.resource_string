@@ -431,28 +431,22 @@ fastuidraw_restricted_rays_load_curve(in uint raw,
                                       out fastuidraw_restricted_rays_curve_type curve)
 {
   uint curve_src;
-  ivec2 ip1, ip3, iA, i2B, iC;
+  ivec2 ip1, ip2, ip3, iA, i2B, iC;
 
   curve_src = glyph_data_location + FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_bit0, fastuidraw_restricted_rays_curve_num_bits, raw);
   curve.is_quadratic = (raw & fastuidraw_restricted_rays_curve_is_quadratic_mask) != 0u;
 
+  ip1 = fastuidraw_restricted_rays_unpack_point(curve_src);
+  ip2 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
+
   if (curve.is_quadratic)
     {
-      ivec2 ip2;
-
-      ip1 = fastuidraw_restricted_rays_unpack_point(curve_src);
-      ip2 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
       ip3 = fastuidraw_restricted_rays_unpack_point(curve_src + 2u);
-
       curve.p2 = vec2(ip2);
     }
   else
     {
-      ivec2 ip2;
-
-      ip1 = fastuidraw_restricted_rays_unpack_point(curve_src);
-      ip3 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
-
+      ip3 = ip2;
       curve.p2 = 0.5 * vec2(ip1 + ip3);
     }
 
@@ -501,9 +495,12 @@ fastuidraw_restricted_rays_load_winding_reference(in uint location,
   position = box.min_point;
   texel = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(location);
 
-  biased_winding = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_winding_value_bit0, fastuidraw_restricted_rays_winding_value_num_bits, texel);
-  uint_delta.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_x_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
-  uint_delta.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_y_bit0, fastuidraw_restricted_rays_position_delta_num_bits, texel);
+  biased_winding = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_winding_value_bit0,
+                                           fastuidraw_restricted_rays_winding_value_num_bits, texel);
+  uint_delta.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_x_bit0,
+                                         fastuidraw_restricted_rays_position_delta_num_bits, texel);
+  uint_delta.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_position_delta_y_bit0,
+                                         fastuidraw_restricted_rays_position_delta_num_bits, texel);
 
   delta = vec2(uint_delta) * box.size;
   delta /= float(fastuidraw_restricted_rays_position_delta_divide);
