@@ -16,7 +16,6 @@
  *
  */
 
-#include <sstream>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
