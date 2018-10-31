@@ -56,9 +56,19 @@ struct fastuidraw_restricted_rays_winding_sample_type
 };
 
 void
-fastuidraw_restricted_rays_update_distance(in float dist, in bool is_increment,
+fastuidraw_restricted_rays_update_distance(in vec2 p, in bool is_increment,
                                            inout fastuidraw_restricted_rays_distance_type nv)
 {
+  /* TODO: There are glyphs that have cancelling curves (for example glyph 25561
+   * of simsun.ttc. If it turns out that the closest curves are from a
+   * cancelling curve pair, we should ignore it. One hack is to save the
+   * position (instead of the distance) and if the positions of the
+   * increment and decrement are the same to then say that there is no
+   * nearest curve.
+   */
+  float dist;
+
+  dist = abs(p.x) + abs(p.y);
   if (is_increment)
     {
       nv.distance_increment = min(nv.distance_increment, dist);
@@ -76,7 +86,7 @@ fastuidraw_restricted_rays_update_distance(in vec2 p, in vec2 dp,
   float z;
 
   z = p.x * dp.y - p.y * dp.x;
-  fastuidraw_restricted_rays_update_distance(abs(p.x) + abs(p.y), z > 0.0, nv);
+  fastuidraw_restricted_rays_update_distance(p, z > 0.0, nv);
 }
 
 uint
@@ -301,16 +311,12 @@ fastuidraw_restricted_rays_apply_y_fixed_line(in vec2 p1, in vec2 p2, in vec2 p3
 
       if ((code & 1u) != 0u && t1 >= 0.0 && t1 <= 1.0)
         {
-          fastuidraw_restricted_rays_update_distance(abs(p1.x) + abs(p1.y),
-                                                     p1.x < 0.0,
-                                                     value);
+          fastuidraw_restricted_rays_update_distance(p1, p1.x < 0.0, value);
         }
 
       if (code > 1u && t2 >= 0.0 && t2 <= 1.0)
         {
-          fastuidraw_restricted_rays_update_distance(abs(p2.x) + abs(p2.y),
-                                                     p2.x > 0.0,
-                                                     value);
+          fastuidraw_restricted_rays_update_distance(p2, p2.x > 0.0, value);
         }
     }
 }
