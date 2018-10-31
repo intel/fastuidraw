@@ -109,16 +109,15 @@ namespace
       m_end(b)
     {}
 
-    int m_start, m_end;
-  };
+    static
+    bool
+    compare_edges(const Edge &lhs, const Edge &rhs)
+    {
+      return fastuidraw::t_min(lhs.m_start, lhs.m_end)
+        < fastuidraw::t_max(rhs.m_start, rhs.m_end);
+    }
 
-  class SortableEdge:public std::pair<int, int>
-  {
-  public:
-    SortableEdge(const Edge &E):
-      std::pair<int, int>(fastuidraw::t_min(E.m_start, E.m_end),
-                          fastuidraw::t_max(E.m_start, E.m_end))
-    {}
+    int m_start, m_end;
   };
 
   class TrackedEdge:public std::pair<Edge, CurveID>
@@ -135,27 +134,7 @@ namespace
     curve_id(void) const { return second; }
   };
 
-  class CancellableEdge:public std::pair<Edge, bool>
-  {
-  public:
-    CancellableEdge(const Edge &E, bool b):
-      std::pair<Edge, bool>(E, b)
-    {}
-
-    const Edge&
-    edge(void) const { return first; }
-
-    bool
-    cancelled(void) const { return second; }
-
-    bool
-    operator<(const CancellableEdge &rhs) const
-    {
-      return edge().m_start < rhs.edge().m_end;
-    }
-  };
-
-  typedef std::map<int, std::vector<CancellableEdge> > EdgesOfContour; //keyed by CurveID::curve()
+  typedef std::map<int, std::vector<Edge> > EdgesOfContour; //keyed by CurveID::curve()
   typedef std::map<int, EdgesOfContour> EdgesOfPath; //keyed by CurveID::contour()
 
   class Curve
@@ -745,16 +724,6 @@ namespace
     EdgesOfPath m_data;
   };
 
-  class Counter
-  {
-  public:
-    Counter(void):
-      m_value(0)
-    {}
-
-    int m_value;
-  };
-
   class GlyphPath
   {
   public:
@@ -1278,8 +1247,7 @@ add_curve(int c, const Curve &curve,
   /* Check if the passed curve is in either cH or cV.
    * If it is, it is in only one of them and replace
    * that edge with the edge broken into pieces listed
-   * in cH or cV with the edge each piece being cancelled
-   * as according to CancellableEdge::cancelled().
+   * in cH or cV.
    */
   if (cH != nullptr)
     {
@@ -1287,15 +1255,14 @@ add_curve(int c, const Curve &curve,
       iter = cH->find(c);
       if (iter != cH->end())
         {
-          for (const CancellableEdge &E : iter->second)
+          for (const Edge &E : iter->second)
             {
               int f(curve.start()[0]);
-              Curve C(ivec2(f, E.edge().m_start),
-                      ivec2(f, E.edge().m_end));
+              Curve C(ivec2(f, E.m_start),
+                      ivec2(f, E.m_end));
 
               FASTUIDRAWassert(f == curve.end()[0]);
               m_curves.push_back(C);
-              m_curves.back().m_cancelled_edge = E.cancelled();
             }
           return;
         }
@@ -1307,15 +1274,14 @@ add_curve(int c, const Curve &curve,
       iter = cV->find(c);
       if (iter != cV->end())
         {
-          for (const CancellableEdge &E : iter->second)
+          for (const Edge &E : iter->second)
             {
               int f(curve.start()[1]);
-              Curve C(ivec2(E.edge().m_start, f),
-                      ivec2(E.edge().m_end, f));
+              Curve C(ivec2(E.m_start, f),
+                      ivec2(E.m_end, f));
 
               FASTUIDRAWassert(f == curve.end()[1]);
               m_curves.push_back(C);
-              m_curves.back().m_cancelled_edge = E.second;
             }
           return;
         }
@@ -1389,6 +1355,10 @@ init(const GlyphPath *p,
               m_curves.push_back(CurveID()
                                  .curve(c)
                                  .contour(o));
+            }
+          else
+            {
+              std::cout << "*";
             }
         }
     }
@@ -1819,6 +1789,7 @@ finalize(void)
    * points in m_pts interior to them.
    */
   std::vector<TrackedEdge> tmp;
+  bool has_partioned_edges(false);
 
   for (const TrackedEdge &t : m_edges)
     {
@@ -1848,40 +1819,16 @@ finalize(void)
         }
     }
 
-  /* tmp now holds each edge partitioned so that they have
-   * no interior points as a value from m_pts; Now we need
-   * to classify each edge as a cancelled edge or not.
-   * To do that, we need to give each edge a counting value;
-   * that counting value is incremented or decremented
-   * depending on the orientation of each edge.
-   */
-  std::map<SortableEdge, Counter> S;
-  for (const TrackedEdge &t : tmp)
-    {
-      const Edge &E(t.edge());
-      if (E.m_start < E.m_end)
-        {
-          S[E].m_value += 1;
-        }
-      else
-        {
-          S[E].m_value -= 1;
-        }
-    }
-
-  bool has_cancelled_edges(false);
-
   for (const TrackedEdge &T : tmp)
     {
-      const Counter &C(S[T.edge()]);
       const CurveID &id(T.curve_id());
-      CancellableEdge E(T.edge(), C.m_value == 0);
+      std::vector<Edge> &edge_list(m_data[id.contour()][id.curve()]);
 
-      m_data[id.contour()][id.curve()].push_back(E);
-      has_cancelled_edges = has_cancelled_edges || E.cancelled();
+      edge_list.push_back(T.edge());
+      has_partioned_edges = has_partioned_edges || edge_list.size() >= 2;
     }
 
-  if (!has_cancelled_edges)
+  if (!has_partioned_edges)
     {
       m_data.clear();
     }
@@ -1993,7 +1940,7 @@ sort_edges_of_path(int coord, EdgesOfPath *dst)
           const Curve &C(m_contours[v.first][w.first]);
 
           FASTUIDRAWassert(C.start()[coord] == C.end()[coord]);
-          std::sort(w.second.begin(), w.second.end());
+          std::sort(w.second.begin(), w.second.end(), Edge::compare_edges);
           if (C.start()[1 - coord] > C.end()[1 - coord])
             {
               std::reverse(w.second.begin(), w.second.end());
@@ -2209,12 +2156,7 @@ finalize(enum PainterEnums::fill_rule_t f,
       return;
     }
 
-  /* Step 1: Mark any curve or portions of curves that are
-   * cancelled another curve
-   */
-  d->m_glyph->mark_cancel_curves();
-
-  /* Step 2: Scale the value to be in the range [0, 65535] */
+  /* Step 1: Scale the value to be in the range [0, 65535] */
   d->m_glyph->translate(-d->m_glyph->bbox().min_point());
 
   FASTUIDRAWassert(d->m_glyph->bbox().min_point().x() == 0);
@@ -2239,6 +2181,11 @@ finalize(enum PainterEnums::fill_rule_t f,
     {
       d->m_glyph->scale_down(div_scale);
     }
+
+  /* Step 2: Mark any curve or portions of curves that are
+   * cancelled another curve
+   */
+  d->m_glyph->mark_cancel_curves();
 
   /* step 3: create the tree */
   CurveListHierarchy hierarchy(d->m_glyph,
