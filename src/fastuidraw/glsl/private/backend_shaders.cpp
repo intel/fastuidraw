@@ -635,7 +635,7 @@ create_glyph_shader(void)
 
   return_value
     .shader(coverage_glyph,
-            create_glyph_item_shader("fastuidraw_painter_glyph_coverage.vert.glsl.resource_string",
+            create_glyph_item_shader("fastuidraw_painter_glyph_coverage_distance_field.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_coverage.frag.glsl.resource_string",
                                      coverage_varyings));
 
@@ -646,7 +646,7 @@ create_glyph_shader(void)
                                      restricted_rays_varyings));
   return_value
     .shader(distance_field_glyph,
-            create_glyph_item_shader("fastuidraw_painter_glyph_distance_field.vert.glsl.resource_string",
+            create_glyph_item_shader("fastuidraw_painter_glyph_coverage_distance_field.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_distance_field.frag.glsl.resource_string",
                                      distance_varyings));
 

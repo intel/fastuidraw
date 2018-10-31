@@ -1,6 +1,6 @@
 /*!
- * \file fastuidraw_painter_glyph_coverage.vert.glsl.resource_string
- * \brief file fastuidraw_painter_glyph_coverage.vert.glsl.resource_string
+ * \file fastuidraw_painter_glyph_coverage_distance.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_glyph_coverage_distance.vert.glsl.resource_string
  *
  * Copyright 2018 by Intel.
  *
