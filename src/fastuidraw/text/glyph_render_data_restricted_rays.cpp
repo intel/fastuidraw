@@ -154,7 +154,7 @@ namespace
     {
       m_fbbox.union_point(m_fstart);
       m_fbbox.union_point(m_fend);
-      compute_crits();
+      compute_data();
     }
 
     Curve(const fastuidraw::ivec2 &a,
@@ -173,7 +173,7 @@ namespace
       m_fbbox.union_point(m_fstart);
       m_fbbox.union_point(m_fcontrol);
       m_fbbox.union_point(m_fend);
-      compute_crits();
+      compute_data();
     }
 
     Curve(fastuidraw::ivec2 scale_down, const Curve &C):
@@ -194,7 +194,7 @@ namespace
         {
           m_fbbox.union_point(m_fcontrol);
         }
-      compute_crits();
+      compute_data();
     }
 
     const fastuidraw::ivec2&
@@ -311,7 +311,13 @@ namespace
     }
 
     void
-    compute_crits(void);
+    compute_data(void);
+
+    void
+    compute_l1_crits(void);
+
+    void
+    compute_axis_of_symmetry(void);
 
     int
     compute_winding_contribution_impl(int coord,
@@ -344,6 +350,7 @@ namespace
 
     fastuidraw::ivec2 m_start, m_end, m_control;
     fastuidraw::vec2 m_fstart, m_fend, m_fcontrol;
+    fastuidraw::vec2 m_axis_of_symmetry_vector, m_axis_of_symmetry_pt;
     fastuidraw::BoundingBox<float> m_fbbox;
     bool m_has_control;
     unsigned int m_num_crits;
@@ -970,60 +977,146 @@ namespace
 // Curve methods
 void
 Curve::
-compute_crits(void)
+compute_data(void)
+{
+  compute_l1_crits();
+  compute_axis_of_symmetry();
+}
+
+void
+Curve::
+compute_axis_of_symmetry(void)
+{
+  using namespace fastuidraw;
+
+  if (!m_has_control)
+    {
+      return;
+    }
+
+  vec2 A, B, beta, J, K;
+  float b, magAsq;
+  float2x2 R, Rinverse;
+
+  /* compute the coefficients so that the curve is
+   * given by
+   *
+   *    f(t) =  A * t * t + B * t + m_fstart
+   */
+  A = m_fstart - 2.0f * m_fcontrol + m_fend;
+  B = 2.0f * (m_fcontrol - m_fstart);
+
+  /* Let M(p) = R(p - m_startf) where R is the rotation
+   * so that R(f(t) - m_startf) is given by
+   *
+   *   x(t) = beta_x * t
+   *   y(t) = t * t + beta_y * t
+   */
+  const float tol = 1e-9;
+
+  magAsq = dot(A, A);
+  if (magAsq < tol)
+    {
+      m_has_control = false;
+      return;
+    }
+
+  R(0, 0) =  A.y() / magAsq;
+  R(0, 1) = -A.x() / magAsq;
+  R(1, 0) =  A.x() / magAsq;
+  R(1, 1) =  A.y() / magAsq;
+
+  beta = R * B;
+
+  /* x(t) = beta_x * t gives us that t = x / beta_x
+   * which gives the relation
+   *
+   *   y = x * x + b * x
+   *
+   * where
+   *
+   *  b = beta.y / beta.x
+   */
+  b = beta.y() / beta.x();
+
+  /* The axis of symmetry for the parabola y = a * x * x + b * x
+   * is given by S = {(-b/2, t) | t a real }. Then M(L) = S
+   * where L = { J + K * t | t real} where
+   *
+   *   J = m_startf + Rinverse(-b/2, 0)
+   *   K = Rinverse(0, 1)
+   */
+  Rinverse(0, 0) =  R(1, 1) * magAsq;
+  Rinverse(0, 1) = -R(0, 1) * magAsq;
+  Rinverse(1, 0) = -R(1, 0) * magAsq;
+  Rinverse(1, 1) =  R(0, 0) * magAsq;
+
+  J = m_fstart + Rinverse * vec2(-0.5f * b, 0.0f);
+  K = Rinverse * vec2(0.0f, 1.0f);
+
+  m_axis_of_symmetry_pt = J;
+  K.normalize();
+  m_axis_of_symmetry_vector = vec2(K.y(), -K.x());
+}
+
+void
+Curve::
+compute_l1_crits(void)
 {
   using namespace fastuidraw;
 
   m_num_crits = 0;
-  if (m_has_control)
+  if (!m_has_control)
     {
-      vec2 A, B, C;
-      float d0, d1, n0, n1;
+      return;
+    }
 
-      A = m_fstart - 2.0 * m_fcontrol + m_fend;
-      B = m_fstart - m_fcontrol;
-      C = m_fstart;
+  vec2 A, B, C;
+  float d0, d1, n0, n1;
 
-      /* curve is given by
-       *
-       *   f(t) = (A * t - 2 * B) * t + C
-       *
-       * thus,
-       *
-       *   f'(t) = 2 * A * t - 2 * B
-       *
-       * and we are hunting for x'(t) = y'(t) and x'(t) - y'(t) = 0;
-       * those occur at:
-       *
-       *   A_x * t - B_x = +A_y * t - B_y  --> t = (B_x - B_y) / (A_x - A_y)
-       *   A_x * t - B_x = -A_y * t + B_y  --> t = (B_x + B_y) / (A_x + A_y)
-       */
+  A = m_fstart - 2.0 * m_fcontrol + m_fend;
+  B = m_fstart - m_fcontrol;
+  C = m_fstart;
 
-      n0 = B.x() + B.y();
-      d0 = A.x() + A.y();
-      n0 *= t_sign(d0);
-      d0 = t_abs(d0);
+  /* curve is given by
+   *
+   *   f(t) = (A * t - 2 * B) * t + C
+   *
+   * thus,
+   *
+   *   f'(t) = 2 * A * t - 2 * B
+   *
+   * and we are hunting for x'(t) = y'(t) and x'(t) - y'(t) = 0;
+   * those occur at:
+   *
+   *   A_x * t - B_x = +A_y * t - B_y  --> t = (B_x - B_y) / (A_x - A_y)
+   *   A_x * t - B_x = -A_y * t + B_y  --> t = (B_x + B_y) / (A_x + A_y)
+   */
 
-      n1 = B.x() - B.y();
-      d1 = A.x() - A.y();
-      n1 *= t_sign(d1);
-      d1 = t_abs(d1);
+  n0 = B.x() + B.y();
+  d0 = A.x() + A.y();
+  n0 *= t_sign(d0);
+  d0 = t_abs(d0);
 
-      if (n0 > 0.0 && d0 > n0)
-        {
-          float t0;
+  n1 = B.x() - B.y();
+  d1 = A.x() - A.y();
+  n1 *= t_sign(d1);
+  d1 = t_abs(d1);
 
-          t0 = n0 / d0;
-          m_crits[m_num_crits++] = (A * t0 - 2.0 * B) * t0 + C;
-        }
+  if (n0 > 0.0 && d0 > n0)
+    {
+      float t0;
 
-      if (n1 > 0.0 && d1 > n1)
-        {
-          float t1;
+      t0 = n0 / d0;
+      m_crits[m_num_crits++] = (A * t0 - 2.0 * B) * t0 + C;
+    }
 
-          t1 = n1 / d1;
-          m_crits[m_num_crits++] = (A * t1 - 2.0 * B) * t1 + C;
-        }
+  if (n1 > 0.0 && d1 > n1)
+    {
+      float t1;
+
+      t1 = n1 / d1;
+      m_crits[m_num_crits++] = (A * t1 - 2.0 * B) * t1 + C;
     }
 }
 
@@ -1059,6 +1152,16 @@ compute_winding_contribution(fastuidraw::vec2 p, float *dist) const
 
   R.x() = -compute_winding_contribution_impl(0, A, B, C, codex, dist);
   R.y() = compute_winding_contribution_impl(1, A, B, C, codey, dist);
+
+  if (m_has_control)
+    {
+      /* also include the distance to the axis of
+       * symmetry of the parabola;
+       */
+      float f;
+      f = dot(p - m_axis_of_symmetry_pt, m_axis_of_symmetry_vector);
+      *dist = t_min(t_abs(f), *dist);
+    }
 
   return R;
 }
