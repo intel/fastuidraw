@@ -51,10 +51,10 @@ namespace fastuidraw
   public:
     /*!
      * Enumeration to describe the hierarchy of bounding
-     * boxes as packed into the  data. A node
-     * in the hierarchy is a single 32-bit value. A leaf
-     * in the hierarchy is a single 32-bit value followed
-     * by a single sample point which has a winding value
+     * boxes as packed into the data. A node in the
+     * hierarchy is a single 32-bit value. A leaf in the
+     * hierarchy is a single 32-bit value followed by a
+     * single sample point which has a winding value
      * and offset position packed as according to \ref
      * winding_sample_packing_t.
      */
@@ -65,7 +65,7 @@ namespace fastuidraw
          * is holding node data. If the bit is down indicates
          * that the element is a leaf and the value holds the
          * properties of the curve list in the box and the next
-         * four values hold the windind sample informatin for
+         * value holds the winding sample information for the
          * box and are packed as according to \ref
          * winding_sample_packing_t.
          */
@@ -85,25 +85,21 @@ namespace fastuidraw
 
         /*!
          * For case where the element is a node, i.e. the
-         * bit \ref hierarchy_is_node_bit is up. This bit
-         * indicates if the split of the node is horizontal
-         * of verical. This is the first bit holding the
-         * offset from the  start of the geomertic data of
-         * the glyph for the  a child node which comes
-         * before the split, i.e. the child on the left
-         * or bottom side.
+         * bit \ref hierarchy_is_node_bit is up. This is
+         * the first bit holding the offset from the start
+         * of the geomertic data of the glyph for the child
+         * node which comes before the split, i.e. the child
+         * on the left or bottom side.
          */
         hierarchy_child0_offset_bit0 = 0u,
 
         /*!
          * For case where the element is a node, i.e. the
-         * bit \ref hierarchy_is_node_bit is up. This bit
-         * indicates if the split of the node is horizontal
-         * of verical. This is the first bit holding the
-         * offset from the  start of the geomertic data of
-         * the glyph for the  a child node which comes
-         * before the split, i.e. the child on the right
-         * or top side.
+         * bit \ref hierarchy_is_node_bit is up. This is
+         * the first bit holding the offset from the start
+         * of the geomertic data of the glyph for the child
+         * node which comes after the split, i.e. the child
+         * on the right or top side.
          */
         hierarchy_child1_offset_bit0 = 15u,
 
@@ -190,8 +186,7 @@ namespace fastuidraw
         winding_value_numbits = 16u,
 
         /*!
-         * The amount by which to divide the delta after applying
-         * the bias of \ref delta_bias.
+         * The amount by which to divide the delta
          */
         delta_div_factor = 256,
 
