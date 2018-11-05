@@ -215,7 +215,7 @@ namespace fastuidraw
     void
     unmap(unsigned int attributes_written,
           unsigned int indices_written,
-          unsigned int data_store_written) const;
+          unsigned int data_store_written);
 
     /*!
      * Returns true if and only if this PainterDraw
@@ -226,12 +226,12 @@ namespace fastuidraw
 
     /*!
      * To be implemented by a derived class to draw the
-     * contents. Must be performed after unmap()
-     * is called. In addition, may only be called within
-     * a PainterBackend::on_pre_draw()/on_post_draw() pair
-     * of the PainterBackend whose
-     * PainterBackend::map_draw() created this
-     * object.
+     * contents. Must be performed after unmap() is called.
+     * In addition, may only be called within a
+     * PainterBackend::on_pre_draw() /
+     * PainterBackend::on_post_draw() pair of the \ref
+     * PainterBackend whose PainterBackend::map_draw()
+     * created this object.
      */
     virtual
     void
@@ -256,12 +256,12 @@ namespace fastuidraw
     void
     unmap_implement(unsigned int attributes_written,
                     unsigned int indices_written,
-                    unsigned int data_store_written) const = 0;
+                    unsigned int data_store_written) = 0;
 
   private:
 
     void
-    complete_unmapping(void) const;
+    complete_unmapping(void);
 
     void *m_d;
   };

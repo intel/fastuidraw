@@ -147,7 +147,7 @@ void
 fastuidraw::PainterDraw::
 unmap(unsigned int attributes_written,
       unsigned int indices_written,
-      unsigned int data_store_written) const
+      unsigned int data_store_written)
 {
   PainterDrawPrivate *d;
   d = static_cast<PainterDrawPrivate*>(m_d);
@@ -166,7 +166,7 @@ unmap(unsigned int attributes_written,
 
 void
 fastuidraw::PainterDraw::
-complete_unmapping(void) const
+complete_unmapping(void)
 {
   PainterDrawPrivate *d;
   d = static_cast<PainterDrawPrivate*>(m_d);

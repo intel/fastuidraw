@@ -234,7 +234,7 @@ namespace
     void
     unmap_implement(unsigned int attributes_written,
                     unsigned int indices_written,
-                    unsigned int data_store_written) const;
+                    unsigned int data_store_written);
 
   private:
 
@@ -739,7 +739,7 @@ void
 DrawCommand::
 unmap_implement(unsigned int attributes_written,
                 unsigned int indices_written,
-                unsigned int data_store_written) const
+                unsigned int data_store_written)
 {
   m_attributes_written = attributes_written;
   add_entry(indices_written);
