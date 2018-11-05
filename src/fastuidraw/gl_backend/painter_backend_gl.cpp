@@ -217,12 +217,12 @@ namespace
     bool
     draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
                const fastuidraw::PainterShaderGroup &new_shaders,
-               unsigned int indices_written) const;
+               unsigned int indices_written);
 
     virtual
     void
     draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
-               unsigned int indices_written) const;
+               unsigned int indices_written);
 
     virtual
     void
@@ -239,12 +239,12 @@ namespace
   private:
 
     void
-    add_entry(unsigned int indices_written) const;
+    add_entry(unsigned int indices_written);
 
     PainterBackendGLPrivate *m_pr;
     fastuidraw::gl::detail::painter_vao m_vao;
-    mutable unsigned int m_attributes_written, m_indices_written;
-    mutable std::list<DrawEntry> m_draws;
+    unsigned int m_attributes_written, m_indices_written;
+    std::list<DrawEntry> m_draws;
   };
 
   class SurfacePropertiesPrivate
@@ -606,7 +606,7 @@ DrawCommand(fastuidraw::gl::detail::painter_vao_pool *hnd,
 void
 DrawCommand::
 draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
-           unsigned int indices_written) const
+           unsigned int indices_written)
 {
   FASTUIDRAWassert(action);
   if (!m_draws.empty())
@@ -620,7 +620,7 @@ bool
 DrawCommand::
 draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
            const fastuidraw::PainterShaderGroup &new_shaders,
-           unsigned int indices_written) const
+           unsigned int indices_written)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
@@ -760,7 +760,7 @@ unmap_implement(unsigned int attributes_written,
 
 void
 DrawCommand::
-add_entry(unsigned int indices_written) const
+add_entry(unsigned int indices_written)
 {
   unsigned int count;
   const fastuidraw::PainterIndex *offset(nullptr);

@@ -181,7 +181,7 @@ namespace fastuidraw
     bool
     draw_break(const PainterShaderGroup &old_groups,
                const PainterShaderGroup &new_groups,
-               unsigned int indices_written) const = 0;
+               unsigned int indices_written) = 0;
 
     /*!
      * Called to execute an action (and thus also cause a draw-call break).
@@ -193,7 +193,7 @@ namespace fastuidraw
     virtual
     void
     draw_break(const reference_counted_ptr<const Action> &action,
-               unsigned int indices_written) const = 0;
+               unsigned int indices_written) = 0;
 
     /*!
      * Adds a delayed action to the action list.
