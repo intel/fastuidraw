@@ -193,6 +193,18 @@ public:
   {}
 
   /*!
+   * Resets the \ref c_array<> object to be equivalent to
+   * a nullptr, i.e. c_ptr() will return nullptr and size()
+   * will return 0.
+   */
+  void
+  reset(void)
+  {
+    m_size = 0;
+    m_ptr = nullptr;
+  }
+
+  /*!
    * Reinterpret style cast for c_array. It is required
    * that the sizeof(T)*size() evenly divides sizeof(S).
    * \tparam S type to which to be reinterpreted casted
