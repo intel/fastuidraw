@@ -47,11 +47,14 @@ namespace fastuidraw
   public:
     /*!
      * \brief
-     * A delayed action is an action that is to be called just
-     * before the buffers of a PainterDraw are to
-     * be unmapped. Typically, this is to allow for later writes
-     * of values. A DelayedAction object may only be added
-     * to one PainterDraw object.
+     * A delayed action is an action that is to be called
+     * just before the buffers of a \ref PainterDraw are to
+     * be unmapped. Typically, this is used to write values
+     * using information that is ready after the original
+     * values are written by \ref PainterPacker. A fixed
+     * \ref DelayedAction object may only be added to one
+     * \ref PainterDraw object, but a single \ref PainterDraw
+     * can have many \ref DelayedAction objects added to it.
      */
     class DelayedAction:public reference_counted<DelayedAction>::default_base
     {
@@ -131,10 +134,10 @@ namespace fastuidraw
 
     /*!
      * Location to which to place the attribute data
-     * storing the header locations. The size of
-     * \ref m_header_attributes must be the same
-     * as the size of \ref m_attributes,
-     * the store is understood to be write only.
+     * storing the header _locations_ in \ref m_store.
+     * The size of \ref m_header_attributes must be the
+     * same as the size of \ref m_attributes, the store
+     * is understood to be write only.
      */
     c_array<uint32_t> m_header_attributes;
 
@@ -183,7 +186,8 @@ namespace fastuidraw
     /*!
      * Called to execute an action (and thus also cause a draw-call break).
      * \param action action to execute
-     * \param indices_written total number of indices written to m_indices -before- the change
+     * \param indices_written total number of indices written to \ref m_indices
+     *                        -before- the break
      * \returns true if the \ref PainterShaderGroup resulted in a draw break
      */
     virtual
@@ -203,9 +207,10 @@ namespace fastuidraw
      * Actual unmapping is delayed until all actions that
      * have been added with add_action() have been
      * called.
-     * \param attributes_written number of elements written to m_attributes and m_header_attributes
-     * \param indices_written number of elements written to m_indices
-     * \param data_store_written number of elements written to m_store
+     * \param attributes_written number of elements written to \ref
+     *                           m_attributes and \ref m_header_attributes.
+     * \param indices_written number of elements written to \ref m_indices
+     * \param data_store_written number of elements written to \ref m_store
      */
     void
     unmap(unsigned int attributes_written,
