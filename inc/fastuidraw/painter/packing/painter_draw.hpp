@@ -185,13 +185,13 @@ namespace fastuidraw
 
     /*!
      * Called to execute an action (and thus also cause a draw-call break).
+     * Implementations are to assume that \ref Action reference is non-null.
      * \param action action to execute
      * \param indices_written total number of indices written to \ref m_indices
      *                        -before- the break
-     * \returns true if the \ref PainterShaderGroup resulted in a draw break
      */
     virtual
-    bool
+    void
     draw_break(const reference_counted_ptr<const Action> &action,
                unsigned int indices_written) const = 0;
 

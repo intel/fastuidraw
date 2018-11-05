@@ -220,7 +220,7 @@ namespace
                unsigned int indices_written) const;
 
     virtual
-    bool
+    void
     draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
                unsigned int indices_written) const;
 
@@ -603,21 +603,17 @@ DrawCommand(fastuidraw::gl::detail::painter_vao_pool *hnd,
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-bool
+void
 DrawCommand::
 draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
            unsigned int indices_written) const
 {
-  if (action)
+  FASTUIDRAWassert(action);
+  if (!m_draws.empty())
     {
-      if (!m_draws.empty())
-        {
-          add_entry(indices_written);
-        }
-      m_draws.push_back(action);
-      return true;
+      add_entry(indices_written);
     }
-  return false;
+  m_draws.push_back(action);
 }
 
 bool

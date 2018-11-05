@@ -380,7 +380,12 @@ namespace
     bool
     draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action)
     {
-      return m_draw_command->draw_break(action, m_indices_written);
+      if (action)
+        {
+          m_draw_command->draw_break(action, m_indices_written);
+          return true;
+        }
+      return false;
     }
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw> m_draw_command;
