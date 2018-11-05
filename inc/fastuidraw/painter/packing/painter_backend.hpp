@@ -358,7 +358,7 @@ namespace fastuidraw
      * for filling of data.
      */
     virtual
-    reference_counted_ptr<const PainterDraw>
+    reference_counted_ptr<PainterDraw>
     map_draw(void) = 0;
 
     /*!

@@ -643,7 +643,7 @@ namespace fastuidraw
       bind_image(const reference_counted_ptr<const Image> &im);
 
       virtual
-      reference_counted_ptr<const PainterDraw>
+      reference_counted_ptr<PainterDraw>
       map_draw(void);
 
       /*!

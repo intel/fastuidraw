@@ -1859,7 +1859,7 @@ bind_image(const reference_counted_ptr<const Image> &im)
   return FASTUIDRAWnew TextureImageBindAction(im, d);
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw>
+fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw>
 fastuidraw::gl::PainterBackendGL::
 map_draw(void)
 {
