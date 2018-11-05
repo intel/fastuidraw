@@ -175,6 +175,10 @@ complete_unmapping(void)
   FASTUIDRAWassert(d->m_action_count == 0);
   unmap_implement(d->m_attribs_written, d->m_indices_written, d->m_data_store_written);
   d->m_map_status = status_unmapped;
+  m_attributes.reset();
+  m_header_attributes.reset();
+  m_indices.reset();
+  m_store.reset();
 }
 
 bool
