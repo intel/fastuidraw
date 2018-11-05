@@ -97,7 +97,9 @@ public:
           {
             m_p->insert(first);
           }
+        return 3;
       }
+    return 0;
   }
 
   virtual
