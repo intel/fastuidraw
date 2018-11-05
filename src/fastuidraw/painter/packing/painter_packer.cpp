@@ -323,7 +323,7 @@ namespace
   class per_draw_command
   {
   public:
-    per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &r,
+    per_draw_command(const fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw> &r,
                      const fastuidraw::PainterBackend::ConfigurationBase &config);
 
     unsigned int
@@ -383,7 +383,7 @@ namespace
       return m_draw_command->draw_break(action, m_indices_written);
     }
 
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> m_draw_command;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw> m_draw_command;
     unsigned int m_attributes_written, m_indices_written;
 
   private:
@@ -619,7 +619,7 @@ namespace
 //////////////////////////////////////////
 // per_draw_command methods
 per_draw_command::
-per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &r,
+per_draw_command(const fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw> &r,
                  const fastuidraw::PainterBackend::ConfigurationBase &config):
   m_draw_command(r),
   m_attributes_written(0),
@@ -801,7 +801,7 @@ start_new_command(void)
       c.unmap();
     }
 
-  fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> r;
+  fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw> r;
   r = m_backend->map_draw();
   m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration_base()));
 }
