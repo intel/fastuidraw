@@ -160,7 +160,9 @@ namespace
   public:
     virtual
     void
-    current_draw(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h)
+    header_added(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h,
+                 const fastuidraw::PainterHeader &original_value,
+                 fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
       if (h != m_cmd)
         {
@@ -169,13 +171,7 @@ namespace
           m_actions.push_back(m_current);
           m_cmd->add_action(m_current);
         }
-    }
 
-    virtual
-    void
-    header_added(const fastuidraw::PainterHeader &original_value,
-                 fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
-    {
       FASTUIDRAWunused(original_value);
       m_current->m_dests.push_back(mapped_location);
     }

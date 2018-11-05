@@ -54,31 +54,24 @@ namespace fastuidraw
     /*!
      * \brief
      * A DataCallBack represents a functor call back
-     * from PainterPacker called whenever a header is
-     * added or when a new PainterDraw is
-     * taken into use.
+     * from nay of the PainterPacker::draw_generic()
+     * methods called whenever a header is added.
      */
     class DataCallBack:public reference_counted<DataCallBack>::default_base
     {
     public:
       /*!
-       * To be implemented by a derived class to note the current
-       * PainterDraw being filled by the PainterPacker.
+       * To be implemented by a derived class to implement the call back
+       * issues whenever a \ref PainterHeader value is added.
        * \param h handle to active PainterDraw
-       */
-      virtual
-      void
-      current_draw(const reference_counted_ptr<const PainterDraw> &h) = 0;
-
-      /*!
-       * To be implemented by a derived class to note when a header
-       * was added.
        * \param original_value header values written to PainterDraw::m_store
        * \param mapped_location sub-array into PainterDraw::m_store where header is written
        */
       virtual
       void
-      header_added(const PainterHeader &original_value, c_array<generic_data> mapped_location) = 0;
+      header_added(const reference_counted_ptr<const PainterDraw> &h,
+                   const PainterHeader &original_value,
+                   c_array<generic_data> mapped_location) = 0;
     };
 
     /*!

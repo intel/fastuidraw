@@ -713,11 +713,6 @@ pack_header(unsigned int header_size,
   *header_location = current_block();
   dst = allocate_store(header_size);
 
-  if (call_back)
-    {
-      call_back->current_draw(m_draw_command);
-    }
-
   PainterShaderGroupPrivate current;
   fastuidraw::PainterShader::Tag composite;
   fastuidraw::PainterShader::Tag blend;
@@ -764,7 +759,7 @@ pack_header(unsigned int header_size,
 
   if (call_back)
     {
-      call_back->header_added(header, dst);
+      call_back->header_added(m_draw_command, header, dst);
     }
 
   return return_value;
