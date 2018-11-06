@@ -4,7 +4,7 @@ libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: N@API@-@TYPE@
-Description: N@API@-@TYPE@ is the @TYPE@ version of dispatch library for the @API@ API; it auto-magically resolves function pointers (to the point that one does not need to link against @API@ and the debug version provides API error checking along with ability to add user-defined pre and post call backs.
+Description: N@API@-@TYPE@ is the @TYPE@ version of dispatch library for the @API@ API; it auto-magically resolves function pointers (to the point that one does not need to link against @API@). In addition, the debug version provides API error checking along with ability to add user-defined pre and post call backs.
 Version:
 Requires: fastuidraw-@TYPE@
 Conflicts: n@API@-@OTHER_TYPE@ n@OTHER_API@-@TYPE@ n@OTHER_API@-@OTHER_TYPE@
