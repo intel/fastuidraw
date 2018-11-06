@@ -1151,6 +1151,7 @@ draw_glyphs(float us)
           /* start with an eol so that top line is visible */
           ostr << "\nGlyph at " << p << " is:"
                << "\n\tglyph_code: " << metrics.glyph_code()
+               << "\n\tfont: " << metrics.font()->properties()
                << "\n\trenderer: ";
 
           if (!m_fill_glyphs)
