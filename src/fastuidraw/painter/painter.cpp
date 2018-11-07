@@ -372,30 +372,10 @@ namespace
     enum matrix_type_t
     matrix_type(void);
 
-    void
+    void //a negative value for singular_value_scaled indicates to recompute singular values
     item_matrix(const fastuidraw::float3x3 &v,
-                bool trick_transition, enum matrix_type_t M)
-    {
-      m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || trick_transition;
-      m_inverse_transpose_not_ready = true;
-      m_item_matrix.m_item_matrix = v;
-      m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
-      m_item_matrix_singular_values_ready = false;
-
-      if (M > m_matrix_type)
-        {
-          /* TODO: make this tighter.
-           *  It is possible that concatenation of matrices
-           *  can reduce the matrix type value (for example
-           *  first scaling by 4 then by 0.25). The most
-           *  severe example is the concatenation of two
-           *  perpsective matrices yielding a matrix
-           *  without perspective. However, recomputing the
-           *  matrix type at every change seems excessive.
-           */
-          m_matrix_type = M;
-        }
-    }
+                bool trick_transition, enum matrix_type_t M,
+		float singular_value_scaled = -1.0f);
 
     const fastuidraw::PainterClipEquations&
     clip_equations(void)
@@ -1285,6 +1265,40 @@ item_matrix_singular_values(void)
       m_item_matrix_singular_values_ready = true;
     }
   return m_item_matrix_singular_values;
+}
+
+void
+clip_rect_state::
+item_matrix(const fastuidraw::float3x3 &v,
+	    bool trick_transition, enum matrix_type_t M,
+	    float singular_value_scaled)
+{
+  m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || trick_transition;
+  m_inverse_transpose_not_ready = true;
+  m_item_matrix.m_item_matrix = v;
+  m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+  if (singular_value_scaled < 0.0f)
+    {
+      m_item_matrix_singular_values_ready = false;
+    }
+  else if (m_item_matrix_singular_values_ready)
+    {
+      m_item_matrix_singular_values *= singular_value_scaled;
+    }
+
+  if (M > m_matrix_type)
+    {
+      /* TODO: make this tighter.
+       *  It is possible that concatenation of matrices
+       *  can reduce the matrix type value (for example
+       *  first scaling by 4 then by 0.25). The most
+       *  severe example is the concatenation of two
+       *  perpsective matrices yielding a matrix
+       *  without perspective. However, recomputing the
+       *  matrix type at every change seems excessive.
+       */
+      m_matrix_type = M;
+    }
 }
 
 enum matrix_type_t
@@ -3641,7 +3655,7 @@ translate(const vec2 &p)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.translate(p.x(), p.y());
-  d->m_clip_rect_state.item_matrix(m, false, non_scaling_matrix);
+  d->m_clip_rect_state.item_matrix(m, false, non_scaling_matrix, 1.0f);
   d->m_clip_rect_state.m_clip_rect.translate(-p);
 }
 
@@ -3654,7 +3668,7 @@ scale(float s)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.scale(s);
-  d->m_clip_rect_state.item_matrix(m, false, scaling_matrix);
+  d->m_clip_rect_state.item_matrix(m, false, scaling_matrix, t_abs(s));
   d->m_clip_rect_state.m_clip_rect.scale(1.0f / s);
 }
 
@@ -3667,12 +3681,16 @@ shear(float sx, float sy)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   enum matrix_type_t tp;
+  float sf;
 
   tp = (t_abs(sx) != t_abs(sy)) ?
     shearing_matrix : scaling_matrix;
 
+  sf = (t_abs(sx) != t_abs(sy)) ?
+    -1.0f : t_abs(sx);
+
   m.shear(sx, sy);
-  d->m_clip_rect_state.item_matrix(m, false, tp);
+  d->m_clip_rect_state.item_matrix(m, false, tp, sf);
   d->m_clip_rect_state.m_clip_rect.shear(1.0f / sx, 1.0f / sy);
 }
 
@@ -3697,7 +3715,7 @@ rotate(float angle)
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m = m * tr;
-  d->m_clip_rect_state.item_matrix(m, true, non_scaling_matrix);
+  d->m_clip_rect_state.item_matrix(m, true, non_scaling_matrix, 1.0f);
 }
 
 void
