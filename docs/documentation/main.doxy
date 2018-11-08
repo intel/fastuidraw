@@ -8,8 +8,8 @@
 @{
 \brief
 Utility provides simple utility classes, the most important and
-commonly used ones being reference_counted_ptr, vecN, c_array
-and const_c_array. Part of the main library libFastUIDraw.
+commonly used ones being \ref reference_counted_ptr, \ref vecN,
+and \ref c_array. Part of the main library libFastUIDraw.
 @}
 
 \defgroup Text Text
