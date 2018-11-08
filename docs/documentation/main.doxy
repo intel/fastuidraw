@@ -16,14 +16,15 @@ and \ref c_array. Part of the main library libFastUIDraw.
 @{
 \brief
 Text provides the interfaces to realizing glyph data for rendering
-glyphs. The big classes being Glyph, GlyphCache, GlyphAtlas and FontBase.
-Part of the main library libFastUIDraw.
+glyphs. The big classes being \ref Glyph, \ref GlyphCache, \ref
+GlyphAtlas and \ref FontBase. Part of the main library libFastUIDraw.
 @}
 
 \defgroup Paths Paths
 @{
 \brief
-Paths provides the interface to realize paths.
+Path provides the interface to realize paths, the main entry point
+for applications is the object \ref Path.
 @}
 
 \defgroup Imaging Imaging
