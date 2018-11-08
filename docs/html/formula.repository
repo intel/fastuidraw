@@ -1,0 +1,4 @@
+\form#0:$ z \geq 0$
+\form#1:$ sqrt(1 - x^2) $
+\form#2:$PixelCoordinates = FontCoordinates * PixelSize / units_per_EM()$
+\form#3:$PixelCoordinates = FontCoordinates * PixelSize / units_per_EM$

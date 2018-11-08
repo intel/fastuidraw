@@ -1,0 +1,5 @@
+<map id="fastuidraw::gl::ColorStopAtlasGL" name="fastuidraw::gl::ColorStopAtlasGL">
+<area shape="rect" id="node2" href="$db/d62/classfastuidraw_1_1_color_stop_atlas.html" title="A ColorStopAtlas is a common location to all color stop data of an application. Ideally, all color stop sequences are placed into a single ColorStopAtlas (changes of ColorStopAtlas force draw&#45;call breaks). " alt="" coords="20,169,199,196"/>
+<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,213,121"/>
+<area shape="rect" id="node4" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="28,5,191,32"/>
+</map>

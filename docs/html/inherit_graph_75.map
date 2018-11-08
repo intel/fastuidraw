@@ -1,0 +1,8 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$db/d27/classfastuidraw_1_1_painter_packed_value_base.html" title="(Private) base classe used for PainterPackedValue " alt="" coords="5,152,180,193"/>
+<area shape="rect" id="node2" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha..." alt="" coords="260,5,435,47"/>
+<area shape="rect" id="node3" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterBlend\lShaderData \&gt;" alt="" coords="243,71,452,127"/>
+<area shape="rect" id="node4" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterBrush \&gt;" alt="" coords="236,152,459,193"/>
+<area shape="rect" id="node5" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterComposite\lShaderData \&gt;" alt="" coords="228,218,467,274"/>
+<area shape="rect" id="node6" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterItem\lShaderData \&gt;" alt="" coords="246,298,449,354"/>
+</map>
