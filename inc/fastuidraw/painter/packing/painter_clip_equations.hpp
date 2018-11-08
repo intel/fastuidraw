@@ -25,7 +25,7 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup PainterPacker
+/*!\addtogroup PainterPacking
  * @{
  */
 
