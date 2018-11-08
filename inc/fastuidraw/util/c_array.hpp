@@ -193,7 +193,7 @@ public:
   {}
 
   /*!
-   * Resets the \ref c_array<> object to be equivalent to
+   * Resets the \ref c_array object to be equivalent to
    * a nullptr, i.e. c_ptr() will return nullptr and size()
    * will return 0.
    */
