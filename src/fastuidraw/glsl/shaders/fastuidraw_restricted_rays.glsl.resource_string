@@ -485,15 +485,15 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
 {
   uint src, num_curves, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation tr;
-  float dist_to_ref, texel_box_L1_sz;
-  const float ref_close_tol = 0.01;
+  float dist_to_ref, texel_box_L1_sz, texel_box_area;
 
   winding_sample_data_location =
     fastuidaw_restricted_rays_compute_box(glyph_coord,
                                           bb_box_min, bb_box_max,
                                           glyph_data_location,
                                           texel_box, curve_list, num_curves);
-  texel_box_L1_sz =  texel_box.size.x + texel_box.size.y;
+  texel_box_L1_sz = texel_box.size.x + texel_box.size.y;
+  texel_box_area = texel_box.size.x * texel_box.size.y;
   nv.distance_increment = nv.distance_decrement = texel_box_L1_sz;
 
   fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
@@ -508,7 +508,9 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
    * to a curve. Thus if the fragment is close to the reference
    * point then there are no curves near the fragment.
    */
-  if (dist_to_ref < ref_close_tol * texel_box_L1_sz)
+  const float close_to_ref = 0.01;
+  const float close_to_req_sq = close_to_ref * close_to_ref;
+  if (dist_to_ref * dist_to_ref < close_to_req_sq * texel_box_area)
     {
       num_curves = 0u;
     }
