@@ -382,14 +382,48 @@ namespace fastuidraw
      */
     void
     finalize(enum PainterEnums::fill_rule_t f,
-             ivec2 min_pt, ivec2 max_pt,
-             unsigned int max_recursion = 12,
-             unsigned int split_thresh = 4);
+             ivec2 min_pt, ivec2 max_pt);
 
     virtual
     enum fastuidraw::return_code
     upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
                     GlyphAttribute::Array &attributes) const;
+
+    /*!
+     * Returns the maximum level of recursion that will be
+     * used to generate the hierarchy of boxes holding the
+     * curves on the next \ref GlyphRenderDataRestrictedRays
+     * object whose finalize() method is called.
+     */
+    static
+    unsigned int
+    max_recursion(void);
+
+    /*!
+     * Set the value returned by max_recursion(). Default
+     * value is 12.
+     */
+    static
+    void
+    max_recursion(unsigned int);
+
+    /*
+     * Returns the threshhold value for number of curves
+     * allowed in a single box before a box is split on
+     * the next \ref GlyphRenderDataRestrictedRays object
+     * whose finalize() method is called.
+     */
+    static
+    unsigned int
+    split_thresh(void);
+
+    /*!
+     * Set the value returned by split_thresh(). Default
+     * value is 4.
+     */
+    static
+    void
+    split_thresh(unsigned int);
 
   private:
     void *m_d;

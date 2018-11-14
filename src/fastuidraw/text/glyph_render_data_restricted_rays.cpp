@@ -22,11 +22,11 @@
 #include <set>
 #include <map>
 #include <cstdlib>
+#include <mutex>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include "../private/bounding_box.hpp"
 #include "../private/util_private.hpp"
-#include "../private/util_private_ostream.hpp"
 
 namespace
 {
@@ -244,19 +244,6 @@ namespace
 
     fastuidraw::ivec2
     compute_winding_contribution(fastuidraw::vec2 xy, float *dist) const;
-
-    friend
-    std::ostream&
-    operator<<(std::ostream &ostr, const Curve &C)
-    {
-      ostr << "[" << C.start() << " ";
-      if (C.has_control())
-        {
-          ostr << "Ct" << C.control() << " ";
-        }
-      ostr << C.end() << "]";
-      return ostr;
-    }
 
     bool
     intersects(const fastuidraw::BoundingBox<float> &box) const;
@@ -564,12 +551,6 @@ namespace
     unsigned int
     room_required(unsigned int num_curves);
 
-    static
-    void
-    print_curve_list(unsigned int cnt,
-                     fastuidraw::c_array<const fastuidraw::generic_data> src,
-                     unsigned int offset, std::string prefix);
-
   private:
     fastuidraw::c_array<fastuidraw::generic_data> m_dst;
     unsigned int m_current_offset, m_sub_offset;
@@ -651,9 +632,6 @@ namespace
       assign_tree_offsets(size);
       return size;
     }
-
-    void
-    print_tree(std::string prefix) const;
 
     void
     assign_curve_list_offsets(CurveListCollection &C);
@@ -846,98 +824,27 @@ namespace
     std::vector<Contour> m_contours;
   };
 
-  void
-  print_curve(unsigned int id,
-              fastuidraw::c_array<const fastuidraw::generic_data> data,
-              unsigned int p, const std::string &prefix)
+  class GlyphRenderParams:fastuidraw::noncopyable
   {
-    const uint32_t mask(1u << 15u);
-    uint32_t offset(p & ~mask);
+  public:
+    static
+    GlyphRenderParams&
+    values(void)
+    {
+      static GlyphRenderParams R;
+      return R;
+    }
 
-    std::cout << prefix << "(" << id << ") ["
-              << unpack_point(data[offset++].u);
-    if (p & mask)
-      {
-        std::cout << " Ct" << unpack_point(data[offset++].u);
-      }
-    std::cout << " " << unpack_point(data[offset++].u) << "]\n";
-  }
+    unsigned int m_max_recursion;
+    unsigned int m_split_thresh;
+    std::mutex m_mutex;
 
-  void
-  print_tree_from_packed(unsigned int offset, fastuidraw::BoundingBox<float> box,
-                         fastuidraw::c_array<const fastuidraw::generic_data> data,
-                         std::string prefix)
-  {
-    typedef fastuidraw::GlyphRenderDataRestrictedRays G;
-    uint32_t v;
-    bool has_children;
-
-    prefix += "\t";
-
-    v = data[offset].u;
-    has_children = (fastuidraw::unpack_bits(G::hierarchy_is_node_bit, 1u, v) == 1u);
-
-    std::cout << prefix << "BoundingBox" << box.min_point()
-              << " -- " << box.max_point() << "@" << offset << ":";
-    if (has_children)
-      {
-        uint32_t coord, pre, post;
-        fastuidraw::vecN<fastuidraw::BoundingBox<float>, 2> split;
-
-        coord = fastuidraw::unpack_bits(G::hierarchy_splitting_coordinate_bit, 1u, v);
-        pre = fastuidraw::unpack_bits(G::hierarchy_child0_offset_bit0,
-                                      G::hierarchy_child_offset_numbits, v);
-        post = fastuidraw::unpack_bits(G::hierarchy_child1_offset_bit0,
-                                       G::hierarchy_child_offset_numbits, v);
-        if (coord == 0)
-          {
-            std::cout << "SplitX:\n";
-            split = box.split_x();
-          }
-        else
-          {
-            std::cout << "SplitY:\n";
-            split = box.split_y();
-          }
-        print_tree_from_packed(pre, split[0], data, prefix);
-        print_tree_from_packed(post, split[1], data, prefix);
-      }
-    else
-      {
-        uint32_t curve_list, curve_list_size;
-        unsigned int biased_winding;
-        fastuidraw::ivec2 delta;
-
-        curve_list = fastuidraw::unpack_bits(G::hierarchy_leaf_curve_list_bit0,
-                                             G::hierarchy_leaf_curve_list_numbits,
-                                             v);
-        curve_list_size = fastuidraw::unpack_bits(G::hierarchy_leaf_curve_list_size_bit0,
-                                                  G::hierarchy_leaf_curve_list_size_numbits,
-                                                  v);
-        ++offset;
-        v = data[offset].u;
-        biased_winding = fastuidraw::unpack_bits(G::winding_value_bit0,
-                                                 G::winding_value_numbits, v);
-        delta.x() = fastuidraw::unpack_bits(G::delta_x_bit0, G::delta_numbits, v);
-        delta.y() = fastuidraw::unpack_bits(G::delta_y_bit0, G::delta_numbits, v);
-
-        std::cout << "\n" << prefix << "winding = "
-                  << int(biased_winding) - int(G::winding_bias)
-                  << "\n" << prefix << "delta = " << delta << "\n";
-
-        if (curve_list_size != 0u)
-          {
-            std::cout << prefix << "curve_list@" << curve_list
-                      << " with " << curve_list_size
-                      << " elements\n";
-            CurveListPacker::print_curve_list(curve_list_size, data, curve_list, prefix);
-          }
-        else
-          {
-            std::cout << ", empty curve_list\n";
-          }
-      }
-  }
+  private:
+    GlyphRenderParams(void):
+      m_max_recursion(12),
+      m_split_thresh(4)
+    {}
+  };
 
   /* The main trickiness we have hear is that we store
    * the input point times two (forcing it to be even).
@@ -1580,31 +1487,6 @@ end_list(void)
     }
 }
 
-void
-CurveListPacker::
-print_curve_list(unsigned int cnt,
-                 fastuidraw::c_array<const fastuidraw::generic_data> data,
-                 unsigned int offset, std::string prefix)
-{
-  typedef fastuidraw::GlyphRenderDataRestrictedRays G;
-
-  prefix += "\t";
-  for (unsigned int i = 0; i < cnt; i += 2)
-    {
-      uint32_t v, c0, c1;
-
-      v = data[offset++].u;
-      c0 = fastuidraw::unpack_bits(G::curve_entry0_bit0, G::curve_numbits, v);
-      c1 = fastuidraw::unpack_bits(G::curve_entry1_bit0, G::curve_numbits, v);
-
-      print_curve(i, data, c0, prefix);
-      if (i + 1 < cnt)
-        {
-          print_curve(i + 1, data, c1, prefix);
-        }
-    }
-}
-
 ///////////////////////////////////////////
 // CurveListCollection methods
 void
@@ -1828,46 +1710,6 @@ subdivide(unsigned int max_recursion, unsigned int split_thresh)
               m_winding = winding;
               best_dist = dist;
             }
-        }
-    }
-}
-
-void
-CurveListHierarchy::
-print_tree(std::string prefix) const
-{
-  prefix += "\t";
-  std::cout << prefix << "BoundingBox" << m_curves.box().min_point()
-            << " -- " << m_curves.box().max_point() << "@" << m_offset << ":";
-  if (has_children())
-    {
-      if (m_splitting_coordinate == 0u)
-        {
-          std::cout << "SplitX:\n";
-        }
-      else
-        {
-          std::cout << "SplitY:\n";
-        }
-      m_child[0]->print_tree(prefix);
-      m_child[1]->print_tree(prefix);
-    }
-  else
-    {
-      unsigned int cnt(0);
-
-      std::cout << "\n" << prefix << "winding = " << m_winding << "\n"
-                << prefix << "delta = " << m_delta << "\n"
-                << prefix << "curve_list with " << m_curves.curves().size() << " elements\n";
-      prefix += "\t";
-
-      cnt = 0;
-      for (const CurveID &id : m_curves.curves())
-        {
-          std::cout << prefix << "(" << cnt << ") "
-                    << m_curves.glyph_path().fetch_curve(id)
-                    << "\n";
-          ++cnt;
         }
     }
 }
@@ -2228,9 +2070,7 @@ line_to(ivec2 pt)
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
-         ivec2 pmin_pt, ivec2 pmax_pt,
-         unsigned int max_recursion,
-         unsigned int split_thresh)
+         ivec2 pmin_pt, ivec2 pmax_pt)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
   ivec2 sz;
@@ -2286,8 +2126,8 @@ finalize(enum PainterEnums::fill_rule_t f,
   CurveListHierarchy hierarchy(d->m_glyph,
                                d->m_glyph->glyph_bound_min(),
                                d->m_glyph->glyph_bound_max(),
-                               max_recursion,
-                               split_thresh);
+                               max_recursion(),
+                               split_thresh());
 
   /* step 4: assign tree offsets */
   unsigned int tree_size, total_size;
@@ -2352,4 +2192,40 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   attributes[6].m_data = uvec4(data_offset);
 
   return routine_success;
+}
+
+unsigned int
+fastuidraw::GlyphRenderDataRestrictedRays::
+max_recursion(void)
+{
+  GlyphRenderParams &R(GlyphRenderParams::values());
+  std::lock_guard<std::mutex> m(R.m_mutex);
+  return R.m_max_recursion;
+}
+
+void
+fastuidraw::GlyphRenderDataRestrictedRays::
+max_recursion(unsigned int v)
+{
+  GlyphRenderParams &R(GlyphRenderParams::values());
+  std::lock_guard<std::mutex> m(R.m_mutex);
+  R.m_max_recursion = v;
+}
+
+unsigned int
+fastuidraw::GlyphRenderDataRestrictedRays::
+split_thresh(void)
+{
+  GlyphRenderParams &R(GlyphRenderParams::values());
+  std::lock_guard<std::mutex> m(R.m_mutex);
+  return R.m_split_thresh;
+}
+
+void
+fastuidraw::GlyphRenderDataRestrictedRays::
+split_thresh(unsigned int v)
+{
+  GlyphRenderParams &R(GlyphRenderParams::values());
+  std::lock_guard<std::mutex> m(R.m_mutex);
+  R.m_split_thresh = v;
 }
