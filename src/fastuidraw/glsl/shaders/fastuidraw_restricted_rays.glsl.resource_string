@@ -77,7 +77,10 @@ void
 fastuidraw_restricted_rays_update_distance(in vec2 p, in bool is_increment,
                                            inout fastuidraw_restricted_rays_distance_type nv)
 {
-  fastuidraw_restricted_rays_update_distance(abs(p.x) + abs(p.y), is_increment, nv);
+  float d;
+
+  d = abs(p.x) + abs(p.y);
+  fastuidraw_restricted_rays_update_distance(d, is_increment, nv);
 }
 
 void
@@ -485,16 +488,15 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
 {
   uint src, num_curves, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation tr;
-  float dist_to_ref, texel_box_L1_sz, texel_box_area;
+  float dist_to_ref, texel_box_area;
 
   winding_sample_data_location =
     fastuidaw_restricted_rays_compute_box(glyph_coord,
                                           bb_box_min, bb_box_max,
                                           glyph_data_location,
                                           texel_box, curve_list, num_curves);
-  texel_box_L1_sz = texel_box.size.x + texel_box.size.y;
   texel_box_area = texel_box.size.x * texel_box.size.y;
-  nv.distance_increment = nv.distance_decrement = texel_box_L1_sz;
+  nv.distance_increment = nv.distance_decrement = 120.0;
 
   fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
                                                     texel_box, S);
