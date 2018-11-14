@@ -46,17 +46,12 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       || abs(glyph_coord.y - texel_box.min_point.y) < tol_y
       || abs(glyph_coord.y - texel_box.max_point.y) < tol_y)
     {
-      //ff.x = 1.0;
-    }
-
-  if (nv.nearest_point < 8.0)
-    {
       ff.x = 1.0;
     }
 
   if (length(S.reference_position - glyph_coord) < tol * min(fwidth(glyph_coord.x), fwidth(glyph_coord.y)))
     {
-      //ff.y = 1.0;
+      ff.y = 1.0;
     }
 
   if (nv.distance_increment < 2.0
@@ -71,7 +66,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
 
   return vec4(ff, 1.0);
-  **/
+  /**/
 
   return vec4(1.0, 1.0, 1.0, cvg);
 }
