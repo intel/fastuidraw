@@ -47,7 +47,6 @@ struct fastuidraw_restricted_rays_distance_type
 {
   float distance_increment;
   float distance_decrement;
-  float nearest_point;
 };
 
 struct fastuidraw_restricted_rays_winding_sample_type
@@ -179,7 +178,7 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
                                                   in vec2 reference_point,
                                                   out fastuidraw_restricted_rays_transformation tr)
 {
-  vec2 q;
+  vec2 q, em;
 
   q = reference_point - frag_point;
 
@@ -189,8 +188,12 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
   tr.jr_vector.x = -tr.r_vector.y;
   tr.jr_vector.y = tr.r_vector.x;
 
-  tr.em.x = 1.0 / (abs(dot(tr.r_vector, frag_point_dx)) + abs(dot(tr.r_vector, frag_point_dy)));
-  tr.em.y = 1.0 / (abs(dot(tr.jr_vector, frag_point_dx)) + abs(dot(tr.jr_vector, frag_point_dy)));
+  em.x = abs(dot(tr.r_vector, frag_point_dx)) + abs(dot(tr.r_vector, frag_point_dy));
+  em.y = abs(dot(tr.jr_vector, frag_point_dx)) + abs(dot(tr.jr_vector, frag_point_dy));
+
+  tr.rot_mag /= em.x;
+  tr.r_vector /= em.x;
+  tr.jr_vector /= em.y;
 }
 
 vec2
@@ -235,7 +238,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   code.y = fastuidraw_restricted_rays_compute_code(curve.p1.y, curve.p2.y, curve.p3.y);
   if (code.y != 0u)
     {
-      float t1, t2, x1, x2, x1pix, x2pix;
+      float t1, t2, x1, x2;
       const float quad_tol = 0.0001;
       bool skip;
 
@@ -259,9 +262,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      x1pix = x1 * tr.em.x;
-      x2pix = x2 * tr.em.x;
-
       if ((code.y & 1u) != 0u)
         {
           if (x1 <= tr.rot_mag && x1 >= 0.0)
@@ -271,7 +271,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
 
           if (!skip && t1 >= 0.0 && t1 <= 1.0)
             {
-              fastuidraw_restricted_rays_update_distance(abs(x1pix), x1pix < 0.0, dst);
+              fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
             }
         }
 
@@ -284,14 +284,14 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
 
           if (!skip && t2 >= 0.0 && t2 <= 1.0)
             {
-              fastuidraw_restricted_rays_update_distance(abs(x2pix), x2pix > 0.0, dst);
+              fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
             }
         }
     }
 
   if (code.x != 0u)
     {
-      float t1, t2, y1, y2, y1pix, y2pix;
+      float t1, t2, y1, y2;
       const float quad_tol = 0.0001;
 
       if (curve.is_quadratic && abs(A.x) > quad_tol)
@@ -316,17 +316,14 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
       y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
 
-      y1pix = y1 * tr.em.y;
-      y2pix = y2 * tr.em.y;
-
       if ((code.x & 1u) != 0u && t1 >= 0.0 && t1 <= 1.0)
         {
-          fastuidraw_restricted_rays_update_distance(abs(y1pix), y1pix > 0.0, dst);
+          fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
         }
 
       if (code.x > 1u && t2 >= 0.0 && t2 <= 1.0)
         {
-          fastuidraw_restricted_rays_update_distance(abs(y2pix), y2pix < 0.0, dst);
+          fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
         }
     }
 
@@ -338,41 +335,27 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    * so
    *
    *  p'(t) = 2At - 2B
-   *
-   * we need the distance in "pixel" coordinate so we scale p as well.
    */
   vec2 dp1, dp3;
 
   dp1 = -B;
   dp3 = A - B;
-  fastuidraw_restricted_rays_update_distance(curve.p1 * tr.em, dp1, dst);
-  fastuidraw_restricted_rays_update_distance(curve.p3 * tr.em, dp3, dst);
+  fastuidraw_restricted_rays_update_distance(curve.p1, dp1, dst);
+  fastuidraw_restricted_rays_update_distance(curve.p3, dp3, dst);
 
   /* The last ingredient of minimizing the L1-distance is to minimize
    * against those t for which:
    *
    *   x'(t) - y'(t) = 0 or x'(t) + y'(t) = 0
    *
-   * The issue we have here is that we are doing a scaled L1-distance
-   *
-   *   || (x,y) || = em.x * abs(x) + em.y * abs(y)
-   *
-   * so the correct critical points are
-   *
-   *   em.x * x'(t) - em.y * y'(t) = 0
-   *   em.x * x'(t) + em.y * y'(t) = 0
-   *
    * thus the t's are t0 and t1 where
    *
-   * em.x * (A.x * t0 - B.x) + em.y * (A.y * t0 - B.y) = 0 --> t0 = (em.x * B.x + em.y * B.y) / (em.x * A.x + em.y * A.y)
-   * em.x * (A.x * t1 - B.x) - em.y * (A.y * t1 - B.y) = 0 --> t1 = (em.x * B.x - em.y * B.y) / (em.x * A.x - em.y * A.y)
+   * (A.x * t0 - B.x) + (A.y * t0 - B.y) = 0 --> t0 = (B.x + B.y) / (A.x + A.y)
+   * (A.x * t1 - B.x) - (A.y * t1 - B.y) = 0 --> t1 = (B.x - B.y) / (A.x - A.y)
    *
    */
   if (curve.is_quadratic)
     {
-      A *= tr.em;
-      B *= tr.em;
-
       float d0, d1, n0, n1;
       const float tol = 0.0001;
 
@@ -509,7 +492,7 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                           bb_box_min, bb_box_max,
                                           glyph_data_location,
                                           texel_box, curve_list, num_curves);
-  nv.distance_increment = nv.distance_decrement = nv.nearest_point = texel_box.size.x + texel_box.size.y;
+  nv.distance_increment = nv.distance_decrement = texel_box.size.x + texel_box.size.y;
 
   fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
                                                     texel_box, S);
