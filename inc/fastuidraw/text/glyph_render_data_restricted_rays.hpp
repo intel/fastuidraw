@@ -333,7 +333,6 @@ namespace fastuidraw
     /*!
      * Ctor.
      */
-    explicit
     GlyphRenderDataRestrictedRays(void);
 
     ~GlyphRenderDataRestrictedRays();
@@ -375,10 +374,17 @@ namespace fastuidraw
      *               contours added
      * \param max_pt maximum point of the bounding box of the
      *               contours added
+     * \param max_recursion the maximum level of recursion for creating
+     *                      the hierarchy of boxes holding the curves
+     * \param split_thresh if the number of curves within a box is
+     *                     greater than split_thresh, then break the
+     *                     box in half and recurse.
      */
     void
     finalize(enum PainterEnums::fill_rule_t f,
-             ivec2 min_pt, ivec2 max_pt);
+             ivec2 min_pt, ivec2 max_pt,
+             unsigned int max_recursion = 12,
+             unsigned int split_thresh = 4);
 
     virtual
     enum fastuidraw::return_code

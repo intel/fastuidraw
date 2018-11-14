@@ -30,14 +30,6 @@
 
 namespace
 {
-  enum
-    {
-      MAX_RECURSION = 12,
-
-      /* number of curves in a texel that we stop splitting at */
-      SPLIT_THRESH = 4,
-    };
-
   inline
   uint32_t
   bias_winding(int w)
@@ -628,7 +620,9 @@ namespace
   public:
     CurveListHierarchy(const GlyphPath *p,
                        const fastuidraw::ivec2 &min_pt,
-                       const fastuidraw::ivec2 &max_pt):
+                       const fastuidraw::ivec2 &max_pt,
+                       unsigned int max_recursion,
+                       unsigned int split_thresh):
       m_child(nullptr, nullptr),
       m_offset(-1),
       m_splitting_coordinate(3),
@@ -637,7 +631,7 @@ namespace
       m_curves.init(p,
                     fastuidraw::vec2(min_pt),
                     fastuidraw::vec2(max_pt));
-      subdivide();
+      subdivide(max_recursion, split_thresh);
     }
 
     ~CurveListHierarchy()
@@ -677,7 +671,7 @@ namespace
     {}
 
     void
-    subdivide(void);
+    subdivide(unsigned int max_recursion, unsigned int split_thresh);
 
     void
     assign_tree_offsets(unsigned int &start);
@@ -1776,18 +1770,18 @@ assign_curve_list_offsets(CurveListCollection &C)
 
 void
 CurveListHierarchy::
-subdivide(void)
+subdivide(unsigned int max_recursion, unsigned int split_thresh)
 {
   using namespace fastuidraw;
-  if (m_generation < MAX_RECURSION && m_curves.curves().size() > SPLIT_THRESH)
+  if (m_generation < max_recursion && m_curves.curves().size() > split_thresh)
     {
       m_child[0] = FASTUIDRAWnew CurveListHierarchy(m_generation);
       m_child[1] = FASTUIDRAWnew CurveListHierarchy(m_generation);
 
       m_splitting_coordinate = m_curves.split(m_child[0]->m_curves,
                                               m_child[1]->m_curves);
-      m_child[0]->subdivide();
-      m_child[1]->subdivide();
+      m_child[0]->subdivide(max_recursion, split_thresh);
+      m_child[1]->subdivide(max_recursion, split_thresh);
 
       if (!m_child[0]->has_children()
           && !m_child[1]->has_children()
@@ -2234,7 +2228,9 @@ line_to(ivec2 pt)
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
-         ivec2 pmin_pt, ivec2 pmax_pt)
+         ivec2 pmin_pt, ivec2 pmax_pt,
+         unsigned int max_recursion,
+         unsigned int split_thresh)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
   ivec2 sz;
@@ -2289,7 +2285,9 @@ finalize(enum PainterEnums::fill_rule_t f,
   /* step 3: create the tree */
   CurveListHierarchy hierarchy(d->m_glyph,
                                d->m_glyph->glyph_bound_min(),
-                               d->m_glyph->glyph_bound_max());
+                               d->m_glyph->glyph_bound_max(),
+                               max_recursion,
+                               split_thresh);
 
   /* step 4: assign tree offsets */
   unsigned int tree_size, total_size;
