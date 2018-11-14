@@ -29,7 +29,6 @@ struct fastuidraw_restricted_rays_transformation
   vec2 translation;
   vec2 r_vector, jr_vector;
   float rot_mag;
-  vec2 em;
 };
 
 struct fastuidraw_restricted_rays_curve_type
