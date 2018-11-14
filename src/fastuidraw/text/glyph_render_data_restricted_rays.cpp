@@ -1688,10 +1688,11 @@ subdivide(unsigned int max_recursion, unsigned int split_thresh)
       vec2 factor(box_size / float(GlyphRenderDataRestrictedRays::delta_div_factor));
       const int MAX_TRIES = 50;
 
-      thresh = t_min(box_size.x(), box_size.y()) * 0.25f;
-      m_delta = ivec2(0, 0);
-      m_winding = m_curves.glyph_path().compute_winding_number(pt, &best_dist);
+      thresh = t_min(box_size.x(), box_size.y()) * 0.05f;
 
+      m_delta = ivec2(128, 128);
+      m_winding = m_curves.glyph_path().compute_winding_number(pt + vec2(m_delta) * factor,
+							       &best_dist);
       for (int i = 0; i < MAX_TRIES && best_dist < thresh; ++i)
         {
           ivec2 idelta;
