@@ -100,6 +100,7 @@ public:
 
   void
   init(const reference_counted_ptr<const FontFreeType> &font,
+       float line_length,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
@@ -179,7 +180,7 @@ private:
   realize_all_glyphs(GlyphRender renderer);
 
   void
-  ready_glyph_attribute_data(void);
+  ready_glyph_data(int w, int h);
 
   float
   update_cts_params(void);
@@ -313,22 +314,26 @@ make_hierarchy(void)
 void
 GlyphDrawsShared::
 init(const reference_counted_ptr<const FontFreeType> &font,
+     float line_length,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
-  float tallest(0.0f), negative_tallest(0.0f), offset;
+  float scale_factor, offset;
   unsigned int i, endi, glyph_at_start, navigator_chars;
   std::list< std::pair<float, std::string> > navigator;
   std::list< std::pair<float, std::string> >::iterator nav_iter;
-  float line_length(800);
   unsigned int num_glyphs;
   float y_advance_sign;
   std::vector<GlyphMetrics> metrics;
   simple_time timer;
+  reference_counted_ptr<FreeTypeFace> face;
 
+  face = font->face_generator()->create_face();
+  scale_factor = pixel_size_formatting / static_cast<float>(face->face()->units_per_EM);
   y_advance_sign = (screen_orientation == Painter::y_increases_downwards) ? 1.0f : -1.0f;
+  offset = scale_factor * static_cast<float>(face->face()->height);
   num_glyphs = font->number_glyphs();
 
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
@@ -340,25 +345,15 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   metrics.resize(num_glyphs);
   for(unsigned int i = 0; i < num_glyphs; ++i)
     {
-      float scale_factor, min_y, max_y;
-
       metrics[i] = glyph_cache->fetch_glyph_metrics(font, i);
-      scale_factor = pixel_size_formatting / metrics[i].units_per_EM();
-      max_y = scale_factor * (metrics[i].horizontal_layout_offset().y() + metrics[i].size().y());
-      min_y = scale_factor * metrics[i].horizontal_layout_offset().y();
-
-      tallest = t_max(tallest, max_y);
-      negative_tallest = t_min(negative_tallest, min_y);
     }
-  offset = tallest - negative_tallest;
 
   vec2 pen(0.0f, 0.0f);
   for(navigator_chars = 0, i = 0, endi = metrics.size(), glyph_at_start = 0; i < endi; ++i)
     {
       GlyphMetrics metric(metrics[i]);
-      float advance, nxt, scale_factor;
+      float advance, nxt;
 
-      scale_factor = pixel_size_formatting / metric.units_per_EM();
       advance = scale_factor * t_max(metric.advance().x(),
                                      t_max(0.0f, metric.horizontal_layout_offset().x()) + metric.size().x());
       advance += 1.0; //a little additional slack between glyphs.
@@ -651,7 +646,7 @@ derived_init(int w, int h)
   //put into unit of per us
   m_change_stroke_width_rate.value() /= (1000.0f * 1000.0f);
 
-  ready_glyph_attribute_data();
+  ready_glyph_data(w, h);
   m_draw_timer.restart();
 
   if (m_screen_orientation.value() == Painter::y_increases_upwards)
@@ -706,7 +701,7 @@ realize_all_glyphs(GlyphRender renderer)
 
 void
 painter_glyph_test::
-ready_glyph_attribute_data(void)
+ready_glyph_data(int w, int h)
 {
   std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
                                              m_explicit_glyph_codes.end());
@@ -721,7 +716,7 @@ ready_glyph_attribute_data(void)
         {
           realize_all_glyphs(m_draws[i]);
         }
-      m_draw_shared.init(m_font,
+      m_draw_shared.init(m_font, w,
                          m_glyph_cache, m_glyph_selector,
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
