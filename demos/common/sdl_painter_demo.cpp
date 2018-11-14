@@ -1,5 +1,6 @@
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
+#include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include "sdl_painter_demo.hpp"
 #include "text_helper.hpp"
 
@@ -333,17 +334,6 @@ sdl_painter_demo(const std::string &about_text,
   m_glyph_backing_texture_log2_h(10, "glyph_backing_texture_log2_h",
 				 "If glyph_backing_store_type is set to texture_array, then "
 				 "this gives the log2 of the height of the texture array", *this),
-  m_distance_field_pixel_size(fastuidraw::GlyphGenerateParams::distance_field_pixel_size(),
-                              "glyph_distance_field_pixel_size",
-                              "Pixel size at which to generate distance field glyphs",
-                              *this),
-  m_distance_field_max_distance(fastuidraw::GlyphGenerateParams::distance_field_max_distance(),
-                                "glyph_distance_field_max_distance",
-                                "Max distance value in pixels to use when generating "
-                                "distance field glyphs; the texels of a distance field "
-                                "glyph are always stored in fixed point 8-bits normalized "
-                                "to [0, 1], this field gives the clamping and conversion "
-                                "to [0, 1]", *this),
 
   m_colorstop_atlas_options("ColorStop Atlas options", *this),
   m_color_stop_atlas_width(m_colorstop_atlas_params.width(),
@@ -558,6 +548,25 @@ sdl_painter_demo(const std::string &about_text,
                         "to count number of helper and non-helper pixels. The value "
                         "is how many frames to wait before reading the values from the "
                         "atomic buffers that are updated", *this),
+  m_distance_field_pixel_size(fastuidraw::GlyphGenerateParams::distance_field_pixel_size(),
+                              "glyph_distance_field_pixel_size",
+                              "Pixel size at which to generate distance field glyphs",
+                              *this),
+  m_distance_field_max_distance(fastuidraw::GlyphGenerateParams::distance_field_max_distance(),
+                                "glyph_distance_field_max_distance",
+                                "Max distance value in pixels to use when generating "
+                                "distance field glyphs; the texels of a distance field "
+                                "glyph are always stored in fixed point 8-bits normalized "
+                                "to [0,1]. This field gives the clamping and conversion "
+                                "to [0,1]", *this),
+  m_restricted_rays_max_recursion(fastuidraw::GlyphRenderDataRestrictedRays::max_recursion(),
+                                  "glyph_restricted_rays_max_recursion",
+                                  "Maximum level of recursion used when creating restricted rays glyphs",
+                                  *this),
+  m_restricted_rays_split_thresh(fastuidraw::GlyphRenderDataRestrictedRays::split_thresh(),
+                                 "glyph_restricted_rays_split_thresh",
+                                 "Splitting threshhold used when creating restricted rays glyphs",
+                                 *this),
   m_num_pixel_counter_buffers(0),
   m_pixel_counts(0, 0, 0, 0)
 {}
@@ -746,6 +755,8 @@ init_gl(int w, int h)
 
   fastuidraw::GlyphGenerateParams::distance_field_max_distance(m_distance_field_max_distance.value());
   fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
+  fastuidraw::GlyphRenderDataRestrictedRays::max_recursion(m_restricted_rays_max_recursion.value());
+  fastuidraw::GlyphRenderDataRestrictedRays::split_thresh(m_restricted_rays_split_thresh.value());
 
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
