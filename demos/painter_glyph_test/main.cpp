@@ -202,8 +202,6 @@ private:
   command_line_argument_value<bool> m_font_bold, m_font_italic;
   command_line_argument_value<std::string> m_font_file;
   command_line_argument_value<int> m_coverage_pixel_size;
-  command_line_argument_value<int> m_distance_pixel_size;
-  command_line_argument_value<float> m_max_distance;
   command_line_argument_value<std::string> m_text;
   command_line_argument_value<bool> m_use_file;
   command_line_argument_value<bool> m_draw_glyph_set;
@@ -488,11 +486,6 @@ painter_glyph_test(void):
               "thus bypassing the glyph selection process with glyph_selector",
               *this),
   m_coverage_pixel_size(24, "coverage_pixel_size", "Pixel size at which to create coverage glyphs", *this),
-  m_distance_pixel_size(48, "distance_pixel_size", "Pixel size at which to create distance field glyphs", *this),
-  m_max_distance(GlyphGenerateParams::distance_field_max_distance(),
-                 "max_distance",
-                 "value to use for max distance in pixels "
-                 "when generating distance field glyphs", *this),
   m_text("Hello World!", "text", "text to draw to the screen", *this),
   m_use_file(false, "use_file", "if true the value for text gives a filename to display", *this),
   m_draw_glyph_set(false, "draw_glyph_set", "if true, display all glyphs of font instead of text", *this),
@@ -586,10 +579,6 @@ painter_glyph_test::
 create_and_add_font(void)
 {
   reference_counted_ptr<const FontBase> font;
-
-  GlyphGenerateParams::distance_field_max_distance(m_max_distance.value());
-  GlyphGenerateParams::distance_field_pixel_size(m_distance_pixel_size.value());
-
   if (!m_font_file.value().empty())
     {
       reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;

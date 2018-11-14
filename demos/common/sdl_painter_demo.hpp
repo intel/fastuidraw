@@ -124,6 +124,8 @@ private:
   command_line_argument_value<bool> m_glyph_atlas_delayed_upload;
   enumerated_command_line_argument_value<enum glyph_backing_store_t> m_glyph_backing_store_type;
   command_line_argument_value<int> m_glyph_backing_texture_log2_w, m_glyph_backing_texture_log2_h;
+  command_line_argument_value<int> m_distance_field_pixel_size;
+  command_line_argument_value<float> m_distance_field_max_distance;
 
   /* ColorStop atlas parameters */
   command_separator m_colorstop_atlas_options;
