@@ -26,6 +26,8 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 
+#include "bounding_box.hpp"
+
 template<typename T>
 fastuidraw::glsl::ShaderSource&
 operator<<(fastuidraw::glsl::ShaderSource &src, const T &obj)
@@ -93,4 +95,19 @@ operator<<(std::ostream &ostr, const std::vector<T> &obj)
     }
   ostr << ")";
   return ostr;
+}
+
+template<typename T>
+std::ostream&
+operator<<(std::ostream &str, const fastuidraw::BoundingBox<T> &obj)
+{
+  if (obj.empty())
+    {
+      str << "{}";
+    }
+  else
+    {
+      str << "[" << obj.min_point() << " -- " << obj.max_point() << "]";
+    }
+  return str;
 }
