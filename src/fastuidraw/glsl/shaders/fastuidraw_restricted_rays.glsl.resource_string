@@ -55,6 +55,16 @@ struct fastuidraw_restricted_rays_winding_sample_type
 };
 
 void
+fastuidraw_restricted_rays_init_distance(out fastuidraw_restricted_rays_distance_type nv)
+{
+  /* Just initialize to some value that is large (strictly speaking
+   * we only need a value greater than 0.5, but make it larger
+   * for debug renders to be useful).
+   */
+  nv.distance_increment = nv.distance_decrement = 120.0;
+}
+
+void
 fastuidraw_restricted_rays_update_distance(in float dist, in bool is_increment,
                                            inout fastuidraw_restricted_rays_distance_type nv)
 {
@@ -192,6 +202,16 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
 
   em.x = abs(dot(tr.r_vector, frag_point_dx)) + abs(dot(tr.r_vector, frag_point_dy));
   em.y = abs(dot(tr.jr_vector, frag_point_dx)) + abs(dot(tr.jr_vector, frag_point_dy));
+
+  /* Prevent divide by zero. if em.x or em.y is very small, that means
+   * that on screen the x (repsectively y) local coordinate axis is
+   * severely stretched. Since the sample point is to be reasonably
+   * far from any curve, clamping em.x and em.y away from zero will
+   * not have effect on coverage computation.
+   */
+  const float min_em = 1e-7;
+  em.x = max(em.x, min_em);
+  em.y = max(em.y, min_em);
 
   tr.rot_mag /= em.x;
   tr.r_vector /= em.x;
@@ -488,41 +508,20 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
 {
   uint src, num_curves, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation tr;
-  float dist_to_ref, texel_box_area;
 
   winding_sample_data_location =
     fastuidaw_restricted_rays_compute_box(glyph_coord,
                                           bb_box_min, bb_box_max,
                                           glyph_data_location,
                                           texel_box, curve_list, num_curves);
-  texel_box_area = texel_box.size.x * texel_box.size.y;
-  nv.distance_increment = nv.distance_decrement = 120.0;
-
+  fastuidraw_restricted_rays_init_distance(nv);
   fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
                                                     texel_box, S);
 
   winding_number = S.reference_winding;
-
-  dist_to_ref = abs(S.reference_position.x - glyph_coord.x)
-    + abs(S.reference_position.y - glyph_coord.y);
-
-  /* We are guaranteed that the reference point is never close
-   * to a curve. Thus if the fragment is close to the reference
-   * point then there are no curves near the fragment.
-   */
-  const float close_to_ref = 0.01;
-  const float close_to_req_sq = close_to_ref * close_to_ref;
-  if (dist_to_ref * dist_to_ref < close_to_req_sq * texel_box_area)
-    {
-      num_curves = 0u;
-    }
-
-  if (num_curves != 0u)
-    {
-      fastuidraw_restricted_rays_compute_transformation(glyph_coord,
-                                                        glyph_coord_dx, glyph_coord_dy,
-                                                        S.reference_position, tr);
-    }
+  fastuidraw_restricted_rays_compute_transformation(glyph_coord,
+						    glyph_coord_dx, glyph_coord_dy,
+						    S.reference_position, tr);
 
   src = curve_list + glyph_data_location;
   for (c = 0u; c < num_curves; c += 2u)
