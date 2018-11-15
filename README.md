@@ -20,7 +20,9 @@ Documentation
 =============
   Fast UI Draw uses doxygen for documentation, build and view documentation by:
   - make docs
-  - xdg-open docs/doxy/html/index.html
+  - xdg-open docs/html/index.html
+
+The documentation is available online [here](https://intel.github.io/fastuidraw/docs/html/index.html).
 
 GL requirements
 =====================
@@ -86,31 +88,34 @@ Installing
   installed! The default value of INSTALL_LOCATION is
   /usr/local, change as one sees fit. Placement is as follows:
    - INSTALL_LOCATION/lib: libraries
+   - INSTALL_LOCATION/lib/pkgconfig: pkg-config files
    - INSTALL_LOCATION/include: header files
    - INSTALL_LOCATION/bin: fastuidraw-config script (and .dll's for MinGW)
    - INSTALL_LOCATION/share/doc/fastuidraw: documentation
-
 
 Using project
 =============
   After installation, the script, fastuidraw-config, is available
   and copied to INSTALL_LOCATION/bin. Use the script to get
-  linker and compile flags for building an application.
+  linker and compile flags for building an application. Alternatively,
+  one can also use pkg-config.
 
 Notes
 =====
-  - FastUIDraw has the main meat in libFastUIDraw.
-  - The GL backend is libFastUIDrawGL
-  - The GLES backend is libFastUIDrawGLES
+  - FastUIDraw has the main meat in libFastUIDraw, there are two
+    variants the release and debug version whose pkg-config module
+    names are fastuidraw-release and fastuidraw-debug.
+  - The GL backend of FastUIDraw is libFastUIDrawGL, there are two
+    variants the release and debug version whose pkg-config module
+    names are fastuidrawGL-release and fastuidrawGL-debug.
+  - The GLES backend of FastUIDraw is libFastUIDrawGLES, there are two
+    variants the release and debug version whose pkg-config module
+    names are fastuidrawGLES-release and fastuidrawGLES-debug.
   - The debug and release versions of the libraries should not be mixed;
     if you are building for release, then use the release versions and
     the release flags. If you are building for debug use the debug
-    libraries and the debug flags. These values are outputted by
-    fastuidraw-config.
-       -- The release flags include -DNDEBUG to turn off assert.
-          A number of the template classes defined in fastuidraw/util
-          have calls to assert(). These calls perform bounds checking,
-          checking for nullptr and significantly drop performance.
+    libraries and the debug flags. One can get the flag values by
+    using either pkg-config or the script fastuidraw-config.
   - All demos when given -help as command line display all options
   - The demos require that the libraries are in the library path
 
