@@ -24,18 +24,18 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   fastuidraw_restricted_rays_winding_sample_type S;
   int winding_number;
   fastuidraw_restricted_rays_distance_type nv;
-  float cvg;
+  float cvg, shearing, fx, fy;
 
   glyph_coord = vec2(fastuidraw_glyph_coord_x,
                      fastuidraw_glyph_coord_y);
 
-  cvg = fastuidraw_restricted_rays_compute_coverage(fastuidraw_glyph_data_location,
-                                                    glyph_coord,
-                                                    dFdx(glyph_coord),
-                                                    dFdy(glyph_coord),
-                                                    vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
-                                                    vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
-                                                    texel_box, S, winding_number, nv);
+  cvg = fastuidraw_restricted_rays_compute_coverage_adaptive(fastuidraw_glyph_data_location,
+							     glyph_coord,
+							     dFdx(glyph_coord),
+							     dFdy(glyph_coord),
+							     vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
+							     vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
+							     texel_box, S, winding_number, nv, shearing);
   /**
   const float tol = 3.0;
   float tol_x = tol * fwidth(glyph_coord.x);
@@ -60,7 +60,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       ff.y = 1.0;
     }
 
-  if (S.reference_winding == 0)
+  if (shearing < 0.5)
     {
       //ff.xy = ff.yx;
     }
