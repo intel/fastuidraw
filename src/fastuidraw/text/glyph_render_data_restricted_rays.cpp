@@ -2133,6 +2133,7 @@ finalize(enum PainterEnums::fill_rule_t f,
           sz[coord] /= 2;
           near_thresh[coord] *= 0.5f;
         }
+      near_thresh[coord] = t_max(0.0f, near_thresh[coord]);
     }
 
   if (div_scale != ivec2(1, 1))

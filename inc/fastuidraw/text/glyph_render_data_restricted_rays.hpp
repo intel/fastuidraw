@@ -433,9 +433,13 @@ namespace fastuidraw
 
     /*!
      * Specifies the expected minimum size at which to render
-     * glyphs via values of a \ref GlyphRenderDataRestrictedRays.
-     * Takes effect on the next \ref GlyphRenderDataRestrictedRays
-     * whose finalize() method is called.
+     * glyphs via  a \ref GlyphRenderDataRestrictedRays. Takes
+     * effect on the next \ref GlyphRenderDataRestrictedRays
+     * whose finalize() method is called. The value is used
+     * to include curves near the boundary of bounding box
+     * so that anti-aliasing works correctly when the glyph
+     * is renderer very small. A negative value indicates that
+     * no slack is taken/used.
      */
     static
     float
