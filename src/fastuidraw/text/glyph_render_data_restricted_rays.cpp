@@ -503,7 +503,8 @@ namespace
          const fastuidraw::vec2 &max_pt);
 
     unsigned int //returns the splitting coordinate
-    split(CurveList &out_pre, CurveList &out_post) const;
+    split(CurveList &out_pre, CurveList &out_post,
+          fastuidraw::vec2 near_thresh) const;
 
     const std::vector<CurveID>&
     curves(void) const
@@ -603,7 +604,8 @@ namespace
                        const fastuidraw::ivec2 &min_pt,
                        const fastuidraw::ivec2 &max_pt,
                        unsigned int max_recursion,
-                       unsigned int split_thresh):
+                       unsigned int split_thresh,
+                       fastuidraw::vec2 near_thresh):
       m_child(nullptr, nullptr),
       m_offset(-1),
       m_splitting_coordinate(3),
@@ -612,7 +614,7 @@ namespace
       m_curves.init(p,
                     fastuidraw::vec2(min_pt),
                     fastuidraw::vec2(max_pt));
-      subdivide(max_recursion, split_thresh);
+      subdivide(max_recursion, split_thresh, near_thresh);
     }
 
     ~CurveListHierarchy()
@@ -649,7 +651,8 @@ namespace
     {}
 
     void
-    subdivide(unsigned int max_recursion, unsigned int split_thresh);
+    subdivide(unsigned int max_recursion, unsigned int split_thresh,
+              fastuidraw::vec2 near_thresh);
 
     void
     assign_tree_offsets(unsigned int &start);
@@ -1369,15 +1372,25 @@ init(const GlyphPath *p,
 
 unsigned int
 CurveList::
-split(CurveList &out_pre, CurveList &out_post) const
+split(CurveList &out_pre, CurveList &out_post,
+      fastuidraw::vec2 near_thresh) const
 {
   using namespace fastuidraw;
   vecN<std::vector<CurveID>, 2> splitX;
   vecN<std::vector<CurveID>, 2> splitY;
-  vecN<BoundingBox<float>, 2> splitX_box(m_box.split_x());
-  vecN<BoundingBox<float>, 2> splitY_box(m_box.split_y());
+  vecN<BoundingBox<float>, 2> esplitX_box(m_box.split_x());
+  vecN<BoundingBox<float>, 2> esplitY_box(m_box.split_y());
   ivec2 sz;
   int return_value;
+
+  /* enlarge each of the splitting boxes by near_thresh
+   * along the splitting line.
+   */
+  for (int i = 0; i < 2; ++i)
+    {
+      esplitX_box[i].enlarge(near_thresh);
+      esplitY_box[i].enlarge(near_thresh);
+    }
 
   /* choose the partition with the smallest sum of curves */
   FASTUIDRAWassert(std::is_sorted(m_curves.begin(), m_curves.end()));
@@ -1386,11 +1399,11 @@ split(CurveList &out_pre, CurveList &out_post) const
       const Curve &curve(m_p->fetch_curve(id));
       for (int i = 0; i < 2; ++i)
         {
-          if (curve.intersects(splitX_box[i]))
+          if (curve.intersects(esplitX_box[i]))
             {
               splitX[i].push_back(id);
             }
-          if (curve.intersects(splitY_box[i]))
+          if (curve.intersects(esplitY_box[i]))
             {
               splitY[i].push_back(id);
             }
@@ -1420,18 +1433,21 @@ split(CurveList &out_pre, CurveList &out_post) const
 
   if (return_value == 0)
     {
+      vecN<BoundingBox<float>, 2> splitB(m_box.split_x());
+
       std::swap(out_pre.m_curves, splitX[0]);
       std::swap(out_post.m_curves, splitX[1]);
-      out_pre.m_box = splitX_box[0];
-      out_post.m_box = splitX_box[1];
+      out_pre.m_box = splitB[0];
+      out_post.m_box = splitB[1];
     }
   else
     {
-      FASTUIDRAWassert(return_value == 1);
+      vecN<BoundingBox<float>, 2> splitB(m_box.split_y());
+
       std::swap(out_pre.m_curves, splitY[0]);
       std::swap(out_post.m_curves, splitY[1]);
-      out_pre.m_box = splitY_box[0];
-      out_post.m_box = splitY_box[1];
+      out_pre.m_box = splitB[0];
+      out_post.m_box = splitB[1];
     }
 
   return return_value;
@@ -1654,7 +1670,8 @@ assign_curve_list_offsets(CurveListCollection &C)
 
 void
 CurveListHierarchy::
-subdivide(unsigned int max_recursion, unsigned int split_thresh)
+subdivide(unsigned int max_recursion, unsigned int split_thresh,
+          fastuidraw::vec2 near_thresh)
 {
   using namespace fastuidraw;
   if (m_generation < max_recursion && m_curves.curves().size() > split_thresh)
@@ -1663,9 +1680,10 @@ subdivide(unsigned int max_recursion, unsigned int split_thresh)
       m_child[1] = FASTUIDRAWnew CurveListHierarchy(m_generation);
 
       m_splitting_coordinate = m_curves.split(m_child[0]->m_curves,
-                                              m_child[1]->m_curves);
-      m_child[0]->subdivide(max_recursion, split_thresh);
-      m_child[1]->subdivide(max_recursion, split_thresh);
+                                              m_child[1]->m_curves,
+                                              near_thresh);
+      m_child[0]->subdivide(max_recursion, split_thresh, near_thresh);
+      m_child[1]->subdivide(max_recursion, split_thresh, near_thresh);
 
       if (!m_child[0]->has_children()
           && !m_child[1]->has_children()
@@ -2073,11 +2091,11 @@ void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
          ivec2 pmin_pt, ivec2 pmax_pt,
-         float punits_per_EM)
+         float units_per_EM)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
   ivec2 sz;
-  vec2 units_per_EM(punits_per_EM, punits_per_EM);
+  vec2 near_thresh(units_per_EM / expected_min_render_size());
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
@@ -2113,7 +2131,7 @@ finalize(enum PainterEnums::fill_rule_t f,
         {
           div_scale[coord] *= 2;
           sz[coord] /= 2;
-          units_per_EM[coord] *= 0.5f;
+          near_thresh[coord] *= 0.5f;
         }
     }
 
@@ -2131,8 +2149,8 @@ finalize(enum PainterEnums::fill_rule_t f,
   CurveListHierarchy hierarchy(d->m_glyph,
                                d->m_glyph->glyph_bound_min(),
                                d->m_glyph->glyph_bound_max(),
-                               max_recursion(),
-                               split_thresh());
+                               max_recursion(), split_thresh(),
+                               near_thresh);
 
   /* step 4: assign tree offsets */
   unsigned int tree_size, total_size;
