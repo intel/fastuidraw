@@ -58,6 +58,16 @@ namespace fastuidraw
     }
 
     void
+    enlarge(pt_type delta)
+    {
+      if (!m_empty)
+        {
+          m_min -= delta;
+          m_max += delta;
+        }
+    }
+
+    void
     translate(const pt_type &tr)
     {
       if (!m_empty)
