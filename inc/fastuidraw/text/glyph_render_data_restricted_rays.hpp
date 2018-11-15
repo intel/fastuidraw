@@ -374,11 +374,6 @@ namespace fastuidraw
      *               contours added
      * \param max_pt maximum point of the bounding box of the
      *               contours added
-     * \param max_recursion the maximum level of recursion for creating
-     *                      the hierarchy of boxes holding the curves
-     * \param split_thresh if the number of curves within a box is
-     *                     greater than split_thresh, then break the
-     *                     box in half and recurse.
      */
     void
     finalize(enum PainterEnums::fill_rule_t f,
@@ -407,7 +402,7 @@ namespace fastuidraw
     void
     max_recursion(unsigned int);
 
-    /*
+    /*!
      * Returns the threshhold value for number of curves
      * allowed in a single box before a box is split on
      * the next \ref GlyphRenderDataRestrictedRays object
