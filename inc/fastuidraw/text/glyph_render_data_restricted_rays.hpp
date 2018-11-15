@@ -373,18 +373,22 @@ namespace fastuidraw
     quadratic_to(ivec2 ct, ivec2 pt);
 
     /*!
-     * Finalize the input data after which no more contours
-     * or curves may be added. All contours added must be
-     * closed as well.
+     * Finalize the input data after which no more contours or curves
+     * may be added. All contours added must be closed as well.
      * \param f fill rule to use for rendering
-     * \param min_pt minimum point of the bounding box of the
-     *               contours added
-     * \param max_pt maximum point of the bounding box of the
-     *               contours added
+     * \param min_pt minimum point of the bounding box of the contours
+     *               added
+     * \param max_pt maximum point of the bounding box of the contours
+     *               added
+     * \param units_per_EM the units per EM for the glyph; this value
+     *                     together with expected_min_render_size() is
+     *                     used to decide how close a curve may be to
+     *                     a bounding box to decide if it is included.
      */
     void
     finalize(enum PainterEnums::fill_rule_t f,
-             ivec2 min_pt, ivec2 max_pt);
+             ivec2 min_pt, ivec2 max_pt,
+             float units_per_EM);
 
     virtual
     enum fastuidraw::return_code
@@ -426,6 +430,24 @@ namespace fastuidraw
     static
     void
     split_thresh(unsigned int);
+
+    /*!
+     * Specifies the expected minimum size at which to render
+     * glyphs via values of a \ref GlyphRenderDataRestrictedRays.
+     * Takes effect on the next \ref GlyphRenderDataRestrictedRays
+     * whose finalize() method is called.
+     */
+    static
+    float
+    expected_min_render_size(void);
+
+    /*!
+     * Set the value returned by split_thresh(). Default
+     * value is 32.0.
+     */
+    static
+    void
+    expected_min_render_size(float);
 
   private:
     void *m_d;

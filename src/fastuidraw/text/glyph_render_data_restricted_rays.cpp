@@ -837,12 +837,14 @@ namespace
 
     unsigned int m_max_recursion;
     unsigned int m_split_thresh;
+    float m_expected_min_render_size;
     std::mutex m_mutex;
 
   private:
     GlyphRenderParams(void):
       m_max_recursion(12),
-      m_split_thresh(4)
+      m_split_thresh(4),
+      m_expected_min_render_size(32.0f)
     {}
   };
 
@@ -2070,10 +2072,12 @@ line_to(ivec2 pt)
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
-         ivec2 pmin_pt, ivec2 pmax_pt)
+         ivec2 pmin_pt, ivec2 pmax_pt,
+         float punits_per_EM)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
   ivec2 sz;
+  vec2 units_per_EM(punits_per_EM, punits_per_EM);
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
@@ -2109,6 +2113,7 @@ finalize(enum PainterEnums::fill_rule_t f,
         {
           div_scale[coord] *= 2;
           sz[coord] /= 2;
+          units_per_EM[coord] *= 0.5f;
         }
     }
 
@@ -2228,4 +2233,22 @@ split_thresh(unsigned int v)
   GlyphRenderParams &R(GlyphRenderParams::values());
   std::lock_guard<std::mutex> m(R.m_mutex);
   R.m_split_thresh = v;
+}
+
+float
+fastuidraw::GlyphRenderDataRestrictedRays::
+expected_min_render_size(void)
+{
+  GlyphRenderParams &R(GlyphRenderParams::values());
+  std::lock_guard<std::mutex> m(R.m_mutex);
+  return R.m_expected_min_render_size;
+}
+
+void
+fastuidraw::GlyphRenderDataRestrictedRays::
+expected_min_render_size(float v)
+{
+  GlyphRenderParams &R(GlyphRenderParams::values());
+  std::lock_guard<std::mutex> m(R.m_mutex);
+  R.m_expected_min_render_size = v;
 }
