@@ -100,25 +100,56 @@ namespace fastuidraw
        * Construct/returns a ShaderSource value that
        * implements the functions:
        * \code
+       * float
        * fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
-       *                                            in vec2 glyph_coord,
-       *                                            in vec2 glyph_coord_dx,
-       *                                            in vec2 glyph_coord_dy,
-       *                                            in vec2 bb_box_min,
-       *                                            in vec2 bb_box_max)
+       *                                             in vec2 glyph_coord,
+       *                                             in vec2 glyph_coord_dx,
+       *                                             in vec2 glyph_coord_dy,
+       *                                             in vec2 bb_box_min,
+       *                                             in vec2 bb_box_max)
        *
+       * float
        * fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
-       *                                            in vec2 glyph_coord,
-       *                                            in vec2 glyph_coord_dx,
-       *                                            in vec2 glyph_coord_dy,
-       *                                            in vec2 bb_box_min,
-       *                                            in vec2 bb_box_max,
-       *                                            out fastuidraw_restricted_rays_box_type texel_box)
+       *                                             in vec2 glyph_coord,
+       *                                             in vec2 glyph_coord_dx,
+       *                                             in vec2 glyph_coord_dy,
+       *                                             in vec2 bb_box_min,
+       *                                             in vec2 bb_box_max,
+       *                                             out fastuidraw_restricted_rays_box_type texel_box,
+       *                                             out fastuidraw_restricted_rays_winding_sample_type S,
+       *                                             out int winding_number,
+       *                                             out fastuidraw_restricted_rays_distance_type nv)
+       *
+       * float
+       * fastuidraw_restricted_rays_compute_coverage_hq(in uint glyph_data_location,
+       *                                                in vec2 glyph_coord,
+       *                                                in vec2 glyph_coord_dx,
+       *                                                in vec2 glyph_coord_dy,
+       *                                                in vec2 bb_box_min,
+       *                                                in vec2 bb_box_max)
+       *
+       * float
+       * fastuidraw_restricted_rays_compute_coverage_hq(in uint glyph_data_location,
+       *                                                in vec2 glyph_coord,
+       *                                                in vec2 glyph_coord_dx,
+       *                                                in vec2 glyph_coord_dy,
+       *                                                in vec2 bb_box_min,
+       *                                                in vec2 bb_box_max,
+       *                                                out fastuidraw_restricted_rays_box_type texel_box,
+       *                                                out fastuidraw_restricted_rays_winding_sample_type S,
+       *                                                out int winding_number,
+       *                                                out fastuidraw_restricted_rays_distance_type nv)
        * \endcode
-       * That computes the coverage from glyph data as packed by \ref
-       * GlyphRenderDataRestrictedRays. The returned \ref ShaderSource
-       * also includes a large number of utility functions that assist
-       * in implementing the functions.
+       * That compute the coverage from glyph data as packed by \ref
+       * GlyphRenderDataRestrictedRays. The _hq variants give high quality
+       * anti-aliasing even under severe shearing of the glyph, where as
+       * the non-hq variants begin to have anti-alias bleeding when the
+       * glyph is sheared a great deal. The variants with additional out
+       * arguments also output in those additional out arguments various
+       * data values that are computed in doing the computation that a
+       * debug version of a shader can visualize the structure of the glyph.
+       * The returned \ref ShaderSource also includes a large number of utility
+       * functions that assist in implementing the functions.
        * \param fetch_macro_function function or macro taking one argument
        *                             that returns a single uint of data
        */
