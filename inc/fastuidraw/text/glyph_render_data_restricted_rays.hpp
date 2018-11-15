@@ -33,18 +33,25 @@ namespace fastuidraw
    * build a glyph to render it with a modification to the technique
    * of "GPU-Centered Font Rendering Directly from Glyph Outlines"
    * by Eric Lengyel. The modifications we have to the technique are
+   * as follows.
    *  - We break the glyph's box into a hierarchy of boxes where
    *    each leaf node has a list of what curves are in the box
-   *    together with 4 sample points inside the box (near the
-   *    corners of the box) giving the winding number at each box.
+   *    together with a single sample point inside the box giving
+   *    the winding number at the sample point.
    *  - To compute the winding number, one runs the technique
-   *    on the ray connecting the fragment position to one of the
-   *    winding sample position and increment the value by the
-   *    winding value of the sample. Here the main caveat is that
-   *    one needs to ignore any intersection that are not between
-   *    the fragment position and the sample position.
-   *  - The shader should use the two sample points furthest from
-   *    the fragment position to get better anti-alias results.
+   *    on the ray connecting the fragment position to the winding
+   *    sample position and increment the value by the winding value
+   *    of the sample. Here the main caveat is that one needs to
+   *    ignore any intersection that are not between the fragment
+   *    position and the sample position.
+   *  - The shader (which can be fetched with the function
+   *    fastuidraw::glsl::restricted_rays_compute_coverage())
+   *    tracks the closest curve (in a local L1-metric scaled to
+   *    window coordinates) to the fragment position that increments
+   *    the winding value and also tracks the closest curve that
+   *    decrements the winding value. Using those two values together
+   *    with the winding value allows the shader to compute a coverage
+   *    value to perform anti-aliasing.
    */
   class GlyphRenderDataRestrictedRays:public GlyphRenderData
   {
