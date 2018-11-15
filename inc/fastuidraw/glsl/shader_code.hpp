@@ -117,7 +117,7 @@ namespace fastuidraw
        *                                             in vec2 bb_box_max,
        *                                             out fastuidraw_restricted_rays_box_type texel_box,
        *                                             out fastuidraw_restricted_rays_winding_sample_type S,
-       *                                             out int winding_number,
+       *                                             out int winding_number, out uint num_curves,
        *                                             out fastuidraw_restricted_rays_distance_type nv)
        *
        * float
@@ -137,7 +137,7 @@ namespace fastuidraw
        *                                                in vec2 bb_box_max,
        *                                                out fastuidraw_restricted_rays_box_type texel_box,
        *                                                out fastuidraw_restricted_rays_winding_sample_type S,
-       *                                                out int winding_number,
+       *                                                out int winding_number, out uint num_curves,
        *                                                out fastuidraw_restricted_rays_distance_type nv)
        * float
        * fastuidraw_restricted_rays_compute_coverage_adaptive(in uint glyph_data_location,
@@ -156,7 +156,7 @@ namespace fastuidraw
        *                                                      in vec2 bb_box_max,
        *                                                      out fastuidraw_restricted_rays_box_type texel_box,
        *                                                      out fastuidraw_restricted_rays_winding_sample_type S,
-       *                                                      out int winding_number,
+       *                                                      out int winding_number, out uint num_curves,
        *                                                      out fastuidraw_restricted_rays_distance_type nv,
        *                                                      out float recip_shearing)
        * \endcode

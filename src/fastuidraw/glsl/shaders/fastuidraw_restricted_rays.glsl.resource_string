@@ -849,10 +849,10 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 bb_box_max,
                                             out fastuidraw_restricted_rays_box_type texel_box,
                                             out fastuidraw_restricted_rays_winding_sample_type S,
-                                            out int winding_number,
+                                            out int winding_number, out uint num_curves,
                                             out fastuidraw_restricted_rays_distance_type nv)
 {
-  uint src, num_curves, c, curve_list, winding_sample_data_location;
+  uint src, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation_ref tr;
 
   fastuidraw_restricted_rays_compute_coverage_common(glyph_data_location,
@@ -893,10 +893,10 @@ fastuidraw_restricted_rays_compute_coverage_hq(in uint glyph_data_location,
 					       in vec2 bb_box_max,
 					       out fastuidraw_restricted_rays_box_type texel_box,
 					       out fastuidraw_restricted_rays_winding_sample_type S,
-					       out int winding_number,
+					       out int winding_number, out uint num_curves,
 					       out fastuidraw_restricted_rays_distance_type nv)
 {
-  uint src, num_curves, c, curve_list, winding_sample_data_location;
+  uint src, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation_ref tr;
   fastuidraw_restricted_rays_transformation_frag frag_tr;
 
@@ -944,11 +944,11 @@ fastuidraw_restricted_rays_compute_coverage_adaptive(in uint glyph_data_location
 						     in vec2 bb_box_max,
 						     out fastuidraw_restricted_rays_box_type texel_box,
 						     out fastuidraw_restricted_rays_winding_sample_type S,
-						     out int winding_number,
+						     out int winding_number, out uint num_curves,
 						     out fastuidraw_restricted_rays_distance_type nv,
 						     out float shearing)
 {
-  uint src, num_curves, c, curve_list, winding_sample_data_location;
+  uint src, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation_ref tr;
   float fx, fy;
 
@@ -1031,12 +1031,13 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
   fastuidraw_restricted_rays_winding_sample_type S;
   fastuidraw_restricted_rays_distance_type nv;
   int winding_number;
+  uint num_curves;
 
   return fastuidraw_restricted_rays_compute_coverage(glyph_data_location,
                                                      glyph_coord,
                                                      glyph_coord_dx, glyph_coord_dy,
                                                      bb_box_min, bb_box_max,
-                                                     texel_box, S, winding_number, nv);
+                                                     texel_box, S, winding_number, num_curves, nv);
 }
 
 float
@@ -1051,12 +1052,13 @@ fastuidraw_restricted_rays_compute_coverage_hq(in uint glyph_data_location,
   fastuidraw_restricted_rays_winding_sample_type S;
   fastuidraw_restricted_rays_distance_type nv;
   int winding_number;
+  uint num_curves;
 
   return fastuidraw_restricted_rays_compute_coverage_hq(glyph_data_location,
 							glyph_coord,
 							glyph_coord_dx, glyph_coord_dy,
 							bb_box_min, bb_box_max,
-							texel_box, S, winding_number, nv);
+							texel_box, S, winding_number, num_curves, nv);
 }
 
 float
@@ -1072,10 +1074,11 @@ fastuidraw_restricted_rays_compute_coverage_adaptive(in uint glyph_data_location
   fastuidraw_restricted_rays_distance_type nv;
   float shearing;
   int winding_number;
+  uint num_curves;
 
   return fastuidraw_restricted_rays_compute_coverage_adaptive(glyph_data_location,
 							      glyph_coord,
 							      glyph_coord_dx, glyph_coord_dy,
 							      bb_box_min, bb_box_max,
-							      texel_box, S, winding_number, nv, shearing);
+							      texel_box, S, winding_number, num_curves, nv, shearing);
 }

@@ -23,8 +23,9 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   fastuidraw_restricted_rays_box_type texel_box;
   fastuidraw_restricted_rays_winding_sample_type S;
   int winding_number;
+  uint num_curves;
   fastuidraw_restricted_rays_distance_type nv;
-  float cvg, shearing, fx, fy;
+  float cvg, shearing;
 
   glyph_coord = vec2(fastuidraw_glyph_coord_x,
                      fastuidraw_glyph_coord_y);
@@ -35,7 +36,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 							     dFdy(glyph_coord),
 							     vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
 							     vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
-							     texel_box, S, winding_number, nv, shearing);
+							     texel_box, S, winding_number, num_curves, nv, shearing);
   /**
   const float tol = 3.0;
   float tol_x = tol * fwidth(glyph_coord.x);
@@ -60,9 +61,9 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       ff.y = 1.0;
     }
 
-  if (shearing < 0.5)
+  if (num_curves > 4)
     {
-      //ff.xy = ff.yx;
+      ff.xy = ff.yx;
     }
 
   return vec4(ff, 1.0);
