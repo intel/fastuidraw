@@ -567,6 +567,10 @@ sdl_painter_demo(const std::string &about_text,
                                  "glyph_restricted_rays_split_thresh",
                                  "Splitting threshhold used when creating restricted rays glyphs",
                                  *this),
+  m_restricted_rays_expected_min_render_size(fastuidraw::GlyphRenderDataRestrictedRays::expected_min_render_size(),
+                                             "glyph_restricted_rays_expected_min_render_size",
+                                             "",
+                                             *this),
   m_num_pixel_counter_buffers(0),
   m_pixel_counts(0, 0, 0, 0)
 {}
@@ -757,6 +761,7 @@ init_gl(int w, int h)
   fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
   fastuidraw::GlyphRenderDataRestrictedRays::max_recursion(m_restricted_rays_max_recursion.value());
   fastuidraw::GlyphRenderDataRestrictedRays::split_thresh(m_restricted_rays_split_thresh.value());
+  fastuidraw::GlyphRenderDataRestrictedRays::expected_min_render_size(m_restricted_rays_expected_min_render_size.value());
 
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
