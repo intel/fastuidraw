@@ -28,7 +28,7 @@ struct fastuidraw_restricted_rays_transformation
 {
   vec2 translation;
   vec2 r_vector, jr_vector;
-  float rot_mag;
+  float reference_location;
 };
 
 struct fastuidraw_restricted_rays_curve_type
@@ -192,7 +192,7 @@ fastuidraw_restricted_rays_compute_transformation_base(in vec2 frag_point,
 
   q = reference_point - frag_point;
 
-  tr.rot_mag = dot(q, q);
+  tr.reference_location = dot(q, q);
   tr.translation = frag_point;
   tr.r_vector = q;
   tr.jr_vector.x = -tr.r_vector.y;
@@ -222,7 +222,7 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
   em.x = max(em.x, min_em);
   em.y = max(em.y, min_em);
 
-  tr.rot_mag /= em.x;
+  tr.reference_location /= em.x;
   tr.r_vector /= em.x;
   tr.jr_vector /= em.y;
 }
@@ -267,12 +267,80 @@ fastuidraw_restricted_rays_compute_code(in float y1, in float y2, in float y3)
 }
 
 int
+fastuidraw_restricted_rays_compute_winding_contribution_solver(in vec2 A, in vec2 B, in vec2 C,
+							       in float reference_location, in uint code,
+							       in float orientation,
+							       in bool is_quadratic,
+							       inout fastuidraw_restricted_rays_distance_type dst)
+{
+  int R = 0;
+
+  if (code != 0u)
+    {
+      float t1, t2, x1, x2;
+      const float quad_tol = 0.0001;
+
+      if (is_quadratic && abs(A.y) > quad_tol)
+        {
+          float D, rA = 1.0 / A.y;
+
+          D = B.y * B.y - A.y * C.y;
+	  if (D < 0.0)
+	    {
+	      code = 0u;
+	    }
+	  else
+	    {
+	      D = sqrt(max(D, 0.0));
+	      t1 = (B.y - D) * rA;
+	      t2 = (B.y + D) * rA;
+	    }
+        }
+      else
+        {
+          t1 = t2 = 0.5 * C.y / B.y;
+        }
+
+      x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
+      x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
+
+      if ((code & 1u) != 0u)
+        {
+          if (x1 <= reference_location && x1 >= 0.0)
+            {
+              R += 1;
+            }
+
+          if (t1 >= 0.0 && t1 <= 1.0)
+            {
+              fastuidraw_restricted_rays_update_distance(abs(x1), orientation * x1 < 0.0, dst);
+            }
+        }
+
+      if (code > 1u)
+        {
+          if (x2 <= reference_location && x2 >= 0.0)
+            {
+              R -= 1;
+            }
+
+          if (t2 >= 0.0 && t2 <= 1.0)
+            {
+              fastuidraw_restricted_rays_update_distance(abs(x2), orientation * x2 > 0.0, dst);
+            }
+        }
+    }
+
+  return R;
+}
+
+int
 fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted_rays_curve_type curve,
                                                         in fastuidraw_restricted_rays_transformation tr,
                                                         inout fastuidraw_restricted_rays_distance_type dst)
 {
   vec2 A, B, C;
-  int R = 0;
+  int R;
   uvec2 code;
 
   curve.p1 = fastuidraw_restricted_rays_apply_transformation(curve.p1, tr);
@@ -285,96 +353,11 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
 
   code.x = fastuidraw_restricted_rays_compute_code(curve.p1.x, curve.p2.x, curve.p3.x);
   code.y = fastuidraw_restricted_rays_compute_code(curve.p1.y, curve.p2.y, curve.p3.y);
-  if (code.y != 0u)
-    {
-      float t1, t2, x1, x2;
-      const float quad_tol = 0.0001;
-      bool skip;
 
-      if (curve.is_quadratic && abs(A.y) > quad_tol)
-        {
-          float D, rA = 1.0 / A.y;
-
-          D = B.y * B.y - A.y * C.y;
-          skip = (D < 0.0);
-
-          D = sqrt(max(D, 0.0));
-          t1 = (B.y - D) * rA;
-          t2 = (B.y + D) * rA;
-        }
-      else
-        {
-          skip = false;
-          t1 = t2 = 0.5 * C.y / B.y;
-        }
-
-      x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
-      x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
-
-      if ((code.y & 1u) != 0u)
-        {
-          if (x1 <= tr.rot_mag && x1 >= 0.0)
-            {
-              R += 1;
-            }
-
-          if (!skip && t1 >= 0.0 && t1 <= 1.0)
-            {
-              fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
-            }
-        }
-
-      if (code.y > 1u)
-        {
-          if (x2 <= tr.rot_mag && x2 >= 0.0)
-            {
-              R -= 1;
-            }
-
-          if (!skip && t2 >= 0.0 && t2 <= 1.0)
-            {
-              fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
-            }
-        }
-    }
-
-  if (code.x != 0u)
-    {
-      float t1, t2, y1, y2;
-      const float quad_tol = 0.0001;
-
-      if (curve.is_quadratic && abs(A.x) > quad_tol)
-        {
-          float D, rA = 1.0 / A.x;
-
-          D = B.x * B.x - A.x * C.x;
-          if (D < 0.0)
-            {
-              code.x = 0u;
-            }
-
-          D = sqrt(max(D, 0.0));
-          t1 = (B.x - D) * rA;
-          t2 = (B.x + D) * rA;
-        }
-      else
-        {
-          t1 = t2 = 0.5 * C.x / B.x;
-        }
-
-      y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
-      y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
-
-      if ((code.x & 1u) != 0u && t1 >= 0.0 && t1 <= 1.0)
-        {
-          fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
-        }
-
-      if (code.x > 1u && t2 >= 0.0 && t2 <= 1.0)
-        {
-          fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
-        }
-    }
+  R = fastuidraw_restricted_rays_compute_winding_contribution_solver(A, B, C, tr.reference_location,
+								     code.y, 1.0, curve.is_quadratic, dst);
+  fastuidraw_restricted_rays_compute_winding_contribution_solver(A.yx, B.yx, C.yx, tr.reference_location,
+								 code.x, -1.0, curve.is_quadratic, dst);
 
   /* When computing the L1-distance, we also need to minimum with the
    * endpoint of the curve. In glyph coordinates, the curve is given by:
@@ -484,12 +467,12 @@ fastuidraw_restricted_rays_compute_winding_contribution_only(in fastuidraw_restr
       x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      if ((code & 1u) != 0u && x1 <= tr.rot_mag && x1 >= 0.0)
+      if ((code & 1u) != 0u && x1 <= tr.reference_location && x1 >= 0.0)
         {
           R += 1;
         }
 
-      if (code > 1u && x2 <= tr.rot_mag && x2 >= 0.0)
+      if (code > 1u && x2 <= tr.reference_location && x2 >= 0.0)
         {
           R -= 1;
         }
