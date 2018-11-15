@@ -909,6 +909,85 @@ fastuidraw_restricted_rays_compute_coverage_hq(in uint glyph_data_location,
 }
 
 float
+fastuidraw_restricted_rays_compute_coverage_adaptive(in uint glyph_data_location,
+						     in vec2 glyph_coord,
+						     in vec2 glyph_coord_dx,
+						     in vec2 glyph_coord_dy,
+						     in vec2 bb_box_min,
+						     in vec2 bb_box_max,
+						     out fastuidraw_restricted_rays_box_type texel_box,
+						     out fastuidraw_restricted_rays_winding_sample_type S,
+						     out int winding_number,
+						     out fastuidraw_restricted_rays_distance_type nv,
+						     out float shearing)
+{
+  uint src, num_curves, c, curve_list, winding_sample_data_location;
+  fastuidraw_restricted_rays_transformation tr;
+  float fx, fy;
+
+  fastuidraw_restricted_rays_compute_coverage_common(glyph_data_location,
+						     glyph_coord, glyph_coord_dx, glyph_coord_dy,
+						     bb_box_min, bb_box_max,
+						     texel_box, S, winding_number, nv,
+						     src, num_curves, tr);
+
+  fx = abs(glyph_coord_dx.x) + abs(glyph_coord_dx.y);
+  fy = abs(glyph_coord_dy.x) + abs(glyph_coord_dy.y);
+  shearing = min(fx, fy) / max(fx, fy);
+
+  if (shearing < 0.5f)
+    {
+      fastuidraw_restricted_rays_transformation frag_tr;
+      fastuidraw_restricted_rays_compute_transformation_frag(glyph_coord, glyph_coord_dx, glyph_coord_dy, frag_tr);
+      for (c = 0u; c < num_curves; c += 2u)
+	{
+	  uint cA, cB, curve_pair;
+
+	  curve_pair = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(src);
+	  ++src;
+
+	  cA = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_entry0_bit0,
+				       fastuidraw_restricted_rays_curve_entry_num_bits,
+				       curve_pair);
+	  winding_number += fastuidraw_restricted_rays_load_and_process_curve_hq(cA, glyph_data_location, tr, frag_tr, nv);
+
+	  if (c + 1u < num_curves)
+	    {
+	      cB = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_entry1_bit0,
+					   fastuidraw_restricted_rays_curve_entry_num_bits,
+					   curve_pair);
+	      winding_number += fastuidraw_restricted_rays_load_and_process_curve_hq(cB, glyph_data_location, tr, frag_tr, nv);
+	    }
+	}
+    }
+  else
+    {
+      for (c = 0u; c < num_curves; c += 2u)
+	{
+	  uint cA, cB, curve_pair;
+
+	  curve_pair = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(src);
+	  ++src;
+
+	  cA = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_entry0_bit0,
+				       fastuidraw_restricted_rays_curve_entry_num_bits,
+				       curve_pair);
+	  winding_number += fastuidraw_restricted_rays_load_and_process_curve(cA, glyph_data_location, tr, nv);
+
+	  if (c + 1u < num_curves)
+	    {
+	      cB = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_entry1_bit0,
+					   fastuidraw_restricted_rays_curve_entry_num_bits,
+					   curve_pair);
+	      winding_number += fastuidraw_restricted_rays_load_and_process_curve(cB, glyph_data_location, tr, nv);
+	    }
+	}
+    }
+
+  return fastuidraw_restricted_rays_compute_coverage_from_dist(winding_number, nv);
+}
+
+float
 fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord,
                                             in vec2 glyph_coord_dx,
@@ -946,4 +1025,25 @@ fastuidraw_restricted_rays_compute_coverage_hq(in uint glyph_data_location,
 							glyph_coord_dx, glyph_coord_dy,
 							bb_box_min, bb_box_max,
 							texel_box, S, winding_number, nv);
+}
+
+float
+fastuidraw_restricted_rays_compute_coverage_adaptive(in uint glyph_data_location,
+						     in vec2 glyph_coord,
+						     in vec2 glyph_coord_dx,
+						     in vec2 glyph_coord_dy,
+						     in vec2 bb_box_min,
+						     in vec2 bb_box_max)
+{
+  fastuidraw_restricted_rays_box_type texel_box;
+  fastuidraw_restricted_rays_winding_sample_type S;
+  fastuidraw_restricted_rays_distance_type nv;
+  float shearing;
+  int winding_number;
+
+  return fastuidraw_restricted_rays_compute_coverage_adaptive(glyph_data_location,
+							      glyph_coord,
+							      glyph_coord_dx, glyph_coord_dy,
+							      bb_box_min, bb_box_max,
+							      texel_box, S, winding_number, nv, shearing);
 }
