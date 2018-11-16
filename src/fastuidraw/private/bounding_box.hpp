@@ -68,6 +68,15 @@ namespace fastuidraw
     }
 
     void
+    enlarge(pt_type delta, BoundingBox *dst) const
+    {
+      dst->m_min = m_min;
+      dst->m_max = m_max;
+      dst->m_empty = m_empty;
+      dst->enlarge(delta);
+    }
+
+    void
     translate(const pt_type &tr)
     {
       if (!m_empty)
