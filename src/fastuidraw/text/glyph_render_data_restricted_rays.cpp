@@ -128,6 +128,19 @@ namespace
 
   typedef std::map<int, std::vector<Edge> > EdgesOfContour; //keyed by CurveID::curve()
   typedef std::map<int, EdgesOfContour> EdgesOfPath; //keyed by CurveID::contour()
+  typedef fastuidraw::vecN<fastuidraw::BoundingBox<float>, 2> BoxPair;
+
+  void
+  create_enlarged_boxes(const BoxPair &src,
+                        float x_thresh, float y_thresh,
+                        fastuidraw::vecN<BoxPair, 2> &dst)
+  {
+    for (int i = 0; i < 2; ++i)
+      {
+        src[i].enlarge(fastuidraw::vec2(x_thresh, 0.0f), &dst[i].x());
+        src[i].enlarge(fastuidraw::vec2(0.0f, y_thresh), &dst[i].y());
+      }
+  }
 
   class Curve
   {
@@ -246,7 +259,9 @@ namespace
     compute_winding_contribution(fastuidraw::vec2 xy, float *dist) const;
 
     bool
-    intersects(const fastuidraw::BoundingBox<float> &box) const;
+    intersects(const fastuidraw::BoundingBox<float> &box,
+               const BoxPair &enlarged_boxes,
+               fastuidraw::vec2 near_thresh) const;
 
     void
     translate(const fastuidraw::ivec2 &v)
@@ -1133,8 +1148,26 @@ compute_winding_contribution_impl(int coord,
 
 bool
 Curve::
-intersects(const fastuidraw::BoundingBox<float> &box) const
+intersects(const fastuidraw::BoundingBox<float> &box,
+           const BoxPair &enlarged_boxes,
+           fastuidraw::vec2 near_thresh) const
 {
+  /* if the curve is almost horizontal or vertical
+   * and within the near_thresh of the box, add it.
+   * We say the curve is vertical if its width is
+   * lequal to near_thresh.x and we say it is
+   * horizontal if its height is less than
+   * near_thresh.y
+   */
+  fastuidraw::vec2 sz(m_fbbox.size());
+  for (int coord = 0; coord < 2; ++coord)
+    {
+      if (sz[coord] < near_thresh[coord] && m_fbbox.intersects(enlarged_boxes[coord]))
+        {
+          return true;
+        }
+    }
+
   if (!m_fbbox.intersects(box))
     {
       return false;
@@ -1376,21 +1409,22 @@ split(CurveList &out_pre, CurveList &out_post,
       fastuidraw::vec2 near_thresh) const
 {
   using namespace fastuidraw;
+  typedef vecN<BoundingBox<float>, 2> BoxPair;
+
   vecN<std::vector<CurveID>, 2> splitX;
   vecN<std::vector<CurveID>, 2> splitY;
-  vecN<BoundingBox<float>, 2> esplitX_box(m_box.split_x());
-  vecN<BoundingBox<float>, 2> esplitY_box(m_box.split_y());
+  BoxPair splitX_box(m_box.split_x()), splitY_box(m_box.split_y());
+  vecN<BoxPair, 2> enlarged_splitX_box, enlarged_splitY_box;
   ivec2 sz;
   int return_value;
 
-  /* enlarge each of the splitting boxes by near_thresh
-   * along the splitting line.
-   */
-  for (int i = 0; i < 2; ++i)
-    {
-      esplitX_box[i].enlarge(near_thresh);
-      esplitY_box[i].enlarge(near_thresh);
-    }
+  create_enlarged_boxes(splitX_box,
+                        near_thresh.x(), near_thresh.y(),
+                        enlarged_splitX_box);
+
+  create_enlarged_boxes(splitY_box,
+                        near_thresh.x(), near_thresh.y(),
+                        enlarged_splitY_box);
 
   /* choose the partition with the smallest sum of curves */
   FASTUIDRAWassert(std::is_sorted(m_curves.begin(), m_curves.end()));
@@ -1399,11 +1433,11 @@ split(CurveList &out_pre, CurveList &out_post,
       const Curve &curve(m_p->fetch_curve(id));
       for (int i = 0; i < 2; ++i)
         {
-          if (curve.intersects(esplitX_box[i]))
+          if (curve.intersects(splitX_box[i], enlarged_splitX_box[i], near_thresh))
             {
               splitX[i].push_back(id);
             }
-          if (curve.intersects(esplitY_box[i]))
+          if (curve.intersects(splitY_box[i], enlarged_splitY_box[i], near_thresh))
             {
               splitY[i].push_back(id);
             }
@@ -1433,21 +1467,17 @@ split(CurveList &out_pre, CurveList &out_post,
 
   if (return_value == 0)
     {
-      vecN<BoundingBox<float>, 2> splitB(m_box.split_x());
-
       std::swap(out_pre.m_curves, splitX[0]);
       std::swap(out_post.m_curves, splitX[1]);
-      out_pre.m_box = splitB[0];
-      out_post.m_box = splitB[1];
+      out_pre.m_box = splitX_box[0];
+      out_post.m_box = splitX_box[1];
     }
   else
     {
-      vecN<BoundingBox<float>, 2> splitB(m_box.split_y());
-
       std::swap(out_pre.m_curves, splitY[0]);
       std::swap(out_post.m_curves, splitY[1]);
-      out_pre.m_box = splitB[0];
-      out_post.m_box = splitB[1];
+      out_pre.m_box = splitY_box[0];
+      out_post.m_box = splitY_box[1];
     }
 
   return return_value;
