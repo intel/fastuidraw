@@ -30,13 +30,13 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   glyph_coord = vec2(fastuidraw_glyph_coord_x,
                      fastuidraw_glyph_coord_y);
 
-  cvg = fastuidraw_restricted_rays_compute_coverage_adaptive(fastuidraw_glyph_data_location,
-							     glyph_coord,
-							     dFdx(glyph_coord),
-							     dFdy(glyph_coord),
-							     vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
-							     vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
-							     texel_box, S, winding_number, num_curves, nv, shearing);
+  cvg = fastuidraw_restricted_rays_compute_coverage(fastuidraw_glyph_data_location,
+                                                    glyph_coord,
+                                                    dFdx(glyph_coord),
+                                                    dFdy(glyph_coord),
+                                                    vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
+                                                    vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
+                                                    texel_box, S, winding_number, num_curves, nv);
   /**
   const float tol = 3.0;
   float tol_x = tol * fwidth(glyph_coord.x);
