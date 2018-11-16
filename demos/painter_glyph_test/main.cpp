@@ -5,6 +5,7 @@
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 
 #include "sdl_painter_demo.hpp"
 #include "PanZoomTracker.hpp"
@@ -227,12 +228,13 @@ private:
   bool m_stroke_glyphs, m_fill_glyphs, m_draw_path_pts;
   bool m_anti_alias_path_stroking, m_anti_alias_path_filling;
   bool m_pixel_width_stroking;
-  bool m_draw_stats;
+  bool m_draw_stats, m_draw_restricted_rays_box_slack;
   float m_stroke_width;
   unsigned int m_current_drawer;
   unsigned int m_join_style;
   vec2 m_shear, m_shear2;
   float m_angle;
+  float m_restricted_rays_box_slack;
 
   PanZoomTrackerSDLEvent m_zoomer;
   simple_time m_draw_timer;
@@ -532,6 +534,7 @@ painter_glyph_test(void):
   m_anti_alias_path_filling(false),
   m_pixel_width_stroking(true),
   m_draw_stats(false),
+  m_draw_restricted_rays_box_slack(false),
   m_stroke_width(1.0f),
   m_current_drawer(draw_glyph_restricted_rays),
   m_shear(1.0f, 1.0f),
@@ -540,6 +543,8 @@ painter_glyph_test(void):
   m_join_style(Painter::miter_joins)
 {
   std::cout << "Controls:\n"
+            << "\tl: toggle showing glyph stats and FPS\n"
+            << "\tctrl-l: toggle drawing restircted rays box slack at cursor\n"
             << "\td: cycle drawing mode: draw coverage glyph, draw distance glyphs "
             << "[hold shift, control or mode to reverse cycle]\n"
             << "\td: Cycle though text renderer\n"
@@ -753,6 +758,10 @@ ready_glyph_data(int w, int h)
         }
       std::cout << "took " << timer.restart() << "ms.\n" << std::flush;
     }
+
+  float sz;
+  sz = GlyphRenderDataRestrictedRays::expected_min_render_size();
+  m_restricted_rays_box_slack = m_render_pixel_size.value() / sz;
 }
 
 vec2
@@ -1038,6 +1047,23 @@ draw_glyphs(float us)
               m_painter->restore();
             }
         }
+    }
+
+  if (m_draw_restricted_rays_box_slack && m_restricted_rays_box_slack > 0.0f)
+    {
+      PainterBrush brush;
+      vec2 p;
+      ivec2 mouse_position;
+
+      SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
+      if (m_screen_orientation.value() == Painter::y_increases_upwards)
+        {
+          mouse_position.y() = dimensions().y() - mouse_position.y();
+        }
+
+      p = item_coordinates(mouse_position);
+      brush.pen(1.0f, 1.0f, 0.0f, 0.3f);
+      m_painter->draw_rect(PainterData(&brush), p, vec2(m_restricted_rays_box_slack));
     }
 
   if (m_draw_stats)
@@ -1365,7 +1391,14 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_l:
-          m_draw_stats = !m_draw_stats;
+          if (ev.key.keysym.mod & KMOD_CTRL)
+            {
+              m_draw_restricted_rays_box_slack = !m_draw_restricted_rays_box_slack;
+            }
+          else
+            {
+              m_draw_stats = !m_draw_stats;
+            }
           break;
 
         case SDLK_f:
