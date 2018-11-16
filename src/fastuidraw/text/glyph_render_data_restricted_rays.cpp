@@ -1415,8 +1415,16 @@ split(CurveList &out_pre, CurveList &out_post,
   vecN<std::vector<CurveID>, 2> splitY;
   BoxPair splitX_box(m_box.split_x()), splitY_box(m_box.split_y());
   vecN<BoxPair, 2> enlarged_splitX_box, enlarged_splitY_box;
+  vec2 box_size(m_box.size());
   ivec2 sz;
   int return_value;
+
+  /* if there are curves already in this box, then going further
+   * than the box size gives us nothing because the curves within
+   * the box_size are all already closer.
+   */
+  near_thresh.x() = t_min(near_thresh.x(), box_size.x());
+  near_thresh.y() = t_min(near_thresh.y(), box_size.y());
 
   create_enlarged_boxes(splitX_box,
                         near_thresh.x(), near_thresh.y(),
@@ -1452,7 +1460,6 @@ split(CurveList &out_pre, CurveList &out_post,
 
   if (sz.x() == sz.y())
     {
-      vec2 box_size(m_box.size());
       return_value = (box_size.x() > box_size.y()) ?
         0 : 1;
     }
