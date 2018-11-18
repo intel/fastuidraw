@@ -423,7 +423,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
     }
 
   /* When computing the L1-distance, we also need to minimum with the
-   * endpoint of the curve. In glyph coordinates, the curve is given by:
+   * endpoint of the curve. In local coordinates, the curve is given by:
    *
    *  p(t) = (A * t - 2B) * t + C
    *
