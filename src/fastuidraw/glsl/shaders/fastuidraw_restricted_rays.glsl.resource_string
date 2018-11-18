@@ -183,7 +183,7 @@ fastuidraw_restricted_rays_unpack_point(in uint ptr)
   return pt_i;
 }
 
-int
+void
 fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
                                                   in vec2 frag_point_dx,
                                                   in vec2 frag_point_dy,
@@ -222,12 +222,13 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
    * | -(cc + dd) * R   (ac + bd) * R |
    * |  (ac + bd) * R  -(aa + bb) * R |
    *
-   * where R is 1 / det(K).
+   * where R is 1 / det(K). Since we are only looking for
+   * a vector whose pre-image on window coordinates is
+   * perpindicular to q, we can skip the divide by R.
    */
 
   vec2 q, top_row, bottom_row, em;
-  float a, b, c, d, det, inverse_det;
-  float ad, bc, rel;
+  float a, b, c, d;
 
   tr.translation = frag_point;
   q = reference_point - frag_point;
@@ -239,31 +240,16 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
   c = frag_point_dx.y;
   d = frag_point_dy.y;
 
-  ad = a * d;
-  bc = b * c;
-  det = ad - bc;
-  rel = max(abs(ad), abs(bc));
+  top_row.x = -(c * c + d * d);
+  top_row.y = bottom_row.x = (a * c + b * d);
+  bottom_row.y = -(a * a + b * b);
 
-  const float tiny = 1e-4;
-  if (abs(det) > tiny * rel)
-    {
-      inverse_det = 1.0 / det;
+  tr.r_vector.x = dot(top_row, q);
+  tr.r_vector.y = dot(bottom_row, q);
 
-      top_row.x = -(c * c + d * d) * inverse_det;
-      top_row.y = bottom_row.x = (a * c + b * d) * inverse_det;
-      bottom_row.y = -(a * a + b * b) * inverse_det;
-
-      tr.r_vector.x = dot(top_row, q);
-      tr.r_vector.y = dot(bottom_row, q);
-    }
-  else
-    {
-      /* Fallback to just using q when the window-to-glyph
-       * coordinate transformation has small determinant.
-       */
-      tr.r_vector = q;
-    }
-
+  /* em represents the normalization so that the pre-image of r_vector
+   * and jr_vector in screen coordinates has length 1.
+   */
   em.x = abs(dot(tr.r_vector, frag_point_dx)) + abs(dot(tr.r_vector, frag_point_dy));
   em.y = abs(dot(tr.jr_vector, frag_point_dx)) + abs(dot(tr.jr_vector, frag_point_dy));
 
@@ -290,8 +276,18 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
       tr.reference_location = -tr.reference_location;
     }
 
+  float det;
+
   det = (tr.r_vector.x * tr.jr_vector.y - tr.r_vector.y * tr.jr_vector.x);
-  return (det > 0.0) ? 1 : -1;
+  /* we need the transformation to be orientation preserving.
+   * The only requirement we have on jr_vector is that
+   * dot(jr_vector, q) is zero, so negate jr_vector to get the
+   * transformation matrix to be orientation preserving.
+   */
+  if (det < 0.0)
+    {
+      tr.jr_vector = -tr.jr_vector;
+    }
 }
 
 vec2
@@ -585,7 +581,6 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
 {
   uint src, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation tr;
-  int s;
 
   winding_sample_data_location =
     fastuidaw_restricted_rays_compute_box(glyph_coord,
@@ -596,15 +591,10 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
   fastuidraw_restricted_rays_load_winding_reference(winding_sample_data_location,
                                                     texel_box, S);
 
-  /* if the transformation is orientation reversing, out winding
-   * adjustment will be the wrong sign. However, if we flip the sign
-   * of the reference winding value during the computation, then
-   * we will get the fill correct.
-   */
-  s = fastuidraw_restricted_rays_compute_transformation(glyph_coord,
-                                                        glyph_coord_dx, glyph_coord_dy,
-                                                        S.reference_position, tr);
-  winding_number = S.reference_winding * s;
+  fastuidraw_restricted_rays_compute_transformation(glyph_coord,
+                                                    glyph_coord_dx, glyph_coord_dy,
+                                                    S.reference_position, tr);
+  winding_number = S.reference_winding;
 
   src = curve_list + glyph_data_location;
   for (c = 0u; c < num_curves; c += 2u)
@@ -659,11 +649,6 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
   cvg = (winding_number != 0) ?
     (0.5 + distance) :
     (0.5 - distance);
-
-  /* in case, the caller want to know the winding number, though we
-   * should swap the values on nv too...
-   */
-  winding_number *= s;
 
   return cvg;
 }
