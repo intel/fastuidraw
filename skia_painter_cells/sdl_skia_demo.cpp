@@ -1,17 +1,21 @@
 #include "sdl_skia_demo.hpp"
+#include "GrBackendSurface.h"
+#include "GrContext.h"
+
+#include "gl/GrGLInterface.h"
+#include <GL/glcorearb.h>
 
 sdl_skia_demo::
 sdl_skia_demo(const std::string &about_text):
   sdl_demo(about_text),
-  m_demo_options("Demo Options", *this),
-  m_skia_context(NULL)
+  m_demo_options("Demo Options", *this)
 {}
 
 sdl_skia_demo::
 ~sdl_skia_demo()
 {
   m_skia_surface.reset();
-  delete m_skia_context;
+  m_skia_context.reset();
 }
 
 void
@@ -29,17 +33,27 @@ init_skia(int w, int h)
   assert(m_skia_context == NULL);
   assert(m_skia_surface.get() == NULL);
 
-  m_skia_context = GrContext::Create(kOpenGL_GrBackend, 0);
+  auto interface = GrGLMakeNativeInterface();
+  GrGLint buffer;
+  GrGLFramebufferInfo info;
+  SkColorType colorType;
+  int MsaaSampleCount;
 
-  GrBackendRenderTargetDesc desc;
-  desc.fWidth = w;
-  desc.fHeight = h;
-  desc.fConfig = kSkia8888_GrPixelConfig;
-  desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
-  desc.fSampleCnt = sample_count();
-  desc.fStencilBits = stencil_bits();
-  desc.fRenderTargetHandle = 0;  // assume default framebuffer
-  m_skia_surface = SkSurface::MakeFromBackendRenderTarget(m_skia_context, desc, NULL);
+  m_skia_context = GrContext::MakeGL(interface);
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
+  info.fFBOID = (GrGLuint) buffer;
+  info.fFormat = GL_RGBA8;
+  colorType = kRGBA_8888_SkColorType;
+
+  MsaaSampleCount = (m_use_msaa.m_value) ?
+    m_msaa.m_value : 0;
+
+  GrBackendRenderTarget target(w, h, MsaaSampleCount, m_stencil_bits.m_value, info);
+  SkSurfaceProps props(SkSurfaceProps::kLegacyFontHost_InitType);
+
+  m_skia_surface = SkSurface::MakeFromBackendRenderTarget(m_skia_context.get(), target,
+                                                          kBottomLeft_GrSurfaceOrigin,
+                                                          colorType, NULL, &props);
 }
 
 void
@@ -47,8 +61,7 @@ sdl_skia_demo::
 on_resize(int w, int h)
 {
   m_skia_surface.reset();
-  delete m_skia_context;
-  m_skia_context = NULL;
+  m_skia_context.reset();
   init_skia(w, h);
 }
 

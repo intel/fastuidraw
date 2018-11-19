@@ -326,14 +326,12 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
     {
       SkBitmap bmp;
       bmp.allocN32Pixels(image_size.width(), image_size.height());
-      bmp.lockPixels();
       for(int y = 0; y < image_size.height(); ++y)
         {
           uint32_t *dst;
           dst = bmp.getAddr32(0, y);
           memcpy(dst, &pixels[y * image_size.width()], bmp.bytesPerPixel() * image_size.width());
         }
-      bmp.unlockPixels();
 
       sk_sp<SkImage> image;
       image = SkImage::MakeFromBitmap(bmp);
@@ -431,7 +429,8 @@ derived_init(int w, int h)
 
       std::cout << "Loaded font from \""
                 << m_font.m_value << "\" family = " << familyName.c_str()
-                << ", style = " << m_table_params.m_font->style()
+                << ", isBold = " << m_table_params.m_font->isBold()
+                << ", isItalic = " << m_table_params.m_font->isItalic()
                 << "\n";
     }
 

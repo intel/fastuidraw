@@ -25,9 +25,7 @@
 #include <SDL_render.h>
 #include <SDL_surface.h>
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include <GL/glcorearb.h>
 
 #include "generic_command_line.hpp"
 #include "simple_time.hpp"

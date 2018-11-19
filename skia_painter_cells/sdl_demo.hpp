@@ -115,12 +115,16 @@ private:
 
   std::string m_about;
   command_separator m_common_label;
+
+protected:
   command_line_argument_value<int> m_depth_bits;
   command_line_argument_value<int> m_stencil_bits;
   command_line_argument_value<bool> m_fullscreen;
   command_line_argument_value<bool> m_hide_cursor;
   command_line_argument_value<bool> m_use_msaa;
   command_line_argument_value<int> m_msaa;
+
+private:
   command_line_argument_value<int> m_width;
   command_line_argument_value<int> m_height;
   command_line_argument_value<bool> m_print_gl_info;

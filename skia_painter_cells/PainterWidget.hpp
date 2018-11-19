@@ -7,6 +7,7 @@
 #include "SkCanvas.h"
 #include "SkMatrix.h"
 #include "SkRect.h"
+#include "SkRegion.h"
 
 class PainterWidget:boost::noncopyable
 {
