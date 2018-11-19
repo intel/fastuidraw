@@ -19,7 +19,7 @@
 namespace
 {
   SkISize
-  load_image_worker(SDL_Surface *img, std::vector<SkColor> &bits_data, bool flip)
+  load_image_worker(SDL_Surface *img, std::vector<uint32_t> &bits_data, bool flip)
   {
     SDL_PixelFormat *fmt;
 
@@ -73,7 +73,7 @@ namespace
             temp = temp << fmt->Bloss;
             blue = temp;
 
-            bits_data[dest_L] = SkColorSetARGB(alpha, red, green, blue);
+            bits_data[dest_L] = (red) | (green << 8) | (blue << 16) | (alpha << 24);
 	  }
       }
     SDL_UnlockSurface(img);
@@ -84,7 +84,7 @@ namespace
 
 SkISize
 load_image_to_array(const SDL_Surface *img,
-		    std::vector<SkColor> &out_bytes,
+		    std::vector<uint32_t> &out_bytes,
 		    bool flip)
 {
   SDL_Surface *q;
@@ -103,7 +103,7 @@ load_image_to_array(const SDL_Surface *img,
 
 SkISize
 load_image_to_array(const std::string &pfilename,
-		    std::vector<SkColor> &out_bytes,
+		    std::vector<uint32_t> &out_bytes,
 		    bool flip)
 {
   SkISize R;

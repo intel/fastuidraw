@@ -9,10 +9,10 @@
 
 SkISize
 load_image_to_array(const SDL_Surface *img,
-		    std::vector<SkColor> &out_bytes,
+		    std::vector<uint32_t> &out_bytes,
 		    bool flip=false);
 
 SkISize
 load_image_to_array(const std::string &pfilename,
-		    std::vector<SkColor> &out_bytes,
+		    std::vector<uint32_t> &out_bytes,
 		    bool flip=false);

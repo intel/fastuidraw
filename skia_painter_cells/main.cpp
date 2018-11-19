@@ -318,14 +318,19 @@ void
 painter_cells::
 add_single_image(const std::string &filename, std::vector<named_image> &dest)
 {
-  std::vector<SkColor> pixels;
+  std::vector<uint32_t> pixels;
   SkISize image_size;
 
   image_size = load_image_to_array(filename, pixels);
   if(image_size.width() > 0 && image_size.height() > 0)
     {
       SkBitmap bmp;
-      bmp.allocN32Pixels(image_size.width(), image_size.height());
+      SkImageInfo info(SkImageInfo::Make(image_size.width(),
+                                         image_size.height(),
+                                         kRGBA_8888_SkColorType,
+                                         kUnpremul_SkAlphaType));
+
+      bmp.allocPixels(info);
       for(int y = 0; y < image_size.height(); ++y)
         {
           uint32_t *dst;
