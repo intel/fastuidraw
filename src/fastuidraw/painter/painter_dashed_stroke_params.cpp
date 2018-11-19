@@ -16,9 +16,11 @@
  *
  */
 
+#include <algorithm>
 #include <cmath>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/util/pixel_distance_math.hpp>
 #include "../private/util_private.hpp"
 
@@ -37,122 +39,22 @@ namespace
 
     virtual
     unsigned int
-    data_size(unsigned int alignment) const;
+    data_size(void) const;
 
     virtual
     void
-    pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
 
     float m_miter_limit;
     float m_radius;
+    enum fastuidraw::PainterStrokeParams::stroking_units_t m_stroking_units;
     float m_dash_offset;
     float m_total_length;
     float m_first_interval_start;
+    float m_first_interval_start_on_looping;
     std::vector<fastuidraw::PainterDashedStrokeParams::DashPatternElement> m_dash_pattern;
     std::vector<fastuidraw::generic_data> m_dash_pattern_packed;
   };
-
-  class DashEvaluator:public fastuidraw::DashEvaluatorBase
-  {
-  public:
-    explicit
-    DashEvaluator(bool pixel_width_stroking):
-      m_pixel_width_stroking(pixel_width_stroking)
-    {}
-
-    virtual
-    bool
-    covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
-                            const fastuidraw::PainterAttribute &attrib) const;
-
-    static
-    bool
-    close_to_boundary(float dist,
-                      fastuidraw::range_type<float> interval);
-
-    bool m_pixel_width_stroking;
-  };
-
-  class StrokingDataSelector:public fastuidraw::StrokingDataSelectorBase
-  {
-  public:
-    explicit
-    StrokingDataSelector(bool pixel_width);
-
-    virtual
-    float
-    compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-                           float thresh,
-                           float curve_flatness) const;
-    void
-    stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
-                       float *out_pixel_distance,
-                       float *out_item_space_distance) const;
-
-  private:
-    bool m_pixel_width;
-  };
-}
-
-////////////////////////////////
-// StrokingDataSelector methods
-StrokingDataSelector::
-StrokingDataSelector(bool pixel_width):
-  m_pixel_width(pixel_width)
-{}
-
-float
-StrokingDataSelector::
-compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-                       float thresh,
-                       float curve_flatness) const
-{
-  const PainterDashedStrokeParamsData *d;
-  d = static_cast<const PainterDashedStrokeParamsData*>(data);
-
-  if(d->m_radius <= 0.0f)
-    {
-      /* Not really stroking, just select a LARGE value
-         to get a very low level of detail.
-       */
-      return 10000.0f;
-    }
-  else
-    {
-      float return_value;
-
-      return_value = 1.0f / d->m_radius;
-      if(m_pixel_width)
-        {
-          return_value *= curve_flatness;
-        }
-      else
-        {
-          return_value *= thresh;
-        }
-      return return_value;
-    }
-}
-
-void
-StrokingDataSelector::
-stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
-                   float *out_pixel_distance,
-                   float *out_item_space_distance) const
-{
-  const PainterDashedStrokeParamsData *d;
-  d = static_cast<const PainterDashedStrokeParamsData*>(data);
-
-  if(m_pixel_width)
-    {
-      *out_pixel_distance = d->m_radius;
-      *out_item_space_distance = 0.0f;
-    }
-  else
-    {
-      *out_pixel_distance = 0.0f;
-      *out_item_space_distance = d->m_radius;
-    }
 }
 
 //////////////////////////////////////
@@ -161,9 +63,11 @@ PainterDashedStrokeParamsData::
 PainterDashedStrokeParamsData(void):
   m_miter_limit(15.0f),
   m_radius(1.0f),
+  m_stroking_units(fastuidraw::PainterStrokeParams::path_stroking_units),
   m_dash_offset(0.0f),
   m_total_length(0.0f),
-  m_first_interval_start(0.0f)
+  m_first_interval_start(0.0f),
+  m_first_interval_start_on_looping(0.0f)
 {}
 
 fastuidraw::PainterShaderData::DataBase*
@@ -175,30 +79,38 @@ copy(void) const
 
 unsigned int
 PainterDashedStrokeParamsData::
-data_size(unsigned int alignment) const
+data_size(void) const
 {
   using namespace fastuidraw;
-  return round_up_to_multiple(PainterDashedStrokeParams::stroke_static_data_size, alignment)
-    + round_up_to_multiple(2 * m_dash_pattern.size(), alignment);
+  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterDashedStrokeParams::stroke_static_data_size)
+    + FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2 * m_dash_pattern.size());
 }
 
 void
 PainterDashedStrokeParamsData::
-pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const
+pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
 {
   using namespace fastuidraw;
 
   dst[PainterDashedStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
-  dst[PainterDashedStrokeParams::stroke_radius_offset].f = m_radius;
+  if (m_stroking_units == PainterStrokeParams::pixel_stroking_units)
+    {
+      dst[PainterDashedStrokeParams::stroke_radius_offset].f = -m_radius;
+    }
+  else
+    {
+      dst[PainterDashedStrokeParams::stroke_radius_offset].f = m_radius;
+    }
   dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
   dst[PainterDashedStrokeParams::stroke_total_length_offset].f = m_total_length;
   dst[PainterDashedStrokeParams::stroke_first_interval_start_offset].f = m_first_interval_start;
+  dst[PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset].f = m_first_interval_start_on_looping;
   dst[PainterDashedStrokeParams::stroke_number_intervals_offset].u = m_dash_pattern_packed.size();
 
-  if(!m_dash_pattern_packed.empty())
+  if (!m_dash_pattern_packed.empty())
     {
       c_array<generic_data> dst_pattern;
-      dst_pattern = dst.sub_array(round_up_to_multiple(PainterDashedStrokeParams::stroke_static_data_size, alignment));
+      dst_pattern = dst.sub_array(FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterDashedStrokeParams::stroke_static_data_size));
       std::copy(m_dash_pattern_packed.begin(), m_dash_pattern_packed.end(), dst_pattern.begin());
       for(unsigned int i = m_dash_pattern_packed.size(), endi = dst_pattern.size(); i < endi; ++i)
         {
@@ -207,66 +119,6 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
           dst_pattern[i].f = m_total_length * 2.0f + 1.0f;
         }
     }
-}
-
-///////////////////////////////
-// DashEvaluator methods
-bool
-DashEvaluator::
-covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
-                        const fastuidraw::PainterAttribute &attrib) const
-{
-  const PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != nullptr);
-  d = static_cast<const PainterDashedStrokeParamsData*>(data);
-
-  if(d->m_total_length <= 0.0f)
-    {
-      return false;
-    }
-
-  float fd, ff, dist, distance;
-  fastuidraw::range_type<float> interval;
-  bool return_value(true);
-
-  /* PainterDashedStrokeParams is for attributes packed
-     by PainterAttributeDataFillerPathStroked which
-     stores the distance from the contour start at
-     m_attrib1.y packed as a float
-   */
-  distance = fastuidraw::unpack_float(attrib.m_attrib1.y()) + d->m_dash_offset;
-  fd = std::floor(distance / d->m_total_length);
-  ff = d->m_total_length * fd;
-  dist = distance - ff;
-
-  for(unsigned int i = 0, endi = d->m_dash_pattern_packed.size(); i < endi; ++i)
-    {
-      float v;
-
-      v = d->m_dash_pattern_packed[i].f;
-      if(dist < v)
-        {
-          interval.m_begin = ff;
-          interval.m_end = ff + v;
-          /* if the boundary is too close we will return false
-             even if we are in the draw interval so that we can
-             avoid bad rendering.
-           */
-          return return_value && !close_to_boundary(dist, interval);
-        }
-      return_value = !return_value;
-    }
-  return false;
-}
-
-bool
-DashEvaluator::
-close_to_boundary(float dist, fastuidraw::range_type<float> interval)
-{
-  bool return_value;
-
-  return_value = interval.m_begin == dist || interval.m_end == dist;
-  return return_value;
 }
 
 ///////////////////////////////////
@@ -315,7 +167,7 @@ width(float f)
   PainterDashedStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_radius = 0.5f * f;
+  d->m_radius = (f > 0.0f) ? 0.5f * f : 0.0f;
   return *this;
 }
 
@@ -336,7 +188,7 @@ radius(float f)
   PainterDashedStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_radius = f;
+  d->m_radius = (f > 0.0f) ? f : 0.0f;
   return *this;
 }
 
@@ -361,7 +213,7 @@ dash_offset(float f)
   return *this;
 }
 
-fastuidraw::const_c_array<fastuidraw::PainterDashedStrokeParams::DashPatternElement>
+fastuidraw::c_array<const fastuidraw::PainterDashedStrokeParams::DashPatternElement>
 fastuidraw::PainterDashedStrokeParams::
 dash_pattern(void) const
 {
@@ -373,28 +225,27 @@ dash_pattern(void) const
 
 fastuidraw::PainterDashedStrokeParams&
 fastuidraw::PainterDashedStrokeParams::
-dash_pattern(const_c_array<DashPatternElement> f)
+dash_pattern(c_array<const DashPatternElement> f)
 {
   PainterDashedStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
 
-  /* skip to first element on f[] that is non-zero.
-   */
+  /* skip to first element on f[] that is non-zero.   */
   while(f.front().m_draw_length <= 0.0f && f.front().m_space_length <= 0.0f)
     {
       f = f.sub_array(1);
     }
 
   d->m_dash_pattern.resize(f.size());
-  if(d->m_dash_pattern.empty())
+  if (d->m_dash_pattern.empty())
     {
       return *this;
     }
 
   /* santize the dash pattern:
-       - starting draw length can be 0
-       - any other 0 lengths are to be joined
+   *   - starting draw length can be 0
+   *   - any other 0 lengths are to be joined
    */
   unsigned int current_write(0);
 
@@ -403,11 +254,11 @@ dash_pattern(const_c_array<DashPatternElement> f)
   for(unsigned int i = 1, endi = f.size(); i < endi; ++i)
     {
       /* things to do:
-           - if d->m_dash_pattern[current_write].m_space_length is 0,
-             then we join it with the element we are on by adding the
-             draw lengths.
+       *   - if d->m_dash_pattern[current_write].m_space_length is 0,
+       *     then we join it with the element we are on by adding the
+       *     draw lengths.
        */
-      if(d->m_dash_pattern[current_write].m_space_length <= 0.0f)
+      if (d->m_dash_pattern[current_write].m_space_length <= 0.0f)
         {
           d->m_dash_pattern[current_write].m_draw_length += std::max(0.0f, f[i].m_draw_length);
         }
@@ -428,9 +279,23 @@ dash_pattern(const_c_array<DashPatternElement> f)
       d->m_total_length += d->m_dash_pattern[i].m_space_length;
     }
 
-  if(d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
+  if (d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
     {
-      d->m_first_interval_start = -d->m_dash_pattern.back().m_draw_length;
+      d->m_first_interval_start_on_looping = -d->m_dash_pattern.back().m_draw_length;
+    }
+  else
+    {
+      d->m_first_interval_start_on_looping = 0.0;
+    }
+
+  if (d->m_dash_pattern.front().m_draw_length > 0.0f)
+    {
+      /* make sure that any sample point in rasterizing that
+       * it near zero, gets a positive distance from the
+       * dash boundary when the dash pattern starts with
+       * a draw length.
+       */
+      d->m_first_interval_start = -d->m_dash_pattern.front().m_draw_length;
     }
   else
     {
@@ -438,7 +303,7 @@ dash_pattern(const_c_array<DashPatternElement> f)
     }
 
   d->m_dash_pattern_packed.resize(d->m_dash_pattern.size() * 2);
-  if(!d->m_dash_pattern_packed.empty())
+  if (!d->m_dash_pattern_packed.empty())
     {
       float total_length = 0.0f;
       for(unsigned int i = 0, j = 0, endi = d->m_dash_pattern.size(); i < endi; ++i, j += 2)
@@ -454,16 +319,30 @@ dash_pattern(const_c_array<DashPatternElement> f)
   return *this;
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase>
+enum fastuidraw::PainterStrokeParams::stroking_units_t
 fastuidraw::PainterDashedStrokeParams::
-dash_evaluator(bool pixel_width_stroking)
+stroking_units(void) const
 {
-  return FASTUIDRAWnew DashEvaluator(pixel_width_stroking);
+  PainterDashedStrokeParamsData *d;
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
+  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  return d->m_stroking_units;
+}
+
+fastuidraw::PainterDashedStrokeParams&
+fastuidraw::PainterDashedStrokeParams::
+stroking_units(enum PainterStrokeParams::stroking_units_t v)
+{
+  PainterDashedStrokeParamsData *d;
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
+  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  d->m_stroking_units = v;
+  return *this;
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterDashedStrokeParams::
-stroking_data_selector(bool pixel_width_stroking)
+stroking_data_selector(bool pixel_arc_stroking_possible)
 {
-  return FASTUIDRAWnew StrokingDataSelector(pixel_width_stroking);
+  return PainterStrokeParams::stroking_data_selector(pixel_arc_stroking_possible);
 }

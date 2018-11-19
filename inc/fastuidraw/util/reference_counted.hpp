@@ -28,27 +28,27 @@
 #include <fastuidraw/util/reference_count_non_concurrent.hpp>
 
 /*!
-  All functionality of FastUIDraw is in the namespace fastuidraw.
-*/
+ * All functionality of FastUIDraw is in the namespace fastuidraw.
+ */
 namespace fastuidraw
 {
 /*!\addtogroup Utility
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A wrapper over a pointer to implement reference counting.
-
-    The class T must implement the static methods
-     - T::add_reference(const T*)
-     - T::remove_reference(const T*)
-
-    where T::add_reference() increment the reference count and
-    T::remove_reference() decrements the reference count and will
-    delete the object.
-
-    See also reference_counted_base and reference_counted.
+   * \brief
+   * A wrapper over a pointer to implement reference counting.
+   *
+   * The class T must implement the static methods
+   *  - T::add_reference(const T*)
+   *  - T::remove_reference(const T*)
+   *
+   * where T::add_reference() increment the reference count and
+   * T::remove_reference() decrements the reference count and will
+   * delete the object.
+   *
+   * See also reference_counted_base and reference_counted.
    */
   template<typename T>
   class reference_counted_ptr
@@ -62,72 +62,82 @@ namespace fastuidraw
 
   public:
     /*!
-      Ctor, inits the reference_counted_ptr as
-      equivalent to nullptr.
+     * Ctor, inits the reference_counted_ptr as
+     * equivalent to nullptr.
      */
     reference_counted_ptr(void):
       m_p(nullptr)
     {}
 
     /*!
-      Ctor, initialize from a T*. If passed non-nullptr,
-      then the reference counter is incremented
-      (via T::add_reference()).
-      \param p pointer value from which to initialize
+     * Ctor, initialize from a T*. If passed non-nullptr,
+     * then the reference counter is incremented
+     * (via T::add_reference()).
+     * \param p pointer value from which to initialize
      */
     reference_counted_ptr(T *p):
       m_p(p)
     {
-      if(m_p)
+      if (m_p)
         {
           T::add_reference(m_p);
         }
     }
 
     /*!
-      Copy ctor.
-      \param obj value from which to initialize
+     * Copy ctor.
+     * \param obj value from which to initialize
      */
     reference_counted_ptr(const reference_counted_ptr &obj):
       m_p(obj.get())
     {
-      if(m_p)
+      if (m_p)
         {
           T::add_reference(m_p);
         }
     }
 
     /*!
-      Ctor from a reference_counted_ptr<U> where U* is
-      implicitely convertible to a T*.
-      \tparam U type where U* is implicitely convertible to a T*.
-      \param obj value from which to initialize
+     * Ctor from a reference_counted_ptr<U> where U* is
+     * implicitely convertible to a T*.
+     * \tparam U type where U* is implicitely convertible to a T*.
+     * \param obj value from which to initialize
      */
     template<typename U>
     reference_counted_ptr(const reference_counted_ptr<U> &obj):
       m_p(obj.get())
     {
-      if(m_p)
+      if (m_p)
         {
           T::add_reference(m_p);
         }
     }
 
     /*!
-      Dtor, if pointer is non-nullptr, then reference is decremented
-      (via T::remove_reference()).
+     * Move ctor.
+     * \param obj object from which to take.
+     */
+    reference_counted_ptr(reference_counted_ptr &&obj):
+      m_p(obj.m_p)
+    {
+      obj.m_p = nullptr;
+    }
+
+    /*!
+     * Dtor, if pointer is non-nullptr, then reference is decremented
+     * (via T::remove_reference()).
      */
     ~reference_counted_ptr()
     {
-      if(m_p)
+      if (m_p)
         {
           T::remove_reference(m_p);
         }
     }
 
     /*!
-      Assignment operator
-      \param rhs value from which to assign
+     * Assignment operator
+     * \param rhs value from which to assign
      */
     reference_counted_ptr&
     operator=(const reference_counted_ptr &rhs)
@@ -138,8 +148,8 @@ namespace fastuidraw
     }
 
     /*!
-      Assignment operator from a T*.
-      \param rhs value from which to assign
+     * Assignment operator from a T*.
+     * \param rhs value from which to assign
      */
     reference_counted_ptr&
     operator=(T *rhs)
@@ -150,10 +160,26 @@ namespace fastuidraw
     }
 
     /*!
-      Assignment operator from a reference_counted_ptr<U>
-      where U* is implicitely convertible to a T*.
-      \tparam U type where U* is implicitely convertible to a T*.
-      \param rhs value from which to assign
+     * Move assignment operator
+     * \param rhs value from which to assign
+     */
+    reference_counted_ptr&
+    operator=(reference_counted_ptr &&rhs)
+    {
+      if (m_p)
+        {
+          T::remove_reference(m_p);
+        }
+      m_p = rhs.m_p;
+      rhs.m_p = nullptr;
+      return *this;
+    }
+
+    /*!
+     * Assignment operator from a reference_counted_ptr<U>
+     * where U* is implicitely convertible to a T*.
+     * \tparam U type where U* is implicitely convertible to a T*.
+     * \param rhs value from which to assign
      */
     template<typename U>
     reference_counted_ptr&
@@ -165,7 +191,7 @@ namespace fastuidraw
     }
 
     /*!
-      Returns the underlying pointer
+     * Returns the underlying pointer
      */
     T*
     get(void) const
@@ -174,8 +200,8 @@ namespace fastuidraw
     }
 
     /*!
-      Overload of dererefence operator. Under debug build,
-      assers if pointer is nullptr.
+     * Overload of dererefence operator. Under debug build,
+     * assers if pointer is nullptr.
      */
     T&
     operator*(void) const
@@ -185,8 +211,8 @@ namespace fastuidraw
     }
 
     /*!
-      Overload of operator. Under debug build,
-      assers if pointer is nullptr.
+     * Overload of operator. Under debug build,
+     * assers if pointer is nullptr.
      */
     T*
     operator->(void) const
@@ -196,9 +222,9 @@ namespace fastuidraw
     }
 
     /*!
-      Performs swap without needing to increment or
-      decrement the reference counter.
-      \param rhs object with which to swap
+     * Performs swap without needing to increment or
+     * decrement the reference counter.
+     * \param rhs object with which to swap
      */
     void
     swap(reference_counted_ptr &rhs)
@@ -210,18 +236,18 @@ namespace fastuidraw
     }
 
     /*!
-      Allows one to legally write:
-      \code
-      reference_counted_ptr<T> p;
-
-      if(p)
-       {
-       }
-
-      if(!p)
-       {
-       }
-      \endcode
+     * Allows one to legally write:
+     * \code
+     * reference_counted_ptr<T> p;
+     *
+     * if (p)
+     *  {
+     *  }
+     *
+     * if (!p)
+     *  {
+     *  }
+     * \endcode
      */
     operator unspecified_bool_type() const
     {
@@ -229,8 +255,8 @@ namespace fastuidraw
     }
 
     /*!
-      Equality comparison operator to a pointer value.
-      \param rhs value with which to compare against
+     * Equality comparison operator to a pointer value.
+     * \param rhs value with which to compare against
      */
     template<typename U>
     bool
@@ -240,10 +266,10 @@ namespace fastuidraw
     }
 
     /*!
-      Equality comparison operator to a
-      reference_counted_ptr value.
-      \tparam U type where U* is implicitely comparable to a T*.
-      \param rhs value with which to compare against
+     * Equality comparison operator to a
+     * reference_counted_ptr value.
+     * \tparam U type where U* is implicitely comparable to a T*.
+     * \param rhs value with which to compare against
      */
     template<typename U>
     bool
@@ -253,9 +279,9 @@ namespace fastuidraw
     }
 
     /*!
-      Inequality comparison operator to a pointer value.
-      \tparam U type where U* is implicitely comparable to a T*.
-      \param rhs value with which to compare against
+     * Inequality comparison operator to a pointer value.
+     * \tparam U type where U* is implicitely comparable to a T*.
+     * \param rhs value with which to compare against
      */
     template<typename U>
     bool
@@ -265,10 +291,10 @@ namespace fastuidraw
     }
 
     /*!
-      Inequality comparison operator to
-      a reference_counted_ptr value.
-      \tparam U type where U* is implicitely comparable to a T*.
-      \param rhs value with which to compare against
+     * Inequality comparison operator to
+     * a reference_counted_ptr value.
+     * \tparam U type where U* is implicitely comparable to a T*.
+     * \param rhs value with which to compare against
      */
     template<typename U>
     bool
@@ -278,8 +304,8 @@ namespace fastuidraw
     }
 
     /*!
-      Comparison operator for sorting.
-      \param rhs value with which to compare against
+     * Comparison operator for sorting.
+     * \param rhs value with which to compare against
      */
     bool
     operator<(const reference_counted_ptr &rhs) const
@@ -288,24 +314,24 @@ namespace fastuidraw
     }
 
     /*!
-      Clears the reference_counted_ptr object,
-      equivalent to
-      \code
-      operator=(reference_counted_ptr());
-      \endcode
+     * Clears the reference_counted_ptr object,
+     * equivalent to
+     * \code
+     * operator=(reference_counted_ptr());
+     * \endcode
      */
     void
     clear(void)
     {
-      if(m_p)
+      if (m_p)
         {
           T::remove_reference(m_p);
           m_p = nullptr;
         }
     }
     /*!
-      Perform static cast to down cast (uses static_cast internally).
-      \tparam U type to which to cast
+     * Perform static cast to down cast (uses static_cast internally).
+     * \tparam U type to which to cast
      */
     template<typename U>
     reference_counted_ptr<U>
@@ -315,8 +341,8 @@ namespace fastuidraw
     }
 
     /*!
-      Perform const cast to cast (uses const_cast internally).
-      \tparam U type to which to cast
+     * Perform const cast to cast (uses const_cast internally).
+     * \tparam U type to which to cast
      */
     template<typename U>
     reference_counted_ptr<U>
@@ -326,8 +352,8 @@ namespace fastuidraw
     }
 
     /*!
-      Perform dynamic cast to down cast (uses dynamic_cast internally).
-      \tparam U type to which to cast
+     * Perform dynamic cast to down cast (uses dynamic_cast internally).
+     * \tparam U type to which to cast
      */
     template<typename U>
     reference_counted_ptr<U>
@@ -341,9 +367,9 @@ namespace fastuidraw
   };
 
   /*!
-    Equality comparison operator
-    \param lhs left hand side of operator
-    \param rhs right hand side of operator
+   * Equality comparison operator
+   * \param lhs left hand side of operator
+   * \param rhs right hand side of operator
    */
   template<typename T, typename S>
   inline
@@ -355,9 +381,9 @@ namespace fastuidraw
   }
 
   /*!
-    Inequality comparison operator
-    \param lhs left hand side of operator
-    \param rhs right hand side of operator
+   * Inequality comparison operator
+   * \param lhs left hand side of operator
+   * \param rhs right hand side of operator
    */
   template<typename T, typename S>
   inline
@@ -369,12 +395,12 @@ namespace fastuidraw
   }
 
   /*!
-    swap() routine, equivalent to
-    \code
-    lhs.swap(rhs);
-    \endcode
-    \param lhs object to swap
-    \param rhs object to swap
+   * swap() routine, equivalent to
+   * \code
+   * lhs.swap(rhs);
+   * \endcode
+   * \param lhs object to swap
+   * \param rhs object to swap
    */
   template<typename T>
   inline
@@ -386,27 +412,27 @@ namespace fastuidraw
   }
 
   /*!
-    \brief
-    Base class to use for reference counted objects,
-    for using reference_counted_ptr. See also \ref reference_counted.
-    Object deletion (when the reference count goes to zero) is performed
-    via \ref FASTUIDRAWdelete. As a consequence of using \ref
-    FASTUIDRAWdelete, objects must be created with \ref FASTUIDRAWnew.
-
-    \tparam T object type that is reference counted
-    \tparam Counter object type to perform reference counting.
-
-    The type Counter must expose the methods:
-    - void add_reference() to increment the counter
-    - bool remove_reference() to decrement the counter and return true
-      if the counter is zero after the decrement operation.
+   * \brief
+   * Base class to use for reference counted objects,
+   * for using reference_counted_ptr. See also \ref reference_counted.
+   * Object deletion (when the reference count goes to zero) is performed
+   * via \ref FASTUIDRAWdelete. As a consequence of using \ref
+   * FASTUIDRAWdelete, objects must be created with \ref FASTUIDRAWnew.
+   *
+   * \tparam T object type that is reference counted
+   * \tparam Counter object type to perform reference counting.
+   *
+   * The type Counter must expose the methods:
+   * - void add_reference() to increment the counter
+   * - bool remove_reference() to decrement the counter and return true
+   *   if the counter is zero after the decrement operation.
    */
   template<typename T, typename Counter>
   class reference_counted_base:noncopyable
   {
   public:
     /*!
-      Empty ctor.
+     * Empty ctor.
      */
     reference_counted_base(void)
     {}
@@ -416,8 +442,8 @@ namespace fastuidraw
     {}
 
     /*!
-      Adds a reference count to an object.
-      \param p pointer to object to which to add reference count.
+     * Adds a reference count to an object.
+     * \param p pointer to object to which to add reference count.
      */
     static
     void
@@ -428,16 +454,16 @@ namespace fastuidraw
     }
 
     /*!
-      Removes a reference count to an object, if the reference
-      count is 0, then deletes the object with \ref FASTUIDRAWdelete.
-      \param p pointer to object from which to remove reference count.
+     * Removes a reference count to an object, if the reference
+     * count is 0, then deletes the object with \ref FASTUIDRAWdelete.
+     * \param p pointer to object from which to remove reference count.
      */
     static
     void
     remove_reference(const reference_counted_base<T, Counter> *p)
     {
       FASTUIDRAWassert(p);
-      if(p->m_counter.remove_reference())
+      if (p->m_counter.remove_reference())
         {
           FASTUIDRAWdelete(p);
         }
@@ -447,38 +473,38 @@ namespace fastuidraw
   };
 
   /*!
-    \brief
-    Defines default reference counting base classes.
-
-    See also reference_counted_base and reference_counted_ptr.
+   * \brief
+   * Defines default reference counting base classes.
+   *
+   * See also reference_counted_base and reference_counted_ptr.
    */
   template<typename T>
   class reference_counted
   {
   public:
     /*!
-      \brief
-      Typedef to reference counting which is NOT thread safe
+     * \brief
+     * Typedef to reference counting which is NOT thread safe
      */
     typedef reference_counted_base<T, reference_count_non_concurrent> non_concurrent;
 
     /*!
-      \brief
-      Typedef to reference counting which is thread safe by locking
-      a mutex on adding and removing reference
+     * \brief
+     * Typedef to reference counting which is thread safe by locking
+     * a mutex on adding and removing reference
      */
     typedef reference_counted_base<T, reference_count_mutex> mutex;
 
     /*!
-      \brief
-      Typedef to reference counting which is thread safe by atomically
-      adding and removing reference
+     * \brief
+     * Typedef to reference counting which is thread safe by atomically
+     * adding and removing reference
      */
     typedef reference_counted_base<T, reference_count_atomic> atomic;
 
     /*!
-      \brief
-      Typedef for "default" way to reference count.
+     * \brief
+     * Typedef for "default" way to reference count.
      */
     typedef atomic default_base;
   };

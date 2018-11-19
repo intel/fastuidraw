@@ -41,7 +41,7 @@ fetch(const std::string &pname)
 {
   hoard::iterator iter;
   iter = m_values.find(pname);
-  if(iter != m_values.end())
+  if (iter != m_values.end())
     {
       return *iter->second;
     }
@@ -57,7 +57,7 @@ color_stop_arguments::
 check_arg(const std::vector<std::string> &args, int location)
 {
   const std::string &str(args[location]);
-  if(static_cast<unsigned int>(location+6) < args.size() && str == "add_stop")
+  if (static_cast<unsigned int>(location+6) < args.size() && str == "add_stop")
     {
       int R, G, B, A;
       float t;
@@ -76,11 +76,11 @@ check_arg(const std::vector<std::string> &args, int location)
       fetch(name).m_stops.add(fastuidraw::ColorStop(color, t));
       return 7;
     }
-  else if(static_cast<unsigned int>(location+1) < args.size() && str == "add_stop_file")
+  else if (static_cast<unsigned int>(location+1) < args.size() && str == "add_stop_file")
     {
       std::string name(args[location + 1]);
       std::ifstream infile(name.c_str());
-      if(infile)
+      if (infile)
         {
           fetch(name).m_stops.clear();
           read_colorstops(fetch(name).m_stops, infile);
@@ -88,7 +88,7 @@ check_arg(const std::vector<std::string> &args, int location)
         }
       return 2;
     }
-  else if(static_cast<unsigned int>(location+2) < args.size() && str == "discretization")
+  else if (static_cast<unsigned int>(location+2) < args.size() && str == "discretization")
     {
       std::string name;
       int N;

@@ -18,6 +18,7 @@
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -29,7 +30,6 @@ namespace
     enum { count = fastuidraw::PainterEnums::number_cap_styles };
 
     fastuidraw::vecN<PainterStrokeShader, count> m_shaders;
-    fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase> m_dash_evaluator;
   };
 }
 
@@ -59,24 +59,7 @@ fastuidraw::PainterDashedStrokeShaderSet::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterDashedStrokeShaderSet::
-swap(PainterDashedStrokeShaderSet &obj)
-{
-  std::swap(obj.m_d, m_d);
-}
-
-fastuidraw::PainterDashedStrokeShaderSet&
-fastuidraw::PainterDashedStrokeShaderSet::
-operator=(const PainterDashedStrokeShaderSet &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterDashedStrokeShaderSet v(rhs);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::PainterDashedStrokeShaderSet)
 
 const fastuidraw::PainterStrokeShader&
 fastuidraw::PainterDashedStrokeShaderSet::
@@ -96,23 +79,4 @@ shader(enum PainterEnums::cap_style st,
   d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
   d->m_shaders[st] = sh;
   return *this;
-}
-
-fastuidraw::PainterDashedStrokeShaderSet&
-fastuidraw::PainterDashedStrokeShaderSet::
-dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>& v)
-{
-  PainterDashedStrokeShaderSetPrivate *d;
-  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
-  d->m_dash_evaluator = v;
-  return *this;
-}
-
-const fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase>&
-fastuidraw::PainterDashedStrokeShaderSet::
-dash_evaluator(void) const
-{
-  PainterDashedStrokeShaderSetPrivate *d;
-  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
-  return d->m_dash_evaluator;
 }

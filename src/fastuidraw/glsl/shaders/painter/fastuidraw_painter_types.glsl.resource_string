@@ -1,20 +1,36 @@
+/*!
+ * \file fastuidraw_painter_types.glsl.resource_string
+ * \brief file fastuidraw_painter_types.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
 struct fastuidraw_shader_header
 {
-  /* read directly from data store buffer
-   */
   uint clipping_location;
   uint item_matrix_location;
   uint brush_shader_data_location;
   uint item_shader_data_location;
+  uint composite_shader_data_location;
   uint blend_shader_data_location;
   uint brush_shader;
-  int z;
-  uint item_blend_shader_packed;
-
-  /* derived values
-   */
   uint item_shader;
+  uint composite_shader;
   uint blend_shader;
+  int z;
+  uint flags;
 };
 
 struct fastuidraw_clipping_data
@@ -35,5 +51,18 @@ struct fastuidraw_dashed_stroking_params_header
   float dash_offset;
   float total_length;
   float first_interval_start;
+  float first_interval_start_on_looping;
   uint number_intervals;
 };
+
+void
+fastuidraw_process_header(inout fastuidraw_shader_header h)
+{
+  if ((h.flags & FASTUIDRAW_HEADER_DRAWING_OCCLUDER) != 0u)
+    {
+      /* We pass along that the drawing is for drawing an occluder
+       * by setting the composite shader to all bits up.
+       */
+      h.blend_shader = ~0u;
+    }
+}

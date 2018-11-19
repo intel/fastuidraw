@@ -35,7 +35,7 @@ public:
   bool
   is_ancestor_of(PainterWidget *q);
 
-  /* clipInRect for widget
+  /* clip_in_rect for widget
    */
   fastuidraw::vec2 m_dimensions;
 

@@ -1,14 +1,42 @@
+/*!
+ * \file fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
 vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  /* the vertex shader made the quad exactly two-pixels
-     wide and fastuidraw_aa_fuzz goes from -1 to 1, thus
-     1 - abs(fastuidraw_aa_fuzz) is the exact value
-     needed for coverage and we have no need to divide
-     by derivative magnitudes to normalize correctly.
-   */
-  float alpha;
-  alpha = 1.0 - abs(fastuidraw_aa_fuzz);
-  return vec4(1.0, 1.0, 1.0, alpha);
+  if (sub_shader == fastuidraw_aa_fuzz_hq_pass2)
+    {
+      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
+    }
+  else
+    {
+      float dd, q, alpha;
+      q = 1.0 - fastuidraw_aa_fuzz;
+      dd = max(q, fwidth(q));
+      alpha = q / dd;
+
+      if (sub_shader == fastuidraw_aa_fuzz_hq_pass1)
+        {
+          fastuidraw_max_auxiliary(alpha);
+          alpha = 0.0;
+        }
+
+      return vec4(1.0, 1.0, 1.0, alpha);
+    }
 }

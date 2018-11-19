@@ -88,7 +88,6 @@ public:
 
   /*** state needed for rendering callbacks (see render.c) ***/
 
-  FASTUIDRAW_GLUboolean      boundaryOnly;   /* Extract contours, not triangles */
   GLUface       *lonelyTriList;
     /* list of triangles which could not be rendered as strips or fans */
 
@@ -98,7 +97,16 @@ public:
   void          (REGALFASTUIDRAW_GLU_CALL *callMesh)( GLUmesh *mesh );
 
   FASTUIDRAW_GLUboolean              (REGALFASTUIDRAW_GLU_CALL *callWinding)(int winding_number);
-
+  void                               (REGALFASTUIDRAW_GLU_CALL *emit_monotone)(int winding,
+                                                                               const unsigned int vertex_ids[],
+                                                                               const int winding_ids[],
+                                                                               unsigned int count);
+  void                     (REGALFASTUIDRAW_GLU_CALL *boundary_corner_point)(double *x, double *y,
+                                                                             int step,
+                                                                             FASTUIDRAW_GLUboolean is_max_x,
+                                                                             FASTUIDRAW_GLUboolean is_max_y,
+                                                                             unsigned int *outData);
+  void (REGALFASTUIDRAW_GLU_CALL *emit_boundary)(int winding, const unsigned int vertex_ids[], unsigned int count);
 
   /*** state needed to cache single-contour polygons for renderCache() */
 
@@ -116,7 +124,20 @@ public:
                                                             void *polygonData );
 
   FASTUIDRAW_GLUboolean    (REGALFASTUIDRAW_GLU_CALL *callWindingData)(int winding_number,
-                                                             void *polygonData );
+                                                                       void *polygonData );
+  void                     (REGALFASTUIDRAW_GLU_CALL *emit_monotone_data)(int winding,
+                                                                          const unsigned int vertex_ids[],
+                                                                          const int winding_ids[],
+                                                                          unsigned int count,
+                                                                          void *polygonData);
+  void                     (REGALFASTUIDRAW_GLU_CALL *boundary_corner_point_data)(double *x, double *y,
+                                                                                  int step,
+                                                                                  FASTUIDRAW_GLUboolean is_max_x,
+                                                                                  FASTUIDRAW_GLUboolean is_max_y,
+                                                                                  unsigned int *outData,
+                                                                                  void *polygon_data);
+  void (REGALFASTUIDRAW_GLU_CALL *emit_boundary_data)(int winding, const unsigned int vertex_ids[],
+                                                      unsigned int count, void *polygon_data);
 
   jmp_buf env;                  /* place to jump to when memAllocs fail */
 
@@ -138,8 +159,6 @@ void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noErrorData( FASTUIDRAW_GLUenum 
 void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noCombineData( double x, double y, unsigned int data[4],
                                                              double weight[4], unsigned int *outData,
                                                              void *polygonData );
-FASTUIDRAW_GLUboolean REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noWindingData(int winding_rule,
-                                                                            void *polygonData);
 
 #define CALL_BEGIN_OR_BEGIN_DATA(a,w)                    \
    if (tess->callBeginData != &glu_fastuidraw_gl_noBeginData) \
@@ -166,11 +185,19 @@ FASTUIDRAW_GLUboolean REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noWindingData(i
       (*tess->callErrorData)((a),tess->polygonData); \
    else (*tess->callError)((a));
 
-
 FASTUIDRAW_GLUboolean
 call_tess_winding_or_winding_data_implement(fastuidraw_GLUtesselator *tess, int a);
 
 #define CALL_TESS_WINDING_OR_WINDING_DATA(a) \
   call_tess_winding_or_winding_data_implement(tess, (a))
+
+
+#define CALL_BOUNDARY_CORNER_POINT(x, y, s, mx, my, o)                  \
+  if (tess->boundary_corner_point_data)                                 \
+    (*tess->boundary_corner_point_data)((x), (y), (s), (mx), (my), (o), tess->polygonData); \
+  else if (tess->boundary_corner_point)                                 \
+    (*tess->boundary_corner_point)((x), (y), (s), (mx), (my), (o));
+
+#define HAVE_BOUNDARY_CORNER_POINT (tess->boundary_corner_point_data || tess->boundary_corner_point)
 
 #endif

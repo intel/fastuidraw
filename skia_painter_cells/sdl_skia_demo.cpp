@@ -45,10 +45,10 @@ init_skia(int w, int h)
   info.fFormat = GL_RGBA8;
   colorType = kRGBA_8888_SkColorType;
 
-  MsaaSampleCount = (m_use_msaa.m_value) ?
-    m_msaa.m_value : 0;
+  MsaaSampleCount = (m_use_msaa.value()) ?
+    m_msaa.value() : 0;
 
-  GrBackendRenderTarget target(w, h, MsaaSampleCount, m_stencil_bits.m_value, info);
+  GrBackendRenderTarget target(w, h, MsaaSampleCount, m_stencil_bits.value(), info);
   SkSurfaceProps props(SkSurfaceProps::kLegacyFontHost_InitType);
 
   m_skia_surface = SkSurface::MakeFromBackendRenderTarget(m_skia_context.get(), target,

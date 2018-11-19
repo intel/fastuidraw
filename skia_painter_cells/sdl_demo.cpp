@@ -127,7 +127,7 @@ init_sdl(void)
   int video_flags;
   video_flags = SDL_WINDOW_RESIZABLE;
 
-  if(m_fullscreen.m_value)
+  if(m_fullscreen.value())
     {
       video_flags=video_flags | SDL_WINDOW_FULLSCREEN;
     }
@@ -138,14 +138,14 @@ init_sdl(void)
     set GL attributes:
   */
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-  if(m_stencil_bits.m_value>=0)
+  if(m_stencil_bits.value()>=0)
     {
-      SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, m_stencil_bits.m_value);
+      SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, m_stencil_bits.value());
     }
 
-  if(m_depth_bits.m_value>=0)
+  if(m_depth_bits.value()>=0)
     {
-      SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, m_depth_bits.m_value);
+      SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, m_depth_bits.value());
     }
 
   SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8);
@@ -153,32 +153,32 @@ init_sdl(void)
   SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8);
 
-  if(m_use_msaa.m_value)
+  if(m_use_msaa.value())
     {
       SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1);
-      SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, m_msaa.m_value);
+      SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, m_msaa.value());
     }
 
-  if(m_gl_major.m_value>=3)
+  if(m_gl_major.value()>=3)
     {
       int context_flags(0);
       int profile_mask(0);
 
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.m_value);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.m_value);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.value());
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.value());
 
-      if(m_gl_forward_compatible_context.m_value)
+      if(m_gl_forward_compatible_context.value())
         {
           context_flags|=SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
         }
 
-      if(m_gl_debug_context.m_value)
+      if(m_gl_debug_context.value())
         {
           context_flags|=SDL_GL_CONTEXT_DEBUG_FLAG;
         }
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
 
-      if(m_gl_core_profile.m_value)
+      if(m_gl_core_profile.value())
         {
           profile_mask=SDL_GL_CONTEXT_PROFILE_CORE;
         }
@@ -192,8 +192,8 @@ init_sdl(void)
 
   // Create the SDL window
   m_window = SDL_CreateWindow("", 0, 0,
-                              m_width.m_value,
-                              m_height.m_value,
+                              m_width.value(),
+                              m_height.value(),
                               video_flags);
 
   if(m_window==NULL)
@@ -215,14 +215,14 @@ init_sdl(void)
 
   if(m_swap_interval.set_by_command_line())
     {
-      if(SDL_GL_SetSwapInterval(m_swap_interval.m_value) != 0)
+      if(SDL_GL_SetSwapInterval(m_swap_interval.value()) != 0)
         {
           std::cerr << "Warning unable to set swap interval: "
                     << SDL_GetError() << "\n";
         };
     }
 
-  if(m_print_gl_info.m_value)
+  if(m_print_gl_info.value())
     {
       std::cout << "\nGL_VERSION:" << glGetString(GL_VERSION)
                 << "\nGL_VENDOR:" << glGetString(GL_VENDOR)
@@ -250,7 +250,7 @@ init_sdl(void)
       std::cout << "\n";
     }
 
-  if(m_hide_cursor.m_value)
+  if(m_hide_cursor.value())
     {
       SDL_ShowCursor(SDL_DISABLE);
     }
@@ -329,7 +329,7 @@ main(int argc, char **argv)
         }
     }
 
-  if(m_show_framerate.m_value)
+  if(m_show_framerate.value())
     {
       int32_t ms;
       float msf, numf;

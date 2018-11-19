@@ -37,110 +37,128 @@ class Path;
 ///@endcond
 
 /*!\addtogroup Paths
-  @{
+ * @{
  */
 
 /*!
-  \brief
-  A FilledPath represents the data needed to draw a path filled.
-  It contains -all- the data needed to fill a path regardless of
-  the fill rule.
+ * \brief
+ * A FilledPath represents the data needed to draw a path filled.
+ * It contains -all- the data needed to fill a path regardless of
+ * the fill rule.
  */
 class FilledPath:
     public reference_counted<FilledPath>::non_concurrent
 {
 public:
   /*!
-    \brief
-    A Subset represents a handle to a portion of a FilledPath.
-    The handle is invalid once the FilledPath from which it
-    comes goes out of scope. Do not save these handle values.
+   * \brief
+   * A Subset represents a handle to a portion of a FilledPath.
+   * The handle is invalid once the FilledPath from which it
+   * comes goes out of scope. Do not save these handle values
+   * without also saving a handle of the FilledPath from which
+   * they come.
    */
   class Subset
   {
   public:
     /*!
-      Returns the PainterAttributeData to draw the triangles
-      for the portion of the FilledPath the Subset represents.
-      The attribute data is packed as follows:
-      - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
-      - PainterAttribute::m_attrib0 .zw -> 0 (free)
-      - PainterAttribute::m_attrib1 .xyzw -> 0 (free)
-      - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
+     * Enumeration to specify type for an attribute of
+     * aa_fuzz_painter_data().
+     */
+    enum aa_fuzz_type_t
+      {
+        /*!
+         * Point is a point on the path.
+         */
+        aa_fuzz_type_on_path,
+
+        /*!
+         * Point is a point on the boundary of the aa-fuzz
+         */
+        aa_fuzz_type_on_boundary,
+
+        /*!
+         * Point is a point on the boundary of the aa-fuzz
+         * as a miter-join point.
+         */
+        aa_fuzz_type_on_boundary_miter,
+      };
+
+    /*!
+     * Returns the PainterAttributeData to draw the triangles
+     * for the portion of the FilledPath the Subset represents.
+     * The attribute data is packed as follows:
+     * - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
+     * - PainterAttribute::m_attrib0 .zw -> 0 (free)
+     * - PainterAttribute::m_attrib1 .xyzw -> 0 (free)
+     * - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
      */
     const PainterAttributeData&
     painter_data(void) const;
 
     /*!
-      Returns the PainterAttributeData to draw the anti-alias fuzz
-      for the portion of the FilledPath the Subset represents.
-      The aa-fuzz is drawn as a quad (of two triangles) per edge
-      of the boudnary of a filled component.
-      The attribute data is packed as follows:
-      - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
-      - PainterAttribute::m_attrib0 .zw -> normal vector to edge
-      - PainterAttribute::m_attrib1 .x  -> boundary value, either -1 or 1.
-                                           This value should be interpolated across
-					   each triangle and used as the coverage
-					   value in the fragment shader.
-      - PainterAttribute::m_attrib1 .yzw  -> 0 (free)
-      - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
+     * Returns the PainterAttributeData to draw the anti-alias fuzz
+     * for the portion of the FilledPath the Subset represents.
+     * The aa-fuzz is drawn as a quad (of two triangles) per edge
+     * of the boudnary of a filled component.
+     * The attribute data is packed as follows:
+     * - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
+     * - PainterAttribute::m_attrib0 .z  -> (uint) classification, given by \ref aa_fuzz_type_t
+     * - PainterAttribute::m_attrib0 .w  -> the z-offset value (uint)
+     * - PainterAttribute::m_attrib1 .xy -> normal vector to edge
+     * - PainterAttribute::m_attrib1 .zw -> normal vector to next edge
+     * - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
      */
     const PainterAttributeData&
     aa_fuzz_painter_data(void) const;
 
     /*!
-      Returns an array listing what winding number values
-      there are triangle in this Subset. To get the indices
-      for those triangle with winding number N, use the chunk
-      computed from chunk_from_winding_number(N). The same attribute
-      chunk, 0, is used regardless of which index chunk.
-    */
-    const_c_array<int>
+     * Returns an array listing what winding number values
+     * there are triangle in this Subset. To get the indices
+     * for those triangle with winding number N, use the chunk
+     * computed from chunk_from_winding_number(N). The same attribute
+     * chunk, 0, is used regardless of which index chunk.
+     */
+    c_array<const int>
     winding_numbers(void) const;
 
     /*!
-      For each entry is winding_numbers(), returns a list
-      of winding numbers (sorted) of those filled components
-      that have edges in common with a given filled
-      component, i.e. if one wishes to know what filled
-      components share an edge with winding number
-      w, that is given by the list winding_neighbors(w).
-      \param w winding number to query
+     * Returns the bounding box realized as a \ref Path.
      */
-    const_c_array<int>
-    winding_neighbors(int w) const;
+    const Path&
+    bounding_path(void) const;
 
     /*!
-      Returns what chunk to pass PainterAttributeData::index_data_chunks()
-      called on the PainterAttributeData returned by painter_data()
-      to get the triangles of a specified winding number. The same
-      attribute chunk, 0, is used regardless of which winding number.
+     * Returns what chunk to pass PainterAttributeData::index_data_chunk()
+     * called on the \ref PainterAttributeData returned by painter_data()
+     * to get the triangles of a specified winding number. The same
+     * attribute chunk, 0, is used regardless of which winding number.
+     * \param w winding number
      */
     static
     unsigned int
-    chunk_from_winding_number(int w);
+    fill_chunk_from_winding_number(int w);
 
     /*!
-      Returns what chunk to pass PainterAttributeData::index_data_chunks()
-      called on the PainterAttributeData returned by painter_data()
-      to get the triangles of a specified fill rule.
+     * Returns what chunk to pass PainterAttributeData::index_data_chunk()
+     * called on the \ref PainterAttributeData returned by painter_data()
+     * to get the triangles of a specified fill rule.
      */
     static
     unsigned int
-    chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule);
+    fill_chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule);
 
     /*!
-      Returns the chunk to use for drawing the anti-alias fuzz
-      around the filled path caused by edges shared between
-      winding number components. If one gives the value
-      as the same winding number, then these are aa-edges
-      of the winding number component that are NOT shared
-      with any others.
+     * Returns the chunk to pass PainterAttributeData::index_data_chunk()
+     * and PainterAttributeData::attribute_data_chunk() on the
+     * \ref PainterAttributeData returned by aa_fuzz_painter_data().
+     * NOTE that this value is NOT the same as returned by
+     * fill_chunk_from_winding_number(int).
+     * \param w winding number
      */
     static
     unsigned int
-    chunk_for_aa_fuzz(int winding0, int winding1);
+    aa_fuzz_chunk_from_winding_number(int w);
 
   private:
     friend class FilledPath;
@@ -152,9 +170,9 @@ public:
   };
 
   /*!
-    \brief
-    Opaque object to hold work room needed for functions
-    of FilledPath that require scratch space.
+   * \brief
+   * Opaque object to hold work room needed for functions
+   * of FilledPath that require scratch space.
    */
   class ScratchSpace:fastuidraw::noncopyable
   {
@@ -167,9 +185,9 @@ public:
   };
 
   /*!
-    Ctor. Construct a FilledPath from the data
-    of a TessellatedPath.
-    \param P source TessellatedPath
+   * Ctor. Construct a FilledPath from the data
+   * of a TessellatedPath.
+   * \param P source TessellatedPath
    */
   explicit
   FilledPath(const TessellatedPath &P);
@@ -177,42 +195,74 @@ public:
   ~FilledPath();
 
   /*!
-    Returns the number of Subset objects of the FilledPath.
+   * Returns the minimum point of the bounding box of
+   * the \ref FilledPath.
+   */
+  vec2
+  bounding_box_min(void) const;
+
+  /*!
+   * Returns the maximum point of the bounding box of
+   * the \ref FilledPath.
+   */
+  vec2
+  bounding_box_max(void) const;
+
+  /*!
+   * Returns the number of Subset objects of the FilledPath.
    */
   unsigned int
   number_subsets(void) const;
 
   /*!
-    Return the named Subset object of the FilledPath.
+   * Return the named Subset object of the FilledPath.
    */
   Subset
   subset(unsigned int I) const;
 
   /*!
-    Fetch those Subset objects that have triangles that
-    intersect a region specified by clip equations.
-    \param scratch_space scratch space for computations.
-    \param clip_equations array of clip equations
-    \param clip_matrix_local 3x3 transformation from local (x, y, 1)
-                             coordinates to clip coordinates.
-    \param max_attribute_cnt only allow those SubSet objects for which
-                             Subset::painter_data() have no more than
-                             max_attribute_cnt attributes.
-    \param max_index_cnt only allow those SubSet objects for which
-                         Subset::painter_data() have no more than
-                         max_index_cnt attributes.
-    \param[out] dst location to which to write the what SubSets
-    \returns the number of chunks that intersect the clipping region,
-             that number is guarnanteed to be no more than number_subsets().
-
+   * Fetch those Subset objects that have triangles that
+   * intersect a region specified by clip equations.
+   * \param scratch_space scratch space for computations.
+   * \param clip_equations array of clip equations
+   * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
+   *                          coordinates to clip coordinates.
+   * \param max_attribute_cnt only allow those \ref Subset objects for which
+   *                          Subset::painter_data() have no more than
+   *                          max_attribute_cnt attributes.
+   * \param max_index_cnt only allow those \ref Subset objects for which
+   *                      Subset::painter_data() have no more than
+   *                      max_index_cnt attributes.
+   * \param[out] dst location to which to write the \ref Subset ID values
+   * \returns the number of Subset object ID's written to dst, that
+   *          number is guaranteed to be no more than number_subsets().
+   *
    */
   unsigned int
   select_subsets(ScratchSpace &scratch_space,
-                 const_c_array<vec3> clip_equations,
+                 c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,
                  c_array<unsigned int> dst) const;
+
+  /*!
+   * In contrast to select_subsets() which performs hierarchical
+   * culling against a set of clip equations, this routine performs
+   * no culling and returns the subsets needed to draw all of the
+   * FilledPath.
+   * \param max_attribute_cnt only allow those chunks for which have no more
+   *                          than max_attribute_cnt attributes
+   * \param max_index_cnt only allow those chunks for which have no more
+   *                      than max_index_cnt indices
+   * \param[out] dst location to which to write the \ref Subset ID values
+   * \returns the number of Subset object ID's written to dst, that
+   *          number is guaranteed to be no more than number_subsets().
+   */
+  unsigned int
+  select_subsets_no_culling(unsigned int max_attribute_cnt,
+                            unsigned int max_index_cnt,
+                            c_array<unsigned int> dst) const;
 private:
   void *m_d;
 };

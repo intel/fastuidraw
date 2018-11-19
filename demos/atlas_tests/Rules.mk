@@ -10,9 +10,6 @@ include $(dir)/Rules.mk
 dir := $(d)/gradient_test
 include $(dir)/Rules.mk
 
-dir := $(d)/glyph_test
-include $(dir)/Rules.mk
-
 # Begin standard footer
 d		:= $(dirstack_$(sp))
 sp		:= $(basename $(sp))

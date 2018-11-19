@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <fastuidraw/painter/painter_blend_shader_set.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -26,9 +27,8 @@ namespace
   {
   public:
     typedef fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> shader_ref;
-    typedef std::pair<shader_ref, fastuidraw::BlendMode::packed_value> entry;
-    std::vector<entry> m_shaders;
-    entry m_null;
+    std::vector<shader_ref> m_shaders;
+    shader_ref m_null;
   };
 }
 
@@ -57,56 +57,29 @@ fastuidraw::PainterBlendShaderSet::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterBlendShaderSet::
-swap(PainterBlendShaderSet &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::PainterBlendShaderSet&
-fastuidraw::PainterBlendShaderSet::
-operator=(const PainterBlendShaderSet &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterBlendShaderSet v(rhs);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::PainterBlendShaderSet)
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
 fastuidraw::PainterBlendShaderSet::
-shader(enum PainterEnums::blend_mode_t tp) const
+shader(enum PainterEnums::blend_w3c_mode_t tp) const
 {
   PainterBlendShaderSetPrivate *d;
   d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
-  return (tp < d->m_shaders.size()) ? d->m_shaders[tp].first : d->m_null.first;
-}
-
-fastuidraw::BlendMode::packed_value
-fastuidraw::PainterBlendShaderSet::
-blend_mode(enum PainterEnums::blend_mode_t tp) const
-{
-  PainterBlendShaderSetPrivate *d;
-  d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
-  return (tp < d->m_shaders.size()) ? d->m_shaders[tp].second : d->m_null.second;
+  return (tp < d->m_shaders.size()) ? d->m_shaders[tp] : d->m_null;
 }
 
 fastuidraw::PainterBlendShaderSet&
 fastuidraw::PainterBlendShaderSet::
-shader(enum PainterEnums::blend_mode_t tp,
-       const BlendMode &mode,
+shader(enum PainterEnums::blend_w3c_mode_t tp,
        const reference_counted_ptr<PainterBlendShader> &sh)
 {
   PainterBlendShaderSetPrivate *d;
   d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
-  if(tp >= d->m_shaders.size())
+  if (tp >= d->m_shaders.size())
     {
       d->m_shaders.resize(tp + 1);
     }
-  d->m_shaders[tp] = PainterBlendShaderSetPrivate::entry(sh, mode.packed());
+  d->m_shaders[tp] = sh;
   return *this;
 }
 

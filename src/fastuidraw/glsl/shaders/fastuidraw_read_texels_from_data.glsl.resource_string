@@ -1,0 +1,50 @@
+/*!
+ * \file fastuidraw_read_texels_from_data.glsl.resource_string
+ * \brief file fastuidraw_read_texels_from_data.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+uint
+fastuidraw_read_texel_from_data(in ivec2 coord, in uvec2 dims, in uint location)
+{
+  uint x, y, block_offset, block;
+  uint bit0x, bit0y;
+
+  if (coord.x < 0 || coord.y < 0)
+    {
+      return 0u;
+    }
+
+  x = uint(coord.x);
+  y = uint(coord.y);
+
+  if (x >= dims.x || y >= dims.y)
+    {
+      return 0u;
+    }
+
+  /* note the (dims.x() + 1u), this is because each block is 2x2
+   * texels and if w is odd, the dimension is rounded -UP-,
+   * thus adding 1u before the bitshift does the job of
+   * rounding up.
+   */
+  block_offset = location + (x >> 1u) + (y >> 1u) * ((dims.x + 1u) >> 1u);
+  block = fastuidraw_fetch_glyph_data(block_offset);
+
+  /* now read the correct 8-bits from the block */
+  bit0x = ((x & 1u) != 0u) ? 8u : 0u;
+  bit0y = ((y & 1u) != 0u) ? 16u : 0u;
+  return FASTUIDRAW_EXTRACT_BITS(bit0x + bit0y, 8u, block);
+}

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "cell_group.hpp"
 
 void
@@ -7,7 +8,7 @@ pre_paint(void)
   PainterWidget *p;
   p = parent();
 
-  if(p != nullptr)
+  if (p != nullptr)
     {
       CellGroup *q;
       q = static_cast<CellGroup*>(p);

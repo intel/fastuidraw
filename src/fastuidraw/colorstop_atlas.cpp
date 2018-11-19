@@ -18,6 +18,8 @@
 
 
 #include <vector>
+#include <algorithm>
+#include <mutex>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include "private/interval_allocator.hpp"
 #include "private/util_private.hpp"
@@ -70,7 +72,7 @@ namespace
     void
     deallocate_implement(fastuidraw::ivec2 location, int width);
 
-    mutable fastuidraw::mutex m_mutex;
+    mutable std::mutex m_mutex;
     int m_delayed_interval_freeing_counter;
     std::vector<delayed_free_entry> m_delayed_freed_intervals;
 
@@ -78,13 +80,13 @@ namespace
     int m_allocated;
 
     /* Each layer has an interval allocator to allocate
-       and free "color stop arrays"
+     * and free "color stop arrays"
      */
     std::vector<fastuidraw::interval_allocator*> m_layer_allocator;
 
     /* m_available_layers[key] gives indices into m_layer_allocator
-       for those layers for which largest_free_interval() returns
-       key.
+     * for those layers for which largest_free_interval() returns
+     * key.
      */
     std::map<int, std::set<int> > m_available_layers;
   };
@@ -132,7 +134,7 @@ remove_entry_from_available_layers(std::map<int, std::set<int> >::iterator iter,
   FASTUIDRAWassert(iter != m_available_layers.end());
   FASTUIDRAWassert(iter->second.find(y) != iter->second.end());
   iter->second.erase(y);
-  if(iter->second.empty())
+  if (iter->second.empty())
     {
       m_available_layers.erase(iter);
     }
@@ -169,7 +171,7 @@ deallocate_implement(fastuidraw::ivec2 location, int width)
   m_layer_allocator[y]->free_interval(location.x(), width);
   new_max = m_layer_allocator[y]->largest_free_interval();
 
-  if(old_max != new_max)
+  if (old_max != new_max)
     {
       std::map<int, std::set<int> >::iterator iter;
 
@@ -259,12 +261,9 @@ fastuidraw::ColorStopAtlas::
 
   FASTUIDRAWassert(d->m_delayed_interval_freeing_counter == 0);
   FASTUIDRAWassert(d->m_allocated == 0);
-  for(std::vector<interval_allocator*>::iterator
-        iter = d->m_layer_allocator.begin(),
-        end = d->m_layer_allocator.end();
-      iter != end; ++iter)
+  for(interval_allocator *q : d->m_layer_allocator)
     {
-      FASTUIDRAWdelete(*iter);
+      FASTUIDRAWdelete(q);
     }
   FASTUIDRAWdelete(d);
   m_d = nullptr;
@@ -277,7 +276,7 @@ delay_interval_freeing(void)
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   ++d->m_delayed_interval_freeing_counter;
 }
 
@@ -288,10 +287,10 @@ undelay_interval_freeing(void)
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   FASTUIDRAWassert(d->m_delayed_interval_freeing_counter >= 1);
   --d->m_delayed_interval_freeing_counter;
-  if(d->m_delayed_interval_freeing_counter == 0)
+  if (d->m_delayed_interval_freeing_counter == 0)
     {
       for(unsigned int i = 0, endi = d->m_delayed_freed_intervals.size(); i < endi; ++i)
         {
@@ -309,8 +308,8 @@ deallocate(ivec2 location, int width)
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
-  if(d->m_delayed_interval_freeing_counter == 0)
+  std::lock_guard<std::mutex> m(d->m_mutex);
+  if (d->m_delayed_interval_freeing_counter == 0)
     {
       d->deallocate_implement(location, width);
     }
@@ -327,7 +326,7 @@ flush(void) const
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_backing_store->flush();
 }
 
@@ -338,7 +337,7 @@ total_available(void) const
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   return d->m_backing_store->width_times_height() - d->m_allocated;
 }
 
@@ -349,8 +348,8 @@ largest_allocation_possible(void) const
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
-  if(d->m_available_layers.empty())
+  std::lock_guard<std::mutex> m(d->m_mutex);
+  if (d->m_available_layers.empty())
     {
       return 0;
     }
@@ -360,12 +359,12 @@ largest_allocation_possible(void) const
 
 fastuidraw::ivec2
 fastuidraw::ColorStopAtlas::
-allocate(const_c_array<u8vec4> data)
+allocate(c_array<const u8vec4> data)
 {
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
 
   std::map<int, std::set<int> >::iterator iter;
   ivec2 return_value;
@@ -375,13 +374,13 @@ allocate(const_c_array<u8vec4> data)
   FASTUIDRAWassert(width <= max_width());
 
   iter = d->m_available_layers.lower_bound(width);
-  if(iter == d->m_available_layers.end())
+  if (iter == d->m_available_layers.end())
     {
-      if(d->m_backing_store->resizeable())
+      if (d->m_backing_store->resizeable())
         {
           /* TODO: what should the resize algorithm be?
-             Right now we double the size, but that might
-             be excessive.
+           * Right now we double the size, but that might
+           * be excessive.
            */
           int new_size, old_size;
           old_size = d->m_backing_store->dimensions().y();
@@ -409,7 +408,7 @@ allocate(const_c_array<u8vec4> data)
   FASTUIDRAWassert(return_value.x() >= 0);
   new_max = d->m_layer_allocator[y]->largest_free_interval();
 
-  if(old_max != new_max)
+  if (old_max != new_max)
     {
       d->remove_entry_from_available_layers(iter, y);
       d->m_available_layers[new_max].insert(y);
@@ -455,17 +454,17 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
   d->m_atlas = atlas;
   d->m_width = pwidth;
 
-  const_c_array<ColorStop> color_stops(pcolor_stops.values());
+  c_array<const ColorStop> color_stops(pcolor_stops.values());
   FASTUIDRAWassert(d->m_atlas);
   FASTUIDRAWassert(pwidth>0);
 
-  if(pwidth >= d->m_atlas->max_width())
+  if (pwidth >= d->m_atlas->max_width())
     {
       d->m_width = d->m_atlas->max_width();
       d->m_start_slack = 0;
       d->m_end_slack = 0;
     }
-  else if(pwidth == d->m_atlas->max_width() - 1)
+  else if (pwidth == d->m_atlas->max_width() - 1)
     {
       d->m_start_slack = 0;
       d->m_end_slack = 1;
@@ -498,30 +497,30 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
         ColorStop next_color(color_stops[color_stops_i]);
 
         /* There are cases where an application might
-           add two color stops with the same stop location;
-           these are for the purpose of changing color
-           immediately at the named location. Adding the
-           check avoids a divide error. The next texel
-           in the gradient will observe the dramatic change.
-           However, passing an interpolate between the
-           immediate change and the texel after it will
-           have the gradient interpolate from before the
-           change to after the change sadly.
-
-           The only way to really handle "fast immediate"
-           changes is to make an array of (stop, color)
-           pair values packed into an array readable from
-           the shader and the fragment shader does the
-           search. This means that rather than a single
-           texture() command we would have multiple buffer
-           look up value in the frag shader to get the
-           interpolate. We can optimize it some where we
-           increase the array size to the nearest power of 2
-           so that within a triangle there is no branching
-           in the hunt, but that would mean log2(N) buffer
-           reads per pixel. ICK.
+         * add two color stops with the same stop location;
+         * these are for the purpose of changing color
+         * immediately at the named location. Adding the
+         * check avoids a divide error. The next texel
+         * in the gradient will observe the dramatic change.
+         * However, passing an interpolate between the
+         * immediate change and the texel after it will
+         * have the gradient interpolate from before the
+         * change to after the change sadly.
+         *
+         * The only way to really handle "fast immediate"
+         * changes is to make an array of (stop, color)
+         * pair values packed into an array readable from
+         * the shader and the fragment shader does the
+         * search. This means that rather than a single
+         * texture() command we would have multiple buffer
+         * look up value in the frag shader to get the
+         * interpolate. We can optimize it some where we
+         * increase the array size to the nearest power of 2
+         * so that within a triangle there is no branching
+         * in the hunt, but that would mean log2(N) buffer
+         * reads per pixel. ICK.
          */
-        if(current_t < next_color.m_place)
+        if (current_t < next_color.m_place)
           {
             ColorInterpolator color_interpolate(prev_color, next_color);
 

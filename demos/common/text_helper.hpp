@@ -3,11 +3,16 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <SDL_thread.h>
+#include <SDL_atomic.h>
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
-#include <fastuidraw/text/freetype_font.hpp>
+#include <fastuidraw/text/glyph_cache.hpp>
+#include <fastuidraw/text/font_freetype.hpp>
+#include <fastuidraw/painter/painter.hpp>
+#include <fastuidraw/painter/glyph_sequence.hpp>
 
 #include "cast_c_array.hpp"
 
@@ -15,42 +20,73 @@ inline
 std::ostream&
 operator<<(std::ostream &str, const fastuidraw::FontProperties &obj)
 {
-  str << obj.source_label() << ":(" << obj.foundry()
+  str << obj.source_label() << "(" << obj.foundry()
       << ", " << obj.family() << ", " << obj.style()
       << ", " << obj.italic() << ", " << obj.bold() << ")";
   return str;
 }
 
-class LineData
+class GlyphSetGenerator
 {
 public:
-  /* range into glyphs/glyph_position where
-     line is located
-   */
-  fastuidraw::range_type<unsigned int> m_range;
+  static
+  void
+  generate(unsigned int num_threads,
+           fastuidraw::GlyphRender r,
+           fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
+           std::vector<fastuidraw::Glyph> &dst,
+           fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
+           std::vector<int> &cnts);
 
-  /* line's vertical spread
-   */
-  fastuidraw::range_type<float> m_vertical_spread;
+private:
+  GlyphSetGenerator(fastuidraw::GlyphRender r,
+                    fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
+                    std::vector<fastuidraw::Glyph> &dst);
 
-  /* line's horizontal spread
-   */
-  fastuidraw::range_type<float> m_horizontal_spread;
+  static
+  int
+  execute(void *ptr);
+
+  fastuidraw::GlyphRender m_render;
+  fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> m_font;
+  fastuidraw::c_array<fastuidraw::Glyph> m_dst;
+  SDL_atomic_t m_counter;
 };
 
+/*
+ * \param[out] out_sequence sequence to which to add glyphs
+ * \param glyph_codes sequence of glyph codes (not characater codes!)
+ * \param font font of the glyphs
+ * \param shift_by amount by which to shit all glyphs
+ */
 void
-create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
-                      float pixel_size,
+create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
+                      const std::vector<uint32_t> &glyph_codes,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
+
+
+/*
+ * \param[out] out_sequence sequence to which to add glyphs
+ * \param stream input stream from which to grab lines of text
+ * \param font font of the glyphs
+ * \param glyph_selector used to select glyphs from font
+ * \param shift_by amount by which to shit all glyphs
+ */
+void
+create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
+                      std::istream &stream,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                      std::vector<fastuidraw::Glyph> &glyphs,
-                      std::vector<fastuidraw::vec2> &positions,
-                      std::vector<uint32_t> &character_codes,
-                      std::vector<LineData> *line_data = nullptr,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr);
+                      const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
 
 void
 add_fonts_from_path(const std::string &path,
-                    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
-                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                    fastuidraw::FontFreeType::RenderParams render_params);
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
+                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector);
+
+fastuidraw::c_string
+default_font(void);
+
+fastuidraw::c_string
+default_font_path(void);

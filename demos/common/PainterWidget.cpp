@@ -7,7 +7,7 @@ PainterWidget(PainterWidget *parent):
   m_skip_drawing(false),
   m_parent(parent)
 {
-  if(m_parent != nullptr)
+  if (m_parent != nullptr)
     {
       m_iterator_loc = m_parent->m_children.insert(m_parent->m_children.end(), this);
     }
@@ -16,7 +16,7 @@ PainterWidget(PainterWidget *parent):
 PainterWidget::
 ~PainterWidget(void)
 {
-  if(m_parent != nullptr)
+  if (m_parent != nullptr)
     {
       m_parent->m_children.erase(m_iterator_loc);
     }
@@ -37,12 +37,12 @@ void
 PainterWidget::
 parent(PainterWidget *p)
 {
-  if(p == m_parent)
+  if (p == m_parent)
     {
       return;
     }
 
-  if(m_parent != nullptr)
+  if (m_parent != nullptr)
     {
       m_parent->m_children.erase(m_iterator_loc);
     }
@@ -58,7 +58,7 @@ is_ancestor_of(PainterWidget *q)
 {
   for(PainterWidget *p = q; p != nullptr; p = p->parent())
     {
-      if(this == p)
+      if (this == p)
         return true;
     }
   return false;
@@ -70,7 +70,7 @@ PainterWidget::
 paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter)
 {
   pre_paint();
-  if(m_skip_drawing)
+  if (m_skip_drawing)
     {
       return;
     }
@@ -78,9 +78,9 @@ paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter)
   painter->save();
   painter->concat(m_parent_matrix_this);
 
-  if(m_clipped)
+  if (m_clipped)
     {
-      painter->clipInRect(fastuidraw::vec2(0.0f, 0.0f), m_dimensions);
+      painter->clip_in_rect(fastuidraw::vec2(0.0f, 0.0f), m_dimensions);
     }
 
   painter->save();

@@ -28,21 +28,21 @@ namespace fastuidraw
   {
 
 /*!\addtogroup GLUtility
-  @{
+ * @{
  */
 
     /*!
-      \brief
-      A ContextProperties provides an interface to
-      query GL/GLES version and extensions.
+     * \brief
+     * A ContextProperties provides an interface to
+     * query GL/GLES version and extensions.
      */
     class ContextProperties:noncopyable
     {
     public:
       /*!
-        Ctor.
-        \param make_ready if true, query GL context at ctor (instead of lazily)
-                          to generate GL context information
+       * Ctor.
+       * \param make_ready if true, query GL context at ctor (instead of lazily)
+       *                   to generate GL context information
        */
       explicit
       ContextProperties(bool make_ready = false);
@@ -50,18 +50,18 @@ namespace fastuidraw
       ~ContextProperties();
 
       /*!
-        Return the GL/GLES version of the GL context
-        with the major version in [0] and the minor
-        version in [1].
+       * Return the GL/GLES version of the GL context
+       * with the major version in [0] and the minor
+       * version in [1].
        */
       vecN<int, 2>
       version(void) const;
 
       /*!
-        Returns the GL major version, equivalent to
-        \code
-        version()[0]
-        \endcode
+       * Returns the GL major version, equivalent to
+       * \code
+       * version()[0]
+       * \endcode
        */
       int
       major_version(void) const
@@ -70,10 +70,10 @@ namespace fastuidraw
       }
 
       /*!
-        Returns the GL minor version, equivalent to
-        \code
-        version()[1]
-        \endcode
+       * Returns the GL minor version, equivalent to
+       * \code
+       * version()[1]
+       * \endcode
        */
       int
       minor_version(void) const
@@ -82,18 +82,18 @@ namespace fastuidraw
       }
 
       /*!
-        Returns true if the context is OpenGL ES,
-        returns value if the context is OpenGL.
+       * Returns true if the context is OpenGL ES,
+       * returns value if the context is OpenGL.
        */
       bool
       is_es(void) const;
 
       /*!
-        Returns true if the context supports the named
-        extension.
+       * Returns true if the context supports the named
+       * extension.
        */
       bool
-      has_extension(const char *ext) const;
+      has_extension(c_string ext) const;
 
     private:
       void *m_d;

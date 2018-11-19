@@ -237,7 +237,7 @@ static ActiveRegion *AddRegionBelow( fastuidraw_GLUtesselator *tess,
 
 static FASTUIDRAW_GLUboolean IsWindingInside( fastuidraw_GLUtesselator *tess, int n )
 {
-  return n!=0 and CALL_TESS_WINDING_OR_WINDING_DATA(n);
+  return CALL_TESS_WINDING_OR_WINDING_DATA(n);
 }
 
 
@@ -260,24 +260,8 @@ static void FinishRegion( fastuidraw_GLUtesselator *tess, ActiveRegion *reg )
   GLUhalfEdge *e = reg->eUp;
   GLUface *f = e->Lface;
 
-
-
   f->inside = reg->inside;
   f->winding_number = reg->windingNumber;
-
-  if(CALL_TESS_WINDING_OR_WINDING_DATA(f->winding_number) && !f->inside)
-    {
-      /*
-        [FASTUIDRAW-TODO]:
-        Look at each of the vertices of the Face,
-        if any of the vertices are marked as "DO NOT TRIANGULATE".
-        This essentially means iterating over the vertex linked
-        list f->next checking each of their Org to see if that
-        vertex is a DO NOT TRIANGULATE vertex.
-      */
-    }
-
-
   f->anEdge = e;   /* optimization for glu_fastuidraw_gl_meshTessellateMonoRegion() */
   DeleteRegion( tess, reg );
 }
@@ -419,10 +403,15 @@ static void CallCombine( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
   /* Copy coord data in case the callback changes it. */
   x = isect->s;
   y = isect->t;
-  isect->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
 
   if( needed ) {
+    FASTUIDRAWassert(data[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    FASTUIDRAWassert(data[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    FASTUIDRAWassert(data[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    FASTUIDRAWassert(data[3] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+
     CALL_COMBINE_OR_COMBINE_DATA( x, y, data, weights, &isect->client_id );
+    FASTUIDRAWassert(isect->client_id != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
   }
 }
 
@@ -486,7 +475,6 @@ static void GetIntersectData( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
 
   VertexWeights( isect, orgUp, dstUp, &weights[0] );
   VertexWeights( isect, orgLo, dstLo, &weights[2] );
-
   CallCombine( tess, isect, data, weights, TRUE );
 }
 

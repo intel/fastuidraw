@@ -53,11 +53,11 @@ init_gl(int w, int h)
 {
   m_screen_size=fastuidraw::ivec2(w,h);
 
-  if(m_render_to_fbo.m_value.m_value!=no_fbo)
+  if (m_render_to_fbo.value()!=no_fbo)
     {
       create_and_bind_fbo();
-      w = m_fbo_width.m_value;
-      h = m_fbo_height.m_value;
+      w = m_fbo_width.value();
+      h = m_fbo_height.value();
       glViewport(0, 0, w, h);
     }
 
@@ -68,7 +68,7 @@ void
 sdl_benchmark::
 unbind_and_delete_fbo(void)
 {
-  if(m_fbo != 0)
+  if (m_fbo != 0)
     {
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       glDeleteFramebuffers(1, &m_fbo);
@@ -81,10 +81,10 @@ void
 sdl_benchmark::
 create_and_bind_fbo(void)
 {
-  if(m_fbo_width.m_value==0 || m_fbo_height.m_value==0)
+  if (m_fbo_width.value()==0 || m_fbo_height.value()==0)
     {
-      m_fbo_width.m_value=m_screen_size.x();
-      m_fbo_height.m_value=m_screen_size.y();
+      m_fbo_width.value()=m_screen_size.x();
+      m_fbo_height.value()=m_screen_size.y();
     }
 
   glGenFramebuffers(1, &m_fbo);
@@ -99,7 +99,7 @@ create_and_bind_fbo(void)
   glTexImage2D(GL_TEXTURE_2D,
                0,
                GL_RGBA8,
-               m_fbo_width.m_value, m_fbo_height.m_value, 0,
+               m_fbo_width.value(), m_fbo_height.value(), 0,
                GL_RGBA,
                GL_UNSIGNED_BYTE,
                nullptr);
@@ -113,7 +113,7 @@ create_and_bind_fbo(void)
   glTexImage2D(GL_TEXTURE_2D,
                0,
                GL_DEPTH24_STENCIL8,
-               m_fbo_width.m_value, m_fbo_height.m_value, 0,
+               m_fbo_width.value(), m_fbo_height.value(), 0,
                GL_DEPTH_STENCIL,
                GL_UNSIGNED_INT_24_8,
                nullptr);
@@ -145,12 +145,12 @@ void
 sdl_benchmark::
 draw_fbo_contents(void)
 {
-  if(m_render_to_fbo.m_value.m_value==blit_fbo)
+  if (m_render_to_fbo.value()==blit_fbo)
     {
       glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
       glBlitFramebuffer(0, 0, //srcX0, srcY0
-                        m_fbo_width.m_value, m_fbo_height.m_value, //srcX1, srcY1
+                        m_fbo_width.value(), m_fbo_height.value(), //srcX1, srcY1
                         0, 0,
                         m_screen_size.x(), m_screen_size.y(),
                         GL_COLOR_BUFFER_BIT,
@@ -158,7 +158,7 @@ draw_fbo_contents(void)
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
     }
 
-  if(m_read_pixel.m_value)
+  if (m_read_pixel.value())
     {
       GLubyte color[4];
       glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
@@ -170,22 +170,22 @@ void
 sdl_benchmark::
 draw_frame(void)
 {
-  if(m_print_each_time.m_value)
+  if (m_print_each_time.value())
     {
       uint32_t tt;
       tt=m_last_frame_time.restart();
-      if(m_frame!=0)
+      if (m_frame!=0)
         {
           std::cout << "\nframe " << std::setw(5) << m_frame-1 << ": "
                     << std::setw(4) << tt << " ms" << std::flush;
         }
     }
 
-  if(m_frame>=m_num_frames.m_value)
+  if (m_frame>=m_num_frames.value())
     {
       uint32_t tt;
 
-      swap_buffers(m_swap_buffer_extra.m_value);
+      swap_buffers(m_swap_buffer_extra.value());
       tt=m_time.elapsed();
 
       switch(m_frame)
@@ -201,7 +201,7 @@ draw_frame(void)
           std::cout << "\nTook " << m_to_create
                     << "ms to init GL, compile shader(s), setup state and draw first frame\n";
 
-          if(m_frame>1)
+          if (m_frame>1)
             {
               std::cout << "After first frame, " << m_frame-1 << " frames done in "
                         << tt << " ms"
@@ -212,14 +212,14 @@ draw_frame(void)
         }
       end_benchmark(0);
     }
-  else if(m_frame==0)
+  else if (m_frame==0)
     {
       benchmark_draw_frame(0, 0);
       draw_fbo_contents();
     }
   else
     {
-      if(m_frame==1)
+      if (m_frame==1)
         {
           m_to_create=m_time.restart();
         }

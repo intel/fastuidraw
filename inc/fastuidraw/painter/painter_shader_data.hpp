@@ -25,32 +25,31 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    Common base class to PainterItemShaderData and
-    PainterBlendShaderData to hold shader data for
-    custom shaders.
-
-    Derived classes CANNOT add any
-    data or virtual functions. The class
-    PainterShaderData is essentially a wrapper over
-    a PainterShaderData::DataBase object that handles
-    holding data and copying itself (for the purpose
-    of copying PainterShaderData objects).
+   * \brief
+   * Common base class to PainterItemShaderData,
+   * PainterCompositeShaderData and PainterBlendShaderData
+   * to hold shader data for custom shaders.
+   *
+   * Derived classes CANNOT add any data or virtual functions.
+   * The class PainterShaderData is essentially a wrapper over
+   * a PainterShaderData::DataBase object that handles holding
+   * data and copying itself (for the purpose of copying
+   * PainterShaderData objects).
    */
   class PainterShaderData
   {
   public:
     /*!
-      \brief
-      Class that holds the actual data and packs the data.
-
-      A class derived from PainterShaderData should set the
-      field \ref m_data to point to an object derived from
-      DataBase for the purpose of holding and packing data.
+     * \brief
+     * Class that holds the actual data and packs the data.
+     *
+     * A class derived from PainterShaderData should set the
+     * field \ref m_data to point to an object derived from
+     * DataBase for the purpose of holding and packing data.
      */
     class DataBase
     {
@@ -60,88 +59,75 @@ namespace fastuidraw
       {}
 
       /*!
-        To be implemented by a derived class to create
-        a copy of itself.
+       * To be implemented by a derived class to create
+       * a copy of itself.
        */
       virtual
       DataBase*
       copy(void) const = 0;
 
       /*!
-        To be implemented by a derived class to return
-        the length of the data needed to encode the data.
-        Data is padded to be multiple of alignment.
-        \param alignment alignment of the data store
-               in units of generic_data, see
-               PainterBackend::ConfigurationBase::alignment()
+       * To be implemented by a derived class to return
+       * the length of the data needed to encode the data.
        */
       virtual
       unsigned int
-      data_size(unsigned int alignment) const = 0;
+      data_size(void) const = 0;
 
 
       /*!
-        To be implemtend by a derive dclass to pack its data.
-        \param alignment alignment of the data store
-               in units of generic_data, see
-               PainterBackend::ConfigurationBase::alignment()
-        \param dst place to which to pack data
-      */
+       * To be implemtend by a derive class to pack its data.
+       * \param dst place to which to pack data
+       */
       virtual
       void
-      pack_data(unsigned int alignment, c_array<generic_data> dst) const = 0;
+      pack_data(c_array<generic_data> dst) const = 0;
     };
 
     /*!
-      Ctor. A derived class from PainterShaderData
-      should set \ref m_data.
+     * Ctor. A derived class from PainterShaderData
+     * should set \ref m_data.
      */
     PainterShaderData(void);
 
     /*!
-      Copy ctor, calls DataBase::copy() to
-      copy the data behind \ref m_data.
+     * Copy ctor, calls DataBase::copy() to
+     * copy the data behind \ref m_data.
      */
     PainterShaderData(const PainterShaderData &obj);
 
     ~PainterShaderData();
 
     /*!
-      Assignment operator
+     * Assignment operator
      */
     PainterShaderData&
     operator=(const PainterShaderData &rhs);
 
     /*!
-      Swap operation
-      \param obj object with which to swap
-    */
+     * Swap operation
+     * \param obj object with which to swap
+     */
     void
     swap(PainterShaderData &obj);
 
     /*!
-      Returns the length of the data needed to encode the data.
-      Data is padded to be multiple of alignment.
-      \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::ConfigurationBase::alignment()
-    */
+     * Returns the length of the data needed to encode the data.
+     * The returned value is guaranteed to be a multiple of 4.
+     */
     unsigned int
-    data_size(unsigned int alignment) const;
+    data_size(void) const;
 
     /*!
-      Pack the values of this object
-      \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::ConfigurationBase::alignment()
-      \param dst place to which to pack data
-    */
+     * Pack the values of this object
+     * \param dst place to which to pack data
+     */
     void
-    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+    pack_data(c_array<generic_data> dst) const;
 
     /*!
-      Returns a pointer to the underlying object holding
-      the data of the PainterShaderData.
+     * Returns a pointer to the underlying object holding
+     * the data of the PainterShaderData.
      */
     const DataBase*
     data_base(void) const
@@ -151,26 +137,33 @@ namespace fastuidraw
 
   protected:
     /*!
-      Initialized as nullptr by the ctor PainterShaderData(void).
-      A derived class of PainterShaderData should assign \ref
-      m_data to point to an object derived from DataBase.
-      That object is the object that is to determine the
-      size of data to pack and how to pack the data into
-      the data store buffer.
+     * Initialized as nullptr by the ctor PainterShaderData(void).
+     * A derived class of PainterShaderData should assign \ref
+     * m_data to point to an object derived from DataBase.
+     * That object is the object that is to determine the
+     * size of data to pack and how to pack the data into
+     * the data store buffer.
      */
     DataBase *m_data;
   };
 
   /*!
-    \brief
-    PainterItemShaderData holds custom data for item shaders
+   * \brief
+   * PainterItemShaderData holds custom data for item shaders
    */
   class PainterItemShaderData:public PainterShaderData
   {};
 
   /*!
-    \brief
-    PainterBlendShaderData holds custom data for blend shaders
+   * \brief
+   * PainterCompositeShaderData holds custom data for composite shaders
+   */
+  class PainterCompositeShaderData:public PainterShaderData
+  {};
+
+  /*!
+   * \brief
+   * PainterBlendShaderData holds custom data for blend shaders
    */
   class PainterBlendShaderData:public PainterShaderData
   {};

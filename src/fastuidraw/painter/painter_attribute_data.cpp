@@ -28,30 +28,41 @@ namespace
   {
   public:
     void
-    ready_non_empty_index_data_chunks(void);
+    post_process_fill(void);
 
     std::vector<fastuidraw::PainterAttribute> m_attribute_data;
     std::vector<fastuidraw::PainterIndex> m_index_data;
 
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attribute_chunks;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attribute_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_index_chunks;
     std::vector<fastuidraw::range_type<int> > m_z_ranges;
     std::vector<unsigned int> m_non_empty_index_data_chunks;
     std::vector<int> m_index_adjust_chunks;
+    unsigned int m_largest_attribute_chunk, m_largest_index_chunk;
   };
 }
 
 void
 PainterAttributeDataPrivate::
-ready_non_empty_index_data_chunks(void)
+post_process_fill(void)
 {
+  m_largest_index_chunk = 0;
   m_non_empty_index_data_chunks.clear();
   for(unsigned int i = 0; i < m_index_chunks.size(); ++i)
     {
-      if(!m_index_chunks[i].empty())
+      unsigned int sz(m_index_chunks[i].size());
+      m_largest_index_chunk = fastuidraw::t_max(m_largest_index_chunk, sz);
+      if (!m_index_chunks[i].empty())
         {
           m_non_empty_index_data_chunks.push_back(i);
         }
+    }
+
+  m_largest_attribute_chunk = 0;
+  for(unsigned int i = 0; i < m_attribute_chunks.size(); ++i)
+    {
+      unsigned int sz(m_attribute_chunks[i].size());
+      m_largest_attribute_chunk = fastuidraw::t_max(m_largest_attribute_chunk, sz);
     }
 }
 
@@ -107,10 +118,10 @@ set_data(const PainterAttributeDataFiller &filler)
                    make_c_array(d->m_z_ranges),
                    make_c_array(d->m_index_adjust_chunks));
 
-  d->ready_non_empty_index_data_chunks();
+  d->post_process_fill();
 }
 
-fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> >
+fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> >
 fastuidraw::PainterAttributeData::
 attribute_data_chunks(void) const
 {
@@ -119,7 +130,7 @@ attribute_data_chunks(void) const
   return make_c_array(d->m_attribute_chunks);
 }
 
-fastuidraw::const_c_array<fastuidraw::PainterAttribute>
+fastuidraw::c_array<const fastuidraw::PainterAttribute>
 fastuidraw::PainterAttributeData::
 attribute_data_chunk(unsigned int i) const
 {
@@ -127,10 +138,10 @@ attribute_data_chunk(unsigned int i) const
   d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return (i < d->m_attribute_chunks.size()) ?
     d->m_attribute_chunks[i] :
-    const_c_array<PainterAttribute>();
+    c_array<const PainterAttribute>();
 }
 
-fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> >
+fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> >
 fastuidraw::PainterAttributeData::
 index_data_chunks(void) const
 {
@@ -139,7 +150,7 @@ index_data_chunks(void) const
   return make_c_array(d->m_index_chunks);
 }
 
-fastuidraw::const_c_array<fastuidraw::PainterIndex>
+fastuidraw::c_array<const fastuidraw::PainterIndex>
 fastuidraw::PainterAttributeData::
 index_data_chunk(unsigned int i) const
 {
@@ -147,10 +158,10 @@ index_data_chunk(unsigned int i) const
   d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return (i < d->m_index_chunks.size()) ?
     d->m_index_chunks[i] :
-    const_c_array<PainterIndex>();
+    c_array<const PainterIndex>();
 }
 
-fastuidraw::const_c_array<int>
+fastuidraw::c_array<const int>
 fastuidraw::PainterAttributeData::
 index_adjust_chunks(void) const
 {
@@ -170,7 +181,7 @@ index_adjust_chunk(unsigned int i) const
     0;
 }
 
-fastuidraw::const_c_array<fastuidraw::range_type<int> >
+fastuidraw::c_array<const fastuidraw::range_type<int> >
 fastuidraw::PainterAttributeData::
 z_ranges(void) const
 {
@@ -190,11 +201,29 @@ z_range(unsigned int i) const
     range_type<int>(0, 0);
 }
 
-fastuidraw::const_c_array<unsigned int>
+fastuidraw::c_array<const unsigned int>
 fastuidraw::PainterAttributeData::
 non_empty_index_data_chunks(void) const
 {
   PainterAttributeDataPrivate *d;
   d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return make_c_array(d->m_non_empty_index_data_chunks);
+}
+
+unsigned int
+fastuidraw::PainterAttributeData::
+largest_attribute_chunk(void) const
+{
+  PainterAttributeDataPrivate *d;
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
+  return d->m_largest_attribute_chunk;
+}
+
+unsigned int
+fastuidraw::PainterAttributeData::
+largest_index_chunk(void) const
+{
+  PainterAttributeDataPrivate *d;
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
+  return d->m_largest_index_chunk;
 }

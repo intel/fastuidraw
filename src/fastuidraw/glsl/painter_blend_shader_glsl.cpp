@@ -36,10 +36,8 @@ namespace
 ///////////////////////////////////////////////
 // fastuidraw::glsl::PainterBlendShaderGLSL methods
 fastuidraw::glsl::PainterBlendShaderGLSL::
-PainterBlendShaderGLSL(enum shader_type tp,
-                       const ShaderSource &src,
-                       unsigned int num_sub_shaders):
-  PainterBlendShader(tp, num_sub_shaders)
+PainterBlendShaderGLSL(const ShaderSource &src, unsigned int num_sub_shaders):
+  PainterBlendShader(num_sub_shaders)
 {
   m_d = FASTUIDRAWnew PainterBlendShaderGLSLPrivate(src);
 }

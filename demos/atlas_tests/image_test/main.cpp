@@ -5,64 +5,14 @@
 #include <fastuidraw/gl_backend/gluniform.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include "sdl_demo.hpp"
+#include "command_line_list.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
 #include "cycle_value.hpp"
 
 using namespace fastuidraw;
-
-
-class command_line_list:
-  public command_line_argument,
-  public std::set<std::string>
-{
-public:
-  command_line_list(const std::string &nm,
-                    const std::string &desc,
-                    command_line_register &p):
-    command_line_argument(p),
-    m_name(nm)
-  {
-    std::ostringstream ostr;
-    ostr << "\n\t" << m_name << " value"
-         << format_description_string(m_name, desc);
-    m_description = tabs_to_spaces(ostr.str());
-  }
-
-  virtual
-  int
-  check_arg(const std::vector<std::string> &argv, int location)
-  {
-    int argc(argv.size());
-    if(location + 1 < argc && argv[location] == m_name)
-      {
-        insert(argv[location+1]);
-        std::cout << "\n\t" << m_name << " \""
-                  << argv[location+1] << "\" ";
-        return 2;
-      }
-    return 0;
-  }
-
-  virtual
-  void
-  print_command_line_description(std::ostream &ostr) const
-  {
-    ostr << "[" << m_name << " value] ";
-  }
-
-  virtual
-  void
-  print_detailed_description(std::ostream &ostr) const
-  {
-    ostr << m_description;
-  }
-
-private:
-  std::string m_name, m_description;
-};
-
 
 class image_test:public sdl_demo
 {
@@ -123,7 +73,7 @@ public:
 
   ~image_test()
   {
-    if(m_sampler != 0)
+    if (m_sampler != 0)
       {
         glDeleteSamplers(1, &m_sampler);
       }
@@ -134,16 +84,18 @@ protected:
   void
   add_single_image(const std::string &filename)
   {
-    std::vector<u8vec4> image_data;
-    ivec2 image_size;
+    ImageLoader image_data(filename);
 
-    image_size = load_image_to_array(filename, image_data);
-    if(image_size.x() != 0 && image_size.y() != 0)
+    if (image_data.non_empty())
       {
-        m_image_handles.push_back(Image::create(m_atlas, image_size.x(), image_size.y(),
-                                                cast_c_array(image_data), m_slack.m_value));
+        reference_counted_ptr<Image> p;
+        p = Image::create(m_atlas, image_data.width(), image_data.height(),
+                          image_data, m_slack.value());
+
+        m_image_handles.push_back(p);
         m_image_names.push_back(filename);
-        if(m_print_loaded_image_list.m_value)
+
+        if (m_print_loaded_image_list.value())
           {
             std::cout << "Image \"" << filename
                       << " of size " << m_image_handles.back()->dimensions()
@@ -163,7 +115,7 @@ protected:
     struct dirent *entry;
 
     dir = opendir(filename.c_str());
-    if(!dir)
+    if (!dir)
       {
       add_single_image(filename);
       return;
@@ -173,7 +125,7 @@ protected:
       {
         std::string file;
         file = entry->d_name;
-        if(file != ".." && file != ".")
+        if (file != ".." && file != ".")
           {
             add_images(filename + "/" + file);
           }
@@ -214,7 +166,7 @@ protected:
   void
   draw_frame(void)
   {
-    if(m_program[m_current_program].m_pr)
+    if (m_program[m_current_program].m_pr)
       {
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -227,29 +179,29 @@ protected:
         gl::Uniform(m_program[m_current_program].m_translate,
                     m_program[m_current_program].m_zoomer.transformation().translation());
 
-        if(m_program[m_current_program].m_layer != -1)
+        if (m_program[m_current_program].m_layer != -1)
           {
             gl::Uniform(m_program[m_current_program].m_layer, m_current_layer);
           }
 
-        if(m_program[m_current_program].m_index_boundary_mix != -1)
+        if (m_program[m_current_program].m_index_boundary_mix != -1)
           {
-            const_c_array<float> index_boundary_mix_values;
+            c_array<const float> index_boundary_mix_values;
             index_boundary_mix_values = cast_c_array(m_index_boundary_mix_values);
             gl::Uniform(m_program[m_current_program].m_index_boundary_mix,
                         index_boundary_mix_values);
           }
-        if(m_program[m_current_program].m_color_boundary_mix != -1)
+        if (m_program[m_current_program].m_color_boundary_mix != -1)
           {
             gl::Uniform(m_program[m_current_program].m_color_boundary_mix, m_color_boundary_mix_value);
           }
-        if(m_program[m_current_program].m_filtered_lookup != -1)
+        if (m_program[m_current_program].m_filtered_lookup != -1)
           {
             gl::Uniform(m_program[m_current_program].m_filtered_lookup, m_filtered_lookup);
           }
-        if(m_program[m_current_program].m_uniform_image_num_lookups != -1)
+        if (m_program[m_current_program].m_uniform_image_num_lookups != -1)
           {
-            int num_lookups(m_image_handles[m_current_image]->number_index_lookups());
+            unsigned int num_lookups(m_image_handles[m_current_image]->number_index_lookups());
             gl::Uniform(m_program[m_current_program].m_uniform_image_num_lookups, num_lookups);
           }
 
@@ -316,13 +268,13 @@ protected:
             }
             break;
           case SDLK_i:
-            if(m_current_program == draw_image_on_atlas)
+            if (m_current_program == draw_image_on_atlas)
               {
                 cycle_value(m_current_image, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_image_handles.size());
                 std::cout << "Set to draw image \"" << m_image_names[m_current_image] << "\"\n";
 
                 vec2 image_size(m_image_handles[m_current_image]->dimensions());
-                vecN<vec2, 2> corner(gl::ImageAtlasGL::shader_coords(m_image_handles[m_current_image]));
+                vecN<vec2, 2> corner(shader_coords(m_image_handles[m_current_image]));
                 float layer(m_image_handles[m_current_image]->master_index_tile().z());
                 float image_index_attribs[] =
                   {
@@ -337,10 +289,10 @@ protected:
             break;
 
           case SDLK_f:
-            if(m_current_program == draw_image_on_atlas)
+            if (m_current_program == draw_image_on_atlas)
               {
                 m_filtered_lookup = 1.0f - m_filtered_lookup;
-                if(m_filtered_lookup > 0.5)
+                if (m_filtered_lookup > 0.5)
                   {
                     std::cout << "Filter set to bilinear filtering.\n";
                   }
@@ -353,7 +305,7 @@ protected:
 
           case SDLK_0:
             m_color_boundary_mix_value = 0.5f - m_color_boundary_mix_value;
-            if(m_color_boundary_mix_value > 0.25f)
+            if (m_color_boundary_mix_value > 0.25f)
               {
                 std::cout << "Set to show tile boundaries.\n";
               }
@@ -372,13 +324,13 @@ protected:
           case SDLK_7:
           case SDLK_8:
           case SDLK_9:
-            if(m_current_program == draw_image_on_atlas)
+            if (m_current_program == draw_image_on_atlas)
               {
                 unsigned int idx(ev.key.keysym.sym - SDLK_1);
-                if(idx < m_index_boundary_mix_values.size())
+                if (idx < m_index_boundary_mix_values.size())
                   {
                     m_index_boundary_mix_values[idx] = 0.5f - m_index_boundary_mix_values[idx];
-                    if(m_index_boundary_mix_values[idx] > 0.25f)
+                    if (m_index_boundary_mix_values[idx] > 0.25f)
                       {
                         std::cout << "Set to show level " << idx << " tile boundaries.\n";
                       }
@@ -391,7 +343,7 @@ protected:
             break;
           }
 
-        if(old_program != m_current_program)
+        if (old_program != m_current_program)
           {
             bind_textures();
             std::cout << "Current draw: "
@@ -401,7 +353,7 @@ protected:
         break;
 
       case SDL_WINDOWEVENT:
-        if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+        if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
           {
             on_resize(ev.window.data1, ev.window.data2);
           }
@@ -422,24 +374,34 @@ private:
     glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     gl::ImageAtlasGL::params params;
+    int max_layers(0);
+
+    max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+    if (max_layers < m_num_color_layers.value())
+      {
+        std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
+                  << "), num_color_layers set to that value.\n";
+        m_num_color_layers.value() = max_layers;
+      }
+
     params
-      .log2_color_tile_size(m_log2_color_tile_size.m_value)
-      .log2_num_color_tiles_per_row_per_col(m_log2_num_color_tiles_per_row_per_col.m_value)
-      .num_color_layers(m_num_color_layers.m_value)
-      .log2_index_tile_size(m_log2_index_tile_size.m_value)
-      .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.m_value)
-      .num_index_layers(m_num_index_layers.m_value)
+      .log2_color_tile_size(m_log2_color_tile_size.value())
+      .log2_num_color_tiles_per_row_per_col(m_log2_num_color_tiles_per_row_per_col.value())
+      .num_color_layers(m_num_color_layers.value())
+      .log2_index_tile_size(m_log2_index_tile_size.value())
+      .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.value())
+      .num_index_layers(m_num_index_layers.value())
       .delayed(false);
 
     m_atlas = FASTUIDRAWnew gl::ImageAtlasGL(params);
-    m_slack.m_value = std::max(0, m_slack.m_value);
+    m_slack.value() = std::max(0, m_slack.value());
 
-    for(command_line_list::iterator iter = m_images.begin(); iter != m_images.end(); ++iter)
+    for(const auto &S : m_images)
       {
-        add_images(*iter);
+        add_images(S);
       }
 
-    if(m_image_handles.empty())
+    if (m_image_handles.empty())
       {
         std::vector<u8vec4> image_data;
         ivec2 image_size;
@@ -456,7 +418,7 @@ private:
               }
           }
         m_image_handles.push_back(Image::create(m_atlas, image_size.x(), image_size.y(),
-                                                cast_c_array(image_data), m_slack.m_value));
+                                                cast_c_array(image_data), m_slack.value()));
         m_image_names.push_back("Simple Checkerboard");
       }
 
@@ -520,11 +482,11 @@ private:
                                      .add_sampler_initializer("imageAtlas", color_atlas_texture_unit)
                                      .add_sampler_initializer("indexAtlas", index_atlas_texture_unit)
                                      .add_uniform_initializer<float>("color_tile_size",
-                                                                     float(m_atlas->color_tile_size() - 2 * m_slack.m_value))
+                                                                     float(m_atlas->color_tile_size() - 2 * m_slack.value()))
                                      .add_uniform_initializer<float>("index_tile_size", float(m_atlas->index_tile_size()))
-                                     .add_uniform_initializer<int>("uniform_image_num_lookups",
-                                                                   m_image_handles.front()->number_index_lookups())
-                                     .add_uniform_initializer<int>("image_slack", m_slack.m_value)
+                                     .add_uniform_initializer<unsigned int>("uniform_image_num_lookups",
+                                                                            m_image_handles.front()->number_index_lookups())
+                                     .add_uniform_initializer<unsigned int>("image_slack", m_slack.value())
                                      .add_uniform_initializer<vec3>("imageAtlasDims",
                                                                     vec3(m_atlas->color_store()->dimensions())) );
 
@@ -537,15 +499,13 @@ private:
   on_resize(int w, int h)
   {
     float_orthogonal_projection_params proj(0, w, h, 0);
-    m_pvm = float4x4(proj);
+    m_pvm = float3x3(proj);
     glViewport(0, 0, w, h);
   }
 
   void
   set_attributes_indices(void)
   {
-
-
     glGenBuffers(1, &m_ibo);
     FASTUIDRAWassert(m_ibo != 0);
 
@@ -582,12 +542,12 @@ private:
     }
 
 
-    if(m_program[draw_image_on_atlas].m_vao)
+    if (m_program[draw_image_on_atlas].m_vao)
       {
         glBindVertexArray(m_program[draw_image_on_atlas].m_vao);
 
         vec2 image_size(m_image_handles.front()->dimensions());
-        vecN<vec2, 2> corner(gl::ImageAtlasGL::shader_coords(m_image_handles.front()));
+        vecN<vec2, 2> corner(shader_coords(m_image_handles.front()));
         float layer(m_image_handles.front()->master_index_tile().z());
         float image_index_attribs[] =
           {
@@ -617,6 +577,19 @@ private:
                               p + 2 * sizeof(float));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
       }
+  }
+
+  static
+  vecN<vec2, 2>
+  shader_coords(reference_counted_ptr<Image> image)
+  {
+    FASTUIDRAWassert(image->number_index_lookups() > 0);
+    ivec2 master_index_tile(image->master_index_tile());
+    vec2 wh(image->master_index_tile_dims());
+    float f(image->atlas()->index_tile_size());
+    vec2 fmaster_index_tile(master_index_tile);
+    vec2 c0(f * fmaster_index_tile);
+    return vecN<vec2, 2>(c0, c0 + wh);
   }
 
   enum
@@ -684,7 +657,7 @@ private:
     PanZoomTrackerSDLEvent m_zoomer;
   };
 
-  command_line_list m_images;
+  command_line_list<std::string> m_images;
   command_line_argument_value<bool> m_print_loaded_image_list;
   command_line_argument_value<int> m_slack;
   command_line_argument_value<int> m_log2_color_tile_size, m_log2_num_color_tiles_per_row_per_col;
@@ -708,7 +681,7 @@ private:
   GLuint m_sampler;
   GLuint m_ibo;
 
-  float4x4 m_pvm;
+  float3x3 m_pvm;
 };
 
 

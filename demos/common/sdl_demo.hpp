@@ -29,7 +29,6 @@
 #include <vector>
 
 #include <SDL.h>
-#include <sys/time.h>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -40,7 +39,7 @@
 #include "ostream_utility.hpp"
 #include "generic_command_line.hpp"
 #include "cast_c_array.hpp"
-#include "egl_gles_context.hpp"
+#include "egl_helper.hpp"
 
 /*
   Notes:
@@ -82,7 +81,17 @@ protected:
 
   virtual
   void
+  pre_draw_frame(void)
+  {}
+
+  virtual
+  void
   draw_frame(void)
+  {}
+
+  virtual
+  void
+  post_draw_frame(void)
   {}
 
   virtual
@@ -91,18 +100,20 @@ protected:
   {}
 
   void
+  reverse_event_y(bool v);
+
+  void
   end_demo(int return_value)
   {
-    m_run_demo=false;
-    m_return_value=return_value;
+    m_run_demo = false;
+    m_return_value = return_value;
   }
 
   fastuidraw::ivec2
   dimensions(void);
 
-
   void
-  swap_buffers(unsigned int count=1);
+  swap_buffers(unsigned int count = 1);
 
 protected:
   bool m_handle_events;
@@ -111,6 +122,12 @@ private:
 
   enum fastuidraw::return_code
   init_sdl(void);
+
+  void
+  set_sdl_gl_context_attributes(void);
+
+  void
+  create_sdl_gl_context(void);
 
   std::string m_about;
   command_separator m_common_label;
@@ -136,17 +153,18 @@ private:
   command_line_argument_value<bool> m_gl_forward_compatible_context;
   command_line_argument_value<bool> m_gl_debug_context;
   command_line_argument_value<bool> m_gl_core_profile;
-#else
-  command_line_argument_value<bool> m_use_egl;
+  command_line_argument_value<bool> m_try_to_get_latest_gl_version;
 #endif
-
+  command_line_argument_value<bool> m_use_egl;
   command_line_argument_value<bool> m_show_framerate;
 
-  fastuidraw::gl_binding::LoggerBase *m_gl_logger;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl_binding::CallbackGL> m_gl_logger;
+
   bool m_run_demo;
   int m_return_value;
+  bool m_reverse_event_y;
 
   SDL_Window *m_window;
   SDL_GLContext m_ctx;
-  fastuidraw::reference_counted_ptr<egl_gles_context> m_ctx_egl;
+  fastuidraw::reference_counted_ptr<egl_helper> m_ctx_egl;
 };

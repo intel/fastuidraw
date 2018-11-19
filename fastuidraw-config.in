@@ -6,8 +6,15 @@ print_help() {
     echo "  --debug: indicate to compile/link for debug"
     echo "  --cflags: print compile flags"
     echo "  --libs: print link flags"
-    echo "  --gl: use GL API"
-    echo "  --gles: use GLES API"
+    echo "  --static: modifier to indicate statically linking against FastUIDraw"
+    echo "  --nodirs: exclude directory directives of FastUIDraw install location"
+    echo "  --libdir=/some/path: specify library directory"
+    echo "  --incdir=/some/path: specify include directory"
+    echo "  --gl: use GL API (includes flags to use NGL dispatch)"
+    echo "  --gles: use GLES API (includes flags to use NGL dispatch)"
+    echo "  --ngl: add flags to use NGL dispatch"
+    echo "  --ngles: add flags to use NGLES dispatch"
+    echo "  --negl: add flags to use NEGL dispatch"
     echo "  --prefix: print path to which fastuidraw was installed"
     echo "  --prefix=/some/path: specify the path to which fastuidraw was installed"
     echo "Notes: Never mix release and debug in a single executable, they are NOT ABI compatible"
@@ -26,11 +33,24 @@ if test $# -eq 0; then
 fi
 
 mode=unknown
+
+static_linking=0
+
 print_cflags=0
 print_libs=0
-api=unknown
+print_dirs=1
+
+add_gl=0
+add_gles=0
+add_ngl=0
+add_ngles=0
+add_negl=0
+
 printhelp=0
 location="@INSTALL_LOCATION@"
+
+lib_location=$location/lib
+include_location=$location/include
 
 while test $# -gt 0; do
   case "$1" in
@@ -39,14 +59,31 @@ while test $# -gt 0; do
   esac
 
   case "$1" in
-      --prefix=*) location=$optarg ;;
+      --prefix=*)
+	  location=$optarg
+	  lib_location=$location/lib
+	  include_location=$location/include
+	  ;;
+      --libdir=*)
+	  lib_location=$optarg
+	  ;;
+      --incdir=*)
+	  include_location=$optarg
+	  ;;
       --prefix) echo $location ;;
       --release) mode=release ;;
       --debug) mode=debug ;;
       --cflags) print_cflags=1 ;;
       --libs) print_libs=1 ;;
-      --gles) api=gles ;;
-      --gl) api=gl ;;
+      --nodirs) print_dirs=0 ;;
+      --gles) add_gles=1 add_ngles=1 ;;
+      --gl) add_gl=1 add_ngl=1 ;;
+      --GLES) add_gles=1 add_ngles=1 ;;
+      --GL) add_gl=1 add_ngl=1 ;;
+      --ngl) add_ngl=1 ;;
+      --ngles) add_ngles=1 ;;
+      --negl) add_negl=1 ;;
+      --static) static_linking=1 ;;
       --help) printhelp=1 ;;
       *)
         print_help
@@ -55,17 +92,16 @@ while test $# -gt 0; do
   shift
 done
 
-gl_supported=@BUILD_GL
-gles_supported=@BUILD_GLES
-
-lib_location=$location/lib
-include_location=$location/include
-
 cflags=
-base_cflags=-I$include_location
+base_cflags=
 
 libs=
-base_libs=-L$lib_location
+dir_libs=
+
+if [ "$print_dirs" = "1" ]; then
+    base_cflags=-I$include_location
+    dir_libs=-L$lib_location
+fi
 
 if [ "$printhelp" = "1" ]; then
     print_help
@@ -78,47 +114,63 @@ if [ "$print_cflags" = "1" ] || [ "$print_libs" = "1" ]; then
       echo "Must specify debug or release (with --debug or --release respectively)"
       bad=1
   fi
-  if [ "$api" = "gl" ] && [ "$gl_supported" = "0" ]; then
-      echo "GL backend not built!"
+
+  if [ "$add_ngl" = "1" ] && [ "$add_ngles" = "1" ]; then
+      echo "Cannot mix GL and GLES dispatch in the same application"
       bad=1
   fi
-  if [ "$api" = "gles" ] && [ "$gles_supported" = "0" ]; then
-      echo "GLES backend not built!"
-      bad=1
-  fi
+
   if [ "$bad" = 1 ]; then
       exit 1
   fi
 fi
 
+libs="$dir_libs -lFastUIDraw_$mode"
+cflags="$base_cflags"
+
 if [ "$mode" = "release" ]; then
-     if [ "$api" = "gles" ]; then
-         libs=$base_libs" @FASTUIDRAW_GLES_release_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GLES_release_CFLAGS@"
-     elif [ "$api" = "gl" ]; then
-         libs=$base_libs" @FASTUIDRAW_GL_release_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GL_release_CFLAGS@"
-     else
-         libs=$base_libs" @FASTUIDRAW_release_LIBS@"
-         cflags=$base_cflags" @LIBRARY_release_CFLAGS@"
-     fi
+    cflags="$cflags @FASTUIDRAW_release_CFLAGS@"
 else
-     if [ "$api" = "gles" ]; then
-         libs=$base_libs" @FASTUIDRAW_GLES_debug_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GLES_debug_CFLAGS@"
-     elif [ "$api" = "gl" ]; then
-         libs=$base_libs" @FASTUIDRAW_GL_debug_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GL_debug_CFLAGS@"
-     else
-         libs=$base_libs" @FASTUIDRAW_debug_LIBS@"
-         cflags=$base_cflags" @LIBRARY_debug_CFLAGS@"
-     fi
+    cflags="$cflags @FASTUIDRAW_debug_CFLAGS@"
+fi
+
+if [ "$add_negl" = "1" ]; then
+    libs="$libs -lNEGL_$mode"
+    cflags="$cflags"
+fi
+
+if [ "$add_ngl" = "1" ]; then
+    libs="$libs -lNGL_$mode"
+fi
+
+if [ "$add_ngles" = "1" ]; then
+    libs="$libs -lNGLES_$mode"
+fi
+
+if [ "$add_gl" = "1" ]; then
+    libs="$libs -lFastUIDrawGL_$mode"
+    cflags="$cflags @FASTUIDRAW_GL_CFLAGS@"
+fi
+
+if [ "$add_gles" = "1" ]; then
+    libs="$libs -lFastUIDrawGLES_$mode"
+    cflags="$cflags @FASTUIDRAW_GLES_CFLAGS@"
 fi
 
 if [ "$print_cflags" = "1" ]; then
     echo $cflags
 fi
 
+if [ "$static_linking" = "1" ]; then
+    pre_link="-Wl,--whole-archive,-Bstatic"
+    post_link="-Wl,--no-whole-archive -static-libstdc++ -static-libgcc"
+    base_libs="@FASTUIDRAW_DEPS_STATIC_LIBS@"
+else
+    pre_link=
+    post_link=
+    base_libs="@FASTUIDRAW_DEPS_LIBS@"
+fi
+
 if [ "$print_libs" = "1" ]; then
-    echo $libs
+    echo $base_libs $pre_link $libs $post_link
 fi

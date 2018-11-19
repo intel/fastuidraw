@@ -24,34 +24,34 @@
 namespace fastuidraw
 {
 /*!\addtogroup Utility
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    Reference counting that is thread safe by having operations
-    behind a mutex lock. Usually slower (and much slower) than
-    reference_count_atomic.
+   * \brief
+   * Reference counting that is thread safe by having operations
+   * behind a mutex lock. Usually slower (and much slower) than
+   * reference_count_atomic.
    */
   class reference_count_mutex:noncopyable
   {
   public:
     /*!
-      Initializes the counter as zero.
+     * Initializes the counter as zero.
      */
     reference_count_mutex(void);
 
     ~reference_count_mutex();
 
     /*!
-      Increment reference counter by 1.
+     * Increment reference counter by 1.
      */
     void
     add_reference(void);
 
     /*!
-      Decrements the counter by 1 and returns status of if the counter
-      is 0 after the decrement operation.
+     * Decrements the counter by 1 and returns status of if the counter
+     * is 0 after the decrement operation.
      */
     bool
     remove_reference(void);

@@ -1,6 +1,0 @@
-void
-fastuidraw_gl_compute_blend_value(in uint sub_shader, in uint blend_shader_data_location,
-                                  in vec4 in_src, out vec4 out_src)
-{
-  out_src = in_src;
-}

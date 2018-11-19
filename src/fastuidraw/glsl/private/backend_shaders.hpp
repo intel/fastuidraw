@@ -20,97 +20,180 @@
 
 #include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
-/*
-  Values for render pass for stroke shading
-*/
-enum uber_stroke_render_pass_t
-  {
-    uber_stroke_opaque_pass,
-    uber_stroke_aa_pass,
-    uber_stroke_non_aa,
+enum fastuidraw::PainterCompositeShader::shader_type
+shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value);
 
-    uber_number_passes
-  };
-
-class BlendShaderSetCreator
+class CompositeShaderSetCreator
 {
 public:
   explicit
-  BlendShaderSetCreator(enum PainterBlendShader::shader_type tp);
+  CompositeShaderSetCreator(enum PainterCompositeShader::shader_type tp);
 
-  PainterBlendShaderSet
-  create_blend_shaders(void);
+  PainterCompositeShaderSet
+  create_composite_shaders(void);
 
 private:
   void
-  add_blend_shader(PainterBlendShaderSet &out,
-                   enum PainterEnums::blend_mode_t md,
-                   const BlendMode &single_md,
-                   const std::string &dual_src_file,
-                   const BlendMode &dual_md,
-                   const std::string &framebuffer_fetch_src_file);
-
-  enum PainterBlendShader::shader_type m_type;
-  reference_counted_ptr<PainterBlendShaderGLSL> m_single_src_blend_shader_code;
-};
-
-class ShaderSetCreatorConstants
-{
-public:
-  ShaderSetCreatorConstants(void);
+  add_composite_shader(PainterCompositeShaderSet &out,
+                       enum PainterEnums::composite_mode_t md,
+                       const BlendMode &single_md,
+                       const std::string &dual_src_file,
+                       const BlendMode &dual_md,
+                       const std::string &framebuffer_fetch_src_file);
+  void
+  add_composite_shader(PainterCompositeShaderSet &out,
+                       enum PainterEnums::composite_mode_t md,
+                       const std::string &dual_src_file,
+                       const BlendMode &dual_md,
+                       const std::string &framebuffer_fetch_src_file);
+  void
+  add_composite_shader(PainterCompositeShaderSet &out,
+                       enum PainterEnums::composite_mode_t md,
+                       const std::string &framebuffer_fetch_src_file);
 
   void
-  add_constants(ShaderSource &src);
+  add_single_src_composite_shader(PainterCompositeShaderSet &out,
+                                  enum PainterEnums::composite_mode_t md,
+                                  const BlendMode &single_md);
 
-  uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
-  uint32_t m_stroke_width_pixels_bit0, m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
+  void
+  add_dual_src_composite_shader(PainterCompositeShaderSet &out,
+                                enum PainterEnums::composite_mode_t md,
+                                const std::string &dual_src_file,
+                                const BlendMode &dual_md);
+
+  void
+  add_fbf_composite_shader(PainterCompositeShaderSet &out,
+                           enum PainterEnums::composite_mode_t md,
+                           const std::string &framebuffer_fetch_src_file);
+
+  enum PainterCompositeShader::shader_type m_type;
+  reference_counted_ptr<PainterCompositeShaderGLSL> m_single_src_composite_shader_code;
 };
 
-class ShaderSetCreator:
-  public ShaderSetCreatorConstants,
-  public BlendShaderSetCreator
+class ShaderSetCreatorStrokingConstants
 {
 public:
-  explicit
-  ShaderSetCreator(enum PainterBlendShader::shader_type tp,
-                   bool non_dashed_stroke_shader_uses_discard);
+  enum render_pass_t
+    {
+      render_aa_pass1,
+      render_aa_pass2,
+      render_non_aa_pass,
+      number_render_passes
+    };
 
-  reference_counted_ptr<PainterItemShader>
-  create_glyph_item_shader(const std::string &vert_src,
-                           const std::string &frag_src,
-                           const varying_list &varyings);
+  ShaderSetCreatorStrokingConstants(void);
 
-  PainterGlyphShader
-  create_glyph_shader(bool anisotropic);
+protected:
+  uint32_t
+  compute_sub_shader(bool is_hq,
+                     enum PainterEnums::cap_style stroke_dash_style,
+                     enum render_pass_t render_pass);
 
-  /*
-    stroke_dash_style having value number_cap_styles means
-    to not have dashed stroking.
-    */
-  PainterStrokeShader
-  create_stroke_shader(enum PainterEnums::cap_style stroke_dash_style,
-                       bool pixel_width_stroking,
-                       const reference_counted_ptr<const StrokingDataSelectorBase> &stroke_data_selector);
+  uint32_t m_stroke_render_pass_num_bits;
+  uint32_t m_stroke_dash_style_num_bits;
+  uint32_t m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
+  uint32_t m_stroke_aa_method_bit;
+  ShaderSource::MacroSet m_subshader_constants;
+  ShaderSource::MacroSet m_stroke_constants;
+  ShaderSource::MacroSet m_arc_stroke_constants;
 
-  PainterDashedStrokeShaderSet
-  create_dashed_stroke_shader_set(bool pixel_width_stroking);
+private:
+  void
+  create_macro_set(ShaderSource::MacroSet &dst) const;
+};
+
+class StrokeShaderCreator:private ShaderSetCreatorStrokingConstants
+{
+public:
+  StrokeShaderCreator(void);
 
   reference_counted_ptr<PainterItemShader>
   create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
-                            bool pixel_width_stroking,
-                            enum uber_stroke_render_pass_t render_pass_macro);
+                            enum PainterStrokeShader::stroke_type_t tp,
+                            enum PainterStrokeShader::shader_type_t pass);
+private:
+  enum
+    {
+      arc_shader = 1,
+      discard_shader = 2,
+    };
 
-  PainterFillShader
-  create_fill_shader(void);
+  PainterItemShaderGLSL*
+  build_uber_stroke_shader(uint32_t flags, unsigned int num_shaders) const;
+
+  varying_list
+  build_uber_stroke_varyings(uint32_t flags) const;
+
+  ShaderSource
+  build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const;
+
+  vecN<reference_counted_ptr<PainterItemShaderGLSL>, 4> m_shaders;
+};
+
+class ShaderSetCreator:
+  private CompositeShaderSetCreator,
+  private StrokeShaderCreator
+{
+public:
+  explicit
+  ShaderSetCreator(bool has_auxiliary_coverage_buffer,
+                   enum PainterCompositeShader::shader_type composite_tp,
+                   const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws);
 
   PainterShaderSet
   create_shader_set(void);
 
-  reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
+private:
+  enum
+    {
+      fill_aa_fuzz_direct_pass,
+      fill_aa_fuzz_hq_pass1,
+      fill_aa_fuzz_hq_pass2,
+
+      fill_aa_fuzz_number_passes
+    };
+
+  reference_counted_ptr<PainterItemShader>
+  create_glyph_item_shader(c_string vert_src,
+                           c_string frag_src,
+                           const varying_list &varyings);
+
+  PainterGlyphShader
+  create_glyph_shader(void);
+
+  /*
+   * stroke_dash_style having value number_cap_styles means
+   * to not have dashed stroking.
+   */
+  PainterStrokeShader
+  create_stroke_shader(enum PainterEnums::cap_style stroke_dash_style,
+                       const reference_counted_ptr<const StrokingDataSelectorBase> &stroke_data_selector);
+
+  PainterDashedStrokeShaderSet
+  create_dashed_stroke_shader_set(void);
+
+  PainterFillShader
+  create_fill_shader(void);
+
+  reference_counted_ptr<PainterBlendShader>
+  create_blend_shader(const std::string &framebuffer_fetch_src_file);
+
+  PainterBlendShaderSet
+  create_blend_shaders(void);
+
+  bool m_has_auxiliary_coverage_buffer;
+  reference_counted_ptr<const PainterDraw::Action> m_flush_auxiliary_buffer_between_draws;
+  enum PainterEnums::hq_anti_alias_support_t m_hq_support;
+
+  ShaderSource::MacroSet m_fill_macros;
+  ShaderSource::MacroSet m_common_glyph_attribute_macros;
 };
 
 }}}

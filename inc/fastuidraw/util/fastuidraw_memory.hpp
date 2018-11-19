@@ -20,7 +20,7 @@
 #pragma once
 
 /*!\addtogroup Utility
-  @{
+ * @{
  */
 
 #include <cstdlib>
@@ -28,23 +28,23 @@
 #include <fastuidraw/util/fastuidraw_memory_private.hpp>
 
 /*!\def FASTUIDRAWnew
-  When creating FastUIDraw objects, one must use FASTUIDRAWnew instead of new
-  to create objects. For debug build of FastUIDraw, allocations with FASTUIDRAWnew
-  are tracked and at program exit a list of those objects not deleted by FASTUIDRAWdelete
-  are printed with the file and line number of the allocation. For release builds
-  of FastUIDraw, allocations are not tracked and std::malloc is used to allocate
-  memory.
+ * When creating FastUIDraw objects, one must use FASTUIDRAWnew instead of new
+ * to create objects. For debug build of FastUIDraw, allocations with FASTUIDRAWnew
+ * are tracked and at program exit a list of those objects not deleted by FASTUIDRAWdelete
+ * are printed with the file and line number of the allocation. For release builds
+ * of FastUIDraw, allocations are not tracked and std::malloc is used to allocate
+ * memory.
  */
 #define FASTUIDRAWnew \
   ::new(__FILE__, __LINE__)
 
 /*!\def FASTUIDRAWdelete
-  Use \ref FASTUIDRAWdelete to delete objects that were allocated with \ref
-  FASTUIDRAWnew. For debug builds of FastUIDraw, if the memory was not tracked
-  an error message is emitted. For both release and debug, object is deleted
-  via fastuidraw::checked_delete().
-  \param ptr address of object to delete, value must be a return value
-             from FASTUIDRAWnew
+ * Use \ref FASTUIDRAWdelete to delete objects that were allocated with \ref
+ * FASTUIDRAWnew. For debug builds of FastUIDraw, if the memory was not tracked
+ * an error message is emitted. For both release and debug, object is deleted
+ * via fastuidraw::checked_delete().
+ * \param ptr address of object to delete, value must be a return value
+ *            from FASTUIDRAWnew
  */
 #define FASTUIDRAWdelete(ptr) \
   do {                                                                  \
@@ -52,12 +52,12 @@
     fastuidraw::checked_delete(ptr); } while(0)
 
 /*!\def FASTUIDRAWdelete_array
-  Use \ref FASTUIDRAWdelete_array for arrays of objects allocated with
-  \ref FASTUIDRAWnew. For debug builds of FastUIDraw, if the memory was
-  not tracked an error message is emitted. For both release and debug,
-  object is deleted via fastuidraw::checked_array_delete().
-  \param ptr address of array of objects to delete, value must be a return
-             value of FASTUIDRAWnew
+ * Use \ref FASTUIDRAWdelete_array for arrays of objects allocated with
+ * \ref FASTUIDRAWnew. For debug builds of FastUIDraw, if the memory was
+ * not tracked an error message is emitted. For both release and debug,
+ * object is deleted via fastuidraw::checked_array_delete().
+ * \param ptr address of array of objects to delete, value must be a return
+ *            value of FASTUIDRAWnew
  */
 #define FASTUIDRAWdelete_array(ptr) \
   do {                                                                  \
@@ -65,41 +65,41 @@
     fastuidraw::checked_array_delete(ptr); } while(0)
 
 /*!\def FASTUIDRAWmalloc
-  For debug build of FastUIDraw, allocations with \ref FASTUIDRAWmalloc are tracked and
-  at program exit a list of those objects not deleted by \ref FASTUIDRAWfree
-  are printed with the file and line number of the allocation. For release builds
-  of FastUIDraw, maps to std::malloc.
+ * For debug build of FastUIDraw, allocations with \ref FASTUIDRAWmalloc are tracked and
+ * at program exit a list of those objects not deleted by \ref FASTUIDRAWfree
+ * are printed with the file and line number of the allocation. For release builds
+ * of FastUIDraw, maps to std::malloc.
  */
 #define FASTUIDRAWmalloc(size) \
   fastuidraw::memory::malloc_implement(size, __FILE__, __LINE__)
 
 /*!\def FASTUIDRAWcalloc
-  For debug build of FastUIDraw, allocations with \ref FASTUIDRAWcalloc are tracked and
-  at program exit a list of those objects not deleted by \ref FASTUIDRAWfree
-  are printed with the file and line number of the allocation. For release builds
-  of FastUIDraw, maps to std::calloc.
-  \param nmemb number of elements to allocate
-  \param size size of each element in bytes
+ * For debug build of FastUIDraw, allocations with \ref FASTUIDRAWcalloc are tracked and
+ * at program exit a list of those objects not deleted by \ref FASTUIDRAWfree
+ * are printed with the file and line number of the allocation. For release builds
+ * of FastUIDraw, maps to std::calloc.
+ * \param nmemb number of elements to allocate
+ * \param size size of each element in bytes
  */
 #define FASTUIDRAWcalloc(nmemb, size) \
   fastuidraw::memory::calloc_implement(nmemb, size, __FILE__, __LINE__)
 
 /*!\def FASTUIDRAWrealloc
-  For debug build of FastUIDraw, allocations with \ref FASTUIDRAWrealloc are tracked and
-  at program exit a list of those objects not deleted by \ref FASTUIDRAWfree
-  are printed with the file and line number of the allocation. For release builds
-  of FastUIDraw, maps to std::realloc.
-  \param ptr pointer at which to rellocate
-  \param size new size
+ * For debug build of FastUIDraw, allocations with \ref FASTUIDRAWrealloc are tracked and
+ * at program exit a list of those objects not deleted by \ref FASTUIDRAWfree
+ * are printed with the file and line number of the allocation. For release builds
+ * of FastUIDraw, maps to std::realloc.
+ * \param ptr pointer at which to rellocate
+ * \param size new size
  */
 #define FASTUIDRAWrealloc(ptr, size) \
   fastuidraw::memory::realloc_implement(ptr, size, __FILE__, __LINE__)
 
 /*!\def FASTUIDRAWfree
-  Use FASTUIDRAWfree for objects allocated with FASTUIDRAWmalloc,
-  FASTUIDRAWrealloc and FASTUIDRAWcalloc. For release builds of
-  FastUIDraw, maps to std::free.
-  \param ptr address of object to free
+ * Use FASTUIDRAWfree for objects allocated with FASTUIDRAWmalloc,
+ * FASTUIDRAWrealloc and FASTUIDRAWcalloc. For release builds of
+ * FastUIDraw, maps to std::free.
+ * \param ptr address of object to free
  */
 #define FASTUIDRAWfree(ptr) \
   fastuidraw::memory::free_implement(ptr, __FILE__, __LINE__)

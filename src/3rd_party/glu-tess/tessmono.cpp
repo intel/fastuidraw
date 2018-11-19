@@ -37,6 +37,8 @@
 #include "geom.hpp"
 #include "mesh.hpp"
 #include "tessmono.hpp"
+#include "tess.hpp"
+#include <vector>
 #include <fastuidraw/util/util.hpp>
 
 #define AddWinding(eDst,eSrc)   (eDst->winding += eSrc->winding, \
@@ -138,7 +140,7 @@ int glu_fastuidraw_gl_meshTessellateInterior( GLUmesh *mesh )
   for( f = mesh->fHead.next; f != &mesh->fHead; f = next ) {
     /* Make sure we don''t try to tessellate the new triangles. */
     next = f->next;
-    if( f->inside ) {
+    if( f->inside && !glu_fastuidraw_gl_excludeFace(f)) {
       if ( !glu_fastuidraw_gl_meshTessellateMonoRegion( f ) ) return 0;
     }
   }
@@ -168,18 +170,33 @@ void glu_fastuidraw_gl_meshDiscardExterior( GLUmesh *mesh )
 
 #define MARKED_FOR_DELETION     0x7fffffff
 
-/* glu_fastuidraw_gl_meshSetWindingNumber( mesh, value, keepOnlyBoundary ) resets the
- * winding numbers on all edges so that regions marked "inside" the
- * polygon have a winding number of "value", and regions outside
+/* glu_fastuidraw_gl_meshKeepOnly( mesh, winding_number) changes each
+ * regions field inside to be true if and only if its winding_number
+ * matches teh argument minding number. From there, it rests the
+ * winding numbers on all edges so that regions now marked "inside"
+ * the polygon have a winding number of 1, and regions outside
  * have a winding number of 0.
  *
- * If keepOnlyBoundary is TRUE, it also deletes all edges which do not
- * separate an interior region from an exterior one.
+ * It also deletes all edges which do not separate an interior region
+ * from an exterior one.
  */
-int glu_fastuidraw_gl_meshSetWindingNumber( GLUmesh *mesh, int value,
-                                FASTUIDRAW_GLUboolean keepOnlyBoundary )
+int glu_fastuidraw_gl_meshKeepOnly( GLUmesh *mesh, int winding_number)
 {
   GLUhalfEdge *e, *eNext;
+  GLUface *f;
+  int value(1), just_started;
+
+  /* We mark regions that containing a boundary corner point as outside
+   * when winding_number != 0. In addition,  glu_fastuidraw_gl_excludeFace()
+   * will crash on those GLUface objects that correspond to the unbounded
+   * component of the mesh. These components always have 0 as their winding
+   * numbers and we prevent merging with these components.
+   */
+  for (f = mesh->fHead.next, just_started = 1; f != mesh->fHead.next || just_started; f = f->next) {
+    f->inside = (f->winding_number == winding_number)
+      && (f->winding_number == 0 || !glu_fastuidraw_gl_excludeFace(f));
+    just_started = 0;
+  }
 
   for( e = mesh->eHead.next; e != &mesh->eHead; e = eNext ) {
     eNext = e->next;
@@ -190,12 +207,38 @@ int glu_fastuidraw_gl_meshSetWindingNumber( GLUmesh *mesh, int value,
     } else {
 
       /* Both regions are interior, or both are exterior. */
-      if( ! keepOnlyBoundary ) {
-        e->winding = 0;
-      } else {
-        if ( !glu_fastuidraw_gl_meshDelete( e ) ) return 0;
-      }
+      if ( !glu_fastuidraw_gl_meshDelete( e ) ) return 0;
     }
   }
   return 1;
+}
+
+void glu_fastuidraw_gl_emitMonotones(fastuidraw_GLUtesselator *tess, GLUmesh *mesh )
+{
+  std::vector<unsigned int> vertex_ids;
+  std::vector<int> ws;
+  GLUface *f, *next;
+  GLUhalfEdge *e;
+  int winding;
+
+  for( f = mesh->fHead.next; f != &mesh->fHead; f = next ) {
+    next = f->next;
+    if( f->inside && !glu_fastuidraw_gl_excludeFace(f)) {
+      winding = f->winding_number;
+      vertex_ids.clear();
+      ws.clear();
+      e = f->anEdge;
+      do {
+        vertex_ids.push_back(e->Org->client_id );
+        ws.push_back(winding - e->winding);
+        e = e->Lnext;
+      } while( e != f->anEdge );
+
+      if(tess->emit_monotone_data) {
+        (*tess->emit_monotone_data)(winding, &vertex_ids[0], &ws[0], ws.size(), tess->polygonData);
+      } else if (tess->emit_monotone) {
+        (*tess->emit_monotone)(winding, &vertex_ids[0], &ws[0], ws.size());
+      }
+    }
+  }
 }

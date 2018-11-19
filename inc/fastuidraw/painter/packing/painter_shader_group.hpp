@@ -24,49 +24,49 @@
 namespace fastuidraw
 {
 /*!\addtogroup PainterPacking
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterShaderGroup gives to what groups the active shaders
-    of a PainterPacker belong.
+   * \brief
+   * A PainterShaderGroup gives to what groups the active shaders
+   * of a PainterPacker belong.
    */
   class PainterShaderGroup:noncopyable
   {
   public:
     /*!
-      The group (see PainterShader::group())
-      of the active blend shader.
+     * The group (see PainterShader::group())
+     * of the active composite shader.
      */
     uint32_t
-    blend_group(void) const;
+    composite_group(void) const;
 
     /*!
-      The group (see PainterShader::group())
-      of the active item shader.
+     * The group (see PainterShader::group())
+     * of the active item shader.
      */
     uint32_t
     item_group(void) const;
 
     /*!
-      The shading ID as returned by PainterBrush::shader()
-      of the active brush.
+     * The shading ID as returned by PainterBrush::shader()
+     * of the active brush.
      */
     uint32_t
     brush(void) const;
 
     /*!
-      The BlendMode as packed by BlendMode::packed().
+     * The \ref BlendMode value for the active composite shader.
      */
-    BlendMode::packed_value
-    packed_blend_mode(void) const;
+    BlendMode
+    composite_mode(void) const;
 
   protected:
     /*!
-      Ctor, do NOT derive from PainterShaderGroup, doing
-      so is asking for heaps of trouble and pain.
-    */
+     * Ctor, do NOT derive from PainterShaderGroup, doing
+     * so is asking for heaps of trouble and pain.
+     */
     PainterShaderGroup(void) {}
   };
 

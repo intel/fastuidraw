@@ -2,7 +2,7 @@
  * \file tessellated_path.hpp
  * \brief file tessellated_path.hpp
  *
- * Copyright 2016 by Intel.
+ * Copyright 2018 by Intel.
  *
  * Contact: kevin.rogovin@intel.com
  *
@@ -24,6 +24,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/path_enums.hpp>
 
 namespace fastuidraw  {
 
@@ -34,383 +35,484 @@ class FilledPath;
 ///@endcond
 
 /*!\addtogroup Paths
-  @{
+ * @{
  */
 
 /*!
-  \brief
-  A TessellatedPath represents the tessellation of a Path.
-
-  A single contour of a TessellatedPath is constructed from
-  a single \ref PathContour of the source \ref Path. Each
-  edge of a contour of a TessellatedPath is contructed from
-  a single \ref PathContour::interpolator_base of the source \ref
-  PathContour. The ordering of the contours of a
-  TessellatedPath is the same ordering as the source
-  \ref PathContour objects of the source \ref Path. Also,
-  the ordering of edges within a contour is the same ordering
-  as the \ref PathContour::interpolator_base objects of
-  the source \ref PathContour. In particular, for each contour
-  of a TessellatedPath, the closing edge is the last edge.
+ * \brief
+ * An TessellatedPath represents the tessellation of a Path
+ * into line segments and arcs.
+ *
+ * A single contour of a TessellatedPath is constructed from
+ * a single \ref PathContour of the source \ref Path. Each
+ * edge of a contour of a TessellatedPath is contructed from
+ * a single \ref PathContour::interpolator_base of the source \ref
+ * PathContour. The ordering of the contours of a
+ * TessellatedPath is the same ordering as the source
+ * \ref PathContour objects of the source \ref Path. Also,
+ * the ordering of edges within a contour is the same ordering
+ * as the \ref PathContour::interpolator_base objects of
+ * the source \ref PathContour. In particular, for each contour
+ * of a TessellatedPath, the closing edge is the last edge.
  */
 class TessellatedPath:
     public reference_counted<TessellatedPath>::non_concurrent
 {
 public:
   /*!
-    \brief
-    A TessellationParams stores how finely to tessellate
-    the curves of a path.
+   * \brief
+   * Enumeration to identify the type of a \ref segment
+   */
+  enum segment_type_t
+    {
+      /*!
+       * Indicates that the segment is an arc segment,
+       * i.e. it connects two point via an arc of a
+       * circle
+       */
+      arc_segment,
+
+      /*!
+       * Indicates that the segment is a line segment
+       * i.e. it connects two point via a line.
+       */
+      line_segment,
+    };
+
+  /*!
+   * \brief
+   * A TessellationParams stores how finely to tessellate
+   * the curves of a path.
    */
   class TessellationParams
   {
   public:
     /*!
-      Ctor, initializes values.
+     * Ctor, initializes values.
      */
     TessellationParams(void):
-      m_curvature_tessellation(true),
-      m_threshhold(float(M_PI)/30.0f),
-      m_max_segments(32)
+      m_max_distance(-1.0f),
+      m_max_recursion(5)
     {}
 
     /*!
-      Non-equal comparison operator.
-      \param rhs value to which to compare against
-     */
-    bool
-    operator!=(const TessellationParams &rhs) const
-    {
-      return m_curvature_tessellation != rhs.m_curvature_tessellation
-        || m_threshhold != rhs.m_threshhold
-        || m_max_segments != rhs.m_max_segments;
-    }
-
-    /*!
-      Provided as a conveniance. Equivalent to
-      \code
-      m_curvature_tessellation = true;
-      m_threshhold = p;
-      \endcode
-      \param p value to which to assign to \ref m_threshhold
+     * Provided as a conveniance. Equivalent to
+     * \code
+     * m_max_distance = tp;
+     * \endcode
+     * \param p value to which to assign to \ref m_max_distance
      */
     TessellationParams&
-    curvature_tessellate(float p)
+    max_distance(float p)
     {
-      m_curvature_tessellation = true;
-      m_threshhold = p;
+      m_max_distance = p;
       return *this;
     }
 
     /*!
-      Provided as a conveniance. Equivalent to
-      \code
-      m_curvature_tessellation = true;
-      m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
-      \endcode
-      \param N number of points for goal to tessellate a circle to.
+     * Set the value of \ref m_max_recursion.
+     * \param v value to which to assign to \ref m_max_recursion
      */
     TessellationParams&
-    curvature_tessellate_num_points_in_circle(unsigned int N)
+    max_recursion(unsigned int v)
     {
-      m_curvature_tessellation = true;
-      m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
+      m_max_recursion = v;
       return *this;
     }
 
     /*!
-      Provided as a conveniance. Equivalent to
-      \code
-      m_curvature_tessellation = false;
-      m_threshhold = p;
-      \endcode
-      \param p value to which to assign to \ref m_threshhold
+     * Maximum distance to attempt between the actual curve and the
+     * tessellation. A value less than or equal to zero indicates to
+     * accept any distance value between the tessellation and the
+     * curve. Default value is -1.0 (i.e. accept any distance value).
      */
-    TessellationParams&
-    curve_distance_tessellate(float p)
-    {
-      m_curvature_tessellation = false;
-      m_threshhold = p;
-      return *this;
-    }
+    float m_max_distance;
 
     /*!
-      Set the value of \ref m_max_segments.
-      \param v value to which to assign to \ref m_max_segments
+     * Maximum number of times to perform recursion to tessellate an edge.
+     * Default value is 5.
      */
-    TessellationParams&
-    max_segments(unsigned int v)
-    {
-      m_max_segments = v;
-      return *this;
-    }
-
-    /*!
-      Specifies the meaning of \ref m_threshhold.
-     */
-    bool m_curvature_tessellation;
-
-    /*!
-      Meaning depends on \ref m_curvature_tessellation.
-       - If m_curvature_tessellation is true, then represents the
-         goal of how much curvature is to be between successive
-         points of a tessellated edge. This value is crudely
-         estimated via Simpson's rule. A value of PI / N for a circle
-         represents tessellating the circle into N points.
-       - If m_curvature_tessellation is false, then represents the
-         goal of the maximum allowed distance between the
-         line segment between from successive points of a
-         tessellated edge and the sub-curve of the starting
-         curve between those two points.
-     */
-    float m_threshhold;
-
-    /*!
-      Maximum number of segments to tessellate each
-      PathContour::interpolator_base from each
-      PathContour of a Path.
-     */
-    unsigned int m_max_segments;
+    unsigned int m_max_recursion;
   };
 
   /*!
-    \brief
-    Represents point of a tessellated path.
+   * \brief
+   * Represents segment of a tessellated or arc-tessellated path.
    */
-  class point
+  class segment
   {
   public:
     /*!
-      The position of the point.
+     * Specifies the segment type.
      */
-    vec2 m_p;
+    enum segment_type_t m_type;
 
     /*!
-      The derivative of the curve at the point.
+     * Gives the start point on the path of the segment.
      */
-    vec2 m_p_t;
+    vec2 m_start_pt;
 
     /*!
-      Gives the distance of the point from the start
-      of the edge (i.e PathContour::interpolator_base)
-      on which the point resides.
+     * Gives the end point on the path of the segment.
+     */
+    vec2 m_end_pt;
+
+    /*!
+     * Only valid if \ref m_type is \ref arc_segment; gives
+     * the center of the arc.
+     */
+    vec2 m_center;
+
+    /*!
+     * Only valid if \ref m_type is \ref arc_segment; gives
+     * the angle range of the arc.
+     */
+    range_type<float> m_arc_angle;
+
+    /*!
+     * Only valid if \ref m_type is \ref arc_segment; gives
+     * the radius of the arc.
+     */
+    float m_radius;
+
+    /*!
+     * Gives the length of the segment.
+     */
+    float m_length;
+
+    /*!
+     * Gives the distance of the start of the segment from
+     * the start of the edge (i.e PathContour::interpolator_base).
      */
     float m_distance_from_edge_start;
 
     /*!
-      Gives the distance of the point from the start
-      of the -contour- on which the point resides.
+     * Gives the distance of the start of segment to the
+     * start of the -contour-.
      */
     float m_distance_from_contour_start;
 
     /*!
-      Gives the length of the edge (i.e.
-      PathContour::interpolator_base) on which the
-      point lies. This value is the same for all
-      points along a fixed edge.
+     * Gives the length of the edge (i.e.
+     * PathContour::interpolator_base) on which the
+     * segment lies. This value is the same for all
+     * segments along a fixed edge.
      */
     float m_edge_length;
 
     /*!
-      Gives the length of the contour open on which
-      the point lies. This value is the same for all
-      points along a fixed contour.
+     * Gives the length of the contour open on which
+     * the segment lies. This value is the same for all
+     * segments along a fixed contour.
      */
     float m_open_contour_length;
 
     /*!
-      Gives the length of the contour closed on which
-      the point lies. This value is the same for all
-      points along a fixed contour.
+     * Gives the length of the contour closed on which
+     * the segment lies. This value is the same for all
+     * segments along a fixed contour.
      */
     float m_closed_contour_length;
+
+    /*!
+     * Gives the unit-vector of the path entering the segment.
+     */
+    vec2 m_enter_segment_unit_vector;
+
+    /*!
+     * Gives the unit-vector of the path leaving the segment.
+     */
+    vec2 m_leaving_segment_unit_vector;
+
+    /*!
+     * If true, indicates that the arc is tangent with its
+     * predecessor. This happens when TessellatedPath breaks
+     * a \ref segment into smaller pieces to make its angle
+     * smaller or to make it monotonic.
+     */
+    bool m_tangent_with_predecessor;
   };
 
   /*!
-    Ctor. Construct a TessellatedPath from a Path
-    \param input source path to tessellate
-    \param P parameters on how to tessellate the source Path
+   * \brief
+   * A wrapper over a dynamic array of \ref segment objects;
+   * segment values added to SegmentStorage must be added
+   * in order of time along the domain of a \ref
+   * PathContour::interpolator_base
    */
-  TessellatedPath(const Path &input, TessellationParams P);
+  class SegmentStorage:fastuidraw::noncopyable
+  {
+  public:
+    /*!
+     * Add a \ref segment to the SegmentStorage that is a
+     * line segment between two points.
+     * \param start the starting point of the segment
+     * \param end the ending point of the segment
+     */
+    void
+    add_line_segment(vec2 start, vec2 end);
+
+    /*!
+     * Add a \ref segment to the SegmentStorage that is an
+     * arc segment. If necessary, An arc-segment will be broken
+     * into multiple segments to that each segment is monotonic
+     * in the x and y coordiantes and each segment's arc-angle
+     * is no more than M_PI / 4.0 radians (45 degrees).
+     * \param start gives the start point of the arc on the path
+     * \param end gives the end point of the arc on the path
+     * \param center is the center of the circle that defines the arc
+     * \param radius is the radius of the circle that defines the arc
+     * \param arc_angle is the arc-angle range that defines the arc
+     */
+    void
+    add_arc_segment(vec2 start, vec2 end,
+                    vec2 center, float radius,
+                    range_type<float> arc_angle);
+
+  private:
+    SegmentStorage(void) {}
+    ~SegmentStorage() {}
+
+    friend class TessellatedPath;
+    void *m_d;
+  };
+
+  /*!
+   * A Refiner is stateful object that creates new TessellatedPath
+   * objects from a starting TessellatedPath where the tessellation
+   * is made finer.
+   */
+  class Refiner:
+    public reference_counted<Refiner>::non_concurrent
+  {
+  public:
+    virtual
+    ~Refiner();
+
+    /*!
+     * Update the TessellatedPath returned by tessellated_path() by
+     * refining the current value returned by tessellated_path().
+     * \param max_distance new maximum distance to aim for
+     * \param additional_recursion amount by which to additionally recurse
+     *                             when tessellating.
+     */
+    void
+    refine_tessellation(float max_distance,
+                        unsigned int additional_recursion);
+
+    /*!
+     * Returns the current TessellatedPath of this Refiner.
+     */
+    reference_counted_ptr<TessellatedPath>
+    tessellated_path(void) const;
+
+  private:
+    friend class TessellatedPath;
+    Refiner(TessellatedPath *p, const Path &path);
+
+    void *m_d;
+  };
+
+  /*!
+   * Ctor. Construct a TessellatedPath from a Path
+   * \param input source path to tessellate
+   * \param P parameters on how to tessellate the source Path
+   * \param ref if non-NULL, construct a Refiner object and return
+   *            the value via upading the value of ref.
+   */
+  TessellatedPath(const Path &input, TessellationParams P,
+                  reference_counted_ptr<Refiner> *ref = nullptr);
 
   ~TessellatedPath();
 
   /*!
-    Returns the tessellation parameters used to construct
-    this TessellatedPath.
+   * Returns the tessellation parameters used to construct
+   * this TessellatedPath.
    */
   const TessellationParams&
   tessellation_parameters(void) const;
 
   /*!
-    Returns the tessellation threshold achieved for
-    distance between curve and sub-edges.
+   * Returns true if and only if there is a \ref segment
+   * in segment_data() for which segment::m_type is
+   * \ref arc_segment.
    */
-  float
-  effective_curve_distance_threshhold(void) const;
+  bool
+  has_arcs(void) const;
 
   /*!
-    Returns the tessellation threshold achieved for
-    the (approximated) curvature between successive
-    points of the tessellation.
+   * Returns the maximum across all edges of all contours
+   * of the distance between the tessellation and the actual
+   * path.
    */
   float
-  effective_curvature_threshhold(void) const;
+  max_distance(void) const;
 
   /*!
-    Returns the maximum number of segments any edge needed
+   * Returns the maximum recursion employed by any edge
    */
   unsigned int
-  max_segments(void) const;
+  max_recursion(void) const;
 
   /*!
-    Returns all the point data
+   * Returns all the segment data
    */
-  const_c_array<point>
-  point_data(void) const;
+  c_array<const segment>
+  segment_data(void) const;
 
   /*!
-    Returns the number of contours
+   * Returns the number of contours
    */
   unsigned int
   number_contours(void) const;
 
   /*!
-    Returns the range into point_data()
-    for the named contour. The contour data is a
-    sequence of points specifing a line strip.
-    Points that are shared between edges (an edge
-    corresponds to a PathContour::interpolator_base) are
-    replicated (because the derivatives are different).
-    \param contour which path contour to query, must have
-                   that 0 <= contour < number_contours()
+   * Returns the range into segment_data() for the named
+   * contour.
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
    */
   range_type<unsigned int>
   contour_range(unsigned int contour) const;
 
   /*!
-    Returns the range into point_data()
-    for the named contour lacking the closing
-    edge. The contour data is a
-    sequence of points specifing a line strip.
-    Points that are shared between edges (an edge
-    corresponds to a PathContour::interpolator_base) are
-    replicated (because the derivatives are different).
-    \param contour which path contour to query, must have
-                   that 0 <= contour < number_contours()
+   * Returns the segment data of the named contour including
+   * the closing edge. Provided as a conveniance equivalent to
+   * \code
+   * segment_data().sub_array(contour_range(contour))
+   * \endcode
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
    */
-  range_type<unsigned int>
-  unclosed_contour_range(unsigned int contour) const;
+  c_array<const segment>
+  contour_segment_data(unsigned int contour) const;
 
   /*!
-    Returns the point data of the named contour
-    including the closing edge. The contour data is a
-    sequence of points specifing a line strip.
-    Points that are shared between edges (an edge
-    corresponds to a PathContour::interpolator_base) are
-    replicated (because the derivatives are different).
-    Provided as a conveniance, equivalent to
-    \code
-    point_data().sub_array(contour_range(contour))
-    \endcode
-    \param contour which path contour to query, must have
-                   that 0 <= contour < number_contours()
-   */
-  const_c_array<point>
-  contour_point_data(unsigned int contour) const;
-
-  /*!
-    Returns the point data of the named contour
-    lacking the point data of the closing edge.
-    The contour data is a sequence of points
-    specifing a line strip. Points that are
-    shared between edges (an edge corresponds to
-    a PathContour::interpolator_base) are replicated
-    (because the derivatives are different).
-    Provided as a conveniance, equivalent to
-    \code
-    point_data().sub_array(unclosed_contour_range(contour))
-    \endcode
-    \param contour which path contour to query, must have
-                   that 0 <= contour < number_contours()
-   */
-  const_c_array<point>
-  unclosed_contour_point_data(unsigned int contour) const;
-
-  /*!
-    Returns the number of edges for the named contour
-    \param contour which path contour to query, must have
-                   that 0 <= contour < number_contours()
+   * Returns the number of edges for the named contour
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
    */
   unsigned int
   number_edges(unsigned int contour) const;
 
   /*!
-    Returns the range into point_data(void)
-    for the named edge of the named contour.
-    The returned range does include the end
-    point of the edge. The edge corresponds
-    to the PathContour::interpolator_base
-    Path::contour(contour)->interpolator(edge).
-    \param contour which path contour to query, must have
-                   that 0 <= contour < number_contours()
-    \param edge which edge of the contour to query, must
-                have that 0 <= edge < number_edges(contour)
+   * Returns the range into segment_data(void)
+   * for the named edge of the named contour.
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
+   * \param edge which edge of the contour to query, must
+   *             have that 0 <= edge < number_edges(contour)
    */
   range_type<unsigned int>
   edge_range(unsigned int contour, unsigned int edge) const;
 
   /*!
-    Returns the point data of the named edge of the
-    named contour, provided as a conveniance, equivalent
-    to
-    \code
-    point_data().sub_array(edge_range(contour, edge))
-    \endcode
-    \param contour which path contour to query, must have
-                   that 0 <= contour < number_contours()
-    \param edge which edge of the contour to query, must
-                have that 0 <= edge < number_edges(contour)
+   * Returns the segment data of the named edge of the
+   * named contour, provided as a conveniance, equivalent
+   * to
+   * \code
+   * segment_data().sub_array(edge_range(contour, edge))
+   * \endcode
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
+   * \param edge which edge of the contour to query, must
+   *             have that 0 <= edge < number_edges(contour)
    */
-  const_c_array<point>
-  edge_point_data(unsigned int contour, unsigned int edge) const;
+  c_array<const segment>
+  edge_segment_data(unsigned int contour, unsigned int edge) const;
 
   /*!
-    Returns the minimum point of the bounding box of
-    the tessellation.
+   * Returns the edge type of the named edge of the named contour
+   * of the source Path.
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
+   * \param edge which edge of the contour to query, must
+   *             have that 0 <= edge < number_edges(contour)
+   */
+  enum PathEnums::edge_type_t
+  edge_type(unsigned int contour, unsigned int edge) const;
+
+  /*!
+   * Returns the minimum point of the bounding box of
+   * the tessellation.
    */
   vec2
   bounding_box_min(void) const;
 
   /*!
-    Returns the maximum point of the bounding box of
-    the tessellation.
+   * Returns the maximum point of the bounding box of
+   * the tessellation.
    */
   vec2
   bounding_box_max(void) const;
 
   /*!
-    Returns the dimensions of the bounding box
-    of the tessellated path.
+   * Returns the dimensions of the bounding box
+   * of the tessellated path.
    */
   vec2
   bounding_box_size(void) const;
 
   /*!
-    Returns this TessellatedPath stroked. The StrokedPath object
-    is constructed lazily.
+   * Returns this \ref TessellatedPath where any arcs are
+   * realized as segments. If this \ref TessellatedPath has
+   * no arcs, returns this object. If a non-positive value
+   * is passed, returns a linearization where arc-segments
+   * are tessellated into very few line segments.
+   * \param thresh threshhold at which to linearize
+   *               arc-segments.
+   */
+  const TessellatedPath*
+  linearization(float thresh) const;
+
+  /*!
+   * Provided as a conveniance, returns the starting point tessellation.
+   * Equivalent to
+   * \code
+   * linearization(-1.0f)
+   * \endcode
+   */
+  const TessellatedPath*
+  linearization(void) const;
+
+  /*!
+   * Returns this \ref TessellatedPath stroked. The \ref
+   * StrokedPath object is constructed lazily.
    */
   const reference_counted_ptr<const StrokedPath>&
   stroked(void) const;
 
   /*!
-    Returns this TessellatedPath filled. The FilledPath object
-    is constructed lazily.
+   * Returns this \ref TessellatedPath filled. If this
+   * \ref TessellatedPath has arcs will return
+   * the fill associated to the linearization() of
+   * this \ref TessellatedPath. If a non-positive value
+   * is passed, returns the fill of the linearization
+   * where arc-segments are tessellated into very few
+   * line segments.
+   * \param thresh threshhold at which to linearize
+   *               arc-segments.
+   */
+  const reference_counted_ptr<const FilledPath>&
+  filled(float thresh) const;
+
+  /*!
+   * Provided as a conveniance, returns the starting point tessellation.
+   * Equivalent to
+   * \code
+   * filled(-1.0f)
+   * \endcode
    */
   const reference_counted_ptr<const FilledPath>&
   filled(void) const;
 
 private:
+  TessellatedPath(Refiner *p, float threshhold,
+                  unsigned int additional_recursion_count);
+
+  TessellatedPath(const TessellatedPath &with_arcs,
+                  float thresh);
+
   void *m_d;
 };
 

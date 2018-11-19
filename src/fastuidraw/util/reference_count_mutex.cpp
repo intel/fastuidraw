@@ -16,6 +16,7 @@
  *
  */
 
+#include <mutex>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
@@ -32,7 +33,7 @@ namespace
       m_reference_count(0)
     {}
 
-    fastuidraw::mutex m_mutex;
+    std::mutex m_mutex;
     int m_reference_count;
   };
 }
@@ -81,7 +82,7 @@ remove_reference(void)
   d->m_mutex.lock();
   --d->m_reference_count;
   FASTUIDRAWassert(d->m_reference_count >= 0);
-  if(d->m_reference_count == 0)
+  if (d->m_reference_count == 0)
     {
       return_value = true;
     }

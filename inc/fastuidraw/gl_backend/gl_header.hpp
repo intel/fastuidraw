@@ -23,5 +23,9 @@
   #include <GLES3/gl32.h>
   #include <GLES2/gl2ext.h>
 #else
-  #include <GL/glcorearb.h>
+  #if defined(__APPLE__)
+    #include <OpenGL/gl3.h>
+  #else
+    #include <GL/glcorearb.h>
+  #endif
 #endif

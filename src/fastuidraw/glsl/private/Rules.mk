@@ -4,7 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-LIBRARY_PRIVATE_SOURCES += $(call filelist, backend_shaders.cpp uber_shader_builder.cpp)
+FASTUIDRAW_PRIVATE_SOURCES += $(call filelist, backend_shaders.cpp uber_shader_builder.cpp)
 
 
 # Begin standard footer

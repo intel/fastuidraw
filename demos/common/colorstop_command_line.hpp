@@ -45,9 +45,14 @@ public:
   colorstop_data&
   fetch(const std::string &pname);
 
-  hoard m_values;
+  const hoard&
+  values(void) const
+  {
+    return m_values;
+  }
 
 private:
 
+  hoard m_values;
   std::string m_add, m_add2, m_disc;
 };

@@ -32,9 +32,11 @@
 **
 */
 #include "gluos.hpp"
+#include <iostream>
 #include <stddef.h>
 #include <fastuidraw/util/util.hpp>
-#include <map>
+#include <vector>
+#include <set>
 #include <setjmp.h>
 #include "memalloc.hpp"
 #include "tess.hpp"
@@ -84,7 +86,7 @@
   IGNORE(y);
   IGNORE(data);
   IGNORE(weight);
-  IGNORE(dataOut);
+  *dataOut = 0;
 }
 
 /*ARGSUSED*/ static void REGALFASTUIDRAW_GLU_CALL noMesh( GLUmesh *mesh )
@@ -95,10 +97,8 @@
 
 /*ARGSUSED*/ static FASTUIDRAW_GLUboolean REGALFASTUIDRAW_GLU_CALL noWinding(int winding_rule)
 {
-  IGNORE(winding_rule);
-  return winding_rule&1;
+  return winding_rule != 0;
 }
-
 
 /*ARGSUSED*/ void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noBeginData( FASTUIDRAW_GLUenum type, int winding_number,
                                                                void *polygonData )
@@ -138,17 +138,15 @@
   IGNORE(y);
   IGNORE(data);
   IGNORE(weight);
-  IGNORE(outData);
+  *outData = 0;
 }
 
-/*ARGSUSED*/ FASTUIDRAW_GLUboolean REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noWindingData(int winding_rule,
-                                                                            void *polygonData)
+/*ARGSUSED*/ static FASTUIDRAW_GLUboolean REGALFASTUIDRAW_GLU_CALL noWindingData(int winding_rule,
+                                                                                 void *polygonData)
 {
   IGNORE(polygonData);
   return winding_rule&1;
 }
-
-
 
 /* Half-edges are allocated in pairs (see mesh.c) */
 typedef struct { GLUhalfEdge e, eSym; } EdgePair;
@@ -188,7 +186,6 @@ fastuidraw_gluNewTess_release( void )
   tess->state = T_DORMANT;
 
   tess->relTolerance = FASTUIDRAW_GLU_TESS_DEFAULT_TOLERANCE;
-  tess->boundaryOnly = FALSE;
 
   tess->callBegin = &noBegin;
   tess->callVertex = &noVertex;
@@ -199,6 +196,9 @@ fastuidraw_gluNewTess_release( void )
   tess->callMesh = &noMesh;
 
   tess->callWinding= &noWinding;
+  tess->emit_monotone = nullptr;
+  tess->boundary_corner_point = nullptr;
+  tess->emit_boundary = nullptr;
 
   tess->callBeginData= &glu_fastuidraw_gl_noBeginData;
   tess->callVertexData= &glu_fastuidraw_gl_noVertexData;
@@ -206,7 +206,10 @@ fastuidraw_gluNewTess_release( void )
   tess->callErrorData= &glu_fastuidraw_gl_noErrorData;
   tess->callCombineData= &glu_fastuidraw_gl_noCombineData;
 
-  tess->callWindingData= &glu_fastuidraw_gl_noWindingData;
+  tess->callWindingData= &noWindingData;
+  tess->emit_monotone_data = nullptr;
+  tess->boundary_corner_point_data = nullptr;
+  tess->emit_boundary_data = nullptr;
 
   tess->polygonData= nullptr;
 
@@ -295,23 +298,10 @@ fastuidraw_gluGetTessPropertyTolerance(fastuidraw_GLUtesselator *tess)
   return tess->relTolerance;
 }
 
-
-void REGALFASTUIDRAW_GLU_CALL
-fastuidraw_gluTessPropertyBoundaryOnly(fastuidraw_GLUtesselator *tess, int value)
-{
-  tess->boundaryOnly = (value != 0);
-}
-
-int REGALFASTUIDRAW_GLU_CALL
-fastuidraw_gluGetTessPropertyBoundaryOnly(fastuidraw_GLUtesselator *tess)
-{
-  return tess->boundaryOnly;
-}
-
 FASTUIDRAW_GLUboolean
 call_tess_winding_or_winding_data_implement(fastuidraw_GLUtesselator *tess, int a)
 {
-  if (tess->callWindingData != &glu_fastuidraw_gl_noWindingData)
+  if (tess->callWindingData != &noWindingData)
     return (*tess->callWindingData)(a, tess->polygonData);
    else
      return (*tess->callWinding)(a);
@@ -326,6 +316,9 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_END, fastu
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_ERROR, fastuidraw_glu_tess_function_error, Error)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_COMBINE, fastuidraw_glu_tess_function_combine, Combine)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK, fastuidraw_glu_tess_function_winding, FillRule)
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE, fastuidraw_glu_tess_function_emit_monotone, EmitMonotone)
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER, fastuidraw_glu_tess_function_boundary_corner_point, BoundaryCornerPoint)
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY, fastuidraw_glu_tess_function_emit_boundary, EmitBoundary);
 
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_BEGIN_DATA, fastuidraw_glu_tess_function_begin_data, Begin)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_VERTEX_DATA, fastuidraw_glu_tess_function_vertex_data, Vertex)
@@ -333,7 +326,9 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_END_DATA, 
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_ERROR_DATA, fastuidraw_glu_tess_function_error_data, Error)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_COMBINE_DATA, fastuidraw_glu_tess_function_combine_data, Combine)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA, fastuidraw_glu_tess_function_winding_data, FillRule)
-
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA, fastuidraw_glu_tess_function_emit_monotone_data, EmitMonotone)
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA, fastuidraw_glu_tess_function_boundary_corner_point_data, BoundaryCornerPoint)
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY_DATA, fastuidraw_glu_tess_function_emit_boundary_data, EmitBoundary);
 
 
 void REGALFASTUIDRAW_GLU_CALL
@@ -391,8 +386,32 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
     return;
 
   case FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA:
-    tess->callWindingData=(fn==nullptr)? &glu_fastuidraw_gl_noWindingData: (FASTUIDRAW_GLUboolean (REGALFASTUIDRAW_GLU_CALL *)(int, void*)) fn;
+    tess->callWindingData=(fn==nullptr)? &noWindingData: (FASTUIDRAW_GLUboolean (REGALFASTUIDRAW_GLU_CALL *)(int, void*)) fn;
     return;
+
+  case FASTUIDRAW_GLU_TESS_EMIT_MONOTONE:
+    tess->emit_monotone = (fastuidraw_glu_tess_function_emit_monotone)fn;
+    return;
+
+  case FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA:
+    tess->emit_monotone_data = (fastuidraw_glu_tess_function_emit_monotone_data)fn;
+    return;
+
+  case FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER:
+    tess->boundary_corner_point = (fastuidraw_glu_tess_function_boundary_corner_point)fn;
+    return;
+
+  case FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA:
+    tess->boundary_corner_point_data = (fastuidraw_glu_tess_function_boundary_corner_point_data)fn;
+    return;
+
+  case FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY:
+    tess->emit_boundary = (fastuidraw_glu_tess_function_emit_boundary)fn;
+    break;
+
+  case FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY_DATA:
+    tess->emit_boundary_data = (fastuidraw_glu_tess_function_emit_boundary_data)fn;
+    break;
 
   default:
     CALL_ERROR_OR_ERROR_DATA( FASTUIDRAW_GLU_INVALID_ENUM );
@@ -400,7 +419,7 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
   }
 }
 
-static int AddVertex( fastuidraw_GLUtesselator *tess, double x, double y, unsigned int data )
+static int AddVertex( fastuidraw_GLUtesselator *tess, double x, double y, unsigned int data)
 {
   GLUhalfEdge *e;
 
@@ -436,7 +455,6 @@ static int AddVertex( fastuidraw_GLUtesselator *tess, double x, double y, unsign
 
   return 1;
 }
-
 
 static void CacheVertex( fastuidraw_GLUtesselator *tess, double x, double y, unsigned int data )
 {
@@ -492,6 +510,7 @@ fastuidraw_gluTessVertex( fastuidraw_GLUtesselator *tess, double x, double y, un
 {
   int tooLarge = FALSE;
 
+  FASTUIDRAWassert(data != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
   RequireState( tess, T_IN_CONTOUR );
 
   if( tess->emptyCache ) {
@@ -537,6 +556,11 @@ fastuidraw_gluTessBeginPolygon( fastuidraw_GLUtesselator *tess, void *data )
   tess->mesh = nullptr;
 
   tess->polygonData= data;
+
+  if (CALL_TESS_WINDING_OR_WINDING_DATA(0) == FASTUIDRAW_GLU_TRUE) {
+    /* disable the cache if the winding 0 is to be picked up */
+    tess->mesh = glu_fastuidraw_gl_meshNewMesh();
+  }
 }
 
 
@@ -571,10 +595,95 @@ fastuidraw_gluTessEndContour( fastuidraw_GLUtesselator *tess )
   tess->state = T_IN_POLYGON;
 }
 
+static void
+glu_fastuidraw_gl_emitBoundaryOfMesh(int winding, fastuidraw_GLUtesselator *tess, GLUmesh *mesh )
+{
+  std::vector<unsigned int> vertex_ids;
+  GLUface *f, *next;
+  GLUhalfEdge *e;
+
+  for( f = mesh->fHead.next; f != &mesh->fHead; f = next ) {
+    next = f->next;
+    if( f->inside && !glu_fastuidraw_gl_excludeFace(f)) {
+      vertex_ids.clear();
+      e = f->anEdge;
+      do {
+        vertex_ids.push_back(e->Org->client_id );
+        e = e->Lnext;
+      } while( e != f->anEdge );
+
+      if(tess->emit_boundary_data) {
+        (*tess->emit_boundary_data)(winding, &vertex_ids[0], vertex_ids.size(), tess->polygonData);
+      } else if (tess->emit_boundary) {
+        (*tess->emit_boundary)(winding, &vertex_ids[0], vertex_ids.size());
+      }
+    }
+  }
+}
+
+static void
+glu_fastuidraw_gl_emitBoundaries( fastuidraw_GLUtesselator *tess, GLUmesh *mesh )
+{
+  /* compute the winding numbers */
+  std::set<int> winding_numbers;
+  GLUface *f;
+  int just_started;
+
+  for (f = mesh->fHead.next, just_started = 1; f != mesh->fHead.next || just_started; f = f->next) {
+    winding_numbers.insert(f->winding_number);
+    just_started = 0;
+  }
+
+  for(int w : winding_numbers) {
+    GLUmesh *m;
+
+    m = glu_fastuidraw_gl_copyMesh(mesh);
+    glu_fastuidraw_gl_meshKeepOnly(m, w);
+    glu_fastuidraw_gl_emitBoundaryOfMesh(w, tess, m);
+    glu_fastuidraw_gl_meshDeleteMesh(m);
+  }
+}
+
 void REGALFASTUIDRAW_GLU_CALL
 fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
 {
   GLUmesh *mesh;
+
+  RequireState( tess, T_IN_POLYGON );
+  if (CALL_TESS_WINDING_OR_WINDING_DATA(0) == TRUE && HAVE_BOUNDARY_CORNER_POINT) {
+    /* if user-space requests the 0 region is filled, we add two
+     * square contours one larger than the next, each larger than
+     * the bounding box and each going in opposite directions.
+     * The points on the outside contour get special marks so that
+     * any region that has them, is not reported back the client.
+     */
+
+    FASTUIDRAW_GLUboolean boundary_flags[4][2] = {
+      {FALSE, FALSE},
+      {FALSE, TRUE},
+      {TRUE, TRUE},
+      {TRUE, FALSE},
+    };
+
+    fastuidraw_gluTessBeginContour(tess, TRUE);
+    for (int i = 0; i < 4; ++i) {
+      double x, y;
+      unsigned int client_id;
+
+      CALL_BOUNDARY_CORNER_POINT(&x, &y, 0, boundary_flags[i][0], boundary_flags[i][1], &client_id);
+      AddVertex(tess, x, y, client_id);
+    }
+    fastuidraw_gluTessEndContour(tess);
+
+    fastuidraw_gluTessBeginContour(tess, TRUE);
+    for (int i = 3; i >= 0; --i) {
+      double x, y;
+
+      CALL_BOUNDARY_CORNER_POINT(&x, &y, 1, boundary_flags[i][0], boundary_flags[i][1], nullptr);
+      AddVertex(tess, x, y, FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    }
+    fastuidraw_gluTessEndContour(tess);
+  }
 
   if (setjmp(tess->env) != 0) {
      /* come back here if out of memory */
@@ -586,7 +695,7 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
   tess->state = T_DORMANT;
 
   if( tess->mesh == nullptr ) {
-    if( tess->callMesh == &noMesh ) {
+    if( tess->callMesh == &noMesh && CALL_TESS_WINDING_OR_WINDING_DATA(0) == FALSE) {
 
       /* Try some special code to make the easy cases go quickly
        * (eg. convex polygons).  This code does NOT handle multiple contours,
@@ -615,15 +724,18 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
   if( ! tess->fatalError ) {
     int rc = 1;
 
-    /* If the user wants only the boundary contours, we throw away all edges
-     * except those which separate the interior from the exterior.
-     * Otherwise we tessellate all the regions marked "inside".
+    /* Emit monotones BEFORE tessellating the interior because
+     *  that reduces all monotone regions to seperate triangles
      */
-    if( tess->boundaryOnly ) {
-      rc = glu_fastuidraw_gl_meshSetWindingNumber( mesh, 1, TRUE );
-    } else {
-      rc = glu_fastuidraw_gl_meshTessellateInterior( mesh );
+    if (tess->emit_monotone || tess->emit_monotone_data) {
+      glu_fastuidraw_gl_emitMonotones(tess, mesh);
     }
+
+    if (tess->emit_boundary || tess->emit_boundary_data) {
+      glu_fastuidraw_gl_emitBoundaries(tess, mesh);
+    }
+
+    rc = glu_fastuidraw_gl_meshTessellateInterior( mesh );
     if (rc == 0) longjmp(tess->env,1);  /* could've used a label */
 
     glu_fastuidraw_gl_meshCheckMesh( mesh );
@@ -634,11 +746,7 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
        || tess->callEndData != &glu_fastuidraw_gl_noEndData
        || tess->callVertexData != &glu_fastuidraw_gl_noVertexData )
     {
-      if( tess->boundaryOnly ) {
-        glu_fastuidraw_gl_renderBoundary( tess, mesh );  /* output boundary contours */
-      } else {
-        glu_fastuidraw_gl_renderMesh( tess, mesh );      /* output strips and fans */
-      }
+      glu_fastuidraw_gl_renderMesh( tess, mesh );      /* output strips and fans */
     }
     if( tess->callMesh != &noMesh ) {
 
@@ -655,6 +763,7 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
       return;
     }
   }
+
   glu_fastuidraw_gl_meshDeleteMesh( mesh );
   tess->polygonData= nullptr;
   tess->mesh = nullptr;

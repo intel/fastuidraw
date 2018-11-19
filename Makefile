@@ -8,17 +8,18 @@
 # this file, You can obtain one at
 # http://mozilla.org/MPL/2.0/.
 
-# if 1, build/install GL libs on install
-BUILD_GL ?= 1
+#Init TARGETLIST
+TARGETLIST := all
 
-# if 1, build/install GLES libs on install
-BUILD_GLES ?= 0
+#Init ENVIRONMENTALDESCRIPTIONS
+ENVIRONMENTALDESCRIPTIONS :=
 
 #install location
 INSTALL_LOCATION ?= /usr/local
+ENVIRONMENTALDESCRIPTIONS += "INSTALL_LOCATION: provides install location (default /usr/local)"
 
-#Init TARGETLIST
-TARGETLIST :=
+INSTALL_STATIC ?= 0
+ENVIRONMENTALDESCRIPTIONS += "INSTALL_STATIC: if 1, install static libraries (default 0). NOTE: if linking static libs, make sure one links in the entire archive (for example via the linker option --whole-archive (from g++ do -Wl,--whole-archive)"
 
 # Mark all intermediate files as secondary and precious
 .PRECIOUS:
@@ -35,30 +36,32 @@ targets:
 	@echo "=============================="
 	@printf "%s\n" $(TARGETLIST)
 	@echo
+	@echo "Environmental variables:"
 	@echo "=============================="
-	@echo
-	@echo "environmental variable BUILD_GL controls if GL backend is a target (1=yes, 0=no)"
-	@echo "environmental variable BUILD_GLES controls if GLES backend is a target (1=yes, 0=no)"
-	@echo "environmental variable INSTALL_LOCATION provides the install location"
+	@printf "%s\n" $(ENVIRONMENTALDESCRIPTIONS)
 	@echo
 .PHONY: targets
 
-include Makefile.settings.mk
-include Makefile.gl_backend.settings.mk
-include Makefile.functions.mk
+all:
+.PHONY: all
 
-include Makefile.base.pre.mk
-include Makefile.gl_backend.pre.mk
+include make/Makefile.settings.mk
+include make/Makefile.gl_backend.settings.mk
+include make/Makefile.functions.mk
 
-include Makefile.sources.mk
+include make/Makefile.base.pre.mk
+include make/Makefile.gl_backend.pre.mk
 
-include Makefile.base.lib.mk
-include Makefile.gl_backend.lib.mk
+include make/Makefile.sources.mk
 
-include Makefile.demo.sources.mk
-include Makefile.demo.rules.mk
+include make/Makefile.base.lib.mk
+include make/Makefile.egl.lib.mk
+include make/Makefile.gl_backend.lib.mk
 
-include Makefile.docs.mk
-include Makefile.install.mk
+include make/Makefile.demo.sources.mk
+include make/Makefile.demo.rules.mk
 
-include Makefile.clean.mk
+include make/Makefile.docs.mk
+include make/Makefile.install.mk
+
+include make/Makefile.clean.mk

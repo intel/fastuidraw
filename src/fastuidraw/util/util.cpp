@@ -25,36 +25,6 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/util.hpp>
 
-unsigned int
-fastuidraw::
-round_up_to_multiple(unsigned int v, unsigned int alignment)
-{
-  unsigned int modulas;
-
-  modulas = v % alignment;
-  if(modulas == 0)
-    {
-      return v;
-    }
-  else
-    {
-      return v + (alignment - modulas);
-    }
-}
-
-unsigned int
-fastuidraw::
-number_blocks(unsigned int alignment, unsigned int sz)
-{
-  unsigned int return_value;
-  return_value = sz / alignment;
-  if(return_value * alignment < sz)
-    {
-      ++return_value;
-    }
-  return return_value;
-}
-
 uint32_t
 fastuidraw::
 uint32_log2(uint32_t v)
@@ -71,7 +41,7 @@ uint32_t
 fastuidraw::
 number_bits_required(uint32_t v)
 {
-  if(v == 0)
+  if (v == 0)
     {
       return 0;
     }
@@ -99,7 +69,7 @@ uint64_t
 fastuidraw::
 uint64_number_bits_required(uint64_t v)
 {
-  if(v == 0)
+  if (v == 0)
     {
       return 0;
     }
@@ -113,24 +83,8 @@ uint64_number_bits_required(uint64_t v)
 
 void
 fastuidraw::
-assert_fail(const char *str, const char *file, int line)
+assert_fail(c_string str, c_string file, int line)
 {
   std::cerr << file << ":" << line << ": Assertion '" << str << "' failed\n";
   std::abort();
-}
-
-//////////////////////////////////////
-// fastuidraw::noncopyable methods
-fastuidraw::noncopyable::
-noncopyable(const noncopyable &)
-{
-  FASTUIDRAWassert(!"noncopyable copy ctor called!");
-}
-
-fastuidraw::noncopyable&
-fastuidraw::noncopyable::
-operator=(const noncopyable &)
-{
-  FASTUIDRAWassert(!"noncopyable assignment operator called!");
-  return *this;
 }

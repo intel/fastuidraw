@@ -344,16 +344,16 @@ void
 painter_cells::
 derived_init(int w, int h)
 {
-  m_table_params.m_wh = SkSize::Make(m_table_width.m_value, m_table_height.m_value);
-  m_table_params.m_cell_count = SkISize::Make(m_num_cells_x.m_value, m_num_cells_y.m_value);
+  m_table_params.m_wh = SkSize::Make(m_table_width.value(), m_table_height.value());
+  m_table_params.m_cell_count = SkISize::Make(m_num_cells_x.value(), m_num_cells_y.value());
   m_table_params.m_line_color = SkColorSetARGB(255, 255, 255, 255);
   m_table_params.m_cell_state = &m_cell_shared_state;
   m_table_params.m_zoomer = &m_zoomer;
-  m_table_params.m_draw_image_name = m_draw_image_name.m_value;
-  m_table_params.m_table_rotate_degrees_per_s = m_table_rotate_degrees_per_s.m_value;
-  m_table_params.m_timer_based_animation = (m_num_frames.m_value <= 0);
-  m_table_params.m_pixel_size = m_pixel_size.m_value;
-  m_table_params.m_font = SkTypeface::MakeFromFile(m_font.m_value.c_str());
+  m_table_params.m_draw_image_name = m_draw_image_name.value();
+  m_table_params.m_table_rotate_degrees_per_s = m_table_rotate_degrees_per_s.value();
+  m_table_params.m_timer_based_animation = (m_num_frames.value() <= 0);
+  m_table_params.m_pixel_size = m_pixel_size.value();
+  m_table_params.m_font = SkTypeface::MakeFromFile(m_font.value().c_str());
   m_table_params.m_texts.reserve(m_strings.size() + m_files.size());
   for(command_line_list::iterator iter = m_strings.begin(); iter != m_strings.end(); ++iter)
     {
@@ -370,32 +370,32 @@ derived_init(int w, int h)
       add_images(*iter, m_table_params.m_images);
     }
 
-  generate_random_colors(m_num_background_colors.m_value, m_table_params.m_background_colors,
-                         m_background_colors_opaque.m_value);
-  generate_random_colors(m_num_text_colors.m_value, m_table_params.m_text_colors,
-                         m_text_colors_opaque.m_value);
-  m_table_params.m_min_speed = SkPoint::Make(m_min_x_velocity.m_value, m_min_y_velocity.m_value);
-  m_table_params.m_max_speed = SkPoint::Make(m_max_x_velocity.m_value, m_max_y_velocity.m_value);
-  m_table_params.m_min_degrees_per_s = m_min_degree_per_second.m_value;
-  m_table_params.m_max_degrees_per_s = m_max_degree_per_second.m_value;
+  generate_random_colors(m_num_background_colors.value(), m_table_params.m_background_colors,
+                         m_background_colors_opaque.value());
+  generate_random_colors(m_num_text_colors.value(), m_table_params.m_text_colors,
+                         m_text_colors_opaque.value());
+  m_table_params.m_min_speed = SkPoint::Make(m_min_x_velocity.value(), m_min_y_velocity.value());
+  m_table_params.m_max_speed = SkPoint::Make(m_max_x_velocity.value(), m_max_y_velocity.value());
+  m_table_params.m_min_degrees_per_s = m_min_degree_per_second.value();
+  m_table_params.m_max_degrees_per_s = m_max_degree_per_second.value();
 
-  if(m_cell_group_size.m_value > 0)
+  if(m_cell_group_size.value() > 0)
     {
-      m_table_params.m_max_cell_group_size = m_cell_group_size.m_value;
+      m_table_params.m_max_cell_group_size = m_cell_group_size.value();
     }
   else
     {
-      m_table_params.m_max_cell_group_size = 2 * std::max(m_num_cells_x.m_value, m_num_cells_y.m_value);
+      m_table_params.m_max_cell_group_size = 2 * std::max(m_num_cells_x.value(), m_num_cells_y.value());
     }
 
   m_table = new Table(m_table_params);
-  m_table->m_clipped = m_init_table_clipped.m_value;
-  m_table->m_rotating = m_init_table_rotating.m_value;
-  m_cell_shared_state.m_draw_text = m_init_draw_text.m_value;
-  m_cell_shared_state.m_draw_image = m_init_draw_images.m_value;
-  m_cell_shared_state.m_rotating = m_init_cell_rotating.m_value;
-  m_cell_shared_state.m_path_paint.setStrokeWidth(SkScalar(m_init_stroke_width.m_value));
-  m_cell_shared_state.m_path_paint.setAntiAlias(m_init_anti_alias_stroking.m_value);
+  m_table->m_clipped = m_init_table_clipped.value();
+  m_table->m_rotating = m_init_table_rotating.value();
+  m_cell_shared_state.m_draw_text = m_init_draw_text.value();
+  m_cell_shared_state.m_draw_image = m_init_draw_images.value();
+  m_cell_shared_state.m_rotating = m_init_cell_rotating.value();
+  m_cell_shared_state.m_path_paint.setStrokeWidth(SkScalar(m_init_stroke_width.value()));
+  m_cell_shared_state.m_path_paint.setAntiAlias(m_init_anti_alias_stroking.value());
 
   /* init m_zoomer so that table contents fit into screen.
    */
@@ -407,7 +407,7 @@ derived_init(int w, int h)
   tr1.translation(SkPoint::Make(m_table_params.m_wh.width(), m_table_params.m_wh.height()) * SkScalar(-0.5));
   tr2.translation(SkPoint::Make(w, h) * SkScalar(0.5f));
 
-  if(m_init_show_all_table.m_value)
+  if(m_init_show_all_table.value())
     {
       ScaleTranslate sc;
       sc.scale(1.0f / std::max(twh.x(), twh.y()));
@@ -418,7 +418,7 @@ derived_init(int w, int h)
       m_zoomer.transformation(tr2 * tr1);
     }
 
-  m_text_brush.setTextSize(m_fps_pixel_size.m_value);
+  m_text_brush.setTextSize(m_fps_pixel_size.value());
   m_text_brush.setColor(SkColorSetARGB(255, 0, 255, 255));
   m_text_brush.setFlags(SkPaint::kAntiAlias_Flag | SkPaint::kSubpixelText_Flag);
   if(m_table_params.m_font.get() != NULL)
@@ -428,16 +428,16 @@ derived_init(int w, int h)
       m_table_params.m_font->getFamilyName(&familyName);
 
       std::cout << "Loaded font from \""
-                << m_font.m_value << "\" family = " << familyName.c_str()
+                << m_font.value() << "\" family = " << familyName.c_str()
                 << ", isBold = " << m_table_params.m_font->isBold()
                 << ", isItalic = " << m_table_params.m_font->isItalic()
                 << "\n";
     }
 
-  m_frame = -m_skip_frames.m_value;
-  if(m_num_frames.m_value > 0)
+  m_frame = -m_skip_frames.value();
+  if(m_num_frames.value() > 0)
     {
-      m_frame_times.reserve(m_num_frames.m_value);
+      m_frame_times.reserve(m_num_frames.value());
     }
 }
 
@@ -463,7 +463,7 @@ update_cts_params(void)
     {
       SkScalar w;
       w = m_cell_shared_state.m_path_paint.getStrokeWidth();
-      w += m_change_stroke_width_rate.m_value * speed / m_zoomer.transformation().scale();
+      w += m_change_stroke_width_rate.value() * speed / m_zoomer.transformation().scale();
       m_cell_shared_state.m_path_paint.setStrokeWidth(w);
     }
 
@@ -471,7 +471,7 @@ update_cts_params(void)
     {
       SkScalar w;
       w = m_cell_shared_state.m_path_paint.getStrokeWidth();
-      w -= m_change_stroke_width_rate.m_value  * speed / m_zoomer.transformation().scale();
+      w -= m_change_stroke_width_rate.value()  * speed / m_zoomer.transformation().scale();
       w = std::max(w, SkScalar(0));
       m_cell_shared_state.m_path_paint.setStrokeWidth(w);
     }
@@ -494,7 +494,7 @@ draw_frame(void)
       m_frame_times.push_back(us);
     }
 
-  if(m_num_frames.m_value > 0 && m_frame == m_num_frames.m_value)
+  if(m_num_frames.value() > 0 && m_frame == m_num_frames.value())
     {
       m_benchmark_time_us = m_benchmark_timer.elapsed_us();
       std::cout << "Frame times(in us):\n";
@@ -502,7 +502,7 @@ draw_frame(void)
         {
           std::cout << m_frame_times[i] << " us\n";
         }
-      std::cout << "Did " << m_num_frames.m_value << " frames in "
+      std::cout << "Did " << m_num_frames.value() << " frames in "
                 << m_benchmark_time_us << "us, average time = "
                 << static_cast<float>(m_benchmark_time_us) / static_cast<float>(m_frame)
                 << "us\n " << 1000.0f * 1000.0f * static_cast<float>(m_frame) / static_cast<float>(m_benchmark_time_us)

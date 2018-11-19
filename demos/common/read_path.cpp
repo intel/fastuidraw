@@ -13,6 +13,13 @@ namespace
       arc
     };
 
+  enum add_mode_t
+    {
+      add_mode,
+      add_reverse_mode,
+      add_no_mode,
+    };
+
   class edge
   {
   public:
@@ -51,6 +58,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
   bool adding_control_pts(false);
   std::list<outline> data;
   enum arc_mode_t arc_mode(not_arc);
+  enum add_mode_t mode(add_no_mode);
   fastuidraw::vec2 current_value;
   int current_slot(0);
 
@@ -61,29 +69,37 @@ read_path(fastuidraw::Path &path, const std::string &source)
     {
       std::string token;
       istr >> token;
-      if(!istr.fail())
+      if (!istr.fail())
         {
-          if(token == "]")
+          if (token == "]")
             {
-              /* we actually do not care, the marker "["
-                 is what starts a path, and thus what implicitely
-                 ends it.
-               */
+              if (mode == add_reverse_mode && !data.empty())
+                {
+                  std::reverse(data.back().begin(), data.back().end());
+                }
+              mode = add_no_mode;
             }
-          else if(token == "[")
+          else if (token == "[")
             {
+              mode = add_mode;
               adding_control_pts = false;
               data.push_back(outline());
             }
-          else if(token == "[[")
+          else if (token == "R[")
+            {
+              mode = add_reverse_mode;
+              adding_control_pts = false;
+              data.push_back(outline());
+            }
+          else if (token == "[[")
             {
               adding_control_pts = true;
             }
-          else if(token == "]]")
+          else if (token == "]]")
             {
               adding_control_pts = false;
             }
-          else if(token == "arc")
+          else if (token == "arc")
             {
               arc_mode = arc;
             }
@@ -94,9 +110,9 @@ read_path(fastuidraw::Path &path, const std::string &source)
               float number;
               std::istringstream token_istr(token);
               token_istr >> number;
-              if(!token_istr.fail())
+              if (!token_istr.fail())
                 {
-                  if(arc_mode != not_arc)
+                  if (arc_mode != not_arc)
                     {
                       data.back().back().m_angle = number;
                       data.back().back().m_arc_mode = arc_mode;
@@ -105,15 +121,15 @@ read_path(fastuidraw::Path &path, const std::string &source)
                   else
                     {
                       current_value[current_slot] = number;
-                      if(current_slot == 1)
+                      if (current_slot == 1)
                         {
                           /* just finished reading a vec2 */
                           current_slot = 0;
-                          if(!adding_control_pts)
+                          if (!adding_control_pts)
                             {
                               data.back().push_back(current_value);
                             }
-                          else if(!data.empty() && !data.back().empty())
+                          else if (!data.empty() && !data.back().empty())
                             {
                               data.back().back().m_control_pts.push_back(current_value);
                             }
@@ -136,7 +152,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
     {
       const outline &current_outline(*iter);
 
-      if(!current_outline.empty())
+      if (!current_outline.empty())
         {
           path << current_outline[0].m_pt;
           for(unsigned int i = 0; i + 1 < current_outline.size(); ++i)
@@ -144,7 +160,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
               const edge &current_edge(current_outline[i]);
               const edge &next_edge(current_outline[i+1]);
 
-              if(current_edge.m_arc_mode == not_arc)
+              if (current_edge.m_arc_mode == not_arc)
                 {
                   for(unsigned int c = 0; c < current_edge.m_control_pts.size(); ++c)
                     {
@@ -159,7 +175,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
             }
 
           const edge &current_edge(current_outline.back());
-          if(current_edge.m_arc_mode == not_arc)
+          if (current_edge.m_arc_mode == not_arc)
             {
               for(unsigned int c = 0; c < current_edge.m_control_pts.size(); ++c)
                 {

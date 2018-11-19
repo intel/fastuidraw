@@ -32,12 +32,12 @@ public:
 };
 
 /*!\class BufferGL
-  Wrapper over the GL buffer API providing ability to delay updates to
-  undlering buffer until flush().
-  \tparam binding_point GL binding point (ala glBindBuffer) to use for GL
-                        operations
-  \tparam usage GL usage parameter to pass to glBufferData when buffer
-                object is created
+ * Wrapper over the GL buffer API providing ability to delay updates to
+ * undlering buffer until flush().
+ * \tparam binding_point GL binding point (ala glBindBuffer) to use for GL
+ *                       operations
+ * \tparam usage GL usage parameter to pass to glBufferData when buffer
+ *               object is created
  */
 template<GLenum binding_point,
          GLenum usage>
@@ -51,7 +51,7 @@ public:
     m_buffer(0)
   {
     FASTUIDRAWassert(m_size > 0);
-    if(!m_delayed)
+    if (!m_delayed)
       {
         create_buffer();
       }
@@ -59,7 +59,7 @@ public:
 
   ~BufferGL()
   {
-    if(m_buffer != 0)
+    if (m_buffer != 0)
       {
         delete_buffer();
       }
@@ -75,10 +75,10 @@ public:
   }
 
   void
-  set_data(int offset, const_c_array<uint8_t> data)
+  set_data(int offset, c_array<const uint8_t> data)
   {
     FASTUIDRAWassert(!data.empty());
-    if(m_delayed)
+    if (m_delayed)
       {
         m_unflushed_commands.push_back(BufferGLEntryLocation());
         m_unflushed_commands.back().m_location = offset;
@@ -97,7 +97,7 @@ public:
   set_data_vector(int offset, std::vector<uint8_t> &data)
   {
     FASTUIDRAWassert(!data.empty());
-    if(m_delayed)
+    if (m_delayed)
       {
         m_unflushed_commands.push_back(BufferGLEntryLocation());
         m_unflushed_commands.back().m_location = offset;
@@ -113,19 +113,18 @@ public:
   flush(void)
   {
     flush_size_change();
-    if(m_buffer == 0)
+    if (m_buffer == 0)
       {
         create_buffer();
       }
 
-    if(!m_unflushed_commands.empty())
+    if (!m_unflushed_commands.empty())
       {
         glBindBuffer(binding_point, m_buffer);
-        for(typename std::list<BufferGLEntryLocation>::iterator iter = m_unflushed_commands.begin(),
-              end = m_unflushed_commands.end(); iter != end; ++iter)
+        for(BufferGLEntryLocation &B : m_unflushed_commands)
           {
-            FASTUIDRAWassert(!iter->m_data.empty());
-            glBufferSubData(binding_point, iter->m_location, iter->m_data.size(), &iter->m_data[0]);
+            FASTUIDRAWassert(!B.m_data.empty());
+            glBufferSubData(binding_point, B.m_location, B.m_data.size(), &B.m_data[0]);
           }
         m_unflushed_commands.clear();
       }
@@ -155,9 +154,9 @@ private:
   void
   flush_size_change(void)
   {
-    if(m_size != m_buffer_size)
+    if (m_size != m_buffer_size)
       {
-        if(m_buffer != 0)
+        if (m_buffer != 0)
           {
             GLuint old_buffer, prev_buffer(0);
             GLenum src_binding_point, src_binding_point_query;
@@ -166,15 +165,21 @@ private:
             m_buffer = 0;
             create_buffer();
 
-            if(binding_point != GL_COPY_READ_BUFFER)
+            /* The values of GL_COPY_READ/WRITE_BUFFER
+             * and GL_COPY_READ/WRITE_BUFFER_BINDING are
+             * the -same-. However, some GL headers (namely
+             * Apples OpenGL/gl3.h do not define the macro
+             * values with the _BINDING suffix.
+             */
+            if (binding_point != GL_COPY_READ_BUFFER)
               {
                 src_binding_point = GL_COPY_READ_BUFFER;
-                src_binding_point_query = GL_COPY_READ_BUFFER_BINDING;
+                src_binding_point_query = GL_COPY_READ_BUFFER;
               }
             else
               {
                 src_binding_point = GL_COPY_WRITE_BUFFER;
-                src_binding_point_query = GL_COPY_WRITE_BUFFER_BINDING;
+                src_binding_point_query = GL_COPY_WRITE_BUFFER;
               }
             prev_buffer = fastuidraw::gl::context_get<GLint>(src_binding_point_query);
             glBindBuffer(binding_point, m_buffer);

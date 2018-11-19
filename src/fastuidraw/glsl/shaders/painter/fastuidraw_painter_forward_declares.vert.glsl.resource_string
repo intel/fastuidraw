@@ -1,3 +1,22 @@
+/*!
+ * \file fastuidraw_painter_forward_declares.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_forward_declares.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
 /////////////////////////////////////////////////////
 // machine generated header from C++ sources
 uint
@@ -15,8 +34,9 @@ fastuidraw_read_clipping(in uint clipping_location, out fastuidraw_clipping_data
 void
 fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m);
 
-vec4
-fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z);
+void
+fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z,
+                           out vec2 brush_p, out vec3 out_clip_p);
 
 ///////////////////////////////////////////////////////////////////////
 // routines implemented in .glsl.resource_string files

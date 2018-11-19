@@ -27,98 +27,132 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterAttributeDataFillerGlyphs is for filling the data of a
-    PainterAttributeDataFiller for the purpose of drawing glyphs.
-
-    The enumeration glyph_type provide the indices into
-    PainterAttributeData::attribute_data_chunks() and
-    PainterAttributeData::index_data_chunks() for the different
-    glyph types. If a glyph is not uploaded to its GlyphCache and
-    failed to be uploaded to its GlyphCache, then filling will
-    only fill the PainterAttrributeData to the last glyph that
-    successfully uploaded to its GlyphCache. That value can be
-    queried by number_glyphs(). If all glyphs are uploaded or
-    successfully loaded, then number_glyphs() returns the number
-    glyph in the glyph run. Data for glyphs is packed as follows:
-      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
-      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
-      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
-      - PainterAttribute::m_attrib1 .z  -> 0 (free)
-      - PainterAttribute::m_attrib1 .w  -> 0 (free)
-      - PainterAttribute::m_attrib2 .x -> 0 (free)
-      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
-      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
-      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
+   * \brief
+   * A PainterAttributeDataFillerGlyphs is for filling the data of a
+   * PainterAttributeDataFiller for the purpose of drawing glyphs.
+   *
+   * The enumeration glyph_type provide the indices into
+   * PainterAttributeData::attribute_data_chunks() and
+   * PainterAttributeData::index_data_chunks() for the different
+   * glyph types. It is an error for any of the valid glyphs passed
+   * to not be uploaded to the GlyphAtlas.
+   * Data for glyphs is packed as follows:
+   *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates (float)
+   *   - PainterAttribute::m_attrib0 .zw -> the difference in item coordinates
+   *                                        between the bottom-left vertex position
+   *                                        and the top-right vertex position.
+   *   - PainterAttribute::m_attrib1 .x  -> Glyph::attribute()[0]
+   *   - PainterAttribute::m_attrib1 .y  -> Glyph::attribute()[1]
+   *   - PainterAttribute::m_attrib1. z  -> Glyph::attribute()[2]
+   *   - PainterAttribute::m_attrib1 .w  -> Glyph::attribute()[3]
+   *   - PainterAttribute::m_attrib2 .x  -> Glyph::attribute()[4]
+   *   - PainterAttribute::m_attrib2 .y  -> Glyph::attribute()[5]
+   *   - PainterAttribute::m_attrib2 .z  -> Glyph::attribute()[6]
+   *   - PainterAttribute::m_attrib2 .w  -> Glyph::attribute()[7]
    */
   class PainterAttributeDataFillerGlyphs:public PainterAttributeDataFiller
   {
   public:
     /*!
-      Ctor. The values behind the arrays passed are NOT copied. As such
-      the memory behind the arrays need to stay in scope for the duration
-      of the call to PainterAttributeData::set_data() when passed this.
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param scale_factors scale factors to apply to each glyph, must be either
-                           empty (indicating no scaling factors) or the exact
-                           same length as glyph_positions
-      \param orientation orientation of drawing
+     * Ctor. The values behind the arrays passed are NOT copied. As such
+     * the memory behind the arrays need to stay in scope for the duration
+     * of the call to PainterAttributeData::set_data() when passed this.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param scale_factors scale factors to apply to each glyph, must be either
+     *                      empty (indicating no scaling factors) or the exact
+     *                      same length as glyph_positions
+     * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
      */
-    PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                     const_c_array<Glyph> glyphs,
-                                     const_c_array<float> scale_factors,
-                                     enum PainterEnums::glyph_orientation orientation
-                                     = PainterEnums::y_increases_downwards);
+    PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                     c_array<const Glyph> glyphs,
+                                     c_array<const float> scale_factors,
+                                     enum PainterEnums::screen_orientation orientation,
+                                     enum PainterEnums::glyph_layout_type layout
+                                     = PainterEnums::glyph_layout_horizontal);
 
     /*!
-      Ctor. The values behind the arrays passed are NOT copied. As such
-      the memory behind the arrays need to stay in scope for the duration
-      of the call to PainterAttributeData::set_data() when passed this.
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param render_pixel_size pixel size to which to scale the glyphs
-      \param orientation orientation of drawing
+     * Ctor. The values behind the arrays passed are NOT copied. As such
+     * the memory behind the arrays need to stay in scope for the duration
+     * of the call to PainterAttributeData::set_data() when passed this.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param render_pixel_size pixel size to which to scale the glyphs
+     * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
      */
-    PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                     const_c_array<Glyph> glyphs,
+    PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                     c_array<const Glyph> glyphs,
                                      float render_pixel_size,
-                                     enum PainterEnums::glyph_orientation orientation
-                                     = PainterEnums::y_increases_downwards);
+                                     enum PainterEnums::screen_orientation orientation,
+                                     enum PainterEnums::glyph_layout_type layout
+                                     = PainterEnums::glyph_layout_horizontal);
 
     /*!
-      Ctor. The values behind the arrays passed are NOT copied. As such
-      the memory behind the arrays need to stay in scope for the duration
-      of the call to PainterAttributeData::set_data() when passed this.
-      When filling the data, the glyphs are not scaled.
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param orientation orientation of drawing
+     * Ctor. The values behind the arrays passed are NOT copied. As such
+     * the memory behind the arrays need to stay in scope for the duration
+     * of the call to PainterAttributeData::set_data() when passed this.
+     * When filling the data, the glyphs are not scaled.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
      */
-    PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                     const_c_array<Glyph> glyphs,
-                                     enum PainterEnums::glyph_orientation orientation
-                                     = PainterEnums::y_increases_downwards);
+    PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                     c_array<const Glyph> glyphs,
+                                     enum PainterEnums::screen_orientation orientation,
+                                     enum PainterEnums::glyph_layout_type layout
+                                     = PainterEnums::glyph_layout_horizontal);
 
     ~PainterAttributeDataFillerGlyphs();
 
     /*!
-      After calling PainterAttributeData::set_data() with this object,
-      returns the number of glyphs of the glyph runs set at the ctor
-      that are in the filled PainterAttributeData. The filling by
-      a PainterAttributeDataFillerGlyphs stops as soon as a glyph
-      is not and cannot be uploaded to its GlyphCache. If all glyphs
-      are or can be uploaded to their GlyphCache, returns the
-      length of the glyph array passed to the ctor, otherwise returns
-      the index into the glyph array of the first glyph that cannot
-      be uploaded to its GlyphCache.
+     * Utility function to return the number of indices and attributes
+     * that are needed to realize a sequence of Glyphs with the
+     * requirement that each valid \ref Glyph has the same value
+     * for Glyph::type().
+     * \param glyphs sequence of glyps to query
+     * \param[out] out_number_attributes number of indices needed
+     * \param[out] out_number_indices number of attributes needed
+     * \returns routine_success if all value \ref Glyph values are
+     *          the same renderer type and \ref routine_fail if they
+     *          are not. For returning \ref routine_fail both output
+     *          values will beset to zero.
      */
-    unsigned int
-    number_glyphs(void) const;
+    static
+    enum return_code
+    compute_number_attributes_indices_needed(c_array<const Glyph> glyphs,
+					     unsigned int *out_number_attributes,
+					     unsigned int *out_number_indices);
+
+    /*!
+     * Utility function to pack a sequence of \ref Glyph values with
+     * each valid glyph having the same value for Glyph::type().
+     * Will return \ref routine_fail if either of the arrays to
+     * write to is not large enough or there are two (or more)
+     * valid \ref Glyph values for which Glyph::type() is different.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param render_pixel_size pixel size to which to scale the glyphs
+     * \param orientation orientation of drawing
+     * \param layout if glyph positions are for horizontal or vertical layout
+     * \param[out] dst_attribs location to which to write attribute data
+     * \param[out] dst_indices location to which to write index data
+     */
+    static
+    enum return_code
+    pack_attributes_indices(c_array<const vec2> glyph_positions,
+			    c_array<const Glyph> glyphs,
+			    float render_pixel_size,
+			    enum PainterEnums::screen_orientation orientation,
+			    enum PainterEnums::glyph_layout_type layout,
+			    c_array<PainterAttribute> dst_attribs,
+			    c_array<PainterIndex> dst_indices);
 
     virtual
     void
@@ -131,8 +165,8 @@ namespace fastuidraw
     void
     fill_data(c_array<PainterAttribute> attributes,
               c_array<PainterIndex> indices,
-              c_array<const_c_array<PainterAttribute> > attrib_chunks,
-              c_array<const_c_array<PainterIndex> > index_chunks,
+              c_array<c_array<const PainterAttribute> > attrib_chunks,
+              c_array<c_array<const PainterIndex> > index_chunks,
               c_array<range_type<int> > zranges,
               c_array<int> index_adjusts) const;
 

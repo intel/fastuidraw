@@ -85,13 +85,13 @@ clear(void)
   d->m_values.clear();
 }
 
-fastuidraw::const_c_array<fastuidraw::ColorStop>
+fastuidraw::c_array<const fastuidraw::ColorStop>
 fastuidraw::ColorStopSequence::
 values(void) const
 {
   ColorStopSequencePrivate *d;
   d = static_cast<ColorStopSequencePrivate*>(m_d);
-  if(d->m_dirty)
+  if (d->m_dirty)
     {
       d->m_dirty = false;
       std::stable_sort(d->m_values.begin(), d->m_values.end());

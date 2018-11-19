@@ -13,9 +13,16 @@
 class PanZoomTracker
 {
 public:
+  enum zoom_direction_t
+    {
+      zoom_direction_negative_y,
+      zoom_direction_positive_y
+    };
+
   PanZoomTracker(int32_t zoom_gesture_begin_time_ms=500,
                  float zoom_divider=40.0f):
     m_scale_zooming(1.0f),
+    m_zoom_direction(zoom_direction_positive_y),
     m_zoom_gesture_begin_time(zoom_gesture_begin_time_ms),
     m_zoom_divider(zoom_divider),
     m_is_zooming(false),
@@ -54,10 +61,12 @@ public:
   void
   handle_up(void);
 
-  /*!\var
+  /*!
     Scale zooming factor
    */
   float m_scale_zooming;
+
+  enum zoom_direction_t m_zoom_direction;
 
 private:
 

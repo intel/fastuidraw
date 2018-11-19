@@ -11,9 +11,9 @@ precision highp usampler2DArray;
 
 in vec2 pos;
 in vec2 image_shader_coord;
-flat in int index_layer;
+flat in uint index_layer;
 out vec4 frag;
-flat in int image_num_lookups;
+flat in uint image_num_lookups;
 
 uniform sampler2DArray imageAtlas;
 uniform usampler2DArray indexAtlas;
@@ -21,27 +21,27 @@ uniform vec3 imageAtlasDims;
 
 uniform float color_boundary_mix;
 uniform float color_tile_size;
-uniform int image_slack;
-uniform int uniform_image_num_lookups;
+uniform uint image_slack;
+uniform uint uniform_image_num_lookups;
 
 uniform float filtered_lookup;
 
-uniform float index_boundary_mix[MAX_IMAGE_NUM_LOOKUPS + 1];
+uniform float index_boundary_mix[MAX_IMAGE_NUM_LOOKUPS + 1u];
 uniform float index_tile_size;
 
 void
 compute_atlas_coord(in vec2 image_shader_coord,
-                    in int index_layer,
-                    in int num_lookups,
-                    in int slack,
+                    in uint index_layer,
+                    in uint num_lookups,
+                    in uint slack,
                     out vec2 image_atlas_coord,
-                    out int image_atlas_layer);
+                    out uint image_atlas_layer);
 
 
 void main()
 {
   vec2 image_atlas_coord;
-  int image_atlas_layer;
+  uint image_atlas_layer;
   vec2 texcoord;
 
 
@@ -53,7 +53,7 @@ void main()
                       image_atlas_layer);
 
 
-  if(filtered_lookup < 0.5)
+  if (filtered_lookup < 0.5)
     {
       frag = texelFetch(imageAtlas, ivec3(image_atlas_coord, image_atlas_layer), 0);
     }
@@ -65,16 +65,16 @@ void main()
       frag = texture(imageAtlas, vv);
     }
 
-  if(detect_boundary(pos, color_tile_size))
+  if (detect_boundary(pos, color_tile_size))
     {
       frag = mix(frag, vec4(0.0, 1.0, 1.0, 1.0), color_boundary_mix);
     }
 
   vec2 current;
   current = image_shader_coord;
-  for(int i = 0; i < image_num_lookups; ++i)
+  for(uint i = 0u; i < image_num_lookups; ++i)
     {
-      if(detect_boundary(current, index_tile_size))
+      if (detect_boundary(current, uint(index_tile_size)))
         {
           frag = mix(frag, vec4(1.0, 0.0, 0.0, 1.0), index_boundary_mix[i]);
         }

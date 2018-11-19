@@ -1,5 +1,6 @@
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include <cstdlib>
 #include "sdl_demo.hpp"
 #include "colorstop_command_line.hpp"
@@ -42,27 +43,27 @@ public:
 
   ~gradient_test()
   {
-    if(m_vao != 0)
+    if (m_vao != 0)
       {
         glDeleteVertexArrays(1, &m_vao);
       }
 
-    if(m_bo != 0)
+    if (m_bo != 0)
       {
         glDeleteBuffers(1, &m_bo);
       }
 
-    if(m_ibo != 0)
+    if (m_ibo != 0)
       {
         glDeleteBuffers(1, &m_ibo);
       }
 
-    if(m_pts_bo != 0)
+    if (m_pts_bo != 0)
       {
         glDeleteBuffers(1, &m_pts_bo);
       }
 
-    if(m_pts_vao != 0)
+    if (m_pts_vao != 0)
       {
         glDeleteVertexArrays(1, &m_pts_vao);
       }
@@ -101,7 +102,7 @@ protected:
     }
 
 
-    if(m_draw_gradient_points)
+    if (m_draw_gradient_points)
       {
         float width(20.0f);
 
@@ -139,7 +140,7 @@ protected:
     switch(ev.type)
       {
       case SDL_WINDOWEVENT:
-        if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+        if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
           {
             glViewport(0, 0, ev.window.data1, ev.window.data2);
           }
@@ -158,7 +159,7 @@ protected:
 
           case SDLK_n:
             ++m_active_color_stop;
-            if(m_active_color_stop >= m_color_stops.size())
+            if (m_active_color_stop >= m_color_stops.size())
               {
                 m_active_color_stop = 0;
               }
@@ -185,11 +186,11 @@ protected:
           ivec2 c(ev.motion.x + ev.motion.xrel,
                   ev.motion.y + ev.motion.yrel);
 
-          if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT))
+          if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT))
             {
               m_p0 = get_normalized_device_coords(c);
             }
-          else if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
+          else if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
             {
               m_p1 = get_normalized_device_coords(c);
             }
@@ -199,11 +200,11 @@ protected:
       case SDL_MOUSEBUTTONDOWN:
         {
           ivec2 c(ev.button.x, ev.button.y);
-          if(ev.button.button == SDL_BUTTON_LEFT)
+          if (ev.button.button == SDL_BUTTON_LEFT)
             {
               m_p0 = get_normalized_device_coords(c);
             }
-          else if(ev.button.button == SDL_BUTTON_RIGHT)
+          else if (ev.button.button == SDL_BUTTON_RIGHT)
             {
               m_p1 = get_normalized_device_coords(c);
             }
@@ -230,16 +231,26 @@ private:
   create_colorstops_and_atlas(void)
   {
     gl::ColorStopAtlasGL::params params;
+    int max_layers(0);
+
+    max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+    if (max_layers < m_color_stop_atlas_layers.value())
+      {
+        std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
+                  << ") atlas_layers set to that value.\n";
+        m_color_stop_atlas_layers.value() = max_layers;
+      }
+
     params
-      .width(m_color_stop_atlas_width.m_value)
-      .num_layers(m_color_stop_atlas_layers.m_value)
+      .width(m_color_stop_atlas_width.value())
+      .num_layers(m_color_stop_atlas_layers.value())
       .delayed(false);
 
     m_atlas = FASTUIDRAWnew gl::ColorStopAtlasGL(params);
 
-    if(m_color_stop_args.m_values.empty())
+    if (m_color_stop_args.values().empty())
       {
-        const_c_array<ColorStop> src;
+        c_array<const ColorStop> src;
 
         m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(255, 255, 255, 255), 0.00f));
         m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(0,     0, 255, 255), 0.25f));
@@ -267,18 +278,18 @@ private:
       }
 
 
-    for(colorstop_data_hoard::iterator
-          iter = m_color_stop_args.m_values.begin(),
-          end = m_color_stop_args.m_values.end();
+    for(colorstop_data_hoard::const_iterator
+          iter = m_color_stop_args.values().begin(),
+          end = m_color_stop_args.values().end();
         iter != end; ++iter)
       {
         reference_counted_ptr<ColorStopSequenceOnAtlas> h;
         reference_counted_ptr<ColorStopSequenceOnAtlas> temp1, temp2;
 
-        if(m_stress.m_value)
+        if (m_stress.value())
           {
             int sz1, sz2;
-            sz1 = std::max(1, m_color_stop_atlas_width.m_value / 2);
+            sz1 = std::max(1, m_color_stop_atlas_width.value() / 2);
             sz2 = std::max(1, sz1 / 2);
             temp1 = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops, m_atlas, sz1);
             temp2 = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops,  m_atlas, sz2);

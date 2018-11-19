@@ -22,8 +22,8 @@ public:
   vec2 m_wh;
   ivec2 m_cell_count;
   reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<GlyphCache> m_glyph_cache;
   reference_counted_ptr<const FontBase> m_font;
-  GlyphRender m_text_render;
   float m_pixel_size;
   bool m_draw_image_name;
   int m_max_cell_group_size;
@@ -33,8 +33,11 @@ public:
   vec4 m_line_color;
   std::vector<vec4> m_text_colors;
   std::vector<vec4> m_background_colors;
+  std::vector<vec4> m_rect_colors;
   std::vector<std::string> m_texts;
   std::vector<named_image> m_images;
+  enum PainterBrush::image_filter m_image_filter;
+  unsigned int m_image_mipmap_level;
   vec2 m_min_speed, m_max_speed;
   float m_min_degrees_per_s, m_max_degrees_per_s;
   CellSharedState *m_cell_state;

@@ -57,20 +57,20 @@ draw_scene(bool with_clipping)
 
   /* set clipping to screen center
    */
-  if(with_clipping)
+  if (with_clipping)
     {
-      m_painter->clipInRect(vec2(wh.x(), wh.y()) * 0.25f, vec2(wh.x(), wh.y()) * 0.5f);
+      m_painter->clip_in_rect(vec2(wh.x(), wh.y()) * 0.25f, vec2(wh.x(), wh.y()) * 0.5f);
     }
 
   /* draw a green quad over the clipped region
    */
   PainterBrush brush;
   brush.pen(0.0f, 1.0f, 0.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(0.0f, 0.0f), vec2(wh.x(), wh.y()), false);
+  m_painter->draw_rect(PainterData(&brush), vec2(0.0f, 0.0f), vec2(wh.x(), wh.y()));
 
   /* draw half size.
    */
-  if(m_use_matrices)
+  if (m_use_matrices)
     {
       ScaleTranslate<float> sc(0.5f);
       m_painter->concat(sc.matrix3());
@@ -82,7 +82,7 @@ draw_scene(bool with_clipping)
 
   /* move (0,0) to wh*0.5
    */
-  if(m_use_matrices)
+  if (m_use_matrices)
     {
       ScaleTranslate<float> sc(vec2(wh) * 0.5f);
       m_painter->concat(sc.matrix3());
@@ -94,15 +94,15 @@ draw_scene(bool with_clipping)
 
   /* clip again
    */
-  if(with_clipping)
+  if (with_clipping)
     {
-      m_painter->clipInRect(vec2(wh) * 0.125f, vec2(wh) * 0.25f);
+      m_painter->clip_in_rect(vec2(wh) * 0.125f, vec2(wh) * 0.25f);
     }
 
   /* draw a blue quad
    */
   brush.pen(0.0f, 0.0f, 1.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(wh) * 0.0f, vec2(wh) * 0.5f, false);
+  m_painter->draw_rect(PainterData(&brush), vec2(wh) * 0.0f, vec2(wh) * 0.5f);
 
   /* rotate by 30 degrees
    */
@@ -111,33 +111,28 @@ draw_scene(bool with_clipping)
   m_painter->translate(vec2(wh) * r);
   m_painter->rotate(30.0f * float(M_PI) / 180.0f);
   brush.pen(1.0f, 1.0f, 1.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(wh) * r * 0.25f, vec2(wh), false);
+  m_painter->draw_rect(PainterData(&brush), vec2(wh) * r * 0.25f, vec2(wh));
 }
 
 void
 painter_clip_test::
 draw_frame(void)
 {
-
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  m_painter->begin();
-
-  ivec2 wh(dimensions());
-  float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0)), m;
-  m = proj * m_zoomer.transformation().matrix3();
-  m_painter->transformation(m);
+  m_painter->begin(m_surface, Painter::y_increases_downwards);
+  m_zoomer.transformation().concat_to_painter(m_painter);
 
   m_painter->save();
   draw_scene(true);
   m_painter->restore();
-  if(m_draw_overlay)
+  if (m_draw_overlay)
     {
       draw_scene(false);
     }
 
   m_painter->end();
-
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  m_surface->blit_surface(GL_NEAREST);
 }
 
 void

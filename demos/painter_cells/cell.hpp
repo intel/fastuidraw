@@ -22,7 +22,9 @@ public:
     m_stroke_width(10.0f),
     m_pause(false),
     m_anti_alias_stroking(true),
-    m_cells_drawn(0)
+    m_cells_drawn(0),
+    m_rect_composite_mode(Painter::composite_porter_duff_src_over),
+    m_rect_blend_mode(Painter::blend_w3c_normal)
   {}
 
   bool m_draw_text;
@@ -34,12 +36,15 @@ public:
   bool m_anti_alias_stroking;
 
   int m_cells_drawn;
+  enum Painter::composite_mode_t m_rect_composite_mode;
+  enum Painter::blend_w3c_mode_t m_rect_blend_mode;
 };
 
 class CellParams
 {
 public:
   reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<GlyphCache> m_glyph_cache;
   reference_counted_ptr<const FontBase> m_font;
   PainterPackedValue<PainterBrush> m_background_brush;
   PainterPackedValue<PainterBrush> m_image_brush;
@@ -49,7 +54,6 @@ public:
   std::string m_image_name;
   vec2 m_pixels_per_ms;
   int m_degrees_per_s;
-  GlyphRender m_text_render;
   float m_pixel_size;
   vec2 m_size;
   ivec2 m_table_pos;
@@ -92,7 +96,7 @@ private:
 
   vec2 m_item_location;
   float m_item_rotation;
-  PainterAttributeData m_text;
+  GlyphSequence m_text;
   CellSharedState *m_shared_state;
   bool m_timer_based_animation;
 };

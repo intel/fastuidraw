@@ -28,57 +28,57 @@ namespace fastuidraw {
 namespace gl {
 
 /*!\addtogroup GLUtility
-  @{
+ * @{
  */
 
 
 /*!
-  Overloaded C++ version of glGet* family
-  of functions in GL. Equivalent to
-  glGetInteger(v, ptr).
-  \param v GL enumeration to fetch
-  \param ptr address to which to write values
+ * Overloaded C++ version of glGet* family
+ * of functions in GL. Equivalent to
+ * glGetInteger(v, ptr).
+ * \param v GL enumeration to fetch
+ * \param ptr address to which to write values
  */
 void
 context_get(GLenum v, GLint *ptr);
 
 /*!
-  Overloaded C++ version of glGet* family
-  of functions in GL. Equivalent to
-  glGetBooleanv(v, ptr).
-  \param v GL enumeration to fetch
-  \param ptr address to which to write values
+ * Overloaded C++ version of glGet* family
+ * of functions in GL. Equivalent to
+ * glGetBooleanv(v, ptr).
+ * \param v GL enumeration to fetch
+ * \param ptr address to which to write values
  */
 void
 context_get(GLenum v, GLboolean *ptr);
 
 /*!
-  Overloaded C++ version of glGet* family
-  of functions in GL. Equivalent to
-  glGetBooleanv(v, ptr).
-  \param v GL enumeration to fetch
-  \param ptr address to which to write values
+ * Overloaded C++ version of glGet* family
+ * of functions in GL. Equivalent to
+ * glGetBooleanv(v, ptr).
+ * \param v GL enumeration to fetch
+ * \param ptr address to which to write values
  */
 void
 context_get(GLenum v, bool *ptr);
 
 /*!
-  Overloaded C++ version of glGet* family
-  of functions in GL. Equivalent to
-  glGetFloatv(v, ptr).
-  \param v GL enumeration to fetch
-  \param ptr address to which to write values
+ * Overloaded C++ version of glGet* family
+ * of functions in GL. Equivalent to
+ * glGetFloatv(v, ptr).
+ * \param v GL enumeration to fetch
+ * \param ptr address to which to write values
  */
 void
 context_get(GLenum v, GLfloat *ptr);
 
 /*!
-  Overloaded C++ version of glGet* family
-  of functions in GL, accepting the address
-  of a vecN, by rules of template recursion,
-  can take vecN's of other types.
-  \param v GL enumeration to fetch
-  \param p address to which to write values
+ * Overloaded C++ version of glGet* family
+ * of functions in GL, accepting the address
+ * of a vecN, by rules of template recursion,
+ * can take vecN's of other types.
+ * \param v GL enumeration to fetch
+ * \param p address to which to write values
  */
 template<typename T, size_t N>
 void
@@ -89,10 +89,12 @@ context_get(GLenum v, vecN<T,N> *p)
 
 
 /*!
-  Overloaded C++ version of glGet* family
-  of functions in GL. The template parameter
-  determines what glGet function is called.
-  \param value GL enumeration to fetch
+ * Overloaded C++ version of glGet* family of functions in GL. The
+ * template parameter determines what glGet function is called.
+ * The return value is initialized as 0 before calling glGet(),
+ * thus if the GL implementation does not support that enum, the
+ * return value is 0.
+ * \param value GL enumeration to fetch
  */
 template<typename T>
 T

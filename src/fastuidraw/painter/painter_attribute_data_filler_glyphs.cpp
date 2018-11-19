@@ -25,117 +25,140 @@
 namespace
 {
   inline
-  uint32_t
-  filter_atlas_layer(int layer)
-  {
-    FASTUIDRAWassert(layer >= -1);
-    return (layer != -1) ? static_cast<uint32_t>(layer) : ~0u;
-  }
-
-  inline
   void
   pack_glyph_indices(fastuidraw::c_array<fastuidraw::PainterIndex> dst, unsigned int aa)
   {
     FASTUIDRAWassert(dst.size() == 6);
-    dst[0] = aa;
-    dst[1] = aa + 1;
-    dst[2] = aa + 2;
-    dst[3] = aa;
-    dst[4] = aa + 2;
-    dst[5] = aa + 3;
+    dst[0] = aa + fastuidraw::GlyphAttribute::bottom_left_corner;
+    dst[1] = aa + fastuidraw::GlyphAttribute::bottom_right_corner;
+    dst[2] = aa + fastuidraw::GlyphAttribute::top_right_corner;
+    dst[3] = aa + fastuidraw::GlyphAttribute::bottom_left_corner;
+    dst[4] = aa + fastuidraw::GlyphAttribute::top_left_corner;
+    dst[5] = aa + fastuidraw::GlyphAttribute::top_right_corner;
+  }
+
+  inline
+  fastuidraw::vec2
+  glyph_position(fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
+                 unsigned int corner_enum)
+  {
+    fastuidraw::vec2 v;
+
+    v.x() = (corner_enum & fastuidraw::GlyphAttribute::right_corner_mask) ? p_tr.x() : p_bl.x();
+    v.y() = (corner_enum & fastuidraw::GlyphAttribute::top_corner_mask)   ? p_tr.y() : p_bl.y();
+    return v;
+  }
+
+  uint32_t
+  pack_single_attribute(unsigned int src,
+                        fastuidraw::c_array<const fastuidraw::GlyphAttribute> a,
+                        unsigned int corner_enum)
+  {
+    if (a.size() > src)
+      {
+        return a[src].m_data[corner_enum];
+      }
+    else
+      {
+        return 0u;
+      }
   }
 
   inline
   void
-  pack_glyph_attributes(enum fastuidraw::PainterEnums::glyph_orientation orientation,
+  pack_glyph_attribute(fastuidraw::PainterAttribute *dst, unsigned int corner_enum,
+                       fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
+                       fastuidraw::c_array<const fastuidraw::GlyphAttribute> glyph_attribs)
+  {
+    fastuidraw::vec2 p(glyph_position(p_bl, p_tr, corner_enum));
+    fastuidraw::vec2 wh;
+    unsigned int srcI, dstI;
+
+    wh = (p_tr - p_bl);
+
+    dst->m_attrib0.x() = fastuidraw::pack_float(p.x());
+    dst->m_attrib0.y() = fastuidraw::pack_float(p.y());
+    dst->m_attrib0.z() = fastuidraw::pack_float(wh.x());
+    dst->m_attrib0.w() = fastuidraw::pack_float(wh.y());
+
+    for (srcI = 0, dstI = 0; dstI < 4; ++dstI, ++srcI)
+      {
+        dst->m_attrib1[dstI] = pack_single_attribute(srcI, glyph_attribs, corner_enum);
+      }
+
+    for (dstI = 0; dstI < 4; ++dstI, ++srcI)
+      {
+        dst->m_attrib2[dstI] = pack_single_attribute(srcI, glyph_attribs, corner_enum);
+      }
+  }
+
+  inline
+  void
+  pack_glyph_attributes(enum fastuidraw::PainterEnums::screen_orientation orientation,
+                        enum fastuidraw::PainterEnums::glyph_layout_type layout,
                         fastuidraw::vec2 p, fastuidraw::Glyph glyph, float SCALE,
                         fastuidraw::c_array<fastuidraw::PainterAttribute> dst)
   {
     FASTUIDRAWassert(glyph.valid());
 
-    fastuidraw::GlyphLocation atlas(glyph.atlas_location());
-    fastuidraw::GlyphLocation secondary_atlas(glyph.secondary_atlas_location());
-    fastuidraw::uvec4 uint_values;
-    fastuidraw::vec2 tex_size(atlas.size());
-    fastuidraw::vec2 tex_xy(atlas.location());
-    fastuidraw::vec2 secondary_tex_xy(secondary_atlas.location());
-    fastuidraw::vec2 t_bl(tex_xy), t_tr(t_bl + tex_size);
-    fastuidraw::vec2 t2_bl(secondary_tex_xy), t2_tr(t2_bl + tex_size);
-    fastuidraw::vec2 glyph_size(SCALE * glyph.layout().m_size);
+    fastuidraw::c_array<const fastuidraw::GlyphAttribute> glyph_attributes(glyph.attributes());
+    fastuidraw::vec2 glyph_size(SCALE * glyph.render_size());
     fastuidraw::vec2 p_bl, p_tr;
+    fastuidraw::vec2 layout_offset;
 
-    /* ISSUE: we are assuming horizontal layout; we should probably
-       change the inteface so that caller chooses how to adjust
-       positions with the choices:
-         adjust_using_horizontal,
-         adjust_using_vertical,
-         no_adjust
-     */
-    if(orientation == fastuidraw::PainterEnums::y_increases_downwards)
+    layout_offset = (layout == fastuidraw::PainterEnums::glyph_layout_horizontal) ?
+      glyph.metrics().horizontal_layout_offset() :
+      glyph.metrics().vertical_layout_offset();
+
+    if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
-        p_bl.x() = p.x() + SCALE * glyph.layout().m_horizontal_layout_offset.x();
+        p_bl.x() = p.x() + SCALE * layout_offset.x();
         p_tr.x() = p_bl.x() + glyph_size.x();
 
-        p_bl.y() = p.y() - SCALE * glyph.layout().m_horizontal_layout_offset.y();
+        p_bl.y() = p.y() - SCALE * layout_offset.y();
         p_tr.y() = p_bl.y() - glyph_size.y();
       }
     else
       {
-        p_bl = p + SCALE * glyph.layout().m_horizontal_layout_offset;
+        p_bl = p + SCALE * layout_offset;
         p_tr = p_bl + glyph_size;
       }
 
-    /* secondary_atlas.layer() can be -1 to indicate that
-       the glyph does not have secondary atlas, when changed
-       to an unsigned value it is ungood, to compensate we
-       will "do something".
-     */
-    uint_values.x() = 0u;
-    uint_values.y() = glyph.geometry_offset();
-    uint_values.z() = filter_atlas_layer(atlas.layer());
-    uint_values.w() = filter_atlas_layer(secondary_atlas.layer());
-
-    dst[0].m_attrib0 = fastuidraw::pack_vec4(t_bl.x(), t_bl.y(), t2_bl.x(), t2_bl.y());
-    dst[0].m_attrib1 = fastuidraw::pack_vec4(p_bl.x(), p_bl.y(), 0.0f, 0.0f);
-    dst[0].m_attrib2 = uint_values;
-
-    dst[1].m_attrib0 = fastuidraw::pack_vec4(t_tr.x(), t_bl.y(), t2_tr.x(), t2_bl.y());
-    dst[1].m_attrib1 = fastuidraw::pack_vec4(p_tr.x(), p_bl.y(), 0.0f, 0.0f);
-    dst[1].m_attrib2 = uint_values;
-
-    dst[2].m_attrib0 = fastuidraw::pack_vec4(t_tr.x(), t_tr.y(), t2_tr.x(), t2_tr.y());
-    dst[2].m_attrib1 = fastuidraw::pack_vec4(p_tr.x(), p_tr.y(), 0.0f, 0.0f);
-    dst[2].m_attrib2 = uint_values;
-
-    dst[3].m_attrib0 = fastuidraw::pack_vec4(t_bl.x(), t_tr.y(), t2_bl.x(), t2_tr.y());
-    dst[3].m_attrib1 = fastuidraw::pack_vec4(p_bl.x(), p_tr.y(), 0.0f, 0.0f);
-    dst[3].m_attrib2 = uint_values;
+    for (unsigned int corner_enum = 0; corner_enum < 4; ++corner_enum)
+      {
+        pack_glyph_attribute(&dst[corner_enum], corner_enum,
+                             p_bl, p_tr, glyph_attributes);
+      }
   }
 
   class FillGlyphsPrivate
   {
   public:
-    FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                      fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
-                      fastuidraw::const_c_array<float> scale_factors,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation);
+    FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                      fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+                      fastuidraw::c_array<const float> scale_factors,
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
+                      enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
-    FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                      fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
+    FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                      fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                       float render_pixel_size,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation);
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
+                      enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
-    FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                      fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
-                      enum fastuidraw::PainterEnums::glyph_orientation orientation);
+    FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                      fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+                      enum fastuidraw::PainterEnums::screen_orientation orientation,
+                      enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
     void
     compute_number_glyphs(void);
 
-    fastuidraw::const_c_array<fastuidraw::vec2> m_glyph_positions;
-    fastuidraw::const_c_array<fastuidraw::Glyph> m_glyphs;
-    fastuidraw::const_c_array<float> m_scale_factors;
-    enum fastuidraw::PainterEnums::glyph_orientation m_orientation;
+    fastuidraw::c_array<const fastuidraw::vec2> m_glyph_positions;
+    fastuidraw::c_array<const fastuidraw::Glyph> m_glyphs;
+    fastuidraw::c_array<const float> m_scale_factors;
+    enum fastuidraw::PainterEnums::screen_orientation m_orientation;
+    enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
     std::pair<bool, float> m_render_pixel_size;
     unsigned int m_number_glyphs;
     std::vector<unsigned int> m_cnt_by_type;
@@ -145,14 +168,16 @@ namespace
 //////////////////////////////////
 // FillGlyphsPrivate methods
 FillGlyphsPrivate::
-FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                  fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
-                  fastuidraw::const_c_array<float> scale_factors,
-                  enum fastuidraw::PainterEnums::glyph_orientation orientation):
+FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                  fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+                  fastuidraw::c_array<const float> scale_factors,
+                  enum fastuidraw::PainterEnums::screen_orientation orientation,
+                  enum fastuidraw::PainterEnums::glyph_layout_type layout):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
   m_scale_factors(scale_factors),
   m_orientation(orientation),
+  m_layout(layout),
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
@@ -161,13 +186,15 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
 }
 
 FillGlyphsPrivate::
-FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                  fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
+FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                  fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                   float render_pixel_size,
-                  enum fastuidraw::PainterEnums::glyph_orientation orientation):
+                  enum fastuidraw::PainterEnums::screen_orientation orientation,
+                  enum fastuidraw::PainterEnums::glyph_layout_type layout):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
   m_orientation(orientation),
+  m_layout(layout),
   m_render_pixel_size(true, render_pixel_size),
   m_number_glyphs(0)
 {
@@ -175,12 +202,14 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
 }
 
 FillGlyphsPrivate::
-FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                  fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
-                  enum fastuidraw::PainterEnums::glyph_orientation orientation):
+FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                  fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+                  enum fastuidraw::PainterEnums::screen_orientation orientation,
+                  enum fastuidraw::PainterEnums::glyph_layout_type layout):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
   m_orientation(orientation),
+  m_layout(layout),
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
@@ -191,55 +220,55 @@ void
 FillGlyphsPrivate::
 compute_number_glyphs(void)
 {
-  for(unsigned int i = 0, endi = m_glyphs.size(); i < endi; ++i)
+  for(const auto &G : m_glyphs)
     {
-      enum fastuidraw::return_code R;
-
-      if(m_glyphs[i].valid())
+      if (G.valid()
+          && G.render_size().x() > 0
+          && G.render_size().y() > 0)
         {
-          R = m_glyphs[i].upload_to_atlas();
-          if(R != fastuidraw::routine_success)
-            {
-              return;
-            }
+          FASTUIDRAWassert(G.uploaded_to_atlas());
           ++m_number_glyphs;
-
-          if(m_cnt_by_type.size() <= m_glyphs[i].type())
+          if (m_cnt_by_type.size() <= G.type())
             {
-              m_cnt_by_type.resize(1 + m_glyphs[i].type(), 0);
+              m_cnt_by_type.resize(1 + G.type(), 0);
             }
-          ++m_cnt_by_type[m_glyphs[i].type()];
+          ++m_cnt_by_type[G.type()];
         }
     }
 }
 
-
 //////////////////////////////////////////
 // PainterAttributeDataFillerGlyphs methods
 fastuidraw::PainterAttributeDataFillerGlyphs::
-PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                 const_c_array<Glyph> glyphs,
-                                 const_c_array<float> scale_factors,
-                                 enum PainterEnums::glyph_orientation orientation)
+PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                 c_array<const Glyph> glyphs,
+                                 c_array<const float> scale_factors,
+                                 enum PainterEnums::screen_orientation orientation,
+                                 enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, scale_factors, orientation);
+  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs,
+                                        scale_factors, orientation, layout);
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
-PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                 const_c_array<Glyph> glyphs,
+PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                 c_array<const Glyph> glyphs,
                                  float render_pixel_size,
-                                 enum PainterEnums::glyph_orientation orientation)
+                                 enum PainterEnums::screen_orientation orientation,
+                                 enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, render_pixel_size, orientation);
+  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs,
+                                        render_pixel_size, orientation, layout);
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
-PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                 const_c_array<Glyph> glyphs,
-                                 enum PainterEnums::glyph_orientation orientation)
+PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                 c_array<const Glyph> glyphs,
+                                 enum PainterEnums::screen_orientation orientation,
+                                 enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, orientation);
+  m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs,
+                                        orientation, layout);
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
@@ -274,8 +303,8 @@ void
 fastuidraw::PainterAttributeDataFillerGlyphs::
 fill_data(c_array<PainterAttribute> attribute_data,
           c_array<PainterIndex> index_data,
-          c_array<const_c_array<PainterAttribute> > attrib_chunks,
-          c_array<const_c_array<PainterIndex> > index_chunks,
+          c_array<c_array<const PainterAttribute> > attrib_chunks,
+          c_array<c_array<const PainterIndex> > index_chunks,
           c_array<range_type<int> > zranges,
           c_array<int> index_adjusts) const
 {
@@ -293,23 +322,117 @@ fill_data(c_array<PainterAttribute> attribute_data,
   FASTUIDRAWunused(zranges);
 
   std::vector<unsigned int> current(attrib_chunks.size(), 0);
-  for(unsigned int g = 0; g < d->m_number_glyphs; ++g)
+  for(unsigned int g = 0, endg = d->m_glyphs.size(); g < endg; ++g)
     {
-      if(d->m_glyphs[g].valid())
+      if (d->m_glyphs[g].valid()
+          && d->m_glyphs[g].render_size().x() > 0
+          && d->m_glyphs[g].render_size().y() > 0)
         {
           float scale;
           unsigned int t;
 
           scale = (d->m_render_pixel_size.first) ?
-            d->m_render_pixel_size.second / d->m_glyphs[g].layout().m_units_per_EM :
+            d->m_render_pixel_size.second / d->m_glyphs[g].metrics().units_per_EM() :
             (d->m_scale_factors.empty()) ? 1.0f : d->m_scale_factors[g];
 
           t = d->m_glyphs[g].type();
-          pack_glyph_attributes(d->m_orientation, d->m_glyph_positions[g],
-                                d->m_glyphs[g], scale,
+          pack_glyph_attributes(d->m_orientation, d->m_layout,
+                                d->m_glyph_positions[g], d->m_glyphs[g], scale,
                                 const_cast_c_array(attrib_chunks[t].sub_array(4 * current[t], 4)));
           pack_glyph_indices(const_cast_c_array(index_chunks[t].sub_array(6 * current[t], 6)), 4 * current[t]);
           ++current[t];
         }
     }
+}
+
+enum fastuidraw::return_code
+fastuidraw::PainterAttributeDataFillerGlyphs::
+compute_number_attributes_indices_needed(c_array<const Glyph> glyphs,
+					 unsigned int *out_number_attributes,
+					 unsigned int *out_number_indices)
+{
+  enum glyph_type tp(invalid_glyph);
+  unsigned int a(0u), i(0u);
+
+  for (Glyph G : glyphs)
+    {
+      if (G.valid()
+	  && G.render_size().x() > 0
+	  && G.render_size().y() > 0)
+	{
+	  if (tp == invalid_glyph)
+	    {
+	      tp = G.type();
+	    }
+	  else if (tp != G.type())
+	    {
+	      *out_number_attributes = 0u;
+	      *out_number_indices = 0u;
+	      return routine_fail;
+	    }
+
+	  a += 4u;
+	  i += 6u;
+	}
+    }
+
+  *out_number_attributes = a;
+  *out_number_indices = i;
+
+  return routine_success;
+}
+
+enum fastuidraw::return_code
+fastuidraw::PainterAttributeDataFillerGlyphs::
+pack_attributes_indices(c_array<const vec2> glyph_positions,
+			c_array<const Glyph> glyphs,
+			float render_pixel_size,
+			enum PainterEnums::screen_orientation orientation,
+			enum PainterEnums::glyph_layout_type layout,
+			c_array<PainterAttribute> dst_attribs,
+			c_array<PainterIndex> dst_indices)
+{
+  unsigned int current_attr(0), current_idx(0);
+  enum glyph_type tp(invalid_glyph);
+
+  for (unsigned int i = 0; i < glyphs.size(); ++i)
+    {
+      Glyph G(glyphs[i]);
+
+      if (G.valid()
+	  && G.render_size().x() > 0
+	  && G.render_size().y() > 0)
+	{
+	  if (tp == invalid_glyph)
+	    {
+	      tp = G.type();
+	    }
+	  else if (tp != G.type())
+	    {
+	      return routine_fail;
+	    }
+
+	  if (current_attr + 4 > dst_attribs.size())
+	    {
+	      return routine_fail;
+	    }
+
+	  if (current_idx + 6 > dst_indices.size())
+	    {
+	      return routine_fail;
+	    }
+
+	  float scale;
+
+	  scale = render_pixel_size / G.metrics().units_per_EM();
+	  pack_glyph_attributes(orientation, layout, glyph_positions[i], G, scale,
+				dst_attribs.sub_array(current_attr, 4));
+	  pack_glyph_indices(dst_indices.sub_array(current_idx, 6), current_attr);
+
+	  current_attr += 4u;
+	  current_idx += 6u;
+	}
+    }
+
+  return routine_success;
 }

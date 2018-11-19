@@ -25,16 +25,16 @@
 namespace fastuidraw {
 
 /*!\addtogroup Utility
-  @{
+ * @{
  */
 
 /*!
-  A generic array3d class:
-
- If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
- will perform bounds checking.
- \tparam T array3d entry type
-*/
+ * A generic array3d class:
+ *
+ *If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
+ *will perform bounds checking.
+ *\tparam T array3d entry type
+ */
 template<typename T>
 class array3d
 {
@@ -49,9 +49,9 @@ private:
 public:
 
   /*!
-    Ctor.
-    Initializes an AxBxC array3d.
-  */
+   * Ctor.
+   * Initializes an AxBxC array3d.
+   */
   array3d(size_t A, size_t B, size_t C)
     : m_data(A * B * C, T())
 #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
@@ -63,7 +63,7 @@ public:
   }
 
   /*!
-    Resizes the array3d.
+   * Resizes the array3d.
    */
   void
   resize(size_t A, size_t B, size_t C)
@@ -77,8 +77,8 @@ public:
   }
 
   /*!
-    Fills values with the parameter value.
-    \param value value to fill values with
+   * Fills values with the parameter value.
+   * \param value value to fill values with
    */
   void
   fill(const T& value)
@@ -87,10 +87,10 @@ public:
   }
 
   /*!
-    Returns the value in the vector corresponding M[i,j,k]
-    \param a first index in the array3d
-    \param b second index in the array3d
-    \param c third index in the array3d
+   * Returns the value in the vector corresponding M[i,j,k]
+   * \param a first index in the array3d
+   * \param b second index in the array3d
+   * \param c third index in the array3d
    */
   T&
   operator()(unsigned int a, unsigned int b, unsigned int c)
@@ -104,10 +104,10 @@ public:
   }
 
   /*!
-    Returns the value in the vector corresponding M[i,j,k]
-    \param a first index in the array3d
-    \param b second index in the array3d
-    \param c third index in the array3d
+   * Returns the value in the vector corresponding M[i,j,k]
+   * \param a first index in the array3d
+   * \param b second index in the array3d
+   * \param c third index in the array3d
    */
   const T&
   operator()(unsigned int a, unsigned int b, unsigned int c) const

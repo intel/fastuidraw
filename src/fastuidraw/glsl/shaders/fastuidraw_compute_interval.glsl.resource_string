@@ -1,0 +1,92 @@
+/*!
+ * \file fastuidraw_compute_interval.glsl.resource_string
+ * \brief file fastuidraw_compute_interval.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+/* Must be defined:
+ *  - FASTUIDRAW_COMPUTE_INTERVAL_NAME to be name of the function
+ *  - FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA(X) to loads a uvec4 value at X
+ */
+
+float
+FASTUIDRAW_COMPUTE_INTERVAL_NAME(in uint intervals_location, in float total_distance,
+                                 in float first_interval_start, in float in_distance,
+                                 in uint number_intervals,
+                                 out int interval_ID,
+                                 out float interval_begin, out float interval_end)
+{
+  int loc;
+  float d, lastd, ff, fd;
+
+  fd = floor(in_distance / total_distance);
+  ff = total_distance * fd;
+  d = in_distance - ff;
+  lastd = first_interval_start;
+  loc = 0;
+  interval_begin = 0.0;
+  interval_end = 0.0;
+  interval_ID = -1;
+
+  /* TODO:
+   *  Change how we pack interval sequences so that
+   *  we can change the search from O(N) to O(log N)
+   */
+  do
+    {
+      uvec4 V;
+      vec4 fV;
+
+      V = FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA(loc + int(intervals_location)).xyzw;
+      fV = uintBitsToFloat(V);
+
+      if (d < fV.x)
+        {
+          interval_begin = ff + lastd;
+          interval_end = ff + fV.x;
+          interval_ID = int(4) * loc + int(0) + int(fd) * int(number_intervals);
+          return 1.0;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      else if (d < fV.y)
+        {
+          interval_begin = ff + fV.x;
+          interval_end = ff + fV.y;
+          interval_ID = int(4) * loc + int(1) + int(fd) * int(number_intervals);
+          return -1.0;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      else if (d < fV.z)
+        {
+          interval_begin = ff + fV.y;
+          interval_end = ff + fV.z;
+          interval_ID = int(4) * loc + int(2) + int(fd) * int(number_intervals);
+          return 1.0;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      else if (d < fV.w)
+        {
+          interval_begin = ff + fV.z;
+          interval_end = ff + fV.w;
+          interval_ID = int(4) * loc + int(3) + int(fd) * int(number_intervals);
+          return -1.0;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      lastd = fV.w;
+      ++loc;
+    }
+  while(lastd < total_distance);
+  return -1.0;
+}

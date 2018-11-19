@@ -26,14 +26,14 @@
 namespace fastuidraw
 {
   /*!\class interval_allocator
-    An interval_allocator gives a means to allocate and deallocate
-    ranges from a linear range. The implementation is simply
-    to make a list of free intervals sorted by size. Allocation
-    means taking from the list the smallest interval that can
-    accomodate the request. From that interval take the portion
-    needed and return the remainder as a new entry on the free
-    list. All operations are O(log N) where N is the number of
-    free intervals.
+   * An interval_allocator gives a means to allocate and deallocate
+   * ranges from a linear range. The implementation is simply
+   * to make a list of free intervals sorted by size. Allocation
+   * means taking from the list the smallest interval that can
+   * accomodate the request. From that interval take the portion
+   * needed and return the remainder as a new entry on the free
+   * list. All operations are O(log N) where N is the number of
+   * free intervals.
    */
   class interval_allocator:fastuidraw::noncopyable
   {
@@ -43,49 +43,49 @@ namespace fastuidraw
     enum interval_status_t
       {
         /*!
-          Indicates interval is completely allocated
+         * Indicates interval is completely allocated
          */
         completely_allocated,
 
         /*!
-          Indicates interval is completely free
+         * Indicates interval is completely free
          */
         completely_free,
 
         /*!
-          Indicates the interval is partially allocated
-          and partially free.
+         * Indicates the interval is partially allocated
+         * and partially free.
          */
         partially_allocated,
       };
 
     /*!\fn
-      Ctor.
-      \param size gives the size from which to allocate intervals, essentially
-                  the \ref interval_allocator is initialized as having one
-                  free interval that starts at 0 with length equal to size
+     * Ctor.
+     * \param size gives the size from which to allocate intervals, essentially
+     *             the \ref interval_allocator is initialized as having one
+     *             free interval that starts at 0 with length equal to size
      */
     explicit
     interval_allocator(int size);
 
     /*!\fn
-      Reconstruct the \ref interval_allocator, i.e. clear all free intervals
-      \param size new size for the \ref interval_allocator
+     * Reconstruct the \ref interval_allocator, i.e. clear all free intervals
+     * \param size new size for the \ref interval_allocator
      */
     void
     reset(int size);
 
     /*!\fn
-      Resize the \ref interval_allocator. The new size must be atleast
-      as large as the old size.
-      \param size new size to which to size the \ref interval_allocator
+     * Resize the \ref interval_allocator. The new size must be atleast
+     * as large as the old size.
+     * \param size new size to which to size the \ref interval_allocator
      */
     void
     resize(int size);
 
     /*!\fn
-      Returns the "size" of the \ref interval_allocator, i.e. all intervals
-      allocated are in the range [0, size() ).
+     * Returns the "size" of the \ref interval_allocator, i.e. all intervals
+     * allocated are in the range [0, size() ).
      */
     int
     size(void) const
@@ -94,24 +94,24 @@ namespace fastuidraw
     }
 
     /*!\fn
-      Allocate, returns the "begin" of the interval
-      allocated. Returns -1 on failure.
-      \param size length of interval to allocate
+     * Allocate, returns the "begin" of the interval
+     * allocated. Returns -1 on failure.
+     * \param size length of interval to allocate
      */
     int
     allocate_interval(int size);
 
     /*!\fn
-      Free an interval.
-      \param location start of interval
-      \param size size of interval
+     * Free an interval.
+     * \param location start of interval
+     * \param size size of interval
      */
     void
     free_interval(int location, int size);
 
     /*!\fn
-      Returns the largest value that can be passed to allocate_interval()
-      and not fail.
+     * Returns the largest value that can be passed to allocate_interval()
+     * and not fail.
      */
     int
     largest_free_interval(void) const
@@ -122,9 +122,9 @@ namespace fastuidraw
     }
 
     /*!\fn
-      Returns the allocation status of an interval
-      \param begin start of interval
-      \param size length of interval
+     * Returns the allocation status of an interval
+     * \param begin start of interval
+     * \param size length of interval
      */
     interval_status_t
     interval_status(int begin, int size) const;
@@ -137,7 +137,7 @@ namespace fastuidraw
     {
     public:
       bool
-      operator()(interval_ref lhs, interval_ref rhs)
+      operator()(interval_ref lhs, interval_ref rhs) const
       {
         FASTUIDRAWassert(lhs->first == lhs->second.m_end);
         FASTUIDRAWassert(rhs->first == rhs->second.m_end);
@@ -163,14 +163,14 @@ namespace fastuidraw
     int m_size;
 
     /* List of free intervals, stored in a map
-       keyed by interval::m_end
+     *  keyed by interval::m_end
      */
     std::map<int, interval> m_free_intervals;
 
     /* Each element of m_sorted[size] refers
-       to an element in m_free_intervals. Map
-       is keyed by the size of the interval
-       pointed to by *second
+     *  to an element in m_free_intervals. Map
+     *  is keyed by the size of the interval
+     *  pointed to by *second
      */
     std::map<int, interval_ref_set> m_sorted;
   };

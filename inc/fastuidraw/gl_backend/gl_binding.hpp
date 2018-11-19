@@ -20,193 +20,136 @@
 #pragma once
 
 #include <fastuidraw/util/util.hpp>
-
+#include <fastuidraw/util/api_callback.hpp>
 
 namespace fastuidraw {
 
 
 /*!\addtogroup GLUtility
-  @{
+ * @{
  */
 
 /*!
-  \brief
-  Provides interface for application to use GL and for application
-  to specify to FastUIDraw GL backend how to get GL function pointers.
-  Part of the GL backend libraries, libFastUIDrawGL and libFastUIDrawGLES.
-
-  Short version:
-   - application should call fastuidraw::gl_binding::get_proc_function()
-     to set the function which the GL backend for FastUIDraw will use to
-     fetch GL function pointers.
-   - If an application wishes, it can include <fastuidraw/gl_backend/ngl_header.hpp>.
-     The header will replace GL (and GLES) functions with macros. Under release
-     the macros are to function pointers that automatically set themselves up
-     correcty. For debug, the macros preceed and postceed each GL (and GLES)
-     function call with error checking call backs so an application writer
-     can quickly know what line/file triggered a GL error. If an application does
-     not wish to use the macro system (and will also need to fetch function pointers
-     somehow) but remain GL/GLES agnostic, it can instead include <fastuidraw/gl_backend/gl_header.hpp>.
-
-  Long Version:
-
-  The namespace gl_binding provides an interface for an application
-  to specify to the GL module of FastUIDraw how to fetch function
-  pointers (fastuidraw::gl_binding::get_proc_function()) and additional
-  functionality of where to write/store GL error messages. An application
-  can also use this functionality by including <fastuidraw/gl_backend/ngl_header.hpp>.
-  The header <fastuidraw/gl_backend/ngl_header.hpp> will create a macro
-  for each GL function. If GL_DEBUG is defined, each GL call will be preceded by
-  a callback and postceeded by another call back. If logging
-  is on (see log_gl_commands(bool)), the precede call back
-  will print (file, line and arguments) to the LoggerBase
-  object specified by gl_binding::logger(LoggerBase*). The post-process
-  call back will call glGetError until no errors are returned and
-  log the call and errors to the LoggerBase object specified with
-  gl_binding::logger(LoggerBase*). If logging is on (see
-  gl_binding::log_gl_commands(bool)) then regardless of any errors
-  a log message will be written indicating the GL call
-  succeeded.
-
-  This is implemented by creating a macro for each
-  GL call. If GL_DEBUG is not defined, none of these
-  logging and error calls backs are executed.
-  The mechanism is implemented by defining a macro
-  for each GL function, hence using a GL function
-  name as a function pointer will fail to compile
-  and likely give an almost impossible to read
-  error message. To use this, an application needs to
-  only include <fastuidraw/gl_backend/ngl_header.hpp>.
-
-  To fetch the function pointer of a GL function,
-  use the macro <B>FASTUIDRAWglfunctionPointer</B> together
-  with <B>FASTUIDRAWglfunctionExists</B>. The macro
-  <B>FASTUIDRAWglfunctionPointer</B> will NEVER return
-  a nullptr pointer. For the cases where the GL implementation
-  does not have tha function, the function pointer
-  returned will then point to a do-nothing function.
-  To check if a GL implementation has a given function
-  use the macro-function <B>FASTUIDRAWglfunctionExists</B>
-  which returns non-zero if the GL implementation has
-  the function. Some example code:
-
-  \code
-  //get a function pointer for a GL function
-  //which takes no arguments and returns nothing.
-  void (*functionPointer)(void) = nullptr;
-  if(FASTUIDRAWglfunctionExists(glSomething)
-    {
-      functionPointer = FASTUIDRAWglfunctionPointer(glSomeFunction);
-    }
-  else
-    {
-      //FASTUIDRAWglfunctionPointer(glSomeFunction) is NOT nullptr,
-      //rather it maps to a no-op function.
-      //in this example we leave the value of
-      //functionPointer as nullptr to indicate the function
-      //is not supported by the GL implementation.
-    }
-  \endcode
-
-  Calling a GL function through a function pointer
-  will bypass the GL error checking though. One issue
-  with using FASTUIDRAWglfunctionExists is that a number
-  of GL implementations will return a function pointer,
-  even if the implementation does not support it. As
-  always, when fetching function pointers, one should
-  check the GL version and GL extension string(s) to
-  know if the GL implementation supports that function.
-
-  The gl_binding system requires that an application provides
-  a function which the binding system uses to fetch function
-  pointers for the GL API, this is set via
-  gl_binding::get_proc_function().
+ * \brief
+ * Provides interface for application to use GL where function pointers
+ * are auto-resolved transparently and under debug provides error checking.
+ * Built as a part of a seperate library; for GL it is libNGL; for GLES
+ * it is NGLES.
+ *
+ * Short version:
+ *  - application should call fastuidraw::gl_binding::get_proc_function()
+ *    to set the function which will be used to fetch GL function pointers.
+ *  - If an application wishes, it can include <fastuidraw/gl_backend/ngl_header.hpp>.
+ *    The header will replace GL/GLES functions with macros. Under release
+ *    the macros are to function pointers that automatically set themselves up
+ *    correcty. For debug, the macros preceed and postceed each GL
+ *    function call with error checking call backs so an application writer
+ *    can quickly know what line/file triggered an GL error. If an application does
+ *    not wish to use the macro system (and will also need to fetch function pointers
+ *    itself) it can just include <fastuidraw/gl_backend/gl_header.hpp> which
+ *    will include the correct system GL/GLES headers.
+ *
+ * Long Version:
+ *
+ * The namespace gl_binding provides an interface for an application
+ * to specify how to fetch GL function pointers (see
+ * fastuidraw::gl_binding::get_proc_function()) and additional
+ * functionality of where to write/store GL error messages. An application
+ * can also use this functionality by including <fastuidraw/ngl_gl.hpp>.
+ * The header will create a macro for each GL function. If FASTUIDRAW_DEBUG
+ * is defined, each GL call will be preceded by a callback and postceeded by
+ * another call back. The preceed callback to the GL call will call the
+ * implementation of CallbackGL::pre_call() of each active CallbackGL object.
+ * The post-process callback will repeatedly call glGetError (until it returns
+ * no error) to build an error-string. If the error string is non-empty, it
+ * is printed to stderr. In addition, regardless if the error-string is non-empty,
+ * CallbackGL::post_call() of each active CallbackGL is called.
+ *
+ * This is implemented by creating a macro for each
+ * GL call. If FASTUIDRAW_DEBUG is not defined, none of these
+ * logging and error calls backs are executed.
+ * The mechanism is implemented by defining a macro
+ * for each GL function, hence using a GL function
+ * name as a function pointer will fail to compile
+ * and likely give an almost impossible to read
+ * error message.
+ *
+ * To fetch the function pointer of a GL function,
+ * use the macro <B>FASTUIDRAWglfunctionPointer</B> together
+ * with <B>FASTUIDRAWglfunctionExists</B>. The macro
+ * <B>FASTUIDRAWglfunctionPointer</B> will NEVER return
+ * a nullptr pointer. For the cases where the GL implementation
+ * does not have that function, the function pointer
+ * returned will then point to a do-nothing function.
+ * To check if a GL implementation has a given function
+ * use the macro-function <B>FASTUIDRAWglfunctionExists</B>
+ * which returns non-zero if the GL implementation has
+ * the function. Some example code:
+ *
+ * \code
+ * //get a function pointer for a GL function
+ * //which takes no arguments and returns nothing.
+ * void (*functionPointer)(void) = nullptr;
+ * if (FASTUIDRAWglfunctionExists(glSomething)
+ *   {
+ *     functionPointer = FASTUIDRAWglfunctionPointer(glSomeFunction);
+ *   }
+ * else
+ *   {
+ *     //FASTUIDRAWglfunctionPointer(glSomeFunction) is NOT nullptr,
+ *     //rather it maps to a no-op function.
+ *     //in this example we leave the value of
+ *     //functionPointer as nullptr to indicate the function
+ *     //is not supported by the GL implementation.
+ *   }
+ * \endcode
+ *
+ * Calling a GL function through a function pointer
+ * will bypass the GL error checking ad callbacks though.
+ * One issue with using FASTUIDRAWglfunctionExists is that a
+ * number of GL implementations will return a function pointer,
+ * even if the implementation does not support it. As always,
+ * when fetching function pointers, one should check the GL
+ * version and GL extension string(s) to know if the GL
+ * implementation supports that function.
+ *
+ * The gl_binding system requires that an application provides
+ * a function which the binding system uses to fetch function
+ * pointers for the GL API, this is set via
+ * gl_binding::get_proc_function().
  */
 namespace gl_binding {
 
 /*!
-  \brief
-  A LoggerBase defines the interface for logging
-  GL commands
+ * \brief
+ * A CallbackGL defines the interface (via its base class)
+ * for callbacks before and after each GL call.
  */
-class LoggerBase:noncopyable
+class CallbackGL:public APICallbackSet::CallBack
 {
 public:
-  virtual
-  ~LoggerBase()
-  {}
-
-  /*!
-    To be implemented by a derived class to record
-    GL log.
-    \param msg C-string of log-message with error results
-    \param function_name GL function name
-    \param file_name file of orignating GL call
-    \param line line number of orignating GL call
-    \param fptr pointer to GL function originating the call
-   */
-  virtual
-  void
-  log(const char *msg, const char *function_name,
-      const char *file_name, int line,
-      void* fptr) = 0;
+  CallbackGL(void);
 };
 
 /*!
-  Set the LoggerBase object to which
-  to send GL command logs. Initial value is
-  nullptr. Logging is only possbile to
-  be active if GL_DEBUG is defined.
-  \param l object to use, a nullptr value indicates
-           to not send logging commands anywhere
+ * Sets the function that the system uses
+ * to fetch the function pointers for GL or GLES.
+ * \param get_proc value to use, default is nullptr.
+ * \param fetch_functions if true, fetch all GL functions
+ *                        immediately instead of fetching on
+ *                        first call.
  */
 void
-logger(LoggerBase *l);
-
-/*!
-  Returns the LoggerBase object used
-  to log GL commands, initial value is nullptr.
- */
-LoggerBase*
-logger(void);
-
-
-/*!
-  Returns true if logs all
-  GL API calls. If returns false,
-  only log those GL API calls
-  that generated GL errors.
-  Default value is false.
-  Logging is only possbile to
-  be active if GL_DEBUG is defined.
- */
-bool
-log_gl_commands(void);
-
-/*!
-  Set if log all GL API calls.
-  If false, only log those
-  GL API calls that generated GL
-  errors. If true log ALL GL
-  API calls. Default value is false.
-  \param v value to set for logging.
-  Logging is only possbile to
-  be active if GL_DEBUG is defined.
- */
-void
-log_gl_commands(bool v);
-
-/*!
-  Sets the function that the system uses
-  to fetch the function pointers for GL or GLES.
-  \param get_proc value to use, default is nullptr.
-  \param fetch_functions if true, fetch all GL/GLES functions
-                         immediately instead of fetching on
-                         first call.
- */
-void
-get_proc_function(void* (*get_proc)(const char*),
+get_proc_function(void* (*get_proc)(c_string),
                   bool fetch_functions = true);
+
+/*!
+ * Fetches a GL function using the function fetcher
+ * passed to get_proc_function().
+ * \param function name of function to fetch
+ */
+void*
+get_proc(c_string function);
 
 }
 /*! @} */

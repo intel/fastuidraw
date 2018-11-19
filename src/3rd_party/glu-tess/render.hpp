@@ -48,5 +48,4 @@ void glu_fastuidraw_gl_renderMesh( fastuidraw_GLUtesselator *tess, GLUmesh *mesh
 void glu_fastuidraw_gl_renderBoundary( fastuidraw_GLUtesselator *tess, GLUmesh *mesh );
 
 FASTUIDRAW_GLUboolean glu_fastuidraw_gl_renderCache( fastuidraw_GLUtesselator *tess );
-
 #endif

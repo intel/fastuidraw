@@ -95,7 +95,7 @@ perform_action(void)
 
   d->m_cmd->m_actions[d->m_slot] = reference_counted_ptr<DelayedAction>();
   d->m_cmd->m_action_count--;
-  if(d->m_cmd->m_action_count == 0 && d->m_cmd->m_map_status == status_waiting_for_actions_to_complete)
+  if (d->m_cmd->m_action_count == 0 && d->m_cmd->m_map_status == status_waiting_for_actions_to_complete)
     {
       d->m_cmd->m_p->complete_unmapping();
     }
@@ -147,7 +147,7 @@ void
 fastuidraw::PainterDraw::
 unmap(unsigned int attributes_written,
       unsigned int indices_written,
-      unsigned int data_store_written) const
+      unsigned int data_store_written)
 {
   PainterDrawPrivate *d;
   d = static_cast<PainterDrawPrivate*>(m_d);
@@ -158,7 +158,7 @@ unmap(unsigned int attributes_written,
   d->m_indices_written = indices_written;
   d->m_data_store_written = data_store_written;
   d->m_map_status = status_waiting_for_actions_to_complete;
-  if(d->m_action_count == 0)
+  if (d->m_action_count == 0)
     {
       complete_unmapping();
     }
@@ -166,7 +166,7 @@ unmap(unsigned int attributes_written,
 
 void
 fastuidraw::PainterDraw::
-complete_unmapping(void) const
+complete_unmapping(void)
 {
   PainterDrawPrivate *d;
   d = static_cast<PainterDrawPrivate*>(m_d);
@@ -175,6 +175,10 @@ complete_unmapping(void) const
   FASTUIDRAWassert(d->m_action_count == 0);
   unmap_implement(d->m_attribs_written, d->m_indices_written, d->m_data_store_written);
   d->m_map_status = status_unmapped;
+  m_attributes.reset();
+  m_header_attributes.reset();
+  m_indices.reset();
+  m_store.reset();
 }
 
 bool

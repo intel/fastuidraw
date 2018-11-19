@@ -17,22 +17,23 @@
  */
 
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
-
   class PainterStrokeShaderPrivate
   {
   public:
-    PainterStrokeShaderPrivate(void):
-      m_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
-    {}
+    typedef fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> shader;
+    typedef fastuidraw::vecN<shader, fastuidraw::PainterStrokeShader::number_shader_types> shader_set;
 
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_shader_pass1;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_shader_pass2;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_non_aa_shader;
-    enum fastuidraw::PainterStrokeShader::type_t m_aa_type;
+    fastuidraw::vecN<shader_set, 2> m_shaders;
+    enum fastuidraw::PainterEnums::hq_anti_alias_support_t m_hq_anti_alias_support;
+    fastuidraw::vecN<enum fastuidraw::PainterEnums::shader_anti_alias_t, 2> m_fastest_anti_alias_mode;
+    fastuidraw::vecN<bool, 5> m_arc_stroking_is_fast;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> m_stroking_data_selector;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_hq_aa_action_pass1;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_hq_aa_action_pass2;
   };
 }
 
@@ -61,49 +62,79 @@ fastuidraw::PainterStrokeShader::
   m_d = nullptr;
 }
 
-void
+assign_swap_implement(fastuidraw::PainterStrokeShader)
+
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&
 fastuidraw::PainterStrokeShader::
-swap(PainterStrokeShader &obj)
+shader(enum stroke_type_t tp, enum shader_type_t sh) const
 {
-  std::swap(m_d, obj.m_d);
+  PainterStrokeShaderPrivate *d;
+  d = static_cast<PainterStrokeShaderPrivate*>(m_d);
+  return d->m_shaders[tp][sh];
 }
 
 fastuidraw::PainterStrokeShader&
 fastuidraw::PainterStrokeShader::
-operator=(const PainterStrokeShader &rhs)
+shader(enum stroke_type_t tp, enum shader_type_t sh,
+       const reference_counted_ptr<PainterItemShader> &v)
 {
-  if(this != &rhs)
-    {
-      PainterStrokeShader v(rhs);
-      swap(v);
-    }
+  PainterStrokeShaderPrivate *d;
+  d = static_cast<PainterStrokeShaderPrivate*>(m_d);
+  d->m_shaders[tp][sh] = v;
   return *this;
 }
 
-#define setget_implement(type, name)                                \
-  fastuidraw::PainterStrokeShader&                                  \
-  fastuidraw::PainterStrokeShader::                                 \
-  name(type v)                                                      \
-  {                                                                 \
-    PainterStrokeShaderPrivate *d;                                  \
-    d = static_cast<PainterStrokeShaderPrivate*>(m_d);         \
-    d->m_##name = v;                                                \
-    return *this;                                                   \
-  }                                                                 \
-                                                                    \
-  type                                                              \
-  fastuidraw::PainterStrokeShader::                                 \
-  name(void) const                                                  \
-  {                                                                 \
-    PainterStrokeShaderPrivate *d;                                  \
-    d = static_cast<PainterStrokeShaderPrivate*>(m_d);         \
-    return d->m_##name;                                             \
-  }
+enum fastuidraw::PainterEnums::shader_anti_alias_t
+fastuidraw::PainterStrokeShader::
+fastest_anti_alias_mode(enum stroke_type_t tp) const
+{
+  PainterStrokeShaderPrivate *d;
+  d = static_cast<PainterStrokeShaderPrivate*>(m_d);
+  return d->m_fastest_anti_alias_mode[tp];
+}
 
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_shader_pass1)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_shader_pass2)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, non_aa_shader)
-setget_implement(enum fastuidraw::PainterStrokeShader::type_t, aa_type);
-setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>&, stroking_data_selector);
+fastuidraw::PainterStrokeShader&
+fastuidraw::PainterStrokeShader::
+fastest_anti_alias_mode(enum stroke_type_t tp,
+                        enum PainterEnums::shader_anti_alias_t sh)
+{
+  PainterStrokeShaderPrivate *d;
+  d = static_cast<PainterStrokeShaderPrivate*>(m_d);
+  d->m_fastest_anti_alias_mode[tp] = sh;
+  return *this;
+}
 
-#undef setget_implement
+bool
+fastuidraw::PainterStrokeShader::
+arc_stroking_is_fast(enum PainterEnums::shader_anti_alias_t sh) const
+{
+  PainterStrokeShaderPrivate *d;
+  d = static_cast<PainterStrokeShaderPrivate*>(m_d);
+  return d->m_arc_stroking_is_fast[sh];
+}
+
+fastuidraw::PainterStrokeShader&
+fastuidraw::PainterStrokeShader::
+arc_stroking_is_fast(enum PainterEnums::shader_anti_alias_t sh, bool v)
+{
+  PainterStrokeShaderPrivate *d;
+  d = static_cast<PainterStrokeShaderPrivate*>(m_d);
+  d->m_arc_stroking_is_fast[sh] = v;
+  return *this;
+}
+
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 enum fastuidraw::PainterEnums::hq_anti_alias_support_t,
+                 hq_anti_alias_support);
+
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>&,
+                 stroking_data_selector);
+
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 hq_aa_action_pass1);
+
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 hq_aa_action_pass2);

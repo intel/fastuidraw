@@ -1,0 +1,195 @@
+/*!
+ * \file fastuidraw_blend_util.glsl.resource_string
+ * \brief file fastuidraw_blend_util.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+float
+fastuidraw_blend_w3c_screen(in float Cb, in float Cs)
+{
+  const float one = 1.0;
+  return one - (one - Cb) * (one - Cs);
+}
+
+float
+fastuidraw_blend_w3c_multiply(in float Cb, in float Cs)
+{
+  return Cb * Cs;
+}
+
+float
+fastuidraw_blend_w3c_hardlight(in float Cb, in float Cs)
+{
+  return (Cs <= 0.5) ?
+    fastuidraw_blend_w3c_multiply(Cb, 2.0 * Cs) :
+    fastuidraw_blend_w3c_screen(Cb, 2.0 * Cs - 1.0);
+}
+
+float
+fastuidraw_blend_w3c_overlay(in float Cb, in float Cs)
+{
+  return fastuidraw_blend_w3c_hardlight(Cs, Cb);
+}
+
+float
+fastuidraw_blend_w3c_color_dodge(in float Cb, in float Cs)
+{
+  /**
+  if (Cb <= 0.0)
+    {
+      return_value = 0.0;
+    }
+  else if (Cs >= 1.0)
+    {
+      return_value = 1.0;
+    }
+  else
+    {
+      return_value = min(1.0, Cb / (1.0 - Cs));
+    }
+  **/
+
+  return (Cb <= 0.0) ? 0.0 :
+    (Cs >= 1.0) ? 1.0 :
+    min(1.0, Cb / (1.0 - Cs));
+}
+
+float
+fastuidraw_blend_w3c_color_burn(in float Cb, in float Cs)
+{
+  /**
+  if(Cb >= 1.0)
+    {
+      return_value = 1.0;
+    }
+  else if(Cs <= 0.0)
+    {
+      return_value = 0.0;
+    }
+  else
+    {
+      return_value = 1.0 - min(1.0, (1.0 - Cb) / Cs);
+    }
+  **/
+
+  return (Cb >= 1.0) ? 1.0 :
+    (Cs <= 0.0) ? 0.0 :
+    1.0 - min(1.0, (1.0 - Cb) / Cs);
+}
+
+float
+fastuidraw_blend_w3c_softlight(in float Cb, in float Cs)
+{
+  float return_value;
+
+  if (Cs <= 0.5)
+    {
+      return_value = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);
+    }
+  else
+    {
+      float D;
+
+      if(Cb <= 0.25)
+        {
+          D = ((16.0 * Cb - 12.0) * Cb + 4.0) * Cb;
+        }
+      else
+        {
+          D = sqrt(Cb);
+        }
+
+      return_value = Cb + (2.0 * Cs - 1.0) * (D - Cb);
+    }
+
+  return return_value;
+}
+
+float
+fastuidraw_blend_w3c_min(in vec3 C)
+{
+  return min(C.r, min(C.g, C.b));
+}
+
+float
+fastuidraw_blend_w3c_max(in vec3 C)
+{
+  return max(C.r, max(C.g, C.b));
+}
+
+float
+fastuidraw_blend_w3c_lum(in vec3 C)
+{
+  return dot(C, vec3(0.3, 0.59, 0.11));
+}
+
+float
+fastuidraw_blend_w3c_sat(in vec3 C)
+{
+  return fastuidraw_blend_w3c_max(C) - fastuidraw_blend_w3c_min(C);
+}
+
+vec3
+fastuidraw_blend_w3c_clipcolor(in vec3 C)
+{
+  float lumC = fastuidraw_blend_w3c_lum(C);
+  float minC = fastuidraw_blend_w3c_min(C);
+  float maxC = fastuidraw_blend_w3c_max(C);
+  vec3 lumCv = vec3(lumC);
+
+  if (minC < 0.0)
+    {
+      float factor;
+      factor = lumC / (lumC - minC);
+      C = lumCv + (C - lumCv) * factor;
+    }
+  else if (maxC > 1.0)
+    {
+      float factor;
+      factor = (1.0 - lumC) / (maxC - lumC);
+      C = lumCv + (C - lumCv) * factor;
+    }
+  return C;
+}
+
+vec3
+fastuidraw_blend_w3c_set_lum(in vec3 cBase, in vec3 cLum)
+{
+  float lBase = fastuidraw_blend_w3c_lum(cBase);
+  float lLum = fastuidraw_blend_w3c_lum(cLum);
+  float lDiff = lLum - lBase;
+  return fastuidraw_blend_w3c_clipcolor(cBase + vec3(lDiff));
+}
+
+vec3
+fastuidraw_blend_w3c_set_lum_sat(in vec3 cBase,
+                                 in vec3 cSat,
+                                 in vec3 cLum)
+{
+  float minBase = fastuidraw_blend_w3c_min(cBase);
+  float sBase = fastuidraw_blend_w3c_sat(cBase);
+  float sSat = fastuidraw_blend_w3c_sat(cSat);
+  vec3 color;
+
+  if (sBase > 0.0)
+    {
+      color = (cBase - vec3(minBase)) * (sSat / sBase);
+    }
+  else
+    {
+      color = vec3(0.0);
+    }
+  return fastuidraw_blend_w3c_set_lum(color, cLum);
+}

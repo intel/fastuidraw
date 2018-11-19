@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <vector>
+#include <assert.h>
 #include <SDL.h>
 
 #include "SkPoint.h"

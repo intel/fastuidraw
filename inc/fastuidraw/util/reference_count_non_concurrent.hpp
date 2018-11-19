@@ -25,17 +25,17 @@ namespace fastuidraw
 {
 
 /*!\addtogroup Utility
-  @{
+ * @{
  */
   /*!
-    \brief
-    Reference counter that is NOT thread safe
+   * \brief
+   * Reference counter that is NOT thread safe
    */
   class reference_count_non_concurrent:noncopyable
   {
   public:
     /*!
-      Initializes the counter as zero.
+     * Initializes the counter as zero.
      */
     reference_count_non_concurrent(void):
       m_reference_count(0)
@@ -47,7 +47,7 @@ namespace fastuidraw
     }
 
     /*!
-      Increment reference counter by 1.
+     * Increment reference counter by 1.
      */
     void
     add_reference(void)
@@ -56,8 +56,8 @@ namespace fastuidraw
     }
 
     /*!
-      Decrements the counter by 1 and returns status of if the counter
-      is 0 after the decrement operation.
+     * Decrements the counter by 1 and returns status of if the counter
+     * is 0 after the decrement operation.
      */
     bool
     remove_reference(void)

@@ -18,6 +18,7 @@
 
 #include <utility>
 #include <fastuidraw/painter/painter_fill_shader.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -25,7 +26,13 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_item_shader;
+    enum fastuidraw::PainterEnums::hq_anti_alias_support_t m_hq_anti_alias_support;
+    enum fastuidraw::PainterEnums::shader_anti_alias_t m_fastest_anti_alias_mode;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_hq_shader_pass1;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_hq_shader_pass2;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_hq_action_pass1;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_hq_action_pass2;
   };
 }
 
@@ -54,45 +61,24 @@ fastuidraw::PainterFillShader::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterFillShader::
-swap(PainterFillShader &obj)
-{
-  std::swap(obj.m_d, m_d);
-}
-
-fastuidraw::PainterFillShader&
-fastuidraw::PainterFillShader::
-operator=(const PainterFillShader &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterFillShader v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
-#define setget_implement(type, name)                                \
-  fastuidraw::PainterFillShader&                                    \
-  fastuidraw::PainterFillShader::                                   \
-  name(type v)                                                      \
-  {                                                                 \
-    PainterFillShaderPrivate *d;                                    \
-    d = static_cast<PainterFillShaderPrivate*>(m_d);                \
-    d->m_##name = v;                                                \
-    return *this;                                                   \
-  }                                                                 \
-                                                                    \
-  type                                                              \
-  fastuidraw::PainterFillShader::                                   \
-  name(void) const                                                  \
-  {                                                                 \
-    PainterFillShaderPrivate *d;                                    \
-    d = static_cast<PainterFillShaderPrivate*>(m_d);                \
-    return d->m_##name;                                             \
-  }
-
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)
-#undef setget_implement
+assign_swap_implement(fastuidraw::PainterFillShader)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 enum fastuidraw::PainterEnums::hq_anti_alias_support_t,
+                 hq_anti_alias_support)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 enum fastuidraw::PainterEnums::shader_anti_alias_t,
+                 fastest_anti_alias_mode);
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_hq_shader_pass1)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_hq_shader_pass2)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 aa_hq_action_pass1)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 aa_hq_action_pass2)

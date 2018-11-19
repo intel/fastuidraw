@@ -22,6 +22,7 @@
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include "private/texture_gl.hpp"
+#include "private/bindless.hpp"
 #include "../private/util_private.hpp"
 
 
@@ -30,13 +31,15 @@ namespace
 {
   template<GLenum internal_format,
            GLenum external_format,
-           GLenum filter>
+           GLenum mag_filter,
+           GLenum min_filter>
   class Texture
   {
   public:
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
                                               internal_format, external_format,
-                                              GL_UNSIGNED_BYTE, filter> type;
+                                              GL_UNSIGNED_BYTE,
+                                              mag_filter, min_filter> type;
   };
 
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
@@ -47,9 +50,12 @@ namespace
 
     virtual
     void
-    set_data(int x, int y, int l,
-             int w, int h,
-             fastuidraw::const_c_array<fastuidraw::u8vec4> pdata);
+    set_data(int mipmap_level, fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec2 src_xy,
+             unsigned int size, const fastuidraw::ImageSourceBase &data);
+    virtual
+    void
+    set_data(int mipmap_level, fastuidraw::ivec2 dst_xy, int dst_l,
+             unsigned int size, fastuidraw::u8vec4 color_value);
 
     virtual
     void
@@ -88,10 +94,10 @@ namespace
     }
 
   private:
-    typedef Texture<GL_RGBA8, GL_RGBA, GL_NEAREST>::type TextureGL;
+    typedef Texture<GL_RGBA8, GL_RGBA, GL_LINEAR, GL_NEAREST_MIPMAP_LINEAR>::type TextureGL;
     TextureGL m_backing_store;
+    unsigned int m_number_mipmap_levels;
   };
-
 
   class IndexBackingStoreGL:public fastuidraw::AtlasIndexBackingStoreBase
   {
@@ -108,7 +114,7 @@ namespace
     void
     set_data(int x, int y, int l,
              int w, int h,
-             fastuidraw::const_c_array<fastuidraw::ivec3> data,
+             fastuidraw::c_array<const fastuidraw::ivec3> data,
              int slack,
              const fastuidraw::AtlasColorBackingStoreBase *C,
              int pcolor_tile_size);
@@ -117,7 +123,7 @@ namespace
     void
     set_data(int x, int y, int l,
              int w, int h,
-             fastuidraw::const_c_array<fastuidraw::ivec3> data);
+             fastuidraw::c_array<const fastuidraw::ivec3> data);
 
     virtual
     void
@@ -163,16 +169,28 @@ namespace
 
   private:
     /*
-      Data packed is:
-        - .x    ===> which x-tile.
-        - .y    ===> which y-tile.
-        - .z/.w ===> which layer packed as layer = 2*z + w
-      Note:
-        ColorBackingStore must be no larger than 2^8 * color_tile_size
-        For color_tile_size = 2^5, then value is 2^13 = 8192
+     * Data packed is:
+     *  - .x    ===> which x-tile.
+     *  - .y    ===> which y-tile.
+     *  - .z/.w ===> which layer packed as layer = 2*z + w
+     * Note:
+     *  ColorBackingStore must be no larger than 2^8 * color_tile_size
+     *  For color_tile_size = 2^5, then value is 2^13 = 8192
      */
-    typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST>::type TextureGL;
+    typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST, GL_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
+  };
+
+  class TextureImagePrivate
+  {
+  public:
+    TextureImagePrivate(GLuint tex, bool owns):
+      m_texture(tex),
+      m_owns_texture(owns)
+    {}
+
+    GLuint m_texture;
+    bool m_owns_texture;
   };
 
   class ImageAtlasGLParamsPrivate
@@ -209,9 +227,6 @@ namespace
 
 } //namespace
 
-
-
-
 ////////////////////////////////////////////
 // ColorBackingStoreGL methods
 ColorBackingStoreGL::
@@ -221,26 +236,68 @@ ColorBackingStoreGL(int log2_tile_size,
                     bool delayed):
   fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
                                          true),
-  m_backing_store(dimensions(), delayed)
+  m_backing_store(dimensions(), delayed, log2_tile_size),
+  m_number_mipmap_levels(log2_tile_size + 1)
 {}
 
 void
 ColorBackingStoreGL::
-set_data(int x, int y, int l,
-         int w, int h,
-         fastuidraw::const_c_array<fastuidraw::u8vec4> pdata)
+set_data(int mipmap_level, fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec2 src_xy,
+         unsigned int size, const fastuidraw::ImageSourceBase &image_data)
 {
-  TextureGL::EntryLocation V;
-  fastuidraw::const_c_array<uint8_t> data;
+  using namespace fastuidraw;
 
-  V.m_location.x() = x;
-  V.m_location.y() = y;
-  V.m_location.z() = l;
-  V.m_size.x() = w;
-  V.m_size.y() = h;
+  if (mipmap_level >= m_backing_store.num_mipmaps())
+    {
+      return;
+    }
+
+  TextureGL::EntryLocation V;
+  std::vector<u8vec4> data_storage(size * size);
+  fastuidraw::c_array<u8vec4> data(make_c_array(data_storage));
+  fastuidraw::c_array<const uint8_t> raw_data;
+
+  raw_data = data.reinterpret_pointer<const uint8_t>();
+  V.m_mipmap_level = mipmap_level;
+  V.m_location.x() = dst_xy.x();
+  V.m_location.y() = dst_xy.y();
+  V.m_location.z() = dst_l;
+  V.m_size.x() = size;
+  V.m_size.y() = size;
   V.m_size.z() = 1;
-  data = pdata.reinterpret_pointer<uint8_t>();
-  m_backing_store.set_data_c_array(V, data);
+
+  image_data.fetch_texels(V.m_mipmap_level, src_xy,
+                          V.m_size.x(), V.m_size.y(), data);
+  m_backing_store.set_data_c_array(V, raw_data);
+}
+
+void
+ColorBackingStoreGL::
+set_data(int mipmap_level, fastuidraw::ivec2 dst_xy, int dst_l,
+         unsigned int size, fastuidraw::u8vec4 color_value)
+{
+  using namespace fastuidraw;
+
+  if (mipmap_level >= m_backing_store.num_mipmaps())
+    {
+      return;
+    }
+
+  TextureGL::EntryLocation V;
+  std::vector<u8vec4> data_storage(size * size, color_value);
+  fastuidraw::c_array<u8vec4> data(make_c_array(data_storage));
+  fastuidraw::c_array<const uint8_t> raw_data;
+
+  raw_data = data.reinterpret_pointer<const uint8_t>();
+  V.m_mipmap_level = mipmap_level;
+  V.m_location.x() = dst_xy.x();
+  V.m_location.y() = dst_xy.y();
+  V.m_location.z() = dst_l;
+  V.m_size.x() = size;
+  V.m_size.y() = size;
+  V.m_size.z() = 1;
+
+  m_backing_store.set_data_c_array(V, raw_data);
 }
 
 fastuidraw::ivec3
@@ -248,7 +305,7 @@ ColorBackingStoreGL::
 store_size(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers)
 {
   /* Because the index type is an 8-bit integer, log2_num_tiles_per_row_per_col
-     must be clamped to 8.
+   * must be clamped to 8.
    */
   log2_num_tiles_per_row_per_col = std::max(1, std::min(8, log2_num_tiles_per_row_per_col));
   int v(1 << (log2_num_tiles_per_row_per_col + log2_tile_size));
@@ -271,7 +328,7 @@ void
 IndexBackingStoreGL::
 set_data(int x, int y, int l,
          int w, int h,
-         fastuidraw::const_c_array<fastuidraw::ivec3> data,
+         fastuidraw::c_array<const fastuidraw::ivec3> data,
          int slack,
          const fastuidraw::AtlasColorBackingStoreBase *C,
          int pcolor_tile_size)
@@ -286,7 +343,7 @@ void
 IndexBackingStoreGL::
 set_data(int x, int y, int l,
          int w, int h,
-         fastuidraw::const_c_array<fastuidraw::ivec3> data)
+         fastuidraw::c_array<const fastuidraw::ivec3> data)
 {
   TextureGL::EntryLocation V;
   std::vector<uint8_t> data_store(4*w*h);
@@ -318,9 +375,9 @@ IndexBackingStoreGL::
 store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num_layers)
 {
   /* Size is just 2^(log2_tile_size + log2_num_index_tiles_per_row_per_col),
-     however, because index is an 8 bit integer, log2_num_index_tiles_per_row_per_col
-     must be capped to 8
-  */
+   * however, because index is an 8 bit integer, log2_num_index_tiles_per_row_per_col
+   * must be capped to 8
+   */
   log2_num_index_tiles_per_row_per_col = std::min(8, std::max(1, log2_num_index_tiles_per_row_per_col));
   int v(1 << (log2_num_index_tiles_per_row_per_col + log2_tile_size));
   return fastuidraw::ivec3(v, v, num_layers);
@@ -351,25 +408,6 @@ fastuidraw::gl::ImageAtlasGL::params::
   m_d = nullptr;
 }
 
-void
-fastuidraw::gl::ImageAtlasGL::params::
-swap(params &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::gl::ImageAtlasGL::params&
-fastuidraw::gl::ImageAtlasGL::params::
-operator=(const params &rhs)
-{
-  if(this != &rhs)
-    {
-      params v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
 fastuidraw::gl::ImageAtlasGL::params&
 fastuidraw::gl::ImageAtlasGL::params::
 optimal_color_sizes(int log2_color_tile_size)
@@ -381,37 +419,28 @@ optimal_color_sizes(int log2_color_tile_size)
   return log2_num_color_tiles_per_row_per_col(c);
 }
 
-#define paramsSetGet(type, name)                                 \
-  fastuidraw::gl::ImageAtlasGL::params&                          \
-  fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(type v)                                                   \
-  {                                                              \
-    ImageAtlasGLParamsPrivate *d;                                \
-    d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
-    d->m_##name = v;                                             \
-    return *this;                                                \
-  }                                                              \
-                                                                 \
-  type                                                           \
-  fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(void) const                                               \
-  {                                                              \
-    ImageAtlasGLParamsPrivate *d;                                \
-    d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
-    return d->m_##name;                                          \
-  }
-
-paramsSetGet(int, log2_color_tile_size)
-paramsSetGet(int, log2_num_color_tiles_per_row_per_col)
-paramsSetGet(int, num_color_layers)
-paramsSetGet(int, log2_index_tile_size)
-paramsSetGet(int, log2_num_index_tiles_per_row_per_col)
-paramsSetGet(int, num_index_layers)
-paramsSetGet(bool, delayed)
-
-#undef paramsSetGet
-
-
+assign_swap_implement(fastuidraw::gl::ImageAtlasGL::params)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_color_tile_size)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_num_color_tiles_per_row_per_col)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, num_color_layers)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_index_tile_size)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_num_index_tiles_per_row_per_col)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, num_index_layers)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 bool, delayed)
 
 //////////////////////////////////////////////
 // fastuidraw::gl::ImageAtlasGL methods
@@ -468,17 +497,72 @@ index_texture(void) const
   return p->texture();
 }
 
-fastuidraw::vecN<fastuidraw::vec2, 2>
-fastuidraw::gl::ImageAtlasGL::
-shader_coords(reference_counted_ptr<Image> image)
+//////////////////////////////////////////////////////
+// fastuidraw::gl::ImageAtlasGL::TextureImage methods
+fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+create(int w, int h, unsigned int m, GLuint texture,
+       bool object_owns_texture)
 {
-  ivec2 master_index_tile(image->master_index_tile());
+  if (w <= 0 || h <= 0 || m <= 0 || texture == 0)
+    {
+      return nullptr;
+    }
 
-  FASTUIDRAWassert(image->number_index_lookups() > 0);
+  if (detail::bindless().not_supported())
+    {
+      return FASTUIDRAWnew TextureImage(w, h, m, object_owns_texture, texture);
+    }
+  else
+    {
+      GLuint64 handle;
 
-  vec2 wh(image->master_index_tile_dims());
-  float f(image->atlas()->index_tile_size());
-  vec2 fmaster_index_tile(master_index_tile);
-  vec2 c0(f * fmaster_index_tile);
-  return vecN<vec2, 2>(c0, c0 + wh);
+      handle = detail::bindless().get_texture_handle(texture);
+      detail::bindless().make_texture_handle_resident(handle);
+      return FASTUIDRAWnew TextureImage(w, h, m, object_owns_texture, texture, handle);
+    }
+}
+
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+TextureImage(int w, int h, unsigned int m,
+             bool object_owns_texture, GLuint texture):
+  Image(w, h, m, fastuidraw::Image::context_texture2d, -1)
+{
+  m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
+}
+
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+TextureImage(int w, int h, unsigned int m,
+             bool object_owns_texture, GLuint texture, GLuint64 handle):
+  Image(w, h, m, fastuidraw::Image::bindless_texture2d, handle)
+{
+  m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
+}
+
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+~TextureImage()
+{
+  TextureImagePrivate *d;
+  d = static_cast<TextureImagePrivate*>(m_d);
+
+  if (type() == bindless_texture2d)
+    {
+      detail::bindless().make_texture_handle_non_resident(bindless_handle());
+    }
+
+  if (d->m_owns_texture)
+    {
+      glDeleteTextures(1, &d->m_texture);
+    }
+
+  FASTUIDRAWdelete(d);
+}
+
+GLuint
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+texture(void) const
+{
+  TextureImagePrivate *d;
+  d = static_cast<TextureImagePrivate*>(m_d);
+  return d->m_texture;
 }

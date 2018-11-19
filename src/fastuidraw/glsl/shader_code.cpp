@@ -19,196 +19,15 @@
 #include <sstream>
 
 #include <fastuidraw/util/math.hpp>
+#include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/glsl/shader_code.hpp>
-#include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
-
-namespace
-{
-   class Ending
-  {
-  public:
-    explicit
-    Ending(unsigned int N, enum fastuidraw::GlyphRenderDataCurvePair::geometry_packing pk):
-      m_N(N),
-      m_pk(pk)
-    {}
-
-    unsigned int m_N;
-    enum fastuidraw::GlyphRenderDataCurvePair::geometry_packing m_pk;
-
-  };
-
-  std::ostream&
-  operator<<(std::ostream &str, Ending obj)
-  {
-    int tempIndex, cc;
-    const char *component[]=
-      {
-        "r",
-        "g",
-        "b",
-        "a"
-      };
-
-    tempIndex = obj.m_pk / obj.m_N;
-    cc = obj.m_pk - obj.m_N * tempIndex;
-    FASTUIDRAWassert(0<= cc && cc < 4);
-    if(obj.m_N > 1)
-      {
-        str << tempIndex << "." << component[cc];
-      }
-    else
-      {
-        str << tempIndex;
-      }
-    return str;
-  }
-
-  class LoaderMacro
-  {
-  public:
-    LoaderMacro(unsigned int alignment, const char *geometry_store_name);
-
-    const char*
-    value(void) const
-    {
-      return m_value.c_str();
-    }
-  private:
-    std::string m_value;
-  };
-}
-
-////////////////////////////////////////////////////
-// LoaderMacro methods
-LoaderMacro::
-LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
-{
-  /* we are defining a macro, so on end of lines
-     in code we need to add \\
-   */
-  std::ostringstream str;
-  const char *texelFetchExt[4] =
-    {
-      "r",
-      "rg",
-      "rgb",
-      "rgba"
-    };
-  const char *tempType[4] =
-    {
-      "float",
-      "vec2",
-      "vec3",
-      "vec4"
-    };
-
-  str << "\n#define FASTUIDRAW_LOAD_CURVE_GEOMETRY(geometry_offset, texel_value) { \\\n"
-      << "\t" << tempType[alignment - 1] << " ";
-
-  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
-    {
-      if(c != 0)
-        {
-          str << ", ";
-        }
-      str << "temp" << j;
-    }
-  str << ";\\\n"
-      << "\tint start_offset;\\\n"
-      << "\tstart_offset = int(geometry_offset) + ( int(texel_value) - 2 ) * int("
-      << fastuidraw::round_up_to_multiple(fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack, alignment) / alignment
-      <<");\\\n";
-
-  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
-    {
-      str << "\ttemp" << j << " = " << geometry_store_fetch << "(start_offset + "
-          << j << ")." << texelFetchExt[alignment - 1] << ";\\\n";
-    }
-
-  /* this is scary, the shader code will have the macros/whatever defined for us so that
-     that assignment from temp "just works".
-   */
-#define EXTRACT_STREAM(X) str << "\t"#X << " = temp" << Ending(alignment, fastuidraw::GlyphRenderDataCurvePair::pack_offset_##X) << ";\\\n"
-
-
-  EXTRACT_STREAM(p_x);
-  EXTRACT_STREAM(p_y);
-  EXTRACT_STREAM(zeta);
-  EXTRACT_STREAM(combine_rule);
-
-  EXTRACT_STREAM(curve0_m0);
-  EXTRACT_STREAM(curve0_m1);
-  EXTRACT_STREAM(curve0_q_x);
-  EXTRACT_STREAM(curve0_q_y);
-  EXTRACT_STREAM(curve0_quad_coeff);
-
-  EXTRACT_STREAM(curve1_m0);
-  EXTRACT_STREAM(curve1_m1);
-  EXTRACT_STREAM(curve1_q_x);
-  EXTRACT_STREAM(curve1_q_y);
-  EXTRACT_STREAM(curve1_quad_coeff);
-
-  str << "\\\n}\n";
-
-  m_value = str.str();
-}
 
 /////////////////////////////////
 // fastuidraw::glsl::code methods
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-curvepair_compute_pseudo_distance(unsigned int alignment,
-                                  const char *function_name,
-                                  const char *geometry_store_fetch,
-                                  bool derivative_function)
-{
-  ShaderSource return_value;
-
-  /* aww, this sucks; we can choose one of 4 options:
-       1. dedicated shader for all variations.
-       2. a loader function (but we need to prefix its name)
-          along with the global values
-       3. break function into sections:
-          - function declaration and local variables
-          - loader code
-          - computation and closing code
-       4. Define the loading macro in C++ and make sure the
-          variable names used match between this C++ code
-          and the GLSL shader code
-     We choose option 4; which sucks for reading the shader code.
-   */
-
-  return_value
-    .add_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME", function_name)
-    .add_source(LoaderMacro(alignment, geometry_store_fetch).value(),
-                ShaderSource::from_string);
-
-  if(derivative_function)
-    {
-      return_value
-        .add_source("fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string",
-                    ShaderSource::from_resource);
-    }
-  else
-    {
-      return_value
-        .add_source("fastuidraw_curvepair_glyph.frag.glsl.resource_string",
-                    ShaderSource::from_resource);
-    }
-
-  return_value
-    .add_source("#undef FASTUIDRAW_LOAD_CURVE_GEOMETRY\n", glsl::ShaderSource::from_string)
-    .remove_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME");
-
-  return return_value;
-
-}
-
-fastuidraw::glsl::ShaderSource
-fastuidraw::glsl::code::
-image_atlas_compute_coord(const char *function_name,
-                          const char *index_texture,
+image_atlas_compute_coord(c_string function_name,
+                          c_string index_texture,
                           unsigned int index_tile_size,
                           unsigned int color_tile_size)
 {
@@ -228,137 +47,60 @@ image_atlas_compute_coord(const char *function_name,
   return return_value;
 }
 
+fastuidraw::glsl::ShaderSource
+fastuidraw::glsl::code::
+compute_interval(c_string function_name,
+                 c_string fetch_macro_function)
+{
+  ShaderSource return_value;
+
+  return_value
+    .add_macro("FASTUIDRAW_COMPUTE_INTERVAL_NAME", function_name)
+    .add_macro("FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA", fetch_macro_function)
+    .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
+    .remove_macro("FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA")
+    .remove_macro("FASTUIDRAW_COMPUTE_INTERVAL_NAME");
+
+  return return_value;
+}
 
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-compute_interval(const char *function_name, unsigned int data_alignment)
+restricted_rays_compute_coverage(c_string fetch_macro_function)
 {
   ShaderSource return_value;
-  std::ostringstream ostr;
-
-  const char *xyzw = "xyzw";
-  const char *itypes[] =
-    {
-      "uint",
-      "uvec2",
-      "uvec3",
-      "uvec4"
-    };
-
-  const char *ftypes[] =
-    {
-      "float",
-      "vec2",
-      "vec3",
-      "vec4",
-    };
-
-  const char *extract_swizzle[] =
-    {
-      "x",
-      "xy",
-      "xyz",
-      "xyzw",
-    };
-
-  const char *start_interval[] =
-    {
-      "lastd",
-      "fV.x",
-      "fV.y",
-      "fV.z",
-    };
-
-  const char *end_interval[] =
-    {
-      "fV.x",
-      "fV.y",
-      "fV.z",
-      "fV.w"
-    };
-
-  const char *return_signs[] =
-    {
-      "1.0",
-      "-1.0",
-      "1.0",
-      "-1.0"
-    };
-
-  FASTUIDRAWassert(data_alignment >=1 && data_alignment <= 4);
-
-  /* This.. is awful.
-   */
-  ostr << "float\n" << function_name
-       << "(in uint intervals_location, in float total_distance,\n"
-       << "\tin float first_interval_start, in float in_distance,\n"
-       << "\tin uint number_intervals,\n"
-       << "\tout int interval_ID,\n"
-       << "\tout float interval_begin, out float interval_end)\n"
-       << "{\n"
-       << "\tint loc;\n"
-       << "\tfloat d, lastd, ff, fd;\n";
-
-  if(data_alignment == 1 || data_alignment == 3)
-    {
-      ostr << "\tfloat s = 1.0;\n";
-    }
-
-  ostr << "\n"
-       << "\tfd = floor(in_distance / total_distance);\n"
-       << "\tff = total_distance * fd;\n"
-       << "\td = in_distance - ff;\n"
-       << "\tlastd = first_interval_start;\n"
-       << "\tloc = 0;\n"
-       << "\tinterval_begin = 0.0;\n"
-       << "\tinterval_end = 0.0;\n"
-       << "\tinterval_ID = -1;\n"
-       << "\n\n"
-       << "\tdo\n"
-       << "\t{\n"
-       << "\t\t" << itypes[data_alignment - 1] << " V;\n"
-       << "\t\t" << ftypes[data_alignment - 1] << " fV;\n"
-       << "\t\tV = fastuidraw_fetch_data(loc + int(intervals_location))." << extract_swizzle[data_alignment - 1] << ";\n"
-       << "\t\tfV = uintBitsToFloat(V);\n";
-  for(unsigned int i = 0; i < data_alignment; ++i)
-    {
-      ostr << "\t\t";
-      if(i != 0)
-        {
-          ostr << "else ";
-        }
-      ostr << "if(d < fV." << xyzw[i] << ")\n"
-           << "\t\t{\n"
-           << "\t\t\tinterval_begin = ff + " << start_interval[i] << ";\n"
-           << "\t\t\tinterval_end = ff + " << end_interval[i] << ";\n"
-           << "\t\t\tinterval_ID = int(" << data_alignment << ") * loc "
-           << "+ int(" << i << ") + int(fd) * int(number_intervals);\n";
-      if(data_alignment == 1 || data_alignment == 3)
-        {
-          ostr << "\t\t\treturn s * " << return_signs[i] << ";\n";
-        }
-      else
-        {
-          ostr << "\t\t\treturn " << return_signs[i] << ";\n";
-        }
-      ostr << "\t\t\tlastd = 2.0 * total_distance + 1.0;\n"
-           << "\t\t}\n";
-    }
-  ostr << "\t\tlastd = fV." << xyzw[data_alignment - 1] << ";\n"
-       << "\t\t++loc;\n";
-
-  if(data_alignment == 1 || data_alignment == 3)
-    {
-      ostr << "\t\ts *= -1.0;\n";
-    }
-
-  ostr << "\t}\n"
-       << "\twhile(lastd < total_distance);\n"
-       << "\treturn -1.0;\n"
-       << "}";
 
   return_value
-    .add_source(ostr.str().c_str(), glsl::ShaderSource::from_string);
+    .add_macro("fastuidraw_restricted_rays_hierarchy_node_bit", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_is_node_bit))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_node_mask", uint32_t(FASTUIDRAW_MASK(GlyphRenderDataRestrictedRays::hierarchy_is_node_bit, 1u)))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_split_coord_bit", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_splitting_coordinate_bit))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_child0_bit", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_child0_offset_bit0))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_child1_bit", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_child1_offset_bit0))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_child_num_bits", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_child_offset_numbits))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_curve_list_bit0", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_bit0))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_curve_list_num_bits", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_numbits))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_curve_list_size_bit0", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_bit0))
+    .add_macro("fastuidraw_restricted_rays_hierarchy_curve_list_size_num_bits", uint32_t(GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_numbits))
+    .add_macro("fastuidraw_restricted_rays_point_coordinate_num_bits", uint32_t(GlyphRenderDataRestrictedRays::point_coordinate_numbits))
+    .add_macro("fastuidraw_restricted_rays_point_x_coordinate_bit0", uint32_t(GlyphRenderDataRestrictedRays::point_x_coordinate_bit0))
+    .add_macro("fastuidraw_restricted_rays_point_y_coordinate_bit0", uint32_t(GlyphRenderDataRestrictedRays::point_y_coordinate_bit0))
+    .add_macro("fastuidraw_restricted_rays_winding_value_bias", uint32_t(GlyphRenderDataRestrictedRays::winding_bias))
+    .add_macro("fastuidraw_restricted_rays_winding_value_bit0", uint32_t(GlyphRenderDataRestrictedRays::winding_value_bit0))
+    .add_macro("fastuidraw_restricted_rays_winding_value_num_bits", uint32_t(GlyphRenderDataRestrictedRays::winding_value_numbits))
+    .add_macro("fastuidraw_restricted_rays_position_delta_divide", uint32_t(GlyphRenderDataRestrictedRays::delta_div_factor))
+    .add_macro("fastuidraw_restricted_rays_position_delta_x_bit0", uint32_t(GlyphRenderDataRestrictedRays::delta_x_bit0))
+    .add_macro("fastuidraw_restricted_rays_position_delta_y_bit0", uint32_t(GlyphRenderDataRestrictedRays::delta_y_bit0))
+    .add_macro("fastuidraw_restricted_rays_position_delta_num_bits", uint32_t(GlyphRenderDataRestrictedRays::delta_numbits))
+    .add_macro("fastuidraw_restricted_rays_curve_entry_num_bits", uint32_t(GlyphRenderDataRestrictedRays::curve_numbits))
+    .add_macro("fastuidraw_restricted_rays_curve_entry0_bit0", uint32_t(GlyphRenderDataRestrictedRays::curve_entry0_bit0))
+    .add_macro("fastuidraw_restricted_rays_curve_entry1_bit0", uint32_t(GlyphRenderDataRestrictedRays::curve_entry1_bit0))
+    .add_macro("fastuidraw_restricted_rays_curve_is_quadratic_bit", uint32_t(GlyphRenderDataRestrictedRays::curve_is_quadratic_bit))
+    .add_macro("fastuidraw_restricted_rays_curve_is_quadratic_mask", uint32_t(FASTUIDRAW_MASK(GlyphRenderDataRestrictedRays::curve_is_quadratic_bit, 1u)))
+    .add_macro("fastuidraw_restricted_rays_curve_bit0", uint32_t(GlyphRenderDataRestrictedRays::curve_location_bit0))
+    .add_macro("fastuidraw_restricted_rays_curve_num_bits", uint32_t(GlyphRenderDataRestrictedRays::curve_location_numbits))
+    .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA", fetch_macro_function)
+    .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
+    .remove_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA");
 
   return return_value;
 }

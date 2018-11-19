@@ -26,24 +26,27 @@ fastuidraw::gl::detail::
 compute_texture_view_support(void)
 {
   ContextProperties ctx;
-  if(ctx.is_es())
+  if (ctx.is_es())
     {
-      if(ctx.has_extension("GL_OES_texture_view"))
+      if (ctx.has_extension("GL_OES_texture_view"))
         {
           return texture_view_oes_extension;
         }
-      if(ctx.has_extension("GL_EXT_texture_view"))
+      if (ctx.has_extension("GL_EXT_texture_view"))
         {
           return texture_view_ext_extension;
         }
     }
   else
     {
-      if(ctx.version() >= ivec2(4, 3) || ctx.has_extension("GL_ARB_texture_view"))
+      #ifndef __APPLE__
         {
-          return texture_view_without_extension;
+          if (ctx.version() >= ivec2(4, 3) || ctx.has_extension("GL_ARB_texture_view"))
+            {
+              return texture_view_without_extension;
+            }
         }
-
+      #endif
     }
 
   return texture_view_not_supported;
@@ -55,9 +58,22 @@ texture_view(enum texture_view_support_t md,
              GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat,
              GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers)
 {
-  #ifndef FASTUIDRAW_GL_USE_GLES
+  #ifdef __APPLE__
     {
-      if(md == texture_view_without_extension)
+      FASTUIDRAWunused(md);
+      FASTUIDRAWunused(texture);
+      FASTUIDRAWunused(target);
+      FASTUIDRAWunused(origtexture);
+      FASTUIDRAWunused(internalformat);
+      FASTUIDRAWunused(minlevel);
+      FASTUIDRAWunused(numlevels);
+      FASTUIDRAWunused(minlayer);
+      FASTUIDRAWunused(numlayers);
+      FASTUIDRAWassert(!"glTextureView not supported by GL context!\n");
+    }
+  #elif !defined(FASTUIDRAW_GL_USE_GLES)
+    {
+      if (md == texture_view_without_extension)
         {
           glTextureView(texture, target, origtexture, internalformat,
                         minlevel, numlevels, minlayer, numlayers);

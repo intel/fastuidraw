@@ -1,7 +1,20 @@
-/* variables that are initialized at main(), but user defined
-   fragment shader can change.
+/*!
+ * \file fastuidraw_painter_forward_declares.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_forward_declares.frag.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
  */
-vec2 fastuidraw_brush_position;
 
 void
 fastuidraw_read_header(in uint location, out fastuidraw_shader_header h);
@@ -13,31 +26,39 @@ vec4
 fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
 
 vec4
-fastuidraw_compute_brush_color(void);
+fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy);
 
 
-#ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
-void
-fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1);
-#endif
-
-#ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
-void
-fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src);
-#endif
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
 void
-fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src);
+fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
+                                in vec4 in_src, out vec4 out_src);
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
+void
+fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
+                                in vec4 color0, out vec4 src0, out vec4 src1);
+#endif
+
+#if defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH) || defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
+void
+fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location,
+                            in vec3 in_src, in vec3 in_fb, out vec3 out_src);
+
+void
+fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
+                                in vec4 in_src, in vec4 in_fb, out vec4 out_src);
 #endif
 
 void
 fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,
-                                     in int index_layer,
-                                     in int num_lookups,
-                                     in int slack,
+                                     in uint index_layer,
+                                     in uint num_lookups,
+                                     in uint slack,
                                      out vec2 image_atlas_coord,
-                                     out int image_atlas_layer);
+                                     out uint image_atlas_layer);
 
 uint
 fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);

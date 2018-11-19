@@ -5,13 +5,28 @@
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/painter/painter.hpp>
-#include <fastuidraw/painter/painter_header.hpp>
+#include <fastuidraw/painter/packing/painter_header.hpp>
 
 #include "sdl_painter_demo.hpp"
 
 using namespace fastuidraw;
 
 typedef std::bitset<32> bitset;
+
+c_string
+shader_extension(GLenum shader_type)
+{
+  switch (shader_type)
+    {
+    case GL_FRAGMENT_SHADER: return "frag";
+    case GL_VERTEX_SHADER: return "vert";
+    case GL_GEOMETRY_SHADER: return "geom";
+    case GL_TESS_CONTROL_SHADER: return "tesc";
+    case GL_TESS_EVALUATION_SHADER: return "tese";
+    case GL_COMPUTE_SHADER: return "comp";
+    default: return "unknown";
+    }
+}
 
 class painter_test:public sdl_painter_demo
 {
@@ -27,10 +42,10 @@ protected:
              const std::string &prefix, GLenum shader_type)
   {
     unsigned int cnt;
-    const char *label;
+    c_string label;
 
     cnt = pr->num_shaders(shader_type);
-    if(cnt == 0)
+    if (cnt == 0)
       {
         return;
       }
@@ -41,12 +56,10 @@ protected:
     for(unsigned int i = 0; i < cnt; ++i)
       {
         std::ostringstream name, name_log;
-        name << prefix << "."
-             << gl::Shader::gl_shader_type_label(shader_type)
-             << "." << i << ".glsl";
-        name_log << prefix << "."
-                 << gl::Shader::gl_shader_type_label(shader_type)
-                 << "." << i << ".log";
+        name << prefix << "." << i << "."
+             << shader_extension(shader_type) << ".glsl";
+        name_log << prefix << "." << i << "."
+                 << shader_extension(shader_type) << ".log";
 
         std::ofstream file(name.str().c_str());
         file << pr->shader_src_code(shader_type, i);
@@ -64,7 +77,7 @@ protected:
   {
     {
       std::ostringstream name;
-      name << prefix << "program.log";
+      name << prefix << ".program.log";
 
       std::ofstream file(name.str().c_str());
       file << pr->log();
@@ -78,7 +91,7 @@ protected:
     log_helper(pr, prefix, GL_TESS_EVALUATION_SHADER);
     log_helper(pr, prefix, GL_TESS_CONTROL_SHADER);
 
-    if(pr->link_success())
+    if (pr->link_success())
       {
         std::cout << "Link success\n";
         pr->use_program();
@@ -135,6 +148,7 @@ private:
 int
 main(int argc, char **argv)
 {
+  FASTUIDRAWassert(StrokedPoint::number_offset_types < FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(StrokedPoint::offset_type_num_bits));
   std::cout << std::setw(40) << "header_size = " << PainterHeader::header_size << "\n"
             << std::setw(40) << "clip_equations_data_size = " << PainterClipEquations::clip_data_size << "\n"
             << std::setw(40) << "item_matrix_data_size = " << PainterItemMatrix::matrix_data_size << "\n"
@@ -160,19 +174,19 @@ main(int argc, char **argv)
             << std::setw(40) << "transformation_translation_mask = " << bitset(PainterBrush::transformation_translation_mask) << "\n"
             << std::setw(40) << "transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
 
-            << std::setw(40) << "stroked_number_offset_types = " << StrokedPath::number_offset_types << "\n"
-            << std::setw(40) << "stroked_offset_type_bit0 = " << StrokedPath::offset_type_bit0 << "\n"
-            << std::setw(40) << "stroked_offset_type_num_bits = " << StrokedPath::offset_type_num_bits << "\n"
-            << std::setw(40) << "stroked_boundary_bit = " << StrokedPath::boundary_bit << "\n"
-            << std::setw(40) << "stroked_depth_bit0 = " << StrokedPath::depth_bit0 << "\n"
-            << std::setw(40) << "stroked_depth_num_bits = " << StrokedPath::depth_num_bits << "\n"
-            << std::setw(40) << "stroked_join_bit = " << StrokedPath::join_bit << "\n"
-            << std::setw(40) << "stroked_number_common_bits = " << StrokedPath::number_common_bits << "\n"
-            << std::setw(40) << "stroked_normal0_y_sign_bit = " << StrokedPath::normal0_y_sign_bit << "\n"
-            << std::setw(40) << "stroked_normal1_y_sign_bit = " << StrokedPath::normal1_y_sign_bit << "\n"
-            << std::setw(40) << "stroked_sin_sign_bit = " << StrokedPath::sin_sign_bit << "\n"
-            << std::setw(40) << "stroked_adjustable_cap_ending_bit = " << StrokedPath::adjustable_cap_ending_bit << "\n"
-            << std::setw(40) << "stroked_bevel_edge_bit = " << StrokedPath::bevel_edge_bit << "\n";
+            << std::setw(40) << "stroked_number_offset_types = " << StrokedPoint::number_offset_types << "\n"
+            << std::setw(40) << "stroked_offset_type_bit0 = " << StrokedPoint::offset_type_bit0 << "\n"
+            << std::setw(40) << "stroked_offset_type_num_bits = " << StrokedPoint::offset_type_num_bits << "\n"
+            << std::setw(40) << "stroked_boundary_bit = " << StrokedPoint::boundary_bit << "\n"
+            << std::setw(40) << "stroked_depth_bit0 = " << StrokedPoint::depth_bit0 << "\n"
+            << std::setw(40) << "stroked_depth_num_bits = " << StrokedPoint::depth_num_bits << "\n"
+            << std::setw(40) << "stroked_join_bit = " << StrokedPoint::join_bit << "\n"
+            << std::setw(40) << "stroked_number_common_bits = " << StrokedPoint::number_common_bits << "\n"
+            << std::setw(40) << "stroked_normal0_y_sign_bit = " << StrokedPoint::normal0_y_sign_bit << "\n"
+            << std::setw(40) << "stroked_normal1_y_sign_bit = " << StrokedPoint::normal1_y_sign_bit << "\n"
+            << std::setw(40) << "stroked_sin_sign_bit = " << StrokedPoint::sin_sign_bit << "\n"
+            << std::setw(40) << "stroked_adjustable_cap_ending_bit = " << StrokedPoint::adjustable_cap_ending_bit << "\n"
+            << std::setw(40) << "stroked_bevel_edge_bit = " << StrokedPoint::bevel_edge_bit << "\n";
 
   painter_test P;
   return P.main(argc, argv);

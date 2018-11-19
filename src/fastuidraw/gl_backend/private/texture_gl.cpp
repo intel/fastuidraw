@@ -47,7 +47,7 @@ namespace
                GLint layer,
                GLint level)
   {
-    if(texture_is_layered(texTarget))
+    if (texture_is_layered(texTarget))
       {
         glFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, texName, level, layer);
       }
@@ -136,9 +136,89 @@ format_from_internal_format(GLenum fmt)
     case GL_R32UI:
       return GL_RED_INTEGER;
 
-    case GL_DEPTH_STENCIL:
     case GL_DEPTH24_STENCIL8:
       return GL_DEPTH_STENCIL;
+      return GL_DEPTH24_STENCIL8;
+
+    case GL_DEPTH32F_STENCIL8:
+      return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+
+    case GL_DEPTH_COMPONENT16:
+    case GL_DEPTH_COMPONENT24:
+    case GL_DEPTH_COMPONENT32F:
+      return GL_DEPTH_COMPONENT;
+    }
+}
+
+GLenum
+fastuidraw::gl::detail::
+type_from_internal_format(GLenum fmt)
+{
+  switch(fmt)
+    {
+    default:
+    case GL_R8:
+    case GL_R8UI:
+    case GL_RG8:
+    case GL_RG8UI:
+    case GL_RGB:
+    case GL_RGB8:
+    case GL_RGB8UI:
+    case GL_RGBA:
+    case GL_RGBA8:
+    case GL_RGBA8UI:
+      return GL_UNSIGNED_BYTE;
+
+    case GL_R8I:
+    case GL_RG8I:
+    case GL_RGB8I:
+    case GL_RGBA8I:
+      return GL_BYTE;
+
+    case GL_R16UI:
+    case GL_RG16UI:
+    case GL_RGB16UI:
+    case GL_RGBA16UI:
+      return GL_UNSIGNED_SHORT;
+
+    case GL_R16I:
+    case GL_RG16I:
+    case GL_RGB16I:
+    case GL_RGBA16I:
+      return GL_SHORT;
+
+    case GL_R32UI:
+    case GL_RG32UI:
+    case GL_RGB32UI:
+    case GL_RGBA32UI:
+      return GL_UNSIGNED_INT;
+
+    case GL_R32I:
+    case GL_RG32I:
+    case GL_RGB32I:
+    case GL_RGBA32I:
+      return GL_INT;
+
+    case GL_R16F:
+    case GL_RG16F:
+    case GL_RGB16F:
+    case GL_RGBA16F:
+    case GL_R32F:
+    case GL_RG32F:
+    case GL_RGB32F:
+    case GL_RGBA32F:
+      return GL_FLOAT;
+
+    case GL_DEPTH24_STENCIL8:
+      return GL_UNSIGNED_INT_24_8;
+
+    case GL_DEPTH32F_STENCIL8:
+      return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+
+    case GL_DEPTH_COMPONENT16:
+    case GL_DEPTH_COMPONENT24:
+    case GL_DEPTH_COMPONENT32F:
+      return GL_UNSIGNED_BYTE;
     }
 }
 
@@ -156,17 +236,17 @@ compute_type(void)
   ContextProperties ctx;
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      if(ctx.version() >= ivec2(3, 2))
+      if (ctx.version() >= ivec2(3, 2))
         {
           return unextended_function;
         }
 
-      if(ctx.has_extension("GL_OES_copy_image"))
+      if (ctx.has_extension("GL_OES_copy_image"))
         {
           return oes_function;
         }
 
-      if(ctx.has_extension("GL_EXT_copy_image"))
+      if (ctx.has_extension("GL_EXT_copy_image"))
         {
           return ext_function;
         }
@@ -175,10 +255,14 @@ compute_type(void)
     }
   #else
     {
-      if(ctx.version() >= ivec2(4,3) || ctx.has_extension("GL_ARB_copy_image"))
+      #ifndef __APPLE__
         {
-          return unextended_function;
+          if (ctx.version() >= ivec2(4,3) || ctx.has_extension("GL_ARB_copy_image"))
+            {
+              return unextended_function;
+            }
         }
+      #endif
 
       return emulate_function;
     }
@@ -194,13 +278,14 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
            GLint dstX, GLint dstY, GLint dstZ,
            GLsizei width, GLsizei height, GLsizei depth) const
 {
-  if(m_type == uninited)
+  if (m_type == uninited)
     {
       m_type = compute_type();
     }
 
   switch(m_type)
     {
+#ifndef __APPLE__
     case unextended_function:
       glCopyImageSubData(srcName, srcTarget, srcLevel,
                          srcX, srcY, srcZ,
@@ -208,6 +293,7 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
                          dstX, dstY, dstZ,
                          width, height, depth);
       break;
+#endif
 
 #ifdef FASTUIDRAW_GL_USE_GLES
     case oes_function:
@@ -245,8 +331,8 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
             layer < depth; ++layer, ++src_layer, ++dst_layer)
           {
             /* TODO: handle depth, stencil and depth/stencil textures
-               correctly.
-            */
+             * correctly.
+             */
             FASTUIDRAWassert(src_layer == 0 || texture_is_layered(srcTarget));
             FASTUIDRAWassert(dst_layer == 0 || texture_is_layered(dstTarget));
             set_color_attachment(GL_DRAW_FRAMEBUFFER, dstTarget, dstName, dst_layer, dstLevel);
@@ -261,4 +347,32 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
       }
       break;
     }
+}
+
+///////////////////////////////////
+// ClearImageSubData methods
+fastuidraw::gl::detail::ClearImageSubData::
+ClearImageSubData(void):
+  m_type(uninited)
+{}
+
+enum fastuidraw::gl::detail::ClearImageSubData::type_t
+fastuidraw::gl::detail::ClearImageSubData::
+compute_type(void)
+{
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      return use_tex_sub_image;
+    }
+  #else
+    {
+      ContextProperties ctx;
+      if (ctx.version() >= ivec2(4, 4) || ctx.has_extension("GL_ARB_clear_texture"))
+        {
+          return use_clear_texture;
+        }
+
+      return use_tex_sub_image;
+    }
+  #endif
 }

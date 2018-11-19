@@ -34,6 +34,7 @@
 
 #include "gluos.hpp"
 #include <stddef.h>
+#include <vector>
 #include <fastuidraw/util/util.hpp>
 #include "mesh.hpp"
 #include "memalloc.hpp"
@@ -689,6 +690,145 @@ GLUmesh *glu_fastuidraw_gl_meshUnion( GLUmesh *mesh1, GLUmesh *mesh2 )
   return mesh1;
 }
 
+FASTUIDRAW_GLUboolean glu_fastuidraw_gl_excludeFace(GLUface *f)
+{
+  GLUhalfEdge *e;
+  e = f->anEdge;
+
+  do
+    {
+      if (e->Org->client_id == FASTUIDRAW_GLU_nullptr_CLIENT_ID) {
+        return FASTUIDRAW_GLU_TRUE;
+      }
+      e = e->Lnext;
+    }
+  while(e != f->anEdge);
+
+  return FASTUIDRAW_GLU_FALSE;
+}
+
+template<typename T>
+static
+T*
+copy_mesh_element(const T *src)
+{
+  T *return_value;
+
+  return_value = (T *)memAlloc( sizeof( T ));
+  *return_value = *src;
+  return return_value;
+}
+
+static
+GLUhalfEdge*
+select_half_edge(GLUhalfEdge *e,
+                 const std::vector<EdgePair*> &tmp_edges)
+{
+  if (!e) {
+    return nullptr;
+  }
+
+  return (e < e->Sym) ?
+    &tmp_edges[e->unique_id]->e :
+    &tmp_edges[e->unique_id]->eSym;
+}
+
+template<typename T>
+static
+T*
+select_mesh_element(T *p,
+                    const std::vector<T*> &tmp)
+{
+  return p ? tmp[p->unique_id] : nullptr;
+}
+
+GLUmesh *glu_fastuidraw_gl_copyMesh(GLUmesh *mesh)
+{
+  /* copy the mesh which means get all the pointer copying correct */
+  GLUmesh *return_value;
+  std::vector<GLUface*> tmp_faces;
+  std::vector<GLUvertex*> tmp_verts;
+  std::vector<EdgePair*> tmp_edges;
+
+  return_value = glu_fastuidraw_gl_meshNewMesh();
+
+  mesh->vHead.unique_id = 0;
+  return_value->vHead = mesh->vHead;
+  tmp_verts.push_back(&return_value->vHead);
+
+  mesh->fHead.unique_id = 0;
+  return_value->fHead = mesh->fHead;
+  tmp_faces.push_back(&return_value->fHead);
+
+  mesh->eHead.unique_id = 0;
+  mesh->eHeadSym.unique_id = 0;
+  return_value->eHead = mesh->eHead;
+  return_value->eHeadSym = mesh->eHeadSym;
+  tmp_edges.push_back((EdgePair*)(&return_value->eHead));
+
+  /* assign each element a unique id and copy each element */
+  for( GLUface *f = mesh->fHead.next; f != &mesh->fHead; f = f->next ) {
+    f->unique_id = tmp_faces.size();
+    tmp_faces.push_back(copy_mesh_element(f));
+  }
+
+  for( GLUvertex *v = mesh->vHead.next; v != &mesh->vHead; v = v->next ) {
+    v->unique_id = tmp_verts.size();
+    tmp_verts.push_back(copy_mesh_element(v));
+  }
+
+  for( GLUhalfEdge *e = mesh->eHead.next; e != &mesh->eHead; e = e->next ) {
+    EdgePair E;
+
+    e->unique_id = tmp_edges.size();
+    e->Sym->unique_id = tmp_edges.size();
+
+    E.e = *e;
+    E.eSym = *e->Sym;
+    tmp_edges.push_back(copy_mesh_element(&E));
+  }
+
+  /* now walk through all the elements and set the pointers correctly */
+  for (GLUface *f : tmp_faces)
+    {
+      f->next = select_mesh_element(f->next, tmp_faces);
+      f->prev = select_mesh_element(f->prev, tmp_faces);
+      f->anEdge = select_half_edge(f->anEdge, tmp_edges);
+      f->trail = select_mesh_element(f->trail, tmp_faces);
+    }
+
+  for (GLUvertex *v : tmp_verts)
+    {
+      v->next = select_mesh_element(v->next, tmp_verts);
+      v->prev = select_mesh_element(v->prev, tmp_verts);
+      v->anEdge = select_half_edge(v->anEdge, tmp_edges);
+    }
+
+  for (EdgePair *E : tmp_edges)
+    {
+      GLUhalfEdge *e;
+
+      e = &E->e;
+      e->next = select_half_edge(e->next, tmp_edges);
+      e->Sym = select_half_edge(e->Sym, tmp_edges);
+      e->Onext = select_half_edge(e->Onext, tmp_edges);
+      e->Lnext = select_half_edge(e->Lnext, tmp_edges);
+      e->Org = select_mesh_element(e->Org, tmp_verts);
+      e->Lface = select_mesh_element(e->Lface, tmp_faces);
+      e->activeRegion = nullptr;
+
+      e = &E->eSym;
+      e->next = select_half_edge(e->next, tmp_edges);
+      e->Sym = select_half_edge(e->Sym, tmp_edges);
+      e->Onext = select_half_edge(e->Onext, tmp_edges);
+      e->Lnext = select_half_edge(e->Lnext, tmp_edges);
+      e->Org = select_mesh_element(e->Org, tmp_verts);
+      e->Lface = select_mesh_element(e->Lface, tmp_faces);
+      e->activeRegion = nullptr;
+    }
+
+  return return_value;
+}
 
 #ifdef DELETE_BY_ZAPPING
 

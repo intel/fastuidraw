@@ -36,6 +36,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -55,6 +56,7 @@ namespace
     bool m_disable_pre_added_source;
 
     std::string m_assembled_code;
+    std::string m_assembled_code_base;
 
     static
     std::string
@@ -77,10 +79,79 @@ namespace
     add_source_entry(const source_code_t &v, std::ostream &output_stream);
 
     static
-    const char*
+    fastuidraw::c_string
     string_from_extension_t(extension_enable_t tp);
   };
+
+  std::string
+  macro_value_as_string(uint32_t v)
+  {
+    std::ostringstream str;
+    str << v << "u";
+    return str.str();
+  }
+
+  std::string
+  macro_value_as_string(int32_t v)
+  {
+    std::ostringstream str;
+    str << v;
+    return str.str();
+  }
+
+  std::string
+  macro_value_as_string(float v)
+  {
+    std::ostringstream str;
+    str << v;
+    return str.str();
+  }
+
+  class MacroSetEntry
+  {
+  public:
+    MacroSetEntry(fastuidraw::c_string name,
+                  fastuidraw::c_string value):
+      m_name(name),
+      m_value(value)
+    {}
+
+    MacroSetEntry(fastuidraw::c_string name,
+                  uint32_t value):
+      m_name(name),
+      m_value(macro_value_as_string(value))
+    {}
+
+    MacroSetEntry(fastuidraw::c_string name,
+                  int32_t value):
+      m_name(name),
+      m_value(macro_value_as_string(value))
+    {}
+
+    MacroSetEntry(fastuidraw::c_string name,
+                  float value):
+      m_name(name),
+      m_value(macro_value_as_string(value))
+    {}
+
+    std::string m_name, m_value;
+  };
+
+  class MacroSetPrivate
+  {
+  public:
+    std::vector<MacroSetEntry> m_entries;
+  };
+
+  std::string
+  stripped_macro_name(const std::string &macro_name)
+  {
+    std::string::size_type pos;
+    pos = macro_name.find('(');
+    return macro_name.substr(0, pos);
+  }
 }
+
 //////////////////////////////////////////////////
 // SourcePrivate methods
 SourcePrivate::
@@ -90,8 +161,7 @@ SourcePrivate(void):
 {
 }
 
-
-const char*
+fastuidraw::c_string
 SourcePrivate::
 string_from_extension_t(extension_enable_t tp)
 {
@@ -127,10 +197,11 @@ SourcePrivate::
 strip_leading_white_spaces(const std::string &S)
 {
   std::string::const_iterator iter, end;
-  for(iter = S.begin(), end = S.end(); iter != end and isspace(*iter); ++iter)
-    {
-    }
-  return (iter != end and *iter == '#')?
+
+  for(iter = S.begin(), end = S.end(); iter != end && isspace(*iter); ++iter)
+    {}
+
+  return (iter != end && *iter == '#')?
     std::string(iter, end):
     S;
 }
@@ -147,7 +218,7 @@ emit_source_line(std::ostream &output_stream,
 
   #ifndef NDEBUG
     {
-      if(!label.empty() && (S.empty() || *S.rbegin() != '\\'))
+      if (!label.empty() && (S.empty() || *S.rbegin() != '\\'))
         {
           output_stream << std::setw(80-S.length()) << "  //["
                         << std::setw(3) << line_number
@@ -161,10 +232,7 @@ emit_source_line(std::ostream &output_stream,
       FASTUIDRAWunused(line_number);
     }
   #endif
-
-  output_stream << "\n";
 }
-
 
 void
 SourcePrivate::
@@ -177,9 +245,8 @@ add_source_code_from_stream(const std::string &label,
 
   while(getline(istr, S))
     {
-      /* combine source lines that end with \
-       */
-      if(*S.rbegin() == '\\')
+      /* combine source lines that end with \ */
+      if (S.rbegin() != S.rend() && *S.rbegin() == '\\')
         {
           std::vector<std::string> strings;
 
@@ -192,21 +259,23 @@ add_source_code_from_stream(const std::string &label,
           getline(istr, S);
           strings.push_back(S);
 
-          /* now remove the '\\' and put on S.
-           */
+          /* now remove the '\\' and put on S. */
           S.clear();
-          for(std::vector<std::string>::iterator
-                iter = strings.begin(), end = strings.end(); iter != end; ++iter)
+          for(std::string &str : strings)
             {
-              if(!iter->empty() && *iter->rbegin() == '\\')
+              if (!str.empty() && *str.rbegin() == '\\')
                 {
-                  iter->resize(iter->size() - 1);
+                  str.resize(str.size() - 1);
                 }
-              S += *iter;
+              S += str;
             }
         }
 
       emit_source_line(output_stream, S, line_number, label);
+      if (!istr.eof())
+        {
+          output_stream << "\n";
+        }
       ++line_number;
       S.clear();
     }
@@ -218,13 +287,20 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
-  if(v.second == ShaderSource::from_file)
+
+  /* NOTES:
+   *   - if source is a file or resource, we add a \n
+   *   - if just a string, we do NOT add a \n
+   */
+
+  if (v.second == ShaderSource::from_file)
     {
       std::ifstream file(v.first.c_str());
 
-      if(file)
+      if (file)
         {
           add_source_code_from_stream(v.first, file, output_stream);
+          output_stream << "\n";
         }
       else
         {
@@ -234,25 +310,27 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
     }
   else
     {
-      std::istringstream istr;
-      std::string label;
-
-      if(v.second == ShaderSource::from_string)
+      if (v.second == ShaderSource::from_string)
         {
+          std::istringstream istr;
           istr.str(v.first);
-          label.clear();
+          add_source_code_from_stream("", istr, output_stream);
         }
       else
         {
-          const_c_array<uint8_t> resource_string;
+          c_array<const uint8_t> resource_string;
 
           resource_string = fetch_static_resource(v.first.c_str());
-          label=v.first;
-          if(!resource_string.empty() && resource_string.back() == 0)
+          if (!resource_string.empty() && resource_string.back() == 0)
             {
-              const char *s;
-              s = reinterpret_cast<const char*>(resource_string.c_ptr());
+              std::istringstream istr;
+              fastuidraw::c_string s;
+
+              s = reinterpret_cast<fastuidraw::c_string>(resource_string.c_ptr());
               istr.str(std::string(s));
+
+              add_source_code_from_stream(v.first, istr, output_stream);
+              output_stream << "\n";
             }
           else
             {
@@ -261,11 +339,77 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
               return;
             }
         }
-      add_source_code_from_stream(label, istr, output_stream);
     }
 }
 
-////////////////////////////////////////////////////
+///////////////////////////////////////////////////
+// fastuidraw::glsl::ShaderSource::MacroSet methods
+fastuidraw::glsl::ShaderSource::MacroSet::
+MacroSet(void)
+{
+  m_d = FASTUIDRAWnew MacroSetPrivate();
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet::
+MacroSet(const MacroSet &obj)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew MacroSetPrivate(*d);
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet::
+~MacroSet()
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = nullptr;
+}
+
+assign_swap_implement(fastuidraw::glsl::ShaderSource::MacroSet)
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, c_string macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, uint32_t macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, int32_t macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, float macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+/////////////////////////////////////////
 // fastuidraw::glsl::ShaderSource methods
 fastuidraw::glsl::ShaderSource::
 ShaderSource(void)
@@ -290,28 +434,11 @@ fastuidraw::glsl::ShaderSource::
   m_d = nullptr;
 }
 
-void
-fastuidraw::glsl::ShaderSource::
-swap(ShaderSource &obj)
-{
-  std::swap(obj.m_d, m_d);
-}
+assign_swap_implement(fastuidraw::glsl::ShaderSource)
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-operator=(const ShaderSource &obj)
-{
-  if(this != &obj)
-    {
-      ShaderSource v(obj);
-      swap(v);
-    }
-  return *this;
-}
-
-fastuidraw::glsl::ShaderSource&
-fastuidraw::glsl::ShaderSource::
-specify_version(const char *v)
+specify_version(c_string v)
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
@@ -320,7 +447,7 @@ specify_version(const char *v)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::glsl::ShaderSource::
 version(void) const
 {
@@ -331,7 +458,7 @@ version(void) const
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_source(const char *str, enum source_t tp, enum add_location_t loc)
+add_source(c_string str, enum source_t tp, enum add_location_t loc)
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
@@ -339,7 +466,7 @@ add_source(const char *str, enum source_t tp, enum add_location_t loc)
   FASTUIDRAWassert(str);
   SourcePrivate::source_code_t v(str, tp);
 
-  if(loc == push_front)
+  if (loc == push_front)
     {
       d->m_values.push_front(v);
     }
@@ -367,47 +494,94 @@ add_source(const ShaderSource &obj)
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_macro(const char *macro_name, const char *macro_value,
+add_macro(c_string macro_name, c_string macro_value,
           enum add_location_t loc)
 {
   std::ostringstream ostr;
-  ostr << "#define " << macro_name << " " << macro_value;
+  std::string stripped(stripped_macro_name(macro_name));
+
+  ostr << "#ifdef " << stripped << "\n"
+       << "#error \"FastUIDraw: ShaderSource::add_macro() used on "
+       << "already defined macro " << stripped << "\"\n"
+       << "#endif\n"
+       << "#define " << macro_name << " " << macro_value
+       << "\n";
   return add_source(ostr.str().c_str(), from_string, loc);
 }
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_macro(const char *macro_name, uint32_t macro_value,
+add_macro(c_string macro_name, uint32_t macro_value,
           enum add_location_t loc)
 {
+  std::string v(macro_value_as_string(macro_value));
+  return add_macro(macro_name, v.c_str(), loc);
+}
+
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+add_macro(c_string macro_name, int32_t macro_value,
+          enum add_location_t loc)
+{
+  std::string v(macro_value_as_string(macro_value));
+  return add_macro(macro_name, v.c_str(), loc);
+}
+
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+add_macro(c_string macro_name, float macro_value,
+          enum add_location_t loc)
+{
+  std::string v(macro_value_as_string(macro_value));
+  return add_macro(macro_name, v.c_str(), loc);
+}
+
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+add_macros(const MacroSet &macros, enum add_location_t loc)
+{
+  MacroSetPrivate *d;
+
+  d = static_cast<MacroSetPrivate*>(macros.m_d);
+  for (const MacroSetEntry &entry : d->m_entries)
+    {
+      add_macro(entry.m_name.c_str(), entry.m_value.c_str(), loc);
+    }
+  return *this;
+}
+
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+remove_macro(c_string macro_name,
+             enum add_location_t loc)
+{
   std::ostringstream ostr;
-  ostr << "#define " << macro_name << " " << macro_value;
+  ostr << "#ifndef " << macro_name << "\n"
+       << "#error \"FastUIDraw: ShaderSource::remove_macro() "
+       << "used on undefined macro " << macro_name << "\"\n"
+       << "#endif\n"
+       << "#undef " << macro_name << "\n";
   return add_source(ostr.str().c_str(), from_string, loc);
 }
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_macro(const char *macro_name, int32_t macro_value,
-          enum add_location_t loc)
+remove_macros(const MacroSet &macros, enum add_location_t loc)
 {
-  std::ostringstream ostr;
-  ostr << "#define " << macro_name << " " << macro_value;
-  return add_source(ostr.str().c_str(), from_string, loc);
+  MacroSetPrivate *d;
+
+  d = static_cast<MacroSetPrivate*>(macros.m_d);
+  for (const MacroSetEntry &entry : d->m_entries)
+    {
+      std::string stripped(stripped_macro_name(entry.m_name));
+      remove_macro(stripped.c_str(), loc);
+    }
+  return *this;
 }
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-remove_macro(const char *macro_name)
-{
-  std::ostringstream ostr;
-  ostr << "#undef " << macro_name;
-  return add_source(ostr.str().c_str(), from_string);
-}
-
-
-fastuidraw::glsl::ShaderSource&
-fastuidraw::glsl::ShaderSource::
-specify_extension(const char *ext_name, enum extension_enable_t tp)
+specify_extension(c_string ext_name, enum extension_enable_t tp)
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
@@ -424,11 +598,9 @@ specify_extensions(const ShaderSource &obj)
   const SourcePrivate *obj_d;
   d = static_cast<SourcePrivate*>(m_d);
   obj_d = static_cast<const SourcePrivate*>(obj.m_d);
-  for(std::map<std::string, extension_enable_t>::const_iterator
-        iter = obj_d->m_extensions.begin(), end = obj_d->m_extensions.end();
-      iter != end; ++iter)
+  for(const auto &ext : obj_d->m_extensions)
     {
-      d->m_extensions[iter->first] = iter->second;
+      d->m_extensions[ext.first] = ext.second;
     }
   return *this;
 }
@@ -444,30 +616,31 @@ disable_pre_added_source(void)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::glsl::ShaderSource::
-assembled_code(void) const
+assembled_code(bool code_only) const
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
 
-  if(d->m_dirty)
+  if (d->m_dirty)
     {
       std::ostringstream output_glsl_source_code;
+      std::ostringstream output_glsl_source_code_base;
 
-      if(!d->m_version.empty())
+      if (!d->m_version.empty())
         {
           output_glsl_source_code <<"#version " << d->m_version << "\n";
         }
 
-      for(std::map<std::string, enum extension_enable_t>::const_iterator
-            iter = d->m_extensions.begin(), end = d->m_extensions.end(); iter != end; ++iter)
+      for(const auto &ext : d->m_extensions)
         {
-          output_glsl_source_code << "#extension " << iter->first
-                                  << ": " << SourcePrivate::string_from_extension_t(iter->second) << "\n";
+          output_glsl_source_code << "#extension " << ext.first << ": "
+                                  << SourcePrivate::string_from_extension_t(ext.second)
+                                  << "\n";
         }
 
-      if(!d->m_disable_pre_added_source)
+      if (!d->m_disable_pre_added_source)
         {
           output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
                                   << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
@@ -476,21 +649,26 @@ assembled_code(void) const
                                   << "void fastuidraw_do_nothing(void) {}\n";
         }
 
-      for(std::list<SourcePrivate::source_code_t>::const_iterator
-            iter= d->m_values.begin(), end = d->m_values.end(); iter != end; ++iter)
+      for(const SourcePrivate::source_code_t &src : d->m_values)
         {
-          SourcePrivate::add_source_entry(*iter, output_glsl_source_code);
+          SourcePrivate::add_source_entry(src, output_glsl_source_code);
+          SourcePrivate::add_source_entry(src, output_glsl_source_code_base);
         }
 
       /*
-        some GLSL pre-processors do not like to end on a
-        comment or other certain tokens, to make them
-        less grouchy, we emit a few extra \n's
-      */
+       * some GLSL pre-processors do not like to end on a
+       * comment or other certain tokens, to make them
+       * less grouchy, we emit a few extra \n's
+       */
       output_glsl_source_code << "\n\n\n";
+      output_glsl_source_code_base << "\n\n\n";
 
       d->m_assembled_code = output_glsl_source_code.str();
+      d->m_assembled_code_base = output_glsl_source_code_base.str();
       d->m_dirty = false;
     }
-  return d->m_assembled_code.c_str();
+
+  return code_only ?
+    d->m_assembled_code_base.c_str():
+    d->m_assembled_code.c_str();
 }

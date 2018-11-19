@@ -37,26 +37,38 @@ TODO.
        point to the start of A, then A, and then from
        end point of A to pt2.
 
- 4. An interface to build attribute and text data from string(s). Currently
-    an application needs to do this by itself, the example code being in
-    demos/common/text_helper.[ch]pp.
+ 4. An interface to perform text layout. Currently an application needs to do
+    this by itself, the example code being in demos/common/text_helper.[ch]pp.
+    Likely the best solution is a seperate library that integrates Harfbuzz.
 
- 5. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
-    the glyph data is generated). Should have an interface that is "take scalable glyph
-    that is best" in GlyphSelector class.
+ 5. Consider implementing multi-channel distance field as seen in
+    https://github.com/Chlumsky/msdfgen. The thesis on it is at
+    https://dspace.cvut.cz/bitstream/handle/10467/62770/F8-DP-2015-Chlumsky-Viktor-thesis.pdf;
+    an article is also avalaible at https://onlinelibrary.wiley.com/doi/abs/10.1111/cgf.13265.
+    Changes we will need to introduce is to change the distance computation
+    to the L1-metric (which makes distance computation fast) and that
+    may have additional ramitifications in general.
 
- 6. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
-    are.
-
- 7. When one zooms in a great deal into a path, the automatic tessellation
-    choosing picks higher and higher detailed realization of the paths BUT
-    many primitives of the path are not drawn. Should have a way to organize
-    the index data so that the CPU can do quick (and easy) vertex culling
-    on the path data to reduce (dramatically) the number of vertices processed
-    by the vertex shader.
-
- 8. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 6. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
             b) glslang from Khronos at https://github.com/KhronosGroup/glslang
+
+ 7. Fix filename and type name values. The naming scheme of files vs
+    objects is bad. Files are all named underscore_style, where as classes
+    are named PascalCaseStyle. Should make this consistent. Also, a number
+    of base classes are defined in files without the _base suffix, for example
+    FontBase is defined in font.hpp.
+
+ 8. GlyphSelector is a -very- poor man's method of selecting glyphs and
+    performing font merging. It can be argued that it has no real place
+    in FastUIDraw since FastUIDraw is just for drawing.
+
+ 9. Proper GL classes dtor'ing is needed. A number of dtor's in the
+    gl_backend need a GL context to operate. However, these objects
+    are reference counted and thus their dtors can happen outside of
+    the GL context that created them being current. The way out is to
+    have a concept of "GL context worker" where functors are added to
+    the worker and the worker runs these functors "whenever it gets a
+    chance" to do so within a GL context.

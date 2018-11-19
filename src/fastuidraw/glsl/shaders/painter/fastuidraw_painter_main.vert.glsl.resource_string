@@ -1,3 +1,22 @@
+/*!
+ * \file fastuidraw_painter_main.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_main.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
 /* Skeleton for Uber-vertex shader, out's of the shader will
    be placed -before- this code.
  */
@@ -8,7 +27,7 @@
   #define FASTUIDRAW_DEPTH_COEFF (1.0 / float(fastuidraw_max_z) )
 #endif
 
-#ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
+#ifdef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
   #define fastuidraw_clip0 gl_ClipDistance[0]
   #define fastuidraw_clip1 gl_ClipDistance[1]
   #define fastuidraw_clip2 gl_ClipDistance[2]
@@ -29,33 +48,20 @@ fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c)
   fastuidraw_clip3 = dot(c.clip3, p);
 }
 
-
-/* make the transformation matrix available to
-   vertex shader by making it global here.
- */
-mat3 fastuidraw_item_matrix;
-
 void
 main(void)
 {
   fastuidraw_shader_header h;
-  vec4 item_p_brush_p;
+  vec2 brush_p;
   vec3 clip_p;
   fastuidraw_clipping_data clipping;
   float normalized_depth, raw_depth;
   int add_z;
 
   fastuidraw_read_header(fastuidraw_header_attribute, h);
+  fastuidraw_process_header(h);
   fastuidraw_read_clipping(h.clipping_location, clipping);
   fastuidraw_read_item_matrix(h.item_matrix_location, fastuidraw_item_matrix);
-
-  h.item_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_item_shader_bit0,
-                                          fastuidraw_item_shader_num_bits,
-                                          h.item_blend_shader_packed);
-
-  h.blend_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_blend_shader_bit0,
-                                           fastuidraw_blend_shader_num_bits,
-                                           h.item_blend_shader_packed);
 
   #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
     {
@@ -65,21 +71,26 @@ main(void)
     {
       fastuidraw_frag_shader = h.item_shader;
       fastuidraw_frag_shader_data_location = h.item_shader_data_location;
+      fastuidraw_composite_shader = h.composite_shader;
+      fastuidraw_composite_shader_data_location = h.composite_shader_data_location;
       fastuidraw_blend_shader = h.blend_shader;
       fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
     }
   #endif
 
-  item_p_brush_p = fastuidraw_run_vert_shader(h, add_z);
-  fastuidraw_vert_brush_processing(item_p_brush_p.zw, h);
+  fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
+  fastuidraw_vert_brush_processing(brush_p, h);
+  if ((h.flags & FASTUIDRAW_HEADER_DRAWING_OCCLUDER) != 0u)
+    {
+      add_z = 0;
+    }
 
-  clip_p = fastuidraw_item_matrix * vec3(item_p_brush_p.xy, 1.0);
   fastuidraw_apply_clipping(clip_p, clipping);
 
   /* and finally emit gl_Position; the value needed in the
-     depth buffer is stored in h.z, but it is an integer that
-     starts at 0 and is incremented by one, we need to convert it
-     to normalized coords.
+   * depth buffer is stored in h.z, but it is an integer that
+   * starts at 0 and is incremented by one, we need to convert it
+   * to normalized coords.
    */
   raw_depth = float(add_z + h.z);
 

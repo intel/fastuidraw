@@ -4,7 +4,13 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-LIBRARY_PRIVATE_GL_SOURCES += $(call filelist, tex_buffer.cpp texture_gl.cpp texture_view.cpp)
+FASTUIDRAW_PRIVATE_GL_SOURCES += $(call filelist, \
+	tex_buffer.cpp texture_gl.cpp \
+	texture_view.cpp bindless.cpp \
+	painter_backend_gl_config.cpp \
+	painter_shader_registrar_gl.cpp \
+	painter_surface_gl_private.cpp \
+	painter_vao_pool.cpp)
 
 
 # Begin standard footer

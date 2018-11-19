@@ -29,47 +29,60 @@
 namespace fastuidraw
 {
 /*!\addtogroup Text
-  @{
-*/
+ * @{
+ */
 
   /*!
-    \brief
-    A FreetypeLib wraps an FT_Library object of libFreeType
-    in a reference counted object.
+   * \brief
+   * A FreeTypeLib wraps an FT_Library object of the FreeType
+   * library together with a mutex in a reference counted object.
+   *
+   * The threading model for the FreeType appears to be:
+   * - Create an FT_Library object
+   * - When creating or releasing FT_Face objects, lock a mutex
+   *   around the FT_Library when doing so
+   * - If an FT_Face is accessed from multiple threads, the FT_Face
+   *   (but not the FT_Library) needs to be mutex locked
    */
-  class FreetypeLib:public reference_counted<FreetypeLib>::default_base
+  class FreeTypeLib:public reference_counted<FreeTypeLib>::default_base
   {
   public:
     /*!
-      Ctor.
+     * Ctor.
      */
-    FreetypeLib(void);
+    FreeTypeLib(void);
 
-    ~FreetypeLib();
+    ~FreeTypeLib();
 
     /*!
-      Returns the FT_Library object about which
-      this object wraps. Asserts if valid()
-      return false.
+     * Returns the FT_Library object about which
+     * this object wraps.
      */
     FT_Library
-    lib(void)
-    {
-      FASTUIDRAWassert(valid());
-      return m_lib;
-    }
+    lib(void);
 
     /*!
-      Returns true if this object wraps a valid FT_Library object.
+     * Aquire the lock of the mutex used to access/use the FT_Library
+     * return by lib() safely across multiple threads.
+     */
+    void
+    lock(void);
+
+    /*!
+     * Release the lock of the mutex used to access/use the FT_Library
+     * return by lib() safely across multiple threads.
+     */
+    void
+    unlock(void);
+
+    /*!
+     * Try to aquire the lock of the mutex. Return true on success.
      */
     bool
-    valid(void)
-    {
-      return m_lib != nullptr;
-    }
+    try_lock(void);
 
   private:
-    FT_Library m_lib;
+    void *m_d;
   };
 /*! @} */
 };

@@ -208,7 +208,7 @@ operator<<(std::ostream &ostr,
 
   for(iter=obj.m_begin; iter!=obj.m_end; ++iter)
     {
-      if(iter!=obj.m_begin)
+      if (iter!=obj.m_begin)
         {
           ostr << obj.m_spacingCharacter;
         }
@@ -234,7 +234,7 @@ operator<<(std::ostream &ostr,
 
   for(iter=obj.m_begin, idx=0; iter!=obj.m_end; ++iter)
     {
-      if(idx == 0)
+      if (idx == 0)
         {
           ostr << obj.m_beginOfLine;
         }
@@ -246,7 +246,7 @@ operator<<(std::ostream &ostr,
       ostr << (*iter);
 
       ++idx;
-      if(idx == obj.m_leadingDimension)
+      if (idx == obj.m_leadingDimension)
         {
           ostr << obj.m_endOfLine;
           idx = 0;
@@ -272,7 +272,7 @@ operator<<(std::ostream &str, const format_tabbing &tabber)
   return str;
 }
 
-/*!\fn std::ostream& operator<<(std::ostream&, const_c_array<T>)
+/*!\fn std::ostream& operator<<(std::ostream&, c_array<const T>)
   Conveniance overload of operator<< to print the contents
   pointed to by a c_array to an std::ostream
   \param str std::ostream to which to print
@@ -281,7 +281,7 @@ operator<<(std::ostream &str, const format_tabbing &tabber)
 template<typename T>
 inline
 std::ostream&
-operator<<(std::ostream &str, fastuidraw::const_c_array<T> obj)
+operator<<(std::ostream &str, fastuidraw::c_array<const T> obj)
 {
   str <<  "( " << print_range(obj.begin(), obj.end(), ", ") << " )";
   return str;
