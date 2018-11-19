@@ -114,6 +114,16 @@ namespace fastuidraw
     }
 
     /*!
+     * Move ctor.
+     * \param obj object from which to take.
+     */
+    reference_counted_ptr(reference_counted_ptr &&obj):
+      m_p(obj.m_p)
+    {
+      obj.m_p = nullptr;
+    }
+
+    /*!
      * Dtor, if pointer is non-nullptr, then reference is decremented
      * (via T::remove_reference()).
      */
@@ -146,6 +156,22 @@ namespace fastuidraw
     {
       reference_counted_ptr temp(rhs);
       temp.swap(*this);
+      return *this;
+    }
+
+    /*!
+     * Move assignment operator
+     * \param rhs value from which to assign
+     */
+    reference_counted_ptr&
+    operator=(reference_counted_ptr &&rhs)
+    {
+      if (m_p)
+        {
+          T::remove_reference(m_p);
+        }
+      m_p = rhs.m_p;
+      rhs.m_p = nullptr;
       return *this;
     }
 
