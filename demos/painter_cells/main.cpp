@@ -75,6 +75,7 @@ private:
   command_line_argument_value<int> m_cell_group_size;
   command_line_argument_value<std::string> m_font;
   command_line_argument_value<float> m_pixel_size;
+  enumerated_command_line_argument_value<enum glyph_type> m_renderer;
   command_line_argument_value<float> m_fps_pixel_size;
   command_line_list<std::string> m_strings;
   command_line_list<std::string> m_files;
@@ -135,6 +136,14 @@ painter_cells(void):
   m_cell_group_size(1, "cell_group_size", "width and height in number of cells for cell group size", *this),
   m_font(default_font(), "font", "File from which to take font", *this),
   m_pixel_size(24.0f, "font_pixel_size", "Render size for text rendering", *this),
+  m_renderer(adaptive_rendering,
+	     enumerated_string_type<enum glyph_type>()
+	     .add_entry("distance_field", distance_field_glyph, "Distance field rendering")
+	     .add_entry("restricted_rays", restricted_rays_glyph, "Restricted Rays rendering")
+	     .add_entry("adaptive", adaptive_rendering, "Adaptive rendering"),
+	     "glyph_render",
+	     "Specifies how to render glyphs",
+	     *this),
   m_fps_pixel_size(24.0f, "fps_font_pixel_size", "Render size for text rendering of fps", *this),
   m_strings("add_string", "add a string to use by the cells", *this),
   m_files("add_string_file", "add a string to use by a cell, taken from file", *this),
@@ -437,6 +446,7 @@ derived_init(int w, int h)
   m_cell_shared_state.m_rotating = m_init_cell_rotating.value();
   m_cell_shared_state.m_stroke_width = m_init_stroke_width.value();
   m_cell_shared_state.m_anti_alias_stroking = m_init_anti_alias_stroking.value();
+  m_cell_shared_state.m_glyph_render = m_renderer.value();
 
   /* init m_zoomer so that table contents fit into screen.
    */

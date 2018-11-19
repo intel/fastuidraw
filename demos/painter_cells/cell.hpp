@@ -38,6 +38,7 @@ public:
   int m_cells_drawn;
   enum Painter::composite_mode_t m_rect_composite_mode;
   enum Painter::blend_w3c_mode_t m_rect_blend_mode;
+  enum glyph_type m_glyph_render;
 };
 
 class CellParams
