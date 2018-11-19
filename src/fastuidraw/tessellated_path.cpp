@@ -227,7 +227,7 @@ namespace
   {
     using namespace fastuidraw;
     using namespace detail;
-    
+
     const unsigned int max_d(MAX_REFINE_RECURSION_LIMIT);
     const float pi(M_PI), two_pi(2.0f * pi);
     float max_size_f;
@@ -273,7 +273,7 @@ namespace
       {
         needed_size = max_size_allowed;
       }
-    
+
     delta_angle /= static_cast<float>(needed_size);
     a = S.m_arc_angle.m_begin + delta_angle;
     da = delta_angle;
@@ -398,7 +398,7 @@ add_edge(TessellatedPathBuildingState &builder,
 
   FASTUIDRAWassert(needed > 0u);
   m_max_distance = t_max(m_max_distance, edge_max_distance);
-  
+
   for(unsigned int n = 0; n < work_room.size(); ++n)
     {
       m_has_arcs = m_has_arcs || (work_room[n].m_type == TessellatedPath::arc_segment);
