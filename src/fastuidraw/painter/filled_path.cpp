@@ -474,7 +474,7 @@ namespace
 
         starting_subpath = 15u,
       };
-    
+
     typedef std::vector<SubContourPoint> SubContour;
 
     explicit
@@ -739,7 +739,7 @@ namespace
                           const unsigned int vertex_ids[],
                           unsigned int count,
                           void *tess);
-    
+
     uint32_t m_edge_flags;
     unsigned int m_point_count;
     fastuidraw_GLUtesselator *m_tess;
