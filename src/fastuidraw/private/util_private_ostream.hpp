@@ -29,16 +29,6 @@
 #include "bounding_box.hpp"
 
 template<typename T>
-fastuidraw::glsl::ShaderSource&
-operator<<(fastuidraw::glsl::ShaderSource &src, const T &obj)
-{
-  std::ostringstream str;
-  str << obj;
-  src.add_source(str.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
-  return src;
-}
-
-template<typename T>
 std::ostream&
 operator<<(std::ostream &ostr, const fastuidraw::range_type<T> &obj)
 {
@@ -110,4 +100,14 @@ operator<<(std::ostream &str, const fastuidraw::BoundingBox<T> &obj)
       str << "[" << obj.min_point() << " -- " << obj.max_point() << "]";
     }
   return str;
+}
+
+template<typename T>
+fastuidraw::glsl::ShaderSource&
+operator<<(fastuidraw::glsl::ShaderSource &src, const T &obj)
+{
+  std::ostringstream str;
+  str << obj;
+  src.add_source(str.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
+  return src;
 }
