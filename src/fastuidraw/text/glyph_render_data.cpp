@@ -32,7 +32,7 @@ GlyphRender(enum glyph_type t):
   m_type(t),
   m_pixel_size(0)
 {
-  FASTUIDRAWassert(scalable(t) && t != invalid_glyph);
+  FASTUIDRAWassert(scalable(t) || t == invalid_glyph);
 }
 
 fastuidraw::GlyphRender::
