@@ -667,8 +667,8 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
 
     fastuidraw_gluTessBeginContour(tess, TRUE);
     for (int i = 0; i < 4; ++i) {
-      double x, y;
-      unsigned int client_id;
+      double x(0.0), y(0.0);
+      unsigned int client_id(FASTUIDRAW_GLU_nullptr_CLIENT_ID);
 
       CALL_BOUNDARY_CORNER_POINT(&x, &y, 0, boundary_flags[i][0], boundary_flags[i][1], &client_id);
       AddVertex(tess, x, y, client_id);
@@ -677,7 +677,7 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
 
     fastuidraw_gluTessBeginContour(tess, TRUE);
     for (int i = 3; i >= 0; --i) {
-      double x, y;
+      double x(0.0), y(0.0);
 
       CALL_BOUNDARY_CORNER_POINT(&x, &y, 1, boundary_flags[i][0], boundary_flags[i][1], nullptr);
       AddVertex(tess, x, y, FASTUIDRAW_GLU_nullptr_CLIENT_ID);
