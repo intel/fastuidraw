@@ -8,6 +8,10 @@
 # this file, You can obtain one at
 # http://mozilla.org/MPL/2.0/.
 
+# Compiler choice
+CXX ?= g++
+CC ?= gcc
+
 #Init TARGETLIST
 TARGETLIST := all
 
