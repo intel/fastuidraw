@@ -207,28 +207,26 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
                                     << vec2(m_cell_sz.x(), 0.0f)
                                     << vec2(m_cell_sz.x(), m_cell_sz.y())
                                     << vec2(0.0f, m_cell_sz.y())
-                                    << Path::contour_end();
+                                    << Path::contour_close();
 
 
       m_outline_path << vec2(0.0f, 0.0f)
                      << vec2(m_params.m_wh.x(), 0.0f)
                      << vec2(m_params.m_wh.x(), m_params.m_wh.y())
                      << vec2(0.0f, m_params.m_wh.y())
-                     << Path::contour_end();
+                     << Path::contour_close();
 
       for(x = 1, cell_loc.x() = m_cell_sz.x(); x < m_params.m_cell_count.x(); ++x, cell_loc.x() += m_cell_sz.x())
         {
-          m_grid_path << vec2(cell_loc.x(), 0.0f)
-                      << vec2(cell_loc.x(), m_params.m_wh.y())
-                      << Path::contour_end();
+          m_grid_path << Path::contour_start(cell_loc.x(), 0.0f)
+                      << vec2(cell_loc.x(), m_params.m_wh.y());
 
         }
 
       for(y = 1, cell_loc.y() = m_cell_sz.y(); y < m_params.m_cell_count.y(); ++y, cell_loc.y() += m_cell_sz.y())
         {
-          m_grid_path << vec2(0.0f, cell_loc.y())
-                      << vec2(m_params.m_wh.x(), cell_loc.y())
-                      << Path::contour_end();
+          m_grid_path << Path::contour_start(0.0f, cell_loc.y())
+                      << vec2(m_params.m_wh.x(), cell_loc.y());
         }
 
       m_line_brush = painter->packed_value_pool().create_packed_value(m_params.m_line_color);
@@ -341,7 +339,6 @@ paint_post_children(const reference_counted_ptr<Painter> &painter)
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_grid_path,
                            StrokingStyle()
-                           .stroke_closing_edges_of_contours(false)
                            .cap_style(Painter::flat_caps)
                            .join_style(Painter::no_joins),
                            aa_mode);

@@ -494,7 +494,6 @@ private:
   unsigned int m_selected_path;
   unsigned int m_join_style;
   unsigned int m_cap_style;
-  bool m_close_contour;
 
   /* m_dash pattern:
       0 -> undashed stroking
@@ -671,7 +670,6 @@ painter_stroke_test(void):
   m_selected_path(0),
   m_join_style(Painter::rounded_joins),
   m_cap_style(Painter::square_caps),
-  m_close_contour(true),
   m_dash(0),
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
@@ -700,7 +698,6 @@ painter_stroke_test(void):
             << "\tu: cycle through anti-aliased modes for filling\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tc: cycle through cap style for stroking\n"
-            << "\tx: toggle closing contour on stroking\n"
             << "\td: cycle through dash patterns\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -794,7 +791,7 @@ painter_stroke_test(void):
          << vec2(-0.5f, +0.5f)
          << vec2(+0.5f, +0.5f)
          << vec2(+0.5f, -0.5f)
-         << Path::contour_end();
+         << Path::contour_close();
 }
 
 
@@ -1328,19 +1325,6 @@ handle_event(const SDL_Event &ev)
           std::cout << "Cap drawing mode set to: " << m_cap_labels[m_cap_style] << "\n";
           break;
 
-        case SDLK_x:
-          m_close_contour = !m_close_contour;
-          std::cout << "Stroking contours as ";
-          if (m_close_contour)
-            {
-              std::cout << "closed.\n";
-            }
-          else
-            {
-              std::cout << "open.\n";
-            }
-          break;
-
         case SDLK_r:
           if (m_draw_fill != dont_draw_fill_path)
             {
@@ -1487,20 +1471,20 @@ construct_paths(int w, int h)
            << Path::control_point(60.0f, -150.0f)
            << Path::control_point(30.0f, -50.0f)
            << vec2(0.0f, -100.0f)
-           << Path::contour_end_arc_degrees(90.0f)
+           << Path::contour_close_arc_degrees(90.0f)
            << vec2(200.0f, 200.0f)
            << vec2(400.0f, 200.0f)
            << vec2(400.0f, 400.0f)
            << vec2(200.0f, 400.0f)
-           << Path::contour_end()
+           << Path::contour_close()
            << vec2(-50.0f, 100.0f)
            << vec2(0.0f, 200.0f)
            << vec2(100.0f, 300.0f)
            << vec2(150.0f, 325.0f)
            << vec2(150.0f, 100.0f)
-           << Path::contour_end()
+           << Path::contour_close()
            << vec2(300.0f, 300.0f)
-           << Path::contour_end();
+           << Path::contour_close();
       m_paths.push_back(PerPath(path, "Default Path", w, h, false));
     }
 
@@ -1534,7 +1518,7 @@ per_path_processing(void)
       stroked = &tess->stroked()->caps_joins();
       data = &stroked->miter_clip_joins();
 
-      for(unsigned int J = 0, endJ = stroked->number_joins(true); J < endJ; ++J)
+      for(unsigned int J = 0, endJ = stroked->number_joins(); J < endJ; ++J)
         {
           unsigned int chunk;
 
@@ -1576,8 +1560,7 @@ per_path_processing(void)
                                 << "\t\t\t\tedge_d     = " << segs[i].m_distance_from_edge_start << "\n"
                                 << "\t\t\t\tcontour_d  = " << segs[i].m_distance_from_contour_start << "\n"
                                 << "\t\t\t\tedge_l     = " << segs[i].m_edge_length << "\n"
-                                << "\t\t\t\tcontour_l  = " << segs[i].m_open_contour_length << "\n"
-                                << "\t\t\t\tcontour_cl = " << segs[i].m_closed_contour_length << "\n";
+                                << "\t\t\t\tcontour_l  = " << segs[i].m_contour_length << "\n";
                     }
                 }
             }
@@ -1674,7 +1657,7 @@ draw_scene(bool drawing_wire_frame)
                            << vec2(clipping_xy().x(), clipping_xy().y() + clipping_wh().y())
                            << clipping_xy() + clipping_wh()
                            << vec2(clipping_xy().x() + clipping_wh().x(), clipping_xy().y())
-                           << Path::contour_end();
+                           << Path::contour_close();
           m_clip_window_path.swap(clip_window_path);
           m_clip_window_path_dirty = false;
         }
@@ -1896,8 +1879,7 @@ draw_scene(bool drawing_wire_frame)
                                         path(),
                                         StrokingStyle()
                                         .join_style(static_cast<enum Painter::join_style>(m_join_style))
-                                        .cap_style(static_cast<enum Painter::cap_style>(m_cap_style))
-                                        .stroke_closing_edges_of_contours(m_close_contour),
+                                        .cap_style(static_cast<enum Painter::cap_style>(m_cap_style)),
                                         m_shader_anti_alias_mode_values[m_aa_stroke_mode],
                                         m_stroke_mode_values[m_stroking_mode]);
 
@@ -1923,8 +1905,7 @@ draw_scene(bool drawing_wire_frame)
                                  path(),
                                  StrokingStyle()
                                  .join_style(static_cast<enum Painter::join_style>(m_join_style))
-                                 .cap_style(static_cast<enum Painter::cap_style>(m_cap_style))
-                                 .stroke_closing_edges_of_contours(m_close_contour),
+                                 .cap_style(static_cast<enum Painter::cap_style>(m_cap_style)),
                                  m_shader_anti_alias_mode_values[m_aa_stroke_mode],
                                  m_stroke_mode_values[m_stroking_mode]);
         }
@@ -2005,15 +1986,13 @@ draw_frame(void)
           Path grid_path;
           for(float x = 0, endx = wh.x(); x < endx; x += m_stroke_width)
             {
-              grid_path << vec2(x, 0.0f)
-                        << vec2(x, wh.y())
-                        << Path::contour_end();
+              grid_path << Path::contour_start(x, 0.0f)
+                        << vec2(x, wh.y());
             }
           for(float y = 0, endy = wh.y(); y < endy; y += m_stroke_width)
             {
-              grid_path << vec2(0.0f, y)
-                        << vec2(wh.x(), y)
-                        << Path::contour_end();
+              grid_path << Path::contour_start(0.0f, y)
+                        << vec2(wh.x(), y);
             }
           m_grid_path_dirty = false;
           m_grid_path.swap(grid_path);
@@ -2029,7 +2008,6 @@ draw_frame(void)
       m_painter->stroke_path(PainterData(&stroke_pen, &st),
                              m_grid_path,
                              StrokingStyle()
-                             .stroke_closing_edges_of_contours(false)
                              .cap_style(Painter::flat_caps)
                              .join_style(Painter::no_joins),
                              Painter::shader_anti_alias_none);
@@ -2102,14 +2080,7 @@ draw_frame(void)
             {
               ostr << "([d]non-dashed)";
             }
-          if (m_close_contour)
-            {
-              ostr << "{[x]Closed}";
-            }
-          else
-            {
-              ostr << "{[x]Open}";
-            }
+
           ostr << "\n\t[c]CapStyle: " << m_cap_labels[m_cap_style]
                << "\n\t[j]JoinStyle: " << m_join_labels[m_join_style];
         }
