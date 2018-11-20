@@ -54,25 +54,6 @@ class StrokedPath:
 {
 public:
   /*!
-   * Chunk enumeration for those PainterAttributeData
-   * objects returned by Subset::painter_data().
-   */
-  enum chunk_selection
-    {
-      /*!
-       * Select the chunk that holds both closing and
-       * non-closing edges of the StrokedPath.
-       */
-      all_edges = 0,
-
-      /*!
-       * Select the chunk that holds the edges of
-       * ONLY the non-closing edges of the StrokedPath
-       */
-      only_non_closing_edges,
-    };
-
-  /*!
    * \brief
    * A Subset represents a handle to a portion of a StrokedPath.
    * The handle is invalid once the StrokedPath from which it
@@ -88,8 +69,8 @@ public:
      * for the portion of the StrokedPath the Subset represents.
      * Note: the data is packed with ArcStrokedPoint::pack()
      * if StrokedPath::has_arcs() returns true, otherwise the
-     * data is packed with StrokedPoint::pack(). The values of
-     * \ref chunk_selection are to be used to selects chunks.
+     * data is packed with StrokedPoint::pack(). There is only
+     * one chunk of the returned object, chunk 0.
      */
     const PainterAttributeData&
     painter_data(void) const;

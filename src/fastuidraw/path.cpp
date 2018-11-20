@@ -382,9 +382,6 @@ namespace
     void
     clear_tesses(void);
 
-    void
-    close_back_contour(void);
-
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_contours;
     enum fastuidraw::PathEnums::edge_type_t m_next_edge_type;
 
@@ -924,7 +921,7 @@ bezier(const reference_counted_ptr<const interpolator_base> &start,
 
 fastuidraw::PathContour::bezier::
 bezier(const bezier &q, const reference_counted_ptr<const interpolator_base> &prev):
-  fastuidraw::PathContour::interpolator_generic(prev, q.end_pt(), edge_type())
+  fastuidraw::PathContour::interpolator_generic(prev, q.end_pt(), q.edge_type())
 {
   BezierPrivate *qd;
   qd = static_cast<BezierPrivate*>(q.m_d);
@@ -1106,7 +1103,7 @@ arc(const reference_counted_ptr<const interpolator_base> &start,
 
 fastuidraw::PathContour::arc::
 arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev):
-  fastuidraw::PathContour::interpolator_base(prev, q.end_pt(), edge_type())
+  fastuidraw::PathContour::interpolator_base(prev, q.end_pt(), q.edge_type())
 {
   ArcPrivate *qd;
   qd = static_cast<ArcPrivate*>(q.m_d);
@@ -1287,11 +1284,16 @@ to_generic(const reference_counted_ptr<const PathContour::interpolator_base> &p)
 
   d->m_is_flat = d->m_is_flat && p->is_flat();
   d->m_interpolators.push_back(p);
+
+  vec2 p0, p1;
+  p->approximate_bounding_box(&p0, &p1);
+  d->m_bb.union_point(p0);
+  d->m_bb.union_point(p1);
 }
 
 void
 fastuidraw::PathContour::
-end_generic(reference_counted_ptr<const interpolator_base> p)
+close_generic(reference_counted_ptr<const interpolator_base> p)
 {
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
@@ -1330,20 +1332,11 @@ end_generic(reference_counted_ptr<const interpolator_base> p)
   d->m_interpolators[0] = p;
   d->m_end_to_start = p;
   d->m_is_flat = d->m_is_flat && p->is_flat();
-
-  /* compute bounding box after ending the PathContour.  */
-  for(unsigned int i = 0, endi = d->m_interpolators.size(); i < endi; ++i)
-    {
-      vec2 p0, p1;
-      d->m_interpolators[i]->approximate_bounding_box(&p0, &p1);
-      d->m_bb.union_point(p0);
-      d->m_bb.union_point(p1);
-    }
 }
 
 void
 fastuidraw::PathContour::
-end(enum PathEnums::edge_type_t etp)
+close(enum PathEnums::edge_type_t etp)
 {
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
@@ -1362,19 +1355,19 @@ end(enum PathEnums::edge_type_t etp)
     }
 
   d->m_current_control_points.clear();
-  end_generic(h);
+  close_generic(h);
 }
 
 void
 fastuidraw::PathContour::
-end_arc(float angle, enum PathEnums::edge_type_t etp)
+close_arc(float angle, enum PathEnums::edge_type_t etp)
 {
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
 
   reference_counted_ptr<const interpolator_base> h;
   h = FASTUIDRAWnew arc(prev_interpolator(), angle, d->m_start_pt, etp);
-  end_generic(h);
+  close_generic(h);
 }
 
 unsigned int
@@ -1384,6 +1377,14 @@ number_points(void) const
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
   return d->m_interpolators.size();
+}
+
+unsigned int
+fastuidraw::PathContour::
+number_interpolators(void) const
+{
+  unsigned int b(!closed()), n(number_points());
+  return (n != 0) ? n - b : 0;
 }
 
 const fastuidraw::vec2&
@@ -1402,12 +1403,12 @@ interpolator(unsigned int I) const
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
 
-  /* m_interpolator[I+1] connects point(I) to point(I+1).
-   */
-  unsigned int J(I+1);
+  /* m_interpolator[I + 1] connects point(I) to point(I + 1). */
+  unsigned int J(I + 1);
+  FASTUIDRAWassert(J != 0u);
   FASTUIDRAWassert(J <= d->m_interpolators.size());
 
-  /* interpolator(number_points()) is the interpolator
+  /* J == m_interpolators.size() is the interpolator
    * connecting the last point added to the first
    * point of the contour, i.e. is given by m_end_to_start
    */
@@ -1415,7 +1416,6 @@ interpolator(unsigned int I) const
     d->m_end_to_start:
     d->m_interpolators[J];
 }
-
 
 const fastuidraw::reference_counted_ptr<const fastuidraw::PathContour::interpolator_base>&
 fastuidraw::PathContour::
@@ -1430,7 +1430,7 @@ prev_interpolator(void)
 
 bool
 fastuidraw::PathContour::
-ended(void) const
+closed(void) const
 {
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
@@ -1490,18 +1490,13 @@ bool
 fastuidraw::PathContour::
 approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 {
-  if (!ended())
-    {
-      return false;
-    }
-
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
 
   *out_min_bb = d->m_bb.min_point();
   *out_max_bb = d->m_bb.max_point();
 
-  return true;
+  return !d->m_bb.empty();
 }
 
 /////////////////////////////////
@@ -1604,23 +1599,13 @@ PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
   m_is_flat(obj.m_is_flat),
   m_p(p)
 {
-  /* if the last contour is not ended, we need to do a
+  /* if the last contour is not closed, we need to do a
    * deep copy on it.
    */
-  if (!m_contours.empty() && !m_contours.back()->ended())
+  if (!m_contours.empty() && !m_contours.back()->closed())
     {
       m_contours.back() = m_contours.back()->deep_copy();
       m_is_flat = m_is_flat && m_contours.back()->is_flat();
-    }
-}
-
-void
-PathPrivate::
-close_back_contour(void)
-{
-  if (!m_contours.empty() && !m_contours.back()->ended())
-    {
-      m_contours.back()->end(m_next_edge_type);
     }
 }
 
@@ -1719,29 +1704,29 @@ fastuidraw::Path&
 fastuidraw::Path::
 add_contour(const reference_counted_ptr<const PathContour> &pcontour)
 {
-  if (!pcontour || !pcontour->ended())
-    {
-      return *this;
-    }
-
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
 
-  reference_counted_ptr<PathContour> contour;
-  contour = pcontour.const_cast_ptr<PathContour>();
-  d->m_is_flat = d->m_is_flat && contour->is_flat();
+  reference_counted_ptr<PathContour> contour, r;
 
-  d->clear_tesses();
-  if (d->m_contours.empty() || d->m_contours.back()->ended())
+  contour = pcontour.const_cast_ptr<PathContour>();
+  if (!contour->closed())
     {
-      d->m_contours.push_back(contour);
+      contour = contour->deep_copy();
     }
-  else
+
+  d->m_is_flat = d->m_is_flat && contour->is_flat();
+  d->clear_tesses();
+
+  if (!d->m_contours.empty())
     {
-      reference_counted_ptr<PathContour> r;
       r = d->m_contours.back();
       d->m_contours.back() = contour;
       d->m_contours.push_back(r);
+    }
+  else
+    {
+      d->m_contours.push_back(contour);
     }
 
   return *this;
@@ -1752,71 +1737,59 @@ fastuidraw::Path::
 add_contours(const Path &path)
 {
   PathPrivate *d, *pd;
+  reference_counted_ptr<PathContour> r;
+
   d = static_cast<PathPrivate*>(m_d);
   pd = static_cast<PathPrivate*>(path.m_d);
-
-  if (d != pd && !pd->m_contours.empty())
+  if (pd->m_contours.empty())
     {
-      d->clear_tesses();
-      d->m_contours.reserve(d->m_contours.size() + pd->m_contours.size());
-      d->m_is_flat = d->m_is_flat && pd->m_is_flat;
-
-      reference_counted_ptr<PathContour> r;
-      if (!d->m_contours.empty() && !d->m_contours.back()->ended())
-        {
-          r = d->m_contours.back();
-          d->m_contours.pop_back();
-        }
-
-      unsigned int endi(pd->m_contours.size());
-      FASTUIDRAWassert(endi > 0u);
-
-      if (!pd->m_contours.back()->ended())
-        {
-          --endi;
-        }
-
-      for(unsigned int i = 0; i < endi; ++i)
-        {
-          d->m_contours.push_back(pd->m_contours[i]);
-        }
-
-      if (r)
-        {
-          d->m_contours.push_back(r);
-        }
+      return *this;
     }
+
+  if (!d->m_contours.empty())
+    {
+      r = d->m_contours.back();
+      d->m_contours.pop_back();
+    }
+
+  for (reference_counted_ptr<PathContour> c : pd->m_contours)
+    {
+      d->m_is_flat = d->m_is_flat && c->is_flat();
+      if (!c->closed())
+        {
+          c = c->deep_copy();
+        }
+      d->m_contours.push_back(c);
+    }
+
+  if (r)
+    {
+      d->m_contours.push_back(r);
+    }
+
+  d->clear_tesses();
   return *this;
 }
 
 fastuidraw::Path&
 fastuidraw::Path::
-move(const fastuidraw::vec2 &pt, enum PathEnums::edge_type_t etp)
+move(const fastuidraw::vec2 &pt)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-
-  if (!d->m_contours.empty())
-    {
-      const reference_counted_ptr<PathContour> &h(d->current_contour());
-      if (!h->ended())
-        {
-          h->end(etp);
-        }
-    }
   d->move_common(pt);
   return *this;
 }
 
 fastuidraw::Path&
 fastuidraw::Path::
-end_contour(enum PathEnums::edge_type_t etp)
+close_contour(enum PathEnums::edge_type_t etp)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
-  h->end(etp);
+  h->close(etp);
   return *this;
 }
 
@@ -1837,7 +1810,7 @@ operator<<(const fastuidraw::vec2 &pt)
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
 
-  if (d->m_contours.empty() || d->m_contours.back()->ended())
+  if (d->m_contours.empty() || d->m_contours.back()->closed())
     {
       d->move_common(pt);
     }
@@ -1862,7 +1835,6 @@ tessellation(float max_distance) const
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  d->close_back_contour();
   return d->m_tess_list.tessellation(*this, max_distance);
 }
 
@@ -1874,18 +1846,15 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
   d = static_cast<PathPrivate*>(m_d);
 
   for(unsigned endi = d->m_contours.size();
-      d->m_start_check_bb < endi && d->m_contours[d->m_start_check_bb]->ended();
-      ++d->m_start_check_bb)
+      d->m_start_check_bb < endi; ++d->m_start_check_bb)
     {
       vec2 p0, p1;
-      bool value_valid;
 
-      value_valid = d->m_contours[d->m_start_check_bb]->approximate_bounding_box(&p0, &p1);
-      FASTUIDRAWassert(value_valid);
-      FASTUIDRAWunused(value_valid);
-
-      d->m_bb.union_point(p0);
-      d->m_bb.union_point(p1);
+      if(d->m_contours[d->m_start_check_bb]->approximate_bounding_box(&p0, &p1))
+        {
+          d->m_bb.union_point(p0);
+          d->m_bb.union_point(p1);
+        }
     }
 
   *out_min_bb = d->m_bb.min_point();
@@ -1899,7 +1868,7 @@ operator<<(const control_point &pt)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->add_control_point(pt.m_location);
   return *this;
 }
@@ -1910,7 +1879,7 @@ operator<<(const arc &a)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->to_arc(a.m_angle, a.m_pt, d->m_next_edge_type);
   d->m_next_edge_type = PathEnums::starts_new_edge;
   return *this;
@@ -1918,24 +1887,24 @@ operator<<(const arc &a)
 
 fastuidraw::Path&
 fastuidraw::Path::
-operator<<(contour_end)
+operator<<(contour_close)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  d->current_contour()->end(d->m_next_edge_type);
+  FASTUIDRAWassert(!d->current_contour()->closed());
+  d->current_contour()->close(d->m_next_edge_type);
   d->m_next_edge_type = PathEnums::starts_new_edge;
   return *this;
 }
 
 fastuidraw::Path&
 fastuidraw::Path::
-operator<<(contour_end_arc a)
+operator<<(contour_close_arc a)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  d->current_contour()->end_arc(a.m_angle, d->m_next_edge_type);
+  FASTUIDRAWassert(!d->current_contour()->closed());
+  d->current_contour()->close_arc(a.m_angle, d->m_next_edge_type);
   d->m_next_edge_type = PathEnums::starts_new_edge;
   return *this;
 }
@@ -1947,7 +1916,7 @@ line_to(const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->to_point(pt, etp);
   return *this;
 }
@@ -1959,7 +1928,7 @@ quadratic_to(const vec2 &ct, const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->clear_control_points();
   h->add_control_point(ct);
@@ -1974,7 +1943,7 @@ cubic_to(const vec2 &ct1, const vec2 &ct2, const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->clear_control_points();
   h->add_control_point(ct1);
@@ -1990,7 +1959,7 @@ arc_to(float angle, const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->to_arc(angle, pt, etp);
   return *this;
@@ -2011,122 +1980,63 @@ custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->to_generic(p);
   return *this;
 }
 
 fastuidraw::Path&
 fastuidraw::Path::
-arc_move(float angle, const vec2 &pt,
-         enum PathEnums::edge_type_t etp)
-{
-  PathPrivate *d;
-  d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  const reference_counted_ptr<PathContour> &h(d->current_contour());
-  h->end_arc(angle, etp);
-  d->move_common(pt);
-  return *this;
-}
-
-fastuidraw::Path&
-fastuidraw::Path::
-end_contour_arc(float angle,
-                enum PathEnums::edge_type_t etp)
-{
-  PathPrivate *d;
-  d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  const reference_counted_ptr<PathContour> &h(d->current_contour());
-  h->end_arc(angle, etp);
-  return *this;
-}
-
-fastuidraw::Path&
-fastuidraw::Path::
-quadratic_move(const vec2 &ct, const vec2 &pt,
-               enum PathEnums::edge_type_t etp)
-{
-  PathPrivate *d;
-  d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  const reference_counted_ptr<PathContour> &h(d->current_contour());
-  h->clear_control_points();
-  h->add_control_point(ct);
-  h->end(etp);
-  d->move_common(pt);
-  return *this;
-}
-
-fastuidraw::Path&
-fastuidraw::Path::
-end_contour_quadratic(const vec2 &ct,
-                      enum PathEnums::edge_type_t etp)
-{
-  PathPrivate *d;
-  d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  const reference_counted_ptr<PathContour> &h(d->current_contour());
-  h->clear_control_points();
-  h->add_control_point(ct);
-  h->end(etp);
-  return *this;
-}
-
-fastuidraw::Path&
-fastuidraw::Path::
-cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt,
-           enum PathEnums::edge_type_t etp)
-{
-  PathPrivate *d;
-  d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  const reference_counted_ptr<PathContour> &h(d->current_contour());
-  h->clear_control_points();
-  h->add_control_point(ct1);
-  h->add_control_point(ct2);
-  h->end(etp);
-  d->move_common(pt);
-  return *this;
-}
-
-fastuidraw::Path&
-fastuidraw::Path::
-end_contour_cubic(const vec2 &ct1, const vec2 &ct2,
+close_contour_arc(float angle,
                   enum PathEnums::edge_type_t etp)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
+  FASTUIDRAWassert(!d->current_contour()->closed());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
+  h->close_arc(angle, etp);
+  return *this;
+}
+
+fastuidraw::Path&
+fastuidraw::Path::
+close_contour_quadratic(const vec2 &ct,
+                        enum PathEnums::edge_type_t etp)
+{
+  PathPrivate *d;
+  d = static_cast<PathPrivate*>(m_d);
+  FASTUIDRAWassert(!d->current_contour()->closed());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
+  h->clear_control_points();
+  h->add_control_point(ct);
+  h->close(etp);
+  return *this;
+}
+
+fastuidraw::Path&
+fastuidraw::Path::
+close_contour_cubic(const vec2 &ct1, const vec2 &ct2,
+                    enum PathEnums::edge_type_t etp)
+{
+  PathPrivate *d;
+  d = static_cast<PathPrivate*>(m_d);
+  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->clear_control_points();
   h->add_control_point(ct1);
   h->add_control_point(ct2);
-  h->end(etp);
+  h->close(etp);
   return *this;
 }
 
 fastuidraw::Path&
 fastuidraw::Path::
-custom_move(const reference_counted_ptr<const PathContour::interpolator_base> &p, const vec2 &pt)
+close_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  d->current_contour()->end_generic(p);
-  d->move_common(pt);
-  return *this;
-}
-
-fastuidraw::Path&
-fastuidraw::Path::
-end_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p)
-{
-  PathPrivate *d;
-  d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->ended());
-  d->current_contour()->end_generic(p);
+  FASTUIDRAWassert(!d->current_contour()->closed());
+  d->current_contour()->close_generic(p);
   return *this;
 }
 

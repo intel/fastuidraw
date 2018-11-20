@@ -11,13 +11,9 @@ class PointAttributeDataMerger:public PainterAttributeDataFiller
 {
 public:
   PointAttributeDataMerger(const PainterAttributeData &srcA,
-                           const PainterAttributeData &srcB,
-                           unsigned int all_edges_chunk,
-                           unsigned int only_non_closing_edges_chunk):
+                           const PainterAttributeData &srcB):
     m_srcA(srcA),
-    m_srcB(srcB),
-    m_all_edges(all_edges_chunk),
-    m_only_non_closing_edges(only_non_closing_edges_chunk)
+    m_srcB(srcB)
   {}
 
   virtual
@@ -46,14 +42,12 @@ private:
 
   static
   void
-  fill_data_helper_idx(c_array<const PainterIndex> src,
-                       unsigned int src_vert_start,
+  fill_data_helper_idx(unsigned int incr_idx,
+                       c_array<const PainterIndex> src,
                        c_array<PainterIndex> dst,
-                       unsigned int &idx_dst,
-                       unsigned int dst_vert_start);
+                       unsigned int &idx_dst);
 
   const PainterAttributeData &m_srcA, &m_srcB;
-  unsigned int m_all_edges, m_only_non_closing_edges;
 };
 
 //////////////////////////////////////////
@@ -67,7 +61,7 @@ compute_sizes(unsigned int &num_attributes,
               unsigned int &num_index_chunks,
               unsigned int &number_z_ranges) const
 {
-  const unsigned int chk(m_all_edges);
+  const unsigned int chk(0);
 
   num_attributes = m_srcA.attribute_data_chunk(chk).size()
     + m_srcB.attribute_data_chunk(chk).size();
@@ -75,7 +69,7 @@ compute_sizes(unsigned int &num_attributes,
   num_indices = m_srcA.index_data_chunk(chk).size()
     + m_srcB.index_data_chunk(chk).size();
 
-  num_attribute_chunks = num_index_chunks = number_z_ranges = 2;
+  num_attribute_chunks = num_index_chunks = number_z_ranges = 1;
 }
 
 template<typename Point>
@@ -93,130 +87,57 @@ fill_data(c_array<PainterAttribute> attribute_data,
    * the closing edge depth values come after the non-closing edge depth values.
    *
    * Attribute data is to be packed as
-   *   m_srcA non-closing edges
-   *   m_srcB non-closing edges
-   *   m_srcA closing edges
-   *   m_srcB closing edges
+   *   m_srcA edges
+   *   m_srcB edges
    *
    * Index data is to be packed as
-   *  m_srcA closing edges
-   *  m_srcB closing edges
-   *  m_srcA non-closing edges
-   *  m_srcB non-closing edges
+   *  m_srcA edges
+   *  m_srcB edges
    *
    * The depth values need to be adjusted with respect to the
    * index data packing order, with the largest values
-   * coming first.
+   * coming first; the only modification needed then is to just
+   * add to the depth values of A the max of the depth range of B
    */
 
-  range_type<int> srcA_non_closing_depth;
-  range_type<int> srcB_non_closing_depth;
-  range_type<int> srcA_closing_depth;
-  range_type<int> srcB_closing_depth;
-  range_type<int> dstA_non_closing_depth;
-  range_type<int> dstB_non_closing_depth;
-  range_type<int> dstA_closing_depth;
-  range_type<int> dstB_closing_depth;
+  range_type<int> srcA_depth;
+  range_type<int> srcB_depth;
+  range_type<int> dstA_depth;
+  range_type<int> dstB_depth;
+  unsigned int num_vertsA, vert_dst(0), idx_dst(0);
 
-  srcA_non_closing_depth = m_srcA.z_range(m_only_non_closing_edges);
-  srcA_closing_depth.m_begin = srcA_non_closing_depth.m_end;
-  srcA_closing_depth.m_end = m_srcA.z_range(m_all_edges).m_end;
+  srcA_depth = m_srcA.z_range(0);
+  srcB_depth = m_srcB.z_range(0);
 
-  srcB_non_closing_depth = m_srcB.z_range(m_only_non_closing_edges);
-  srcB_closing_depth.m_begin = srcB_non_closing_depth.m_end;
-  srcB_closing_depth.m_end = m_srcB.z_range(m_all_edges).m_end;
+  dstA_depth = srcA_depth;
+  dstB_depth = srcB_depth;
+  dstA_depth.m_begin += dstB_depth.m_end;
+  dstA_depth.m_end += dstB_depth.m_end;
 
-  dstB_non_closing_depth.m_begin = 0;
-  dstB_non_closing_depth.m_end = dstB_non_closing_depth.m_begin + srcB_non_closing_depth.difference();
-
-  dstA_non_closing_depth.m_begin = dstB_non_closing_depth.m_end;
-  dstA_non_closing_depth.m_end = dstA_non_closing_depth.m_begin + srcA_non_closing_depth.difference();
-
-  dstB_closing_depth.m_begin = dstA_non_closing_depth.m_end;
-  dstB_closing_depth.m_end = dstB_closing_depth.m_begin + srcB_closing_depth.difference();
-
-  dstA_closing_depth.m_begin = dstB_closing_depth.m_end;
-  dstA_closing_depth.m_end = dstA_closing_depth.m_begin + srcA_closing_depth.difference();
-
-  unsigned int q, vert_dst(0), idx_dst(0);
-  unsigned int dstA_closing_vert_begin, dstB_closing_vert_begin;
-  unsigned int dstA_non_closing_vert_begin, dstB_non_closing_vert_begin;
-  unsigned int dst_non_closing_idx_begin;
-
-  /////////////////////////////////////////////////////////
-  // Fill the attribute buffer with the vertices with their
-  // depth values shifted.
-  dstA_non_closing_vert_begin = vert_dst;
-  fill_data_helper_attr(m_srcA.attribute_data_chunk(m_only_non_closing_edges),
-                        srcA_non_closing_depth,
+  fill_data_helper_attr(m_srcA.attribute_data_chunk(0),
+                        srcA_depth,
                         attribute_data, vert_dst,
-                        dstA_non_closing_depth);
+                        dstA_depth);
+  num_vertsA = vert_dst;
 
-  dstB_non_closing_vert_begin = vert_dst;
-  fill_data_helper_attr(m_srcB.attribute_data_chunk(m_only_non_closing_edges),
-                        srcB_non_closing_depth,
+  fill_data_helper_attr(m_srcB.attribute_data_chunk(0),
+                        srcB_depth,
                         attribute_data, vert_dst,
-                        dstB_non_closing_depth);
+                        dstB_depth);
 
+  fill_data_helper_idx(0, m_srcA.index_data_chunk(0),
+                       index_data, idx_dst);
 
-  q = m_srcA.attribute_data_chunk(m_only_non_closing_edges).size();
-  dstA_closing_vert_begin = vert_dst;
-  fill_data_helper_attr(m_srcA.attribute_data_chunk(m_all_edges).sub_array(q),
-                        srcA_closing_depth,
-                        attribute_data, vert_dst,
-                        dstA_closing_depth);
-
-
-  q = m_srcB.attribute_data_chunk(m_only_non_closing_edges).size();
-  dstB_closing_vert_begin = vert_dst;
-  fill_data_helper_attr(m_srcB.attribute_data_chunk(m_all_edges).sub_array(q),
-                        srcB_closing_depth,
-                        attribute_data, vert_dst,
-                        dstB_closing_depth);
-
-  ////////////////////////////////////////////////////
-  // Fill the index buffers.
-  q = m_srcA.index_data_chunk(m_all_edges).size()
-    - m_srcA.index_data_chunk(m_only_non_closing_edges).size();
-  fill_data_helper_idx(m_srcA.index_data_chunk(m_all_edges).sub_array(0, q),
-                       m_srcA.attribute_data_chunk(m_only_non_closing_edges).size(),
-                       index_data, idx_dst,
-                       dstA_closing_vert_begin);
-
-  q = m_srcB.index_data_chunk(m_all_edges).size()
-    - m_srcB.index_data_chunk(m_only_non_closing_edges).size();
-  fill_data_helper_idx(m_srcB.index_data_chunk(m_all_edges).sub_array(0, q),
-                       m_srcB.attribute_data_chunk(m_only_non_closing_edges).size(),
-                       index_data, idx_dst,
-                       dstB_closing_vert_begin);
-
-  dst_non_closing_idx_begin = idx_dst;
-  fill_data_helper_idx(m_srcA.index_data_chunk(m_only_non_closing_edges),
-                       0,
-                       index_data, idx_dst,
-                       dstA_non_closing_vert_begin);
-
-  fill_data_helper_idx(m_srcB.index_data_chunk(m_only_non_closing_edges),
-                       0,
-                       index_data, idx_dst,
-                       dstB_non_closing_vert_begin);
+  fill_data_helper_idx(num_vertsA, m_srcB.index_data_chunk(0),
+                       index_data, idx_dst);
 
   ////////////////////////////////////////////////////////////////////////////
   // assign the chunks pointers and zrange values along with the index_adjusts
-  attribute_chunks[m_all_edges] = attribute_data;
-  index_chunks[m_all_edges] = index_data;
-
-  attribute_chunks[m_only_non_closing_edges] = attribute_data.sub_array(0, dstA_closing_vert_begin);
-  index_chunks[m_only_non_closing_edges] = index_data.sub_array(dst_non_closing_idx_begin);
-
-  zranges[m_all_edges].m_begin = 0;
-  zranges[m_all_edges].m_end = dstA_closing_depth.m_end;
-
-  zranges[m_only_non_closing_edges].m_begin = 0;
-  zranges[m_only_non_closing_edges].m_end = dstA_non_closing_depth.m_end;
-
-  index_adjusts[m_all_edges] = 0;
-  index_adjusts[m_only_non_closing_edges] = 0;
+  attribute_chunks[0] = attribute_data;
+  index_chunks[0] = index_data;
+  zranges[0].m_begin = 0;
+  zranges[0].m_end = dstA_depth.m_end;
+  index_adjusts[0] = 0;
 }
 
 template<typename Point>
@@ -248,22 +169,14 @@ fill_data_helper_attr(c_array<const PainterAttribute> src,
 template<typename Point>
 void
 PointAttributeDataMerger<Point>::
-fill_data_helper_idx(c_array<const PainterIndex> src,
-                     unsigned int src_vert_start,
+fill_data_helper_idx(unsigned int incr_idx,
+                     c_array<const PainterIndex> src,
                      c_array<PainterIndex> dst,
-                     unsigned int &idx_dst,
-                     unsigned int dst_vert_start)
+                     unsigned int &idx_dst)
 {
   for (unsigned int i = 0; i < src.size(); ++i, ++idx_dst)
     {
-      PainterIndex v;
-
-      v = src[i];
-      FASTUIDRAWassert(v >= src_vert_start);
-
-      v -= src_vert_start;
-      v += dst_vert_start;
-      dst[idx_dst] = v;
+      dst[idx_dst] = src[i] + incr_idx;
     }
 }
 

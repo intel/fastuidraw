@@ -952,7 +952,6 @@ namespace
                     const fastuidraw::PainterData &pdraw,
                     const fastuidraw::StrokedPath *stroked_path,
                     fastuidraw::c_array<const unsigned int> stroked_subset_ids,
-                    unsigned int stroked_path_chunk,
                     const fastuidraw::PainterAttributeData *cap_data,
                     fastuidraw::c_array<const unsigned int> cap_chunks,
                     const fastuidraw::PainterAttributeData* join_data,
@@ -964,7 +963,6 @@ namespace
     stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                        const fastuidraw::PainterData &draw,
                        const fastuidraw::StrokedPath &path, float thresh,
-                       bool close_contours,
                        enum fastuidraw::Painter::cap_style cp,
                        enum fastuidraw::Painter::join_style js,
                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias,
@@ -1091,7 +1089,6 @@ namespace
     select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
                   float pixels_additional_room,
                   float item_space_additional_room,
-                  bool include_closing_edges,
                   bool select_joins_for_miter_style,
                   fastuidraw::StrokedCapsJoins::ChunkSet *dst);
 
@@ -1548,7 +1545,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_rounded_corner_path << fastuidraw::vec2(0.0f, 0.0f)
                         << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
                         << fastuidraw::vec2(1.0f, 0.0f)
-                        << fastuidraw::Path::contour_end();
+                        << fastuidraw::Path::contour_close();
 
   /* we use the complement path to draw the occluders;
    * we need to rely on the complement instead of using
@@ -1559,7 +1556,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_rounded_corner_path_complement << fastuidraw::vec2(0.0f, 0.0f)
                                    << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
                                    << fastuidraw::vec2(0.0f, 1.0f)
-                                   << fastuidraw::Path::contour_end();
+                                   << fastuidraw::Path::contour_close();
 }
 
 bool
@@ -1649,7 +1646,6 @@ PainterPrivate::
 compute_magnification(const fastuidraw::Path &path)
 {
   fastuidraw::vec2 bb_min, bb_max;
-  bool r;
 
   /* TODO: for stroking, it might be that although the
    * original path is completely clipped, the stroke of
@@ -1657,12 +1653,10 @@ compute_magnification(const fastuidraw::Path &path)
    * of the path by how much slack the stroking parameters
    * require.
    */
-  r = path.approximate_bounding_box(&bb_min, &bb_max);
-  if (!r)
+  if (!path.approximate_bounding_box(&bb_min, &bb_max))
     {
-      /* it does not matter, since the path is essentially
-       * empty. By using a negative value, we get the
-       * default tessellation of the path.
+      /* Path is empty, does not matter what tessellation
+       * is taken.
        */
       return -1.0f;
     }
@@ -1927,7 +1921,6 @@ PainterPrivate::
 select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
               float pixels_additional_room,
               float item_space_additional_room,
-              bool include_closing_edges,
               bool select_joins_for_miter_style,
               fastuidraw::StrokedCapsJoins::ChunkSet *dst)
 {
@@ -1944,7 +1937,6 @@ select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
                             m_one_pixel_width,
                             pixels_additional_room,
                             item_space_additional_room,
-                            include_closing_edges,
                             m_max_attribs_per_block,
                             m_max_indices_per_block,
                             select_joins_for_miter_style,
@@ -2150,7 +2142,6 @@ PainterPrivate::
 stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                    const fastuidraw::PainterData &draw,
                    const fastuidraw::StrokedPath &path, float thresh,
-                   bool close_contours,
                    enum fastuidraw::Painter::cap_style cp,
                    enum fastuidraw::Painter::join_style js,
                    enum fastuidraw::Painter::shader_anti_alias_t anti_aliasing,
@@ -2170,34 +2161,32 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
 
   raw_data = draw.m_item_shader_data.data().data_base();
-  if (!close_contours)
+
+  switch(cp)
     {
-      switch(cp)
+    case Painter::rounded_caps:
+      if (edge_arc_shader)
         {
-        case Painter::rounded_caps:
-          if (edge_arc_shader)
-            {
-              cap_data = &caps_joins.arc_rounded_caps();
-              cap_arc_shader = true;
-            }
-          else
-            {
-              cap_data = &caps_joins.rounded_caps(thresh);
-            }
-          break;
-
-        case Painter::square_caps:
-          cap_data = &caps_joins.square_caps();
-          break;
-
-        case Painter::flat_caps:
-          cap_data = nullptr;
-          break;
-
-        case Painter::number_cap_styles:
-          cap_data = &caps_joins.adjustable_caps();
-          break;
+          cap_data = &caps_joins.arc_rounded_caps();
+          cap_arc_shader = true;
         }
+      else
+        {
+          cap_data = &caps_joins.rounded_caps(thresh);
+        }
+      break;
+
+    case Painter::square_caps:
+      cap_data = &caps_joins.square_caps();
+      break;
+
+    case Painter::flat_caps:
+      cap_data = nullptr;
+      break;
+
+    case Painter::number_cap_styles:
+      cap_data = &caps_joins.adjustable_caps();
+      break;
     }
 
   switch(js)
@@ -2264,7 +2253,6 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             m_one_pixel_width,
                             pixels_additional_room,
                             item_space_additional_room,
-                            close_contours,
                             m_max_attribs_per_block,
                             m_max_indices_per_block,
                             is_miter_join,
@@ -2272,7 +2260,6 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
 
   stroke_path_raw(shader, edge_arc_shader, join_arc_shader, cap_arc_shader, draw,
                   &path, make_c_array(m_work_room.m_stroke.m_subsets),
-                  close_contours ? StrokedPath::all_edges : StrokedPath::only_non_closing_edges,
                   cap_data, m_work_room.m_stroke.m_caps_joins_chunk_set.cap_chunks(),
                   join_data, m_work_room.m_stroke.m_caps_joins_chunk_set.join_chunks(),
                   anti_aliasing, call_back);
@@ -2287,7 +2274,6 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
                 const fastuidraw::PainterData &pdraw,
                 const fastuidraw::StrokedPath *stroked_path,
                 fastuidraw::c_array<const unsigned int> stroked_subset_ids,
-                unsigned int stroked_path_chunk,
                 const fastuidraw::PainterAttributeData *cap_data,
                 fastuidraw::c_array<const unsigned int> cap_chunks,
                 const fastuidraw::PainterAttributeData* join_data,
@@ -2296,6 +2282,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   using namespace fastuidraw;
+  const unsigned int stroked_path_chunk = 0;
 
   if (m_clip_rect_state.m_all_content_culled)
     {
@@ -3305,7 +3292,6 @@ fastuidraw::Painter::
 select_chunks(const StrokedCapsJoins &caps_joins,
               float pixels_additional_room,
               float item_space_additional_room,
-              bool include_closing_edges,
               bool select_joins_for_miter_style,
               StrokedCapsJoins::ChunkSet *dst)
 {
@@ -3314,7 +3300,6 @@ select_chunks(const StrokedCapsJoins &caps_joins,
   d->select_chunks(caps_joins,
                    pixels_additional_room,
                    item_space_additional_room,
-                   include_closing_edges,
                    select_joins_for_miter_style,
                    dst);
 }
@@ -3332,7 +3317,6 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
   FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
   d->stroke_path_common(shader, draw, path, thresh,
-                        stroke_style.m_draw_closing_edges_of_contours,
                         stroke_style.m_cap_style,
                         stroke_style.m_join_style,
                         anti_alias_quality,
@@ -3383,7 +3367,6 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
   d->stroke_path_common(shader.shader(stroke_style.m_cap_style), draw,
                         path, thresh,
-                        stroke_style.m_draw_closing_edges_of_contours,
                         number_cap_styles,
                         stroke_style.m_join_style,
                         anti_alias_quality,

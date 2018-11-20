@@ -4,6 +4,9 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
+FASTUIDRAW_SOURCES += $(call filelist, image.cpp colorstop.cpp \
+	colorstop_atlas.cpp path.cpp tessellated_path.cpp)
+
 dir := $(d)/ngl_generator
 include $(dir)/Rules.mk
 
@@ -27,9 +30,6 @@ include $(dir)/Rules.mk
 
 dir := $(d)/gl_backend
 include $(dir)/Rules.mk
-
-FASTUIDRAW_SOURCES += $(call filelist, image.cpp colorstop.cpp \
-	colorstop_atlas.cpp path.cpp tessellated_path.cpp)
 
 NEGL_SRCS += $(call filelist, egl_binding.cpp)
 

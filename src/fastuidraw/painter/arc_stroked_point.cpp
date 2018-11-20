@@ -36,8 +36,8 @@ pack_point(PainterAttribute *dst) const
 
   dst->m_attrib2 = uvec4(m_packed_data,
                          pack_float(m_edge_length),
-                         pack_float(m_open_contour_length),
-                         pack_float(m_closed_contour_length));
+                         pack_float(m_contour_length),
+                         0u);
 }
 
 void
@@ -57,6 +57,5 @@ unpack_point(ArcStrokedPoint *dst, const PainterAttribute &a)
 
   dst->m_packed_data = a.m_attrib2.x();
   dst->m_edge_length = unpack_float(a.m_attrib2.y());
-  dst->m_open_contour_length = unpack_float(a.m_attrib2.z());
-  dst->m_closed_contour_length = unpack_float(a.m_attrib2.w());
+  dst->m_contour_length = unpack_float(a.m_attrib2.z());
 }

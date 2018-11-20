@@ -1275,16 +1275,23 @@ SubPath(const fastuidraw::TessellatedPath &P):
   m_num_points(0),
   m_bounds(fastuidraw::dvec2(P.bounding_box_min()),
            fastuidraw::dvec2(P.bounding_box_max())),
-  m_contours(P.number_contours()),
   m_gen(0),
   m_edge_flags(starting_subpath)
 {
+  m_contours.reserve(P.number_contours());
   for(unsigned int c = 0, endc = P.number_contours(); c < endc; ++c)
     {
-      copy_contour(m_contours[c], P, c);
-      if (!SubPath::contour_is_reducable(m_contours[c]))
+      if (P.contour_closed(c))
         {
-          m_num_points += m_contours[c].size();
+          SubContour tmp;
+
+          copy_contour(tmp, P, c);
+          if (!SubPath::contour_is_reducable(tmp))
+            {
+              m_contours.push_back(SubContour());
+              m_contours.back().swap(tmp);
+              m_num_points += m_contours.back().size();
+            }
         }
     }
 }
@@ -1826,7 +1833,10 @@ int
 PointHoard::
 add_contour_to_path(const SubPath::SubContour &C, Path &path_output)
 {
-  FASTUIDRAWassert(!C.empty());
+  if (C.empty())
+    {
+      return 0;
+    }
 
   int w(0);
   std::list<ContourPoint> tmp;
@@ -2999,7 +3009,7 @@ SubsetPrivate(SubPath *Q, int max_recursion,
                   << fastuidraw::vec2(m.x(), M.y())
                   << fastuidraw::vec2(M.x(), M.y())
                   << fastuidraw::vec2(M.x(), m.y())
-                  << fastuidraw::Path::contour_end();
+                  << fastuidraw::Path::contour_close();
 }
 
 SubsetPrivate::
