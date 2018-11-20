@@ -1169,6 +1169,7 @@ static void DoneEdgeDict( fastuidraw_GLUtesselator *tess )
     if( ! reg->sentinel ) {
       FASTUIDRAWassert( reg->fixUpperEdge );
       FASTUIDRAWassert( ++fixedEdges == 1 );
+      FASTUIDRAWunused( fixedEdges );
     }
     FASTUIDRAWassert( reg->windingNumber == 0 );
     DeleteRegion( tess, reg );

@@ -795,7 +795,7 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_reg_gl = reg_base.static_cast_ptr<PainterShaderRegistrarGL>();
 
   m_use_uber_shader = m_reg_gl->params().use_uber_item_shader();
-  m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(), m_p->configuration_base(),
+  m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(),
                                           m_reg_gl->tex_buffer_support(),
                                           m_reg_gl->uber_shader_builder_params().binding_points());
 }

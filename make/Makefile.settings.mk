@@ -18,8 +18,6 @@ DARWIN_BUILD = 0
 
 ###########################################
 # Setting for building libFastUIDraw.so base library
-CXX ?= g++
-CC ?= gcc
 STRING_RESOURCE_CC = shell_scripts/fastuidraw-create-resource-cpp-file.sh
 
 #######################################

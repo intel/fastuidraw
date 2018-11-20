@@ -80,7 +80,6 @@ namespace
     void
     add_sub_edge(const SingleSubEdge *prev_subedge_of_edge,
                  const fastuidraw::TessellatedPath::segment &seg,
-                 bool is_closing_edge,
                  std::vector<SingleSubEdge> &dst,
                  fastuidraw::BoundingBox<float> &bx,
                  uint32_t flags);
@@ -109,10 +108,8 @@ namespace
     float m_distance_from_edge_start;
     float m_distance_from_contour_start;
     float m_edge_length;
-    float m_open_contour_length;
-    float m_closed_contour_length;
+    float m_contour_length;
 
-    bool m_of_closing_edge;
     float m_sub_edge_length;
     fastuidraw::vec2 m_begin_normal, m_end_normal;
 
@@ -136,8 +133,7 @@ namespace
     bool m_has_end_dashed_capper;
 
   private:
-    SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
-                  bool is_closing_edge, uint32_t flags);
+    SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg, uint32_t flags);
 
     bool
     intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const;
@@ -161,15 +157,9 @@ namespace
     SubPath(const fastuidraw::TessellatedPath &P);
 
     fastuidraw::c_array<const SingleSubEdge>
-    non_closing_edges(void) const
+    edges(void) const
     {
-      return fastuidraw::make_c_array(m_non_closing_edges);
-    }
-
-    fastuidraw::c_array<const SingleSubEdge>
-    closing_edges(void) const
-    {
-      return fastuidraw::make_c_array(m_closing_edges);
+      return fastuidraw::make_c_array(m_edges);
     }
 
     const fastuidraw::BoundingBox<float>&
@@ -217,8 +207,7 @@ namespace
                         const std::vector<SingleSubEdge> &segs,
                         fastuidraw::BoundingBox<float> &box);
 
-    std::vector<SingleSubEdge> m_non_closing_edges;
-    std::vector<SingleSubEdge> m_closing_edges;
+    std::vector<SingleSubEdge> m_edges;
     fastuidraw::BoundingBox<float> m_bounding_box;
     bool m_has_arcs;
   };
@@ -341,7 +330,7 @@ namespace
       ready_data();
       num_attributes = m_attributes.size();
       num_indices = m_indices.size();
-      num_attribute_chunks = num_index_chunks = number_z_ranges = 2;
+      num_attribute_chunks = num_index_chunks = number_z_ranges = 1;
     }
 
     virtual
@@ -367,9 +356,8 @@ namespace
     mutable bool m_ready;
     mutable std::vector<fastuidraw::PainterAttribute> m_attributes;
     mutable std::vector<fastuidraw::PainterIndex> m_indices;
-    mutable unsigned int m_non_closing_vertex_count, m_non_closing_index_count;
-    mutable unsigned int m_non_closing_depth_count;
-    mutable unsigned int m_total_depth_count;
+    mutable unsigned int m_vertex_count, m_index_count;
+    mutable unsigned int m_depth_count;
   };
 
   class LineEdgeAttributeFiller:public EdgeAttributeFillerBase
@@ -476,17 +464,14 @@ namespace
 ////////////////////////////////////////
 // SingleSubEdge methods
 SingleSubEdge::
-SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
-              bool is_closing_edge, uint32_t flags):
+SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg, uint32_t flags):
   m_from_line_segment(seg.m_type == fastuidraw::TessellatedPath::line_segment),
   m_pt0(seg.m_start_pt),
   m_pt1(seg.m_end_pt),
   m_distance_from_edge_start(seg.m_distance_from_edge_start),
   m_distance_from_contour_start(seg.m_distance_from_contour_start),
   m_edge_length(seg.m_edge_length),
-  m_open_contour_length(seg.m_open_contour_length),
-  m_closed_contour_length(seg.m_closed_contour_length),
-  m_of_closing_edge(is_closing_edge),
+  m_contour_length(seg.m_contour_length),
   m_sub_edge_length(seg.m_length),
   m_begin_normal(-seg.m_enter_segment_unit_vector.y(),
                  seg.m_enter_segment_unit_vector.x()),
@@ -552,12 +537,11 @@ void
 SingleSubEdge::
 add_sub_edge(const SingleSubEdge *prev_subedge_of_edge,
              const fastuidraw::TessellatedPath::segment &seg,
-             bool is_closing_edge,
              std::vector<SingleSubEdge> &dst,
              fastuidraw::BoundingBox<float> &bx,
              uint32_t flags)
 {
-  SingleSubEdge sub_edge(seg, is_closing_edge, flags);
+  SingleSubEdge sub_edge(seg, flags);
 
   /* If the dot product between the normal is negative, then
    * chances are there is a cusp; we do NOT want a bevel (or
@@ -708,7 +692,6 @@ split_sub_edge(int splitting_coordinate,
     {
       out_edges[i].m_from_line_segment = m_from_line_segment;
       out_edges[i].m_delta = out_edges[i].m_pt1 - out_edges[i].m_pt0;
-      out_edges[i].m_of_closing_edge = m_of_closing_edge;
       out_edges[i].m_has_bevel = m_has_bevel && (i == 0);
       out_edges[i].m_bevel_lambda = (i == 0) ? m_bevel_lambda : 0.0f;
       out_edges[i].m_bevel_normal = (i == 0) ? m_bevel_normal : fastuidraw::vec2(0.0f, 0.0f);
@@ -718,8 +701,7 @@ split_sub_edge(int splitting_coordinate,
       out_edges[i].m_radius = m_radius;
 
       out_edges[i].m_edge_length = m_edge_length;
-      out_edges[i].m_open_contour_length = m_open_contour_length;
-      out_edges[i].m_closed_contour_length = m_closed_contour_length;
+      out_edges[i].m_contour_length = m_contour_length;
     }
 
   dst_before_split_value->push_back(out_edges[0]);
@@ -740,27 +722,9 @@ SubPath(const fastuidraw::TessellatedPath &P):
 {
   using namespace fastuidraw;
 
-  std::vector<unsigned int> closing_edge_start(P.number_contours());
-
-  /* we need to figure out where the closing edge for each contour starts */
   for(unsigned int o = 0; o < P.number_contours(); ++o)
     {
-      /* find the last edge in a contour whose type
-       * is PainterEnums::starts_new_edge.
-       */
-      closing_edge_start[o] = 0;
       for(unsigned int e = 0, ende = P.number_edges(o); e < ende; ++e)
-        {
-          if (P.edge_type(o, e) == PathEnums::starts_new_edge)
-            {
-              closing_edge_start[o] = e;
-            }
-        }
-    }
-
-  for(unsigned int o = 0; o < P.number_contours(); ++o)
-    {
-      for(unsigned int e = 0; e < closing_edge_start[o]; ++e)
         {
           const SingleSubEdge *prev(nullptr);
           fastuidraw::range_type<unsigned int> R;
@@ -768,27 +732,10 @@ SubPath(const fastuidraw::TessellatedPath &P):
           R = P.edge_range(o, e);
           if (e != 0 && P.edge_type(o, e) != PathEnums::starts_new_edge)
             {
-              prev = &m_non_closing_edges.back();
+              prev = &m_edges.back();
             }
 
-          process_edge(P, R, prev, m_non_closing_edges);
-        }
-    }
-
-  for(unsigned int o = 0; o < P.number_contours(); ++o)
-    {
-      for (unsigned int e = closing_edge_start[o], ende = P.number_edges(o); e < ende; ++e)
-        {
-          fastuidraw::range_type<unsigned int> R;
-          const SingleSubEdge *prev(nullptr);
-
-          R = P.edge_range(o, e);
-          if (e != closing_edge_start[o]
-              && P.edge_type(o, e) != PathEnums::starts_new_edge)
-            {
-              prev = &m_closing_edges.back();
-            }
-          process_edge(P, R, prev, m_closing_edges);
+          process_edge(P, R, prev, m_edges);
         }
     }
 }
@@ -821,7 +768,6 @@ process_edge(const fastuidraw::TessellatedPath &P,
         }
 
       SingleSubEdge::add_sub_edge(prev, src_segments[i],
-                                  &dst == &m_closing_edges,
                                   dst, m_bounding_box, flags);
       prev = &dst.back();
     }
@@ -833,7 +779,7 @@ choose_splitting_coordinate(float &split_value) const
 {
   using namespace fastuidraw;
 
-  unsigned int data_size(m_closing_edges.size() + m_non_closing_edges.size());
+  unsigned int data_size(m_edges.size());
 
   if (data_size < splitting_threshhold)
     {
@@ -849,13 +795,9 @@ choose_splitting_coordinate(float &split_value) const
   vecN<float, 2> split_values;
   vecN<unsigned int, 2> split_counters(0, 0);
   vecN<uvec2, 2> child_counters(uvec2(0, 0), uvec2(0, 0));
-  vecN<c_array<const SingleSubEdge>, 2> sub_edges;
-
-  sub_edges[0] = make_c_array(m_closing_edges);
-  sub_edges[0] = make_c_array(m_non_closing_edges);
 
   std::vector<float> qs;
-  qs.reserve(m_closing_edges.size() + m_non_closing_edges.size());
+  qs.reserve(m_edges.size());
 
   /* The split canidates are the median's of the x and y
    * coordinates of all the SingleSubEdge values.
@@ -865,33 +807,27 @@ choose_splitting_coordinate(float &split_value) const
       qs.clear();
       qs.push_back(m_bounding_box.min_point()[c]);
       qs.push_back(m_bounding_box.max_point()[c]);
-      for (int i = 0; i < 2; ++i)
+      for(const SingleSubEdge &sub_edge : m_edges)
         {
-          for(const SingleSubEdge &sub_edge : sub_edges[i])
-            {
               qs.push_back(sub_edge.m_pt0[c]);
-            }
         }
       std::sort(qs.begin(), qs.end());
       split_values[c] = qs[qs.size() / 2];
 
-      for (int i = 0; i < 2; ++i)
+      for(const SingleSubEdge &sub_edge : m_edges)
         {
-          for(const SingleSubEdge &sub_edge : sub_edges[i])
+          bool sA, sB;
+          sA = (sub_edge.m_pt0[c] < split_values[c]);
+          sB = (sub_edge.m_pt1[c] < split_values[c]);
+          if (sA != sB)
             {
-              bool sA, sB;
-              sA = (sub_edge.m_pt0[c] < split_values[c]);
-              sB = (sub_edge.m_pt1[c] < split_values[c]);
-              if (sA != sB)
-                {
-                  ++split_counters[c];
-                  ++child_counters[c][0];
-                  ++child_counters[c][1];
-                }
-              else
-                {
-                  ++child_counters[c][sA];
-                }
+              ++split_counters[c];
+              ++child_counters[c][0];
+              ++child_counters[c][1];
+            }
+          else
+            {
+              ++child_counters[c][sA];
             }
         }
     }
@@ -928,16 +864,10 @@ split(int splitting_coordinate, float spliting_value) const
   children[1] = FASTUIDRAWnew SubPath(m_has_arcs);
 
   split_segments(splitting_coordinate,
-                 m_non_closing_edges,
+                 m_edges,
                  spliting_value,
-                 children[0]->m_non_closing_edges, children[0]->m_bounding_box,
-                 children[1]->m_non_closing_edges, children[1]->m_bounding_box);
-
-  split_segments(splitting_coordinate,
-                 m_closing_edges,
-                 spliting_value,
-                 children[0]->m_closing_edges, children[0]->m_bounding_box,
-                 children[1]->m_closing_edges, children[1]->m_bounding_box);
+                 children[0]->m_edges, children[0]->m_bounding_box,
+                 children[1]->m_edges, children[1]->m_bounding_box);
 
   return children;
 }
@@ -1040,7 +970,7 @@ SubsetPrivate(int recursion_depth, SubPath *data,
                   << vec2(m.x(), M.y())
                   << vec2(M.x(), M.y())
                   << vec2(M.x(), m.y())
-                  << Path::contour_end();
+                  << Path::contour_close();
 }
 
 SubsetPrivate::
@@ -1113,8 +1043,8 @@ make_ready_from_children(void)
   unsigned int needed_zrange;
   bool mergable;
 
-  needed_zrange = m_children[0]->painter_data().z_range(StrokedPath::all_edges).difference()
-    + m_children[1]->painter_data().z_range(StrokedPath::all_edges).difference();
+  needed_zrange = m_children[0]->painter_data().z_range(0).difference()
+    + m_children[1]->painter_data().z_range(0).difference();
 
   mergable = (m_has_arcs && needed_zrange < arc_max_depth)
     || (!m_has_arcs && needed_zrange < linear_max_depth);
@@ -1128,17 +1058,13 @@ make_ready_from_children(void)
   if (m_has_arcs)
     {
       detail::PointAttributeDataMerger<ArcStrokedPoint> merger(m_children[0]->painter_data(),
-                                                               m_children[1]->painter_data(),
-                                                               StrokedPath::all_edges,
-                                                               StrokedPath::only_non_closing_edges);
+                                                               m_children[1]->painter_data());
       m_painter_data->set_data(merger);
     }
   else
     {
       detail::PointAttributeDataMerger<StrokedPoint> merger(m_children[0]->painter_data(),
-                                                            m_children[1]->painter_data(),
-                                                            StrokedPath::all_edges,
-                                                            StrokedPath::only_non_closing_edges);
+                                                            m_children[1]->painter_data());
       m_painter_data->set_data(merger);
     }
 
@@ -1146,8 +1072,8 @@ make_ready_from_children(void)
     {
       ready_sizes_from_children();
     }
-  FASTUIDRAWassert(m_num_attributes == m_painter_data->attribute_data_chunk(StrokedPath::all_edges).size());
-  FASTUIDRAWassert(m_num_indices == m_painter_data->index_data_chunk(StrokedPath::all_edges).size());
+  FASTUIDRAWassert(m_num_attributes == m_painter_data->attribute_data_chunk(0).size());
+  FASTUIDRAWassert(m_num_indices == m_painter_data->index_data_chunk(0).size());
 }
 
 void
@@ -1174,8 +1100,8 @@ make_ready_from_sub_path(void)
 
   FASTUIDRAWdelete(m_sub_path);
   m_sub_path = nullptr;
-  m_num_attributes = m_painter_data->attribute_data_chunk(StrokedPath::all_edges).size();
-  m_num_indices = m_painter_data->index_data_chunk(StrokedPath::all_edges).size();
+  m_num_attributes = m_painter_data->attribute_data_chunk(0).size();
+  m_num_indices = m_painter_data->index_data_chunk(0).size();
   m_sizes_ready = true;
 }
 
@@ -1354,26 +1280,17 @@ ready_data(void) const
    * other AFTER filling the data.
    */
   unsigned int d(0);
-  for (const SingleSubEdge &sub_edge : m_src.non_closing_edges())
+  for (const SingleSubEdge &sub_edge : m_src.edges())
     {
       process_sub_edge(sub_edge, d, m_attributes, m_indices);
     }
-  m_non_closing_vertex_count = m_attributes.size();
-  m_non_closing_index_count = m_indices.size();
-  m_non_closing_depth_count = d;
+  m_vertex_count = m_attributes.size();
+  m_index_count = m_indices.size();
+  m_depth_count = d;
 
-  for (const SingleSubEdge &sub_edge : m_src.closing_edges())
-    {
-      process_sub_edge(sub_edge, d, m_attributes, m_indices);
-    }
-  m_total_depth_count = d;
-
-  /* now reverse the triangles in m_indices, note that this
-   * also makes the indices of the closing edge come-first.
-   */
+  /* now reverse the triangles in m_indices. */
   std::reverse(m_indices.begin(), m_indices.end());
 }
-
 
 void
 EdgeAttributeFillerBase::
@@ -1386,17 +1303,11 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
 {
   using namespace fastuidraw;
 
-  index_adjusts[StrokedPath::all_edges] = 0;
-  zranges[StrokedPath::all_edges].m_begin = 0;
-  zranges[StrokedPath::all_edges].m_end = m_total_depth_count;
-  attribute_chunks[StrokedPath::all_edges] = attribute_data;
-  index_chunks[StrokedPath::all_edges] = index_data;
-
-  index_adjusts[StrokedPath::only_non_closing_edges] = 0;
-  zranges[StrokedPath::only_non_closing_edges].m_begin = 0;
-  zranges[StrokedPath::only_non_closing_edges].m_end = m_non_closing_depth_count;
-  attribute_chunks[StrokedPath::only_non_closing_edges] = attribute_data.sub_array(0, m_non_closing_vertex_count);
-  index_chunks[StrokedPath::only_non_closing_edges] = index_data.sub_array(index_data.size() - m_non_closing_index_count);
+  index_adjusts[0] = 0;
+  zranges[0].m_begin = 0;
+  zranges[0].m_end = m_depth_count;
+  attribute_chunks[0] = attribute_data;
+  index_chunks[0] = index_data;
 
   std::copy(m_attributes.begin(), m_attributes.end(), attribute_data.begin());
   std::copy(m_indices.begin(), m_indices.end(), index_data.begin());
@@ -1437,8 +1348,7 @@ build_line_bevel(bool is_inner_bevel,
       pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
       pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
       pts[k].m_edge_length = sub_edge.m_edge_length;
-      pts[k].m_open_contour_length = sub_edge.m_open_contour_length;
-      pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
+      pts[k].m_contour_length = sub_edge.m_contour_length;
       pts[k].m_auxiliary_offset = vec2(0.0f, 0.0f);
     }
 
@@ -1497,8 +1407,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
       pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
       pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
       pts[k].m_edge_length = sub_edge.m_edge_length;
-      pts[k].m_open_contour_length = sub_edge.m_open_contour_length;
-      pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
+      pts[k].m_contour_length = sub_edge.m_contour_length;
       pts[k].m_pre_offset = normal_sign[k] * sub_edge.m_begin_normal;
       pts[k].m_auxiliary_offset = sub_edge.m_delta;
       pts[k].m_packed_data = pack_data(boundary_values[k], StrokedPoint::offset_sub_edge, depth);
@@ -1507,8 +1416,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
       pts[k + 3].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + sub_edge.m_sub_edge_length;
       pts[k + 3].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + sub_edge.m_sub_edge_length;
       pts[k + 3].m_edge_length = sub_edge.m_edge_length;
-      pts[k + 3].m_open_contour_length = sub_edge.m_open_contour_length;
-      pts[k + 3].m_closed_contour_length = sub_edge.m_closed_contour_length;
+      pts[k + 3].m_contour_length = sub_edge.m_contour_length;
       pts[k + 3].m_pre_offset = normal_sign[k] * sub_edge.m_end_normal;
       pts[k + 3].m_auxiliary_offset = -sub_edge.m_delta;
       pts[k + 3].m_packed_data = pack_data(boundary_values[k], StrokedPoint::offset_sub_edge, depth)
@@ -1671,8 +1579,7 @@ build_dashed_capper(bool for_start_dashed_capper,
   pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + d;
   pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + d;
   pt.m_edge_length = sub_edge.m_edge_length;
-  pt.m_open_contour_length = sub_edge.m_open_contour_length;
-  pt.m_closed_contour_length = sub_edge.m_closed_contour_length;
+  pt.m_contour_length = sub_edge.m_contour_length;
   pt.m_data = tangent;
 
   pt.m_packed_data = packed_data;
@@ -1733,8 +1640,7 @@ build_arc_bevel(bool is_inner_bevel,
   pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
   pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
   pt.m_edge_length = sub_edge.m_edge_length;
-  pt.m_open_contour_length = sub_edge.m_open_contour_length;
-  pt.m_closed_contour_length = sub_edge.m_closed_contour_length;
+  pt.m_contour_length = sub_edge.m_contour_length;
 
   fastuidraw::detail::pack_arc_join(pt, 1, n_start, n_end, depth,
                                     attribute_data, indices, false);
@@ -1775,8 +1681,7 @@ build_line_bevel(bool is_inner_bevel,
       pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
       pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
       pts[k].m_edge_length = sub_edge.m_edge_length;
-      pts[k].m_open_contour_length = sub_edge.m_open_contour_length;
-      pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
+      pts[k].m_contour_length = sub_edge.m_contour_length;
       pts[k].m_data = vec2(0.0f, 0.0f);
     }
 
@@ -1840,16 +1745,14 @@ build_arc_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
   begin_pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
   begin_pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
   begin_pt.m_edge_length = sub_edge.m_edge_length;
-  begin_pt.m_open_contour_length = sub_edge.m_open_contour_length;
-  begin_pt.m_closed_contour_length = sub_edge.m_closed_contour_length;
+  begin_pt.m_contour_length = sub_edge.m_contour_length;
   begin_pt.radius() = sub_edge.m_radius;
   begin_pt.arc_angle() = sub_edge.m_arc_angle.m_end - sub_edge.m_arc_angle.m_begin;
 
   end_pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + sub_edge.m_sub_edge_length;
   end_pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + sub_edge.m_sub_edge_length;
   end_pt.m_edge_length = sub_edge.m_edge_length;
-  end_pt.m_open_contour_length = sub_edge.m_open_contour_length;
-  end_pt.m_closed_contour_length = sub_edge.m_closed_contour_length;
+  end_pt.m_contour_length = sub_edge.m_contour_length;
   end_pt.radius() = sub_edge.m_radius;
   end_pt.arc_angle() = sub_edge.m_arc_angle.m_end - sub_edge.m_arc_angle.m_begin;
 
@@ -1976,8 +1879,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
       pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
       pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
       pts[k].m_edge_length = sub_edge.m_edge_length;
-      pts[k].m_open_contour_length = sub_edge.m_open_contour_length;
-      pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
+      pts[k].m_contour_length = sub_edge.m_contour_length;
       pts[k].m_offset_direction = normal_sign[k] * sub_edge.m_begin_normal;
       pts[k].m_data = sub_edge.m_delta;
       pts[k].m_packed_data = arc_stroked_point_pack_bits(boundary_values[k],
@@ -1988,8 +1890,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
       pts[k + 3].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + sub_edge.m_sub_edge_length;
       pts[k + 3].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + sub_edge.m_sub_edge_length;
       pts[k + 3].m_edge_length = sub_edge.m_edge_length;
-      pts[k + 3].m_open_contour_length = sub_edge.m_open_contour_length;
-      pts[k + 3].m_closed_contour_length = sub_edge.m_closed_contour_length;
+      pts[k + 3].m_contour_length = sub_edge.m_contour_length;
       pts[k + 3].m_offset_direction = normal_sign[k] * sub_edge.m_end_normal;
       pts[k + 3].m_data = -sub_edge.m_delta;
       pts[k + 3].m_packed_data = arc_stroked_point_pack_bits(boundary_values[k],
@@ -2094,8 +1995,17 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
       last_segs = segs;
     }
 
-  b.end_contour(last_segs.back().m_edge_length + distance_accumulated,
-                last_segs.back().m_leaving_segment_unit_vector);
+  if (tess->contour_closed(c))
+    {
+      b.close_contour(last_segs.back().m_edge_length + distance_accumulated,
+                      last_segs.back().m_leaving_segment_unit_vector);
+    }
+  else
+    {
+      b.end_contour(last_segs.back().m_end_pt,
+                    distance_accumulated,
+                    last_segs.back().m_leaving_segment_unit_vector);
+    }
 }
 
 //////////////////////////////////////////////

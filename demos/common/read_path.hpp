@@ -6,8 +6,10 @@
 /* Read path data from an std::string and append that
    data to path. The format of the input is:
 
-   [ marks the start of an outline
-   ] marks the end of an outline
+   [ marks the start of a closed outline
+   ] marks the end of a closed outline
+   { marks the start of an open outline
+   } marks the end of an open outline
    [[ marks the start of a sequence of control points
    ]] marks the end of a sequence of control points
    arc marks an arc edge, the next value is the angle in degres

@@ -1601,7 +1601,7 @@ add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const
           pts = pts.sub_array(1);
         }
     }
-  *dst << Path::contour_end();
+  *dst << Path::contour_close();
 }
 
 //////////////////////////////////////

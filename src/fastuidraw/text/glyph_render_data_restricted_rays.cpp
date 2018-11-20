@@ -65,20 +65,6 @@ namespace
     return x | y;
   }
 
-  inline
-  fastuidraw::ivec2
-  unpack_point(uint32_t v)
-  {
-    typedef fastuidraw::GlyphRenderDataRestrictedRays G;
-    fastuidraw::ivec2 r;
-
-    r.x() = fastuidraw::unpack_bits(G::point_x_coordinate_bit0,
-                                    G::point_coordinate_numbits, v);
-    r.y() = fastuidraw::unpack_bits(G::point_y_coordinate_bit0,
-                                    G::point_coordinate_numbits, v);
-    return r;
-  }
-
   class GlyphPath;
 
   class CurveID

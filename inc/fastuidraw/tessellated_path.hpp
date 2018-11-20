@@ -201,18 +201,11 @@ public:
     float m_edge_length;
 
     /*!
-     * Gives the length of the contour open on which
-     * the segment lies. This value is the same for all
+     * Gives the length of the contour on which this
+     * segment lies. This value is the same for all
      * segments along a fixed contour.
      */
-    float m_open_contour_length;
-
-    /*!
-     * Gives the length of the contour closed on which
-     * the segment lies. This value is the same for all
-     * segments along a fixed contour.
-     */
-    float m_closed_contour_length;
+    float m_contour_length;
 
     /*!
      * Gives the unit-vector of the path entering the segment.
@@ -365,6 +358,14 @@ public:
    */
   unsigned int
   number_contours(void) const;
+
+  /*!
+   * Returns true if the named contour was closed
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
+   */
+  bool
+  contour_closed(unsigned int contour) const;
 
   /*!
    * Returns the range into segment_data() for the named

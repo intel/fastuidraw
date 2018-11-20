@@ -55,7 +55,6 @@ class painter_vao_pool:noncopyable
 public:
   explicit
   painter_vao_pool(const PainterBackendGL::ConfigurationGL &params,
-                   const PainterBackend::ConfigurationBase &params_base,
                    enum tex_buffer_support_t tex_buffer_support,
                    const glsl::PainterShaderRegistrarGLSL::BindingPoints &binding_points);
 

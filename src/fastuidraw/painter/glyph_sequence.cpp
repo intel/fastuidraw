@@ -530,7 +530,7 @@ path(void)
 		  << fastuidraw::vec2(a.x(), b.y())
 		  << fastuidraw::vec2(b.x(), b.y())
 		  << fastuidraw::vec2(b.x(), a.y())
-		  << fastuidraw::Path::contour_end();
+		  << fastuidraw::Path::contour_close();
 	}
     }
   return *m_path;

@@ -108,25 +108,6 @@ public:
   };
 
   /*!
-   * Enumeration to select the chunk of all joins
-   * of the closing edges or non-closing edges
-   */
-  enum chunk_selection
-    {
-      /*!
-       * Select the chunk that holds all the joins
-       * of ONLY the non-closing edges
-       */
-      all_non_closing,
-
-      /*!
-       * Select the chunk that holds all the joins
-       * of ONLY the closing edges
-       */
-      all_closing,
-    };
-
-  /*!
    * \brief
    * A Builder is used to specify the nature of the contours
    * from which to geneate joins and caps.
@@ -161,14 +142,22 @@ public:
              const vec2 &direction_leaving_join);
 
     /*!
-     * End the contour.
+     * Close the contour giving it the two joins of the closing edge
      * \param distance_from_previous_join distance from previous join
-     * \param direction_into_join unit vector of path into the join that
-     *                            links the closing edge to the 1st point
+     * \param direction_into_join unit vector of path into the join that ends
+     *                            the closing edge
      */
     void
-    end_contour(float distance_from_previous_join,
-                const vec2 &direction_into_join);
+    close_contour(float distance_from_previous_join,
+                  const vec2 &direction_into_join);
+
+    /*!
+     * End the contour in caps giving it a cap at the start and end of the contour.
+     */
+    void
+    end_contour(const vec2 &cap_pt,
+                float distance_from_previous_join,
+                const vec2 &direction_into_cap);
 
   private:
     friend class StrokedCapsJoins;
@@ -199,7 +188,6 @@ public:
    * \param item_space_additional_room amount in local coordinates to push clip
    *                              equations by to grab additional edges
    *                              draw the closing edges of each contour
-   * \param include_closing_edges if true include the chunks needed to
    * \param max_attribute_cnt only allow those chunks for which have no more
    *                          than max_attribute_cnt attributes
    * \param max_index_cnt only allow those chunks for which have no more
@@ -217,7 +205,6 @@ public:
                  const vec2 &recip_dimensions,
                  float pixels_additional_room,
                  float item_space_additional_room,
-                 bool include_closing_edges,
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,
                  bool take_joins_outside_of_region,
@@ -225,11 +212,9 @@ public:
 
   /*!
    * Returns the number of joins of the StrokedPath
-   * \param include_joins_of_closing_edge if false disclude from the count,
-   *                                      this joins of the closing edges
    */
   unsigned int
-  number_joins(bool include_joins_of_closing_edge) const;
+  number_joins(void) const;
 
   /*!
    * Returns a chunk value for Painter::attribute_data_chunk()
@@ -237,7 +222,7 @@ public:
    * bevel_joins(), miter_clip_joins(), miter_bevel_joins(),
    * miter_joins() or rounded_joins() to fetch the chunk
    * of the named join.
-   * \param J join ID with 0 <= J < number_joins(true)
+   * \param J join ID with 0 <= J < number_joins()
    */
   unsigned int
   join_chunk(unsigned int J) const;
@@ -246,12 +231,10 @@ public:
    * Return the chunk to feed to any of bevel_joins(),
    * miter_clip_joins(), miter_bevel_joins(),
    * miter_joins() or rounded_joins() that holds all
-   * the joins of the closing edges or all the joins
-   * of the non-closing edges.
-   * \param c select joins of closing or non-closing edges
+   * the joins.
    */
   unsigned int
-  chunk_of_joins(enum chunk_selection c) const;
+  chunk_of_joins(void) const;
 
   /*!
    * Return the chunk to feed any of square_caps(),

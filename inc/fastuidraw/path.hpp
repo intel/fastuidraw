@@ -38,8 +38,8 @@ namespace fastuidraw  {
  * An PathContour represents a single contour within
  * a Path.
  *
- * Ending a contour (see \ref end(), \ref
- * end_generic() and end_arc()) means to specify
+ * Closeing a contour (see \ref close(), \ref
+ * close_generic() and close_arc()) means to specify
  * the edge from the last point of the PathContour
  * to the first point.
  */
@@ -463,13 +463,13 @@ public:
    * of a PathContour() and must be called before adding points
    * (to_point()), adding control points (add_control_point()),
    * adding arcs (to_arc()), adding generic interpolator (
-   * to_generic()) or ending the contour (end(), end_generic()).
+   * to_generic()) or closeing the contour (close(), close_generic()).
    */
   void
   start(const vec2 &pt);
 
   /*!
-   * End the current edge.
+   * Close the current edge.
    * \param pt point location of end of edge (and thus start of new edge)
    * \param etp the edge type of the new edge made; if this is the first
    *            edge of the contour, the value of etp is ignored and the
@@ -479,7 +479,7 @@ public:
   to_point(const vec2 &pt, enum PathEnums::edge_type_t etp);
 
   /*!
-   * Add a control point. Will fail if end() was called
+   * Add a control point. Will fail if close() was called
    * \param pt location of new control point
    */
   void
@@ -492,7 +492,7 @@ public:
   clear_control_points(void);
 
   /*!
-   * Will fail if end() was called of if add_control_point() has been
+   * Will fail if close() was called of if add_control_point() has been
    * called more recently than to_point() or if interpolator_base::prev_interpolator()
    * of the passed interpolator_base is not the same as prev_interpolator().
    * \param p interpolator describing edge
@@ -501,7 +501,7 @@ public:
   to_generic(const reference_counted_ptr<const interpolator_base> &p);
 
   /*!
-   * Will fail if end() was called of if add_control_point() has been
+   * Will fail if close() was called of if add_control_point() has been
    * called more recently than to_point().
    * \param angle angle of arc in radians
    * \param pt point where arc ends (and next edge starts)
@@ -513,43 +513,43 @@ public:
   to_arc(float angle, const vec2 &pt, enum PathEnums::edge_type_t etp);
 
   /*!
-   * Ends with the passed interpolator_base. The interpolator
+   * Closes with the passed interpolator_base. The interpolator
    * must interpolate to the start point of the PathContour
    * \param h interpolator describing the closing edge
    */
   void
-  end_generic(reference_counted_ptr<const interpolator_base> h);
+  close_generic(reference_counted_ptr<const interpolator_base> h);
 
   /*!
-   * Ends with the Bezier curve defined by the current
+   * Closes with the Bezier curve defined by the current
    * control points added by add_control_point().
    * \param etp the edge type of the new edge made.
    */
   void
-  end(enum PathEnums::edge_type_t etp);
+  close(enum PathEnums::edge_type_t etp);
 
   /*!
-   * Ends with an arc.
+   * Closes with an arc.
    * \param angle angle of arc in radians
    * \param etp the edge type of the new edge made.
    */
   void
-  end_arc(float angle, enum PathEnums::edge_type_t etp);
+  close_arc(float angle, enum PathEnums::edge_type_t etp);
 
   /*!
    * Returns the last interpolator added to this PathContour.
    * You MUST use this interpolator in the ctor of
    * interpolator_base for interpolator passed to
-   * to_generic() and end_generic().
+   * to_generic() and close_generic().
    */
   const reference_counted_ptr<const interpolator_base>&
   prev_interpolator(void);
 
   /*!
-   * Returns true if the PathContour has ended
+   * Returns true if the PathContour is closed.
    */
   bool
-  ended(void) const;
+  closed(void) const;
 
   /*!
    * Return the I'th point of this PathContour.
@@ -566,11 +566,22 @@ public:
   number_points(void) const;
 
   /*!
+   * Returns the number of interpolators of this
+   * PathContour. This is equal to number_points()
+   * if closed() is true; otherwise it is equal to
+   * number_points() - 1.
+   */
+  unsigned int
+  number_interpolators(void) const;
+
+  /*!
    * Returns the interpolator of this PathContour
    * that interpolates from the I'th point to the
-   * (I+1)'th point. If I == number_points() - 1,
-   * then returns the interpolator from the last
-   * point to the first point.
+   * (I + 1)'th point. When the closed() is true,
+   * if I is number_points() - 1, then returns the
+   * interpolator from the last point to the first
+   * point. When closed() is false, if I has value
+   * number_points() - 1, then returns a null reference.
    */
   const reference_counted_ptr<const interpolator_base>&
   interpolator(unsigned int I) const;
@@ -579,10 +590,7 @@ public:
    * Returns an approximation of the bounding box for
    * this PathContour WITHOUT relying on tessellating
    * the \ref interpolator_base objects of this \ref
-   * PathContour IF this PathCountour is ended().
-   * Returns true if this is ended() and writes the
-   * values, otherwise returns false and does not write
-   * any value.
+   * PathContour. Returns false if the box is empty.
    * \param out_min_bb (output) location to which to write the min-x and min-y
    *                            coordinates of the approximate bounding box.
    * \param out_max_bb (output) location to which to write the max-x and max-y
@@ -613,11 +621,11 @@ private:
  * A Path represents a collection of PathContour
  * objects.
  *
- * To end a contour in a Path (see
- * \ref end_contour_quadratic(), \ref
- * end_contour_arc(), \ref end_contour_cubic(),
- * \ref end_contour_custom(), \ref contour_end_arc
- * and \ref contour_end) means to specify
+ * To close a contour in a Path (see
+ * \ref close_contour_quadratic(), \ref
+ * close_contour_arc(), \ref close_contour_cubic(),
+ * \ref close_contour_custom(), \ref contour_close_arc
+ * and \ref contour_close) means to specify
  * the edge from the last point of the current
  * contour to the first point of it.
  */
@@ -685,16 +693,48 @@ public:
 
   /*!
    * \brief
-   * Tag class to mark the end of an contour
+   * Tag class to mark the close of a contour
    */
-  class contour_end
+  class contour_close
   {};
 
   /*!
    * \brief
-   * Tag class to mark the end of an contour with an arc
+   * Indicates to end the existing contour and start
+   * a new contour
    */
-  class contour_end_arc
+  class contour_start
+  {
+  public:
+    /*!
+     * Ctor to indicate to start a new contour
+     * without closing the previous contour.
+     */
+    explicit
+    contour_start(const vec2 &pt):
+      m_pt(pt)
+    {}
+
+    /*!
+     * Ctor to indicate to start a new contour
+     * without closing the previous contour.
+     */
+    explicit
+    contour_start(float x, float y):
+      m_pt(x, y)
+    {}
+
+    /*!
+     * Location of start of new contour.
+     */
+    vec2 m_pt;
+  };
+
+  /*!
+   * \brief
+   * Tag class to mark the close of an contour with an arc
+   */
+  class contour_close_arc
   {
   public:
     /*!
@@ -702,7 +742,7 @@ public:
      * \param angle angle of arc in radians
      */
     explicit
-    contour_end_arc(float angle):
+    contour_close_arc(float angle):
       m_angle(angle)
     {}
 
@@ -760,14 +800,14 @@ public:
   }
 
   /*!
-   * Create an contour_end_arc but specify the angle in degrees.
+   * Create an contour_close_arc but specify the angle in degrees.
    * \param angle angle or arc in degrees
    */
   static
-  contour_end_arc
-  contour_end_arc_degrees(float angle)
+  contour_close_arc
+  contour_close_arc_degrees(float angle)
   {
-    return contour_end_arc(angle*float(M_PI)/180.0f);
+    return contour_close_arc(angle*float(M_PI)/180.0f);
   }
 
   /*!
@@ -795,18 +835,30 @@ public:
   operator<<(const arc &a);
 
   /*!
-   * Operator overload to end the current contour
+   * Operator overload to close the current contour
    */
   Path&
-  operator<<(contour_end);
+  operator<<(contour_close);
 
   /*!
-   * Operator overload to end the current contour
+   * Operator overload to close the current contour
    * \param a specifies the angle of the arc for closing
    *          the current contour
    */
   Path&
-  operator<<(contour_end_arc a);
+  operator<<(contour_close_arc a);
+
+  /*!
+   * Operator overload to start a new contour without closing
+   * the current contour.
+   * \param a specifies the starting point of the new contour
+   */
+  Path&
+  operator<<(const contour_start &st)
+  {
+    move(st.m_pt);
+    return *this;
+  }
 
   /*!
    * Operator overload to control PathEnums::edge_type_t
@@ -888,36 +940,21 @@ public:
   custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
-   * End the current contour and begin a new contour
+   * Begin a new contour.
    * \param pt point at which the contour begins
+   */
+  Path&
+  move(const vec2 &pt);
+
+  /*!
+   * Close the current contour with a line segment.
    * \param etp the edge type of the closing edge made.
    */
   Path&
-  move(const vec2 &pt,
-       enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
+  close_contour(enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
-   * End the current contour.
-   * \param etp the edge type of the closing edge made.
-   */
-  Path&
-  end_contour(enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
-
-  /*!
-   * End the current contour in an arc and begin a new contour
-   * \param angle gives the angle of the arc in radians. For a coordinate system
-   *              where y increases upwards and x increases to the right, a positive
-   *              value indicates counter-clockwise and a negative value indicates
-   *              clockwise
-   * \param pt point at which the contour begins
-   * \param etp the edge type of the closing edge made.
-   */
-  Path&
-  arc_move(float angle, const vec2 &pt,
-           enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
-
-  /*!
-   * End the current contour in an arc
+   * Close the current contour in an arc
    * \param angle gives the angle of the arc in radians. For a coordinate system
    *              where y increases upwards and x increases to the right, a positive
    *              value indicates counter-clockwise and a negative value indicates
@@ -925,80 +962,47 @@ public:
    * \param etp the edge type of the closing edge made.
    */
   Path&
-  end_contour_arc(float angle,
-                  enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
-
-  /*!
-   * End the current contour in a quadratic Bezier curve and begin a new contour
-   * \param ct control point of the quadratic Bezier curve
-   * \param pt point at which the contour begins
-   * \param etp the edge type of the closing edge made.
-   */
-  Path&
-  quadratic_move(const vec2 &ct, const vec2 &pt,
-                 enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
-
-  /*!
-   * End the current contour in a quadratic Bezier curve
-   * \param ct control point of the quadratic Bezier curve
-   * \param etp the edge type of the closing edge made.
-   */
-  Path&
-  end_contour_quadratic(const vec2 &ct,
-                        enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
-
-  /*!
-   * End the current contour in a cubic Bezier curve and begin a new contour
-   * \param ct1 first control point of the cubic Bezier curve
-   * \param ct2 second control point of the cubic Bezier curve
-   * \param pt point at which the contour begins
-   * \param etp the edge type of the closing edge made.
-   */
-  Path&
-  cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt,
-             enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
-
-  /*!
-   * End the current contour in a cubic Bezier curve
-   * \param ct1 first control point of the cubic Bezier curve
-   * \param ct2 second control point of the cubic Bezier curve
-   * \param etp the edge type of the closing edge made.
-   */
-  Path&
-  end_contour_cubic(const vec2 &ct1, const vec2 &ct2,
+  close_contour_arc(float angle,
                     enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
-   * Use a custom interpolator to end the current contour and begin a new contour
+   * Close the current contour in a quadratic Bezier curve
+   * \param ct control point of the quadratic Bezier curve
+   * \param etp the edge type of the closing edge made.
+   */
+  Path&
+  close_contour_quadratic(const vec2 &ct,
+                          enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
+
+  /*!
+   * Close the current contour in a cubic Bezier curve
+   * \param ct1 first control point of the cubic Bezier curve
+   * \param ct2 second control point of the cubic Bezier curve
+   * \param etp the edge type of the closing edge made.
+   */
+  Path&
+  close_contour_cubic(const vec2 &ct1, const vec2 &ct2,
+                      enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
+
+  /*!
+   * Use a custom interpolator to close the current contour
    * Use prev_interpolator() to get the last interpolator
    * of the current contour.
    * \param p custom interpolator
-   * \param pt point at which the contour begins
    */
   Path&
-  custom_move(const reference_counted_ptr<const PathContour::interpolator_base> &p, const vec2 &pt);
+  close_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
-   * Use a custom interpolator to end the current contour
-   * Use prev_interpolator() to get the last interpolator
-   * of the current contour.
-   * \param p custom interpolator
-   */
-  Path&
-  end_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
-
-  /*!
-   * Adds a PathContour to this Path. PathContour is only added
-   * if the contour is ended (i.e. PathContour::ended() returns
-   * true). A fixed, ended PathContour can be used by multiple
-   * Path's at the same time.
+   * Adds a PathContour to this Path. The current contour remains
+   * as the current contour though.
    * \param contour PathContour to add to the Path
    */
   Path&
   add_contour(const reference_counted_ptr<const PathContour> &contour);
 
   /*!
-   * Add all the ended PathContour objects of a Path into this Path.
+   * Add all the \ref PathContour objects of a Path into this Path.
    * \param path Path to add
    */
   Path&
@@ -1025,13 +1029,7 @@ public:
 
   /*!
    * Returns an approximation of the bounding box for
-   * the PathContour::ended() PathContour obejcts of
-   * this Path WITHOUT relying on tessellating
-   * (or for that matter creating a TessellatedPath)
-   * this Path. Returns true if atleast one PathContour
-   * of this Path is PathContour::ended() and writes the
-   * values, otherwise returns false and does not write
-   * any value.
+   * this Path. Returns false if the Path is empty.
    * \param out_min_bb (output) location to which to write the min-x and min-y
    *                            coordinates of the approximate bounding box.
    * \param out_max_bb (output) location to which to write the max-x and max-y

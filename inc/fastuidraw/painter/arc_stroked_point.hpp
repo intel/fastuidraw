@@ -283,18 +283,11 @@ public:
   float m_edge_length;
 
   /*!
-   * Gives the length of the contour open on which
-   * the point lies. This value is the same for all
+   * Gives the length of the contour on which the
+   * point lies. This value is the same for all
    * points along a fixed contour.
    */
-  float m_open_contour_length;
-
-  /*!
-   * Gives the length of the contour closed on which
-   * the point lies. This value is the same for all
-   * points along a fixed contour.
-   */
-  float m_closed_contour_length;
+  float m_contour_length;
 
   /*!
    * Bit field with data packed.
@@ -400,8 +393,8 @@ public:
    * - PainterAttribute::m_attrib1 .zw -> \ref m_data (float)
    * - PainterAttribute::m_attrib2 .x  -> \ref m_packed_data (uint)
    * - PainterAttribute::m_attrib2 .y  -> \ref m_edge_length (float)
-   * - PainterAttribute::m_attrib2 .z  -> \ref m_open_contour_length (float)
-   * - PainterAttribute::m_attrib2 .w  -> \ref m_closed_contour_length (float)
+   * - PainterAttribute::m_attrib2 .z  -> \ref m_contour_length (float)
+   * - PainterAttribute::m_attrib2 .w  (free)
    *
    * \param dst PainterAttribute to which to pack
    */

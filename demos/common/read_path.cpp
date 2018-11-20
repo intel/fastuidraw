@@ -40,7 +40,11 @@ namespace
     float m_angle;
   };
 
-  typedef std::vector<edge> outline;
+  class outline:public std::vector<edge>
+  {
+  public:
+    bool m_is_closed;
+  };
 }
 
 
@@ -71,7 +75,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
       istr >> token;
       if (!istr.fail())
         {
-          if (token == "]")
+          if (token == "]" || token == "}")
             {
               if (mode == add_reverse_mode && !data.empty())
                 {
@@ -79,11 +83,12 @@ read_path(fastuidraw::Path &path, const std::string &source)
                 }
               mode = add_no_mode;
             }
-          else if (token == "[")
+          else if (token == "[" || token == "{")
             {
               mode = add_mode;
               adding_control_pts = false;
               data.push_back(outline());
+              data.back().m_is_closed = (token == "[");
             }
           else if (token == "R[")
             {
@@ -154,7 +159,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
 
       if (!current_outline.empty())
         {
-          path << current_outline[0].m_pt;
+          path << fastuidraw::Path::contour_start(current_outline[0].m_pt);
           for(unsigned int i = 0; i + 1 < current_outline.size(); ++i)
             {
               const edge &current_edge(current_outline[i]);
@@ -181,11 +186,18 @@ read_path(fastuidraw::Path &path, const std::string &source)
                 {
                   path << fastuidraw::Path::control_point(current_edge.m_control_pts[c]);
                 }
-              path << fastuidraw::Path::contour_end();
+
+              if (current_outline.m_is_closed)
+                {
+                  path << fastuidraw::Path::contour_close();
+                }
             }
           else
             {
-              path << fastuidraw::Path::contour_end_arc_degrees(current_edge.m_angle);
+              if (current_outline.m_is_closed)
+                {
+                  path << fastuidraw::Path::contour_close_arc_degrees(current_edge.m_angle);
+                }
             }
         }
     }

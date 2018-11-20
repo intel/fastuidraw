@@ -1,6 +1,6 @@
 /*!
- * \file arc_tessellated_path.cpp
- * \brief file arc_tessellated_path.cpp
+ * \file tessellated_path.cpp
+ * \brief file tessellated_path.cpp
  *
  * Copyright 2018 by Intel.
  *
@@ -30,7 +30,7 @@
 
 namespace
 {
-  class PerEdge
+  class RefinerEdge
   {
   public:
     typedef fastuidraw::PathContour PathContour;
@@ -43,17 +43,18 @@ namespace
     interpolator_base_ref m_interpolator;
   };
 
-  class PerContour
+  class RefinerContour
   {
   public:
-    std::vector<PerEdge> m_edges;
+    std::vector<RefinerEdge> m_edges;
+    bool m_is_closed;
   };
 
   class RefinerPrivate
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::TessellatedPath> m_path;
-    std::vector<PerContour> m_contours;
+    std::vector<RefinerContour> m_contours;
   };
 
   class TessellatedPathBuildingState
@@ -65,7 +66,7 @@ namespace
 
     unsigned int m_loc, m_ende;
     std::list<std::vector<fastuidraw::TessellatedPath::segment> > m_temp;
-    float m_contour_length, m_open_contour_length, m_closed_contour_length;
+    float m_contour_length;
     std::list<std::vector<fastuidraw::TessellatedPath::segment> >::iterator m_start_contour;
   };
 
@@ -74,6 +75,13 @@ namespace
   public:
     fastuidraw::range_type<unsigned int> m_edge_range;
     enum fastuidraw::PathEnums::edge_type_t m_edge_type;
+  };
+
+  class TessellatedContour
+  {
+  public:
+    std::vector<Edge> m_edges;
+    bool m_is_closed;
   };
 
   class TessellatedPathPrivate
@@ -102,7 +110,7 @@ namespace
     void
     finalize(TessellatedPathBuildingState &b);
 
-    std::vector<std::vector<Edge> > m_edges;
+    std::vector<TessellatedContour> m_contours;
     std::vector<fastuidraw::TessellatedPath::segment> m_segment_data;
     fastuidraw::BoundingBox<float> m_bounding_box;
     fastuidraw::TessellatedPath::TessellationParams m_params;
@@ -322,7 +330,7 @@ namespace
 TessellatedPathPrivate::
 TessellatedPathPrivate(unsigned int num_contours,
                        fastuidraw::TessellatedPath::TessellationParams TP):
-  m_edges(num_contours),
+  m_contours(num_contours),
   m_params(TP),
   m_max_distance(0.0f),
   m_has_arcs(false),
@@ -333,7 +341,7 @@ TessellatedPathPrivate(unsigned int num_contours,
 TessellatedPathPrivate::
 TessellatedPathPrivate(const fastuidraw::TessellatedPath &with_arcs,
                        float thresh):
-  m_edges(with_arcs.number_contours()),
+  m_contours(with_arcs.number_contours()),
   m_params(with_arcs.tessellation_parameters()),
   m_max_distance(with_arcs.max_distance()),
   m_has_arcs(false),
@@ -364,6 +372,7 @@ TessellatedPathPrivate(const fastuidraw::TessellatedPath &with_arcs,
           add_edge(builder, C, E, tmp, d);
         }
       end_contour(builder);
+      m_contours[C].m_is_closed = with_arcs.contour_closed(C);
     }
   finalize(builder);
 }
@@ -372,13 +381,11 @@ void
 TessellatedPathPrivate::
 start_contour(TessellatedPathBuildingState &b, unsigned int o, unsigned int num_edges)
 {
-  FASTUIDRAWassert(o < m_edges.size());
+  FASTUIDRAWassert(o < m_contours.size());
 
   b.m_contour_length = 0.0f;
-  b.m_open_contour_length = 0.0f;
-  b.m_closed_contour_length = 0.0f;
   b.m_ende = num_edges;
-  m_edges[o].resize(num_edges);
+  m_contours[o].m_edges.resize(num_edges);
 }
 
 void
@@ -393,7 +400,7 @@ add_edge(TessellatedPathBuildingState &builder,
   unsigned int needed;
 
   needed = work_room.size();
-  m_edges[o][e].m_edge_range = range_type<unsigned int>(builder.m_loc, builder.m_loc + needed);
+  m_contours[o].m_edges[e].m_edge_range = range_type<unsigned int>(builder.m_loc, builder.m_loc + needed);
   builder.m_loc += needed;
 
   FASTUIDRAWassert(needed > 0u);
@@ -425,15 +432,6 @@ add_edge(TessellatedPathBuildingState &builder,
         + work_room[needed - 1].m_length;
     }
 
-  if (e + 2 == builder.m_ende)
-    {
-      builder.m_open_contour_length = builder.m_contour_length;
-    }
-  else if (e + 1 == builder.m_ende)
-    {
-      builder.m_closed_contour_length = builder.m_contour_length;
-    }
-
   /* append the data to temp and clear work_room for the next edge */
   std::list<std::vector<TessellatedPath::segment> >::iterator t;
   t = builder.m_temp.insert(builder.m_temp.end(), std::vector<TessellatedPath::segment>());
@@ -462,8 +460,7 @@ end_contour(TessellatedPathBuildingState &builder)
       for(unsigned int e = 0, ende = t->size(); e < ende; ++e)
         {
           TessellatedPath::segment &S(t->operator[](e));
-          S.m_open_contour_length = builder.m_open_contour_length;
-          S.m_closed_contour_length = builder.m_closed_contour_length;
+          S.m_contour_length = builder.m_contour_length;
         }
     }
 }
@@ -474,7 +471,7 @@ finalize(TessellatedPathBuildingState &b)
 {
   unsigned int total_needed;
 
-  total_needed = m_edges.back().back().m_edge_range.m_end;
+  total_needed = m_contours.back().m_edges.back().m_edge_range.m_end;
   m_segment_data.reserve(total_needed);
   for(auto iter = b.m_temp.begin(), end_iter = b.m_temp.end(); iter != end_iter; ++iter)
     {
@@ -591,6 +588,10 @@ Refiner(fastuidraw::TessellatedPath *p, const Path &input)
   m_d = d = FASTUIDRAWnew RefinerPrivate();
   d->m_path = p;
   d->m_contours.resize(input.number_contours());
+  for (unsigned int i = 0, endi = input.number_contours(); i < endi; ++i)
+    {
+      d->m_contours[i].m_is_closed = input.contour(i)->closed();
+    }
 }
 
 fastuidraw::TessellatedPath::Refiner::
@@ -649,12 +650,12 @@ TessellatedPath(Refiner *p, float max_distance,
   TessellatedPathBuildingState builder;
   for(unsigned int o = 0, endo = ref_d->m_contours.size(); o < endo; ++o)
     {
-      const PerContour &contour(ref_d->m_contours[o]);
+      const RefinerContour &contour(ref_d->m_contours[o]);
       d->start_contour(builder, o, contour.m_edges.size());
 
       for(unsigned int e = 0, ende = contour.m_edges.size(); e < ende; ++e)
         {
-          const PerEdge edge(contour.m_edges[e]);
+          const RefinerEdge edge(contour.m_edges[e]);
           SegmentStorage segment_storage;
           float tmp;
 
@@ -672,9 +673,10 @@ TessellatedPath(Refiner *p, float max_distance,
             }
 
           d->add_edge(builder, o, e, work_room, tmp);
-          d->m_edges[o][e].m_edge_type = edge.m_interpolator->edge_type();
+          d->m_contours[o].m_edges[e].m_edge_type = edge.m_interpolator->edge_type();
         }
       d->end_contour(builder);
+      d->m_contours[o].m_is_closed = contour.m_is_closed;
     }
   d->finalize(builder);
 }
@@ -707,19 +709,21 @@ TessellatedPath(const Path &input,
   for(unsigned int o = 0, endo = input.number_contours(); o < endo; ++o)
     {
       const reference_counted_ptr<const PathContour> &contour(input.contour(o));
+
       if (refiner_d)
         {
           refiner_d->m_contours[o].m_edges.resize(contour->number_points());
         }
 
-      d->start_contour(builder, o, contour->number_points());
-      for(unsigned int e = 0, ende = contour->number_points(); e < ende; ++e)
+      d->start_contour(builder, o, contour->number_interpolators());
+      for(unsigned int e = 0, ende = contour->number_interpolators(); e < ende; ++e)
         {
           SegmentStorage segment_storage;
           const reference_counted_ptr<const PathContour::interpolator_base> &interpolator(contour->interpolator(e));
           reference_counted_ptr<PathContour::tessellation_state> tess_state;
           float tmp;
 
+          FASTUIDRAWassert(interpolator);
           FASTUIDRAWassert(work_room.empty());
           segment_storage.m_d = &work_room;
 
@@ -736,10 +740,11 @@ TessellatedPath(const Path &input,
             }
 
           d->add_edge(builder, o, e, work_room, tmp);
-          d->m_edges[o][e].m_edge_type = interpolator->edge_type();
+          d->m_contours[o].m_edges[e].m_edge_type = interpolator->edge_type();
         }
 
       d->end_contour(builder);
+      d->m_contours[o].m_is_closed = contour->closed();
     }
   d->finalize(builder);
 }
@@ -804,7 +809,17 @@ number_contours(void) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_edges.size();
+  return d->m_contours.size();
+}
+
+bool
+fastuidraw::TessellatedPath::
+contour_closed(unsigned int contour) const
+{
+  TessellatedPathPrivate *d;
+  d = static_cast<TessellatedPathPrivate*>(m_d);
+
+  return d->m_contours[contour].m_is_closed;
 }
 
 fastuidraw::range_type<unsigned int>
@@ -814,8 +829,8 @@ contour_range(unsigned int contour) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return range_type<unsigned int>(d->m_edges[contour].front().m_edge_range.m_begin,
-                                  d->m_edges[contour].back().m_edge_range.m_end);
+  return range_type<unsigned int>(d->m_contours[contour].m_edges.front().m_edge_range.m_begin,
+                                  d->m_contours[contour].m_edges.back().m_edge_range.m_end);
 }
 
 fastuidraw::c_array<const fastuidraw::TessellatedPath::segment>
@@ -835,7 +850,7 @@ number_edges(unsigned int contour) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_edges[contour].size();
+  return d->m_contours[contour].m_edges.size();
 }
 
 fastuidraw::range_type<unsigned int>
@@ -845,7 +860,7 @@ edge_range(unsigned int contour, unsigned int edge) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_edges[contour][edge].m_edge_range;
+  return d->m_contours[contour].m_edges[edge].m_edge_range;
 }
 
 enum fastuidraw::PathEnums::edge_type_t
@@ -855,7 +870,7 @@ edge_type(unsigned int contour, unsigned int edge) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_edges[contour][edge].m_edge_type;
+  return d->m_contours[contour].m_edges[edge].m_edge_type;
 }
 
 fastuidraw::c_array<const fastuidraw::TessellatedPath::segment>

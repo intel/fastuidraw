@@ -607,7 +607,6 @@ namespace fastuidraw
      * \param item_space_additional_room amount additional slack in -local coordinate-
      *                                   in selecting subsets from the StrokedPath
      *                                   geometry data
-     * \param include_closing_edges if true, include the joins of the closing edges
      * \param take_all_joins if true, filtering of joins is not performed, i.e. all
      *                       joins of the \ref StrokedCapsJoins are selected
      * \param[out] dst location to which to write what chunks
@@ -616,7 +615,6 @@ namespace fastuidraw
     select_chunks(const StrokedCapsJoins &caps_joins,
                   float pixels_additional_room,
                   float item_space_additional_room,
-                  bool include_closing_edges,
                   bool take_all_joins,
                   StrokedCapsJoins::ChunkSet *dst);
 

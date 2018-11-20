@@ -22,7 +22,6 @@
 // fastuidraw::gl::detail::painter_vao_pool methods
 fastuidraw::gl::detail::painter_vao_pool::
 painter_vao_pool(const PainterBackendGL::ConfigurationGL &params,
-                 const PainterBackend::ConfigurationBase &params_base,
                  enum tex_buffer_support_t tex_buffer_support,
                  const glsl:: PainterShaderRegistrarGLSL::BindingPoints &binding_points):
   m_attribute_buffer_size(params.attributes_per_buffer() * sizeof(PainterAttribute)),

@@ -96,7 +96,6 @@ namespace
   private:
     typedef Texture<GL_RGBA8, GL_RGBA, GL_LINEAR, GL_NEAREST_MIPMAP_LINEAR>::type TextureGL;
     TextureGL m_backing_store;
-    unsigned int m_number_mipmap_levels;
   };
 
   class IndexBackingStoreGL:public fastuidraw::AtlasIndexBackingStoreBase
@@ -236,8 +235,7 @@ ColorBackingStoreGL(int log2_tile_size,
                     bool delayed):
   fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
                                          true),
-  m_backing_store(dimensions(), delayed, log2_tile_size),
-  m_number_mipmap_levels(log2_tile_size + 1)
+  m_backing_store(dimensions(), delayed, log2_tile_size)
 {}
 
 void

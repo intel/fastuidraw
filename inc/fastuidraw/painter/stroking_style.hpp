@@ -36,7 +36,6 @@ namespace fastuidraw
   {
   public:
     StrokingStyle(void):
-      m_draw_closing_edges_of_contours(true),
       m_cap_style(PainterEnums::square_caps),
       m_join_style(PainterEnums::miter_clip_joins)
     {}
@@ -53,17 +52,6 @@ namespace fastuidraw
     }
 
     /*!
-     * Sets \ref m_draw_closing_edges_of_contours to
-     * the specified value. Default value is true.
-     */
-    StrokingStyle&
-    stroke_closing_edges_of_contours(bool v)
-    {
-      m_draw_closing_edges_of_contours = v;
-      return *this;
-    }
-
-    /*!
      * Set \ref m_join_style to the specified value.
      */
     StrokingStyle&
@@ -72,13 +60,6 @@ namespace fastuidraw
       m_join_style = j;
       return *this;
     }
-
-    /*!
-     * If true, stroke the closing edge of each of the
-     * contours of the \ref Path or \ref StrokedPath.
-     * Default value is true.
-     */
-    bool m_draw_closing_edges_of_contours;
 
     /*!
      * If \ref m_draw_closing_edges_of_contours is false,
