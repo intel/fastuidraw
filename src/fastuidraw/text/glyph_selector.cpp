@@ -620,7 +620,7 @@ fetch_glyph(FontGroup h, uint32_t character_code, bool exact_match)
 {
   GlyphSource G;
   lock_mutex();
-  G = fetch_glyph(h, character_code, exact_match);
+  G = fetch_glyph_no_lock(h, character_code, exact_match);
   unlock_mutex();
   return G;
 }
@@ -632,7 +632,7 @@ fetch_glyph(reference_counted_ptr<const FontBase> h,
 {
   GlyphSource G;
   lock_mutex();
-  G = fetch_glyph(h, character_code, exact_match);
+  G = fetch_glyph_no_lock(h, character_code, exact_match);
   unlock_mutex();
   return G;
 }
@@ -644,7 +644,7 @@ fetch_glyph_no_merging(reference_counted_ptr<const FontBase> h,
 {
   GlyphSource G;
   lock_mutex();
-  G = fetch_glyph_no_merging(h, character_code);
+  G = fetch_glyph_no_merging_no_lock(h, character_code);
   unlock_mutex();
   return G;
 }
