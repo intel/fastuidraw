@@ -1281,6 +1281,17 @@ SubPath(const fastuidraw::TessellatedPath &P):
   m_contours.reserve(P.number_contours());
   for(unsigned int c = 0, endc = P.number_contours(); c < endc; ++c)
     {
+      /* For now, if a contour is not closed, we omit it
+       * from our filling. However, this may not be the
+       * correct thing to do since if the contour is
+       * self intersecting it can induce fill regions
+       * as well. However, it appears that there is no
+       * feasible way to get GLUtess to support open
+       * contours as one of its basic concepts, a face
+       * is a loop of vertices. However, one way out is to
+       * process an open contour, compute if it is self
+       * intersecting and record those created loops.
+       */
       if (P.contour_closed(c))
         {
           SubContour tmp;
