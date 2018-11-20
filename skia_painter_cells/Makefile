@@ -1,17 +1,17 @@
 # SKIA Perliminaries
 #
-# 1. git clone https://skia.googlesource.com/skia.git
+# 1. git clone https://skia.googlesource.com/skia.git && cd skia
 # 2. bin/fetch-gn
 # 3. tools/install_dependencies.sh
 # 4. python tools/git-sync-deps
 # 5. bin/gn gen out/Shared --args='is_official_build=true is_component_build=true is_debug=false cc="clang" cxx="clang++" extra_cflags_cc=["-frtti"] extra_cflags = [ "-w" ] skia_use_icu=false'
 # 6. ninja -C out/Shared/
 #
-# Then set SKIA_DIR = $(LOCATION)/skia
+# Then set SKIA_DIR to where the skia repo is located.
 #
 # Tested against 01979132133e474427a5e615cb05d9e203ae676e
-CXX = c++
-SKIA_DIR = /home/kevin/github/skia
+CXX ?= c++
+SKIA_DIR ?= /home/kevin/github/skia.fastuidraw
 
 SOURCES = sdl_demo.cpp sdl_skia_demo.cpp main.cpp generic_command_line.cpp \
 	PainterWidget.cpp PanZoomTracker.cpp cell.cpp random.cpp table.cpp \
