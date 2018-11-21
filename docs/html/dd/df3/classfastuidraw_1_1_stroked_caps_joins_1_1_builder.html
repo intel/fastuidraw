@@ -90,8 +90,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7406624dc0aa1418c54dce3c502ff3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1046d36d2876f4ec43a21e53aec243b3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html#a1046d36d2876f4ec43a21e53aec243b3">begin_contour</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;start_pt, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;start_direction)</td></tr>
 <tr class="separator:a1046d36d2876f4ec43a21e53aec243b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae4a3f055ac2289aebb3a33d592cb679"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html#aae4a3f055ac2289aebb3a33d592cb679">end_contour</a> (float distance_from_previous_join, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;direction_into_join)</td></tr>
-<tr class="separator:aae4a3f055ac2289aebb3a33d592cb679"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7f399aa0810892c2a90a5bf8e913c67"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html#ab7f399aa0810892c2a90a5bf8e913c67">close_contour</a> (float distance_from_previous_join, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;direction_into_join)</td></tr>
+<tr class="separator:ab7f399aa0810892c2a90a5bf8e913c67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f0660695ce5bce25601a7da3bf2fdc2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html#a4f0660695ce5bce25601a7da3bf2fdc2">end_contour</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;cap_pt, float distance_from_previous_join, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;direction_into_cap)</td></tr>
+<tr class="separator:a4f0660695ce5bce25601a7da3bf2fdc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -102,7 +104,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>StrokedCapsJoins</b>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html" title="A Builder is used to specify the nature of the contours from which to geneate joins and caps...">Builder</a> is used to specify the nature of the contours from which to geneate joins and caps. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html#l00134">134</a> of file <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html">stroked_caps_joins.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html#l00115">115</a> of file <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html">stroked_caps_joins.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a7406624dc0aa1418c54dce3c502ff3e2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7406624dc0aa1418c54dce3c502ff3e2">&#9670;&nbsp;</a></span>add_join()</h2>
@@ -188,14 +190,14 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>StrokedCapsJoins</b>
 
 </div>
 </div>
-<a id="aae4a3f055ac2289aebb3a33d592cb679"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae4a3f055ac2289aebb3a33d592cb679">&#9670;&nbsp;</a></span>end_contour()</h2>
+<a id="ab7f399aa0810892c2a90a5bf8e913c67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7f399aa0810892c2a90a5bf8e913c67">&#9670;&nbsp;</a></span>close_contour()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void fastuidraw::StrokedCapsJoins::Builder::end_contour </td>
+          <td class="memname">void fastuidraw::StrokedCapsJoins::Builder::close_contour </td>
           <td>(</td>
           <td class="paramtype">float&#160;</td>
           <td class="paramname"><em>distance_from_previous_join</em>, </td>
@@ -213,13 +215,48 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>StrokedCapsJoins</b>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>End the contour. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Close the contour giving it the two joins of the closing edge </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">distance_from_previous_join</td><td>distance from previous join </td></tr>
-    <tr><td class="paramname">direction_into_join</td><td>unit vector of path into the join that links the closing edge to the 1st point </td></tr>
+    <tr><td class="paramname">direction_into_join</td><td>unit vector of path into the join that ends the closing edge </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a4f0660695ce5bce25601a7da3bf2fdc2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f0660695ce5bce25601a7da3bf2fdc2">&#9670;&nbsp;</a></span>end_contour()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::StrokedCapsJoins::Builder::end_contour </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;&#160;</td>
+          <td class="paramname"><em>cap_pt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>distance_from_previous_join</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;&#160;</td>
+          <td class="paramname"><em>direction_into_cap</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>End the contour in caps giving it a cap at the start and end of the contour. </p>
 
 </div>
 </div>

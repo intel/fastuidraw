@@ -63,7 +63,7 @@ $(function() {
 <h3><a id="index_m"></a>- m -</h3><ul>
 <li>m_angle
 : <a class="el" href="d5/ded/classfastuidraw_1_1_path_1_1arc.html#aca5a0b8f59b3f8d78379b91460ffbadf">fastuidraw::Path::arc</a>
-, <a class="el" href="dc/d14/classfastuidraw_1_1_path_1_1contour__end__arc.html#aa061e95493d0e342e0efeb72d60ffd45">fastuidraw::Path::contour_end_arc</a>
+, <a class="el" href="d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html#a6fafaab6d838024e0854bc0f65a87d72">fastuidraw::Path::contour_close_arc</a>
 </li>
 <li>m_arc_angle
 : <a class="el" href="dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a5e2515ed5ae8ba7f48149b2a930a0ee8">fastuidraw::TessellatedPath::segment</a>
@@ -123,11 +123,6 @@ $(function() {
 <li>m_clip_equations_location
 : <a class="el" href="d9/d8f/classfastuidraw_1_1_painter_header.html#a2cc6e57357daafb59179b2f60232e15a">fastuidraw::PainterHeader</a>
 </li>
-<li>m_closed_contour_length
-: <a class="el" href="d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a1ed8d71770fa724e7d2082a82ee24a45">fastuidraw::ArcStrokedPoint</a>
-, <a class="el" href="d4/d1b/classfastuidraw_1_1_stroked_point.html#afb5458273d314985d8227a3cca143c05">fastuidraw::StrokedPoint</a>
-, <a class="el" href="dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a1ce6d510bc65f30947fd2d77fecd16e3">fastuidraw::TessellatedPath::segment</a>
-</li>
 <li>m_color
 : <a class="el" href="dd/d78/classfastuidraw_1_1_color_stop.html#a88e2d2adb5635fb8f3efa0a2455f9af3">fastuidraw::ColorStop</a>
 </li>
@@ -139,6 +134,11 @@ $(function() {
 </li>
 <li>m_composite_shader_data_location
 : <a class="el" href="d9/d8f/classfastuidraw_1_1_painter_header.html#a33bd5607ed8b35fb87286f41e9545fc4">fastuidraw::PainterHeader</a>
+</li>
+<li>m_contour_length
+: <a class="el" href="d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a23e73a1bf45a098a9cccd9edbdc493c1">fastuidraw::ArcStrokedPoint</a>
+, <a class="el" href="d4/d1b/classfastuidraw_1_1_stroked_point.html#a39d1bb150a8ab4bd52b01e663c2d0827">fastuidraw::StrokedPoint</a>
+, <a class="el" href="dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a737519eccf5d20801c5f21237c0d6b91">fastuidraw::TessellatedPath::segment</a>
 </li>
 <li>m_count
 : <a class="el" href="d8/d7c/classfastuidraw_1_1gl_1_1opengl__trait__value.html#ab14e028a7f72f489e235f09840597661">fastuidraw::gl::opengl_trait_value</a>
@@ -160,9 +160,6 @@ $(function() {
 : <a class="el" href="d3/daa/classfastuidraw_1_1_arc_stroked_point.html#ab841c673fc34df611c9e4305155af81d">fastuidraw::ArcStrokedPoint</a>
 , <a class="el" href="d4/d1b/classfastuidraw_1_1_stroked_point.html#a80cafa933790fd1d0382b757dd56f847">fastuidraw::StrokedPoint</a>
 , <a class="el" href="dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#acd957e39286f1a0c97145afae8feca1f">fastuidraw::TessellatedPath::segment</a>
-</li>
-<li>m_draw_closing_edges_of_contours
-: <a class="el" href="d6/d1e/classfastuidraw_1_1_stroking_style.html#aa4f763119f5627f20375d96553b251c6">fastuidraw::StrokingStyle</a>
 </li>
 <li>m_draw_length
 : <a class="el" href="df/d91/classfastuidraw_1_1_painter_dashed_stroke_params_1_1_dash_pattern_element.html#a8bd7e7a9d0e25ac933110d70f2923225">fastuidraw::PainterDashedStrokeParams::DashPatternElement</a>
@@ -263,11 +260,6 @@ $(function() {
 <li>m_offset_direction
 : <a class="el" href="d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a9e82fe67c6161c93fb73c4081f9d1f5b">fastuidraw::ArcStrokedPoint</a>
 </li>
-<li>m_open_contour_length
-: <a class="el" href="d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a255308a3a0008f032ae0b7634cdc0f3c">fastuidraw::ArcStrokedPoint</a>
-, <a class="el" href="d4/d1b/classfastuidraw_1_1_stroked_point.html#ae1b1220b24df7b4e657ad3b966f0b4a4">fastuidraw::StrokedPoint</a>
-, <a class="el" href="dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a97e10f51ca0c0c5f2c73624201375870">fastuidraw::TessellatedPath::segment</a>
-</li>
 <li>m_origin
 : <a class="el" href="d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#a97bec1de6845b978a06e5e1ca403aa58">fastuidraw::PainterBackend::Surface::Viewport</a>
 </li>
@@ -293,6 +285,7 @@ $(function() {
 </li>
 <li>m_pt
 : <a class="el" href="d5/ded/classfastuidraw_1_1_path_1_1arc.html#ae8f94f99e24c7f26d1210e80f56150f1">fastuidraw::Path::arc</a>
+, <a class="el" href="d0/df3/classfastuidraw_1_1_path_1_1contour__start.html#a9dfcee858f874d6f9094371689c204c7">fastuidraw::Path::contour_start</a>
 </li>
 <li>m_radius
 : <a class="el" href="dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a9f435a777c64d405d2ba66b559aad2e9">fastuidraw::TessellatedPath::segment</a>
@@ -401,7 +394,7 @@ $(function() {
 , <a class="el" href="d9/d6a/classfastuidraw_1_1_tessellated_path_1_1_tessellation_params.html#adb6a6301546e598300a6a297b817ff83">fastuidraw::TessellatedPath::TessellationParams</a>
 </li>
 <li>max_recursion()
-: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a437053e6b02809824071ef06494a6d3d">fastuidraw::GlyphRenderDataRestrictedRays</a>
+: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a0609231df9869f6fe0c9cc2698b1af89">fastuidraw::GlyphRenderDataRestrictedRays</a>
 , <a class="el" href="da/df4/classfastuidraw_1_1_tessellated_path.html#a1ff8f3e747bbfefce40d750efd836dfe">fastuidraw::TessellatedPath</a>
 , <a class="el" href="d9/d6a/classfastuidraw_1_1_tessellated_path_1_1_tessellation_params.html#a55fd7529c2457320b138ea36f80da5a7">fastuidraw::TessellatedPath::TessellationParams</a>
 </li>
@@ -434,11 +427,11 @@ $(function() {
 , <a class="el" href="de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a51485a12f85589ff63aca19dc17d4c35">fastuidraw::StrokedCapsJoins</a>
 </li>
 <li>miter_limit()
-: <a class="el" href="d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a2789fb77a34add67c31aa007def35c46">fastuidraw::PainterDashedStrokeParams</a>
+: <a class="el" href="d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#ab7b9cb1e5d13b35ee3a9144e623dbc77">fastuidraw::PainterDashedStrokeParams</a>
 , <a class="el" href="df/df5/classfastuidraw_1_1_painter_stroke_params.html#a34336f2597ac69c5608b5995757b5737">fastuidraw::PainterStrokeParams</a>
 </li>
 <li>move()
-: <a class="el" href="df/dea/classfastuidraw_1_1_path.html#af5db17844a264e2f9433456a0cef430c">fastuidraw::Path</a>
+: <a class="el" href="df/dea/classfastuidraw_1_1_path.html#a02da6cad1008a5e16773b0081e2e83ea">fastuidraw::Path</a>
 </li>
 <li>move_to()
 : <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#aa3a818a1a570eeec619d345a65838713">fastuidraw::GlyphRenderDataRestrictedRays</a>

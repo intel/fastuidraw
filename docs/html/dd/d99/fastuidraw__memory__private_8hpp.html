@@ -147,14 +147,17 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ac3773749185be129e19479289533862e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ac3773749185be129e19479289533862e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#ac3773749185be129e19479289533862e">fastuidraw::memory::call_dtor</a> (T *p)</td></tr>
+<tr class="separator:ac3773749185be129e19479289533862e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4063943408acd14e4cd13f86f421b91e"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#a4063943408acd14e4cd13f86f421b91e">fastuidraw::memory::calloc_implement</a> (size_t nmemb, size_t size, const char *file, int line)</td></tr>
 <tr class="separator:a4063943408acd14e4cd13f86f421b91e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a915de7a8e1244c1e6c9e4e47dceb7ec2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#a915de7a8e1244c1e6c9e4e47dceb7ec2">fastuidraw::memory::check_object_exists</a> (const void *ptr, const char *file, int line)</td></tr>
+<tr class="separator:a915de7a8e1244c1e6c9e4e47dceb7ec2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae9234a03bde3e36516dc07cefc7ca849"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#ae9234a03bde3e36516dc07cefc7ca849">fastuidraw::memory::free_implement</a> (void *ptr, const char *file, int line)</td></tr>
 <tr class="separator:ae9234a03bde3e36516dc07cefc7ca849"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94652251920f33404fb593e05dea7ca8"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#a94652251920f33404fb593e05dea7ca8">fastuidraw::memory::malloc_implement</a> (size_t size, const char *file, int line)</td></tr>
 <tr class="separator:a94652251920f33404fb593e05dea7ca8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae335c682a74f5dd4beb98ccf4162217a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#ae335c682a74f5dd4beb98ccf4162217a">fastuidraw::memory::object_deletion_message</a> (const void *ptr, const char *file, int line)</td></tr>
-<tr class="separator:ae335c682a74f5dd4beb98ccf4162217a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff6005b031d93541b72b632849691e62"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#aff6005b031d93541b72b632849691e62">operator delete</a> (void *ptr, const char *file, int line)  throw ()</td></tr>
 <tr class="separator:aff6005b031d93541b72b632849691e62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa6a20c466a5ae554f41468e0a8afc60"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp.html#afa6a20c466a5ae554f41468e0a8afc60">operator delete[]</a> (void *ptr, const char *file, int line)  throw ()</td></tr>
@@ -175,6 +178,29 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition in file <a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp_source.html">fastuidraw_memory_private.hpp</a>.</p>
 </div><h2 class="groupheader">Function Documentation</h2>
+<a id="file_ac3773749185be129e19479289533862e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#file_ac3773749185be129e19479289533862e">&#9670;&nbsp;</a></span>call_dtor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::memory::call_dtor </td>
+          <td>(</td>
+          <td class="paramtype">T *&#160;</td>
+          <td class="paramname"><em>p</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Private function used by macro FASTUIDRAWdelete, do NOT call. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp_source.html#l00067">67</a> of file <a class="el" href="../../dd/d99/fastuidraw__memory__private_8hpp_source.html">fastuidraw_memory_private.hpp</a>.</p>
+
+</div>
+</div>
 <a id="file_a4063943408acd14e4cd13f86f421b91e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#file_a4063943408acd14e4cd13f86f421b91e">&#9670;&nbsp;</a></span>calloc_implement()</h2>
 
@@ -213,6 +239,41 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Private function used by macro FASTUIDRAWcalloc, do NOT call. </p>
+
+</div>
+</div>
+<a id="file_a915de7a8e1244c1e6c9e4e47dceb7ec2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#file_a915de7a8e1244c1e6c9e4e47dceb7ec2">&#9670;&nbsp;</a></span>check_object_exists()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::memory::check_object_exists </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>file</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>line</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Private function used by macro FASTUIDRAWdelete, do NOT call. </p>
 
 </div>
 </div>
@@ -283,41 +344,6 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Private function used by macro FASTUIDRAWmalloc, do NOT call. </p>
-
-</div>
-</div>
-<a id="file_ae335c682a74f5dd4beb98ccf4162217a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#file_ae335c682a74f5dd4beb98ccf4162217a">&#9670;&nbsp;</a></span>object_deletion_message()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void fastuidraw::memory::object_deletion_message </td>
-          <td>(</td>
-          <td class="paramtype">const void *&#160;</td>
-          <td class="paramname"><em>ptr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>file</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>line</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Private function used by macro FASTUIDRAWdelete, do NOT call. </p>
 
 </div>
 </div>

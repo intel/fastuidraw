@@ -159,8 +159,6 @@ Macros</h2></td></tr>
 <tr class="separator:gad14d9e40e23cec29a52a354bd50903b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga78757e39e14ad68e2aea339e5a8a25d0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga78757e39e14ad68e2aea339e5a8a25d0">FASTUIDRAWdelete</a>(ptr)</td></tr>
 <tr class="separator:ga78757e39e14ad68e2aea339e5a8a25d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4c8621a479b9eece8b66f3099f378276"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga4c8621a479b9eece8b66f3099f378276">FASTUIDRAWdelete_array</a>(ptr)</td></tr>
-<tr class="separator:ga4c8621a479b9eece8b66f3099f378276"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8898574a2c09aef1b9bc551e431e61ff"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga8898574a2c09aef1b9bc551e431e61ff">FASTUIDRAWfree</a>(ptr)&#160;&#160;&#160;fastuidraw::memory::free_implement(ptr, __FILE__, __LINE__)</td></tr>
 <tr class="separator:ga8898574a2c09aef1b9bc551e431e61ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga002cb9e461886c326983c220913908bf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga002cb9e461886c326983c220913908bf">FASTUIDRAWmalloc</a>(size)&#160;&#160;&#160;fastuidraw::memory::malloc_implement(size, __FILE__, __LINE__)</td></tr>
@@ -291,12 +289,6 @@ typedef <a class="el" href="../../d1/d90/classfastuidraw_1_1projection__params.h
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gae6e99cdc3f97058ea4ca967df965d1fe"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:gae6e99cdc3f97058ea4ca967df965d1fe"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gae6e99cdc3f97058ea4ca967df965d1fe">fastuidraw::checked_array_delete</a> (T *p)</td></tr>
-<tr class="separator:gae6e99cdc3f97058ea4ca967df965d1fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2dee24c7f591469e937db75e04165f46"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ga2dee24c7f591469e937db75e04165f46"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga2dee24c7f591469e937db75e04165f46">fastuidraw::checked_delete</a> (T *p)</td></tr>
-<tr class="separator:ga2dee24c7f591469e937db75e04165f46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6da24fa67de36a36bba2ef01510a626e"><td class="memTemplParams" colspan="2">template&lt;typename T , size_t N&gt; </td></tr>
 <tr class="memitem:ga6da24fa67de36a36bba2ef01510a626e"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga6da24fa67de36a36bba2ef01510a626e">fastuidraw::dot</a> (const <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; T, N &gt; &amp;a, const <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; T, N &gt; &amp;b)</td></tr>
 <tr class="separator:ga6da24fa67de36a36bba2ef01510a626e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -618,7 +610,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00084">84</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00072">72</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
 
 </div>
 </div>
@@ -637,42 +629,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> {                                                                  \</div><div class="line">    fastuidraw::memory::object_deletion_message(ptr, __FILE__, __LINE__); <a class="code" href="../../da/d46/group___utility.html#ga2dee24c7f591469e937db75e04165f46">\</a></div><div class="line"><a class="code" href="../../da/d46/group___utility.html#ga2dee24c7f591469e937db75e04165f46">    fastuidraw::checked_delete</a>(ptr); } <span class="keywordflow">while</span>(0)</div><div class="ttc" id="group___utility_html_ga2dee24c7f591469e937db75e04165f46"><div class="ttname"><a href="../../da/d46/group___utility.html#ga2dee24c7f591469e937db75e04165f46">fastuidraw::checked_delete</a></div><div class="ttdeci">void checked_delete(T *p)</div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d3a/checked__delete_8hpp_source.html#l00053">checked_delete.hpp:53</a></div></div>
-</div><!-- fragment --><p>Use <a class="el" href="../../da/d46/group___utility.html#ga78757e39e14ad68e2aea339e5a8a25d0">FASTUIDRAWdelete</a> to delete objects that were allocated with <a class="el" href="../../da/d46/group___utility.html#ga524a8b6674554f360cf8b04a3a6a37b0">FASTUIDRAWnew</a>. For debug builds of FastUIDraw, if the memory was not tracked an error message is emitted. For both release and debug, object is deleted via <a class="el" href="../../da/d46/group___utility.html#ga2dee24c7f591469e937db75e04165f46">fastuidraw::checked_delete()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<b>Value:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> {                                                                  \</div><div class="line">    fastuidraw::memory::check_object_exists(ptr, __FILE__, __LINE__);   \</div><div class="line">    fastuidraw::memory::call_dtor(ptr);                                 \</div><div class="line">    fastuidraw::memory::free_implement(ptr, __FILE__, __LINE__);        \</div><div class="line">  } <span class="keywordflow">while</span>(0)</div></div><!-- fragment --><p>Use <a class="el" href="../../da/d46/group___utility.html#ga78757e39e14ad68e2aea339e5a8a25d0">FASTUIDRAWdelete</a> to delete objects that were allocated with <a class="el" href="../../da/d46/group___utility.html#ga524a8b6674554f360cf8b04a3a6a37b0">FASTUIDRAWnew</a>. For debug builds of FastUIDraw, if the memory was not tracked an error message is emitted. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ptr</td><td>address of object to delete, value must be a return value from FASTUIDRAWnew </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00049">49</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
-
-</div>
-</div>
-<a id="ga4c8621a479b9eece8b66f3099f378276"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4c8621a479b9eece8b66f3099f378276">&#9670;&nbsp;</a></span>FASTUIDRAWdelete_array</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define FASTUIDRAWdelete_array</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">ptr</td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> {                                                                  \</div><div class="line">    fastuidraw::memory::object_deletion_message(ptr, __FILE__, __LINE__); <a class="code" href="../../da/d46/group___utility.html#gae6e99cdc3f97058ea4ca967df965d1fe">\</a></div><div class="line"><a class="code" href="../../da/d46/group___utility.html#gae6e99cdc3f97058ea4ca967df965d1fe">    fastuidraw::checked_array_delete</a>(ptr); } <span class="keywordflow">while</span>(0)</div><div class="ttc" id="group___utility_html_gae6e99cdc3f97058ea4ca967df965d1fe"><div class="ttname"><a href="../../da/d46/group___utility.html#gae6e99cdc3f97058ea4ca967df965d1fe">fastuidraw::checked_array_delete</a></div><div class="ttdeci">void checked_array_delete(T *p)</div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d3a/checked__delete_8hpp_source.html#l00069">checked_delete.hpp:69</a></div></div>
-</div><!-- fragment --><p>Use <a class="el" href="../../da/d46/group___utility.html#ga4c8621a479b9eece8b66f3099f378276">FASTUIDRAWdelete_array</a> for arrays of objects allocated with <a class="el" href="../../da/d46/group___utility.html#ga524a8b6674554f360cf8b04a3a6a37b0">FASTUIDRAWnew</a>. For debug builds of FastUIDraw, if the memory was not tracked an error message is emitted. For both release and debug, object is deleted via <a class="el" href="../../da/d46/group___utility.html#gae6e99cdc3f97058ea4ca967df965d1fe">fastuidraw::checked_array_delete()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ptr</td><td>address of array of objects to delete, value must be a return value of FASTUIDRAWnew </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00062">62</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00048">48</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
 
 </div>
 </div>
@@ -698,7 +662,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00104">104</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00092">92</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
 
 </div>
 </div>
@@ -719,7 +683,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>For debug build of FastUIDraw, allocations with <a class="el" href="../../da/d46/group___utility.html#ga002cb9e461886c326983c220913908bf">FASTUIDRAWmalloc</a> are tracked and at program exit a list of those objects not deleted by <a class="el" href="../../da/d46/group___utility.html#ga8898574a2c09aef1b9bc551e431e61ff">FASTUIDRAWfree</a> are printed with the file and line number of the allocation. For release builds of FastUIDraw, maps to std::malloc. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00073">73</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00061">61</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
 
 </div>
 </div>
@@ -734,7 +698,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>When creating FastUIDraw objects, one must use FASTUIDRAWnew instead of new to create objects. For debug build of FastUIDraw, allocations with FASTUIDRAWnew are tracked and at program exit a list of those objects not deleted by FASTUIDRAWdelete are printed with the file and line number of the allocation. For release builds of FastUIDraw, allocations are not tracked and std::malloc is used to allocate memory. </p>
+<p>When creating FastUIDraw objects, one must use FASTUIDRAWnew instead of new to create objects. For debug build of FastUIDraw, allocations with FASTUIDRAWnew are tracked and at program exit a list of those objects not deleted by FASTUIDRAWdelete are printed with the file and line number of the allocation. For release builds of FastUIDraw, allocations are not tracked and std::malloc is used to allocate memory. Do NOT use FASTUIDRAWnew for creating arrays (i.e. p = new type[N]) as FASTUIDRAWdelete does not handle array deletion. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00038">38</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
 
@@ -773,7 +737,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00095">95</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html#l00083">83</a> of file <a class="el" href="../../da/d7d/fastuidraw__memory_8hpp_source.html">fastuidraw_memory.hpp</a>.</p>
 
 </div>
 </div>
@@ -1642,68 +1606,6 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="gae6e99cdc3f97058ea4ca967df965d1fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae6e99cdc3f97058ea4ca967df965d1fe">&#9670;&nbsp;</a></span>checked_array_delete()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void fastuidraw::checked_array_delete </td>
-          <td>(</td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>p</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>A wrapper over delete[]. If the type T is not complete, <a class="el" href="../../da/d46/group___utility.html#gae6e99cdc3f97058ea4ca967df965d1fe">checked_array_delete()</a> will trigger a compiler error. </p>
-
-<p class="definition">Definition at line <a class="el" href="../../d5/d3a/checked__delete_8hpp_source.html#l00069">69</a> of file <a class="el" href="../../d5/d3a/checked__delete_8hpp_source.html">checked_delete.hpp</a>.</p>
-
-</div>
-</div>
-<a id="ga2dee24c7f591469e937db75e04165f46"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2dee24c7f591469e937db75e04165f46">&#9670;&nbsp;</a></span>checked_delete()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void fastuidraw::checked_delete </td>
-          <td>(</td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>p</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>A wrapper over delete. If the type T is not complete, <a class="el" href="../../da/d46/group___utility.html#ga2dee24c7f591469e937db75e04165f46">checked_delete()</a> will trigger a compiler error. </p>
-
-<p class="definition">Definition at line <a class="el" href="../../d5/d3a/checked__delete_8hpp_source.html#l00053">53</a> of file <a class="el" href="../../d5/d3a/checked__delete_8hpp_source.html">checked_delete.hpp</a>.</p>
-
-</div>
-</div>
 <a id="ga6da24fa67de36a36bba2ef01510a626e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga6da24fa67de36a36bba2ef01510a626e">&#9670;&nbsp;</a></span>dot()</h2>
 
@@ -2012,7 +1914,7 @@ template&lt;typename T , typename S &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00365">365</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00391">391</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -2059,7 +1961,7 @@ template&lt;typename T , typename S &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00351">351</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00377">377</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -2165,7 +2067,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00382">382</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00408">408</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>

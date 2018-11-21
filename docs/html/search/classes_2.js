@@ -22,8 +22,9 @@ var searchData=
   ['configurationbase',['ConfigurationBase',['../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html',1,'fastuidraw::PainterBackend']]],
   ['configurationgl',['ConfigurationGL',['../dc/db3/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_configuration_g_l.html',1,'fastuidraw::gl::PainterBackendGL']]],
   ['contextproperties',['ContextProperties',['../da/d0c/classfastuidraw_1_1gl_1_1_context_properties.html',1,'fastuidraw::gl']]],
-  ['contour_5fend',['contour_end',['../de/d60/classfastuidraw_1_1_path_1_1contour__end.html',1,'fastuidraw::Path']]],
-  ['contour_5fend_5farc',['contour_end_arc',['../dc/d14/classfastuidraw_1_1_path_1_1contour__end__arc.html',1,'fastuidraw::Path']]],
+  ['contour_5fclose',['contour_close',['../d4/d39/classfastuidraw_1_1_path_1_1contour__close.html',1,'fastuidraw::Path']]],
+  ['contour_5fclose_5farc',['contour_close_arc',['../d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html',1,'fastuidraw::Path']]],
+  ['contour_5fstart',['contour_start',['../d0/df3/classfastuidraw_1_1_path_1_1contour__start.html',1,'fastuidraw::Path']]],
   ['control_5fpoint',['control_point',['../df/d77/classfastuidraw_1_1_path_1_1control__point.html',1,'fastuidraw::Path']]],
   ['customfillrulebase',['CustomFillRuleBase',['../d8/d47/classfastuidraw_1_1_custom_fill_rule_base.html',1,'fastuidraw']]],
   ['customfillrulefunction',['CustomFillRuleFunction',['../d8/d6e/classfastuidraw_1_1_custom_fill_rule_function.html',1,'fastuidraw']]]

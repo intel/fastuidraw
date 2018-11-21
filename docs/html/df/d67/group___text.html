@@ -140,10 +140,14 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ga6308023a8250ddf0776ab2bd52e0d02d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d67/group___text.html#ga6308023a8250ddf0776ab2bd52e0d02d">fastuidraw::glyph_type</a> { <a class="el" href="../../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02da8e239dc3e5dd0b9619a51a8b0ab7016a">fastuidraw::coverage_glyph</a>, 
+<tr class="memitem:ga6308023a8250ddf0776ab2bd52e0d02d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d67/group___text.html#ga6308023a8250ddf0776ab2bd52e0d02d">fastuidraw::glyph_type</a> { <br />
+&#160;&#160;<a class="el" href="../../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02da8e239dc3e5dd0b9619a51a8b0ab7016a">fastuidraw::coverage_glyph</a>, 
 <a class="el" href="../../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02da7cfa9ccd761329a5ea2785a78993a461">fastuidraw::distance_field_glyph</a>, 
 <a class="el" href="../../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02dae895767e029ffe27df957b378a548b7c">fastuidraw::restricted_rays_glyph</a>, 
-<a class="el" href="../../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02daf775b86560848f47448b4bb780d7177d">fastuidraw::invalid_glyph</a> = 0x1000
+<a class="el" href="../../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02daf775b86560848f47448b4bb780d7177d">fastuidraw::invalid_glyph</a> = 0x1000, 
+<br />
+&#160;&#160;<a class="el" href="../../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02da4f0a822060b657325d43b1cb42f6f56f">fastuidraw::adaptive_rendering</a> = invalid_glyph
+<br />
  }<tr class="memdesc:ga6308023a8250ddf0776ab2bd52e0d02d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides an enumeration of the rendering data for a glyph.  <a href="../../df/d67/group___text.html#ga6308023a8250ddf0776ab2bd52e0d02d">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:ga6308023a8250ddf0776ab2bd52e0d02d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -185,13 +189,15 @@ Functions</h2></td></tr>
 
 <p>Provides an enumeration of the rendering data for a glyph. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02da8e239dc3e5dd0b9619a51a8b0ab7016a"></a>coverage_glyph&#160;</td><td class="fielddoc"><p><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is a coverage glyph, generated from a GlyphRenderDataCoverage. <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is not scalable. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02da8e239dc3e5dd0b9619a51a8b0ab7016a"></a>coverage_glyph&#160;</td><td class="fielddoc"><p><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is a coverage glyph. <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is not scalable. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02da7cfa9ccd761329a5ea2785a78993a461"></a>distance_field_glyph&#160;</td><td class="fielddoc"><p><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is a distance field glyph, generated from a GlyphRenderDataDistanceField. <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is scalable. </p>
+<tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02da7cfa9ccd761329a5ea2785a78993a461"></a>distance_field_glyph&#160;</td><td class="fielddoc"><p><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is a distance field glyph. <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is scalable. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02dae895767e029ffe27df957b378a548b7c"></a>restricted_rays_glyph&#160;</td><td class="fielddoc"><p><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is a Restricted rays glyph, generated from a <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html">GlyphRenderDataRestrictedRays</a>. <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is scalable. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02daf775b86560848f47448b4bb780d7177d"></a>invalid_glyph&#160;</td><td class="fielddoc"><p>Tag to indicate invalid glyph type; the value is much larger than the last glyph type to allow for later ABI compatibility as more glyph types are added. </p>
+<tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02daf775b86560848f47448b4bb780d7177d"></a>invalid_glyph&#160;</td><td class="fielddoc"><p>Tag to indicate invalid glyph type; the value is much larger than the last glyph type to allow for later ABI compatibility as more glyph types are added. Value is also to indicate to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aa66d13474f71b7e4e8d9c352f03e620c">Painter::draw_glyphs()</a> to draw glyphs adaptively (i.e. choose a renderer based from the size of the rendered glyphs). </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga6308023a8250ddf0776ab2bd52e0d02da4f0a822060b657325d43b1cb42f6f56f"></a>adaptive_rendering&#160;</td><td class="fielddoc"><p>Tag to indicate invalid glyph type; the value is much larger than the last glyph type to allow for later ABI compatibility as more glyph types are added. Value is also to indicate to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aa66d13474f71b7e4e8d9c352f03e620c">Painter::draw_glyphs()</a> to draw glyphs adaptively (i.e. choose a renderer based from the size of the rendered glyphs). </p>
 </td></tr>
 </table>
 

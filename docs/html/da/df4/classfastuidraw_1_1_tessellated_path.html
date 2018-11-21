@@ -118,6 +118,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:adc62b063b66b27f257e25388c651ddff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd405445b80c975c215d409c3517863c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#acd405445b80c975c215d409c3517863c">bounding_box_size</a> (void) const</td></tr>
 <tr class="separator:acd405445b80c975c215d409c3517863c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a025e293bf21ea6072bcd589dd99203b6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a025e293bf21ea6072bcd589dd99203b6">contour_closed</a> (unsigned int contour) const</td></tr>
+<tr class="separator:a025e293bf21ea6072bcd589dd99203b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ce5ad598cad24a4c6e657a6815ab5ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; unsigned int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a7ce5ad598cad24a4c6e657a6815ab5ef">contour_range</a> (unsigned int contour) const</td></tr>
 <tr class="separator:a7ce5ad598cad24a4c6e657a6815ab5ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc57113ee9b4d6875302109d058cc55d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#acc57113ee9b4d6875302109d058cc55d">contour_segment_data</a> (unsigned int contour) const</td></tr>
@@ -292,6 +294,30 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Returns the dimensions of the bounding box of the tessellated path. </p>
+
+</div>
+</div>
+<a id="a025e293bf21ea6072bcd589dd99203b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a025e293bf21ea6072bcd589dd99203b6">&#9670;&nbsp;</a></span>contour_closed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool fastuidraw::TessellatedPath::contour_closed </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>contour</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns true if the named contour was closed </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">contour</td><td>which path contour to query, must have that 0 &lt;= contour &lt; <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a8b66fb90c6e91ca9bacc5356101840e2">number_contours()</a> </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

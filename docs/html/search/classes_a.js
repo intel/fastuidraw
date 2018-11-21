@@ -47,7 +47,7 @@ var searchData=
   ['paintershaderset',['PainterShaderSet',['../db/d4b/classfastuidraw_1_1_painter_shader_set.html',1,'fastuidraw']]],
   ['painterstrokeparams',['PainterStrokeParams',['../df/df5/classfastuidraw_1_1_painter_stroke_params.html',1,'fastuidraw']]],
   ['painterstrokeshader',['PainterStrokeShader',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html',1,'fastuidraw']]],
-  ['params',['params',['../df/d38/classfastuidraw_1_1gl_1_1_color_stop_atlas_g_l_1_1params.html',1,'fastuidraw::gl::ColorStopAtlasGL::params'],['../d5/d27/classfastuidraw_1_1gl_1_1_image_atlas_g_l_1_1params.html',1,'fastuidraw::gl::ImageAtlasGL::params'],['../d0/de1/classfastuidraw_1_1gl_1_1_glyph_atlas_g_l_1_1params.html',1,'fastuidraw::gl::GlyphAtlasGL::params']]],
+  ['params',['params',['../d5/d27/classfastuidraw_1_1gl_1_1_image_atlas_g_l_1_1params.html',1,'fastuidraw::gl::ImageAtlasGL::params'],['../df/d38/classfastuidraw_1_1gl_1_1_color_stop_atlas_g_l_1_1params.html',1,'fastuidraw::gl::ColorStopAtlasGL::params'],['../d0/de1/classfastuidraw_1_1gl_1_1_glyph_atlas_g_l_1_1params.html',1,'fastuidraw::gl::GlyphAtlasGL::params']]],
   ['path',['Path',['../df/dea/classfastuidraw_1_1_path.html',1,'fastuidraw']]],
   ['pathcontour',['PathContour',['../dc/dfc/classfastuidraw_1_1_path_contour.html',1,'fastuidraw']]],
   ['performancehints',['PerformanceHints',['../d8/d24/classfastuidraw_1_1_painter_backend_1_1_performance_hints.html',1,'fastuidraw::PainterBackend']]],

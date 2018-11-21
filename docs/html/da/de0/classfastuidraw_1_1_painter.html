@@ -215,8 +215,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2c980236887e6f85f5145677c30c904e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b723da08c86631c5d582378460dd02b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a9b723da08c86631c5d582378460dd02b">scale</a> (float s)</td></tr>
 <tr class="separator:a9b723da08c86631c5d582378460dd02b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac7d849adb4af56f20b86cbad40151c4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aac7d849adb4af56f20b86cbad40151c4">select_chunks</a> (const <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> &amp;caps_joins, float pixels_additional_room, float item_space_additional_room, bool include_closing_edges, bool take_all_joins, <a class="el" href="../../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html">StrokedCapsJoins::ChunkSet</a> *dst)</td></tr>
-<tr class="separator:aac7d849adb4af56f20b86cbad40151c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97ae29c3136040dcace77fd4bb090a94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a97ae29c3136040dcace77fd4bb090a94">select_chunks</a> (const <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> &amp;caps_joins, float pixels_additional_room, float item_space_additional_room, bool take_all_joins, <a class="el" href="../../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html">StrokedCapsJoins::ChunkSet</a> *dst)</td></tr>
+<tr class="separator:a97ae29c3136040dcace77fd4bb090a94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c9f75afdf66a4f5f31f39ec8f5c491e"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3c9f75afdf66a4f5f31f39ec8f5c491e">select_subsets</a> (const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> &amp;path, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst)</td></tr>
 <tr class="separator:a3c9f75afdf66a4f5f31f39ec8f5c491e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2e4a224abb27256d5e30bb81ee54de2"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aa2e4a224abb27256d5e30bb81ee54de2">select_subsets</a> (const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;path, float pixels_additional_room, float item_space_additional_room, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst)</td></tr>
@@ -1564,7 +1564,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00908">908</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00906">906</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2788,8 +2788,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="aac7d849adb4af56f20b86cbad40151c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac7d849adb4af56f20b86cbad40151c4">&#9670;&nbsp;</a></span>select_chunks()</h2>
+<a id="a97ae29c3136040dcace77fd4bb090a94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97ae29c3136040dcace77fd4bb090a94">&#9670;&nbsp;</a></span>select_chunks()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2816,12 +2816,6 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>include_closing_edges</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>take_all_joins</em>, </td>
         </tr>
         <tr>
@@ -2837,12 +2831,11 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Calls <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a5077baa44d47754172fa5e3237187884">StrokedCapsJoins::compute_chunks()</a> passing arguments derived from the current state of the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter wraps around PainterPacker to implement a classic 2D rendering interface. ...">Painter</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Calls <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a670024b3985d6cdaebf29453fe5d14d5">StrokedCapsJoins::compute_chunks()</a> passing arguments derived from the current state of the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter wraps around PainterPacker to implement a classic 2D rendering interface. ...">Painter</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">caps_joins</td><td><a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> from which to compute chunk selection </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">pixels_additional_room</td><td>additional slack in -pixels- in selecting subsets from the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> geometry data </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">item_space_additional_room</td><td>amount additional slack in -local coordinate- in selecting subsets from the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> geometry data </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">include_closing_edges</td><td>if true, include the joins of the closing edges </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">take_all_joins</td><td>if true, filtering of joins is not performed, i.e. all joins of the <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> are selected </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">dst</td><td>location to which to write what chunks </td></tr>
   </table>
