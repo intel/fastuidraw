@@ -24,16 +24,16 @@
  */
 
 #include <cstdlib>
-#include <fastuidraw/util/checked_delete.hpp>
 #include <fastuidraw/util/fastuidraw_memory_private.hpp>
 
 /*!\def FASTUIDRAWnew
  * When creating FastUIDraw objects, one must use FASTUIDRAWnew instead of new
  * to create objects. For debug build of FastUIDraw, allocations with FASTUIDRAWnew
- * are tracked and at program exit a list of those objects not deleted by FASTUIDRAWdelete
- * are printed with the file and line number of the allocation. For release builds
- * of FastUIDraw, allocations are not tracked and std::malloc is used to allocate
- * memory.
+ * are tracked and at program exit a list of those objects not deleted by
+ * FASTUIDRAWdelete are printed with the file and line number of the allocation.
+ * For release builds of FastUIDraw, allocations are not tracked and std::malloc
+ * is used to allocate memory. Do NOT use FASTUIDRAWnew for creating arrays
+ * (i.e. p = new type[N]) as FASTUIDRAWdelete does not handle array deletion.
  */
 #define FASTUIDRAWnew \
   ::new(__FILE__, __LINE__)
@@ -41,28 +41,16 @@
 /*!\def FASTUIDRAWdelete
  * Use \ref FASTUIDRAWdelete to delete objects that were allocated with \ref
  * FASTUIDRAWnew. For debug builds of FastUIDraw, if the memory was not tracked
- * an error message is emitted. For both release and debug, object is deleted
- * via fastuidraw::checked_delete().
+ * an error message is emitted.
  * \param ptr address of object to delete, value must be a return value
  *            from FASTUIDRAWnew
  */
 #define FASTUIDRAWdelete(ptr) \
   do {                                                                  \
-    fastuidraw::memory::object_deletion_message(ptr, __FILE__, __LINE__); \
-    fastuidraw::checked_delete(ptr); } while(0)
-
-/*!\def FASTUIDRAWdelete_array
- * Use \ref FASTUIDRAWdelete_array for arrays of objects allocated with
- * \ref FASTUIDRAWnew. For debug builds of FastUIDraw, if the memory was
- * not tracked an error message is emitted. For both release and debug,
- * object is deleted via fastuidraw::checked_array_delete().
- * \param ptr address of array of objects to delete, value must be a return
- *            value of FASTUIDRAWnew
- */
-#define FASTUIDRAWdelete_array(ptr) \
-  do {                                                                  \
-    fastuidraw::memory::object_deletion_message(ptr, __FILE__, __LINE__); \
-    fastuidraw::checked_array_delete(ptr); } while(0)
+    fastuidraw::memory::check_object_exists(ptr, __FILE__, __LINE__);   \
+    fastuidraw::memory::call_dtor(ptr);                                 \
+    fastuidraw::memory::free_implement(ptr, __FILE__, __LINE__);        \
+  } while(0)
 
 /*!\def FASTUIDRAWmalloc
  * For debug build of FastUIDraw, allocations with \ref FASTUIDRAWmalloc are tracked and
