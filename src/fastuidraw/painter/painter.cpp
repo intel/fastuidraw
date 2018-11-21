@@ -2673,6 +2673,7 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
         }
     }
 
+  m_work_room.m_polygon.m_fuzz_increment_z = 0;
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
                                                  shader.hq_anti_alias_support(),
                                                  shader.fastest_anti_alias_mode());
@@ -2683,7 +2684,6 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
       mult = (anti_alias_quality == Painter::shader_anti_alias_simple) ? 1 : 0;
       m_work_room.m_polygon.m_aa_fuzz_attribs.clear();
       m_work_room.m_polygon.m_aa_fuzz_indices.clear();
-      m_work_room.m_polygon.m_fuzz_increment_z = 0;
 
       for (unsigned int i = 0; i < pts.size(); ++i, m_work_room.m_polygon.m_fuzz_increment_z += mult)
         {

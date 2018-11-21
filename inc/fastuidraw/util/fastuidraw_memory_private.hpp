@@ -57,7 +57,17 @@ namespace memory
    * Private function used by macro FASTUIDRAWdelete, do NOT call.
    */
   void
-  object_deletion_message(const void *ptr, const char *file, int line);
+  check_object_exists(const void *ptr, const char *file, int line);
+
+  /*!
+   * Private function used by macro FASTUIDRAWdelete, do NOT call.
+   */
+  template<typename T>
+  void
+  call_dtor(T *p)
+  {
+    p->~T();
+  }
 
   /*!
    * Private function used by macro FASTUIDRAWmalloc, do NOT call.

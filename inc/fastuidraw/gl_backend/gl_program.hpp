@@ -532,9 +532,8 @@ private:
 
 /*!
  * \brief
- * Specialization for type c_array<const T> for
- * \ref UniformInitializer so that data behind
- * the const_c_array is copied.
+ * Specialization for type c_array<const T> for \ref UniformInitializer
+ * so that data behind the c_array is copied
  */
 template<typename T>
 class UniformInitializer<c_array<const T> >:public UniformInitalizerBase
@@ -551,9 +550,12 @@ public:
   {
     if (!value.empty())
       {
-        m_data = FASTUIDRAWnew T[value.size()];
+        m_data = FASTUIDRAWmalloc(sizeof(T) * value.size());
+        for (unsigned int i = 0; i < value.size(); ++i)
+          {
+            new (&m_data[i]) T(value[i]);
+          }
         m_value = c_array<const T>(m_data, value.size());
-        std::copy(value.begin(), value.end(), m_data);
       }
   }
 
@@ -561,7 +563,11 @@ public:
   {
     if (m_data != nullptr)
       {
-        FASTUIDRAWdelete_array(m_data);
+        for (unsigned int i = 0; i < m_value.size(); ++i)
+          {
+            m_data[i].~T();
+          }
+        FASTUIDRAWfree(m_data);
       }
   }
 
@@ -585,63 +591,6 @@ private:
   T *m_data;
   c_array<const T> m_value;
 };
-
-/*!
- * \brief
- * Specialization for type c_array<T> for
- * \ref UniformInitializer so that data behind
- * the c_array is copied.
- */
-template<typename T>
-class UniformInitializer<c_array<T> >:public UniformInitalizerBase
-{
-public:
-  /*!
-   * Ctor.
-   * \param uniform_name name of uniform in GLSL to initialize
-   * \param value value with which to set the uniform
-   */
-  UniformInitializer(c_string uniform_name, const c_array<const T> &value):
-    UniformInitalizerBase(uniform_name),
-    m_data(nullptr)
-  {
-    if (!value.empty())
-      {
-        m_data = FASTUIDRAWnew T[value.size()];
-        m_value = c_array<const T>(m_data, value.size());
-        std::copy(value.begin(), value.end(), m_data);
-      }
-  }
-
-  ~UniformInitializer()
-  {
-    if (m_data != nullptr)
-      {
-        FASTUIDRAWdelete_array(m_data);
-      }
-  }
-
-protected:
-
-  virtual
-  void
-  init_uniform(GLuint program, GLint location, bool program_bound) const
-  {
-    if (program_bound)
-      {
-        Uniform(location, m_value);
-      }
-    else
-      {
-        ProgramUniform(program, location, m_value);
-      }
-  }
-
-private:
-  T *m_data;
-  c_array<const T> m_value;
-};
-
 
 /*!
  * \brief

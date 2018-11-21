@@ -465,7 +465,9 @@ namespace fastuidraw
       FASTUIDRAWassert(p);
       if (p->m_counter.remove_reference())
         {
-          FASTUIDRAWdelete(p);
+          reference_counted_base<T, Counter> *q;
+          q = const_cast<reference_counted_base<T, Counter>*>(p);
+          FASTUIDRAWdelete(q);
         }
     }
   private:

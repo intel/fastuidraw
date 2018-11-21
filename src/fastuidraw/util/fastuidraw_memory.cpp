@@ -65,6 +65,9 @@ namespace
     void
     untrack(const void *ptr, const char *file, int line);
 
+    bool
+    exists(const void *ptr);
+
     void
     print(std::ostream &ostr);
 
@@ -102,6 +105,20 @@ track(const void *ptr, const char *file, int line)
   m_mutex.lock();
   insert(value_type(ptr, mapped_type(file, line)));
   m_mutex.unlock();
+}
+
+bool
+address_set_type::
+exists(const void *ptr)
+{
+  bool found;
+  iterator iter;
+
+  m_mutex.lock();
+  found = (find(ptr) != end());
+  m_mutex.unlock();
+
+  return found;
 }
 
 void
@@ -155,7 +172,7 @@ print(std::ostream &ostr)
 // fastuidraw::memory methods
 void
 fastuidraw::memory::
-object_deletion_message(const void *ptr, const char *file, int line)
+check_object_exists(const void *ptr, const char *file, int line)
 {
   #ifdef FASTUIDRAW_DEBUG
     {
@@ -163,7 +180,12 @@ object_deletion_message(const void *ptr, const char *file, int line)
         {
           return;
         }
-      address_set().untrack(ptr, file, line);
+
+      if (!address_set().exists(ptr))
+        {
+          std::cerr << "Untracked object from [" << file << ", "
+                    << line << "] @" << ptr << "\n" << std::flush;
+        }
     }
   #else
     {
