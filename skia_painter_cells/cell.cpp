@@ -153,9 +153,12 @@ paint_pre_children(SkCanvas *painter)
       if(m_image_brush)
         {
           SkScalar w, h;
+          SkPaint no_aa;
+
+          no_aa.setAntiAlias(false);
           w = m_image_brush->width();
           h = m_image_brush->height();
-          painter->drawImage(m_image_brush, w * SkScalar(-0.5), h * SkScalar(-0.5));
+          painter->drawImage(m_image_brush, w * SkScalar(-0.5), h * SkScalar(-0.5), &no_aa);
         }
       else
         {

@@ -1,7 +1,7 @@
+#include <iostream>
 #include "table.hpp"
 #include "cell.hpp"
 #include "random.hpp"
-
 
 Table::
 Table(const TableParams &params):
@@ -116,8 +116,13 @@ generate_children_in_group(CellGroup *g, int &J,
 
               CellParams params;
               params.m_background_brush.setColor(m_params.m_background_colors[bgJ]);
+              params.m_background_brush.setAntiAlias(false);
+
               params.m_image_brush = m_params.m_images[imJ].first;
+
               params.m_rect_brush.setColor(SkColorSetARGB(190, 50, 200, 200));
+              params.m_rect_brush.setAntiAlias(false);
+
               params.m_text_brush.setColor(m_params.m_text_colors[txtJ]);
               params.m_text_brush.setTextSize(m_params.m_pixel_size);
               params.m_text_brush.setFlags(SkPaint::kAntiAlias_Flag | SkPaint::kSubpixelText_Flag);
