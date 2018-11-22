@@ -1217,10 +1217,9 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
   using namespace fastuidraw::glsl::detail;
 
   reference_counted_ptr<PainterItemShaderGLSL> shader;
-  unsigned int sub_shader_id;
   UberShaderVaryings uber_shader_varyings;
   AliasVaryingLocation shader_varying_datum;
-  c_string run_vert_shader, run_frag_shader;
+  std::ostringstream run_vert_shader, run_frag_shader;
 
   FASTUIDRAWassert(shader_id < m_item_shaders_keyed_by_id.size());
   FASTUIDRAWassert(m_item_shaders_keyed_by_id[shader_id]);
@@ -1228,47 +1227,40 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
   shader = m_item_shaders_keyed_by_id[shader_id];
   FASTUIDRAWassert(shader_id >= shader->ID());
 
-  sub_shader_id = shader_id - shader->ID();
-
   uber_shader_varyings.add_varyings("item",
                                     shader->varyings(),
                                     &shader_varying_datum);
 
   vert
-    .add_macro("FASTUIDRAW_LOCAL(X)", "X")
-    .add_macro("fastuidraw_shader_id", shader_id)
-    .add_macro("fastuidraw_sub_shader_id", sub_shader_id);
+    .add_macro("FASTUIDRAW_LOCAL(X)", "X");
 
   frag
-    .add_macro("FASTUIDRAW_LOCAL(X)", "X")
-    .add_macro("fastuidraw_shader_id", shader_id)
-    .add_macro("fastuidraw_sub_shader_id", sub_shader_id);
+    .add_macro("FASTUIDRAW_LOCAL(X)", "X");
 
   construct_shader_common(backend, vert, frag,
                           uber_shader_varyings,
                           params, discard_macro_value);
-
+  run_vert_shader
+    << "void fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)\n"
+    << "{\n"
+    << "  fastuidraw_gl_vert_main(uint(h.item_shader) - uint(" << shader->ID() << "), fastuidraw_attribute0,\n"
+    << "                          fastuidraw_attribute1, fastuidraw_attribute2,\n"
+    << "                          h.item_shader_data_location, add_z, brush_p, clip_p);\n"
+    << "}\n"
+    << "\n";
   uber_shader_varyings.stream_alias_varyings(vert, shader->varyings(), true, shader_varying_datum);
-  run_vert_shader =
-    "vec4 fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z)\n"
-    "{\n"
-    "  return fastuidraw_gl_vert_main(uint(fastuidraw_sub_shader_id), fastuidraw_attribute0,\n"
-    "                                fastuidraw_attribute1, fastuidraw_attribute2,\n"
-    "                                h.item_shader_data_location, add_z);\n"
-    "}\n"
-    "\n";
   vert.add_source(shader->vertex_src());
-  vert.add_source(run_vert_shader, ShaderSource::from_string);
+  vert.add_source(run_vert_shader.str().c_str(), ShaderSource::from_string);
 
   uber_shader_varyings.stream_alias_varyings(frag, shader->varyings(), true, shader_varying_datum);
-  run_frag_shader =
-    "vec4 fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)\n"
-    "{\n"
-    "  return fastuidraw_gl_frag_main(uint(fastuidraw_sub_shader_id), frag_shader_data_location);\n"
-    "}\n"
-    "\n";
+  run_frag_shader
+    << "vec4 fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)\n"
+    << "{\n"
+    << "  return fastuidraw_gl_frag_main(uint(frag_shader) - uint(" << shader->ID() << "), frag_shader_data_location);\n"
+    << "}\n"
+    << "\n";
   frag.add_source(shader->fragment_src());
-  frag.add_source(run_frag_shader, ShaderSource::from_string);
+  frag.add_source(run_frag_shader.str().c_str(), ShaderSource::from_string);
 }
 
 //////////////////////////////////////////////////////
