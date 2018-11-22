@@ -261,6 +261,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
   bool has_sub_shaders(false), has_return_value(return_type != "void");
   std::string tab;
+  bool first_entry(true);
 
   dst << return_type << "\n"
       << uber_func_with_args << "\n"
@@ -299,6 +300,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
               << "(" << shader_id << " - uint(" << start << ")" << shader_args << ");\n"
               << "    }\n";
           has_sub_shaders = true;
+          first_entry = false;
         }
     }
 
@@ -319,7 +321,6 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
           << tab << "{\n";
     }
 
-  bool first_entry(true);
   for(const auto &sh : shaders)
     {
       if (sh->number_sub_shaders() == 1)
