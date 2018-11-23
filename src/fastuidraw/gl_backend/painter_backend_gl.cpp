@@ -928,8 +928,8 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
         {
           GLbitfield mask(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-          fbo = m_surface_gl->fbo(aux_type, compositing_type);
-          draw_buffers = m_surface_gl->draw_buffers(aux_type, compositing_type);
+          fbo = m_surface_gl->fbo(aux_type, PainterBackendGL::compositing_single_src);
+          draw_buffers = m_surface_gl->draw_buffers(aux_type, PainterBackendGL::compositing_single_src);
 
           glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
           glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
