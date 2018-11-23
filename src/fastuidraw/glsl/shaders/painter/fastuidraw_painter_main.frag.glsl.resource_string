@@ -86,15 +86,21 @@ main(void)
   pbrush_dx = dFdx(pbrush);
   pbrush_dy = dFdy(pbrush);
 
-  fastuidraw_apply_clipping();
-
   #if defined(FASTUIDRAW_AUX_NEEDS_MAIN_INTERLOCK)
     {
       fastuidraw_begin_interlock();
     }
   #endif
 
+  /* Testing on Mesa gives noisy discard when skipping the
+   * the fragment shader if the fragment is discarded and
+   * we just opt to skip color writes; we place this icky
+   * #if/#endif in the hope it that Mesa/i965 will get
+   * fixed and we can remove this #if/#endif awfulness.
+   */
+  #if !defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
   if (!fragment_discarded)
+  #endif
     {
       vec4 b, c;
 
