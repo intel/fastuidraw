@@ -49,7 +49,7 @@ namespace
   {
     if (texture_is_layered(texTarget))
       {
-        glFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, texName, level, layer);
+        fastuidraw_glFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, texName, level, layer);
       }
     else
       {
@@ -58,13 +58,13 @@ namespace
           {
 #ifdef GL_TEXTURE_1D
           case GL_TEXTURE_1D:
-            glFramebufferTexture1D(fbo, GL_COLOR_ATTACHMENT0, texTarget, texName, level);
+            fastuidraw_glFramebufferTexture1D(fbo, GL_COLOR_ATTACHMENT0, texTarget, texName, level);
             break;
 #endif
           default:
             // we do not need to worry about GL_TEXTURE_3D, because that target
             // is layered
-            glFramebufferTexture2D(fbo, GL_COLOR_ATTACHMENT0, texTarget, texName, level);
+            fastuidraw_glFramebufferTexture2D(fbo, GL_COLOR_ATTACHMENT0, texTarget, texName, level);
             break;
           }
       }
@@ -287,28 +287,28 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
     {
 #ifndef __APPLE__
     case unextended_function:
-      glCopyImageSubData(srcName, srcTarget, srcLevel,
-                         srcX, srcY, srcZ,
-                         dstName, dstTarget, dstLevel,
-                         dstX, dstY, dstZ,
-                         width, height, depth);
+      fastuidraw_glCopyImageSubData(srcName, srcTarget, srcLevel,
+                                    srcX, srcY, srcZ,
+                                    dstName, dstTarget, dstLevel,
+                                    dstX, dstY, dstZ,
+                                    width, height, depth);
       break;
 #endif
 
 #ifdef FASTUIDRAW_GL_USE_GLES
     case oes_function:
-      glCopyImageSubDataOES(srcName, srcTarget, srcLevel,
-                            srcX, srcY, srcZ,
-                            dstName, dstTarget, dstLevel,
-                            dstX, dstY, dstZ,
-                            width, height, depth);
+      fastuidraw_glCopyImageSubDataOES(srcName, srcTarget, srcLevel,
+                                       srcX, srcY, srcZ,
+                                       dstName, dstTarget, dstLevel,
+                                       dstX, dstY, dstZ,
+                                       width, height, depth);
       break;
     case ext_function:
-      glCopyImageSubDataEXT(srcName, srcTarget, srcLevel,
-                            srcX, srcY, srcZ,
-                            dstName, dstTarget, dstLevel,
-                            dstX, dstY, dstZ,
-                            width, height, depth);
+      fastuidraw_glCopyImageSubDataEXT(srcName, srcTarget, srcLevel,
+                                       srcX, srcY, srcZ,
+                                       dstName, dstTarget, dstLevel,
+                                       dstX, dstY, dstZ,
+                                       width, height, depth);
       break;
 #endif
 
@@ -320,13 +320,13 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
         enum { fbo_draw, fbo_read };
 
         GLuint new_fbos[2] = { 0 }, old_fbos[2] = { 0 };
-        glGenFramebuffers(2, new_fbos);
+        fastuidraw_glGenFramebuffers(2, new_fbos);
         FASTUIDRAWassert(new_fbos[fbo_draw] != 0 && new_fbos[fbo_read] != 0);
 
         old_fbos[fbo_draw] = context_get<GLint>(GL_DRAW_FRAMEBUFFER_BINDING);
         old_fbos[fbo_read] = context_get<GLint>(GL_READ_FRAMEBUFFER_BINDING);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, new_fbos[fbo_draw]);
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, new_fbos[fbo_read]);
+        fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, new_fbos[fbo_draw]);
+        fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, new_fbos[fbo_read]);
         for(int layer = 0, src_layer = srcZ, dst_layer = dstZ;
             layer < depth; ++layer, ++src_layer, ++dst_layer)
           {
@@ -337,13 +337,13 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
             FASTUIDRAWassert(dst_layer == 0 || texture_is_layered(dstTarget));
             set_color_attachment(GL_DRAW_FRAMEBUFFER, dstTarget, dstName, dst_layer, dstLevel);
             set_color_attachment(GL_READ_FRAMEBUFFER, srcTarget, srcName, src_layer, srcLevel);
-            glBlitFramebuffer(srcX, srcY, srcX + width, srcY + height,
-                              dstX, dstY, dstX + width, dstY + height,
-                              GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            fastuidraw_glBlitFramebuffer(srcX, srcY, srcX + width, srcY + height,
+                                         dstX, dstY, dstX + width, dstY + height,
+                                         GL_COLOR_BUFFER_BIT, GL_NEAREST);
           }
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fbos[fbo_draw]);
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbos[fbo_read]);
-        glDeleteFramebuffers(2, new_fbos);
+        fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fbos[fbo_draw]);
+        fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbos[fbo_read]);
+        fastuidraw_glDeleteFramebuffers(2, new_fbos);
       }
       break;
     }

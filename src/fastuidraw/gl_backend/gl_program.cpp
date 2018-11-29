@@ -129,17 +129,17 @@ namespace
     GLint name_length(0);
     GLenum prop_name_length(GL_NAME_LENGTH);
 
-    glGetProgramResourceiv(program, program_interface, index,
-                           1, &prop_name_length,
-                           1, nullptr, &name_length);
+    fastuidraw_glGetProgramResourceiv(program, program_interface, index,
+                                      1, &prop_name_length,
+                                      1, nullptr, &name_length);
     if (name_length <= 0)
       {
         return std::string();
       }
 
     std::vector<GLchar> dst_name(name_length, '\0');
-    glGetProgramResourceName(program, program_interface, index,
-                             dst_name.size(), nullptr, &dst_name[0]);
+    fastuidraw_glGetProgramResourceName(program, program_interface, index,
+                                        dst_name.size(), nullptr, &dst_name[0]);
 
     return std::string(&dst_name[0]);
   }
@@ -783,31 +783,31 @@ compile(void)
   FASTUIDRAWassert(m_name == 0);
 
   m_shader_ready = true;
-  m_name = glCreateShader(m_shader_type);
+  m_name = fastuidraw_glCreateShader(m_shader_type);
 
   fastuidraw::c_string sourceString[1];
   sourceString[0] = m_source_code.c_str();
 
-  glShaderSource(m_name, //shader handle
-                 1, //number strings
-                 sourceString, //array of strings
-                 nullptr); //lengths of each string or nullptr implies each is 0-terminated
+  fastuidraw_glShaderSource(m_name, //shader handle
+                            1, //number strings
+                            sourceString, //array of strings
+                            nullptr); //lengths of each string or nullptr implies each is 0-terminated
 
-  glCompileShader(m_name);
+  fastuidraw_glCompileShader(m_name);
 
   GLint logSize(0), shaderOK;
   std::vector<char> raw_log;
 
   //get shader compile status and log length.
-  glGetShaderiv(m_name, GL_COMPILE_STATUS, &shaderOK);
-  glGetShaderiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
+  fastuidraw_glGetShaderiv(m_name, GL_COMPILE_STATUS, &shaderOK);
+  fastuidraw_glGetShaderiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
 
   //retrieve the compile log string, eh gross.
   raw_log.resize(logSize+2,'\0');
-  glGetShaderInfoLog(m_name, //shader handle
-                     logSize+1, //maximum size of string
-                     nullptr, //GLint* return length of string
-                     &raw_log[0]); //char* to write log to.
+  fastuidraw_glGetShaderInfoLog(m_name, //shader handle
+                                logSize+1, //maximum size of string
+                                nullptr, //GLint* return length of string
+                                &raw_log[0]); //char* to write log to.
 
   m_compile_log = &raw_log[0];
   m_compile_success = (shaderOK == GL_TRUE);
@@ -846,9 +846,9 @@ fill_variable(GLuint program,
           m_work_room[i] = dst.*m_dsts[i];
         }
 
-      glGetProgramResourceiv(program, variable_interface, variable_interface_index,
-                             m_enums.size(), &m_enums[0],
-                             m_work_room.size(), nullptr, &m_work_room[0]);
+      fastuidraw_glGetProgramResourceiv(program, variable_interface, variable_interface_index,
+                                        m_enums.size(), &m_enums[0],
+                                        m_work_room.size(), nullptr, &m_work_room[0]);
 
       for(unsigned int i = 0, endi = m_enums.size(); i < endi; ++i)
         {
@@ -926,7 +926,7 @@ fill_variables(GLuint program,
   for(unsigned int q = 0, endq = m_enums.size(); q < endq; ++q)
     {
       std::fill(values.begin(), values.end(), default_value.*m_dsts[q]);
-      glGetActiveUniformsiv(program, indxs.size(), &indxs[0], m_enums[q], &values[0]);
+      fastuidraw_glGetActiveUniformsiv(program, indxs.size(), &indxs[0], m_enums[q], &values[0]);
       for(unsigned int v = 0, endv = indxs.size(); v < endv; ++v)
         {
           dst[v].*m_dsts[q] = values[v];
@@ -1083,13 +1083,13 @@ populate_non_program_interface_query(GLuint program,
 {
   GLint count(0);
 
-  glGetProgramiv(program, count_enum, &count);
+  fastuidraw_glGetProgramiv(program, count_enum, &count);
   if (count > 0)
     {
       GLint largest_length(0);
       std::vector<char> pname;
 
-      glGetProgramiv(program, length_enum, &largest_length);
+      fastuidraw_glGetProgramiv(program, length_enum, &largest_length);
 
       ++largest_length;
       pname.resize(largest_length, '\0');
@@ -1128,7 +1128,7 @@ populate_from_resource(GLuint program,
                        const ShaderVariableInterfaceQueryList &queries)
 {
   GLint num(0);
-  glGetProgramInterfaceiv(program, resource_interface, GL_ACTIVE_RESOURCES, &num);
+  fastuidraw_glGetProgramInterfaceiv(program, resource_interface, GL_ACTIVE_RESOURCES, &num);
   for(GLint i = 0; i < num; ++i)
     {
       ShaderVariableInfo p;
@@ -1149,17 +1149,17 @@ populate_from_interface_block(GLuint program,
   const GLenum prop_num_active(GL_NUM_ACTIVE_VARIABLES);
   GLint num_variables(0);
 
-  glGetProgramResourceiv(program, program_interface, interface_index,
-                         1, &prop_num_active,
-                         1, nullptr, &num_variables);
+  fastuidraw_glGetProgramResourceiv(program, program_interface, interface_index,
+                                    1, &prop_num_active,
+                                    1, nullptr, &num_variables);
   if (num_variables > 0)
     {
       const GLenum prop_active(GL_ACTIVE_VARIABLES);
       std::vector<GLint> variable_index(num_variables, -1);
 
-      glGetProgramResourceiv(program, program_interface, interface_index,
-                             1, &prop_active,
-                             num_variables, nullptr, &variable_index[0]);
+      fastuidraw_glGetProgramResourceiv(program, program_interface, interface_index,
+                                        1, &prop_active,
+                                        num_variables, nullptr, &variable_index[0]);
       for(GLint i = 0; i < num_variables; ++i)
         {
           ShaderVariableInfo p;
@@ -1287,14 +1287,14 @@ populate(GLuint program, GLenum program_interface,
                                      resource_index);
 
   const GLenum prop_data_size(GL_BUFFER_DATA_SIZE);
-  glGetProgramResourceiv(program, program_interface, m_block_index,
-                         1, &prop_data_size,
-                         1, nullptr, &m_size_bytes);
+  fastuidraw_glGetProgramResourceiv(program, program_interface, m_block_index,
+                                    1, &prop_data_size,
+                                    1, nullptr, &m_size_bytes);
 
   const GLenum prop_binding_point(GL_BUFFER_BINDING);
-  glGetProgramResourceiv(program, program_interface, m_block_index,
-                         1, &prop_binding_point,
-                         1, nullptr, &m_initial_buffer_binding);
+  fastuidraw_glGetProgramResourceiv(program, program_interface, m_block_index,
+                                    1, &prop_binding_point,
+                                    1, nullptr, &m_initial_buffer_binding);
 }
 
 
@@ -1355,7 +1355,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
     }
 
   GLint mode(GL_INVALID_ENUM);
-  glGetProgramiv(program, GL_TRANSFORM_FEEDBACK_BUFFER_MODE, &mode);
+  fastuidraw_glGetProgramiv(program, GL_TRANSFORM_FEEDBACK_BUFFER_MODE, &mode);
   m_buffer_mode = mode;
 
   if (use_program_interface_query)
@@ -1385,9 +1385,9 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
           for (GLint i = 0; i < num_buffers; ++i)
             {
               GLint tmp(0);
-              glGetProgramResourceiv(program, GL_TRANSFORM_FEEDBACK_BUFFER, i,
-                                     1, &xfb_buffer_stride,
-                                     1, nullptr, &tmp);
+              fastuidraw_glGetProgramResourceiv(program, GL_TRANSFORM_FEEDBACK_BUFFER, i,
+                                                1, &xfb_buffer_stride,
+                                                1, nullptr, &tmp);
               m_buffer_stride[i] = tmp;
             }
         }
@@ -1559,7 +1559,7 @@ populate(GLuint program,
         .add(GL_TOP_LEVEL_ARRAY_SIZE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_size)
         .add(GL_TOP_LEVEL_ARRAY_STRIDE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_stride);
 
-      glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_count);
+      fastuidraw_glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_count);
       resize_number_blocks(ssbo_count, fastuidraw::gl::Program::src_shader_storage_block);
       for(GLint i = 0; i < ssbo_count; ++i)
         {
@@ -1638,7 +1638,7 @@ populate_private_program_interface_query(GLuint program,
 
   /* populate the ABO blocks */
   GLint abo_count(0);
-  glGetProgramInterfaceiv(program, GL_ATOMIC_COUNTER_BUFFER, GL_ACTIVE_RESOURCES, &abo_count);
+  fastuidraw_glGetProgramInterfaceiv(program, GL_ATOMIC_COUNTER_BUFFER, GL_ACTIVE_RESOURCES, &abo_count);
   m_abo_buffers.resize(abo_count);
 
   /* extract from m_all_uniforms those uniforms from the default block */
@@ -1657,7 +1657,7 @@ populate_private_program_interface_query(GLuint program,
 
   /* poplulate each of the uniform blocks. */
   GLint ubo_count(0);
-  glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &ubo_count);
+  fastuidraw_glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &ubo_count);
   resize_number_blocks(ubo_count, fastuidraw::gl::Program::src_uniform_block);
   for(GLint i = 0; i < ubo_count; ++i)
     {
@@ -1670,12 +1670,12 @@ populate_private_program_interface_query(GLuint program,
       const GLenum prop_binding(GL_BUFFER_BINDING);
 
       m_abo_buffers[i].m_buffer_index = i;
-      glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
-                             1, &prop_data_size,
-                             1, nullptr, &m_abo_buffers[i].m_size_bytes);
-      glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
-                             1, &prop_binding,
-                             1, nullptr, &m_abo_buffers[i].m_buffer_binding);
+      fastuidraw_glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
+                                        1, &prop_data_size,
+                                        1, nullptr, &m_abo_buffers[i].m_size_bytes);
+      fastuidraw_glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
+                                        1, &prop_binding,
+                                        1, nullptr, &m_abo_buffers[i].m_buffer_binding);
       m_abo_buffers[i].finalize();
       m_atomic_map[m_abo_buffers[i].m_buffer_binding] = i;
     }
@@ -1710,16 +1710,16 @@ populate_private_non_program_interface_query(GLuint program,
       if (abo_supported)
         {
           query_list.add(GL_ATOMIC_COUNTER_BUFFER_INDEX, &ShaderVariableInfo::m_abo_index);
-          glGetProgramiv(program, GL_ACTIVE_ATOMIC_COUNTER_BUFFERS, &abo_count);
+          fastuidraw_glGetProgramiv(program, GL_ACTIVE_ATOMIC_COUNTER_BUFFERS, &abo_count);
 
           m_abo_buffers.resize(abo_count);
           for(int i = 0; i != abo_count; ++i)
             {
               m_abo_buffers[i].m_buffer_index = i;
-              glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE,
-                                               &m_abo_buffers[i].m_size_bytes);
-              glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_BINDING,
-                                               &m_abo_buffers[i].m_buffer_binding);
+              fastuidraw_glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE,
+                                                          &m_abo_buffers[i].m_size_bytes);
+              fastuidraw_glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_BINDING,
+                                                          &m_abo_buffers[i].m_buffer_binding);
             }
         }
     }
@@ -1735,14 +1735,14 @@ populate_private_non_program_interface_query(GLuint program,
   /* get the UBO block information: name and size
    */
   GLint ubo_count(0);
-  glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_count);
+  fastuidraw_glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_count);
   resize_number_blocks(ubo_count, fastuidraw::gl::Program::src_uniform_block);
   if (ubo_count > 0)
     {
       GLint largest_length(0);
       std::vector<char> pname;
 
-      glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &largest_length);
+      fastuidraw_glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &largest_length);
       ++largest_length;
       pname.resize(largest_length, '\0');
 
@@ -1751,9 +1751,9 @@ populate_private_non_program_interface_query(GLuint program,
           GLsizei name_length(0);
           std::memset(&pname[0], 0, largest_length);
 
-          glGetActiveUniformBlockName(program, i, largest_length, &name_length, &pname[0]);
-          glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &block_ref(i).m_size_bytes);
-          glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_BINDING, &block_ref(i).m_initial_buffer_binding);
+          fastuidraw_glGetActiveUniformBlockName(program, i, largest_length, &name_length, &pname[0]);
+          fastuidraw_glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &block_ref(i).m_size_bytes);
+          fastuidraw_glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_BINDING, &block_ref(i).m_initial_buffer_binding);
 
           block_ref(i).m_block_index = i;
           block_ref(i).m_name = std::string(pname.begin(), pname.begin() + name_length);
@@ -1814,7 +1814,7 @@ fastuidraw::gl::Shader::
    */
   if (d->m_name)
     {
-      glDeleteShader(d->m_name);
+      fastuidraw_glDeleteShader(d->m_name);
     }
   FASTUIDRAWdelete(d);
   m_d = nullptr;
@@ -1939,7 +1939,7 @@ action(GLuint glsl_program) const
 {
   BindAttributePrivate *d;
   d = static_cast<BindAttributePrivate*>(m_d);
-  glBindAttribLocation(glsl_program, d->m_location, d->m_label.c_str());
+  fastuidraw_glBindAttribLocation(glsl_program, d->m_location, d->m_label.c_str());
 }
 
 
@@ -1968,11 +1968,11 @@ action(GLuint glsl_program) const
   d = static_cast<BindFragDataLocationPrivate*>(m_d);
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      glBindFragDataLocationIndexedEXT(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
+      fastuidraw_glBindFragDataLocationIndexedEXT(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
     }
   #else
     {
-      glBindFragDataLocationIndexed(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
+      fastuidraw_glBindFragDataLocationIndexed(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
     }
   #endif
 }
@@ -1983,7 +1983,7 @@ void
 fastuidraw::gl::ProgramSeparable::
 action(GLuint glsl_program) const
 {
-  glProgramParameteri(glsl_program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+  fastuidraw_glProgramParameteri(glsl_program, GL_PROGRAM_SEPARABLE, GL_TRUE);
 }
 
 ///////////////////////////////////////////////////
@@ -2028,10 +2028,10 @@ action(GLuint glsl_program) const
   d = static_cast<TransformFeedbackVaryingPrivate*>(m_d);
   if (d->m_transform_feedback_varyings.size() > 0)
     {
-      glTransformFeedbackVaryings(glsl_program,
-                                  d->m_transform_feedback_varyings.size(),
-                                  d->m_transform_feedback_varyings.get().c_ptr(),
-                                  d->m_buffer_mode);
+      fastuidraw_glTransformFeedbackVaryings(glsl_program,
+                                             d->m_transform_feedback_varyings.size(),
+                                             d->m_transform_feedback_varyings.get().c_ptr(),
+                                             d->m_buffer_mode);
     }
 }
 
@@ -2105,7 +2105,6 @@ execute_actions(GLuint pr) const
         }
     }
 }
-
 
 ///////////////////////////////////////////////////
 // fastuidraw::gl::Program::shader_variable_info methods
@@ -2485,11 +2484,11 @@ populate_info(void)
   std::vector<char> raw_log;
   GLint logSize, linkOK;
 
-  glGetProgramiv(m_name, GL_LINK_STATUS, &linkOK);
-  glGetProgramiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
+  fastuidraw_glGetProgramiv(m_name, GL_LINK_STATUS, &linkOK);
+  fastuidraw_glGetProgramiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
 
   raw_log.resize(logSize + 2);
-  glGetProgramInfoLog(m_name, logSize + 1, nullptr , &raw_log[0]);
+  fastuidraw_glGetProgramInfoLog(m_name, logSize + 1, nullptr , &raw_log[0]);
 
   m_link_log = std::string(&raw_log[0]);
   m_link_success = m_link_success && (linkOK == GL_TRUE);
@@ -2518,14 +2517,14 @@ populate_info(void)
       if (!sso_supported)
         {
           current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
-          glUseProgram(m_name);
+          fastuidraw_glUseProgram(m_name);
         }
 
       m_initializers.perform_initializations(m_p, !sso_supported);
 
       if (!sso_supported)
         {
-          glUseProgram(current_program);
+          fastuidraw_glUseProgram(current_program);
         }
     }
   m_initializers.clear();
@@ -2546,7 +2545,7 @@ assemble(void)
 
   m_assembled = true;
   FASTUIDRAWassert(m_name == 0);
-  m_name = glCreateProgram();
+  m_name = fastuidraw_glCreateProgram();
   m_link_success = true;
 
   /* attatch the shaders, attaching a bad shader makes
@@ -2556,7 +2555,7 @@ assemble(void)
     {
       if (sh->compile_success())
         {
-          glAttachShader(m_name, sh->name());
+          fastuidraw_glAttachShader(m_name, sh->name());
         }
       else
         {
@@ -2569,7 +2568,7 @@ assemble(void)
   m_pre_link_actions = fastuidraw::gl::PreLinkActionArray();
 
   //now finally link!
-  glLinkProgram(m_name);
+  fastuidraw_glLinkProgram(m_name);
 
   //we no longer need the GL shaders.
   clear_shaders_and_save_shader_data();
@@ -2611,7 +2610,7 @@ clear_shaders_and_save_shader_data(void)
       m_shader_data[i].m_shader_type = m_shaders[i]->shader_type();
       m_shader_data[i].m_compile_log = m_shaders[i]->compile_log();
       m_shader_data_sorted_by_type[m_shader_data[i].m_shader_type].push_back(i);
-      glDetachShader(m_name, m_shaders[i]->name());
+      fastuidraw_glDetachShader(m_name, m_shaders[i]->name());
     }
   m_shaders.clear();
 }
@@ -2874,7 +2873,7 @@ fastuidraw::gl::Program::
   d = static_cast<ProgramPrivate*>(m_d);
   if (d->m_name && d->m_delete_program)
     {
-      glDeleteProgram(d->m_name);
+      fastuidraw_glDeleteProgram(d->m_name);
     }
   FASTUIDRAWdelete(d);
   m_d = nullptr;
@@ -2891,7 +2890,7 @@ use_program(void)
   FASTUIDRAWassert(d->m_name != 0);
   FASTUIDRAWassert(d->m_link_success);
 
-  glUseProgram(d->m_name);
+  fastuidraw_glUseProgram(d->m_name);
 }
 
 GLuint
@@ -3371,10 +3370,10 @@ perform_initialization(Program *pr, bool program_bound) const
   FASTUIDRAWassert(d != nullptr);
 
   int loc;
-  loc = glGetUniformBlockIndex(pr->name(), d->m_block_name.c_str());
+  loc = fastuidraw_glGetUniformBlockIndex(pr->name(), d->m_block_name.c_str());
   if (loc != -1)
     {
-      glUniformBlockBinding(pr->name(), loc, d->m_binding_point);
+      fastuidraw_glUniformBlockBinding(pr->name(), loc, d->m_binding_point);
     }
   else
     {
@@ -3415,10 +3414,10 @@ perform_initialization(Program *pr, bool program_bound) const
   FASTUIDRAWassert(d != nullptr);
 
   int loc;
-  loc = glGetProgramResourceIndex(pr->name(), GL_SHADER_STORAGE_BLOCK, d->m_block_name.c_str());
+  loc = fastuidraw_glGetProgramResourceIndex(pr->name(), GL_SHADER_STORAGE_BLOCK, d->m_block_name.c_str());
   if (loc != -1)
     {
-      glShaderStorageBlockBinding(pr->name(), loc, d->m_binding_point);
+      fastuidraw_glShaderStorageBlockBinding(pr->name(), loc, d->m_binding_point);
     }
   else
     {
@@ -3463,7 +3462,7 @@ perform_initialization(Program *pr, bool program_bound) const
   loc = pr->uniform_location(d->c_str());
   if (loc == -1)
     {
-      loc = glGetUniformLocation(pr->name(), d->c_str());
+      loc = fastuidraw_glGetUniformLocation(pr->name(), d->c_str());
       if (loc != -1)
         {
           std::cerr << "gl_program::uniform_location failed to find uniform, \""

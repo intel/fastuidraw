@@ -331,7 +331,7 @@ gl_backing(void) const
 {
   if (m_texture == 0)
     {
-      glGenTextures(1, &m_texture);
+      fastuidraw_glGenTextures(1, &m_texture);
       FASTUIDRAWassert(m_texture != 0);
     }
 
@@ -341,7 +341,7 @@ gl_backing(void) const
 
       bo = m_backing_store.buffer();
       FASTUIDRAWassert(bo != 0);
-      glBindTexture(GL_TEXTURE_BUFFER, m_texture);
+      fastuidraw_glBindTexture(GL_TEXTURE_BUFFER, m_texture);
       fastuidraw::gl::detail::tex_buffer(fastuidraw::gl::detail::compute_tex_buffer_support(),
                                          GL_TEXTURE_BUFFER, GL_R32UI, bo);
       m_tbo_dirty = false;

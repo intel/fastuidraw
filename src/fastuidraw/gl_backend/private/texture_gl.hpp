@@ -165,20 +165,20 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 3> size,
 {
   if (use_tex_storage)
     {
-      glTexStorage3D(texture_target, num_levels, internalformat,
-                     size.x(), size.y(), size.z());
+      fastuidraw_glTexStorage3D(texture_target, num_levels, internalformat,
+                                size.x(), size.y(), size.z());
     }
   else
     {
       for (unsigned int i = 0; i < num_levels; ++i)
         {
-          glTexImage3D(texture_target,
-                       i,
-                       internalformat,
-                       size.x(), size.y(), size.z(), 0,
-                       format_from_internal_format(internalformat),
-                       type_from_internal_format(internalformat),
-                       nullptr);
+          fastuidraw_glTexImage3D(texture_target,
+                                  i,
+                                  internalformat,
+                                  size.x(), size.y(), size.z(), 0,
+                                  format_from_internal_format(internalformat),
+                                  type_from_internal_format(internalformat),
+                                  nullptr);
           size = TextureTargetDimension<texture_target>::next_lod_size(size);
         }
     }
@@ -191,10 +191,10 @@ tex_sub_image(int level, vecN<GLint, 3> offset,
               vecN<GLsizei, 3> size, GLenum format, GLenum type,
               const void *pixels)
 {
-  glTexSubImage3D(texture_target, level,
-                  offset.x(), offset.y(), offset.z(),
-                  size.x(), size.y(), size.z(),
-                  format, type, pixels);
+  fastuidraw_glTexSubImage3D(texture_target, level,
+                             offset.x(), offset.y(), offset.z(),
+                             size.x(), size.y(), size.z(),
+                             format, type, pixels);
 }
 
 //////////////////////////////////////////////
@@ -260,19 +260,19 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 2> size,
 {
   if (use_tex_storage)
     {
-      glTexStorage2D(texture_target, num_levels, internalformat, size.x(), size.y());
+      fastuidraw_glTexStorage2D(texture_target, num_levels, internalformat, size.x(), size.y());
     }
   else
     {
       for (unsigned int i = 0; i < num_levels; ++i)
         {
-          glTexImage2D(texture_target,
-                       i,
-                       internalformat,
-                       size.x(), size.y(), 0,
-                       format_from_internal_format(internalformat),
-                       type_from_internal_format(internalformat),
-                       nullptr);
+          fastuidraw_glTexImage2D(texture_target,
+                                  i,
+                                  internalformat,
+                                  size.x(), size.y(), 0,
+                                  format_from_internal_format(internalformat),
+                                  type_from_internal_format(internalformat),
+                                  nullptr);
           size = TextureTargetDimension<texture_target>::next_lod_size(size);
         }
     }
@@ -286,10 +286,10 @@ tex_sub_image(int level,
               vecN<GLsizei, 2> size,
               GLenum format, GLenum type, const void *pixels)
 {
-  glTexSubImage2D(texture_target, level,
-                  offset.x(), offset.y(),
-                  size.x(), size.y(),
-                  format, type, pixels);
+  fastuidraw_glTexSubImage2D(texture_target, level,
+                             offset.x(), offset.y(),
+                             size.x(), size.y(),
+                             format, type, pixels);
 }
 
 
@@ -323,19 +323,19 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 1> size,
 {
   if (use_tex_storage)
     {
-      glTexStorage1D(texture_target, 1, internalformat, size.x());
+      fastuidraw_glTexStorage1D(texture_target, 1, internalformat, size.x());
     }
   else
     {
       for (unsigned int i = 0; i < num_levels; ++i)
         {
-          glTexImage1D(texture_target,
-                       i,
-                       internalformat,
-                       size.x(), 0,
-                       format_from_internal_format(internalformat),
-                       type_from_internal_format(internalformat),
-                       nullptr);
+          fastuidraw_glTexImage1D(texture_target,
+                                  i,
+                                  internalformat,
+                                  size.x(), 0,
+                                  format_from_internal_format(internalformat),
+                                  type_from_internal_format(internalformat),
+                                  nullptr);
           size = TextureTargetDimension<texture_target>::next_lod_size(size);
         }
     }
@@ -348,7 +348,7 @@ tex_sub_image(int level, vecN<GLint, 1> offset,
               vecN<GLsizei, 1> size, GLenum format, GLenum type,
               const void *pixels)
 {
-  glTexSubImage1D(texture_target, level, offset.x(), size.x(), format, type, pixels);
+  fastuidraw_glTexSubImage1D(texture_target, level, offset.x(), size.x(), format, type, pixels);
 }
 
 #endif
@@ -547,7 +547,7 @@ flush_size_change(void)
 
           /* now delete old_texture
            */
-          glDeleteTextures(1, &old_texture);
+          fastuidraw_glDeleteTextures(1, &old_texture);
         }
       m_texture_dimension = m_dims;
     }
@@ -559,7 +559,7 @@ TextureGLGeneric<texture_target>::
 delete_texture(void)
 {
   FASTUIDRAWassert(m_texture != 0);
-  glDeleteTextures(1, &m_texture);
+  fastuidraw_glDeleteTextures(1, &m_texture);
   m_texture = 0;
 }
 
@@ -580,9 +580,9 @@ TextureGLGeneric<texture_target>::
 create_texture(void) const
 {
   FASTUIDRAWassert(m_texture == 0);
-  glGenTextures(1, &m_texture);
+  fastuidraw_glGenTextures(1, &m_texture);
   FASTUIDRAWassert(m_texture!=0);
-  glBindTexture(texture_target, m_texture);
+  fastuidraw_glBindTexture(texture_target, m_texture);
   if (m_number_times_create_texture_called == 0)
     {
       ContextProperties ctx;
@@ -590,9 +590,9 @@ create_texture(void) const
         || ctx.has_extension("GL_ARB_texture_storage");
     }
   tex_storage<texture_target>(m_use_tex_storage, m_internal_format, m_dims, m_num_mipmaps);
-  glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_min_filter);
-  glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_mag_filter);
-  glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, m_num_mipmaps - 1);
+  fastuidraw_glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_min_filter);
+  fastuidraw_glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_mag_filter);
+  fastuidraw_glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, m_num_mipmaps - 1);
   ++m_number_times_create_texture_called;
 }
 
@@ -610,8 +610,8 @@ flush(void)
 
   if (!m_unflushed_commands.empty())
     {
-      glBindTexture(texture_target, m_texture);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      fastuidraw_glBindTexture(texture_target, m_texture);
+      fastuidraw_glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       for(const auto &cmd : m_unflushed_commands)
         {
           FASTUIDRAWassert(!cmd.second.empty());
@@ -647,8 +647,8 @@ set_data_vector(const EntryLocation &loc,
   else
     {
       flush_size_change();
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glBindTexture(texture_target, m_texture);
+      fastuidraw_glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      fastuidraw_glBindTexture(texture_target, m_texture);
       tex_sub_image<texture_target>(loc.m_mipmap_level,
                                     loc.m_location,
                                     loc.m_size,
@@ -678,8 +678,8 @@ set_data_c_array(const EntryLocation &loc,
   else
     {
       flush_size_change();
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glBindTexture(texture_target, m_texture);
+      fastuidraw_glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      fastuidraw_glBindTexture(texture_target, m_texture);
       tex_sub_image<texture_target>(loc.m_mipmap_level,
                                     loc.m_location,
                                     loc.m_size,
@@ -724,16 +724,19 @@ clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
       if (m_type == use_clear_texture)
         {
           vecN<uint32_t, 4> zero(0, 0, 0, 0);
-          glClearTexSubImage(texture, level,
-                             xoffset, yoffset, zoffset,
-                             width, height, depth,
-                             format, type,
-                             &zero);
+          fastuidraw_glClearTexSubImage(texture, level,
+                                        xoffset, yoffset, zoffset,
+                                        width, height, depth,
+                                        format, type,
+                                        &zero);
           return;
         }
     }
   #endif
 
+  /* We should make an FBO and call glClear instead of
+   * using TexSubImage
+   */
   vecN<uint32_t, 4> zero(0, 0, 0, 0);
   unsigned int num_texels(width * height * depth);
   std::vector<vecN<uint32_t, 4> > zeros(num_texels, zero);
@@ -755,10 +758,10 @@ clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
       offset[2] = zoffset;
     }
 
-  glGetIntegerv(TextureTargetDimension<texture_target>::Binding, &old_texture);
-  glBindTexture(texture_target, texture);
+  fastuidraw_glGetIntegerv(TextureTargetDimension<texture_target>::Binding, &old_texture);
+  fastuidraw_glBindTexture(texture_target, texture);
   tex_sub_image<texture_target>(level, offset, sz, format, type, &zeros[0]);
-  glBindTexture(texture_target, old_texture);
+  fastuidraw_glBindTexture(texture_target, old_texture);
 }
 
 } //namespace detail

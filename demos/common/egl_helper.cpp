@@ -157,7 +157,7 @@ namespace
      * with deepest color-depths first, which means we actually
      * should walk the list to get closest match.
      */
-    eglChooseConfig(dpy, config_attribs, &ret, 1, &num_configs);
+    fastuidraw_eglChooseConfig(dpy, config_attribs, &ret, 1, &num_configs);
     FASTUIDRAWassert(num_configs != 0);
     return ret;
   }
@@ -207,14 +207,14 @@ egl_helper(const fastuidraw::reference_counted_ptr<StreamHolder> &str,
       m_logger = FASTUIDRAWnew Logger(str);
     }
   fastuidraw::egl_binding::get_proc_function(get_proc);
-  m_dpy = eglGetDisplay(egl_display);
-  eglInitialize(m_dpy, &egl_major, &egl_minor);
+  m_dpy = fastuidraw_eglGetDisplay(egl_display);
+  fastuidraw_eglInitialize(m_dpy, &egl_major, &egl_minor);
 
   /* find a config.
    */
   EGLConfig config;
   config = choose_config(m_dpy, P);
-  m_surface = eglCreateWindowSurface(m_dpy, config, egl_window, nullptr);
+  m_surface = fastuidraw_eglCreateWindowSurface(m_dpy, config, egl_window, nullptr);
 
   EGLint context_attribs[32];
   int n(0);
@@ -230,27 +230,27 @@ egl_helper(const fastuidraw::reference_counted_ptr<StreamHolder> &str,
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      eglBindAPI(EGL_OPENGL_ES_API);
+      fastuidraw_eglBindAPI(EGL_OPENGL_ES_API);
     }
   #else
     {
-      eglBindAPI(EGL_OPENGL_API);
+      fastuidraw_eglBindAPI(EGL_OPENGL_API);
     }
   #endif
 
   std::cout << "\n\nUsing EGL!\n\n";
 
-  m_ctx = eglCreateContext(m_dpy, config, EGL_NO_CONTEXT, context_attribs);
-  eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
+  m_ctx = fastuidraw_eglCreateContext(m_dpy, config, EGL_NO_CONTEXT, context_attribs);
+  fastuidraw_eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
 }
 
 egl_helper::
 ~egl_helper()
 {
-  eglMakeCurrent(m_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  eglDestroyContext(m_dpy, m_ctx);
-  eglDestroySurface(m_dpy, m_surface);
-  eglTerminate(m_dpy);
+  fastuidraw_eglMakeCurrent(m_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  fastuidraw_eglDestroyContext(m_dpy, m_ctx);
+  fastuidraw_eglDestroySurface(m_dpy, m_surface);
+  fastuidraw_eglTerminate(m_dpy);
 
   if (m_wl_window)
     {
@@ -263,14 +263,14 @@ void
 egl_helper::
 make_current(void)
 {
-  eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
+  fastuidraw_eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
 }
 
 void
 egl_helper::
 swap_buffers(void)
 {
-  eglSwapBuffers(m_dpy, m_surface);
+  fastuidraw_eglSwapBuffers(m_dpy, m_surface);
 }
 
 void*
@@ -284,7 +284,7 @@ void
 egl_helper::
 print_info(std::ostream &dst)
 {
-  dst << "\nEGL extensions: " << eglQueryString(m_dpy, EGL_EXTENSIONS);
+  dst << "\nEGL extensions: " << fastuidraw_eglQueryString(m_dpy, EGL_EXTENSIONS);
 }
 
 #endif

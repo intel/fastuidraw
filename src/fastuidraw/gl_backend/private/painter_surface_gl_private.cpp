@@ -43,9 +43,9 @@ fastuidraw::gl::detail::SurfaceGLPrivate::
     {
       m_buffers[buffer_color] = 0;
     }
-  glDeleteTextures(m_auxiliary_buffer.size(), m_auxiliary_buffer.c_ptr());
-  glDeleteFramebuffers(m_fbo.size(), m_fbo.c_ptr());
-  glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
+  fastuidraw_glDeleteTextures(m_auxiliary_buffer.size(), m_auxiliary_buffer.c_ptr());
+  fastuidraw_glDeleteFramebuffers(m_fbo.size(), m_fbo.c_ptr());
+  fastuidraw_glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL*
@@ -69,11 +69,11 @@ auxiliary_buffer(enum auxiliary_buffer_fmt_t tp)
       ClearImageSubData clearer;
 
       internalFormat = auxiliaryBufferInternalFmt(tp);
-      glGenTextures(1, &m_auxiliary_buffer[tp]);
+      fastuidraw_glGenTextures(1, &m_auxiliary_buffer[tp]);
       FASTUIDRAWassert(m_auxiliary_buffer[tp] != 0u);
 
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, m_auxiliary_buffer[tp]);
+      fastuidraw_glActiveTexture(GL_TEXTURE0);
+      fastuidraw_glBindTexture(GL_TEXTURE_2D, m_auxiliary_buffer[tp]);
       tex_storage<GL_TEXTURE_2D>(true,
                                  internalFormat,
                                  m_dimensions);
@@ -105,16 +105,16 @@ buffer(enum buffer_t tp)
         GL_RGBA8 :
         GL_DEPTH24_STENCIL8;
 
-      glGetIntegerv(tex_target_binding, &old_tex);
-      glGenTextures(1, &m_buffers[tp]);
+      fastuidraw_glGetIntegerv(tex_target_binding, &old_tex);
+      fastuidraw_glGenTextures(1, &m_buffers[tp]);
       FASTUIDRAWassert(m_buffers[tp] != 0);
-      glBindTexture(tex_target, m_buffers[tp]);
+      fastuidraw_glBindTexture(tex_target, m_buffers[tp]);
 
       detail::tex_storage<GL_TEXTURE_2D>(true, internalFormat,
                                          m_dimensions);
-      glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glBindTexture(tex_target, old_tex);
+      fastuidraw_glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      fastuidraw_glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      fastuidraw_glBindTexture(tex_target, old_tex);
     }
 
   return m_buffers[tp];
@@ -131,27 +131,27 @@ fbo(uint32_t tp)
 
       tex_target = GL_TEXTURE_2D;
 
-      glGenFramebuffers(1, &m_fbo[tp]);
+      fastuidraw_glGenFramebuffers(1, &m_fbo[tp]);
       FASTUIDRAWassert(m_fbo[tp] != 0);
 
-      glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_fbo);
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo[tp]);
+      fastuidraw_glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_fbo);
+      fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo[tp]);
 
-      glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-                             tex_target, buffer(buffer_depth), 0);
+      fastuidraw_glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                                        tex_target, buffer(buffer_depth), 0);
 
       if (tp & fbo_color_buffer)
         {
-          glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                 tex_target, buffer(buffer_color), 0);
+          fastuidraw_glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                            tex_target, buffer(buffer_color), 0);
         }
 
       if (tp & fbo_auxiliary_buffer)
         {
-          glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                                 tex_target, auxiliary_buffer(auxiliary_buffer_fmt_u8), 0);
+          fastuidraw_glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+                                            tex_target, auxiliary_buffer(auxiliary_buffer_fmt_u8), 0);
         }
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
+      fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
     }
   return m_fbo[tp];
 }

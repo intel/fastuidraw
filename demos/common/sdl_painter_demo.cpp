@@ -231,11 +231,11 @@ namespace
     GLuint return_value(0);
     uint32_t zero[2] = {0, 0};
 
-    glGenBuffers(1, &return_value);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, return_value);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 2 * sizeof(uint32_t), zero, GL_STREAM_READ);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding_index, return_value);
+    fastuidraw_glGenBuffers(1, &return_value);
+    fastuidraw_glBindBuffer(GL_SHADER_STORAGE_BUFFER, return_value);
+    fastuidraw_glBufferData(GL_SHADER_STORAGE_BUFFER, 2 * sizeof(uint32_t), zero, GL_STREAM_READ);
+    fastuidraw_glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding_index, return_value);
 
     return return_value;
   }
@@ -245,14 +245,14 @@ namespace
   {
     const uint32_t *p;
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, bo);
-    p = (const uint32_t*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
-                                          0, 2 * sizeof(uint32_t), GL_MAP_READ_BIT);
+    fastuidraw_glBindBuffer(GL_SHADER_STORAGE_BUFFER, bo);
+    p = (const uint32_t*)fastuidraw_glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
+                                                     0, 2 * sizeof(uint32_t), GL_MAP_READ_BIT);
     dst[sdl_painter_demo::frame_number_pixels] = p[0];
     dst[sdl_painter_demo::frame_number_pixels_that_neighbor_helper] = p[1];
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-    glDeleteBuffers(1, &bo);
+    fastuidraw_glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    fastuidraw_glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    fastuidraw_glDeleteBuffers(1, &bo);
 
     dst[sdl_painter_demo::total_number_pixels] += dst[sdl_painter_demo::frame_number_pixels];
     dst[sdl_painter_demo::total_number_pixels_that_neighbor_helper] += dst[sdl_painter_demo::frame_number_pixels_that_neighbor_helper];
@@ -580,7 +580,7 @@ sdl_painter_demo::
 {
   for (GLuint bo : m_pixel_counter_buffers)
     {
-      glDeleteBuffers(1, &bo);
+      fastuidraw_glDeleteBuffers(1, &bo);
     }
 }
 

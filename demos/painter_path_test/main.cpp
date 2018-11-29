@@ -168,12 +168,12 @@ public:
   {
     if (m_lines)
       {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(4.0);
+        fastuidraw_glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        fastuidraw_glLineWidth(4.0);
       }
     else
       {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        fastuidraw_glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       }
     return 0u;
   }
@@ -2134,8 +2134,8 @@ draw_frame(void)
     }
 
   m_painter->end();
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   m_surface->blit_surface(GL_NEAREST);
 }
 

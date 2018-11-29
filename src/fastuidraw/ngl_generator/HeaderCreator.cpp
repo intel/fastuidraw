@@ -490,7 +490,7 @@ output_to_header(ostream &headerFile)
       headerFile << ", const char *argumentName_" << i;
     }
   headerFile << ");\n"
-             << "#define "  << function_name()
+             << "#define fastuidraw_"  << function_name()
              << "(" << argument_list_names_only()
              << ") " << GlobalElements::get().m_namespace << "::" << debug_function_name()  << "(";
 
@@ -515,7 +515,7 @@ output_to_header(ostream &headerFile)
 
 
   headerFile << ")\n"
-             << "#else\n" << "#define " << function_name() << "(" << argument_list_names_only()
+             << "#else\n" << "#define fastuidraw_" << function_name() << "(" << argument_list_names_only()
              << ") "
              << GlobalElements::get().m_namespace << "::" << function_pointer_name() <<  "(" << argument_list_names_only()
              << ")\n#endif\n\n";

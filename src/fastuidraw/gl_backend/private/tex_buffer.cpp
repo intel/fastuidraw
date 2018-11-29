@@ -68,20 +68,20 @@ tex_buffer(enum tex_buffer_support_t md, GLenum target, GLenum format, GLuint bo
     {
       FASTUIDRAWassert(md == tex_buffer_no_extension);
       FASTUIDRAWunused(md);
-      glTexBuffer(target, format, bo);
+      fastuidraw_glTexBuffer(target, format, bo);
     }
   #else
     {
       switch(md)
         {
         case tex_buffer_no_extension:
-          glTexBuffer(target, format, bo);
+          fastuidraw_glTexBuffer(target, format, bo);
           break;
         case tex_buffer_oes_extension:
-          glTexBufferOES(target, format, bo);
+          fastuidraw_glTexBufferOES(target, format, bo);
           break;
         case tex_buffer_ext_extension:
-          glTexBufferEXT(target, format, bo);
+          fastuidraw_glTexBufferEXT(target, format, bo);
           break;
 
         default:

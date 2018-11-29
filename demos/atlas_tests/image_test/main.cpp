@@ -75,7 +75,7 @@ public:
   {
     if (m_sampler != 0)
       {
-        glDeleteSamplers(1, &m_sampler);
+        fastuidraw_glDeleteSamplers(1, &m_sampler);
       }
   }
 
@@ -149,16 +149,16 @@ protected:
     switch(m_current_program)
       {
       case draw_image_on_atlas:
-        glActiveTexture(GL_TEXTURE0 + color_atlas_texture_unit);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, m_atlas->color_texture());
-        glBindSampler(0, m_sampler);
-        glActiveTexture(GL_TEXTURE0 + index_atlas_texture_unit);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, m_atlas->index_texture());
+        fastuidraw_glActiveTexture(GL_TEXTURE0 + color_atlas_texture_unit);
+        fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, m_atlas->color_texture());
+        fastuidraw_glBindSampler(0, m_sampler);
+        fastuidraw_glActiveTexture(GL_TEXTURE0 + index_atlas_texture_unit);
+        fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, m_atlas->index_texture());
         break;
       case draw_atlas:
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, m_atlas->color_texture());
-        glBindSampler(0, 0);
+        fastuidraw_glActiveTexture(GL_TEXTURE0);
+        fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, m_atlas->color_texture());
+        fastuidraw_glBindSampler(0, 0);
         break;
       }
   }
@@ -168,10 +168,10 @@ protected:
   {
     if (m_program[m_current_program].m_pr)
       {
-        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_program[m_current_program].m_pr->use_program();
-        glBindVertexArray(m_program[m_current_program].m_vao);
+        fastuidraw_glBindVertexArray(m_program[m_current_program].m_vao);
 
         gl::Uniform(m_program[m_current_program].m_pvm, m_pvm);
         gl::Uniform(m_program[m_current_program].m_scale,
@@ -205,7 +205,7 @@ protected:
             gl::Uniform(m_program[m_current_program].m_uniform_image_num_lookups, num_lookups);
           }
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+        fastuidraw_glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
       }
     else
       {
@@ -215,9 +215,9 @@ protected:
             random[i] = static_cast<float>(rand() % 255) / 255.0f;
           }
 
-        glClearColor(random[0], random[1], random[2], 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        fastuidraw_glClearColor(random[0], random[1], random[2], 1.0f);
+        fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        fastuidraw_glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
       }
   }
 
@@ -283,8 +283,8 @@ protected:
                     image_size.x(), image_size.y(), corner[1].x(), corner[1].y(), layer,
                     image_size.x(), 0,              corner[1].x(), corner[0].y(), layer
                   };
-                glBindBuffer(GL_ARRAY_BUFFER, m_program[draw_image_on_atlas].m_vbo);
-                glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(image_index_attribs), image_index_attribs);
+                fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, m_program[draw_image_on_atlas].m_vbo);
+                fastuidraw_glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(image_index_attribs), image_index_attribs);
               }
             break;
 
@@ -367,11 +367,11 @@ private:
   void
   build_images(void)
   {
-    glGenSamplers(1, &m_sampler);
+    fastuidraw_glGenSamplers(1, &m_sampler);
     FASTUIDRAWassert(m_sampler != 0);
 
-    glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    fastuidraw_glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    fastuidraw_glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     gl::ImageAtlasGL::params params;
     int max_layers(0);
@@ -500,13 +500,13 @@ private:
   {
     float_orthogonal_projection_params proj(0, w, h, 0);
     m_pvm = float3x3(proj);
-    glViewport(0, 0, w, h);
+    fastuidraw_glViewport(0, 0, w, h);
   }
 
   void
   set_attributes_indices(void)
   {
-    glGenBuffers(1, &m_ibo);
+    fastuidraw_glGenBuffers(1, &m_ibo);
     FASTUIDRAWassert(m_ibo != 0);
 
     GLushort indices[]=
@@ -514,14 +514,14 @@ private:
         0, 1, 2,
         0, 2, 3
       };
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    fastuidraw_glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     {
       vec2 image_size(m_atlas->color_store()->dimensions().x(),
                       m_atlas->color_store()->dimensions().y());
 
-      glBindVertexArray(m_program[draw_atlas].m_vao);
+      fastuidraw_glBindVertexArray(m_program[draw_atlas].m_vao);
       vec2 draw_tex_attribs[]=
         {
           vec2(0, 0),
@@ -529,22 +529,22 @@ private:
           vec2(image_size.x(), image_size.y()),
           vec2(image_size.x(), 0)
         };
-      glBindBuffer(GL_ARRAY_BUFFER, m_program[draw_atlas].m_vbo);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(draw_tex_attribs), draw_tex_attribs, GL_STATIC_DRAW);
-      glEnableVertexAttribArray(0);
-      glVertexAttribPointer(0,
-                            gl::opengl_trait<vec2>::count,
-                            gl::opengl_trait<vec2>::type,
-                            GL_FALSE,
-                            gl::opengl_trait<vec2>::stride,
-                            nullptr);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+      fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, m_program[draw_atlas].m_vbo);
+      fastuidraw_glBufferData(GL_ARRAY_BUFFER, sizeof(draw_tex_attribs), draw_tex_attribs, GL_STATIC_DRAW);
+      fastuidraw_glEnableVertexAttribArray(0);
+      fastuidraw_glVertexAttribPointer(0,
+                                       gl::opengl_trait<vec2>::count,
+                                       gl::opengl_trait<vec2>::type,
+                                       GL_FALSE,
+                                       gl::opengl_trait<vec2>::stride,
+                                       nullptr);
+      fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
     }
 
 
     if (m_program[draw_image_on_atlas].m_vao)
       {
-        glBindVertexArray(m_program[draw_image_on_atlas].m_vao);
+        fastuidraw_glBindVertexArray(m_program[draw_image_on_atlas].m_vao);
 
         vec2 image_size(m_image_handles.front()->dimensions());
         vecN<vec2, 2> corner(shader_coords(m_image_handles.front()));
@@ -556,26 +556,26 @@ private:
             image_size.x(), image_size.y(), corner[1].x(), corner[1].y(), layer,
             image_size.x(), 0,              corner[1].x(), corner[0].y(), layer
           };
-        glBindBuffer(GL_ARRAY_BUFFER, m_program[draw_image_on_atlas].m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(image_index_attribs), image_index_attribs, GL_STATIC_DRAW);
+        fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, m_program[draw_image_on_atlas].m_vbo);
+        fastuidraw_glBufferData(GL_ARRAY_BUFFER, sizeof(image_index_attribs), image_index_attribs, GL_STATIC_DRAW);
 
         uint8_t *p(0);
 
-        glEnableVertexAttribArray(attrib_pos_vertex_attrib);
-        glVertexAttribPointer(attrib_pos_vertex_attrib,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(float) * 5,
-                              p);
-        glEnableVertexAttribArray(index_coord_vertex_attrib);
-        glVertexAttribPointer(index_coord_vertex_attrib,
-                              3,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(float) * 5,
-                              p + 2 * sizeof(float));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+        fastuidraw_glEnableVertexAttribArray(attrib_pos_vertex_attrib);
+        fastuidraw_glVertexAttribPointer(attrib_pos_vertex_attrib,
+                                         2,
+                                         GL_FLOAT,
+                                         GL_FALSE,
+                                         sizeof(float) * 5,
+                                         p);
+        fastuidraw_glEnableVertexAttribArray(index_coord_vertex_attrib);
+        fastuidraw_glVertexAttribPointer(index_coord_vertex_attrib,
+                                         3,
+                                         GL_FLOAT,
+                                         GL_FALSE,
+                                         sizeof(float) * 5,
+                                         p + 2 * sizeof(float));
+        fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
       }
   }
 
@@ -635,10 +635,10 @@ private:
       m_filtered_lookup = m_pr->uniform_location("filtered_lookup");
       m_uniform_image_num_lookups = m_pr->uniform_location("uniform_image_num_lookups");
 
-      glGenVertexArrays(1, &m_vao);
+      fastuidraw_glGenVertexArrays(1, &m_vao);
       FASTUIDRAWassert(m_vao != 0);
 
-      glGenBuffers(1, &m_vbo);
+      fastuidraw_glGenBuffers(1, &m_vbo);
       FASTUIDRAWassert(m_vbo != 0);
     }
 

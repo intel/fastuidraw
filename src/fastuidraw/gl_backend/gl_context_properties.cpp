@@ -101,7 +101,7 @@ make_extensions_ready(void)
   for(int i = 0; i < cnt; ++i)
     {
       fastuidraw::c_string ext;
-      ext = reinterpret_cast<fastuidraw::c_string>(glGetStringi(GL_EXTENSIONS, i));
+      ext = reinterpret_cast<fastuidraw::c_string>(fastuidraw_glGetStringi(GL_EXTENSIONS, i));
       m_extensions.insert(ext);
     }
 }
