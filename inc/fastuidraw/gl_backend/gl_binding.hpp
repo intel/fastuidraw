@@ -34,16 +34,19 @@ namespace fastuidraw {
  * Provides interface for application to use GL where function pointers
  * are auto-resolved transparently and under debug provides error checking.
  * Built as a part of a seperate library; for GL it is libNGL; for GLES
- * it is NGLES.
+ * it is NGLES. The header defines for each GL/GLES function, glFoo, the
+ * macro fastuidraw_glFoo.
  *
  * Short version:
  *  - application should call fastuidraw::gl_binding::get_proc_function()
  *    to set the function which will be used to fetch GL function pointers.
  *  - If an application wishes, it can include <fastuidraw/gl_backend/ngl_header.hpp>.
- *    The header will replace GL/GLES functions with macros. Under release
- *    the macros are to function pointers that automatically set themselves up
- *    correcty. For debug, the macros preceed and postceed each GL
- *    function call with error checking call backs so an application writer
+ *    The header will add the GL function-macros and an application can
+ *    issue EGL calls without needing to fetch the GL functions via
+ *    fastuidraw_glFoo where glFoo is the EL funcion to all. Under release
+ *    the macros are defined to function pointers that automatically set
+ *    themselves up correcty. For debug, the macros preceed and postceed each
+ *    GL function call with error checking call backs so an application writer
  *    can quickly know what line/file triggered an GL error. If an application does
  *    not wish to use the macro system (and will also need to fetch function pointers
  *    itself) it can just include <fastuidraw/gl_backend/gl_header.hpp> which
@@ -56,23 +59,15 @@ namespace fastuidraw {
  * fastuidraw::gl_binding::get_proc_function()) and additional
  * functionality of where to write/store GL error messages. An application
  * can also use this functionality by including <fastuidraw/ngl_gl.hpp>.
- * The header will create a macro for each GL function. If FASTUIDRAW_DEBUG
- * is defined, each GL call will be preceded by a callback and postceeded by
- * another call back. The preceed callback to the GL call will call the
- * implementation of CallbackGL::pre_call() of each active CallbackGL object.
- * The post-process callback will repeatedly call glGetError (until it returns
- * no error) to build an error-string. If the error string is non-empty, it
- * is printed to stderr. In addition, regardless if the error-string is non-empty,
- * CallbackGL::post_call() of each active CallbackGL is called.
- *
- * This is implemented by creating a macro for each
- * GL call. If FASTUIDRAW_DEBUG is not defined, none of these
- * logging and error calls backs are executed.
- * The mechanism is implemented by defining a macro
- * for each GL function, hence using a GL function
- * name as a function pointer will fail to compile
- * and likely give an almost impossible to read
- * error message.
+ * The header will create a macro fastuidraw_glFoo for each GL function
+ * glFoo. If FASTUIDRAW_DEBUG is defined, each GL call will be preceded
+ * by a callback and postceeded by another call back. The preceed callback
+ * to the GL call will call the implementation of CallbackGL::pre_call() of
+ * each active CallbackGL object. The post-process callback will repeatedly
+ * call glGetError (until it returns no error) to build an error-string. If
+ * the error string is non-empty, it is printed to stderr. In addition,
+ * regardless if the error-string is non-empty, CallbackGL::post_call() of
+ * each active CallbackGL is called.
  *
  * To fetch the function pointer of a GL function,
  * use the macro <B>FASTUIDRAWglfunctionPointer</B> together

@@ -34,16 +34,19 @@ namespace fastuidraw {
  * \brief
  * Provides interface for application to use EGL where function pointers
  * are auto-resolved transparently and under debug provides error checking.
- * Built as a seperate libNEGL.
+ * Built as a seperate libNEGL. The header defines for each EGL function,
+ * eglFoo, the macro fastuidraw_eglFoo.
  *
  * Short version:
  *  - application should call fastuidraw::egl_binding::get_proc_function()
  *    to set the function which will be used to fetch EGL function pointers.
  *  - If an application wishes, it can include <fastuidraw/ngl_egl.hpp>.
- *    The header will replace EGL functions with macros. Under release
- *    the macros are to function pointers that automatically set themselves up
- *    correcty. For debug, the macros preceed and postceed each EGL
- *    function call with error checking call backs so an application writer
+ *    The header will add the EGL function-macros and an application can
+ *    issue EGL calls without needing to fetch the EGL functions via
+ *    fastuidraw_eglFoo where eglFoo is the EGL funcion to all. Under release
+ *    the macros are defined to function pointers that automatically set
+ *    themselves up correcty. For debug, the macros preceed and postceed each
+ *    EGL function call with error checking call backs so an application writer
  *    can quickly know what line/file triggered an EGL error. If an application does
  *    not wish to use the macro system (and will also need to fetch function pointers
  *    somehow), it can just include EGL/egl.h (and optionally EGL/eglext.h).
@@ -60,24 +63,16 @@ namespace fastuidraw {
  * fastuidraw::egl_binding::get_proc_function()) and additional
  * functionality of where to write/store EGL error messages. An application
  * can also use this functionality by including <fastuidraw/ngl_egl.hpp>.
- * The header will create a macro for each EGL function. If FASTUIDRAW_DEBUG
- * is defined, each EGL call will be preceded by a callback and postceeded by
- * another call back. The preceed callback to the EGL call will call the
- * implementation of CallbackEGL::pre_call() of each active CallbackEGL object.
- * The post-process callback will repeatedly call eglGetError (until it returns
- * no error) to build an error-string. If the error string is non-empty, it
- * is printed to stderr. In addition, regardless if the error-string is non-empty,
+ * The header will create a macro fastuidraw_eglFoo for each EGL function
+ * eglFoo. If FASTUIDRAW_DEBUG is defined, each EGL call made with the
+ * macro will be preceded by a callback and postceeded by another call back.
+ * The preceed callback to the EGL call will call the implementation of
+ * CallbackEGL::pre_call() of each active CallbackEGL object. The post-process
+ * callback will repeatedly call eglGetError (until it returns no error) to
+ * build an error-string. If the error string is non-empty, it is printed to
+ * stderr. In addition, regardless if the error-string is non-empty,
  * CallbackEGL::post_call() of each active CallbackEGL is called.
- *
- * This is implemented by creating a macro for each
- * EGL call. If FASTUIDRAW_DEBUG is not defined, none of these
- * logging and error calls backs are executed.
- * The mechanism is implemented by defining a macro
- * for each EGL function, hence using a EGL function
- * name as a function pointer will fail to compile
- * and likely give an almost impossible to read
- * error message.
- *
+ * *
  * To fetch the function pointer of a EGL function,
  * use the macro <B>FASTUIDRAWeglfunctionPointer</B> together
  * with <B>FASTUIDRAWeglfunctionExists</B>. The macro
@@ -109,7 +104,7 @@ namespace fastuidraw {
  * \endcode
  *
  * Calling a EGL function through a function pointer
- * will bypass the EGL error checking ad callbacks though.
+ * will bypass the EGL error checking and callbacks though.
  * One issue with using FASTUIDRAWeglfunctionExists is that a
  * number of EGL implementations will return a function pointer,
  * even if the implementation does not support it. As always,
