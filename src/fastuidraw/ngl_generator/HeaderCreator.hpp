@@ -66,14 +66,6 @@
 
 using namespace std;
 
-enum use_function_pointer_mode_t
-  {
-    use_function_pointer_type_declared,
-    use_function_pointer_type_undeclared,
-    dont_use_function_pointer_type_declared,
-    dont_use_function_pointer_type_undeclared,
-  };
-
 class openGL_function_info
 {
 public:
@@ -102,8 +94,6 @@ private:
   string m_argListInput; // the string that generated our arguments lists.
 
   bool m_newDeclaration;
-
-  enum use_function_pointer_mode_t m_use_function_pointer;
 
   static
   void
@@ -267,10 +257,6 @@ public:
   static
   list<openGL_function_info*>&
   openGL_functionList(void);
-
-  static
-  enum use_function_pointer_mode_t&
-  use_function_pointer_mode(void);
 
   static
   map<string,openGL_function_info*>&

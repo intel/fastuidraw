@@ -110,22 +110,6 @@ EGLAPI{space}+{CEGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
     }
 }
 
-FUNCTIONPOINTERMODE {
-  openGL_function_info::use_function_pointer_mode()=use_function_pointer_type_declared;
-}
-
-FUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED {
-  openGL_function_info::use_function_pointer_mode()=use_function_pointer_type_undeclared;
-}
-
-NOFUNCTIONPOINTERMODE_PTR_TYPE_DECLARED {
-  openGL_function_info::use_function_pointer_mode()=dont_use_function_pointer_type_declared;
-}
-
-NOFUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED {
-  openGL_function_info::use_function_pointer_mode()=dont_use_function_pointer_type_undeclared;
-}
-
 
 [ \t\n]+  { /* do nothing */  }
 . { /* do nothing */  }
