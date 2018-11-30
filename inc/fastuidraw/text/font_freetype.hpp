@@ -42,14 +42,18 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Ctor. Guess the FontProperties from the FT_Face
+     * Ctor. Guess the FontProperties from the FreeTypeFace::GeneratorBase
      * \param pface_generator object used to generate the FreeTypeFace object(s)
      *                        used by the FontFreeType object.
      * \param plib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
      *             a null values indicates to use a private FreeTypeLib object
+     * \param num_faces number of underlying faces for the FontFreeType to possess,
+     *                  this is the number of simumtaneous requests the FontFreeType
+     *                  can handle
      */
     FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
-                 const reference_counted_ptr<FreeTypeLib> &plib = reference_counted_ptr<FreeTypeLib>());
+                 const reference_counted_ptr<FreeTypeLib> &plib = reference_counted_ptr<FreeTypeLib>(),
+                 unsigned int num_faces = 8);
 
     /*!
      * Ctor.
@@ -58,10 +62,14 @@ namespace fastuidraw
      * \param props FontProperties with which to endow the created FontFreeType object
      * \param plib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
      *             a null values indicates to use a private FreeTypeLib object
+     * \param num_faces number of underlying faces for the FontFreeType to possess,
+     *                  this is the number of simumtaneous requests the FontFreeType
+     *                  can handle
      */
     FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
                  const FontProperties &props,
-                 const reference_counted_ptr<FreeTypeLib> &plib = reference_counted_ptr<FreeTypeLib>());
+                 const reference_counted_ptr<FreeTypeLib> &plib = reference_counted_ptr<FreeTypeLib>(),
+                 unsigned int num_faces = 8);
 
     virtual
     ~FontFreeType();
@@ -104,8 +112,9 @@ namespace fastuidraw
     compute_font_properties_from_face(const reference_counted_ptr<FreeTypeFace> &in_face);
 
     virtual
-    uint32_t
-    glyph_code(uint32_t pcharacter_code) const;
+    void
+    glyph_codes(c_array<const uint32_t> in_character_codes,
+                c_array<uint32_t> out_glyph_codes) const;
 
     virtual
     unsigned int

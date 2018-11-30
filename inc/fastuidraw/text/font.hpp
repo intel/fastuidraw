@@ -76,14 +76,35 @@ namespace fastuidraw
     unique_id(void) const;
 
     /*!
-     * To be implemented by a derived class to return an
-     * index value (glyph code) from a character code
-     * (typically a unicode). A return value of 0 indicates
-     * that the character code is not contained in the font.
+     * To be implemented by a derived class to return the
+     * index values (glyph codes) for a sequence of character
+     * code. A glyph code of 0 indicates that a character
+     * code is not present in the font.
+     * \param in_character_codes character codes from which to
+     *                           fetch glyph codes
+     * \param[out] out_glyph_codes location to which to write
+     *                             glyph codes.
      */
     virtual
+    void
+    glyph_codes(c_array<const uint32_t> in_character_codes,
+                c_array<uint32_t> out_glyph_codes) const = 0;
+
+    /*!
+     * Provided as a conveniance to fetch a single
+     * glyph_code.
+     * \param pcharacter_code character code from which to fetch
+     *                        a glyph code.
+     */
     uint32_t
-    glyph_code(uint32_t pcharacter_code) const = 0;
+    glyph_code(uint32_t pcharacter_code) const
+    {
+      uint32_t return_value(0);
+      c_array<const uint32_t> p(&pcharacter_code, 1);
+      c_array<uint32_t> g(&return_value, 1);
+      glyph_codes(p, g);
+      return return_value;
+    }
 
     /*!
      * To be implemented by a derived class to return
