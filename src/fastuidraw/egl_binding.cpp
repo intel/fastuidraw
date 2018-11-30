@@ -170,6 +170,19 @@ get_proc_function(void* (*get_proc)(c_string), bool load_functions)
     }
 }
 
+void
+fastuidraw::egl_binding::
+get_proc_function(void *data,
+                  void* (*get_proc)(void *, c_string),
+                  bool load_functions)
+{
+  ngl().get_proc_function(data, get_proc);
+  if (load_functions && get_proc != nullptr)
+    {
+      load_all_functions(false);
+    }
+}
+
 void*
 fastuidraw::egl_binding::
 get_proc(c_string function_name)
@@ -190,7 +203,7 @@ get_error(void)
     }
   #else
     {
-      return eglGetError();
+      return fastuidraw_eglGetError();
     }
   #endif
 }
