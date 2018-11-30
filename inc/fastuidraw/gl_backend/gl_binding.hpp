@@ -137,6 +137,19 @@ public:
 void
 get_proc_function(void* (*get_proc)(c_string),
                   bool fetch_functions = true);
+/*!
+ * Sets the function that the system uses
+ * to fetch the function pointers for GL or GLES.
+ * \param datum data pointer passed to get_proc when invoked
+ * \param get_proc value to use, default is nullptr.
+ * \param fetch_functions if true, fetch all GL functions
+ *                        immediately instead of fetching on
+ *                        first call.
+ */
+void
+get_proc_function(void *datum,
+                  void* (*get_proc)(void*, c_string),
+                  bool fetch_functions = true);
 
 /*!
  * Fetches a GL function using the function fetcher
