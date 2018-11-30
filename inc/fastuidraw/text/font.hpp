@@ -23,6 +23,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/text/character_encoding.hpp>
 #include <fastuidraw/text/font_properties.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_metrics.hpp>
@@ -80,6 +81,7 @@ namespace fastuidraw
      * index values (glyph codes) for a sequence of character
      * code. A glyph code of 0 indicates that a character
      * code is not present in the font.
+     * \param encoding character encoding of character codes
      * \param in_character_codes character codes from which to
      *                           fetch glyph codes
      * \param[out] out_glyph_codes location to which to write
@@ -87,14 +89,34 @@ namespace fastuidraw
      */
     virtual
     void
-    glyph_codes(c_array<const uint32_t> in_character_codes,
+    glyph_codes(enum CharacterEncoding::encoding_value_t encoding,
+                c_array<const uint32_t> in_character_codes,
                 c_array<uint32_t> out_glyph_codes) const = 0;
+
+    /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * glyph_codes(CharacterEncoding::unicode,
+     *             in_character_codes,
+     *             out_glyph_codes);
+     * \endcode
+     * \param in_character_codes character codes from which to
+     *                           fetch glyph codes
+     * \param[out] out_glyph_codes location to which to write
+     *                             glyph codes.
+     */
+    void
+    glyph_codes(c_array<const uint32_t> in_character_codes,
+                c_array<uint32_t> out_glyph_codes) const
+    {
+      glyph_codes(CharacterEncoding::unicode, in_character_codes, out_glyph_codes);
+    }
 
     /*!
      * Provided as a conveniance to fetch a single
      * glyph_code.
-     * \param pcharacter_code character code from which to fetch
-     *                        a glyph code.
+     * \param pcharacter_code Unicode character code from which to
+     *                        fetch a glyph code.
      */
     uint32_t
     glyph_code(uint32_t pcharacter_code) const

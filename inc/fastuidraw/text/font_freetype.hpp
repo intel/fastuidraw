@@ -33,10 +33,6 @@ namespace fastuidraw
    * \brief
    * A FontFreeType implements the interface of FontBase
    * from a scalable font loaded by libfreetype.
-   *
-   * The conversion from character codes to glyph codes
-   * for FontFreeType, i.e. glyph_code(uint32_t) const,
-   * is performed by libfreetype's FT_Get_Char_Index().
    */
   class FontFreeType:public FontBase
   {
@@ -113,7 +109,8 @@ namespace fastuidraw
 
     virtual
     void
-    glyph_codes(c_array<const uint32_t> in_character_codes,
+    glyph_codes(enum CharacterEncoding::encoding_value_t encoding,
+                c_array<const uint32_t> in_character_codes,
                 c_array<uint32_t> out_glyph_codes) const;
 
     virtual

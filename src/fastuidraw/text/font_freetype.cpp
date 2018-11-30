@@ -225,6 +225,17 @@ namespace
     int m_factor;
   };
 
+  class FaceAndEncoding
+  {
+  public:
+    FaceAndEncoding(void):
+      m_current_encoding(static_cast<enum fastuidraw::CharacterEncoding::encoding_value_t>(0))
+    {}
+
+    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> m_face;
+    enum fastuidraw::CharacterEncoding::encoding_value_t m_current_encoding;
+  };
+
   class FontFreeTypePrivate
   {
   public:
@@ -236,6 +247,7 @@ namespace
       ~FaceGrabber();
 
       fastuidraw::FreeTypeFace *m_p;
+      enum fastuidraw::CharacterEncoding::encoding_value_t *m_current_encoding;
     };
 
     FontFreeTypePrivate(fastuidraw::FontFreeType *p,
@@ -276,7 +288,7 @@ namespace
     /* for now we have a static number of m_faces we use for parallel
      * glyph generation
      */
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> > m_faces;
+    std::vector<FaceAndEncoding> m_faces;
     bool m_all_faces_null;
     unsigned int m_number_glyphs;
   };
@@ -292,10 +304,11 @@ FaceGrabber(FontFreeTypePrivate *q):
     {
       for(unsigned int i = 0, endi = q->m_faces.size(); i < endi && !m_p; ++i)
         {
-          const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> &face(q->m_faces[i]);
+          const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> &face(q->m_faces[i].m_face);
           if (face && face->try_lock())
             {
               m_p = face.get();
+              m_current_encoding = &q->m_faces[i].m_current_encoding;
             }
         }
     }
@@ -331,12 +344,12 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
 
   for(unsigned int i = 0; i < m_faces.size(); ++i)
     {
-      m_faces[i] = m_generator->create_face(m_lib);
-      if (m_faces[i] && m_faces[i]->face())
+      m_faces[i].m_face = m_generator->create_face(m_lib);
+      if (m_faces[i].m_face && m_faces[i].m_face->face())
         {
           m_all_faces_null = false;
-          m_number_glyphs = m_faces[i]->face()->num_glyphs;
-          FT_Set_Transform(m_faces[i]->face(), nullptr, nullptr);
+          m_number_glyphs = m_faces[i].m_face->face()->num_glyphs;
+          FT_Set_Transform(m_faces[i].m_face->face(), nullptr, nullptr);
         }
     }
 }
@@ -626,7 +639,8 @@ fastuidraw::FontFreeType::
 
 void
 fastuidraw::FontFreeType::
-glyph_codes(c_array<const uint32_t> in_character_codes,
+glyph_codes(enum CharacterEncoding::encoding_value_t encoding,
+            c_array<const uint32_t> in_character_codes,
             c_array<uint32_t> out_glyph_codes) const
 {
   FontFreeTypePrivate *d;
@@ -637,6 +651,24 @@ glyph_codes(c_array<const uint32_t> in_character_codes,
 
   sz = t_min(in_character_codes.size(),
              out_glyph_codes.size());
+
+  if (p.m_p && p.m_p->face())
+    {
+      if (encoding != *p.m_current_encoding)
+        {
+          FT_Error error;
+
+          error = FT_Select_Charmap(p.m_p->face(), FT_Encoding(encoding));
+          if (error)
+            {
+              p.m_p = nullptr;
+            }
+          else
+            {
+              *p.m_current_encoding = encoding;
+            }
+        }
+    }
 
   if (p.m_p && p.m_p->face())
     {
