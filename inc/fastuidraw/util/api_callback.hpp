@@ -141,6 +141,16 @@ namespace fastuidraw
     get_proc_function(void* (*get_proc)(c_string));
 
     /*!
+     * Sets the function that the system uses
+     * to fetch the function pointers.
+     * \param datum client data pointer passed to function
+     * \param get_proc value to use, default is nullptr.
+     */
+    void
+    get_proc_function(void *datum,
+                      void* (*get_proc)(void*, c_string));
+
+    /*!
      * Fetches a function using the function fetcher
      * passed to get_proc_function().
      * \param function name of function to fetch
