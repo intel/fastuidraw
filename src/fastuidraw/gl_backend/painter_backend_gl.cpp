@@ -926,14 +926,12 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
       if (clear_depth)
         {
-          GLbitfield mask(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
           fbo = m_surface_gl->fbo(aux_type, PainterBackendGL::compositing_single_src);
           draw_buffers = m_surface_gl->draw_buffers(aux_type, PainterBackendGL::compositing_single_src);
 
           fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
           fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
-          fastuidraw_glClear(mask);
+          fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
 
           if (clear_color_buffer)
             {
@@ -1005,16 +1003,6 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       fastuidraw_glEnable(GL_DEPTH_TEST);
       fastuidraw_glDepthFunc(GL_GEQUAL);
       fastuidraw_glDisable(GL_STENCIL_TEST);
-
-      #ifdef FASTUIDRAW_GL_USE_GLES
-        {
-          fastuidraw_glClearDepthf(0.0f);
-        }
-      #else
-        {
-          fastuidraw_glClearDepth(0.0f);
-        }
-      #endif
     }
 
   if (v & gpu_dirty_state::buffer_masks)
