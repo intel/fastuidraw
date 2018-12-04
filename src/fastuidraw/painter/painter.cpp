@@ -3566,37 +3566,43 @@ draw_glyphs(const PainterData &draw, const GlyphSequence &data,
   return draw_glyphs(default_shaders().glyph_shader(), draw, data, render);
 }
 
-void
+fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
-            const PainterAttributeData &data)
+            const GlyphRun &glyph_run,
+            unsigned int begin, unsigned int count,
+            GlyphRenderer renderer)
 {
   PainterPrivate *d;
+
   d = static_cast<PainterPrivate*>(m_d);
+  if (!renderer.valid())
+    {
+      renderer = compute_glyph_renderer(glyph_run.pixel_size());
+    }
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
-      return;
+      return renderer;
     }
 
-  c_array<const unsigned int> chks(data.non_empty_index_data_chunks());
-  for(unsigned int i = 0; i < chks.size(); ++i)
-    {
-      unsigned int k;
+  d->draw_generic(shader.shader(renderer.m_type),
+                  draw,
+                  glyph_run.subsequence(renderer, begin, count),
+                  d->m_current_z,
+                  nullptr);
 
-      k = chks[i];
-      draw_generic(shader.shader(static_cast<enum glyph_type>(k)), draw,
-                   data.attribute_data_chunk(k),
-                   data.index_data_chunk(k),
-                   data.index_adjust_chunk(k));
-    }
+  return renderer;
 }
 
-void
+fastuidraw::GlyphRenderer
 fastuidraw::Painter::
-draw_glyphs(const PainterData &draw, const PainterAttributeData &data)
+draw_glyphs(const PainterData &draw, const GlyphRun &data,
+            unsigned int begin, unsigned int count,
+            GlyphRenderer renderer)
 {
-  draw_glyphs(default_shaders().glyph_shader(), draw, data);
+  return draw_glyphs(default_shaders().glyph_shader(), draw, data,
+                     begin, count, renderer);
 }
 
 const fastuidraw::PainterItemMatrix&
