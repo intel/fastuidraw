@@ -23,7 +23,7 @@ FASTUIDRAW_SOURCES += $(call filelist, fill_rule.cpp \
 	painter_fill_shader.cpp \
 	stroked_caps_joins.cpp stroked_point.cpp \
 	stroked_path.cpp filled_path.cpp \
-	glyph_sequence.cpp \
+	glyph_sequence.cpp glyph_run.cpp \
 	arc_stroked_point.cpp)
 
 # Begin standard footer
