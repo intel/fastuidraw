@@ -53,7 +53,6 @@ class GlyphDrawsShared:fastuidraw::noncopyable
 public:
   GlyphDrawsShared(void):
     m_glyph_sequence(nullptr),
-    m_empty_glyph_sequence(nullptr),
     m_hierarchy(nullptr)
   {}
 
@@ -87,12 +86,6 @@ public:
 
   void
   realize_glyphs(GlyphRenderer R);
-
-  GlyphSequence&
-  empty_glyph_sequence(void)
-  {
-    return *m_empty_glyph_sequence;
-  }
 
   GlyphRenderer
   draw_glyphs(GlyphRenderer render,
@@ -137,7 +130,7 @@ private:
   void
   make_hierarchy(void);
 
-  GlyphSequence *m_glyph_sequence, *m_empty_glyph_sequence;
+  GlyphSequence *m_glyph_sequence;
   GenericHierarchy *m_hierarchy;
 };
 
@@ -250,11 +243,6 @@ GlyphDrawsShared::
       FASTUIDRAWdelete(m_glyph_sequence);
     }
 
-  if (m_empty_glyph_sequence)
-    {
-      FASTUIDRAWdelete(m_empty_glyph_sequence);
-    }
-
   if (m_hierarchy)
     {
       FASTUIDRAWdelete(m_hierarchy);
@@ -338,8 +326,6 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
-                                                       screen_orientation, glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
   metrics.resize(num_glyphs);
@@ -418,8 +404,6 @@ init(const std::vector<uint32_t> &glyph_codes,
   std::cout << "Formatting glyphs ..." << std::flush;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
-                                                       screen_orientation, glyph_cache);
   create_formatted_text(*m_glyph_sequence, glyph_codes, font);
 
   std::cout << "took " << timer.restart() << " ms\n";
@@ -436,8 +420,6 @@ init(std::istream &istr,
 {
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
-                                                       screen_orientation, glyph_cache);
   if (istr)
     {
       simple_time timer;
@@ -886,8 +868,7 @@ draw_glyphs(float us)
     }
   else
     {
-      render = m_painter->draw_glyphs(PainterData(&glyph_brush),
-				      m_draw_shared.empty_glyph_sequence());
+      render = m_painter->compute_glyph_renderer(m_draw_shared.glyph_sequence().pixel_size());
     }
 
   if (m_fill_glyphs)
