@@ -24,6 +24,8 @@
 #include <algorithm>
 
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
+#include <fastuidraw/gl_backend/gl_binding.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
@@ -80,7 +82,7 @@ private:
   enum type_t
     {
       use_clear_texture,
-      use_tex_sub_image,
+      use_clear_fbo,
       uninited,
     };
 
@@ -719,49 +721,103 @@ clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
       m_type = compute_type();
     }
 
-  #ifndef FASTUIDRAW_GL_USE_GLES
+  if (m_type == use_clear_texture)
     {
-      if (m_type == use_clear_texture)
+      FASTUIDRAW_GL_MESSAGE("ClearImageSubData::clear() with glClearTexSubImage");
+      vecN<uint32_t, 4> zero(0, 0, 0, 0);
+      #ifdef FASTUIDRAW_GL_USE_GLES
         {
-          vecN<uint32_t, 4> zero(0, 0, 0, 0);
+          fastuidraw_glClearTexSubImageEXT(texture, level,
+                                           xoffset, yoffset, zoffset,
+                                           width, height, depth,
+                                           format, type,
+                                           &zero);
+        }
+      #else
+        {
           fastuidraw_glClearTexSubImage(texture, level,
                                         xoffset, yoffset, zoffset,
                                         width, height, depth,
                                         format, type,
                                         &zero);
-          return;
         }
+      #endif
+      return;
     }
-  #endif
 
-  /* We should make an FBO and call glClear instead of
-   * using TexSubImage
-   */
-  vecN<uint32_t, 4> zero(0, 0, 0, 0);
-  unsigned int num_texels(width * height * depth);
-  std::vector<vecN<uint32_t, 4> > zeros(num_texels, zero);
-  GLint old_texture;
-  vecN<GLsizei, TextureTargetDimension<texture_target>::N> offset, sz;
+  FASTUIDRAW_GL_MESSAGE("ClearImageSubData::clear() with glClearBuffer");
 
-  sz[0] = width;
-  offset[0] = xoffset;
+  GLuint fbo(0), old_fbo;
+  GLenum attach_pt;
 
-  if (TextureTargetDimension<texture_target>::N >= 2)
+  old_fbo = context_get<GLint>(GL_DRAW_FRAMEBUFFER_BINDING);
+
+  fastuidraw_glGenFramebuffers(1, &fbo);
+  FASTUIDRAWassert(fbo != 0);
+  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+
+  switch(format)
     {
-      sz[1] = height;
-      offset[1] = yoffset;
+    default:
+      attach_pt = GL_COLOR_ATTACHMENT0;
+      break;
+    case GL_DEPTH_STENCIL:
+      attach_pt = GL_DEPTH_STENCIL_ATTACHMENT;
+      break;
+    case GL_DEPTH:
+      attach_pt = GL_DEPTH_ATTACHMENT;
+      break;
     }
 
-  if (TextureTargetDimension<texture_target>::N >= 3)
+  fastuidraw_glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attach_pt, texture_target, texture, 0);
+  switch (attach_pt)
     {
-      sz[2] = depth;
-      offset[2] = zoffset;
+    case GL_DEPTH_STENCIL:
+      fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
+      break;
+
+    case GL_DEPTH:
+      fastuidraw_glClearBufferfv(GL_DEPTH, 0, vec4(0.0f, 0.0f, 0.0f, 0.0f).c_ptr());
+      break;
+
+    case GL_COLOR_ATTACHMENT0:
+      {
+        bool is_integer_type;
+        switch(format)
+          {
+          default:
+            is_integer_type = false;
+            break;
+
+#ifndef FASTUIDRAW_GL_USE_GLES
+          case GL_GREEN_INTEGER:
+          case GL_BLUE_INTEGER:
+          case GL_BGR_INTEGER:
+          case GL_BGRA_INTEGER:
+#endif
+
+          case GL_RED_INTEGER:
+          case GL_RGB_INTEGER:
+          case GL_RGBA_INTEGER:
+          case GL_RG_INTEGER:
+            is_integer_type = true;
+            break;
+          }
+
+        if (is_integer_type)
+          {
+            fastuidraw_glClearBufferiv(GL_COLOR, 0, ivec4(0, 0, 0, 0).c_ptr());
+          }
+        else
+          {
+            fastuidraw_glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 0.0f).c_ptr());
+          }
+      }
+      break;
     }
 
-  fastuidraw_glGetIntegerv(TextureTargetDimension<texture_target>::Binding, &old_texture);
-  fastuidraw_glBindTexture(texture_target, texture);
-  tex_sub_image<texture_target>(level, offset, sz, format, type, &zeros[0]);
-  fastuidraw_glBindTexture(texture_target, old_texture);
+  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fbo);
+  fastuidraw_glDeleteFramebuffers(1, &fbo);
 }
 
 } //namespace detail

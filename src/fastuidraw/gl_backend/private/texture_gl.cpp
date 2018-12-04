@@ -138,7 +138,6 @@ format_from_internal_format(GLenum fmt)
 
     case GL_DEPTH24_STENCIL8:
       return GL_DEPTH_STENCIL;
-      return GL_DEPTH24_STENCIL8;
 
     case GL_DEPTH32F_STENCIL8:
       return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
@@ -360,19 +359,24 @@ enum fastuidraw::gl::detail::ClearImageSubData::type_t
 fastuidraw::gl::detail::ClearImageSubData::
 compute_type(void)
 {
+  ContextProperties ctx;
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      return use_tex_sub_image;
+      if (ctx.has_extension("GL_EXT_clear_texture"))
+        {
+          return use_clear_texture;
+        }
+
+      return use_clear_fbo;
     }
   #else
     {
-      ContextProperties ctx;
       if (ctx.version() >= ivec2(4, 4) || ctx.has_extension("GL_ARB_clear_texture"))
         {
           return use_clear_texture;
         }
 
-      return use_tex_sub_image;
+      return use_clear_fbo;
     }
   #endif
 }
