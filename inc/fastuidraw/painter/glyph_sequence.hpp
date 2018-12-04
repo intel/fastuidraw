@@ -57,10 +57,10 @@ namespace fastuidraw
     {
     public:
       /*!
-       * Given a \ref GlyphRender, returns \ref PainterAttribute
-       * and \ref PainterIndex data for specified \ref GlyphRender
+       * Given a \ref GlyphRenderer, returns \ref PainterAttribute
+       * and \ref PainterIndex data for specified \ref GlyphRenderer
        * value. The data is constructed lazily on demand.
-       * \param render GlyphRender how to render the glyphs of this
+       * \param render GlyphRenderer how to render the glyphs of this
        *               \ref SubSequence
        * \param out_attributes location to which to write the array
        *                       of the attributes to render the glyphs
@@ -68,7 +68,7 @@ namespace fastuidraw
        *                    of the indices to render the glyphs
        */
       void
-      attributes_and_indices(GlyphRender render,
+      attributes_and_indices(GlyphRenderer render,
 			     c_array<const PainterAttribute> *out_attributes,
 			     c_array<const PainterIndex> *out_indices);
 

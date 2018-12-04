@@ -60,7 +60,7 @@ protected:
   void
   draw_text(const std::string &text, float pixel_size,
             fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-            fastuidraw::GlyphRender renderer,
+            fastuidraw::GlyphRenderer renderer,
             const fastuidraw::PainterData &draw,
             enum fastuidraw::Painter::screen_orientation orientation
             = fastuidraw::Painter::y_increases_downwards);
@@ -71,7 +71,7 @@ protected:
             enum fastuidraw::Painter::screen_orientation orientation
             = fastuidraw::Painter::y_increases_downwards)
   {
-    draw_text(text, pixel_size, font, fastuidraw::GlyphRender(),
+    draw_text(text, pixel_size, font, fastuidraw::GlyphRenderer(),
               draw, orientation);
   }
 

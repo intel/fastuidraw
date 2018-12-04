@@ -3471,11 +3471,11 @@ fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &f
             anti_alias_quality);
 }
 
-fastuidraw::GlyphRender
+fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
             const GlyphSequence &glyph_sequence,
-	    GlyphRender renderer)
+	    GlyphRenderer renderer)
 {
   PainterPrivate *d;
   enum matrix_type_t tp;
@@ -3488,7 +3488,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
     {
       if (tp == perspective_matrix)
 	{
-	  renderer = GlyphRender(restricted_rays_glyph);
+	  renderer = GlyphRenderer(restricted_rays_glyph);
 	}
       else
 	{
@@ -3501,15 +3501,15 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 	      int pixel_size;
 
 	      pixel_size = choose_pixel_size(effective_pixel_width);
-	      renderer = GlyphRender(pixel_size);
+	      renderer = GlyphRenderer(pixel_size);
 	    }
 	  else if (effective_pixel_width <= d->m_distance_text_cut_off)
 	    {
-	      renderer = GlyphRender(distance_field_glyph);
+	      renderer = GlyphRenderer(distance_field_glyph);
 	    }
 	  else
 	    {
-	      renderer = GlyphRender(restricted_rays_glyph);
+	      renderer = GlyphRenderer(restricted_rays_glyph);
 	    }
 	}
     }
@@ -3546,10 +3546,10 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
   return renderer;
 }
 
-fastuidraw::GlyphRender
+fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 draw_glyphs(const PainterData &draw, const GlyphSequence &data,
-	    GlyphRender render)
+	    GlyphRenderer render)
 {
   return draw_glyphs(default_shaders().glyph_shader(), draw, data, render);
 }

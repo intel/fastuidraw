@@ -498,29 +498,29 @@ namespace fastuidraw
      * \param shader \ref PainterGlyphShader to draw the glyphs
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
-     * \param renderer how to render the glyphs. If GlyphRender::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRender suitable
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
      *                 for the current transformation() value.
-     * \return Returns what \ref GlyphRender value used
+     * \return Returns what \ref GlyphRenderer value used
      */
-    GlyphRender
+    GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphSequence &glyph_sequence,
-		GlyphRender renderer = GlyphRender());
+		GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
      * and the data of the passed \ref GlyphSequence.
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
-     * \param renderer how to render the glyphs. If GlyphRender::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRender suitable
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
      *                 for the current transformation() value.
-     * \return Returns what \ref GlyphRender value used
+     * \return Returns what \ref GlyphRenderer value used
      */
-    GlyphRender
+    GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
-		GlyphRender renderer = GlyphRender());
+		GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw glyphs by specifying precise \ref PainterAttributeData to use.

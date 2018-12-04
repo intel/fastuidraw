@@ -186,7 +186,7 @@ namespace
 	       unsigned int &current) const;
 
     const GlyphAttributesIndices&
-    attributes_indices(fastuidraw::GlyphRender R);
+    attributes_indices(fastuidraw::GlyphRenderer R);
 
     fastuidraw::c_array<const unsigned int>
     glyph_elements(void) const
@@ -225,7 +225,7 @@ namespace
     unsigned int m_gen, m_ID;
     std::vector<unsigned int> m_glyph_list;
     fastuidraw::BoundingBox<float> m_bounding_box;
-    std::map<fastuidraw::GlyphRender, GlyphAttributesIndices> m_data;
+    std::map<fastuidraw::GlyphRenderer, GlyphAttributesIndices> m_data;
     fastuidraw::Path *m_path;
 
     Splitter m_splitter;
@@ -719,11 +719,11 @@ select_all(fastuidraw::c_array<unsigned int> dst, unsigned int &current) const
 
 const GlyphAttributesIndices&
 GlyphSubSequencePrivate::
-attributes_indices(fastuidraw::GlyphRender R)
+attributes_indices(fastuidraw::GlyphRenderer R)
 {
   using namespace fastuidraw;
 
-  std::map<GlyphRender, GlyphAttributesIndices>::const_iterator iter;
+  std::map<GlyphRenderer, GlyphAttributesIndices>::const_iterator iter;
 
   iter = m_data.find(R);
   if (iter != m_data.end())
@@ -842,7 +842,7 @@ SubSequence(void *d):
 
 void
 fastuidraw::GlyphSequence::SubSequence::
-attributes_and_indices(GlyphRender render,
+attributes_and_indices(GlyphRenderer render,
 		       c_array<const PainterAttribute> *out_attributes,
 		       c_array<const PainterIndex> *out_indices)
 {

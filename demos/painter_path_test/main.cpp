@@ -1447,7 +1447,7 @@ construct_paths(int w, int h)
   for (uint32_t character_code : m_character_code_list)
     {
       uint32_t glyph_code;
-      GlyphRender renderer(distance_field_glyph);
+      GlyphRenderer renderer(distance_field_glyph);
       Glyph g;
 
       glyph_code = m_font->glyph_code(character_code);

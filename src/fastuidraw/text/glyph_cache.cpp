@@ -119,7 +119,7 @@ namespace
     /* location into m_cache->m_glyphs  */
     unsigned int m_cache_location;
 
-    fastuidraw::GlyphRender m_render;
+    fastuidraw::GlyphRenderer m_render;
     GlyphMetricsPrivate *m_metrics;
 
     std::vector<fastuidraw::GlyphAttribute> m_attributes;
@@ -232,7 +232,7 @@ namespace
     {}
 
     glyph_key(const fastuidraw::FontBase *f,
-	      uint32_t gc, fastuidraw::GlyphRender r):
+	      uint32_t gc, fastuidraw::GlyphRenderer r):
       m_font(f),
       m_glyph_code(gc),
       m_render(r)
@@ -250,7 +250,7 @@ namespace
 
     const fastuidraw::FontBase *m_font;
     uint32_t m_glyph_code;
-    fastuidraw::GlyphRender m_render;
+    fastuidraw::GlyphRenderer m_render;
   };
 
   class glyph_metrics_key
@@ -359,7 +359,7 @@ void
 GlyphDataPrivate::
 clear(void)
 {
-  m_render = fastuidraw::GlyphRender();
+  m_render = fastuidraw::GlyphRenderer();
   FASTUIDRAWassert(!m_render.valid());
 
   remove_from_atlas();
@@ -525,7 +525,7 @@ type(void) const
   return p->m_render.m_type;
 }
 
-fastuidraw::GlyphRender
+fastuidraw::GlyphRenderer
 fastuidraw::Glyph::
 renderer(void) const
 {
@@ -626,7 +626,7 @@ render_size(void) const
 
 fastuidraw::Glyph
 fastuidraw::Glyph::
-create_glyph(GlyphRender render,
+create_glyph(GlyphRenderer render,
              const reference_counted_ptr<const FontBase> &font,
              uint32_t glyph_code)
 {
@@ -806,7 +806,7 @@ fetch_glyph_metrics(c_array<const GlyphSource> glyph_sources,
 
 fastuidraw::Glyph
 fastuidraw::GlyphCache::
-fetch_glyph(GlyphRender render,
+fetch_glyph(GlyphRenderer render,
             const fastuidraw::reference_counted_ptr<const FontBase> &font,
             uint32_t glyph_code, bool upload_to_atlas)
 {
@@ -850,7 +850,7 @@ fetch_glyph(GlyphRender render,
 
 void
 fastuidraw::GlyphCache::
-fetch_glyphs(GlyphRender render,
+fetch_glyphs(GlyphRenderer render,
              const reference_counted_ptr<const FontBase> &font,
              c_array<const uint32_t> glyph_codes,
              c_array<Glyph> out_glyphs,
@@ -866,7 +866,7 @@ fetch_glyphs(GlyphRender render,
 
 void
 fastuidraw::GlyphCache::
-fetch_glyphs(GlyphRender render,
+fetch_glyphs(GlyphRenderer render,
              c_array<const GlyphSource> glyph_sources,
              c_array<Glyph> out_glyphs,
              bool upload_to_atlas)
@@ -881,7 +881,7 @@ fetch_glyphs(GlyphRender render,
 
 void
 fastuidraw::GlyphCache::
-fetch_glyphs(GlyphRender render,
+fetch_glyphs(GlyphRenderer render,
 	     c_array<const GlyphMetrics> glyph_metrics,
 	     c_array<Glyph> out_glyphs,
 	     bool upload_to_atlas)

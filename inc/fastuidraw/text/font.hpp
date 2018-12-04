@@ -145,7 +145,7 @@ namespace fastuidraw
      * To be implemented by a derived class to indicate
      * that it will return non-nullptr in
      * compute_rendering_data() when passed a
-     * GlyphRender whose GlyphRender::m_type
+     * GlyphRenderer whose GlyphRenderer::m_type
      * is a specified value.
      */
     virtual
@@ -164,8 +164,8 @@ namespace fastuidraw
 
     /*!
      * To be implemented by a derived class to generate glyph
-     * rendering data given a glyph code and GlyphRender.
-     * \param render specifies object to return via GlyphRender::type(),
+     * rendering data given a glyph code and GlyphRenderer.
+     * \param render specifies object to return via GlyphRenderer::type(),
      *               it is guaranteed by the caller that can_create_rendering_data()
      *               returns true on render.type()
      * \param glyph_metrics GlyphMetrics values as computed by compute_metrics()
@@ -175,7 +175,7 @@ namespace fastuidraw
      */
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render, GlyphMetrics glyph_metrics,
+    compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
 			   Path &path, vec2 &render_size) const = 0;
 
     friend class Glyph;

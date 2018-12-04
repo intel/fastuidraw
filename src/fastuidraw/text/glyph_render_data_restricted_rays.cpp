@@ -828,14 +828,14 @@ namespace
     std::vector<Contour> m_contours;
   };
 
-  class GlyphRenderParams:fastuidraw::noncopyable
+  class GlyphRendererParams:fastuidraw::noncopyable
   {
   public:
     static
-    GlyphRenderParams&
+    GlyphRendererParams&
     values(void)
     {
-      static GlyphRenderParams R;
+      static GlyphRendererParams R;
       return R;
     }
 
@@ -845,7 +845,7 @@ namespace
     std::mutex m_mutex;
 
   private:
-    GlyphRenderParams(void):
+    GlyphRendererParams(void):
       m_max_recursion(12),
       m_split_thresh(4),
       m_expected_min_render_size(32.0f)
@@ -2245,7 +2245,7 @@ unsigned int
 fastuidraw::GlyphRenderDataRestrictedRays::
 max_recursion(void)
 {
-  GlyphRenderParams &R(GlyphRenderParams::values());
+  GlyphRendererParams &R(GlyphRendererParams::values());
   std::lock_guard<std::mutex> m(R.m_mutex);
   return R.m_max_recursion;
 }
@@ -2254,7 +2254,7 @@ void
 fastuidraw::GlyphRenderDataRestrictedRays::
 max_recursion(unsigned int v)
 {
-  GlyphRenderParams &R(GlyphRenderParams::values());
+  GlyphRendererParams &R(GlyphRendererParams::values());
   std::lock_guard<std::mutex> m(R.m_mutex);
   R.m_max_recursion = v;
 }
@@ -2263,7 +2263,7 @@ unsigned int
 fastuidraw::GlyphRenderDataRestrictedRays::
 split_thresh(void)
 {
-  GlyphRenderParams &R(GlyphRenderParams::values());
+  GlyphRendererParams &R(GlyphRendererParams::values());
   std::lock_guard<std::mutex> m(R.m_mutex);
   return R.m_split_thresh;
 }
@@ -2272,7 +2272,7 @@ void
 fastuidraw::GlyphRenderDataRestrictedRays::
 split_thresh(unsigned int v)
 {
-  GlyphRenderParams &R(GlyphRenderParams::values());
+  GlyphRendererParams &R(GlyphRendererParams::values());
   std::lock_guard<std::mutex> m(R.m_mutex);
   R.m_split_thresh = v;
 }
@@ -2281,7 +2281,7 @@ float
 fastuidraw::GlyphRenderDataRestrictedRays::
 expected_min_render_size(void)
 {
-  GlyphRenderParams &R(GlyphRenderParams::values());
+  GlyphRendererParams &R(GlyphRendererParams::values());
   std::lock_guard<std::mutex> m(R.m_mutex);
   return R.m_expected_min_render_size;
 }
@@ -2290,7 +2290,7 @@ void
 fastuidraw::GlyphRenderDataRestrictedRays::
 expected_min_render_size(float v)
 {
-  GlyphRenderParams &R(GlyphRenderParams::values());
+  GlyphRendererParams &R(GlyphRendererParams::values());
   std::lock_guard<std::mutex> m(R.m_mutex);
   R.m_expected_min_render_size = v;
 }

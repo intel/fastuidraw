@@ -156,7 +156,7 @@ namespace
 /////////////////////////////
 // GlyphSetGenerator methods
 GlyphSetGenerator::
-GlyphSetGenerator(fastuidraw::GlyphRender r,
+GlyphSetGenerator(fastuidraw::GlyphRenderer r,
                   fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
                   std::vector<fastuidraw::Glyph> &dst):
   m_render(r),
@@ -186,7 +186,7 @@ execute(void *ptr)
 void
 GlyphSetGenerator::
 generate(unsigned int num_threads,
-         fastuidraw::GlyphRender r,
+         fastuidraw::GlyphRenderer r,
          fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
          std::vector<fastuidraw::Glyph> &dst,
          fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,

@@ -20,30 +20,30 @@
 #include <fastuidraw/text/glyph_render_data.hpp>
 
 //////////////////////////////////////
-// GlyphRender methods
-fastuidraw::GlyphRender::
-GlyphRender(int pixel_size):
+// GlyphRenderer methods
+fastuidraw::GlyphRenderer::
+GlyphRenderer(int pixel_size):
   m_type(coverage_glyph),
   m_pixel_size(pixel_size)
 {}
 
-fastuidraw::GlyphRender::
-GlyphRender(enum glyph_type t):
+fastuidraw::GlyphRenderer::
+GlyphRenderer(enum glyph_type t):
   m_type(t),
   m_pixel_size(0)
 {
   FASTUIDRAWassert(scalable(t) || t == invalid_glyph);
 }
 
-fastuidraw::GlyphRender::
-GlyphRender(void):
+fastuidraw::GlyphRenderer::
+GlyphRenderer(void):
   m_type(invalid_glyph),
   m_pixel_size(0)
 {}
 
 bool
-fastuidraw::GlyphRender::
-operator<(const GlyphRender &rhs) const
+fastuidraw::GlyphRenderer::
+operator<(const GlyphRenderer &rhs) const
 {
   if (m_type != rhs.m_type)
     {
@@ -59,15 +59,15 @@ operator<(const GlyphRender &rhs) const
 }
 
 bool
-fastuidraw::GlyphRender::
-operator==(const GlyphRender &rhs) const
+fastuidraw::GlyphRenderer::
+operator==(const GlyphRenderer &rhs) const
 {
   return m_type == rhs.m_type
     && (scalable(m_type) || m_pixel_size == rhs.m_pixel_size);
 }
 
 bool
-fastuidraw::GlyphRender::
+fastuidraw::GlyphRenderer::
 valid(void) const
 {
   return (m_type != invalid_glyph) &&
@@ -75,7 +75,7 @@ valid(void) const
 }
 
 bool
-fastuidraw::GlyphRender::
+fastuidraw::GlyphRenderer::
 scalable(enum glyph_type tp)
 {
   return tp != coverage_glyph;

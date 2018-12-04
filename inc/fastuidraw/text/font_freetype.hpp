@@ -128,7 +128,7 @@ namespace fastuidraw
 
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render, GlyphMetrics glyph_metrics,
+    compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
 			   Path &path, vec2 &render_size) const;
 
     void *m_d;

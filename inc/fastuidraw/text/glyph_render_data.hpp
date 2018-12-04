@@ -85,7 +85,7 @@ namespace fastuidraw
    * \brief
    * Specifies how to render a glyph
    */
-  class GlyphRender
+  class GlyphRenderer
   {
   public:
     /*!
@@ -93,7 +93,7 @@ namespace fastuidraw
      * \param pixel_size value to which to initialize m_pixel_size
      */
     explicit
-    GlyphRender(int pixel_size);
+    GlyphRenderer(int pixel_size);
 
     /*!
      * Ctor.
@@ -101,13 +101,13 @@ namespace fastuidraw
      *          that scalable() returns true
      */
     explicit
-    GlyphRender(enum glyph_type t);
+    GlyphRenderer(enum glyph_type t);
 
     /*!
      * Ctor. Initializes \ref m_type to \ref invalid_glyph (which is the
      * same value as \ref adaptive_rendering).
      */
-    GlyphRender(void);
+    GlyphRenderer(void);
 
     /*!
      * How to render glyph.
@@ -134,17 +134,17 @@ namespace fastuidraw
      * \param rhs value to which to compare against
      */
     bool
-    operator<(const GlyphRender &rhs) const;
+    operator<(const GlyphRenderer &rhs) const;
 
     /*!
      * Comparison operator.
      * \param rhs value to which to compare against
      */
     bool
-    operator==(const GlyphRender &rhs) const;
+    operator==(const GlyphRenderer &rhs) const;
 
     /*!
-     * Returns true if and only if this GlyphRender is valid
+     * Returns true if and only if this GlyphRenderer is valid
      * to specify how to render a glyph.
      */
     bool

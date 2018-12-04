@@ -32,14 +32,14 @@ public:
   static
   void
   generate(unsigned int num_threads,
-           fastuidraw::GlyphRender r,
+           fastuidraw::GlyphRenderer r,
            fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
            std::vector<fastuidraw::Glyph> &dst,
            fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
            std::vector<int> &cnts);
 
 private:
-  GlyphSetGenerator(fastuidraw::GlyphRender r,
+  GlyphSetGenerator(fastuidraw::GlyphRenderer r,
                     fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
                     std::vector<fastuidraw::Glyph> &dst);
 
@@ -47,7 +47,7 @@ private:
   int
   execute(void *ptr);
 
-  fastuidraw::GlyphRender m_render;
+  fastuidraw::GlyphRenderer m_render;
   fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> m_font;
   fastuidraw::c_array<fastuidraw::Glyph> m_dst;
   SDL_atomic_t m_counter;

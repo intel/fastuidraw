@@ -19,7 +19,7 @@
 using namespace fastuidraw;
 
 std::ostream&
-operator<<(std::ostream &str, GlyphRender R)
+operator<<(std::ostream &str, GlyphRenderer R)
 {
   if (R.valid())
     {
@@ -86,7 +86,7 @@ public:
   }
 
   void
-  realize_glyphs(GlyphRender R);
+  realize_glyphs(GlyphRenderer R);
 
   GlyphSequence&
   empty_glyph_sequence(void)
@@ -94,8 +94,8 @@ public:
     return *m_empty_glyph_sequence;
   }
 
-  GlyphRender
-  draw_glyphs(GlyphRender render,
+  GlyphRenderer
+  draw_glyphs(GlyphRenderer render,
               const reference_counted_ptr<Painter> &painter,
               const PainterData &data) const;
 
@@ -129,7 +129,7 @@ public:
   }
 
   void
-  realize_all_glyphs(GlyphRender renderer,
+  realize_all_glyphs(GlyphRenderer renderer,
                      const reference_counted_ptr<const FontFreeType> &font,
                      int num_threads);
 
@@ -178,7 +178,7 @@ private:
   create_and_add_font(void);
 
   void
-  realize_all_glyphs(GlyphRender renderer);
+  realize_all_glyphs(GlyphRenderer renderer);
 
   void
   ready_glyph_data(int w, int h);
@@ -187,10 +187,10 @@ private:
   update_cts_params(void);
 
   void
-  stroke_glyph(const PainterData &d, GlyphMetrics G, GlyphRender R);
+  stroke_glyph(const PainterData &d, GlyphMetrics G, GlyphRenderer R);
 
   void
-  fill_glyph(const PainterData &d, GlyphMetrics G, GlyphRender R);
+  fill_glyph(const PainterData &d, GlyphMetrics G, GlyphRenderer R);
 
   void
   draw_glyphs(float us);
@@ -222,7 +222,7 @@ private:
   /* The last entry value is left as invalid to represent
    * to auto-choose how to render the glyphs.
    */
-  vecN<GlyphRender, draw_glyph_auto + 1> m_draws;
+  vecN<GlyphRenderer, draw_glyph_auto + 1> m_draws;
   unsigned int m_glyph_texel_page;
 
   bool m_stroke_glyphs, m_fill_glyphs, m_draw_path_pts;
@@ -450,7 +450,7 @@ init(std::istream &istr,
 
 void
 GlyphDrawsShared::
-realize_glyphs(GlyphRender R)
+realize_glyphs(GlyphRenderer R)
 {
   unsigned int num;
 
@@ -465,9 +465,9 @@ realize_glyphs(GlyphRender R)
     }
 }
 
-GlyphRender
+GlyphRenderer
 GlyphDrawsShared::
-draw_glyphs(GlyphRender render,
+draw_glyphs(GlyphRenderer render,
             const reference_counted_ptr<Painter> &painter,
             const PainterData &draw) const
 {
@@ -658,7 +658,7 @@ derived_init(int w, int h)
 
 void
 painter_glyph_test::
-realize_all_glyphs(GlyphRender renderer)
+realize_all_glyphs(GlyphRenderer renderer)
 {
   unsigned int num_threads(m_realize_glyphs_thread_count.value());
   simple_time timer;
@@ -700,9 +700,9 @@ ready_glyph_data(int w, int h)
   std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
                                              m_explicit_glyph_codes.end());
 
-  m_draws[draw_glyph_distance] = GlyphRender(distance_field_glyph);
-  m_draws[draw_glyph_restricted_rays] = GlyphRender(restricted_rays_glyph);
-  m_draws[draw_glyph_coverage] = GlyphRender(m_coverage_pixel_size.value());
+  m_draws[draw_glyph_distance] = GlyphRenderer(distance_field_glyph);
+  m_draws[draw_glyph_restricted_rays] = GlyphRenderer(restricted_rays_glyph);
+  m_draws[draw_glyph_coverage] = GlyphRenderer(m_coverage_pixel_size.value());
 
   if (m_draw_glyph_set.value())
     {
@@ -792,7 +792,7 @@ item_coordinates(ivec2 scr)
 
 void
 painter_glyph_test::
-stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
+stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
 {
   Glyph G;
   enum Painter::shader_anti_alias_t aa_mode;
@@ -810,7 +810,7 @@ stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
 
 void
 painter_glyph_test::
-fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
+fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
 {
   Glyph G;
 
@@ -846,7 +846,7 @@ painter_glyph_test::
 draw_glyphs(float us)
 {
   std::vector<unsigned int> glyphs_visible;
-  GlyphRender render;
+  GlyphRenderer render;
   PainterBrush glyph_brush;
 
   glyph_brush.pen(m_fg_red.value(), m_fg_blue.value(),
@@ -1126,7 +1126,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
   else
@@ -1199,7 +1199,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
 

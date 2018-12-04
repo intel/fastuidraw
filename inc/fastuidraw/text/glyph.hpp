@@ -76,7 +76,7 @@ namespace fastuidraw
      * return true. If not, debug builds FASTUIDRAWassert
      * and release builds crash.
      */
-    GlyphRender
+    GlyphRenderer
     renderer(void) const;
 
     /*!
@@ -164,7 +164,7 @@ namespace fastuidraw
      */
     static
     Glyph
-    create_glyph(GlyphRender render,
+    create_glyph(GlyphRenderer render,
                  const reference_counted_ptr<const FontBase> &font,
                  uint32_t glyph_code);
 

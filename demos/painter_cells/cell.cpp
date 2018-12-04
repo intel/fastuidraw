@@ -164,7 +164,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   if (m_shared_state->m_draw_text)
     {
       painter->draw_glyphs(PainterData(m_text_brush), m_text,
-			   GlyphRender(m_shared_state->m_glyph_render));
+			   GlyphRenderer(m_shared_state->m_glyph_render));
     }
 
   painter->restore();
