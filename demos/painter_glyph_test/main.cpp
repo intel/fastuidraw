@@ -436,10 +436,10 @@ realize_glyphs(GlyphRenderer R)
 {
   unsigned int num;
 
-  num = m_glyph_sequence->number_sub_sequences();
+  num = m_glyph_sequence->number_subsets();
   for (unsigned int i = 0; i < num; ++i)
     {
-      GlyphSequence::SubSequence S(m_glyph_sequence->sub_sequence(i));
+      GlyphSequence::Subset S(m_glyph_sequence->subset(i));
       c_array<const PainterAttribute> out_attributes;
       c_array<const PainterIndex> out_indices;
 

@@ -852,7 +852,7 @@ namespace
   {
   public:
     fastuidraw::GlyphSequence::ScratchSpace m_scratch;
-    std::vector<unsigned int> m_sub_sequences;
+    std::vector<unsigned int> m_subsets;
     std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attribs;
     std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_indices;
   };
@@ -3532,17 +3532,17 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
     }
 
   unsigned int num;
-  d->m_work_room.m_glyph.m_sub_sequences.resize(glyph_sequence.number_sub_sequences());
-  num = glyph_sequence.select_sub_sequences(d->m_work_room.m_glyph.m_scratch,
-					    d->m_clip_store.current(),
-					    d->m_clip_rect_state.item_matrix(),
-					    make_c_array(d->m_work_room.m_glyph.m_sub_sequences));
+  d->m_work_room.m_glyph.m_subsets.resize(glyph_sequence.number_subsets());
+  num = glyph_sequence.select_subsets(d->m_work_room.m_glyph.m_scratch,
+                                      d->m_clip_store.current(),
+                                      d->m_clip_rect_state.item_matrix(),
+                                      make_c_array(d->m_work_room.m_glyph.m_subsets));
   d->m_work_room.m_glyph.m_attribs.resize(num);
   d->m_work_room.m_glyph.m_indices.resize(num);
   for (unsigned int k = 0; k < num; ++k)
     {
-      unsigned int I(d->m_work_room.m_glyph.m_sub_sequences[k]);
-      GlyphSequence::SubSequence S(glyph_sequence.sub_sequence(I));
+      unsigned int I(d->m_work_room.m_glyph.m_subsets[k]);
+      GlyphSequence::Subset S(glyph_sequence.subset(I));
       S.attributes_and_indices(renderer,
 			       &d->m_work_room.m_glyph.m_attribs[k],
 			       &d->m_work_room.m_glyph.m_indices[k]);

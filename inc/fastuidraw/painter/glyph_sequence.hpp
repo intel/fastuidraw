@@ -37,23 +37,24 @@ namespace fastuidraw
    * \brief
    * A GlyphSequence represents a sequence of glyph codes with positions.
    * A GlyphSequence provides an interface to grab the glyph-codes realized
-   * as different renderers for the pupose of rendering text in response
-   * to the transformation that a Painter currently has. The methods of
-   * GlyphSequence are re-entrant but not thread safe, i.e. if an application
-   * uses the same GlyphSequence from multiple threads it needs to explicitely
-   * lock the sequence when using it.
+   * as different renderers for the purpose of rendering text in response
+   * to the transformation that a Painter currently has. A GlyphSequence
+   * maintains a hierarchy so that Painter can quickly cull glyphs that
+   * are not visible. The methods of GlyphSequence are re-entrant but not
+   * thread safe, i.e. if an application uses the same GlyphSequence from
+   * multiple threads it needs to explicitely lock the sequence when using it.
    */
   class GlyphSequence:fastuidraw::noncopyable
   {
   public:
     /*!
-     * A \ref SubSequence represents a subset of the glyphs
+     * A \ref Subset represents a subset of the glyphs
      * of a \ref GlyphSequence for the purpose of culling
-     * when rendering. Different SubSequence values from the
+     * when rendering. Different Subset values from the
      * same \ref GlyphSequence are guaranteed to have disjoint
      * glyphs.
      */
-    class SubSequence
+    class Subset
     {
     public:
       /*!
@@ -61,7 +62,7 @@ namespace fastuidraw
        * and \ref PainterIndex data for specified \ref GlyphRenderer
        * value. The data is constructed lazily on demand.
        * \param render GlyphRenderer how to render the glyphs of this
-       *               \ref SubSequence
+       *               \ref Subset
        * \param out_attributes location to which to write the array
        *                       of the attributes to render the glyphs
        * \param out_indices location to which to write the array
@@ -74,14 +75,14 @@ namespace fastuidraw
 
       /*!
        * Returns an array of index values to pass to GlyphSequence::add_glyph()
-       * of the glyphs of this \ref SubSequence.
+       * of the glyphs of this \ref Subset.
        */
       c_array<const unsigned int>
       glyphs(void);
 
       /*!
        * Returns the bounding box of the glyphs of this
-       * SubSequence object. Returns false if the
+       * Subset object. Returns false if the
        * bounding box is empty.
        * \param out_min_bb location to which to write the
        *                   min-corner of the bounding box
@@ -93,7 +94,7 @@ namespace fastuidraw
 
       /*!
        * Returns the \ref Path made from the bounding
-       * box of the SubSequence.
+       * box of the Subset.
        */
       const Path&
       path(void);
@@ -101,7 +102,7 @@ namespace fastuidraw
     private:
       friend class GlyphSequence;
       explicit
-      SubSequence(void *d);
+      Subset(void *d);
       void *m_d;
     };
 
@@ -214,41 +215,41 @@ namespace fastuidraw
     layout(void) const;
 
     /*!
-     * Returns the total number of \ref SubSequence objects of this
+     * Returns the total number of \ref Subset objects of this
      * \ref GlyphSequence. This value can change when add_glyph() or
      * add_glyphs() is called.
      */
     unsigned int
-    number_sub_sequences(void) const;
+    number_subsets(void) const;
 
     /*!
-     * Fetch a \ref SubSequence of this \ref GlyphSequence.
+     * Fetch a \ref Subset of this \ref GlyphSequence.
      * The returned object may no longer be valid if add_glyph()
      * or add_glyphs() is called. In addition, any returned
      * object is no longer valid if the owning \ref GlyphSequence
      * goes out of scope.
-     * \param I which SubSequence to fetch with 0 <= I < number_sub_sequences()
+     * \param I which Subset to fetch with 0 <= I < number_subsets()
      */
-    SubSequence
-    sub_sequence(unsigned int I) const;
+    Subset
+    subset(unsigned int I) const;
 
     /*!
-     * Fetch those SubSequence objects that intersect a region
+     * Fetch those Subset objects that intersect a region
      * specified by clip equations.
      * \param scratch_space scratch space for computations.
      * \param clip_equations array of clip equations
      * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
      *                          coordinates to clip coordinates.
-     * \param[out] dst location to which to write the \ref SubSequence
+     * \param[out] dst location to which to write the \ref Subset
      *                 ID values
-     * \returns the number of SubSequence object ID's written to dst, that
-     *          number is guaranteed to be no more than number_sub_sequences().
+     * \returns the number of Subset object ID's written to dst, that
+     *          number is guaranteed to be no more than number_subsets().
      */
     unsigned int
-    select_sub_sequences(ScratchSpace &scratch_space,
-			 c_array<const vec3> clip_equations,
-			 const float3x3 &clip_matrix_local,
-			 c_array<unsigned int> dst) const;
+    select_subsets(ScratchSpace &scratch_space,
+                   c_array<const vec3> clip_equations,
+                   const float3x3 &clip_matrix_local,
+                   c_array<unsigned int> dst) const;
 
   private:
     void *m_d;
