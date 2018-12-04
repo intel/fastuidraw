@@ -3605,6 +3605,22 @@ draw_glyphs(const PainterData &draw, const GlyphRun &data,
                      begin, count, renderer);
 }
 
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+            const GlyphRun &glyph_run, GlyphRenderer renderer)
+{
+  return draw_glyphs(shader, draw, glyph_run, 0, glyph_run.number_glyphs(), renderer);
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+            GlyphRenderer renderer)
+{
+  return draw_glyphs(draw, glyph_run, 0, glyph_run.number_glyphs(), renderer);
+}
+
 const fastuidraw::PainterItemMatrix&
 fastuidraw::Painter::
 transformation(void)
