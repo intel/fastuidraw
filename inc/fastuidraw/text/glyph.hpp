@@ -148,8 +148,7 @@ namespace fastuidraw
      * then one needs to reverse the y-coordinate (for
      * example by Painter::shear(1.0, -1.0)) if the
      * glyphs are rendered with data packed by
-     * \ref PainterAttributeDataFillerGlyphs with
-     * \ref PainterEnums::y_increases_downwards.
+     * pack_glyph() with PainterEnums::y_increases_downwards.
      */
     const Path&
     path(void) const;

@@ -10,7 +10,6 @@ include $(dir)/Rules.mk
 
 FASTUIDRAW_SOURCES += $(call filelist, fill_rule.cpp \
 	painter_attribute_data.cpp \
-	painter_attribute_data_filler_glyphs.cpp \
 	painter_brush.cpp painter_stroke_params.cpp \
 	painter_dashed_stroke_params.cpp \
 	painter.cpp painter_enums.cpp \

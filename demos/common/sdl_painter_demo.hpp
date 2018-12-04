@@ -1,7 +1,6 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
 #include <fastuidraw/painter/painter.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 
