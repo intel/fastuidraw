@@ -180,15 +180,15 @@ namespace fastuidraw
      * no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    aa_hq_action_pass1(void) const;
+    aa_fuzz_hq_action_pass1(void) const;
 
     /*!
-     * Set the value returned by aa_hq_action_pass1(void) const.
+     * Set the value returned by aa_fuzz_hq_action_pass1(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterFillShader&
-    aa_hq_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
+    aa_fuzz_hq_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
      * Returns the action to be called before the 2nd pass
@@ -197,15 +197,15 @@ namespace fastuidraw
      * no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    aa_hq_action_pass2(void) const;
+    aa_fuzz_hq_action_pass2(void) const;
 
     /*!
-     * Set the value returned by aa_hq_action_pass2(void) const.
+     * Set the value returned by aa_fuzz_hq_action_pass2(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterFillShader&
-    aa_hq_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
+    aa_fuzz_hq_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
 
   private:
     void *m_d;

@@ -2071,7 +2071,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
                    z, call_back);
-      m_core->draw_break(shader.aa_hq_action_pass1());
+      m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
 
       draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
                    make_c_array(data.m_attrib_chunks),
@@ -2079,7 +2079,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
                    z, call_back);
-      m_core->draw_break(shader.aa_hq_action_pass2());
+      m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
     }
 }
 
@@ -2790,13 +2790,13 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z, call_back);
-          m_core->draw_break(shader.aa_hq_action_pass1());
+          m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
 
           draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z, call_back);
-          m_core->draw_break(shader.aa_hq_action_pass2());
+          m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
         }
     }
 
@@ -3221,13 +3221,13 @@ draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
                           make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                           make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                           0, d->m_current_z + incr_z, nullptr);
-          d->m_core->draw_break(shader.aa_hq_action_pass1());
+          d->m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
 
           d->draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
                           make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                           make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                           0, d->m_current_z + incr_z, nullptr);
-          d->m_core->draw_break(shader.aa_hq_action_pass2());
+          d->m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
         }
 
       for (int i = 0; i < 4; ++i)
