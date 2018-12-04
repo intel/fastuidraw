@@ -253,16 +253,16 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
       ratio = pixel_size / layout.units_per_EM();
       pen.x() += ratio * layout.advance().x();
     }
-
 }
 
-
+template<typename T>
+static
 void
-create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
-                      std::istream &istr,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
-                      const fastuidraw::vec2 &starting_place)
+create_formatted_textT(T &out_sequence,
+                       std::istream &istr,
+                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                       const fastuidraw::vec2 &starting_place)
 {
   std::streampos current_position, end_position;
   float pixel_size(out_sequence.pixel_size());
@@ -363,6 +363,26 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 
       out_sequence.add_glyphs(cast_c_array(glyph_sources), cast_c_array(sub_p));
     }
+}
+
+void
+create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
+                      std::istream &istr,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      const fastuidraw::vec2 &starting_place)
+{
+  create_formatted_textT(out_sequence, istr, font, glyph_selector, starting_place);
+}
+
+void
+create_formatted_text(fastuidraw::GlyphRun &out_sequence,
+                      std::istream &istr,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      const fastuidraw::vec2 &starting_place)
+{
+  create_formatted_textT(out_sequence, istr, font, glyph_selector, starting_place);
 }
 
 void

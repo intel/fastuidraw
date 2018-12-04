@@ -80,6 +80,20 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
 
+/*
+ * \param[out] out_run run to which to add glyphs
+ * \param stream input stream from which to grab lines of text
+ * \param font font of the glyphs
+ * \param glyph_selector used to select glyphs from font
+ * \param shift_by amount by which to shit all glyphs
+ */
+void
+create_formatted_text(fastuidraw::GlyphRun &out_run,
+                      std::istream &stream,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
+
 void
 add_fonts_from_path(const std::string &path,
                     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
