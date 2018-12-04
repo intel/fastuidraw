@@ -173,7 +173,7 @@ namespace fastuidraw
     /*!
      * Returns the \ref GlyphSource and position value for
      * the i'th glyph added via add_glyph() or add_glyphs().
-     * \param I index to selct which glyph, must be that
+     * \param I index to select which glyph, must be that
      *          0 <= I < number_glyphs()
      * \param *out_glyph_metrics location to which to write
      *                           the \ref GlyphMetrics value

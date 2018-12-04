@@ -61,27 +61,7 @@ namespace
 	       fastuidraw::c_array<const fastuidraw::vec2> positions,
 	       float render_pixel_size,
 	       enum fastuidraw::PainterEnums::screen_orientation orientation,
-	       enum fastuidraw::PainterEnums::glyph_layout_type layout)
-    {
-      using namespace fastuidraw;
-
-      enum return_code R;
-      unsigned int num_attrs(0), num_indices(0);
-
-      PainterAttributeDataFillerGlyphs::compute_number_attributes_indices_needed(glyphs,
-										 &num_attrs,
-										 &num_indices);
-
-      m_attribs.resize(num_attrs);
-      m_indices.resize(num_indices);
-      R = PainterAttributeDataFillerGlyphs::pack_attributes_indices(positions, glyphs,
-								    render_pixel_size,
-								    orientation, layout,
-								    make_c_array(m_attribs),
-								    make_c_array(m_indices));
-      FASTUIDRAWassert(R == routine_success);
-      FASTUIDRAWunused(R);
-    }
+	       enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
     fastuidraw::c_array<const fastuidraw::PainterAttribute>
     attributes(void) const
@@ -349,6 +329,56 @@ namespace
     GlyphSubsetPrivate *m_root;
     std::vector<GlyphSubsetPrivate*> m_subsets;
   };
+}
+
+/////////////////////////////////////
+// GlyphAttributesIndices methods
+void
+GlyphAttributesIndices::
+set_values(fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+           fastuidraw::c_array<const fastuidraw::vec2> positions,
+           float render_pixel_size,
+           enum fastuidraw::PainterEnums::screen_orientation orientation,
+           enum fastuidraw::PainterEnums::glyph_layout_type layout)
+{
+  using namespace fastuidraw;
+
+  unsigned int num_attrs(0), num_indices(0);
+
+  for (Glyph G : glyphs)
+    {
+      if (G.valid()
+          && G.render_size().x() > 0
+          && G.render_size().y() > 0)
+        {
+          num_attrs += 4;
+          num_indices += 6;
+        }
+    }
+
+  m_attribs.resize(num_attrs);
+  m_indices.resize(num_indices);
+
+  for (unsigned int g = 0, attr = 0, idx = 0; g < positions.size(); ++g)
+    {
+      Glyph G(glyphs[g]);
+
+      if (G.valid()
+          && G.render_size().x() > 0
+          && G.render_size().y() > 0)
+        {
+          float scale;
+
+          scale = render_pixel_size / G.metrics().units_per_EM();
+          G.pack_glyph(attr, make_c_array(m_attribs),
+                       idx, make_c_array(m_indices),
+                       positions[g], scale,
+                       orientation, layout);
+
+          attr += 4;
+          idx += 6;
+        }
+    }
 }
 
 //////////////////////////////////
