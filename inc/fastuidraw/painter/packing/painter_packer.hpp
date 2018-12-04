@@ -79,7 +79,7 @@ namespace fastuidraw
      * A provides an interface to write attribute and index data into a PainterDraw
      * for the cases where a simple copy is not sufficient.
      */
-    class DataWriter
+    class DataWriter:fastuidraw::noncopyable
     {
     public:
       virtual
