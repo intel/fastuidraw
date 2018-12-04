@@ -494,6 +494,17 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
+     * Using the current transformation matrix and a,
+     * compute what is an ideal way to render a sequence
+     * glyphs layed out and scaled in local coordinates
+     * to a given pixel size.
+     * \param pixel_size size of text to render BEFORE
+     *                   applying the transformation matrix.
+     */
+    GlyphRenderer
+    compute_glyph_renderer(float pixel_size);
+
+    /*!
      * Draw glyphs from a \ref GlyphSequence.
      * \param shader \ref PainterGlyphShader to draw the glyphs
      * \param draw data for how to draw

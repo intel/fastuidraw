@@ -3473,45 +3473,57 @@ fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &f
 
 fastuidraw::GlyphRenderer
 fastuidraw::Painter::
+compute_glyph_renderer(float pixel_size)
+{
+  PainterPrivate *d;
+  GlyphRenderer renderer;
+  enum matrix_type_t tp;
+
+  d = static_cast<PainterPrivate*>(m_d);
+  tp = d->m_clip_rect_state.matrix_type();
+
+  if (tp == perspective_matrix)
+    {
+      renderer = GlyphRenderer(restricted_rays_glyph);
+    }
+  else
+    {
+      float scale_factor, effective_pixel_width;
+      scale_factor = d->m_clip_rect_state.item_matrix_operator_norm();
+      effective_pixel_width = pixel_size * scale_factor;
+
+      if (effective_pixel_width <= d->m_coverage_text_cut_off)
+        {
+          int pixel_size;
+
+          pixel_size = choose_pixel_size(effective_pixel_width);
+          renderer = GlyphRenderer(pixel_size);
+        }
+      else if (effective_pixel_width <= d->m_distance_text_cut_off)
+        {
+          renderer = GlyphRenderer(distance_field_glyph);
+        }
+      else
+        {
+          renderer = GlyphRenderer(restricted_rays_glyph);
+        }
+    }
+
+  return renderer;
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
 draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
             const GlyphSequence &glyph_sequence,
 	    GlyphRenderer renderer)
 {
   PainterPrivate *d;
-  enum matrix_type_t tp;
-
   d = static_cast<PainterPrivate*>(m_d);
-
-  tp = d->m_clip_rect_state.matrix_type();
 
   if (!renderer.valid())
     {
-      if (tp == perspective_matrix)
-	{
-	  renderer = GlyphRenderer(restricted_rays_glyph);
-	}
-      else
-	{
-	  float scale_factor, effective_pixel_width;
-	  scale_factor = d->m_clip_rect_state.item_matrix_operator_norm();
-	  effective_pixel_width = glyph_sequence.pixel_size() * scale_factor;
-
-	  if (effective_pixel_width <= d->m_coverage_text_cut_off)
-	    {
-	      int pixel_size;
-
-	      pixel_size = choose_pixel_size(effective_pixel_width);
-	      renderer = GlyphRenderer(pixel_size);
-	    }
-	  else if (effective_pixel_width <= d->m_distance_text_cut_off)
-	    {
-	      renderer = GlyphRenderer(distance_field_glyph);
-	    }
-	  else
-	    {
-	      renderer = GlyphRenderer(restricted_rays_glyph);
-	    }
-	}
+      renderer = compute_glyph_renderer(glyph_sequence.pixel_size());
     }
 
   if (d->m_clip_rect_state.m_all_content_culled)
