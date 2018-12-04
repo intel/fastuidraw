@@ -856,11 +856,10 @@ draw_text(const std::string &text, float pixel_size,
           enum fastuidraw::Painter::screen_orientation orientation)
 {
   std::istringstream str(text);
-  fastuidraw::GlyphSequence sequence(pixel_size, orientation,
-                                     m_glyph_cache);
+  fastuidraw::GlyphRun run(pixel_size, orientation, m_glyph_cache);
 
-  create_formatted_text(sequence, str, font, m_glyph_selector);
-  m_painter->draw_glyphs(draw, sequence, renderer);
+  create_formatted_text(run, str, font, m_glyph_selector);
+  m_painter->draw_glyphs(draw, run, 0, run.number_glyphs(), renderer);
 }
 
 void
