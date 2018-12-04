@@ -207,3 +207,10 @@ get_error(void)
     }
   #endif
 }
+
+void
+fastuidraw::egl_binding::
+message(c_string message, c_string src_file, int src_line)
+{
+  ngl().message(message, src_file, src_line);
+}

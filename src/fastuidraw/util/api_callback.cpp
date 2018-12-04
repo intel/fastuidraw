@@ -329,3 +329,14 @@ post_call(c_string call_string_values,
                               function_ptr,
                               src_file, src_line));
 }
+
+void
+fastuidraw::APICallbackSet::
+message(c_string message, c_string src_file, int src_line)
+{
+  APICallbackSetPrivate *d;
+  d = static_cast<APICallbackSetPrivate*>(m_d);
+  d->call_callbacks(std::bind(&CallBack::message,
+                              std::placeholders::_1,
+                              message, src_file, src_line));
+}

@@ -105,6 +105,15 @@ namespace
       m_str->stream() << "\n";
     }
 
+    virtual
+    void
+    message(fastuidraw::c_string message,
+            fastuidraw::c_string src_file, int src_line)
+    {
+      m_str->stream() << "Message: [" << src_file << "," << src_line << "] "
+                      << message << "\n";
+    }
+
   private:
     fastuidraw::reference_counted_ptr<StreamHolder> m_str;
   };

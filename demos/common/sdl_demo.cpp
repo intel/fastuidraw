@@ -113,6 +113,11 @@ namespace
               void *function_ptr,
               fastuidraw::c_string src_file, int src_line);
 
+    virtual
+    void
+    message(fastuidraw::c_string message,
+            fastuidraw::c_string src_file, int src_line);
+
   private:
     fastuidraw::reference_counted_ptr<StreamHolder> m_str;
   };
@@ -156,6 +161,16 @@ post_call(fastuidraw::c_string call_string_values,
       m_str->stream() << "{" << error_string << "}";
     }
   m_str->stream() << "\n";
+}
+
+void
+OstreamLogger::
+message(fastuidraw::c_string message,
+        fastuidraw::c_string src_file,
+        int src_line)
+{
+  m_str->stream() << "Message: [" << src_file << "," << src_line << "] "
+                  << message << "\n";
 }
 
 ////////////////////////////

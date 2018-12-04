@@ -27,7 +27,7 @@ namespace fastuidraw
    * An APICallbackSet represents a collection of functors
    * to be called before and after each function call from
    * a collection of functions. This class is used by the
-   * \ref fastuidraw::gl_binding.
+   * fastuidraw::gl_binding and fastuidraw::egl_binding.
    */
   class APICallbackSet:fastuidraw::noncopyable
   {
@@ -67,9 +67,9 @@ namespace fastuidraw
        * \param call_string_values string showing call's values
        * \param call_string_src string showing function call as it appears in source
        * \param function_name name of function called
-       * \param function_ptr pointer to GL function originating the call
-       * \param src_file file of orignating GL call
-       * \param src_line line number of orignating GL call
+       * \param function_ptr pointer to function originating the call
+       * \param src_file file of orignating call
+       * \param src_line line number of orignating call
        */
       virtual
       void
@@ -86,9 +86,9 @@ namespace fastuidraw
        * \param call_string_src string showing function call as it appears in source
        * \param function_name name of function called
        * \param error_string error string generated
-       * \param function_ptr pointer to GL function originating the call
-       * \param src_file file of orignating GL call
-       * \param src_line line number of orignating GL call
+       * \param function_ptr pointer to function originating the call
+       * \param src_file file of orignating call
+       * \param src_line line number of orignating call
        */
       virtual
       void
@@ -98,6 +98,17 @@ namespace fastuidraw
                 c_string error_string,
                 void *function_ptr,
                 c_string src_file, int src_line) = 0;
+
+      /*!
+       * To be implemented by a derived class; called when a message
+       * is emitted.
+       * \param message message emitted.
+       * \param src_file file of orignating message
+       * \param src_line line number of orignating message
+       */
+      virtual
+      void
+      message(c_string message, c_string src_file, int src_line) = 0;
 
       /*!
        * To be optionally implemented by a derived class; called
@@ -187,6 +198,13 @@ namespace fastuidraw
      */
     void
     call_unloadable_function(c_string fname);
+
+    /*!
+     * To be called by an implementation to emit a
+     * message to each of the callbacks.
+     */
+    void
+    message(c_string message, c_string src_file, int src_line);
 
   private:
     void *m_d;

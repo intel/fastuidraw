@@ -181,3 +181,10 @@ get_proc(c_string function_name)
 {
   return ngl().get_proc(function_name);
 }
+
+void
+fastuidraw::gl_binding::
+message(c_string message, c_string src_file, int src_line)
+{
+  ngl().message(message, src_file, src_line);
+}
