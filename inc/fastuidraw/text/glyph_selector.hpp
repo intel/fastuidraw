@@ -64,6 +64,30 @@ namespace fastuidraw
     };
 
     /*!
+     * An AbstractFont represents either a reference to a FontGeneratorBase
+     * or a reference to a FontGeneratorBase.
+     */
+    class AbstractFont:public reference_counted<GlyphSelector>::default_base
+    {
+    public:
+      AbstractFont(const reference_counted_ptr<const FontGeneratorBase> &g);
+      AbstractFont(const reference_counted_ptr<const FontBase> &f);
+      ~AbstractFont();
+
+      const fastuidraw::reference_counted_ptr<const FontBase>&
+      font(bool create_if_not_ready = true) const;
+
+      const FontProperties&
+      font_properties(void) const;
+
+      bool
+      font_ready(void) const;
+
+    private:
+      void *m_d;
+    };
+
+    /*!
      * \brief
      * A FontGroup represents a group of fonts which is selected
      * from a FontProperties. The data of a FontGroup is entirely
@@ -95,18 +119,10 @@ namespace fastuidraw
       parent(void) const;
 
       /*!
-       * Returns a list of fonts of this FontGroup that have been
-       * loaded.
+       * Returns the list of fonts of this FontGroup
        */
-      c_array<const reference_counted_ptr<const FontBase> >
-      loaded_fonts(void) const;
-
-      /*!
-       * Returns a list of generators of this FontGroup that have
-       * not yet loaded their font.
-       */
-      c_array<const reference_counted_ptr<const FontGeneratorBase> >
-      font_generators(void) const;
+      c_array<const reference_counted_ptr<const AbstractFont> >
+      fonts(void) const;
 
     private:
       friend class GlyphSelector;
@@ -144,18 +160,46 @@ namespace fastuidraw
     ~GlyphSelector();
 
     /*!
-     * Add a font to this GlyphSelector.
+     * Add a font to this GlyphSelector; the value of
+     * AbstractFont::font_properties().source_label()
+     * will be used as a key to uniquely identify the
+     * font. If a font is already present with the
+     * the same value, will return \ref routine_fail
+     * and not add the font.
      * \param h font to add
      */
-    void
-    add_font(reference_counted_ptr<const FontBase> h);
+    enum return_code
+    add_font(const reference_counted_ptr<const AbstractFont> &h);
 
     /*!
-     * Add a font via \ref FontGeneratorBase to this GlyphSelector
-     * \param gen the object that will generate the font
+     * Provided as a conveniance, equivalent to
+     * \code
+     * add_font(FASTUIDRAWnew AbstractFont(h))
+     * \endcode
+     * with added checks for if h is null.
+     * \param h font to add
      */
-    void
-    add_font_generator(reference_counted_ptr<const FontGeneratorBase> gen);
+    enum return_code
+    add_font(const reference_counted_ptr<const FontBase> &h);
+
+    /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * add_font(FASTUIDRAWnew AbstractFont(h))
+     * \endcode
+     * with added checks for if h is null.
+     * \param h font to add
+     */
+    enum return_code
+    add_font(const reference_counted_ptr<const FontGeneratorBase> &h);
+
+    /*!
+     * Fetch a font using FontProperties::source_label()
+     * as the key to find the font added with add_font().
+     * \param source_label
+     */
+    reference_counted_ptr<const FontBase>
+    fetch_font(c_string source_label);
 
     /*!
      * Fetch a font from a FontProperties description. The return
