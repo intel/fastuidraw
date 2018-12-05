@@ -194,6 +194,8 @@ private:
   command_line_argument_value<std::string> m_font_path;
   command_line_argument_value<std::string> m_font_style, m_font_family;
   command_line_argument_value<bool> m_font_bold, m_font_italic;
+  command_line_argument_value<bool> m_font_ignore_style, m_font_ignore_bold_italic;
+  command_line_argument_value<bool> m_font_exact_match;
   command_line_argument_value<std::string> m_font_file;
   command_line_argument_value<int> m_coverage_pixel_size;
   command_line_argument_value<std::string> m_text;
@@ -465,6 +467,9 @@ painter_glyph_test(void):
   m_font_family("DejaVu Sans", "font_family", "Specifies the font family name", *this),
   m_font_bold(false, "font_bold", "if true select a bold font", *this),
   m_font_italic(false, "font_italic", "if true select an italic font", *this),
+  m_font_ignore_style(false, "font_ignore_style", "if true, when selecting a font ignore style value", *this),
+  m_font_ignore_bold_italic(false, "font_ignore_bold_italic", "if true, when selecting a font ignore bold and italic values", *this),
+  m_font_exact_match(false, "font_exact_match", "if true, require an exact match when selecting a font ignore style value", *this),
   m_font_file("", "font_file",
               "If non-empty gives the name of a font by filename "
               "thus bypassing the glyph selection process with glyph_selector",
@@ -581,12 +586,30 @@ create_and_add_font(void)
   if (!font)
     {
       FontProperties props;
-      props.style(m_font_style.value().c_str());
-      props.family(m_font_family.value().c_str());
-      props.bold(m_font_bold.value());
-      props.italic(m_font_italic.value());
+      uint32_t flags(0);
 
-      font = m_glyph_selector->fetch_font(props);
+      props
+        .style(m_font_style.value().c_str())
+        .family(m_font_family.value().c_str())
+        .bold(m_font_bold.value())
+        .italic(m_font_italic.value());
+
+      if (m_font_ignore_style.value())
+        {
+          flags |= GlyphSelector::ignore_style;
+        }
+
+      if (m_font_ignore_bold_italic.value())
+        {
+          flags |= GlyphSelector::ignore_bold_italic;
+        }
+
+      if (m_font_exact_match.value())
+        {
+          flags |= GlyphSelector::exact_match;
+        }
+
+      font = m_glyph_selector->fetch_font(props, flags);
     }
 
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
