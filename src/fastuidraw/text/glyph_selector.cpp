@@ -655,6 +655,30 @@ add_font_no_lock(const fastuidraw::FontProperties &props, const T &h)
 
 ///////////////////////////////////////////////
 // fastuidraw::GlyphSelector::FontGroup methods
+bool
+fastuidraw::GlyphSelector::FontGroup::
+valid(void) const
+{
+  return m_d != nullptr;
+}
+
+fastuidraw::GlyphSelector::FontGroup
+fastuidraw::GlyphSelector::FontGroup::
+parent(void) const
+{
+  font_group *d;
+  FontGroup return_value;
+
+  d = static_cast<font_group*>(m_d);
+  if (d)
+    {
+      d = d->parent().get();
+    }
+
+  return_value.m_d = d;
+  return return_value;
+}
+
 fastuidraw::c_array<const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> >
 fastuidraw::GlyphSelector::FontGroup::
 loaded_fonts(void) const
@@ -816,6 +840,18 @@ fetch_group(const FontProperties &props, uint32_t selection_strategy)
   h = d->fetch_font_group_no_lock(props, selection_strategy);
   return_value.m_d = h.get();
 
+  return return_value;
+}
+
+fastuidraw::GlyphSelector::FontGroup
+fastuidraw::GlyphSelector::
+root_group(void)
+{
+  FontGroup return_value;
+  GlyphSelectorPrivate *d;
+
+  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  return_value.m_d = d->m_master_group.get();
   return return_value;
 }
 

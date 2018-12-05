@@ -29,8 +29,10 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A GlyphSelector performs the act of selecting a glyph
-   * from a font preference and a character code.
+   * A GlyphSelector performs the act of font selection and glyph
+   * selection. It uses the values of \ref FontProperties (except
+   * for FontProperties::source_label()) to select suitable font
+   * or fonts.
    */
   class GlyphSelector:public reference_counted<GlyphSelector>::default_base
   {
@@ -76,6 +78,21 @@ namespace fastuidraw
       FontGroup(void):
         m_d(nullptr)
       {}
+
+      /*!
+       * Returns true if FontGroup refers to an actaul group
+       * of fonts.
+       */
+      bool
+      valid(void) const;
+
+      /*!
+       * FontGroup objects are grouped into hierarchies for
+       * selection. Returns the parent FontGroup (if any)
+       * for this FontGroup.
+       */
+      FontGroup
+      parent(void) const;
 
       /*!
        * Returns a list of fonts of this FontGroup that have been
@@ -160,6 +177,12 @@ namespace fastuidraw
      */
     FontGroup
     fetch_group(const FontProperties &props, uint32_t selection_strategy);
+
+    /*!
+     * Returns the root FontGroup for all fonts added to this GlyphSelector.
+     */
+    FontGroup
+    root_group(void);
 
     /*!
      * Fetch a GlyphSource with font merging from a glyph rendering type,
