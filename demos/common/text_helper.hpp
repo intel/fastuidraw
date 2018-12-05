@@ -20,9 +20,10 @@ inline
 std::ostream&
 operator<<(std::ostream &str, const fastuidraw::FontProperties &obj)
 {
-  str << obj.source_label() << "(" << obj.foundry()
-      << ", " << obj.family() << ", " << obj.style()
-      << ", " << obj.italic() << ", " << obj.bold() << ")";
+  str << obj.source_label() << "(foundry = " << obj.foundry()
+      << ", family = " << obj.family() << ", style = " << obj.style()
+      << ", bold = " << obj.bold() << ", italic = " << obj.italic()
+      << ")";
   return str;
 }
 
