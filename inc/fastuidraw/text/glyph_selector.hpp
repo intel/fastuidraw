@@ -70,8 +70,6 @@ namespace fastuidraw
     class AbstractFont:public reference_counted<GlyphSelector>::default_base
     {
     public:
-      AbstractFont(const reference_counted_ptr<const FontGeneratorBase> &g);
-      AbstractFont(const reference_counted_ptr<const FontBase> &f);
       ~AbstractFont();
 
       const fastuidraw::reference_counted_ptr<const FontBase>&
@@ -84,6 +82,10 @@ namespace fastuidraw
       font_ready(void) const;
 
     private:
+      friend class GlyphSelector;
+      AbstractFont(const reference_counted_ptr<const FontGeneratorBase> &g);
+      AbstractFont(const reference_counted_ptr<const FontBase> &f);
+
       void *m_d;
     };
 
@@ -161,7 +163,7 @@ namespace fastuidraw
 
     /*!
      * Add a font to this GlyphSelector; the value of
-     * AbstractFont::font_properties().source_label()
+     * FontBase::properties().source_label()
      * will be used as a key to uniquely identify the
      * font. If a font is already present with the
      * the same value, will return \ref routine_fail
@@ -169,29 +171,19 @@ namespace fastuidraw
      * \param h font to add
      */
     enum return_code
-    add_font(const reference_counted_ptr<const AbstractFont> &h);
-
-    /*!
-     * Provided as a conveniance, equivalent to
-     * \code
-     * add_font(FASTUIDRAWnew AbstractFont(h))
-     * \endcode
-     * with added checks for if h is null.
-     * \param h font to add
-     */
-    enum return_code
     add_font(const reference_counted_ptr<const FontBase> &h);
 
     /*!
-     * Provided as a conveniance, equivalent to
-     * \code
-     * add_font(FASTUIDRAWnew AbstractFont(h))
-     * \endcode
-     * with added checks for if h is null.
+     * Add a font to this GlyphSelector; the value of
+     * FontGeneratorBase::font_properties().source_label()
+     * will be used as a key to uniquely identify the
+     * font. If a font is already present with the
+     * the same value, will return \ref routine_fail
+     * and not add the font.
      * \param h font to add
      */
     enum return_code
-    add_font(const reference_counted_ptr<const FontGeneratorBase> &h);
+    add_font_generator(const reference_counted_ptr<const FontGeneratorBase> &h);
 
     /*!
      * Fetch a font using FontProperties::source_label()

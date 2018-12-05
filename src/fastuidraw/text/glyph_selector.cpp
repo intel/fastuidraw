@@ -727,22 +727,6 @@ fastuidraw::GlyphSelector::
 
 enum fastuidraw::return_code
 fastuidraw::GlyphSelector::
-add_font(const reference_counted_ptr<const AbstractFont> &h)
-{
-  if (!h)
-    {
-      return routine_fail;
-    }
-
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
-
-  std::lock_guard<std::mutex> m(d->m_mutex);
-  return d->add_font_no_lock(h);
-}
-
-enum fastuidraw::return_code
-fastuidraw::GlyphSelector::
 add_font(const reference_counted_ptr<const FontBase> &h)
 {
   if (!h)
@@ -751,13 +735,18 @@ add_font(const reference_counted_ptr<const FontBase> &h)
     }
   else
     {
-      return add_font(FASTUIDRAWnew AbstractFont(h));
+      GlyphSelectorPrivate *d;
+
+      d = static_cast<GlyphSelectorPrivate*>(m_d);
+      std::lock_guard<std::mutex> m(d->m_mutex);
+
+      return d->add_font_no_lock(FASTUIDRAWnew AbstractFont(h));
     }
 }
 
 enum fastuidraw::return_code
 fastuidraw::GlyphSelector::
-add_font(const reference_counted_ptr<const FontGeneratorBase> &h)
+add_font_generator(const reference_counted_ptr<const FontGeneratorBase> &h)
 {
   if (!h)
     {
@@ -765,7 +754,12 @@ add_font(const reference_counted_ptr<const FontGeneratorBase> &h)
     }
   else
     {
-      return add_font(FASTUIDRAWnew AbstractFont(h));
+      GlyphSelectorPrivate *d;
+
+      d = static_cast<GlyphSelectorPrivate*>(m_d);
+      std::lock_guard<std::mutex> m(d->m_mutex);
+
+      return d->add_font_no_lock(FASTUIDRAWnew AbstractFont(h));
     }
 }
 
