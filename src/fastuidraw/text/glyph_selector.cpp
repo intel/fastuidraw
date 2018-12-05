@@ -78,15 +78,47 @@ namespace
     fastuidraw::reference_counted_ptr<font_group> m_parent;
   };
 
-  template<typename key_type>
-  class font_group_map:
-    public std::map<key_type, fastuidraw::reference_counted_ptr<font_group> >
+  class font_group_map_base
   {
   public:
+    virtual
+    ~font_group_map_base()
+    {}
+
+    virtual
+    fastuidraw::reference_counted_ptr<font_group>
+    get_create(const fastuidraw::FontProperties &props, fastuidraw::reference_counted_ptr<font_group> parent) = 0;
+
+    virtual
+    fastuidraw::reference_counted_ptr<font_group>
+    fetch_group(const fastuidraw::FontProperties &props) = 0;
+  };
+
+  template<typename key_type>
+  class font_group_map:
+    public font_group_map_base,
+    private std::map<key_type, fastuidraw::reference_counted_ptr<font_group> >
+  {
+  public:
+    virtual
+    fastuidraw::reference_counted_ptr<font_group>
+    get_create(const fastuidraw::FontProperties &props, fastuidraw::reference_counted_ptr<font_group> parent)
+    {
+      return get_create_key(key_type(props), parent);
+    }
+
+    virtual
+    fastuidraw::reference_counted_ptr<font_group>
+    fetch_group(const fastuidraw::FontProperties &props)
+    {
+      return fetch_group_key(key_type(props));
+    }
+
+  private:
     typedef std::map<key_type, fastuidraw::reference_counted_ptr<font_group> > base_class;
 
     fastuidraw::reference_counted_ptr<font_group>
-    get_create(const key_type &key, fastuidraw::reference_counted_ptr<font_group> parent)
+    get_create_key(const key_type &key, fastuidraw::reference_counted_ptr<font_group> parent)
     {
       typename base_class::iterator iter;
       fastuidraw::reference_counted_ptr<font_group> return_value;
@@ -106,7 +138,7 @@ namespace
     }
 
     fastuidraw::reference_counted_ptr<font_group>
-    fetch_group(const key_type &key)
+    fetch_group_key(const key_type &key)
     {
       typename base_class::iterator iter;
 
@@ -117,6 +149,40 @@ namespace
         }
       return fastuidraw::reference_counted_ptr<font_group>();
     }
+  };
+
+  class style_key
+  {
+  public:
+    style_key(const fastuidraw::FontProperties &prop):
+      m_style(prop.style())
+    {
+    }
+
+    bool
+    operator<(const style_key &rhs) const
+    {
+      return m_style < rhs.m_style;
+    }
+
+    std::string m_style;
+  };
+
+  class bold_italic_key
+  {
+  public:
+    bold_italic_key(const fastuidraw::FontProperties &prop):
+      m_bold_italic(prop.bold(), prop.italic())
+    {
+    }
+
+    bool
+    operator<(const bold_italic_key &rhs) const
+    {
+      return m_bold_italic < rhs.m_bold_italic;
+    }
+
+    std::pair<bool, bool> m_bold_italic;
   };
 
   class style_bold_italic_key
@@ -163,6 +229,67 @@ namespace
     {}
   };
 
+  class family_bold_italic_key:
+    public std::pair<std::string, bold_italic_key>
+  {
+  public:
+    family_bold_italic_key(const fastuidraw::FontProperties &prop):
+      std::pair<std::string, bold_italic_key>(prop.family(), prop)
+    {}
+  };
+
+  class foundry_family_bold_italic_key:
+    public std::pair<std::string, family_bold_italic_key>
+  {
+  public:
+    foundry_family_bold_italic_key(const fastuidraw::FontProperties &prop):
+      std::pair<std::string, family_bold_italic_key>(prop.foundry(), prop)
+    {}
+  };
+
+  class family_style_key:
+    public std::pair<std::string, style_key>
+  {
+  public:
+    family_style_key(const fastuidraw::FontProperties &prop):
+      std::pair<std::string, style_key>(prop.family(), prop)
+    {}
+  };
+
+  class foundry_family_style_key:
+    public std::pair<std::string, family_style_key>
+  {
+  public:
+    foundry_family_style_key(const fastuidraw::FontProperties &prop):
+      std::pair<std::string, family_style_key>(prop.foundry(), prop)
+    {}
+  };
+
+  class family_key
+  {
+  public:
+    family_key(const fastuidraw::FontProperties &prop):
+      m_family(prop.family())
+    {}
+
+    bool
+    operator<(const family_key &rhs) const
+    {
+      return m_family < rhs.m_family;
+    }
+
+    std::string m_family;
+  };
+
+  class foundry_family_key:
+    public std::pair<std::string, family_key>
+  {
+  public:
+    foundry_family_key(const fastuidraw::FontProperties &prop):
+      std::pair<std::string, family_key>(prop.foundry(), prop)
+    {}
+  };
+
   class GlyphSelectorPrivate
   {
   public:
@@ -170,15 +297,15 @@ namespace
 
     fastuidraw::reference_counted_ptr<font_group>
     fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
-                             bool exact_match);
+                             uint32_t selection_strategy);
 
     fastuidraw::GlyphSource
     fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
-                uint32_t character_code, bool exact_match);
+                uint32_t character_code, uint32_t selection_strategy);
 
     fastuidraw::GlyphSource
     fetch_glyph(fastuidraw::reference_counted_ptr<font_group> group,
-                uint32_t character_code, bool exact_match);
+                uint32_t character_code, uint32_t selection_strategy);
 
     fastuidraw::GlyphSource
     fetch_glyph_no_merging(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
@@ -190,9 +317,27 @@ namespace
 
     std::mutex m_mutex;
     fastuidraw::reference_counted_ptr<font_group> m_master_group;
+    font_group_map<style_key> m_style_groups;
+    font_group_map<bold_italic_key> m_bold_italic_groups;
+
     font_group_map<style_bold_italic_key> m_style_bold_italic_groups;
     font_group_map<family_style_bold_italic_key> m_family_style_bold_italic_groups;
     font_group_map<foundry_family_style_bold_italic_key> m_foundry_family_style_bold_italic_groups;
+
+    font_group_map<family_bold_italic_key> m_family_bold_italic_groups;
+    font_group_map<foundry_family_bold_italic_key> m_foundry_family_bold_italic_groups;
+
+    font_group_map<family_style_key> m_family_style_groups;
+    font_group_map<foundry_family_style_key> m_foundry_family_style_groups;
+
+    font_group_map<family_key> m_family_groups;
+    font_group_map<foundry_family_key> m_foundry_family_groups;
+
+    /* The various groupings depending on the fetching pattern */
+    std::vector<font_group_map_base*> m_style_bold_italic_hunter;
+    std::vector<font_group_map_base*> m_style_hunter;
+    std::vector<font_group_map_base*> m_bold_italic_hunter;
+    std::vector<font_group_map_base*> m_vanilla_hunter;
   };
 }
 
@@ -320,31 +465,74 @@ GlyphSelectorPrivate::
 GlyphSelectorPrivate(void)
 {
   m_master_group = FASTUIDRAWnew font_group(fastuidraw::reference_counted_ptr<font_group>());
+
+  m_style_bold_italic_hunter.push_back(&m_foundry_family_style_bold_italic_groups);
+  m_style_bold_italic_hunter.push_back(&m_family_style_bold_italic_groups);
+  m_style_bold_italic_hunter.push_back(&m_style_bold_italic_groups);
+  m_style_bold_italic_hunter.push_back(&m_style_groups);
+
+  m_style_hunter.push_back(&m_foundry_family_style_groups);
+  m_style_hunter.push_back(&m_family_style_groups);
+  m_style_hunter.push_back(&m_style_groups);
+
+  m_bold_italic_hunter.push_back(&m_foundry_family_bold_italic_groups);
+  m_bold_italic_hunter.push_back(&m_family_bold_italic_groups);
+  m_bold_italic_hunter.push_back(&m_bold_italic_groups);
+
+  m_vanilla_hunter.push_back(&m_foundry_family_groups);
+  m_vanilla_hunter.push_back(&m_family_groups);
 }
 
 fastuidraw::reference_counted_ptr<font_group>
 GlyphSelectorPrivate::
 fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
-                         bool exact_match)
+                         uint32_t selection_strategy)
 {
-  fastuidraw::reference_counted_ptr<font_group> return_value;
+  using namespace fastuidraw;
+  const std::vector<font_group_map_base*> *src(nullptr);
+  reference_counted_ptr<font_group> return_value;
 
-  return_value = m_foundry_family_style_bold_italic_groups.fetch_group(prop);
-  if (return_value || exact_match)
+  /* such a hassle, we need to check the bits of selection_strategy
+   * to decide if we pay attention to style, bold/italic
+   */
+  if ((selection_strategy & GlyphSelector::ignore_style) == 0)
+    {
+      if ((selection_strategy & GlyphSelector::ignore_bold_italic) == 0)
+        {
+          src = &m_style_bold_italic_hunter;
+        }
+      else
+        {
+          src = &m_style_hunter;
+        }
+    }
+  else
+    {
+      if ((selection_strategy & GlyphSelector::ignore_bold_italic) == 0)
+        {
+          src = &m_bold_italic_hunter;
+        }
+      else
+        {
+          src = &m_vanilla_hunter;
+        }
+    }
+
+  FASTUIDRAWassert(src && !src->empty());
+
+  return_value = src->front()->fetch_group(prop);
+  if (return_value || (selection_strategy & GlyphSelector::exact_match) != 0u)
     {
       return return_value;
     }
 
-  return_value = m_family_style_bold_italic_groups.fetch_group(prop);
-  if (return_value)
+  for (unsigned int i = 1, endi = src->size(); i < endi; ++i)
     {
-      return return_value;
-    }
-
-  return_value = m_style_bold_italic_groups.fetch_group(prop);
-  if (return_value)
-    {
-      return return_value;
+      return_value = (*src)[i]->fetch_group(prop);
+      if (return_value)
+        {
+          return return_value;
+        }
     }
 
   return m_master_group;
@@ -353,18 +541,20 @@ fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
 fastuidraw::GlyphSource
 GlyphSelectorPrivate::
 fetch_glyph(fastuidraw::reference_counted_ptr<font_group> group,
-            uint32_t character_code, bool exact_match)
+            uint32_t character_code, uint32_t selection_strategy)
 {
   FASTUIDRAWassert(group);
-  return group->fetch_glyph(character_code, exact_match);
+  return group->fetch_glyph(character_code, selection_strategy);
 }
 
 fastuidraw::GlyphSource
 GlyphSelectorPrivate::
 fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
-            uint32_t character_code, bool exact_match)
+            uint32_t character_code, uint32_t selection_strategy)
 {
-  fastuidraw::GlyphSource return_value;
+  using namespace fastuidraw;
+
+  GlyphSource return_value;
   uint32_t r(0);
 
   if (!h)
@@ -375,15 +565,16 @@ fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
   r = h->glyph_code(character_code);
   if (r)
     {
-      return_value = fastuidraw::GlyphSource(h, r);
+      return_value = GlyphSource(h, r);
     }
   else
     {
-      font_group_map<foundry_family_style_bold_italic_key>::const_iterator iter;
-      iter = m_foundry_family_style_bold_italic_groups.find(h->properties());
-      if (iter != m_foundry_family_style_bold_italic_groups.end())
+      reference_counted_ptr<font_group> g;
+      g = fetch_font_group_no_lock(h->properties(), selection_strategy);
+      if (g)
         {
-          return_value = iter->second->fetch_glyph(character_code, exact_match);
+          return_value = g->fetch_glyph(character_code,
+                                        (selection_strategy & GlyphSelector::exact_match) != 0);
         }
     }
   return return_value;
@@ -418,18 +609,46 @@ add_font_no_lock(const fastuidraw::FontProperties &props, const T &h)
 {
   enum fastuidraw::return_code R;
 
-  fastuidraw::reference_counted_ptr<font_group> parent;
-  parent = m_master_group;
-  R = parent->add_font(h);
+  R = m_master_group->add_font(h);
   if (R == fastuidraw::routine_success)
     {
-      parent = m_style_bold_italic_groups.get_create(props, parent);
+      fastuidraw::reference_counted_ptr<font_group> parent;
+
+      /* keys with just (bold, italic) */
+      parent = m_bold_italic_groups.get_create(props, m_master_group);
+      parent->add_font(h);
+
+      parent = m_family_bold_italic_groups.get_create(props, parent);
+      parent->add_font(h);
+
+      parent = m_foundry_family_bold_italic_groups.get_create(props, parent);
+      parent->add_font(h);
+
+      /* keys with just style */
+      parent = m_style_groups.get_create(props, m_master_group);
+      parent->add_font(h);
+
+      parent = m_family_style_groups.get_create(props, parent);
+      parent->add_font(h);
+
+      parent = m_foundry_family_style_groups.get_create(props, parent);
+      parent->add_font(h);
+
+      /* keys with style and (bold, italic) */
+      parent = m_style_bold_italic_groups.get_create(props, m_master_group);
       parent->add_font(h);
 
       parent = m_family_style_bold_italic_groups.get_create(props, parent);
       parent->add_font(h);
 
       parent = m_foundry_family_style_bold_italic_groups.get_create(props, parent);
+      parent->add_font(h);
+
+      /* keys without style and without (bold, italic) */
+      parent = m_family_groups.get_create(props, m_master_group);
+      parent->add_font(h);
+
+      parent = m_foundry_family_groups.get_create(props, parent);
       parent->add_font(h);
     }
 }
@@ -519,13 +738,13 @@ add_font_generator(reference_counted_ptr<const FontGeneratorBase> h)
 
 fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
 fastuidraw::GlyphSelector::
-fetch_font(const FontProperties &prop, bool exact_match)
+fetch_font(const FontProperties &prop, uint32_t selection_strategy)
 {
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
-  return d->fetch_font_group_no_lock(prop, exact_match)->first_font();
+  return d->fetch_font_group_no_lock(prop, selection_strategy)->first_font();
 }
 
 fastuidraw::GlyphSource
@@ -541,11 +760,11 @@ fetch_glyph_no_merging_no_lock(reference_counted_ptr<const FontBase> h,
 fastuidraw::GlyphSource
 fastuidraw::GlyphSelector::
 fetch_glyph_no_lock(reference_counted_ptr<const FontBase> h,
-                    uint32_t character_code, bool exact_match)
+                    uint32_t character_code, uint32_t selection_strategy)
 {
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
-  return d->fetch_glyph(h, character_code, exact_match);
+  return d->fetch_glyph(h, character_code, selection_strategy);
 }
 
 void
@@ -569,7 +788,7 @@ unlock_mutex(void)
 fastuidraw::GlyphSource
 fastuidraw::GlyphSelector::
 fetch_glyph_no_lock(FontGroup group,
-                    uint32_t character_code, bool exact_match)
+                    uint32_t character_code, uint32_t selection_strategy)
 {
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
@@ -580,12 +799,12 @@ fetch_glyph_no_lock(FontGroup group,
     {
       p = d->m_master_group;
     }
-  return d->fetch_glyph(p, character_code, exact_match);
+  return d->fetch_glyph(p, character_code, selection_strategy);
 }
 
 fastuidraw::GlyphSelector::FontGroup
 fastuidraw::GlyphSelector::
-fetch_group(const FontProperties &props, bool exact_match)
+fetch_group(const FontProperties &props, uint32_t selection_strategy)
 {
   FontGroup return_value;
   reference_counted_ptr<font_group> h;
@@ -594,7 +813,7 @@ fetch_group(const FontProperties &props, bool exact_match)
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
-  h = d->fetch_font_group_no_lock(props, exact_match);
+  h = d->fetch_font_group_no_lock(props, selection_strategy);
   return_value.m_d = h.get();
 
   return return_value;
@@ -602,7 +821,7 @@ fetch_group(const FontProperties &props, bool exact_match)
 
 fastuidraw::GlyphSource
 fastuidraw::GlyphSelector::
-fetch_glyph(const FontProperties &props, uint32_t character_code, bool exact_match)
+fetch_glyph(const FontProperties &props, uint32_t character_code, uint32_t selection_strategy)
 {
   GlyphSelectorPrivate *d;
   reference_counted_ptr<font_group> g;
@@ -610,17 +829,17 @@ fetch_glyph(const FontProperties &props, uint32_t character_code, bool exact_mat
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
-  g = d->fetch_font_group_no_lock(props, exact_match);
-  return d->fetch_glyph(g, character_code, exact_match);
+  g = d->fetch_font_group_no_lock(props, selection_strategy);
+  return d->fetch_glyph(g, character_code, (selection_strategy & exact_match) != 0u);
 }
 
 fastuidraw::GlyphSource
 fastuidraw::GlyphSelector::
-fetch_glyph(FontGroup h, uint32_t character_code, bool exact_match)
+fetch_glyph(FontGroup h, uint32_t character_code, uint32_t selection_strategy)
 {
   GlyphSource G;
   lock_mutex();
-  G = fetch_glyph_no_lock(h, character_code, exact_match);
+  G = fetch_glyph_no_lock(h, character_code, selection_strategy);
   unlock_mutex();
   return G;
 }
@@ -628,11 +847,11 @@ fetch_glyph(FontGroup h, uint32_t character_code, bool exact_match)
 fastuidraw::GlyphSource
 fastuidraw::GlyphSelector::
 fetch_glyph(reference_counted_ptr<const FontBase> h,
-            uint32_t character_code, bool exact_match)
+            uint32_t character_code, uint32_t selection_strategy)
 {
   GlyphSource G;
   lock_mutex();
-  G = fetch_glyph_no_lock(h, character_code, exact_match);
+  G = fetch_glyph_no_lock(h, character_code, selection_strategy);
   unlock_mutex();
   return G;
 }

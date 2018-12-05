@@ -97,6 +97,28 @@ namespace fastuidraw
     };
 
     /*!
+     */
+    enum selection_bits_t
+      {
+        /*!
+         * Require an exact match when selecting a font
+         */
+        exact_match = 1,
+
+        /*!
+         * Ignore FontProperties::style() field when selecting
+         * a font
+         */
+        ignore_style = 2,
+
+        /*!
+         * Ignore FontProperties::bold() and FontProperties::italic()
+         * when selecing font.
+         */
+        ignore_bold_italic = 4,
+      };
+
+    /*!
      * Ctor
      */
     explicit
@@ -122,50 +144,48 @@ namespace fastuidraw
      * Fetch a font from a FontProperties description. The return
      * value will be the closest matched font added with add_font().
      * \param props FontProperties by which to search
-     * \param exact_match if true, only consider those fonts which have, except
-     *                    for FontProperties::source_label(), the same values for
-     *                    each field of \ref FontProperties in FontBase::properties().
+     * \param selection_strategy using bit-wise ors of values of
+     *                           \ref selection_bits_t to choose the
+     *                           matching criteria of selecting a font.
      */
     reference_counted_ptr<const FontBase>
-    fetch_font(const FontProperties &props, bool exact_match = false);
+    fetch_font(const FontProperties &props, uint32_t selection_strategy);
 
     /*!
      * Fetch a FontGroup from a FontProperties value
      * \param props font properties used to generate group.
-     * \param exact_match if true, only consider those groups which have, except
-     *                    for FontProperties::source_label(), the same values for
-     *                    each field of \ref FontProperties in FontBase::properties().
+     * \param selection_strategy using bit-wise ors of values of
+     *                           \ref selection_bits_t to choose the
+     *                           matching criteria of selecting a font.
      */
     FontGroup
-    fetch_group(const FontProperties &props, bool exact_match);
+    fetch_group(const FontProperties &props, uint32_t selection_strategy);
 
     /*!
      * Fetch a GlyphSource with font merging from a glyph rendering type,
      * font properties and character code.
      * \param props font properties used to fetch font
      * \param character_code character code of glyph to fetch
-     * \param exact_match if true, only consider those glyphs from those
-     *                    fonts which has, except for FontProperties::source_label(),
-     *                    the same values for each field of \ref FontProperties in
-     *                    FontBase::properties().
+     * \param selection_strategy using bit-wise ors of values of
+     *                           \ref selection_bits_t to choose the
+     *                           matching criteria of selecting a font.
      */
     GlyphSource
     fetch_glyph(const FontProperties &props, uint32_t character_code,
-                bool exact_match = false);
+                uint32_t selection_strategy = 0u);
 
     /*!
      * Fetch a GlyphSource with font merging from a glyph rendering type, font properties
      * and character code.
      * \param group FontGroup used to fetch font
      * \param character_code character code of glyph to fetch
-     * \param exact_match if true, only consider those glyphs from those
-     *                    fonts which has, except forFontProperties::source_label(),
-     *                    the same values for each field of \ref FontProperties in
-     *                    FontBase::properties().
+     * \param selection_strategy using bit-wise ors of values of
+     *                           \ref selection_bits_t to choose the
+     *                           matching criteria of selecting a font.
      */
     GlyphSource
     fetch_glyph(FontGroup group, uint32_t character_code,
-                bool exact_match = false);
+                uint32_t selection_strategy = 0u);
 
     /*!
      * Fetch a GlyphSource with font merging from a glyph rendering type,
@@ -174,14 +194,13 @@ namespace fastuidraw
      *          is not present in the font attempt to get the glyph from
      *          a font of similiar properties
      * \param character_code character code of glyph to fetch
-     * \param exact_match if true, only consider those glyphs from those
-     *                    fonts which has, except forFontProperties::source_label(),
-     *                    the same values for each field of \ref FontProperties in
-     *                    FontBase::properties().
+     * \param selection_strategy using bit-wise ors of values of
+     *                           \ref selection_bits_t to choose the
+     *                           matching criteria of selecting a font.
      */
     GlyphSource
     fetch_glyph(reference_counted_ptr<const FontBase> h,
-                uint32_t character_code, bool exact_match = false);
+                uint32_t character_code, uint32_t selection_strategy = 0u);
 
     /*!
      * Fetch a GlyphSource without font merging from a glyph rendering type,
@@ -202,10 +221,9 @@ namespace fastuidraw
      * \param character_codes_begin iterator to 1st character code
      * \param character_codes_end iterator to one past last character code
      * \param output_begin begin iterator to output
-     * \param exact_match if true, only consider those glyphs from those
-     *                    fonts which has, except forFontProperties::source_label(),
-     *                    the same values for each field of \ref FontProperties in
-     *                    FontBase::properties().
+     * \param selection_strategy using bit-wise ors of values of
+     *                           \ref selection_bits_t to choose the
+     *                           matching criteria of selecting a font.
      */
     template<typename input_iterator,
              typename output_iterator>
@@ -214,7 +232,7 @@ namespace fastuidraw
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
                           output_iterator output_begin,
-                          bool exact_match);
+                          uint32_t selection_strategy = 0u);
 
     /*!
      * Fill Glyph values from an iterator range of character code values.
@@ -226,10 +244,9 @@ namespace fastuidraw
      * \param character_codes_begin iterator to 1st character code
      * \param character_codes_end iterator to one past last character code
      * \param output_begin begin iterator to output
-     * \param exact_match if true, only consider those glyphs from those
-     *                    fonts which has, except forFontProperties::source_label(),
-     *                    the same values for each field of \ref FontProperties in
-     *                    FontBase::properties().
+     * \param selection_strategy using bit-wise ors of values of
+     *                           \ref selection_bits_t to choose the
+     *                           matching criteria of selecting a font.
      */
     template<typename input_iterator,
              typename output_iterator>
@@ -238,7 +255,7 @@ namespace fastuidraw
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
                           output_iterator output_begin,
-                          bool exact_match = false);
+                          uint32_t selection_strategy = 0u);
 
     /*!
      * Fill an array of Glyph values from an array of character code values.
@@ -268,12 +285,12 @@ namespace fastuidraw
 
     GlyphSource
     fetch_glyph_no_lock(FontGroup group, uint32_t character_code,
-                        bool exact_match);
+                        uint32_t selection_strategy);
 
     GlyphSource
     fetch_glyph_no_lock(reference_counted_ptr<const FontBase> h,
                         uint32_t character_code,
-                        bool exact_match);
+                        uint32_t selection_strategy);
 
     GlyphSource
     fetch_glyph_no_merging_no_lock(reference_counted_ptr<const FontBase> h,
@@ -290,14 +307,14 @@ namespace fastuidraw
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
                         output_iterator output_begin,
-                        bool exact_match)
+                        uint32_t selection_strategy)
   {
     lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_lock(group, v, exact_match);
+        *output_begin = fetch_glyph_no_lock(group, v, selection_strategy);
       }
     unlock_mutex();
   }
@@ -310,14 +327,14 @@ namespace fastuidraw
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
                         output_iterator output_begin,
-                        bool exact_match)
+                        uint32_t selection_strategy)
   {
     lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_lock(h, v, exact_match);
+        *output_begin = fetch_glyph_no_lock(h, v, selection_strategy);
       }
     unlock_mutex();
   }
