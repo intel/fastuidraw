@@ -28,26 +28,42 @@
 
 namespace
 {
-  class AbstractFontPrivate
+  class AbstractFont
   {
   public:
-    AbstractFontPrivate(const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::FontGeneratorBase> &g):
+    typedef AbstractFont* pointer_type;
+
+    AbstractFont(const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::FontGeneratorBase> &g):
       m_generator(g),
       m_font_properties(m_generator->font_properties())
     {
     }
 
-    AbstractFontPrivate(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> &f):
+    AbstractFont(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> &f):
       m_font(f),
       m_font_properties(m_font->properties())
     {
     }
 
+    const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&
+    font(void);
+
+    bool
+    font_ready(void) const
+    {
+      return m_font;
+    }
+
+    const fastuidraw::FontProperties&
+    font_properties(void) const
+    {
+      return m_font_properties;
+    }
+
+  private:
     fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> m_font;
     fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::FontGeneratorBase> m_generator;
     fastuidraw::FontProperties m_font_properties;
-    std::atomic<unsigned int> m_font_ready;
-    std::mutex m_mutex;
   };
 
   class font_group:public fastuidraw::reference_counted<font_group>::non_concurrent
@@ -61,7 +77,7 @@ namespace
     font_group(fastuidraw::reference_counted_ptr<font_group> p);
 
     void
-    add_font(const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> h)
+    add_font(AbstractFont *h)
     {
       FASTUIDRAWassert(h);
       m_fonts.push_back(h);
@@ -76,21 +92,20 @@ namespace
       return m_parent;
     }
 
-    const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont>&
+    AbstractFont*
     first_font(void)
     {
-      static fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> null;
-      return m_fonts.empty() ? null : m_fonts.front();
+      return m_fonts.empty() ? nullptr : m_fonts.front();
     }
 
-    fastuidraw::c_array<const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> >
+    fastuidraw::c_array<const AbstractFont::pointer_type>
     fonts(void) const
     {
       return fastuidraw::make_c_array(m_fonts);
     }
 
   private:
-    std::vector<fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> > m_fonts;
+    std::vector<AbstractFont*> m_fonts;
     fastuidraw::reference_counted_ptr<font_group> m_parent;
   };
 
@@ -310,6 +325,7 @@ namespace
   {
   public:
     GlyphSelectorPrivate(void);
+    ~GlyphSelectorPrivate();
 
     fastuidraw::reference_counted_ptr<font_group>
     fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
@@ -328,10 +344,10 @@ namespace
                            uint32_t character_code);
 
     enum fastuidraw::return_code
-    add_font_no_lock(const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> &h);
+    add_font_no_lock(AbstractFont* h);
 
     std::mutex m_mutex;
-    std::map<std::string, fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> > m_fonts;
+    std::map<std::string, AbstractFont*> m_fonts;
     fastuidraw::reference_counted_ptr<font_group> m_master_group;
     font_group_map<style_key> m_style_groups;
     font_group_map<bold_italic_key> m_bold_italic_groups;
@@ -374,9 +390,9 @@ fetch_glyph(uint32_t character_code, bool skip_parent)
 
   for(const auto &abs : m_fonts)
     {
-      const auto &font(abs->font(false));
-      if (font)
+      if (abs->font_ready())
         {
+          const auto &font(abs->font());
           r = font->glyph_code(character_code);
           if (r)
             {
@@ -387,7 +403,7 @@ fetch_glyph(uint32_t character_code, bool skip_parent)
 
   for(const auto &abs : m_fonts)
     {
-      const auto &font(abs->font(true));
+      const auto &font(abs->font());
       r = font->glyph_code(character_code);
       if (r)
         {
@@ -425,6 +441,15 @@ GlyphSelectorPrivate(void)
 
   m_vanilla_hunter.push_back(&m_foundry_family_groups);
   m_vanilla_hunter.push_back(&m_family_groups);
+}
+
+GlyphSelectorPrivate::
+~GlyphSelectorPrivate()
+{
+  for (const auto &p : m_fonts)
+    {
+      FASTUIDRAWdelete(p.second);
+    }
 }
 
 fastuidraw::reference_counted_ptr<font_group>
@@ -548,19 +573,20 @@ fetch_glyph_no_merging(fastuidraw::reference_counted_ptr<const fastuidraw::FontB
 
 enum fastuidraw::return_code
 GlyphSelectorPrivate::
-add_font_no_lock(const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> &h)
+add_font_no_lock(AbstractFont *h)
 {
   using namespace fastuidraw;
 
   reference_counted_ptr<font_group> parent;
   std::string fnt_source;
-  std::map<std::string, reference_counted_ptr<const GlyphSelector::AbstractFont> >::const_iterator iter;
+  std::map<std::string, AbstractFont*>::const_iterator iter;
   const FontProperties &props(h->font_properties());
 
   fnt_source = props.source_label();
   iter = m_fonts.find(fnt_source);
   if (iter != m_fonts.end())
     {
+      FASTUIDRAWdelete(h);
       return routine_fail;
     }
   m_fonts[fnt_source] = h;
@@ -607,63 +633,17 @@ add_font_no_lock(const fastuidraw::reference_counted_ptr<const fastuidraw::Glyph
 }
 
 /////////////////////////////////////////
-// fastuidraw::GlyphSelector::AbstractFont methods
-fastuidraw::GlyphSelector::AbstractFont::
-AbstractFont(const reference_counted_ptr<const FontGeneratorBase> &g)
-{
-  m_d = FASTUIDRAWnew AbstractFontPrivate(g);
-}
-
-fastuidraw::GlyphSelector::AbstractFont::
-AbstractFont(const reference_counted_ptr<const FontBase> &f)
-{
-  m_d = FASTUIDRAWnew AbstractFontPrivate(f);
-}
-
-fastuidraw::GlyphSelector::AbstractFont::
-~AbstractFont()
-{
-  AbstractFontPrivate *d;
-
-  d = static_cast<AbstractFontPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-}
-
+// AbstractFont methods
 const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&
-fastuidraw::GlyphSelector::AbstractFont::
-font(bool create_if_not_ready) const
+AbstractFont::
+font(void)
 {
-  AbstractFontPrivate *d;
-
-  d = static_cast<AbstractFontPrivate*>(m_d);
-  std::lock_guard<std::mutex> m(d->m_mutex);
-  if (!d->m_font && create_if_not_ready)
+  if (!m_font)
     {
-      d->m_font = d->m_generator->generate_font();
-      d->m_generator.clear();
+      m_font = m_generator->generate_font();
+      m_generator.clear();
     }
-  return d->m_font;
-}
-
-bool
-fastuidraw::GlyphSelector::AbstractFont::
-font_ready(void) const
-{
-  AbstractFontPrivate *d;
-  d = static_cast<AbstractFontPrivate*>(m_d);
-
-  std::lock_guard<std::mutex> m(d->m_mutex);
-  return d->m_font;
-}
-
-const fastuidraw::FontProperties&
-fastuidraw::GlyphSelector::AbstractFont::
-font_properties(void) const
-{
-  AbstractFontPrivate *d;
-
-  d = static_cast<AbstractFontPrivate*>(m_d);
-  return d->m_font_properties;
+  return m_font;
 }
 
 ///////////////////////////////////////////////
@@ -787,7 +767,7 @@ fetch_font(c_string source_label)
 
   std::lock_guard<std::mutex> m(d->m_mutex);
   reference_counted_ptr<const FontBase> return_value;
-  std::map<std::string, reference_counted_ptr<const GlyphSelector::AbstractFont> >::const_iterator iter;
+  std::map<std::string, AbstractFont*>::const_iterator iter;
 
   iter = d->m_fonts.find(source_label);
   if (iter != d->m_fonts.end())

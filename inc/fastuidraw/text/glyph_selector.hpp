@@ -64,32 +64,6 @@ namespace fastuidraw
     };
 
     /*!
-     * An AbstractFont represents either a reference to a FontGeneratorBase
-     * or a reference to a FontGeneratorBase.
-     */
-    class AbstractFont:public reference_counted<GlyphSelector>::default_base
-    {
-    public:
-      ~AbstractFont();
-
-      const fastuidraw::reference_counted_ptr<const FontBase>&
-      font(bool create_if_not_ready = true) const;
-
-      const FontProperties&
-      font_properties(void) const;
-
-      bool
-      font_ready(void) const;
-
-    private:
-      friend class GlyphSelector;
-      AbstractFont(const reference_counted_ptr<const FontGeneratorBase> &g);
-      AbstractFont(const reference_counted_ptr<const FontBase> &f);
-
-      void *m_d;
-    };
-
-    /*!
      * \brief
      * A FontGroup represents a group of fonts which is selected
      * from a FontProperties. The data of a FontGroup is entirely
