@@ -66,11 +66,10 @@ namespace fastuidraw
     /*!
      * \brief
      * A FontGroup represents a group of fonts which is selected
-     * from a FontProperties. The data of a FontGroup is entirely
-     * opaque. In addition, if the GlyphSelector that created the
-     * FontGroup goes out of scope, the object behind the opaque
-     * FontGroup also goes out of scope and thus the FontGroup
-     * should be discarded and no longer used.
+     * from a FontProperties value. The accessors for FontGroup
+     * are methods of GlyphSelector::parent_group(FontGroup),
+     * GlyphSelector::fetch_font(FontGroup, unsigned int)
+     * and GlyphSelector::number_fonts(FontGroup).
      */
     class FontGroup
     {
@@ -78,34 +77,6 @@ namespace fastuidraw
       FontGroup(void):
         m_d(nullptr)
       {}
-
-      /*!
-       * Returns true if FontGroup refers to an actaul group
-       * of fonts.
-       */
-      bool
-      valid(void) const;
-
-      /*!
-       * FontGroup objects are grouped into hierarchies for
-       * selection. Returns the parent FontGroup (if any)
-       * for this FontGroup.
-       */
-      FontGroup
-      parent(void) const;
-
-      /*!
-       * Returns the number of fonts in the FontGroup.
-       */
-      unsigned int
-      number_fonts(void) const;
-
-      /*!
-       * Returns the description of a font of the FontGroup.
-       * \param N which font with 0 <= N < number_fonts().
-       */
-      const FontProperties*
-      font(unsigned int N) const;
 
     private:
       friend class GlyphSelector;
@@ -168,11 +139,35 @@ namespace fastuidraw
 
     /*!
      * Fetch a font using FontProperties::source_label()
-     * as the key to find the font added with add_font().
+     * as the key to find the font added with add_font()
+     * or add_font_generator().
      * \param source_label
      */
     reference_counted_ptr<const FontBase>
     fetch_font(c_string source_label);
+
+    /*!
+     * Returns the number of fonts in a FontGroup
+     * \param G FontGroup to query
+     */
+    unsigned int
+    number_fonts(FontGroup G);
+
+    /*!
+     * Returns a font of a FontGroup
+     * \param G FontGroup to query
+     * \param N index of font with 0 <= N < number_fonts(G)
+     */
+    reference_counted_ptr<const FontBase>
+    fetch_font(FontGroup G, unsigned int N);
+
+    /*!
+     * FontGroup objects are grouped into hierarchies for
+     * selection. Returns the parent FontGroup of a FontGroup.
+     * \param G FontGroup to query
+     */
+    FontGroup
+    parent_group(FontGroup G);
 
     /*!
      * Fetch a font from a FontProperties description. The return
