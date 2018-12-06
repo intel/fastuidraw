@@ -692,17 +692,32 @@ parent(void) const
   return return_value;
 }
 
-fastuidraw::c_array<const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::AbstractFont> >
+unsigned int
 fastuidraw::GlyphSelector::FontGroup::
-fonts(void) const
+number_fonts(void) const
 {
+  unsigned int return_value(0);
   font_group *d;
-  c_array<const reference_counted_ptr<const AbstractFont> > return_value;
 
   d = static_cast<font_group*>(m_d);
   if (d)
     {
-      return_value = d->fonts();
+      return_value = d->fonts().size();
+    }
+  return return_value;
+}
+
+const fastuidraw::FontProperties*
+fastuidraw::GlyphSelector::FontGroup::
+font(unsigned int N) const
+{
+  font_group *d;
+  const fastuidraw::FontProperties *return_value(nullptr);
+
+  d = static_cast<font_group*>(m_d);
+  if (d && d->fonts().size() < N)
+    {
+      return_value = &d->fonts()[N]->font_properties();
     }
 
   return return_value;

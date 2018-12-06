@@ -121,10 +121,17 @@ namespace fastuidraw
       parent(void) const;
 
       /*!
-       * Returns the list of fonts of this FontGroup
+       * Returns the number of fonts in the FontGroup.
        */
-      c_array<const reference_counted_ptr<const AbstractFont> >
-      fonts(void) const;
+      unsigned int
+      number_fonts(void) const;
+
+      /*!
+       * Returns the description of a font of the FontGroup.
+       * \param N which font with 0 <= N < number_fonts().
+       */
+      const FontProperties*
+      font(unsigned int N) const;
 
     private:
       friend class GlyphSelector;
