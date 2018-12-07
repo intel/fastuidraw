@@ -192,9 +192,11 @@ private:
   item_coordinates(ivec2 src);
 
   command_line_argument_value<std::string> m_font_path;
-  command_line_argument_value<std::string> m_font_style, m_font_family;
+  command_line_argument_value<std::string> m_font_foundry, m_font_style, m_font_family;
   command_line_argument_value<bool> m_font_bold, m_font_italic;
   command_line_argument_value<bool> m_font_ignore_style, m_font_ignore_bold_italic;
+  command_line_argument_value<bool> m_use_font_config;
+  command_line_argument_value<int> m_font_weight, m_font_slant;
   command_line_argument_value<bool> m_font_exact_match;
   command_line_argument_value<std::string> m_font_file;
   command_line_argument_value<int> m_coverage_pixel_size;
@@ -463,12 +465,20 @@ draw_glyphs(GlyphRenderer render,
 painter_glyph_test::
 painter_glyph_test(void):
   m_font_path(default_font_path(), "font_path", "Specifies path in which to search for fonts", *this),
+  m_font_foundry("", "font_foundry", "Specifies the font foundry", *this),
   m_font_style("Book", "font_style", "Specifies the font style", *this),
   m_font_family("DejaVu Sans", "font_family", "Specifies the font family name", *this),
   m_font_bold(false, "font_bold", "if true select a bold font", *this),
   m_font_italic(false, "font_italic", "if true select an italic font", *this),
   m_font_ignore_style(false, "font_ignore_style", "if true, when selecting a font ignore style value", *this),
   m_font_ignore_bold_italic(false, "font_ignore_bold_italic", "if true, when selecting a font ignore bold and italic values", *this),
+  m_use_font_config(false, "use_font_config", "If true, use font config to select font", *this),
+  m_font_weight(-1, "font_weight", "Only has effect if value is non-negative and use_font_config is true. "
+                "Gives the value for FC_WEIGHT to pass for fontconfig for font selection",
+                *this),
+  m_font_slant(-1, "font_slant", "Only has effect if value is non-negative and use_font_config is true. "
+               "Gives the value for FC_SLANT to pass for fontconfig for font selection",
+               *this),
   m_font_exact_match(false, "font_exact_match", "if true, require an exact match when selecting a font ignore style value", *this),
   m_font_file("", "font_file",
               "If non-empty gives the name of a font by filename "
@@ -581,35 +591,55 @@ create_and_add_font(void)
         }
     }
 
-  add_fonts_from_path(m_font_path.value(), m_ft_lib, m_font_database);
+  if (m_use_font_config.value())
+    {
+      add_fonts_from_font_config(m_ft_lib, m_font_database);
+    }
+  else
+    {
+      add_fonts_from_path(m_font_path.value(), m_ft_lib, m_font_database);
+    }
 
   if (!font)
     {
-      FontProperties props;
-      uint32_t flags(0);
-
-      props
-        .style(m_font_style.value().c_str())
-        .family(m_font_family.value().c_str())
-        .bold(m_font_bold.value())
-        .italic(m_font_italic.value());
-
-      if (m_font_ignore_style.value())
+      if (m_use_font_config.value())
         {
-          flags |= FontDatabase::ignore_style;
+          font = select_font_font_config(m_font_ignore_bold_italic.value() ? -1 : m_font_weight.value(),
+                                         m_font_ignore_bold_italic.value() ? -1 : m_font_slant.value(),
+                                         m_font_ignore_style.value() ? nullptr : m_font_style.value().c_str(),
+                                         m_font_family.value().empty() ? nullptr : m_font_family.value().c_str(),
+                                         m_font_foundry.value().empty() ? nullptr : m_font_foundry.value().c_str(),
+                                         m_ft_lib, m_font_database);
         }
-
-      if (m_font_ignore_bold_italic.value())
+      else
         {
-          flags |= FontDatabase::ignore_bold_italic;
-        }
+          FontProperties props;
+          uint32_t flags(0);
 
-      if (m_font_exact_match.value())
-        {
-          flags |= FontDatabase::exact_match;
-        }
+          props
+            .style(m_font_style.value().c_str())
+            .family(m_font_family.value().c_str())
+            .foundry(m_font_foundry.value().c_str())
+            .bold(m_font_bold.value())
+            .italic(m_font_italic.value());
 
-      font = m_font_database->fetch_font(props, flags);
+          if (m_font_ignore_style.value())
+            {
+              flags |= FontDatabase::ignore_style;
+            }
+
+          if (m_font_ignore_bold_italic.value())
+            {
+              flags |= FontDatabase::ignore_bold_italic;
+            }
+
+          if (m_font_exact_match.value())
+            {
+              flags |= FontDatabase::exact_match;
+            }
+
+          font = m_font_database->fetch_font(props, flags);
+        }
     }
 
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
