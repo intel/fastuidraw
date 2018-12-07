@@ -20,6 +20,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <mutex>
 #include <atomic>
 
@@ -747,6 +748,15 @@ fetch_font(c_string source_label)
     }
 
   return return_value;
+}
+
+fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
+fastuidraw::FontDatabase::
+fetch_font(c_string filename, int face_index)
+{
+  std::ostringstream str;
+  str << filename << ":" << face_index;
+  return fetch_font(str.str().c_str());
 }
 
 fastuidraw::FontDatabase::FontGroup

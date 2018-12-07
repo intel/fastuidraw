@@ -156,6 +156,18 @@ namespace fastuidraw
     fetch_font(c_string source_label);
 
     /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * std::ostringstream str;
+     * str << filename << ":" << face_index;
+     * return fetch_font(str.str().c_str());
+     * \endcode
+     * \param source_label
+     */
+    reference_counted_ptr<const FontBase>
+    fetch_font(c_string filename, int face_index);
+
+    /*!
      * Returns the number of fonts in a FontGroup
      * \param G FontGroup to query
      */
