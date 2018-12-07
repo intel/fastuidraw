@@ -167,6 +167,21 @@ namespace fastuidraw
     FontProperties&
     source_label(c_string s);
 
+    /*!
+     * Set the value returned by source_label(void) const
+     * to refer to a face index of a font file. Equivalent
+     * in function to
+     * \code
+     * std::ostringstream str;
+     * str << filename << ":" << face_index;
+     * source_label(str.str().c_str());
+     * \endcode
+     * \param filename name of file holding the font
+     * \param face_index index of face within the file.
+     */
+    FontProperties&
+    source_label(c_string filename, int face_index);
+
   private:
     void *m_d;
   };

@@ -336,8 +336,11 @@ namespace
     fetch_glyph_no_merging(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
                            uint32_t character_code);
 
+    AbstractFont*
+    add_or_fetch_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont *h);
+
     enum fastuidraw::return_code
-    add_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont* h);
+    add_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont *h);
 
     std::mutex m_mutex;
     std::map<std::string, AbstractFont*> m_fonts;
@@ -568,6 +571,18 @@ enum fastuidraw::return_code
 FontDatabasePrivate::
 add_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont *h)
 {
+  AbstractFont *a;
+  a = add_or_fetch_font_no_lock(props, h);
+
+  return (a == h) ?
+    fastuidraw::routine_success :
+    fastuidraw::routine_fail;
+}
+
+AbstractFont*
+FontDatabasePrivate::
+add_or_fetch_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont *h)
+{
   using namespace fastuidraw;
 
   reference_counted_ptr<font_group> parent;
@@ -579,7 +594,7 @@ add_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont *h)
   if (iter != m_fonts.end())
     {
       FASTUIDRAWdelete(h);
-      return routine_fail;
+      return iter->second;
     }
   m_fonts[fnt_source] = h;
   m_master_group->add_font(h);
@@ -621,7 +636,7 @@ add_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont *h)
   parent = m_foundry_family_groups.get_create(props, parent);
   parent->add_font(h);
 
-  return routine_success;
+  return h;
 }
 
 /////////////////////////////////////////
@@ -691,6 +706,27 @@ add_font_generator(const reference_counted_ptr<const FontGeneratorBase> &h)
 
       return d->add_font_no_lock(h->font_properties(), FASTUIDRAWnew AbstractFont(h));
     }
+}
+
+fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
+fastuidraw::FontDatabase::
+fetch_or_generate_font(const reference_counted_ptr<const FontGeneratorBase> &h)
+{
+  FontDatabasePrivate *d;
+  AbstractFont *a;
+  reference_counted_ptr<const FontBase> return_value;
+
+  if (!h)
+    {
+      return return_value;
+    }
+
+  a = FASTUIDRAWnew AbstractFont(h);
+  d = static_cast<FontDatabasePrivate*>(m_d);
+  std::lock_guard<std::mutex> m(d->m_mutex);
+
+  a = d->add_or_fetch_font_no_lock(h->font_properties(), a);
+  return a->font();
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>

@@ -138,6 +138,15 @@ namespace fastuidraw
     add_font_generator(const reference_counted_ptr<const FontGeneratorBase> &h);
 
     /*!
+     * If the font named by a generator is not yet part of the
+     * FontDatabase, add it the FontDatabase, otherwise use
+     * the existing generator. From the generator, return the
+     * font it generates.
+     */
+    reference_counted_ptr<const FontBase>
+    fetch_or_generate_font(const reference_counted_ptr<const FontGeneratorBase> &h);
+
+    /*!
      * Fetch a font using FontProperties::source_label()
      * as the key to find the font added with add_font()
      * or add_font_generator().
