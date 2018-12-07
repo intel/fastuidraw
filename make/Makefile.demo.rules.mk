@@ -1,14 +1,20 @@
 DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(COMMON_DEMO_RESOURCE_STRINGS))
 CLEAN_FILES += $(DEMO_COMMON_RESOURCE_STRING_SRCS)
 
-# This is awful. Makes me wish I used cmake.
 DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image
+DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
+
+
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
 
-DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
+ifeq ($(DEMOS_HAVE_FONT_CONFIG),1)
+  DEMO_COMMON_CFLAGS += $(shell pkg-config fontconfig --cflags) -DHAVE_FONT_CONFIG
+  DEMO_COMMON_LIBS += $(shell pkg-config fontconfig --libs)
+endif
+
 DEMO_release_CFLAGS = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS)
 DEMO_debug_CFLAGS = -g $(DEMO_COMMON_CFLAGS)
 
