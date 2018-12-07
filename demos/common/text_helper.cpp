@@ -2,12 +2,103 @@
 #include <algorithm>
 #include <mutex>
 #include <sstream>
+#include <map>
 #include <dirent.h>
+
+#ifdef HAVE_FONT_CONFIG
+#include <fontconfig/fontconfig.h>
+#endif
+
 #include "text_helper.hpp"
 #include "cast_c_array.hpp"
 
 namespace
 {
+  #ifdef HAVE_FONT_CONFIG
+  class FontConfig
+  {
+  public:
+    static
+    FcConfig*
+    get(void)
+    {
+      static FontConfig R;
+      return R.m_fc;
+    }
+
+    static
+    std::string
+    get_string(FcPattern *pattern, const char *label, std::string default_value = std::string())
+    {
+      FcChar8 *value(nullptr);
+      if (FcPatternGetString(pattern, label, 0, &value) == FcResultMatch)
+        {
+          return std::string((const char*)value);
+        }
+      else
+        {
+          return default_value;
+        }
+    }
+
+    static
+    int
+    get_int(FcPattern *pattern, const char *label, int default_value = 0)
+    {
+      int value(0);
+      if (FcPatternGetInteger(pattern, label, 0, &value) == FcResultMatch)
+        {
+          return value;
+        }
+      else
+        {
+          return default_value;
+        }
+    }
+
+    static
+    bool
+    get_bool(FcPattern *pattern, const char *label, bool default_value = false)
+    {
+      FcBool value(0);
+      if (FcPatternGetBool(pattern, label, 0, &value) == FcResultMatch)
+        {
+          return value;
+        }
+      else
+        {
+          return default_value;
+        }
+    }
+
+    static
+    fastuidraw::FontProperties
+    get_font_properties(FcPattern *pattern)
+    {
+      return fastuidraw::FontProperties()
+        .style(get_string(pattern, FC_STYLE).c_str())
+        .family(get_string(pattern, FC_FAMILY).c_str())
+        .foundry(get_string(pattern, FC_FOUNDRY).c_str())
+        .source_label(get_string(pattern, FC_FILE).c_str(),
+                      get_int(pattern, FC_INDEX))
+        .bold(get_int(pattern, FC_WEIGHT) >= FC_WEIGHT_BOLD)
+        .italic(get_int(pattern, FC_SLANT) >= FC_SLANT_ITALIC);
+    }
+
+  private:
+    FontConfig(void)
+    {
+      m_fc = FcInitLoadConfigAndFonts();
+    }
+
+    ~FontConfig(void)
+    {
+      FcConfigDestroy(m_fc);
+    }
+
+    FcConfig* m_fc;
+  };
+  #endif
   /* The purpose of the DaaBufferHolder is to -DELAY-
    * the loading of data until the first time the data
    * is requested.
@@ -124,7 +215,6 @@ namespace
           {
             fastuidraw::reference_counted_ptr<const fastuidraw::FontDatabase::FontGeneratorBase> h;
             enum fastuidraw::return_code R;
-            std::ostringstream source_label;
             fastuidraw::FontProperties props;
             if (i != 0)
               {
@@ -134,20 +224,19 @@ namespace
                 lib->unlock();
               }
             fastuidraw::FontFreeType::compute_font_properties_from_face(face, props);
-            source_label << filename << ":" << i;
-            props.source_label(source_label.str().c_str());
+            props.source_label(filename.c_str(), i);
 
             h = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, i, props);
             R = font_database->add_font_generator(h);
 
             if (R != fastuidraw::routine_success)
               {
-                std::cout << "Warning: unable to add font " << h->font_properties()
+                std::cout << "Vanilla warning: unable to add font " << h->font_properties()
                           << " because it was already marked as added\n";
               }
             else
               {
-                //std::cout << "add font: " << props << "\n";
+                // std::cout << "Vanilla add font: " << props << "\n";
               }
           }
       }
@@ -415,7 +504,14 @@ add_fonts_from_path(const std::string &filename,
       file = entry->d_name;
       if (file != ".." && file != ".")
         {
-          add_fonts_from_path(filename + "/" + file, lib, font_database);
+          if (filename.empty() || filename.back() != '/')
+            {
+              add_fonts_from_path(filename + "/" + file, lib, font_database);
+            }
+          else
+            {
+              add_fonts_from_path(filename + file, lib, font_database);
+            }
         }
     }
   closedir(dir);
@@ -445,6 +541,176 @@ default_font_path(void)
   #else
     {
       return "/usr/share/fonts/";
+    }
+  #endif
+}
+
+void
+add_fonts_from_font_config(fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
+                           fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database)
+{
+  #ifdef HAVE_FONT_CONFIG
+    {
+      FcConfig *config = FontConfig::get();
+      FcObjectSet *object_set;
+      FcFontSet *font_set;
+      FcPattern* pattern;
+      std::map<std::string, fastuidraw::reference_counted_ptr<DataBufferLoader> > buffer_loaders;
+
+      object_set = FcObjectSetBuild(FC_FOUNDRY, FC_FAMILY, FC_STYLE, FC_WEIGHT, FC_SLANT, FC_SCALABLE, FC_FILE, nullptr);
+      pattern = FcPatternCreate();
+      FcPatternAddBool(pattern, FC_SCALABLE, FcTrue);
+      font_set = FcFontList(config, pattern, object_set);
+
+      for (int i = 0; i < font_set->nfont; ++i)
+        {
+          std::string filename;
+
+          filename = FontConfig::get_string(font_set->fonts[i], FC_FILE);
+          if (filename != "")
+            {
+              fastuidraw::reference_counted_ptr<DataBufferLoader> b;
+              fastuidraw::reference_counted_ptr<const fastuidraw::FontDatabase::FontGeneratorBase> g;
+              std::map<std::string, fastuidraw::reference_counted_ptr<DataBufferLoader> >::const_iterator iter;
+              int face_index;
+              enum fastuidraw::return_code R;
+              fastuidraw::FontProperties props(FontConfig::get_font_properties(font_set->fonts[i]));
+
+              iter = buffer_loaders.find(filename);
+              if (iter == buffer_loaders.end())
+                {
+                  b = FASTUIDRAWnew DataBufferLoader(filename);
+                  buffer_loaders[filename] = b;
+                }
+              else
+                {
+                  b = iter->second;
+                }
+
+              face_index = FontConfig::get_int(font_set->fonts[i], FC_INDEX);
+              g = FASTUIDRAWnew FreeTypeFontGenerator(b, lib, face_index, props);
+
+              R = font_database->add_font_generator(g);
+              if (R != fastuidraw::routine_success)
+                {
+                  std::cout << "FontConfig Warning: unable to add font " << props
+                            << " because it was already marked as added\n";
+                }
+              else
+                {
+                  // std::cout << "FontConfig add font: " << props << "\n";
+                }
+            }
+        }
+      FcFontSetDestroy(font_set);
+      FcPatternDestroy(pattern);
+      FcObjectSetDestroy(object_set);
+    }
+  #endif
+}
+
+fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
+select_font_font_config(int weight, int slant,
+                        fastuidraw::c_string style,
+                        fastuidraw::c_string family,
+                        fastuidraw::c_string foundry,
+                        fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
+                        fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database)
+{
+  #ifdef HAVE_FONT_CONFIG
+    {
+      FcConfig *config = FontConfig::get();
+      FcPattern* pattern;
+
+      pattern = FcPatternCreate();
+      if (weight >= 0)
+        {
+          FcPatternAddInteger(pattern, FC_WEIGHT, weight);
+        }
+
+      if (slant >= 0)
+        {
+          FcPatternAddInteger(pattern, FC_SLANT, slant);
+        }
+
+      if (style)
+        {
+          FcPatternAddString(pattern, FC_STYLE, (const FcChar8*)style);
+        }
+
+      if (family)
+        {
+          FcPatternAddString(pattern, FC_FAMILY, (const FcChar8*)family);
+        }
+
+      if (foundry)
+        {
+          FcPatternAddString(pattern, FC_FOUNDRY, (const FcChar8*)foundry);
+        }
+      FcPatternAddBool(pattern, FC_SCALABLE, FcTrue);
+
+      FcConfigSubstitute(config, pattern, FcMatchPattern);
+      FcDefaultSubstitute(pattern);
+
+      FcResult r;
+      FcPattern *font_pattern = FcFontMatch(config, pattern, &r);
+      if (font_pattern)
+        {
+          FcChar8* filename(nullptr);
+          if (FcPatternGetString(font_pattern, FC_FILE, 0, &filename) == FcResultMatch)
+            {
+              int face_index;
+              fastuidraw::FontProperties props;
+              fastuidraw::reference_counted_ptr<FreeTypeFontGenerator> gen;
+              fastuidraw::reference_counted_ptr<DataBufferLoader> buffer_loader;
+
+              face_index = FontConfig::get_int(font_pattern, FC_INDEX);
+              props = FontConfig::get_font_properties(font_pattern);
+              buffer_loader = FASTUIDRAWnew DataBufferLoader(std::string((const char*)filename));
+              gen = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, face_index, props);
+
+              return font_database->fetch_or_generate_font(gen);
+            }
+          FcPatternDestroy(font_pattern);
+        }
+      FcPatternDestroy(pattern);
+    }
+  #else
+    {
+      fastuidraw::FontProperties props;
+      uint32_t flags(0u);
+
+      if (foundry)
+        {
+          props.foundry(foundry);
+        }
+
+      if (family)
+        {
+          props.family(family);
+        }
+
+      if (style)
+        {
+          props.style(style);
+        }
+      else
+        {
+          flags |= fastuidraw::FontDatabase::ignore_style;
+        }
+
+      if (weight >=0 && slant >= 0)
+        {
+          props
+            .bold(weight >= 200)
+            .italic(slant >= 100);
+        }
+      else
+        {
+          flags |= fastuidraw::FontDatabase::ignore_bold_italic;
+        }
+
+      return font_database->fetch_font(props, flags);
     }
   #endif
 }

@@ -100,6 +100,18 @@ add_fonts_from_path(const std::string &path,
                     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
                     fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database);
 
+void
+add_fonts_from_font_config(fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
+                           fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database);
+
+fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
+select_font_font_config(int weight, int slant,
+                        fastuidraw::c_string style,
+                        fastuidraw::c_string family,
+                        fastuidraw::c_string foundry,
+                        fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
+                        fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database);
+
 fastuidraw::c_string
 default_font(void);
 
