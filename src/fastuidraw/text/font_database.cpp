@@ -1,6 +1,6 @@
 /*!
- * \file glyph_selector.cpp
- * \brief file glyph_selector.cpp
+ * \file font_database.cpp
+ * \brief file font_database.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -23,7 +23,7 @@
 #include <mutex>
 #include <atomic>
 
-#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/font_database.hpp>
 #include "../private/util_private.hpp"
 
 namespace
@@ -33,7 +33,7 @@ namespace
   public:
     typedef AbstractFont* pointer_type;
 
-    AbstractFont(const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::FontGeneratorBase> &g):
+    AbstractFont(const fastuidraw::reference_counted_ptr<const fastuidraw::FontDatabase::FontGeneratorBase> &g):
       m_generator(g)
     {
       FASTUIDRAWassert(g);
@@ -56,15 +56,15 @@ namespace
 
   private:
     fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> m_font;
-    fastuidraw::reference_counted_ptr<const fastuidraw::GlyphSelector::FontGeneratorBase> m_generator;
+    fastuidraw::reference_counted_ptr<const fastuidraw::FontDatabase::FontGeneratorBase> m_generator;
   };
 
   class font_group:public fastuidraw::reference_counted<font_group>::non_concurrent
   {
   public:
     typedef fastuidraw::FontBase FontBase;
-    typedef fastuidraw::GlyphSelector GlyphSelector;
-    typedef GlyphSelector::FontGeneratorBase FontGeneratorBase;
+    typedef fastuidraw::FontDatabase FontDatabase;
+    typedef FontDatabase::FontGeneratorBase FontGeneratorBase;
 
     explicit
     font_group(fastuidraw::reference_counted_ptr<font_group> p);
@@ -314,11 +314,11 @@ namespace
     {}
   };
 
-  class GlyphSelectorPrivate
+  class FontDatabasePrivate
   {
   public:
-    GlyphSelectorPrivate(void);
-    ~GlyphSelectorPrivate();
+    FontDatabasePrivate(void);
+    ~FontDatabasePrivate();
 
     fastuidraw::reference_counted_ptr<font_group>
     fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
@@ -413,9 +413,9 @@ fetch_glyph(uint32_t character_code, bool skip_parent)
 }
 
 ////////////////////////////////////
-// GlyphSelectorPrivate methods
-GlyphSelectorPrivate::
-GlyphSelectorPrivate(void)
+// FontDatabasePrivate methods
+FontDatabasePrivate::
+FontDatabasePrivate(void)
 {
   m_master_group = FASTUIDRAWnew font_group(fastuidraw::reference_counted_ptr<font_group>());
 
@@ -436,8 +436,8 @@ GlyphSelectorPrivate(void)
   m_vanilla_hunter.push_back(&m_family_groups);
 }
 
-GlyphSelectorPrivate::
-~GlyphSelectorPrivate()
+FontDatabasePrivate::
+~FontDatabasePrivate()
 {
   for (const auto &p : m_fonts)
     {
@@ -446,7 +446,7 @@ GlyphSelectorPrivate::
 }
 
 fastuidraw::reference_counted_ptr<font_group>
-GlyphSelectorPrivate::
+FontDatabasePrivate::
 fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
                          uint32_t selection_strategy)
 {
@@ -457,9 +457,9 @@ fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
   /* such a hassle, we need to check the bits of selection_strategy
    * to decide if we pay attention to style, bold/italic
    */
-  if ((selection_strategy & GlyphSelector::ignore_style) == 0)
+  if ((selection_strategy & FontDatabase::ignore_style) == 0)
     {
-      if ((selection_strategy & GlyphSelector::ignore_bold_italic) == 0)
+      if ((selection_strategy & FontDatabase::ignore_bold_italic) == 0)
         {
           src = &m_style_bold_italic_hunter;
         }
@@ -470,7 +470,7 @@ fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
     }
   else
     {
-      if ((selection_strategy & GlyphSelector::ignore_bold_italic) == 0)
+      if ((selection_strategy & FontDatabase::ignore_bold_italic) == 0)
         {
           src = &m_bold_italic_hunter;
         }
@@ -483,7 +483,7 @@ fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
   FASTUIDRAWassert(src && !src->empty());
 
   return_value = src->front()->fetch_group(prop);
-  if (return_value || (selection_strategy & GlyphSelector::exact_match) != 0u)
+  if (return_value || (selection_strategy & FontDatabase::exact_match) != 0u)
     {
       return return_value;
     }
@@ -501,7 +501,7 @@ fetch_font_group_no_lock(const fastuidraw::FontProperties &prop,
 }
 
 fastuidraw::GlyphSource
-GlyphSelectorPrivate::
+FontDatabasePrivate::
 fetch_glyph(fastuidraw::reference_counted_ptr<font_group> group,
             uint32_t character_code, uint32_t selection_strategy)
 {
@@ -510,7 +510,7 @@ fetch_glyph(fastuidraw::reference_counted_ptr<font_group> group,
 }
 
 fastuidraw::GlyphSource
-GlyphSelectorPrivate::
+FontDatabasePrivate::
 fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
             uint32_t character_code, uint32_t selection_strategy)
 {
@@ -536,14 +536,14 @@ fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
       if (g)
         {
           return_value = g->fetch_glyph(character_code,
-                                        (selection_strategy & GlyphSelector::exact_match) != 0);
+                                        (selection_strategy & FontDatabase::exact_match) != 0);
         }
     }
   return return_value;
 }
 
 fastuidraw::GlyphSource
-GlyphSelectorPrivate::
+FontDatabasePrivate::
 fetch_glyph_no_merging(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
                        uint32_t character_code)
 {
@@ -565,7 +565,7 @@ fetch_glyph_no_merging(fastuidraw::reference_counted_ptr<const fastuidraw::FontB
 }
 
 enum fastuidraw::return_code
-GlyphSelectorPrivate::
+FontDatabasePrivate::
 add_font_no_lock(const fastuidraw::FontProperties &props, AbstractFont *h)
 {
   using namespace fastuidraw;
@@ -639,24 +639,24 @@ font(void)
 }
 
 ////////////////////////////////////////////////
-// fastuidraw::GlyphSelector methods
-fastuidraw::GlyphSelector::
-GlyphSelector(void)
+// fastuidraw::FontDatabase methods
+fastuidraw::FontDatabase::
+FontDatabase(void)
 {
-  m_d = FASTUIDRAWnew GlyphSelectorPrivate();
+  m_d = FASTUIDRAWnew FontDatabasePrivate();
 }
 
-fastuidraw::GlyphSelector::
-~GlyphSelector()
+fastuidraw::FontDatabase::
+~FontDatabase()
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
 }
 
 enum fastuidraw::return_code
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 add_font(const reference_counted_ptr<const FontBase> &h)
 {
   if (!h)
@@ -665,9 +665,9 @@ add_font(const reference_counted_ptr<const FontBase> &h)
     }
   else
     {
-      GlyphSelectorPrivate *d;
+      FontDatabasePrivate *d;
 
-      d = static_cast<GlyphSelectorPrivate*>(m_d);
+      d = static_cast<FontDatabasePrivate*>(m_d);
       std::lock_guard<std::mutex> m(d->m_mutex);
 
       return d->add_font_no_lock(h->properties(), FASTUIDRAWnew AbstractFont(h));
@@ -675,7 +675,7 @@ add_font(const reference_counted_ptr<const FontBase> &h)
 }
 
 enum fastuidraw::return_code
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 add_font_generator(const reference_counted_ptr<const FontGeneratorBase> &h)
 {
   if (!h)
@@ -684,9 +684,9 @@ add_font_generator(const reference_counted_ptr<const FontGeneratorBase> &h)
     }
   else
     {
-      GlyphSelectorPrivate *d;
+      FontDatabasePrivate *d;
 
-      d = static_cast<GlyphSelectorPrivate*>(m_d);
+      d = static_cast<FontDatabasePrivate*>(m_d);
       std::lock_guard<std::mutex> m(d->m_mutex);
 
       return d->add_font_no_lock(h->font_properties(), FASTUIDRAWnew AbstractFont(h));
@@ -694,11 +694,11 @@ add_font_generator(const reference_counted_ptr<const FontGeneratorBase> &h)
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_font(c_string source_label)
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
   reference_counted_ptr<const FontBase> return_value;
@@ -713,8 +713,8 @@ fetch_font(c_string source_label)
   return return_value;
 }
 
-fastuidraw::GlyphSelector::FontGroup
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::FontGroup
+fastuidraw::FontDatabase::
 parent_group(FontGroup G)
 {
   font_group *d;
@@ -731,14 +731,14 @@ parent_group(FontGroup G)
 }
 
 unsigned int
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 number_fonts(FontGroup G)
 {
   unsigned int return_value(0);
   font_group *g;
-  GlyphSelectorPrivate *d;
+  FontDatabasePrivate *d;
 
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  d = static_cast<FontDatabasePrivate*>(m_d);
   g = static_cast<font_group*>(G.m_d);
   if (g)
     {
@@ -749,14 +749,14 @@ number_fonts(FontGroup G)
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_font(FontGroup G, unsigned int N)
 {
   reference_counted_ptr<const FontBase> return_value;
   font_group *g;
-  GlyphSelectorPrivate *d;
+  FontDatabasePrivate *d;
 
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  d = static_cast<FontDatabasePrivate*>(m_d);
   g = static_cast<font_group*>(G.m_d);
 
   if (g && g->fonts().size() < N)
@@ -769,61 +769,61 @@ fetch_font(FontGroup G, unsigned int N)
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_font(const FontProperties &prop, uint32_t selection_strategy)
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
   return d->fetch_font_group_no_lock(prop, selection_strategy)->first_font()->font();
 }
 
 fastuidraw::GlyphSource
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_glyph_no_merging_no_lock(reference_counted_ptr<const FontBase> h,
                                uint32_t character_code)
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
   return d->fetch_glyph_no_merging(h, character_code);
 }
 
 fastuidraw::GlyphSource
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_glyph_no_lock(reference_counted_ptr<const FontBase> h,
                     uint32_t character_code, uint32_t selection_strategy)
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
   return d->fetch_glyph(h, character_code, selection_strategy);
 }
 
 void
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 lock_mutex(void)
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
   d->m_mutex.lock();
 }
 
 void
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 unlock_mutex(void)
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
   d->m_mutex.unlock();
 }
 
 fastuidraw::GlyphSource
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_glyph_no_lock(FontGroup group,
                     uint32_t character_code, uint32_t selection_strategy)
 {
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
 
   reference_counted_ptr<font_group> p;
   p = reference_counted_ptr<font_group>(static_cast<font_group*>(group.m_d));
@@ -834,15 +834,15 @@ fetch_glyph_no_lock(FontGroup group,
   return d->fetch_glyph(p, character_code, selection_strategy);
 }
 
-fastuidraw::GlyphSelector::FontGroup
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::FontGroup
+fastuidraw::FontDatabase::
 fetch_group(const FontProperties &props, uint32_t selection_strategy)
 {
   FontGroup return_value;
   reference_counted_ptr<font_group> h;
 
-  GlyphSelectorPrivate *d;
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  FontDatabasePrivate *d;
+  d = static_cast<FontDatabasePrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
   h = d->fetch_font_group_no_lock(props, selection_strategy);
@@ -851,26 +851,26 @@ fetch_group(const FontProperties &props, uint32_t selection_strategy)
   return return_value;
 }
 
-fastuidraw::GlyphSelector::FontGroup
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::FontGroup
+fastuidraw::FontDatabase::
 root_group(void)
 {
   FontGroup return_value;
-  GlyphSelectorPrivate *d;
+  FontDatabasePrivate *d;
 
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  d = static_cast<FontDatabasePrivate*>(m_d);
   return_value.m_d = d->m_master_group.get();
   return return_value;
 }
 
 fastuidraw::GlyphSource
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_glyph(const FontProperties &props, uint32_t character_code, uint32_t selection_strategy)
 {
-  GlyphSelectorPrivate *d;
+  FontDatabasePrivate *d;
   reference_counted_ptr<font_group> g;
 
-  d = static_cast<GlyphSelectorPrivate*>(m_d);
+  d = static_cast<FontDatabasePrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
   g = d->fetch_font_group_no_lock(props, selection_strategy);
@@ -878,7 +878,7 @@ fetch_glyph(const FontProperties &props, uint32_t character_code, uint32_t selec
 }
 
 fastuidraw::GlyphSource
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_glyph(FontGroup h, uint32_t character_code, uint32_t selection_strategy)
 {
   GlyphSource G;
@@ -889,7 +889,7 @@ fetch_glyph(FontGroup h, uint32_t character_code, uint32_t selection_strategy)
 }
 
 fastuidraw::GlyphSource
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_glyph(reference_counted_ptr<const FontBase> h,
             uint32_t character_code, uint32_t selection_strategy)
 {
@@ -901,7 +901,7 @@ fetch_glyph(reference_counted_ptr<const FontBase> h,
 }
 
 fastuidraw::GlyphSource
-fastuidraw::GlyphSelector::
+fastuidraw::FontDatabase::
 fetch_glyph_no_merging(reference_counted_ptr<const FontBase> h,
                        uint32_t character_code)
 {

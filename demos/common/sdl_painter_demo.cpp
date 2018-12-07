@@ -765,7 +765,7 @@ init_gl(int w, int h)
 
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
-  m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector();
+  m_font_database = FASTUIDRAWnew fastuidraw::FontDatabase();
   m_ft_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
 
   if (m_print_painter_config.value())
@@ -858,7 +858,7 @@ draw_text(const std::string &text, float pixel_size,
   std::istringstream str(text);
   fastuidraw::GlyphRun run(pixel_size, orientation, m_glyph_cache);
 
-  create_formatted_text(run, str, font, m_glyph_selector);
+  create_formatted_text(run, str, font, m_font_database);
   m_painter->draw_glyphs(draw, run, 0, run.number_glyphs(), renderer);
 }
 

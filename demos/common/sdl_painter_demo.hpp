@@ -1,5 +1,5 @@
 #include <fastuidraw/text/glyph_cache.hpp>
-#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
@@ -81,7 +81,7 @@ protected:
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL> m_backend;
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> m_painter;
   fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_glyph_cache;
-  fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> m_glyph_selector;
+  fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> m_font_database;
   fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_ft_lib;
 
 private:

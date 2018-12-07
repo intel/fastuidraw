@@ -30,7 +30,7 @@ namespace fastuidraw
   /*!
    * \brief
    * Represents defining properties of a font
-   * used by GlyphSelector to perform font
+   * used by FontDatabase to perform font
    * merging.
    */
   class FontProperties

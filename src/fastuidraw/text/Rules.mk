@@ -5,7 +5,7 @@ d		:= $(dir)
 # End standard header
 
 FASTUIDRAW_SOURCES += $(call filelist, glyph_atlas.cpp \
-	font.cpp glyph_attribute.cpp glyph_selector.cpp \
+	font.cpp glyph_attribute.cpp font_database.cpp \
 	glyph_render_data.cpp \
 	glyph_render_data_restricted_rays.cpp \
 	glyph_render_data_texels.cpp \

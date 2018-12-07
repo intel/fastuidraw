@@ -1,6 +1,6 @@
 /*!
- * \file glyph_selector.hpp
- * \brief file glyph_selector.hpp
+ * \file font_database.hpp
+ * \brief file font_database.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -29,12 +29,12 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A GlyphSelector performs the act of font selection and glyph
+   * A FontDatabase performs the act of font selection and glyph
    * selection. It uses the values of \ref FontProperties (except
    * for FontProperties::source_label()) to select suitable font
    * or fonts.
    */
-  class GlyphSelector:public reference_counted<GlyphSelector>::default_base
+  class FontDatabase:public reference_counted<FontDatabase>::default_base
   {
   public:
 
@@ -67,9 +67,9 @@ namespace fastuidraw
      * \brief
      * A FontGroup represents a group of fonts which is selected
      * from a FontProperties value. The accessors for FontGroup
-     * are methods of GlyphSelector::parent_group(FontGroup),
-     * GlyphSelector::fetch_font(FontGroup, unsigned int)
-     * and GlyphSelector::number_fonts(FontGroup).
+     * are methods of FontDatabase::parent_group(FontGroup),
+     * FontDatabase::fetch_font(FontGroup, unsigned int)
+     * and FontDatabase::number_fonts(FontGroup).
      */
     class FontGroup
     {
@@ -79,7 +79,7 @@ namespace fastuidraw
       {}
 
     private:
-      friend class GlyphSelector;
+      friend class FontDatabase;
       void *m_d;
     };
 
@@ -109,12 +109,12 @@ namespace fastuidraw
      * Ctor
      */
     explicit
-    GlyphSelector(void);
+    FontDatabase(void);
 
-    ~GlyphSelector();
+    ~FontDatabase();
 
     /*!
-     * Add a font to this GlyphSelector; the value of
+     * Add a font to this FontDatabase; the value of
      * FontBase::properties().source_label()
      * will be used as a key to uniquely identify the
      * font. If a font is already present with the
@@ -126,7 +126,7 @@ namespace fastuidraw
     add_font(const reference_counted_ptr<const FontBase> &h);
 
     /*!
-     * Add a font to this GlyphSelector; the value of
+     * Add a font to this FontDatabase; the value of
      * FontGeneratorBase::font_properties().source_label()
      * will be used as a key to uniquely identify the
      * font. If a font is already present with the
@@ -191,7 +191,7 @@ namespace fastuidraw
     fetch_group(const FontProperties &props, uint32_t selection_strategy);
 
     /*!
-     * Returns the root FontGroup for all fonts added to this GlyphSelector.
+     * Returns the root FontGroup for all fonts added to this FontDatabase.
      */
     FontGroup
     root_group(void);
@@ -337,7 +337,7 @@ namespace fastuidraw
   template<typename input_iterator,
            typename output_iterator>
   void
-  GlyphSelector::
+  FontDatabase::
   create_glyph_sequence(FontGroup group,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
@@ -357,7 +357,7 @@ namespace fastuidraw
   template<typename input_iterator,
            typename output_iterator>
   void
-  GlyphSelector::
+  FontDatabase::
   create_glyph_sequence(reference_counted_ptr<const FontBase> h,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
@@ -377,7 +377,7 @@ namespace fastuidraw
   template<typename input_iterator,
            typename output_iterator>
   void
-  GlyphSelector::
+  FontDatabase::
   create_glyph_sequence_no_merging(reference_counted_ptr<const FontBase> h,
                                    input_iterator character_codes_begin,
                                    input_iterator character_codes_end,

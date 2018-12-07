@@ -4,7 +4,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
-#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 
 #include "sdl_painter_demo.hpp"
@@ -96,7 +96,7 @@ public:
   init(const reference_counted_ptr<const FontFreeType> &font,
        float line_length,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
-       const reference_counted_ptr<GlyphSelector> &selector,
+       const reference_counted_ptr<FontDatabase> &selector,
        float pixel_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
@@ -111,7 +111,7 @@ public:
   init(std::istream &istr,
        const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
-       const reference_counted_ptr<GlyphSelector> &selector,
+       const reference_counted_ptr<FontDatabase> &selector,
        float pixel_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
@@ -306,7 +306,7 @@ GlyphDrawsShared::
 init(const reference_counted_ptr<const FontFreeType> &font,
      float line_length,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
-     const reference_counted_ptr<GlyphSelector> &glyph_selector,
+     const reference_counted_ptr<FontDatabase> &font_database,
      float pixel_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
@@ -387,7 +387,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
       std::istringstream stream(nav_iter->second);
 
       create_formatted_text(*m_glyph_sequence, stream, font,
-                            glyph_selector,
+                            font_database,
                             vec2(line_length, nav_iter->first));
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -416,7 +416,7 @@ GlyphDrawsShared::
 init(std::istream &istr,
      const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
-     const reference_counted_ptr<GlyphSelector> &glyph_selector,
+     const reference_counted_ptr<FontDatabase> &font_database,
      float pixel_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
@@ -427,7 +427,7 @@ init(std::istream &istr,
       simple_time timer;
 
       std::cout << "Formatting glyphs ..." << std::flush;
-      create_formatted_text(*m_glyph_sequence, istr, font, glyph_selector);
+      create_formatted_text(*m_glyph_sequence, istr, font, font_database);
       std::cout << "took " << timer.restart() << " ms\n";
     }
 }
@@ -472,7 +472,7 @@ painter_glyph_test(void):
   m_font_exact_match(false, "font_exact_match", "if true, require an exact match when selecting a font ignore style value", *this),
   m_font_file("", "font_file",
               "If non-empty gives the name of a font by filename "
-              "thus bypassing the glyph selection process with glyph_selector",
+              "thus bypassing the glyph selection process with font_database",
               *this),
   m_coverage_pixel_size(24, "coverage_pixel_size", "Pixel size at which to create coverage glyphs", *this),
   m_text("Hello World!", "text", "text to draw to the screen", *this),
@@ -581,7 +581,7 @@ create_and_add_font(void)
         }
     }
 
-  add_fonts_from_path(m_font_path.value(), m_ft_lib, m_glyph_selector);
+  add_fonts_from_path(m_font_path.value(), m_ft_lib, m_font_database);
 
   if (!font)
     {
@@ -596,20 +596,20 @@ create_and_add_font(void)
 
       if (m_font_ignore_style.value())
         {
-          flags |= GlyphSelector::ignore_style;
+          flags |= FontDatabase::ignore_style;
         }
 
       if (m_font_ignore_bold_italic.value())
         {
-          flags |= GlyphSelector::ignore_bold_italic;
+          flags |= FontDatabase::ignore_bold_italic;
         }
 
       if (m_font_exact_match.value())
         {
-          flags |= GlyphSelector::exact_match;
+          flags |= FontDatabase::exact_match;
         }
 
-      font = m_glyph_selector->fetch_font(props, flags);
+      font = m_font_database->fetch_font(props, flags);
     }
 
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
@@ -716,7 +716,7 @@ ready_glyph_data(int w, int h)
           realize_all_glyphs(m_draws[i]);
         }
       m_draw_shared.init(m_font, w,
-                         m_glyph_cache, m_glyph_selector,
+                         m_glyph_cache, m_font_database,
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
     }
@@ -731,7 +731,7 @@ ready_glyph_data(int w, int h)
     {
       std::ifstream istr(m_text.value().c_str(), std::ios::binary);
       m_draw_shared.init(istr, m_font,
-                         m_glyph_cache, m_glyph_selector,
+                         m_glyph_cache, m_font_database,
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
     }
@@ -739,7 +739,7 @@ ready_glyph_data(int w, int h)
     {
       std::istringstream istr(m_text.value());
       m_draw_shared.init(istr, m_font,
-                         m_glyph_cache, m_glyph_selector,
+                         m_glyph_cache, m_font_database,
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
     }

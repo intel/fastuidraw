@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/painter/painter.hpp>
@@ -44,7 +44,7 @@ public:
 class CellParams
 {
 public:
-  reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<FontDatabase> m_font_database;
   reference_counted_ptr<GlyphCache> m_glyph_cache;
   reference_counted_ptr<const FontBase> m_font;
   PainterPackedValue<PainterBrush> m_background_brush;

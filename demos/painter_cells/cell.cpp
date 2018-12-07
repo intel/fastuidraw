@@ -56,7 +56,7 @@ Cell(PainterWidget *p, const CellParams &params):
 
   std::istringstream str(ostr.str());
   create_formatted_text(m_text, str, params.m_font,
-                        params.m_glyph_selector);
+                        params.m_font_database);
 
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);

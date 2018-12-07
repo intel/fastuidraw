@@ -8,7 +8,7 @@
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
-#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/painter/painter.hpp>
@@ -71,34 +71,34 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
  * \param[out] out_sequence sequence to which to add glyphs
  * \param stream input stream from which to grab lines of text
  * \param font font of the glyphs
- * \param glyph_selector used to select glyphs from font
+ * \param font_database used to select glyphs from font
  * \param shift_by amount by which to shit all glyphs
  */
 void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       std::istream &stream,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
 
 /*
  * \param[out] out_run run to which to add glyphs
  * \param stream input stream from which to grab lines of text
  * \param font font of the glyphs
- * \param glyph_selector used to select glyphs from font
+ * \param font_database used to select glyphs from font
  * \param shift_by amount by which to shit all glyphs
  */
 void
 create_formatted_text(fastuidraw::GlyphRun &out_run,
                       std::istream &stream,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
 
 void
 add_fonts_from_path(const std::string &path,
                     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector);
+                    fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database);
 
 fastuidraw::c_string
 default_font(void);

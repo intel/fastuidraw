@@ -42,7 +42,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::DataBufferBase> m_buffer;
   };
 
-  class FreeTypeFontGenerator:public fastuidraw::GlyphSelector::FontGeneratorBase
+  class FreeTypeFontGenerator:public fastuidraw::FontDatabase::FontGeneratorBase
   {
   public:
     FreeTypeFontGenerator(fastuidraw::reference_counted_ptr<DataBufferLoader> buffer,
@@ -106,7 +106,7 @@ namespace
   void
   add_fonts_from_file(const std::string &filename,
                       fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector)
+                      fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database)
   {
     FT_Error error_code;
     FT_Face face(nullptr);
@@ -122,7 +122,8 @@ namespace
         buffer_loader = FASTUIDRAWnew DataBufferLoader(filename);
         for(unsigned int i = 0, endi = face->num_faces; i < endi; ++i)
           {
-            fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector::FontGeneratorBase> h;
+            fastuidraw::reference_counted_ptr<const fastuidraw::FontDatabase::FontGeneratorBase> h;
+            enum fastuidraw::return_code R;
             std::ostringstream source_label;
             fastuidraw::FontProperties props;
             if (i != 0)
@@ -137,9 +138,17 @@ namespace
             props.source_label(source_label.str().c_str());
 
             h = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, i, props);
-            glyph_selector->add_font_generator(h);
+            R = font_database->add_font_generator(h);
 
-            //std::cout << "add font: " << props << "\n";
+            if (R != fastuidraw::routine_success)
+              {
+                std::cout << "Warning: unable to add font " << h->font_properties()
+                          << " because it was already marked as added\n";
+              }
+            else
+              {
+                //std::cout << "add font: " << props << "\n";
+              }
           }
       }
 
@@ -261,7 +270,7 @@ void
 create_formatted_textT(T &out_sequence,
                        std::istream &istr,
                        fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                        const fastuidraw::vec2 &starting_place)
 {
   std::streampos current_position, end_position;
@@ -301,7 +310,7 @@ create_formatted_textT(T &out_sequence,
       glyph_sources.resize(line.length());
       metrics.resize(line.length());
 
-      glyph_selector->create_glyph_sequence(font, line.begin(), line.end(), glyph_sources.begin());
+      font_database->create_glyph_sequence(font, line.begin(), line.end(), glyph_sources.begin());
       out_sequence.glyph_cache()->fetch_glyph_metrics(cast_c_array(glyph_sources), cast_c_array(metrics));
       for(unsigned int i = 0, endi = glyph_sources.size(); i < endi; ++i)
         {
@@ -369,26 +378,26 @@ void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       std::istream &istr,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &starting_place)
 {
-  create_formatted_textT(out_sequence, istr, font, glyph_selector, starting_place);
+  create_formatted_textT(out_sequence, istr, font, font_database, starting_place);
 }
 
 void
 create_formatted_text(fastuidraw::GlyphRun &out_sequence,
                       std::istream &istr,
                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
-                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
+                      fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &starting_place)
 {
-  create_formatted_textT(out_sequence, istr, font, glyph_selector, starting_place);
+  create_formatted_textT(out_sequence, istr, font, font_database, starting_place);
 }
 
 void
 add_fonts_from_path(const std::string &filename,
                     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
-                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector)
+                    fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database)
 {
   DIR *dir;
   struct dirent *entry;
@@ -396,7 +405,7 @@ add_fonts_from_path(const std::string &filename,
   dir = opendir(filename.c_str());
   if (!dir)
     {
-      add_fonts_from_file(filename, lib, glyph_selector);
+      add_fonts_from_file(filename, lib, font_database);
       return;
     }
 
@@ -406,7 +415,7 @@ add_fonts_from_path(const std::string &filename,
       file = entry->d_name;
       if (file != ".." && file != ".")
         {
-          add_fonts_from_path(filename + "/" + file, lib, glyph_selector);
+          add_fonts_from_path(filename + "/" + file, lib, font_database);
         }
     }
   closedir(dir);
