@@ -654,26 +654,34 @@ select_font_font_config(int weight, int slant,
 
       FcResult r;
       FcPattern *font_pattern = FcFontMatch(config, pattern, &r);
+      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font;
+
       if (font_pattern)
         {
           FcChar8* filename(nullptr);
           if (FcPatternGetString(font_pattern, FC_FILE, 0, &filename) == FcResultMatch)
             {
               int face_index;
-              fastuidraw::FontProperties props;
-              fastuidraw::reference_counted_ptr<FreeTypeFontGenerator> gen;
-              fastuidraw::reference_counted_ptr<DataBufferLoader> buffer_loader;
 
               face_index = FontConfig::get_int(font_pattern, FC_INDEX);
-              props = FontConfig::get_font_properties(font_pattern);
-              buffer_loader = FASTUIDRAWnew DataBufferLoader(std::string((const char*)filename));
-              gen = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, face_index, props);
+              font = font_database->fetch_font((fastuidraw::c_string)filename, face_index);
+              if (!font)
+                {
+                  fastuidraw::FontProperties props;
+                  fastuidraw::reference_counted_ptr<FreeTypeFontGenerator> gen;
+                  fastuidraw::reference_counted_ptr<DataBufferLoader> buffer_loader;
 
-              return font_database->fetch_or_generate_font(gen);
+                  props = FontConfig::get_font_properties(font_pattern);
+                  buffer_loader = FASTUIDRAWnew DataBufferLoader(std::string((const char*)filename));
+                  gen = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, face_index, props);
+
+                  font = font_database->fetch_or_generate_font(gen);
+                }
             }
           FcPatternDestroy(font_pattern);
         }
       FcPatternDestroy(pattern);
+      return font;
     }
   #else
     {
