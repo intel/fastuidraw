@@ -884,8 +884,8 @@ draw_glyphs(float us)
   GlyphRenderer render;
   PainterBrush glyph_brush;
 
-  glyph_brush.pen(m_fg_red.value(), m_fg_blue.value(),
-                  m_fg_green.value(), 1.0f);
+  glyph_brush.pen(m_fg_red.value(), m_fg_green.value(),
+                  m_fg_blue.value(), 1.0f);
 
   m_painter->begin(m_surface, m_screen_orientation.value());
   m_painter->save();
