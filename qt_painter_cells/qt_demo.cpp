@@ -27,7 +27,7 @@ demo_widget::
 demo_widget(qt_demo *q):
   m_demo(q)
 {
-  if(q->m_hide_cursor.m_value)
+  if(q->m_hide_cursor.value())
     {
       setCursor(Qt::BlankCursor);
     }
@@ -35,7 +35,7 @@ demo_widget(qt_demo *q):
   setAttribute(Qt::WA_AcceptTouchEvents);
   setAttribute(Qt::WA_DeleteOnClose);
 
-  if(q->m_fullscreen.m_value)
+  if(q->m_fullscreen.value())
     {
       showFullScreen();
     }
@@ -82,7 +82,7 @@ demo_widget_gl(qt_demo *q):
   QGLWidget(q->computeFormat(), 0, 0, q->computeFlags()),
   m_demo(q)
 {
-  if(q->m_hide_cursor.m_value)
+  if(q->m_hide_cursor.value())
     {
       setCursor(Qt::BlankCursor);
     }
@@ -90,7 +90,7 @@ demo_widget_gl(qt_demo *q):
   setAttribute(Qt::WA_AcceptTouchEvents);
   setAttribute(Qt::WA_DeleteOnClose);
 
-  if(q->m_fullscreen.m_value)
+  if(q->m_fullscreen.value())
     {
       showFullScreen();
     }
@@ -188,48 +188,48 @@ computeFormat(void)
 {
   QGLFormat fmt;
 
-  if(m_red_bits.m_value>0)
+  if(m_red_bits.value()>0)
     {
-      fmt.setRedBufferSize(m_red_bits.m_value);
+      fmt.setRedBufferSize(m_red_bits.value());
     }
 
-  if(m_green_bits.m_value>0)
+  if(m_green_bits.value()>0)
     {
-      fmt.setGreenBufferSize(m_green_bits.m_value);
+      fmt.setGreenBufferSize(m_green_bits.value());
     }
 
-  if(m_blue_bits.m_value>0)
+  if(m_blue_bits.value()>0)
     {
-      fmt.setBlueBufferSize(m_blue_bits.m_value);
+      fmt.setBlueBufferSize(m_blue_bits.value());
     }
 
-  if(m_alpha_bits.m_value>0)
+  if(m_alpha_bits.value()>0)
     {
-      fmt.setAlphaBufferSize(m_alpha_bits.m_value);
+      fmt.setAlphaBufferSize(m_alpha_bits.value());
     }
 
-  if(m_depth_bits.m_value>0)
+  if(m_depth_bits.value()>0)
     {
-      fmt.setDepthBufferSize(m_depth_bits.m_value);
+      fmt.setDepthBufferSize(m_depth_bits.value());
     }
 
-  if(m_stencil_bits.m_value>0)
+  if(m_stencil_bits.value()>0)
     {
-      fmt.setStencilBufferSize(m_stencil_bits.m_value);
+      fmt.setStencilBufferSize(m_stencil_bits.value());
     }
 
-  if(m_use_msaa.m_value)
+  if(m_use_msaa.value())
     {
       fmt.setSampleBuffers(true);
-      if(m_msaa.m_value>0)
+      if(m_msaa.value()>0)
         {
-          fmt.setSamples(m_msaa.m_value);
+          fmt.setSamples(m_msaa.value());
         }
     }
 
   if(m_swap_interval.set_by_command_line())
     {
-      fmt.setSwapInterval(m_swap_interval.m_value);
+      fmt.setSwapInterval(m_swap_interval.value());
     }
 
   return fmt;
@@ -299,7 +299,7 @@ main(int argc, char **argv)
   parse_command_line(argc, argv);
   std::cout << "\n\n" << std::flush;
 
-  if(m_use_gl_widget.m_value)
+  if(m_use_gl_widget.value())
     {
       m_widget = new demo_widget_gl(this);
     }
