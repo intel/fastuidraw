@@ -27,6 +27,8 @@
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include <fastuidraw/text/glyph_metrics.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
+#include <fastuidraw/painter/painter_attribute.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw
 {
@@ -76,7 +78,7 @@ namespace fastuidraw
      * return true. If not, debug builds FASTUIDRAWassert
      * and release builds crash.
      */
-    GlyphRender
+    GlyphRenderer
     renderer(void) const;
 
     /*!
@@ -146,8 +148,7 @@ namespace fastuidraw
      * then one needs to reverse the y-coordinate (for
      * example by Painter::shear(1.0, -1.0)) if the
      * glyphs are rendered with data packed by
-     * \ref PainterAttributeDataFillerGlyphs with
-     * \ref PainterEnums::y_increases_downwards.
+     * pack_glyph() with PainterEnums::y_increases_downwards.
      */
     const Path&
     path(void) const;
@@ -164,7 +165,7 @@ namespace fastuidraw
      */
     static
     Glyph
-    create_glyph(GlyphRender render,
+    create_glyph(GlyphRenderer render,
                  const reference_counted_ptr<const FontBase> &font,
                  uint32_t glyph_code);
 
@@ -179,6 +180,37 @@ namespace fastuidraw
     static
     enum return_code
     delete_glyph(Glyph G);
+
+    /*!
+     * Pack a single glyph into attribute and index data. A
+     * single glyph takes exactly 4 attributes and 6 indices.
+     * The data is packed as follows:
+     *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates of the
+     *                                        vertex of the quad to draw the glyph (float)
+     *   - PainterAttribute::m_attrib0 .zw -> the difference in item coordinates
+     *                                        between the bottom-left vertex position
+     *                                        and the top-right vertex position.
+     *   - PainterAttribute::m_attrib1 .x  -> Glyph::attribute()[0]
+     *   - PainterAttribute::m_attrib1 .y  -> Glyph::attribute()[1]
+     *   - PainterAttribute::m_attrib1. z  -> Glyph::attribute()[2]
+     *   - PainterAttribute::m_attrib1 .w  -> Glyph::attribute()[3]
+     *   - PainterAttribute::m_attrib2 .x  -> Glyph::attribute()[4]
+     *   - PainterAttribute::m_attrib2 .y  -> Glyph::attribute()[5]
+     *   - PainterAttribute::m_attrib2 .z  -> Glyph::attribute()[6]
+     *   - PainterAttribute::m_attrib2 .w  -> Glyph::attribute()[7]
+     * \param dst_attrib location to which to pack attributes
+     * \param dst_index location to which to pack indices
+     * \param position position of the bottom left corner of the glyph
+     * \param scale_factor scale factor to apply to the glyph
+     * \param orientation orientation of drawing the glyph
+     * \param layout if glyph position is for horizontal or vertical layout
+     */
+    void
+    pack_glyph(unsigned int attrib_loc, c_array<PainterAttribute> dst_attrib,
+               unsigned int index_loc, c_array<PainterIndex> dst_index,
+               const vec2 position, float scale_factor,
+               enum fastuidraw::PainterEnums::screen_orientation orientation,
+               enum fastuidraw::PainterEnums::glyph_layout_type layout) const;
 
   private:
     friend class GlyphCache;

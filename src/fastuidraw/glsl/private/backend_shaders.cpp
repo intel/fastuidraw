@@ -19,7 +19,6 @@
 #include <string>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include <fastuidraw/painter/stroked_point.hpp>
 #include <fastuidraw/painter/arc_stroked_point.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
@@ -781,8 +780,8 @@ create_fill_shader(void)
       fill_shader
         .aa_fuzz_hq_shader_pass1(hq1)
         .aa_fuzz_hq_shader_pass2(hq2)
-        .aa_hq_action_pass1(m_flush_auxiliary_buffer_between_draws)
-        .aa_hq_action_pass2(m_flush_auxiliary_buffer_between_draws);
+        .aa_fuzz_hq_action_pass1(m_flush_auxiliary_buffer_between_draws)
+        .aa_fuzz_hq_action_pass2(m_flush_auxiliary_buffer_between_draws);
     }
 
   return fill_shader;

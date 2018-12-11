@@ -58,7 +58,7 @@ init_gl(int w, int h)
       create_and_bind_fbo();
       w = m_fbo_width.value();
       h = m_fbo_height.value();
-      glViewport(0, 0, w, h);
+      fastuidraw_glViewport(0, 0, w, h);
     }
 
   m_time.restart();
@@ -70,10 +70,10 @@ unbind_and_delete_fbo(void)
 {
   if (m_fbo != 0)
     {
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      glDeleteFramebuffers(1, &m_fbo);
-      glDeleteTextures(1, &m_color);
-      glDeleteTextures(1, &m_depth_stencil);
+      fastuidraw_glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      fastuidraw_glDeleteFramebuffers(1, &m_fbo);
+      fastuidraw_glDeleteTextures(1, &m_color);
+      fastuidraw_glDeleteTextures(1, &m_depth_stencil);
     }
 }
 
@@ -87,58 +87,56 @@ create_and_bind_fbo(void)
       m_fbo_height.value()=m_screen_size.y();
     }
 
-  glGenFramebuffers(1, &m_fbo);
+  fastuidraw_glGenFramebuffers(1, &m_fbo);
   FASTUIDRAWassert(m_fbo!=0);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+  fastuidraw_glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
-  glGenTextures(1, &m_color);
+  fastuidraw_glGenTextures(1, &m_color);
   FASTUIDRAWassert(m_color!=0);
-  glBindTexture(GL_TEXTURE_2D, m_color);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_2D,
-               0,
-               GL_RGBA8,
-               m_fbo_width.value(), m_fbo_height.value(), 0,
-               GL_RGBA,
-               GL_UNSIGNED_BYTE,
-               nullptr);
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, m_color);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  fastuidraw_glTexImage2D(GL_TEXTURE_2D,
+                          0,
+                          GL_RGBA8,
+                          m_fbo_width.value(), m_fbo_height.value(), 0,
+                          GL_RGBA,
+                          GL_UNSIGNED_BYTE,
+                          nullptr);
 
 
-  glGenTextures(1, &m_depth_stencil);
+  fastuidraw_glGenTextures(1, &m_depth_stencil);
   FASTUIDRAWassert(m_depth_stencil!=0);
-  glBindTexture(GL_TEXTURE_2D, m_depth_stencil);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_2D,
-               0,
-               GL_DEPTH24_STENCIL8,
-               m_fbo_width.value(), m_fbo_height.value(), 0,
-               GL_DEPTH_STENCIL,
-               GL_UNSIGNED_INT_24_8,
-               nullptr);
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, m_depth_stencil);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  fastuidraw_glTexImage2D(GL_TEXTURE_2D,
+                          0,
+                          GL_DEPTH24_STENCIL8,
+                          m_fbo_width.value(), m_fbo_height.value(), 0,
+                          GL_DEPTH_STENCIL,
+                          GL_UNSIGNED_INT_24_8,
+                          nullptr);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, 0);
 
-  glFramebufferTexture2D(GL_FRAMEBUFFER,
-                         GL_COLOR_ATTACHMENT0,
-                         GL_TEXTURE_2D,
-                         m_color,
-                         0);
+  fastuidraw_glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                    GL_COLOR_ATTACHMENT0,
+                                    GL_TEXTURE_2D,
+                                    m_color,
+                                    0);
 
-  glFramebufferTexture2D(GL_FRAMEBUFFER,
-                         GL_DEPTH_ATTACHMENT,
-                         GL_TEXTURE_2D,
-                         m_depth_stencil,
-                         0);
+  fastuidraw_glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                    GL_DEPTH_ATTACHMENT,
+                                    GL_TEXTURE_2D,
+                                    m_depth_stencil,
+                                    0);
 
-  glFramebufferTexture2D(GL_FRAMEBUFFER,
-                         GL_STENCIL_ATTACHMENT,
-                         GL_TEXTURE_2D,
-                         m_depth_stencil,
-                         0);
-
-
+  fastuidraw_glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                    GL_STENCIL_ATTACHMENT,
+                                    GL_TEXTURE_2D,
+                                    m_depth_stencil,
+                                    0);
 }
 
 void
@@ -147,21 +145,21 @@ draw_fbo_contents(void)
 {
   if (m_render_to_fbo.value()==blit_fbo)
     {
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-      glBlitFramebuffer(0, 0, //srcX0, srcY0
-                        m_fbo_width.value(), m_fbo_height.value(), //srcX1, srcY1
-                        0, 0,
-                        m_screen_size.x(), m_screen_size.y(),
-                        GL_COLOR_BUFFER_BIT,
-                        GL_NEAREST);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+      fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
+      fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      fastuidraw_glBlitFramebuffer(0, 0, //srcX0, srcY0
+                                   m_fbo_width.value(), m_fbo_height.value(), //srcX1, srcY1
+                                   0, 0,
+                                   m_screen_size.x(), m_screen_size.y(),
+                                   GL_COLOR_BUFFER_BIT,
+                                   GL_NEAREST);
+      fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
     }
 
   if (m_read_pixel.value())
     {
       GLubyte color[4];
-      glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
+      fastuidraw_glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
       //std::cout << "\nframe " << std::setw(5) << m_frame << ":[pixel color=" << fastuidraw::ivec4(color[0], color[1], color[2], color[3]) << "]";
     }
 }
@@ -181,12 +179,12 @@ draw_frame(void)
         }
     }
 
-  if (m_frame>=m_num_frames.value())
+  if (m_frame >= m_num_frames.value())
     {
       uint32_t tt;
 
       swap_buffers(m_swap_buffer_extra.value());
-      tt=m_time.elapsed();
+      tt = m_time.elapsed();
 
       switch(m_frame)
         {

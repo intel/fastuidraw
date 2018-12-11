@@ -45,27 +45,27 @@ public:
   {
     if (m_vao != 0)
       {
-        glDeleteVertexArrays(1, &m_vao);
+        fastuidraw_glDeleteVertexArrays(1, &m_vao);
       }
 
     if (m_bo != 0)
       {
-        glDeleteBuffers(1, &m_bo);
+        fastuidraw_glDeleteBuffers(1, &m_bo);
       }
 
     if (m_ibo != 0)
       {
-        glDeleteBuffers(1, &m_ibo);
+        fastuidraw_glDeleteBuffers(1, &m_ibo);
       }
 
     if (m_pts_bo != 0)
       {
-        glDeleteBuffers(1, &m_pts_bo);
+        fastuidraw_glDeleteBuffers(1, &m_pts_bo);
       }
 
     if (m_pts_vao != 0)
       {
-        glDeleteVertexArrays(1, &m_pts_vao);
+        fastuidraw_glDeleteVertexArrays(1, &m_pts_vao);
       }
 
   }
@@ -86,11 +86,11 @@ protected:
   void
   draw_frame(void)
   {
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     {
-      glBindVertexArray(m_vao);
-      glBindTexture(m_atlas->texture_bind_target(), m_atlas->texture());
+      fastuidraw_glBindVertexArray(m_vao);
+      fastuidraw_glBindTexture(m_atlas->texture_bind_target(), m_atlas->texture());
       const reference_counted_ptr<ColorStopSequenceOnAtlas> cst(m_color_stops[m_active_color_stop].second);
       m_program->use_program();
       gl::Uniform(m_p0_loc, m_p0);
@@ -98,7 +98,7 @@ protected:
       gl::Uniform(m_atlasLayer_loc, float(cst->texel_location().y()));
       gl::Uniform(m_gradientStart_loc, float(cst->texel_location().x()));
       gl::Uniform(m_gradientLength_loc, float(cst->width()));
-      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+      fastuidraw_glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
     }
 
 
@@ -106,16 +106,16 @@ protected:
       {
         float width(20.0f);
 
-        glBindVertexArray(m_pts_vao);
+        fastuidraw_glBindVertexArray(m_pts_vao);
         m_draw_pts->use_program();
 
         #ifndef FASTUIDRAW_GL_USE_GLES
           {
-            glEnable(GL_PROGRAM_POINT_SIZE);
+            fastuidraw_glEnable(GL_PROGRAM_POINT_SIZE);
           }
         #endif
 
-        glDisable(GL_DEPTH_TEST);
+        fastuidraw_glDisable(GL_DEPTH_TEST);
 
         draw_pt(m_p0, width, vec4(0.0f, 0.0f, 0.0f, 1.0f));
         draw_pt(m_p0, width * 0.5f, vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -131,7 +131,7 @@ protected:
   {
     gl::Uniform(m_pts_pos_loc, vec3(pt.x(), pt.y(), size));
     gl::Uniform(m_pts_color_loc, color);
-    glDrawArrays(GL_POINTS, 0, 1);
+    fastuidraw_glDrawArrays(GL_POINTS, 0, 1);
   }
 
   void
@@ -142,7 +142,7 @@ protected:
       case SDL_WINDOWEVENT:
         if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
           {
-            glViewport(0, 0, ev.window.data1, ev.window.data2);
+            fastuidraw_glViewport(0, 0, ev.window.data1, ev.window.data2);
           }
         break;
 
@@ -307,29 +307,28 @@ private:
   void
   set_attributes_indices(void)
   {
-    glGenVertexArrays(1, &m_pts_vao);
+    fastuidraw_glGenVertexArrays(1, &m_pts_vao);
     FASTUIDRAWassert(m_pts_vao != 0);
-    glBindVertexArray(m_pts_vao);
+    fastuidraw_glBindVertexArray(m_pts_vao);
 
     float value[] = { 1.0f };
 
-    glGenBuffers(1, &m_pts_bo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_pts_bo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(value), value, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0,
-                          gl::opengl_trait<float>::count,
-                          gl::opengl_trait<float>::type,
-                          GL_FALSE,
-                          gl::opengl_trait<float>::stride,
-                          nullptr);
+    fastuidraw_glGenBuffers(1, &m_pts_bo);
+    fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, m_pts_bo);
+    fastuidraw_glBufferData(GL_ARRAY_BUFFER, sizeof(value), value, GL_STATIC_DRAW);
+    fastuidraw_glEnableVertexAttribArray(0);
+    fastuidraw_glVertexAttribPointer(0,
+                                     gl::opengl_trait<float>::count,
+                                     gl::opengl_trait<float>::type,
+                                     GL_FALSE,
+                                     gl::opengl_trait<float>::stride,
+                                     nullptr);
 
-
-    glGenVertexArrays(1, &m_vao);
+    fastuidraw_glGenVertexArrays(1, &m_vao);
     FASTUIDRAWassert(m_vao != 0);
-    glBindVertexArray(m_vao);
+    fastuidraw_glBindVertexArray(m_vao);
 
-    glGenBuffers(1, &m_ibo);
+    fastuidraw_glGenBuffers(1, &m_ibo);
     FASTUIDRAWassert(m_ibo != 0);
 
     GLushort indices[]=
@@ -337,11 +336,10 @@ private:
         0, 1, 2,
         0, 2, 3
       };
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    fastuidraw_glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-
-    glGenBuffers(1, &m_bo);
+    fastuidraw_glGenBuffers(1, &m_bo);
     FASTUIDRAWassert(m_bo !=0);
 
     vec2 positions[]=
@@ -352,16 +350,16 @@ private:
         vec2(+1.0f, -1.0f)
       };
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_bo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+    fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, m_bo);
+    fastuidraw_glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0,
-                          gl::opengl_trait<vec2>::count,
-                          gl::opengl_trait<vec2>::type,
-                          GL_FALSE,
-                          gl::opengl_trait<vec2>::stride,
-                          nullptr);
+    fastuidraw_glEnableVertexAttribArray(0);
+    fastuidraw_glVertexAttribPointer(0,
+                                     gl::opengl_trait<vec2>::count,
+                                     gl::opengl_trait<vec2>::type,
+                                     GL_FALSE,
+                                     gl::opengl_trait<vec2>::stride,
+                                     nullptr);
   }
 
   void

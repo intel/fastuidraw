@@ -4,7 +4,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
-#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 
 #include "sdl_painter_demo.hpp"
@@ -19,7 +19,7 @@
 using namespace fastuidraw;
 
 std::ostream&
-operator<<(std::ostream &str, GlyphRender R)
+operator<<(std::ostream &str, GlyphRenderer R)
 {
   if (R.valid())
     {
@@ -53,7 +53,6 @@ class GlyphDrawsShared:fastuidraw::noncopyable
 public:
   GlyphDrawsShared(void):
     m_glyph_sequence(nullptr),
-    m_empty_glyph_sequence(nullptr),
     m_hierarchy(nullptr)
   {}
 
@@ -86,16 +85,10 @@ public:
   }
 
   void
-  realize_glyphs(GlyphRender R);
+  realize_glyphs(GlyphRenderer R);
 
-  GlyphSequence&
-  empty_glyph_sequence(void)
-  {
-    return *m_empty_glyph_sequence;
-  }
-
-  GlyphRender
-  draw_glyphs(GlyphRender render,
+  GlyphRenderer
+  draw_glyphs(GlyphRenderer render,
               const reference_counted_ptr<Painter> &painter,
               const PainterData &data) const;
 
@@ -103,7 +96,7 @@ public:
   init(const reference_counted_ptr<const FontFreeType> &font,
        float line_length,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
-       const reference_counted_ptr<GlyphSelector> &selector,
+       const reference_counted_ptr<FontDatabase> &selector,
        float pixel_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
@@ -118,7 +111,7 @@ public:
   init(std::istream &istr,
        const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
-       const reference_counted_ptr<GlyphSelector> &selector,
+       const reference_counted_ptr<FontDatabase> &selector,
        float pixel_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
@@ -129,7 +122,7 @@ public:
   }
 
   void
-  realize_all_glyphs(GlyphRender renderer,
+  realize_all_glyphs(GlyphRenderer renderer,
                      const reference_counted_ptr<const FontFreeType> &font,
                      int num_threads);
 
@@ -137,7 +130,7 @@ private:
   void
   make_hierarchy(void);
 
-  GlyphSequence *m_glyph_sequence, *m_empty_glyph_sequence;
+  GlyphSequence *m_glyph_sequence;
   GenericHierarchy *m_hierarchy;
 };
 
@@ -178,7 +171,7 @@ private:
   create_and_add_font(void);
 
   void
-  realize_all_glyphs(GlyphRender renderer);
+  realize_all_glyphs(GlyphRenderer renderer);
 
   void
   ready_glyph_data(int w, int h);
@@ -187,10 +180,10 @@ private:
   update_cts_params(void);
 
   void
-  stroke_glyph(const PainterData &d, GlyphMetrics G, GlyphRender R);
+  stroke_glyph(const PainterData &d, GlyphMetrics G, GlyphRenderer R);
 
   void
-  fill_glyph(const PainterData &d, GlyphMetrics G, GlyphRender R);
+  fill_glyph(const PainterData &d, GlyphMetrics G, GlyphRenderer R);
 
   void
   draw_glyphs(float us);
@@ -199,8 +192,12 @@ private:
   item_coordinates(ivec2 src);
 
   command_line_argument_value<std::string> m_font_path;
-  command_line_argument_value<std::string> m_font_style, m_font_family;
+  command_line_argument_value<std::string> m_font_foundry, m_font_style, m_font_family;
   command_line_argument_value<bool> m_font_bold, m_font_italic;
+  command_line_argument_value<bool> m_font_ignore_style, m_font_ignore_bold_italic;
+  command_line_argument_value<bool> m_use_font_config;
+  command_line_argument_value<int> m_font_weight, m_font_slant;
+  command_line_argument_value<bool> m_font_exact_match;
   command_line_argument_value<std::string> m_font_file;
   command_line_argument_value<int> m_coverage_pixel_size;
   command_line_argument_value<std::string> m_text;
@@ -222,7 +219,7 @@ private:
   /* The last entry value is left as invalid to represent
    * to auto-choose how to render the glyphs.
    */
-  vecN<GlyphRender, draw_glyph_auto + 1> m_draws;
+  vecN<GlyphRenderer, draw_glyph_auto + 1> m_draws;
   unsigned int m_glyph_texel_page;
 
   bool m_stroke_glyphs, m_fill_glyphs, m_draw_path_pts;
@@ -248,11 +245,6 @@ GlyphDrawsShared::
   if (m_glyph_sequence)
     {
       FASTUIDRAWdelete(m_glyph_sequence);
-    }
-
-  if (m_empty_glyph_sequence)
-    {
-      FASTUIDRAWdelete(m_empty_glyph_sequence);
     }
 
   if (m_hierarchy)
@@ -316,7 +308,7 @@ GlyphDrawsShared::
 init(const reference_counted_ptr<const FontFreeType> &font,
      float line_length,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
-     const reference_counted_ptr<GlyphSelector> &glyph_selector,
+     const reference_counted_ptr<FontDatabase> &font_database,
      float pixel_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
@@ -338,8 +330,6 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
-                                                       screen_orientation, glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
   metrics.resize(num_glyphs);
@@ -399,7 +389,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
       std::istringstream stream(nav_iter->second);
 
       create_formatted_text(*m_glyph_sequence, stream, font,
-                            glyph_selector,
+                            font_database,
                             vec2(line_length, nav_iter->first));
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -418,8 +408,6 @@ init(const std::vector<uint32_t> &glyph_codes,
   std::cout << "Formatting glyphs ..." << std::flush;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
-                                                       screen_orientation, glyph_cache);
   create_formatted_text(*m_glyph_sequence, glyph_codes, font);
 
   std::cout << "took " << timer.restart() << " ms\n";
@@ -430,34 +418,32 @@ GlyphDrawsShared::
 init(std::istream &istr,
      const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
-     const reference_counted_ptr<GlyphSelector> &glyph_selector,
+     const reference_counted_ptr<FontDatabase> &font_database,
      float pixel_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  m_empty_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
-                                                       screen_orientation, glyph_cache);
   if (istr)
     {
       simple_time timer;
 
       std::cout << "Formatting glyphs ..." << std::flush;
-      create_formatted_text(*m_glyph_sequence, istr, font, glyph_selector);
+      create_formatted_text(*m_glyph_sequence, istr, font, font_database);
       std::cout << "took " << timer.restart() << " ms\n";
     }
 }
 
 void
 GlyphDrawsShared::
-realize_glyphs(GlyphRender R)
+realize_glyphs(GlyphRenderer R)
 {
   unsigned int num;
 
-  num = m_glyph_sequence->number_sub_sequences();
+  num = m_glyph_sequence->number_subsets();
   for (unsigned int i = 0; i < num; ++i)
     {
-      GlyphSequence::SubSequence S(m_glyph_sequence->sub_sequence(i));
+      GlyphSequence::Subset S(m_glyph_sequence->subset(i));
       c_array<const PainterAttribute> out_attributes;
       c_array<const PainterIndex> out_indices;
 
@@ -465,9 +451,9 @@ realize_glyphs(GlyphRender R)
     }
 }
 
-GlyphRender
+GlyphRenderer
 GlyphDrawsShared::
-draw_glyphs(GlyphRender render,
+draw_glyphs(GlyphRenderer render,
             const reference_counted_ptr<Painter> &painter,
             const PainterData &draw) const
 {
@@ -479,13 +465,24 @@ draw_glyphs(GlyphRender render,
 painter_glyph_test::
 painter_glyph_test(void):
   m_font_path(default_font_path(), "font_path", "Specifies path in which to search for fonts", *this),
+  m_font_foundry("", "font_foundry", "Specifies the font foundry", *this),
   m_font_style("Book", "font_style", "Specifies the font style", *this),
   m_font_family("DejaVu Sans", "font_family", "Specifies the font family name", *this),
   m_font_bold(false, "font_bold", "if true select a bold font", *this),
   m_font_italic(false, "font_italic", "if true select an italic font", *this),
+  m_font_ignore_style(false, "font_ignore_style", "if true, when selecting a font ignore style value", *this),
+  m_font_ignore_bold_italic(false, "font_ignore_bold_italic", "if true, when selecting a font ignore bold and italic values", *this),
+  m_use_font_config(false, "use_font_config", "If true, use font config to select font", *this),
+  m_font_weight(-1, "font_weight", "Only has effect if value is non-negative and use_font_config is true. "
+                "Gives the value for FC_WEIGHT to pass for fontconfig for font selection",
+                *this),
+  m_font_slant(-1, "font_slant", "Only has effect if value is non-negative and use_font_config is true. "
+               "Gives the value for FC_SLANT to pass for fontconfig for font selection",
+               *this),
+  m_font_exact_match(false, "font_exact_match", "if true, require an exact match when selecting a font ignore style value", *this),
   m_font_file("", "font_file",
               "If non-empty gives the name of a font by filename "
-              "thus bypassing the glyph selection process with glyph_selector",
+              "thus bypassing the glyph selection process with font_database",
               *this),
   m_coverage_pixel_size(24, "coverage_pixel_size", "Pixel size at which to create coverage glyphs", *this),
   m_text("Hello World!", "text", "text to draw to the screen", *this),
@@ -594,17 +591,55 @@ create_and_add_font(void)
         }
     }
 
-  add_fonts_from_path(m_font_path.value(), m_ft_lib, m_glyph_selector);
+  if (m_use_font_config.value())
+    {
+      add_fonts_from_font_config(m_ft_lib, m_font_database);
+    }
+  else
+    {
+      add_fonts_from_path(m_font_path.value(), m_ft_lib, m_font_database);
+    }
 
   if (!font)
     {
-      FontProperties props;
-      props.style(m_font_style.value().c_str());
-      props.family(m_font_family.value().c_str());
-      props.bold(m_font_bold.value());
-      props.italic(m_font_italic.value());
+      if (m_use_font_config.value())
+        {
+          font = select_font_font_config(m_font_ignore_bold_italic.value() ? -1 : m_font_weight.value(),
+                                         m_font_ignore_bold_italic.value() ? -1 : m_font_slant.value(),
+                                         m_font_ignore_style.value() ? nullptr : m_font_style.value().c_str(),
+                                         m_font_family.value().empty() ? nullptr : m_font_family.value().c_str(),
+                                         m_font_foundry.value().empty() ? nullptr : m_font_foundry.value().c_str(),
+                                         m_ft_lib, m_font_database);
+        }
+      else
+        {
+          FontProperties props;
+          uint32_t flags(0);
 
-      font = m_glyph_selector->fetch_font(props);
+          props
+            .style(m_font_style.value().c_str())
+            .family(m_font_family.value().c_str())
+            .foundry(m_font_foundry.value().c_str())
+            .bold(m_font_bold.value())
+            .italic(m_font_italic.value());
+
+          if (m_font_ignore_style.value())
+            {
+              flags |= FontDatabase::ignore_style;
+            }
+
+          if (m_font_ignore_bold_italic.value())
+            {
+              flags |= FontDatabase::ignore_bold_italic;
+            }
+
+          if (m_font_exact_match.value())
+            {
+              flags |= FontDatabase::exact_match;
+            }
+
+          font = m_font_database->fetch_font(props, flags);
+        }
     }
 
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
@@ -658,7 +693,7 @@ derived_init(int w, int h)
 
 void
 painter_glyph_test::
-realize_all_glyphs(GlyphRender renderer)
+realize_all_glyphs(GlyphRenderer renderer)
 {
   unsigned int num_threads(m_realize_glyphs_thread_count.value());
   simple_time timer;
@@ -700,9 +735,9 @@ ready_glyph_data(int w, int h)
   std::vector<uint32_t> explicit_glyph_codes(m_explicit_glyph_codes.begin(),
                                              m_explicit_glyph_codes.end());
 
-  m_draws[draw_glyph_distance] = GlyphRender(distance_field_glyph);
-  m_draws[draw_glyph_restricted_rays] = GlyphRender(restricted_rays_glyph);
-  m_draws[draw_glyph_coverage] = GlyphRender(m_coverage_pixel_size.value());
+  m_draws[draw_glyph_distance] = GlyphRenderer(distance_field_glyph);
+  m_draws[draw_glyph_restricted_rays] = GlyphRenderer(restricted_rays_glyph);
+  m_draws[draw_glyph_coverage] = GlyphRenderer(m_coverage_pixel_size.value());
 
   if (m_draw_glyph_set.value())
     {
@@ -711,7 +746,7 @@ ready_glyph_data(int w, int h)
           realize_all_glyphs(m_draws[i]);
         }
       m_draw_shared.init(m_font, w,
-                         m_glyph_cache, m_glyph_selector,
+                         m_glyph_cache, m_font_database,
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
     }
@@ -726,7 +761,7 @@ ready_glyph_data(int w, int h)
     {
       std::ifstream istr(m_text.value().c_str(), std::ios::binary);
       m_draw_shared.init(istr, m_font,
-                         m_glyph_cache, m_glyph_selector,
+                         m_glyph_cache, m_font_database,
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
     }
@@ -734,7 +769,7 @@ ready_glyph_data(int w, int h)
     {
       std::istringstream istr(m_text.value());
       m_draw_shared.init(istr, m_font,
-                         m_glyph_cache, m_glyph_selector,
+                         m_glyph_cache, m_font_database,
                          m_render_pixel_size.value(),
                          m_screen_orientation.value());
     }
@@ -792,7 +827,7 @@ item_coordinates(ivec2 scr)
 
 void
 painter_glyph_test::
-stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
+stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
 {
   Glyph G;
   enum Painter::shader_anti_alias_t aa_mode;
@@ -810,7 +845,7 @@ stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
 
 void
 painter_glyph_test::
-fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRender R)
+fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
 {
   Glyph G;
 
@@ -836,8 +871,8 @@ draw_frame(void)
                               1.0f));
   draw_glyphs(us);
 
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   m_surface->blit_surface(GL_NEAREST);
 }
 
@@ -846,7 +881,7 @@ painter_glyph_test::
 draw_glyphs(float us)
 {
   std::vector<unsigned int> glyphs_visible;
-  GlyphRender render;
+  GlyphRenderer render;
   PainterBrush glyph_brush;
 
   glyph_brush.pen(m_fg_red.value(), m_fg_blue.value(),
@@ -886,8 +921,7 @@ draw_glyphs(float us)
     }
   else
     {
-      render = m_painter->draw_glyphs(PainterData(&glyph_brush),
-				      m_draw_shared.empty_glyph_sequence());
+      render = m_painter->compute_glyph_renderer(m_draw_shared.glyph_sequence().pixel_size());
     }
 
   if (m_fill_glyphs)
@@ -1126,7 +1160,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
   else
@@ -1199,7 +1233,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
 

@@ -23,6 +23,7 @@
 #include <fastuidraw/painter/stroking_style.hpp>
 #include <fastuidraw/painter/rounded_rect.hpp>
 #include <fastuidraw/painter/glyph_sequence.hpp>
+#include <fastuidraw/painter/glyph_run.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
@@ -494,52 +495,108 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
+     * Using the current transformation matrix and a,
+     * compute what is an ideal way to render a sequence
+     * glyphs layed out and scaled in local coordinates
+     * to a given pixel size.
+     * \param pixel_size size of text to render BEFORE
+     *                   applying the transformation matrix.
+     */
+    GlyphRenderer
+    compute_glyph_renderer(float pixel_size);
+
+    /*!
      * Draw glyphs from a \ref GlyphSequence.
      * \param shader \ref PainterGlyphShader to draw the glyphs
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
-     * \param renderer how to render the glyphs. If GlyphRender::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRender suitable
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
      *                 for the current transformation() value.
-     * \return Returns what \ref GlyphRender value used
+     * \return Returns what \ref GlyphRenderer value used
      */
-    GlyphRender
+    GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphSequence &glyph_sequence,
-		GlyphRender renderer = GlyphRender());
+		GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
      * and the data of the passed \ref GlyphSequence.
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
-     * \param renderer how to render the glyphs. If GlyphRender::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRender suitable
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
      *                 for the current transformation() value.
-     * \return Returns what \ref GlyphRender value used
+     * \return Returns what \ref GlyphRenderer value used
      */
-    GlyphRender
+    GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
-		GlyphRender renderer = GlyphRender());
+		GlyphRenderer renderer = GlyphRenderer());
 
     /*!
-     * Draw glyphs by specifying precise \ref PainterAttributeData to use.
+     * Draw glyphs from a \ref GlyphRun.
      * \param shader \ref PainterGlyphShader to draw the glyphs
      * \param draw data for how to draw
-     * \param data attribute and index data with which to draw the glyphs.
-     * \param shader with which to draw the glyphs
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
+     *                 for the current transformation() value.
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \return Returns what \ref GlyphRenderer value used
      */
-    void
+    GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
-                const PainterAttributeData &data);
+                const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+		GlyphRenderer renderer = GlyphRenderer());
 
     /*!
-     * Draw glyphs by specifying precise \ref PainterAttributeData to use.
+     * Draw glyphs from a \ref GlyphRun.
+     * and the data of the passed \ref GlyphRun.
      * \param draw data for how to draw
-     * \param data attribute and index data with which to draw the glyphs
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
+     *                 for the current transformation() value.
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \return Returns what \ref GlyphRenderer value used
      */
-    void
-    draw_glyphs(const PainterData &draw, const PainterAttributeData &data);
+    GlyphRenderer
+    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+		GlyphRenderer renderer = GlyphRenderer());
+
+    /*!
+     * Draw all glyphs from a \ref GlyphRun.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
+     *                 for the current transformation() value.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const GlyphRun &glyph_run,
+		GlyphRenderer renderer = GlyphRenderer());
+
+    /*!
+     * Draw all glyphs from a \ref GlyphRun.
+     * and the data of the passed \ref GlyphRun.
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will choose a \ref GlyphRenderer suitable
+     *                 for the current transformation() value.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+		GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Returns what value Painter currently uses for Path::tessellation(float) const

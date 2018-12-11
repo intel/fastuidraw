@@ -12,6 +12,9 @@
 CXX ?= g++
 CC ?= gcc
 
+# if demos will use font-config, only affects demos and not libs
+DEMOS_HAVE_FONT_CONFIG ?= 1
+
 #Init TARGETLIST
 TARGETLIST := all
 

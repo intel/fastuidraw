@@ -89,7 +89,7 @@ namespace fastuidraw
     void call_unloadable_function(const char *fname);
     void post_call(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);
     void pre_call(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);
-    void load_all_functions(void);
+    void load_all_functions(bool);
   }
 }
 
@@ -162,9 +162,29 @@ get_proc_function(void* (*get_proc)(c_string), bool load_functions)
     }
 }
 
+void
+fastuidraw::gl_binding::
+get_proc_function(void *data,
+                  void* (*get_proc)(void *, c_string),
+                  bool load_functions)
+{
+  ngl().get_proc_function(data, get_proc);
+  if (load_functions && get_proc != nullptr)
+    {
+      load_all_functions(false);
+    }
+}
+
 void*
 fastuidraw::gl_binding::
 get_proc(c_string function_name)
 {
   return ngl().get_proc(function_name);
+}
+
+void
+fastuidraw::gl_binding::
+message(c_string message, c_string src_file, int src_line)
+{
+  ngl().message(message, src_file, src_line);
 }

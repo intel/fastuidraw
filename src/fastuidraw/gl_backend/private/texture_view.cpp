@@ -75,8 +75,8 @@ texture_view(enum texture_view_support_t md,
     {
       if (md == texture_view_without_extension)
         {
-          glTextureView(texture, target, origtexture, internalformat,
-                        minlevel, numlevels, minlayer, numlayers);
+          fastuidraw_glTextureView(texture, target, origtexture, internalformat,
+                                   minlevel, numlevels, minlayer, numlayers);
         }
       else
         {
@@ -88,13 +88,13 @@ texture_view(enum texture_view_support_t md,
       switch(md)
         {
         case texture_view_oes_extension:
-          glTextureViewOES(texture, target, origtexture, internalformat,
-                           minlevel, numlevels, minlayer, numlayers);
+          fastuidraw_glTextureViewOES(texture, target, origtexture, internalformat,
+                                      minlevel, numlevels, minlayer, numlayers);
           break;
 
         case texture_view_ext_extension:
-          glTextureViewEXT(texture, target, origtexture, internalformat,
-                           minlevel, numlevels, minlayer, numlayers);
+          fastuidraw_glTextureViewEXT(texture, target, origtexture, internalformat,
+                                      minlevel, numlevels, minlayer, numlayers);
           break;
 
         default:

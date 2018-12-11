@@ -42,23 +42,6 @@
 #include <set>
 #include <string>
 
-std::string
-function_pointer_mode(const std::string &filename)
-{
-  if (filename.find("gl2.h") != std::string::npos)
-    {
-      return "NOFUNCTIONPOINTERMODE_PTR_TYPE_DECLARED";
-    }
-  else if (filename.find("egl.h") != std::string::npos)
-    {
-      return "FUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED";
-    }
-  else
-    {
-      return "FUNCTIONPOINTERMODE";
-    }
-}
-
 int
 main(int argc, char **argv)
 {
@@ -81,9 +64,7 @@ main(int argc, char **argv)
           int parenCount;
           bool last_char_is_white;
 
-          std:: cout << "\n"
-                     << function_pointer_mode(*i)
-                     << "\n\n";
+          std:: cout << "\n";
 
           parenCount=0; last_char_is_white=false;
           while(inFile)

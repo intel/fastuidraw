@@ -35,6 +35,7 @@ FASTUIDRAW_$(1)_$(2)_OBJS = $$(patsubst %.cpp, build/$(2)/$(1)/%.o, $(FASTUIDRAW
 FASTUIDRAW_$(1)_$(2)_PRIVATE_OBJS = $$(patsubst %.cpp, build/$(2)/private/$(1)/%.o, $(FASTUIDRAW_PRIVATE_GL_SOURCES))
 NGL_$(1)_$(2)_OBJ = $$(patsubst %.cpp, build/$(2)/$(1)/%.o, $$(NGL_$(1)_SRCS))
 FASTUIDRAW_$(1)_$(2)_DEPS = $$(patsubst %.cpp, build/$(2)/$(1)/%.d, $$(FASTUIDRAW_GL_SOURCES))
+FASTUIDRAW_$(1)_$(2)_DEPS += $$(patsubst %.cpp, build/$(2)/private/$(1)/%.d, $(FASTUIDRAW_PRIVATE_GL_SOURCES))
 FASTUIDRAW_$(1)_$(2)_RESOURCE_OBJS = $$(patsubst %.resource_string, build/$(2)/$(1)/%.resource_string.o, $$(FASTUIDRAW_GL_RESOURCE_STRING))
 FASTUIDRAW_$(1)_$(2)_ALL_OBJS = $$(FASTUIDRAW_$(1)_$(2)_OBJS) $$(FASTUIDRAW_$(1)_$(2)_PRIVATE_OBJS) $$(FASTUIDRAW_$(1)_$(2)_RESOURCE_OBJS)
 CLEAN_FILES += $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS)

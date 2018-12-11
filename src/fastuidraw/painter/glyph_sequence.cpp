@@ -17,7 +17,6 @@
  */
 
 #include <fastuidraw/painter/glyph_sequence.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -61,27 +60,7 @@ namespace
 	       fastuidraw::c_array<const fastuidraw::vec2> positions,
 	       float render_pixel_size,
 	       enum fastuidraw::PainterEnums::screen_orientation orientation,
-	       enum fastuidraw::PainterEnums::glyph_layout_type layout)
-    {
-      using namespace fastuidraw;
-
-      enum return_code R;
-      unsigned int num_attrs(0), num_indices(0);
-
-      PainterAttributeDataFillerGlyphs::compute_number_attributes_indices_needed(glyphs,
-										 &num_attrs,
-										 &num_indices);
-
-      m_attribs.resize(num_attrs);
-      m_indices.resize(num_indices);
-      R = PainterAttributeDataFillerGlyphs::pack_attributes_indices(positions, glyphs,
-								    render_pixel_size,
-								    orientation, layout,
-								    make_c_array(m_attribs),
-								    make_c_array(m_indices));
-      FASTUIDRAWassert(R == routine_success);
-      FASTUIDRAWunused(R);
-    }
+	       enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
     fastuidraw::c_array<const fastuidraw::PainterAttribute>
     attributes(void) const
@@ -150,13 +129,13 @@ namespace
     float m_splitting_value;
   };
 
-  class GlyphSubSequencePrivate:fastuidraw::noncopyable
+  class GlyphSubsetPrivate:fastuidraw::noncopyable
   {
   public:
     explicit
-    GlyphSubSequencePrivate(GlyphSequencePrivate *p);
+    GlyphSubsetPrivate(GlyphSequencePrivate *p);
 
-    ~GlyphSubSequencePrivate();
+    ~GlyphSubsetPrivate();
 
     bool
     is_split(void) const
@@ -186,7 +165,7 @@ namespace
 	       unsigned int &current) const;
 
     const GlyphAttributesIndices&
-    attributes_indices(fastuidraw::GlyphRender R);
+    attributes_indices(fastuidraw::GlyphRenderer R);
 
     fastuidraw::c_array<const unsigned int>
     glyph_elements(void) const
@@ -204,9 +183,9 @@ namespace
     path(void);
 
   private:
-    GlyphSubSequencePrivate(GlyphSubSequencePrivate *parent,
-			    std::vector<unsigned int> &glyph_list, //steals the data
-			    const fastuidraw::BoundingBox<float> &bb);
+    GlyphSubsetPrivate(GlyphSubsetPrivate *parent,
+                       std::vector<unsigned int> &glyph_list, //steals the data
+                       const fastuidraw::BoundingBox<float> &bb);
     void
     split(void);
 
@@ -225,11 +204,11 @@ namespace
     unsigned int m_gen, m_ID;
     std::vector<unsigned int> m_glyph_list;
     fastuidraw::BoundingBox<float> m_bounding_box;
-    std::map<fastuidraw::GlyphRender, GlyphAttributesIndices> m_data;
+    std::map<fastuidraw::GlyphRenderer, GlyphAttributesIndices> m_data;
     fastuidraw::Path *m_path;
 
     Splitter m_splitter;
-    fastuidraw::vecN<GlyphSubSequencePrivate*, 2> m_child;
+    fastuidraw::vecN<GlyphSubsetPrivate*, 2> m_child;
   };
 
   class GlyphSequencePrivate:fastuidraw::noncopyable
@@ -300,27 +279,27 @@ namespace
                fastuidraw::c_array<const fastuidraw::vec2> positions);
 
     unsigned int
-    give_subsequence_ID(GlyphSubSequencePrivate *p)
+    give_subset_ID(GlyphSubsetPrivate *p)
     {
-      unsigned int return_value(m_sub_sequences.size());
-      m_sub_sequences.push_back(p);
+      unsigned int return_value(m_subsets.size());
+      m_subsets.push_back(p);
       return return_value;
     }
 
     unsigned int
-    number_sub_sequences(void)
+    number_subsets(void)
     {
-      make_sub_sequences_ready();
-      return m_sub_sequences.size();
+      make_subsets_ready();
+      return m_subsets.size();
     }
 
-    GlyphSubSequencePrivate*
-    fetch_subsequence(unsigned int I)
+    GlyphSubsetPrivate*
+    fetch_subset(unsigned int I)
     {
-      make_sub_sequences_ready();
-      FASTUIDRAWassert(I < m_sub_sequences.size());
-      FASTUIDRAWassert(m_sub_sequences[I]->ID() == I);
-      return m_sub_sequences[I];
+      make_subsets_ready();
+      FASTUIDRAWassert(I < m_subsets.size());
+      FASTUIDRAWassert(m_subsets[I]->ID() == I);
+      return m_subsets[I];
     }
 
     bool
@@ -329,16 +308,16 @@ namespace
       return m_added_glyphs.empty();
     }
 
-    GlyphSubSequencePrivate*
+    GlyphSubsetPrivate*
     root(void)
     {
-      make_sub_sequences_ready();
+      make_subsets_ready();
       return m_root;
     }
 
   private:
     void
-    make_sub_sequences_ready(void);
+    make_subsets_ready(void);
 
     float m_pixel_size;
     enum fastuidraw::PainterEnums::screen_orientation m_orientation;
@@ -346,9 +325,59 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
 
     std::vector<PerAddedGlyph> m_added_glyphs;
-    GlyphSubSequencePrivate *m_root;
-    std::vector<GlyphSubSequencePrivate*> m_sub_sequences;
+    GlyphSubsetPrivate *m_root;
+    std::vector<GlyphSubsetPrivate*> m_subsets;
   };
+}
+
+/////////////////////////////////////
+// GlyphAttributesIndices methods
+void
+GlyphAttributesIndices::
+set_values(fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+           fastuidraw::c_array<const fastuidraw::vec2> positions,
+           float render_pixel_size,
+           enum fastuidraw::PainterEnums::screen_orientation orientation,
+           enum fastuidraw::PainterEnums::glyph_layout_type layout)
+{
+  using namespace fastuidraw;
+
+  unsigned int num_attrs(0), num_indices(0);
+
+  for (Glyph G : glyphs)
+    {
+      if (G.valid()
+          && G.render_size().x() > 0
+          && G.render_size().y() > 0)
+        {
+          num_attrs += 4;
+          num_indices += 6;
+        }
+    }
+
+  m_attribs.resize(num_attrs);
+  m_indices.resize(num_indices);
+
+  for (unsigned int g = 0, attr = 0, idx = 0; g < positions.size(); ++g)
+    {
+      Glyph G(glyphs[g]);
+
+      if (G.valid()
+          && G.render_size().x() > 0
+          && G.render_size().y() > 0)
+        {
+          float scale;
+
+          scale = render_pixel_size / G.metrics().units_per_EM();
+          G.pack_glyph(attr, make_c_array(m_attribs),
+                       idx, make_c_array(m_indices),
+                       positions[g], scale,
+                       orientation, layout);
+
+          attr += 4;
+          idx += 6;
+        }
+    }
 }
 
 //////////////////////////////////
@@ -397,6 +426,7 @@ split(const std::vector<unsigned int> &input,
   vecN<unsigned int, 2> in_both_counts(0u, 0u);
 
   FASTUIDRAWassert(!splits());
+  FASTUIDRAWassert(std::is_sorted(input.begin(), input.end()));
 
   splitV[0].m_splitting_coordinate = split_in_x_coordinate;
   splitV[0].m_splitting_value = mid.x();
@@ -454,16 +484,19 @@ split(const std::vector<unsigned int> &input,
       out_values[P].push_back(I);
     }
 
+  FASTUIDRAWassert(std::is_sorted(out_values[0].begin(), out_values[0].end()));
+  FASTUIDRAWassert(std::is_sorted(out_values[1].begin(), out_values[1].end()));
+  FASTUIDRAWassert(std::is_sorted(out_values[2].begin(), out_values[2].end()));
   return m_splitting_coordinate;
 }
 
 ///////////////////////////////////
-// GlyphSubSequencePrivate methods
-GlyphSubSequencePrivate::
-GlyphSubSequencePrivate(GlyphSequencePrivate *p):
+// GlyphSubsetPrivate methods
+GlyphSubsetPrivate::
+GlyphSubsetPrivate(GlyphSequencePrivate *p):
   m_owner(p),
   m_gen(0),
-  m_ID(m_owner->give_subsequence_ID(this)),
+  m_ID(m_owner->give_subset_ID(this)),
   m_glyph_list(p->number_added_glyphs()),
   m_path(nullptr),
   m_child(nullptr, nullptr)
@@ -480,13 +513,13 @@ GlyphSubSequencePrivate(GlyphSequencePrivate *p):
     }
 }
 
-GlyphSubSequencePrivate::
-GlyphSubSequencePrivate(GlyphSubSequencePrivate *parent,
-			std::vector<unsigned int> &glyph_list, //steals the data
-			const fastuidraw::BoundingBox<float> &bb):
+GlyphSubsetPrivate::
+GlyphSubsetPrivate(GlyphSubsetPrivate *parent,
+                   std::vector<unsigned int> &glyph_list, //steals the data
+                   const fastuidraw::BoundingBox<float> &bb):
   m_owner(parent->m_owner),
   m_gen(1 + parent->m_gen),
-  m_ID(m_owner->give_subsequence_ID(this)),
+  m_ID(m_owner->give_subset_ID(this)),
   m_bounding_box(bb),
   m_path(nullptr),
   m_child(nullptr, nullptr)
@@ -499,8 +532,8 @@ GlyphSubSequencePrivate(GlyphSubSequencePrivate *parent,
 }
 
 
-GlyphSubSequencePrivate::
-~GlyphSubSequencePrivate()
+GlyphSubsetPrivate::
+~GlyphSubsetPrivate()
 {
   if (is_split())
     {
@@ -515,7 +548,7 @@ GlyphSubSequencePrivate::
 }
 
 const fastuidraw::Path&
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 path(void)
 {
   if (!m_path)
@@ -537,7 +570,7 @@ path(void)
 }
 
 void
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 add_glyph(const PerAddedGlyph &G)
 {
   if (G.m_bounding_box.empty())
@@ -560,7 +593,7 @@ add_glyph(const PerAddedGlyph &G)
 }
 
 void
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 add_glyph_when_split(const PerAddedGlyph &G)
 {
   enum Splitter::place_element_t P;
@@ -579,7 +612,7 @@ add_glyph_when_split(const PerAddedGlyph &G)
 }
 
 void
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 add_glyph_when_not_split(const PerAddedGlyph &G)
 {
   FASTUIDRAWassert(!is_split());
@@ -593,7 +626,7 @@ add_glyph_when_not_split(const PerAddedGlyph &G)
 }
 
 void
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 split(void)
 {
   using namespace fastuidraw;
@@ -627,12 +660,12 @@ split(void)
   m_data.clear();
   std::swap(m_glyph_list, glyphs[Splitter::place_in_parent]);
 
-  m_child[0] = FASTUIDRAWnew GlyphSubSequencePrivate(this, glyphs[Splitter::place_in_child0], child_boxes[0]);
-  m_child[1] = FASTUIDRAWnew GlyphSubSequencePrivate(this, glyphs[Splitter::place_in_child1], child_boxes[1]);
+  m_child[0] = FASTUIDRAWnew GlyphSubsetPrivate(this, glyphs[Splitter::place_in_child0], child_boxes[0]);
+  m_child[1] = FASTUIDRAWnew GlyphSubsetPrivate(this, glyphs[Splitter::place_in_child1], child_boxes[1]);
 }
 
 unsigned int
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 select(ScratchSpacePrivate &scratch,
        fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
        const fastuidraw::float3x3 &clip_matrix_local,
@@ -654,7 +687,7 @@ select(ScratchSpacePrivate &scratch,
 }
 
 void
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 select_implement(ScratchSpacePrivate &scratch,
 		 fastuidraw::c_array<unsigned int> dst,
 		 unsigned int &current)
@@ -702,7 +735,7 @@ select_implement(ScratchSpacePrivate &scratch,
 }
 
 void
-GlyphSubSequencePrivate::
+GlyphSubsetPrivate::
 select_all(fastuidraw::c_array<unsigned int> dst, unsigned int &current) const
 {
   if (!m_glyph_list.empty())
@@ -718,12 +751,12 @@ select_all(fastuidraw::c_array<unsigned int> dst, unsigned int &current) const
 }
 
 const GlyphAttributesIndices&
-GlyphSubSequencePrivate::
-attributes_indices(fastuidraw::GlyphRender R)
+GlyphSubsetPrivate::
+attributes_indices(fastuidraw::GlyphRenderer R)
 {
   using namespace fastuidraw;
 
-  std::map<GlyphRender, GlyphAttributesIndices>::const_iterator iter;
+  std::map<GlyphRenderer, GlyphAttributesIndices>::const_iterator iter;
 
   iter = m_data.find(R);
   if (iter != m_data.end())
@@ -825,30 +858,30 @@ add_glyphs(fastuidraw::c_array<const fastuidraw::GlyphSource> sources,
 
 void
 GlyphSequencePrivate::
-make_sub_sequences_ready(void)
+make_subsets_ready(void)
 {
   if (!m_root)
     {
-      m_root = FASTUIDRAWnew GlyphSubSequencePrivate(this);
+      m_root = FASTUIDRAWnew GlyphSubsetPrivate(this);
     }
 }
 
 ///////////////////////////////////////////////////
-// fastuidraw::GlyphSequence::SubSequence methods
-fastuidraw::GlyphSequence::SubSequence::
-SubSequence(void *d):
+// fastuidraw::GlyphSequence::Subset methods
+fastuidraw::GlyphSequence::Subset::
+Subset(void *d):
   m_d(d)
 {}
 
 void
-fastuidraw::GlyphSequence::SubSequence::
-attributes_and_indices(GlyphRender render,
+fastuidraw::GlyphSequence::Subset::
+attributes_and_indices(GlyphRenderer render,
 		       c_array<const PainterAttribute> *out_attributes,
 		       c_array<const PainterIndex> *out_indices)
 {
-  GlyphSubSequencePrivate *d;
+  GlyphSubsetPrivate *d;
 
-  d = static_cast<GlyphSubSequencePrivate*>(m_d);
+  d = static_cast<GlyphSubsetPrivate*>(m_d);
   const GlyphAttributesIndices &values(d->attributes_indices(render));
 
   *out_attributes = values.attributes();
@@ -856,22 +889,22 @@ attributes_and_indices(GlyphRender render,
 }
 
 fastuidraw::c_array<const unsigned int>
-fastuidraw::GlyphSequence::SubSequence::
+fastuidraw::GlyphSequence::Subset::
 glyphs(void)
 {
-  GlyphSubSequencePrivate *d;
+  GlyphSubsetPrivate *d;
 
-  d = static_cast<GlyphSubSequencePrivate*>(m_d);
+  d = static_cast<GlyphSubsetPrivate*>(m_d);
   return d->glyph_elements();
 }
 
 bool
-fastuidraw::GlyphSequence::SubSequence::
+fastuidraw::GlyphSequence::Subset::
 bounding_box(vec2 *out_min_bb, vec2 *out_max_bb)
 {
-  GlyphSubSequencePrivate *d;
+  GlyphSubsetPrivate *d;
 
-  d = static_cast<GlyphSubSequencePrivate*>(m_d);
+  d = static_cast<GlyphSubsetPrivate*>(m_d);
   const fastuidraw::BoundingBox<float> &box(d->bounding_box());
 
   if (box.empty())
@@ -888,12 +921,12 @@ bounding_box(vec2 *out_min_bb, vec2 *out_max_bb)
 }
 
 const fastuidraw::Path&
-fastuidraw::GlyphSequence::SubSequence::
+fastuidraw::GlyphSequence::Subset::
 path(void)
 {
-  GlyphSubSequencePrivate *d;
+  GlyphSubsetPrivate *d;
 
-  d = static_cast<GlyphSubSequencePrivate*>(m_d);
+  d = static_cast<GlyphSubsetPrivate*>(m_d);
   return d->path();
 }
 
@@ -1003,28 +1036,28 @@ added_glyph(unsigned int I,
 
 unsigned int
 fastuidraw::GlyphSequence::
-number_sub_sequences(void) const
+number_subsets(void) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
-  return d->number_sub_sequences();
+  return d->number_subsets();
 }
 
-fastuidraw::GlyphSequence::SubSequence
+fastuidraw::GlyphSequence::Subset
 fastuidraw::GlyphSequence::
-sub_sequence(unsigned int I) const
+subset(unsigned int I) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
-  return SubSequence(d->fetch_subsequence(I));
+  return Subset(d->fetch_subset(I));
 }
 
 unsigned int
 fastuidraw::GlyphSequence::
-select_sub_sequences(ScratchSpace &scratch_space,
-		     c_array<const vec3> clip_equations,
-		     const float3x3 &clip_matrix_local,
-		     c_array<unsigned int> dst) const
+select_subsets(ScratchSpace &scratch_space,
+               c_array<const vec3> clip_equations,
+               const float3x3 &clip_matrix_local,
+               c_array<unsigned int> dst) const
 {
   GlyphSequencePrivate *d;
 

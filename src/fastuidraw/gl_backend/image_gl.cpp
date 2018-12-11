@@ -550,7 +550,7 @@ fastuidraw::gl::ImageAtlasGL::TextureImage::
 
   if (d->m_owns_texture)
     {
-      glDeleteTextures(1, &d->m_texture);
+      fastuidraw_glDeleteTextures(1, &d->m_texture);
     }
 
   FASTUIDRAWdelete(d);

@@ -85,7 +85,7 @@ namespace fastuidraw
 
     /*!
      * Fetch, and if necessay create and store, a glyph given a
-     * glyph code of a font and a GlyphRender specifying how
+     * glyph code of a font and a GlyphRenderer specifying how
      * to render the glyph.
      * \param render renderer of fetched Glyph
      * \param font font from which to take the glyph
@@ -93,14 +93,14 @@ namespace fastuidraw
      * \param upload_to_atlas if true, upload to atlas
      */
     Glyph
-    fetch_glyph(GlyphRender render,
+    fetch_glyph(GlyphRenderer render,
                 const reference_counted_ptr<const FontBase> &font,
                 uint32_t glyph_code, bool upload_to_atlas = true);
 
     /*!
      * Fetch, and if necessay create and store, a sequence of
      * glyphs given a sequence of glyph codes of a font and a
-     * GlyphRender specifying how to render the glyph.
+     * GlyphRenderer specifying how to render the glyph.
      * \param render renderer of fetched Glyph
      * \param font font from which to take the glyph
      * \param glyph_codes sequence of glyph codes
@@ -109,7 +109,7 @@ namespace fastuidraw
      * \param upload_to_atlas if true, upload glyphs to atlas
      */
     void
-    fetch_glyphs(GlyphRender render,
+    fetch_glyphs(GlyphRenderer render,
                  const reference_counted_ptr<const FontBase> &font,
                  c_array<const uint32_t> glyph_codes,
                  c_array<Glyph> out_glyphs,
@@ -118,7 +118,7 @@ namespace fastuidraw
     /*!
      * Fetch, and if necessay create and store, a sequence of
      * glyphs given a sequence of glyph codes of a font and a
-     * GlyphRender specifying how to render the glyph.
+     * GlyphRenderer specifying how to render the glyph.
      * \param render renderer of fetched Glyph
      * \param glyph_sources sequence of \ref GlyphSource values
      * \param[out] out_glyphs location to which to write the glyphs;
@@ -126,7 +126,7 @@ namespace fastuidraw
      * \param upload_to_atlas if true, upload glyphs to atlas
      */
     void
-    fetch_glyphs(GlyphRender render,
+    fetch_glyphs(GlyphRenderer render,
                  c_array<const GlyphSource> glyph_sources,
                  c_array<Glyph> out_glyphs,
                  bool upload_to_atlas = true);
@@ -134,7 +134,7 @@ namespace fastuidraw
     /*!
      * Fetch, and if necessay create and store, a sequence of
      * glyphs given a sequence of \ref GlyphMetrics values and
-     * a \ref GlyphRender specifying how to render the glyph.
+     * a \ref GlyphRenderer specifying how to render the glyph.
      * \param render renderer of fetched Glyph
      * \param glyph_metrics sequence of \ref GlyphMetrics values
      * \param[out] out_glyphs location to which to write the glyphs;
@@ -142,7 +142,7 @@ namespace fastuidraw
      * \param upload_to_atlas if true, upload glyphs to atlas
      */
     void
-    fetch_glyphs(GlyphRender render,
+    fetch_glyphs(GlyphRenderer render,
                  c_array<const GlyphMetrics> glyph_metrics,
                  c_array<Glyph> out_glyphs,
                  bool upload_to_atlas = true);

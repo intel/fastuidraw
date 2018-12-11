@@ -23,6 +23,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/text/character_encoding.hpp>
 #include <fastuidraw/text/font_properties.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_metrics.hpp>
@@ -76,14 +77,56 @@ namespace fastuidraw
     unique_id(void) const;
 
     /*!
-     * To be implemented by a derived class to return an
-     * index value (glyph code) from a character code
-     * (typically a unicode). A return value of 0 indicates
-     * that the character code is not contained in the font.
+     * To be implemented by a derived class to return the
+     * index values (glyph codes) for a sequence of character
+     * code. A glyph code of 0 indicates that a character
+     * code is not present in the font.
+     * \param encoding character encoding of character codes
+     * \param in_character_codes character codes from which to
+     *                           fetch glyph codes
+     * \param[out] out_glyph_codes location to which to write
+     *                             glyph codes.
      */
     virtual
+    void
+    glyph_codes(enum CharacterEncoding::encoding_value_t encoding,
+                c_array<const uint32_t> in_character_codes,
+                c_array<uint32_t> out_glyph_codes) const = 0;
+
+    /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * glyph_codes(CharacterEncoding::unicode,
+     *             in_character_codes,
+     *             out_glyph_codes);
+     * \endcode
+     * \param in_character_codes character codes from which to
+     *                           fetch glyph codes
+     * \param[out] out_glyph_codes location to which to write
+     *                             glyph codes.
+     */
+    void
+    glyph_codes(c_array<const uint32_t> in_character_codes,
+                c_array<uint32_t> out_glyph_codes) const
+    {
+      glyph_codes(CharacterEncoding::unicode, in_character_codes, out_glyph_codes);
+    }
+
+    /*!
+     * Provided as a conveniance to fetch a single
+     * glyph_code.
+     * \param pcharacter_code Unicode character code from which to
+     *                        fetch a glyph code.
+     */
     uint32_t
-    glyph_code(uint32_t pcharacter_code) const = 0;
+    glyph_code(uint32_t pcharacter_code) const
+    {
+      uint32_t return_value(0);
+      c_array<const uint32_t> p(&pcharacter_code, 1);
+      c_array<uint32_t> g(&return_value, 1);
+      glyph_codes(p, g);
+      return return_value;
+    }
 
     /*!
      * To be implemented by a derived class to return
@@ -102,7 +145,7 @@ namespace fastuidraw
      * To be implemented by a derived class to indicate
      * that it will return non-nullptr in
      * compute_rendering_data() when passed a
-     * GlyphRender whose GlyphRender::m_type
+     * GlyphRenderer whose GlyphRenderer::m_type
      * is a specified value.
      */
     virtual
@@ -121,8 +164,8 @@ namespace fastuidraw
 
     /*!
      * To be implemented by a derived class to generate glyph
-     * rendering data given a glyph code and GlyphRender.
-     * \param render specifies object to return via GlyphRender::type(),
+     * rendering data given a glyph code and GlyphRenderer.
+     * \param render specifies object to return via GlyphRenderer::type(),
      *               it is guaranteed by the caller that can_create_rendering_data()
      *               returns true on render.type()
      * \param glyph_metrics GlyphMetrics values as computed by compute_metrics()
@@ -132,7 +175,7 @@ namespace fastuidraw
      */
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render, GlyphMetrics glyph_metrics,
+    compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
 			   Path &path, vec2 &render_size) const = 0;
 
     friend class Glyph;

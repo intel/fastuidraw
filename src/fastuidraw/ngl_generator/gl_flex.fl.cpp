@@ -68,7 +68,7 @@ CGLGLTYPE {CGLTYPE}|{GLTYPE}|GLDEBUGPROC|GLDEBUGPROCARB|GLVULKANPROCNV
 
 EGLPLATFORMTYPE EGLint|EGLNativeDisplayType|EGLNativePixmapType|EGLNativeWindowType
 EGLBASETYPE void|EGLBoolean|EGLDisplay|EGLConfig|EGLSurface|EGLContext|EGLenum|EGLClientBuffer|EGLSync|EGLAttrib|EGLTime|EGLImage
-EGLKHRTYPE EGLSyncKHR|EGLAttribKHR|EGLLabelKHR|EGLObjectKHR|EGLTimeKHR|EGLImageKHR|EGLStreamKHR|EGLuint64KHR|EGLNativeFileDescriptorKHR
+EGLKHRTYPE EGLSyncKHR|EGLAttribKHR|EGLLabelKHR|EGLObjectKHR|EGLTimeKHR|EGLImageKHR|EGLStreamKHR|EGLuint64KHR|EGLNativeFileDescriptorKHR|char
 EGLANDTYPE EGLsizeiANDROID|EGLSetBlobFuncANDROID|EGLsizeiANDROID|EGLnsecsANDROID
 EGLEXTTYPE EGLDeviceEXT|EGLOutputLayerEXT|EGLOutputPortEXT|EGLSyncNV|EGLTimeNV|EGLuint64NV|struct{space}EGLClientPixmapHI|struct{space}AHardwareBuffer
 EGLTYP {EGLPLATFORMTYPE}|{EGLBASETYPE}|{EGLKHRTYPE}|{EGLANDTYPE}|{EGLEXTTYPE}
@@ -108,22 +108,6 @@ EGLAPI{space}+{CEGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
     {
       delete ptr;
     }
-}
-
-FUNCTIONPOINTERMODE {
-  openGL_function_info::use_function_pointer_mode()=use_function_pointer_type_declared;
-}
-
-FUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED {
-  openGL_function_info::use_function_pointer_mode()=use_function_pointer_type_undeclared;
-}
-
-NOFUNCTIONPOINTERMODE_PTR_TYPE_DECLARED {
-  openGL_function_info::use_function_pointer_mode()=dont_use_function_pointer_type_declared;
-}
-
-NOFUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED {
-  openGL_function_info::use_function_pointer_mode()=dont_use_function_pointer_type_undeclared;
 }
 
 

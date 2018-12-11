@@ -4,7 +4,7 @@
 #include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
-#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 #include "sdl_painter_demo.hpp"
@@ -374,7 +374,7 @@ derived_init(int w, int h)
 
   reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font.value().c_str(), 0);
-  m_table_params.m_glyph_selector = m_glyph_selector;
+  m_table_params.m_font_database = m_font_database;
   m_table_params.m_glyph_cache = m_glyph_cache;
   if (gen->check_creation() == routine_success)
     {
@@ -648,8 +648,8 @@ draw_frame(void)
     }
 
   m_painter->end();
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   m_surface->blit_surface(GL_NEAREST);
 
   ++m_frame;

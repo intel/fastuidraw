@@ -49,6 +49,18 @@ namespace
     {
       m_mutex.lock();
       m_get_proc = get_proc;
+      m_get_proc_data = nullptr;
+      m_mutex.unlock();
+    }
+
+    void
+    get_proc_function(void *datum,
+                      void* (*get_proc)(void*, fastuidraw::c_string))
+    {
+      m_mutex.lock();
+      m_get_proc = nullptr;
+      m_get_proc_data = get_proc;
+      m_data = datum;
       m_mutex.unlock();
     }
 
@@ -60,6 +72,10 @@ namespace
       if (m_get_proc)
         {
           return_value = m_get_proc(function_name);
+        }
+      else if (m_get_proc_data)
+        {
+          return_value = m_get_proc_data(m_data, function_name);
         }
       else
         {
@@ -83,6 +99,8 @@ namespace
 
     CallBackList m_list;
     void* (*m_get_proc)(fastuidraw::c_string);
+    void* (*m_get_proc_data)(void *data, fastuidraw::c_string);
+    void *m_data;
   };
 
   class CallBackPrivate:public fastuidraw::noncopyable
@@ -244,6 +262,15 @@ get_proc_function(void* (*get_proc)(c_string))
   d->get_proc_function(get_proc);
 }
 
+void
+fastuidraw::APICallbackSet::
+get_proc_function(void *data, void* (*get_proc)(void*, c_string))
+{
+  APICallbackSetPrivate *d;
+  d = static_cast<APICallbackSetPrivate*>(m_d);
+  d->get_proc_function(data, get_proc);
+}
+
 void*
 fastuidraw::APICallbackSet::
 get_proc(c_string function_name)
@@ -301,4 +328,15 @@ post_call(c_string call_string_values,
                               error_string,
                               function_ptr,
                               src_file, src_line));
+}
+
+void
+fastuidraw::APICallbackSet::
+message(c_string message, c_string src_file, int src_line)
+{
+  APICallbackSetPrivate *d;
+  d = static_cast<APICallbackSetPrivate*>(m_d);
+  d->call_callbacks(std::bind(&CallBack::message,
+                              std::placeholders::_1,
+                              message, src_file, src_line));
 }

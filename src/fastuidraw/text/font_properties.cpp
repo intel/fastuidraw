@@ -18,6 +18,7 @@
 
 
 #include <string>
+#include <sstream>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/text/font_properties.hpp>
 #include "../private/util_private.hpp"
@@ -87,3 +88,17 @@ setget_implement_string(fastuidraw::FontProperties,
 setget_implement_string(fastuidraw::FontProperties,
                         FontPropertiesPrivate,
                         source_label)
+
+fastuidraw::FontProperties&
+fastuidraw::FontProperties::
+source_label(c_string filename, int face_index)
+{
+  FontPropertiesPrivate *d;
+  std::ostringstream str;
+
+  d = static_cast<FontPropertiesPrivate*>(m_d);
+  str << filename << ":" << face_index;
+  d->m_source_label = str.str();
+
+  return *this;
+}

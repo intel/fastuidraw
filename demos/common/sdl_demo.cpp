@@ -53,7 +53,7 @@ namespace
     dst << "\nGL_EXTENSIONS(" << cnt << "):";
     for(int i = 0; i < cnt; ++i)
       {
-        dst << "\n\t" << glGetStringi(GL_EXTENSIONS, i);
+        dst << "\n\t" << fastuidraw_glGetStringi(GL_EXTENSIONS, i);
       }
   }
 
@@ -113,6 +113,11 @@ namespace
               void *function_ptr,
               fastuidraw::c_string src_file, int src_line);
 
+    virtual
+    void
+    message(fastuidraw::c_string message,
+            fastuidraw::c_string src_file, int src_line);
+
   private:
     fastuidraw::reference_counted_ptr<StreamHolder> m_str;
   };
@@ -156,6 +161,16 @@ post_call(fastuidraw::c_string call_string_values,
       m_str->stream() << "{" << error_string << "}";
     }
   m_str->stream() << "\n";
+}
+
+void
+OstreamLogger::
+message(fastuidraw::c_string message,
+        fastuidraw::c_string src_file,
+        int src_line)
+{
+  m_str->stream() << "Message: [" << src_file << "," << src_line << "] "
+                  << message << "\n";
 }
 
 ////////////////////////////
@@ -488,10 +503,10 @@ init_sdl(void)
                 << "\ndouble buffered: " << GetSDLGLValue(SDL_GL_DOUBLEBUFFER)
                 << "\nGL_MAJOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MAJOR_VERSION)
                 << "\nGL_MINOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MINOR_VERSION)
-                << "\nGL_VERSION string:" << glGetString(GL_VERSION)
-                << "\nGL_VENDOR:" << glGetString(GL_VENDOR)
-                << "\nGL_RENDERER:" << glGetString(GL_RENDERER)
-                << "\nGL_SHADING_LANGUAGE_VERSION:" << glGetString(GL_SHADING_LANGUAGE_VERSION)
+                << "\nGL_VERSION string:" << fastuidraw_glGetString(GL_VERSION)
+                << "\nGL_VENDOR:" << fastuidraw_glGetString(GL_VENDOR)
+                << "\nGL_RENDERER:" << fastuidraw_glGetString(GL_RENDERER)
+                << "\nGL_SHADING_LANGUAGE_VERSION:" << fastuidraw_glGetString(GL_SHADING_LANGUAGE_VERSION)
                 << "\nGL_MAX_VARYING_COMPONENTS:" << fastuidraw::gl::context_get<GLint>(GL_MAX_VARYING_COMPONENTS)
                 << "\nGL_MAX_VERTEX_ATTRIBS:" << fastuidraw::gl::context_get<GLint>(GL_MAX_VERTEX_ATTRIBS)
                 << "\nGL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:" << fastuidraw::gl::context_get<GLint>(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS)

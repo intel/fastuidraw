@@ -69,8 +69,8 @@ public:
   delete_buffer(void)
   {
     FASTUIDRAWassert(m_buffer != 0);
-    glBindBuffer(binding_point, 0);
-    glDeleteBuffers(1, &m_buffer);
+    fastuidraw_glBindBuffer(binding_point, 0);
+    fastuidraw_glDeleteBuffers(1, &m_buffer);
     m_buffer = 0;
   }
 
@@ -88,8 +88,8 @@ public:
     else
       {
         flush_size_change();
-        glBindBuffer(binding_point, m_buffer);
-        glBufferSubData(binding_point, offset, data.size(), &data[0]);
+        fastuidraw_glBindBuffer(binding_point, m_buffer);
+        fastuidraw_glBufferSubData(binding_point, offset, data.size(), &data[0]);
       }
   }
 
@@ -120,11 +120,11 @@ public:
 
     if (!m_unflushed_commands.empty())
       {
-        glBindBuffer(binding_point, m_buffer);
+        fastuidraw_glBindBuffer(binding_point, m_buffer);
         for(BufferGLEntryLocation &B : m_unflushed_commands)
           {
             FASTUIDRAWassert(!B.m_data.empty());
-            glBufferSubData(binding_point, B.m_location, B.m_data.size(), &B.m_data[0]);
+            fastuidraw_glBufferSubData(binding_point, B.m_location, B.m_data.size(), &B.m_data[0]);
           }
         m_unflushed_commands.clear();
       }
@@ -182,14 +182,14 @@ private:
                 src_binding_point_query = GL_COPY_WRITE_BUFFER;
               }
             prev_buffer = fastuidraw::gl::context_get<GLint>(src_binding_point_query);
-            glBindBuffer(binding_point, m_buffer);
-            glBindBuffer(src_binding_point, old_buffer);
+            fastuidraw_glBindBuffer(binding_point, m_buffer);
+            fastuidraw_glBindBuffer(src_binding_point, old_buffer);
 
-            glCopyBufferSubData(src_binding_point, binding_point,
-                                0, 0, std::min(m_buffer_size, m_size));
+            fastuidraw_glCopyBufferSubData(src_binding_point, binding_point,
+                                           0, 0, std::min(m_buffer_size, m_size));
 
-            glBindBuffer(src_binding_point, prev_buffer);
-            glDeleteBuffers(1, &old_buffer);
+            fastuidraw_glBindBuffer(src_binding_point, prev_buffer);
+            fastuidraw_glDeleteBuffers(1, &old_buffer);
           }
 
         m_buffer_size = m_size;
@@ -200,10 +200,10 @@ private:
   create_buffer(void)
   {
     FASTUIDRAWassert(m_buffer == 0);
-    glGenBuffers(1, &m_buffer);
+    fastuidraw_glGenBuffers(1, &m_buffer);
     FASTUIDRAWassert(m_buffer != 0);
-    glBindBuffer(binding_point, m_buffer);
-    glBufferData(binding_point, m_size, nullptr, usage);
+    fastuidraw_glBindBuffer(binding_point, m_buffer);
+    fastuidraw_glBufferData(binding_point, m_size, nullptr, usage);
   }
 
   GLsizei m_size;

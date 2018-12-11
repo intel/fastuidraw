@@ -1,5 +1,4 @@
 #include <sstream>
-#include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include "cell.hpp"
 #include "text_helper.hpp"
 
@@ -57,7 +56,7 @@ Cell(PainterWidget *p, const CellParams &params):
 
   std::istringstream str(ostr.str());
   create_formatted_text(m_text, str, params.m_font,
-                        params.m_glyph_selector);
+                        params.m_font_database);
 
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);
@@ -164,7 +163,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   if (m_shared_state->m_draw_text)
     {
       painter->draw_glyphs(PainterData(m_text_brush), m_text,
-			   GlyphRender(m_shared_state->m_glyph_render));
+			   GlyphRenderer(m_shared_state->m_glyph_render));
     }
 
   painter->restore();

@@ -60,18 +60,18 @@ get_texture_handle(GLuint tex) const
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       FASTUIDRAWassert(m_type == nv_bindless_texture);
-      return glGetTextureHandleNV(tex);
+      return fastuidraw_glGetTextureHandleNV(tex);
     }
   #else
     {
       FASTUIDRAWassert(m_type != no_bindless_texture);
       if (m_type == nv_bindless_texture)
         {
-          return glGetTextureHandleNV(tex);
+          return fastuidraw_glGetTextureHandleNV(tex);
         }
       else
         {
-          return glGetTextureHandleARB(tex);
+          return fastuidraw_glGetTextureHandleARB(tex);
         }
     }
   #endif
@@ -84,18 +84,18 @@ make_texture_handle_resident(GLuint64 h) const
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       FASTUIDRAWassert(m_type == nv_bindless_texture);
-      glMakeTextureHandleResidentNV(h);
+      fastuidraw_glMakeTextureHandleResidentNV(h);
     }
   #else
     {
       FASTUIDRAWassert(m_type != no_bindless_texture);
       if (m_type == nv_bindless_texture)
         {
-          glMakeTextureHandleResidentNV(h);
+          fastuidraw_glMakeTextureHandleResidentNV(h);
         }
       else
         {
-          glMakeTextureHandleResidentARB(h);
+          fastuidraw_glMakeTextureHandleResidentARB(h);
         }
     }
   #endif
@@ -108,18 +108,18 @@ make_texture_handle_non_resident(GLuint64 h) const
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       FASTUIDRAWassert(m_type == nv_bindless_texture);
-      glMakeTextureHandleNonResidentNV(h);
+      fastuidraw_glMakeTextureHandleNonResidentNV(h);
     }
   #else
     {
       FASTUIDRAWassert(m_type != no_bindless_texture);
       if (m_type == nv_bindless_texture)
         {
-          glMakeTextureHandleNonResidentNV(h);
+          fastuidraw_glMakeTextureHandleNonResidentNV(h);
         }
       else
         {
-          glMakeTextureHandleNonResidentARB(h);
+          fastuidraw_glMakeTextureHandleNonResidentARB(h);
         }
     }
   #endif

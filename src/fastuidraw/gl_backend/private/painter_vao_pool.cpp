@@ -48,18 +48,18 @@ fastuidraw::gl::detail::painter_vao_pool::
         {
           if (vao.m_data_tbo != 0)
             {
-              glDeleteTextures(1, &vao.m_data_tbo);
+              fastuidraw_glDeleteTextures(1, &vao.m_data_tbo);
             }
-          glDeleteBuffers(1, &vao.m_attribute_bo);
-          glDeleteBuffers(1, &vao.m_header_bo);
-          glDeleteBuffers(1, &vao.m_index_bo);
-          glDeleteBuffers(1, &vao.m_data_bo);
-          glDeleteVertexArrays(1, &vao.m_vao);
+          fastuidraw_glDeleteBuffers(1, &vao.m_attribute_bo);
+          fastuidraw_glDeleteBuffers(1, &vao.m_header_bo);
+          fastuidraw_glDeleteBuffers(1, &vao.m_index_bo);
+          fastuidraw_glDeleteBuffers(1, &vao.m_data_bo);
+          fastuidraw_glDeleteVertexArrays(1, &vao.m_vao);
         }
 
       if (m_ubos[p] != 0)
         {
-          glDeleteBuffers(1, &m_ubos[p]);
+          fastuidraw_glDeleteBuffers(1, &m_ubos[p]);
         }
     }
 }
@@ -74,13 +74,13 @@ uniform_ubo(unsigned int sz, GLenum target)
     }
   else
     {
-      glBindBuffer(target, m_ubos[m_pool]);
+      fastuidraw_glBindBuffer(target, m_ubos[m_pool]);
     }
 
   #ifndef NDEBUG
     {
       GLint psize(0);
-      glGetBufferParameteriv(target, GL_BUFFER_SIZE, &psize);
+      fastuidraw_glGetBufferParameteriv(target, GL_BUFFER_SIZE, &psize);
       FASTUIDRAWassert(psize >= static_cast<int>(sz));
     }
   #endif
@@ -99,10 +99,10 @@ request_vao(void)
       opengl_trait_value v;
 
       m_vaos[m_pool].resize(m_current + 1);
-      glGenVertexArrays(1, &m_vaos[m_pool][m_current].m_vao);
+      fastuidraw_glGenVertexArrays(1, &m_vaos[m_pool][m_current].m_vao);
 
       FASTUIDRAWassert(m_vaos[m_pool][m_current].m_vao != 0);
-      glBindVertexArray(m_vaos[m_pool][m_current].m_vao);
+      fastuidraw_glBindVertexArray(m_vaos[m_pool][m_current].m_vao);
 
       m_vaos[m_pool][m_current].m_data_store_backing = m_data_store_backing;
 
@@ -137,27 +137,27 @@ request_vao(void)
       m_vaos[m_pool][m_current].m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
 
-      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute0_slot);
+      fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute0_slot);
       v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
                                      offsetof(PainterAttribute, m_attrib0));
       VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute0_slot, v);
 
-      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute1_slot);
+      fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute1_slot);
       v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
                                      offsetof(PainterAttribute, m_attrib1));
       VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute1_slot, v);
 
-      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute2_slot);
+      fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute2_slot);
       v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
                                      offsetof(PainterAttribute, m_attrib2));
       VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute2_slot, v);
 
       m_vaos[m_pool][m_current].m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
-      glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::header_attrib_slot);
+      fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::header_attrib_slot);
       v = opengl_trait_values<uint32_t>();
       VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::header_attrib_slot, v);
 
-      glBindVertexArray(0);
+      fastuidraw_glBindVertexArray(0);
     }
 
   return_value = m_vaos[m_pool][m_current];
@@ -194,11 +194,11 @@ generate_tbo(GLuint src_buffer, GLenum fmt, unsigned int unit)
 {
   GLuint return_value(0);
 
-  glGenTextures(1, &return_value);
+  fastuidraw_glGenTextures(1, &return_value);
   FASTUIDRAWassert(return_value != 0);
 
-  glActiveTexture(GL_TEXTURE0 + unit);
-  glBindTexture(GL_TEXTURE_BUFFER, return_value);
+  fastuidraw_glActiveTexture(GL_TEXTURE0 + unit);
+  fastuidraw_glBindTexture(GL_TEXTURE_BUFFER, return_value);
   tex_buffer(m_tex_buffer_support, GL_TEXTURE_BUFFER, fmt, src_buffer);
 
   return return_value;
@@ -209,9 +209,9 @@ fastuidraw::gl::detail::painter_vao_pool::
 generate_bo(GLenum bind_target, GLsizei psize)
 {
   GLuint return_value(0);
-  glGenBuffers(1, &return_value);
+  fastuidraw_glGenBuffers(1, &return_value);
   FASTUIDRAWassert(return_value != 0);
-  glBindBuffer(bind_target, return_value);
-  glBufferData(bind_target, psize, nullptr, GL_STREAM_DRAW);
+  fastuidraw_glBindBuffer(bind_target, return_value);
+  fastuidraw_glBufferData(bind_target, psize, nullptr, GL_STREAM_DRAW);
   return return_value;
 }

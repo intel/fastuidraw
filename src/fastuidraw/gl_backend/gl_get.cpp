@@ -25,20 +25,20 @@ namespace gl {
 void
 context_get(GLenum v, GLint *ptr)
 {
-  glGetIntegerv(v, ptr);
+  fastuidraw_glGetIntegerv(v, ptr);
 }
 
 void
 context_get(GLenum v, GLboolean *ptr)
 {
-  glGetBooleanv(v, ptr);
+  fastuidraw_glGetBooleanv(v, ptr);
 }
 
 void
 context_get(GLenum v, bool *ptr)
 {
   GLboolean bptr(*ptr ? GL_TRUE : GL_FALSE);
-  glGetBooleanv(v, &bptr);
+  fastuidraw_glGetBooleanv(v, &bptr);
   *ptr = (bptr == GL_FALSE)?
     false:
     true;
@@ -47,7 +47,7 @@ context_get(GLenum v, bool *ptr)
 void
 context_get(GLenum v, GLfloat *ptr)
 {
-  glGetFloatv(v, ptr);
+  fastuidraw_glGetFloatv(v, ptr);
 }
 
 
