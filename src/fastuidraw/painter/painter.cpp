@@ -27,6 +27,7 @@
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
+#include "../private/bounding_box.hpp"
 #include "../private/util_private_math.hpp"
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
@@ -519,7 +520,8 @@ namespace
   class ClipEquationStore
   {
   public:
-    ClipEquationStore(void)
+    ClipEquationStore(void):
+      m_poly_bb_dirty(false)
     {}
 
     void
@@ -534,6 +536,7 @@ namespace
     {
       m_clip.pop();
       m_poly.pop();
+      m_poly_bb_dirty = true;
     }
 
     void
@@ -549,6 +552,9 @@ namespace
     {
       m_clip.clear();
       m_poly.clear();
+
+      m_poly_bb_dirty = false;
+      m_poly_bb = fastuidraw::BoundingBox<float>();
     }
 
     fastuidraw::c_array<const fastuidraw::vec3>
@@ -562,6 +568,9 @@ namespace
     {
       return fastuidraw::make_c_array(m_poly.m_current);
     }
+
+    const fastuidraw::BoundingBox<float>&
+    poly_bb(void);
 
     /* @param (input) clip_matrix_local transformation from local to clip coordinates
      * @param (input) in_out_pts[0] convex polygon to clip
@@ -617,6 +626,9 @@ namespace
 
     Element<fastuidraw::vec3> m_clip;
     Element<fastuidraw::vec2> m_poly;
+
+    bool m_poly_bb_dirty;
+    fastuidraw::BoundingBox<float> m_poly_bb;
   };
 
   class StrokingItem
@@ -1535,6 +1547,10 @@ reset(fastuidraw::vec2 dims,
   m_poly.m_current.push_back(fastuidraw::vec2(dims.x(), dims.y()));
   m_poly.m_current.push_back(fastuidraw::vec2(0, dims.y()));
 
+  m_poly_bb_dirty = false;
+  m_poly_bb.union_point(fastuidraw::vec2(0.0f, 0.0f));
+  m_poly_bb.union_point(dims);
+
   m_clip.set_current(clip);
 }
 
@@ -1563,6 +1579,8 @@ set_current(const fastuidraw::float3x3 &inverse_transpose,
             fastuidraw::c_array<const fastuidraw::vec2> poly)
 {
   m_poly.set_current(poly);
+  m_poly_bb_dirty = true;
+
   m_clip.m_current.clear();
   if (poly.empty())
     {
@@ -1611,6 +1629,22 @@ set_current(const fastuidraw::float3x3 &inverse_transpose,
       m_clip.m_current.push_back(inverse_transpose * nn);
     }
 }
+
+const fastuidraw::BoundingBox<float>&
+ClipEquationStore::
+poly_bb(void)
+{
+  if (m_poly_bb_dirty)
+    {
+      m_poly_bb_dirty = false;
+      for (const fastuidraw::vec2 &pt : m_poly.m_current)
+        {
+          m_poly_bb.union_point(pt);
+        }
+    }
+  return m_poly_bb;
+}
+
 
 //////////////////////////////////
 // PainterPrivate methods
@@ -3686,6 +3720,39 @@ transformation(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   return d->m_clip_rect_state.current_painter_item_matrix();
+}
+
+fastuidraw::c_array<const fastuidraw::vec3>
+fastuidraw::Painter::
+clip_equations(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_clip_store.current();
+}
+
+fastuidraw::c_array<const fastuidraw::vec2>
+fastuidraw::Painter::
+clip_polygon(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_clip_store.current_poly();
+}
+
+bool
+fastuidraw::Painter::
+clip_polygon_bounds(vec2 *dst_min, vec2 *dst_max)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  const BoundingBox<float> &bb(d->m_clip_store.poly_bb());
+
+  *dst_min = bb.min_point();
+  *dst_max = bb.max_point();
+
+  return !bb.empty();
 }
 
 void

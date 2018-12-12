@@ -297,6 +297,33 @@ namespace fastuidraw
     transformation(void);
 
     /*!
+     * Returns the current clip-equations of the Painter.
+     * The clip-equations are updated whenever clip_in_rect()
+     * or clip_in_path() or restore() are called, as such
+     * the returned c_array then becomes invalid.
+     */
+    c_array<const vec3>
+    clip_equations(void);
+
+    /*!
+     * Returns the convex polygon embodied by clip_equations().
+     * The value changes whenever clip_in_rect(), clip_in_path()
+     * or restore() are called, as such the returned c_array
+     * then becomes invalid.
+     */
+    c_array<const vec2>
+    clip_polygon(void);
+
+    /*!
+     * Returns the bouning box of clip_polygon(). Returns
+     * true if the polygon is non-empty and false otherwise.
+     * \param dst_min destination to which to write the min-corner
+     * \param dst_max destination to which to write the max-corner
+     */
+    bool
+    clip_polygon_bounds(vec2 *dst_min, vec2 *dst_max);
+
+    /*!
      * Set clipping to the intersection of the current
      * clipping with a rectangle.
      * \param xy location of rectangle
@@ -1069,8 +1096,8 @@ namespace fastuidraw
     current_z(void) const;
 
     /*!
-     *Increment the value of current_z(void) const.
-     *\param amount amount by which to increment current_z(void) const
+     * Increment the value of current_z(void) const.
+     * \param amount amount by which to increment current_z(void) const
      */
     void
     increment_z(int amount = 1);
