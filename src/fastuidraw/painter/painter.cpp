@@ -2956,6 +2956,15 @@ end(void)
   d->m_core->end();
 }
 
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&
+fastuidraw::Painter::
+surface(void) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_core->surface();
+}
+
 void
 fastuidraw::Painter::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,

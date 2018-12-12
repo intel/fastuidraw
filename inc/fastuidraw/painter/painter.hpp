@@ -225,6 +225,14 @@ namespace fastuidraw
     end(void);
 
     /*!
+     * Returns the PainterBackend::Surface to which the Painter
+     * is drawing. If there is no active surface, then returns
+     * a null reference.
+     */
+    const reference_counted_ptr<PainterBackend::Surface>&
+    surface(void) const;
+
+    /*!
      * Concats the current transformation matrix
      * by a given matrix.
      * \param tr transformation by which to concat

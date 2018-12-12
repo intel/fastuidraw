@@ -1123,6 +1123,15 @@ end(void)
   colorstop_atlas()->undelay_interval_freeing();
 }
 
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&
+fastuidraw::PainterPacker::
+surface(void) const
+{
+  PainterPackerPrivate *d;
+  d = static_cast<PainterPackerPrivate*>(m_d);
+  return d->m_surface;
+}
+
 void
 fastuidraw::PainterPacker::
 draw_break(const reference_counted_ptr<const PainterDraw::Action> &action)
