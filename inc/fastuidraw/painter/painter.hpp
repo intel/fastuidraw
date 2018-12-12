@@ -143,7 +143,7 @@ namespace fastuidraw
      * Equivalent to
      * \code
      * composite_shader(shader_set.shader(m),
-     *              shader_set.composite_mode(m))
+     *                  shader_set.composite_mode(m))
      * \endcode
      * It is a crashing error if shader_set does not support
      * the named composite mode.
@@ -406,12 +406,12 @@ namespace fastuidraw
      *                              each index chunk
      */
     void
-    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
-                  const PainterData::value<PainterItemShaderData> &shader_data,
-                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
-                  c_array<const c_array<const PainterIndex> > index_chunks,
-                  c_array<const int> index_adjusts,
-                  c_array<const unsigned int> attrib_chunk_selector);
+    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                    c_array<const c_array<const PainterIndex> > index_chunks,
+                    c_array<const int> index_adjusts,
+                    c_array<const unsigned int> attrib_chunk_selector);
 
     /*!
      * Clipout by custom data.
@@ -424,13 +424,13 @@ namespace fastuidraw
      *                      values are not adjusted.
      */
     void
-    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
-                  const PainterData::value<PainterItemShaderData> &shader_data,
-                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
-                  c_array<const c_array<const PainterIndex> > index_chunks,
-                  c_array<const int> index_adjusts)
+    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                    c_array<const c_array<const PainterIndex> > index_chunks,
+                    c_array<const int> index_adjusts)
     {
-      clipOutCustom(shader, shader_data,
+      clip_out_custom(shader, shader_data,
                     attrib_chunks, index_chunks, index_adjusts,
                     c_array<const unsigned int>());
     }
@@ -444,16 +444,16 @@ namespace fastuidraw
      * \param index_adjust amount by which to adjust the values in index_chunk
      */
     void
-    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
-                  const PainterData::value<PainterItemShaderData> &shader_data,
-                  c_array<const PainterAttribute> attrib_chunk,
-                  c_array<const PainterIndex> index_chunk,
-                  int index_adjust)
+    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    c_array<const PainterAttribute> attrib_chunk,
+                    c_array<const PainterIndex> index_chunk,
+                    int index_adjust)
     {
       vecN<c_array<const PainterAttribute>, 1> aa(attrib_chunk);
       vecN<c_array<const PainterIndex>, 1> ii(index_chunk);
       vecN<int, 1> ia(index_adjust);
-      clipOutCustom(shader, shader_data, aa, ii, ia);
+      clip_out_custom(shader, shader_data, aa, ii, ia);
     }
 
     /*!
