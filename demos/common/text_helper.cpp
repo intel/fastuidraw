@@ -557,7 +557,9 @@ add_fonts_from_font_config(fastuidraw::reference_counted_ptr<fastuidraw::FreeTyp
       FcPattern* pattern;
       std::map<std::string, fastuidraw::reference_counted_ptr<DataBufferLoader> > buffer_loaders;
 
-      object_set = FcObjectSetBuild(FC_FOUNDRY, FC_FAMILY, FC_STYLE, FC_WEIGHT, FC_SLANT, FC_SCALABLE, FC_FILE, nullptr);
+      object_set = FcObjectSetBuild(FC_FOUNDRY, FC_FAMILY, FC_STYLE, FC_WEIGHT,
+                                    FC_SLANT, FC_SCALABLE, FC_FILE, FC_INDEX,
+                                    nullptr);
       pattern = FcPatternCreate();
       FcPatternAddBool(pattern, FC_SCALABLE, FcTrue);
       font_set = FcFontList(config, pattern, object_set);

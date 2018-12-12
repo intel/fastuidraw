@@ -113,17 +113,17 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES) $(INSTALL_PKG_FILES)
 	-install -d $(INSTALL_LOCATION_VALUE)/bin
 	-install -d $(INSTALL_LOCATION_VALUE)/include
 	-install -t $(INSTALL_LOCATION_VALUE)/lib $(INSTALL_LIBS)
-	-install -m 644 -t $(INSTALL_LOCATION_VALUE)/lib/pkgconfig $(INSTALL_PKG_FILES)
+	-install -m 666 -t $(INSTALL_LOCATION_VALUE)/lib/pkgconfig $(INSTALL_PKG_FILES)
 	-install -t $(INSTALL_LOCATION_VALUE)/bin $(INSTALL_EXES)
 	-find inc/ -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION_VALUE)/include/'{}'
-	-find inc/ -type f -printf '%P\n' | xargs -I '{}' install -m 644 inc/'{}' $(INSTALL_LOCATION_VALUE)/include/'{}'
+	-find inc/ -type f -printf '%P\n' | xargs -I '{}' install -m 666 inc/'{}' $(INSTALL_LOCATION_VALUE)/include/'{}'
 TARGETLIST+=install
 
 install-docs: docs
 	-install -d $(INSTALL_LOCATION_VALUE)/share/doc/fastuidraw/html/
 	-install -t $(INSTALL_LOCATION_VALUE)/share/doc/fastuidraw TODO.txt README.md COPYING ISSUES.txt docs/*.txt
 	-find docs/doxy/html -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION_VALUE)/share/doc/fastuidraw/html/'{}'
-	-find docs/doxy/html -type f -printf '%P\n' | xargs -I '{}' install -m 644 docs/doxy/html/'{}' $(INSTALL_LOCATION_VALUE)/share/doc/fastuidraw/html/'{}'
+	-find docs/doxy/html -type f -printf '%P\n' | xargs -I '{}' install -m 666 docs/doxy/html/'{}' $(INSTALL_LOCATION_VALUE)/share/doc/fastuidraw/html/'{}'
 TARGETLIST+=install-docs
 
 install-demos: $(DEMO_TARGETLIST)
