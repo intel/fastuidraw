@@ -30,6 +30,7 @@
 #include "../private/util_private_math.hpp"
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
+#include "../private/bounding_box.hpp"
 
 namespace
 {
@@ -527,6 +528,8 @@ namespace
     {
       m_clip.push();
       m_poly.push();
+
+      m_bb_stack.push_back(m_current_bb);
     }
 
     void
@@ -534,10 +537,14 @@ namespace
     {
       m_clip.pop();
       m_poly.pop();
+
+      m_current_bb = m_bb_stack.back();
+      m_bb_stack.pop_back();
     }
 
     void
-    reset(fastuidraw::c_array<const fastuidraw::vec3> clip);
+    reset(fastuidraw::vec2 dims,
+          fastuidraw::c_array<const fastuidraw::vec3> clip);
 
     void
     set_current(const fastuidraw::float3x3 &transform,
@@ -549,18 +556,27 @@ namespace
     {
       m_clip.clear();
       m_poly.clear();
+
+      m_bb_stack.clear();
+      m_current_bb = fastuidraw::BoundingBox<float>();
     }
 
     fastuidraw::c_array<const fastuidraw::vec3>
-    current(void)
+    current(void) const
     {
-      return fastuidraw::make_c_array(m_clip.m_current);
+      return fastuidraw::make_c_array(m_clip.current());
     }
 
     fastuidraw::c_array<const fastuidraw::vec3>
-    current_poly(void)
+    current_poly(void) const
     {
-      return fastuidraw::make_c_array(m_poly.m_current);
+      return fastuidraw::make_c_array(m_poly.current());
+    }
+
+    const fastuidraw::BoundingBox<float>&
+    current_bb(void) const
+    {
+      return m_current_bb;
     }
 
     /* @param (input) clip_matrix_local transformation from local to clip coordinates
@@ -572,16 +588,23 @@ namespace
                          fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts);
 
   private:
-    template<typename T>
-    class Element
+    class Vec3Stack
     {
     public:
-      std::vector<T> m_store;
-      std::vector<unsigned int> m_sz;
-      std::vector<T> m_current;
+      std::vector<fastuidraw::vec3>&
+      current(void)
+      {
+        return m_current;
+      }
+
+      const std::vector<fastuidraw::vec3>&
+      current(void) const
+      {
+        return m_current;
+      }
 
       void
-      set_current(fastuidraw::c_array<const T> new_values)
+      set_current(fastuidraw::c_array<const fastuidraw::vec3> new_values)
       {
         m_current.resize(new_values.size());
         std::copy(new_values.begin(), new_values.end(), m_current.begin());
@@ -613,9 +636,18 @@ namespace
         m_store.clear();
         m_sz.clear();
       }
+
+    private:
+      std::vector<fastuidraw::vec3> m_store;
+      std::vector<unsigned int> m_sz;
+      std::vector<fastuidraw::vec3> m_current;
     };
 
-    Element<fastuidraw::vec3> m_clip, m_poly;
+    Vec3Stack m_clip, m_poly;
+    fastuidraw::vec2 m_dims;
+
+    fastuidraw::BoundingBox<float> m_current_bb;
+    std::vector<fastuidraw::BoundingBox<float> > m_bb_stack;
   };
 
   class StrokingItem
@@ -1524,16 +1556,21 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
 //ClipEquationStore methods
 void
 ClipEquationStore::
-reset(fastuidraw::c_array<const fastuidraw::vec3> clip)
+reset(fastuidraw::vec2 dims,
+      fastuidraw::c_array<const fastuidraw::vec3> clip)
 {
   clear();
 
-  m_poly.m_current.push_back(fastuidraw::vec3(-1.0f, -1.0f, +1.0f));
-  m_poly.m_current.push_back(fastuidraw::vec3(+1.0f, -1.0f, +1.0f));
-  m_poly.m_current.push_back(fastuidraw::vec3(+1.0f, +1.0f, +1.0f));
-  m_poly.m_current.push_back(fastuidraw::vec3(-1.0f, +1.0f, +1.0f));
+  m_poly.current().push_back(fastuidraw::vec3(-1.0f, -1.0f, +1.0f));
+  m_poly.current().push_back(fastuidraw::vec3(+1.0f, -1.0f, +1.0f));
+  m_poly.current().push_back(fastuidraw::vec3(+1.0f, +1.0f, +1.0f));
+  m_poly.current().push_back(fastuidraw::vec3(-1.0f, +1.0f, +1.0f));
 
   m_clip.set_current(clip);
+
+  m_dims = dims;
+  m_current_bb.union_point(fastuidraw::vec2(0.0f, 0.0f));
+  m_current_bb.union_point(dims);
 }
 
 unsigned int
@@ -1561,8 +1598,10 @@ set_current(const fastuidraw::float3x3 &transform,
             const fastuidraw::float3x3 &inverse_transpose,
             fastuidraw::c_array<const fastuidraw::vec2> poly)
 {
-  m_poly.m_current.clear();
-  m_clip.m_current.clear();
+  m_poly.current().clear();
+  m_clip.current().clear();
+  m_current_bb = fastuidraw::BoundingBox<float>();
+
   if (poly.empty())
     {
       return;
@@ -1607,8 +1646,15 @@ set_current(const fastuidraw::float3x3 &transform,
        * thus the vector to use is inverse_transpose_M(R,1)
        */
       fastuidraw::vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
-      m_clip.m_current.push_back(inverse_transpose * nn);
-      m_poly.m_current.push_back(transform * fastuidraw::vec3(poly[i].x(), poly[i].y(), 1.0f));
+      fastuidraw::vec3 clip_pt(transform * fastuidraw::vec3(poly[i].x(), poly[i].y(), 1.0f));
+      float recip_z(1.0f / clip_pt.z());
+      fastuidraw::vec2 screen_scale(0.5f * m_dims.x() * recip_z, 0.5f * m_dims.y() * recip_z);
+      fastuidraw::vec2 screen_pt(clip_pt.x() * screen_scale.x(),
+                                 clip_pt.y() * screen_scale.y());
+
+      m_clip.current().push_back(inverse_transpose * nn);
+      m_poly.current().push_back(clip_pt);
+      m_current_bb.union_point(screen_pt);
     }
 }
 
@@ -2983,7 +3029,8 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
   d->m_current_z = 1;
   d->m_clip_rect_state.reset(d->m_resolution, orientation);
-  d->m_clip_store.reset(d->m_clip_rect_state.clip_equations().m_clip_equations);
+  d->m_clip_store.reset(d->m_resolution,
+                        d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(composite_porter_duff_src_over);
   blend_shader(blend_w3c_normal);
 }
@@ -3706,6 +3753,31 @@ clip_polygon(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   return d->m_clip_store.current_poly();
+}
+
+bool
+fastuidraw::Painter::
+clip_region_bounds(vec2 *min_pt, vec2 *max_pt)
+{
+  PainterPrivate *d;
+  bool non_empty;
+
+  d = static_cast<PainterPrivate*>(m_d);
+
+  non_empty = !d->m_clip_rect_state.m_all_content_culled
+    && !d->m_clip_store.current_poly().empty()
+    && !d->m_clip_store.current_bb().empty();
+
+  if (non_empty)
+    {
+      *min_pt = d->m_clip_store.current_bb().min_point();
+      *max_pt = d->m_clip_store.current_bb().max_point();
+    }
+  else
+    {
+      *min_pt = *max_pt = vec2(0.0f, 0.0f);
+    }
+  return non_empty;
 }
 
 void
