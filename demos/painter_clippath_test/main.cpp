@@ -431,7 +431,7 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &mat
               const Path &path2, unsigned int clip_mode2, const Transformer &matrix2,
               const vec4 &pen_color)
 {
-  PainterItemMatrix M(m_painter->transformation());
+  float3x3 M(m_painter->transformation());
   PainterBrush brush;
 
   brush.pen(pen_color);
@@ -483,7 +483,7 @@ draw_frame(void)
   m_painter->begin(m_surface, Painter::y_increases_downwards);
   m_transformers[view_transformer].concat_to_painter(m_painter);
 
-  PainterItemMatrix M(m_painter->transformation());
+  float3x3 M(m_painter->transformation());
   m_transformers[rect_transformer].concat_to_painter(m_painter);
   switch(m_rounded_rect_mode)
     {

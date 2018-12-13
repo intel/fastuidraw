@@ -349,12 +349,6 @@ namespace
     const fastuidraw::float3x3&
     item_matrix_inverse_transpose(void);
 
-    const fastuidraw::PainterItemMatrix&
-    current_painter_item_matrix(void)
-    {
-      return m_item_matrix;
-    }
-
     const fastuidraw::float3x3&
     item_matrix(void)
     {
@@ -3941,13 +3935,13 @@ draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
   return draw_glyphs(draw, glyph_run, 0, glyph_run.number_glyphs(), renderer);
 }
 
-const fastuidraw::PainterItemMatrix&
+const fastuidraw::float3x3&
 fastuidraw::Painter::
 transformation(void)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_clip_rect_state.current_painter_item_matrix();
+  return d->m_clip_rect_state.item_matrix();
 }
 
 fastuidraw::c_array<const fastuidraw::vec3>

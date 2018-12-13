@@ -55,14 +55,14 @@ namespace fastuidraw
    *
    * The transformation of a Painter goes from local item coordinate
    * to 3D API clip-coordinates (for example in GL, from item coordinates
-   * to gl_Position.xyw). FastUIDraw follows the convention that
-   * the top of the window is at normalized y-coordinate -1 and the
-   * bottom of the window is at normalized y-coordinate +1.
-   *
-   * One can specify the exact attribute and index data for a Painter
-   * to consume, see \ref draw_generic(). In addition, the class
-   * PainterAttributeData can be used to generate and save attribute and
-   * index data to be used repeatedly.
+   * to gl_Position.xyw). FastUIDraw follows the convention that the top
+   * of the window is at normalized y-coordinate -1 and the bottom of the
+   * window is at normalized y-coordinate +1. The transformation is to be
+   * applied as matrix-vector multiplication, i.e.
+   * \code
+   * NormalizedDeviceCoordinates = transformation().m_item_matrix * vec3(x, y, 1.0)
+   * \endcode
+   * for local coordiante (x, y).
    */
   class Painter:
     public PainterEnums,
@@ -248,16 +248,6 @@ namespace fastuidraw
     transformation(const float3x3 &m);
 
     /*!
-     * Sets the transformation matrix
-     * \param m new value for transformation matrix
-     */
-    void
-    transformation(const PainterItemMatrix &m)
-    {
-      transformation(m.m_item_matrix);
-    }
-
-    /*!
      * Concats the current transformation matrix
      * with a translation
      * \param p translation by which to translate
@@ -293,7 +283,7 @@ namespace fastuidraw
     /*!
      * Returns the value of the current transformation.
      */
-    const PainterItemMatrix&
+    const float3x3&
     transformation(void);
 
     /*!
