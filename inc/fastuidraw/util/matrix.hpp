@@ -31,23 +31,26 @@ namespace fastuidraw {
 
 /*!
  * \brief
- * A generic matrix class whose entries are packed in a form
- * suitable for API's expecting with the same convention
- * as OpenGL.
- *
- * The packing of data is
+ * A generic matrix class. The operator() is overloaded
+ * to access elements of the matrix as follows:
  * \verbatim
- * data[ 0 ] data[ N    ] data[2 * N  ]   ... data[ N * (M - 1)  ]
- * data[ 1 ] data[ N + 1] data[2 * N + 1] ... data[ N * (M - 1) + 1]
+ * matrix(0    , 0) matrix(0    , 1) matrix(0    , 2) ... matrix(0    , M - 1)
+ * matrix(1    , 0) matrix(1    , 1) matrix(1    , 2) ... matrix(1    , M - 1)
  * .
  * .
- * data[N - 1] data[2 * N - 1] data[3 * N - 1] ... data[ N * M - 1]
+ * .
+ * matrix(N - 2, 0) matrix(N - 2, 1) matrix(N - 1, 2) ... matrix(N - 2, M - 1)
+ * matrix(N - 1, 0) matrix(N - 1, 1) matrix(N - 1, 2) ... matrix(N - 1, M - 1)
  * \endverbatim
  *
- * i.e. data[row + col * N] <--> matrix(row, col),
- * with 0 <= row < N, 0 <= col < M
+ * The data is represented internally with a 1-dimensional array with the
+ * packing order
  *
- *\tparam N hieght of matrix
+ * \code
+ * matrix(row, color) <--> raw_data()[row + N * col]
+ * \endcode
+ *
+ *\tparam N height of matrix
  *\tparam M width of matrix
  *\tparam T matrix entry type
  */
@@ -147,7 +150,7 @@ public:
   raw_data(void) const { return m_data; }
 
   /*!
-   * Returns the value in the vector corresponding M[i,j]
+   * Returns the named entry of the matrix
    * \param row row(vertical coordinate) in the matrix
    * \param col column(horizontal coordinate) in the matrix
    */
@@ -160,12 +163,44 @@ public:
   }
 
   /*!
-   * Returns the value in the vector corresponding M[i,j]
+   * Returns the named entry of the matrix
    * \param row row(vertical coordinate) in the matrix
    * \param col column(horizontal coordinate) in the matrix
    */
   const T&
   operator()(unsigned int row, unsigned int col) const
+  {
+    FASTUIDRAWassert(row < N);
+    FASTUIDRAWassert(col < M);
+    return m_data[N * col + row];
+  }
+
+  /*!
+   * Returns the named entry of the matrix; provided
+   * as a conveniance to interface with systems where
+   * access of elements is column then row or to more
+   * easily access the transpose of the matrix.
+   * \param col column(horizontal coordinate) in the matrix
+   * \param row row(vertical coordinate) in the matrix
+   */
+  T&
+  col_row(unsigned int col, unsigned row)
+  {
+    FASTUIDRAWassert(row < N);
+    FASTUIDRAWassert(col < M);
+    return m_data[N * col + row];
+  }
+
+  /*!
+   * Returns the named entry of the matrix; provided
+   * as a conveniance to interface with systems where
+   * access of elements is column then row or to more
+   * easily access the transpose of the matrix.
+   * \param col column(horizontal coordinate) in the matrix
+   * \param row row(vertical coordinate) in the matrix
+   */
+  const T&
+  col_row(unsigned int col, unsigned row) const
   {
     FASTUIDRAWassert(row < N);
     FASTUIDRAWassert(col < M);
@@ -255,8 +290,8 @@ public:
    * \param matrix target matrix
    */
   template<size_t K>
-  matrixNxM<N,K, T>
-  operator*(const matrixNxM<M,K, T> &matrix) const
+  matrixNxM<N, K, T>
+  operator*(const matrixNxM<M, K, T> &matrix) const
   {
     unsigned int i,j,k;
     matrixNxM<N,K, T> out;
@@ -276,8 +311,8 @@ public:
   }
 
   /*!
-   * Multiplies the given vector with the matrix.
-   * \param in target vector
+   * Computes the value of \ref matrixNxM * \ref vecN
+   * \param in right operand of multiply
    */
   vecN<T, N>
   operator*(const vecN<T, M> &in) const
@@ -296,11 +331,10 @@ public:
     return retval;
   }
 
-
   /*!
-   * Multiplies the target matrix with the given vector
-   * \param matrix target matrix
-   * \param in target vector
+   * Computes the value of \ref vecN * \ref matrixNxM
+   * \param in left operand of multiply
+   * \param matrix right operand of multiply
    */
   friend
   vecN<T, M>
@@ -318,17 +352,13 @@ public:
       }
     return retval;
   }
-
 };
-
-
 
 /*!
  * \brief
  * Convenience typedef to matrixNxM\<2, float\>
  */
 typedef matrixNxM<2, 2, float> float2x2;
-
 
 /*!
  * \brief
@@ -383,7 +413,7 @@ public:
    * values are unitialized.
    */
   projection_params(void)
-   {}
+  {}
 
   /*!
    * Creates the projection parameters instance according to the given parameters.
