@@ -279,11 +279,12 @@ reset(void)
 
 enum fastuidraw::PainterBrush::image_filter
 fastuidraw::PainterBrush::
-best_filter_for_image(const reference_counted_ptr<const Image> &im)
+filter_for_image(const reference_counted_ptr<const Image> &im,
+                 enum image_filter f)
 {
   return im ?
-    static_cast<enum image_filter>(std::min(im->slack() + 1,
-                                            static_cast<unsigned int>(image_filter_cubic))) :
+    static_cast<enum image_filter>(t_min(im->slack() + 1,
+                                         static_cast<unsigned int>(f))) :
     image_filter_nearest;
 }
 

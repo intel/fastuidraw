@@ -295,7 +295,7 @@ namespace
       m_dimensions(w, h),
       m_num_mipmap_levels(m),
       m_type(t),
-      m_slack(~0u),
+      m_slack(0x0FFFFFFF), //use a large value that won't overflow easily
       m_num_color_tiles(-1, -1),
       m_master_index_tile(-1, -1, -1),
       m_master_index_tile_dims(-1.0f, -1.0f),

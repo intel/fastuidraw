@@ -873,13 +873,14 @@ namespace fastuidraw
                               enum image_filter f);
 
     /*!
-     * Returns the highest quality filter with which
-     * an image may be rendered.
+     * Given an image_filter, returns the highest quality filter
+     * less than or equal to it with which the image may be rendered.
      * \param im image to which to query
      */
     static
     enum image_filter
-    best_filter_for_image(const reference_counted_ptr<const Image> &im);
+    filter_for_image(const reference_counted_ptr<const Image> &im,
+                     enum image_filter f = image_filter_cubic);
 
     /*!
      * Returns the slack requirement for an image to
