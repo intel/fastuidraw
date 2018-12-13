@@ -1181,6 +1181,7 @@ namespace
     float m_coverage_text_cut_off, m_distance_text_cut_off;
     fastuidraw::Path m_rounded_corner_path;
     fastuidraw::Path m_rounded_corner_path_complement;
+    fastuidraw::Path m_square_path;
   };
 }
 
@@ -1703,6 +1704,13 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
                                    << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
                                    << fastuidraw::vec2(0.0f, 1.0f)
                                    << fastuidraw::Path::contour_close();
+
+  /* a saved path for stroking and filling rects */
+  m_square_path << fastuidraw::vec2(0.0f, 0.0f)
+                << fastuidraw::vec2(0.0f, 1.0f)
+                << fastuidraw::vec2(1.0f, 1.0f)
+                << fastuidraw::vec2(1.0f, 0.0f)
+                << fastuidraw::Path::contour_close();
 }
 
 bool
@@ -3172,10 +3180,23 @@ fill_rect(const PainterFillShader &shader,
           const PainterData &draw, const vec2 &p, const vec2 &wh,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  fill_quad(shader, draw,
-            p, p + vec2(0.0f, wh.y()),
-            p + wh, p + vec2(wh.x(), 0.0f),
-            anti_alias_quality);
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter */
+      return;
+    }
+
+  const FilledPath &filled_path(*d->m_square_path.tessellation()->filled());
+
+  save();
+  translate(p);
+  shear(wh.x(), wh.y());
+  fill_path(shader, draw, filled_path,
+            odd_even_fill_rule, anti_alias_quality);
+  restore();
 }
 
 void
