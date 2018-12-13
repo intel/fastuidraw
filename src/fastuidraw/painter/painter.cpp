@@ -1085,6 +1085,13 @@ namespace
                                     FillSubsetWorkRoom &workroom,
                                     OpaqueFillWorkRoom *output);
 
+    void
+    ready_non_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts);
+
+    void
+    ready_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts,
+                             enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality);
+
     int
     fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
@@ -2848,37 +2855,38 @@ fill_path(const fastuidraw::PainterFillShader &shader,
   m_current_z += m_work_room.m_fill_aa_fuzz.m_total_increment_z;
 }
 
-int
+void
 PainterPrivate::
-fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
-                    const fastuidraw::PainterData &draw,
-                    fastuidraw::c_array<const fastuidraw::vec2> pts,
-                    enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-                    int z,
-                    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+ready_non_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts)
 {
   using namespace fastuidraw;
 
-  if (pts.size() < 3 || m_clip_rect_state.m_all_content_culled)
+  m_work_room.m_polygon.m_attribs.resize(pts.size());
+  for(unsigned int i = 0; i < pts.size(); ++i)
     {
-      return 0;
+      m_work_room.m_polygon.m_attribs[i].m_attrib0 = pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      m_work_room.m_polygon.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
+      m_work_room.m_polygon.m_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
     }
 
-  if (!m_core->hints().clipping_via_hw_clip_planes())
+  m_work_room.m_polygon.m_indices.clear();
+  m_work_room.m_polygon.m_indices.reserve((pts.size() - 2) * 3);
+  for(unsigned int i = 2; i < pts.size(); ++i)
     {
-      m_clip_rect_state.clip_polygon(pts, m_work_room.m_polygon.m_pts,
-                                     m_work_room.m_clipper.m_vec2s[0]);
-      pts = make_c_array(m_work_room.m_polygon.m_pts);
-      if (pts.size() < 3)
-        {
-          return 0;
-        }
+      m_work_room.m_polygon.m_indices.push_back(0);
+      m_work_room.m_polygon.m_indices.push_back(i - 1);
+      m_work_room.m_polygon.m_indices.push_back(i);
     }
+}
+
+void
+PainterPrivate::
+ready_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts,
+                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality)
+{
+  using namespace fastuidraw;
 
   m_work_room.m_polygon.m_fuzz_increment_z = 0;
-  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support(),
-                                                 shader.fastest_anti_alias_mode());
   if (anti_alias_quality != Painter::shader_anti_alias_none)
     {
       int mult;
@@ -2952,23 +2960,40 @@ fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
           m_work_room.m_polygon.m_fuzz_increment_z = 1u;
         }
     }
+}
 
-  m_work_room.m_polygon.m_attribs.resize(pts.size());
-  for(unsigned int i = 0; i < pts.size(); ++i)
+int
+PainterPrivate::
+fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
+                    const fastuidraw::PainterData &draw,
+                    fastuidraw::c_array<const fastuidraw::vec2> pts,
+                    enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                    int z,
+                    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  using namespace fastuidraw;
+
+  if (pts.size() < 3 || m_clip_rect_state.m_all_content_culled)
     {
-      m_work_room.m_polygon.m_attribs[i].m_attrib0 = pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
-      m_work_room.m_polygon.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
-      m_work_room.m_polygon.m_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
+      return 0;
     }
 
-  m_work_room.m_polygon.m_indices.clear();
-  m_work_room.m_polygon.m_indices.reserve((pts.size() - 2) * 3);
-  for(unsigned int i = 2; i < pts.size(); ++i)
+  if (!m_core->hints().clipping_via_hw_clip_planes())
     {
-      m_work_room.m_polygon.m_indices.push_back(0);
-      m_work_room.m_polygon.m_indices.push_back(i - 1);
-      m_work_room.m_polygon.m_indices.push_back(i);
+      m_clip_rect_state.clip_polygon(pts, m_work_room.m_polygon.m_pts,
+                                     m_work_room.m_clipper.m_vec2s[0]);
+      pts = make_c_array(m_work_room.m_polygon.m_pts);
+      if (pts.size() < 3)
+        {
+          return 0;
+        }
     }
+
+  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
+  ready_aa_polygon_attribs(pts, anti_alias_quality);
+  ready_non_aa_polygon_attribs(pts);
 
   draw_generic(shader.item_shader(), draw,
                make_c_array(m_work_room.m_polygon.m_attribs),
@@ -4311,6 +4336,40 @@ clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
+}
+
+void
+fastuidraw::Painter::
+clip_out_rect(vec2 p, vec2 wh)
+{
+  vecN<vec2, 4> pts;
+
+  pts[0] = p;
+  pts[1] = p + vec2(wh.x(), 0.0f);
+  pts[2] = p + wh;
+  pts[3] = p + vec2(0.0f, wh.y());
+  clip_out_convex_polygon(pts);
+}
+
+void
+fastuidraw::Painter::
+clip_out_convex_polygon(c_array<const vec2> poly)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter
+       */
+      return;
+    }
+
+  d->ready_non_aa_polygon_attribs(poly);
+  clip_out_custom(default_shaders().fill_shader().item_shader(),
+                  PainterData::value<PainterItemShaderData>(),
+                  make_c_array(d->m_work_room.m_polygon.m_attribs),
+                  make_c_array(d->m_work_room.m_polygon.m_indices));
 }
 
 void

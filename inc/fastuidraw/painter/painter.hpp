@@ -426,6 +426,21 @@ namespace fastuidraw
     clip_in_path(const FilledPath &path, const CustomFillRuleBase &fill_rule);
 
     /*!
+     * Clipout by a rect
+     * \param p min-corner of rect
+     * \param wh width and height of rect
+     */
+    void
+    clip_out_rect(vec2 p, vec2 wh);
+
+    /*!
+     * Clipout by a convex polygon
+     * \param poly points of the convex polygon
+     */
+    void
+    clip_out_convex_polygon(c_array<const vec2> poly);
+
+    /*!
      * Clipout by custom data.
      * \param shader shader with which to draw the attribute/index data
      * \param shader_data shader data to pass to shader
@@ -480,7 +495,7 @@ namespace fastuidraw
                     const PainterData::value<PainterItemShaderData> &shader_data,
                     c_array<const PainterAttribute> attrib_chunk,
                     c_array<const PainterIndex> index_chunk,
-                    int index_adjust)
+                    int index_adjust = 0)
     {
       vecN<c_array<const PainterAttribute>, 1> aa(attrib_chunk);
       vecN<c_array<const PainterIndex>, 1> ii(index_chunk);
