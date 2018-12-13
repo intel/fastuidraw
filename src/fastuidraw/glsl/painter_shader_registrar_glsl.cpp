@@ -629,20 +629,20 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   }
 
   {
-    /* Matrics in GLSL are [column][row], that is why
-     * one sees the transposing to the loads
+    /* Matrics in GLSL are [column][row], that is why we use the
+     * matrix_colX_rowY_offset enums
      */
     shader_unpack_value_set<PainterItemMatrix::matrix_data_size> labels;
     labels
-      .set(PainterItemMatrix::matrix00_offset, "[0][0]")
-      .set(PainterItemMatrix::matrix10_offset, "[0][1]")
-      .set(PainterItemMatrix::matrix20_offset, "[0][2]")
-      .set(PainterItemMatrix::matrix01_offset, "[1][0]")
-      .set(PainterItemMatrix::matrix11_offset, "[1][1]")
-      .set(PainterItemMatrix::matrix21_offset, "[1][2]")
-      .set(PainterItemMatrix::matrix02_offset, "[2][0]")
-      .set(PainterItemMatrix::matrix12_offset, "[2][1]")
-      .set(PainterItemMatrix::matrix22_offset, "[2][2]")
+      .set(PainterItemMatrix::matrix_col0_row0_offset, "[0][0]")
+      .set(PainterItemMatrix::matrix_col0_row1_offset, "[0][1]")
+      .set(PainterItemMatrix::matrix_col0_row2_offset, "[0][2]")
+      .set(PainterItemMatrix::matrix_col1_row0_offset, "[1][0]")
+      .set(PainterItemMatrix::matrix_col1_row1_offset, "[1][1]")
+      .set(PainterItemMatrix::matrix_col1_row2_offset, "[1][2]")
+      .set(PainterItemMatrix::matrix_col2_row0_offset, "[2][0]")
+      .set(PainterItemMatrix::matrix_col2_row1_offset, "[2][1]")
+      .set(PainterItemMatrix::matrix_col2_row2_offset, "[2][2]")
       .stream_unpack_function(str, "fastuidraw_read_item_matrix", "mat3", false);
   }
 

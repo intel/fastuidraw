@@ -24,15 +24,15 @@ void
 fastuidraw::PainterItemMatrix::
 pack_data(c_array<generic_data> dst) const
 {
-  dst[matrix00_offset].f = m_item_matrix(0, 0);
-  dst[matrix01_offset].f = m_item_matrix(0, 1);
-  dst[matrix02_offset].f = m_item_matrix(0, 2);
+  dst[matrix_row0_col0_offset].f = m_item_matrix(0, 0);
+  dst[matrix_row0_col1_offset].f = m_item_matrix(0, 1);
+  dst[matrix_row0_col2_offset].f = m_item_matrix(0, 2);
 
-  dst[matrix10_offset].f = m_item_matrix(1, 0);
-  dst[matrix11_offset].f = m_item_matrix(1, 1);
-  dst[matrix12_offset].f = m_item_matrix(1, 2);
+  dst[matrix_row1_col0_offset].f = m_item_matrix(1, 0);
+  dst[matrix_row1_col1_offset].f = m_item_matrix(1, 1);
+  dst[matrix_row1_col2_offset].f = m_item_matrix(1, 2);
 
-  dst[matrix20_offset].f = m_item_matrix(2, 0);
-  dst[matrix21_offset].f = m_item_matrix(2, 1);
-  dst[matrix22_offset].f = m_item_matrix(2, 2);
+  dst[matrix_row2_col0_offset].f = m_item_matrix(2, 0);
+  dst[matrix_row2_col1_offset].f = m_item_matrix(2, 1);
+  dst[matrix_row2_col2_offset].f = m_item_matrix(2, 2);
 }
