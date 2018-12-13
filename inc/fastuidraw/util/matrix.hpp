@@ -612,11 +612,33 @@ public:
     this->operator()(2, 0) = T(0);
 
     this->operator()(0, 1) = T(0);
-    this->operator()(1, 1) = T(2)/(P.m_top - P.m_bottom);
+    this->operator()(1, 1) = T(2) / (P.m_top - P.m_bottom);
     this->operator()(2, 1) = T(0);
 
     this->operator()(0, 2) = (P.m_right + P.m_left) / (P.m_left - P.m_right);
     this->operator()(1, 2) = (P.m_top + P.m_bottom) / (P.m_bottom - P.m_top);
+    this->operator()(2, 2) = T(1);
+  }
+
+  /*!
+   * Sets the matrix variables to correspond the inverse to an
+   * orthogonal projection matrix determined by the given projection
+   * parameters.
+   * \param P orthogonal projection parameters for this matrix
+   */
+  void
+  inverse_orthogonal_projection_matrix(const orthogonal_projection_params<T> &P)
+  {
+    this->operator()(0, 0) = (P.m_right - P.m_left) / T(2);
+    this->operator()(1, 0) = T(0);
+    this->operator()(2, 0) = T(0);
+
+    this->operator()(0, 1) = T(0);
+    this->operator()(1, 1) = (P.m_top - P.m_bottom) / T(2);
+    this->operator()(2, 1) = T(0);
+
+    this->operator()(0, 2) = (P.m_right + P.m_left) / T(2);
+    this->operator()(1, 2) = (P.m_top + P.m_bottom) / T(2);
     this->operator()(2, 2) = T(1);
   }
 
