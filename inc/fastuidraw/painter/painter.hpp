@@ -725,7 +725,7 @@ namespace fastuidraw
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
@@ -740,7 +740,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -755,7 +755,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -774,7 +774,7 @@ namespace fastuidraw
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
@@ -789,7 +789,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -804,7 +804,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -812,6 +812,71 @@ namespace fastuidraw
                        const StrokingStyle &stroke_style = StrokingStyle(),
                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
                        enum stroking_method_t stroking_method = stroking_method_auto);
+
+    /*!
+     * Stroke a strip of lines.
+     * \param shader shader with which to stroke the attribute data
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_line_strip(const PainterStrokeShader &shader, const PainterData &draw,
+                      c_array<const vec2> line_strip,
+                      const StrokingStyle &stroke_style = StrokingStyle(),
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
+
+    /*!
+     * Stroke a strip of lines using PainterShaderSet::stroke_shader() of default_shaders().
+     * \param shader shader with which to stroke the attribute data
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_line_strip(const PainterData &draw,
+                      c_array<const vec2> line_strip,
+                      const StrokingStyle &stroke_style = StrokingStyle(),
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
+
+    /*!
+     * Stroke a strip of lines dashed.
+     * \param shader shader with which to stroke the attribute data
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_dashed_line_strip(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
+                             c_array<const vec2> line_strip,
+                             const StrokingStyle &stroke_style = StrokingStyle(),
+                             enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
+
+    /*!
+     * Stroke a strip of lines dashed using PainterShaderSet::dashed_stroke_shader()
+     * of default_shaders().
+     * \param shader shader with which to stroke the attribute data
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_dashed_line_strip(const PainterData &draw,
+                             c_array<const vec2> line_strip,
+                             const StrokingStyle &stroke_style = StrokingStyle(),
+                             enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Fill a path.

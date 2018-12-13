@@ -1031,6 +1031,15 @@ namespace
                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     void
+    stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
+                       const fastuidraw::PainterData &draw,
+                       fastuidraw::c_array<const fastuidraw::vec2> pts,
+                       enum fastuidraw::Painter::cap_style cp,
+                       enum fastuidraw::Painter::join_style js,
+                       enum fastuidraw::Painter::shader_anti_alias_t anti_alias,
+                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+
+    void
     pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
                              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                              const FillSubsetWorkRoom &fill_subset,
@@ -1124,6 +1133,16 @@ namespace
     float
     compute_magnification(const fastuidraw::vec2 &pmin,
 			  const fastuidraw::vec2 &pmax);
+
+    float
+    compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> poly);
+
+    float
+    compute_magnification_at_point(fastuidraw::vec2 p)
+    {
+      fastuidraw::c_array<const fastuidraw::vec2> poly(&p, 1);
+      return compute_max_magnification_at_points(poly);
+    }
 
     float
     compute_magnification(const fastuidraw::Path &path);
@@ -1773,18 +1792,7 @@ PainterPrivate::
 compute_magnification(const fastuidraw::vec2 &bb_min,
 		      const fastuidraw::vec2 &bb_max)
 {
-  using namespace fastuidraw;
-
-  float op_norm;
-  const float3x3 &m(m_clip_rect_state.item_matrix());
   unsigned int src;
-
-  op_norm = m_clip_rect_state.item_matrix_operator_norm();
-
-  if (!matrix_has_perspective(m))
-    {
-      return op_norm / fastuidraw::t_abs(m(2, 2));
-    }
 
   /* clip the bounding box given by bb_min, bb_max */
   m_work_room.m_clipper.m_vec2s[0].resize(4);
@@ -1793,15 +1801,34 @@ compute_magnification(const fastuidraw::vec2 &bb_min,
   m_work_room.m_clipper.m_vec2s[0][2] = bb_max;
   m_work_room.m_clipper.m_vec2s[0][3] = fastuidraw::vec2(bb_max.x(), bb_min.y());
 
-  src = m_clip_store.clip_against_current(m, m_work_room.m_clipper.m_vec2s);
+  src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
+                                          m_work_room.m_clipper.m_vec2s);
 
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = make_c_array(m_work_room.m_clipper.m_vec2s[src]);
+
+  return compute_max_magnification_at_points(poly);
+}
+
+float
+PainterPrivate::
+compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> poly)
+{
+  using namespace fastuidraw;
 
   if (poly.empty())
     {
       /* bounding box is completely clipped */
       return -1.0f;
+    }
+
+  float op_norm;
+  const float3x3 &m(m_clip_rect_state.item_matrix());
+
+  op_norm = m_clip_rect_state.item_matrix_operator_norm();
+  if (!matrix_has_perspective(m))
+    {
+      return op_norm / t_abs(m(2, 2));
     }
 
   /* To figure out the magnification, we need to maximize
@@ -2240,6 +2267,76 @@ draw_generic_z_layered(fastuidraw::c_array<const ConstItemShaderRefPtr> shaders,
                    fastuidraw::c_array<const unsigned int>(),
                    z, call_back);
     }
+}
+
+void
+PainterPrivate::
+stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
+                   const fastuidraw::PainterData &draw,
+                   fastuidraw::c_array<const fastuidraw::vec2> line_strip,
+                   enum fastuidraw::Painter::cap_style cp,
+                   enum fastuidraw::Painter::join_style js,
+                   enum fastuidraw::Painter::shader_anti_alias_t anti_alias,
+                   const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  using namespace fastuidraw;
+
+  if (m_clip_rect_state.m_all_content_culled || line_strip.empty())
+    {
+      return;
+    }
+
+  Path path;
+  float thresh(-1.0f);
+
+  if (line_strip.size() < 2)
+    {
+      js = fastuidraw::Painter::no_joins;
+    }
+
+  /* TODO: creating a temporary path makes unnecessary memory
+   * allocation/deallocation noise; instead we should compute
+   * the attribute data directly and feed it directly to
+   * stroke_path_raw().
+   */
+  for (const vec2 &pt : line_strip)
+    {
+      path << pt;
+    }
+
+  if (cp == Painter::rounded_caps || js == Painter::bevel_joins)
+    {
+      const PainterShaderData::DataBase *shader_data;
+      float mag;
+
+      if (js == Painter::bevel_joins)
+        {
+          c_array<const vec2> tmp(line_strip);
+          tmp.pop_front();
+          tmp.pop_back();
+          mag = compute_max_magnification_at_points(tmp);
+        }
+      else
+        {
+          mag = -1.0f;
+        }
+
+      if (cp == Painter::rounded_caps)
+        {
+          mag = t_max(mag, compute_magnification_at_point(line_strip.front()));
+          mag = t_max(mag, compute_magnification_at_point(line_strip.back()));
+        }
+
+      if (mag > 0.0f)
+        {
+          shader_data = draw.m_item_shader_data.data().data_base();
+          thresh = shader.stroking_data_selector()->compute_thresh(shader_data, mag, m_curve_flatness);
+        }
+    }
+
+  stroke_path_common(shader, draw,
+                     *path.tessellation(-1.0f)->stroked(), thresh,
+                     cp, js, anti_alias, call_back);
 }
 
 void
@@ -3537,6 +3634,68 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
 {
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
                      stroke_style, anti_alias_quality, stroking_method);
+}
+
+void
+fastuidraw::Painter::
+stroke_line_strip(const PainterStrokeShader &shader, const PainterData &draw,
+                  c_array<const vec2> line_strip,
+                  const StrokingStyle &stroke_style,
+                  enum shader_anti_alias_t anti_alias_quality)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
+  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
+  d->stroke_path_common(shader, draw, line_strip,
+                        stroke_style.m_cap_style,
+                        stroke_style.m_join_style,
+                        anti_alias_quality,
+                        nullptr);
+}
+
+void
+fastuidraw::Painter::
+stroke_line_strip(const PainterData &draw,
+                  c_array<const vec2> line_strip,
+                  const StrokingStyle &stroke_style,
+                  enum shader_anti_alias_t anti_alias_quality)
+{
+  stroke_line_strip(default_shaders().stroke_shader(), draw,
+                    line_strip, stroke_style, anti_alias_quality);
+}
+
+void
+fastuidraw::Painter::
+stroke_dashed_line_strip(const PainterDashedStrokeShaderSet &shader,
+                         const PainterData &draw,
+                         c_array<const vec2> line_strip,
+                         const StrokingStyle &stroke_style,
+                         enum shader_anti_alias_t anti_alias_quality)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
+  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
+  d->stroke_path_common(shader.shader(stroke_style.m_cap_style),
+                        draw, line_strip,
+                        stroke_style.m_cap_style,
+                        stroke_style.m_join_style,
+                        anti_alias_quality,
+                        nullptr);
+}
+
+void
+fastuidraw::Painter::
+stroke_dashed_line_strip(const PainterData &draw,
+                         c_array<const vec2> line_strip,
+                         const StrokingStyle &stroke_style,
+                         enum shader_anti_alias_t anti_alias_quality)
+{
+  stroke_dashed_line_strip(default_shaders().dashed_stroke_shader(), draw,
+                           line_strip, stroke_style, anti_alias_quality);
 }
 
 void
