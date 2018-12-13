@@ -1,23 +1,15 @@
 TODO.
 
- 1. The C++-code generated shader(s) for computing dash pattern inclusiveness
-    can be improved.
+ 1. The shader code for computing dash pattern inclusiveness can be improved.
+    The shader does a simple linear search. It would be better to do a
+    hierarchical search, the issue is to make it nice packing for 4 x 32-bit
+    wide elements of the data store.
 
-     A. The shaders do a simple linear search. It would be better to do a
-        divide-and-conquer search that notes the alignment. Specifically,
-        if alignment is 1, the search is a binary search. If the alignment
-        is N, then there are (N+1) segments at each level of the search.
-        The idea is that since N-values are read at a time, to make the
-        next iteration of the search do the right thing. Doing this also
-        requires that how we pack data is also changed so that the search
-        at each level (each level realized as an iteration in a loop),
-        has that the next location to read is easy to compute from the
-        previous level and hopefully to be more cache-line friendly.
-        Worth nothing however, is that for dash patterns that are not
-        big in size, that the current linear search is ok (for example
-        if dash-pattern is just 4 or 8 elements under alignment 4).
+ 2. It is potentially dubious to use texture lookup always for colorstops.
+    The issue is that hard color stops are not representable exaclty with
+    texture lookup.
 
- 3. Add arc methods that are same as that ofW3C canvase:
+ 3. Add arc methods that are same as that of W3C canvas:
     - Add ctor for PathContour::arc(vec2 center, float radius,
                                     float startAngle, float endAngle,
                                     bool counterclockwise)
@@ -37,11 +29,22 @@ TODO.
        point to the start of A, then A, and then from
        end point of A to pt2.
 
- 4. An interface to perform text layout. Currently an application needs to do
+ 4. Add ellipse methods to Path. We need to consider carefully
+    the best way to approximate ellipses with arcs of a circle.
+    We cannot take the line of deforming an arc to an ellipse
+    because the stroking radius cannot be deformed.
+
+ 5. Add method to stroke RoundedRect that would not reconstruct
+    a new path each time.
+
+ 6. Add methods to fill-and-stroke to Painter where the fill
+    obscures the stroke.
+
+ 7. An interface to perform text layout. Currently an application needs to do
     this by itself, the example code being in demos/common/text_helper.[ch]pp.
     Likely the best solution is a seperate library that integrates Harfbuzz.
 
- 5. Consider implementing multi-channel distance field as seen in
+ 8. Consider implementing multi-channel distance field as seen in
     https://github.com/Chlumsky/msdfgen. The thesis on it is at
     https://dspace.cvut.cz/bitstream/handle/10467/62770/F8-DP-2015-Chlumsky-Viktor-thesis.pdf;
     an article is also avalaible at https://onlinelibrary.wiley.com/doi/abs/10.1111/cgf.13265.
@@ -49,23 +52,23 @@ TODO.
     to the L1-metric (which makes distance computation fast) and that
     may have additional ramitifications in general.
 
- 6. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 9. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
             b) glslang from Khronos at https://github.com/KhronosGroup/glslang
 
- 7. Fix filename and type name values. The naming scheme of files vs
+10. Fix filename and type name values. The naming scheme of files vs
     objects is bad. Files are all named underscore_style, where as classes
     are named PascalCaseStyle. Should make this consistent. Also, a number
     of base classes are defined in files without the _base suffix, for example
     FontBase is defined in font.hpp.
 
- 8. GlyphSelector is a -very- poor man's method of selecting glyphs and
+11. GlyphSelector is a -very- poor man's method of selecting glyphs and
     performing font merging. It can be argued that it has no real place
     in FastUIDraw since FastUIDraw is just for drawing.
 
- 9. Proper GL classes dtor'ing is needed. A number of dtor's in the
+12. Proper GL classes dtor'ing is needed. A number of dtor's in the
     gl_backend need a GL context to operate. However, these objects
     are reference counted and thus their dtors can happen outside of
     the GL context that created them being current. The way out is to
