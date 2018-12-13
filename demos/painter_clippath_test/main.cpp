@@ -63,7 +63,7 @@ private:
 
   enum
     {
-      draw_rounded_rect,
+      fill_rounded_rect,
       rounded_rect_clips,
 
       number_rounded_rect_modes
@@ -165,7 +165,7 @@ painter_clip_test():
   m_path1_clip_mode(no_clip),
   m_path2_clip_mode(no_clip),
   m_combine_clip_mode(separate_clipping),
-  m_rounded_rect_mode(draw_rounded_rect),
+  m_rounded_rect_mode(fill_rounded_rect),
   m_active_transformer(view_transformer),
   m_aa_mode(by_anti_alias_auto)
 {
@@ -194,7 +194,7 @@ painter_clip_test():
   m_combine_clip_labels[path1_then_path2] = "path1_then_path2";
   m_combine_clip_labels[path2_then_path1] = "path2_then_path1";
 
-  m_rounded_rect_mode_labels[draw_rounded_rect] = "draw_rounded_rect";
+  m_rounded_rect_mode_labels[fill_rounded_rect] = "fill_rounded_rect";
   m_rounded_rect_mode_labels[rounded_rect_clips] = "rounded_rect_clips";
 
   m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
@@ -420,7 +420,7 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
   p1 = path.tessellation()->bounding_box_max();
   sz = p1 - p0;
 
-  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->fill_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
 
   m_painter->restore();
 }
@@ -471,7 +471,7 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &mat
   p1 = path1.tessellation()->bounding_box_max();
   sz = p1 - p0;
 
-  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->fill_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
   m_painter->restore();
 }
 
@@ -487,11 +487,11 @@ draw_frame(void)
   m_transformers[rect_transformer].concat_to_painter(m_painter);
   switch(m_rounded_rect_mode)
     {
-    case draw_rounded_rect:
+    case fill_rounded_rect:
       {
         PainterBrush brush;
         brush.pen(vec4(1.0f, 1.0f, 0.0f, 1.0f));
-        m_painter->draw_rounded_rect(m_painter->default_shaders().fill_shader(),
+        m_painter->fill_rounded_rect(m_painter->default_shaders().fill_shader(),
                                      PainterData(&brush), m_rect,
                                      m_shader_anti_alias_mode_values[m_aa_mode]);
       }

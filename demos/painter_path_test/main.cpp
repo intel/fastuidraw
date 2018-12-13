@@ -425,7 +425,7 @@ private:
   }
 
   void
-  draw_rect(const vec2 &pt, float r, const PainterData &d);
+  fill_rect(const vec2 &pt, float r, const PainterData &d);
 
   void
   draw_scene(bool drawing_wire_frame);
@@ -1024,9 +1024,9 @@ update_cts_params(void)
 
 void
 painter_stroke_test::
-draw_rect(const vec2 &pt, float r, const PainterData &draw)
+fill_rect(const vec2 &pt, float r, const PainterData &draw)
 {
-  m_painter->draw_rect(draw,
+  m_painter->fill_rect(draw,
                        pt - 0.5f * vec2(r, r),
                        vec2(r, r),
                        m_shader_anti_alias_mode_values[m_aa_fill_mode]);
@@ -1794,7 +1794,7 @@ draw_scene(bool drawing_wire_frame)
           path().approximate_bounding_box(&a, &b);
           m_painter->save();
           m_painter->clip_in_path(path(), *fill_rule);
-          m_painter->draw_rect(D, a, b - a);
+          m_painter->fill_rect(D, a, b - a);
           m_painter->restore();
         }
       else
@@ -1821,17 +1821,17 @@ draw_scene(bool drawing_wire_frame)
 
       for (const vec2 &pt : m_paths[m_selected_path].m_pts)
         {
-          draw_rect(pt, r, PainterData(m_blue_pen));
+          fill_rect(pt, r, PainterData(m_blue_pen));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_ctl_pts)
         {
-          draw_rect(pt, r, PainterData(m_red_pen));
+          fill_rect(pt, r, PainterData(m_red_pen));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_arc_center_pts)
         {
-          draw_rect(pt, r, PainterData(m_green_pen));
+          fill_rect(pt, r, PainterData(m_green_pen));
         }
     }
 
@@ -1948,11 +1948,11 @@ draw_scene(bool drawing_wire_frame)
           m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
 
-      draw_rect(p0, r1, PainterData(m_black_pen));
-      draw_rect(p0, r0, PainterData(m_white_pen));
+      fill_rect(p0, r1, PainterData(m_black_pen));
+      fill_rect(p0, r0, PainterData(m_white_pen));
 
-      draw_rect(p1, r1, PainterData(m_white_pen));
-      draw_rect(p1, r0, PainterData(m_black_pen));
+      fill_rect(p1, r1, PainterData(m_white_pen));
+      fill_rect(p1, r0, PainterData(m_black_pen));
     }
 }
 

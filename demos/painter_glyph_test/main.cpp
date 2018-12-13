@@ -1065,17 +1065,17 @@ draw_glyphs(float us)
               r = vec2(rad, rad);
               for (const vec2 &pt : pts)
                 {
-                  m_painter->draw_rect(PainterData(pbrs[2]), pt - r, 2.0f * r);
+                  m_painter->fill_rect(PainterData(pbrs[2]), pt - r, 2.0f * r);
                 }
 
               for (const vec2 &pt : ctl_pts)
                 {
-                  m_painter->draw_rect(PainterData(pbrs[0]), pt - r, 2.0f * r);
+                  m_painter->fill_rect(PainterData(pbrs[0]), pt - r, 2.0f * r);
                 }
 
               for (const vec2 &pt : arc_center_pts)
                 {
-                  m_painter->draw_rect(PainterData(pbrs[1]), pt - r, 2.0f * r);
+                  m_painter->fill_rect(PainterData(pbrs[1]), pt - r, 2.0f * r);
                 }
 
               m_painter->restore();
@@ -1097,7 +1097,7 @@ draw_glyphs(float us)
 
       p = item_coordinates(mouse_position);
       brush.pen(1.0f, 1.0f, 0.0f, 0.3f);
-      m_painter->draw_rect(PainterData(&brush), p, vec2(m_restricted_rays_box_slack));
+      m_painter->fill_rect(PainterData(&brush), p, vec2(m_restricted_rays_box_slack));
     }
 
   if (m_draw_stats)
@@ -1217,7 +1217,7 @@ draw_glyphs(float us)
           PainterBrush brush;
 
           brush.pen(1.0f, 0.0f, 0.0f, 0.3f);
-          m_painter->draw_rect(PainterData(&brush), glyph_bb.min_point(), glyph_bb.size());
+          m_painter->fill_rect(PainterData(&brush), glyph_bb.min_point(), glyph_bb.size());
         }
       else
         {

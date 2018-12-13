@@ -134,7 +134,7 @@ Cell::
 paint_pre_children(const reference_counted_ptr<Painter> &painter)
 {
   painter->save();
-  painter->draw_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f),
+  painter->fill_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f),
                      m_dimensions, Painter::shader_anti_alias_none);
 
   painter->translate(m_item_location);
@@ -155,7 +155,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
       painter->translate(-wh * 0.5f);
       painter->composite_shader(m_shared_state->m_rect_composite_mode);
       painter->blend_shader(m_shared_state->m_rect_blend_mode);
-      painter->draw_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh,
+      painter->fill_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh,
                          Painter::shader_anti_alias_none);
       painter->restore();
     }

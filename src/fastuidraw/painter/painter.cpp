@@ -1077,7 +1077,7 @@ namespace
                                     OpaqueFillWorkRoom *output);
 
     int
-    draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
+    fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
@@ -1085,17 +1085,17 @@ namespace
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     int
-    draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
+    fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
     {
-      return draw_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z, call_back);
+      return fill_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z, call_back);
     }
 
     int
-    draw_rect(const fastuidraw::PainterFillShader &shader,
+    fill_rect(const fastuidraw::PainterFillShader &shader,
               const fastuidraw::PainterData &draw,
               const fastuidraw::vec2 &p, const fastuidraw::vec2 &wh,
               enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
@@ -1108,7 +1108,7 @@ namespace
       pts[1] = p + fastuidraw::vec2(wh.x(), 0.0f);
       pts[2] = p + fastuidraw::vec2(wh.x(), wh.y());
       pts[3] = p + fastuidraw::vec2(0.0f, wh.y());
-      return draw_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
+      return fill_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
     }
 
     void
@@ -2745,7 +2745,7 @@ fill_path(const fastuidraw::PainterFillShader &shader,
 
 int
 PainterPrivate::
-draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
+fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                     const fastuidraw::PainterData &draw,
                     fastuidraw::c_array<const fastuidraw::vec2> pts,
                     enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
@@ -2938,7 +2938,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
       /* the 4 points of the polygon are then
        * (a, -1), (c, -1), (d, 1), (b, 1).
        */
-      draw_convex_polygon(shader, draw,
+      fill_convex_polygon(shader, draw,
                           vecN<vec2, 4>(vec2(a, -1.0f),
                                         vec2(c, -1.0f),
                                         vec2(d, +1.0f),
@@ -2963,7 +2963,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
           d = t_max(1.0f, b);
         }
 
-      draw_convex_polygon(shader, draw,
+      fill_convex_polygon(shader, draw,
                           vecN<vec2, 4>(vec2(-1.0f, a),
                                         vec2(-1.0f, c),
                                         vec2(+1.0f, d),
@@ -2976,7 +2976,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
     {
       /* complement of half plane covers entire [-1,1]x[-1,1]
        */
-      draw_convex_polygon(shader, draw,
+      fill_convex_polygon(shader, draw,
                           vecN<vec2, 4>(vec2(-1.0f, -1.0f),
                                         vec2(-1.0f, +1.0f),
                                         vec2(+1.0f, +1.0f),
@@ -3125,26 +3125,26 @@ queue_action(const reference_counted_ptr<const PainterDraw::Action> &action)
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const PainterFillShader &shader,
+fill_convex_polygon(const PainterFillShader &shader,
                     const PainterData &draw, c_array<const vec2> pts,
                     enum shader_anti_alias_t anti_alias_quality)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_current_z += d->draw_convex_polygon(shader, draw, pts, anti_alias_quality, nullptr);
+  d->m_current_z += d->fill_convex_polygon(shader, draw, pts, anti_alias_quality, nullptr);
 }
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
+fill_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
                     enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_convex_polygon(default_shaders().fill_shader(), draw, pts, anti_alias_quality);
+  fill_convex_polygon(default_shaders().fill_shader(), draw, pts, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const PainterFillShader &shader, const PainterData &draw,
+fill_quad(const PainterFillShader &shader, const PainterData &draw,
           const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           enum shader_anti_alias_t anti_alias_quality)
 {
@@ -3153,26 +3153,26 @@ draw_quad(const PainterFillShader &shader, const PainterData &draw,
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(shader, draw, pts, anti_alias_quality);
+  fill_convex_polygon(shader, draw, pts, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const PainterData &draw,
+fill_quad(const PainterData &draw,
           const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3,
+  fill_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3,
             anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_rect(const PainterFillShader &shader,
+fill_rect(const PainterFillShader &shader,
           const PainterData &draw, const vec2 &p, const vec2 &wh,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_quad(shader, draw,
+  fill_quad(shader, draw,
             p, p + vec2(0.0f, wh.y()),
             p + wh, p + vec2(wh.x(), 0.0f),
             anti_alias_quality);
@@ -3180,16 +3180,16 @@ draw_rect(const PainterFillShader &shader,
 
 void
 fastuidraw::Painter::
-draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+fill_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_rect(default_shaders().fill_shader(), draw, p, wh,
+  fill_rect(default_shaders().fill_shader(), draw, p, wh,
             anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
+fill_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
                   const RoundedRect &R,
                   enum shader_anti_alias_t anti_alias_quality)
 {
@@ -3280,16 +3280,16 @@ draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
     }
 
   /* Draw interior of rect (which is 3 rects) */
-  d->draw_rect(shader, draw,
+  d->fill_rect(shader, draw,
                R.m_min_point + vec2(R.m_min_corner_radii.x(), 0.0f),
                R.m_max_point - R.m_min_point - vec2(R.m_max_corner_radii.x() + R.m_min_corner_radii.x(), 0.0f),
                Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
-  d->draw_rect(shader, draw,
+  d->fill_rect(shader, draw,
                R.m_min_point + vec2(0.0f, R.m_min_corner_radii.y()),
                vec2(R.m_min_corner_radii.x(),
                     R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
                Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
-  d->draw_rect(shader, draw,
+  d->fill_rect(shader, draw,
                vec2(R.m_max_point.x() - R.m_max_corner_radii.x(),
                     R.m_min_point.y() + R.m_min_corner_radii.y()),
                vec2(R.m_max_corner_radii.x(),
@@ -3349,6 +3349,14 @@ draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
         }
     }
   d->m_current_z += total_incr_z;
+}
+
+void
+fastuidraw::Painter::
+fill_rounded_rect(const PainterData &draw, const RoundedRect &R,
+                  enum shader_anti_alias_t anti_alias_quality)
+{
+  fill_rounded_rect(default_shaders().fill_shader(), draw, R, anti_alias_quality);
 }
 
 float
