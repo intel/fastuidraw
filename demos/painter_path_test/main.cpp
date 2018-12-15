@@ -1483,8 +1483,7 @@ construct_paths(int w, int h)
            << vec2(150.0f, 325.0f)
            << vec2(150.0f, 100.0f)
            << Path::contour_close()
-           << vec2(300.0f, 300.0f)
-           << Path::contour_close();
+           << vec2(300.0f, 300.0f);
       m_paths.push_back(PerPath(path, "Default Path", w, h, false));
     }
 
