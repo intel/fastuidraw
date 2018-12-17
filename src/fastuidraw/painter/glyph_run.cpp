@@ -102,6 +102,72 @@ namespace
       FASTUIDRAWassert(cache);
     }
 
+    template<typename T>
+    void
+    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&,
+                 fastuidraw::c_array<const T>,
+                 fastuidraw::c_array<fastuidraw::GlyphMetrics>)
+    {
+      FASTUIDRAWassert(!"default grab_metrics called");
+    }
+
+    void
+    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&,
+                 fastuidraw::c_array<const fastuidraw::GlyphSource> sources,
+                 fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs)
+    {
+      m_cache->fetch_glyph_metrics(sources, dst_glyphs);
+    }
+
+    void
+    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&,
+                 fastuidraw::c_array<const fastuidraw::GlyphMetrics> metrics,
+                 fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs)
+    {
+      std::copy(metrics.begin(), metrics.end(), dst_glyphs.begin());
+    }
+
+    void
+    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> &font,
+                 fastuidraw::c_array<const uint32_t> glyph_codes,
+                 fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs)
+    {
+      m_cache->fetch_glyph_metrics(font, glyph_codes, dst_glyphs);
+    }
+
+    template<typename T>
+    void
+    add_glyphs(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> &font,
+               fastuidraw::c_array<const T> sources,
+               fastuidraw::c_array<const fastuidraw::vec2> positions)
+    {
+      unsigned int old_sz;
+      fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs;
+
+      old_sz = m_glyphs.size();
+      m_glyphs.resize(sources.size() + old_sz);
+      m_glyph_locations.reserve(sources.size() + old_sz);
+      dst_glyphs = fastuidraw::make_c_array(m_glyphs).sub_array(old_sz);
+      this->grab_metrics(font, sources, dst_glyphs);
+
+      for (unsigned int i = 0; i < positions.size(); ++i)
+        {
+          GlyphLocation L;
+
+          L.m_position = positions[i];
+          if (dst_glyphs[i].valid())
+            {
+              L.m_scale = m_pixel_size / dst_glyphs[i].units_per_EM();
+            }
+          else
+            {
+              L.m_scale = 1.0f;
+            }
+          m_glyph_locations.push_back(L);
+        }
+      m_data.clear();
+    }
+
     float m_pixel_size;
     enum fastuidraw::PainterEnums::screen_orientation m_orientation;
     enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
@@ -270,35 +336,35 @@ fastuidraw::GlyphRun::
 add_glyphs(c_array<const GlyphSource> sources,
            c_array<const vec2> positions)
 {
-  unsigned int old_sz;
+  GlyphRunPrivate *d;
+  reference_counted_ptr<const FontBase> null;
+
+  d = static_cast<GlyphRunPrivate*>(m_d);
+  d->add_glyphs<GlyphSource>(null, sources, positions);
+}
+
+void
+fastuidraw::GlyphRun::
+add_glyphs(c_array<const GlyphMetrics> glyph_metrics,
+           c_array<const vec2> positions)
+{
+  GlyphRunPrivate *d;
+  reference_counted_ptr<const FontBase> null;
+
+  d = static_cast<GlyphRunPrivate*>(m_d);
+  d->add_glyphs<GlyphMetrics>(null, glyph_metrics, positions);
+}
+
+void
+fastuidraw::GlyphRun::
+add_glyphs(const reference_counted_ptr<const FontBase> &font,
+           c_array<const uint32_t> glyph_codes,
+           c_array<const vec2> positions)
+{
   GlyphRunPrivate *d;
 
   d = static_cast<GlyphRunPrivate*>(m_d);
-  c_array<GlyphMetrics> dst_glyphs;
-
-  old_sz = d->m_glyphs.size();
-  d->m_glyphs.resize(sources.size() + old_sz);
-  d->m_glyph_locations.reserve(sources.size() + old_sz);
-
-  dst_glyphs = fastuidraw::make_c_array(d->m_glyphs).sub_array(old_sz);
-  d->m_cache->fetch_glyph_metrics(sources, dst_glyphs);
-
-  for (unsigned int i = 0; i < positions.size(); ++i)
-    {
-      GlyphLocation L;
-
-      L.m_position = positions[i];
-      if (dst_glyphs[i].valid())
-        {
-          L.m_scale = d->m_pixel_size / dst_glyphs[i].units_per_EM();
-        }
-      else
-        {
-          L.m_scale = 1.0f;
-        }
-      d->m_glyph_locations.push_back(L);
-    }
-  d->m_data.clear();
+  d->add_glyphs<uint32_t>(font, glyph_codes, positions);
 }
 
 unsigned int

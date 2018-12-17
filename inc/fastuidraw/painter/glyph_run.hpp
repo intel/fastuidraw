@@ -69,12 +69,32 @@ namespace fastuidraw
     ~GlyphRun();
 
     /*!
+     * Add glyphs passing an array of positions and GlyphMetric values;
+     * values are -copied-.
+     * \param glyph_metrics specifies what glyphs to add
+     * \param positions specifies the positions of each glyph added
+     */
+    void
+    add_glyphs(c_array<const GlyphMetrics> glyph_metrics,
+               c_array<const vec2> positions);
+
+    /*!
      * Add \ref GlyphSource values and positions; values are -copied-.
      * \param glyph_sources specifies what glyphs to add
      * \param positions specifies the positions of each glyph added
      */
     void
     add_glyphs(c_array<const GlyphSource> glyph_sources,
+               c_array<const vec2> positions);
+
+    /*!
+     * Add glyphs from a specific font and positions; values are -copied-.
+     * \param glyph_sources specifies what glyphs to add
+     * \param positions specifies the positions of each glyph added
+     */
+    void
+    add_glyphs(const reference_counted_ptr<const FontBase> &font,
+               c_array<const uint32_t> glyph_codes,
                c_array<const vec2> positions);
 
     /*!
@@ -114,7 +134,7 @@ namespace fastuidraw
 		vec2 *out_position) const;
 
     /*!
-     * Return the \ref GlyphCache used by this GlyphSequence
+     * Return the \ref GlyphCache used by this GlyphRun
      * to fetch \ref Glyph values.
      */
     const reference_counted_ptr<GlyphCache>&
