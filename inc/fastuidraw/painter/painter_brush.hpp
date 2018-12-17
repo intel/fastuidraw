@@ -23,6 +23,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/math.hpp>
 
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
@@ -698,6 +699,15 @@ namespace fastuidraw
     }
 
     /*!
+     * Returns the translation of the transformation of the brush.
+     */
+    const vec2&
+    transformation_translate(void) const
+    {
+      return m_data.m_transformation_p;
+    }
+
+    /*!
      * Sets the brush to have a matrix in its transformation.
      * \param m matrix value for brush transformation
      */
@@ -710,7 +720,30 @@ namespace fastuidraw
     }
 
     /*!
+     * Returns the matrix of the transformation of the brush.
+     */
+    const float2x2&
+    transformation_matrix(void) const
+    {
+      return m_data.m_transformation_matrix;
+    }
+
+    /*!
      * Apply a shear to the transformation of the brush.
+     * \param m matrix to which to apply
+     */
+    PainterBrush&
+    apply_matrix(const float2x2 &m)
+    {
+      m_data.m_shader_raw |= transformation_matrix_mask;
+      m_data.m_transformation_matrix = m_data.m_transformation_matrix * m;
+      return *this;
+    }
+
+    /*!
+     * Apply a shear to the transformation of the brush.
+     * \param sx scale factor in x-direction
+     * \param sy scale factor in y-direction
      */
     PainterBrush&
     apply_shear(float sx, float sy)
@@ -720,6 +753,27 @@ namespace fastuidraw
       m_data.m_transformation_matrix(1, 0) *= sx;
       m_data.m_transformation_matrix(0, 1) *= sy;
       m_data.m_transformation_matrix(1, 1) *= sy;
+      return *this;
+    }
+
+    /*!
+     * Apply a rotation to the transformation of the brush.
+     * \param angle in radians by which to rotate
+     */
+    PainterBrush&
+    apply_rotate(float angle)
+    {
+      float s, c;
+      float2x2 tr;
+
+      m_data.m_shader_raw |= transformation_matrix_mask;
+      s = t_sin(angle);
+      c = t_cos(angle);
+      tr(0, 0) = c;
+      tr(1, 0) = s;
+      tr(0, 1) = -s;
+      tr(1, 1) = c;
+      apply_matrix(tr);
       return *this;
     }
 
@@ -755,7 +809,6 @@ namespace fastuidraw
     no_transformation_translation(void)
     {
       m_data.m_shader_raw &= ~transformation_translation_mask;
-      m_data.m_transformation_matrix = float2x2();
       m_data.m_transformation_p = vec2(0.0f, 0.0f);
       return *this;
     }
@@ -767,6 +820,7 @@ namespace fastuidraw
     no_transformation_matrix(void)
     {
       m_data.m_shader_raw &= ~transformation_matrix_mask;
+      m_data.m_transformation_matrix = float2x2();
       return *this;
     }
 
