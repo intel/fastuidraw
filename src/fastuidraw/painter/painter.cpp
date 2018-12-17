@@ -275,10 +275,10 @@ namespace
       m_max(0.0f, 0.0f)
     {}
 
-    clip_rect(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &pmax):
+    clip_rect(const fastuidraw::Rect &rect):
       m_enabled(true),
-      m_min(pmin),
-      m_max(pmax)
+      m_min(rect.m_min_point),
+      m_max(rect.m_max_point)
     {}
 
     void
@@ -459,7 +459,7 @@ namespace
                  std::vector<fastuidraw::vec2> &work_vec2s);
 
     bool
-    rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh);
+    rect_is_culled(const fastuidraw::Rect &rect);
 
     clip_rect m_clip_rect;
     bool m_all_content_culled;
@@ -1206,17 +1206,6 @@ namespace
       return fill_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
     }
 
-    int
-    fill_rect(const fastuidraw::PainterFillShader &shader,
-              const fastuidraw::PainterData &draw,
-              const fastuidraw::vec2 &p, const fastuidraw::vec2 &wh,
-              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-              int z,
-              const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
-    {
-      return fill_rect(shader, draw, fastuidraw::Rect(p, wh), anti_alias_quality, z, call_back);
-    }
-
     void
     draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
                                const fastuidraw::PainterData &draw,
@@ -1224,8 +1213,7 @@ namespace
                                const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &callback);
 
     bool
-    update_clip_equation_series(const fastuidraw::vec2 &pmin,
-                                const fastuidraw::vec2 &pmax);
+    update_clip_equation_series(const fastuidraw::Rect &rect);
 
     float
     compute_magnification(const fastuidraw::vec2 &pmin,
@@ -1638,14 +1626,21 @@ clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
 
 bool
 clip_rect_state::
-rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
+rect_is_culled(const fastuidraw::Rect &rect)
 {
   /* apply the current transformation matrix to
    * the corners of the clipping rectangle and check
    * if there is a clipping plane for which all
    * those points are on the wrong size.
    */
-  fastuidraw::vec2 pmax(wh + pmin);
+  const fastuidraw::vec2 &pmin(rect.m_min_point);
+  const fastuidraw::vec2 &pmax(rect.m_max_point);
+
+  if (pmin.x() >= pmax.x() || pmin.y() >= pmax.y())
+    {
+      return true;
+    }
+
   fastuidraw::vecN<fastuidraw::vec3, 4> pts;
   pts[0] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmin.y(), 1.0f);
   pts[1] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmax.y(), 1.0f);
@@ -1922,8 +1917,7 @@ rotate(float angle)
 
 bool
 PainterPrivate::
-update_clip_equation_series(const fastuidraw::vec2 &pmin,
-                            const fastuidraw::vec2 &pmax)
+update_clip_equation_series(const fastuidraw::Rect &rect)
 {
   /* We compute the rectangle clipped against the current
    * clipping planes which gives us a convex polygon.
@@ -1935,10 +1929,10 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
   unsigned int src;
 
   m_work_room.m_clipper.m_pts_update_series[0].resize(4);
-  m_work_room.m_clipper.m_pts_update_series[0][0] = pmin;
-  m_work_room.m_clipper.m_pts_update_series[0][1] = fastuidraw::vec2(pmin.x(), pmax.y());
-  m_work_room.m_clipper.m_pts_update_series[0][2] = pmax;
-  m_work_room.m_clipper.m_pts_update_series[0][3] = fastuidraw::vec2(pmax.x(), pmin.y());
+  m_work_room.m_clipper.m_pts_update_series[0][0] = rect.m_min_point;
+  m_work_room.m_clipper.m_pts_update_series[0][1] = fastuidraw::vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  m_work_room.m_clipper.m_pts_update_series[0][2] = rect.m_max_point;
+  m_work_room.m_clipper.m_pts_update_series[0][3] = fastuidraw::vec2(rect.m_max_point.x(), rect.m_min_point.y());
   src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
                                           m_work_room.m_clipper.m_pts_update_series);
 
@@ -3686,7 +3680,7 @@ fill_quad(const PainterData &draw,
 void
 fastuidraw::Painter::
 fill_rect(const PainterFillShader &shader,
-          const PainterData &draw, const vec2 &p, const vec2 &wh,
+          const PainterData &draw, const Rect &rect,
           enum shader_anti_alias_t anti_alias_quality)
 {
   PainterPrivate *d;
@@ -3701,8 +3695,10 @@ fill_rect(const PainterFillShader &shader,
   PainterData altered_data;
   PainterBrush altered_brush;
   const PainterData *used_draw(&draw);
+  vec2 wh(rect.size());
 
-  if (adjust_brush_for_internal_shearing(draw, p, wh, altered_brush, altered_data))
+  if (adjust_brush_for_internal_shearing(draw, rect.m_min_point, wh,
+                                         altered_brush, altered_data))
     {
       used_draw = &altered_data;
     }
@@ -3710,7 +3706,7 @@ fill_rect(const PainterFillShader &shader,
   const FilledPath &filled_path(*d->m_square_path.tessellation()->filled());
 
   save();
-  translate(p);
+  translate(rect.m_min_point);
   shear(wh.x(), wh.y());
   fill_path(shader, *used_draw, filled_path,
             odd_even_fill_rule, anti_alias_quality);
@@ -3719,11 +3715,10 @@ fill_rect(const PainterFillShader &shader,
 
 void
 fastuidraw::Painter::
-fill_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+fill_rect(const PainterData &draw, const Rect &rect,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  fill_rect(default_shaders().fill_shader(), draw, p, wh,
-            anti_alias_quality);
+  fill_rect(default_shaders().fill_shader(), draw, rect, anti_alias_quality);
 }
 
 void
@@ -4538,14 +4533,14 @@ clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
 
 void
 fastuidraw::Painter::
-clip_out_rect(vec2 p, vec2 wh)
+clip_out_rect(const fastuidraw::Rect &rect)
 {
   vecN<vec2, 4> pts;
 
-  pts[0] = p;
-  pts[1] = p + vec2(wh.x(), 0.0f);
-  pts[2] = p + wh;
-  pts[3] = p + vec2(0.0f, wh.y());
+  pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
+  pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
+  pts[3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
   clip_out_convex_polygon(pts);
 }
 
@@ -4620,10 +4615,9 @@ clip_in_path(const FilledPath &path, enum fill_rule_t fill_rule)
       return;
     }
 
-  vec2 pmin, pmax;
-  pmin = path.bounding_box_min();
-  pmax = path.bounding_box_max();
-  clip_in_rect(pmin, pmax - pmin);
+  clip_in_rect(Rect()
+               .min_point(path.bounding_box_min())
+               .max_point(path.bounding_box_max()));
   clip_out_path(path, complement_fill_rule(fill_rule));
 }
 
@@ -4641,10 +4635,9 @@ clip_in_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
       return;
     }
 
-  vec2 pmin, pmax;
-  pmin = path.bounding_box_min();
-  pmax = path.bounding_box_max();
-  clip_in_rect(pmin, pmax - pmin);
+  clip_in_rect(Rect()
+               .min_point(path.bounding_box_min())
+               .max_point(path.bounding_box_max()));
   clip_out_path(path, ComplementFillRule(&fill_rule));
 }
 
@@ -4661,7 +4654,7 @@ clip_in_rounded_rect(const RoundedRect &R)
       return;
     }
 
-  clip_in_rect(R.m_min_point, R.m_max_point - R.m_min_point);
+  clip_in_rect(R);
 
   /* Save our transformation and clipping state because
    * we are going to shear and translate the transformation
@@ -4702,18 +4695,15 @@ clip_in_rounded_rect(const RoundedRect &R)
 
 void
 fastuidraw::Painter::
-clip_in_rect(const vec2 &pmin, const vec2 &wh)
+clip_in_rect(const Rect &rect)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  vec2 pmax(pmin + wh);
-
   d->m_clip_rect_state.m_all_content_culled =
     d->m_clip_rect_state.m_all_content_culled ||
-    wh.x() <= 0.0f || wh.y() <= 0.0f ||
-    d->m_clip_rect_state.rect_is_culled(pmin, wh) ||
-    d->update_clip_equation_series(pmin, pmax);
+    d->m_clip_rect_state.rect_is_culled(rect) ||
+    d->update_clip_equation_series(rect);
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
@@ -4727,7 +4717,7 @@ clip_in_rect(const vec2 &pmin, const vec2 &wh)
       /* no clipped rect defined yet, just take the arguments
        * as the clipping window
        */
-      d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
+      d->m_clip_rect_state.m_clip_rect = clip_rect(rect);
       d->m_clip_rect_state.set_clip_equations_to_clip_rect();
       return;
     }
@@ -4740,7 +4730,7 @@ clip_in_rect(const vec2 &pmin, const vec2 &wh)
        * in local coordinates, so we can intersect it with
        * the passed rectangle.
        */
-      d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(pmin, pmax));
+      d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(rect));
       d->m_clip_rect_state.set_clip_equations_to_clip_rect();
       return;
     }
@@ -4760,7 +4750,7 @@ clip_in_rect(const vec2 &pmin, const vec2 &wh)
   prev_clip = d->m_clip_rect_state.clip_equations_state(d->m_core->packed_value_pool());
   FASTUIDRAWassert(prev_clip);
 
-  d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
+  d->m_clip_rect_state.m_clip_rect = clip_rect(rect);
 
   std::bitset<4> skip_occluder;
   skip_occluder = d->m_clip_rect_state.set_clip_equations_to_clip_rect(prev_clip);

@@ -321,11 +321,10 @@ namespace fastuidraw
     /*!
      * Set clipping to the intersection of the current
      * clipping with a rectangle.
-     * \param xy location of rectangle
-     * \param wh width and height of rectange
+     * \param rect clip-in rectangle
      */
     void
-    clip_in_rect(const vec2 &xy, const vec2 &wh);
+    clip_in_rect(const Rect &rect);
 
     /*!
      * Set clipping to the intersection of the current
@@ -417,11 +416,10 @@ namespace fastuidraw
 
     /*!
      * Clipout by a rect
-     * \param p min-corner of rect
-     * \param wh width and height of rect
+     * \param rect clip-out rectangle
      */
     void
-    clip_out_rect(vec2 p, vec2 wh);
+    clip_out_rect(const Rect &rect);
 
     /*!
      * Set clipping to the intersection of the current
@@ -1032,26 +1030,24 @@ namespace fastuidraw
      * Fill a rect using a custom shader.
      * \param shader shader with which to draw the quad
      * \param draw data for how to draw
-     * \param p min-corner of rect
-     * \param wh width and height of rect
+     * \param rect rectangle to fill
      * \param anti_alias_quality specifies the shader based anti-alias
      *                           quality to apply to the path fill
      */
     void
     fill_rect(const PainterFillShader &shader, const PainterData &draw,
-              const vec2 &p, const vec2 &wh,
+              const Rect &rect,
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Fill a rect using the default fill shader.
      * \param draw data for how to draw
-     * \param p min-corner of rect
-     * \param wh width and height of rect
+     * \param rect rectangle to fill
      * \param anti_alias_quality specifies the shader based anti-alias
      *                           quality to apply to the path fill
      */
     void
-    fill_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+    fill_rect(const PainterData &draw, const Rect &rect,
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
