@@ -424,6 +424,14 @@ namespace fastuidraw
     clip_out_rect(vec2 p, vec2 wh);
 
     /*!
+     * Set clipping to the intersection of the current
+     * clipping with the complement of a rounded rectangle.
+     * \param R rounded rectangle
+     */
+    void
+    clip_out_rounded_rect(const RoundedRect &R);
+
+    /*!
      * Clipout by a convex polygon
      * \param poly points of the convex polygon
      */
