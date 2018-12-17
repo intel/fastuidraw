@@ -222,7 +222,7 @@ ImageLoaderData(const std::string &pfilename, bool flip):
   m_mipmap_levels.push_back(std::vector<fastuidraw::u8vec4>());
   m_mipmap_levels.back().swap(data);
 
-  while(dims.x() >= 2 || dims.y() >= 2)
+  while(dims.x() >= 2 && dims.y() >= 2)
     {
       fastuidraw::ivec2 wh;
 
