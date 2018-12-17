@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/painter/rect.hpp>
 
 namespace fastuidraw
 {
@@ -29,32 +29,14 @@ namespace fastuidraw
   /*!
    * Class to specify the geometry of a rounded rectangle.
    */
-  class RoundedRect
+  class RoundedRect:public Rect
   {
   public:
     /*!
-     * Specifies the min-corner of the bounding box of
-     * the rounded rectangle
+     * Specifies the radii at each of the corners,
+     * enumerated by \ref corner_t
      */
-    vec2 m_min_point;
-
-    /*!
-     * Specifies the max-corner of the bounding box of
-     * the rounded rectangle.
-     */
-    vec2 m_max_point;
-
-    /*!
-     * Specifies the radii at the min corner of the
-     * rounded rectangle.
-     */
-    vec2 m_min_corner_radii;
-
-    /*!
-     * Specifies the radii at the max corner of the
-     * rounded rectangle.
-     */
-    vec2 m_max_corner_radii;
+    vecN<vec2, 4> m_corner_radii;
   };
 /*! @} */
 }

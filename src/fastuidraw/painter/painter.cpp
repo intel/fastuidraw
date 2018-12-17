@@ -786,21 +786,20 @@ namespace
       using namespace fastuidraw;
 
       /* min-x/max-y */
-      m_translates[0] = vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y());
-      m_shears[0] = vec2(R.m_min_corner_radii.x(), R.m_max_corner_radii.y());
+      m_translates[0] = vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y());
+      m_shears[0] = R.m_corner_radii[Rect::minx_maxy_corner];
 
       /* max-x/max-y */
-      m_translates[1] = vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y());
-      m_shears[1] = vec2(-R.m_max_corner_radii.x(), R.m_max_corner_radii.y());
+      m_translates[1] = vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y());
+      m_shears[1] = vec2(-1.0f, 1.0f) * R.m_corner_radii[Rect::maxx_maxy_corner];
 
       /* min-x/min-y */
-      m_translates[2] = vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y());
-      m_shears[2] = vec2(R.m_min_corner_radii.x(), -R.m_min_corner_radii.y());
+      m_translates[2] = vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y());
+      m_shears[2] = vec2(1.0f, -1.0f) * R.m_corner_radii[RoundedRect::minx_miny_corner];
 
       /* max-x/min-y */
-      m_translates[3] = vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y());
-      m_shears[3] = vec2(-R.m_max_corner_radii.x(), -R.m_min_corner_radii.y());
-
+      m_translates[3] = vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y());
+      m_shears[3] = -R.m_corner_radii[Rect::maxx_miny_corner];
     }
 
     void
@@ -1192,18 +1191,30 @@ namespace
     int
     fill_rect(const fastuidraw::PainterFillShader &shader,
               const fastuidraw::PainterData &draw,
+              const fastuidraw::Rect &rect,
+              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+              int z,
+              const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+    {
+      using namespace fastuidraw;
+
+      vecN<vec2, 4> pts;
+      pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
+      pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
+      pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
+      pts[3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
+      return fill_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
+    }
+
+    int
+    fill_rect(const fastuidraw::PainterFillShader &shader,
+              const fastuidraw::PainterData &draw,
               const fastuidraw::vec2 &p, const fastuidraw::vec2 &wh,
               enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
               int z,
               const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
     {
-      fastuidraw::vecN<fastuidraw::vec2, 4> pts;
-
-      pts[0] = p + fastuidraw::vec2(0.0f, 0.0f);
-      pts[1] = p + fastuidraw::vec2(wh.x(), 0.0f);
-      pts[2] = p + fastuidraw::vec2(wh.x(), wh.y());
-      pts[3] = p + fastuidraw::vec2(0.0f, wh.y());
-      return fill_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
+      return fill_rect(shader, draw, fastuidraw::Rect(p, wh), anti_alias_quality, z, call_back);
     }
 
     void
@@ -3039,6 +3050,24 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
   clip_rect_state m(m_clip_rect_state);
   RoundedRectTransformations rect_transforms(draw, R);
   int total_incr_z(0);
+  Rect interior_rect, r_min, r_max, r_min_extra, r_max_extra;
+  float wedge_miny, wedge_maxy;
+
+  wedge_miny = t_max(R.m_corner_radii[Rect::minx_miny_corner].y(), R.m_corner_radii[Rect::maxx_miny_corner].y());
+  wedge_maxy = t_max(R.m_corner_radii[Rect::minx_maxy_corner].y(), R.m_corner_radii[Rect::maxx_maxy_corner].y());
+
+  interior_rect.m_min_point = vec2(R.m_min_point.x(), R.m_min_point.y() + wedge_miny);
+  interior_rect.m_max_point = vec2(R.m_max_point.x(), R.m_max_point.y() - wedge_maxy);
+
+  r_min.m_min_point = vec2(R.m_min_point.x() + R.m_corner_radii[Rect::minx_miny_corner].x(),
+                           R.m_min_point.y());
+  r_min.m_max_point = vec2(R.m_max_point.x() - R.m_corner_radii[Rect::maxx_miny_corner].x(),
+                           R.m_min_point.y() + wedge_miny);
+
+  r_max.m_min_point = vec2(R.m_min_point.x() + R.m_corner_radii[Rect::minx_maxy_corner].x(),
+                           R.m_max_point.y() - wedge_maxy);
+  r_max.m_max_point = vec2(R.m_max_point.x() - R.m_corner_radii[Rect::maxx_maxy_corner].x(),
+                           R.m_max_point.y());
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
                                                  shader.hq_anti_alias_support(),
@@ -3052,29 +3081,29 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
 
       m_work_room.m_rounded_rect.m_rect_fuzz_attributes.clear();
       m_work_room.m_rounded_rect.m_rect_fuzz_indices.clear();
-      pack_anti_alias_edge(vec2(R.m_min_point.x() + R.m_min_corner_radii.x(), R.m_min_point.y()),
-                           vec2(R.m_max_point.x() - R.m_max_corner_radii.x(), R.m_min_point.y()),
+      pack_anti_alias_edge(r_min.m_min_point,
+                           vec2(r_min.m_max_point.x(), r_min.m_min_point.y()),
                            total_incr_z,
                            m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
                            m_work_room.m_rounded_rect.m_rect_fuzz_indices);
       total_incr_z += incr;
 
-      pack_anti_alias_edge(vec2(R.m_min_point.x() + R.m_min_corner_radii.x(), R.m_max_point.y()),
-                           vec2(R.m_max_point.x() - R.m_max_corner_radii.x(), R.m_max_point.y()),
+      pack_anti_alias_edge(vec2(r_max.m_min_point.x(), r_max.m_max_point.y()),
+                           r_max.m_max_point,
                            total_incr_z,
                            m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
                            m_work_room.m_rounded_rect.m_rect_fuzz_indices);
       total_incr_z += incr;
 
-      pack_anti_alias_edge(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()),
-                           vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()),
+      pack_anti_alias_edge(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y()),
+                           vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y()),
                            total_incr_z,
                            m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
                            m_work_room.m_rounded_rect.m_rect_fuzz_indices);
       total_incr_z += incr;
 
-      pack_anti_alias_edge(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()),
-                           vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()),
+      pack_anti_alias_edge(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y()),
+                           vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y()),
                            total_incr_z,
                            m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
                            m_work_room.m_rounded_rect.m_rect_fuzz_indices);
@@ -3112,22 +3141,51 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       m_clip_rect_state = m;
     }
 
-  /* Draw interior of rect (which is 3 rects) */
-  fill_rect(shader, draw,
-            R.m_min_point + vec2(R.m_min_corner_radii.x(), 0.0f),
-            R.m_max_point - R.m_min_point - vec2(R.m_max_corner_radii.x() + R.m_min_corner_radii.x(), 0.0f),
-            Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
-  fill_rect(shader, draw,
-            R.m_min_point + vec2(0.0f, R.m_min_corner_radii.y()),
-            vec2(R.m_min_corner_radii.x(),
-                 R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
-            Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
-  fill_rect(shader, draw,
-            vec2(R.m_max_point.x() - R.m_max_corner_radii.x(),
-                 R.m_min_point.y() + R.m_min_corner_radii.y()),
-            vec2(R.m_max_corner_radii.x(),
-                 R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
-            Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+  fill_rect(shader, draw, interior_rect, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+  fill_rect(shader, draw, r_min, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+  fill_rect(shader, draw, r_max, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+
+  if (R.m_corner_radii[Rect::minx_miny_corner].y() > R.m_corner_radii[Rect::maxx_miny_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = r_min.m_max_point.x();
+      r.m_min_point.y() = R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y();
+      r.m_max_point.x() = R.m_max_point.x();
+      r.m_max_point.y() = r_min.m_max_point.y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
+  else if (R.m_corner_radii[Rect::minx_miny_corner].y() < R.m_corner_radii[Rect::maxx_miny_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = R.m_min_point.x();
+      r.m_min_point.y() = R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y();
+      r.m_max_point.x() = R.m_min_point.x() + R.m_corner_radii[Rect::minx_miny_corner].x();
+      r.m_max_point.y() = r_min.m_max_point.y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
+
+  if (R.m_corner_radii[Rect::minx_maxy_corner].y() > R.m_corner_radii[Rect::maxx_maxy_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = r_max.m_max_point.x();
+      r.m_min_point.y() = r_max.m_min_point.y();
+      r.m_max_point.x() = R.m_max_point.x();
+      r.m_max_point.y() = R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
+  else if (R.m_corner_radii[Rect::minx_maxy_corner].y() < R.m_corner_radii[Rect::maxx_maxy_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = R.m_min_point.x();
+      r.m_min_point.y() = r_max.m_min_point.y();
+      r.m_max_point.x() = R.m_min_point.x() + R.m_corner_radii[Rect::minx_maxy_corner].x();
+      r.m_max_point.y() = R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
 
   for (int i = 0; i < 4; ++i)
     {
