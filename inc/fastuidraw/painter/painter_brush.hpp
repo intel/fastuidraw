@@ -710,6 +710,31 @@ namespace fastuidraw
     }
 
     /*!
+     * Apply a shear to the transformation of the brush.
+     */
+    PainterBrush&
+    apply_shear(float sx, float sy)
+    {
+      m_data.m_shader_raw |= transformation_matrix_mask;
+      m_data.m_transformation_matrix(0, 0) *= sx;
+      m_data.m_transformation_matrix(1, 0) *= sx;
+      m_data.m_transformation_matrix(0, 1) *= sy;
+      m_data.m_transformation_matrix(1, 1) *= sy;
+      return *this;
+    }
+
+    /*!
+     * Apply a translation to the transformation of the brush.
+     */
+    PainterBrush&
+    apply_translate(const vec2 &p)
+    {
+      m_data.m_transformation_p += m_data.m_transformation_matrix * p;
+      m_data.m_shader_raw |= transformation_translation_mask;
+      return *this;
+    }
+
+    /*!
      * Sets the brush to have a matrix and translation in its
      * transformation
      * \param p translation value for brush transformation
@@ -730,6 +755,8 @@ namespace fastuidraw
     no_transformation_translation(void)
     {
       m_data.m_shader_raw &= ~transformation_translation_mask;
+      m_data.m_transformation_matrix = float2x2();
+      m_data.m_transformation_p = vec2(0.0f, 0.0f);
       return *this;
     }
 
