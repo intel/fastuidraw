@@ -422,9 +422,11 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
   vec2 p0, p1, sz;
   p0 = path.tessellation()->bounding_box_min();
   p1 = path.tessellation()->bounding_box_max();
-  sz = p1 - p0;
 
-  m_painter->fill_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->fill_rect(PainterData(&brush),
+                       Rect()
+                       .min_point(p0)
+                       .max_point(p1));
 
   m_painter->restore();
 }
@@ -473,9 +475,11 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &mat
   vec2 p0, p1, sz;
   p0 = path1.tessellation()->bounding_box_min();
   p1 = path1.tessellation()->bounding_box_max();
-  sz = p1 - p0;
 
-  m_painter->fill_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->fill_rect(PainterData(&brush),
+                       Rect()
+                       .min_point(p0)
+                       .max_point(p1));
   m_painter->restore();
 }
 

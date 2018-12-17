@@ -46,8 +46,7 @@ draw_frame(void)
   fastuidraw::PainterBrush transparentYellow;
   transparentYellow.pen(1.0f, 1.0f, 0.0f, 0.5f);
   m_painter->fill_rect(fastuidraw::PainterData(&transparentYellow),
-                       fastuidraw::vec2(0.0f, 0.0f),
-                       fastuidraw::vec2(dimensions()));
+                       fastuidraw::Rect().size(fastuidraw::vec2(dimensions())));
   m_painter->end();
   fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

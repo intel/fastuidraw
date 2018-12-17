@@ -425,7 +425,7 @@ private:
   }
 
   void
-  fill_rect(const vec2 &pt, float r, const PainterData &d);
+  fill_centered_rect(const vec2 &pt, float r, const PainterData &d);
 
   void
   draw_scene(bool drawing_wire_frame);
@@ -1024,12 +1024,14 @@ update_cts_params(void)
 
 void
 painter_stroke_test::
-fill_rect(const vec2 &pt, float r, const PainterData &draw)
+fill_centered_rect(const vec2 &pt, float r, const PainterData &draw)
 {
-  m_painter->fill_rect(draw,
-                       pt - 0.5f * vec2(r, r),
-                       vec2(r, r),
-                       m_shader_anti_alias_mode_values[m_aa_fill_mode]);
+  Rect rect;
+  vec2 sz(0.5f * r);
+
+  rect.m_min_point = pt - sz;
+  rect.m_max_point = pt + sz;
+  m_painter->fill_rect(draw, rect, m_shader_anti_alias_mode_values[m_aa_fill_mode]);
 }
 
 vec2
@@ -1673,7 +1675,9 @@ draw_scene(bool drawing_wire_frame)
                              .join_style(Painter::miter_clip_joins),
                              Painter::shader_anti_alias_none);
       m_painter->restore();
-      m_painter->clip_in_rect(clipping_xy(), clipping_wh());
+      m_painter->clip_in_rect(Rect()
+                              .min_point(clipping_xy())
+                              .size(clipping_wh()));
     }
 
   CustomFillRuleFunction fill_rule_function(everything_filled);
@@ -1793,7 +1797,7 @@ draw_scene(bool drawing_wire_frame)
           path().approximate_bounding_box(&a, &b);
           m_painter->save();
           m_painter->clip_in_path(path(), *fill_rule);
-          m_painter->fill_rect(D, a, b - a);
+          m_painter->fill_rect(D, Rect().min_point(a).max_point(b));
           m_painter->restore();
         }
       else
@@ -1820,17 +1824,17 @@ draw_scene(bool drawing_wire_frame)
 
       for (const vec2 &pt : m_paths[m_selected_path].m_pts)
         {
-          fill_rect(pt, r, PainterData(m_blue_pen));
+          fill_centered_rect(pt, r, PainterData(m_blue_pen));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_ctl_pts)
         {
-          fill_rect(pt, r, PainterData(m_red_pen));
+          fill_centered_rect(pt, r, PainterData(m_red_pen));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_arc_center_pts)
         {
-          fill_rect(pt, r, PainterData(m_green_pen));
+          fill_centered_rect(pt, r, PainterData(m_green_pen));
         }
     }
 
@@ -1947,11 +1951,11 @@ draw_scene(bool drawing_wire_frame)
           m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
 
-      fill_rect(p0, r1, PainterData(m_black_pen));
-      fill_rect(p0, r0, PainterData(m_white_pen));
+      fill_centered_rect(p0, r1, PainterData(m_black_pen));
+      fill_centered_rect(p0, r0, PainterData(m_white_pen));
 
-      fill_rect(p1, r1, PainterData(m_white_pen));
-      fill_rect(p1, r0, PainterData(m_black_pen));
+      fill_centered_rect(p1, r1, PainterData(m_white_pen));
+      fill_centered_rect(p1, r0, PainterData(m_black_pen));
     }
 }
 

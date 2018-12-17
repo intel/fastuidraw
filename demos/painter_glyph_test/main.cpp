@@ -1050,6 +1050,7 @@ draw_glyphs(float us)
 
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
+              Rect rect;
               sc = m_render_pixel_size.value() / metrics.units_per_EM();
 
 
@@ -1065,17 +1066,26 @@ draw_glyphs(float us)
               r = vec2(rad, rad);
               for (const vec2 &pt : pts)
                 {
-                  m_painter->fill_rect(PainterData(pbrs[2]), pt - r, 2.0f * r);
+                  rect
+                    .min_point(pt - r)
+                    .max_point(pt + r);
+                  m_painter->fill_rect(PainterData(pbrs[2]), rect);
                 }
 
               for (const vec2 &pt : ctl_pts)
                 {
-                  m_painter->fill_rect(PainterData(pbrs[0]), pt - r, 2.0f * r);
+                  rect
+                    .min_point(pt - r)
+                    .max_point(pt + r);
+                  m_painter->fill_rect(PainterData(pbrs[0]), rect);
                 }
 
               for (const vec2 &pt : arc_center_pts)
                 {
-                  m_painter->fill_rect(PainterData(pbrs[1]), pt - r, 2.0f * r);
+                  rect
+                    .min_point(pt - r)
+                    .max_point(pt + r);
+                  m_painter->fill_rect(PainterData(pbrs[1]), rect);
                 }
 
               m_painter->restore();
@@ -1097,7 +1107,10 @@ draw_glyphs(float us)
 
       p = item_coordinates(mouse_position);
       brush.pen(1.0f, 1.0f, 0.0f, 0.3f);
-      m_painter->fill_rect(PainterData(&brush), p, vec2(m_restricted_rays_box_slack));
+      m_painter->fill_rect(PainterData(&brush),
+                           Rect()
+                           .min_point(p)
+                           .size(m_restricted_rays_box_slack, m_restricted_rays_box_slack));
     }
 
   if (m_draw_stats)
@@ -1217,7 +1230,10 @@ draw_glyphs(float us)
           PainterBrush brush;
 
           brush.pen(1.0f, 0.0f, 0.0f, 0.3f);
-          m_painter->fill_rect(PainterData(&brush), glyph_bb.min_point(), glyph_bb.size());
+          m_painter->fill_rect(PainterData(&brush),
+                               Rect()
+                               .min_point(glyph_bb.min_point())
+                               .max_point(glyph_bb.max_point()));
         }
       else
         {
