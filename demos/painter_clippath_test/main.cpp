@@ -12,9 +12,23 @@
 
 using namespace fastuidraw;
 
+class rounded_corner_radii
+{
+public:
+  rounded_corner_radii(const std::string &name,
+                       command_line_register &parent):
+    m_x(10.0f, "rect_" + name + "_x", "Rounded rectangle " + name + "-radii-x", parent),
+    m_y(5.0f, "rect_" + name + "_y", "Rounded rectangle " + name + "-radii-y", parent)
+  {}
 
+  vec2
+  value(void) const
+  {
+    return vec2(m_x.value(), m_y.value());
+  }
 
-
+  command_line_argument_value<float> m_x, m_y;
+};
 
 class painter_clip_test:public sdl_painter_demo
 {
@@ -116,10 +130,10 @@ private:
   command_line_argument_value<std::string> m_path2_file;
   command_line_argument_value<float> m_rect_width;
   command_line_argument_value<float> m_rect_height;
-  command_line_argument_value<float> m_rect_min_radii_x;
-  command_line_argument_value<float> m_rect_min_radii_y;
-  command_line_argument_value<float> m_rect_max_radii_x;
-  command_line_argument_value<float> m_rect_max_radii_y;
+  rounded_corner_radii m_rect_minx_miny_radii;
+  rounded_corner_radii m_rect_minx_maxy_radii;
+  rounded_corner_radii m_rect_maxx_miny_radii;
+  rounded_corner_radii m_rect_maxx_maxy_radii;
 
   Path m_path1, m_path2;
   RoundedRect m_rect;
@@ -149,10 +163,10 @@ painter_clip_test():
                *this),
   m_rect_width(100.0f, "rect_width", "Rounded rectangle width", *this),
   m_rect_height(50.0f, "rect_height", "Rounded rectangle height", *this),
-  m_rect_min_radii_x(10.0f, "rect_min_radii_x", "Rounded rectangle min-radii-x", *this),
-  m_rect_min_radii_y(5.0f, "rect_min_radii_y", "Rounded rectangle min-radii-y", *this),
-  m_rect_max_radii_x(10.0f, "rect_max_radii_x", "Rounded rectangle max-radii-x", *this),
-  m_rect_max_radii_y(5.0f, "rect_max_radii_y", "Rounded rectangle max-radii-y", *this),
+  m_rect_minx_miny_radii("minx-miny", *this),
+  m_rect_minx_maxy_radii("minx-maxy", *this),
+  m_rect_maxx_miny_radii("maxx-miny", *this),
+  m_rect_maxx_maxy_radii("maxx-maxy", *this),
   m_path1_clip_mode(no_clip),
   m_path2_clip_mode(no_clip),
   m_combine_clip_mode(separate_clipping),
@@ -375,8 +389,10 @@ derived_init(int, int)
 
   m_rect.m_min_point = vec2(0.0f, 0.0f);
   m_rect.m_max_point = vec2(m_rect_width.value(), m_rect_height.value());
-  m_rect.m_min_corner_radii = vec2(m_rect_min_radii_x.value(), m_rect_min_radii_y.value());
-  m_rect.m_max_corner_radii = vec2(m_rect_max_radii_x.value(), m_rect_max_radii_y.value());
+  m_rect.m_corner_radii[Rect::minx_miny_corner] = m_rect_minx_miny_radii.value();
+  m_rect.m_corner_radii[Rect::minx_maxy_corner] = m_rect_minx_maxy_radii.value();
+  m_rect.m_corner_radii[Rect::maxx_miny_corner] = m_rect_maxx_miny_radii.value();
+  m_rect.m_corner_radii[Rect::maxx_maxy_corner] = m_rect_maxx_maxy_radii.value();
   m_draw_timer.restart();
 }
 
