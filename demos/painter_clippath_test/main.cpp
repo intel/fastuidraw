@@ -61,14 +61,6 @@ private:
       number_combine_clip_modes
     };
 
-  enum
-    {
-      fill_rounded_rect,
-      rounded_rect_clips,
-
-      number_rounded_rect_modes
-    };
-
   enum anti_alias_mode_t
     {
       no_anti_alias,
@@ -140,7 +132,6 @@ private:
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_transformers> m_transformer_labels;
   vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
-  vecN<std::string, number_rounded_rect_modes> m_rounded_rect_mode_labels;
   vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
   vecN<enum Painter::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
   simple_time m_draw_timer;
@@ -165,7 +156,7 @@ painter_clip_test():
   m_path1_clip_mode(no_clip),
   m_path2_clip_mode(no_clip),
   m_combine_clip_mode(separate_clipping),
-  m_rounded_rect_mode(fill_rounded_rect),
+  m_rounded_rect_mode(no_clip),
   m_active_transformer(view_transformer),
   m_aa_mode(by_anti_alias_auto)
 {
@@ -193,9 +184,6 @@ painter_clip_test():
   m_combine_clip_labels[separate_clipping] = "separate_clipping";
   m_combine_clip_labels[path1_then_path2] = "path1_then_path2";
   m_combine_clip_labels[path2_then_path1] = "path2_then_path1";
-
-  m_rounded_rect_mode_labels[fill_rounded_rect] = "fill_rounded_rect";
-  m_rounded_rect_mode_labels[rounded_rect_clips] = "rounded_rect_clips";
 
   m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
   m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
@@ -262,8 +250,8 @@ handle_event(const SDL_Event &ev)
           std::cout << "Combine clip mode set to: " << m_combine_clip_labels[m_combine_clip_mode] << "\n";
           break;
         case SDLK_r:
-          cycle_value(m_rounded_rect_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_rounded_rect_modes);
-          std::cout << "Rounded rect mode set to: " << m_rounded_rect_mode_labels[m_rounded_rect_mode] << "\n";
+          cycle_value(m_rounded_rect_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_clip_modes);
+          std::cout << "Rounded rect mode set to: " << m_clip_labels[m_rounded_rect_mode] << "\n";
           break;
         case SDLK_u:
           cycle_value(m_aa_mode,
@@ -487,7 +475,7 @@ draw_frame(void)
   m_transformers[rect_transformer].concat_to_painter(m_painter);
   switch(m_rounded_rect_mode)
     {
-    case fill_rounded_rect:
+    case no_clip:
       {
         PainterBrush brush;
         brush.pen(vec4(1.0f, 1.0f, 0.0f, 1.0f));
@@ -497,9 +485,14 @@ draw_frame(void)
       }
       break;
 
-    case rounded_rect_clips:
+    case clip_in:
       m_painter->clip_in_rounded_rect(m_rect);
       break;
+
+    case clip_out:
+      m_painter->clip_out_rounded_rect(m_rect);
+      break;
+
     }
   m_painter->transformation(M);
 
