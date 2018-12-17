@@ -38,6 +38,31 @@ namespace
   class ZDataCallBack;
   class PainterPrivate;
 
+  bool
+  adjust_brush_for_internal_shearing(const fastuidraw::PainterData &in_value,
+                                     fastuidraw::vec2 translate,
+                                     fastuidraw::vec2 shear,
+                                     fastuidraw::PainterBrush &tmp_brush,
+                                     fastuidraw::PainterData &out_value)
+  {
+    using namespace fastuidraw;
+    if (in_value.m_brush.data().shader() & (PainterBrush::image_mask | PainterBrush::gradient_mask))
+      {
+        out_value = PainterData(in_value);
+        tmp_brush = in_value.m_brush.data();
+
+        /* apply the same transformation to the brush
+         * as we apply to the Painter.
+         */
+        tmp_brush.apply_translate(translate);
+        tmp_brush.apply_shear(shear.x(), shear.y());
+
+        out_value.set(&tmp_brush);
+        return true;
+      }
+    return false;
+  }
+
   /* A WindingSet is way to cache values from a
    * fastuidraw::CustomFillRuleBase.
    */
@@ -741,8 +766,22 @@ namespace
   class RoundedRectTransformations
   {
   public:
+    RoundedRectTransformations(const fastuidraw::PainterData &in_value,
+                               const fastuidraw::RoundedRect &R)
+    {
+      ready_transforms(R);
+      ready_painter_data(in_value);
+    }
+
     explicit
-    RoundedRectTransformations(const fastuidraw::RoundedRect &R)
+    RoundedRectTransformations(const fastuidraw::RoundedRect &R):
+      m_use(nullptr, nullptr, nullptr, nullptr)
+    {
+      ready_transforms(R);
+    }
+
+    void
+    ready_transforms(const fastuidraw::RoundedRect &R)
     {
       using namespace fastuidraw;
 
@@ -761,10 +800,34 @@ namespace
       /* max-x/min-y */
       m_translates[3] = vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y());
       m_shears[3] = vec2(-R.m_max_corner_radii.x(), -R.m_min_corner_radii.y());
+
+    }
+
+    void
+    ready_painter_data(const fastuidraw::PainterData &in_value)
+    {
+      for (int i = 0; i < 4; ++i)
+        {
+          if (adjust_brush_for_internal_shearing(in_value,
+                                                 m_translates[i], m_shears[i],
+                                                 m_tmp_brushes[i], m_tmp_datas[i]))
+            {
+              m_use[i] = &m_tmp_datas[i];
+            }
+          else
+            {
+              m_use[i] = &in_value;
+            }
+        }
     }
 
     fastuidraw::vecN<fastuidraw::vec2, 4> m_translates;
     fastuidraw::vecN<fastuidraw::vec2, 4> m_shears;
+
+    /* needed pain for the brushes */
+    fastuidraw::vecN<fastuidraw::PainterBrush, 4> m_tmp_brushes;
+    fastuidraw::vecN<fastuidraw::PainterData, 4> m_tmp_datas;
+    fastuidraw::vecN<const fastuidraw::PainterData*, 4> m_use;
   };
 
   fastuidraw::PainterAttribute
@@ -2974,7 +3037,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
 
   /* Save our transformation and clipping state */
   clip_rect_state m(m_clip_rect_state);
-  RoundedRectTransformations rect_transforms(R);
+  RoundedRectTransformations rect_transforms(draw, R);
   int total_incr_z(0);
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
@@ -3070,7 +3133,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
     {
       translate(rect_transforms.m_translates[i]);
       shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-      draw_generic(shader.item_shader(), draw,
+      draw_generic(shader.item_shader(), *rect_transforms.m_use[i],
                    make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_attrib_chunks),
                    make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_chunks),
                    make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_adjusts),
@@ -3112,7 +3175,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
           incr_z -= m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
           translate(rect_transforms.m_translates[i]);
           shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-          draw_anti_alias_fuzz(shader, draw, anti_alias_quality,
+          draw_anti_alias_fuzz(shader, *rect_transforms.m_use[i], anti_alias_quality,
                                m_work_room.m_rounded_rect.m_aa_fuzz[i],
                                m_current_z + incr_z, call_back);
           m_clip_rect_state = m;
@@ -3577,12 +3640,21 @@ fill_rect(const PainterFillShader &shader,
       return;
     }
 
+  PainterData altered_data;
+  PainterBrush altered_brush;
+  const PainterData *used_draw(&draw);
+
+  if (adjust_brush_for_internal_shearing(draw, p, wh, altered_brush, altered_data))
+    {
+      used_draw = &altered_data;
+    }
+
   const FilledPath &filled_path(*d->m_square_path.tessellation()->filled());
 
   save();
   translate(p);
   shear(wh.x(), wh.y());
-  fill_path(shader, draw, filled_path,
+  fill_path(shader, *used_draw, filled_path,
             odd_even_fill_rule, anti_alias_quality);
   restore();
 }
