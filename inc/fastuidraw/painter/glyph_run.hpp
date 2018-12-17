@@ -45,7 +45,7 @@ namespace fastuidraw
    * In addition, since it does not carry a hierarchy for culling, it
    * is also a lighter wieght object than \ref GlyphSequence.
    */
-  class GlyphRun
+  class GlyphRun:fastuidraw::noncopyable
   {
   public:
     /*!
@@ -153,6 +153,18 @@ namespace fastuidraw
      */
     const PainterPacker::DataWriter&
     subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int count) const;
+
+    /*!
+     * Returns a const-reference to PainterPacker::DataWrite
+     * object for rendering all glyphs from a starting point
+     * for a specified \ref GlyphRenderer. The returned object
+     * is valid in value until this GlyphRun is destroyed or
+     * one of add_glyph(), add_glyphs(), subsequence() is called.
+     * \param renderer how to render the glyphs
+     * \param begin index to select which is the first glyph
+     */
+    const PainterPacker::DataWriter&
+    subsequence(GlyphRenderer renderer, unsigned int begin) const;
 
     /*!
      * Returns a const-reference to PainterPacker::DataWrite

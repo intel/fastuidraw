@@ -338,9 +338,9 @@ subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int cnt) const
     }
   else
     {
-      unsigned int max_v(d->m_glyphs.size() - 1u);
+      unsigned int max_v(d->m_glyphs.size());
 
-      begin = t_min(begin, max_v);
+      begin = t_min(begin, max_v - 1u);
       cnt = t_min(cnt, max_v - begin);
     }
 
@@ -361,6 +361,24 @@ subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int cnt) const
 
   d->m_subsequence.set_src(data, begin, cnt);
   return d->m_subsequence;
+}
+
+const fastuidraw::PainterPacker::DataWriter&
+fastuidraw::GlyphRun::
+subsequence(GlyphRenderer renderer, unsigned int begin) const
+{
+  unsigned int count, num;
+
+  num = number_glyphs();
+  if (begin < num)
+    {
+      count = number_glyphs() - begin;
+    }
+  else
+    {
+      count = 0;
+    }
+  return subsequence(renderer, begin, count);
 }
 
 const fastuidraw::PainterPacker::DataWriter&
