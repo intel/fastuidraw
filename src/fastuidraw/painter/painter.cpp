@@ -3683,34 +3683,13 @@ fill_rect(const PainterFillShader &shader,
           const PainterData &draw, const Rect &rect,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
+  vecN<vec2, 4> pts;
 
-  if (d->m_clip_rect_state.m_all_content_culled)
-    {
-      /* everything is clipped anyways, adding more clipping does not matter */
-      return;
-    }
-
-  PainterData altered_data;
-  PainterBrush altered_brush;
-  const PainterData *used_draw(&draw);
-  vec2 wh(rect.size());
-
-  if (adjust_brush_for_internal_shearing(draw, rect.m_min_point, wh,
-                                         altered_brush, altered_data))
-    {
-      used_draw = &altered_data;
-    }
-
-  const FilledPath &filled_path(*d->m_square_path.tessellation()->filled());
-
-  save();
-  translate(rect.m_min_point);
-  shear(wh.x(), wh.y());
-  fill_path(shader, *used_draw, filled_path,
-            odd_even_fill_rule, anti_alias_quality);
-  restore();
+  pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
+  pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
+  pts[3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
+  fill_convex_polygon(shader, draw, pts, anti_alias_quality);
 }
 
 void
