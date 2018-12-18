@@ -2181,7 +2181,8 @@ derived_init(int w, int h)
             }
           else
             {
-              m_image = create_texture_image(image_data.width(),
+              m_image = create_texture_image(m_painter->image_atlas(),
+                                             image_data.width(),
                                              image_data.height(),
                                              image_data.num_mipmap_levels(),
                                              image_data);

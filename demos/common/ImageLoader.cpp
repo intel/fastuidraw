@@ -244,7 +244,8 @@ ImageLoaderData(const std::string &pfilename, bool flip):
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
-create_texture_image(int pw, int ph, unsigned int m,
+create_texture_image(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
+                     int pw, int ph, unsigned int m,
                      const fastuidraw::ImageSourceBase &image,
                      GLenum min_filter, GLenum mag_filter,
                      bool object_owns_texture)
@@ -286,5 +287,5 @@ create_texture_image(int pw, int ph, unsigned int m,
                                  data.c_ptr());
     }
   fastuidraw_glBindTexture(GL_TEXTURE_2D, 0);
-  return fastuidraw::gl::ImageAtlasGL::TextureImage::create(pw, ph, m, texture, object_owns_texture);
+  return fastuidraw::gl::ImageAtlasGL::TextureImage::create(patlas, pw, ph, m, texture, object_owns_texture);
 }
