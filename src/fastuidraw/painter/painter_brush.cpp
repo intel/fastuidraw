@@ -35,14 +35,19 @@ data_size(void) const
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(image_data_size);
     }
 
-  if (pshader & radial_gradient_mask)
+  switch(gradient_type())
     {
-      FASTUIDRAWassert(pshader & gradient_mask);
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
-    }
-  else if (pshader & gradient_mask)
-    {
+    case no_gradient_type:
+      break;
+    case linear_gradient_type:
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
+      break;
+    case radial_gradient_type:
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
+      break;
+    default:
+      FASTUIDRAWassert(!"Invalid gradient_type()");
+      break;
     }
 
   if (pshader & repeat_window_mask)
@@ -127,9 +132,10 @@ pack_data(c_array<generic_data> dst) const
         }
     }
 
-  if (pshader & gradient_mask)
+  enum gradient_type_t tp(gradient_type());
+  if (tp == linear_gradient_type || tp == radial_gradient_type)
     {
-      if (pshader & radial_gradient_mask)
+      if (tp == radial_gradient_type)
         {
           sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
         }
@@ -160,7 +166,7 @@ pack_data(c_array<generic_data> dst) const
       sub_dest[gradient_p1_x_offset].f = m_data.m_grad_end.x();
       sub_dest[gradient_p1_y_offset].f = m_data.m_grad_end.y();
 
-      if (pshader & radial_gradient_mask)
+      if (tp == radial_gradient_type)
         {
           sub_dest[gradient_start_radius_offset].f = m_data.m_grad_start_r;
           sub_dest[gradient_end_radius_offset].f = m_data.m_grad_end_r;

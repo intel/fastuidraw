@@ -94,6 +94,28 @@ namespace fastuidraw
 
     /*!
      * \brief
+     * Enumeration to specify what kind of gradient is applied
+     */
+    enum gradient_type_t
+      {
+        /*!
+         * Indicates that no gradient is present
+         */
+        no_gradient_type = 0,
+
+        /*!
+         * Indicates that a linear gradient is present
+         */
+        linear_gradient_type = 1,
+
+        /*!
+         * Indicates that a radial gradient is present
+         */
+        radial_gradient_type = 2,
+      };
+
+    /*!
+     * \brief
      * Enumeration describing the roles of the bits for
      * PainterBrush::shader().
      */
@@ -118,10 +140,15 @@ namespace fastuidraw
         image_type_num_bits = 4,
 
         /*!
-         * Numer of bits used to encode number of mipmap
+         * Number of bits used to encode number of mipmap
          * levels (when an image is present).
          */
         image_mipmap_num_bits = 7,
+
+        /*!
+         * Number of bits used to encode the gradient type
+         */
+        gradient_type_num_bits = 2,
 
         /*!
          * first bit for if image is present on the brush and if so, what filter
@@ -136,17 +163,12 @@ namespace fastuidraw
         /*!
          * Bit is up if a gradient is present
          */
-        gradient_bit = image_mipmap_bit0 + image_mipmap_num_bits,
-
-        /*!
-         * bit is up if gradient is present and it is radial
-         */
-        radial_gradient_bit,
+        gradient_type_bit0 = image_mipmap_bit0 + image_mipmap_num_bits,
 
         /*!
          * bit is up if gradient is present and gradient lookup repeats outside of [0,1]
          */
-        gradient_repeat_bit,
+        gradient_repeat_bit = gradient_type_bit0 + gradient_type_num_bits,
 
         /*!
          * Bit up if the brush has a repeat window
@@ -190,19 +212,14 @@ namespace fastuidraw
         image_mask = FASTUIDRAW_MASK(image_filter_bit0, image_filter_num_bits),
 
         /*!
-         * mask generated from \ref image_mipmap_bit0 and image_mipmap_num_bits
+         * mask generated from \ref image_mipmap_bit0 and \ref image_mipmap_num_bits
          */
         image_mipmap_mask = FASTUIDRAW_MASK(image_mipmap_bit0, image_mipmap_num_bits),
 
         /*!
-         * mask generated from \ref gradient_bit
+         * mask generated from \ref gradient_type_bit0 and \ref gradient_type_num_bits
          */
-        gradient_mask = FASTUIDRAW_MASK(gradient_bit, 1),
-
-        /*!
-         * mask generated from \ref radial_gradient_bit
-         */
-        radial_gradient_mask = FASTUIDRAW_MASK(radial_gradient_bit, 1),
+        gradient_type_mask = FASTUIDRAW_MASK(gradient_type_bit0, gradient_type_num_bits),
 
         /*!
          * mask generated from \ref gradient_repeat_bit
@@ -639,12 +656,17 @@ namespace fastuidraw
     linear_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                     const vec2 &start_p, const vec2 &end_p, bool repeat)
     {
+      uint32_t gradient_bits;
+
       m_data.m_cs = cs;
       m_data.m_grad_start = start_p;
       m_data.m_grad_end = end_p;
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs, gradient_mask);
+      gradient_bits = cs ?
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, linear_gradient_type) :
+        0u;
+      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw |= gradient_bits;
       m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
-      m_data.m_shader_raw &= ~radial_gradient_mask;
       return *this;
     }
 
@@ -664,14 +686,19 @@ namespace fastuidraw
                     const vec2 &start_p, float start_r,
                     const vec2 &end_p, float end_r, bool repeat)
     {
+      uint32_t gradient_bits;
+
       m_data.m_cs = cs;
       m_data.m_grad_start = start_p;
       m_data.m_grad_start_r = start_r;
       m_data.m_grad_end = end_p;
       m_data.m_grad_end_r = end_r;
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs, gradient_mask);
+      gradient_bits = cs ?
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, radial_gradient_type) :
+        0u;
+      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw |= gradient_bits;
       m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs, radial_gradient_mask);
       return *this;
     }
 
@@ -682,8 +709,19 @@ namespace fastuidraw
     no_gradient(void)
     {
       m_data.m_cs = reference_counted_ptr<const ColorStopSequenceOnAtlas>();
-      m_data.m_shader_raw &= ~(gradient_mask | gradient_repeat_mask | radial_gradient_mask);
+      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_repeat_mask);
       return *this;
+    }
+
+    /*!
+     * Return the gradient_type_t that the brush applies.
+     */
+    enum gradient_type_t
+    gradient_type(void) const
+    {
+      uint32_t v;
+      v = unpack_bits(gradient_type_bit0, gradient_type_num_bits, m_data.m_shader_raw);
+      return static_cast<enum gradient_type_t>(v);
     }
 
     /*!

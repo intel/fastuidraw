@@ -46,7 +46,7 @@ namespace
                                      fastuidraw::PainterData &out_value)
   {
     using namespace fastuidraw;
-    if (in_value.m_brush.data().shader() & (PainterBrush::image_mask | PainterBrush::gradient_mask))
+    if (in_value.m_brush.data().shader() & (PainterBrush::image_mask | PainterBrush::gradient_type_mask))
       {
         out_value = PainterData(in_value);
         tmp_brush = in_value.m_brush.data();

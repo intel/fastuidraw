@@ -16,15 +16,13 @@
  *
  */
 
-
 float
-compute_gradient_interpolate(in vec2 p, out float good)
+compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
 {
   float t;
 
   t = 1.0;
-
-  if (fastuidraw_brush_shader_has_radial_gradient(fastuidraw_brush_shader))
+  if (gradient_type == fastuidraw_shader_radial_gradient_type)
     {
       vec2 q, delta_p;
       float delta_r, a, b, c, desc, t0, t1, recip_two_a;
@@ -54,13 +52,13 @@ compute_gradient_interpolate(in vec2 p, out float good)
           t1 = (-b - desc) * recip_two_a;
 
           /* if both t0 and t1 are in range, then take the max
-             if both t0 and t1 are not in range, then take max
-             if only one of t0 and t1 are in range take that one.
-          */
+           * if both t0 and t1 are not in range, then take max
+           * if only one of t0 and t1 are in range take that one.
+           */
 
           /* G.x is 1 exactly when t0 is in range
-             G.y is 1 exactly when t1 is in range
-          */
+           * G.y is 1 exactly when t1 is in range
+           */
           vec2 G;
           G = step(0.0, vec2(t0, t1)) * step(vec2(t0, t1), vec2(1.0, 1.0));
 
@@ -74,7 +72,7 @@ compute_gradient_interpolate(in vec2 p, out float good)
             }
         }
     }
-  else if (fastuidraw_brush_shader_has_linear_gradient(fastuidraw_brush_shader))
+  else if (gradient_type == fastuidraw_shader_linear_gradient_type)
     {
       vec2 v, d;
       good = 1.0;
@@ -114,11 +112,11 @@ fastuidraw_brush_compute_image_atlas_coord(in vec2 image_shader_coord,
                                            out uint image_atlas_layer)
 {
   /* this seams silly, but there is a reason.
-     On Mesa/i965 (as of Oct 23, 2015) without this wrapper,
-     the GLSL compiler produces an incorrect shader that
-     fails for the case where num_lookups is one.
-     However, making the case of 1 explicit makes this
-     thing work.
+   * On Mesa/i965 (as of Oct 23, 2015) without this wrapper,
+   * the GLSL compiler produces an incorrect shader that
+   * fails for the case where num_lookups is one.
+   * However, making the case of 1 explicit makes this
+   * thing work.
    */
   if (num_lookups == 1u)
     {
@@ -354,6 +352,7 @@ fastuidraw_image_of_bindless(in vec2 p, in uint image_filter, in float lod)
 vec4
 fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 {
+  uint gradient_type;
   vec4 return_value = vec4(fastuidraw_brush_pen_color_x,
                            fastuidraw_brush_pen_color_y,
                            fastuidraw_brush_pen_color_z,
@@ -366,13 +365,15 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       p += vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
     }
 
+  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_gradient_type_bit0,
+                                          fastuidraw_shader_gradient_type_num_bits,
+                                          fastuidraw_brush_shader);
 
-  if (fastuidraw_brush_shader_has_radial_gradient(fastuidraw_brush_shader)
-     || fastuidraw_brush_shader_has_linear_gradient(fastuidraw_brush_shader))
+  if (gradient_type != fastuidraw_shader_no_gradient_type)
     {
       float t, good;
 
-      t = compute_gradient_interpolate(p, good);
+      t = compute_gradient_interpolate(p, gradient_type, good);
       if (fastuidraw_brush_shader_has_gradient_repeat(fastuidraw_brush_shader))
         {
           t = fract(t);
