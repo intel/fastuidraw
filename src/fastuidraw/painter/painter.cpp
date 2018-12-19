@@ -30,12 +30,38 @@
 #include "../private/util_private_math.hpp"
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
+#include "../private/bounding_box.hpp"
 
 namespace
 {
   class ZDelayedAction;
   class ZDataCallBack;
   class PainterPrivate;
+
+  bool
+  adjust_brush_for_internal_shearing(const fastuidraw::PainterData &in_value,
+                                     fastuidraw::vec2 translate,
+                                     fastuidraw::vec2 shear,
+                                     fastuidraw::PainterBrush &tmp_brush,
+                                     fastuidraw::PainterData &out_value)
+  {
+    using namespace fastuidraw;
+    if (in_value.m_brush.data().shader() & (PainterBrush::image_mask | PainterBrush::gradient_type_mask))
+      {
+        out_value = PainterData(in_value);
+        tmp_brush = in_value.m_brush.data();
+
+        /* apply the same transformation to the brush
+         * as we apply to the Painter.
+         */
+        tmp_brush.apply_translate(translate);
+        tmp_brush.apply_shear(shear.x(), shear.y());
+
+        out_value.set(&tmp_brush);
+        return true;
+      }
+    return false;
+  }
 
   /* A WindingSet is way to cache values from a
    * fastuidraw::CustomFillRuleBase.
@@ -249,10 +275,10 @@ namespace
       m_max(0.0f, 0.0f)
     {}
 
-    clip_rect(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &pmax):
+    clip_rect(const fastuidraw::Rect &rect):
       m_enabled(true),
-      m_min(pmin),
-      m_max(pmax)
+      m_min(rect.m_min_point),
+      m_max(rect.m_max_point)
     {}
 
     void
@@ -348,12 +374,6 @@ namespace
     const fastuidraw::float3x3&
     item_matrix_inverse_transpose(void);
 
-    const fastuidraw::PainterItemMatrix&
-    current_painter_item_matrix(void)
-    {
-      return m_item_matrix;
-    }
-
     const fastuidraw::float3x3&
     item_matrix(void)
     {
@@ -439,7 +459,7 @@ namespace
                  std::vector<fastuidraw::vec2> &work_vec2s);
 
     bool
-    rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh);
+    rect_is_culled(const fastuidraw::Rect &rect);
 
     clip_rect m_clip_rect;
     bool m_all_content_culled;
@@ -525,53 +545,57 @@ namespace
     void
     push(void)
     {
-      m_sz.push_back(m_store.size());
-      m_store.resize(m_store.size() + m_current.size());
-      std::copy(m_current.begin(), m_current.end(), m_store.begin() + m_sz.back());
+      m_clip.push();
+      m_poly.push();
+
+      m_bb_stack.push_back(m_current_bb);
     }
 
     void
     pop(void)
     {
-      FASTUIDRAWassert(!m_sz.empty());
-      FASTUIDRAWassert(m_sz.back() <= m_store.size());
+      m_clip.pop();
+      m_poly.pop();
 
-      set_current(fastuidraw::make_c_array(m_store).sub_array(m_sz.back()));
-      m_store.resize(m_sz.back());
-      m_sz.pop_back();
+      m_current_bb = m_bb_stack.back();
+      m_bb_stack.pop_back();
     }
 
     void
-    set_current(fastuidraw::c_array<const fastuidraw::vec3> new_equations)
-    {
-      m_current.resize(new_equations.size());
-      std::copy(new_equations.begin(), new_equations.end(), m_current.begin());
-    }
+    reset(fastuidraw::vec2 dims,
+          fastuidraw::c_array<const fastuidraw::vec3> clip);
 
     void
-    add_to_current(const fastuidraw::vec3 &c)
-    {
-      m_current.push_back(c);
-    }
-
-    void
-    clear_current(void)
-    {
-      m_current.clear();
-    }
+    set_current(const fastuidraw::float3x3 &transform,
+                const fastuidraw::float3x3 &inverse_transpose,
+                fastuidraw::c_array<const fastuidraw::vec2> new_poly);
 
     void
     clear(void)
     {
-      m_current.clear();
-      m_store.clear();
-      m_sz.clear();
+      m_clip.clear();
+      m_poly.clear();
+
+      m_bb_stack.clear();
+      m_current_bb = fastuidraw::BoundingBox<float>();
     }
 
     fastuidraw::c_array<const fastuidraw::vec3>
-    current(void)
+    current(void) const
     {
-      return fastuidraw::make_c_array(m_current);
+      return fastuidraw::make_c_array(m_clip.current());
+    }
+
+    fastuidraw::c_array<const fastuidraw::vec3>
+    current_poly(void) const
+    {
+      return fastuidraw::make_c_array(m_poly.current());
+    }
+
+    const fastuidraw::BoundingBox<float>&
+    current_bb(void) const
+    {
+      return m_current_bb;
     }
 
     /* @param (input) clip_matrix_local transformation from local to clip coordinates
@@ -583,9 +607,66 @@ namespace
                          fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts);
 
   private:
-    std::vector<fastuidraw::vec3> m_store;
-    std::vector<unsigned int> m_sz;
-    std::vector<fastuidraw::vec3> m_current;
+    class Vec3Stack
+    {
+    public:
+      std::vector<fastuidraw::vec3>&
+      current(void)
+      {
+        return m_current;
+      }
+
+      const std::vector<fastuidraw::vec3>&
+      current(void) const
+      {
+        return m_current;
+      }
+
+      void
+      set_current(fastuidraw::c_array<const fastuidraw::vec3> new_values)
+      {
+        m_current.resize(new_values.size());
+        std::copy(new_values.begin(), new_values.end(), m_current.begin());
+      }
+
+      void
+      push(void)
+      {
+        m_sz.push_back(m_store.size());
+        m_store.resize(m_store.size() + m_current.size());
+        std::copy(m_current.begin(), m_current.end(), m_store.begin() + m_sz.back());
+      }
+
+      void
+      pop(void)
+      {
+        FASTUIDRAWassert(!m_sz.empty());
+        FASTUIDRAWassert(m_sz.back() <= m_store.size());
+
+        set_current(fastuidraw::make_c_array(m_store).sub_array(m_sz.back()));
+        m_store.resize(m_sz.back());
+        m_sz.pop_back();
+      }
+
+      void
+      clear(void)
+      {
+        m_current.clear();
+        m_store.clear();
+        m_sz.clear();
+      }
+
+    private:
+      std::vector<fastuidraw::vec3> m_store;
+      std::vector<unsigned int> m_sz;
+      std::vector<fastuidraw::vec3> m_current;
+    };
+
+    Vec3Stack m_clip, m_poly;
+    fastuidraw::vec2 m_dims;
+
+    fastuidraw::BoundingBox<float> m_current_bb;
+    std::vector<fastuidraw::BoundingBox<float> > m_bb_stack;
   };
 
   class StrokingItem
@@ -685,30 +766,67 @@ namespace
   class RoundedRectTransformations
   {
   public:
+    RoundedRectTransformations(const fastuidraw::PainterData &in_value,
+                               const fastuidraw::RoundedRect &R)
+    {
+      ready_transforms(R);
+      ready_painter_data(in_value);
+    }
+
     explicit
-    RoundedRectTransformations(const fastuidraw::RoundedRect &R)
+    RoundedRectTransformations(const fastuidraw::RoundedRect &R):
+      m_use(nullptr, nullptr, nullptr, nullptr)
+    {
+      ready_transforms(R);
+    }
+
+    void
+    ready_transforms(const fastuidraw::RoundedRect &R)
     {
       using namespace fastuidraw;
 
       /* min-x/max-y */
-      m_translates[0] = vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y());
-      m_shears[0] = vec2(R.m_min_corner_radii.x(), R.m_max_corner_radii.y());
+      m_translates[0] = vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y());
+      m_shears[0] = R.m_corner_radii[Rect::minx_maxy_corner];
 
       /* max-x/max-y */
-      m_translates[1] = vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y());
-      m_shears[1] = vec2(-R.m_max_corner_radii.x(), R.m_max_corner_radii.y());
+      m_translates[1] = vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y());
+      m_shears[1] = vec2(-1.0f, 1.0f) * R.m_corner_radii[Rect::maxx_maxy_corner];
 
       /* min-x/min-y */
-      m_translates[2] = vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y());
-      m_shears[2] = vec2(R.m_min_corner_radii.x(), -R.m_min_corner_radii.y());
+      m_translates[2] = vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y());
+      m_shears[2] = vec2(1.0f, -1.0f) * R.m_corner_radii[RoundedRect::minx_miny_corner];
 
       /* max-x/min-y */
-      m_translates[3] = vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y());
-      m_shears[3] = vec2(-R.m_max_corner_radii.x(), -R.m_min_corner_radii.y());
+      m_translates[3] = vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y());
+      m_shears[3] = -R.m_corner_radii[Rect::maxx_miny_corner];
+    }
+
+    void
+    ready_painter_data(const fastuidraw::PainterData &in_value)
+    {
+      for (int i = 0; i < 4; ++i)
+        {
+          if (adjust_brush_for_internal_shearing(in_value,
+                                                 m_translates[i], m_shears[i],
+                                                 m_tmp_brushes[i], m_tmp_datas[i]))
+            {
+              m_use[i] = &m_tmp_datas[i];
+            }
+          else
+            {
+              m_use[i] = &in_value;
+            }
+        }
     }
 
     fastuidraw::vecN<fastuidraw::vec2, 4> m_translates;
     fastuidraw::vecN<fastuidraw::vec2, 4> m_shears;
+
+    /* needed pain for the brushes */
+    fastuidraw::vecN<fastuidraw::PainterBrush, 4> m_tmp_brushes;
+    fastuidraw::vecN<fastuidraw::PainterData, 4> m_tmp_datas;
+    fastuidraw::vecN<const fastuidraw::PainterData*, 4> m_use;
   };
 
   fastuidraw::PainterAttribute
@@ -892,6 +1010,21 @@ namespace
     PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend);
 
     void
+    concat(const fastuidraw::float3x3 &tr);
+
+    void
+    translate(const fastuidraw::vec2 &p);
+
+    void
+    scale(float s);
+
+    void
+    shear(float sx, float sy);
+
+    void
+    rotate(float angle);
+
+    void
     draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
                  const fastuidraw::PainterData &draw,
                  fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
@@ -969,6 +1102,15 @@ namespace
                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     void
+    stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
+                       const fastuidraw::PainterData &draw,
+                       fastuidraw::c_array<const fastuidraw::vec2> pts,
+                       enum fastuidraw::Painter::cap_style cp,
+                       enum fastuidraw::Painter::join_style js,
+                       enum fastuidraw::Painter::shader_anti_alias_t anti_alias,
+                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+
+    void
     pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
                              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                              const FillSubsetWorkRoom &fill_subset,
@@ -1014,8 +1156,22 @@ namespace
                                     FillSubsetWorkRoom &workroom,
                                     OpaqueFillWorkRoom *output);
 
+    void
+    fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
+                      const fastuidraw::PainterData &draw,
+                      const fastuidraw::RoundedRect &R,
+                      enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                      const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+
+    void
+    ready_non_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts);
+
+    void
+    ready_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts,
+                             enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality);
+
     int
-    draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
+    fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
@@ -1023,30 +1179,31 @@ namespace
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     int
-    draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
+    fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
     {
-      return draw_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z, call_back);
+      return fill_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z, call_back);
     }
 
     int
-    draw_rect(const fastuidraw::PainterFillShader &shader,
+    fill_rect(const fastuidraw::PainterFillShader &shader,
               const fastuidraw::PainterData &draw,
-              const fastuidraw::vec2 &p, const fastuidraw::vec2 &wh,
+              const fastuidraw::Rect &rect,
               enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
               int z,
               const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
     {
-      fastuidraw::vecN<fastuidraw::vec2, 4> pts;
+      using namespace fastuidraw;
 
-      pts[0] = p + fastuidraw::vec2(0.0f, 0.0f);
-      pts[1] = p + fastuidraw::vec2(wh.x(), 0.0f);
-      pts[2] = p + fastuidraw::vec2(wh.x(), wh.y());
-      pts[3] = p + fastuidraw::vec2(0.0f, wh.y());
-      return draw_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
+      vecN<vec2, 4> pts;
+      pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
+      pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
+      pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
+      pts[3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
+      return fill_convex_polygon(shader, draw, pts, anti_alias_quality, z, call_back);
     }
 
     void
@@ -1056,12 +1213,21 @@ namespace
                                const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &callback);
 
     bool
-    update_clip_equation_series(const fastuidraw::vec2 &pmin,
-                                const fastuidraw::vec2 &pmax);
+    update_clip_equation_series(const fastuidraw::Rect &rect);
 
     float
     compute_magnification(const fastuidraw::vec2 &pmin,
 			  const fastuidraw::vec2 &pmax);
+
+    float
+    compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> poly);
+
+    float
+    compute_magnification_at_point(fastuidraw::vec2 p)
+    {
+      fastuidraw::c_array<const fastuidraw::vec2> poly(&p, 1);
+      return compute_max_magnification_at_points(poly);
+    }
 
     float
     compute_magnification(const fastuidraw::Path &path);
@@ -1119,6 +1285,7 @@ namespace
     float m_coverage_text_cut_off, m_distance_text_cut_off;
     fastuidraw::Path m_rounded_corner_path;
     fastuidraw::Path m_rounded_corner_path_complement;
+    fastuidraw::Path m_square_path;
   };
 }
 
@@ -1208,7 +1375,6 @@ on_pop(fastuidraw::Painter *p)
 
 ///////////////////////////////////////////////
 // clip_rect_stat methods
-
 void
 clip_rect_state::
 reset(fastuidraw::vec2 dims,
@@ -1460,14 +1626,21 @@ clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
 
 bool
 clip_rect_state::
-rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
+rect_is_culled(const fastuidraw::Rect &rect)
 {
   /* apply the current transformation matrix to
    * the corners of the clipping rectangle and check
    * if there is a clipping plane for which all
    * those points are on the wrong size.
    */
-  fastuidraw::vec2 pmax(wh + pmin);
+  const fastuidraw::vec2 &pmin(rect.m_min_point);
+  const fastuidraw::vec2 &pmax(rect.m_max_point);
+
+  if (pmin.x() >= pmax.x() || pmin.y() >= pmax.y())
+    {
+      return true;
+    }
+
   fastuidraw::vecN<fastuidraw::vec3, 4> pts;
   pts[0] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmin.y(), 1.0f);
   pts[1] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmax.y(), 1.0f);
@@ -1493,6 +1666,25 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
 
 /////////////////////////////////
 //ClipEquationStore methods
+void
+ClipEquationStore::
+reset(fastuidraw::vec2 dims,
+      fastuidraw::c_array<const fastuidraw::vec3> clip)
+{
+  clear();
+
+  m_poly.current().push_back(fastuidraw::vec3(-1.0f, -1.0f, +1.0f));
+  m_poly.current().push_back(fastuidraw::vec3(+1.0f, -1.0f, +1.0f));
+  m_poly.current().push_back(fastuidraw::vec3(+1.0f, +1.0f, +1.0f));
+  m_poly.current().push_back(fastuidraw::vec3(-1.0f, +1.0f, +1.0f));
+
+  m_clip.set_current(clip);
+
+  m_dims = dims;
+  m_current_bb.union_point(fastuidraw::vec2(0.0f, 0.0f));
+  m_current_bb.union_point(dims);
+}
+
 unsigned int
 ClipEquationStore::
 clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
@@ -1510,6 +1702,72 @@ clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
       fastuidraw::detail::clip_against_plane(nc, in, in_out_pts[dst]);
     }
   return src;
+}
+
+void
+ClipEquationStore::
+set_current(const fastuidraw::float3x3 &transform,
+            const fastuidraw::float3x3 &inverse_transpose,
+            fastuidraw::c_array<const fastuidraw::vec2> poly)
+{
+  m_poly.current().clear();
+  m_clip.current().clear();
+  m_current_bb = fastuidraw::BoundingBox<float>();
+
+  if (poly.empty())
+    {
+      return;
+    }
+
+  /* compute center of polygon so that we can correctly
+   * orient the normal vectors of the sides.
+   */
+  fastuidraw::vec2 center(0.0f, 0.0f);
+  for(const auto &pt : poly)
+    {
+      center += pt;
+    }
+  center /= static_cast<float>(poly.size());
+
+  /* extract the normal vectors of the polygon sides with
+   * correct orientation.
+   */
+  for(unsigned int i = 0; i < poly.size(); ++i)
+    {
+      fastuidraw::vec2 v, n;
+      unsigned int next_i;
+
+      next_i = i + 1;
+      next_i = (next_i == poly.size()) ? 0 : next_i;
+      v = poly[next_i] - poly[i];
+      n = fastuidraw::vec2(v.y(), -v.x());
+      if (dot(center - poly[i], n) < 0.0f)
+        {
+          n = -n;
+        }
+
+      /* The clip equation we have in local coordinates
+       * is dot(n, p - poly[i]) >= 0. Algebra time:
+       *   dot(n, p - poly[i]) = n.x * p.x + n.y * p.y + (-poly[i].x * n.x - poly[i].y * n.y)
+       *                       = dot( (n, R), (p, 1))
+       * where
+       *   R = -poly[i].x * n.x - poly[i].y * n.y = -dot(n, poly[i])
+       * We want the clip equations in clip coordinates though:
+       *   dot( (n, R), (p, 1) ) = dot( (n, R), inverseM(M(p, 1)) )
+       *                         = dot( inverse_transpose_M(R,1), M(p, 1))
+       * thus the vector to use is inverse_transpose_M(R,1)
+       */
+      fastuidraw::vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
+      fastuidraw::vec3 clip_pt(transform * fastuidraw::vec3(poly[i].x(), poly[i].y(), 1.0f));
+      float recip_z(1.0f / clip_pt.z());
+      fastuidraw::vec2 screen_scale(0.5f * m_dims.x() * recip_z, 0.5f * m_dims.y() * recip_z);
+      fastuidraw::vec2 screen_pt(clip_pt.x() * screen_scale.x(),
+                                 clip_pt.y() * screen_scale.y());
+
+      m_clip.current().push_back(inverse_transpose * nn);
+      m_poly.current().push_back(clip_pt);
+      m_current_bb.union_point(screen_pt);
+    }
 }
 
 //////////////////////////////////
@@ -1557,12 +1815,109 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
                                    << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
                                    << fastuidraw::vec2(0.0f, 1.0f)
                                    << fastuidraw::Path::contour_close();
+
+  /* a saved path for stroking and filling rects */
+  m_square_path << fastuidraw::vec2(0.0f, 0.0f)
+                << fastuidraw::vec2(0.0f, 1.0f)
+                << fastuidraw::vec2(1.0f, 1.0f)
+                << fastuidraw::vec2(1.0f, 0.0f)
+                << fastuidraw::Path::contour_close();
+}
+
+void
+PainterPrivate::
+concat(const fastuidraw::float3x3 &tr)
+{
+  using namespace fastuidraw;
+
+  float3x3 m;
+  bool tricky;
+
+  tricky = (tr(0, 1) != 0.0f || tr(1, 0) != 0.0f
+            || tr(2, 0) != 0.0f || tr(2, 1) != 0.0f
+            || tr(2, 2) != 1.0f);
+
+  m = m_clip_rect_state.item_matrix() * tr;
+  m_clip_rect_state.item_matrix(m, tricky, unclassified_matrix);
+
+  if (!tricky)
+    {
+      m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
+      m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0, 0), 1.0f / tr(1, 1));
+    }
+}
+
+void
+PainterPrivate::
+translate(const fastuidraw::vec2 &p)
+{
+  using namespace fastuidraw;
+
+  float3x3 m(m_clip_rect_state.item_matrix());
+  m.translate(p.x(), p.y());
+  m_clip_rect_state.item_matrix(m, false, non_scaling_matrix, 1.0f);
+  m_clip_rect_state.m_clip_rect.translate(-p);
+}
+
+void
+PainterPrivate::
+scale(float s)
+{
+  using namespace fastuidraw;
+
+  float3x3 m(m_clip_rect_state.item_matrix());
+  m.scale(s);
+  m_clip_rect_state.item_matrix(m, false, scaling_matrix, t_abs(s));
+  m_clip_rect_state.m_clip_rect.scale(1.0f / s);
+}
+
+void
+PainterPrivate::
+shear(float sx, float sy)
+{
+  using namespace fastuidraw;
+
+  float3x3 m(m_clip_rect_state.item_matrix());
+  enum matrix_type_t tp;
+  float sf;
+
+  tp = (t_abs(sx) != t_abs(sy)) ?
+    shearing_matrix : scaling_matrix;
+
+  sf = (t_abs(sx) != t_abs(sy)) ?
+    -1.0f : t_abs(sx);
+
+  m.shear(sx, sy);
+  m_clip_rect_state.item_matrix(m, false, tp, sf);
+  m_clip_rect_state.m_clip_rect.shear(1.0f / sx, 1.0f / sy);
+}
+
+void
+PainterPrivate::
+rotate(float angle)
+{
+  using namespace fastuidraw;
+
+  float3x3 tr;
+  float s, c;
+
+  s = t_sin(angle);
+  c = t_cos(angle);
+
+  tr(0, 0) = c;
+  tr(1, 0) = s;
+
+  tr(0, 1) = -s;
+  tr(1, 1) = c;
+
+  float3x3 m(m_clip_rect_state.item_matrix());
+  m = m * tr;
+  m_clip_rect_state.item_matrix(m, true, non_scaling_matrix, 1.0f);
 }
 
 bool
 PainterPrivate::
-update_clip_equation_series(const fastuidraw::vec2 &pmin,
-                            const fastuidraw::vec2 &pmax)
+update_clip_equation_series(const fastuidraw::Rect &rect)
 {
   /* We compute the rectangle clipped against the current
    * clipping planes which gives us a convex polygon.
@@ -1571,14 +1926,13 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
    * clip equations coming from that polygon and REPLACE
    * the old clip equations with the new ones.
    */
-  fastuidraw::vec2 center(0.0f, 0.0f);
   unsigned int src;
 
   m_work_room.m_clipper.m_pts_update_series[0].resize(4);
-  m_work_room.m_clipper.m_pts_update_series[0][0] = pmin;
-  m_work_room.m_clipper.m_pts_update_series[0][1] = fastuidraw::vec2(pmin.x(), pmax.y());
-  m_work_room.m_clipper.m_pts_update_series[0][2] = pmax;
-  m_work_room.m_clipper.m_pts_update_series[0][3] = fastuidraw::vec2(pmax.x(), pmin.y());
+  m_work_room.m_clipper.m_pts_update_series[0][0] = rect.m_min_point;
+  m_work_room.m_clipper.m_pts_update_series[0][1] = fastuidraw::vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  m_work_room.m_clipper.m_pts_update_series[0][2] = rect.m_max_point;
+  m_work_room.m_clipper.m_pts_update_series[0][3] = fastuidraw::vec2(rect.m_max_point.x(), rect.m_min_point.y());
   src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
                                           m_work_room.m_clipper.m_pts_update_series);
 
@@ -1587,58 +1941,10 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
    */
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = fastuidraw::make_c_array(m_work_room.m_clipper.m_pts_update_series[src]);
-
-  m_clip_store.clear_current();
-
-  /* if the rectangle clipped is empty, then we are completely clipped. */
-  if (poly.empty())
-    {
-      return true;
-    }
-
-  /* compute center of polygon so that we can correctly
-   * orient the normal vectors of the sides.
-   */
-  for(const auto &pt : poly)
-    {
-      center += pt;
-    }
-  center /= static_cast<float>(poly.size());
-
-  const fastuidraw::float3x3 &inverse_transpose(m_clip_rect_state.item_matrix_inverse_transpose());
-  /* extract the normal vectors of the polygon sides with
-   * correct orientation.
-   */
-  for(unsigned int i = 0; i < poly.size(); ++i)
-    {
-      fastuidraw::vec2 v, n;
-      unsigned int next_i;
-
-      next_i = i + 1;
-      next_i = (next_i == poly.size()) ? 0 : next_i;
-      v = poly[next_i] - poly[i];
-      n = fastuidraw::vec2(v.y(), -v.x());
-      if (dot(center - poly[i], n) < 0.0f)
-        {
-          n = -n;
-        }
-
-      /* The clip equation we have in local coordinates
-       * is dot(n, p - poly[i]) >= 0. Algebra time:
-       *   dot(n, p - poly[i]) = n.x * p.x + n.y * p.y + (-poly[i].x * n.x - poly[i].y * n.y)
-       *                      = dot( (n, R), (p, 1))
-       * where
-       *   R = -poly[i].x * n.x - poly[i].y * n.y = -dot(n, poly[i])
-       * We want the clip equations in clip coordinates though:
-       *   dot( (n, R), (p, 1) ) = dot( (n, R), inverseM(M(p, 1)) )
-       *                         = dot( inverse_transpose_M(R,1), M(p, 1))
-       * thus the vector to use is inverse_transpose_M(R,1)
-       */
-      fastuidraw::vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
-      m_clip_store.add_to_current(inverse_transpose * nn);
-    }
-
-  return false;
+  m_clip_store.set_current(m_clip_rect_state.item_matrix(),
+                           m_clip_rect_state.item_matrix_inverse_transpose(),
+                           poly);
+  return poly.empty();
 }
 
 float
@@ -1668,18 +1974,7 @@ PainterPrivate::
 compute_magnification(const fastuidraw::vec2 &bb_min,
 		      const fastuidraw::vec2 &bb_max)
 {
-  using namespace fastuidraw;
-
-  float op_norm;
-  const float3x3 &m(m_clip_rect_state.item_matrix());
   unsigned int src;
-
-  op_norm = m_clip_rect_state.item_matrix_operator_norm();
-
-  if (!matrix_has_perspective(m))
-    {
-      return op_norm / fastuidraw::t_abs(m(2, 2));
-    }
 
   /* clip the bounding box given by bb_min, bb_max */
   m_work_room.m_clipper.m_vec2s[0].resize(4);
@@ -1688,15 +1983,34 @@ compute_magnification(const fastuidraw::vec2 &bb_min,
   m_work_room.m_clipper.m_vec2s[0][2] = bb_max;
   m_work_room.m_clipper.m_vec2s[0][3] = fastuidraw::vec2(bb_max.x(), bb_min.y());
 
-  src = m_clip_store.clip_against_current(m, m_work_room.m_clipper.m_vec2s);
+  src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
+                                          m_work_room.m_clipper.m_vec2s);
 
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = make_c_array(m_work_room.m_clipper.m_vec2s[src]);
+
+  return compute_max_magnification_at_points(poly);
+}
+
+float
+PainterPrivate::
+compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> poly)
+{
+  using namespace fastuidraw;
 
   if (poly.empty())
     {
       /* bounding box is completely clipped */
       return -1.0f;
+    }
+
+  float op_norm;
+  const float3x3 &m(m_clip_rect_state.item_matrix());
+
+  op_norm = m_clip_rect_state.item_matrix_operator_norm();
+  if (!matrix_has_perspective(m))
+    {
+      return op_norm / t_abs(m(2, 2));
     }
 
   /* To figure out the magnification, we need to maximize
@@ -2135,6 +2449,76 @@ draw_generic_z_layered(fastuidraw::c_array<const ConstItemShaderRefPtr> shaders,
                    fastuidraw::c_array<const unsigned int>(),
                    z, call_back);
     }
+}
+
+void
+PainterPrivate::
+stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
+                   const fastuidraw::PainterData &draw,
+                   fastuidraw::c_array<const fastuidraw::vec2> line_strip,
+                   enum fastuidraw::Painter::cap_style cp,
+                   enum fastuidraw::Painter::join_style js,
+                   enum fastuidraw::Painter::shader_anti_alias_t anti_alias,
+                   const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  using namespace fastuidraw;
+
+  if (m_clip_rect_state.m_all_content_culled || line_strip.empty())
+    {
+      return;
+    }
+
+  Path path;
+  float thresh(-1.0f);
+
+  if (line_strip.size() < 2)
+    {
+      js = fastuidraw::Painter::no_joins;
+    }
+
+  /* TODO: creating a temporary path makes unnecessary memory
+   * allocation/deallocation noise; instead we should compute
+   * the attribute data directly and feed it directly to
+   * stroke_path_raw().
+   */
+  for (const vec2 &pt : line_strip)
+    {
+      path << pt;
+    }
+
+  if (cp == Painter::rounded_caps || js == Painter::bevel_joins)
+    {
+      const PainterShaderData::DataBase *shader_data;
+      float mag;
+
+      if (js == Painter::bevel_joins)
+        {
+          c_array<const vec2> tmp(line_strip);
+          tmp.pop_front();
+          tmp.pop_back();
+          mag = compute_max_magnification_at_points(tmp);
+        }
+      else
+        {
+          mag = -1.0f;
+        }
+
+      if (cp == Painter::rounded_caps)
+        {
+          mag = t_max(mag, compute_magnification_at_point(line_strip.front()));
+          mag = t_max(mag, compute_magnification_at_point(line_strip.back()));
+        }
+
+      if (mag > 0.0f)
+        {
+          shader_data = draw.m_item_shader_data.data().data_base();
+          thresh = shader.stroking_data_selector()->compute_thresh(shader_data, mag, m_curve_flatness);
+        }
+    }
+
+  stroke_path_common(shader, draw,
+                     *path.tessellation(-1.0f)->stroked(), thresh,
+                     cp, js, anti_alias, call_back);
 }
 
 void
@@ -2646,37 +3030,244 @@ fill_path(const fastuidraw::PainterFillShader &shader,
   m_current_z += m_work_room.m_fill_aa_fuzz.m_total_increment_z;
 }
 
-int
+void
 PainterPrivate::
-draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
-                    const fastuidraw::PainterData &draw,
-                    fastuidraw::c_array<const fastuidraw::vec2> pts,
-                    enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
-                    int z,
-                    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
+                  const fastuidraw::PainterData &draw,
+                  const fastuidraw::RoundedRect &R,
+                  enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   using namespace fastuidraw;
 
-  if (pts.size() < 3 || m_clip_rect_state.m_all_content_culled)
-    {
-      return 0;
-    }
+  /* Save our transformation and clipping state */
+  clip_rect_state m(m_clip_rect_state);
+  RoundedRectTransformations rect_transforms(draw, R);
+  int total_incr_z(0);
+  Rect interior_rect, r_min, r_max, r_min_extra, r_max_extra;
+  float wedge_miny, wedge_maxy;
 
-  if (!m_core->hints().clipping_via_hw_clip_planes())
-    {
-      m_clip_rect_state.clip_polygon(pts, m_work_room.m_polygon.m_pts,
-                                     m_work_room.m_clipper.m_vec2s[0]);
-      pts = make_c_array(m_work_room.m_polygon.m_pts);
-      if (pts.size() < 3)
-        {
-          return 0;
-        }
-    }
+  wedge_miny = t_max(R.m_corner_radii[Rect::minx_miny_corner].y(), R.m_corner_radii[Rect::maxx_miny_corner].y());
+  wedge_maxy = t_max(R.m_corner_radii[Rect::minx_maxy_corner].y(), R.m_corner_radii[Rect::maxx_maxy_corner].y());
 
-  m_work_room.m_polygon.m_fuzz_increment_z = 0;
+  interior_rect.m_min_point = vec2(R.m_min_point.x(), R.m_min_point.y() + wedge_miny);
+  interior_rect.m_max_point = vec2(R.m_max_point.x(), R.m_max_point.y() - wedge_maxy);
+
+  r_min.m_min_point = vec2(R.m_min_point.x() + R.m_corner_radii[Rect::minx_miny_corner].x(),
+                           R.m_min_point.y());
+  r_min.m_max_point = vec2(R.m_max_point.x() - R.m_corner_radii[Rect::maxx_miny_corner].x(),
+                           R.m_min_point.y() + wedge_miny);
+
+  r_max.m_min_point = vec2(R.m_min_point.x() + R.m_corner_radii[Rect::minx_maxy_corner].x(),
+                           R.m_max_point.y() - wedge_maxy);
+  r_max.m_max_point = vec2(R.m_max_point.x() - R.m_corner_radii[Rect::maxx_maxy_corner].x(),
+                           R.m_max_point.y());
+
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
                                                  shader.hq_anti_alias_support(),
                                                  shader.fastest_anti_alias_mode());
+
+  if (anti_alias_quality != Painter::shader_anti_alias_none)
+    {
+      int incr;
+
+      incr = (anti_alias_quality == Painter::shader_anti_alias_simple) ? 1 : 0;
+
+      m_work_room.m_rounded_rect.m_rect_fuzz_attributes.clear();
+      m_work_room.m_rounded_rect.m_rect_fuzz_indices.clear();
+      pack_anti_alias_edge(r_min.m_min_point,
+                           vec2(r_min.m_max_point.x(), r_min.m_min_point.y()),
+                           total_incr_z,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      pack_anti_alias_edge(vec2(r_max.m_min_point.x(), r_max.m_max_point.y()),
+                           r_max.m_max_point,
+                           total_incr_z,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      pack_anti_alias_edge(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y()),
+                           vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y()),
+                           total_incr_z,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      pack_anti_alias_edge(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y()),
+                           vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y()),
+                           total_incr_z,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+      total_incr_z += incr;
+
+      if (anti_alias_quality != Painter::shader_anti_alias_simple)
+        {
+          /* one for the above edges */
+          total_incr_z = 1;
+        }
+    }
+
+  for (int i = 0; i < 4; ++i)
+    {
+      translate(rect_transforms.m_translates[i]);
+      shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
+      m_work_room.m_rounded_rect.m_filled_paths[i] = &select_filled_path(m_rounded_corner_path);
+      fill_path_compute_opaque_chunks(*m_work_room.m_rounded_rect.m_filled_paths[i],
+                                      Painter::nonzero_fill_rule,
+                                      m_work_room.m_rounded_rect.m_subsets[i],
+                                      &m_work_room.m_rounded_rect.m_opaque_fill[i]);
+
+      if (anti_alias_quality != Painter::shader_anti_alias_none)
+        {
+          pre_draw_anti_alias_fuzz(*m_work_room.m_rounded_rect.m_filled_paths[i],
+                                   anti_alias_quality,
+                                   m_work_room.m_rounded_rect.m_subsets[i],
+                                   &m_work_room.m_rounded_rect.m_aa_fuzz[i]);
+          total_incr_z += m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
+        }
+      else
+        {
+          m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z = 0;
+        }
+      m_clip_rect_state = m;
+    }
+
+  fill_rect(shader, draw, interior_rect, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+  fill_rect(shader, draw, r_min, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+  fill_rect(shader, draw, r_max, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+
+  if (R.m_corner_radii[Rect::minx_miny_corner].y() > R.m_corner_radii[Rect::maxx_miny_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = r_min.m_max_point.x();
+      r.m_min_point.y() = R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y();
+      r.m_max_point.x() = R.m_max_point.x();
+      r.m_max_point.y() = r_min.m_max_point.y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
+  else if (R.m_corner_radii[Rect::minx_miny_corner].y() < R.m_corner_radii[Rect::maxx_miny_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = R.m_min_point.x();
+      r.m_min_point.y() = R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y();
+      r.m_max_point.x() = R.m_min_point.x() + R.m_corner_radii[Rect::minx_miny_corner].x();
+      r.m_max_point.y() = r_min.m_max_point.y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
+
+  if (R.m_corner_radii[Rect::minx_maxy_corner].y() > R.m_corner_radii[Rect::maxx_maxy_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = r_max.m_max_point.x();
+      r.m_min_point.y() = r_max.m_min_point.y();
+      r.m_max_point.x() = R.m_max_point.x();
+      r.m_max_point.y() = R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
+  else if (R.m_corner_radii[Rect::minx_maxy_corner].y() < R.m_corner_radii[Rect::maxx_maxy_corner].y())
+    {
+      Rect r;
+
+      r.m_min_point.x() = R.m_min_point.x();
+      r.m_min_point.y() = r_max.m_min_point.y();
+      r.m_max_point.x() = R.m_min_point.x() + R.m_corner_radii[Rect::minx_maxy_corner].x();
+      r.m_max_point.y() = R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y();
+      fill_rect(shader, draw, r, Painter::shader_anti_alias_none, m_current_z + total_incr_z, call_back);
+    }
+
+  for (int i = 0; i < 4; ++i)
+    {
+      translate(rect_transforms.m_translates[i]);
+      shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
+      draw_generic(shader.item_shader(), *rect_transforms.m_use[i],
+                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_attrib_chunks),
+                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_chunks),
+                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_adjusts),
+                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_chunk_selector),
+                   m_current_z + total_incr_z, call_back);
+      m_clip_rect_state = m;
+    }
+
+  if (anti_alias_quality != Painter::shader_anti_alias_none)
+    {
+      int incr_z(total_incr_z);
+
+      if (anti_alias_quality == Painter::shader_anti_alias_simple)
+        {
+          incr_z -= 4;
+          draw_generic(shader.aa_fuzz_shader(), draw,
+                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
+                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
+                       0, m_current_z + incr_z, call_back);
+        }
+      else
+        {
+          incr_z -= 1;
+          draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
+                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
+                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
+                       0, m_current_z + incr_z, call_back);
+          m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
+
+          draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
+                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
+                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
+                       0, m_current_z + incr_z, call_back);
+          m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
+        }
+
+      for (int i = 0; i < 4; ++i)
+        {
+          incr_z -= m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
+          translate(rect_transforms.m_translates[i]);
+          shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
+          draw_anti_alias_fuzz(shader, *rect_transforms.m_use[i], anti_alias_quality,
+                               m_work_room.m_rounded_rect.m_aa_fuzz[i],
+                               m_current_z + incr_z, call_back);
+          m_clip_rect_state = m;
+        }
+    }
+  m_current_z += total_incr_z;
+}
+
+void
+PainterPrivate::
+ready_non_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts)
+{
+  using namespace fastuidraw;
+
+  m_work_room.m_polygon.m_attribs.resize(pts.size());
+  for(unsigned int i = 0; i < pts.size(); ++i)
+    {
+      m_work_room.m_polygon.m_attribs[i].m_attrib0 = pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      m_work_room.m_polygon.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
+      m_work_room.m_polygon.m_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
+    }
+
+  m_work_room.m_polygon.m_indices.clear();
+  m_work_room.m_polygon.m_indices.reserve((pts.size() - 2) * 3);
+  for(unsigned int i = 2; i < pts.size(); ++i)
+    {
+      m_work_room.m_polygon.m_indices.push_back(0);
+      m_work_room.m_polygon.m_indices.push_back(i - 1);
+      m_work_room.m_polygon.m_indices.push_back(i);
+    }
+}
+
+void
+PainterPrivate::
+ready_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts,
+                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality)
+{
+  using namespace fastuidraw;
+
+  m_work_room.m_polygon.m_fuzz_increment_z = 0;
   if (anti_alias_quality != Painter::shader_anti_alias_none)
     {
       int mult;
@@ -2750,23 +3341,40 @@ draw_convex_polygon(const fastuidraw::PainterFillShader &shader,
           m_work_room.m_polygon.m_fuzz_increment_z = 1u;
         }
     }
+}
 
-  m_work_room.m_polygon.m_attribs.resize(pts.size());
-  for(unsigned int i = 0; i < pts.size(); ++i)
+int
+PainterPrivate::
+fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
+                    const fastuidraw::PainterData &draw,
+                    fastuidraw::c_array<const fastuidraw::vec2> pts,
+                    enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                    int z,
+                    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  using namespace fastuidraw;
+
+  if (pts.size() < 3 || m_clip_rect_state.m_all_content_culled)
     {
-      m_work_room.m_polygon.m_attribs[i].m_attrib0 = pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
-      m_work_room.m_polygon.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
-      m_work_room.m_polygon.m_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
+      return 0;
     }
 
-  m_work_room.m_polygon.m_indices.clear();
-  m_work_room.m_polygon.m_indices.reserve((pts.size() - 2) * 3);
-  for(unsigned int i = 2; i < pts.size(); ++i)
+  if (!m_core->hints().clipping_via_hw_clip_planes())
     {
-      m_work_room.m_polygon.m_indices.push_back(0);
-      m_work_room.m_polygon.m_indices.push_back(i - 1);
-      m_work_room.m_polygon.m_indices.push_back(i);
+      m_clip_rect_state.clip_polygon(pts, m_work_room.m_polygon.m_pts,
+                                     m_work_room.m_clipper.m_vec2s[0]);
+      pts = make_c_array(m_work_room.m_polygon.m_pts);
+      if (pts.size() < 3)
+        {
+          return 0;
+        }
     }
+
+  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
+                                                 shader.hq_anti_alias_support(),
+                                                 shader.fastest_anti_alias_mode());
+  ready_aa_polygon_attribs(pts, anti_alias_quality);
+  ready_non_aa_polygon_attribs(pts);
 
   draw_generic(shader.item_shader(), draw,
                make_c_array(m_work_room.m_polygon.m_attribs),
@@ -2841,7 +3449,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
       /* the 4 points of the polygon are then
        * (a, -1), (c, -1), (d, 1), (b, 1).
        */
-      draw_convex_polygon(shader, draw,
+      fill_convex_polygon(shader, draw,
                           vecN<vec2, 4>(vec2(a, -1.0f),
                                         vec2(c, -1.0f),
                                         vec2(d, +1.0f),
@@ -2866,7 +3474,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
           d = t_max(1.0f, b);
         }
 
-      draw_convex_polygon(shader, draw,
+      fill_convex_polygon(shader, draw,
                           vecN<vec2, 4>(vec2(-1.0f, a),
                                         vec2(-1.0f, c),
                                         vec2(+1.0f, d),
@@ -2879,7 +3487,7 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
     {
       /* complement of half plane covers entire [-1,1]x[-1,1]
        */
-      draw_convex_polygon(shader, draw,
+      fill_convex_polygon(shader, draw,
                           vecN<vec2, 4>(vec2(-1.0f, -1.0f),
                                         vec2(-1.0f, +1.0f),
                                         vec2(+1.0f, +1.0f),
@@ -2932,7 +3540,8 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
   d->m_current_z = 1;
   d->m_clip_rect_state.reset(d->m_resolution, orientation);
-  d->m_clip_store.set_current(d->m_clip_rect_state.clip_equations().m_clip_equations);
+  d->m_clip_store.reset(d->m_resolution,
+                        d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(composite_porter_duff_src_over);
   blend_shader(blend_w3c_normal);
 }
@@ -2954,6 +3563,15 @@ end(void)
   d->m_clip_store.clear();
   d->m_state_stack.clear();
   d->m_core->end();
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&
+fastuidraw::Painter::
+surface(void) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_core->surface();
 }
 
 void
@@ -3018,26 +3636,26 @@ queue_action(const reference_counted_ptr<const PainterDraw::Action> &action)
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const PainterFillShader &shader,
+fill_convex_polygon(const PainterFillShader &shader,
                     const PainterData &draw, c_array<const vec2> pts,
                     enum shader_anti_alias_t anti_alias_quality)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_current_z += d->draw_convex_polygon(shader, draw, pts, anti_alias_quality, nullptr);
+  d->m_current_z += d->fill_convex_polygon(shader, draw, pts, anti_alias_quality, nullptr);
 }
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
+fill_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
                     enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_convex_polygon(default_shaders().fill_shader(), draw, pts, anti_alias_quality);
+  fill_convex_polygon(default_shaders().fill_shader(), draw, pts, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const PainterFillShader &shader, const PainterData &draw,
+fill_quad(const PainterFillShader &shader, const PainterData &draw,
           const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           enum shader_anti_alias_t anti_alias_quality)
 {
@@ -3046,43 +3664,45 @@ draw_quad(const PainterFillShader &shader, const PainterData &draw,
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(shader, draw, pts, anti_alias_quality);
+  fill_convex_polygon(shader, draw, pts, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const PainterData &draw,
+fill_quad(const PainterData &draw,
           const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3,
+  fill_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3,
             anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_rect(const PainterFillShader &shader,
-          const PainterData &draw, const vec2 &p, const vec2 &wh,
+fill_rect(const PainterFillShader &shader,
+          const PainterData &draw, const Rect &rect,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_quad(shader, draw,
-            p, p + vec2(0.0f, wh.y()),
-            p + wh, p + vec2(wh.x(), 0.0f),
-            anti_alias_quality);
+  vecN<vec2, 4> pts;
+
+  pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
+  pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
+  pts[3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
+  fill_convex_polygon(shader, draw, pts, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+fill_rect(const PainterData &draw, const Rect &rect,
           enum shader_anti_alias_t anti_alias_quality)
 {
-  draw_rect(default_shaders().fill_shader(), draw, p, wh,
-            anti_alias_quality);
+  fill_rect(default_shaders().fill_shader(), draw, rect, anti_alias_quality);
 }
 
 void
 fastuidraw::Painter::
-draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
+fill_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
                   const RoundedRect &R,
                   enum shader_anti_alias_t anti_alias_quality)
 {
@@ -3091,157 +3711,18 @@ draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
-      /* everything is clipped anyways, adding more clipping does not matter */
+      /* everything is clipped, skip the draw */
       return;
     }
+  d->fill_rounded_rect(shader, draw, R, anti_alias_quality, nullptr);
+}
 
-  /* Save our transformation and clipping state */
-  clip_rect_state m(d->m_clip_rect_state);
-  RoundedRectTransformations rect_transforms(R);
-  int total_incr_z(0);
-
-  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support(),
-                                                 shader.fastest_anti_alias_mode());
-
-  if (anti_alias_quality != shader_anti_alias_none)
-    {
-      int incr;
-
-      incr = (anti_alias_quality == shader_anti_alias_simple) ? 1 : 0;
-
-      d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes.clear();
-      d->m_work_room.m_rounded_rect.m_rect_fuzz_indices.clear();
-      pack_anti_alias_edge(vec2(R.m_min_point.x() + R.m_min_corner_radii.x(), R.m_min_point.y()),
-                           vec2(R.m_max_point.x() - R.m_max_corner_radii.x(), R.m_min_point.y()),
-                           total_incr_z,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
-
-      pack_anti_alias_edge(vec2(R.m_min_point.x() + R.m_min_corner_radii.x(), R.m_max_point.y()),
-                           vec2(R.m_max_point.x() - R.m_max_corner_radii.x(), R.m_max_point.y()),
-                           total_incr_z,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
-
-      pack_anti_alias_edge(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()),
-                           vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()),
-                           total_incr_z,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
-
-      pack_anti_alias_edge(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_min_corner_radii.y()),
-                           vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_max_corner_radii.y()),
-                           total_incr_z,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           d->m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
-
-      if (anti_alias_quality != shader_anti_alias_simple)
-        {
-          /* one for the above edges */
-          total_incr_z = 1;
-        }
-    }
-
-  for (int i = 0; i < 4; ++i)
-    {
-      translate(rect_transforms.m_translates[i]);
-      shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-      d->m_work_room.m_rounded_rect.m_filled_paths[i] = &d->select_filled_path(d->m_rounded_corner_path);
-      d->fill_path_compute_opaque_chunks(*d->m_work_room.m_rounded_rect.m_filled_paths[i],
-                                         nonzero_fill_rule,
-                                         d->m_work_room.m_rounded_rect.m_subsets[i],
-                                         &d->m_work_room.m_rounded_rect.m_opaque_fill[i]);
-
-      if (anti_alias_quality != shader_anti_alias_none)
-        {
-          d->pre_draw_anti_alias_fuzz(*d->m_work_room.m_rounded_rect.m_filled_paths[i],
-                                      anti_alias_quality,
-                                      d->m_work_room.m_rounded_rect.m_subsets[i],
-                                      &d->m_work_room.m_rounded_rect.m_aa_fuzz[i]);
-          total_incr_z += d->m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
-        }
-      else
-        {
-          d->m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z = 0;
-        }
-      d->m_clip_rect_state = m;
-    }
-
-  /* Draw interior of rect (which is 3 rects) */
-  d->draw_rect(shader, draw,
-               R.m_min_point + vec2(R.m_min_corner_radii.x(), 0.0f),
-               R.m_max_point - R.m_min_point - vec2(R.m_max_corner_radii.x() + R.m_min_corner_radii.x(), 0.0f),
-               Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
-  d->draw_rect(shader, draw,
-               R.m_min_point + vec2(0.0f, R.m_min_corner_radii.y()),
-               vec2(R.m_min_corner_radii.x(),
-                    R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
-               Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
-  d->draw_rect(shader, draw,
-               vec2(R.m_max_point.x() - R.m_max_corner_radii.x(),
-                    R.m_min_point.y() + R.m_min_corner_radii.y()),
-               vec2(R.m_max_corner_radii.x(),
-                    R.m_max_point.y() - R.m_min_point.y() - R.m_max_corner_radii.y() - R.m_min_corner_radii.y()),
-               Painter::shader_anti_alias_none, d->m_current_z + total_incr_z, nullptr);
-
-  for (int i = 0; i < 4; ++i)
-    {
-      translate(rect_transforms.m_translates[i]);
-      shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-      d->draw_generic(shader.item_shader(), draw,
-                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_attrib_chunks),
-                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_chunks),
-                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_adjusts),
-                      make_c_array(d->m_work_room.m_rounded_rect.m_opaque_fill[i].m_chunk_selector),
-                      d->m_current_z + total_incr_z, nullptr);
-      d->m_clip_rect_state = m;
-    }
-
-  if (anti_alias_quality != shader_anti_alias_none)
-    {
-      int incr_z(total_incr_z);
-
-      if (anti_alias_quality == Painter::shader_anti_alias_simple)
-        {
-          incr_z -= 4;
-          d->draw_generic(shader.aa_fuzz_shader(), draw,
-                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
-                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
-                          0, d->m_current_z + incr_z, nullptr);
-        }
-      else
-        {
-          incr_z -= 1;
-          d->draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
-                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
-                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
-                          0, d->m_current_z + incr_z, nullptr);
-          d->m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
-
-          d->draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
-                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
-                          make_c_array(d->m_work_room.m_rounded_rect.m_rect_fuzz_indices),
-                          0, d->m_current_z + incr_z, nullptr);
-          d->m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
-        }
-
-      for (int i = 0; i < 4; ++i)
-        {
-          incr_z -= d->m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
-          translate(rect_transforms.m_translates[i]);
-          shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-          d->draw_anti_alias_fuzz(shader, draw, anti_alias_quality,
-                                  d->m_work_room.m_rounded_rect.m_aa_fuzz[i],
-                                  d->m_current_z + incr_z, nullptr);
-          d->m_clip_rect_state = m;
-        }
-    }
-  d->m_current_z += total_incr_z;
+void
+fastuidraw::Painter::
+fill_rounded_rect(const PainterData &draw, const RoundedRect &R,
+                  enum shader_anti_alias_t anti_alias_quality)
+{
+  fill_rounded_rect(default_shaders().fill_shader(), draw, R, anti_alias_quality);
 }
 
 float
@@ -3401,6 +3882,68 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
 {
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
                      stroke_style, anti_alias_quality, stroking_method);
+}
+
+void
+fastuidraw::Painter::
+stroke_line_strip(const PainterStrokeShader &shader, const PainterData &draw,
+                  c_array<const vec2> line_strip,
+                  const StrokingStyle &stroke_style,
+                  enum shader_anti_alias_t anti_alias_quality)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
+  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
+  d->stroke_path_common(shader, draw, line_strip,
+                        stroke_style.m_cap_style,
+                        stroke_style.m_join_style,
+                        anti_alias_quality,
+                        nullptr);
+}
+
+void
+fastuidraw::Painter::
+stroke_line_strip(const PainterData &draw,
+                  c_array<const vec2> line_strip,
+                  const StrokingStyle &stroke_style,
+                  enum shader_anti_alias_t anti_alias_quality)
+{
+  stroke_line_strip(default_shaders().stroke_shader(), draw,
+                    line_strip, stroke_style, anti_alias_quality);
+}
+
+void
+fastuidraw::Painter::
+stroke_dashed_line_strip(const PainterDashedStrokeShaderSet &shader,
+                         const PainterData &draw,
+                         c_array<const vec2> line_strip,
+                         const StrokingStyle &stroke_style,
+                         enum shader_anti_alias_t anti_alias_quality)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
+  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
+  d->stroke_path_common(shader.shader(stroke_style.m_cap_style),
+                        draw, line_strip,
+                        stroke_style.m_cap_style,
+                        stroke_style.m_join_style,
+                        anti_alias_quality,
+                        nullptr);
+}
+
+void
+fastuidraw::Painter::
+stroke_dashed_line_strip(const PainterData &draw,
+                         c_array<const vec2> line_strip,
+                         const StrokingStyle &stroke_style,
+                         enum shader_anti_alias_t anti_alias_quality)
+{
+  stroke_dashed_line_strip(default_shaders().dashed_stroke_shader(), draw,
+                           line_strip, stroke_style, anti_alias_quality);
 }
 
 void
@@ -3621,13 +4164,56 @@ draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
   return draw_glyphs(draw, glyph_run, 0, glyph_run.number_glyphs(), renderer);
 }
 
-const fastuidraw::PainterItemMatrix&
+const fastuidraw::float3x3&
 fastuidraw::Painter::
 transformation(void)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_clip_rect_state.current_painter_item_matrix();
+  return d->m_clip_rect_state.item_matrix();
+}
+
+fastuidraw::c_array<const fastuidraw::vec3>
+fastuidraw::Painter::
+clip_equations(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_clip_store.current();
+}
+
+fastuidraw::c_array<const fastuidraw::vec3>
+fastuidraw::Painter::
+clip_polygon(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_clip_store.current_poly();
+}
+
+bool
+fastuidraw::Painter::
+clip_region_bounds(vec2 *min_pt, vec2 *max_pt)
+{
+  PainterPrivate *d;
+  bool non_empty;
+
+  d = static_cast<PainterPrivate*>(m_d);
+
+  non_empty = !d->m_clip_rect_state.m_all_content_culled
+    && !d->m_clip_store.current_poly().empty()
+    && !d->m_clip_store.current_bb().empty();
+
+  if (non_empty)
+    {
+      *min_pt = d->m_clip_store.current_bb().min_point();
+      *max_pt = d->m_clip_store.current_bb().max_point();
+    }
+  else
+    {
+      *min_pt = *max_pt = vec2(0.0f, 0.0f);
+    }
+  return non_empty;
 }
 
 void
@@ -3645,22 +4231,7 @@ concat(const float3x3 &tr)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-
-  float3x3 m;
-  bool tricky;
-
-  tricky = (tr(0, 1) != 0.0f || tr(1, 0) != 0.0f
-            || tr(2, 0) != 0.0f || tr(2, 1) != 0.0f
-            || tr(2, 2) != 1.0f);
-
-  m = d->m_clip_rect_state.item_matrix() * tr;
-  d->m_clip_rect_state.item_matrix(m, tricky, unclassified_matrix);
-
-  if (!tricky)
-    {
-      d->m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
-      d->m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0, 0), 1.0f / tr(1, 1));
-    }
+  d->concat(tr);
 }
 
 void
@@ -3669,11 +4240,7 @@ translate(const vec2 &p)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-
-  float3x3 m(d->m_clip_rect_state.item_matrix());
-  m.translate(p.x(), p.y());
-  d->m_clip_rect_state.item_matrix(m, false, non_scaling_matrix, 1.0f);
-  d->m_clip_rect_state.m_clip_rect.translate(-p);
+  d->translate(p);
 }
 
 void
@@ -3682,11 +4249,7 @@ scale(float s)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-
-  float3x3 m(d->m_clip_rect_state.item_matrix());
-  m.scale(s);
-  d->m_clip_rect_state.item_matrix(m, false, scaling_matrix, t_abs(s));
-  d->m_clip_rect_state.m_clip_rect.scale(1.0f / s);
+  d->scale(s);
 }
 
 void
@@ -3695,20 +4258,7 @@ shear(float sx, float sy)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-
-  float3x3 m(d->m_clip_rect_state.item_matrix());
-  enum matrix_type_t tp;
-  float sf;
-
-  tp = (t_abs(sx) != t_abs(sy)) ?
-    shearing_matrix : scaling_matrix;
-
-  sf = (t_abs(sx) != t_abs(sy)) ?
-    -1.0f : t_abs(sx);
-
-  m.shear(sx, sy);
-  d->m_clip_rect_state.item_matrix(m, false, tp, sf);
-  d->m_clip_rect_state.m_clip_rect.shear(1.0f / sx, 1.0f / sy);
+  d->shear(sx, sy);
 }
 
 void
@@ -3717,22 +4267,7 @@ rotate(float angle)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-
-  float3x3 tr;
-  float s, c;
-
-  s = t_sin(angle);
-  c = t_cos(angle);
-
-  tr(0, 0) = c;
-  tr(1, 0) = s;
-
-  tr(0, 1) = -s;
-  tr(1, 1) = c;
-
-  float3x3 m(d->m_clip_rect_state.item_matrix());
-  m = m * tr;
-  d->m_clip_rect_state.item_matrix(m, true, non_scaling_matrix, 1.0f);
+  d->rotate(angle);
 }
 
 void
@@ -3934,12 +4469,12 @@ clip_out_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 
 void
 fastuidraw::Painter::
-clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
-              const PainterData::value<PainterItemShaderData> &shader_data,
-              c_array<const c_array<const PainterAttribute> > attrib_chunks,
-              c_array<const c_array<const PainterIndex> > index_chunks,
-              c_array<const int> index_adjusts,
-              c_array<const unsigned int> attrib_chunk_selector)
+clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+                const PainterData::value<PainterItemShaderData> &shader_data,
+                c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                c_array<const c_array<const PainterIndex> > index_chunks,
+                c_array<const int> index_adjusts,
+                c_array<const unsigned int> attrib_chunk_selector)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -3977,6 +4512,76 @@ clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
 
 void
 fastuidraw::Painter::
+clip_out_rect(const fastuidraw::Rect &rect)
+{
+  vecN<vec2, 4> pts;
+
+  pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
+  pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
+  pts[3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
+  clip_out_convex_polygon(pts);
+}
+
+void
+fastuidraw::Painter::
+clip_out_rounded_rect(const RoundedRect &R)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter
+       */
+      return;
+    }
+
+  fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
+  BlendMode old_composite_mode;
+  reference_counted_ptr<ZDataCallBack> zdatacallback;
+
+  /* zdatacallback generates a list of PainterDraw::DelayedAction
+   * objects (held in m_actions) who's action is to write the correct
+   * z-value to occlude elements drawn after clipOut but not after
+   * the next time m_occluder_stack is popped.
+   */
+  zdatacallback = FASTUIDRAWnew ZDataCallBack();
+  old_composite = composite_shader();
+  old_composite_mode = composite_mode();
+
+  composite_shader(composite_porter_duff_dst);
+  d->fill_rounded_rect(default_shaders().fill_shader(),
+                       PainterData(d->m_black_brush),
+                       R, shader_anti_alias_none, zdatacallback);
+  composite_shader(old_composite, old_composite_mode);
+
+  d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
+}
+
+void
+fastuidraw::Painter::
+clip_out_convex_polygon(c_array<const vec2> poly)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter
+       */
+      return;
+    }
+
+  d->ready_non_aa_polygon_attribs(poly);
+  clip_out_custom(default_shaders().fill_shader().item_shader(),
+                  PainterData::value<PainterItemShaderData>(),
+                  make_c_array(d->m_work_room.m_polygon.m_attribs),
+                  make_c_array(d->m_work_room.m_polygon.m_indices));
+}
+
+void
+fastuidraw::Painter::
 clip_in_path(const FilledPath &path, enum fill_rule_t fill_rule)
 {
   PainterPrivate *d;
@@ -3989,10 +4594,9 @@ clip_in_path(const FilledPath &path, enum fill_rule_t fill_rule)
       return;
     }
 
-  vec2 pmin, pmax;
-  pmin = path.bounding_box_min();
-  pmax = path.bounding_box_max();
-  clip_in_rect(pmin, pmax - pmin);
+  clip_in_rect(Rect()
+               .min_point(path.bounding_box_min())
+               .max_point(path.bounding_box_max()));
   clip_out_path(path, complement_fill_rule(fill_rule));
 }
 
@@ -4010,10 +4614,9 @@ clip_in_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
       return;
     }
 
-  vec2 pmin, pmax;
-  pmin = path.bounding_box_min();
-  pmax = path.bounding_box_max();
-  clip_in_rect(pmin, pmax - pmin);
+  clip_in_rect(Rect()
+               .min_point(path.bounding_box_min())
+               .max_point(path.bounding_box_max()));
   clip_out_path(path, ComplementFillRule(&fill_rule));
 }
 
@@ -4030,7 +4633,7 @@ clip_in_rounded_rect(const RoundedRect &R)
       return;
     }
 
-  clip_in_rect(R.m_min_point, R.m_max_point - R.m_min_point);
+  clip_in_rect(R);
 
   /* Save our transformation and clipping state because
    * we are going to shear and translate the transformation
@@ -4071,18 +4674,15 @@ clip_in_rounded_rect(const RoundedRect &R)
 
 void
 fastuidraw::Painter::
-clip_in_rect(const vec2 &pmin, const vec2 &wh)
+clip_in_rect(const Rect &rect)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  vec2 pmax(pmin + wh);
-
   d->m_clip_rect_state.m_all_content_culled =
     d->m_clip_rect_state.m_all_content_culled ||
-    wh.x() <= 0.0f || wh.y() <= 0.0f ||
-    d->m_clip_rect_state.rect_is_culled(pmin, wh) ||
-    d->update_clip_equation_series(pmin, pmax);
+    d->m_clip_rect_state.rect_is_culled(rect) ||
+    d->update_clip_equation_series(rect);
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
@@ -4096,7 +4696,7 @@ clip_in_rect(const vec2 &pmin, const vec2 &wh)
       /* no clipped rect defined yet, just take the arguments
        * as the clipping window
        */
-      d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
+      d->m_clip_rect_state.m_clip_rect = clip_rect(rect);
       d->m_clip_rect_state.set_clip_equations_to_clip_rect();
       return;
     }
@@ -4109,7 +4709,7 @@ clip_in_rect(const vec2 &pmin, const vec2 &wh)
        * in local coordinates, so we can intersect it with
        * the passed rectangle.
        */
-      d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(pmin, pmax));
+      d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(rect));
       d->m_clip_rect_state.set_clip_equations_to_clip_rect();
       return;
     }
@@ -4129,7 +4729,7 @@ clip_in_rect(const vec2 &pmin, const vec2 &wh)
   prev_clip = d->m_clip_rect_state.clip_equations_state(d->m_core->packed_value_pool());
   FASTUIDRAWassert(prev_clip);
 
-  d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
+  d->m_clip_rect_state.m_clip_rect = clip_rect(rect);
 
   std::bitset<4> skip_occluder;
   skip_occluder = d->m_clip_rect_state.set_clip_equations_to_clip_rect(prev_clip);

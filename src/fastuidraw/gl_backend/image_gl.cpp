@@ -180,6 +180,67 @@ namespace
     TextureGL m_backing_store;
   };
 
+  class ReleaseTexture:public fastuidraw::ImageAtlas::ResourceReleaseAction
+  {
+  public:
+    void
+    action(void)
+    {
+      fastuidraw_glDeleteTextures(1, &m_texture);
+    }
+
+    static
+    fastuidraw::reference_counted_ptr<ReleaseTexture>
+    create(unsigned int texture, bool create)
+    {
+      fastuidraw::reference_counted_ptr<ReleaseTexture> return_value;
+      if (create && texture != 0u)
+        {
+          return_value = FASTUIDRAWnew ReleaseTexture(texture);
+        }
+      return return_value;
+    }
+
+  protected:
+    ReleaseTexture(unsigned int tex):
+      m_texture(tex)
+    {}
+
+  private:
+    unsigned int m_texture;
+  };
+
+  class BindlessReleaseTexture:public ReleaseTexture
+  {
+  public:
+    void
+    action(void)
+    {
+      fastuidraw::gl::detail::bindless().make_texture_handle_non_resident(m_handle);
+      ReleaseTexture::action();
+    }
+
+    static
+    fastuidraw::reference_counted_ptr<BindlessReleaseTexture>
+    create(unsigned int texture, bool create, GLuint64 handle)
+    {
+      fastuidraw::reference_counted_ptr<BindlessReleaseTexture> return_value;
+      if (create && texture != 0u)
+        {
+          return_value = FASTUIDRAWnew BindlessReleaseTexture(texture, handle);
+        }
+      return return_value;
+    }
+
+  private:
+    BindlessReleaseTexture(GLuint texture, GLuint64 handle):
+      ReleaseTexture(texture),
+      m_handle(handle)
+    {}
+
+    GLuint64 m_handle;
+  };
+
   class TextureImagePrivate
   {
   public:
@@ -499,7 +560,8 @@ index_texture(void) const
 // fastuidraw::gl::ImageAtlasGL::TextureImage methods
 fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
 fastuidraw::gl::ImageAtlasGL::TextureImage::
-create(int w, int h, unsigned int m, GLuint texture,
+create(const reference_counted_ptr<ImageAtlas> &patlas,
+       int w, int h, unsigned int m, GLuint texture,
        bool object_owns_texture)
 {
   if (w <= 0 || h <= 0 || m <= 0 || texture == 0)
@@ -509,7 +571,7 @@ create(int w, int h, unsigned int m, GLuint texture,
 
   if (detail::bindless().not_supported())
     {
-      return FASTUIDRAWnew TextureImage(w, h, m, object_owns_texture, texture);
+      return FASTUIDRAWnew TextureImage(patlas, w, h, m, object_owns_texture, texture);
     }
   else
     {
@@ -517,22 +579,26 @@ create(int w, int h, unsigned int m, GLuint texture,
 
       handle = detail::bindless().get_texture_handle(texture);
       detail::bindless().make_texture_handle_resident(handle);
-      return FASTUIDRAWnew TextureImage(w, h, m, object_owns_texture, texture, handle);
+      return FASTUIDRAWnew TextureImage(patlas, w, h, m, object_owns_texture, texture, handle);
     }
 }
 
 fastuidraw::gl::ImageAtlasGL::TextureImage::
-TextureImage(int w, int h, unsigned int m,
+TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
+             int w, int h, unsigned int m,
              bool object_owns_texture, GLuint texture):
-  Image(w, h, m, fastuidraw::Image::context_texture2d, -1)
+  Image(patlas, w, h, m, fastuidraw::Image::context_texture2d, -1,
+        ReleaseTexture::create(texture, object_owns_texture))
 {
   m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
 }
 
 fastuidraw::gl::ImageAtlasGL::TextureImage::
-TextureImage(int w, int h, unsigned int m,
+TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
+             int w, int h, unsigned int m,
              bool object_owns_texture, GLuint texture, GLuint64 handle):
-  Image(w, h, m, fastuidraw::Image::bindless_texture2d, handle)
+  Image(patlas, w, h, m, fastuidraw::Image::bindless_texture2d, handle,
+        BindlessReleaseTexture::create(texture, object_owns_texture, handle))
 {
   m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
 }
@@ -542,17 +608,6 @@ fastuidraw::gl::ImageAtlasGL::TextureImage::
 {
   TextureImagePrivate *d;
   d = static_cast<TextureImagePrivate*>(m_d);
-
-  if (type() == bindless_texture2d)
-    {
-      detail::bindless().make_texture_handle_non_resident(bindless_handle());
-    }
-
-  if (d->m_owns_texture)
-    {
-      fastuidraw_glDeleteTextures(1, &d->m_texture);
-    }
-
   FASTUIDRAWdelete(d);
 }
 

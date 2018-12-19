@@ -23,9 +23,11 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/math.hpp>
 
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw
 {
@@ -93,6 +95,62 @@ namespace fastuidraw
 
     /*!
      * \brief
+     * Enumeration to specify what kind of gradient is applied
+     */
+    enum gradient_type_t
+      {
+        /*!
+         * Indicates that no gradient is present
+         */
+        no_gradient_type = 0,
+
+        /*!
+         * Indicates that a linear gradient is present;
+         * a linear gradient is defined by two points
+         * p0 and p1 where the interpolate at a point p
+         * is the value t when p = p0 + (p1 - p0) * t
+         */
+        linear_gradient_type = 1,
+
+        /*!
+         * Indicates that a radial gradient is present;
+         * a radial gradient is defined by two circles
+         * C0 = Circle(p0, r0), C1 = Circle(p1, r1)
+         * where the interpolate at a point p is the
+         * time t when p is on the circle C(t) where
+         * C(t) = Circle(p(t), r(t)) where
+         * p(t) = p0 + (p1 - p0) * t
+         * r(t) = r0 + (r1 - r0) * t
+         */
+        radial_gradient_type = 2,
+
+        /*!
+         * A sweep gradient is defined by a single point C,
+         * an angle theta (in radians), a sign S and a factor F.
+         * The angle theta represents at what angle the gradient
+         * starts, the point C is the center point of the
+         * sweep, the sign of S represents the angle orientation
+         * and the factor F reprsents how many times the
+         * gradient is to be repated. Precisely, the interpolate
+         * at a point p is defined as t_interpolate where
+         * \code
+         * vec2 d = p - C;
+         * float theta, v;
+         * theta = S * atan(p.y, p.x);
+         * if (theta < alpha )
+         *   {
+         *    theta  += 2 * PI;
+         *   }
+         * theta -= alpha;
+         * v = (theta - angle) / (2 * PI);
+         * t_interpolate = (S < 0.0) ? F * (1.0 - v) : F * v;
+         * \endcode
+         */
+        sweep_gradient_type = 3,
+      };
+
+    /*!
+     * \brief
      * Enumeration describing the roles of the bits for
      * PainterBrush::shader().
      */
@@ -117,10 +175,15 @@ namespace fastuidraw
         image_type_num_bits = 4,
 
         /*!
-         * Numer of bits used to encode number of mipmap
+         * Number of bits used to encode number of mipmap
          * levels (when an image is present).
          */
         image_mipmap_num_bits = 7,
+
+        /*!
+         * Number of bits used to encode the gradient type
+         */
+        gradient_type_num_bits = 2,
 
         /*!
          * first bit for if image is present on the brush and if so, what filter
@@ -135,17 +198,12 @@ namespace fastuidraw
         /*!
          * Bit is up if a gradient is present
          */
-        gradient_bit = image_mipmap_bit0 + image_mipmap_num_bits,
-
-        /*!
-         * bit is up if gradient is present and it is radial
-         */
-        radial_gradient_bit,
+        gradient_type_bit0 = image_mipmap_bit0 + image_mipmap_num_bits,
 
         /*!
          * bit is up if gradient is present and gradient lookup repeats outside of [0,1]
          */
-        gradient_repeat_bit,
+        gradient_repeat_bit = gradient_type_bit0 + gradient_type_num_bits,
 
         /*!
          * Bit up if the brush has a repeat window
@@ -189,19 +247,14 @@ namespace fastuidraw
         image_mask = FASTUIDRAW_MASK(image_filter_bit0, image_filter_num_bits),
 
         /*!
-         * mask generated from \ref image_mipmap_bit0 and image_mipmap_num_bits
+         * mask generated from \ref image_mipmap_bit0 and \ref image_mipmap_num_bits
          */
         image_mipmap_mask = FASTUIDRAW_MASK(image_mipmap_bit0, image_mipmap_num_bits),
 
         /*!
-         * mask generated from \ref gradient_bit
+         * mask generated from \ref gradient_type_bit0 and \ref gradient_type_num_bits
          */
-        gradient_mask = FASTUIDRAW_MASK(gradient_bit, 1),
-
-        /*!
-         * mask generated from \ref radial_gradient_bit
-         */
-        radial_gradient_mask = FASTUIDRAW_MASK(radial_gradient_bit, 1),
+        gradient_type_mask = FASTUIDRAW_MASK(gradient_type_bit0, gradient_type_num_bits),
 
         /*!
          * mask generated from \ref gradient_repeat_bit
@@ -444,26 +497,26 @@ namespace fastuidraw
     enum gradient_offset_t
       {
         /*!
-         * Offset to x-coordinate of starting point of gradient
-         * (packed at float)
+         * Offset to x-coordinate of starting point of both
+         * linear and radial gradients (packed at float)
          */
-        gradient_p0_x_offset,
+        gradient_p0_x_offset = 0,
 
         /*!
-         * Offset to y-coordinate of starting point of gradient
-         * (packed at float)
+         * Offset to y-coordinate of starting point of both
+         * linear and radial gradients (packed at float)
          */
         gradient_p0_y_offset,
 
         /*!
-         * Offset to x-coordinate of ending point of gradient
-         * (packed at float)
+         * Offset to x-coordinate of ending point of both
+         * linear and radial gradients (packed at float)
          */
         gradient_p1_x_offset,
 
         /*!
-         * Offset to y-coordinate of ending point of gradient
-         * (packed at float)
+         * Offset to y-coordinate of ending point of both
+         * linear and radial gradients (packed at float)
          */
         gradient_p1_y_offset,
 
@@ -500,7 +553,37 @@ namespace fastuidraw
         /*!
          * Size of the data for radial gradients.
          */
-        radial_gradient_data_size
+        radial_gradient_data_size,
+
+        /*!
+         * Offset to the x-coordinate of the point
+         * of a sweep gradient.
+         */
+        sweep_gradient_p_x_offset = gradient_p0_x_offset,
+
+        /*!
+         * Offset to the y-coordinate of the point
+         * of a sweep gradient.
+         */
+        sweep_gradient_p_y_offset = gradient_p0_y_offset,
+
+        /*!
+         * Offset to the angle of a sweep gradient.
+         */
+        sweep_gradient_angle_offset = gradient_p1_x_offset,
+
+        /*!
+         * Offset to the sign-factor of the sweep gradient.
+         * The sign of the value is the sign of the sweep
+         * gradient and the magnitude is the repeat factor
+         * of the gradient.
+         */
+        sweep_gradient_sign_factor_offset = gradient_p1_y_offset,
+
+        /*!
+         * Size of the data for sweep gradients.
+         */
+        sweep_gradient_data_size = linear_gradient_data_size,
       };
 
     /*!
@@ -638,12 +721,17 @@ namespace fastuidraw
     linear_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                     const vec2 &start_p, const vec2 &end_p, bool repeat)
     {
+      uint32_t gradient_bits;
+
       m_data.m_cs = cs;
       m_data.m_grad_start = start_p;
       m_data.m_grad_end = end_p;
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs, gradient_mask);
+      gradient_bits = cs ?
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, linear_gradient_type) :
+        0u;
+      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw |= gradient_bits;
       m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
-      m_data.m_shader_raw &= ~radial_gradient_mask;
       return *this;
     }
 
@@ -663,15 +751,127 @@ namespace fastuidraw
                     const vec2 &start_p, float start_r,
                     const vec2 &end_p, float end_r, bool repeat)
     {
+      uint32_t gradient_bits;
+
       m_data.m_cs = cs;
       m_data.m_grad_start = start_p;
       m_data.m_grad_start_r = start_r;
       m_data.m_grad_end = end_p;
       m_data.m_grad_end_r = end_r;
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs, gradient_mask);
+      gradient_bits = cs ?
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, radial_gradient_type) :
+        0u;
+      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw |= gradient_bits;
       m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs, radial_gradient_mask);
       return *this;
+    }
+
+    /*!
+     * Sets the brush to have a radial gradient. Provided as
+     * a conveniance, equivalent to
+     * \code
+     * radial_gradient(cs, p, 0.0f, p, r, repeat);
+     * \endcode
+     * \param cs color stops for gradient. If handle is invalid,
+     *           then sets brush to not have a gradient.
+     * \param p start and end position of gradient
+     * \param r ending radius of radial gradient
+     * \param repeat if true, repeats the gradient, if false then
+     *               clamps the gradient
+     */
+    PainterBrush&
+    radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+                    const vec2 &p, float r, bool repeat)
+    {
+      return radial_gradient(cs, p, 0.0f, p, r, repeat);
+    }
+
+    /*!
+     * Sets the brush to have a sweep gradient (directly).
+     * \param cs color stops for gradient. If handle is invalid,
+     *           then sets brush to not have a gradient.
+     * \param p position of gradient
+     * \param theta start angle of the sweep gradient
+     * \param F the repeat factor applied to the interpolate, the
+     *          sign of F is used to determine the sign of the
+     *          sweep gradient.
+     * \param repeat if true, repeats the gradient, if false then
+     *               clamps the gradient
+     */
+    PainterBrush&
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+                   const vec2 &p, float theta, float F, bool repeat)
+    {
+      uint32_t gradient_bits;
+
+      m_data.m_cs = cs;
+      m_data.m_grad_start = p;
+      m_data.m_grad_end = vec2(theta, F);
+      gradient_bits = cs ?
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, sweep_gradient_type) :
+        0u;
+      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw |= gradient_bits;
+      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
+      return *this;
+    }
+
+    /*!
+     * Sets the brush to have a sweep gradient where the sign is
+     * determined by a PainterEnums::screen_orientation and a
+     * PainterEnums::rotation_orientation_t.
+     * \param cs color stops for gradient. If handle is invalid,
+     *           then sets brush to not have a gradient.
+     * \param p position of gradient
+     * \param theta angle of the sweep gradient
+     * \param F the repeat factor applied to the interpolate,
+     *          a negative reverses the orientation of the sweep.
+     * \param orientation orientation of the screen
+     * \param rotation_orientation orientation of the sweep
+     * \param repeat if true, repeats the gradient, if false then
+     *               clamps the gradient
+     */
+    PainterBrush&
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+                   const vec2 &p, float theta,
+                   enum PainterEnums::screen_orientation orientation,
+                   enum PainterEnums::rotation_orientation_t rotation_orientation,
+                   float F, bool repeat)
+    {
+      float S;
+      bool b1(orientation == PainterEnums::y_increases_upwards);
+      bool b2(rotation_orientation == PainterEnums::counter_clockwise);
+
+      S = (b1 == b2) ? 1.0f : -1.0f;
+      return sweep_gradient(cs, p, theta, S * F, repeat);
+    }
+
+    /*!
+     * Sets the brush to have a sweep gradient with a repeat factor
+     * of 1.0 and where the sign is determined by a
+     * PainterEnums::screen_orientation and a
+     * PainterEnums::rotation_orientation_t. Equivalent to
+     * \code
+     * sweep_gradient(cs, p, theta, orientation, rotation_orientation, 1.0f, repeat);
+     * \endcode
+     * \param cs color stops for gradient. If handle is invalid,
+     *           then sets brush to not have a gradient.
+     * \param p position of gradient
+     * \param theta angle of the sweep gradient
+     * \param orientation orientation of the screen
+     * \param rotation_orientation orientation of the sweep
+     * \param repeat if true, repeats the gradient, if false then
+     *               clamps the gradient
+     */
+    PainterBrush&
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+                   const vec2 &p, float theta,
+                   enum PainterEnums::screen_orientation orientation,
+                   enum PainterEnums::rotation_orientation_t rotation_orientation,
+                   bool repeat)
+    {
+      return sweep_gradient(cs, p, theta, orientation, rotation_orientation, 1.0f, repeat);
     }
 
     /*!
@@ -681,8 +881,19 @@ namespace fastuidraw
     no_gradient(void)
     {
       m_data.m_cs = reference_counted_ptr<const ColorStopSequenceOnAtlas>();
-      m_data.m_shader_raw &= ~(gradient_mask | gradient_repeat_mask | radial_gradient_mask);
+      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_repeat_mask);
       return *this;
+    }
+
+    /*!
+     * Return the gradient_type_t that the brush applies.
+     */
+    enum gradient_type_t
+    gradient_type(void) const
+    {
+      uint32_t v;
+      v = unpack_bits(gradient_type_bit0, gradient_type_num_bits, m_data.m_shader_raw);
+      return static_cast<enum gradient_type_t>(v);
     }
 
     /*!
@@ -698,6 +909,15 @@ namespace fastuidraw
     }
 
     /*!
+     * Returns the translation of the transformation of the brush.
+     */
+    const vec2&
+    transformation_translate(void) const
+    {
+      return m_data.m_transformation_p;
+    }
+
+    /*!
      * Sets the brush to have a matrix in its transformation.
      * \param m matrix value for brush transformation
      */
@@ -706,6 +926,75 @@ namespace fastuidraw
     {
       m_data.m_transformation_matrix = m;
       m_data.m_shader_raw |= transformation_matrix_mask;
+      return *this;
+    }
+
+    /*!
+     * Returns the matrix of the transformation of the brush.
+     */
+    const float2x2&
+    transformation_matrix(void) const
+    {
+      return m_data.m_transformation_matrix;
+    }
+
+    /*!
+     * Apply a shear to the transformation of the brush.
+     * \param m matrix to which to apply
+     */
+    PainterBrush&
+    apply_matrix(const float2x2 &m)
+    {
+      m_data.m_shader_raw |= transformation_matrix_mask;
+      m_data.m_transformation_matrix = m_data.m_transformation_matrix * m;
+      return *this;
+    }
+
+    /*!
+     * Apply a shear to the transformation of the brush.
+     * \param sx scale factor in x-direction
+     * \param sy scale factor in y-direction
+     */
+    PainterBrush&
+    apply_shear(float sx, float sy)
+    {
+      m_data.m_shader_raw |= transformation_matrix_mask;
+      m_data.m_transformation_matrix(0, 0) *= sx;
+      m_data.m_transformation_matrix(1, 0) *= sx;
+      m_data.m_transformation_matrix(0, 1) *= sy;
+      m_data.m_transformation_matrix(1, 1) *= sy;
+      return *this;
+    }
+
+    /*!
+     * Apply a rotation to the transformation of the brush.
+     * \param angle in radians by which to rotate
+     */
+    PainterBrush&
+    apply_rotate(float angle)
+    {
+      float s, c;
+      float2x2 tr;
+
+      m_data.m_shader_raw |= transformation_matrix_mask;
+      s = t_sin(angle);
+      c = t_cos(angle);
+      tr(0, 0) = c;
+      tr(1, 0) = s;
+      tr(0, 1) = -s;
+      tr(1, 1) = c;
+      apply_matrix(tr);
+      return *this;
+    }
+
+    /*!
+     * Apply a translation to the transformation of the brush.
+     */
+    PainterBrush&
+    apply_translate(const vec2 &p)
+    {
+      m_data.m_transformation_p += m_data.m_transformation_matrix * p;
+      m_data.m_shader_raw |= transformation_translation_mask;
       return *this;
     }
 
@@ -730,6 +1019,7 @@ namespace fastuidraw
     no_transformation_translation(void)
     {
       m_data.m_shader_raw &= ~transformation_translation_mask;
+      m_data.m_transformation_p = vec2(0.0f, 0.0f);
       return *this;
     }
 
@@ -740,6 +1030,7 @@ namespace fastuidraw
     no_transformation_matrix(void)
     {
       m_data.m_shader_raw &= ~transformation_matrix_mask;
+      m_data.m_transformation_matrix = float2x2();
       return *this;
     }
 
@@ -809,15 +1100,14 @@ namespace fastuidraw
      *   \endcode
      *   is non-zero if an image is present and when is non-zero the value's meaning
      *   is enumerated by image_filter
-     * - If shader() & \ref gradient_mask is non-zero, then a gradient is applied.
-     *   The gradient is a linear gradient if shader() & \ref radial_gradient_mask
-     *   is zero and a radial gradient otherwise.
-     * - If shader() & \ref radial_gradient_mask is non-zero, then a radial
-     *   gradient is applied. Note that if shader() & \ref radial_gradient_mask
-     *   is non-zero, then shader() & \ref gradient_mask is also non-zero.
+     * - The value given by
+     *   \code
+     *   unpack_bits(gradient_type_bit0, gradient_type_num_bits, shader())
+     *   \endcode
+     *   gives what gradient (if any) the brush applies as according to
+     *   \ref gradient_type_t
      * - If shader() & \ref gradient_repeat_mask then the gradient is repeated
-     *   instead of clamped. Note that if shader() & \ref gradient_repeat_mask
-     *   is non-zero, then shader() & \ref gradient_mask is also non-zero.
+     *   instead of clamped.
      * - If shader() & \ref repeat_window_mask is non-zero, then a repeat
      *   window is applied to the brush.
      * - If shader() & \ref transformation_translation_mask is non-zero, then a
@@ -873,13 +1163,15 @@ namespace fastuidraw
                               enum image_filter f);
 
     /*!
-     * Returns the highest quality filter with which
-     * an image may be rendered.
+     * Given an image_filter, returns the highest quality filter
+     * less than or equal to it with which the image may be rendered.
      * \param im image to which to query
+     * \param f upper bound image filter to return
      */
     static
     enum image_filter
-    best_filter_for_image(const reference_counted_ptr<const Image> &im);
+    filter_for_image(const reference_counted_ptr<const Image> &im,
+                     enum image_filter f = image_filter_cubic);
 
     /*!
      * Returns the slack requirement for an image to
@@ -920,6 +1212,13 @@ namespace fastuidraw
       vec2 m_window_position, m_window_size;
       float2x2 m_transformation_matrix;
       vec2 m_transformation_p;
+
+      /*
+       * m_grad_start holds point for sweep gradient
+       * m_grad_end.x() holds the sweep angle of the
+       * m_grad_end.y() holds the recirpocal of the
+       * sweep angle
+       */
     };
 
     brush_data m_data;

@@ -48,17 +48,27 @@ namespace fastuidraw
      */
     enum item_matrix_data_offset_t
       {
-        matrix00_offset, /*!< offset of m_item_matrix(0,0) (packed as float) */
-        matrix01_offset, /*!< offset of m_item_matrix(0,1) (packed as float) */
-        matrix02_offset, /*!< offset of m_item_matrix(0,2) (packed as float) */
-        matrix10_offset, /*!< offset of m_item_matrix(1,0) (packed as float) */
-        matrix11_offset, /*!< offset of m_item_matrix(1,1) (packed as float) */
-        matrix12_offset, /*!< offset of m_item_matrix(1,2) (packed as float) */
-        matrix20_offset, /*!< offset of m_item_matrix(2,0) (packed as float) */
-        matrix21_offset, /*!< offset of m_item_matrix(2,1) (packed as float) */
-        matrix22_offset, /*!< offset of m_item_matrix(2,2) (packed as float) */
+        matrix_row0_col0_offset, /*!< offset of m_item_matrix(0, 0) (packed as float) */
+        matrix_row0_col1_offset, /*!< offset of m_item_matrix(0, 1) (packed as float) */
+        matrix_row0_col2_offset, /*!< offset of m_item_matrix(0, 2) (packed as float) */
+        matrix_row1_col0_offset, /*!< offset of m_item_matrix(1, 0) (packed as float) */
+        matrix_row1_col1_offset, /*!< offset of m_item_matrix(1, 1) (packed as float) */
+        matrix_row1_col2_offset, /*!< offset of m_item_matrix(1, 2) (packed as float) */
+        matrix_row2_col0_offset, /*!< offset of m_item_matrix(2, 0) (packed as float) */
+        matrix_row2_col1_offset, /*!< offset of m_item_matrix(2, 1) (packed as float) */
+        matrix_row2_col2_offset, /*!< offset of m_item_matrix(2, 2) (packed as float) */
 
-        matrix_data_size /*!< Size of the data for the item matrix */
+        matrix_data_size, /*!< Size of the data for the item matrix */
+
+        matrix_col0_row0_offset = matrix_row0_col0_offset, /*!< alias of \ref matrix_row0_col0_offset */
+        matrix_col0_row1_offset = matrix_row1_col0_offset, /*!< alias of \ref matrix_row1_col0_offset */
+        matrix_col0_row2_offset = matrix_row2_col0_offset, /*!< alias of \ref matrix_row2_col0_offset */
+        matrix_col1_row0_offset = matrix_row0_col1_offset, /*!< alias of \ref matrix_row0_col1_offset */
+        matrix_col1_row1_offset = matrix_row1_col1_offset, /*!< alias of \ref matrix_row1_col1_offset */
+        matrix_col1_row2_offset = matrix_row2_col1_offset, /*!< alias of \ref matrix_row2_col1_offset */
+        matrix_col2_row0_offset = matrix_row0_col2_offset, /*!< alias of \ref matrix_row0_col2_offset */
+        matrix_col2_row1_offset = matrix_row1_col2_offset, /*!< alias of \ref matrix_row1_col2_offset */
+        matrix_col2_row2_offset = matrix_row2_col2_offset, /*!< alias of \ref matrix_row2_col2_offset */
       };
 
     /*!

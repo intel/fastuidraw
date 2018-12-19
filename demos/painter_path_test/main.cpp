@@ -205,6 +205,7 @@ public:
 
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
+  float m_sweep_repeat_factor;
   bool m_repeat_gradient;
 
   bool m_repeat_window;
@@ -237,6 +238,7 @@ private:
       draw_no_gradient,
       draw_linear_gradient,
       draw_radial_gradient,
+      draw_sweep_gradient,
 
       number_gradient_draw_modes
     };
@@ -370,6 +372,12 @@ private:
     return m_paths[m_selected_path].m_gradient_r1;
   }
 
+  float&
+  sweep_repeat_factor(void)
+  {
+    return m_paths[m_selected_path].m_sweep_repeat_factor;
+  }
+
   bool&
   repeat_gradient(void)
   {
@@ -425,7 +433,7 @@ private:
   }
 
   void
-  draw_rect(const vec2 &pt, float r, const PainterData &d);
+  fill_centered_rect(const vec2 &pt, float r, const PainterData &d);
 
   void
   draw_scene(bool drawing_wire_frame);
@@ -434,6 +442,7 @@ private:
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
   command_line_argument_value<float> m_radial_gradient_change_rate;
+  command_line_argument_value<float> m_sweep_factor_gradient_change_rate;
   command_line_list<std::string> m_path_file_list;
   DashPatternList m_dash_pattern_files;
   command_line_argument_value<bool> m_print_path;
@@ -585,6 +594,8 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_gradient_r0 = 0.0f;
   m_gradient_r1 = 200.0f / m_path_zoomer.transformation().scale();
 
+  m_sweep_repeat_factor = 1.0f;
+
   m_repeat_xy = vec2(0.0f, 0.0f);
   m_repeat_wh = m_path.tessellation()->bounding_box_max() - m_path.tessellation()->bounding_box_min();
 
@@ -613,6 +624,9 @@ painter_stroke_test(void):
   m_radial_gradient_change_rate(0.1f, "change_rate_brush_radial_gradient",
                                 "rate of change in pixels/sec when changing the radial gradient radius",
                                 *this),
+  m_sweep_factor_gradient_change_rate(0.05f, "change_rate_brush_sweep_factor_gradient",
+                                      "rate of change in units/sec when changing the sweep factor",
+                                      *this),
   m_path_file_list("add_path_file",
                    "add a path read from file to path list; if path list is empty then "
                    "a default path will be used to render ",
@@ -741,6 +755,7 @@ painter_stroke_test(void):
   m_gradient_mode_labels[draw_no_gradient] = "draw_no_gradient";
   m_gradient_mode_labels[draw_linear_gradient] = "draw_linear_gradient";
   m_gradient_mode_labels[draw_radial_gradient] = "draw_radial_gradient";
+  m_gradient_mode_labels[draw_sweep_gradient] = "draw_sweep_gradient";
 
   m_join_labels[Painter::no_joins] = "no_joins";
   m_join_labels[Painter::rounded_joins] = "rounded_joins";
@@ -932,17 +947,16 @@ update_cts_params(void)
           gradient_r0() -= delta;
           gradient_r0() = fastuidraw::t_max(0.0f, gradient_r0());
         }
-
       if (keyboard_state[SDL_SCANCODE_2])
         {
           gradient_r0() += delta;
         }
+
       if (keyboard_state[SDL_SCANCODE_3])
         {
           gradient_r1() -= delta;
           gradient_r1() = fastuidraw::t_max(0.0f, gradient_r1());
         }
-
       if (keyboard_state[SDL_SCANCODE_4])
         {
           gradient_r1() += delta;
@@ -956,6 +970,26 @@ update_cts_params(void)
         }
     }
 
+  if (m_gradient_draw_mode == draw_sweep_gradient)
+    {
+      float delta;
+
+      delta = m_sweep_factor_gradient_change_rate.value();
+      if (keyboard_state[SDL_SCANCODE_1])
+        {
+          sweep_repeat_factor() -= delta;
+        }
+      if (keyboard_state[SDL_SCANCODE_2])
+        {
+          sweep_repeat_factor() += delta;
+        }
+
+      if (keyboard_state[SDL_SCANCODE_1] || keyboard_state[SDL_SCANCODE_2])
+        {
+          std::cout << "Sweep Repeat factor set to: "
+                    << sweep_repeat_factor() << "\n";
+        }
+    }
 
   if (is_miter_join_style(m_join_style) && m_have_miter_limit)
     {
@@ -1024,12 +1058,14 @@ update_cts_params(void)
 
 void
 painter_stroke_test::
-draw_rect(const vec2 &pt, float r, const PainterData &draw)
+fill_centered_rect(const vec2 &pt, float r, const PainterData &draw)
 {
-  m_painter->draw_rect(draw,
-                       pt - 0.5f * vec2(r, r),
-                       vec2(r, r),
-                       m_shader_anti_alias_mode_values[m_aa_fill_mode]);
+  Rect rect;
+  vec2 sz(0.5f * r);
+
+  rect.m_min_point = pt - sz;
+  rect.m_max_point = pt + sz;
+  m_painter->fill_rect(draw, rect, m_shader_anti_alias_mode_values[m_aa_fill_mode]);
 }
 
 vec2
@@ -1483,8 +1519,7 @@ construct_paths(int w, int h)
            << vec2(150.0f, 325.0f)
            << vec2(150.0f, 100.0f)
            << Path::contour_close()
-           << vec2(300.0f, 300.0f)
-           << Path::contour_close();
+           << vec2(300.0f, 300.0f);
       m_paths.push_back(PerPath(path, "Default Path", w, h, false));
     }
 
@@ -1573,16 +1608,6 @@ void
 painter_stroke_test::
 construct_color_stops(void)
 {
-  ColorStopSequence S;
-  reference_counted_ptr<ColorStopSequenceOnAtlas> h;
-
-  S.add(ColorStop(u8vec4(0, 255, 0, 255), 0.0f));
-  S.add(ColorStop(u8vec4(0, 255, 255, 255), 0.33f));
-  S.add(ColorStop(u8vec4(255, 255, 0, 255), 0.66f));
-  S.add(ColorStop(u8vec4(255, 0, 0, 255), 1.0f));
-  h = FASTUIDRAWnew ColorStopSequenceOnAtlas(S, m_painter->colorstop_atlas(), 8);
-  m_color_stops.push_back(named_color_stop("Default ColorStop Sequence", h));
-
   for(color_stop_arguments::hoard::const_iterator
         iter = m_color_stop_args.values().begin(),
         end = m_color_stop_args.values().end();
@@ -1593,6 +1618,19 @@ construct_color_stops(void)
                                                  m_painter->colorstop_atlas(),
                                                  iter->second->m_discretization);
       m_color_stops.push_back(named_color_stop(iter->first, h));
+    }
+
+  if (m_color_stops.empty())
+    {
+      ColorStopSequence S;
+      reference_counted_ptr<ColorStopSequenceOnAtlas> h;
+
+      S.add(ColorStop(u8vec4(0, 255, 0, 255), 0.0f));
+      S.add(ColorStop(u8vec4(0, 255, 255, 255), 0.33f));
+      S.add(ColorStop(u8vec4(255, 255, 0, 255), 0.66f));
+      S.add(ColorStop(u8vec4(255, 0, 0, 255), 1.0f));
+      h = FASTUIDRAWnew ColorStopSequenceOnAtlas(S, m_painter->colorstop_atlas(), 8);
+      m_color_stops.push_back(named_color_stop("Default ColorStop Sequence", h));
     }
 }
 
@@ -1674,7 +1712,9 @@ draw_scene(bool drawing_wire_frame)
                              .join_style(Painter::miter_clip_joins),
                              Painter::shader_anti_alias_none);
       m_painter->restore();
-      m_painter->clip_in_rect(clipping_xy(), clipping_wh());
+      m_painter->clip_in_rect(Rect()
+                              .min_point(clipping_xy())
+                              .size(clipping_wh()));
     }
 
   CustomFillRuleFunction fill_rule_function(everything_filled);
@@ -1727,6 +1767,16 @@ draw_scene(bool drawing_wire_frame)
                                      gradient_p0(), gradient_r0(),
                                      gradient_p1(), gradient_r1(),
                                      repeat_gradient());
+        }
+      else if (m_gradient_draw_mode == draw_sweep_gradient)
+        {
+          vec2 d;
+          d = gradient_p1() - gradient_p0();
+          fill_brush.sweep_gradient(m_color_stops[m_active_color_stop].second,
+                                    gradient_p0(), t_atan2(d.y(), d.x()),
+                                    Painter::y_increases_downwards,
+                                    Painter::clockwise, sweep_repeat_factor(),
+                                    repeat_gradient());
         }
       else
         {
@@ -1794,7 +1844,7 @@ draw_scene(bool drawing_wire_frame)
           path().approximate_bounding_box(&a, &b);
           m_painter->save();
           m_painter->clip_in_path(path(), *fill_rule);
-          m_painter->draw_rect(D, a, b - a);
+          m_painter->fill_rect(D, Rect().min_point(a).max_point(b));
           m_painter->restore();
         }
       else
@@ -1821,17 +1871,17 @@ draw_scene(bool drawing_wire_frame)
 
       for (const vec2 &pt : m_paths[m_selected_path].m_pts)
         {
-          draw_rect(pt, r, PainterData(m_blue_pen));
+          fill_centered_rect(pt, r, PainterData(m_blue_pen));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_ctl_pts)
         {
-          draw_rect(pt, r, PainterData(m_red_pen));
+          fill_centered_rect(pt, r, PainterData(m_red_pen));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_arc_center_pts)
         {
-          draw_rect(pt, r, PainterData(m_green_pen));
+          fill_centered_rect(pt, r, PainterData(m_green_pen));
         }
     }
 
@@ -1948,11 +1998,11 @@ draw_scene(bool drawing_wire_frame)
           m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
 
-      draw_rect(p0, r1, PainterData(m_black_pen));
-      draw_rect(p0, r0, PainterData(m_white_pen));
+      fill_centered_rect(p0, r1, PainterData(m_black_pen));
+      fill_centered_rect(p0, r0, PainterData(m_white_pen));
 
-      draw_rect(p1, r1, PainterData(m_white_pen));
-      draw_rect(p1, r0, PainterData(m_black_pen));
+      fill_centered_rect(p1, r1, PainterData(m_white_pen));
+      fill_centered_rect(p1, r0, PainterData(m_black_pen));
     }
 }
 
@@ -2178,7 +2228,8 @@ derived_init(int w, int h)
             }
           else
             {
-              m_image = create_texture_image(image_data.width(),
+              m_image = create_texture_image(m_painter->image_atlas(),
+                                             image_data.width(),
                                              image_data.height(),
                                              image_data.num_mipmap_levels(),
                                              image_data);

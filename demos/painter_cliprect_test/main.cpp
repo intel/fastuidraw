@@ -53,20 +53,23 @@ void
 painter_clip_test::
 draw_scene(bool with_clipping)
 {
-  ivec2 wh(dimensions());
+  vec2 wh(dimensions());
 
   /* set clipping to screen center
    */
   if (with_clipping)
     {
-      m_painter->clip_in_rect(vec2(wh.x(), wh.y()) * 0.25f, vec2(wh.x(), wh.y()) * 0.5f);
+      m_painter->clip_in_rect(Rect()
+                              .min_point(wh * 0.25f)
+                              .max_point(wh * 0.75f));
     }
 
   /* draw a green quad over the clipped region
    */
   PainterBrush brush;
   brush.pen(0.0f, 1.0f, 0.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(0.0f, 0.0f), vec2(wh.x(), wh.y()));
+  m_painter->fill_rect(PainterData(&brush),
+                       Rect().size(wh));
 
   /* draw half size.
    */
@@ -84,34 +87,40 @@ draw_scene(bool with_clipping)
    */
   if (m_use_matrices)
     {
-      ScaleTranslate<float> sc(vec2(wh) * 0.5f);
+      ScaleTranslate<float> sc(wh * 0.5f);
       m_painter->concat(sc.matrix3());
     }
   else
     {
-      m_painter->translate(vec2(wh) * 0.5f);
+      m_painter->translate(wh * 0.5f);
     }
 
   /* clip again
    */
   if (with_clipping)
     {
-      m_painter->clip_in_rect(vec2(wh) * 0.125f, vec2(wh) * 0.25f);
+      m_painter->clip_in_rect(Rect()
+                              .min_point(wh * 0.125f)
+                              .size(wh * 0.25f));
     }
 
   /* draw a blue quad
    */
   brush.pen(0.0f, 0.0f, 1.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(wh) * 0.0f, vec2(wh) * 0.5f);
+  m_painter->fill_rect(PainterData(&brush),
+                       Rect().size(wh * 0.5f));
 
   /* rotate by 30 degrees
    */
   float r = (0.125f + 0.25f) * 0.5f;
 
-  m_painter->translate(vec2(wh) * r);
+  m_painter->translate(wh * r);
   m_painter->rotate(30.0f * float(M_PI) / 180.0f);
   brush.pen(1.0f, 1.0f, 1.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(wh) * r * 0.25f, vec2(wh));
+  m_painter->fill_rect(PainterData(&brush),
+                       Rect()
+                       .min_point(wh * (r * 0.25f))
+                       .size(wh * (r * 0.25f)));
 }
 
 void

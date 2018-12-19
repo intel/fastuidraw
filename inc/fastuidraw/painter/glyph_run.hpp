@@ -45,7 +45,7 @@ namespace fastuidraw
    * In addition, since it does not carry a hierarchy for culling, it
    * is also a lighter wieght object than \ref GlyphSequence.
    */
-  class GlyphRun
+  class GlyphRun:fastuidraw::noncopyable
   {
   public:
     /*!
@@ -69,12 +69,33 @@ namespace fastuidraw
     ~GlyphRun();
 
     /*!
+     * Add glyphs passing an array of positions and GlyphMetric values;
+     * values are -copied-.
+     * \param glyph_metrics specifies what glyphs to add
+     * \param positions specifies the positions of each glyph added
+     */
+    void
+    add_glyphs(c_array<const GlyphMetrics> glyph_metrics,
+               c_array<const vec2> positions);
+
+    /*!
      * Add \ref GlyphSource values and positions; values are -copied-.
      * \param glyph_sources specifies what glyphs to add
      * \param positions specifies the positions of each glyph added
      */
     void
     add_glyphs(c_array<const GlyphSource> glyph_sources,
+               c_array<const vec2> positions);
+
+    /*!
+     * Add glyphs from a specific font and positions; values are -copied-.
+     * \param font font from which to fetch glyphs
+     * \param glyph_codes specifies what glyphs to add
+     * \param positions specifies the positions of each glyph added
+     */
+    void
+    add_glyphs(const reference_counted_ptr<const FontBase> &font,
+               c_array<const uint32_t> glyph_codes,
                c_array<const vec2> positions);
 
     /*!
@@ -114,7 +135,7 @@ namespace fastuidraw
 		vec2 *out_position) const;
 
     /*!
-     * Return the \ref GlyphCache used by this GlyphSequence
+     * Return the \ref GlyphCache used by this GlyphRun
      * to fetch \ref Glyph values.
      */
     const reference_counted_ptr<GlyphCache>&
@@ -153,6 +174,18 @@ namespace fastuidraw
      */
     const PainterPacker::DataWriter&
     subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int count) const;
+
+    /*!
+     * Returns a const-reference to PainterPacker::DataWrite
+     * object for rendering all glyphs from a starting point
+     * for a specified \ref GlyphRenderer. The returned object
+     * is valid in value until this GlyphRun is destroyed or
+     * one of add_glyph(), add_glyphs(), subsequence() is called.
+     * \param renderer how to render the glyphs
+     * \param begin index to select which is the first glyph
+     */
+    const PainterPacker::DataWriter&
+    subsequence(GlyphRenderer renderer, unsigned int begin) const;
 
     /*!
      * Returns a const-reference to PainterPacker::DataWrite

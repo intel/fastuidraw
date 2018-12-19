@@ -12,9 +12,23 @@
 
 using namespace fastuidraw;
 
+class rounded_corner_radii
+{
+public:
+  rounded_corner_radii(const std::string &name,
+                       command_line_register &parent):
+    m_x(10.0f, "rect_" + name + "_x", "Rounded rectangle " + name + "-radii-x", parent),
+    m_y(5.0f, "rect_" + name + "_y", "Rounded rectangle " + name + "-radii-y", parent)
+  {}
 
+  vec2
+  value(void) const
+  {
+    return vec2(m_x.value(), m_y.value());
+  }
 
-
+  command_line_argument_value<float> m_x, m_y;
+};
 
 class painter_clip_test:public sdl_painter_demo
 {
@@ -59,14 +73,6 @@ private:
       path2_then_path1,
 
       number_combine_clip_modes
-    };
-
-  enum
-    {
-      draw_rounded_rect,
-      rounded_rect_clips,
-
-      number_rounded_rect_modes
     };
 
   enum anti_alias_mode_t
@@ -124,10 +130,10 @@ private:
   command_line_argument_value<std::string> m_path2_file;
   command_line_argument_value<float> m_rect_width;
   command_line_argument_value<float> m_rect_height;
-  command_line_argument_value<float> m_rect_min_radii_x;
-  command_line_argument_value<float> m_rect_min_radii_y;
-  command_line_argument_value<float> m_rect_max_radii_x;
-  command_line_argument_value<float> m_rect_max_radii_y;
+  rounded_corner_radii m_rect_minx_miny_radii;
+  rounded_corner_radii m_rect_minx_maxy_radii;
+  rounded_corner_radii m_rect_maxx_miny_radii;
+  rounded_corner_radii m_rect_maxx_maxy_radii;
 
   Path m_path1, m_path2;
   RoundedRect m_rect;
@@ -140,7 +146,6 @@ private:
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_transformers> m_transformer_labels;
   vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
-  vecN<std::string, number_rounded_rect_modes> m_rounded_rect_mode_labels;
   vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
   vecN<enum Painter::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
   simple_time m_draw_timer;
@@ -158,14 +163,14 @@ painter_clip_test():
                *this),
   m_rect_width(100.0f, "rect_width", "Rounded rectangle width", *this),
   m_rect_height(50.0f, "rect_height", "Rounded rectangle height", *this),
-  m_rect_min_radii_x(10.0f, "rect_min_radii_x", "Rounded rectangle min-radii-x", *this),
-  m_rect_min_radii_y(5.0f, "rect_min_radii_y", "Rounded rectangle min-radii-y", *this),
-  m_rect_max_radii_x(10.0f, "rect_max_radii_x", "Rounded rectangle max-radii-x", *this),
-  m_rect_max_radii_y(5.0f, "rect_max_radii_y", "Rounded rectangle max-radii-y", *this),
+  m_rect_minx_miny_radii("minx-miny", *this),
+  m_rect_minx_maxy_radii("minx-maxy", *this),
+  m_rect_maxx_miny_radii("maxx-miny", *this),
+  m_rect_maxx_maxy_radii("maxx-maxy", *this),
   m_path1_clip_mode(no_clip),
   m_path2_clip_mode(no_clip),
   m_combine_clip_mode(separate_clipping),
-  m_rounded_rect_mode(draw_rounded_rect),
+  m_rounded_rect_mode(no_clip),
   m_active_transformer(view_transformer),
   m_aa_mode(by_anti_alias_auto)
 {
@@ -193,9 +198,6 @@ painter_clip_test():
   m_combine_clip_labels[separate_clipping] = "separate_clipping";
   m_combine_clip_labels[path1_then_path2] = "path1_then_path2";
   m_combine_clip_labels[path2_then_path1] = "path2_then_path1";
-
-  m_rounded_rect_mode_labels[draw_rounded_rect] = "draw_rounded_rect";
-  m_rounded_rect_mode_labels[rounded_rect_clips] = "rounded_rect_clips";
 
   m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
   m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
@@ -262,8 +264,8 @@ handle_event(const SDL_Event &ev)
           std::cout << "Combine clip mode set to: " << m_combine_clip_labels[m_combine_clip_mode] << "\n";
           break;
         case SDLK_r:
-          cycle_value(m_rounded_rect_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_rounded_rect_modes);
-          std::cout << "Rounded rect mode set to: " << m_rounded_rect_mode_labels[m_rounded_rect_mode] << "\n";
+          cycle_value(m_rounded_rect_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_clip_modes);
+          std::cout << "Rounded rect mode set to: " << m_clip_labels[m_rounded_rect_mode] << "\n";
           break;
         case SDLK_u:
           cycle_value(m_aa_mode,
@@ -387,8 +389,10 @@ derived_init(int, int)
 
   m_rect.m_min_point = vec2(0.0f, 0.0f);
   m_rect.m_max_point = vec2(m_rect_width.value(), m_rect_height.value());
-  m_rect.m_min_corner_radii = vec2(m_rect_min_radii_x.value(), m_rect_min_radii_y.value());
-  m_rect.m_max_corner_radii = vec2(m_rect_max_radii_x.value(), m_rect_max_radii_y.value());
+  m_rect.m_corner_radii[Rect::minx_miny_corner] = m_rect_minx_miny_radii.value();
+  m_rect.m_corner_radii[Rect::minx_maxy_corner] = m_rect_minx_maxy_radii.value();
+  m_rect.m_corner_radii[Rect::maxx_miny_corner] = m_rect_maxx_miny_radii.value();
+  m_rect.m_corner_radii[Rect::maxx_maxy_corner] = m_rect_maxx_maxy_radii.value();
   m_draw_timer.restart();
 }
 
@@ -418,9 +422,11 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
   vec2 p0, p1, sz;
   p0 = path.tessellation()->bounding_box_min();
   p1 = path.tessellation()->bounding_box_max();
-  sz = p1 - p0;
 
-  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->fill_rect(PainterData(&brush),
+                       Rect()
+                       .min_point(p0)
+                       .max_point(p1));
 
   m_painter->restore();
 }
@@ -431,7 +437,7 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &mat
               const Path &path2, unsigned int clip_mode2, const Transformer &matrix2,
               const vec4 &pen_color)
 {
-  PainterItemMatrix M(m_painter->transformation());
+  float3x3 M(m_painter->transformation());
   PainterBrush brush;
 
   brush.pen(pen_color);
@@ -469,9 +475,11 @@ draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &mat
   vec2 p0, p1, sz;
   p0 = path1.tessellation()->bounding_box_min();
   p1 = path1.tessellation()->bounding_box_max();
-  sz = p1 - p0;
 
-  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->fill_rect(PainterData(&brush),
+                       Rect()
+                       .min_point(p0)
+                       .max_point(p1));
   m_painter->restore();
 }
 
@@ -483,23 +491,28 @@ draw_frame(void)
   m_painter->begin(m_surface, Painter::y_increases_downwards);
   m_transformers[view_transformer].concat_to_painter(m_painter);
 
-  PainterItemMatrix M(m_painter->transformation());
+  float3x3 M(m_painter->transformation());
   m_transformers[rect_transformer].concat_to_painter(m_painter);
   switch(m_rounded_rect_mode)
     {
-    case draw_rounded_rect:
+    case no_clip:
       {
         PainterBrush brush;
         brush.pen(vec4(1.0f, 1.0f, 0.0f, 1.0f));
-        m_painter->draw_rounded_rect(m_painter->default_shaders().fill_shader(),
+        m_painter->fill_rounded_rect(m_painter->default_shaders().fill_shader(),
                                      PainterData(&brush), m_rect,
                                      m_shader_anti_alias_mode_values[m_aa_mode]);
       }
       break;
 
-    case rounded_rect_clips:
+    case clip_in:
       m_painter->clip_in_rounded_rect(m_rect);
       break;
+
+    case clip_out:
+      m_painter->clip_out_rounded_rect(m_rect);
+      break;
+
     }
   m_painter->transformation(M);
 

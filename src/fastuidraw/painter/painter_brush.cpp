@@ -35,14 +35,22 @@ data_size(void) const
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(image_data_size);
     }
 
-  if (pshader & radial_gradient_mask)
+  switch(gradient_type())
     {
-      FASTUIDRAWassert(pshader & gradient_mask);
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
-    }
-  else if (pshader & gradient_mask)
-    {
+    case no_gradient_type:
+      break;
+    case linear_gradient_type:
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
+      break;
+    case sweep_gradient_type:
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(sweep_gradient_data_size);
+      break;
+    case radial_gradient_type:
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
+      break;
+    default:
+      FASTUIDRAWassert(!"Invalid gradient_type()");
+      break;
     }
 
   if (pshader & repeat_window_mask)
@@ -127,14 +135,16 @@ pack_data(c_array<generic_data> dst) const
         }
     }
 
-  if (pshader & gradient_mask)
+  enum gradient_type_t tp(gradient_type());
+  if (tp != no_gradient_type)
     {
-      if (pshader & radial_gradient_mask)
+      if (tp == radial_gradient_type)
         {
           sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
         }
       else
         {
+          FASTUIDRAWassert(sweep_gradient_data_size == linear_gradient_data_size);
           sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
         }
 
@@ -160,7 +170,7 @@ pack_data(c_array<generic_data> dst) const
       sub_dest[gradient_p1_x_offset].f = m_data.m_grad_end.x();
       sub_dest[gradient_p1_y_offset].f = m_data.m_grad_end.y();
 
-      if (pshader & radial_gradient_mask)
+      if (tp == radial_gradient_type)
         {
           sub_dest[gradient_start_radius_offset].f = m_data.m_grad_start_r;
           sub_dest[gradient_end_radius_offset].f = m_data.m_grad_end_r;
@@ -279,11 +289,12 @@ reset(void)
 
 enum fastuidraw::PainterBrush::image_filter
 fastuidraw::PainterBrush::
-best_filter_for_image(const reference_counted_ptr<const Image> &im)
+filter_for_image(const reference_counted_ptr<const Image> &im,
+                 enum image_filter f)
 {
   return im ?
-    static_cast<enum image_filter>(std::min(im->slack() + 1,
-                                            static_cast<unsigned int>(image_filter_cubic))) :
+    static_cast<enum image_filter>(t_min(im->slack() + 1,
+                                         static_cast<unsigned int>(f))) :
     image_filter_nearest;
 }
 

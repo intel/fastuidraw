@@ -79,7 +79,8 @@ namespace fastuidraw
     PainterStrokeParams(void);
 
     /*!
-     * The miter limit for miter joins
+     * The miter limit for miter joins.
+     * Default value is 15.0.
      */
     float
     miter_limit(void) const;
@@ -91,7 +92,8 @@ namespace fastuidraw
     miter_limit(float f);
 
     /*!
-     * The stroking width, always non-negative
+     * The stroking width, always non-negative.
+     * Default value is 2.0.
      */
     float
     width(void) const;
@@ -108,6 +110,7 @@ namespace fastuidraw
      * \code
      * width() * 0.5
      * \endcode
+     * Default value is 1.0.
      */
     float
     radius(void) const;
@@ -130,8 +133,7 @@ namespace fastuidraw
     stroking_units(void) const;
 
     /*!
-     * Set the value of stroking_units(void) const,
-     * values are clamped to be non-negative.
+     * Set the value of stroking_units(void) const
      */
     PainterStrokeParams&
     stroking_units(enum stroking_units_t);

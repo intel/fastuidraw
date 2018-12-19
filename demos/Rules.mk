@@ -28,6 +28,9 @@ include $(dir)/Rules.mk
 dir := $(d)/painter_cells
 include $(dir)/Rules.mk
 
+dir := $(d)/painter_simple_test
+include $(dir)/Rules.mk
+
 
 
 # Begin standard footer

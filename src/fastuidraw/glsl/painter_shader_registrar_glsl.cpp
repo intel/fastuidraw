@@ -402,31 +402,32 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
   using namespace fastuidraw;
 
   src
-    .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
-    .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
-    .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
+    .add_macro_u32("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
+    .add_macro_u32("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
+    .add_macro_u32("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
 
-    .add_macro("fastuidraw_imageAtlasLinear_size_x", backend.image_atlas_color_store_width())
-    .add_macro("fastuidraw_imageAtlasLinear_size_y", backend.image_atlas_color_store_height())
+    .add_macro_u32("fastuidraw_imageAtlasLinear_size_x", backend.image_atlas_color_store_width())
+    .add_macro_u32("fastuidraw_imageAtlasLinear_size_y", backend.image_atlas_color_store_height())
     .add_macro("fastuidraw_imageAtlasLinear_size", "ivec2(fastuidraw_imageAtlasLinear_size_x, fastuidraw_imageAtlasLinear_size_y)")
     .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_x", "(1.0 / float(fastuidraw_imageAtlasLinear_size_x) )")
     .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_y", "(1.0 / float(fastuidraw_imageAtlasLinear_size_y) )")
     .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal", "vec2(fastuidraw_imageAtlasLinear_size_reciprocal_x, fastuidraw_imageAtlasLinear_size_reciprocal_y)")
 
-    .add_macro("fastuidraw_colorStopAtlas_size", backend.colorstop_atlas_store_width())
+    .add_macro_u32("fastuidraw_colorStopAtlas_size", backend.colorstop_atlas_store_width())
     .add_macro("fastuidraw_colorStopAtlas_size_reciprocal", "(1.0 / float(fastuidraw_colorStopAtlas_size) )")
 
-    .add_macro("fastuidraw_shader_pen_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::pen_data_size))
-    .add_macro("fastuidraw_shader_image_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::image_data_size))
-    .add_macro("fastuidraw_shader_linear_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::linear_gradient_data_size))
-    .add_macro("fastuidraw_shader_radial_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::radial_gradient_data_size))
-    .add_macro("fastuidraw_shader_repeat_window_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::repeat_window_data_size))
-    .add_macro("fastuidraw_shader_transformation_matrix_num_blocks",
-               FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::transformation_matrix_data_size))
-    .add_macro("fastuidraw_shader_transformation_translation_num_blocks",
-               FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::transformation_translation_data_size))
-    .add_macro("fastuidraw_stroke_dashed_stroking_params_header_num_blocks",
-               FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterDashedStrokeParams::stroke_static_data_size));
+    .add_macro_u32("fastuidraw_shader_pen_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::pen_data_size))
+    .add_macro_u32("fastuidraw_shader_image_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::image_data_size))
+    .add_macro_u32("fastuidraw_shader_linear_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::linear_gradient_data_size))
+    .add_macro_u32("fastuidraw_shader_sweep_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::sweep_gradient_data_size))
+    .add_macro_u32("fastuidraw_shader_radial_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::radial_gradient_data_size))
+    .add_macro_u32("fastuidraw_shader_repeat_window_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::repeat_window_data_size))
+    .add_macro_u32("fastuidraw_shader_transformation_matrix_num_blocks",
+                   FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::transformation_matrix_data_size))
+    .add_macro_u32("fastuidraw_shader_transformation_translation_num_blocks",
+                   FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::transformation_translation_data_size))
+    .add_macro_u32("fastuidraw_stroke_dashed_stroking_params_header_num_blocks",
+                   FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterDashedStrokeParams::stroke_static_data_size));
 }
 
 void
@@ -448,52 +449,56 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   z_bits_supported = 23u;
 
   src
-    .add_macro("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
-    .add_macro("fastuidraw_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported))
-    .add_macro("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", uint32_t(PainterHeader::drawing_occluder))
+    .add_macro_u32("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
+    .add_macro_u32("fastuidraw_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported))
+    .add_macro_u32("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", PainterHeader::drawing_occluder)
 
-    .add_macro("fastuidraw_shader_image_mask", PainterBrush::image_mask)
-    .add_macro("fastuidraw_shader_image_filter_bit0", PainterBrush::image_filter_bit0)
-    .add_macro("fastuidraw_shader_image_filter_num_bits", PainterBrush::image_filter_num_bits)
-    .add_macro("fastuidraw_shader_image_filter_nearest", PainterBrush::image_filter_nearest)
-    .add_macro("fastuidraw_shader_image_filter_linear", PainterBrush::image_filter_linear)
-    .add_macro("fastuidraw_shader_image_filter_cubic", PainterBrush::image_filter_cubic)
+    .add_macro_u32("fastuidraw_shader_image_mask", PainterBrush::image_mask)
+    .add_macro_u32("fastuidraw_shader_image_filter_bit0", PainterBrush::image_filter_bit0)
+    .add_macro_u32("fastuidraw_shader_image_filter_num_bits", PainterBrush::image_filter_num_bits)
+    .add_macro_u32("fastuidraw_shader_image_filter_nearest", PainterBrush::image_filter_nearest)
+    .add_macro_u32("fastuidraw_shader_image_filter_linear", PainterBrush::image_filter_linear)
+    .add_macro_u32("fastuidraw_shader_image_filter_cubic", PainterBrush::image_filter_cubic)
 
-    .add_macro("fastuidraw_shader_image_type_mask", PainterBrush::image_type_mask)
-    .add_macro("fastuidraw_image_type_bit0", PainterBrush::image_type_bit0)
-    .add_macro("fastuidraw_image_type_num_bits", PainterBrush::image_type_num_bits)
-    .add_macro("fastuidraw_image_type_on_atlas", Image::on_atlas)
-    .add_macro("fastuidraw_image_type_bindless_texture2d", Image::bindless_texture2d)
-    .add_macro("fastuidraw_image_type_context_texture2d", Image::context_texture2d)
+    .add_macro_u32("fastuidraw_shader_image_type_mask", PainterBrush::image_type_mask)
+    .add_macro_u32("fastuidraw_image_type_bit0", PainterBrush::image_type_bit0)
+    .add_macro_u32("fastuidraw_image_type_num_bits", PainterBrush::image_type_num_bits)
+    .add_macro_u32("fastuidraw_image_type_on_atlas", Image::on_atlas)
+    .add_macro_u32("fastuidraw_image_type_bindless_texture2d", Image::bindless_texture2d)
+    .add_macro_u32("fastuidraw_image_type_context_texture2d", Image::context_texture2d)
 
-    .add_macro("fastuidraw_image_mipmap_mask", PainterBrush::image_mipmap_mask)
-    .add_macro("fastuidraw_image_mipmap_bit0", PainterBrush::image_mipmap_bit0)
-    .add_macro("fastuidraw_image_mipmap_num_bits", PainterBrush::image_mipmap_num_bits)
+    .add_macro_u32("fastuidraw_image_mipmap_mask", PainterBrush::image_mipmap_mask)
+    .add_macro_u32("fastuidraw_image_mipmap_bit0", PainterBrush::image_mipmap_bit0)
+    .add_macro_u32("fastuidraw_image_mipmap_num_bits", PainterBrush::image_mipmap_num_bits)
 
-    .add_macro("fastuidraw_shader_linear_gradient_mask", PainterBrush::gradient_mask)
-    .add_macro("fastuidraw_shader_radial_gradient_mask", PainterBrush::radial_gradient_mask)
-    .add_macro("fastuidraw_shader_gradient_repeat_mask", PainterBrush::gradient_repeat_mask)
-    .add_macro("fastuidraw_shader_repeat_window_mask", PainterBrush::repeat_window_mask)
-    .add_macro("fastuidraw_shader_transformation_translation_mask", PainterBrush::transformation_translation_mask)
-    .add_macro("fastuidraw_shader_transformation_matrix_mask", PainterBrush::transformation_matrix_mask)
-    .add_macro("fastuidraw_image_number_index_lookup_bit0", PainterBrush::image_number_index_lookups_bit0)
-    .add_macro("fastuidraw_image_number_index_lookup_num_bits", PainterBrush::image_number_index_lookups_num_bits)
-    .add_macro("fastuidraw_image_slack_bit0", PainterBrush::image_slack_bit0)
-    .add_macro("fastuidraw_image_slack_num_bits", PainterBrush::image_slack_num_bits)
-    .add_macro("fastuidraw_image_master_index_x_bit0",     PainterBrush::image_atlas_location_x_bit0)
-    .add_macro("fastuidraw_image_master_index_x_num_bits", PainterBrush::image_atlas_location_x_num_bits)
-    .add_macro("fastuidraw_image_master_index_y_bit0",     PainterBrush::image_atlas_location_y_bit0)
-    .add_macro("fastuidraw_image_master_index_y_num_bits", PainterBrush::image_atlas_location_y_num_bits)
-    .add_macro("fastuidraw_image_master_index_z_bit0",     PainterBrush::image_atlas_location_z_bit0)
-    .add_macro("fastuidraw_image_master_index_z_num_bits", PainterBrush::image_atlas_location_z_num_bits)
-    .add_macro("fastuidraw_image_size_x_bit0",     PainterBrush::image_size_x_bit0)
-    .add_macro("fastuidraw_image_size_x_num_bits", PainterBrush::image_size_x_num_bits)
-    .add_macro("fastuidraw_image_size_y_bit0",     PainterBrush::image_size_y_bit0)
-    .add_macro("fastuidraw_image_size_y_num_bits", PainterBrush::image_size_y_num_bits)
-    .add_macro("fastuidraw_color_stop_x_bit0",     PainterBrush::gradient_color_stop_x_bit0)
-    .add_macro("fastuidraw_color_stop_x_num_bits", PainterBrush::gradient_color_stop_x_num_bits)
-    .add_macro("fastuidraw_color_stop_y_bit0",     PainterBrush::gradient_color_stop_y_bit0)
-    .add_macro("fastuidraw_color_stop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits);
+    .add_macro_u32("fastuidraw_shader_gradient_type_bit0", PainterBrush::gradient_type_bit0)
+    .add_macro_u32("fastuidraw_shader_gradient_type_num_bits", PainterBrush::gradient_type_num_bits)
+    .add_macro_u32("fastuidraw_shader_no_gradient_type", PainterBrush::no_gradient_type)
+    .add_macro_u32("fastuidraw_shader_linear_gradient_type", PainterBrush::linear_gradient_type)
+    .add_macro_u32("fastuidraw_shader_radial_gradient_type", PainterBrush::radial_gradient_type)
+    .add_macro_u32("fastuidraw_shader_sweep_gradient_type", PainterBrush::sweep_gradient_type)
+    .add_macro_u32("fastuidraw_shader_gradient_repeat_mask", PainterBrush::gradient_repeat_mask)
+    .add_macro_u32("fastuidraw_shader_repeat_window_mask", PainterBrush::repeat_window_mask)
+    .add_macro_u32("fastuidraw_shader_transformation_translation_mask", PainterBrush::transformation_translation_mask)
+    .add_macro_u32("fastuidraw_shader_transformation_matrix_mask", PainterBrush::transformation_matrix_mask)
+    .add_macro_u32("fastuidraw_image_number_index_lookup_bit0", PainterBrush::image_number_index_lookups_bit0)
+    .add_macro_u32("fastuidraw_image_number_index_lookup_num_bits", PainterBrush::image_number_index_lookups_num_bits)
+    .add_macro_u32("fastuidraw_image_slack_bit0", PainterBrush::image_slack_bit0)
+    .add_macro_u32("fastuidraw_image_slack_num_bits", PainterBrush::image_slack_num_bits)
+    .add_macro_u32("fastuidraw_image_master_index_x_bit0",     PainterBrush::image_atlas_location_x_bit0)
+    .add_macro_u32("fastuidraw_image_master_index_x_num_bits", PainterBrush::image_atlas_location_x_num_bits)
+    .add_macro_u32("fastuidraw_image_master_index_y_bit0",     PainterBrush::image_atlas_location_y_bit0)
+    .add_macro_u32("fastuidraw_image_master_index_y_num_bits", PainterBrush::image_atlas_location_y_num_bits)
+    .add_macro_u32("fastuidraw_image_master_index_z_bit0",     PainterBrush::image_atlas_location_z_bit0)
+    .add_macro_u32("fastuidraw_image_master_index_z_num_bits", PainterBrush::image_atlas_location_z_num_bits)
+    .add_macro_u32("fastuidraw_image_size_x_bit0",     PainterBrush::image_size_x_bit0)
+    .add_macro_u32("fastuidraw_image_size_x_num_bits", PainterBrush::image_size_x_num_bits)
+    .add_macro_u32("fastuidraw_image_size_y_bit0",     PainterBrush::image_size_y_bit0)
+    .add_macro_u32("fastuidraw_image_size_y_num_bits", PainterBrush::image_size_y_num_bits)
+    .add_macro_u32("fastuidraw_color_stop_x_bit0",     PainterBrush::gradient_color_stop_x_bit0)
+    .add_macro_u32("fastuidraw_color_stop_x_num_bits", PainterBrush::gradient_color_stop_x_num_bits)
+    .add_macro_u32("fastuidraw_color_stop_y_bit0",     PainterBrush::gradient_color_stop_y_bit0)
+    .add_macro_u32("fastuidraw_color_stop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits);
 }
 
 void
@@ -567,8 +572,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
       .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", shader_unpack_value::uint_type)
       .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", shader_unpack_value::uint_type)
-      .stream_unpack_function(str, "fastuidraw_read_brush_linear_gradient_data",
-                              "fastuidraw_brush_gradient_raw");
+      .stream_unpack_function(str, "fastuidraw_read_brush_linear_or_sweep_gradient_data", "fastuidraw_brush_gradient_raw");
   }
 
   {
@@ -629,20 +633,20 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   }
 
   {
-    /* Matrics in GLSL are [column][row], that is why
-     * one sees the transposing to the loads
+    /* Matrics in GLSL are [column][row], that is why we use the
+     * matrix_colX_rowY_offset enums
      */
     shader_unpack_value_set<PainterItemMatrix::matrix_data_size> labels;
     labels
-      .set(PainterItemMatrix::matrix00_offset, "[0][0]")
-      .set(PainterItemMatrix::matrix10_offset, "[0][1]")
-      .set(PainterItemMatrix::matrix20_offset, "[0][2]")
-      .set(PainterItemMatrix::matrix01_offset, "[1][0]")
-      .set(PainterItemMatrix::matrix11_offset, "[1][1]")
-      .set(PainterItemMatrix::matrix21_offset, "[1][2]")
-      .set(PainterItemMatrix::matrix02_offset, "[2][0]")
-      .set(PainterItemMatrix::matrix12_offset, "[2][1]")
-      .set(PainterItemMatrix::matrix22_offset, "[2][2]")
+      .set(PainterItemMatrix::matrix_col0_row0_offset, "[0][0]")
+      .set(PainterItemMatrix::matrix_col0_row1_offset, "[0][1]")
+      .set(PainterItemMatrix::matrix_col0_row2_offset, "[0][2]")
+      .set(PainterItemMatrix::matrix_col1_row0_offset, "[1][0]")
+      .set(PainterItemMatrix::matrix_col1_row1_offset, "[1][1]")
+      .set(PainterItemMatrix::matrix_col1_row2_offset, "[1][2]")
+      .set(PainterItemMatrix::matrix_col2_row0_offset, "[2][0]")
+      .set(PainterItemMatrix::matrix_col2_row1_offset, "[2][1]")
+      .set(PainterItemMatrix::matrix_col2_row2_offset, "[2][2]")
       .stream_unpack_function(str, "fastuidraw_read_item_matrix", "mat3", false);
   }
 

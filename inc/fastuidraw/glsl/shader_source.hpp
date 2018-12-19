@@ -189,6 +189,19 @@ public:
     MacroSet&
     add_macro(c_string macro_name, float macro_value);
 
+    /*!
+     * Add a macro to this MacroSet for casted to uint32_t
+     * \param macro_name name of macro
+     * \param macro_value value to which macro is given
+     */
+    template<typename T>
+    MacroSet&
+    add_macro_u32(c_string macro_name, T macro_value)
+    {
+      uint32_t v(macro_value);
+      return add_macro(macro_name, v);
+    }
+
   private:
     friend class ShaderSource;
     void *m_d;
@@ -303,6 +316,19 @@ public:
   ShaderSource&
   add_macro(c_string macro_name, float macro_value,
             enum add_location_t loc = push_back);
+
+  /*!
+   * Add a macro to this MacroSet for casted to uint32_t
+   * \param macro_name name of macro
+   * \param macro_value value to which macro is given
+   */
+  template<typename T>
+  ShaderSource&
+  add_macro_u32(c_string macro_name, T macro_value)
+  {
+    uint32_t v(macro_value);
+    return add_macro(macro_name, v);
+  }
 
   /*!
    * Add macros of a MacroSet to this ShaderSource.

@@ -1281,28 +1281,14 @@ SubPath(const fastuidraw::TessellatedPath &P):
   m_contours.reserve(P.number_contours());
   for(unsigned int c = 0, endc = P.number_contours(); c < endc; ++c)
     {
-      /* For now, if a contour is not closed, we omit it
-       * from our filling. However, this may not be the
-       * correct thing to do since if the contour is
-       * self intersecting it can induce fill regions
-       * as well. However, it appears that there is no
-       * feasible way to get GLUtess to support open
-       * contours as one of its basic concepts, a face
-       * is a loop of vertices. However, one way out is to
-       * process an open contour, compute if it is self
-       * intersecting and record those created loops.
-       */
-      if (P.contour_closed(c))
-        {
-          SubContour tmp;
+      SubContour tmp;
 
-          copy_contour(tmp, P, c);
-          if (!SubPath::contour_is_reducable(tmp))
-            {
-              m_contours.push_back(SubContour());
-              m_contours.back().swap(tmp);
-              m_num_points += m_contours.back().size();
-            }
+      copy_contour(tmp, P, c);
+      if (!SubPath::contour_is_reducable(tmp))
+        {
+          m_contours.push_back(SubContour());
+          m_contours.back().swap(tmp);
+          m_num_points += m_contours.back().size();
         }
     }
 }
@@ -1330,6 +1316,16 @@ copy_contour(SubContour &dst,
           SubContourPoint pt(src.segment_data()[v].m_start_pt, 0u);
           dst.push_back(pt);
         }
+    }
+
+  if (!src.contour_closed(C) && src.number_edges(C) > 0)
+    {
+      /* If the contour is not closed, then the last edge's
+       * ending point needs to be added because it is not
+       * the start point of the contour.
+       */
+      SubContourPoint pt(src.contour_segment_data(C).back().m_end_pt, 0u);
+      dst.push_back(pt);
     }
 }
 

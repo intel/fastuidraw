@@ -205,6 +205,7 @@ namespace gl
       /*!
        * Create a TextureImage from a previously created GL texture
        * whose binding target is GL_TEXTURE_2D.
+       * \param patlas the ImageAtlas that the created image is part of
        * \param w width of the texture
        * \param h height of the texture
        * \param m number of mipmap levels of the texture
@@ -218,7 +219,8 @@ namespace gl
        */
       static
       reference_counted_ptr<TextureImage>
-      create(int w, int h, unsigned int m, GLuint texture,
+      create(const reference_counted_ptr<ImageAtlas> &patlas,
+             int w, int h, unsigned int m, GLuint texture,
              bool object_owns_texture = true);
 
       ~TextureImage();
@@ -243,9 +245,11 @@ namespace gl
       texture(void) const;
 
     private:
-      TextureImage(int w, int h, unsigned int m,
+      TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
+                   int w, int h, unsigned int m,
                    bool object_owns_texture, GLuint texture);
-      TextureImage(int w, int h, unsigned int m,
+      TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
+                   int w, int h, unsigned int m,
                    bool object_owns_texture, GLuint texture, GLuint64 handle);
 
       void *m_d;

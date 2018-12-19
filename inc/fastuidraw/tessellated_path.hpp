@@ -53,7 +53,8 @@ class FilledPath;
  * the ordering of edges within a contour is the same ordering
  * as the \ref PathContour::interpolator_base objects of
  * the source \ref PathContour. In particular, for each contour
- * of a TessellatedPath, the closing edge is the last edge.
+ * of a TessellatedPath, if an edge is closed, the closing edge
+ * is the last edge.
  */
 class TessellatedPath:
     public reference_counted<TessellatedPath>::non_concurrent
@@ -377,8 +378,8 @@ public:
   contour_range(unsigned int contour) const;
 
   /*!
-   * Returns the segment data of the named contour including
-   * the closing edge. Provided as a conveniance equivalent to
+   * Returns the segment data of the named contour.
+   * Provided as a conveniance equivalent to
    * \code
    * segment_data().sub_array(contour_range(contour))
    * \endcode

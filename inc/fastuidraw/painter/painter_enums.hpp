@@ -45,6 +45,16 @@ namespace fastuidraw
 
     /*!
      * \brief
+     * Enumeration to specify orientation of a rotation
+     */
+    enum rotation_orientation_t
+      {
+        clockwise, /*!< indicates clockwise */
+        counter_clockwise /*!< indicates counter-clockwise */
+      };
+
+    /*!
+     * \brief
      * Enumeration to indicate if glyph layout is horizontal
      * or vertical
      */

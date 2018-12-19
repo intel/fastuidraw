@@ -384,6 +384,25 @@ class Image;
   {
   public:
     /*!
+     * Class representing an action to execute when a bindless
+     * image is deleted. The action is gauranteed to be executed
+     * AFTER the 3D API is no longer using the resources that
+     * back the image.
+     */
+    class ResourceReleaseAction:
+      public reference_counted<ResourceReleaseAction>::default_base
+    {
+    public:
+      /*!
+       * To be implemented by a derived class to perform resource
+       * release actions.
+       */
+      virtual
+      void
+      action(void) = 0;
+    };
+
+    /*!
      * Ctor.
      * \param pcolor_tile_size size of each color tile
      * \param pindex_tile_size size of each index tile
@@ -446,7 +465,7 @@ class Image;
      * counter is greater than zero, then the reurning
      * of tiles to the free store for later use is
      * -delayed- until the counter reaches zero again
-     * (see undelay_tile_freeing()). The use case is for
+     * (see unlock_resources()). The use case is for
      * buffered painting where the GPU calls are delayed
      * for later (to batch commands) and an Image may go
      * out of scope before the GPU commands are sent to
@@ -455,17 +474,17 @@ class Image;
      * still for rendering.
      */
     void
-    delay_tile_freeing(void);
+    lock_resources(void);
 
     /*!
      * Decrements an internal counter. If this internal
      * counter reaches zero, those tiles from Image's
      * that were deleted while the counter was non-zero,
      * are then returned to the tile free store. See
-     * delay_tile_freeing() for more details.
+     * lock_resources() for more details.
      */
     void
-    undelay_tile_freeing(void);
+    unlock_resources(void);
 
     /*!
      * Returns the number of index color tiles that are available
@@ -550,6 +569,13 @@ class Image;
     void
     resize_to_fit(int num_color_tiles, int num_index_tiles);
 
+    /*!
+     * Queue a ResourceReleaseAction to be executed when resources are
+     * not locked down, see lock_resources() and unlock_resources().
+     */
+    void
+    queue_resource_release_action(const reference_counted_ptr<ResourceReleaseAction> &action);
+
   private:
     void *m_d;
   };
@@ -605,27 +631,28 @@ class Image;
      */
     static
     reference_counted_ptr<Image>
-    create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
+    create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
            const ImageSourceBase &image_data, unsigned int pslack);
 
     /*!
      * Construct an \ref Image backed by an \ref ImageAtlas. If there is
-     * insufficient room on the atlas, returns a nullptr handle.
-     * \param atlas ImageAtlas atlas onto which to place the image.
+     * insufficient room on the atlas, returns a nullptr handle
+     * \param atlas ImageAtlas atlas onto which to place the image
      * \param w width of the image
      * \param h height of the image
      * \param image_data image data to which to initialize the image
      * \param pslack number of pixels allowed to sample outside of color tile
      *               for the image. A value of one allows for bilinear
-     *               filtering and a value of two allows for cubic filtering.
+     *               filtering and a value of two allows for cubic filtering
      */
     static
     reference_counted_ptr<Image>
-    create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
+    create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
            c_array<const u8vec4> image_data, unsigned int pslack);
 
     /*!
      * Create an \ref Image backed by a bindless texture.
+     * \param atlas ImageAtlas atlas onto which to place the image
      * \param w width of the image
      * \param h height of the image
      * \param m number of mipmap levels of the image
@@ -633,10 +660,15 @@ class Image;
      *             \ref on_atlas.
      * \param handle the bindless handle value used by the Gfx API in
      *               shaders to reference the texture.
+     * \param action action to call to release backing resources of
+     *               the created Image.
      */
     static
     reference_counted_ptr<Image>
-    create_bindless(int w, int h, unsigned int m, enum type_t type, uint64_t handle);
+    create_bindless(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
+                    unsigned int m, enum type_t type, uint64_t handle,
+                    const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action =
+                    reference_counted_ptr<ImageAtlas::ResourceReleaseAction>());
 
     ~Image();
 
@@ -725,6 +757,7 @@ class Image;
      * Applications should not use this directly and instead use create_bindless().
      * Backends should use this ctor for Image deried classes that do
      * cleanup (for example releasing the handle and/or deleting the texture).
+     * \param atlas ImageAtlas atlas onto which to place the image.
      * \param w width of underlying texture
      * \param h height of underlying texture
      * \param m number of mipmap levels of the image
@@ -732,13 +765,17 @@ class Image;
      *             \ref on_atlas.
      * \param handle the bindless handle value used by the Gfx API in
      *               shaders to reference the texture.
+     * \param action action to call to release backing resources of
+     *               the created Image.
      */
-    Image(int w, int h, unsigned int m, enum type_t type, uint64_t handle);
+    Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
+          unsigned int m, enum type_t type, uint64_t handle,
+          const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action =
+          reference_counted_ptr<ImageAtlas::ResourceReleaseAction>());
 
   private:
-    Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
+    Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
           const ImageSourceBase &image_data, unsigned int pslack);
-
 
     void *m_d;
   };

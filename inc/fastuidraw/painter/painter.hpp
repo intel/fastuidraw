@@ -55,14 +55,14 @@ namespace fastuidraw
    *
    * The transformation of a Painter goes from local item coordinate
    * to 3D API clip-coordinates (for example in GL, from item coordinates
-   * to gl_Position.xyw). FastUIDraw follows the convention that
-   * the top of the window is at normalized y-coordinate -1 and the
-   * bottom of the window is at normalized y-coordinate +1.
-   *
-   * One can specify the exact attribute and index data for a Painter
-   * to consume, see \ref draw_generic(). In addition, the class
-   * PainterAttributeData can be used to generate and save attribute and
-   * index data to be used repeatedly.
+   * to gl_Position.xyw). FastUIDraw follows the convention that the top
+   * of the window is at normalized y-coordinate -1 and the bottom of the
+   * window is at normalized y-coordinate +1. The transformation is to be
+   * applied as matrix-vector multiplication, i.e.
+   * \code
+   * NormalizedDeviceCoordinates = transformation().m_item_matrix * vec3(x, y, 1.0)
+   * \endcode
+   * for local coordiante (x, y).
    */
   class Painter:
     public PainterEnums,
@@ -143,7 +143,7 @@ namespace fastuidraw
      * Equivalent to
      * \code
      * composite_shader(shader_set.shader(m),
-     *              shader_set.composite_mode(m))
+     *                  shader_set.composite_mode(m))
      * \endcode
      * It is a crashing error if shader_set does not support
      * the named composite mode.
@@ -225,6 +225,14 @@ namespace fastuidraw
     end(void);
 
     /*!
+     * Returns the PainterBackend::Surface to which the Painter
+     * is drawing. If there is no active surface, then returns
+     * a null reference.
+     */
+    const reference_counted_ptr<PainterBackend::Surface>&
+    surface(void) const;
+
+    /*!
      * Concats the current transformation matrix
      * by a given matrix.
      * \param tr transformation by which to concat
@@ -238,16 +246,6 @@ namespace fastuidraw
      */
     void
     transformation(const float3x3 &m);
-
-    /*!
-     * Sets the transformation matrix
-     * \param m new value for transformation matrix
-     */
-    void
-    transformation(const PainterItemMatrix &m)
-    {
-      transformation(m.m_item_matrix);
-    }
 
     /*!
      * Concats the current transformation matrix
@@ -285,17 +283,48 @@ namespace fastuidraw
     /*!
      * Returns the value of the current transformation.
      */
-    const PainterItemMatrix&
+    const float3x3&
     transformation(void);
+
+    /*!
+     * Returns the current clip-equations of the Painter.
+     * The clip-equations are updated whenever clip_in_rect()
+     * or clip_in_path() or restore() are called, as such
+     * the returned c_array then becomes invalid. The equations
+     * are in -CLIP- coordinates, thus do not change when
+     * the transformation changes.
+     */
+    c_array<const vec3>
+    clip_equations(void);
+
+    /*!
+     * Returns the convex polygon embodied by clip_equations().
+     * The value changes whenever clip_in_rect(), clip_in_path()
+     * or restore() are called, as such the returned c_array
+     * then becomes invalid. The coordinates are in -CLIP-
+     * coordinates, thus do not change when the transformation
+     * changes.
+     */
+    c_array<const vec3>
+    clip_polygon(void);
+
+    /*!
+     * If the clipping region is non-empty, returns true
+     * and writes the min and max corner of the bounding box
+     * (in pixel coordinates) of the clipping region.
+     * \param min_pt location to which to write the minimum corner point
+     * \param max_pt location to which to write the maximum corner point
+     */
+    bool
+    clip_region_bounds(vec2 *min_pt, vec2 *max_pt);
 
     /*!
      * Set clipping to the intersection of the current
      * clipping with a rectangle.
-     * \param xy location of rectangle
-     * \param wh width and height of rectange
+     * \param rect clip-in rectangle
      */
     void
-    clip_in_rect(const vec2 &xy, const vec2 &wh);
+    clip_in_rect(const Rect &rect);
 
     /*!
      * Set clipping to the intersection of the current
@@ -386,6 +415,28 @@ namespace fastuidraw
     clip_in_path(const FilledPath &path, const CustomFillRuleBase &fill_rule);
 
     /*!
+     * Clipout by a rect
+     * \param rect clip-out rectangle
+     */
+    void
+    clip_out_rect(const Rect &rect);
+
+    /*!
+     * Set clipping to the intersection of the current
+     * clipping with the complement of a rounded rectangle.
+     * \param R rounded rectangle
+     */
+    void
+    clip_out_rounded_rect(const RoundedRect &R);
+
+    /*!
+     * Clipout by a convex polygon
+     * \param poly points of the convex polygon
+     */
+    void
+    clip_out_convex_polygon(c_array<const vec2> poly);
+
+    /*!
      * Clipout by custom data.
      * \param shader shader with which to draw the attribute/index data
      * \param shader_data shader data to pass to shader
@@ -398,12 +449,12 @@ namespace fastuidraw
      *                              each index chunk
      */
     void
-    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
-                  const PainterData::value<PainterItemShaderData> &shader_data,
-                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
-                  c_array<const c_array<const PainterIndex> > index_chunks,
-                  c_array<const int> index_adjusts,
-                  c_array<const unsigned int> attrib_chunk_selector);
+    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                    c_array<const c_array<const PainterIndex> > index_chunks,
+                    c_array<const int> index_adjusts,
+                    c_array<const unsigned int> attrib_chunk_selector);
 
     /*!
      * Clipout by custom data.
@@ -416,13 +467,13 @@ namespace fastuidraw
      *                      values are not adjusted.
      */
     void
-    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
-                  const PainterData::value<PainterItemShaderData> &shader_data,
-                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
-                  c_array<const c_array<const PainterIndex> > index_chunks,
-                  c_array<const int> index_adjusts)
+    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                    c_array<const c_array<const PainterIndex> > index_chunks,
+                    c_array<const int> index_adjusts)
     {
-      clipOutCustom(shader, shader_data,
+      clip_out_custom(shader, shader_data,
                     attrib_chunks, index_chunks, index_adjusts,
                     c_array<const unsigned int>());
     }
@@ -436,16 +487,16 @@ namespace fastuidraw
      * \param index_adjust amount by which to adjust the values in index_chunk
      */
     void
-    clipOutCustom(const reference_counted_ptr<PainterItemShader> &shader,
-                  const PainterData::value<PainterItemShaderData> &shader_data,
-                  c_array<const PainterAttribute> attrib_chunk,
-                  c_array<const PainterIndex> index_chunk,
-                  int index_adjust)
+    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    c_array<const PainterAttribute> attrib_chunk,
+                    c_array<const PainterIndex> index_chunk,
+                    int index_adjust = 0)
     {
       vecN<c_array<const PainterAttribute>, 1> aa(attrib_chunk);
       vecN<c_array<const PainterIndex>, 1> ii(index_chunk);
       vecN<int, 1> ia(index_adjust);
-      clipOutCustom(shader, shader_data, aa, ii, ia);
+      clip_out_custom(shader, shader_data, aa, ii, ia);
     }
 
     /*!
@@ -685,7 +736,7 @@ namespace fastuidraw
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
@@ -700,7 +751,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -715,7 +766,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -734,7 +785,7 @@ namespace fastuidraw
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
@@ -749,7 +800,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -764,7 +815,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     *                           quality to apply to the path stroke.
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
@@ -772,6 +823,69 @@ namespace fastuidraw
                        const StrokingStyle &stroke_style = StrokingStyle(),
                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto,
                        enum stroking_method_t stroking_method = stroking_method_auto);
+
+    /*!
+     * Stroke a strip of lines.
+     * \param shader shader with which to stroke the attribute data
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_line_strip(const PainterStrokeShader &shader, const PainterData &draw,
+                      c_array<const vec2> line_strip,
+                      const StrokingStyle &stroke_style = StrokingStyle(),
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
+
+    /*!
+     * Stroke a strip of lines using PainterShaderSet::stroke_shader() of default_shaders().
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_line_strip(const PainterData &draw,
+                      c_array<const vec2> line_strip,
+                      const StrokingStyle &stroke_style = StrokingStyle(),
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
+
+    /*!
+     * Stroke a strip of lines dashed.
+     * \param shader shader with which to stroke the attribute data
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_dashed_line_strip(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
+                             c_array<const vec2> line_strip,
+                             const StrokingStyle &stroke_style = StrokingStyle(),
+                             enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
+
+    /*!
+     * Stroke a strip of lines dashed using PainterShaderSet::dashed_stroke_shader()
+     * of default_shaders().
+     * \param draw data for how to draw
+     * \param line_strip sequence of points between each succesive point
+     *                   in the sequence, a line segment will be stroked
+     * \param stroke_style how to stroke the path
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the line stroke.
+     */
+    void
+    stroke_dashed_line_strip(const PainterData &draw,
+                             c_array<const vec2> line_strip,
+                             const StrokingStyle &stroke_style = StrokingStyle(),
+                             enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
      * Fill a path.
@@ -854,7 +968,7 @@ namespace fastuidraw
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
-     * Draw a convex polygon using a custom shader.
+     * Fill a convex polygon using a custom shader.
      * \param shader shader with which to draw the convex polygon
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
@@ -863,12 +977,12 @@ namespace fastuidraw
      *                           quality to apply to the path fill
      */
     void
-    draw_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
+    fill_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
                         c_array<const vec2> pts,
                         enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
-     * Draw a convex polygon using the default fill shader.
+     * Fill a convex polygon using the default fill shader.
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
      *            are the edges of the polygon.
@@ -876,11 +990,11 @@ namespace fastuidraw
      *                           quality to apply to the path fill
      */
     void
-    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
+    fill_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
                         enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
-     * Draw a convex quad using a custom shader.
+     * Fill a convex quad using a custom shader.
      * \param shader shader with which to draw the quad
      * \param draw data for how to draw
      * \param p0 first point of quad, shares an edge with p3
@@ -891,12 +1005,12 @@ namespace fastuidraw
      *                           quality to apply to the path fill
      */
     void
-    draw_quad(const PainterFillShader &shader, const PainterData &draw,
+    fill_quad(const PainterFillShader &shader, const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
-     * Draw a quad using the default fill shader.
+     * Fill a quad using the default fill shader.
      * \param draw data for how to draw
      * \param p0 first point of quad, shares an edge with p3
      * \param p1 point after p0, shares an edge with p0
@@ -906,38 +1020,36 @@ namespace fastuidraw
      *                           quality to apply to the path fill
      */
     void
-    draw_quad(const PainterData &draw,
+    fill_quad(const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
-     * Draw a rect using a custom shader.
+     * Fill a rect using a custom shader.
      * \param shader shader with which to draw the quad
      * \param draw data for how to draw
-     * \param p min-corner of rect
-     * \param wh width and height of rect
+     * \param rect rectangle to fill
      * \param anti_alias_quality specifies the shader based anti-alias
      *                           quality to apply to the path fill
      */
     void
-    draw_rect(const PainterFillShader &shader, const PainterData &draw,
-              const vec2 &p, const vec2 &wh,
+    fill_rect(const PainterFillShader &shader, const PainterData &draw,
+              const Rect &rect,
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
-     * Draw a rect using the default fill shader.
+     * Fill a rect using the default fill shader.
      * \param draw data for how to draw
-     * \param p min-corner of rect
-     * \param wh width and height of rect
+     * \param rect rectangle to fill
      * \param anti_alias_quality specifies the shader based anti-alias
      *                           quality to apply to the path fill
      */
     void
-    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+    fill_rect(const PainterData &draw, const Rect &rect,
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
-     * Draw a rounded rect using a fill shader
+     * Fill a rounded rect using a fill shader
      * \param shader shader with which to draw the rounded rectangle
      * \param draw data for how to draw
      * \param R \ref RoundedRect to draw
@@ -945,8 +1057,19 @@ namespace fastuidraw
      *                           quality to apply to the path fill
      */
     void
-    draw_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
+    fill_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
                       const RoundedRect &R,
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
+
+    /*!
+     * Fill a rounded rect using the default fill shader
+     * \param draw data for how to draw
+     * \param R \ref RoundedRect to draw
+     * \param anti_alias_quality specifies the shader based anti-alias
+     *                           quality to apply to the path fill
+     */
+    void
+    fill_rounded_rect(const PainterData &draw, const RoundedRect &R,
                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
@@ -1061,8 +1184,8 @@ namespace fastuidraw
     current_z(void) const;
 
     /*!
-     *Increment the value of current_z(void) const.
-     *\param amount amount by which to increment current_z(void) const
+     * Increment the value of current_z(void) const.
+     * \param amount amount by which to increment current_z(void) const
      */
     void
     increment_z(int amount = 1);

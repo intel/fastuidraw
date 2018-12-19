@@ -459,7 +459,8 @@ create_formatted_textT(T &out_sequence,
       last_negative_tallest = negative_tallest;
       first_line = false;
 
-      out_sequence.add_glyphs(cast_c_array(glyph_sources), cast_c_array(sub_p));
+      out_sequence.add_glyphs(const_cast_c_array(glyph_sources),
+                              const_cast_c_array(sub_p));
     }
 }
 

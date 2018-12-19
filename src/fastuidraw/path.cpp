@@ -369,18 +369,16 @@ namespace
     PathPrivate(fastuidraw::Path *p, const PathPrivate &obj);
 
     const fastuidraw::reference_counted_ptr<fastuidraw::PathContour>&
-    current_contour(void)
-    {
-      FASTUIDRAWassert(!m_contours.empty());
-      clear_tesses();
-      return m_contours.back();
-    }
+    current_contour(void);
 
     void
     move_common(const fastuidraw::vec2 &pt);
 
     void
     clear_tesses(void);
+
+    void
+    start_contour_if_necessary(void);
 
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_contours;
     enum fastuidraw::PathEnums::edge_type_t m_next_edge_type;
@@ -1609,6 +1607,16 @@ PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
     }
 }
 
+const fastuidraw::reference_counted_ptr<fastuidraw::PathContour>&
+PathPrivate::
+current_contour(void)
+{
+  start_contour_if_necessary();
+  FASTUIDRAWassert(!m_contours.empty());
+  clear_tesses();
+  return m_contours.back();
+}
+
 void
 PathPrivate::
 move_common(const fastuidraw::vec2 &pt)
@@ -1627,6 +1635,27 @@ PathPrivate::
 clear_tesses(void)
 {
   m_tess_list.clear();
+}
+
+void
+PathPrivate::
+start_contour_if_necessary(void)
+{
+  if (!m_contours.empty() && !m_contours.back()->closed())
+    {
+      return;
+    }
+
+  fastuidraw::vec2 pt;
+  if (m_contours.empty())
+    {
+      pt = fastuidraw::vec2(0.0f, 0.0f);
+    }
+  else
+    {
+      pt = m_contours.back()->point(m_contours.back()->number_points() - 1);
+    }
+  move_common(pt);
 }
 
 /////////////////////////////////////////
@@ -1787,7 +1816,6 @@ close_contour(enum PathEnums::edge_type_t etp)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->close(etp);
   return *this;
@@ -1868,7 +1896,6 @@ operator<<(const control_point &pt)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->add_control_point(pt.m_location);
   return *this;
 }
@@ -1879,7 +1906,6 @@ operator<<(const arc &a)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->to_arc(a.m_angle, a.m_pt, d->m_next_edge_type);
   d->m_next_edge_type = PathEnums::starts_new_edge;
   return *this;
@@ -1891,7 +1917,6 @@ operator<<(contour_close)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->close(d->m_next_edge_type);
   d->m_next_edge_type = PathEnums::starts_new_edge;
   return *this;
@@ -1903,7 +1928,6 @@ operator<<(contour_close_arc a)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->close_arc(a.m_angle, d->m_next_edge_type);
   d->m_next_edge_type = PathEnums::starts_new_edge;
   return *this;
@@ -1916,7 +1940,6 @@ line_to(const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->to_point(pt, etp);
   return *this;
 }
@@ -1928,7 +1951,6 @@ quadratic_to(const vec2 &ct, const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->clear_control_points();
   h->add_control_point(ct);
@@ -1943,7 +1965,6 @@ cubic_to(const vec2 &ct1, const vec2 &ct2, const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->clear_control_points();
   h->add_control_point(ct1);
@@ -1959,7 +1980,6 @@ arc_to(float angle, const vec2 &pt,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->to_arc(angle, pt, etp);
   return *this;
@@ -1980,7 +2000,6 @@ custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p)
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->to_generic(p);
   return *this;
 }
@@ -1992,7 +2011,6 @@ close_contour_arc(float angle,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->close_arc(angle, etp);
   return *this;
@@ -2005,7 +2023,6 @@ close_contour_quadratic(const vec2 &ct,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->clear_control_points();
   h->add_control_point(ct);
@@ -2020,7 +2037,6 @@ close_contour_cubic(const vec2 &ct1, const vec2 &ct2,
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->clear_control_points();
   h->add_control_point(ct1);
@@ -2035,7 +2051,6 @@ close_contour_custom(const reference_counted_ptr<const PathContour::interpolator
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  FASTUIDRAWassert(!d->current_contour()->closed());
   d->current_contour()->close_generic(p);
   return *this;
 }

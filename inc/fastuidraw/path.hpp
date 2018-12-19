@@ -851,7 +851,7 @@ public:
   /*!
    * Operator overload to start a new contour without closing
    * the current contour.
-   * \param a specifies the starting point of the new contour
+   * \param st specifies the starting point of the new contour
    */
   Path&
   operator<<(const contour_start &st)

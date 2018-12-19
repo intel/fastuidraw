@@ -40,7 +40,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * (Private) base classe used for PainterPackedValue
+   * (Private) base class used for PainterPackedValue
    */
   class PainterPackedValueBase
   {
@@ -104,6 +104,21 @@ namespace fastuidraw
     swap(PainterPackedValue &obj)
     {
       PainterPackedValueBase::swap(obj);
+    }
+
+    /*!
+     * Resets the object to not refer to anything.
+     * Provided as a conveniance, equivalent to
+     * \code
+     * PainterPackedValue tmp;
+     * swap(tmp);
+     * \endcode
+     */
+    void
+    reset(void)
+    {
+      PainterPackedValue tmp;
+      swap(tmp);
     }
 
     /*!
