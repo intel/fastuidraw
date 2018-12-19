@@ -96,6 +96,35 @@ namespace fastuidraw
     }
 
     /*!
+     * Translate the Rect, equivalent to
+     * \code
+     * m_min_point += tr;
+     * m_max_point += tr;
+     * \endcode
+     * \param tr amount by which to transate
+     */
+    Rect&
+    translate(const vec2 &tr)
+    {
+      m_min_point += tr;
+      m_max_point += tr;
+      return *this;
+    }
+
+    /*!
+     * Translate the Rect, equivalent to
+     * \code
+     * translate(vec2(x, y))
+     * \endcode
+     * \param tr amount by which to transate
+     */
+    Rect&
+    translate(float x, float y)
+    {
+      return translate(vec2(x,y));
+    }
+
+    /*!
      * Set \ref m_max_point from \ref m_min_point
      * and a size. Equivalent to
      * \code
@@ -138,6 +167,34 @@ namespace fastuidraw
     size(void) const
     {
       return m_max_point - m_min_point;
+    }
+
+    /*!
+     * Set the width of the Rect, equivalent to
+     * \code
+     * m_max_point.x() = w + m_min_point.x();
+     * \endcode
+     * \param w value to make the width of the rect
+     */
+    Rect&
+    width(float w)
+    {
+      m_max_point.x() = w + m_min_point.x();
+      return *this;
+    }
+
+    /*!
+     * Set the height of the Rect, equivalent to
+     * \code
+     * m_max_point.y() = h + m_min_point.y();
+     * \endcode
+     * \param h value to make the height of the rect
+     */
+    Rect&
+    height(float h)
+    {
+      m_max_point.y() = h + m_min_point.y();
+      return *this;
     }
 
     /*!
