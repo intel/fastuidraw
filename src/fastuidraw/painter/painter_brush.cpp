@@ -42,6 +42,9 @@ data_size(void) const
     case linear_gradient_type:
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
       break;
+    case sweep_gradient_type:
+      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(sweep_gradient_data_size);
+      break;
     case radial_gradient_type:
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
       break;
@@ -133,7 +136,7 @@ pack_data(c_array<generic_data> dst) const
     }
 
   enum gradient_type_t tp(gradient_type());
-  if (tp == linear_gradient_type || tp == radial_gradient_type)
+  if (tp != no_gradient_type)
     {
       if (tp == radial_gradient_type)
         {
@@ -141,6 +144,7 @@ pack_data(c_array<generic_data> dst) const
         }
       else
         {
+          FASTUIDRAWassert(sweep_gradient_data_size == linear_gradient_data_size);
           sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
         }
 
