@@ -84,6 +84,8 @@ namespace fastuidraw
     };
 
     /*!
+     * Enumeration to define bits for how fonts and glyphs
+     * are selected.
      */
     enum selection_bits_t
       {
@@ -150,7 +152,8 @@ namespace fastuidraw
      * Fetch a font using FontProperties::source_label()
      * as the key to find the font added with add_font()
      * or add_font_generator().
-     * \param source_label
+     * \param source_label value of FontProperties::source_label()
+     *                     to hunt for a font to have.
      */
     reference_counted_ptr<const FontBase>
     fetch_font(c_string source_label);
@@ -162,7 +165,8 @@ namespace fastuidraw
      * str << filename << ":" << face_index;
      * return fetch_font(str.str().c_str());
      * \endcode
-     * \param source_label
+     * \param filename file source of font to hunt for
+     * \param face_index face index source of font to hunt for
      */
     reference_counted_ptr<const FontBase>
     fetch_font(c_string filename, int face_index);

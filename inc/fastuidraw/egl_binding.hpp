@@ -180,9 +180,9 @@ void
 message(c_string message, c_string src_file, int src_line);
 }
 
-/*!\def
- * Use this macro to emit a string to each of the \ref CallbackEGL
- * objects that are active.
+/*!\def FASTUIDRAW_EGL_MESSAGE
+ * Use this macro to emit a string to each of the
+ * egl_binding::CallbackEGL objects that are active.
  */
 #define FASTUIDRAW_EGL_MESSAGE(X) \
   egl_binding::message(X, __FILE__, __LINE__)

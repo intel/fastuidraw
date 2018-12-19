@@ -198,7 +198,9 @@ namespace fastuidraw
      *   - PainterAttribute::m_attrib2 .y  -> Glyph::attribute()[5]
      *   - PainterAttribute::m_attrib2 .z  -> Glyph::attribute()[6]
      *   - PainterAttribute::m_attrib2 .w  -> Glyph::attribute()[7]
+     * \param attrib_loc index into dst_attrib to which to write data
      * \param dst_attrib location to which to pack attributes
+     * \param index_loc index into dst_index to which to write data
      * \param dst_index location to which to pack indices
      * \param position position of the bottom left corner of the glyph
      * \param scale_factor scale factor to apply to the glyph

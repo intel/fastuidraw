@@ -116,7 +116,8 @@ namespace fastuidraw
      * \code
      * max_point(min_point() + vec2(width, height))
      * \endcode
-     * \param sz size to which to set the Rect
+     * \param width width to which to set the rect
+     * \param height height to which to set the rect
      */
     Rect&
     size(float width, float height)

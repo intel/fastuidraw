@@ -842,7 +842,6 @@ namespace fastuidraw
 
     /*!
      * Stroke a strip of lines using PainterShaderSet::stroke_shader() of default_shaders().
-     * \param shader shader with which to stroke the attribute data
      * \param draw data for how to draw
      * \param line_strip sequence of points between each succesive point
      *                   in the sequence, a line segment will be stroked
@@ -875,7 +874,6 @@ namespace fastuidraw
     /*!
      * Stroke a strip of lines dashed using PainterShaderSet::dashed_stroke_shader()
      * of default_shaders().
-     * \param shader shader with which to stroke the attribute data
      * \param draw data for how to draw
      * \param line_strip sequence of points between each succesive point
      *                   in the sequence, a line segment will be stroked
@@ -1065,7 +1063,6 @@ namespace fastuidraw
 
     /*!
      * Fill a rounded rect using the default fill shader
-     * \param shader shader with which to draw the rounded rectangle
      * \param draw data for how to draw
      * \param R \ref RoundedRect to draw
      * \param anti_alias_quality specifies the shader based anti-alias

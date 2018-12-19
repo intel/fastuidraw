@@ -89,7 +89,8 @@ namespace fastuidraw
 
     /*!
      * Add glyphs from a specific font and positions; values are -copied-.
-     * \param glyph_sources specifies what glyphs to add
+     * \param font font from which to fetch glyphs
+     * \param glyph_codes specifies what glyphs to add
      * \param positions specifies the positions of each glyph added
      */
     void

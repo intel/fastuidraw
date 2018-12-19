@@ -166,9 +166,9 @@ void
 message(c_string message, c_string src_file, int src_line);
 }
 
-/*!\def
- * Use this macro to emit a string to each of the \ref CallbackGL
- * objects that are active.
+/*!\def FASTUIDRAW_GL_MESSAGE
+ * Use this macro to emit a string to each of the
+ * gl_binding::CallbackGL objects that are active.
  */
 #define FASTUIDRAW_GL_MESSAGE(X) \
   gl_binding::message(X, __FILE__, __LINE__)

@@ -636,14 +636,14 @@ class Image;
 
     /*!
      * Construct an \ref Image backed by an \ref ImageAtlas. If there is
-     * insufficient room on the atlas, returns a nullptr handle.
-     * \param atlas ImageAtlas atlas onto which to place the image.
+     * insufficient room on the atlas, returns a nullptr handle
+     * \param atlas ImageAtlas atlas onto which to place the image
      * \param w width of the image
      * \param h height of the image
      * \param image_data image data to which to initialize the image
      * \param pslack number of pixels allowed to sample outside of color tile
      *               for the image. A value of one allows for bilinear
-     *               filtering and a value of two allows for cubic filtering.
+     *               filtering and a value of two allows for cubic filtering
      */
     static
     reference_counted_ptr<Image>
@@ -652,6 +652,7 @@ class Image;
 
     /*!
      * Create an \ref Image backed by a bindless texture.
+     * \param atlas ImageAtlas atlas onto which to place the image
      * \param w width of the image
      * \param h height of the image
      * \param m number of mipmap levels of the image
@@ -659,7 +660,8 @@ class Image;
      *             \ref on_atlas.
      * \param handle the bindless handle value used by the Gfx API in
      *               shaders to reference the texture.
-     * \param
+     * \param action action to call to release backing resources of
+     *               the created Image.
      */
     static
     reference_counted_ptr<Image>
@@ -755,6 +757,7 @@ class Image;
      * Applications should not use this directly and instead use create_bindless().
      * Backends should use this ctor for Image deried classes that do
      * cleanup (for example releasing the handle and/or deleting the texture).
+     * \param atlas ImageAtlas atlas onto which to place the image.
      * \param w width of underlying texture
      * \param h height of underlying texture
      * \param m number of mipmap levels of the image
@@ -762,6 +765,8 @@ class Image;
      *             \ref on_atlas.
      * \param handle the bindless handle value used by the Gfx API in
      *               shaders to reference the texture.
+     * \param action action to call to release backing resources of
+     *               the created Image.
      */
     Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
           unsigned int m, enum type_t type, uint64_t handle,

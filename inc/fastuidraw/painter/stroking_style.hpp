@@ -62,8 +62,7 @@ namespace fastuidraw
     }
 
     /*!
-     * If \ref m_draw_closing_edges_of_contours is false,
-     * specifies the what cap-style to use when stroking
+     * Specifies the what cap-style to use when stroking
      * the path. Default value is PainterEnums::square_caps.
      */
     enum PainterEnums::cap_style m_cap_style;

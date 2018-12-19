@@ -409,7 +409,7 @@ namespace fastuidraw {
   .move(fastuidraw::vec2(0.0f, 0.0f))
   .line_to(fastuidraw::vec2(100.0f, 0.0f))
   .quadratic_to(fastuidraw::vec2(100, 50.0f), fastuidraw::vec2(100.0f, 100.0f))
-  .end_contour_arc(45.0 * M_PI / 180.0f);
+  .close_contour_arc(45.0 * M_PI / 180.0f);
 
 
   // formatting text should also know the size of
@@ -431,7 +431,7 @@ namespace fastuidraw {
   // data to feed Painter for drawing text, save and reuse this object
   // to draw your text.
   fastuidraw::GlyphSequence myGlyphSequence(myTextFormattingSize,
-                                            PainterEnums::y_increases_downwards,
+                                            fastuidraw::PainterEnums::y_increases_downwards,
                                             myGlyphCache);
 
   // copy the glyph choices and positions into your GlyphSequence object that you keep.
@@ -460,7 +460,7 @@ namespace fastuidraw {
                myPath, fastuidraw::PainterEnums::odd_even_fill_rule);
 
   p->save();
-  p->clipInPath(myPath, fastuidraw::PainterEnums::odd_even_fill_rule);
+  p->clip_in_path(myPath, fastuidraw::PainterEnums::odd_even_fill_rule);
   p->translate(fastuidraw::vec2(50.0f, 50.0f));
   p->rotate(23.0f * M_PI / 180.0f);
   brush.pen(1.0f, 1.0f, 0.0f, 1.0f);
@@ -547,7 +547,7 @@ namespace fastuidraw {
   Using the GL backend is just:
   \code
   //have the painter render to the surface
-  painter->begin(surface);
+  painter->begin(surface, myOrientation);
     //painter calls
     //.
     //.

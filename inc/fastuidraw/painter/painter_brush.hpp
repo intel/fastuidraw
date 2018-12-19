@@ -826,6 +826,8 @@ namespace fastuidraw
      * \param p position of gradient
      * \param theta angle of the sweep gradient
      * \param F the repeat factor applied to the interpolate
+     * \param orientation orientation of the screen
+     * \param rotation_orientation orientation of the sweep
      * \param repeat if true, repeats the gradient, if false then
      *               clamps the gradient
      */
@@ -1070,15 +1072,14 @@ namespace fastuidraw
      *   \endcode
      *   is non-zero if an image is present and when is non-zero the value's meaning
      *   is enumerated by image_filter
-     * - If shader() & \ref gradient_mask is non-zero, then a gradient is applied.
-     *   The gradient is a linear gradient if shader() & \ref radial_gradient_mask
-     *   is zero and a radial gradient otherwise.
-     * - If shader() & \ref radial_gradient_mask is non-zero, then a radial
-     *   gradient is applied. Note that if shader() & \ref radial_gradient_mask
-     *   is non-zero, then shader() & \ref gradient_mask is also non-zero.
+     * - The value given by
+     *   \code
+     *   unpack_bits(gradient_type_bit0, gradient_type_num_bits, shader())
+     *   \endcode
+     *   gives what gradient (if any) the brush applies as according to
+     *   \ref gradient_type_t
      * - If shader() & \ref gradient_repeat_mask then the gradient is repeated
-     *   instead of clamped. Note that if shader() & \ref gradient_repeat_mask
-     *   is non-zero, then shader() & \ref gradient_mask is also non-zero.
+     *   instead of clamped.
      * - If shader() & \ref repeat_window_mask is non-zero, then a repeat
      *   window is applied to the brush.
      * - If shader() & \ref transformation_translation_mask is non-zero, then a
@@ -1137,6 +1138,7 @@ namespace fastuidraw
      * Given an image_filter, returns the highest quality filter
      * less than or equal to it with which the image may be rendered.
      * \param im image to which to query
+     * \param f upper bound image filter to return
      */
     static
     enum image_filter
