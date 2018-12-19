@@ -2,6 +2,7 @@ var searchData=
 [
   ['screen_5forientation',['screen_orientation',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5',1,'fastuidraw::PainterEnums']]],
   ['segment_5ftype_5ft',['segment_type_t',['../da/df4/classfastuidraw_1_1_tessellated_path.html#a7e80892f4d3808c47222960ef8baedea',1,'fastuidraw::TessellatedPath']]],
+  ['selection_5fbits_5ft',['selection_bits_t',['../d4/d44/classfastuidraw_1_1_font_database.html#a3d5871ab9a1c68af602df123872525e3',1,'fastuidraw::FontDatabase']]],
   ['shader_5fanti_5falias_5ft',['shader_anti_alias_t',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f',1,'fastuidraw::PainterEnums']]],
   ['shader_5fbits',['shader_bits',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a1fbb71848ccfb03b874de71173e2289d',1,'fastuidraw::PainterBrush']]],
   ['shader_5fmasks',['shader_masks',['../d9/d57/classfastuidraw_1_1_painter_brush.html#af551bbba220617421c56287936840963',1,'fastuidraw::PainterBrush']]],

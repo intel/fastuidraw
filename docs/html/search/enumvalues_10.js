@@ -9,6 +9,7 @@ var searchData=
   ['sin_5fsign_5fbit',['sin_sign_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1a145d5f6483a68a41a1feeea514174835',1,'fastuidraw::StrokedPoint']]],
   ['sin_5fsign_5fmask',['sin_sign_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a4ac465cb114de585425162fb54a25288',1,'fastuidraw::StrokedPoint']]],
   ['single_5fsrc',['single_src',['../d6/db0/classfastuidraw_1_1_painter_composite_shader.html#ac91222f873cec9a6b8ac06f126abec96a57793864cf55bd1542358c043cab1422',1,'fastuidraw::PainterCompositeShader']]],
+  ['sjis',['sjis',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93abc9257e1473ad13f4d858b6306bc3f57',1,'fastuidraw::CharacterEncoding']]],
   ['square_5fcaps',['square_caps',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aaf9cd6425a95f3f3668fe9f53123ef396',1,'fastuidraw::PainterEnums']]],
   ['src_5fabo',['src_abo',['../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a89ffc63665401e7ad046ed3fbdeb5fcda4dedd89f9b9434126a68f76a64ed8f23',1,'fastuidraw::gl::Program']]],
   ['src_5fdefault_5funiform_5fblock',['src_default_uniform_block',['../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a89ffc63665401e7ad046ed3fbdeb5fcda316d9fec67b92137628d6623367ba811',1,'fastuidraw::gl::Program']]],
@@ -32,5 +33,11 @@ var searchData=
   ['stroke_5ftotal_5flength_5foffset',['stroke_total_length_offset',['../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3a4f4c9bd79ffe1ce1813f90232b798325',1,'fastuidraw::PainterDashedStrokeParams']]],
   ['stroking_5fmethod_5farc',['stroking_method_arc',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dade1434903b8662d7b5a918958f6fca17',1,'fastuidraw::PainterEnums']]],
   ['stroking_5fmethod_5fauto',['stroking_method_auto',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5da41875c43a8183775be59bcd19a33e5a7',1,'fastuidraw::PainterEnums']]],
-  ['stroking_5fmethod_5flinear',['stroking_method_linear',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dab9c8c0192fca2f513287232dbee34cde',1,'fastuidraw::PainterEnums']]]
+  ['stroking_5fmethod_5flinear',['stroking_method_linear',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dab9c8c0192fca2f513287232dbee34cde',1,'fastuidraw::PainterEnums']]],
+  ['sweep_5fgradient_5fangle_5foffset',['sweep_gradient_angle_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ada2ca9e2625bd1f37beae1952a94963da29fd57c90dbcb32619ccbb96405007df',1,'fastuidraw::PainterBrush']]],
+  ['sweep_5fgradient_5fdata_5fsize',['sweep_gradient_data_size',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ada2ca9e2625bd1f37beae1952a94963dada6529433f5709e91cc462e47d533365',1,'fastuidraw::PainterBrush']]],
+  ['sweep_5fgradient_5fp_5fx_5foffset',['sweep_gradient_p_x_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ada2ca9e2625bd1f37beae1952a94963daaf2ed4eb4a168740f0e2cda3537ba4a9',1,'fastuidraw::PainterBrush']]],
+  ['sweep_5fgradient_5fp_5fy_5foffset',['sweep_gradient_p_y_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ada2ca9e2625bd1f37beae1952a94963daa947396dfb3ab17845e3546fd2b0e2d0',1,'fastuidraw::PainterBrush']]],
+  ['sweep_5fgradient_5fsign_5ffactor_5foffset',['sweep_gradient_sign_factor_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ada2ca9e2625bd1f37beae1952a94963dab31276cf56e31a0a815a489159f8a11d',1,'fastuidraw::PainterBrush']]],
+  ['sweep_5fgradient_5ftype',['sweep_gradient_type',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ac3edf1ceab12796cff0d12fa12689e96ac329ed8e6b5fc6f8da0454942b8c4ca5',1,'fastuidraw::PainterBrush']]]
 ];

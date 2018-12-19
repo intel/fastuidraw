@@ -5,6 +5,7 @@ var searchData=
   ['end_5fsegment_5fmask',['end_segment_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0a5dd85da0ded7bf6d6729dd30fdadf97b',1,'fastuidraw::ArcStrokedPoint']]],
   ['end_5fsub_5fedge_5fbit',['end_sub_edge_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a5210a1ed0ec84f753b3fcae7386f0134afe4b7d5af9b2d88991cada3ba7c708e0',1,'fastuidraw::StrokedPoint']]],
   ['end_5fsub_5fedge_5fmask',['end_sub_edge_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139af2e28b5761d6fbcdb8f4fb1c7c8c0397',1,'fastuidraw::StrokedPoint']]],
+  ['exact_5fmatch',['exact_match',['../d4/d44/classfastuidraw_1_1_font_database.html#a3d5871ab9a1c68af602df123872525e3a9d933af5c8377e58653631cf6212c3ad',1,'fastuidraw::FontDatabase']]],
   ['extend_5fbit',['extend_bit',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#acc7e7a166894967cf32a9c0b6d343f2bae9265c2c58d2454581dd8299410fa11e',1,'fastuidraw::ArcStrokedPoint']]],
   ['extend_5fmask',['extend_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0ae9b72f37a5da44c2998c481b089b42fa',1,'fastuidraw::ArcStrokedPoint']]]
 ];

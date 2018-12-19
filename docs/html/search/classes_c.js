@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['scratchspace',['ScratchSpace',['../df/dac/classfastuidraw_1_1_filled_path_1_1_scratch_space.html',1,'fastuidraw::FilledPath::ScratchSpace'],['../d0/d0c/classfastuidraw_1_1_glyph_sequence_1_1_scratch_space.html',1,'fastuidraw::GlyphSequence::ScratchSpace'],['../d3/dcd/classfastuidraw_1_1_stroked_caps_joins_1_1_scratch_space.html',1,'fastuidraw::StrokedCapsJoins::ScratchSpace'],['../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html',1,'fastuidraw::StrokedPath::ScratchSpace']]],
+  ['scratchspace',['ScratchSpace',['../df/dac/classfastuidraw_1_1_filled_path_1_1_scratch_space.html',1,'fastuidraw::FilledPath']]],
+  ['scratchspace',['ScratchSpace',['../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html',1,'fastuidraw::StrokedPath']]],
+  ['scratchspace',['ScratchSpace',['../d3/dcd/classfastuidraw_1_1_stroked_caps_joins_1_1_scratch_space.html',1,'fastuidraw::StrokedCapsJoins']]],
+  ['scratchspace',['ScratchSpace',['../d0/d0c/classfastuidraw_1_1_glyph_sequence_1_1_scratch_space.html',1,'fastuidraw::GlyphSequence']]],
   ['segment',['segment',['../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html',1,'fastuidraw::TessellatedPath']]],
   ['segmentstorage',['SegmentStorage',['../d1/def/classfastuidraw_1_1_tessellated_path_1_1_segment_storage.html',1,'fastuidraw::TessellatedPath']]],
   ['shader',['Shader',['../d6/d88/classfastuidraw_1_1gl_1_1_shader.html',1,'fastuidraw::gl']]],
@@ -16,8 +19,9 @@ var searchData=
   ['strokedpoint',['StrokedPoint',['../d4/d1b/classfastuidraw_1_1_stroked_point.html',1,'fastuidraw']]],
   ['strokingdataselectorbase',['StrokingDataSelectorBase',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html',1,'fastuidraw']]],
   ['strokingstyle',['StrokingStyle',['../d6/d1e/classfastuidraw_1_1_stroking_style.html',1,'fastuidraw']]],
-  ['subsequence',['SubSequence',['../d7/d8a/classfastuidraw_1_1_glyph_sequence_1_1_sub_sequence.html',1,'fastuidraw::GlyphSequence']]],
-  ['subset',['Subset',['../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html',1,'fastuidraw::StrokedPath::Subset'],['../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html',1,'fastuidraw::FilledPath::Subset']]],
+  ['subset',['Subset',['../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html',1,'fastuidraw::StrokedPath']]],
+  ['subset',['Subset',['../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html',1,'fastuidraw::GlyphSequence']]],
+  ['subset',['Subset',['../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html',1,'fastuidraw::FilledPath']]],
   ['surface',['Surface',['../d1/dbb/classfastuidraw_1_1_painter_backend_1_1_surface.html',1,'fastuidraw::PainterBackend']]],
   ['surfacegl',['SurfaceGL',['../d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html',1,'fastuidraw::gl::PainterBackendGL']]]
 ];

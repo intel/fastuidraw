@@ -17,5 +17,6 @@ var searchData=
   ['vecn_3c_20uint32_5ft_2c_202_20_3e',['vecN&lt; uint32_t, 2 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20uint32_5ft_2c_204_20_3e',['vecN&lt; uint32_t, 4 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20uint8_5ft_2c_204_20_3e',['vecN&lt; uint8_t, 4 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
+  ['vecn_3c_20vecn_3c_20float_2c_202_20_3e_2c_204_20_3e',['vecN&lt; vecN&lt; float, 2 &gt;, 4 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['viewport',['Viewport',['../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html',1,'fastuidraw::PainterBackend::Surface']]]
 ];

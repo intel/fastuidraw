@@ -4,7 +4,6 @@ var searchData=
   ['painter_5fattribute_2ehpp',['painter_attribute.hpp',['../d1/d66/painter__attribute_8hpp.html',1,'']]],
   ['painter_5fattribute_5fdata_2ehpp',['painter_attribute_data.hpp',['../dd/da6/painter__attribute__data_8hpp.html',1,'']]],
   ['painter_5fattribute_5fdata_5ffiller_2ehpp',['painter_attribute_data_filler.hpp',['../d1/dff/painter__attribute__data__filler_8hpp.html',1,'']]],
-  ['painter_5fattribute_5fdata_5ffiller_5fglyphs_2ehpp',['painter_attribute_data_filler_glyphs.hpp',['../db/d51/painter__attribute__data__filler__glyphs_8hpp.html',1,'']]],
   ['painter_5fbackend_2ehpp',['painter_backend.hpp',['../da/df1/painter__backend_8hpp.html',1,'']]],
   ['painter_5fbackend_5fgl_2ehpp',['painter_backend_gl.hpp',['../d8/d96/painter__backend__gl_8hpp.html',1,'']]],
   ['painter_5fblend_5fshader_2ehpp',['painter_blend_shader.hpp',['../df/df7/painter__blend__shader_8hpp.html',1,'']]],

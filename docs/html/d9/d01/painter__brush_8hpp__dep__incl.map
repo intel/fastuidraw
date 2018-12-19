@@ -1,8 +1,9 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/painter_brush.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/painter_brush.hpp">
-<area shape="rect" id="node2" href="$d0/d9c/painter__packer_8hpp.html" title="file painter_packer.hpp " alt="" coords="103,436,274,507"/>
-<area shape="rect" id="node4" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="139,659,310,715"/>
-<area shape="rect" id="node5" href="$d2/d54/painter__packed__value_8hpp.html" title="file painter_packed_value.hpp " alt="" coords="129,109,349,165"/>
-<area shape="rect" id="node3" href="$d7/d73/filled__path_8hpp.html" title="file filled_path.hpp " alt="" coords="78,555,249,611"/>
-<area shape="rect" id="node6" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="154,213,325,269"/>
-<area shape="rect" id="node7" href="$d8/db6/painter__packer__data_8hpp.html" title="file painter_packer_data.hpp " alt="" coords="129,317,299,388"/>
+<area shape="rect" id="node2" href="$d0/d9c/painter__packer_8hpp.html" title="file painter_packer.hpp " alt="" coords="242,436,412,507"/>
+<area shape="rect" id="node4" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="242,659,412,715"/>
+<area shape="rect" id="node6" href="$d2/d54/painter__packed__value_8hpp.html" title="file painter_packed_value.hpp " alt="" coords="254,109,474,165"/>
+<area shape="rect" id="node3" href="$d7/d73/filled__path_8hpp.html" title="file filled_path.hpp " alt="" coords="242,555,412,611"/>
+<area shape="rect" id="node5" href="$d6/dba/glyph__run_8hpp.html" title="file glyph_run.hpp " alt="" coords="47,555,218,611"/>
+<area shape="rect" id="node7" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="279,213,450,269"/>
+<area shape="rect" id="node8" href="$d8/db6/painter__packer__data_8hpp.html" title="file painter_packer_data.hpp " alt="" coords="267,317,438,388"/>
 </map>

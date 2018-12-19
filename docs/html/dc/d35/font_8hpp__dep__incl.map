@@ -1,8 +1,9 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/text/font.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/text/font.hpp">
-<area shape="rect" id="node2" href="$de/d3b/glyph__sequence_8hpp.html" title="file glyph_sequence.hpp " alt="" coords="140,317,328,373"/>
-<area shape="rect" id="node4" href="$d0/de0/font__freetype_8hpp.html" title="file font_freetype.hpp " alt="" coords="26,109,197,165"/>
-<area shape="rect" id="node5" href="$dc/d40/glyph__cache_8hpp.html" title="file glyph_cache.hpp " alt="" coords="149,213,320,269"/>
-<area shape="rect" id="node6" href="$df/d6f/glyph__source_8hpp.html" title="file glyph_source.hpp " alt="" coords="272,109,442,165"/>
-<area shape="rect" id="node3" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="149,421,320,477"/>
-<area shape="rect" id="node7" href="$d2/d91/glyph__selector_8hpp.html" title="file glyph_selector.hpp " alt="" coords="394,213,565,269"/>
+<area shape="rect" id="node2" href="$d6/dba/glyph__run_8hpp.html" title="file glyph_run.hpp " alt="" coords="9,317,180,373"/>
+<area shape="rect" id="node4" href="$de/d3b/glyph__sequence_8hpp.html" title="file glyph_sequence.hpp " alt="" coords="204,317,392,373"/>
+<area shape="rect" id="node5" href="$d0/de0/font__freetype_8hpp.html" title="file font_freetype.hpp " alt="" coords="566,109,737,165"/>
+<area shape="rect" id="node6" href="$dc/d40/glyph__cache_8hpp.html" title="file glyph_cache.hpp " alt="" coords="25,213,196,269"/>
+<area shape="rect" id="node7" href="$df/d6f/glyph__source_8hpp.html" title="file glyph_source.hpp " alt="" coords="185,109,356,165"/>
+<area shape="rect" id="node3" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="110,421,281,477"/>
+<area shape="rect" id="node8" href="$da/da0/font__database_8hpp.html" title="file font_database.hpp " alt="" coords="321,213,492,269"/>
 </map>

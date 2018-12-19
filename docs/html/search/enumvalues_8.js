@@ -1,5 +1,7 @@
 var searchData=
 [
+  ['ignore_5fbold_5fitalic',['ignore_bold_italic',['../d4/d44/classfastuidraw_1_1_font_database.html#a3d5871ab9a1c68af602df123872525e3ad12d6cd2273e309f415efda3a54eeb35',1,'fastuidraw::FontDatabase']]],
+  ['ignore_5fstyle',['ignore_style',['../d4/d44/classfastuidraw_1_1_font_database.html#a3d5871ab9a1c68af602df123872525e3a1751224e74e45a6742e5ea1b8c405084',1,'fastuidraw::FontDatabase']]],
   ['image_5fatlas_5flocation_5fx_5fbit0',['image_atlas_location_x_bit0',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a722b489678100524939aad57399d84c6af5f412ce5bcc035cc16c8ea6b753d022',1,'fastuidraw::PainterBrush']]],
   ['image_5fatlas_5flocation_5fx_5fnum_5fbits',['image_atlas_location_x_num_bits',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a722b489678100524939aad57399d84c6a999195d9fae37a56f89d94b509d02e18',1,'fastuidraw::PainterBrush']]],
   ['image_5fatlas_5flocation_5fxyz_5foffset',['image_atlas_location_xyz_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#af9390489c46d501271dfffe4e7e1c092a68f0905126536e762a403d5e8dcb181f',1,'fastuidraw::PainterBrush']]],

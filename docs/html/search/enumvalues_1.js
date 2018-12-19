@@ -5,6 +5,7 @@ var searchData=
   ['bevel_5fjoins',['bevel_joins',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbca2355da4417cfa9a4ba8567b2efa686dc',1,'fastuidraw::PainterEnums']]],
   ['beyond_5fboundary_5fbit',['beyond_boundary_bit',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a30191120a8178444a9e67e86ecee4c9aa6b0748e098c402e149c85ba5d435d121',1,'fastuidraw::ArcStrokedPoint']]],
   ['beyond_5fboundary_5fmask',['beyond_boundary_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0afede57ff94e9fc7f8d5a839a93b6837b',1,'fastuidraw::ArcStrokedPoint']]],
+  ['big5',['big5',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93ab54c1bf895390d00f84f3bf127553c71',1,'fastuidraw::CharacterEncoding']]],
   ['bindless_5ftexture2d',['bindless_texture2d',['../dc/dd5/classfastuidraw_1_1_image.html#aadc9d23baef018704949d6e42f3c4079a89d15115f7aba1b4e7e63f433f50abe4',1,'fastuidraw::Image']]],
   ['blend_5fmode',['blend_mode',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424baede262aa1812a480f29a9a70a4545810',1,'fastuidraw::gpu_dirty_state']]],
   ['blend_5fshader_5fdata_5flocation_5foffset',['blend_shader_data_location_offset',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a6360bf3fe331a061cf9c9af693d72c7b',1,'fastuidraw::PainterHeader']]],
