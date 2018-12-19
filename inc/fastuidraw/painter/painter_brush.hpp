@@ -847,6 +847,33 @@ namespace fastuidraw
     }
 
     /*!
+     * Sets the brush to have a sweep gradient with a repeat factor
+     * of 1.0 and where the sign is determined by a
+     * PainterEnums::screen_orientation and a
+     * PainterEnums::rotation_orientation_t. Equivalent to
+     * \code
+     * sweep_gradient(cs, p, theta, orientation, rotation_orientation, 1.0f, repeat);
+     * \endcode
+     * \param cs color stops for gradient. If handle is invalid,
+     *           then sets brush to not have a gradient.
+     * \param p position of gradient
+     * \param theta angle of the sweep gradient
+     * \param orientation orientation of the screen
+     * \param rotation_orientation orientation of the sweep
+     * \param repeat if true, repeats the gradient, if false then
+     *               clamps the gradient
+     */
+    PainterBrush&
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+                   const vec2 &p, float theta,
+                   enum PainterEnums::screen_orientation orientation,
+                   enum PainterEnums::rotation_orientation_t rotation_orientation,
+                   bool repeat)
+    {
+      return sweep_gradient(cs, p, theta, orientation, rotation_orientation, 1.0f, repeat);
+    }
+
+    /*!
      * Sets the brush to not have a gradient.
      */
     PainterBrush&
