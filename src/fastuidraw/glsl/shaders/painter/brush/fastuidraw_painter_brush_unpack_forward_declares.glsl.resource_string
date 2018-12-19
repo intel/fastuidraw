@@ -32,7 +32,7 @@ uint
 fastuidraw_read_brush_image_raw_data(in uint location, out fastuidraw_brush_image_data_raw raw);
 
 uint
-fastuidraw_read_brush_linear_gradient_data(in uint location, out fastuidraw_brush_gradient_raw raw);
+fastuidraw_read_brush_linear_or_sweep_gradient_data(in uint location, out fastuidraw_brush_gradient_raw raw);
 
 uint
 fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brush_gradient_raw raw);
@@ -44,7 +44,7 @@ uint
 fastuidraw_read_brush_image_data(in uint location, in uint shader, out fastuidraw_brush_image_data image);
 
 uint
-fastuidraw_read_brush_linear_gradient_data(in uint location, out fastuidraw_brush_gradient grad);
+fastuidraw_read_brush_linear_or_sweep_gradient_data(in uint location, out fastuidraw_brush_gradient grad);
 
 uint
 fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brush_gradient grad);

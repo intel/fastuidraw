@@ -143,12 +143,12 @@ fastuidraw_read_brush_image_data(in uint location, in uint image_type,
 }
 
 uint
-fastuidraw_read_brush_linear_gradient_data(in uint location, out fastuidraw_brush_gradient grad)
+fastuidraw_read_brush_linear_or_sweep_gradient_data(in uint location, out fastuidraw_brush_gradient grad)
 {
   uint return_value;
   fastuidraw_brush_gradient_raw raw;
 
-  return_value = fastuidraw_read_brush_linear_gradient_data(location, raw);
+  return_value = fastuidraw_read_brush_linear_or_sweep_gradient_data(location, raw);
   raw.r0 = 0.0;
   raw.r1 = 1.0;
   fastuidraw_process_gradient_data(raw, grad);
@@ -203,9 +203,10 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
     {
       data_ptr = fastuidraw_read_brush_radial_gradient_data(data_ptr, gradient);
     }
-  else if (gradient_type == fastuidraw_shader_linear_gradient_type)
+  else if (gradient_type == fastuidraw_shader_linear_gradient_type
+           || gradient_type == fastuidraw_shader_sweep_gradient_type)
     {
-      data_ptr = fastuidraw_read_brush_linear_gradient_data(data_ptr, gradient);
+      data_ptr = fastuidraw_read_brush_linear_or_sweep_gradient_data(data_ptr, gradient);
     }
   else
     {
@@ -293,6 +294,10 @@ fastuidraw_painter_offset_to_transformation(uint shader)
   else if (gradient_type == fastuidraw_shader_linear_gradient_type)
     {
       r += uint(fastuidraw_shader_linear_gradient_num_blocks);
+    }
+  else if (gradient_type == fastuidraw_shader_sweep_gradient_type)
+    {
+      r += uint(fastuidraw_shader_sweep_gradient_num_blocks);
     }
 
   if (fastuidraw_brush_shader_has_repeat_window(shader))

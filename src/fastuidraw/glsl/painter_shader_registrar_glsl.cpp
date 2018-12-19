@@ -419,6 +419,7 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
     .add_macro_u32("fastuidraw_shader_pen_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::pen_data_size))
     .add_macro_u32("fastuidraw_shader_image_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::image_data_size))
     .add_macro_u32("fastuidraw_shader_linear_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::linear_gradient_data_size))
+    .add_macro_u32("fastuidraw_shader_sweep_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::sweep_gradient_data_size))
     .add_macro_u32("fastuidraw_shader_radial_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::radial_gradient_data_size))
     .add_macro_u32("fastuidraw_shader_repeat_window_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::repeat_window_data_size))
     .add_macro_u32("fastuidraw_shader_transformation_matrix_num_blocks",
@@ -475,6 +476,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro_u32("fastuidraw_shader_no_gradient_type", PainterBrush::no_gradient_type)
     .add_macro_u32("fastuidraw_shader_linear_gradient_type", PainterBrush::linear_gradient_type)
     .add_macro_u32("fastuidraw_shader_radial_gradient_type", PainterBrush::radial_gradient_type)
+    .add_macro_u32("fastuidraw_shader_sweep_gradient_type", PainterBrush::sweep_gradient_type)
     .add_macro_u32("fastuidraw_shader_gradient_repeat_mask", PainterBrush::gradient_repeat_mask)
     .add_macro_u32("fastuidraw_shader_repeat_window_mask", PainterBrush::repeat_window_mask)
     .add_macro_u32("fastuidraw_shader_transformation_translation_mask", PainterBrush::transformation_translation_mask)
@@ -570,8 +572,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
       .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", shader_unpack_value::uint_type)
       .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", shader_unpack_value::uint_type)
-      .stream_unpack_function(str, "fastuidraw_read_brush_linear_gradient_data",
-                              "fastuidraw_brush_gradient_raw");
+      .stream_unpack_function(str, "fastuidraw_read_brush_linear_or_sweep_gradient_data", "fastuidraw_brush_gradient_raw");
   }
 
   {

@@ -82,6 +82,32 @@ compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
       d.y = p.y - fastuidraw_brush_gradient_p0_y;
       t = dot(v, d) / dot(v, v);
     }
+  else if (gradient_type == fastuidraw_shader_sweep_gradient_type)
+    {
+      vec2 d;
+      float angle;
+      const float two_pi = 6.28318530718;
+      const float recip_two_pi = 1.0 / 6.28318530718;
+
+      good = 1.0;
+      d.x = p.x - fastuidraw_brush_gradient_sweep_point_x;
+      d.y = p.y - fastuidraw_brush_gradient_sweep_point_y;
+      angle = atan(d.y, d.x);
+      /* Guarantee that angle is greater than the value of
+       * fastuidraw_brush_gradient_sweep_angle so that the
+       * sweep goes from 0 to 2 * PI
+       */
+      if (angle < fastuidraw_brush_gradient_sweep_angle)
+        {
+          angle += two_pi;
+        }
+      t = (angle - fastuidraw_brush_gradient_sweep_angle) * recip_two_pi;
+      if (fastuidraw_brush_gradient_sweep_sign_factor < 0.0)
+        {
+          t = 1.0 - t;
+        }
+      t *= abs(fastuidraw_brush_gradient_sweep_sign_factor);
+    }
 
   return t;
 }
