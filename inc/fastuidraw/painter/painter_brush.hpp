@@ -825,7 +825,8 @@ namespace fastuidraw
      *           then sets brush to not have a gradient.
      * \param p position of gradient
      * \param theta angle of the sweep gradient
-     * \param F the repeat factor applied to the interpolate
+     * \param F the repeat factor applied to the interpolate,
+     *          a negative reverses the orientation of the sweep.
      * \param orientation orientation of the screen
      * \param rotation_orientation orientation of the sweep
      * \param repeat if true, repeats the gradient, if false then
