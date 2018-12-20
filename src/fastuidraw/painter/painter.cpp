@@ -2150,12 +2150,18 @@ select_stroked_path(const fastuidraw::Path &path,
   using namespace fastuidraw;
 
   float t;
-  const fastuidraw::PainterShaderData::DataBase *data;
+  const PainterShaderData::DataBase *data(draw.m_item_shader_data.data().data_base());
+  const reference_counted_ptr<const StrokingDataSelectorBase> &selector(shader.stroking_data_selector());
 
-  data = draw.m_item_shader_data.data().data_base();
-  t = compute_path_thresh(path, data,
-                          shader.stroking_data_selector(),
-                          thresh);
+  if (selector->data_compatible(data))
+    {
+      t = compute_path_thresh(path, data, selector, thresh);
+    }
+  else
+    {
+      FASTUIDRAWwarning("Passed incompatible data to select path for stroking");
+      return nullptr;
+    }
 
   if (stroking_method == Painter::stroking_method_auto)
     {
@@ -3819,8 +3825,11 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
   stroked_path = d->select_stroked_path(path, shader, draw,
                                         anti_alias_quality,
                                         stroking_method, thresh);
-  stroke_path(shader, draw, *stroked_path, thresh, stroke_style,
-              anti_alias_quality);
+  if (stroked_path)
+    {
+      stroke_path(shader, draw, *stroked_path, thresh, stroke_style,
+                  anti_alias_quality);
+    }
 }
 
 void
