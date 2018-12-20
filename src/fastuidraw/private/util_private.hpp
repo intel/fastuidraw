@@ -129,3 +129,8 @@ namespace fastuidraw
       }                                   \
     return *this;                         \
   }
+
+#define FASTUIDRAWwarning(X) do {                  \
+    std::cerr << "Warning: [" << __FILE__ << ", "  \
+              << __LINE__ << "] " << X << "\n";    \
+  } while(0)
