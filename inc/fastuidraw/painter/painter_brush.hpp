@@ -673,6 +673,15 @@ namespace fastuidraw
     }
 
     /*!
+     * Returns the current pen-color.
+     */
+    const vec4&
+    pen(void) const
+    {
+      return m_data.m_pen;
+    }
+
+    /*!
      * Sets the brush to have an image.
      * \param im handle to image to use. If handle is invalid,
      *           then sets brush to not have an image.
@@ -1060,6 +1069,19 @@ namespace fastuidraw
     }
 
     /*!
+     * Returns true if a repeat window is applied to the
+     * brush and writes out the position and size of
+     * the repeat window as well.
+     */
+    bool
+    repeat_window(vec2 *pos, vec2 *size) const
+    {
+      *pos = m_data.m_window_position;
+      *size = m_data.m_window_size;
+      return m_data.m_shader_raw & repeat_window_mask;
+    }
+
+    /*!
      * Sets the brush to not have a repeat window
      */
     PainterBrush&
@@ -1136,6 +1158,23 @@ namespace fastuidraw
     const reference_counted_ptr<const Image>&
     image(void) const
     {
+      return m_data.m_image;
+    }
+
+    /*!
+     * Returns the value of the handle to the
+     * Image that the brush is set to use together
+     * with the sub-image of the image used.
+     * \param start location to which to write the min-corner
+     *              of the image that is used
+     * \param size location to which to write the size of
+     *             the portion of the image used.
+     */
+    const reference_counted_ptr<const Image>&
+    image(uvec2 *start, uvec2 *size) const
+    {
+      *start = m_data.m_image_start;
+      *size = m_data.m_image_size;
       return m_data.m_image;
     }
 
