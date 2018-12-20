@@ -271,7 +271,7 @@ fastuidraw::ColorStopAtlas::
 
 void
 fastuidraw::ColorStopAtlas::
-delay_interval_freeing(void)
+lock_resources(void)
 {
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
@@ -282,7 +282,7 @@ delay_interval_freeing(void)
 
 void
 fastuidraw::ColorStopAtlas::
-undelay_interval_freeing(void)
+unlock_resources(void)
 {
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
