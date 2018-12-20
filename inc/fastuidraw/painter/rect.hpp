@@ -19,6 +19,7 @@
 #pragma once
 
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/math.hpp>
 
 namespace fastuidraw
 {
@@ -32,16 +33,22 @@ namespace fastuidraw
   class Rect
   {
   public:
+    enum
+      {
+        maxx_mask = 1, /*<! bitmask on \ref corner_t to test if on max-x side */
+        maxy_mask = 2  /*<! bitmask on \ref corner_t to test if on max-y side */
+      };
+
     /*!
      * Conveniance enumeration to name the rounded corner
      * radii of a RoundedRect.
      */
     enum corner_t
       {
-        minx_miny_corner,
-        minx_maxy_corner,
-        maxx_miny_corner,
-        maxx_maxy_corner,
+        minx_miny_corner = 0,
+        minx_maxy_corner = maxy_mask,
+        maxx_miny_corner = maxx_mask,
+        maxx_maxy_corner = maxx_mask | maxy_mask,
       };
 
     /*!
@@ -93,6 +100,68 @@ namespace fastuidraw
       m_max_point.x() = x;
       m_max_point.y() = y;
       return *this;
+    }
+
+    /*!
+     * Equivalent to \ref m_min_point.x()
+     */
+    float&
+    min_x(void) { return m_min_point.x(); }
+
+    /*!
+     * Equivalent to \ref m_min_point.x()
+     */
+    float
+    min_x(void) const { return m_min_point.x(); }
+
+    /*!
+     * Equivalent to \ref m_min_point.x()
+     */
+    float&
+    min_y(void) { return m_min_point.y(); }
+
+    /*!
+     * Equivalent to \ref m_min_point.x()
+     */
+    float
+    min_y(void) const { return m_min_point.y(); }
+
+    /*!
+     * Equivalent to \ref m_max_point.x()
+     */
+    float&
+    max_x(void) { return m_max_point.x(); }
+
+    /*!
+     * Equivalent to \ref m_max_point.x()
+     */
+    float
+    max_x(void) const { return m_max_point.x(); }
+
+    /*!
+     * Equivalent to \ref m_max_point.x()
+     */
+    float&
+    max_y(void) { return m_max_point.y(); }
+
+    /*!
+     * Equivalent to \ref m_max_point.x()
+     */
+    float
+    max_y(void) const { return m_max_point.y(); }
+
+    /*!
+     * Return the named point of the Rect.
+     * \param c which corner of the rect.
+     */
+    vec2
+    point(enum corner_t c) const
+    {
+      vec2 return_value;
+
+      return_value.x() = (c & maxx_mask) ? max_x() : min_x();
+      return_value.y() = (c & maxy_mask) ? max_y() : min_y();
+      return return_value;
     }
 
     /*!
@@ -219,6 +288,18 @@ namespace fastuidraw
     height(void) const
     {
       return m_max_point.y() - m_min_point.y();
+    }
+
+    /*!
+     * Sanitizes the Rect so that both width() and
+     * height() are non-negative.
+     */
+    Rect&
+    sanitize_size(void)
+    {
+      width(t_max(0.0f, width()));
+      height(t_max(0.0f, height()));
+      return *this;
     }
 
     /*!
