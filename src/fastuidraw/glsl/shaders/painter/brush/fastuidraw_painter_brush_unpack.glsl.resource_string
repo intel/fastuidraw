@@ -181,12 +181,12 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
   uint image_type;
   uint gradient_type;
 
-  vec4 pen_color;
-  data_ptr = fastuidraw_read_pen_color(data_ptr, pen_color);
-  fastuidraw_brush_pen_color_x = pen_color.x;
-  fastuidraw_brush_pen_color_y = pen_color.y;
-  fastuidraw_brush_pen_color_z = pen_color.z;
-  fastuidraw_brush_pen_color_w = pen_color.w;
+  vec4 color;
+  data_ptr = fastuidraw_read_color(data_ptr, color);
+  fastuidraw_brush_color_x = color.x;
+  fastuidraw_brush_color_y = color.y;
+  fastuidraw_brush_color_z = color.z;
+  fastuidraw_brush_color_w = color.w;
 
   if (fastuidraw_brush_shader_has_image(shader))
     {

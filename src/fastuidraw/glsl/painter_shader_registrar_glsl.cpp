@@ -388,10 +388,10 @@ ready_brush_varyings(void)
 
     /* Pen color (RGBA)
      */
-    .add_float_varying("fastuidraw_brush_pen_color_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_pen_color_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_pen_color_z", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_pen_color_w", varying_list::interpolation_flat);
+    .add_float_varying("fastuidraw_brush_color_x", varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_color_y", varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_color_z", varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_color_w", varying_list::interpolation_flat);
 }
 
 void
@@ -416,7 +416,7 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
     .add_macro_u32("fastuidraw_colorStopAtlas_size", backend.colorstop_atlas_store_width())
     .add_macro("fastuidraw_colorStopAtlas_size_reciprocal", "(1.0 / float(fastuidraw_colorStopAtlas_size) )")
 
-    .add_macro_u32("fastuidraw_shader_pen_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::pen_data_size))
+    .add_macro_u32("fastuidraw_shader_pen_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::color_data_size))
     .add_macro_u32("fastuidraw_shader_image_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::image_data_size))
     .add_macro_u32("fastuidraw_shader_linear_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::linear_gradient_data_size))
     .add_macro_u32("fastuidraw_shader_sweep_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::sweep_gradient_data_size))
@@ -509,13 +509,13 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   using namespace fastuidraw::glsl;
 
   {
-    shader_unpack_value_set<PainterBrush::pen_data_size> labels;
+    shader_unpack_value_set<PainterBrush::color_data_size> labels;
     labels
-      .set(PainterBrush::pen_red_offset, ".r")
-      .set(PainterBrush::pen_green_offset, ".g")
-      .set(PainterBrush::pen_blue_offset, ".b")
-      .set(PainterBrush::pen_alpha_offset, ".a")
-      .stream_unpack_function(str, "fastuidraw_read_pen_color", "vec4");
+      .set(PainterBrush::color_red_offset, ".r")
+      .set(PainterBrush::color_green_offset, ".g")
+      .set(PainterBrush::color_blue_offset, ".b")
+      .set(PainterBrush::color_alpha_offset, ".a")
+      .stream_unpack_function(str, "fastuidraw_read_color", "vec4");
   }
 
   {

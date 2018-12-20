@@ -67,7 +67,7 @@ draw_scene(bool with_clipping)
   /* draw a green quad over the clipped region
    */
   PainterBrush brush;
-  brush.pen(0.0f, 1.0f, 0.0f, 0.5f);
+  brush.color(0.0f, 1.0f, 0.0f, 0.5f);
   m_painter->fill_rect(PainterData(&brush),
                        Rect().size(wh));
 
@@ -106,7 +106,7 @@ draw_scene(bool with_clipping)
 
   /* draw a blue quad
    */
-  brush.pen(0.0f, 0.0f, 1.0f, 0.5f);
+  brush.color(0.0f, 0.0f, 1.0f, 0.5f);
   m_painter->fill_rect(PainterData(&brush),
                        Rect().size(wh * 0.5f));
 
@@ -116,7 +116,7 @@ draw_scene(bool with_clipping)
 
   m_painter->translate(wh * r);
   m_painter->rotate(30.0f * float(M_PI) / 180.0f);
-  brush.pen(1.0f, 1.0f, 1.0f, 0.5f);
+  brush.color(1.0f, 1.0f, 1.0f, 0.5f);
   m_painter->fill_rect(PainterData(&brush),
                        Rect()
                        .min_point(wh * (r * 0.25f))

@@ -379,10 +379,10 @@ vec4
 fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 {
   uint gradient_type;
-  vec4 return_value = vec4(fastuidraw_brush_pen_color_x,
-                           fastuidraw_brush_pen_color_y,
-                           fastuidraw_brush_pen_color_z,
-                           fastuidraw_brush_pen_color_w);
+  vec4 return_value = vec4(fastuidraw_brush_color_x,
+                           fastuidraw_brush_color_y,
+                           fastuidraw_brush_color_z,
+                           fastuidraw_brush_color_w);
 
   if (fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
     {

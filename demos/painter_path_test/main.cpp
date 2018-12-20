@@ -1669,7 +1669,7 @@ draw_scene(bool drawing_wire_frame)
   if (!m_draw_line_pen)
     {
       PainterBrush br;
-      br.pen(m_draw_line_red.value(), m_draw_line_green.value(),
+      br.color(m_draw_line_red.value(), m_draw_line_green.value(),
              m_draw_line_blue.value(), m_draw_line_alpha.value());
       m_draw_line_pen = m_painter->packed_value_pool().create_packed_value(br);
     }
@@ -1701,7 +1701,7 @@ draw_scene(bool drawing_wire_frame)
         }
 
       PainterBrush white;
-      white.pen(1.0f, 1.0f, 1.0f, 1.0f);
+      white.color(1.0f, 1.0f, 1.0f, 1.0f);
       PainterStrokeParams st;
       st.miter_limit(-1.0f);
       st.width(4.0f);
@@ -1725,7 +1725,7 @@ draw_scene(bool drawing_wire_frame)
     {
       PainterBrush fill_brush;
 
-      fill_brush.pen(m_fill_red.value(), m_fill_green.value(),
+      fill_brush.color(m_fill_red.value(), m_fill_green.value(),
                      m_fill_blue.value(), m_fill_alpha.value());
       if (translate_brush())
         {
@@ -1864,9 +1864,9 @@ draw_scene(bool drawing_wire_frame)
         {
           FASTUIDRAWassert(!m_red_pen);
           FASTUIDRAWassert(!m_green_pen);
-          m_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 1.0, 1.0));
-          m_red_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 0.0, 0.0, 1.0));
-          m_green_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 1.0, 0.0, 1.0));
+          m_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(0.0, 0.0, 1.0, 1.0));
+          m_red_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(1.0, 0.0, 0.0, 1.0));
+          m_green_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(0.0, 1.0, 0.0, 1.0));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_pts)
@@ -1888,7 +1888,7 @@ draw_scene(bool drawing_wire_frame)
   if (!m_stroke_pen)
     {
       PainterBrush br;
-      br.pen(m_stroke_red.value(), m_stroke_green.value(), m_stroke_blue.value(), m_stroke_alpha.value());
+      br.color(m_stroke_red.value(), m_stroke_green.value(), m_stroke_blue.value(), m_stroke_alpha.value());
       m_stroke_pen = m_painter->packed_value_pool().create_packed_value(br);
     }
 
@@ -1994,8 +1994,8 @@ draw_scene(bool drawing_wire_frame)
       if (!m_black_pen)
         {
           FASTUIDRAWassert(!m_white_pen);
-          m_white_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 1.0, 1.0, 1.0));
-          m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
+          m_white_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(1.0, 1.0, 1.0, 1.0));
+          m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(0.0, 0.0, 0.0, 1.0));
         }
 
       fill_centered_rect(p0, r1, PainterData(m_black_pen));
@@ -2053,7 +2053,7 @@ draw_frame(void)
       st.width(2.0f);
 
       PainterBrush stroke_pen;
-      stroke_pen.pen(1.0f, 1.0f, 1.0f, 1.0f);
+      stroke_pen.color(1.0f, 1.0f, 1.0f, 1.0f);
 
       m_painter->stroke_path(PainterData(&stroke_pen, &st),
                              m_grid_path,
@@ -2179,7 +2179,7 @@ draw_frame(void)
            << "\n";
 
       PainterBrush brush;
-      brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+      brush.color(0.0f, 1.0f, 1.0f, 1.0f);
       draw_text(ostr.str(), 32.0f, m_font, PainterData(&brush));
     }
 

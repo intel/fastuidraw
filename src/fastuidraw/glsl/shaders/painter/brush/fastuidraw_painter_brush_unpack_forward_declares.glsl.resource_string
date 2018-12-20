@@ -38,7 +38,7 @@ uint
 fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brush_gradient_raw raw);
 
 uint
-fastuidraw_read_pen_color(in uint location, out vec4 pen_color);
+fastuidraw_read_color(in uint location, out vec4 color);
 
 uint
 fastuidraw_read_brush_image_data(in uint location, in uint shader, out fastuidraw_brush_image_data image);

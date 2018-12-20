@@ -44,7 +44,7 @@ draw_frame(void)
   m_painter->begin(m_surface, Painter::y_increases_downwards);
 
   fastuidraw::PainterBrush transparentYellow;
-  transparentYellow.pen(1.0f, 1.0f, 0.0f, 0.5f);
+  transparentYellow.color(1.0f, 1.0f, 0.0f, 0.5f);
   m_painter->fill_rect(fastuidraw::PainterData(&transparentYellow),
                        fastuidraw::Rect().size(fastuidraw::vec2(dimensions())));
   m_painter->end();

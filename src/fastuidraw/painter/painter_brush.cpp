@@ -28,7 +28,7 @@ data_size(void) const
   unsigned int return_value(0);
   uint32_t pshader = shader();
 
-  return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(pen_data_size);
+  return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(color_data_size);
 
   if (pshader & image_mask)
     {
@@ -81,14 +81,14 @@ pack_data(c_array<generic_data> dst) const
   uint32_t pshader = shader();
 
   {
-    sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(pen_data_size);
+    sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(color_data_size);
     sub_dest = dst.sub_array(current, sz);
     current += sz;
 
-    sub_dest[pen_red_offset].f = m_data.m_pen.x();
-    sub_dest[pen_green_offset].f = m_data.m_pen.y();
-    sub_dest[pen_blue_offset].f = m_data.m_pen.z();
-    sub_dest[pen_alpha_offset].f = m_data.m_pen.w();
+    sub_dest[color_red_offset].f = m_data.m_color.x();
+    sub_dest[color_green_offset].f = m_data.m_color.y();
+    sub_dest[color_blue_offset].f = m_data.m_color.z();
+    sub_dest[color_alpha_offset].f = m_data.m_color.w();
   }
 
   if (pshader & image_mask)
@@ -281,7 +281,7 @@ void
 fastuidraw::PainterBrush::
 reset(void)
 {
-  pen(1.0, 1.0, 1.0, 1.0);
+  color(1.0, 1.0, 1.0, 1.0);
   m_data.m_shader_raw = 0u;
   m_data.m_image = nullptr;
   m_data.m_cs = nullptr;

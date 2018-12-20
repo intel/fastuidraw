@@ -40,26 +40,25 @@ namespace fastuidraw
    * A PainterBrush defines a brush for painting via Painter.
    *
    * The brush applies, in the following order:
-   *  -# a constant color, specified by \ref pen()
-   *  -# optionally applies an image, specified by \ref image() or
-   *     \ref sub_image() also see \ref no_image()
-   *  -# optionally applies a linear or radial gradient, see \ref
-   *     linear_gradient() and \ref radial_gradient() also see
-   *     \ref no_gradient().
+   *  -# a constant color, specified by \ref color()
+   *  -# optionally modulates by an image, specified by \ref
+   *     image() or \ref sub_image() and \ref no_image()
+   *  -# optionally modulates by a gradient, see \ref
+   *     linear_gradient(), \ref radial_gradient(),
+   *     sweep_gradient() and \ref no_gradient().
    *
    *  An item shader's vertex stage provides the coordinate
    *  fed to the brush. That coordinate is procesed in the
    *  following order before it is fed to the image and gradient:
-   *  -# an optional 2x2 matrix is applied specified by \ref
-   *     transformation_matrix(), also see \ref
-   *     no_transformation_matrix() and \ref
-   *     transformation().
-   *  -# an optional translation is applied specified by \ref
-   *     transformation_translate(), also see \ref
-   *     no_transformation_translation() and \ref
-   *     transformation().
-   *  -# an optional repeat window is applied specified by \ref
-   *     repeat_window(), also see no_repeat_window().
+   *  -# an optional 2x2 matrix is applied, see \ref
+   *     transformation_matrix(), \ref apply_matrix()
+   *     \ref apply_shear(), \ref apply_rotate()
+   *     and \ref no_transformation_matrix()
+   *  -# an optional translation is applied specified, see
+   *     \ref transformation_translate(), apply_matrix()
+   *     \ref apply_translate() and \ref no_transformation_translation()
+   *  -# an optional repeat window is applied, see \ref
+   *     repeat_window() and \ref no_repeat_window().
    */
   class PainterBrush
   {
@@ -291,10 +290,10 @@ namespace fastuidraw
     enum packing_order_t
       {
         /*!
-         * Pen packed first, see \ref pen_offset_t
+         * Color packed first, see \ref color_offset_t
          * for the offsets for the individual fields
          */
-        pen_packing,
+        color_packing,
 
         /*!
          * image packing, see \ref image_offset_t
@@ -399,16 +398,16 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * enumerations for offsets to pen color values
+     * enumerations for offsets to color values
      */
-    enum pen_offset_t
+    enum color_offset_t
       {
-        pen_red_offset, /*!< offset for pen red value (packed as float) */
-        pen_green_offset, /*!< offset for pen green value (packed as float) */
-        pen_blue_offset, /*!< offset for pen blue value (packed as float) */
-        pen_alpha_offset, /*!< offset for pen alpha value (packed as float) */
+        color_red_offset, /*!< offset for color red value (packed as float) */
+        color_green_offset, /*!< offset for color green value (packed as float) */
+        color_blue_offset, /*!< offset for color blue value (packed as float) */
+        color_alpha_offset, /*!< offset for color alpha value (packed as float) */
 
-        pen_data_size /*!< number of elements to pack pen color */
+        color_data_size /*!< number of elements to pack color */
       };
 
     /*!
@@ -630,8 +629,8 @@ namespace fastuidraw
 
     /*!
      * Ctor. Initializes the brush to have no image, no gradient,
-     * no repeat window and no transformation with the pen color
-     * as (1.0, 1.0, 1.0, 1.0) which is solid white.
+     * no repeat window and no transformation with the color as
+     * (1.0, 1.0, 1.0, 1.0) which is solid white.
      */
     PainterBrush(void)
     {}
@@ -639,12 +638,12 @@ namespace fastuidraw
     /*!
      * Ctor. Initializes the brush to have no image, no gradient,
      * no repeat window and no transformation with the given
-     * pen color.
-     * \param ppen_color inital pen color
+     * color color.
+     * \param pcolor inital color
      */
-    PainterBrush(const vec4 &ppen_color)
+    PainterBrush(const vec4 &pcolor)
     {
-      m_data.m_pen = ppen_color;
+      m_data.m_color = pcolor;
     }
 
     /*!
@@ -654,31 +653,31 @@ namespace fastuidraw
     reset(void);
 
     /*!
-     * Set the color to the pen, default value is (1.0, 1.0, 1.0, 1.0).
+     * Set the color to the color, default value is (1.0, 1.0, 1.0, 1.0).
      */
     PainterBrush&
-    pen(const vec4 &color)
+    color(const vec4 &color)
     {
-      m_data.m_pen = color;
+      m_data.m_color = color;
       return *this;
     }
 
     /*!
-     * Set the color to the pen, default value is (1.0, 1.0, 1.0, 1.0).
+     * Set the color to the color, default value is (1.0, 1.0, 1.0, 1.0).
      */
     PainterBrush&
-    pen(float r, float g, float b, float a = 1.0f)
+    color(float r, float g, float b, float a = 1.0f)
     {
-      return pen(vec4(r, g, b, a));
+      return color(vec4(r, g, b, a));
     }
 
     /*!
-     * Returns the current pen-color.
+     * Returns the current color-color.
      */
     const vec4&
-    pen(void) const
+    color(void) const
     {
-      return m_data.m_pen;
+      return m_data.m_color;
     }
 
     /*!
@@ -1228,7 +1227,7 @@ namespace fastuidraw
     public:
       brush_data(void):
         m_shader_raw(0),
-        m_pen(1.0f, 1.0f, 1.0f, 1.0f),
+        m_color(1.0f, 1.0f, 1.0f, 1.0f),
         m_image_size(0, 0),
         m_image_start(0, 0),
         m_grad_start(0.0f, 0.0f),
@@ -1242,7 +1241,7 @@ namespace fastuidraw
       {}
 
       uint32_t m_shader_raw;
-      vec4 m_pen;
+      vec4 m_color;
       reference_counted_ptr<const Image> m_image;
       uvec2 m_image_size, m_image_start;
       reference_counted_ptr<const ColorStopSequenceOnAtlas> m_cs;

@@ -1781,7 +1781,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
   m_reset_brush = m_core->packed_value_pool().create_packed_value(fastuidraw::PainterBrush());
   m_black_brush = m_core->packed_value_pool().create_packed_value(fastuidraw::PainterBrush()
-                                             .pen(0.0f, 0.0f, 0.0f, 0.0f));
+                                             .color(0.0f, 0.0f, 0.0f, 0.0f));
   m_identiy_matrix = m_core->packed_value_pool().create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
   m_max_attribs_per_block = backend->attribs_per_mapping();

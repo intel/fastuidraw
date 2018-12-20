@@ -884,7 +884,7 @@ draw_glyphs(float us)
   GlyphRenderer render;
   PainterBrush glyph_brush;
 
-  glyph_brush.pen(m_fg_red.value(), m_fg_green.value(),
+  glyph_brush.color(m_fg_red.value(), m_fg_green.value(),
                   m_fg_blue.value(), 1.0f);
 
   m_painter->begin(m_surface, m_screen_orientation.value());
@@ -963,7 +963,7 @@ draw_glyphs(float us)
     {
       unsigned int src;
       PainterBrush stroke_brush;
-      stroke_brush.pen(0.0, 1.0, 1.0, 0.8);
+      stroke_brush.color(0.0, 1.0, 1.0, 0.8);
 
       PainterStrokeParams st;
       st.miter_limit(5.0f);
@@ -1015,9 +1015,9 @@ draw_glyphs(float us)
       vecN<PainterBrush, 3> brs;
       vecN<PainterPackedValue<PainterBrush>, 3 > pbrs;
 
-      brs[0].pen(1.0f, 0.0f, 0.0f, 0.5f);
-      brs[1].pen(0.0f, 1.0f, 0.0f, 0.5f);
-      brs[2].pen(0.0f, 0.0f, 1.0f, 0.5f);
+      brs[0].color(1.0f, 0.0f, 0.0f, 0.5f);
+      brs[1].color(0.0f, 1.0f, 0.0f, 0.5f);
+      brs[2].color(0.0f, 0.0f, 1.0f, 0.5f);
       for (int i = 0; i < 3; ++i)
         {
           pbrs[i] = m_painter->packed_value_pool().create_packed_value(brs[i]);
@@ -1106,7 +1106,7 @@ draw_glyphs(float us)
         }
 
       p = item_coordinates(mouse_position);
-      brush.pen(1.0f, 1.0f, 0.0f, 0.3f);
+      brush.color(1.0f, 1.0f, 0.0f, 0.3f);
       m_painter->fill_rect(PainterData(&brush),
                            Rect()
                            .min_point(p)
@@ -1172,7 +1172,7 @@ draw_glyphs(float us)
 
       PainterBrush brush;
 
-      brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+      brush.color(0.0f, 1.0f, 1.0f, 1.0f);
       draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
@@ -1229,7 +1229,7 @@ draw_glyphs(float us)
           /* draw a box around the glyph(!).*/
           PainterBrush brush;
 
-          brush.pen(1.0f, 0.0f, 0.0f, 0.3f);
+          brush.color(1.0f, 0.0f, 0.0f, 0.3f);
           m_painter->fill_rect(PainterData(&brush),
                                Rect()
                                .min_point(glyph_bb.min_point())
@@ -1248,7 +1248,7 @@ draw_glyphs(float us)
 
       PainterBrush brush;
 
-      brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+      brush.color(0.0f, 1.0f, 1.0f, 1.0f);
       draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }

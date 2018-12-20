@@ -109,13 +109,13 @@ private:
   };
 
   void
-  draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
+  draw_element(const Path &path, unsigned int clip_mode, const vec4 &color,
                const Transformer &matrix);
 
   void
   draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &matrix1,
                 const Path &path2, unsigned int clip_mode2, const Transformer &matrix2,
-                const vec4 &pen_color);
+                const vec4 &color);
 
   enum return_code
   load_path(Path &out_path, const std::string &file);
@@ -398,14 +398,14 @@ derived_init(int, int)
 
 void
 painter_clip_test::
-draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
+draw_element(const Path &path, unsigned int clip_mode, const vec4 &color,
              const Transformer &matrix)
 {
   PainterBrush brush;
 
   m_painter->save();
   matrix.concat_to_painter(m_painter);
-  brush.pen(pen_color);
+  brush.color(color);
   switch(clip_mode)
     {
     default:
@@ -435,12 +435,12 @@ void
 painter_clip_test::
 draw_combined(const Path &path1, unsigned int clip_mode1, const Transformer &matrix1,
               const Path &path2, unsigned int clip_mode2, const Transformer &matrix2,
-              const vec4 &pen_color)
+              const vec4 &color)
 {
   float3x3 M(m_painter->transformation());
   PainterBrush brush;
 
-  brush.pen(pen_color);
+  brush.color(color);
   m_painter->save();
   matrix1.concat_to_painter(m_painter);
   switch (clip_mode1)
@@ -498,7 +498,7 @@ draw_frame(void)
     case no_clip:
       {
         PainterBrush brush;
-        brush.pen(vec4(1.0f, 1.0f, 0.0f, 1.0f));
+        brush.color(vec4(1.0f, 1.0f, 0.0f, 1.0f));
         m_painter->fill_rounded_rect(m_painter->default_shaders().fill_shader(),
                                      PainterData(&brush), m_rect,
                                      m_shader_anti_alias_mode_values[m_aa_mode]);

@@ -150,7 +150,7 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
                                   m_params.m_image_mipmap_level);
                     }
 
-                  brush.pen(m_params.m_rect_colors[color]);
+                  brush.color(m_params.m_rect_colors[color]);
                   im[imJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
 
