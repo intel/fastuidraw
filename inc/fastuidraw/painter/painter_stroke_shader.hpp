@@ -95,6 +95,14 @@ namespace fastuidraw
     virtual
     bool
     arc_stroking_possible(const PainterShaderData::DataBase *data) const = 0;
+
+    /*!
+     * To be implemented by a derived class to specify if the passed
+     * data is suitable for it.
+     */
+    virtual
+    bool
+    data_compatible(const PainterShaderData::DataBase *data) const = 0;
   };
 
   /*!

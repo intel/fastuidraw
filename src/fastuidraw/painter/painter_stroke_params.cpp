@@ -87,6 +87,9 @@ namespace
     bool
     arc_stroking_possible(const fastuidraw::PainterShaderData::DataBase *data) const;
 
+    bool
+    data_compatible(const fastuidraw::PainterShaderData::DataBase *data) const;
+
   private:
     bool m_pixel_arc_stroking_possible;
   };
@@ -159,6 +162,13 @@ arc_stroking_possible(const fastuidraw::PainterShaderData::DataBase *data) const
 
   return m_pixel_arc_stroking_possible
     || d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units;
+}
+
+bool
+StrokingDataSelector::
+data_compatible(const fastuidraw::PainterShaderData::DataBase *data) const
+{
+  return dynamic_cast<const PainterStrokeParamsData*>(data);
 }
 
 ///////////////////////////////////
