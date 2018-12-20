@@ -455,7 +455,7 @@ namespace fastuidraw {
 
   fastuidraw::PainterBrush brush;
 
-  brush.pen(0.0f, 0.0f, 1.0f, 0.5f);
+  brush.color(0.0f, 0.0f, 1.0f, 0.5f);
   p->fill_path(fastuidraw::PainterData(&brush),
                myPath, fastuidraw::PainterEnums::odd_even_fill_rule);
 
@@ -463,12 +463,12 @@ namespace fastuidraw {
   p->clip_in_path(myPath, fastuidraw::PainterEnums::odd_even_fill_rule);
   p->translate(fastuidraw::vec2(50.0f, 50.0f));
   p->rotate(23.0f * M_PI / 180.0f);
-  brush.pen(1.0f, 1.0f, 0.0f, 1.0f);
+  brush.color(1.0f, 1.0f, 0.0f, 1.0f);
   p->draw_glyphs(fastuidraw::PainterData(&brush), myStaticText);
   p->restore();
 
   // brush controls the brush applied to the stroking
-  brush.pen(1.0f, 1.0f, 1.0f, 1.0f);
+  brush.color(1.0f, 1.0f, 1.0f, 1.0f);
   brush.image(myImage, fastuidraw::PainterBrush::image_filter_cubic);
 
   // stroke_params controls the stroking width and miter-limit
@@ -485,7 +485,7 @@ namespace fastuidraw {
   p->stroke_path(fastuidraw::PainterData(&brush, &stroke_params),
                  myPath, stroking_style);
 
-  brush.pen(0.4, 0.4, 1.0, 1.0);
+  brush.color(0.4, 0.4, 1.0, 1.0);
   p->draw_glyphs(fastuidraw::PainterData(&brush), myGlyphSequence);
 
   p->end(); //on end() contents of surface can be used
