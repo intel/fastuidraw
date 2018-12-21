@@ -206,7 +206,7 @@ public:
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
   float m_sweep_repeat_factor;
-  bool m_repeat_gradient;
+  enum PainterBrush::gradient_spread_type_t m_gradient_spread_type;
 
   bool m_repeat_window;
   vec2 m_repeat_xy, m_repeat_wh;
@@ -378,10 +378,10 @@ private:
     return m_paths[m_selected_path].m_sweep_repeat_factor;
   }
 
-  bool&
-  repeat_gradient(void)
+  enum PainterBrush::gradient_spread_type_t&
+  gradient_spread_type(void)
   {
-    return m_paths[m_selected_path].m_repeat_gradient;
+    return m_paths[m_selected_path].m_gradient_spread_type;
   }
 
   bool&
@@ -487,6 +487,7 @@ private:
   vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
   vecN<std::string, number_stroking_modes> m_stroke_mode_labels;
   vecN<std::string, number_fill_modes> m_draw_fill_labels;
+  vecN<std::string, PainterBrush::number_gradient_spread_types> m_gradient_spread_type_labels;
   vecN<enum Painter::stroking_method_t, number_stroking_modes> m_stroke_mode_values;
   vecN<enum Painter::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
 
@@ -564,7 +565,7 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_angle(0.0f),
   m_translate_brush(false),
   m_matrix_brush(false),
-  m_repeat_gradient(true),
+  m_gradient_spread_type(PainterBrush::gradient_repeat),
   m_repeat_window(false),
   m_clipping_window(false)
 {
@@ -756,6 +757,10 @@ painter_stroke_test(void):
   m_gradient_mode_labels[draw_linear_gradient] = "draw_linear_gradient";
   m_gradient_mode_labels[draw_radial_gradient] = "draw_radial_gradient";
   m_gradient_mode_labels[draw_sweep_gradient] = "draw_sweep_gradient";
+
+  m_gradient_spread_type_labels[PainterBrush::gradient_clamp] = "gradient_clamp";
+  m_gradient_spread_type_labels[PainterBrush::gradient_repeat] = "gradient_repeat";
+  m_gradient_spread_type_labels[PainterBrush::gradient_mirror_repeat] = "gradient_mirror_repeat";
 
   m_join_labels[Painter::no_joins] = "no_joins";
   m_join_labels[Painter::rounded_joins] = "rounded_joins";
@@ -1257,12 +1262,12 @@ handle_event(const SDL_Event &ev)
         case SDLK_h:
           if (m_gradient_draw_mode != draw_no_gradient)
             {
-              repeat_gradient() = !repeat_gradient();
-              if (!repeat_gradient())
-                {
-                  std::cout << "non-";
-                }
-              std::cout << "repeat gradient mode\n";
+              cycle_value(gradient_spread_type(),
+                          ev.key.keysym.mod & KMOD_SHIFT,
+                          PainterBrush::number_gradient_spread_types);
+              std::cout << "Gradient spread type set to : "
+                        << m_gradient_spread_type_labels[gradient_spread_type()]
+                        << "\n";
             }
           break;
 
@@ -1759,14 +1764,14 @@ draw_scene(bool drawing_wire_frame)
       if (m_gradient_draw_mode == draw_linear_gradient)
         {
           fill_brush.linear_gradient(m_color_stops[m_active_color_stop].second,
-                                     gradient_p0(), gradient_p1(), repeat_gradient());
+                                     gradient_p0(), gradient_p1(), gradient_spread_type());
         }
       else if (m_gradient_draw_mode == draw_radial_gradient)
         {
           fill_brush.radial_gradient(m_color_stops[m_active_color_stop].second,
                                      gradient_p0(), gradient_r0(),
                                      gradient_p1(), gradient_r1(),
-                                     repeat_gradient());
+                                     gradient_spread_type());
         }
       else if (m_gradient_draw_mode == draw_sweep_gradient)
         {
@@ -1776,7 +1781,7 @@ draw_scene(bool drawing_wire_frame)
                                     gradient_p0(), t_atan2(d.y(), d.x()),
                                     Painter::y_increases_downwards,
                                     Painter::clockwise, sweep_repeat_factor(),
-                                    repeat_gradient());
+                                    gradient_spread_type());
         }
       else
         {
