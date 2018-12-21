@@ -222,6 +222,43 @@ namespace gl
       create(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m, GLuint texture,
              bool object_owns_texture = true);
+      /*!
+       * Create a GL texture and use it to back a TextureImage; the
+       * created TextureImage will own the GL texture.
+       * \param patlas the ImageAtlas that the created image is part of
+       * \param w width of the texture
+       * \param h height of the texture
+       * \param m number of mipmap levels of the texture
+       * \param tex_magnification magnification filter to get the texture
+       * \param tex_minification minification filter to get the texture
+       */
+      static
+      reference_counted_ptr<TextureImage>
+      create(const reference_counted_ptr<ImageAtlas> &patlas,
+             int w, int h, unsigned int m,
+             GLenum tex_magnification = GL_LINEAR,
+             GLenum tex_minification = GL_LINEAR_MIPMAP_NEAREST);
+      /*!
+       * Create a GL texture with no mipmapping and use it to back
+       * a TextureImage; the created TextureImage will own the GL
+       * texture. Equivalent to
+       * \code
+       * create(patlas, w, h, 1, filter, filter);
+       * \endcode
+       * \param patlas the ImageAtlas that the created image is part of
+       * \param w width of the texture
+       * \param h height of the texture
+       * \param m number of mipmap levels of the texture
+       * \param filter magnification and minification filter to give
+       *               the texture
+       */
+      static
+      reference_counted_ptr<TextureImage>
+      create(const reference_counted_ptr<ImageAtlas> &patlas,
+             int w, int h, GLenum filter = GL_LINEAR)
+      {
+        return create(patlas, w, h, 1, filter, filter);
+      }
 
       ~TextureImage();
 

@@ -583,6 +583,27 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
     }
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
+fastuidraw::gl::ImageAtlasGL::TextureImage::
+create(const reference_counted_ptr<ImageAtlas> &patlas,
+       int w, int h, unsigned int m,
+       GLenum tex_magnification,
+       GLenum tex_minification)
+{
+  GLuint tex(0);
+  static detail::UseTexStorage use_tex_storage;
+
+  fastuidraw_glGenTextures(1, &tex);
+  FASTUIDRAWassert(tex != 0u);
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, tex);
+  detail::tex_storage<GL_TEXTURE_2D>(use_tex_storage, GL_RGBA8, ivec2(w, h), m);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex_magnification);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex_minification);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
+
+  return create(patlas, w, h, m, tex, true);
+}
+
 fastuidraw::gl::ImageAtlasGL::TextureImage::
 TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m,

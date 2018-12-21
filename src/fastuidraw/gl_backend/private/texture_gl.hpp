@@ -370,6 +370,23 @@ public:
   unsigned int m_mipmap_level;
 };
 
+class UseTexStorage
+{
+public:
+  UseTexStorage(void)
+  {
+    ContextProperties ctx;
+
+    m_use_tex_storage = ctx.is_es() || ctx.version() >= ivec2(4, 2)
+      || ctx.has_extension("GL_ARB_texture_storage");
+  }
+
+  operator bool() const { return m_use_tex_storage; }
+
+private:
+  bool m_use_tex_storage;
+};
+
 template<GLenum texture_target>
 class TextureGLGeneric
 {
