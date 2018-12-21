@@ -761,6 +761,7 @@ painter_stroke_test(void):
   m_gradient_spread_type_labels[PainterBrush::gradient_clamp] = "gradient_clamp";
   m_gradient_spread_type_labels[PainterBrush::gradient_repeat] = "gradient_repeat";
   m_gradient_spread_type_labels[PainterBrush::gradient_mirror_repeat] = "gradient_mirror_repeat";
+  m_gradient_spread_type_labels[PainterBrush::gradient_mirror] = "gradient_mirror";
 
   m_join_labels[Painter::no_joins] = "no_joins";
   m_join_labels[Painter::rounded_joins] = "rounded_joins";
