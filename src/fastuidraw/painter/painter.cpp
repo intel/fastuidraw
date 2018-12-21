@@ -1710,9 +1710,11 @@ set_current(const fastuidraw::float3x3 &transform,
             const fastuidraw::float3x3 &inverse_transpose,
             fastuidraw::c_array<const fastuidraw::vec2> poly)
 {
+  using namespace fastuidraw;
+
   m_poly.current().clear();
   m_clip.current().clear();
-  m_current_bb = fastuidraw::BoundingBox<float>();
+  m_current_bb = BoundingBox<float>();
 
   if (poly.empty())
     {
@@ -1740,7 +1742,7 @@ set_current(const fastuidraw::float3x3 &transform,
       next_i = i + 1;
       next_i = (next_i == poly.size()) ? 0 : next_i;
       v = poly[next_i] - poly[i];
-      n = fastuidraw::vec2(v.y(), -v.x());
+      n = vec2(v.y(), -v.x());
       if (dot(center - poly[i], n) < 0.0f)
         {
           n = -n;
@@ -1754,15 +1756,16 @@ set_current(const fastuidraw::float3x3 &transform,
        *   R = -poly[i].x * n.x - poly[i].y * n.y = -dot(n, poly[i])
        * We want the clip equations in clip coordinates though:
        *   dot( (n, R), (p, 1) ) = dot( (n, R), inverseM(M(p, 1)) )
-       *                         = dot( inverse_transpose_M(R,1), M(p, 1))
-       * thus the vector to use is inverse_transpose_M(R,1)
+       *                         = dot( inverse_transpose_M(R, 1), M(p, 1))
+       * thus the vector to use is inverse_transpose_M(R, 1)
        */
-      fastuidraw::vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
-      fastuidraw::vec3 clip_pt(transform * fastuidraw::vec3(poly[i].x(), poly[i].y(), 1.0f));
+      vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
+      vec3 clip_pt(transform * vec3(poly[i].x(), poly[i].y(), 1.0f));
       float recip_z(1.0f / clip_pt.z());
-      fastuidraw::vec2 screen_scale(0.5f * m_dims.x() * recip_z, 0.5f * m_dims.y() * recip_z);
-      fastuidraw::vec2 screen_pt(clip_pt.x() * screen_scale.x(),
-                                 clip_pt.y() * screen_scale.y());
+      vec2 normalized_pt, screen_pt;
+
+      normalized_pt = vec2(clip_pt) * (0.5f * recip_z);
+      screen_pt = (normalized_pt + vec2(0.5f)) * m_dims;
 
       m_clip.current().push_back(inverse_transpose * nn);
       m_poly.current().push_back(clip_pt);
