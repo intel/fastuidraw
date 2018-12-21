@@ -149,6 +149,40 @@ namespace fastuidraw
       };
 
     /*!
+     * Enumeration to specify how a gradient behaves
+     * when the interpolate is outside of the range
+     * [0, 1].
+     */
+    enum gradient_spread_type_t
+      {
+        /*!
+         * Clamp the interpolate to [0, 1], i.e
+         * feed into the color-stop lookup the
+         * value clamp(interpolate, 0, 1).
+         */
+        gradient_clamp,
+
+        /*!
+         * Repeat the interpolate, i.e.
+         * feed into the color-stop lookup the
+         * value fract(interpolate)
+         */
+        gradient_repeat,
+
+        /*!
+         * Mirror repeat the interpolate, i.e.
+         * feed into the color-stop lookup the
+         * value mirror_repeat(2 * fract(t / 2))
+         * where where mirror_repeat(t) is
+         * t for 0 <= t <= 1 and 2 - t for
+         * 1 <= t <= 2.
+         */
+        gradient_mirror_repeat,
+
+        number_gradient_spread_types,
+      };
+
+    /*!
      * \brief
      * Enumeration describing the roles of the bits for
      * PainterBrush::shader().
@@ -180,9 +214,16 @@ namespace fastuidraw
         image_mipmap_num_bits = 7,
 
         /*!
-         * Number of bits used to encode the gradient type
+         * Number of bits used to encode the gradient type,
+         * see \ref gradient_type_t
          */
         gradient_type_num_bits = 2,
+
+        /*!
+         * Number of bits used to encode the gradient spread
+         * type, see \ref gradient_spread_type_t
+         */
+        gradient_spread_type_num_bits = 2,
 
         /*!
          * first bit for if image is present on the brush and if so, what filter
@@ -195,19 +236,19 @@ namespace fastuidraw
         image_mipmap_bit0 = image_filter_bit0 + image_filter_num_bits,
 
         /*!
-         * Bit is up if a gradient is present
+         * first bit used to encode the \ref gradient_type_t
          */
         gradient_type_bit0 = image_mipmap_bit0 + image_mipmap_num_bits,
 
         /*!
-         * bit is up if gradient is present and gradient lookup repeats outside of [0,1]
+         * first bit used to encode the \ref gradient_spread_type
          */
-        gradient_repeat_bit = gradient_type_bit0 + gradient_type_num_bits,
+        gradient_spread_type_bit0 = gradient_type_bit0 + gradient_type_num_bits,
 
         /*!
          * Bit up if the brush has a repeat window
          */
-        repeat_window_bit,
+        repeat_window_bit = gradient_spread_type_bit0 + gradient_spread_type_num_bits,
 
         /*!
          * Bit up if transformation 2x2 matrix is present
@@ -256,9 +297,10 @@ namespace fastuidraw
         gradient_type_mask = FASTUIDRAW_MASK(gradient_type_bit0, gradient_type_num_bits),
 
         /*!
-         * mask generated from \ref gradient_repeat_bit
+         * mask generated from \ref gradient_spread_type_bit0 and \ref
+         * gradient_spread_type_num_bits
          */
-        gradient_repeat_mask = FASTUIDRAW_MASK(gradient_repeat_bit, 1),
+        gradient_spread_type_mask = FASTUIDRAW_MASK(gradient_spread_type_bit0, gradient_spread_type_num_bits),
 
         /*!
          * mask generated from \ref repeat_window_bit
@@ -722,12 +764,12 @@ namespace fastuidraw
      *           then sets brush to not have a gradient.
      * \param start_p start position of gradient
      * \param end_p end position of gradient.
-     * \param repeat if true, repeats the gradient, if false then
-     *               clamps the gradient
+     * \param spread specifies the gradient spread type
      */
     PainterBrush&
     linear_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
-                    const vec2 &start_p, const vec2 &end_p, bool repeat)
+                    const vec2 &start_p, const vec2 &end_p,
+                    enum gradient_spread_type_t spread)
     {
       uint32_t gradient_bits;
 
@@ -735,11 +777,11 @@ namespace fastuidraw
       m_data.m_grad_start = start_p;
       m_data.m_grad_end = end_p;
       gradient_bits = cs ?
-        pack_bits(gradient_type_bit0, gradient_type_num_bits, linear_gradient_type) :
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, linear_gradient_type)
+        | pack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, spread) :
         0u;
-      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
       return *this;
     }
 
@@ -751,13 +793,13 @@ namespace fastuidraw
      * \param start_r starting radius of radial gradient
      * \param end_p end position of gradient.
      * \param end_r ending radius of radial gradient
-     * \param repeat if true, repeats the gradient, if false then
-     *               clamps the gradient
+     * \param spread specifies the gradient spread type
      */
     PainterBrush&
     radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                     const vec2 &start_p, float start_r,
-                    const vec2 &end_p, float end_r, bool repeat)
+                    const vec2 &end_p, float end_r,
+                    enum gradient_spread_type_t spread)
     {
       uint32_t gradient_bits;
 
@@ -767,11 +809,11 @@ namespace fastuidraw
       m_data.m_grad_end = end_p;
       m_data.m_grad_end_r = end_r;
       gradient_bits = cs ?
-        pack_bits(gradient_type_bit0, gradient_type_num_bits, radial_gradient_type) :
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, radial_gradient_type)
+        | pack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, spread) :
         0u;
-      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
       return *this;
     }
 
@@ -785,14 +827,13 @@ namespace fastuidraw
      *           then sets brush to not have a gradient.
      * \param p start and end position of gradient
      * \param r ending radius of radial gradient
-     * \param repeat if true, repeats the gradient, if false then
-     *               clamps the gradient
+     * \param spread specifies the gradient spread type
      */
     PainterBrush&
     radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
-                    const vec2 &p, float r, bool repeat)
+                    const vec2 &p, float r, enum gradient_spread_type_t spread)
     {
-      return radial_gradient(cs, p, 0.0f, p, r, repeat);
+      return radial_gradient(cs, p, 0.0f, p, r, spread);
     }
 
     /*!
@@ -804,12 +845,12 @@ namespace fastuidraw
      * \param F the repeat factor applied to the interpolate, the
      *          sign of F is used to determine the sign of the
      *          sweep gradient.
-     * \param repeat if true, repeats the gradient, if false then
-     *               clamps the gradient
+     * \param spread specifies the gradient spread type
      */
     PainterBrush&
     sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
-                   const vec2 &p, float theta, float F, bool repeat)
+                   const vec2 &p, float theta, float F,
+                   enum gradient_spread_type_t spread)
     {
       uint32_t gradient_bits;
 
@@ -817,11 +858,11 @@ namespace fastuidraw
       m_data.m_grad_start = p;
       m_data.m_grad_end = vec2(theta, F);
       gradient_bits = cs ?
-        pack_bits(gradient_type_bit0, gradient_type_num_bits, sweep_gradient_type) :
+        pack_bits(gradient_type_bit0, gradient_type_num_bits, sweep_gradient_type)
+        | pack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, spread) :
         0u;
-      m_data.m_shader_raw &= ~gradient_type_mask;
+      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
-      m_data.m_shader_raw = apply_bit_flag(m_data.m_shader_raw, cs && repeat, gradient_repeat_mask);
       return *this;
     }
 
@@ -837,22 +878,21 @@ namespace fastuidraw
      *          a negative reverses the orientation of the sweep.
      * \param orientation orientation of the screen
      * \param rotation_orientation orientation of the sweep
-     * \param repeat if true, repeats the gradient, if false then
-     *               clamps the gradient
+     * \param spread specifies the gradient spread type
      */
     PainterBrush&
     sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation,
-                   float F, bool repeat)
+                   float F, enum gradient_spread_type_t spread)
     {
       float S;
       bool b1(orientation == PainterEnums::y_increases_upwards);
       bool b2(rotation_orientation == PainterEnums::counter_clockwise);
 
       S = (b1 == b2) ? 1.0f : -1.0f;
-      return sweep_gradient(cs, p, theta, S * F, repeat);
+      return sweep_gradient(cs, p, theta, S * F, spread);
     }
 
     /*!
@@ -869,17 +909,16 @@ namespace fastuidraw
      * \param theta angle of the sweep gradient
      * \param orientation orientation of the screen
      * \param rotation_orientation orientation of the sweep
-     * \param repeat if true, repeats the gradient, if false then
-     *               clamps the gradient
+     * \param spread specifies the gradient spread type
      */
     PainterBrush&
     sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation,
-                   bool repeat)
+                   enum gradient_spread_type_t spread)
     {
-      return sweep_gradient(cs, p, theta, orientation, rotation_orientation, 1.0f, repeat);
+      return sweep_gradient(cs, p, theta, orientation, rotation_orientation, 1.0f, spread);
     }
 
     /*!
@@ -889,7 +928,7 @@ namespace fastuidraw
     no_gradient(void)
     {
       m_data.m_cs = reference_counted_ptr<const ColorStopSequenceOnAtlas>();
-      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_repeat_mask);
+      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       return *this;
     }
 
@@ -902,6 +941,17 @@ namespace fastuidraw
       uint32_t v;
       v = unpack_bits(gradient_type_bit0, gradient_type_num_bits, m_data.m_shader_raw);
       return static_cast<enum gradient_type_t>(v);
+    }
+
+    /*!
+     * Return the gradient_type_t that the brush applies.
+     */
+    enum gradient_spread_type_t
+    gradient_spread_type(void) const
+    {
+      uint32_t v;
+      v = unpack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, m_data.m_shader_raw);
+      return static_cast<enum gradient_spread_type_t>(v);
     }
 
     /*!
