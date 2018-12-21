@@ -29,7 +29,7 @@ SurfaceGLPrivate(GLuint texture, ivec2 dimensions):
   m_auxiliary_buffer(0),
   m_buffers(0),
   m_fbo(0),
-  m_own_texture(texture != 0)
+  m_own_texture(texture == 0)
 {
   m_buffers[buffer_color] = texture;
   m_viewport.m_dimensions = m_dimensions;
