@@ -163,6 +163,15 @@ namespace fastuidraw
         gradient_clamp,
 
         /*!
+         * Mirror the interpolate, i.e. feed into
+         * the color-stop lookup the value
+         * mirror(clamp(interpolate, 0.0, 2.0))
+         * where mirror(t) is t for 0 <= t <= 1
+         * and 2 - t for 1 <= t <= 2.
+         */
+        gradient_mirror,
+
+        /*!
          * Repeat the interpolate, i.e.
          * feed into the color-stop lookup the
          * value fract(interpolate)
@@ -172,14 +181,11 @@ namespace fastuidraw
         /*!
          * Mirror repeat the interpolate, i.e.
          * feed into the color-stop lookup the
-         * value mirror_repeat(2 * fract(t / 2))
-         * where where mirror_repeat(t) is
-         * t for 0 <= t <= 1 and 2 - t for
-         * 1 <= t <= 2.
+         * value mirror(2 * fract(t / 2)).
          */
         gradient_mirror_repeat,
 
-        number_gradient_spread_types,
+        number_gradient_spread_types
       };
 
     /*!

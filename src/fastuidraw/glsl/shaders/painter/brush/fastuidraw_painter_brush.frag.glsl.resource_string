@@ -404,6 +404,7 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_gradient_spread_type_bit0,
                                             fastuidraw_shader_gradient_spread_type_num_bits,
                                             fastuidraw_brush_shader);
+
       if (spread_type == fastuidraw_shader_gradient_repeat)
         {
           t = fract(t);
@@ -411,6 +412,11 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       else if (spread_type == fastuidraw_shader_gradient_mirror_repeat)
         {
           float s = 2.0 * fract(0.5 * t);
+          t = (s < 1.0) ? s : 2.0 - s;
+        }
+      else if (spread_type == fastuidraw_shader_gradient_mirror)
+        {
+          float s = clamp(t, 0.0, 2.0);
           t = (s < 1.0) ? s : 2.0 - s;
         }
       else
