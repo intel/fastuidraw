@@ -221,7 +221,7 @@ namespace gl
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m, GLuint texture,
-             bool object_owns_texture = true);
+             bool object_owns_texture);
       /*!
        * Create a GL texture and use it to back a TextureImage; the
        * created TextureImage will own the GL texture.
@@ -236,8 +236,8 @@ namespace gl
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m,
-             GLenum tex_magnification = GL_LINEAR,
-             GLenum tex_minification = GL_LINEAR_MIPMAP_NEAREST);
+             GLenum tex_magnification,
+             GLenum tex_minification);
       /*!
        * Create a GL texture with no mipmapping and use it to back
        * a TextureImage; the created TextureImage will own the GL
@@ -255,7 +255,7 @@ namespace gl
       static
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
-             int w, int h, GLenum filter = GL_LINEAR)
+             int w, int h, GLenum filter)
       {
         return create(patlas, w, h, 1, filter, filter);
       }
