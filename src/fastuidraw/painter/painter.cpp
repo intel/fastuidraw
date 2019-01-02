@@ -563,8 +563,7 @@ namespace
     }
 
     void
-    reset(fastuidraw::vec2 dims,
-          fastuidraw::c_array<const fastuidraw::vec3> clip);
+    reset(fastuidraw::c_array<const fastuidraw::vec3> clip);
 
     void
     set_current(const fastuidraw::float3x3 &transform,
@@ -664,7 +663,6 @@ namespace
     };
 
     Vec3Stack m_clip, m_poly;
-    fastuidraw::vec2 m_dims;
 
     fastuidraw::BoundingBox<float> m_current_bb;
     std::vector<fastuidraw::BoundingBox<float> > m_bb_stack;
@@ -1654,8 +1652,7 @@ rect_is_culled(const fastuidraw::Rect &rect)
 //ClipEquationStore methods
 void
 ClipEquationStore::
-reset(fastuidraw::vec2 dims,
-      fastuidraw::c_array<const fastuidraw::vec3> clip)
+reset(fastuidraw::c_array<const fastuidraw::vec3> clip)
 {
   clear();
 
@@ -1666,9 +1663,8 @@ reset(fastuidraw::vec2 dims,
 
   m_clip.set_current(clip);
 
-  m_dims = dims;
-  m_current_bb.union_point(fastuidraw::vec2(0.0f, 0.0f));
-  m_current_bb.union_point(dims);
+  m_current_bb.union_point(fastuidraw::vec2(-1.0f, -1.0f));
+  m_current_bb.union_point(fastuidraw::vec2(+1.0f, +1.0f));
 }
 
 unsigned int
@@ -1748,14 +1744,11 @@ set_current(const fastuidraw::float3x3 &transform,
       vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
       vec3 clip_pt(transform * vec3(poly[i].x(), poly[i].y(), 1.0f));
       float recip_z(1.0f / clip_pt.z());
-      vec2 normalized_pt, screen_pt;
-
-      normalized_pt = vec2(clip_pt) * (0.5f * recip_z);
-      screen_pt = (normalized_pt + vec2(0.5f)) * m_dims;
+      vec2 normalized_pt(clip_pt * recip_z);
 
       m_clip.current().push_back(inverse_transpose * nn);
       m_poly.current().push_back(clip_pt);
-      m_current_bb.union_point(screen_pt);
+      m_current_bb.union_point(normalized_pt);
     }
 }
 
@@ -3519,8 +3512,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
   d->m_current_z = 1;
   d->m_clip_rect_state.reset(d->m_resolution, orientation);
-  d->m_clip_store.reset(d->m_resolution,
-                        d->m_clip_rect_state.clip_equations().m_clip_equations);
+  d->m_clip_store.reset(d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(composite_porter_duff_src_over);
   blend_shader(blend_w3c_normal);
 }
