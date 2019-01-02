@@ -1142,12 +1142,12 @@ namespace fastuidraw
      * Draw generic attribute data
      * \param shader shader with which to draw data
      * \param draw data for how to draw
-     * \param src DrawWriter to use to write attribute and index data
+     * \param src generator of attribute and index data
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
-                 const PainterDataWriter &src);
+                 const PainterAttributeWriter &src);
 
     /*!
      * Queue an action that uses (or affects) the GPU. Through these actions,

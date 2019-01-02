@@ -35,16 +35,16 @@ namespace fastuidraw
    * methods is not sufficient (for example to modify or filter data
    * based off of some dynamic state).
    */
-  class PainterDataWriter:fastuidraw::noncopyable
+  class PainterAttributeWriter:fastuidraw::noncopyable
   {
   public:
     virtual
-    ~PainterDataWriter()
+    ~PainterAttributeWriter()
     {}
 
     /*!
      * To be implemented by a derived class to return
-     * the number of attribute chunks of the PainterDataWriter.
+     * the number of attribute chunks of the PainterAttributeWriter.
      */
     virtual
     unsigned int
@@ -53,7 +53,7 @@ namespace fastuidraw
     /*!
      * To be implemented by a derived class to return
      * the number of attribute of an attribute chunk
-     * of the PainterDataWriter.
+     * of the PainterAttributeWriter.
      * \param attribute_chunk which chunk of attributes
      */
     virtual
@@ -62,7 +62,7 @@ namespace fastuidraw
 
     /*!
      * To be implemented by a derived class to return
-     * the number of index chunks of the PainterDataWriter.
+     * the number of index chunks of the PainterAttributeWriter.
      */
     virtual
     unsigned int
@@ -71,7 +71,7 @@ namespace fastuidraw
     /*!
      * To be implemented by a derived class to return
      * the number of indices of an index chunk
-     * of the PainterDataWriter.
+     * of the PainterAttributeWriter.
      * \param index_chunk which chunk of attributes
      */
     virtual

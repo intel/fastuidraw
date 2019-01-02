@@ -32,7 +32,7 @@
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_data_writer.hpp>
+#include <fastuidraw/painter/painter_attribute_writer.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
 #include <fastuidraw/painter/packing/painter_backend.hpp>
 #include <fastuidraw/painter/packing/painter_packer_data.hpp>
@@ -326,7 +326,7 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
-                 const PainterDataWriter &src,
+                 const PainterAttributeWriter &src,
                  int z);
     /*!
      * Returns a stat on how much data the PainterPacker has

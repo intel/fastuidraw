@@ -1051,7 +1051,7 @@ namespace
     void
     draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
                  const fastuidraw::PainterData &draw,
-                 const fastuidraw::PainterDataWriter &src,
+                 const fastuidraw::PainterAttributeWriter &src,
                  int z);
 
     void
@@ -2282,7 +2282,7 @@ void
 PainterPrivate::
 draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
              const fastuidraw::PainterData &draw,
-             const fastuidraw::PainterDataWriter &src,
+             const fastuidraw::PainterAttributeWriter &src,
              int z)
 {
   fastuidraw::PainterPackerData p(draw);
@@ -3587,7 +3587,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 void
 fastuidraw::Painter::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
-             const PainterDataWriter &src)
+             const PainterAttributeWriter &src)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);

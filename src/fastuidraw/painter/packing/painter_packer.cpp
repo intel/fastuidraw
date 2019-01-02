@@ -1262,7 +1262,7 @@ void
 fastuidraw::PainterPacker::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &data,
-             const PainterDataWriter &src,
+             const PainterAttributeWriter &src,
              int z)
 {
   PainterPackerPrivate *d;
