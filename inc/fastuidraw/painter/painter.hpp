@@ -19,6 +19,22 @@
 
 #pragma once
 
+#include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/matrix.hpp>
+#include <fastuidraw/util/c_array.hpp>
+
+#include <fastuidraw/text/glyph_atlas.hpp>
+#include <fastuidraw/colorstop_atlas.hpp>
+#include <fastuidraw/image.hpp>
+
+#include <fastuidraw/painter/painter_shader_set.hpp>
+#include <fastuidraw/painter/painter_brush.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_attribute_data.hpp>
+#include <fastuidraw/painter/painter_attribute_writer.hpp>
+#include <fastuidraw/painter/packing/painter_backend.hpp>
+
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/stroking_style.hpp>
 #include <fastuidraw/painter/rounded_rect.hpp>
@@ -31,7 +47,6 @@
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
-#include <fastuidraw/painter/packing/painter_packer.hpp>
 
 namespace fastuidraw
 {
