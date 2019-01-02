@@ -26,7 +26,8 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
-#include <fastuidraw/painter/packing/painter_packer.hpp>
+#include <fastuidraw/painter/painter_attribute_data.hpp>
+#include <fastuidraw/painter/painter_attribute_writer.hpp>
 
 namespace fastuidraw  {
 
