@@ -1079,22 +1079,18 @@ namespace fastuidraw
      * \param attrib_chunk attribute data to draw
      * \param index_chunk index data into attrib_chunk
      * \param index_adjust amount by which to adjust the values in index_chunk
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
                  c_array<const PainterAttribute> attrib_chunk,
                  c_array<const PainterIndex> index_chunk,
-                 int index_adjust = 0,
-                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back
-                 = reference_counted_ptr<PainterPacker::DataCallBack>())
+                 int index_adjust = 0)
     {
       vecN<c_array<const PainterAttribute>, 1> aa(attrib_chunk);
       vecN<c_array<const PainterIndex>, 1> ii(index_chunk);
       vecN<int, 1> ia(index_adjust);
-      draw_generic(shader, draw, aa, ii, ia, call_back);
+      draw_generic(shader, draw, aa, ii, ia);
     }
 
     /*!
@@ -1106,17 +1102,13 @@ namespace fastuidraw
      * \param index_adjusts if non-empty, the i'th element is the value by which
      *                      to adjust all of index_chunks[i]; if empty the index
      *                      values are not adjusted.
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
-                 c_array<const int> index_adjusts,
-                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back
-                 = reference_counted_ptr<PainterPacker::DataCallBack>());
+                 c_array<const int> index_adjusts);
 
     /*!
      * Draw generic attribute data
@@ -1130,8 +1122,6 @@ namespace fastuidraw
      *                      values are not adjusted.
      * \param attrib_chunk_selector selects which attribute chunk to use for
      *                              each index chunk
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
@@ -1139,24 +1129,18 @@ namespace fastuidraw
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
                  c_array<const int> index_adjusts,
-                 c_array<const unsigned int> attrib_chunk_selector,
-                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back
-                 = reference_counted_ptr<PainterPacker::DataCallBack>());
+                 c_array<const unsigned int> attrib_chunk_selector);
 
     /*!
      * Draw generic attribute data
      * \param shader shader with which to draw data
      * \param draw data for how to draw
      * \param src DrawWriter to use to write attribute and index data
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
-                 const PainterPacker::DataWriter &src,
-                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back
-                 = reference_counted_ptr<PainterPacker::DataCallBack>());
+                 const PainterPacker::DataWriter &src);
 
     /*!
      * Queue an action that uses (or affects) the GPU. Through these actions,

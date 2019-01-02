@@ -61,6 +61,20 @@ namespace fastuidraw
     {
     public:
       /*!
+       * Ctor.
+       */
+      DataCallBack(void);
+
+      ~DataCallBack();
+
+      /*!
+       * Returns true if this DataCallBack is already active on a
+       * PainterPacker object.
+       */
+      bool
+      active(void) const;
+
+      /*!
        * To be implemented by a derived class to implement the call back
        * issues whenever a \ref PainterHeader value is added.
        * \param h handle to active PainterDraw
@@ -72,6 +86,10 @@ namespace fastuidraw
       header_added(const reference_counted_ptr<const PainterDraw> &h,
                    const PainterHeader &original_value,
                    c_array<generic_data> mapped_location) = 0;
+
+    private:
+      friend class PainterPacker;
+      void *m_d;
     };
 
     /*!
@@ -281,6 +299,22 @@ namespace fastuidraw
     blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
 
     /*!
+     * Add a \ref DataCallBack to this PainterPacker. A fixed DataCallBack
+     * can only be active on one PainterPacker, but a single PainterPacker
+     * can have multiple objects active on it. Callback objects are called
+     * in REVERSE ordered there are added (thus the most recent callback
+     * objects are called first).
+     */
+    void
+    add_callback(const reference_counted_ptr<DataCallBack> &callback);
+
+    /*!
+     * Remove a \ref DataCallBack from this PainterPacker.
+     */
+    void
+    remove_callback(const reference_counted_ptr<DataCallBack> &callback);
+
+    /*!
      * Indicate to start drawing. Commands are buffered and not
      * set to the backend until end() or flush() is called.
      * All draw commands must be between a begin() / end() pair.
@@ -332,8 +366,6 @@ namespace fastuidraw
      *                      to adjust all of index_chunks[i]; if empty the index
      *                      values are not adjusted.
      * \param z z-value z value placed into the header
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
@@ -341,8 +373,7 @@ namespace fastuidraw
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
                  c_array<const int> index_adjusts,
-                 int z,
-                 const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
+                 int z);
 
     /*!
      * Draw generic attribute data
@@ -357,8 +388,6 @@ namespace fastuidraw
      * \param attrib_chunk_selector selects which attribute chunk to use for
      *        each index chunk
      * \param z z-value z value placed into the header
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
@@ -367,23 +396,19 @@ namespace fastuidraw
                  c_array<const c_array<const PainterIndex> > index_chunks,
                  c_array<const int> index_adjusts,
                  c_array<const unsigned int> attrib_chunk_selector,
-                 int z,
-                 const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
+                 int z);
     /*!
      * Draw generic attribute data
      * \param shader shader with which to draw data
      * \param data data for how to draw
      * \param src DrawWriter to use to write attribute and index data
      * \param z z-value z value placed into the header
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
                  const DataWriter &src,
-                 int z,
-                 const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
+                 int z);
     /*!
      * Returns a stat on how much data the PainterPacker has
      * handled since the last call to begin().
