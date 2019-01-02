@@ -1627,7 +1627,7 @@ create(bool optimal_rendering_quality,
   return create(config_gl, ctx);
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL>
+fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend>
 fastuidraw::gl::PainterBackendGL::
 create_sharing_shaders(void)
 {

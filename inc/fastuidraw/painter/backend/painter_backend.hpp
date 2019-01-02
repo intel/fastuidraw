@@ -319,6 +319,16 @@ namespace fastuidraw
     configuration_base(void) const;
 
     /*!
+     * To be implemented by a derived class to create another
+     * PainterBackend object which uses the same atlases,
+     * has the -exact- same \ref PainterShaderRegistrar and
+     * is configured exactly the same way.
+     */
+    virtual
+    reference_counted_ptr<PainterBackend>
+    create_sharing_shaders(void) = 0;
+
+    /*!
      * Called just before calling PainterDraw::draw() on a sequence
      * of PainterDraw objects who have had their PainterDraw::unmap()
      * routine called. An implementation will  will clear the depth

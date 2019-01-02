@@ -608,17 +608,6 @@ namespace fastuidraw
       create(bool optimal_rendering_quality,
              const ContextProperties &ctx = ContextProperties());
 
-      /*!
-       * Create another PainterBackendGL of the exact same configuration
-       * as this PainterBackendGL and the newly created PainterBackendGL
-       * shares the PainterShaderRegistrar with the original along with the
-       * create \ref Program objects. The newly created object does have
-       * its own unique buffer pools. As such, this is perfectly suited for
-       * applications that need multiple PainterBackendGL objects.
-       */
-      reference_counted_ptr<PainterBackendGL>
-      create_sharing_shaders(void);
-
       ~PainterBackendGL();
 
       virtual
@@ -628,6 +617,10 @@ namespace fastuidraw
       virtual
       unsigned int
       indices_per_mapping(void) const;
+
+      virtual
+      reference_counted_ptr<PainterBackend>
+      create_sharing_shaders(void);
 
       virtual
       void
