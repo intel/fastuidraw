@@ -1829,8 +1829,8 @@ concat(const fastuidraw::float3x3 &tr)
 
   if (!tricky)
     {
-      m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
       m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0, 0), 1.0f / tr(1, 1));
+      m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
     }
 }
 
