@@ -55,7 +55,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * Typedef for the index type used by \ref Packer
+   * Typedef for the index type used by \ref Painter
    */
   typedef uint32_t PainterIndex;
 
