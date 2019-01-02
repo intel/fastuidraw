@@ -96,10 +96,14 @@ namespace fastuidraw
 
     /*!
      * Ctor.
+     * \param pool pool with which to make a default brush; this brush
+     *             is used when draw_generic() is called and the passed
+     *             PainterData object lacks a brush value
      * \param backend handle to PainterBackend for the constructed PainterPacker
      */
     explicit
-    PainterPacker(reference_counted_ptr<PainterBackend> backend);
+    PainterPacker(PainterPackedValuePool &pool,
+                  reference_counted_ptr<PainterBackend> backend);
 
     virtual
     ~PainterPacker();
@@ -137,13 +141,6 @@ namespace fastuidraw
      */
     reference_counted_ptr<PainterShaderRegistrar>
     painter_shader_registrar(void) const;
-
-    /*!
-     * Returns the PainterPackedValuePool used to construct
-     * PainterPackedValue objects.
-     */
-    PainterPackedValuePool&
-    packed_value_pool(void);
 
     /*!
      * Returns the active composite shader
