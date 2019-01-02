@@ -48,9 +48,10 @@ public:
   GLuint m_data_tbo;
   enum glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
   unsigned int m_data_store_binding_point;
+  unsigned int m_pool;
 };
 
-class painter_vao_pool:noncopyable
+class painter_vao_pool:public reference_counted<painter_vao_pool>::non_concurrent
 {
 public:
   explicit
@@ -100,6 +101,9 @@ public:
   GLuint
   uniform_ubo(unsigned int ubo_size, GLenum target);
 
+  void
+  release_vao(const painter_vao &V);
+
 private:
   void
   generate_tbos(painter_vao &vao);
@@ -118,8 +122,8 @@ private:
   enum tex_buffer_support_t m_tex_buffer_support;
   glsl::PainterShaderRegistrarGLSL::BindingPoints m_binding_points;
 
-  unsigned int m_current, m_pool;
-  std::vector<std::vector<painter_vao> > m_vaos;
+  unsigned int m_current_pool;
+  std::vector<std::vector<painter_vao> > m_free_vaos;
   std::vector<GLuint> m_ubos;
 };
 

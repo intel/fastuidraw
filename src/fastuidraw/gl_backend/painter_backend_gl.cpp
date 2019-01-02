@@ -94,7 +94,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
 
     GLuint m_nearest_filter_sampler;
-    fastuidraw::gl::detail::painter_vao_pool *m_pool;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> m_pool;
     fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
     fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
@@ -205,13 +205,15 @@ namespace
   {
   public:
     explicit
-    DrawCommand(fastuidraw::gl::detail::painter_vao_pool *hnd,
+    DrawCommand(const fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> &hnd,
                 const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
                 PainterBackendGLPrivate *pr);
 
     virtual
     ~DrawCommand()
-    {}
+    {
+      m_pool->release_vao(m_vao);
+    }
 
     virtual
     bool
@@ -242,6 +244,7 @@ namespace
     add_entry(unsigned int indices_written);
 
     PainterBackendGLPrivate *m_pr;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> m_pool;
     fastuidraw::gl::detail::painter_vao m_vao;
     unsigned int m_attributes_written, m_indices_written;
     std::list<DrawEntry> m_draws;
@@ -557,11 +560,12 @@ draw(PainterBackendGLPrivate *pr,
 ////////////////////////////////////
 // DrawCommand methods
 DrawCommand::
-DrawCommand(fastuidraw::gl::detail::painter_vao_pool *hnd,
+DrawCommand(const fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> &hnd,
             const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
             PainterBackendGLPrivate *pr):
   m_pr(pr),
-  m_vao(hnd->request_vao()),
+  m_pool(hnd),
+  m_vao(m_pool->request_vao()),
   m_attributes_written(0),
   m_indices_written(0)
 {
@@ -781,7 +785,6 @@ add_entry(unsigned int indices_written)
 PainterBackendGLPrivate::
 PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_nearest_filter_sampler(0),
-  m_pool(nullptr),
   m_surface_gl(nullptr),
   m_p(p)
 {
@@ -806,11 +809,6 @@ PainterBackendGLPrivate::
   if (m_nearest_filter_sampler != 0)
     {
       fastuidraw_glDeleteSamplers(1, &m_nearest_filter_sampler);
-    }
-
-  if (m_pool)
-    {
-      FASTUIDRAWdelete(m_pool);
     }
 }
 
