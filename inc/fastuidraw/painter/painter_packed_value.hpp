@@ -29,7 +29,6 @@
 namespace fastuidraw
 {
   class PainterPackedValuePool;
-  class PainterPacker;
 
   template<typename T>
   class PainterPackedValue;
@@ -45,7 +44,6 @@ namespace fastuidraw
   class PainterPackedValueBase
   {
   private:
-    friend class PainterPacker;
     friend class PainterPackedValuePool;
     template<typename> friend class PainterPackedValue;
 
@@ -76,11 +74,11 @@ namespace fastuidraw
    *
    * If already on a store, then rather than copying the data again, the data
    * is reused. The object behind the handle is NOT thread safe. In addition
-   * the underlying reference count is not either. Hence any access
-   * (even dtor, copy ctor and equality operator) on a fixed object cannot
-   * be done from multiple threads simutaneously. A fixed
-   * PainterPackedValue can be used by different Painter (and PainterPacker)
-   * objects.
+   * the underlying reference count is not either. Hence any access (even dtor,
+   * copy ctor and equality operator) on a fixed object cannot be done from
+   * multiple threads simutaneously. A fixed PainterPackedValue can be used
+   * by different Painter objects, subject to that the access is done from
+   * same thread.
    */
   template<typename T>
   class PainterPackedValue:PainterPackedValueBase

@@ -35,8 +35,9 @@
 #include <fastuidraw/painter/painter_attribute_writer.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
 #include <fastuidraw/painter/packing/painter_backend.hpp>
-#include <fastuidraw/painter/packing/painter_packer_data.hpp>
 #include <fastuidraw/painter/packing/painter_header.hpp>
+
+#include "painter_packer_data.hpp"
 
 namespace fastuidraw
 {
@@ -303,6 +304,77 @@ namespace fastuidraw
      */
     const PainterBackend::PerformanceHints&
     hints(void);
+
+    /*
+     * PainterPacker sources are compiled private, but they contain
+     * the implmentation to PainterPackedValuePool, so we implement
+     * them as static methods here that PainterPackedValuePool
+     * methods will call.
+     */
+    static
+    void*
+    create_packed_value(void *d, const PainterBrush &value);
+
+    static
+    void*
+    create_packed_value(void *d, const PainterItemShaderData &value);
+
+    static
+    void*
+    create_packed_value(void *d, const PainterCompositeShaderData &value);
+
+    static
+    void*
+    create_packed_value(void *d, const PainterBlendShaderData &value);
+
+    static
+    void*
+    create_packed_value(void *d, const PainterClipEquations &value);
+
+    static
+    void*
+    create_packed_value(void *d, const PainterItemMatrix &value);
+
+    static
+    void*
+    create_painter_packed_value_pool_d(void);
+
+    static
+    void
+    delete_painter_packed_value_pool_d(void*);
+
+    static
+    void
+    acquire_packed_value(void *md);
+
+    static
+    void
+    release_packed_value(void *md);
+
+    static
+    const void*
+    raw_data_of_packed_value(void *md);
+
+    /* The data behind a PainterShaderGroup is also defined privately
+     * within PainterPacker implementation, so to implement the
+     * PainterShaderGroup methods, we implement them here and have
+     * the actual implementation call them.
+     */
+    static
+    uint32_t
+    composite_group(const PainterShaderGroup *md);
+
+    static
+    uint32_t
+    item_group(const PainterShaderGroup *md);
+
+    static
+    uint32_t
+    brush(const PainterShaderGroup *md);
+
+    static
+    BlendMode
+    composite_mode(const PainterShaderGroup *md);
 
   private:
     void *m_d;

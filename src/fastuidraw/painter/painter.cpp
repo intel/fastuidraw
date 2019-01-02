@@ -31,7 +31,7 @@
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
 #include "../private/bounding_box.hpp"
-#include <fastuidraw/painter/packing/painter_packer.hpp>
+#include "packing/private/painter_packer.hpp"
 
 namespace
 {

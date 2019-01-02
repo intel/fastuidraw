@@ -21,9 +21,9 @@
 #include <list>
 #include <cstring>
 
-#include <fastuidraw/painter/packing/painter_packer.hpp>
 #include <fastuidraw/painter/packing/painter_header.hpp>
-#include "../../private/util_private.hpp"
+#include "painter_packer.hpp"
+#include "../../../private/util_private.hpp"
 
 namespace
 {
@@ -1007,44 +1007,6 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
     }
 }
 
-/////////////////////////////////////////
-// fastuidraw::PainterShaderGroup methods
-uint32_t
-fastuidraw::PainterShaderGroup::
-composite_group(void) const
-{
-  const PainterShaderGroupPrivate *d;
-  d = static_cast<const PainterShaderGroupPrivate*>(this);
-  return d->m_composite_group;
-}
-
-uint32_t
-fastuidraw::PainterShaderGroup::
-item_group(void) const
-{
-  const PainterShaderGroupPrivate *d;
-  d = static_cast<const PainterShaderGroupPrivate*>(this);
-  return d->m_item_group;
-}
-
-uint32_t
-fastuidraw::PainterShaderGroup::
-brush(void) const
-{
-  const PainterShaderGroupPrivate *d;
-  d = static_cast<const PainterShaderGroupPrivate*>(this);
-  return d->m_brush;
-}
-
-fastuidraw::BlendMode
-fastuidraw::PainterShaderGroup::
-composite_mode(void) const
-{
-  const PainterShaderGroupPrivate *d;
-  d = static_cast<const PainterShaderGroupPrivate*>(this);
-  return d->m_composite_mode;
-}
-
 //////////////////////////////////////////////////
 // fastuidraw::PainterPacker::DataCallBack methods
 fastuidraw::PainterPacker::DataCallBack::
@@ -1381,166 +1343,155 @@ hints(void)
   return d->m_backend->hints();
 }
 
-//////////////////////////////////////////
-// fastuidraw::PainterPackedValueBase methods
-fastuidraw::PainterPackedValueBase::
-PainterPackedValueBase(void)
+void*
+fastuidraw::PainterPacker::
+create_painter_packed_value_pool_d(void)
 {
-  m_d = nullptr;
-}
-
-fastuidraw::PainterPackedValueBase::
-PainterPackedValueBase(void *p):
-  m_d(p)
-{
-  EntryBase *d;
-  d = static_cast<EntryBase*>(m_d);
-  if (d)
-    {
-      d->aquire();
-    }
-}
-
-fastuidraw::PainterPackedValueBase::
-PainterPackedValueBase(const PainterPackedValueBase &obj)
-{
-  m_d = obj.m_d;
-
-  if (obj.m_d)
-    {
-      EntryBase *obj_d;
-      obj_d = static_cast<EntryBase*>(obj.m_d);
-      obj_d->aquire();
-    }
-}
-
-fastuidraw::PainterPackedValueBase::
-~PainterPackedValueBase()
-{
-  if (m_d)
-    {
-      EntryBase *d;
-      d = static_cast<EntryBase*>(m_d);
-      d->release();
-      m_d = nullptr;
-    }
+  return FASTUIDRAWnew PainterPackedValuePoolPrivate();
 }
 
 void
-fastuidraw::PainterPackedValueBase::
-swap(PainterPackedValueBase &obj)
+fastuidraw::PainterPacker::
+delete_painter_packed_value_pool_d(void *md)
 {
-  std::swap(m_d, obj.m_d);
+  PainterPackedValuePoolPrivate *d;
+  d = static_cast<PainterPackedValuePoolPrivate*>(md);
+  FASTUIDRAWdelete(d);
 }
 
-const fastuidraw::PainterPackedValueBase&
-fastuidraw::PainterPackedValueBase::
-operator=(const PainterPackedValueBase &obj)
+void*
+fastuidraw::PainterPacker::
+create_packed_value(void *md, const PainterBrush &value)
 {
-  if (m_d != obj.m_d)
-    {
-      PainterPackedValueBase v(obj);
-      swap(v);
-    }
-  return *this;
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterBrush> *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(md);
+  e = d->m_brush_pool.allocate(value);
+  return e;
+}
+
+void*
+fastuidraw::PainterPacker::
+create_packed_value(void *md, const PainterClipEquations &value)
+{
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterClipEquations> *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(md);
+  e = d->m_clip_equations_pool.allocate(value);
+  return e;
+}
+
+void*
+fastuidraw::PainterPacker::
+create_packed_value(void *md, const PainterItemMatrix &value)
+{
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterItemMatrix> *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(md);
+  e = d->m_item_matrix_pool.allocate(value);
+  return e;
+}
+
+void*
+fastuidraw::PainterPacker::
+create_packed_value(void *md, const PainterItemShaderData &value)
+{
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterItemShaderData> *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(md);
+  e = d->m_item_shader_data_pool.allocate(value);
+  return e;
+}
+
+void*
+fastuidraw::PainterPacker::
+create_packed_value(void *md, const PainterCompositeShaderData &value)
+{
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterCompositeShaderData> *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(md);
+  e = d->m_composite_shader_data_pool.allocate(value);
+  return e;
+}
+
+void*
+fastuidraw::PainterPacker::
+create_packed_value(void *md, const PainterBlendShaderData &value)
+{
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterBlendShaderData> *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(md);
+  e = d->m_blend_shader_data_pool.allocate(value);
+  return e;
+}
+
+void
+fastuidraw::PainterPacker::
+acquire_packed_value(void *md)
+{
+  EntryBase *d;
+  d = static_cast<EntryBase*>(md);
+  d->aquire();
+}
+
+void
+fastuidraw::PainterPacker::
+release_packed_value(void *md)
+{
+  EntryBase *d;
+  d = static_cast<EntryBase*>(md);
+  d->release();
 }
 
 const void*
-fastuidraw::PainterPackedValueBase::
-raw_value(void) const
+fastuidraw::PainterPacker::
+raw_data_of_packed_value(void *md)
 {
   EntryBase *d;
-  d = static_cast<EntryBase*>(m_d);
+  d = static_cast<EntryBase*>(md);
   FASTUIDRAWassert(d);
   FASTUIDRAWassert(d->raw_value());
   return d->raw_value();
 }
 
-/////////////////////////////////////////////////////
-// PainterPackedValuePool methods
-fastuidraw::PainterPackedValuePool::
-PainterPackedValuePool(void)
+uint32_t
+fastuidraw::PainterPacker::
+composite_group(const PainterShaderGroup *md)
 {
-  m_d = FASTUIDRAWnew PainterPackedValuePoolPrivate();
+  const PainterShaderGroupPrivate *d;
+  d = static_cast<const PainterShaderGroupPrivate*>(md);
+  return d->m_composite_group;
 }
 
-fastuidraw::PainterPackedValuePool::
-~PainterPackedValuePool()
+uint32_t
+fastuidraw::PainterPacker::
+item_group(const PainterShaderGroup *md)
 {
-  PainterPackedValuePoolPrivate *d;
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
+  const PainterShaderGroupPrivate *d;
+  d = static_cast<const PainterShaderGroupPrivate*>(md);
+  return d->m_item_group;
 }
 
-fastuidraw::PainterPackedValue<fastuidraw::PainterBrush>
-fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterBrush &value)
+uint32_t
+fastuidraw::PainterPacker::
+brush(const PainterShaderGroup *md)
 {
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterBrush> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_brush_pool.allocate(value);
-  return fastuidraw::PainterPackedValue<PainterBrush>(e);
+  const PainterShaderGroupPrivate *d;
+  d = static_cast<const PainterShaderGroupPrivate*>(md);
+  return d->m_brush;
 }
 
-fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>
-fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterClipEquations &value)
+fastuidraw::BlendMode
+fastuidraw::PainterPacker::
+composite_mode(const PainterShaderGroup *md)
 {
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterClipEquations> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_clip_equations_pool.allocate(value);
-  return fastuidraw::PainterPackedValue<PainterClipEquations>(e);
-}
-
-fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>
-fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterItemMatrix &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterItemMatrix> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_item_matrix_pool.allocate(value);
-  return fastuidraw::PainterPackedValue<PainterItemMatrix>(e);
-}
-
-fastuidraw::PainterPackedValue<fastuidraw::PainterItemShaderData>
-fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterItemShaderData &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterItemShaderData> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_item_shader_data_pool.allocate(value);
-  return fastuidraw::PainterPackedValue<PainterItemShaderData>(e);
-}
-
-fastuidraw::PainterPackedValue<fastuidraw::PainterCompositeShaderData>
-fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterCompositeShaderData &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterCompositeShaderData> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_composite_shader_data_pool.allocate(value);
-  return fastuidraw::PainterPackedValue<PainterCompositeShaderData>(e);
-}
-
-fastuidraw::PainterPackedValue<fastuidraw::PainterBlendShaderData>
-fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterBlendShaderData &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterBlendShaderData> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_blend_shader_data_pool.allocate(value);
-  return fastuidraw::PainterPackedValue<PainterBlendShaderData>(e);
+  const PainterShaderGroupPrivate *d;
+  d = static_cast<const PainterShaderGroupPrivate*>(md);
+  return d->m_composite_mode;
 }
