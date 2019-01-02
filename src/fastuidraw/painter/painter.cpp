@@ -3508,6 +3508,8 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
+  image_atlas()->lock_resources();
+  colorstop_atlas()->lock_resources();
   d->m_core->begin(surface, clear_color_buffer);
   d->m_resolution = vec2(surface->viewport().m_dimensions);
   d->m_resolution.x() = t_max(1.0f, d->m_resolution.x());
@@ -3539,6 +3541,8 @@ end(void)
   d->m_clip_store.clear();
   d->m_state_stack.clear();
   d->m_core->end();
+  image_atlas()->unlock_resources();
+  colorstop_atlas()->unlock_resources();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&

@@ -1111,8 +1111,6 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d = static_cast<PainterPackerPrivate*>(m_d);
 
   FASTUIDRAWassert(d->m_accumulated_draws.empty());
-  d->m_backend->image_atlas()->lock_resources();
-  d->m_backend->colorstop_atlas()->lock_resources();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->m_surface = surface;
   d->m_clear_color_buffer = clear_color_buffer;
@@ -1167,8 +1165,6 @@ end(void)
   d->m_backend->on_post_draw();
   d->m_accumulated_draws.clear();
   d->m_surface.clear();
-  image_atlas()->unlock_resources();
-  colorstop_atlas()->unlock_resources();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&
