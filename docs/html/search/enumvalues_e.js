@@ -1,12 +1,7 @@
 var searchData=
 [
+  ['padding_5ftype',['padding_type',['../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988a28d176d396a7405a75e874d9997f3138',1,'fastuidraw::glsl::UnpackSourceGenerator']]],
   ['path_5fstroking_5funits',['path_stroking_units',['../df/df5/classfastuidraw_1_1_painter_stroke_params.html#aa02d8ddad011243b5bcdd54c8803724aa41f8c84fa71d1c78bedfef4ce08911c4',1,'fastuidraw::PainterStrokeParams']]],
-  ['pen_5falpha_5foffset',['pen_alpha_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ae204ad61787e15d295f577feeba987e7a640587cd5eecbf68288d36cf40a1841a',1,'fastuidraw::PainterBrush']]],
-  ['pen_5fblue_5foffset',['pen_blue_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ae204ad61787e15d295f577feeba987e7ae5a4d9ca50a4b75365a2de1df20a7758',1,'fastuidraw::PainterBrush']]],
-  ['pen_5fdata_5fsize',['pen_data_size',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ae204ad61787e15d295f577feeba987e7a280d6b6d7b726c05bdd167be1c9bbc8a',1,'fastuidraw::PainterBrush']]],
-  ['pen_5fgreen_5foffset',['pen_green_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ae204ad61787e15d295f577feeba987e7a7dc6e6c7b851f584bb045fa88aa01d60',1,'fastuidraw::PainterBrush']]],
-  ['pen_5fpacking',['pen_packing',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ad43d8259a30ec0c421eb4a9c26ca3cd6a313db8553175d9d4954949a9c9931a9b',1,'fastuidraw::PainterBrush']]],
-  ['pen_5fred_5foffset',['pen_red_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ae204ad61787e15d295f577feeba987e7a129cde72f6c32e75a2a11bf0515067aa',1,'fastuidraw::PainterBrush']]],
   ['pixel_5fstroking_5funits',['pixel_stroking_units',['../df/df5/classfastuidraw_1_1_painter_stroke_params.html#aa02d8ddad011243b5bcdd54c8803724aae51a5854db08f07b31f8c4c25b380392',1,'fastuidraw::PainterStrokeParams']]],
   ['point_5fcoordinate_5fnumbits',['point_coordinate_numbits',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a910219a008a942f5978d75b519488495af7925c582d6dc5d612c15fcc7da9df84',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['point_5fx_5fcoordinate_5fbit0',['point_x_coordinate_bit0',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a910219a008a942f5978d75b519488495a3dcca3c54c62651dde6b72d4acccf529',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],

@@ -1,9 +1,5 @@
-<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/packing/painter_clip_equations.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/packing/painter_clip_equations.hpp">
-<area shape="rect" id="node2" href="$d2/d54/painter__packed__value_8hpp.html" title="file painter_packed_value.hpp " alt="" coords="318,124,538,180"/>
-<area shape="rect" id="node3" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="343,228,513,284"/>
-<area shape="rect" id="node4" href="$d8/db6/painter__packer__data_8hpp.html" title="file painter_packer_data.hpp " alt="" coords="220,332,391,403"/>
-<area shape="rect" id="node7" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="189,673,360,729"/>
-<area shape="rect" id="node5" href="$d0/d9c/painter__packer_8hpp.html" title="file painter_packer.hpp " alt="" coords="159,451,329,521"/>
-<area shape="rect" id="node6" href="$d7/d73/filled__path_8hpp.html" title="file filled_path.hpp " alt="" coords="5,569,176,625"/>
-<area shape="rect" id="node8" href="$d6/dba/glyph__run_8hpp.html" title="file glyph_run.hpp " alt="" coords="251,569,421,625"/>
+<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_clip_equations.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_clip_equations.hpp">
+<area shape="rect" id="node2" href="$d2/d54/painter__packed__value_8hpp.html" title="file painter_packed_value.hpp " alt="" coords="5,124,225,180"/>
+<area shape="rect" id="node3" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="30,228,201,284"/>
+<area shape="rect" id="node4" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="30,332,201,388"/>
 </map>

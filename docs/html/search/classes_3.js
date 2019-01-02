@@ -5,7 +5,5 @@ var searchData=
   ['databuffer',['DataBuffer',['../da/dff/classfastuidraw_1_1_data_buffer.html',1,'fastuidraw']]],
   ['databufferbackingstore',['DataBufferBackingStore',['../d4/d34/classfastuidraw_1_1_data_buffer_backing_store.html',1,'fastuidraw']]],
   ['databufferbase',['DataBufferBase',['../db/df8/classfastuidraw_1_1_data_buffer_base.html',1,'fastuidraw']]],
-  ['datacallback',['DataCallBack',['../d8/db8/classfastuidraw_1_1_painter_packer_1_1_data_call_back.html',1,'fastuidraw::PainterPacker']]],
-  ['datawriter',['DataWriter',['../de/db1/classfastuidraw_1_1_painter_packer_1_1_data_writer.html',1,'fastuidraw::PainterPacker']]],
   ['delayedaction',['DelayedAction',['../d4/d99/classfastuidraw_1_1_painter_draw_1_1_delayed_action.html',1,'fastuidraw::PainterDraw']]]
 ];

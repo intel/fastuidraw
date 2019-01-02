@@ -12,7 +12,6 @@ var searchData=
   ['vecn_3c_20float_2c_204_20_3e',['vecN&lt; float, 4 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20float_2c_20n_20_2am_20_3e',['vecN&lt; float, N *M &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20int32_5ft_2c_202_20_3e',['vecN&lt; int32_t, 2 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
-  ['vecn_3c_20shader_5funpack_5fvalue_2c_20n_20_3e',['vecN&lt; shader_unpack_value, N &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20t_2c_20n_20_2am_20_3e',['vecN&lt; T, N *M &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20uint32_5ft_2c_202_20_3e',['vecN&lt; uint32_t, 2 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20uint32_5ft_2c_204_20_3e',['vecN&lt; uint32_t, 4 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],

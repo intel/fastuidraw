@@ -1,9 +1,6 @@
-<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/packing/painter_backend.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/packing/painter_backend.hpp">
-<area shape="rect" id="node2" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="153,124,342,195"/>
-<area shape="rect" id="node5" href="$d0/d9c/painter__packer_8hpp.html" title="file painter_packer.hpp " alt="" coords="386,124,557,195"/>
+<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_backend.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_backend.hpp">
+<area shape="rect" id="node2" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="82,124,271,195"/>
+<area shape="rect" id="node5" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="295,131,466,187"/>
 <area shape="rect" id="node3" href="$d3/d4b/glyph__atlas__gl_8hpp.html" title="file glyph_atlas_gl.hpp " alt="" coords="5,243,209,299"/>
 <area shape="rect" id="node4" href="$d8/d96/painter__backend__gl_8hpp.html" title="file painter_backend_gl.hpp " alt="" coords="60,347,293,403"/>
-<area shape="rect" id="node6" href="$d7/d73/filled__path_8hpp.html" title="file filled_path.hpp " alt="" coords="285,243,455,299"/>
-<area shape="rect" id="node7" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="407,347,578,403"/>
-<area shape="rect" id="node8" href="$d6/dba/glyph__run_8hpp.html" title="file glyph_run.hpp " alt="" coords="530,243,701,299"/>
 </map>
