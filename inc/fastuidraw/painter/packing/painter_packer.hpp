@@ -32,6 +32,7 @@
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
+#include <fastuidraw/painter/painter_data_writer.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
 #include <fastuidraw/painter/packing/painter_backend.hpp>
 #include <fastuidraw/painter/packing/painter_packer_data.hpp>
@@ -54,7 +55,7 @@ namespace fastuidraw
     /*!
      * \brief
      * A DataCallBack represents a functor call back
-     * from nay of the PainterPacker::draw_generic()
+     * from any of the PainterPacker::draw_generic()
      * methods called whenever a header is added.
      */
     class DataCallBack:public reference_counted<DataCallBack>::default_base
@@ -90,88 +91,6 @@ namespace fastuidraw
     private:
       friend class PainterPacker;
       void *m_d;
-    };
-
-    /*!
-     * \brief
-     * A provides an interface to write attribute and index data into a PainterDraw
-     * for the cases where a simple copy is not sufficient.
-     */
-    class DataWriter:fastuidraw::noncopyable
-    {
-    public:
-      virtual
-      ~DataWriter()
-      {}
-
-      /*!
-       * To be implemented by a derived class to return
-       * the number of attribute chunks of the DataWriter.
-       */
-      virtual
-      unsigned int
-      number_attribute_chunks(void) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the number of attribute of an attribute chunk
-       * of the DataWriter.
-       * \param attribute_chunk which chunk of attributes
-       */
-      virtual
-      unsigned int
-      number_attributes(unsigned int attribute_chunk) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the number of index chunks of the DataWriter.
-       */
-      virtual
-      unsigned int
-      number_index_chunks(void) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the number of indices of an index chunk
-       * of the DataWriter.
-       * \param index_chunk which chunk of attributes
-       */
-      virtual
-      unsigned int
-      number_indices(unsigned int index_chunk) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * what attribute chunk to use for a given index
-       * chunk.
-       * \param index_chunk index chunk with 0 <= index_chunk <= number_index_chunks()
-       */
-      virtual
-      unsigned int
-      attribute_chunk_selection(unsigned int index_chunk) const = 0;
-
-      /*!
-       * To be implemented by a derived class to write indices.
-       * \param dst location to which to write indices
-       * \param index_offset_value value by which to increment the index
-       *                           values written
-       * \param index_chunk which chunk of indices to write
-       */
-      virtual
-      void
-      write_indices(c_array<PainterIndex> dst,
-                    unsigned int index_offset_value,
-                    unsigned int index_chunk) const = 0;
-
-      /*!
-       * To be implemented by a derived class to write attributes.
-       * \param dst location to which to write indices
-       * \param attribute_chunk which chunk of attributes to write
-       */
-      virtual
-      void
-      write_attributes(c_array<PainterAttribute> dst,
-                       unsigned int attribute_chunk) const = 0;
     };
 
     /*!
@@ -407,7 +326,7 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
-                 const DataWriter &src,
+                 const PainterDataWriter &src,
                  int z);
     /*!
      * Returns a stat on how much data the PainterPacker has

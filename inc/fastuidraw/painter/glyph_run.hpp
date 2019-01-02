@@ -172,7 +172,7 @@ namespace fastuidraw
      * \param begin index to select which is the first glyph
      * \param count number of glyphs to take starting at begin
      */
-    const PainterPacker::DataWriter&
+    const PainterDataWriter&
     subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int count) const;
 
     /*!
@@ -184,7 +184,7 @@ namespace fastuidraw
      * \param renderer how to render the glyphs
      * \param begin index to select which is the first glyph
      */
-    const PainterPacker::DataWriter&
+    const PainterDataWriter&
     subsequence(GlyphRenderer renderer, unsigned int begin) const;
 
     /*!
@@ -195,7 +195,7 @@ namespace fastuidraw
      * one of add_glyph(), add_glyphs(), subsequence() is called.
      * \param renderer how to render the glyphs
      */
-    const PainterPacker::DataWriter&
+    const PainterDataWriter&
     subsequence(GlyphRenderer renderer) const;
 
   private:

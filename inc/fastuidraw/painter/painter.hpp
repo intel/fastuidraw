@@ -1147,7 +1147,7 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
-                 const PainterPacker::DataWriter &src);
+                 const PainterDataWriter &src);
 
     /*!
      * Queue an action that uses (or affects) the GPU. Through these actions,

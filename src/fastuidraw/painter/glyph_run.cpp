@@ -37,7 +37,7 @@ namespace
     std::vector<fastuidraw::PainterIndex> m_indices;
   };
 
-  class SubSequence:public fastuidraw::PainterPacker::DataWriter
+  class SubSequence:public fastuidraw::PainterDataWriter
   {
   public:
     void
@@ -390,7 +390,7 @@ added_glyph(unsigned int I,
   *out_position = d->m_glyph_locations[I].m_position;
 }
 
-const fastuidraw::PainterPacker::DataWriter&
+const fastuidraw::PainterDataWriter&
 fastuidraw::GlyphRun::
 subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int cnt) const
 {
@@ -429,7 +429,7 @@ subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int cnt) const
   return d->m_subsequence;
 }
 
-const fastuidraw::PainterPacker::DataWriter&
+const fastuidraw::PainterDataWriter&
 fastuidraw::GlyphRun::
 subsequence(GlyphRenderer renderer, unsigned int begin) const
 {
@@ -447,7 +447,7 @@ subsequence(GlyphRenderer renderer, unsigned int begin) const
   return subsequence(renderer, begin, count);
 }
 
-const fastuidraw::PainterPacker::DataWriter&
+const fastuidraw::PainterDataWriter&
 fastuidraw::GlyphRun::
 subsequence(GlyphRenderer renderer) const
 {
