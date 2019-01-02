@@ -27,6 +27,13 @@ composite_group(void) const
 
 uint32_t
 fastuidraw::PainterShaderGroup::
+blend_group(void) const
+{
+  return PainterPacker::blend_group(this);
+}
+
+uint32_t
+fastuidraw::PainterShaderGroup::
 item_group(void) const
 {
   return PainterPacker::item_group(this);

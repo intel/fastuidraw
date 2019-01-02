@@ -50,6 +50,13 @@ namespace fastuidraw
     item_group(void) const;
 
     /*!
+     * The group (see PainterShader::group())
+     * of the active blend shader.
+     */
+    uint32_t
+    blend_group(void) const;
+
+    /*!
      * The shading ID as returned by PainterBrush::shader()
      * of the active brush.
      */

@@ -32,6 +32,7 @@ namespace
   public:
     uint32_t m_composite_group;
     uint32_t m_item_group;
+    uint32_t m_blend_group;
     uint32_t m_brush;
     fastuidraw::BlendMode m_composite_mode;
   };
@@ -743,6 +744,7 @@ pack_header(unsigned int header_size,
     }
 
   current.m_item_group = item_shader->group();
+  current.m_blend_group = blend.m_group;
   current.m_brush = brush_shader;
   current.m_composite_group = composite.m_group;
   current.m_composite_mode = composite_mode;
@@ -762,9 +764,10 @@ pack_header(unsigned int header_size,
   header.pack_data(dst);
 
   if (current.m_item_group != m_prev_state.m_item_group
-     || current.m_composite_group != m_prev_state.m_composite_group
-     || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u
-     || current.m_composite_mode != m_prev_state.m_composite_mode)
+      || current.m_composite_group != m_prev_state.m_composite_group
+      || current.m_blend_group != m_prev_state.m_blend_group
+      || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u
+      || current.m_composite_mode != m_prev_state.m_composite_mode)
     {
       return_value = m_draw_command->draw_break(m_prev_state, current,
                                                 m_indices_written);
@@ -1467,6 +1470,15 @@ composite_group(const PainterShaderGroup *md)
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(md);
   return d->m_composite_group;
+}
+
+uint32_t
+fastuidraw::PainterPacker::
+blend_group(const PainterShaderGroup *md)
+{
+  const PainterShaderGroupPrivate *d;
+  d = static_cast<const PainterShaderGroupPrivate*>(md);
+  return d->m_blend_group;
 }
 
 uint32_t

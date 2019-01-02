@@ -366,6 +366,10 @@ namespace fastuidraw
 
     static
     uint32_t
+    blend_group(const PainterShaderGroup *md);
+
+    static
+    uint32_t
     item_group(const PainterShaderGroup *md);
 
     static
