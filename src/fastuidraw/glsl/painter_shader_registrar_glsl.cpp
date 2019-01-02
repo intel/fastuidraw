@@ -34,6 +34,7 @@
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/shader_code.hpp>
+#include <fastuidraw/glsl/unpack_source_generator.hpp>
 
 #include "private/uber_shader_builder.hpp"
 #include "private/backend_shaders.hpp"
@@ -513,172 +514,118 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
 
-  {
-    shader_unpack_value_set<PainterBrush::color_data_size> labels;
-    labels
-      .set(PainterBrush::color_red_offset, ".r")
-      .set(PainterBrush::color_green_offset, ".g")
-      .set(PainterBrush::color_blue_offset, ".b")
-      .set(PainterBrush::color_alpha_offset, ".a")
-      .stream_unpack_function(str, "fastuidraw_read_color", "vec4");
-  }
+  UnpackSourceGenerator("vec4")
+    .set(PainterBrush::color_red_offset, ".r")
+    .set(PainterBrush::color_green_offset, ".g")
+    .set(PainterBrush::color_blue_offset, ".b")
+    .set(PainterBrush::color_alpha_offset, ".a")
+    .stream_unpack_function(str, "fastuidraw_read_color");
 
-  {
-    /* Matrics in GLSL are [column][row], that is why
-     * one sees the transposing to the loads
-     */
-    shader_unpack_value_set<PainterBrush::transformation_matrix_data_size> labels;
-    labels
-      .set(PainterBrush::transformation_matrix_m00_offset, "[0][0]")
-      .set(PainterBrush::transformation_matrix_m10_offset, "[0][1]")
-      .set(PainterBrush::transformation_matrix_m01_offset, "[1][0]")
-      .set(PainterBrush::transformation_matrix_m11_offset, "[1][1]")
-      .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix",
-                              "mat2");
-  }
+  UnpackSourceGenerator("mat2")
+    .set(PainterBrush::transformation_matrix_m00_offset, "[0][0]")
+    .set(PainterBrush::transformation_matrix_m10_offset, "[0][1]")
+    .set(PainterBrush::transformation_matrix_m01_offset, "[1][0]")
+    .set(PainterBrush::transformation_matrix_m11_offset, "[1][1]")
+    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix");
 
-  {
-    shader_unpack_value_set<PainterBrush::transformation_translation_data_size> labels;
-    labels
-      .set(PainterBrush::transformation_translation_x_offset, ".x")
-      .set(PainterBrush::transformation_translation_y_offset, ".y")
-      .stream_unpack_function(str, "fastuidraw_read_brush_transformation_translation",
-                              "vec2");
-  }
+  UnpackSourceGenerator("vec2")
+    .set(PainterBrush::transformation_translation_x_offset, ".x")
+    .set(PainterBrush::transformation_translation_y_offset, ".y")
+    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_translation");
 
-  {
-    shader_unpack_value_set<PainterBrush::repeat_window_data_size> labels;
-    labels
-      .set(PainterBrush::repeat_window_x_offset, ".xy.x")
-      .set(PainterBrush::repeat_window_y_offset, ".xy.y")
-      .set(PainterBrush::repeat_window_width_offset, ".wh.x")
-      .set(PainterBrush::repeat_window_height_offset, ".wh.y")
-      .stream_unpack_function(str, "fastuidraw_read_brush_repeat_window",
-                              "fastuidraw_brush_repeat_window");
-  }
+  UnpackSourceGenerator("fastuidraw_brush_repeat_window")
+    .set(PainterBrush::repeat_window_x_offset, ".xy.x")
+    .set(PainterBrush::repeat_window_y_offset, ".xy.y")
+    .set(PainterBrush::repeat_window_width_offset, ".wh.x")
+    .set(PainterBrush::repeat_window_height_offset, ".wh.y")
+    .stream_unpack_function(str, "fastuidraw_read_brush_repeat_window");
 
-  {
-    shader_unpack_value_set<PainterBrush::image_data_size> labels;
-    labels
-      .set(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz", shader_unpack_value::uint_type)
-      .set(PainterBrush::image_size_xy_offset, ".image_size_xy", shader_unpack_value::uint_type)
-      .set(PainterBrush::image_start_xy_offset, ".image_start_xy", shader_unpack_value::uint_type)
-      .set(PainterBrush::image_slack_number_lookups_offset, ".image_slack_number_lookups", shader_unpack_value::uint_type)
-      .stream_unpack_function(str, "fastuidraw_read_brush_image_raw_data",
-                              "fastuidraw_brush_image_data_raw");
-  }
+  UnpackSourceGenerator("fastuidraw_brush_image_data_raw")
+    .set(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz", UnpackSourceGenerator::uint_type)
+    .set(PainterBrush::image_size_xy_offset, ".image_size_xy", UnpackSourceGenerator::uint_type)
+    .set(PainterBrush::image_start_xy_offset, ".image_start_xy", UnpackSourceGenerator::uint_type)
+    .set(PainterBrush::image_slack_number_lookups_offset, ".image_slack_number_lookups", UnpackSourceGenerator::uint_type)
+    .stream_unpack_function(str, "fastuidraw_read_brush_image_raw_data");
 
-  {
-    shader_unpack_value_set<PainterBrush::linear_gradient_data_size> labels;
-    labels
-      .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
-      .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
-      .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
-      .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
-      .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", shader_unpack_value::uint_type)
-      .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", shader_unpack_value::uint_type)
-      .stream_unpack_function(str, "fastuidraw_read_brush_linear_or_sweep_gradient_data", "fastuidraw_brush_gradient_raw");
-  }
+  UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
+    .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
+    .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
+    .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
+    .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
+    .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
+    .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
+    .stream_unpack_function(str, "fastuidraw_read_brush_linear_or_sweep_gradient_data");
 
-  {
-    shader_unpack_value_set<PainterBrush::radial_gradient_data_size> labels;
-    labels
-      .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
-      .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
-      .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
-      .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
-      .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", shader_unpack_value::uint_type)
-      .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", shader_unpack_value::uint_type)
-      .set(PainterBrush::gradient_start_radius_offset, ".r0")
-      .set(PainterBrush::gradient_end_radius_offset, ".r1")
-      .stream_unpack_function(str, "fastuidraw_read_brush_radial_gradient_data",
-                              "fastuidraw_brush_gradient_raw");
-  }
+  UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
+    .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
+    .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
+    .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
+    .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
+    .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
+    .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
+    .set(PainterBrush::gradient_start_radius_offset, ".r0")
+    .set(PainterBrush::gradient_end_radius_offset, ".r1")
+    .stream_unpack_function(str, "fastuidraw_read_brush_radial_gradient_data");
 
-  {
-    shader_unpack_value_set<PainterHeader::header_size> labels;
-    labels
-      .set(PainterHeader::clip_equations_location_offset, ".clipping_location", shader_unpack_value::uint_type)
-      .set(PainterHeader::item_matrix_location_offset, ".item_matrix_location", shader_unpack_value::uint_type)
-      .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
-      .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
-      .set(PainterHeader::composite_shader_data_location_offset, ".composite_shader_data_location", shader_unpack_value::uint_type)
-      .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
-      .set(PainterHeader::brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
-      .set(PainterHeader::z_offset, ".z", shader_unpack_value::int_type)
-      .set(PainterHeader::item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
-      .set(PainterHeader::composite_shader_offset, ".composite_shader", shader_unpack_value::uint_type)
-      .set(PainterHeader::blend_shader_offset, ".blend_shader", shader_unpack_value::uint_type)
-      .set(PainterHeader::flags_offset, ".flags", shader_unpack_value::uint_type)
-      .stream_unpack_function(str, "fastuidraw_read_header",
-                              "fastuidraw_shader_header", false);
-  }
+  UnpackSourceGenerator("fastuidraw_shader_header")
+    .set(PainterHeader::clip_equations_location_offset, ".clipping_location", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::item_matrix_location_offset, ".item_matrix_location", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::composite_shader_data_location_offset, ".composite_shader_data_location", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::brush_shader_offset, ".brush_shader", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::z_offset, ".z", UnpackSourceGenerator::int_type)
+    .set(PainterHeader::item_shader_offset, ".item_shader", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::composite_shader_offset, ".composite_shader", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::blend_shader_offset, ".blend_shader", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::flags_offset, ".flags", UnpackSourceGenerator::uint_type)
+    .stream_unpack_function(str, "fastuidraw_read_header", false);
 
-  {
-    shader_unpack_value_set<PainterClipEquations::clip_data_size> labels;
-    labels
-      .set(PainterClipEquations::clip0_coeff_x, ".clip0.x")
-      .set(PainterClipEquations::clip0_coeff_y, ".clip0.y")
-      .set(PainterClipEquations::clip0_coeff_w, ".clip0.z")
+  UnpackSourceGenerator("fastuidraw_clipping_data")
+    .set(PainterClipEquations::clip0_coeff_x, ".clip0.x")
+    .set(PainterClipEquations::clip0_coeff_y, ".clip0.y")
+    .set(PainterClipEquations::clip0_coeff_w, ".clip0.z")
+    .set(PainterClipEquations::clip1_coeff_x, ".clip1.x")
+    .set(PainterClipEquations::clip1_coeff_y, ".clip1.y")
+    .set(PainterClipEquations::clip1_coeff_w, ".clip1.z")
+    .set(PainterClipEquations::clip2_coeff_x, ".clip2.x")
+    .set(PainterClipEquations::clip2_coeff_y, ".clip2.y")
+    .set(PainterClipEquations::clip2_coeff_w, ".clip2.z")
+    .set(PainterClipEquations::clip3_coeff_x, ".clip3.x")
+    .set(PainterClipEquations::clip3_coeff_y, ".clip3.y")
+    .set(PainterClipEquations::clip3_coeff_w, ".clip3.z")
+    .stream_unpack_function(str, "fastuidraw_read_clipping", false);
 
-      .set(PainterClipEquations::clip1_coeff_x, ".clip1.x")
-      .set(PainterClipEquations::clip1_coeff_y, ".clip1.y")
-      .set(PainterClipEquations::clip1_coeff_w, ".clip1.z")
+  /* Matrics in GLSL are [column][row], that is why we use the
+   * matrix_colX_rowY_offset enums
+   */
+  UnpackSourceGenerator("mat3")
+    .set(PainterItemMatrix::matrix_col0_row0_offset, "[0][0]")
+    .set(PainterItemMatrix::matrix_col0_row1_offset, "[0][1]")
+    .set(PainterItemMatrix::matrix_col0_row2_offset, "[0][2]")
+    .set(PainterItemMatrix::matrix_col1_row0_offset, "[1][0]")
+    .set(PainterItemMatrix::matrix_col1_row1_offset, "[1][1]")
+    .set(PainterItemMatrix::matrix_col1_row2_offset, "[1][2]")
+    .set(PainterItemMatrix::matrix_col2_row0_offset, "[2][0]")
+    .set(PainterItemMatrix::matrix_col2_row1_offset, "[2][1]")
+    .set(PainterItemMatrix::matrix_col2_row2_offset, "[2][2]")
+    .stream_unpack_function(str, "fastuidraw_read_item_matrix", false);
 
-      .set(PainterClipEquations::clip2_coeff_x, ".clip2.x")
-      .set(PainterClipEquations::clip2_coeff_y, ".clip2.y")
-      .set(PainterClipEquations::clip2_coeff_w, ".clip2.z")
+  UnpackSourceGenerator("fastuidraw_stroking_params")
+    .set(PainterStrokeParams::stroke_radius_offset, ".radius")
+    .set(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
+    .stream_unpack_function(str, "fastuidraw_read_stroking_params", true);
 
-      .set(PainterClipEquations::clip3_coeff_x, ".clip3.x")
-      .set(PainterClipEquations::clip3_coeff_y, ".clip3.y")
-      .set(PainterClipEquations::clip3_coeff_w, ".clip3.z")
-
-      .stream_unpack_function(str, "fastuidraw_read_clipping",
-                              "fastuidraw_clipping_data", false);
-  }
-
-  {
-    /* Matrics in GLSL are [column][row], that is why we use the
-     * matrix_colX_rowY_offset enums
-     */
-    shader_unpack_value_set<PainterItemMatrix::matrix_data_size> labels;
-    labels
-      .set(PainterItemMatrix::matrix_col0_row0_offset, "[0][0]")
-      .set(PainterItemMatrix::matrix_col0_row1_offset, "[0][1]")
-      .set(PainterItemMatrix::matrix_col0_row2_offset, "[0][2]")
-      .set(PainterItemMatrix::matrix_col1_row0_offset, "[1][0]")
-      .set(PainterItemMatrix::matrix_col1_row1_offset, "[1][1]")
-      .set(PainterItemMatrix::matrix_col1_row2_offset, "[1][2]")
-      .set(PainterItemMatrix::matrix_col2_row0_offset, "[2][0]")
-      .set(PainterItemMatrix::matrix_col2_row1_offset, "[2][1]")
-      .set(PainterItemMatrix::matrix_col2_row2_offset, "[2][2]")
-      .stream_unpack_function(str, "fastuidraw_read_item_matrix", "mat3", false);
-  }
-
-  {
-    shader_unpack_value_set<PainterStrokeParams::stroke_data_size> labels;
-    labels
-      .set(PainterStrokeParams::stroke_radius_offset, ".radius")
-      .set(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
-      .stream_unpack_function(str, "fastuidraw_read_stroking_params",
-                              "fastuidraw_stroking_params",
-                              true);
-  }
-
-  {
-    shader_unpack_value_set<PainterDashedStrokeParams::stroke_static_data_size> labels;
-    labels
-      .set(PainterDashedStrokeParams::stroke_radius_offset, ".radius")
-      .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
-      .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
-      .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
-      .set(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")
-      .set(PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset, ".first_interval_start_on_looping")
-      .set(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals", shader_unpack_value::uint_type)
-      .stream_unpack_function(str, "fastuidraw_read_dashed_stroking_params_header",
-                              "fastuidraw_dashed_stroking_params_header",
-                              true);
-  }
+  UnpackSourceGenerator("fastuidraw_dashed_stroking_params_header")
+    .set(PainterDashedStrokeParams::stroke_radius_offset, ".radius")
+    .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
+    .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
+    .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
+    .set(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")
+    .set(PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset, ".first_interval_start_on_looping")
+    .set(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals", UnpackSourceGenerator::uint_type)
+    .stream_unpack_function(str, "fastuidraw_read_dashed_stroking_params_header", true);
 }
 
 void

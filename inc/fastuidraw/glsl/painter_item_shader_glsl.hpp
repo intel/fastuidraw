@@ -31,19 +31,18 @@ namespace fastuidraw
  */
     /*!
      * \brief
-     * A varying_list lists all the in's of a frag
-     * shader (and their names) or all the out's of vertex
-     * shader.
+     * A varying_list lists all the in's of a frag shader (and
+     * their names) or all the out's of vertex shader.
      *
-     * A varying for a PainterShaderGL is a SCALAR. For a vertex
-     * and fragment shader pair, the name of the varying does NOT
-     * matter for the sending of a vertex shader out to a fragment
-     * shader in. Instead, the slot matters. The virtual slots for
-     * each varying type are seperate, i.e. slot 0 for uint is a
-     * different slot than slot 0 for int. In addition the
-     * interpolation type is part of the type for floats,
-     * thus slot 0 for flat float is a different slot than
-     * slot 0 for smooth float.
+     * A varying for a \ref PainterItemShaderGL is a SCALAR. For a
+     * a vertex and fragment shader pair, the name of the varying
+     * does NOT matter for the sending of a vertex shader out to a
+     * fragment shader in. Instead, the slot matters. The virtual
+     * slots for each varying type are seperate, i.e. slot 0 for
+     * uint is a different slot than slot 0 for int. In addition
+     * the interpolation type is part of the type for floats, thus
+     * slot 0 for flat float is a different slot than slot 0 for
+     * smooth float.
      */
     class varying_list
     {
@@ -171,175 +170,6 @@ namespace fastuidraw
     private:
       void *m_d;
     };
-
-    /*!
-     * \brief
-     * A shader_unpack_value represents a value to unpack
-     * from the data store.
-     */
-    class shader_unpack_value
-    {
-    public:
-      /*!
-       * Enumeration specifing GLSL type for value
-       * to unpack.
-       */
-      enum type_t
-        {
-          float_type, /*!< GLSL type is float */
-          uint_type,  /*!< GLSL type is uint */
-          int_type,   /*!< GLSL type is int */
-        };
-
-      /*!
-       * Ctor.
-       * \param pname value returned by name(). The string behind the passed pointer
-       *              is copied
-       * \param ptype the value returned by type().
-       */
-      shader_unpack_value(c_string pname = "", type_t ptype = float_type);
-
-      /*!
-       * Copy ctor
-       */
-      shader_unpack_value(const shader_unpack_value &obj);
-
-      ~shader_unpack_value();
-
-      /*!
-       * Assignment operator
-       */
-      shader_unpack_value&
-      operator=(const shader_unpack_value &rhs);
-
-      /*!
-       * Swap operation
-       * \param obj object with which to swap
-       */
-      void
-      swap(shader_unpack_value &obj);
-
-      /*!
-       * The name of the value to unpack as it appears in GLSL
-       */
-      c_string
-      name(void) const;
-
-      /*!
-       * The GLSL type of the value to unpack
-       */
-      enum type_t
-      type(void) const;
-
-      /*!
-       * Adds to a ShaderSource the GLSL code to unpack a
-       * stream of values. Returns the number of blocks needed to unpack
-       * the data in GLSL.
-       * \param str location to which to add the GLSL code
-       * \param labels GLSL names and types to which to unpack
-       * \param offset_name GLSL name for offset from which to unpack
-       *                    values
-       * \param prefix string prefix by which to prefix the name values of labels
-       */
-      static
-      unsigned int
-      stream_unpack_code(ShaderSource &str,
-                         c_array<const shader_unpack_value> labels,
-                         c_string offset_name,
-                         c_string prefix = "");
-
-      /*!
-       * Adds to a ShaderSource the GLSL function:
-       * \code
-       * uint
-       * function_name(uint location, out out_type v)
-       * \endcode
-       * whose body is the unpacking of the values into an
-       * out. Returns the number of blocks needed to unpack
-       * the data in GLSL.
-       * \param str location to which to add the GLSL code
-       * \param labels GLSL names of the fields and their types
-       * \param function_name name to give the function
-       * \param out_type the out type of the function
-       * \param returns_new_offset if true, function returns the offset after
-       *                           the data it unpacks.
-       */
-      static
-      unsigned int
-      stream_unpack_function(ShaderSource &str,
-                             c_array<const shader_unpack_value> labels,
-                             c_string function_name,
-                             c_string out_type,
-                             bool returns_new_offset = true);
-    private:
-      void *m_d;
-    };
-
-    /*!
-     * \brief
-     * A shader_unpack_value_set is a convenience class wrapping
-     * an array of shader_unpack_value objects.
-     */
-    template<size_t N>
-    class shader_unpack_value_set:
-      public vecN<shader_unpack_value, N>
-    {
-    public:
-      /*!
-       * Set the named element to a value.
-       * \param i which element of this to set
-       * \param name name value
-       * \param type type value
-       */
-      shader_unpack_value_set&
-      set(unsigned int i, c_string name,
-          shader_unpack_value::type_t type = shader_unpack_value::float_type)
-      {
-        this->operator[](i) = shader_unpack_value(name, type);
-        return *this;
-      }
-
-      /*!
-       * Provided as an API convenience, equivalent to
-       * \code
-       * shader_unpack_value::stream_unpack_code(str, *this, offset_name);
-       * \endcode
-       * \param str location to which to add the GLSL code
-       * \param offset_name GLSL name for offset from which to unpack
-       *                    values
-       * \param prefix string prefix by which to prefix the name values of labels
-       */
-      unsigned int
-      stream_unpack_code(ShaderSource &str,
-                         c_string offset_name,
-                         c_string prefix = "")
-      {
-        return shader_unpack_value::stream_unpack_code(str, *this, offset_name, prefix);
-      }
-
-      /*!
-       * Provided as an API convenience, equivalent to
-       * \code
-       * shader_unpack_value::stream_unpack_function(str, *this, function_name,
-       *                                             out_type, returns_new_offset);
-       * \endcode
-       * \param str location to which to add the GLSL code
-       * \param function_name name to give the function
-       * \param out_type the out type of the function
-       * \param returns_new_offset if true, function returns the offset after
-       *                           the data it unpacks.
-       */
-      unsigned int
-      stream_unpack_function(ShaderSource &str,
-                             c_string function_name,
-                             c_string out_type,
-                             bool returns_new_offset = true)
-      {
-        return shader_unpack_value::stream_unpack_function(str, *this, function_name,
-                                                           out_type, returns_new_offset);
-      }
-    };
-
 
     /*!
      * \brief
