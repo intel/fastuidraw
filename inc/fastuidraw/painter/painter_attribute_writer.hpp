@@ -1,6 +1,6 @@
 /*!
- * \file painter_data_writer.hpp
- * \brief file painter_data_writer.hpp
+ * \file painter_attribute_writer.hpp
+ * \brief file painter_attribute_writer.hpp
  *
  * Copyright 2016 by Intel.
  *

@@ -163,7 +163,7 @@ namespace fastuidraw
     layout(void) const;
 
     /*!
-     * Returns a const-reference to PainterPacker::DataWrite
+     * Returns a const-reference to \ref PainterAttributeWriter
      * object for rendering a named range of glyphs for
      * a specified \ref GlyphRenderer. The returned object
      * is valid in value until this GlyphRun is destroyed or
@@ -176,7 +176,7 @@ namespace fastuidraw
     subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int count) const;
 
     /*!
-     * Returns a const-reference to PainterPacker::DataWrite
+     * Returns a const-reference to \ref PainterAttributeWriter
      * object for rendering all glyphs from a starting point
      * for a specified \ref GlyphRenderer. The returned object
      * is valid in value until this GlyphRun is destroyed or
@@ -188,7 +188,7 @@ namespace fastuidraw
     subsequence(GlyphRenderer renderer, unsigned int begin) const;
 
     /*!
-     * Returns a const-reference to PainterPacker::DataWrite
+     * Returns a const-reference to \ref PainterAttributeWriter
      * object for rendering the entire range of glyphs for
      * a specified \ref GlyphRenderer. The returned object
      * is valid in value until this GlyphRun is destroyed or

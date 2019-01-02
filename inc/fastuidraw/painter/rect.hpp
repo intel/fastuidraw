@@ -103,49 +103,49 @@ namespace fastuidraw
     }
 
     /*!
-     * Equivalent to \ref m_min_point.x()
+     * Equivalent to \code m_min_point.x() \endcode
      */
     float&
     min_x(void) { return m_min_point.x(); }
 
     /*!
-     * Equivalent to \ref m_min_point.x()
+     * Equivalent to \code m_min_point.x() \endcode
      */
     float
     min_x(void) const { return m_min_point.x(); }
 
     /*!
-     * Equivalent to \ref m_min_point.x()
+     * Equivalent to \code m_min_point.y() \endcode
      */
     float&
     min_y(void) { return m_min_point.y(); }
 
     /*!
-     * Equivalent to \ref m_min_point.x()
+     * Equivalent to \code m_min_point.y() \endcode
      */
     float
     min_y(void) const { return m_min_point.y(); }
 
     /*!
-     * Equivalent to \ref m_max_point.x()
+     * Equivalent to \code m_max_point.x() \endcode
      */
     float&
     max_x(void) { return m_max_point.x(); }
 
     /*!
-     * Equivalent to \ref m_max_point.x()
+     * Equivalent to \code m_max_point.x() \endcode
      */
     float
     max_x(void) const { return m_max_point.x(); }
 
     /*!
-     * Equivalent to \ref m_max_point.x()
+     * Equivalent to \code m_max_point.y() \endcode
      */
     float&
     max_y(void) { return m_max_point.y(); }
 
     /*!
-     * Equivalent to \ref m_max_point.x()
+     * Equivalent to \code m_max_point.y() \endcode
      */
     float
     max_y(void) const { return m_max_point.y(); }
@@ -170,7 +170,7 @@ namespace fastuidraw
      * m_min_point += tr;
      * m_max_point += tr;
      * \endcode
-     * \param tr amount by which to transate
+     * \param tr amount by which to translate
      */
     Rect&
     translate(const vec2 &tr)
@@ -185,7 +185,8 @@ namespace fastuidraw
      * \code
      * translate(vec2(x, y))
      * \endcode
-     * \param tr amount by which to transate
+     * \param x amount by which to translate in x-coordinate
+     * \param y amount by which to translate in y-coordinate
      */
     Rect&
     translate(float x, float y)

@@ -131,7 +131,7 @@ namespace fastuidraw
      * Returns the z-range of the data in an attribute/index
      * pair. After drawing a chunk, Painter will call on
      * itself Painter::increment_z(range_type::differnce())
-     * and will set the header set to PainterPacker so
+     * and will set the header set to \ref Painter so
      * that while drawing so that range_type::m_begin maps
      * to Painter::current_z().
      */

@@ -34,7 +34,7 @@ namespace fastuidraw
      * A varying_list lists all the in's of a frag shader (and
      * their names) or all the out's of vertex shader.
      *
-     * A varying for a \ref PainterItemShaderGL is a SCALAR. For a
+     * A varying for a \ref PainterItemShaderGLSL is a SCALAR. For
      * a vertex and fragment shader pair, the name of the varying
      * does NOT matter for the sending of a vertex shader out to a
      * fragment shader in. Instead, the slot matters. The virtual
@@ -195,9 +195,8 @@ namespace fastuidraw
      *  - attrib2 corresponds to PainterAttribute::m_attrib2 and
      *  - shader_data_offset is what block in the data store for
      *    the data packed by PainterItemShaderData::pack_data()
-     *    of the PainterItemShaderData in the \ref Painter (or
-     *    \ref PainterPacker) call; use the macro fastuidraw_fetch_data()
-     *    to read the data.
+     *    of the PainterItemShaderData in the \ref Painter call;
+     *    use the macro fastuidraw_fetch_data() to read the data.
      *
      * The output clip_p is to hold the clip-coordinate of the vertex.
      * The output brush_p is to hold the coordinate for the brush of
@@ -253,9 +252,8 @@ namespace fastuidraw
      * to make sure that the function is given a unique global name within
      * the uber-shader.
      *
-     * Lastly, one can use the classes \ref shader_unpack_value
-     * and \ref shader_unpack_value_set to generate shader code
-     * to unpack values from the data in the data store buffer.
+     * Lastly, one can use the class \ref UnpackSourceGenerator to generate
+     * shader code to unpack values from the data in the data store buffer.
      * That machine generated code uses the macro fastuidraw_fetch_data().
      */
     class PainterItemShaderGLSL:public PainterItemShader

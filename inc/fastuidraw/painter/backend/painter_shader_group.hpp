@@ -30,7 +30,7 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterShaderGroup gives to what groups the active shaders
-   * of a PainterPacker belong.
+   * of a \ref Painter belong.
    */
   class PainterShaderGroup:noncopyable
   {

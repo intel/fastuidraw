@@ -188,7 +188,6 @@ namespace fastuidraw
     }
 
   private:
-    friend class PainterPacker;
     friend class PainterPackedValuePool;
 
     explicit
@@ -205,8 +204,8 @@ namespace fastuidraw
    * Just like PainterPackedValue, PainterPackedValuePool is
    * NOT thread safe, as such it is not a safe operation to use the
    * same PainterPackedValuePool object from multiple threads at the
-   * same time. A fixed PainterPackedValuePool can create PainterPackedValue
-   * objects used by different Painter (and PainterPacker) objects.
+   * same time. A fixed PainterPackedValuePool can create \ref
+   * PainterPackedValue objects used by different \ref Painter objects.
    */
   class PainterPackedValuePool:noncopyable
   {

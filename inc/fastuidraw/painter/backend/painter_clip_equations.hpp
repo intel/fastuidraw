@@ -32,11 +32,11 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterClipEquations stores the clip equation for
-   * PainterPacker.
+   * Painter.
    *
-   * Each vec3 gives a clip equation in
-   * 3D API clip coordinats (i.e. after PainterItemMatrix
-   * transformation is applied) as dot(clip_vector, p) >= 0.
+   * Each vec3 gives a clip equation in 3D API clip coordinats
+   * (i.e. after PainterItemMatrix transformation is applied) as
+   * dot(clip_vector, p) >= 0.
    */
   class PainterClipEquations
   {
@@ -76,7 +76,7 @@ namespace fastuidraw
     {}
 
     /*!
-     * Pack the values of this ClipEquations
+     * Pack the values as according to \ref clip_equations_data_offset_t
      * \param dst place to which to pack data
      */
     void

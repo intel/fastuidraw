@@ -49,21 +49,19 @@ Painter provides the interface for Canvas drawing, the most important class
 being Painter. Part of the main library libFastUIDraw.
 @}
 
-\defgroup PainterBackend Painter Packing
+\defgroup PainterBackend Painter Backend
 @{
 \brief
 If one is making a painter backend, then this group provides the
 information, see particularly the enumerations in fastuidraw::PainterHeader,
 fastuidraw::PainterItemMatrix, fastuidraw::PainterClipEquations
-for how data is packed by fastuidraw::PainterPacker. The more advanced
-user may wish to use fastuidraw::PainterPacker for a rawer, more powerful
-interface for drawing than that offered by fastuidraw::Painter.
-Part of the main library libFastUIDraw.
+for how data is packed by fastuidraw::Painter. Part of the main library
+libFastUIDraw.
 
 \section Overview
-The class fastuidraw::PainterPacker sits between the primary canvas interface
-fastuidraw::Painter and the backend interface fastuidraw::PainterBackend.
-The class fastuidraw::PainterPacker packs data that is used by multiple triangles
+The class fastuidraw::Painter implements canvas rendering using an implementation
+of the backend interface fastuidraw::PainterBackend to send data to a 3D API.
+The class fastuidraw::Painter packs data that is used by multiple triangles
 into fastuidraw::PainterDrawCommand::m_store (for example the current transformation).
 In implementing a backend, the shader fed to the GPU needs to correctly unpack
 this data. The location of the header of the data is stored in the attribute

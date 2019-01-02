@@ -1183,8 +1183,12 @@ namespace fastuidraw
      *   \endcode
      *   gives what gradient (if any) the brush applies as according to
      *   \ref gradient_type_t
-     * - If shader() & \ref gradient_repeat_mask then the gradient is repeated
-     *   instead of clamped.
+     * - The value given by
+     *   \code
+     *   unpack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, shader())
+     *   \endcode
+     *   gives the gradient spread pattern (if any) the brush applies as
+     *   according to \ref gradient_spread_type_t
      * - If shader() & \ref repeat_window_mask is non-zero, then a repeat
      *   window is applied to the brush.
      * - If shader() & \ref transformation_translation_mask is non-zero, then a

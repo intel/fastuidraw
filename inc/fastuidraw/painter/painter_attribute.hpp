@@ -29,7 +29,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * The attribute data generated/filled by PainterPacker.
+   * The attribute data generated/filled by \ref Painter.
    * Attribute data is sent to 3D API as raw bits with
    * the expectation that shaders will cast the bits
    * to the appropiate types for themselves.
@@ -55,7 +55,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * Typedef for the index type used by PainterPacker
+   * Typedef for the index type used by \ref Packer
    */
   typedef uint32_t PainterIndex;
 

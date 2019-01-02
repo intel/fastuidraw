@@ -51,9 +51,9 @@ namespace fastuidraw
      * just before the buffers of a \ref PainterDraw are to
      * be unmapped. Typically, this is used to write values
      * using information that is ready after the original
-     * values are written by \ref PainterPacker. A fixed
-     * \ref DelayedAction object may only be added to one
-     * \ref PainterDraw object, but a single \ref PainterDraw
+     * values are written by \ref Painter. A fixed \ref
+     * DelayedAction object may only be added to one \ref
+     * PainterDraw object, but a single \ref PainterDraw
      * can have many \ref DelayedAction objects added to it.
      */
     class DelayedAction:public reference_counted<DelayedAction>::default_base
@@ -168,10 +168,10 @@ namespace fastuidraw
     /*!
      * Called to indicate a change in value to the
      * painter header that this PainterDraw needs
-     * to record. The most common case is to insert API state changes
-     * (or just break a draw) for when a PainterBackend
-     * cannot accomodate a PainterPacker state change
-     * without changing the API state.
+     * to record. The most common case is to insert API
+     * state changes (or just break a draw) for when a
+     * \ref PainterBackend cannot accomodate a Painter
+     * state change without changing the 3D API state.
      * \param old_groups PainterShaderGroup before state change
      * \param new_groups PainterShaderGroup after state change
      * \param indices_written total number of indices written to m_indices -before- the change

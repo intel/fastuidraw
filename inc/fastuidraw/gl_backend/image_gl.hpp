@@ -248,7 +248,6 @@ namespace gl
        * \param patlas the ImageAtlas that the created image is part of
        * \param w width of the texture
        * \param h height of the texture
-       * \param m number of mipmap levels of the texture
        * \param filter magnification and minification filter to give
        *               the texture
        */
