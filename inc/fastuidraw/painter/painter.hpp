@@ -41,17 +41,17 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * Painter wraps around PainterPacker to implement a classic
-   * 2D rendering interface.
+   * Painter implements a canvas rendering interface.
    *
    * Painter implements:
    *  - stroking
    *  - filling
+   *  - drawing text
    *  - applying a brush (see PainterBrush)
    *  - single 3x3 transformation
    *  - save and restore state
-   *  - clipIn against Path or rectangle
-   *  - clipOut against Path
+   *  - clipIn against Path, rectangle or rounded rectangle
+   *  - clipOut against Path, rectangle or rounded rectangle
    *
    * The transformation of a Painter goes from local item coordinate
    * to 3D API clip-coordinates (for example in GL, from item coordinates
@@ -60,9 +60,16 @@ namespace fastuidraw
    * window is at normalized y-coordinate +1. The transformation is to be
    * applied as matrix-vector multiplication, i.e.
    * \code
-   * NormalizedDeviceCoordinates = transformation().m_item_matrix * vec3(x, y, 1.0)
+   * ClipCoordinates = transformation().m_item_matrix * vec3(x, y, 1.0)
    * \endcode
-   * for local coordiante (x, y).
+   * for local coordiante (x, y). Normalized device coordinates are
+   * defined as
+   * \code
+   * NormalizedDeviceCoordinates = ClipCoordinates.xy / ClipCoordinates.w
+   * \endcode
+   * where (-1, -1) corresponds to the bottom-left hand corner of the
+   * viewport (see PainterBackend::Surface::viewport()) and (+1, +1)
+   * is the top right hand corner of the viewport.
    */
   class Painter:
     public PainterEnums,
