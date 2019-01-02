@@ -4883,7 +4883,7 @@ default_shaders(void) const
 
 unsigned int
 fastuidraw::Painter::
-query_stat(enum PainterPacker::stats_t st) const
+query_stat(enum query_stats_t st) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);

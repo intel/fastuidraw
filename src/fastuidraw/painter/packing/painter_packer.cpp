@@ -625,7 +625,7 @@ namespace
     fastuidraw::PainterPacker *m_p;
 
     PainterPackerPrivateWorkroom m_work_room;
-    fastuidraw::vecN<unsigned int, fastuidraw::PainterPacker::num_stats> m_stats;
+    fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stats> m_stats;
 
     std::list<fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> > m_callback_list;
   };
@@ -808,10 +808,10 @@ start_new_command(void)
     {
       per_draw_command &c(m_accumulated_draws.back());
 
-      m_stats[fastuidraw::PainterPacker::num_attributes] += c.m_attributes_written;
-      m_stats[fastuidraw::PainterPacker::num_indices] += c.m_indices_written;
-      m_stats[fastuidraw::PainterPacker::num_generic_datas] += c.store_written();
-      m_stats[fastuidraw::PainterPacker::num_draws] += 1u;
+      m_stats[fastuidraw::PainterEnums::num_attributes] += c.m_attributes_written;
+      m_stats[fastuidraw::PainterEnums::num_indices] += c.m_indices_written;
+      m_stats[fastuidraw::PainterEnums::num_generic_datas] += c.store_written();
+      m_stats[fastuidraw::PainterEnums::num_draws] += 1u;
 
       c.unmap();
     }
@@ -862,7 +862,7 @@ upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
           action = m_backend->bind_image(m_last_binded_image);
           if (m_accumulated_draws.back().draw_break(action))
             {
-              ++m_stats[fastuidraw::PainterPacker::num_draws];
+              ++m_stats[fastuidraw::PainterEnums::num_draws];
             }
         }
     }
@@ -952,7 +952,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
         {
           bool draw_break_added;
 
-          ++m_stats[fastuidraw::PainterPacker::num_headers];
+          ++m_stats[fastuidraw::PainterEnums::num_headers];
           allocate_header = false;
           draw_break_added = cmd.pack_header(m_header_size,
                                              fetch_value(draw.m_brush).shader(),
@@ -965,7 +965,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
                                              &header_loc);
           if (draw_break_added)
             {
-              ++m_stats[fastuidraw::PainterPacker::num_draws];
+              ++m_stats[fastuidraw::PainterEnums::num_draws];
             }
         }
 
@@ -1158,19 +1158,19 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
 unsigned int
 fastuidraw::PainterPacker::
-query_stat(enum stats_t st) const
+query_stat(enum PainterEnums::query_stats_t st) const
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
 
-  vecN<unsigned int, num_stats> tmp(0);
+  vecN<unsigned int, PainterEnums::num_stats> tmp(0);
   if (!d->m_accumulated_draws.empty())
     {
       per_draw_command &c(d->m_accumulated_draws.back());
-      tmp[num_attributes] = c.m_attributes_written;
-      tmp[num_indices] = c.m_indices_written;
-      tmp[num_generic_datas] = c.store_written();
-      tmp[num_draws] = 0u;
+      tmp[PainterEnums::num_attributes] = c.m_attributes_written;
+      tmp[PainterEnums::num_indices] = c.m_indices_written;
+      tmp[PainterEnums::num_generic_datas] = c.store_written();
+      tmp[PainterEnums::num_draws] = 0u;
     }
   return d->m_stats[st] + tmp[st];
 }
@@ -1185,10 +1185,10 @@ end(void)
     {
       per_draw_command &c(d->m_accumulated_draws.back());
 
-      d->m_stats[fastuidraw::PainterPacker::num_attributes] += c.m_attributes_written;
-      d->m_stats[fastuidraw::PainterPacker::num_indices] += c.m_indices_written;
-      d->m_stats[fastuidraw::PainterPacker::num_generic_datas] += c.store_written();
-      d->m_stats[fastuidraw::PainterPacker::num_draws] += 1u;
+      d->m_stats[PainterEnums::num_attributes] += c.m_attributes_written;
+      d->m_stats[PainterEnums::num_indices] += c.m_indices_written;
+      d->m_stats[PainterEnums::num_generic_datas] += c.store_written();
+      d->m_stats[PainterEnums::num_draws] += 1u;
 
       c.unmap();
     }
@@ -1223,7 +1223,7 @@ draw_break(const reference_counted_ptr<const PainterDraw::Action> &action)
   d = static_cast<PainterPackerPrivate*>(m_d);
   if (d->m_accumulated_draws.back().draw_break(action))
     {
-      ++d->m_stats[fastuidraw::PainterPacker::num_draws];
+      ++d->m_stats[PainterEnums::num_draws];
     }
 }
 

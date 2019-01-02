@@ -353,6 +353,45 @@ namespace fastuidraw
       };
 
     /*!
+     * \brief
+     * Enumeration to query the statistics of how
+     * much data has been packed
+     */
+    enum query_stats_t
+      {
+        /*!
+         * Offset to how many attributes processed
+         */
+        num_attributes,
+
+        /*!
+         * Offset to how many indices processed
+         */
+        num_indices,
+
+        /*!
+         * Offset to how many generic_data values placed
+         * onto store buffer(s).
+         */
+        num_generic_datas,
+
+        /*!
+         * Offset to how many PainterDraw objects sent
+         */
+        num_draws,
+
+        /*!
+         * Offset to how many painter headers packed.
+         */
+        num_headers,
+
+        /*!
+         * Number of stats.
+         */
+        num_stats,
+      };
+
+    /*!
      * Given a fill rule, return the fill rule for the complement.
      */
     static

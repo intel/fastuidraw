@@ -1166,7 +1166,7 @@ namespace fastuidraw
      * \param st stat to query
      */
     unsigned int
-    query_stat(enum PainterPacker::stats_t st) const;
+    query_stat(enum query_stats_t st) const;
 
     /*!
      * Return the z-depth value that the next item will have.

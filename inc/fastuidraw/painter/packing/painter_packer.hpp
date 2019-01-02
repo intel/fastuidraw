@@ -94,45 +94,6 @@ namespace fastuidraw
     };
 
     /*!
-     * \brief
-     * Enumeration to query the statistics of how
-     * much data has been packed
-     */
-    enum stats_t
-      {
-        /*!
-         * Offset to how many attributes processed
-         */
-        num_attributes,
-
-        /*!
-         * Offset to how many indices processed
-         */
-        num_indices,
-
-        /*!
-         * Offset to how many generic_data values placed
-         * onto store buffer(s).
-         */
-        num_generic_datas,
-
-        /*!
-         * Offset to how many PainterDraw objects sent
-         */
-        num_draws,
-
-        /*!
-         * Offset to how many painter headers packed.
-         */
-        num_headers,
-
-        /*!
-         * Number of stats.
-         */
-        num_stats,
-      };
-
-    /*!
      * Ctor.
      * \param backend handle to PainterBackend for the constructed PainterPacker
      */
@@ -334,7 +295,7 @@ namespace fastuidraw
      * \param st stat to query
      */
     unsigned int
-    query_stat(enum stats_t st) const;
+    query_stat(enum PainterEnums::query_stats_t st) const;
 
     /*!
      * Returns the PainterBackend::PerformanceHints of the underlying
