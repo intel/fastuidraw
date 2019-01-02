@@ -17,7 +17,7 @@
  */
 
 
-#include <fastuidraw/painter/packing/painter_shader_registrar.hpp>
+#include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
 #include "../../private/util_private.hpp"
 
 

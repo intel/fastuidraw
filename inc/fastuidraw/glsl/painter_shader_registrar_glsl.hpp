@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <fastuidraw/painter/packing/painter_shader_registrar.hpp>
-#include <fastuidraw/painter/packing/painter_backend.hpp>
+#include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
+#include <fastuidraw/painter/backend/painter_backend.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>

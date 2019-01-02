@@ -33,7 +33,7 @@
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_writer.hpp>
-#include <fastuidraw/painter/packing/painter_backend.hpp>
+#include <fastuidraw/painter/backend/painter_backend.hpp>
 
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/stroking_style.hpp>

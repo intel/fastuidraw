@@ -33,15 +33,15 @@
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_writer.hpp>
-#include <fastuidraw/painter/packing/painter_draw.hpp>
-#include <fastuidraw/painter/packing/painter_backend.hpp>
-#include <fastuidraw/painter/packing/painter_header.hpp>
+#include <fastuidraw/painter/backend/painter_draw.hpp>
+#include <fastuidraw/painter/backend/painter_backend.hpp>
+#include <fastuidraw/painter/backend/painter_header.hpp>
 
 #include "painter_packer_data.hpp"
 
 namespace fastuidraw
 {
-/*!\addtogroup PainterPacking
+/*!\addtogroup PainterBackend
  * @{
  */
 

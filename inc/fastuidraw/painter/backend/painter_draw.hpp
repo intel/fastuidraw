@@ -26,11 +26,11 @@
 #include <fastuidraw/util/gpu_dirty_state.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
 #include <fastuidraw/painter/painter_shader.hpp>
-#include <fastuidraw/painter/packing/painter_shader_group.hpp>
+#include <fastuidraw/painter/backend/painter_shader_group.hpp>
 
 namespace fastuidraw
 {
-/*!\addtogroup PainterPacking
+/*!\addtogroup PainterBackend
  * @{
  */
 

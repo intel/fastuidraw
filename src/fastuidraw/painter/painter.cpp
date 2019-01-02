@@ -23,7 +23,7 @@
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
-#include <fastuidraw/painter/packing/painter_header.hpp>
+#include <fastuidraw/painter/backend/painter_header.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
@@ -31,7 +31,7 @@
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
 #include "../private/bounding_box.hpp"
-#include "packing/private/painter_packer.hpp"
+#include "backend/private/painter_packer.hpp"
 
 namespace
 {

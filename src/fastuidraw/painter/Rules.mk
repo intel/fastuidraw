@@ -5,7 +5,7 @@ d		:= $(dir)
 # End standard header
 
 
-dir := $(d)/packing
+dir := $(d)/backend
 include $(dir)/Rules.mk
 
 FASTUIDRAW_SOURCES += $(call filelist, fill_rule.cpp \

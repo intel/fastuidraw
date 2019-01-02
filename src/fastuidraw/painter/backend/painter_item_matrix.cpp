@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/packing/painter_item_matrix.hpp>
+#include <fastuidraw/painter/backend/painter_item_matrix.hpp>
 
 //////////////////////////////////////////////
 // fastuidraw::PainterItemMatrix methods

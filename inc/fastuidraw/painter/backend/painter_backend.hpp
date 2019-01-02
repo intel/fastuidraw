@@ -23,13 +23,13 @@
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
-#include <fastuidraw/painter/packing/painter_draw.hpp>
-#include <fastuidraw/painter/packing/painter_shader_registrar.hpp>
+#include <fastuidraw/painter/backend/painter_draw.hpp>
+#include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
 
 
 namespace fastuidraw
 {
-/*!\addtogroup PainterPacking
+/*!\addtogroup PainterBackend
  * @{
  */
 

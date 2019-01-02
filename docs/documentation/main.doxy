@@ -49,7 +49,7 @@ Painter provides the interface for Canvas drawing, the most important class
 being Painter. Part of the main library libFastUIDraw.
 @}
 
-\defgroup PainterPacking Painter Packing
+\defgroup PainterBackend Painter Packing
 @{
 \brief
 If one is making a painter backend, then this group provides the

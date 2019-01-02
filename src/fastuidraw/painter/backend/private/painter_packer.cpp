@@ -21,7 +21,7 @@
 #include <list>
 #include <cstring>
 
-#include <fastuidraw/painter/packing/painter_header.hpp>
+#include <fastuidraw/painter/backend/painter_header.hpp>
 #include "painter_packer.hpp"
 #include "../../../private/util_private.hpp"
 
