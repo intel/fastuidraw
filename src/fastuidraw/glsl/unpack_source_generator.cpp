@@ -30,17 +30,21 @@ namespace
   {
   public:
     UnpackElement(void):
-      m_type(fastuidraw::glsl::UnpackSourceGenerator::padding_type)
+      m_type(fastuidraw::glsl::UnpackSourceGenerator::padding_type),
+      m_idx(0)
     {}
 
     UnpackElement(fastuidraw::c_string name,
-                  fastuidraw::glsl::UnpackSourceGenerator::type_t tp):
+                  fastuidraw::glsl::UnpackSourceGenerator::type_t tp,
+                  unsigned int idx):
       m_name(name),
-      m_type(tp)
+      m_type(tp),
+      m_idx(idx)
     {}
 
     std::string m_name;
     fastuidraw::glsl::UnpackSourceGenerator::type_t m_type;
+    unsigned int m_idx;
   };
 
   class UnpackSourceGeneratorPrivate
@@ -48,10 +52,15 @@ namespace
   public:
     explicit
     UnpackSourceGeneratorPrivate(fastuidraw::c_string nm):
-      m_struct(nm)
+      m_structs(1, nm)
     {}
 
-    std::string m_struct;
+    explicit
+    UnpackSourceGeneratorPrivate(fastuidraw::c_array<const fastuidraw::c_string> nms):
+      m_structs(nms.begin(), nms.end())
+    {}
+
+    std::vector<std::string> m_structs;
     std::vector<UnpackElement> m_elements;
   };
 }
@@ -62,6 +71,12 @@ fastuidraw::glsl::UnpackSourceGenerator::
 UnpackSourceGenerator(c_string name)
 {
   m_d = FASTUIDRAWnew UnpackSourceGeneratorPrivate(name);
+}
+
+fastuidraw::glsl::UnpackSourceGenerator::
+UnpackSourceGenerator(c_array<const c_string> names)
+{
+  m_d = FASTUIDRAWnew UnpackSourceGeneratorPrivate(names);
 }
 
 fastuidraw::glsl::UnpackSourceGenerator::
@@ -85,7 +100,7 @@ assign_swap_implement(fastuidraw::glsl::UnpackSourceGenerator)
 
 fastuidraw::glsl::UnpackSourceGenerator&
 fastuidraw::glsl::UnpackSourceGenerator::
-set(unsigned int offset, c_string field_name, type_t type)
+set(unsigned int offset, c_string field_name, type_t type, unsigned int idx)
 {
   UnpackSourceGeneratorPrivate *d;
 
@@ -94,7 +109,7 @@ set(unsigned int offset, c_string field_name, type_t type)
     {
       d->m_elements.resize(offset + 1);
     }
-  d->m_elements[offset] = UnpackElement(field_name, type);
+  d->m_elements[offset] = UnpackElement(field_name, type, idx);
   return *this;
 }
 
@@ -131,7 +146,17 @@ stream_unpack_function(ShaderSource &dst,
     {
       str << "void\n";
     }
-  str << function_name << "(in uint location, out " << d->m_struct << " out_value)\n"
+  str << function_name << "(in uint location, ";
+
+  for (unsigned int s = 0; s < d->m_structs.size(); ++s)
+    {
+      if (s != 0)
+        {
+          str << ", ";
+        }
+      str << "out " << d->m_structs[s] << " out_value" << s;
+    }
+  str << ")\n"
       << "{\n"
       << "\tuvec4 utemp;\n";
 
@@ -148,7 +173,7 @@ stream_unpack_function(ShaderSource &dst,
       FASTUIDRAWassert(cmp >= 1 && cmp <= 4);
 
       swizzle = swizzles[cmp - 1];
-      str << "utemp" << swizzle << " = fastuidraw_fetch_data(int(location) + "
+      str << "\tutemp" << swizzle << " = fastuidraw_fetch_data(int(location) + "
           << b << ")" << swizzle << ";\n";
 
       /* perform bit cast to correct type. */
@@ -159,16 +184,19 @@ stream_unpack_function(ShaderSource &dst,
           switch(d->m_elements[i].m_type)
             {
             case int_type:
-              str << "\tout_value" << d->m_elements[i].m_name
-                  << " = " << "int(utemp" << ext << ");\n";
+              str << "\tout_value" << d->m_elements[i].m_idx
+                  << d->m_elements[i].m_name << " = "
+                  << "int(utemp" << ext << ");\n";
               break;
             case uint_type:
-              str << "\tout_value" << d->m_elements[i].m_name
-                  << " = " << "utemp" << ext << ";\n";
+              str << "\tout_value" << d->m_elements[i].m_idx
+                  << d->m_elements[i].m_name << " = "
+                  << "utemp" << ext << ";\n";
               break;
             case float_type:
-              str << "\tout_value" << d->m_elements[i].m_name
-                  << " = " << "uintBitsToFloat(utemp" << ext << ");\n";
+              str << "\tout_value" << d->m_elements[i].m_idx
+                  << d->m_elements[i].m_name << " = "
+                  << "uintBitsToFloat(utemp" << ext << ");\n";
               break;
             default:
             case padding_type:

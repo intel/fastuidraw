@@ -55,11 +55,19 @@ namespace fastuidraw
 
       /*!
        * Ctor.
-       * \param name of GLSL struct that to which to unpack data
-       *             from the data store buffer
+       * \param type_name name of GLSL type to which to unpack
+       *                  data from the data store buffer
        */
       explicit
-      UnpackSourceGenerator(c_string name_struct_type);
+      UnpackSourceGenerator(c_string type_name);
+
+      /*!
+       * Ctor.
+       * \param type_names names of GLSL type to which to unpack
+       *                   data from the data store buffer
+       */
+      explicit
+      UnpackSourceGenerator(c_array<const c_string> type_names);
 
       /*!
        * Copy ctor.
@@ -89,19 +97,30 @@ namespace fastuidraw
        *                   the single scalar value. The value must
        *                   include the dot if it is a field member of
        *                   a struct.
-       * \param type the GLSL type of the field.
+       * \param type the GLSL type of the field
+       * \param struct_idx if the ctor was given an array of c_string
+       *                   values, refers to the index into that
+       *                   array of the values.
        */
       UnpackSourceGenerator&
-      set(unsigned int offset, c_string field_name, type_t type = float_type);
+      set(unsigned int offset, c_string field_name, type_t type = float_type,
+          unsigned int struct_idx = 0);
 
       /*!
        * Stream the unpack function into a \ref ShaderSource object.
-       * The function generated is
+       * For values constructed passed a single c_string, the function
+       * generated is
        * \code
        * return_type
        * function_name(in uint location, out struct_name v)
        * \endcode
-       * where location is the location of the struct to unpack,
+       * and for those values constructed passed an array of c_string
+       * values, the function generated is
+       * \code
+       * return_type
+       * function_name(in uint location, out struct_name0 v0, out struct_name1 v1, ...)
+       * \endcode
+       * where for voth, location is the location of the struct to unpack,
        * struct_name is the name of the struct to unpack to given
        * in the ctor.
        * \param str \ref ShaderSource to which to stream the unpack function
