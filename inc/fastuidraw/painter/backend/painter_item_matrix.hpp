@@ -58,6 +58,9 @@ namespace fastuidraw
         matrix_row2_col1_offset, /*!< offset of m_item_matrix(2, 1) (packed as float) */
         matrix_row2_col2_offset, /*!< offset of m_item_matrix(2, 2) (packed as float) */
 
+        normalized_translate_x,  /*!< offset of m_normalized_translate.x() */
+        normalized_translate_y,  /*!< offset of m_normalized_translate.y() */
+
         matrix_data_size, /*!< Size of the data for the item matrix */
 
         matrix_col0_row0_offset = matrix_row0_col0_offset, /*!< alias of \ref matrix_row0_col0_offset */
@@ -73,17 +76,21 @@ namespace fastuidraw
 
     /*!
      * Ctor from a float3x3
-     * \param m value with which to initailize m_item_matrix
+     * \param m value with which to initailize \ref m_item_matrix
+     * \param t value with which to initailize \ref m_normalized_translate
      */
-    PainterItemMatrix(const float3x3 &m):
-      m_item_matrix(m)
+    explicit
+    PainterItemMatrix(const float3x3 &m, const vec2 &t = vec2(0.0f, 0.0f)):
+      m_item_matrix(m),
+      m_normalized_translate(t)
     {}
 
     /*!
-     * Ctor, initializes m_item_matrix as the
-     * identity matrix
+     * Ctor, initializes \ref m_item_matrix as the identity matrix
+     * \param t value with which to initailize \ref m_normalized_translate
      */
-    PainterItemMatrix(void)
+    PainterItemMatrix(const vec2 &t = vec2(0.0f, 0.0f)):
+      m_normalized_translate(t)
     {}
 
     /*!
@@ -108,6 +115,15 @@ namespace fastuidraw
      * to the coordinates of the clipping rectange.
      */
     float3x3 m_item_matrix;
+
+    /*!
+     * The translation in normalized device coordinates
+     * to apply to all vertices. For various internal
+     * implementation details, it is more efficient
+     * to have them seperate here instead of concating
+     * it to \ref m_item_matrix
+     */
+    vec2 m_normalized_translate;
   };
 /*! @} */
 
