@@ -220,6 +220,24 @@ namespace fastuidraw
 
     /*!
      * Indicate to start drawing with methods of this Painter. The
+     * transformation matrix will be intialized with given float3x3.
+     * Drawing commands sent to 3D hardware are buffered and not sent
+     * to the hardware until end() is called. All draw commands must
+     * be between a begin()/end() pair.
+     * \param surface the \ref PainterBackend::Surface to which to render content
+     * \param initial_transformation value to initialize transformation() which
+     *                               is the matrix from logical coordinates to
+     *                               API 3D clip coordinates.
+     * \param clear_color_buffer if true, clear the color buffer on the viewport
+     *                           of the surface.
+     */
+    void
+    begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+          const float3x3 &initial_transformation,
+          bool clear_color_buffer = true);
+
+    /*!
+     * Indicate to start drawing with methods of this Painter. The
      * ransformation matrix will be intialized with a projection
      * matrix derived from the passed screen_orientation
      * and the viewort of the passed PainterBackend::Surface. Drawing
@@ -546,10 +564,12 @@ namespace fastuidraw
      * The state is restored (and the stack popped) by called restore().
      * The state saved is:
      * - transformation state (see concat(), transformation(), translate(),
-     *   shear(), scale(), rotate()).
+     *   shear(), scale(), rotate())
      * - clip state (see clip_in_rect(), clip_out_path(), clip_in_path())
      * - curve flatness requirement (see curve_flatness(float))
-     * - composite shader (see composite_shader()).
+     * - composite shader (see composite_shader())
+     * - composite mode (see composite_mode())
+     * - blend shader (see blend_shader())
      */
     void
     save(void);
@@ -560,6 +580,42 @@ namespace fastuidraw
      */
     void
     restore(void);
+
+    /*!
+     * Begin a transparency layer. This marks first
+     * rendering into an offscreen buffer and then
+     * blitting the buffer. The buffer will be blitted
+     * with the composite_shader(), composite_mode()
+     * and blend_shader() at the time of the call to
+     * begin_layer(). All restore() commands called
+     * after a begin_layer() must match a save() from
+     * after a begin_layer(). It is acceptable to layer
+     * any number of begin_layer() calls as well.
+     * \param color_modulate color value by which to modulate
+     *                       the layer when it is to be blitted
+     */
+    void
+    begin_layer(const vec4 &color_modulate);
+
+    /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * begin_layer(vec4(1.0f, 1.0f, 1.0f, alpha));
+     * \endcode
+     * \param alpha alpha value for color modulation.
+     */
+    void
+    begin_layer(float alpha)
+    {
+      begin_layer(vec4(1.0f, 1.0f, 1.0f, alpha));
+    }
+
+    /*!
+     * End the current transparency layer and blit
+     * the layer.
+     */
+    void
+    end_layer(void);
 
     /*!
      * Return the default shaders for common drawing types.

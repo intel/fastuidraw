@@ -31,6 +31,7 @@
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
 #include "../private/bounding_box.hpp"
+#include "../private/rect_atlas.hpp"
 #include "backend/private/painter_packer.hpp"
 
 namespace
@@ -355,6 +356,12 @@ namespace
   class clip_rect_state
   {
   public:
+    enum rect_coordinate_type_t
+      {
+        rect_in_local_coordinates,
+        rect_in_normalized_device_coordinates,
+      };
+
     clip_rect_state(void):
       m_all_content_culled(false),
       m_item_matrix_transition_tricky(false),
@@ -363,14 +370,15 @@ namespace
     {}
 
     void
-    reset(fastuidraw::vec2 dims,
-          enum fastuidraw::Painter::screen_orientation orientation);
+    reset(const fastuidraw::PainterBackend::Surface::Viewport &vwp,
+          fastuidraw::ivec2 surface_dims);
 
     void
-    set_clip_equations_to_clip_rect(void);
+    set_clip_equations_to_clip_rect(enum rect_coordinate_type_t c);
 
     std::bitset<4>
-    set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &prev_clip);
+    set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &prev_clip,
+                                    enum rect_coordinate_type_t c);
 
     const fastuidraw::float3x3&
     item_matrix_inverse_transpose(void);
@@ -462,11 +470,17 @@ namespace
     bool
     rect_is_culled(const fastuidraw::Rect &rect);
 
+    void
+    set_normalized_device_translate(const fastuidraw::vec2 &v)
+    {
+      m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+      m_item_matrix.m_normalized_translate = v;
+    }
+
     clip_rect m_clip_rect;
     bool m_all_content_culled;
 
   private:
-
     enum matrix_type_t m_matrix_type;
     bool m_item_matrix_transition_tricky;
     fastuidraw::PainterItemMatrix m_item_matrix;
@@ -474,7 +488,7 @@ namespace
     fastuidraw::PainterClipEquations m_clip_equations;
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_equations_state;
     bool m_inverse_transpose_not_ready;
-    fastuidraw::vec2 m_resolution;
+    fastuidraw::vec2 m_viewport_dimensions;
     fastuidraw::float3x3 m_item_matrix_inverse_transpose;
     bool m_item_matrix_singular_values_ready;
     fastuidraw::vec2 m_item_matrix_singular_values;
@@ -511,6 +525,98 @@ namespace
 
     clip_rect_state m_clip_rect_state;
     float m_curve_flatness;
+  };
+
+  class TransparencyBuffer:
+    public fastuidraw::reference_counted<TransparencyBuffer>::non_concurrent
+  {
+  public:
+    TransparencyBuffer(const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> &packer,
+                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> &surface,
+                       const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &image):
+      m_packer(packer),
+      m_surface(surface),
+      m_image(image),
+      m_rect_atlas(surface->dimensions())
+    {}
+
+    /* the PainterPacker used */
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_packer;
+
+    /* the depth of transparency buffer */
+    unsigned int m_depth;
+
+    /* the surface used by the TransparencyBuffer */
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> m_surface;
+
+    /* the surface realized as an image */
+    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_image;
+
+    /* the atlas to track what regions are free */
+    fastuidraw::detail::RectAtlas m_rect_atlas;
+  };
+
+  class TransparencyStackEntry
+  {
+  public:
+    /* the state stack size when the TransparencyStackEntry
+     * became active
+     */
+    unsigned int m_state_stack_size;
+
+    /* The region of the transparency in normalized coords */
+    fastuidraw::Rect m_normalized_rect;
+
+    /* the image to blit, together with what pixels of the image to blit */
+    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_image;
+    fastuidraw::vec2 m_brush_translate;
+    fastuidraw::vec4 m_modulate_color;
+
+    /* The translation is from the root surface of Painter::begin()
+     * to the location within TransparencyBuffer::m_surface.
+     */
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_packer;
+    fastuidraw::vec2 m_normalized_translate;
+
+    /* identity matrix state; this is needed because PainterItemMatrix
+     * also stores the normalized translation.
+     */
+    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_identity_matrix;
+  };
+
+  class TransparencyStackEntryFactory
+  {
+  public:
+    /* clears each of the m_rect_atlas within the pool;
+     * if the surface_sz changes then also clears the
+     * pool entirely.
+     */
+    void
+    begin(fastuidraw::ivec2 surface_dimensions,
+          const fastuidraw::PainterBackend::Surface::Viewport &vwp);
+
+    /* creates a TransparencyStackEntry value using the
+     * available pools.
+     */
+    TransparencyStackEntry
+    fetch(unsigned int depth,
+          const fastuidraw::Rect &normalized_rect,
+          PainterPrivate *d);
+
+    /* issues PainterPacker::end() in the correct order
+     * on all elements that were fetched within the
+     * begin/end pair.
+     */
+    void
+    end(void);
+
+  private:
+    typedef std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > PerActiveDepth;
+
+    fastuidraw::PainterBackend::Surface::Viewport m_viewport;
+    fastuidraw::ivec2 m_current_size;
+    std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > m_unused_buffers;
+    std::vector<PerActiveDepth> m_per_active_depth;
   };
 
   class ComplementFillRule:public fastuidraw::CustomFillRuleBase
@@ -569,6 +675,9 @@ namespace
     set_current(const fastuidraw::float3x3 &transform,
                 const fastuidraw::float3x3 &inverse_transpose,
                 fastuidraw::c_array<const fastuidraw::vec2> new_poly);
+
+    void
+    reset_current_to_rect(const fastuidraw::Rect &rect_normalized_device_coords);
 
     void
     clear(void)
@@ -1252,20 +1361,39 @@ namespace
     const fastuidraw::FilledPath&
     select_filled_path(const fastuidraw::Path &path);
 
+    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker>&
+    packer(void)
+    {
+      return m_transparency_stack.empty() ?
+        m_root_packer :
+        m_transparency_stack.back().m_packer;
+    }
+
+    const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
+    identity_matrix(void)
+    {
+      return m_transparency_stack.empty() ?
+        m_root_identity_matrix :
+        m_transparency_stack.back().m_identity_matrix;
+    }
+
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_root_packer;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_root_identity_matrix;
     fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stats> m_stats;
-    fastuidraw::vec2 m_resolution;
+    fastuidraw::PainterBackend::Surface::Viewport m_viewport;
+    fastuidraw::vec2 m_viewport_dimensions;
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
     int m_current_z;
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
+    TransparencyStackEntryFactory m_transparency_stack_entry_factory;
+    std::vector<TransparencyStackEntry> m_transparency_stack;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterShaderSet m_default_shaders;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_core;
     fastuidraw::PainterPackedValuePool m_pool;
     fastuidraw::PainterPackedValue<fastuidraw::PainterBrush> m_reset_brush, m_black_brush;
-    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_identiy_matrix;
     ClipEquationStore m_clip_store;
     PainterWorkRoom m_work_room;
     unsigned int m_max_attribs_per_block, m_max_indices_per_block;
@@ -1364,39 +1492,24 @@ on_pop(fastuidraw::Painter *p)
 // clip_rect_stat methods
 void
 clip_rect_state::
-reset(fastuidraw::vec2 dims,
-      enum fastuidraw::Painter::screen_orientation orientation)
+reset(const fastuidraw::PainterBackend::Surface::Viewport &vwp,
+      fastuidraw::ivec2 surface_dims)
 {
   using namespace fastuidraw;
 
-  float y1, y2;
   PainterClipEquations clip_eq;
 
   m_all_content_culled = false;
   m_item_matrix_transition_tricky = false;
   m_inverse_transpose_not_ready = false;
-  m_clip_rect.m_enabled = false;
   m_matrix_type = non_scaling_matrix;
-  m_resolution = dims;
-  clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
-  clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
-  clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
-  clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
+  m_viewport_dimensions = vec2(vwp.m_dimensions);
+
+  vwp.compute_clip_equations(surface_dims, &clip_eq.m_clip_equations);
+  m_clip_rect.m_enabled = false;
   clip_equations(clip_eq);
 
-  if (orientation == Painter::y_increases_downwards)
-    {
-      y1 = dims.y();
-      y2 = 0;
-    }
-  else
-    {
-      y1 = 0;
-      y2 = dims.y();
-    }
-  float_orthogonal_projection_params ortho(0, dims.x(), y1, y2);
-
-  item_matrix(float3x3(ortho), false, non_scaling_matrix);
+  item_matrix(float3x3(), false, non_scaling_matrix);
 }
 
 const fastuidraw::vec2&
@@ -1407,10 +1520,10 @@ item_matrix_singular_values(void)
     {
       fastuidraw::float2x2 M;
 
-      M(0, 0) = 0.5f * m_resolution.x() * m_item_matrix.m_item_matrix(0, 0);
-      M(0, 1) = 0.5f * m_resolution.x() * m_item_matrix.m_item_matrix(0, 1);
-      M(1, 0) = 0.5f * m_resolution.y() * m_item_matrix.m_item_matrix(1, 0);
-      M(1, 1) = 0.5f * m_resolution.y() * m_item_matrix.m_item_matrix(1, 1);
+      M(0, 0) = 0.5f * m_viewport_dimensions.x() * m_item_matrix.m_item_matrix(0, 0);
+      M(0, 1) = 0.5f * m_viewport_dimensions.x() * m_item_matrix.m_item_matrix(0, 1);
+      M(1, 0) = 0.5f * m_viewport_dimensions.y() * m_item_matrix.m_item_matrix(1, 0);
+      M(1, 1) = 0.5f * m_viewport_dimensions.y() * m_item_matrix.m_item_matrix(1, 1);
       m_item_matrix_singular_values = fastuidraw::detail::compute_singular_values(M);
       m_item_matrix_singular_values_ready = true;
     }
@@ -1500,16 +1613,16 @@ item_matrix_inverse_transpose(void)
 
 void
 clip_rect_state::
-set_clip_equations_to_clip_rect(void)
+set_clip_equations_to_clip_rect(enum rect_coordinate_type_t c)
 {
   fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> null;
-  set_clip_equations_to_clip_rect(null);
+  set_clip_equations_to_clip_rect(null, c);
 }
-
 
 std::bitset<4>
 clip_rect_state::
-set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &pcl)
+set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &pcl,
+                                enum rect_coordinate_type_t c)
 {
   if (m_clip_rect.empty())
     {
@@ -1518,24 +1631,33 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
     }
 
   m_item_matrix_transition_tricky = false;
-  const fastuidraw::float3x3 &inverse_transpose(item_matrix_inverse_transpose());
-  /* The clipping window is given by:
-   *   w * min_x <= x <= w * max_x
-   *   w * min_y <= y <= w * max_y
-   * which expands to
-   *     x + w * min_x >= 0  --> ( 1,  0, -min_x)
-   *    -x - w * max_x >= 0  --> (-1,  0, max_x)
-   *     y + w * min_y >= 0  --> ( 0,  1, -min_y)
-   *    -y - w * max_y >= 0  --> ( 0, -1, max_y)
-   *   However, the clip equations are in clip coordinates
-   *   so we need to apply the inverse transpose of the
-   *   transformation matrix to the 4 vectors
-   */
+
   fastuidraw::PainterClipEquations cl;
-  cl.m_clip_equations[0] = inverse_transpose * fastuidraw::vec3( 1.0f,  0.0f, -m_clip_rect.m_min.x());
-  cl.m_clip_equations[1] = inverse_transpose * fastuidraw::vec3(-1.0f,  0.0f,  m_clip_rect.m_max.x());
-  cl.m_clip_equations[2] = inverse_transpose * fastuidraw::vec3( 0.0f,  1.0f, -m_clip_rect.m_min.y());
-  cl.m_clip_equations[3] = inverse_transpose * fastuidraw::vec3( 0.0f, -1.0f,  m_clip_rect.m_max.y());
+  cl.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, -m_clip_rect.m_min.x());
+  cl.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f,  m_clip_rect.m_max.x());
+  cl.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, -m_clip_rect.m_min.y());
+  cl.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f,  m_clip_rect.m_max.y());
+
+  if (c == rect_in_local_coordinates)
+    {
+      /* The clipping window is given by:
+       *   w * min_x <= x <= w * max_x
+       *   w * min_y <= y <= w * max_y
+       * which expands to
+       *     x + w * min_x >= 0  --> ( 1,  0, -min_x)
+       *    -x - w * max_x >= 0  --> (-1,  0, max_x)
+       *     y + w * min_y >= 0  --> ( 0,  1, -min_y)
+       *    -y - w * max_y >= 0  --> ( 0, -1, max_y)
+       * However, the clip equations are in clip coordinates
+       * so we need to apply the inverse transpose of the
+       * transformation matrix to the 4 vectors
+       */
+      const fastuidraw::float3x3 &inverse_transpose(item_matrix_inverse_transpose());
+      for (int i = 0; i < 4; ++i)
+        {
+          cl.m_clip_equations[i] =  inverse_transpose * cl.m_clip_equations[i];
+        }
+    }
   clip_equations(cl);
 
   for(int i = 0; i < 4; ++i)
@@ -1691,6 +1813,24 @@ clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
 
 void
 ClipEquationStore::
+reset_current_to_rect(const fastuidraw::Rect &R)
+{
+  using namespace fastuidraw;
+  vecN<vec2, 4> pts;
+  float3x3 id;
+
+  /* the Rect R is in normalized device coordinates, so
+   * the transformation to apply is just the identity
+   */
+  pts[0] = vec2(R.m_min_point.x(), R.m_min_point.y());
+  pts[1] = vec2(R.m_min_point.x(), R.m_max_point.y());
+  pts[2] = vec2(R.m_max_point.x(), R.m_max_point.y());
+  pts[3] = vec2(R.m_max_point.x(), R.m_min_point.y());
+  set_current(id, id, pts);
+}
+
+void
+ClipEquationStore::
 set_current(const fastuidraw::float3x3 &transform,
             const fastuidraw::float3x3 &inverse_transpose,
             fastuidraw::c_array<const fastuidraw::vec2> poly)
@@ -1755,11 +1895,158 @@ set_current(const fastuidraw::float3x3 &transform,
     }
 }
 
+////////////////////////////////////////
+// TransparencyStackEntryFactory methods
+void
+TransparencyStackEntryFactory::
+begin(fastuidraw::ivec2 surface_sz,
+      const fastuidraw::PainterBackend::Surface::Viewport &vwp)
+{
+  if (surface_sz != m_current_size)
+    {
+      m_per_active_depth.clear();
+      m_unused_buffers.clear();
+      m_current_size = surface_sz;
+    }
+  else
+    {
+      for (PerActiveDepth &v : m_per_active_depth)
+        {
+          for (const auto &r : v)
+            {
+              r->m_rect_atlas.clear();
+              m_unused_buffers.push_back(r);
+            }
+          v.clear();
+        }
+    }
+  m_viewport = vwp;
+}
+
+TransparencyStackEntry
+TransparencyStackEntryFactory::
+fetch(unsigned int transparency_depth,
+      const fastuidraw::Rect &normalized_rect,
+      PainterPrivate *d)
+{
+  using namespace fastuidraw;
+
+  TransparencyStackEntry return_value;
+  const detail::RectAtlas::rectangle *rect(nullptr);
+  ivec2 dims;
+  vec2 fdims;
+
+  /* TODO: we need to discretize the rectangle, so that
+   * the size is correct. Using the normalized_rect.size()
+   * directly is actually WRONG. Rather we need to look
+   * at the range of -sample- points the rect hits.
+   */
+  fdims = 0.5f * normalized_rect.size() * vec2(d->m_viewport.m_dimensions);
+  dims = ivec2(fdims);
+  if (fdims.x() > dims.x() && dims.x() < m_current_size.x())
+    {
+      ++dims.x();
+    }
+  if (fdims.y() > dims.y() && dims.y() < m_current_size.y())
+    {
+      ++dims.y();
+    }
+
+  if (transparency_depth >= m_per_active_depth.size())
+    {
+      m_per_active_depth.resize(transparency_depth + 1);
+    }
+
+  for (unsigned int i = 0, endi = m_per_active_depth[transparency_depth].size();
+       !rect && i < endi; ++i)
+    {
+      rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(dims, 0, 0, 0, 0);
+      if (rect)
+        {
+          return_value.m_image = m_per_active_depth[transparency_depth][i]->m_image;
+          return_value.m_packer = m_per_active_depth[transparency_depth][i]->m_packer;
+        }
+    }
+
+  if (!rect)
+    {
+      reference_counted_ptr<TransparencyBuffer> TB;
+
+      if (m_unused_buffers.empty())
+        {
+          reference_counted_ptr<PainterPacker> packer;
+          reference_counted_ptr<PainterBackend::Surface> surface;
+          reference_counted_ptr<const fastuidraw::Image> image;
+
+          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend->create_shared());
+          surface = d->m_backend->create_surface(m_current_size, m_viewport);
+          image = surface->image(d->m_backend->image_atlas());
+          TB = FASTUIDRAWnew TransparencyBuffer(packer, surface, image);
+        }
+      else
+        {
+          TB = m_unused_buffers.back();
+          m_unused_buffers.pop_back();
+        }
+
+      TB->m_depth = transparency_depth;
+      m_per_active_depth[transparency_depth].push_back(TB);
+
+      rect = TB->m_rect_atlas.add_rectangle(dims, 0, 0, 0, 0);
+      return_value.m_image = TB->m_image;
+      return_value.m_packer = TB->m_packer;
+      return_value.m_packer->begin(TB->m_surface, true);
+    }
+
+  FASTUIDRAWassert(return_value.m_image);
+  FASTUIDRAWassert(return_value.m_packer);
+
+  return_value.m_normalized_rect = normalized_rect;
+  FASTUIDRAWassert(rect);
+
+  /* we need to have that:
+   *   return_value.m_normalized_translate + normalized_rect = R
+   * where R is rect in normalized device coordinates.
+   */
+  vec2 Rndc;
+  Rndc = m_viewport.compute_normalized_device_coords(vec2(rect->minX_minY()));
+  return_value.m_normalized_translate = Rndc - normalized_rect.m_min_point;
+
+  /* the drawing of the fill_rect in end_layer() draws normalized_rect
+   * scaled by m_viewport.m_dimensions. We need to have that
+   *   return_value.m_brush_translate + S = rect
+   * where S is normalized_rect in -pixel- coordinates
+   */
+  vec2 Spc;
+  Spc = m_viewport.compute_pixel_coordinates(normalized_rect.m_min_point);
+  return_value.m_brush_translate = vec2(rect->minX_minY()) - Spc ;
+
+  PainterItemMatrix M;
+  M.m_normalized_translate = return_value.m_normalized_translate;
+  return_value.m_identity_matrix = d->m_pool.create_packed_value(M);
+
+  return return_value;
+}
+
+void
+TransparencyStackEntryFactory::
+end(void)
+{
+  /* issue end() in reverse depth order */
+  for (auto iter = m_per_active_depth.rbegin(); iter != m_per_active_depth.rend(); ++iter)
+    {
+      for (const auto &r : *iter)
+        {
+          r->m_packer->end();
+        }
+    }
+}
+
 //////////////////////////////////
 // PainterPrivate methods
 PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
-  m_resolution(1.0f, 1.0f),
+  m_viewport_dimensions(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(0.5f),
   m_backend(backend)
@@ -1770,11 +2057,11 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   // we skip the check in PainterBackend::default_shaders() to register
   // the shaders as well.
   m_default_shaders = m_backend->default_shaders();
-  m_core = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend);
+  m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
   m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));
-  m_identiy_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
+  m_root_identity_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
   m_max_attribs_per_block = backend->attribs_per_mapping();
   m_max_indices_per_block = backend->indices_per_mapping();
@@ -1834,8 +2121,8 @@ concat(const fastuidraw::float3x3 &tr)
 
   if (!tricky)
     {
-      m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0, 0), 1.0f / tr(1, 1));
       m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
+      m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0, 0), 1.0f / tr(1, 1));
     }
 }
 
@@ -2108,8 +2395,8 @@ compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> 
     }
 
   float v_norm;
-  v_norm = 0.5f * t_max(t_abs(m(2, 0) * m_resolution.x()),
-                        t_abs(m(2, 1) * m_resolution.y()));
+  v_norm = 0.5f * t_max(t_abs(m(2, 0) * m_viewport_dimensions.x()),
+                        t_abs(m(2, 1) * m_viewport_dimensions.y()));
 
   return (op_norm + v_norm) / min_w;
 }
@@ -2280,7 +2567,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
-  m_core->draw_generic(shader, p, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z);
+  packer()->draw_generic(shader, p, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z);
 }
 
 void
@@ -2293,7 +2580,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
   fastuidraw::PainterPackerData p(draw);
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
-  m_core->draw_generic(shader, p, src, z);
+  packer()->draw_generic(shader, p, src, z);
 }
 
 void
@@ -2380,7 +2667,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
                    z);
-      m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
+      packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
       draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
                    make_c_array(data.m_attrib_chunks),
@@ -2388,7 +2675,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
                    z);
-      m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
+      packer()->draw_break(shader.aa_fuzz_hq_action_pass2());
     }
 }
 
@@ -2802,10 +3089,10 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
       const PainterCompositeShaderSet &shader_set(m_default_shaders.composite_shaders());
       enum Painter::composite_mode_t m(Painter::composite_porter_duff_dst);
 
-      old_composite = m_core->composite_shader();
-      old_composite_mode = m_core->composite_mode();
-      m_core->composite_shader(shader_set.shader(m), shader_set.composite_mode(m));
-      m_core->draw_break(shader.hq_aa_action_pass1());
+      old_composite = packer()->composite_shader();
+      old_composite_mode = packer()->composite_mode();
+      packer()->composite_shader(shader_set.shader(m), shader_set.composite_mode(m));
+      packer()->draw_break(shader.hq_aa_action_pass1());
     }
 
   if (modify_z)
@@ -2832,8 +3119,8 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
     {
       if (anti_aliasing == Painter::shader_anti_alias_high_quality)
         {
-          m_core->composite_shader(old_composite, old_composite_mode);
-          m_core->draw_break(shader.hq_aa_action_pass2());
+          packer()->composite_shader(old_composite, old_composite_mode);
+          packer()->draw_break(shader.hq_aa_action_pass2());
         }
 
       if (modify_z)
@@ -3199,13 +3486,13 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
-          m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
+          packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
           draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
-          m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
+          packer()->draw_break(shader.aa_fuzz_hq_action_pass2());
         }
 
       for (int i = 0; i < 4; ++i)
@@ -3344,7 +3631,7 @@ fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
       return 0;
     }
 
-  if (!m_core->hints().clipping_via_hw_clip_planes())
+  if (!packer()->hints().clipping_via_hw_clip_planes())
     {
       m_clip_rect_state.clip_polygon(pts, m_work_room.m_polygon.m_pts,
                                      m_work_room.m_clipper.m_vec2s[0]);
@@ -3382,13 +3669,13 @@ fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
-          m_core->draw_break(shader.aa_fuzz_hq_action_pass1());
+          packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
           draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
-          m_core->draw_break(shader.aa_fuzz_hq_action_pass2());
+          packer()->draw_break(shader.aa_fuzz_hq_action_pass2());
         }
     }
 
@@ -3506,7 +3793,7 @@ packed_value_pool(void)
 void
 fastuidraw::Painter::
 begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
-      enum screen_orientation orientation,
+      const float3x3 &initial_transformation,
       bool clear_color_buffer)
 {
   PainterPrivate *d;
@@ -3514,18 +3801,48 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
   image_atlas()->lock_resources();
   colorstop_atlas()->lock_resources();
-  d->m_core->begin(surface, clear_color_buffer);
+
+  d->m_viewport = surface->viewport();
+  d->m_transparency_stack_entry_factory.begin(surface->dimensions(), d->m_viewport);
+  d->m_root_packer->begin(surface, clear_color_buffer);
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
-  d->m_resolution = vec2(surface->viewport().m_dimensions);
-  d->m_resolution.x() = t_max(1.0f, d->m_resolution.x());
-  d->m_resolution.y() = t_max(1.0f, d->m_resolution.y());
-  d->m_one_pixel_width = 1.0f / d->m_resolution;
+  d->m_viewport_dimensions = vec2(d->m_viewport.m_dimensions);
+  d->m_viewport_dimensions.x() = t_max(1.0f, d->m_viewport_dimensions.x());
+  d->m_viewport_dimensions.y() = t_max(1.0f, d->m_viewport_dimensions.y());
+  d->m_one_pixel_width = 1.0f / d->m_viewport_dimensions;
 
   d->m_current_z = 1;
-  d->m_clip_rect_state.reset(d->m_resolution, orientation);
+  d->m_clip_rect_state.reset(d->m_viewport, surface->dimensions());
   d->m_clip_store.reset(d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(composite_porter_duff_src_over);
   blend_shader(blend_w3c_normal);
+
+  Rect ncR;
+  d->m_viewport.compute_normalized_clip_rect(surface->dimensions(), &ncR);
+  clip_in_rect(ncR);
+  concat(initial_transformation);
+}
+
+void
+fastuidraw::Painter::
+begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+      enum screen_orientation orientation, bool clear_color_buffer)
+{
+  float y1, y2;
+  const PainterBackend::Surface::Viewport &vwp(surface->viewport());
+
+  if (orientation == Painter::y_increases_downwards)
+    {
+      y1 = vwp.m_dimensions.y();
+      y2 = 0;
+    }
+  else
+    {
+      y1 = 0;
+      y2 = vwp.m_dimensions.y();
+    }
+  float_orthogonal_projection_params ortho(0, vwp.m_dimensions.x(), y1, y2);
+  begin(surface, float3x3(ortho), clear_color_buffer);
 }
 
 void
@@ -3535,8 +3852,14 @@ end(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
+  /* pop the transparency stack until it is empty */
+  while (!d->m_transparency_stack.empty())
+    {
+      end_layer();
+    }
+
   /* pop m_clip_stack to perform necessary writes */
-  while(!d->m_occluder_stack.empty())
+  while (!d->m_occluder_stack.empty())
     {
       d->m_occluder_stack.back().on_pop(this);
       d->m_occluder_stack.pop_back();
@@ -3544,7 +3867,12 @@ end(void)
   /* clear state stack as well. */
   d->m_clip_store.clear();
   d->m_state_stack.clear();
-  d->m_core->end();
+
+  /* issue the PainterPacker::end() to send the commands to the GPU */
+  d->m_transparency_stack_entry_factory.end();
+  d->m_root_packer->end();
+
+  /* unlock resources after the commands are sent to the GPU */
   image_atlas()->unlock_resources();
   colorstop_atlas()->unlock_resources();
 }
@@ -3555,7 +3883,7 @@ surface(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->surface();
+  return d->m_root_packer->surface();
 }
 
 void
@@ -3612,7 +3940,7 @@ queue_action(const reference_counted_ptr<const PainterDraw::Action> &action)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->draw_break(action);
+  d->packer()->draw_break(action);
 }
 
 void
@@ -4276,9 +4604,9 @@ save(void)
 
   state_stack_entry st;
   st.m_occluder_stack_position = d->m_occluder_stack.size();
-  st.m_composite = d->m_core->composite_shader();
-  st.m_blend = d->m_core->blend_shader();
-  st.m_composite_mode = d->m_core->composite_mode();
+  st.m_composite = d->packer()->composite_shader();
+  st.m_blend = d->packer()->blend_shader();
+  st.m_composite_mode = d->packer()->composite_mode();
   st.m_clip_rect_state = d->m_clip_rect_state;
   st.m_curve_flatness = d->m_curve_flatness;
 
@@ -4297,8 +4625,8 @@ restore(void)
   const state_stack_entry &st(d->m_state_stack.back());
 
   d->m_clip_rect_state = st.m_clip_rect_state;
-  d->m_core->composite_shader(st.m_composite, st.m_composite_mode);
-  d->m_core->blend_shader(st.m_blend);
+  d->packer()->composite_shader(st.m_composite, st.m_composite_mode);
+  d->packer()->blend_shader(st.m_blend);
   d->m_curve_flatness = st.m_curve_flatness;
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
@@ -4307,6 +4635,101 @@ restore(void)
     }
   d->m_state_stack.pop_back();
   d->m_clip_store.pop();
+}
+
+void
+fastuidraw::Painter::
+begin_layer(const vec4 &color_modulate)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  TransparencyStackEntry R;
+  Rect clip_region_rect;
+
+  clip_region_bounds(&clip_region_rect.m_min_point,
+                     &clip_region_rect.m_max_point);
+  save();
+
+  /* Set the clipping equations to the equations coming from clip_region_rect */
+  d->m_clip_rect_state.m_clip_rect = clip_rect(clip_region_rect);
+  d->m_clip_rect_state.set_clip_equations_to_clip_rect(clip_rect_state::rect_in_normalized_device_coordinates);
+
+  /* change m_clip_store so that the current value is just from clip_region_rect */
+  d->m_clip_store.reset_current_to_rect(clip_region_rect);
+
+  /* get the TransparencyStackEntry that gives the PainterPacker and what to blit
+   * when the layer is done
+   */
+  R = d->m_transparency_stack_entry_factory.fetch(d->m_transparency_stack.size(),
+                                                  clip_region_rect, d);
+  R.m_state_stack_size = d->m_state_stack.size();
+  R.m_modulate_color = color_modulate;
+
+  /* set the normalized translation of d->m_clip_rect_state */
+  d->m_clip_rect_state.set_normalized_device_translate(R.m_normalized_translate);
+
+  d->m_transparency_stack.push_back(R);
+
+  /* Set the packer's composite shader, mode and blend shader to
+   * Painter default values
+   */
+  composite_shader(composite_porter_duff_src_over);
+  blend_shader(blend_w3c_normal);
+}
+
+void
+fastuidraw::Painter::
+end_layer(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  TransparencyStackEntry R(d->m_transparency_stack.back());
+  d->m_transparency_stack.pop_back();
+
+  /* restore any saves() done within the layer. */
+  while (R.m_state_stack_size > d->m_state_stack.size())
+    {
+      restore();
+    }
+
+  /* issue the restore that matches with the save() at the start
+   * of begin_layer(); this will restore the clipping, blending
+   * and compositing state to what it was when the begin_layer()
+   * was issued */
+  restore();
+
+  /* blit the rect, we do this by blitting the rect in simple pixel
+   * coordinates with the brush appropiately translated.
+   */
+  save();
+    {
+      vec2 sz, tr, dims, half_dims;
+      PainterBrush brush;
+
+      dims = vec2(d->m_viewport_dimensions);
+      half_dims = 0.5f * dims;
+      /* the rect R.m_normalized_rect is in normalized device coords
+       * we need to scale and translate it to viewport coordinates.
+       */
+      tr = half_dims * (R.m_normalized_rect.m_min_point + vec2(1.0f, 1.0f));
+      sz = half_dims * R.m_normalized_rect.size();
+      transformation(float_orthogonal_projection_params(0, dims.x(),
+                                                        0, dims.y()));
+
+      brush
+        .transformation_translate(R.m_brush_translate)
+        .color(R.m_modulate_color)
+        .image(R.m_image);
+
+      fill_rect(PainterData(&brush),
+                Rect()
+                .min_point(tr)
+                .size(sz),
+                shader_anti_alias_none);
+    }
+  restore();
 }
 
 /* How we handle clipping.
@@ -4402,11 +4825,11 @@ clip_out_path(const FilledPath &path, enum fill_rule_t fill_rule)
   old_composite_mode = composite_mode();
 
   composite_shader(composite_porter_duff_dst);
-  d->m_core->add_callback(zdatacallback);
+  d->packer()->add_callback(zdatacallback);
   d->fill_path(default_shaders().fill_shader(),
                PainterData(d->m_black_brush),
                path, fill_rule, shader_anti_alias_none);
-  d->m_core->remove_callback(zdatacallback);
+  d->packer()->remove_callback(zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -4440,11 +4863,11 @@ clip_out_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
   old_composite_mode = composite_mode();
 
   composite_shader(composite_porter_duff_dst);
-  d->m_core->add_callback(zdatacallback);
+  d->packer()->add_callback(zdatacallback);
   d->fill_path(default_shaders().fill_shader(),
                PainterData(d->m_black_brush),
                path, fill_rule, shader_anti_alias_none);
-  d->m_core->remove_callback(zdatacallback);
+  d->packer()->remove_callback(zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -4483,12 +4906,12 @@ clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
   old_composite_mode = composite_mode();
 
   composite_shader(composite_porter_duff_dst);
-  d->m_core->add_callback(zdatacallback);
+  d->packer()->add_callback(zdatacallback);
   draw_generic(shader,
                PainterData(shader_data, d->m_black_brush),
                attrib_chunks, index_chunks,
                index_adjusts, attrib_chunk_selector);
-  d->m_core->remove_callback(zdatacallback);
+  d->packer()->remove_callback(zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -4535,11 +4958,11 @@ clip_out_rounded_rect(const RoundedRect &R)
   old_composite_mode = composite_mode();
 
   composite_shader(composite_porter_duff_dst);
-  d->m_core->add_callback(zdatacallback);
+  d->packer()->add_callback(zdatacallback);
   d->fill_rounded_rect(default_shaders().fill_shader(),
                        PainterData(d->m_black_brush),
                        R, shader_anti_alias_none);
-  d->m_core->remove_callback(zdatacallback);
+  d->packer()->remove_callback(zdatacallback);
   composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -4642,7 +5065,7 @@ clip_in_rounded_rect(const RoundedRect &R)
   old_composite_mode = composite_mode();
   composite_shader(composite_porter_duff_dst);
 
-  d->m_core->add_callback(zdatacallback);
+  d->packer()->add_callback(zdatacallback);
   for (int i = 0; i < 4; ++i)
     {
       translate(rect_transforms.m_translates[i]);
@@ -4653,7 +5076,7 @@ clip_in_rounded_rect(const RoundedRect &R)
                    shader_anti_alias_none);
       d->m_clip_rect_state = m;
     }
-  d->m_core->remove_callback(zdatacallback);
+  d->packer()->remove_callback(zdatacallback);
 
   /* restore composite mode and shader */
   composite_shader(old_composite, old_composite_mode);
@@ -4685,7 +5108,7 @@ clip_in_rect(const Rect &rect)
        * as the clipping window
        */
       d->m_clip_rect_state.m_clip_rect = clip_rect(rect);
-      d->m_clip_rect_state.set_clip_equations_to_clip_rect();
+      d->m_clip_rect_state.set_clip_equations_to_clip_rect(clip_rect_state::rect_in_local_coordinates);
       return;
     }
   else if (!d->m_clip_rect_state.item_matrix_transition_tricky())
@@ -4698,7 +5121,7 @@ clip_in_rect(const Rect &rect)
        * the passed rectangle.
        */
       d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(rect));
-      d->m_clip_rect_state.set_clip_equations_to_clip_rect();
+      d->m_clip_rect_state.set_clip_equations_to_clip_rect(clip_rect_state::rect_in_local_coordinates);
       return;
     }
 
@@ -4720,7 +5143,8 @@ clip_in_rect(const Rect &rect)
   d->m_clip_rect_state.m_clip_rect = clip_rect(rect);
 
   std::bitset<4> skip_occluder;
-  skip_occluder = d->m_clip_rect_state.set_clip_equations_to_clip_rect(prev_clip);
+  skip_occluder = d->m_clip_rect_state.set_clip_equations_to_clip_rect(prev_clip,
+                                                                       clip_rect_state::rect_in_local_coordinates);
   current_clip = d->m_clip_rect_state.clip_equations_state(d->m_pool);
 
   if (d->m_clip_rect_state.m_all_content_culled)
@@ -4750,7 +5174,7 @@ clip_in_rect(const Rect &rect)
   PainterPackedValue<PainterItemMatrix> matrix_state;
   matrix_state = d->m_clip_rect_state.current_item_matrix_state(d->m_pool);
   FASTUIDRAWassert(matrix_state);
-  d->m_clip_rect_state.item_matrix_state(d->m_identiy_matrix, false);
+  d->m_clip_rect_state.item_matrix_state(d->identity_matrix(), false);
 
   reference_counted_ptr<ZDataCallBack> zdatacallback;
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
@@ -4778,7 +5202,7 @@ clip_in_rect(const Rect &rect)
   d->m_clip_rect_state.clip_equations(slightly_bigger);
 
   /* draw the half plane occluders */
-  d->m_core->add_callback(zdatacallback);
+  d->packer()->add_callback(zdatacallback);
   for(unsigned int i = 0; i < 4; ++i)
     {
       if (!skip_occluder[i])
@@ -4788,7 +5212,7 @@ clip_in_rect(const Rect &rect)
                                         prev_clip.value().m_clip_equations[i]);
         }
     }
-  d->m_core->remove_callback(zdatacallback);
+  d->packer()->remove_callback(zdatacallback);
 
   d->m_clip_rect_state.clip_equations_state(current_clip);
 
@@ -4841,7 +5265,7 @@ composite_shader(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->composite_shader();
+  return d->packer()->composite_shader();
 }
 
 fastuidraw::BlendMode
@@ -4850,7 +5274,7 @@ composite_mode(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->composite_mode();
+  return d->packer()->composite_mode();
 }
 
 void
@@ -4860,7 +5284,7 @@ composite_shader(const fastuidraw::reference_counted_ptr<PainterCompositeShader>
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->composite_shader(h, mode);
+  d->packer()->composite_shader(h, mode);
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
@@ -4869,7 +5293,7 @@ blend_shader(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->blend_shader();
+  return d->packer()->blend_shader();
 }
 
 void
@@ -4878,7 +5302,7 @@ blend_shader(const reference_counted_ptr<PainterBlendShader> &h)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->blend_shader(h);
+  d->packer()->blend_shader(h);
 }
 
 const fastuidraw::PainterShaderSet&
@@ -4898,7 +5322,7 @@ query_stat(enum query_stats_t st) const
   d = static_cast<PainterPrivate*>(m_d);
 
   vecN<unsigned int, PainterEnums::num_stats> tmp;
-  d->m_core->inflight_stats(tmp);
+  d->packer()->inflight_stats(tmp);
   return d->m_stats[st] + tmp[st];
 }
 
