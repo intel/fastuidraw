@@ -229,12 +229,6 @@ namespace fastuidraw
     draw_break(const reference_counted_ptr<const PainterDraw::Action> &action);
 
     /*!
-     * Return the default shaders for common drawing types.
-     */
-    const PainterShaderSet&
-    default_shaders(void) const;
-
-    /*!
      * Draw generic attribute data
      * \param shader shader with which to draw data
      * \param data data for how to draw

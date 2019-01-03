@@ -1259,6 +1259,8 @@ namespace
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
+    fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_core;
     fastuidraw::PainterPackedValuePool m_pool;
     fastuidraw::PainterPackedValue<fastuidraw::PainterBrush> m_reset_brush, m_black_brush;
@@ -1758,9 +1760,16 @@ PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
   m_resolution(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
-  m_curve_flatness(0.5f)
+  m_curve_flatness(0.5f),
+  m_backend(backend)
 {
-  m_core = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, backend);
+  // By calling PainterBackend::default_shaders(), we make the shaders
+  // registered. By setting m_default_shaders to its return value,
+  // and using that for the return value of Painter::default_shaders(),
+  // we skip the check in PainterBackend::default_shaders() to register
+  // the shaders as well.
+  m_default_shaders = m_backend->default_shaders();
+  m_core = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
   m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));
@@ -2789,7 +2798,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
 
   if (anti_aliasing == Painter::shader_anti_alias_high_quality)
     {
-      const PainterCompositeShaderSet &shader_set(m_core->default_shaders().composite_shaders());
+      const PainterCompositeShaderSet &shader_set(m_default_shaders.composite_shaders());
       enum Painter::composite_mode_t m(Painter::composite_porter_duff_dst);
 
       old_composite = m_core->composite_shader();
@@ -4876,7 +4885,7 @@ default_shaders(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->default_shaders();
+  return d->m_default_shaders;
 }
 
 unsigned int

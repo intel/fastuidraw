@@ -609,7 +609,6 @@ namespace
                            int z);
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
-    fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterData::value<fastuidraw::PainterBrush> m_default_brush;
     unsigned int m_header_size;
 
@@ -794,12 +793,6 @@ PainterPackerPrivate(fastuidraw::PainterPackedValuePool &pool,
   m_p(p)
 {
   m_header_size = fastuidraw::PainterHeader::data_size();
-  // By calling PainterBackend::default_shaders(), we make the shaders
-  // registered. By setting m_default_shaders to its return value,
-  // and using that for the return value of PainterPacker::default_shaders(),
-  // we skip the check in PainterBackend::default_shaders() to register
-  // the shaders as well.
-  m_default_shaders = m_backend->default_shaders();
   m_number_begins = 0;
   m_default_brush.make_packed(pool);
 }
@@ -1315,15 +1308,6 @@ blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h)
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_blend_shader = h;
-}
-
-const fastuidraw::PainterShaderSet&
-fastuidraw::PainterPacker::
-default_shaders(void) const
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  return d->m_default_shaders;
 }
 
 const fastuidraw::PainterBackend::PerformanceHints&
