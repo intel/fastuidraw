@@ -522,10 +522,10 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .stream_unpack_function(str, "fastuidraw_read_color");
 
   UnpackSourceGenerator("mat2")
-    .set(PainterBrush::transformation_matrix_m00_offset, "[0][0]")
-    .set(PainterBrush::transformation_matrix_m10_offset, "[0][1]")
-    .set(PainterBrush::transformation_matrix_m01_offset, "[1][0]")
-    .set(PainterBrush::transformation_matrix_m11_offset, "[1][1]")
+    .set(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
+    .set(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
+    .set(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
+    .set(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
     .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix");
 
   UnpackSourceGenerator("vec2")

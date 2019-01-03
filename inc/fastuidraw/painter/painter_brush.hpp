@@ -655,11 +655,16 @@ namespace fastuidraw
      */
     enum transformation_matrix_offset_t
       {
-        transformation_matrix_m00_offset, /*!< offset for float2x2(0, 0) (packed at float) */
-        transformation_matrix_m01_offset, /*!< offset for float2x2(0, 1) (packed at float) */
-        transformation_matrix_m10_offset, /*!< offset for float2x2(1, 0) (packed at float) */
-        transformation_matrix_m11_offset, /*!< offset for float2x2(1, 1) (packed at float) */
-        transformation_matrix_data_size /*!< size of data for transformation matrix */
+        transformation_matrix_row0_col0_offset, /*!< offset for float2x2(0, 0) (packed at float) */
+        transformation_matrix_row0_col1_offset, /*!< offset for float2x2(0, 1) (packed at float) */
+        transformation_matrix_row1_col0_offset, /*!< offset for float2x2(1, 0) (packed at float) */
+        transformation_matrix_row1_col1_offset, /*!< offset for float2x2(1, 1) (packed at float) */
+        transformation_matrix_data_size, /*!< size of data for transformation matrix */
+
+        transformation_matrix_col0_row0_offset = transformation_matrix_row0_col0_offset, /*!< alias of \ref transformation_matrix_row0_col0_offset */
+        transformation_matrix_col0_row1_offset = transformation_matrix_row1_col0_offset, /*!< alias of \ref transformation_matrix_row1_col0_offset */
+        transformation_matrix_col1_row0_offset = transformation_matrix_row0_col1_offset, /*!< alias of \ref transformation_matrix_row0_col1_offset */
+        transformation_matrix_col1_row1_offset = transformation_matrix_row1_col1_offset, /*!< alias of \ref transformation_matrix_row1_col1_offset */
       };
 
     /*!

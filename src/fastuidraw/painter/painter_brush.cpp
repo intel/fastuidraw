@@ -195,10 +195,10 @@ pack_data(c_array<generic_data> dst) const
       sub_dest = dst.sub_array(current, sz);
       current += sz;
 
-      sub_dest[transformation_matrix_m00_offset].f = m_data.m_transformation_matrix(0, 0);
-      sub_dest[transformation_matrix_m01_offset].f = m_data.m_transformation_matrix(0, 1);
-      sub_dest[transformation_matrix_m10_offset].f = m_data.m_transformation_matrix(1, 0);
-      sub_dest[transformation_matrix_m11_offset].f = m_data.m_transformation_matrix(1, 1);
+      sub_dest[transformation_matrix_row0_col0_offset].f = m_data.m_transformation_matrix(0, 0);
+      sub_dest[transformation_matrix_row0_col1_offset].f = m_data.m_transformation_matrix(0, 1);
+      sub_dest[transformation_matrix_row1_col0_offset].f = m_data.m_transformation_matrix(1, 0);
+      sub_dest[transformation_matrix_row1_col1_offset].f = m_data.m_transformation_matrix(1, 1);
     }
 
   if (pshader & transformation_translation_mask)
