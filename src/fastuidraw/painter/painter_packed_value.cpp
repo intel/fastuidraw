@@ -1,6 +1,6 @@
 /*!
- * \file painter_packed_value_pool.cpp
- * \brief file painter_packed_value_pool.cpp
+ * \file painter_packed_value.cpp
+ * \brief file painter_packed_value.cpp
  *
  * Copyright 2019 by Intel.
  *

@@ -9,7 +9,7 @@ dir := $(d)/backend
 include $(dir)/Rules.mk
 
 FASTUIDRAW_SOURCES += $(call filelist, fill_rule.cpp \
-	painter_packed_value_pool.cpp \
+	painter_packed_value.cpp \
 	painter_attribute_data.cpp \
 	painter_brush.cpp painter_stroke_params.cpp \
 	painter_dashed_stroke_params.cpp \
