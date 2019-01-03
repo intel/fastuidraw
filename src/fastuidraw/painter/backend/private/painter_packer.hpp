@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include <vector>
+#include <list>
+#include <cstring>
+
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/matrix.hpp>
@@ -322,7 +326,63 @@ namespace fastuidraw
     composite_mode(const PainterShaderGroup *md);
 
   private:
-    void *m_d;
+    class per_draw_command;
+    class painter_state_location
+    {
+    public:
+      uint32_t m_clipping_data_loc;
+      uint32_t m_item_matrix_data_loc;
+      uint32_t m_brush_shader_data_loc;
+      uint32_t m_item_shader_data_loc;
+      uint32_t m_composite_shader_data_loc;
+      uint32_t m_blend_shader_data_loc;
+    };
+
+    class Workroom
+    {
+    public:
+      std::vector<unsigned int> m_attribs_loaded;
+    };
+
+    void
+    start_new_command(void);
+
+    void
+    upload_draw_state(const fastuidraw::PainterPackerData &draw_state);
+
+    unsigned int
+    compute_room_needed_for_packing(const fastuidraw::PainterPackerData &draw_state);
+
+    template<typename T>
+    unsigned int
+    compute_room_needed_for_packing(const fastuidraw::PainterData::value<T> &obj);
+
+    template<typename T>
+    void
+    draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+                           const fastuidraw::PainterPackerData &data,
+                           const T &src,
+                           int z);
+
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
+    fastuidraw::PainterData::value<fastuidraw::PainterBrush> m_default_brush;
+    unsigned int m_header_size;
+
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> m_composite_shader;
+    fastuidraw::BlendMode m_composite_mode;
+    painter_state_location m_painter_state_location;
+    int m_number_begins;
+
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> m_surface;
+    bool m_clear_color_buffer;
+    std::vector<per_draw_command> m_accumulated_draws;
+    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_last_binded_image;
+
+    Workroom m_work_room;
+    fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stats> m_stats;
+
+    std::list<fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> > m_callback_list;
   };
 /*! @} */
 
