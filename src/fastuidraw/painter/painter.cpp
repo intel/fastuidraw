@@ -1252,6 +1252,7 @@ namespace
     const fastuidraw::FilledPath&
     select_filled_path(const fastuidraw::Path &path);
 
+    fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stats> m_stats;
     fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
@@ -1769,7 +1770,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   // we skip the check in PainterBackend::default_shaders() to register
   // the shaders as well.
   m_default_shaders = m_backend->default_shaders();
-  m_core = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_backend);
+  m_core = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
   m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));
@@ -3514,6 +3515,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   image_atlas()->lock_resources();
   colorstop_atlas()->lock_resources();
   d->m_core->begin(surface, clear_color_buffer);
+  std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->m_resolution = vec2(surface->viewport().m_dimensions);
   d->m_resolution.x() = t_max(1.0f, d->m_resolution.x());
   d->m_resolution.y() = t_max(1.0f, d->m_resolution.y());
@@ -4894,7 +4896,10 @@ query_stat(enum query_stats_t st) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->query_stat(st);
+
+  vecN<unsigned int, PainterEnums::num_stats> tmp;
+  d->m_core->inflight_stats(tmp);
+  return d->m_stats[st] + tmp[st];
 }
 
 int

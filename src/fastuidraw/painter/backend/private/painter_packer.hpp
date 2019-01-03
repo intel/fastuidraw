@@ -107,6 +107,7 @@ namespace fastuidraw
      */
     explicit
     PainterPacker(PainterPackedValuePool &pool,
+                  vecN<unsigned int, PainterEnums::num_stats> &stats,
                   reference_counted_ptr<PainterBackend> backend);
 
     virtual
@@ -274,12 +275,10 @@ namespace fastuidraw
                  int z);
 
     /*!
-     * Returns a stat on how much data the PainterPacker has
-     * handled since the last call to begin().
-     * \param st stat to query
+     * Returns stats on the currently being built draw-call.
      */
-    unsigned int
-    query_stat(enum PainterEnums::query_stats_t st) const;
+    void
+    inflight_stats(vecN<unsigned int, PainterEnums::num_stats> &dst) const;
 
     /*!
      * Returns the PainterBackend::PerformanceHints of the underlying
@@ -339,41 +338,41 @@ namespace fastuidraw
     start_new_command(void);
 
     void
-    upload_draw_state(const fastuidraw::PainterPackerData &draw_state);
+    upload_draw_state(const PainterPackerData &draw_state);
 
     unsigned int
-    compute_room_needed_for_packing(const fastuidraw::PainterPackerData &draw_state);
+    compute_room_needed_for_packing(const PainterPackerData &draw_state);
 
     template<typename T>
     unsigned int
-    compute_room_needed_for_packing(const fastuidraw::PainterData::value<T> &obj);
+    compute_room_needed_for_packing(const PainterData::value<T> &obj);
 
     template<typename T>
     void
-    draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
-                           const fastuidraw::PainterPackerData &data,
+    draw_generic_implement(const reference_counted_ptr<PainterItemShader> &shader,
+                           const PainterPackerData &data,
                            const T &src,
                            int z);
 
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
-    fastuidraw::PainterData::value<fastuidraw::PainterBrush> m_default_brush;
+    reference_counted_ptr<PainterBackend> m_backend;
+    PainterData::value<PainterBrush> m_default_brush;
     unsigned int m_header_size;
 
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend_shader;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> m_composite_shader;
-    fastuidraw::BlendMode m_composite_mode;
+    reference_counted_ptr<PainterBlendShader> m_blend_shader;
+    reference_counted_ptr<PainterCompositeShader> m_composite_shader;
+    BlendMode m_composite_mode;
     painter_state_location m_painter_state_location;
     int m_number_begins;
 
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> m_surface;
+    reference_counted_ptr<PainterBackend::Surface> m_surface;
     bool m_clear_color_buffer;
     std::vector<per_draw_command> m_accumulated_draws;
-    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_last_binded_image;
+    reference_counted_ptr<const Image> m_last_binded_image;
 
     Workroom m_work_room;
-    fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stats> m_stats;
+    vecN<unsigned int, PainterEnums::num_stats> &m_stats;
 
-    std::list<fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> > m_callback_list;
+    std::list<reference_counted_ptr<PainterPacker::DataCallBack> > m_callback_list;
   };
 /*! @} */
 
