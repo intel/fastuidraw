@@ -1862,6 +1862,15 @@ map_draw(void)
   return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_reg_gl->params(), d);
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>
+fastuidraw::gl::PainterBackendGL::
+create_surface(ivec2 dims)
+{
+  reference_counted_ptr<Surface> S;
+  S = FASTUIDRAWnew SurfaceGL(dims);
+  return S;
+}
+
 const fastuidraw::gl::PainterBackendGL::BindingPoints&
 fastuidraw::gl::PainterBackendGL::
 binding_points(void) const

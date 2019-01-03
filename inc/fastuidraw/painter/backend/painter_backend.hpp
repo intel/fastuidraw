@@ -384,6 +384,16 @@ namespace fastuidraw
     map_draw(void) = 0;
 
     /*!
+     * To be implemented by a derived class to create a
+     * Surface with its own backing that is useable by
+     * both the creating \ref PainterBackend and any \ref
+     * PainterBackend returned by create_sharing_shaders().
+     */
+    virtual
+    reference_counted_ptr<Surface>
+    create_surface(ivec2 dims) = 0;
+
+    /*!
      * Returns the PainterShaderSet for the backend.
      * Returned values will already be registerd by the
      * backend.

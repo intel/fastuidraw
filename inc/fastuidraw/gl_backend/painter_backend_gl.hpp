@@ -643,6 +643,10 @@ namespace fastuidraw
       reference_counted_ptr<PainterDraw>
       map_draw(void);
 
+      virtual
+      reference_counted_ptr<Surface>
+      create_surface(ivec2 dims);
+
       /*!
        * Return the specified Program use to draw
        * with this PainterBackendGL.
