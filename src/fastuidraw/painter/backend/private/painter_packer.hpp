@@ -296,56 +296,6 @@ namespace fastuidraw
     const PainterBackend::PerformanceHints&
     hints(void);
 
-    /*
-     * PainterPacker sources are compiled private, but they contain
-     * the implmentation to PainterPackedValuePool, so we implement
-     * them as static methods here that PainterPackedValuePool
-     * methods will call.
-     */
-    static
-    void*
-    create_packed_value(void *d, const PainterBrush &value);
-
-    static
-    void*
-    create_packed_value(void *d, const PainterItemShaderData &value);
-
-    static
-    void*
-    create_packed_value(void *d, const PainterCompositeShaderData &value);
-
-    static
-    void*
-    create_packed_value(void *d, const PainterBlendShaderData &value);
-
-    static
-    void*
-    create_packed_value(void *d, const PainterClipEquations &value);
-
-    static
-    void*
-    create_packed_value(void *d, const PainterItemMatrix &value);
-
-    static
-    void*
-    create_painter_packed_value_pool_d(void);
-
-    static
-    void
-    delete_painter_packed_value_pool_d(void*);
-
-    static
-    void
-    acquire_packed_value(void *md);
-
-    static
-    void
-    release_packed_value(void *md);
-
-    static
-    const void*
-    raw_data_of_packed_value(void *md);
-
     /* The data behind a PainterShaderGroup is also defined privately
      * within PainterPacker implementation, so to implement the
      * PainterShaderGroup methods, we implement them here and have

@@ -23,6 +23,7 @@
 
 #include <fastuidraw/painter/backend/painter_header.hpp>
 #include "painter_packer.hpp"
+#include "painter_packed_value_pool_private.hpp"
 #include "../../../private/util_private.hpp"
 
 namespace
@@ -83,239 +84,6 @@ namespace
     {
       PainterShaderGroupValues::operator=(obj);
     }
-  };
-
-  /* QUESTION
-   *  - does the reference count to a pool need to be thread safe?
-   */
-  class PoolBase:public fastuidraw::reference_counted<PoolBase>::non_concurrent
-  {
-  public:
-    enum
-      {
-        pool_size = 1024
-      };
-
-    PoolBase(void):
-      m_free_slots_back(pool_size - 1)
-    {
-      for(unsigned int i = 0; i < pool_size; ++i)
-        {
-          m_free_slots[i] = pool_size - 1 - i;
-        }
-    }
-
-    ~PoolBase()
-    {
-      FASTUIDRAWassert(m_free_slots_back == pool_size - 1);
-    }
-
-    int
-    aquire_slot(void)
-    {
-      /* Should we make this thread safe? We can make it
-       * thread safe by using atomic operation on m_free_slots_back.
-       * The following code would make it thread safe.
-       *
-       * return_value = m_free_slots_back.fetch_sub(1, std::memory_order_aquire)
-       * if (return_value < 0)
-       *   {
-       *      m_free_slots_back.fetch_add(1, std::memory_order_aquire);
-       *   }
-       * return return_value;
-       */
-      int return_value(-1);
-
-      if (m_free_slots_back >= 0)
-        {
-          return_value = m_free_slots[m_free_slots_back];
-          --m_free_slots_back;
-        }
-      return return_value;
-    }
-
-    void
-    release_slot(int v)
-    {
-      /* Should we make this thread safe? We can make it
-       * thread safe by using atomic operation on m_free_slots_back.
-       * The following code would make it thread safe.
-       *
-       * int S;
-       * S = m_free_slots_back.fetch_add(1, std::memory_order_release);
-       * std::atomic_thread_fence(std::memory_order_acquire);
-       * FASTUIDRAWassert(S < pool_size);
-       * m_free_slots[S] = v;
-       */
-      FASTUIDRAWassert(v >= 0);
-      FASTUIDRAWassert(v < pool_size);
-
-      ++m_free_slots_back;
-
-      FASTUIDRAWassert(m_free_slots_back < pool_size);
-      m_free_slots[m_free_slots_back] = v;
-    }
-
-  private:
-    int m_free_slots_back;
-    fastuidraw::vecN<int, pool_size> m_free_slots;
-  };
-
-  class EntryBase
-  {
-  public:
-
-    EntryBase(void):
-      m_raw_value(nullptr),
-      m_pool_slot(-1)
-    {}
-
-    void
-    aquire(void)
-    {
-      FASTUIDRAWassert(m_pool);
-      FASTUIDRAWassert(m_pool_slot >= 0);
-      m_count.add_reference();
-    }
-
-    void
-    release(void)
-    {
-      FASTUIDRAWassert(m_pool);
-      FASTUIDRAWassert(m_pool_slot >= 0);
-      if (m_count.remove_reference())
-        {
-          m_pool->release_slot(m_pool_slot);
-          m_pool_slot = -1;
-          m_pool = nullptr;
-        }
-    }
-
-    const void*
-    raw_value(void)
-    {
-      return m_raw_value;
-    }
-
-    /* To what painter and where in data store buffer
-     * already packed into PainterDraw::m_store
-     */
-    const fastuidraw::PainterPacker *m_painter;
-    std::vector<fastuidraw::generic_data> m_data;
-    int m_begin_id;
-    unsigned int m_draw_command_id, m_offset;
-
-  protected:
-    /* pointer to raw state member held
-     * by derived class
-     */
-    const void *m_raw_value;
-
-    /* location in pool and what pool
-     */
-    fastuidraw::reference_counted_ptr<PoolBase> m_pool;
-    int m_pool_slot;
-
-  private:
-    /* Entry reference count is not thread safe because
-     * the objects themselves are not.
-     */
-    fastuidraw::reference_count_non_concurrent m_count;
-  };
-
-  template<typename T>
-  class Entry:public EntryBase
-  {
-  public:
-    Entry(void)
-    {
-      m_raw_value = &m_state;
-    }
-
-    void
-    set(const T &st, PoolBase *p, int slot)
-    {
-      FASTUIDRAWassert(p);
-      FASTUIDRAWassert(slot >= 0);
-
-      m_pool = p;
-      m_state = st;
-      m_pool_slot = slot;
-
-      this->m_begin_id = -1;
-      this->m_draw_command_id = 0;
-      this->m_offset = 0;
-      this->m_painter = nullptr;
-      this->m_data.resize(m_state.data_size());
-      m_state.pack_data(fastuidraw::make_c_array(this->m_data));
-    }
-
-    T m_state;
-  };
-
-  template<typename T>
-  class Pool:public PoolBase
-  {
-  public:
-    /* Returning nullptr indicates no free entries left in the pool
-     */
-    Entry<T>*
-    allocate(const T &st)
-    {
-      Entry<T> *return_value(nullptr);
-      int slot;
-
-      slot = this->aquire_slot();
-      if (slot >= 0)
-        {
-          return_value = &m_data[slot];
-          return_value->set(st, this, slot);
-        }
-      return return_value;
-    }
-
-  private:
-    fastuidraw::vecN<Entry<T>, PoolBase::pool_size> m_data;
-  };
-
-  template<typename T>
-  class PoolSet:fastuidraw::noncopyable
-  {
-  public:
-    PoolSet(void)
-    {
-      m_pools.push_back(FASTUIDRAWnew Pool<T>());
-    }
-
-    Entry<T>*
-    allocate(const T &st)
-    {
-      Entry<T> *return_value;
-
-      return_value = m_pools.back()->allocate(st);
-      if (!return_value)
-        {
-          m_pools.push_back(FASTUIDRAWnew Pool<T>());
-          return_value = m_pools.back()->allocate(st);
-        }
-
-      FASTUIDRAWassert(return_value);
-      return return_value;
-    }
-
-  private:
-    std::vector<fastuidraw::reference_counted_ptr<Pool<T> > > m_pools;
-  };
-
-  class PainterPackedValuePoolPrivate
-  {
-  public:
-    PoolSet<fastuidraw::PainterBrush> m_brush_pool;
-    PoolSet<fastuidraw::PainterClipEquations> m_clip_equations_pool;
-    PoolSet<fastuidraw::PainterItemMatrix> m_item_matrix_pool;
-    PoolSet<fastuidraw::PainterItemShaderData> m_item_shader_data_pool;
-    PoolSet<fastuidraw::PainterCompositeShaderData> m_composite_shader_data_pool;
-    PoolSet<fastuidraw::PainterBlendShaderData> m_blend_shader_data_pool;
   };
 
   class painter_state_location
@@ -413,7 +181,9 @@ namespace
     }
 
     void
-    pack_state_data(PainterPackerPrivate *p, EntryBase *st_d, uint32_t &location);
+    pack_state_data(PainterPackerPrivate *p,
+                    fastuidraw::detail::PackedValuePoolBase::ElementBase *st_d,
+                    uint32_t &location);
 
     template<typename T>
     void
@@ -436,8 +206,8 @@ namespace
     {
       if (obj.m_packed_value)
         {
-          EntryBase *e;
-          e = static_cast<EntryBase*>(obj.m_packed_value.opaque_data());
+          fastuidraw::detail::PackedValuePoolBase::ElementBase *e;
+          e = static_cast<fastuidraw::detail::PackedValuePoolBase::ElementBase*>(obj.m_packed_value.opaque_data());
           pack_state_data(p, e, location);
         }
       else if (obj.m_value != nullptr)
@@ -578,8 +348,8 @@ namespace
     {
       if (obj.m_packed_value)
         {
-          EntryBase *d;
-          d = static_cast<EntryBase*>(obj.m_packed_value.opaque_data());
+          fastuidraw::detail::PackedValuePoolBase::ElementBase *d;
+          d = static_cast<fastuidraw::detail::PackedValuePoolBase::ElementBase*>(obj.m_packed_value.opaque_data());
           if (d->m_painter == m_p && d->m_begin_id == m_number_begins
              && d->m_draw_command_id == m_accumulated_draws.size())
             {
@@ -661,7 +431,8 @@ allocate_store(unsigned int num_elements)
 void
 per_draw_command::
 pack_state_data(PainterPackerPrivate *p,
-                EntryBase *d, uint32_t &location)
+                fastuidraw::detail::PackedValuePoolBase::ElementBase *d,
+                uint32_t &location)
 {
   if (d->m_painter == p->m_p && d->m_begin_id == p->m_number_begins
      && d->m_draw_command_id == p->m_accumulated_draws.size())
@@ -670,8 +441,8 @@ pack_state_data(PainterPackerPrivate *p,
       return;
     }
 
-  /* data not in current data store add
-   * it to the current store.
+  /* data not in current data store but packed in d->m_data, place
+   * it onto the current store.
    */
   fastuidraw::c_array<const fastuidraw::generic_data> src;
   fastuidraw::c_array<fastuidraw::generic_data> dst;
@@ -1319,123 +1090,8 @@ hints(void)
   return d->m_backend->hints();
 }
 
-void*
-fastuidraw::PainterPacker::
-create_painter_packed_value_pool_d(void)
-{
-  return FASTUIDRAWnew PainterPackedValuePoolPrivate();
-}
-
-void
-fastuidraw::PainterPacker::
-delete_painter_packed_value_pool_d(void *md)
-{
-  PainterPackedValuePoolPrivate *d;
-  d = static_cast<PainterPackedValuePoolPrivate*>(md);
-  FASTUIDRAWdelete(d);
-}
-
-void*
-fastuidraw::PainterPacker::
-create_packed_value(void *md, const PainterBrush &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterBrush> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(md);
-  e = d->m_brush_pool.allocate(value);
-  return e;
-}
-
-void*
-fastuidraw::PainterPacker::
-create_packed_value(void *md, const PainterClipEquations &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterClipEquations> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(md);
-  e = d->m_clip_equations_pool.allocate(value);
-  return e;
-}
-
-void*
-fastuidraw::PainterPacker::
-create_packed_value(void *md, const PainterItemMatrix &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterItemMatrix> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(md);
-  e = d->m_item_matrix_pool.allocate(value);
-  return e;
-}
-
-void*
-fastuidraw::PainterPacker::
-create_packed_value(void *md, const PainterItemShaderData &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterItemShaderData> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(md);
-  e = d->m_item_shader_data_pool.allocate(value);
-  return e;
-}
-
-void*
-fastuidraw::PainterPacker::
-create_packed_value(void *md, const PainterCompositeShaderData &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterCompositeShaderData> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(md);
-  e = d->m_composite_shader_data_pool.allocate(value);
-  return e;
-}
-
-void*
-fastuidraw::PainterPacker::
-create_packed_value(void *md, const PainterBlendShaderData &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  Entry<PainterBlendShaderData> *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(md);
-  e = d->m_blend_shader_data_pool.allocate(value);
-  return e;
-}
-
-void
-fastuidraw::PainterPacker::
-acquire_packed_value(void *md)
-{
-  EntryBase *d;
-  d = static_cast<EntryBase*>(md);
-  d->aquire();
-}
-
-void
-fastuidraw::PainterPacker::
-release_packed_value(void *md)
-{
-  EntryBase *d;
-  d = static_cast<EntryBase*>(md);
-  d->release();
-}
-
-const void*
-fastuidraw::PainterPacker::
-raw_data_of_packed_value(void *md)
-{
-  EntryBase *d;
-  d = static_cast<EntryBase*>(md);
-  FASTUIDRAWassert(d);
-  FASTUIDRAWassert(d->raw_value());
-  return d->raw_value();
-}
-
+///////////////////////////////
+//
 uint32_t
 fastuidraw::PainterPacker::
 composite_group(const PainterShaderGroup *md)
