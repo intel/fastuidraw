@@ -9,7 +9,7 @@ FASTUIDRAW_PRIVATE_SOURCES += $(call filelist, \
 	path_util_private.cpp \
 	clip.cpp int_path.cpp \
 	util_private_math.cpp \
-	pack_texels.cpp)
+	pack_texels.cpp rect_atlas.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))
