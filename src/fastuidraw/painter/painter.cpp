@@ -4803,7 +4803,7 @@ glyph_atlas(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->glyph_atlas();
+  return d->m_backend->glyph_atlas();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
@@ -4812,7 +4812,7 @@ image_atlas(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->image_atlas();
+  return d->m_backend->image_atlas();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
@@ -4821,7 +4821,7 @@ colorstop_atlas(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->colorstop_atlas();
+  return d->m_backend->colorstop_atlas();
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>
@@ -4830,7 +4830,7 @@ painter_shader_registrar(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->painter_shader_registrar();
+  return d->m_backend->painter_shader_registrar();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader>&

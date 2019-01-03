@@ -113,52 +113,6 @@ namespace fastuidraw
     ~PainterPacker();
 
     /*!
-     * Returns a handle to the GlyphAtlas of this
-     * PainterPacker. All glyphs used by this
-     * PainterPacker must live on glyph_atlas().
-     */
-    const reference_counted_ptr<GlyphAtlas>&
-    glyph_atlas(void) const
-    {
-      return m_backend->glyph_atlas();
-    }
-
-    /*!
-     * Returns a handle to the ImageAtlas of this
-     * PainterPacker. All images used by all brushes
-     * of this PainterPacker must live on image_atlas().
-     */
-    const reference_counted_ptr<ImageAtlas>&
-    image_atlas(void) const
-    {
-      return m_backend->image_atlas();
-    }
-
-    /*!
-     * Returns a handle to the ColorStopAtlas of this
-     * PainterPacker. All color stops used by all brushes
-     * of this PainterPacker must live on colorstop_atlas().
-     */
-    const reference_counted_ptr<ColorStopAtlas>&
-    colorstop_atlas(void) const
-    {
-      return m_backend->colorstop_atlas();
-    }
-
-    /*!
-     * Returns the PainterShaderRegistrar of the PainterBackend
-     * that was used to create this PainterPacker object. Use this
-     * return value to add custom shaders. NOTE: shaders added
-     * within a thread are not useable within that thread until
-     * the next call to begin().
-     */
-    reference_counted_ptr<PainterShaderRegistrar>
-    painter_shader_registrar(void) const
-    {
-      return m_backend->painter_shader_registrar();
-    }
-
-    /*!
      * Returns the active composite shader
      */
     const reference_counted_ptr<PainterCompositeShader>&
