@@ -52,7 +52,7 @@ void
 main(void)
 {
   fastuidraw_shader_header h;
-  vec2 brush_p;
+  vec2 brush_p, normalized_translate;
   vec3 clip_p;
   fastuidraw_clipping_data clipping;
   float normalized_depth, raw_depth;
@@ -61,7 +61,7 @@ main(void)
   fastuidraw_read_header(fastuidraw_header_attribute, h);
   fastuidraw_process_header(h);
   fastuidraw_read_clipping(h.clipping_location, clipping);
-  fastuidraw_read_item_matrix(h.item_matrix_location, fastuidraw_item_matrix);
+  fastuidraw_read_item_matrix(h.item_matrix_location, fastuidraw_item_matrix, normalized_translate);
 
   #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
     {
@@ -110,5 +110,6 @@ main(void)
     }
   #endif
 
+  clip_p.xy += normalized_translate * clip_p.z;
   gl_Position = vec4(clip_p.xy, normalized_depth * clip_p.z, clip_p.z);
 }

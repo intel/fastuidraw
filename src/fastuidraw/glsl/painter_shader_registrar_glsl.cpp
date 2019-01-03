@@ -600,16 +600,19 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   /* Matrics in GLSL are [column][row], that is why we use the
    * matrix_colX_rowY_offset enums
    */
-  UnpackSourceGenerator("mat3")
-    .set(PainterItemMatrix::matrix_col0_row0_offset, "[0][0]")
-    .set(PainterItemMatrix::matrix_col0_row1_offset, "[0][1]")
-    .set(PainterItemMatrix::matrix_col0_row2_offset, "[0][2]")
-    .set(PainterItemMatrix::matrix_col1_row0_offset, "[1][0]")
-    .set(PainterItemMatrix::matrix_col1_row1_offset, "[1][1]")
-    .set(PainterItemMatrix::matrix_col1_row2_offset, "[1][2]")
-    .set(PainterItemMatrix::matrix_col2_row0_offset, "[2][0]")
-    .set(PainterItemMatrix::matrix_col2_row1_offset, "[2][1]")
-    .set(PainterItemMatrix::matrix_col2_row2_offset, "[2][2]")
+  vecN<c_string, 2> painter_item_matrix_structs("mat3", "vec2");
+  UnpackSourceGenerator(painter_item_matrix_structs)
+    .set(PainterItemMatrix::matrix_col0_row0_offset, "[0][0]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col0_row1_offset, "[0][1]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col0_row2_offset, "[0][2]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col1_row0_offset, "[1][0]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col1_row1_offset, "[1][1]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col1_row2_offset, "[1][2]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col2_row0_offset, "[2][0]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col2_row1_offset, "[2][1]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::matrix_col2_row2_offset, "[2][2]", UnpackSourceGenerator::float_type, 0)
+    .set(PainterItemMatrix::normalized_translate_x, ".x", UnpackSourceGenerator::float_type, 1)
+    .set(PainterItemMatrix::normalized_translate_y, ".y", UnpackSourceGenerator::float_type, 1)
     .stream_unpack_function(str, "fastuidraw_read_item_matrix", false);
 
   UnpackSourceGenerator("fastuidraw_stroking_params")

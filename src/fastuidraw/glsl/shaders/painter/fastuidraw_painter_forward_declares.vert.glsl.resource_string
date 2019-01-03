@@ -32,7 +32,7 @@ void
 fastuidraw_read_clipping(in uint clipping_location, out fastuidraw_clipping_data p);
 
 void
-fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m);
+fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m, out vec2 t);
 
 void
 fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z,
