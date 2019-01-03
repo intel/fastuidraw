@@ -98,6 +98,9 @@ public:
     return draw_buffers(fbo_bits(aux, compositing));
   }
 
+  reference_counted_ptr<Image>
+  image(const reference_counted_ptr<ImageAtlas> &atlas);
+
   PainterBackend::Surface::Viewport m_viewport;
   vec4 m_clear_color;
   ivec2 m_dimensions;
@@ -119,6 +122,7 @@ private:
   vecN<GLuint, number_fbo_t> m_fbo;
   vecN<vecN<GLenum, 2>, 4> m_draw_buffer_values;
   vecN<c_array<const GLenum>, 4> m_draw_buffers;
+  reference_counted_ptr<Image> m_image;
 
   bool m_own_texture;
 };

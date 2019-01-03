@@ -225,6 +225,18 @@ namespace fastuidraw
       {}
 
       /*!
+       * Return an \ref Image whose backing is the same
+       * as the \ref Surface. It is expected that backing
+       * Image is the same for the lifetime of the Surface.
+       * The caller gaurantees that the same ImageAtlas
+       * object will be passed on each call to image().
+       * \param atlas ImageAtlas to manage the returned Image
+       */
+      virtual
+      reference_counted_ptr<Image>
+      image(const reference_counted_ptr<ImageAtlas> &atlas) const = 0;
+
+      /*!
        * To be implemented by a derived class to return
        * the viewport into the Surface.
        */

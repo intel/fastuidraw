@@ -48,6 +48,35 @@ fastuidraw::gl::detail::SurfaceGLPrivate::
   fastuidraw_glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::gl::detail::SurfaceGLPrivate::
+image(const reference_counted_ptr<ImageAtlas> &atlas)
+{
+  if (!m_image)
+    {
+      GLuint texture;
+
+      /* there is a risk that the image will go out of scope
+       * after the Surface. To combat this, we let the created
+       * Image own the texture (if the SurfaceGL owned it).
+       * The m_image is part of the SurfaceGLPrivate, so it
+       * won't release the texture until the SurfaceGLPrivate
+       * dtor is called.
+       */
+      texture = buffer(buffer_color);
+      m_image = ImageAtlasGL::TextureImage::create(atlas,
+                                                   m_dimensions.x(),
+                                                   m_dimensions.y(),
+                                                   1,
+                                                   texture,
+                                                   m_own_texture);
+      m_own_texture = false;
+    }
+
+  FASTUIDRAWassert(m_image->atlas() == atlas);
+  return m_image;
+}
+
 fastuidraw::gl::PainterBackendGL::SurfaceGL*
 fastuidraw::gl::detail::SurfaceGLPrivate::
 surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> &surface)

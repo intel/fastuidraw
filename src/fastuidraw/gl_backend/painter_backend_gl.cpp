@@ -1198,12 +1198,22 @@ blit_surface(GLenum filter) const
   blit_surface(vwp, vwp, filter);
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+image(const reference_counted_ptr<ImageAtlas> &atlas) const
+{
+  detail::SurfaceGLPrivate *d;
+  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  return d->image(atlas);
+}
+
 get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               fastuidraw::ivec2, dimensions)
+
 setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
                  fastuidraw::gl::detail::SurfaceGLPrivate,
-                 fastuidraw::PainterBackend::Surface::Viewport, viewport);
+                 fastuidraw::PainterBackend::Surface::Viewport, viewport)
 setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
                  fastuidraw::gl::detail::SurfaceGLPrivate,
                  const fastuidraw::vec4&, clear_color)
