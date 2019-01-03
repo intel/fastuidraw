@@ -1639,7 +1639,7 @@ create(bool optimal_rendering_quality,
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend>
 fastuidraw::gl::PainterBackendGL::
-create_sharing_shaders(void)
+create_shared(void)
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);

@@ -338,7 +338,7 @@ namespace fastuidraw
      */
     virtual
     reference_counted_ptr<PainterBackend>
-    create_sharing_shaders(void) = 0;
+    create_shared(void) = 0;
 
     /*!
      * Called just before calling PainterDraw::draw() on a sequence
@@ -387,7 +387,7 @@ namespace fastuidraw
      * To be implemented by a derived class to create a
      * Surface with its own backing that is useable by
      * both the creating \ref PainterBackend and any \ref
-     * PainterBackend returned by create_sharing_shaders().
+     * PainterBackend returned by create_shared().
      */
     virtual
     reference_counted_ptr<Surface>

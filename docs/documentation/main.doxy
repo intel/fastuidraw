@@ -530,7 +530,7 @@ namespace fastuidraw {
   // 3. A PainterBackendGL is a very -heavy- object. Hence, these objects
   //    should reused during an applications lifetime.
   // 4. If a program needs multiple PainterBackendGL objects, use the
-  //    method fastuidraw::gl::PainterBackendGL::create_sharing_shaders()
+  //    method fastuidraw::gl::PainterBackendGL::create_shared()
   //    to create a PainterBackendGL that shares the \ref fastuidraw::gl::Program
   //    object with the creator but has its own private buffer pools and state.
 

@@ -624,7 +624,7 @@ namespace fastuidraw
 
       virtual
       reference_counted_ptr<PainterBackend>
-      create_sharing_shaders(void);
+      create_shared(void);
 
       virtual
       void
