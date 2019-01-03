@@ -48,7 +48,7 @@ fastuidraw::gl::detail::SurfaceGLPrivate::
   fastuidraw_glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::reference_counted_ptr<const fastuidraw::Image>
 fastuidraw::gl::detail::SurfaceGLPrivate::
 image(const reference_counted_ptr<ImageAtlas> &atlas)
 {

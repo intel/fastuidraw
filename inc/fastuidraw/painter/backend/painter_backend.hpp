@@ -233,7 +233,7 @@ namespace fastuidraw
        * \param atlas ImageAtlas to manage the returned Image
        */
       virtual
-      reference_counted_ptr<Image>
+      reference_counted_ptr<const Image>
       image(const reference_counted_ptr<ImageAtlas> &atlas) const = 0;
 
       /*!

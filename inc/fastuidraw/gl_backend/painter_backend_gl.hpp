@@ -559,7 +559,7 @@ namespace fastuidraw
         blit_surface(GLenum filter = GL_NEAREST) const;
 
         virtual
-        reference_counted_ptr<Image>
+        reference_counted_ptr<const Image>
         image(const reference_counted_ptr<ImageAtlas> &atlas) const;
 
         virtual

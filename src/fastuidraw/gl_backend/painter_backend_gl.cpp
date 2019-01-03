@@ -1198,7 +1198,7 @@ blit_surface(GLenum filter) const
   blit_surface(vwp, vwp, filter);
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::reference_counted_ptr<const fastuidraw::Image>
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
 image(const reference_counted_ptr<ImageAtlas> &atlas) const
 {
