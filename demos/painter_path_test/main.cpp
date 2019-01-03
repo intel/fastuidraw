@@ -201,7 +201,7 @@ public:
   float m_angle;
   PanZoomTrackerSDLEvent m_path_zoomer;
 
-  bool m_translate_brush, m_matrix_brush;
+  bool m_matrix_brush;
 
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
@@ -298,7 +298,13 @@ private:
   construct_dash_patterns(void);
 
   vec2
-  item_coordinates(ivec2 c);
+  item_coordinates(ivec2 c)
+  {
+    return item_coordinates(vec2(c));
+  }
+
+  vec2
+  item_coordinates(vec2 c);
 
   vec2
   brush_item_coordinate(ivec2 c);
@@ -382,12 +388,6 @@ private:
   gradient_spread_type(void)
   {
     return m_paths[m_selected_path].m_gradient_spread_type;
-  }
-
-  bool&
-  translate_brush(void)
-  {
-    return m_paths[m_selected_path].m_translate_brush;
   }
 
   bool&
@@ -549,6 +549,8 @@ private:
 
   Path m_clip_window_path;
   bool m_clip_window_path_dirty;
+
+  float3x3 m_pixel_matrix;
 };
 
 ///////////////////////////////////
@@ -563,7 +565,6 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_shear(1.0f, 1.0f),
   m_shear2(1.0f, 1.0f),
   m_angle(0.0f),
-  m_translate_brush(false),
   m_matrix_brush(false),
   m_gradient_spread_type(PainterBrush::gradient_repeat),
   m_repeat_window(false),
@@ -735,9 +736,8 @@ painter_stroke_test(void):
             << "\tctrl-i: toggle mipmap filtering when applying an image\n"
             << "\ts: cycle through defined color stops for gradient\n"
             << "\tg: cycle through gradient types (linear or radial)\n"
-            << "\th: toggle repeat gradient\n"
-            << "\tt: toggle translate brush\n"
-            << "\ty: toggle matrix brush\n"
+            << "\th: cycle though gradient spead types\n"
+            << "\ty: toggle applying matrix brush so that brush appears to be in pixel coordinates\n"
             << "\to: toggle clipping window\n"
             << "\tz: increase/decrease curve flatness\n"
             << "\t4,6,2,8 (number pad): change location of clipping window\n"
@@ -1076,29 +1076,25 @@ fill_centered_rect(const vec2 &pt, float r, const PainterData &draw)
 
 vec2
 painter_stroke_test::
-brush_item_coordinate(ivec2 scr)
+brush_item_coordinate(ivec2 q)
 {
   vec2 p;
-  p = item_coordinates(scr);
 
   if (matrix_brush())
     {
-      p *= zoomer().transformation().scale();
+      p = vec2(q);
     }
-
-  if (translate_brush())
+  else
     {
-      p += zoomer().transformation().translation();
+      p = item_coordinates(q);
     }
   return p;
 }
 
 vec2
 painter_stroke_test::
-item_coordinates(ivec2 scr)
+item_coordinates(vec2 p)
 {
-  vec2 p(scr);
-
   /* unapply zoomer()
    */
   p = zoomer().transformation().apply_inverse_to_point(p);
@@ -1252,12 +1248,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_y:
           matrix_brush() = !matrix_brush();
-          std::cout << "Matrix brush: " << on_off(matrix_brush()) << "\n";
-          break;
-
-        case SDLK_t:
-          translate_brush() = !translate_brush();
-          std::cout << "Translate brush: " << on_off(translate_brush()) << "\n";
+          std::cout << "Make brush appear as-if in pixel coordinates: " << on_off(matrix_brush()) << "\n";
           break;
 
         case SDLK_h:
@@ -1732,21 +1723,23 @@ draw_scene(bool drawing_wire_frame)
       PainterBrush fill_brush;
 
       fill_brush.color(m_fill_red.value(), m_fill_green.value(),
-                     m_fill_blue.value(), m_fill_alpha.value());
-      if (translate_brush())
-        {
-          fill_brush.transformation_translate(zoomer().transformation().translation());
-        }
-      else
-        {
-          fill_brush.no_transformation_translation();
-        }
+                       m_fill_blue.value(), m_fill_alpha.value());
 
       if (matrix_brush())
         {
-          float2x2 m;
-          m(0, 0) = m(1, 1) = zoomer().transformation().scale();
-          fill_brush.transformation_matrix(m);
+          /* We want the effect that the brush is in the pixel-coordinates
+           * so we make the transformation the same transformation
+           * that is applied to painter.
+           */
+          float m;
+          m = zoomer().transformation().scale();
+
+          fill_brush.no_transformation();
+          fill_brush.apply_translate(zoomer().transformation().translation());
+          fill_brush.apply_shear(m, m);
+          fill_brush.apply_shear(shear().x(), shear().y());
+          fill_brush.apply_rotate(angle() * M_PI / 180.0f);
+          fill_brush.apply_shear(shear2().x(), shear2().y());
         }
       else
         {
@@ -1976,25 +1969,30 @@ draw_scene(bool drawing_wire_frame)
     {
       float r0, r1;
       vec2 p0, p1;
-      float inv_scale;
 
-      inv_scale = 1.0f / zoomer().transformation().scale();
-      r0 = 15.0f * inv_scale;
-      r1 = 30.0f * inv_scale;
+      r0 = 15.0f;
+      r1 = 30.0f;
 
       p0 = gradient_p0();
       p1 = gradient_p1();
 
-      if (translate_brush())
-        {
-          p0 -= zoomer().transformation().translation();
-          p1 -= zoomer().transformation().translation();
-        }
-
       if (matrix_brush())
         {
-          p0 *= inv_scale;
-          p1 *= inv_scale;
+          /* p0, p1 are suppose to be in screen coordinates,
+           * avoid the drama of unapplying coordinates and just
+           * change coordinate system temporarily to pixel
+           * coordinates
+           */
+          m_painter->save();
+          m_painter->transformation(m_pixel_matrix);
+        }
+      else
+        {
+          float inv_scale;
+
+          inv_scale = 1.0f / zoomer().transformation().scale();
+          r0 *= inv_scale;
+          r1 *= inv_scale;
         }
 
       if (!m_black_pen)
@@ -2009,6 +2007,11 @@ draw_scene(bool drawing_wire_frame)
 
       fill_centered_rect(p1, r1, PainterData(m_white_pen));
       fill_centered_rect(p1, r0, PainterData(m_black_pen));
+
+      if (matrix_brush())
+        {
+          m_painter->restore();
+        }
     }
 }
 
@@ -2068,6 +2071,8 @@ draw_frame(void)
                              .join_style(Painter::no_joins),
                              Painter::shader_anti_alias_none);
     }
+
+  m_pixel_matrix = m_painter->transformation();
 
   /* apply zoomer() */
   m_painter->concat(zoomer().transformation().matrix3());
