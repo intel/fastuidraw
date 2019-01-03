@@ -118,7 +118,10 @@ namespace fastuidraw
      * PainterPacker must live on glyph_atlas().
      */
     const reference_counted_ptr<GlyphAtlas>&
-    glyph_atlas(void) const;
+    glyph_atlas(void) const
+    {
+      return m_backend->glyph_atlas();
+    }
 
     /*!
      * Returns a handle to the ImageAtlas of this
@@ -126,7 +129,10 @@ namespace fastuidraw
      * of this PainterPacker must live on image_atlas().
      */
     const reference_counted_ptr<ImageAtlas>&
-    image_atlas(void) const;
+    image_atlas(void) const
+    {
+      return m_backend->image_atlas();
+    }
 
     /*!
      * Returns a handle to the ColorStopAtlas of this
@@ -134,7 +140,10 @@ namespace fastuidraw
      * of this PainterPacker must live on colorstop_atlas().
      */
     const reference_counted_ptr<ColorStopAtlas>&
-    colorstop_atlas(void) const;
+    colorstop_atlas(void) const
+    {
+      return m_backend->colorstop_atlas();
+    }
 
     /*!
      * Returns the PainterShaderRegistrar of the PainterBackend
@@ -144,19 +153,28 @@ namespace fastuidraw
      * the next call to begin().
      */
     reference_counted_ptr<PainterShaderRegistrar>
-    painter_shader_registrar(void) const;
+    painter_shader_registrar(void) const
+    {
+      return m_backend->painter_shader_registrar();
+    }
 
     /*!
      * Returns the active composite shader
      */
     const reference_counted_ptr<PainterCompositeShader>&
-    composite_shader(void) const;
+    composite_shader(void) const
+    {
+      return m_composite_shader;
+    }
 
     /*!
      * Returns the active 3D API blending mode.
      */
     BlendMode
-    composite_mode(void) const;
+    composite_mode(void) const
+    {
+      return m_composite_mode;
+    }
 
     /*!
      * Sets the active composite shader.
@@ -165,20 +183,30 @@ namespace fastuidraw
      */
     void
     composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
-                     BlendMode blend_mode);
+                     BlendMode blend_mode)
+    {
+      m_composite_shader = h;
+      m_composite_mode = blend_mode;
+    }
 
     /*!
      * Returns the active blend shader
      */
     const reference_counted_ptr<PainterBlendShader>&
-    blend_shader(void) const;
+    blend_shader(void) const
+    {
+      return m_blend_shader;
+    }
 
     /*!
      * Sets the active blend shader.
      * \param h blend shader to use for blending.
      */
     void
-    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h)
+    {
+      m_blend_shader = h;
+    }
 
     /*!
      * Add a \ref DataCallBack to this PainterPacker. A fixed DataCallBack
@@ -249,7 +277,12 @@ namespace fastuidraw
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
                  c_array<const int> index_adjusts,
-                 int z);
+                 int z)
+    {
+      draw_generic(shader, data, attrib_chunks, index_chunks,
+                   index_adjusts, c_array<const unsigned int>(),
+                   z);
+    }
 
     /*!
      * Draw generic attribute data
@@ -285,6 +318,7 @@ namespace fastuidraw
                  const PainterPackerData &data,
                  const PainterAttributeWriter &src,
                  int z);
+
     /*!
      * Returns a stat on how much data the PainterPacker has
      * handled since the last call to begin().
@@ -298,7 +332,10 @@ namespace fastuidraw
      * PainterBackend of this PainterPacker.
      */
     const PainterBackend::PerformanceHints&
-    hints(void);
+    hints(void)
+    {
+      return m_backend->hints();
+    }
 
     /* The data behind a PainterShaderGroup is also defined privately
      * within PainterPacker implementation, so to implement the

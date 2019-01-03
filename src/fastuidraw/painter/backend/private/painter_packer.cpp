@@ -875,20 +875,6 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
              c_array<const c_array<const PainterIndex> > index_chunks,
              c_array<const int> index_adjusts,
-             int z)
-{
-  draw_generic(shader, draw, attrib_chunks, index_chunks,
-               index_adjusts, c_array<const unsigned int>(),
-               z);
-}
-
-void
-fastuidraw::PainterPacker::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
-             const PainterPackerData &draw,
-             c_array<const c_array<const PainterAttribute> > attrib_chunks,
-             c_array<const c_array<const PainterIndex> > index_chunks,
-             c_array<const int> index_adjusts,
              c_array<const unsigned int> attrib_chunk_selector,
              int z)
 {
@@ -904,79 +890,6 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              int z)
 {
   draw_generic_implement(shader, data, src, z);
-}
-
-const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
-fastuidraw::PainterPacker::
-glyph_atlas(void) const
-{
-  return m_backend->glyph_atlas();
-}
-
-const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
-fastuidraw::PainterPacker::
-image_atlas(void) const
-{
-  return m_backend->image_atlas();
-}
-
-const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
-fastuidraw::PainterPacker::
-colorstop_atlas(void) const
-{
-  return m_backend->colorstop_atlas();
-}
-
-fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>
-fastuidraw::PainterPacker::
-painter_shader_registrar(void) const
-{
-  return m_backend->painter_shader_registrar();
-}
-
-const fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader>&
-fastuidraw::PainterPacker::
-composite_shader(void) const
-{
-  return m_composite_shader;
-}
-
-fastuidraw::BlendMode
-fastuidraw::PainterPacker::
-composite_mode(void) const
-{
-  return m_composite_mode;
-}
-
-void
-fastuidraw::PainterPacker::
-composite_shader(const fastuidraw::reference_counted_ptr<PainterCompositeShader> &h,
-                 BlendMode pcomposite_mode)
-{
-  m_composite_shader = h;
-  m_composite_mode = pcomposite_mode;
-}
-
-
-const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
-fastuidraw::PainterPacker::
-blend_shader(void) const
-{
-  return m_blend_shader;
-}
-
-void
-fastuidraw::PainterPacker::
-blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h)
-{
-  m_blend_shader = h;
-}
-
-const fastuidraw::PainterBackend::PerformanceHints&
-fastuidraw::PainterPacker::
-hints(void)
-{
-  return m_backend->hints();
 }
 
 ///////////////////////////////
