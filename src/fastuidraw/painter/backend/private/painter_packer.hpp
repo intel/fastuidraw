@@ -54,7 +54,7 @@ namespace fastuidraw
    * A PainterPacker packs data created by a Painter
    * to be fed to a PainterBackend to draw.
    */
-  class PainterPacker:public reference_counted<PainterPacker>::default_base
+  class PainterPacker:public reference_counted<PainterPacker>::non_concurrent
   {
   public:
     /*!
@@ -63,7 +63,7 @@ namespace fastuidraw
      * from any of the PainterPacker::draw_generic()
      * methods called whenever a header is added.
      */
-    class DataCallBack:public reference_counted<DataCallBack>::default_base
+    class DataCallBack:public reference_counted<DataCallBack>::non_concurrent
     {
     public:
       /*!
