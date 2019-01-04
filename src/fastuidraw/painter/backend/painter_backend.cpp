@@ -139,6 +139,42 @@ setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
                  bool, supports_bindless_texturing)
 
+/////////////////////////////////////////////////////////
+// fastuidraw::PainterBackend::Surface::Viewport methods
+void
+fastuidraw::PainterBackend::Surface::Viewport::
+compute_clip_equations(ivec2 surface_dims,
+                       vecN<vec3, 4> *out_clip_equations) const
+{
+  vec2 top_right_ndc, bottom_left_ndc;
+
+  bottom_left_ndc = compute_normalized_device_coords(vec2(0.0f, 0.0f));
+  top_right_ndc = compute_normalized_device_coords(vec2(surface_dims));
+
+  bottom_left_ndc.x() = t_max(-1.0f, bottom_left_ndc.x());
+  top_right_ndc.x() = t_min(1.0f, top_right_ndc.x());
+
+  bottom_left_ndc.y() = t_max(-1.0f, bottom_left_ndc.y());
+  top_right_ndc.y() = t_min(1.0f, top_right_ndc.y());
+
+  /* The clip equations are:
+   *
+   *  bottom_left_ndc.x() <= x <= top_right_ndc.x()
+   *  bottom_left_ndc.y() <= y <= top_right_ndc.y()
+   *
+   * Which converts to
+   *
+   *  +1.0 * x - bottom_left_ndc.x() * w >= 0
+   *  +1.0 * y - bottom_left_ndc.y() * w >= 0
+   *  -1.0 * x + top_right_ndc.x() * w >= 0
+   *  -1.0 * y + top_right_ndc.y() * w >= 0
+   */
+  (*out_clip_equations)[0] = vec3(+1.0f, 0.0f, -bottom_left_ndc.x());
+  (*out_clip_equations)[1] = vec3(0.0f, +1.0f, -bottom_left_ndc.y());
+  (*out_clip_equations)[2] = vec3(-1.0f, 0.0f, +top_right_ndc.x());
+  (*out_clip_equations)[3] = vec3(0.0f, -1.0f, +top_right_ndc.y());
+}
+
 ////////////////////////////////////
 // fastuidraw::PainterBackend methods
 fastuidraw::PainterBackend::

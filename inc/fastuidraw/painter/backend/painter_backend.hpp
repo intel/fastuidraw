@@ -210,6 +210,49 @@ namespace fastuidraw
         {}
 
         /*!
+         * Compute pixel coordinates from normalized device coords
+         * using this Viewport values. The pixel coordinates are so
+         * that (0, 0) is the bottom left.
+         * \param ndc normalized device coordinates
+         */
+        vec2
+        compute_pixel_coordinates(vec2 ndc) const
+        {
+          ndc += vec2(1.0f); // place in range [0, 2]
+          ndc *= 0.5f;       // normalize to [0, 1]
+          ndc *= vec2(m_dimensions); // normalize to dimension
+          ndc += vec2(m_origin); // translate to origin
+          return ndc;
+        }
+
+        /*!
+         * Compute normalized device coordinates from pixel
+         * coordinates.
+         * \param pc pixel coordinates where (0, 0) corresponds to bottom
+         *           left of the surface
+         */
+        vec2
+        compute_normalized_device_coords(vec2 pixel) const
+        {
+          pixel -= vec2(m_origin); // translate from origin
+          pixel /= vec2(m_dimensions); // normalize to [0, 1]
+          pixel *= 2.0f; // normalize to [0, 2]
+          pixel -= vec2(1.0f); // palce in range [-1, 1]
+          return pixel;
+        }
+
+        /*!
+         * Returns the clip-equations (in normalized device coordinates)
+         * of this Viewport against a surface with the given dimensions.
+         * \param surface_dims dimension of surface
+         * \param[out] out_clip_equations location to which to write the
+         *                                clip equations
+         */
+        void
+        compute_clip_equations(ivec2 surface_dims,
+                               vecN<vec3, 4> *out_clip_equations) const;
+
+        /*!
          * The origin of the viewport
          */
         ivec2 m_origin;
