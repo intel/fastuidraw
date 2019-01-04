@@ -502,7 +502,7 @@ active(void) const
 // fastuidraw::PainterPacker methods
 fastuidraw::PainterPacker::
 PainterPacker(PainterPackedValuePool &pool,
-              vecN<unsigned int, PainterEnums::num_stats> &stats,
+              vecN<unsigned int, num_stats> &stats,
               reference_counted_ptr<PainterBackend> backend):
   m_backend(backend),
   m_clear_color_buffer(false),
@@ -809,7 +809,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
 void
 fastuidraw::PainterPacker::
-inflight_stats(fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stats> &tmp) const
+inflight_stats(fastuidraw::vecN<unsigned int, num_stats> &tmp) const
 {
   std::fill(tmp.begin(), tmp.end(), 0);
   if (!m_accumulated_draws.empty())

@@ -1240,6 +1240,23 @@ namespace fastuidraw
     query_stat(enum query_stats_t st) const;
 
     /*!
+     * Write into a c_array<> all the stats, the total
+     * number of stats can be fetched with number_stats().
+     * The values written into are indexed by \ref
+     * query_stats_t.
+     */
+    void
+    query_stats(c_array<unsigned int> dst) const;
+
+    /*!
+     * Returns the number of stats the Painter type
+     * supports.
+     */
+    static
+    unsigned int
+    number_stats(void);
+
+    /*!
      * Return the z-depth value that the next item will have.
      */
     int

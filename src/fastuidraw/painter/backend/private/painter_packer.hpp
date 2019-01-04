@@ -57,6 +57,16 @@ namespace fastuidraw
   class PainterPacker:public reference_counted<PainterPacker>::non_concurrent
   {
   public:
+    enum
+      {
+        /*!
+         * The total number of different query stats
+         * supported. Sync this with the last enumeration
+         * in PainterEnums::query_stats_t
+         */
+        num_stats = PainterEnums::num_render_targets + 1
+      };
+
     /*!
      * \brief
      * A DataCallBack represents a functor call back
@@ -107,7 +117,7 @@ namespace fastuidraw
      */
     explicit
     PainterPacker(PainterPackedValuePool &pool,
-                  vecN<unsigned int, PainterEnums::num_stats> &stats,
+                  vecN<unsigned int, num_stats> &stats,
                   reference_counted_ptr<PainterBackend> backend);
 
     virtual
@@ -278,7 +288,7 @@ namespace fastuidraw
      * Returns stats on the currently being built draw-call.
      */
     void
-    inflight_stats(vecN<unsigned int, PainterEnums::num_stats> &dst) const;
+    inflight_stats(vecN<unsigned int, num_stats> &dst) const;
 
     /*!
      * Returns the PainterBackend::PerformanceHints of the underlying
@@ -370,7 +380,7 @@ namespace fastuidraw
     reference_counted_ptr<const Image> m_last_binded_image;
 
     Workroom m_work_room;
-    vecN<unsigned int, PainterEnums::num_stats> &m_stats;
+    vecN<unsigned int, num_stats> &m_stats;
 
     std::list<reference_counted_ptr<PainterPacker::DataCallBack> > m_callback_list;
   };

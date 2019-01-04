@@ -1379,7 +1379,7 @@ namespace
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_root_packer;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_root_identity_matrix;
-    fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stats> m_stats;
+    fastuidraw::vecN<unsigned int, fastuidraw::PainterPacker::num_stats> m_stats;
     fastuidraw::PainterBackend::Surface::Viewport m_viewport;
     fastuidraw::vec2 m_viewport_dimensions;
     fastuidraw::vec2 m_one_pixel_width;
@@ -4644,7 +4644,7 @@ fastuidraw::Painter::
 begin_layer(const vec4 &color_modulate)
 {
   PainterPrivate *d;
-  vecN<unsigned int, PainterEnums::num_stats> tmp;
+  vecN<unsigned int, PainterPacker::num_stats> tmp;
   TransparencyStackEntry R;
   Rect clip_region_rect;
 
@@ -4696,7 +4696,7 @@ fastuidraw::Painter::
 end_layer(void)
 {
   PainterPrivate *d;
-  vecN<unsigned int, PainterEnums::num_stats> tmp;
+  vecN<unsigned int, PainterPacker::num_stats> tmp;
 
   d = static_cast<PainterPrivate*>(m_d);
 
@@ -5340,9 +5340,31 @@ query_stat(enum query_stats_t st) const
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  vecN<unsigned int, PainterEnums::num_stats> tmp;
+  vecN<unsigned int, PainterPacker::num_stats> tmp;
   d->packer()->inflight_stats(tmp);
   return d->m_stats[st] + tmp[st];
+}
+
+unsigned int
+fastuidraw::Painter::
+number_stats(void)
+{
+  return PainterPacker::num_stats;
+}
+
+void
+fastuidraw::Painter::
+query_stats(c_array<unsigned int> dst) const
+{
+  PainterPrivate *d;
+  vecN<unsigned int, PainterPacker::num_stats> tmp;
+
+  d = static_cast<PainterPrivate*>(m_d);
+  d->packer()->inflight_stats(tmp);
+  for (unsigned int i = 0; i < dst.size() && i < tmp.size(); ++i)
+    {
+      dst[i] = tmp[i] + d->m_stats[i];
+    }
 }
 
 int
