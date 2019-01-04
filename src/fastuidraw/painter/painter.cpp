@@ -1976,7 +1976,7 @@ fetch(unsigned int transparency_depth,
         {
           reference_counted_ptr<PainterPacker> packer;
           reference_counted_ptr<PainterBackend::Surface> surface;
-          reference_counted_ptr<const fastuidraw::Image> image;
+          reference_counted_ptr<const Image> image;
 
           packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend->create_shared());
           surface = d->m_backend->create_surface(m_current_size, m_viewport);
@@ -1989,6 +1989,7 @@ fetch(unsigned int transparency_depth,
           m_unused_buffers.pop_back();
         }
 
+      ++d->m_stats[Painter::num_render_targets];
       TB->m_depth = transparency_depth;
       m_per_active_depth[transparency_depth].push_back(TB);
 
@@ -3806,6 +3807,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d->m_transparency_stack_entry_factory.begin(surface->dimensions(), d->m_viewport);
   d->m_root_packer->begin(surface, clear_color_buffer);
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
+  d->m_stats[Painter::num_render_targets] = 1;
   d->m_viewport_dimensions = vec2(d->m_viewport.m_dimensions);
   d->m_viewport_dimensions.x() = t_max(1.0f, d->m_viewport_dimensions.x());
   d->m_viewport_dimensions.y() = t_max(1.0f, d->m_viewport_dimensions.y());
@@ -4642,10 +4644,15 @@ fastuidraw::Painter::
 begin_layer(const vec4 &color_modulate)
 {
   PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-
+  vecN<unsigned int, PainterEnums::num_stats> tmp;
   TransparencyStackEntry R;
   Rect clip_region_rect;
+
+  d = static_cast<PainterPrivate*>(m_d);
+
+  /* increment by the current packer()'s inflight stats */
+  d->packer()->inflight_stats(tmp);
+  d->m_stats += tmp;
 
   clip_region_bounds(&clip_region_rect.m_min_point,
                      &clip_region_rect.m_max_point);
@@ -4676,6 +4683,12 @@ begin_layer(const vec4 &color_modulate)
    */
   composite_shader(composite_porter_duff_src_over);
   blend_shader(blend_w3c_normal);
+
+  /* decrement by the new packer's inflight_stats since
+   * that is added in query_stats.
+   */
+  d->packer()->inflight_stats(tmp);
+  d->m_stats -= tmp;
 }
 
 void
@@ -4683,7 +4696,13 @@ fastuidraw::Painter::
 end_layer(void)
 {
   PainterPrivate *d;
+  vecN<unsigned int, PainterEnums::num_stats> tmp;
+
   d = static_cast<PainterPrivate*>(m_d);
+
+  /* increment by the current packer()'s inflight stats */
+  d->packer()->inflight_stats(tmp);
+  d->m_stats += tmp;
 
   TransparencyStackEntry R(d->m_transparency_stack.back());
   d->m_transparency_stack.pop_back();

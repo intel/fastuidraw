@@ -818,7 +818,6 @@ inflight_stats(fastuidraw::vecN<unsigned int, fastuidraw::PainterEnums::num_stat
       tmp[PainterEnums::num_attributes] = c.m_attributes_written;
       tmp[PainterEnums::num_indices] = c.m_indices_written;
       tmp[PainterEnums::num_generic_datas] = c.store_written();
-      tmp[PainterEnums::num_draws] = 0u;
     }
 }
 

@@ -386,6 +386,11 @@ namespace fastuidraw
         num_headers,
 
         /*!
+         * Number of distinct render targets needed.
+         */
+        num_render_targets,
+
+        /*!
          * Number of stats.
          */
         num_stats,
