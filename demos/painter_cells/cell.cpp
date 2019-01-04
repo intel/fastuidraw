@@ -127,6 +127,7 @@ pre_paint(void)
     {
       m_parent_matrix_this = float3x3(float2x2(), m_table_pos);
     }
+  m_draw_transparent = m_shared_state->m_draw_transparent;
 }
 
 void

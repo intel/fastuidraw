@@ -23,6 +23,7 @@ public:
     m_pause(false),
     m_anti_alias_stroking(true),
     m_cells_drawn(0),
+    m_draw_transparent(false),
     m_rect_composite_mode(Painter::composite_porter_duff_src_over),
     m_rect_blend_mode(Painter::blend_w3c_normal)
   {}
@@ -34,6 +35,7 @@ public:
   float m_stroke_width;
   bool m_pause;
   bool m_anti_alias_stroking;
+  bool m_draw_transparent;
 
   int m_cells_drawn;
   enum Painter::composite_mode_t m_rect_composite_mode;

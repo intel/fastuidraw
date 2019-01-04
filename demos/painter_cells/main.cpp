@@ -241,6 +241,7 @@ painter_cells(void):
             << "\ti: toggle draw cell image\n"
             << "\tb: cycle composite mode applied to image rect\n"
             << "\tctrl-b: cycle blend mode applied to image rect\n"
+            << "\ty: toggle drawing widgets as transparent or opaque\n"
             << "\tLeft Mouse Drag: pan\n"
             << "\tHold Left Mouse, then drag up/down: zoom out/in\n";
 }
@@ -726,6 +727,17 @@ handle_event(const SDL_Event &ev)
               cycle_value(m_current_composite, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT), m_composite_labels.size());
               std::cout << "Rect Composite mode set to: " << m_composite_labels[m_current_composite].second << "\n";
               m_cell_shared_state.m_rect_composite_mode = m_composite_labels[m_current_composite].first;
+            }
+          break;
+        case SDLK_y:
+          m_cell_shared_state.m_draw_transparent = !m_cell_shared_state.m_draw_transparent;
+          if (m_cell_shared_state.m_draw_transparent)
+            {
+              std::cout << "Draw cells transparently\n";
+            }
+          else
+            {
+              std::cout << "Draw cells opaquely\n";
             }
           break;
         case SDLK_0:
