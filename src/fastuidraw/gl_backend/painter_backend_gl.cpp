@@ -1207,13 +1207,22 @@ image(const reference_counted_ptr<ImageAtlas> &atlas) const
   return d->image(atlas);
 }
 
+void
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+viewport(const Viewport &vwp)
+{
+  detail::SurfaceGLPrivate *d;
+  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  d->m_viewport = vwp;
+}
+
+
 get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               fastuidraw::ivec2, dimensions)
-
-setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
-                 fastuidraw::gl::detail::SurfaceGLPrivate,
-                 fastuidraw::PainterBackend::Surface::Viewport, viewport)
+get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
+              fastuidraw::gl::detail::SurfaceGLPrivate,
+              fastuidraw::PainterBackend::Surface::Viewport, viewport)
 setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
                  fastuidraw::gl::detail::SurfaceGLPrivate,
                  const fastuidraw::vec4&, clear_color)
@@ -1864,10 +1873,11 @@ map_draw(void)
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>
 fastuidraw::gl::PainterBackendGL::
-create_surface(ivec2 dims)
+create_surface(ivec2 dims, const Surface::Viewport &vwp)
 {
   reference_counted_ptr<Surface> S;
   S = FASTUIDRAWnew SurfaceGL(dims);
+  S->viewport(vwp);
   return S;
 }
 

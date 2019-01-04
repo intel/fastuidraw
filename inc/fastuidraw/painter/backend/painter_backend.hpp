@@ -245,6 +245,17 @@ namespace fastuidraw
       viewport(void) const = 0;
 
       /*!
+       * To be implemented by a derived class to set
+       * the viewport into the surface. The viewport
+       * cannot be changed while the Surface is in
+       * use by a \ref PainterBackend or \ref Painter.
+       * \param vwp new viewport into the surface to use
+       */
+      virtual
+      void
+      viewport(const Viewport &vwp) = 0;
+
+      /*!
        * To be implemented by a derived class to return
        * the dimensions of the Surface backing store.
        */
@@ -388,10 +399,14 @@ namespace fastuidraw
      * Surface with its own backing that is useable by
      * both the creating \ref PainterBackend and any \ref
      * PainterBackend returned by create_shared().
+     * \param dims the dimensions of the backing store of
+     *             the returned Surface
+     * \param vwp the \ref Viewport of the returned
+     *            Surface
      */
     virtual
     reference_counted_ptr<Surface>
-    create_surface(ivec2 dims) = 0;
+    create_surface(ivec2 dims, const Surface::Viewport &vwp) = 0;
 
     /*!
      * Returns the PainterShaderSet for the backend.

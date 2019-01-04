@@ -484,6 +484,8 @@ namespace fastuidraw
       public:
         /*!
          * Ctor. Creates and uses a backing color texture.
+         * The viewport() is initialized to be exactly the
+         * entire backing store.
          * \param dims the width and height of the SurfaceGL
          */
         explicit
@@ -499,7 +501,9 @@ namespace fastuidraw
          * SurfaceGL, the caller is still responible to delete
          * the texture (with GL) and the texture must not be
          * deleted (or have its backing store changed via
-         * glTexImage) until the SurfaceGL is deleted.
+         * glTexImage) until the SurfaceGL is deleted. The
+         * viewport() is initialized to be exactly the entire
+         * backing store.
          * \param dims width and height of the GL texture
          * \param gl_texture GL name of texture
          */
@@ -514,13 +518,6 @@ namespace fastuidraw
          */
         GLuint
         texture(void) const;
-
-        /*!
-         * Set the Viewport of the SurfaceGL; the default
-         * value is to use the entire backing surface.
-         */
-        SurfaceGL&
-        viewport(Viewport vw);
 
         /*!
          * Return the clear color of the color buffer
@@ -569,6 +566,10 @@ namespace fastuidraw
         virtual
         ivec2
         dimensions(void) const;
+
+        virtual
+        void
+        viewport(const Viewport &vwp);
 
       private:
         friend class PainterBackendGL;
@@ -645,7 +646,7 @@ namespace fastuidraw
 
       virtual
       reference_counted_ptr<Surface>
-      create_surface(ivec2 dims);
+      create_surface(ivec2 dims, const Surface::Viewport &vwp);
 
       /*!
        * Return the specified Program use to draw
