@@ -4644,15 +4644,10 @@ fastuidraw::Painter::
 begin_layer(const vec4 &color_modulate)
 {
   PainterPrivate *d;
-  vecN<unsigned int, PainterPacker::num_stats> tmp;
   TransparencyStackEntry R;
   Rect clip_region_rect;
 
   d = static_cast<PainterPrivate*>(m_d);
-
-  /* increment by the current packer()'s inflight stats */
-  d->packer()->inflight_stats(tmp);
-  d->m_stats += tmp;
 
   clip_region_bounds(&clip_region_rect.m_min_point,
                      &clip_region_rect.m_max_point);
@@ -4683,12 +4678,6 @@ begin_layer(const vec4 &color_modulate)
    */
   composite_shader(composite_porter_duff_src_over);
   blend_shader(blend_w3c_normal);
-
-  /* decrement by the new packer's inflight_stats since
-   * that is added in query_stats.
-   */
-  d->packer()->inflight_stats(tmp);
-  d->m_stats -= tmp;
 }
 
 void
@@ -4696,13 +4685,7 @@ fastuidraw::Painter::
 end_layer(void)
 {
   PainterPrivate *d;
-  vecN<unsigned int, PainterPacker::num_stats> tmp;
-
   d = static_cast<PainterPrivate*>(m_d);
-
-  /* increment by the current packer()'s inflight stats */
-  d->packer()->inflight_stats(tmp);
-  d->m_stats += tmp;
 
   TransparencyStackEntry R(d->m_transparency_stack.back());
   d->m_transparency_stack.pop_back();
@@ -5339,10 +5322,7 @@ query_stat(enum query_stats_t st) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-
-  vecN<unsigned int, PainterPacker::num_stats> tmp;
-  d->packer()->inflight_stats(tmp);
-  return d->m_stats[st] + tmp[st];
+  return d->m_stats[st];
 }
 
 unsigned int
@@ -5352,18 +5332,38 @@ number_stats(void)
   return PainterPacker::num_stats;
 }
 
+fastuidraw::c_string
+fastuidraw::Painter::
+stat_name(enum query_stats_t st)
+{
+#define EASY(X) case X: return #X
+
+  switch(st)
+    {
+      EASY(num_attributes);
+      EASY(num_indices);
+      EASY(num_generic_datas);
+      EASY(num_draws);
+      EASY(num_headers);
+      EASY(num_render_targets);
+      EASY(num_ends);
+    default:
+      return "unknown";
+    }
+
+#undef EASY
+}
+
 void
 fastuidraw::Painter::
 query_stats(c_array<unsigned int> dst) const
 {
   PainterPrivate *d;
-  vecN<unsigned int, PainterPacker::num_stats> tmp;
-
   d = static_cast<PainterPrivate*>(m_d);
-  d->packer()->inflight_stats(tmp);
-  for (unsigned int i = 0; i < dst.size() && i < tmp.size(); ++i)
+
+  for (unsigned int i = 0; i < dst.size() && i < PainterPacker::num_stats; ++i)
     {
-      dst[i] = tmp[i] + d->m_stats[i];
+      dst[i] = d->m_stats[i];
     }
 }
 

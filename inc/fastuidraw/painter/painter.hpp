@@ -1233,17 +1233,21 @@ namespace fastuidraw
 
     /*!
      * Returns a stat on how much data the Packer has
-     * handled since the last call to begin().
+     * handled in the last begin()/end() pair. Calling
+     * query_stat() within a begin()/end() pair gives
+     * unreliable results.
      * \param st stat to query
      */
     unsigned int
     query_stat(enum query_stats_t st) const;
 
     /*!
-     * Write into a c_array<> all the stats, the total
-     * number of stats can be fetched with number_stats().
-     * The values written into are indexed by \ref
-     * query_stats_t.
+     * Write into a c_array<> all the stats from the
+     * last begin()/end() pair. The number of stats
+     * can be fetched with number_stats(). The values
+     * written into are indexed by \ref query_stats_t.
+     * Calling query_stats() within a begin()/end()
+     * pair gives unreliable results.
      */
     void
     query_stats(c_array<unsigned int> dst) const;
@@ -1255,6 +1259,14 @@ namespace fastuidraw
     static
     unsigned int
     number_stats(void);
+
+    /*!
+     * String given name of a stat.
+     * \param st stat from which to get a name
+     */
+    static
+    c_string
+    stat_name(enum query_stats_t st);
 
     /*!
      * Return the z-depth value that the next item will have.

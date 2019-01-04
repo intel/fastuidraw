@@ -222,7 +222,7 @@ namespace
                unsigned int indices_written);
 
     virtual
-    void
+    bool
     draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
                unsigned int indices_written);
 
@@ -607,17 +607,21 @@ DrawCommand(const fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::pain
   fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void
+bool
 DrawCommand::
 draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
            unsigned int indices_written)
 {
+  bool return_value(false);
+
   FASTUIDRAWassert(action);
   if (!m_draws.empty())
     {
+      return_value = true;
       add_entry(indices_written);
     }
   m_draws.push_back(action);
+  return return_value;
 }
 
 bool
@@ -633,6 +637,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   /* if the composite mode changes, then we need to start a new DrawEntry */
   BlendMode old_mode, new_mode;
   uint32_t new_disc, old_disc;
+  bool return_value(false);
 
   old_mode = old_shaders.composite_mode();
   new_mode = new_shaders.composite_mode();
@@ -665,18 +670,20 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
       if (!m_draws.empty())
         {
           add_entry(indices_written);
+          return_value = true;
         }
       m_draws.push_back(DrawEntry(fastuidraw::BlendMode(new_mode), m_pr, pz));
-      return true;
+      return return_value;
     }
   else if (old_mode != new_mode)
     {
       if (!m_draws.empty())
         {
           add_entry(indices_written);
+          return_value = true;
         }
       m_draws.push_back(new_mode);
-      return true;
+      return return_value;
     }
   else
     {

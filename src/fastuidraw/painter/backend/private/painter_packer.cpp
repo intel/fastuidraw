@@ -240,8 +240,7 @@ public:
   {
     if (action)
       {
-        m_draw_command->draw_break(action, m_indices_written);
-        return true;
+        return m_draw_command->draw_break(action, m_indices_written);
       }
     return false;
   }
@@ -529,7 +528,6 @@ start_new_command(void)
       m_stats[PainterEnums::num_attributes] += c.m_attributes_written;
       m_stats[PainterEnums::num_indices] += c.m_indices_written;
       m_stats[PainterEnums::num_generic_datas] += c.store_written();
-      m_stats[PainterEnums::num_draws] += 1u;
 
       c.unmap();
     }
@@ -809,21 +807,6 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
 void
 fastuidraw::PainterPacker::
-inflight_stats(fastuidraw::vecN<unsigned int, num_stats> &tmp) const
-{
-  std::fill(tmp.begin(), tmp.end(), 0);
-  if (!m_accumulated_draws.empty())
-    {
-      const per_draw_command &c(m_accumulated_draws.back());
-      tmp[PainterEnums::num_attributes] = c.m_attributes_written;
-      tmp[PainterEnums::num_indices] = c.m_indices_written;
-      tmp[PainterEnums::num_generic_datas] = c.store_written();
-      tmp[PainterEnums::num_draws] = 1;
-    }
-}
-
-void
-fastuidraw::PainterPacker::
 end(void)
 {
   if (!m_accumulated_draws.empty())
@@ -833,10 +816,11 @@ end(void)
       m_stats[PainterEnums::num_attributes] += c.m_attributes_written;
       m_stats[PainterEnums::num_indices] += c.m_indices_written;
       m_stats[PainterEnums::num_generic_datas] += c.store_written();
-      m_stats[PainterEnums::num_draws] += 1u;
-
       c.unmap();
     }
+
+  m_stats[PainterEnums::num_draws] += m_accumulated_draws.size();
+  m_stats[PainterEnums::num_ends] += 1u;
 
   m_backend->on_pre_draw(m_surface, m_clear_color_buffer);
   for(per_draw_command &cmd : m_accumulated_draws)

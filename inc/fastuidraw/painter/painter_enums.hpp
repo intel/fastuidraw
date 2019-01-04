@@ -389,6 +389,11 @@ namespace fastuidraw
          * Number of distinct render targets needed.
          */
         num_render_targets,
+
+        /*!
+         * Number of times PainterBackend::end() was called
+         */
+        num_ends
       };
 
     /*!

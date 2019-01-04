@@ -186,12 +186,14 @@ namespace fastuidraw
     /*!
      * Called to execute an action (and thus also cause a draw-call break).
      * Implementations are to assume that \ref Action reference is non-null.
+     * Implementations are to return true if the draw_break triggers an extra
+     * draw call.
      * \param action action to execute
      * \param indices_written total number of indices written to \ref m_indices
      *                        -before- the break
      */
     virtual
-    void
+    bool
     draw_break(const reference_counted_ptr<const Action> &action,
                unsigned int indices_written) = 0;
 

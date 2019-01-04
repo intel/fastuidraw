@@ -64,7 +64,7 @@ namespace fastuidraw
          * supported. Sync this with the last enumeration
          * in PainterEnums::query_stats_t
          */
-        num_stats = PainterEnums::num_render_targets + 1
+        num_stats = PainterEnums::num_ends + 1
       };
 
     /*!
@@ -283,12 +283,6 @@ namespace fastuidraw
                  const PainterPackerData &data,
                  const PainterAttributeWriter &src,
                  int z);
-
-    /*!
-     * Returns stats on the currently being built draw-call.
-     */
-    void
-    inflight_stats(vecN<unsigned int, num_stats> &dst) const;
 
     /*!
      * Returns the PainterBackend::PerformanceHints of the underlying
