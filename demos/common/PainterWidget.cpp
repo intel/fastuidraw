@@ -4,6 +4,7 @@ PainterWidget::
 PainterWidget(PainterWidget *parent):
   m_dimensions(100.0f, 100.0f), //whatever.
   m_clipped(true),
+  m_draw_transparent(false),
   m_skip_drawing(false),
   m_parent(parent)
 {
@@ -76,29 +77,40 @@ paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter)
     }
 
   painter->save();
-  painter->concat(m_parent_matrix_this);
-
-  if (m_clipped)
     {
-      painter->clip_in_rect(fastuidraw::Rect().size(m_dimensions));
+      painter->concat(m_parent_matrix_this);
+
+      if (m_clipped)
+        {
+          painter->clip_in_rect(fastuidraw::Rect().size(m_dimensions));
+        }
+
+      if (m_draw_transparent)
+        {
+          painter->begin_layer(fastuidraw::vec4(1.0f, 1.0f, 1.0f, 0.5f));
+        }
+
+      painter->save();
+      paint_pre_children(painter);
+      painter->restore();
+
+      for(std::list<PainterWidget*>::iterator iter = m_children.begin(),
+            end = m_children.end(); iter!=end; ++iter)
+        {
+          PainterWidget *c(*iter);
+          FASTUIDRAWassert(c->m_parent == this);
+          c->paint(painter);
+        }
+
+      painter->save();
+      paint_post_children(painter);
+      painter->restore();
+
+      if (m_draw_transparent)
+        {
+          painter->end_layer();
+        }
     }
-
-  painter->save();
-  paint_pre_children(painter);
-  painter->restore();
-
-  for(std::list<PainterWidget*>::iterator iter = m_children.begin(),
-        end = m_children.end(); iter!=end; ++iter)
-    {
-      PainterWidget *c(*iter);
-      FASTUIDRAWassert(c->m_parent == this);
-      c->paint(painter);
-    }
-
-  painter->save();
-  paint_post_children(painter);
-  painter->restore();
-
   painter->restore();
 }
 

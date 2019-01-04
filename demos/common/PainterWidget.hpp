@@ -47,6 +47,10 @@ public:
    */
   bool m_clipped;
 
+  /* if true, draw the PainterWidget as transparent
+   */
+  bool m_draw_transparent;
+
   /* if true, skip drawing both the widgets
      and alls its descendants
    */
