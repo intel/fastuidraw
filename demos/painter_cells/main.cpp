@@ -243,7 +243,6 @@ painter_cells(void):
             << "\tctrl-b: cycle blend mode applied to image rect\n"
             << "\tLeft Mouse Drag: pan\n"
             << "\tHold Left Mouse, then drag up/down: zoom out/in\n";
-
 }
 
 painter_cells::
@@ -627,17 +626,20 @@ draw_frame(void)
         {
           ostr << "NAN";
         }
+
       ostr << "\nms = " << ms
-           << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells"
-           << "\nAttribs: "
-           << m_painter->query_stat(Painter::num_attributes)
-           << "\nIndices: "
-           << m_painter->query_stat(Painter::num_indices)
-           << "\nGenericData: "
-           << m_painter->query_stat(Painter::num_generic_datas)
-           << "\nHeaders: "
-           << m_painter->query_stat(Painter::num_headers)
-           << "\n";
+           << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells";
+
+      fastuidraw::c_array<const unsigned int> stats(painter_stats());
+      for (unsigned int i = 0; i < stats.size(); ++i)
+        {
+          enum Painter::query_stats_t st;
+
+          st = static_cast<enum Painter::query_stats_t>(i);
+          ostr << "\n" << Painter::stat_name(st) << ": " << stats[i];
+        }
+      ostr << "\n";
+
       if (!m_text_brush)
         {
           PainterBrush brush;

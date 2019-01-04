@@ -1143,15 +1143,15 @@ draw_glyphs(float us)
 
       ostr << "\nms = " << us / 1000.0f
            << "\nAttribs: "
-           << m_painter->query_stat(Painter::num_attributes)
+           << painter_stat(Painter::num_attributes)
            << "\nIndices: "
-           << m_painter->query_stat(Painter::num_indices)
+           << painter_stat(Painter::num_indices)
            << "\nGenericData: "
-           << m_painter->query_stat(Painter::num_generic_datas)
+           << painter_stat(Painter::num_generic_datas)
            << "\nNumber Headers: "
-           << m_painter->query_stat(Painter::num_headers)
+           << painter_stat(Painter::num_headers)
            << "\nNumber Draws: "
-           << m_painter->query_stat(Painter::num_draws)
+           << painter_stat(Painter::num_draws)
            << "\nGlyph Atlas size: ";
 
       if (glyph_atlas_size_mb > 0u)

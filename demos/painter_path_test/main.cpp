@@ -2174,13 +2174,13 @@ draw_frame(void)
         }
 
       ostr << "\nAttribs: "
-           << m_painter->query_stat(Painter::num_attributes)
+           << painter_stat(Painter::num_attributes)
            << "\nIndices: "
-           << m_painter->query_stat(Painter::num_indices)
+           << painter_stat(Painter::num_indices)
            << "\nGenericData: "
-           << m_painter->query_stat(Painter::num_generic_datas)
+           << painter_stat(Painter::num_generic_datas)
            << "\nNumber Draws: "
-           << m_painter->query_stat(Painter::num_draws)
+           << painter_stat(Painter::num_draws)
            << "\nPainter Z: " << m_painter->current_z()
            << "\nMouse position:"
            << item_coordinates(mouse_position)

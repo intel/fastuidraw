@@ -1,9 +1,12 @@
+#include <vector>
+
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 
+#include "cast_c_array.hpp"
 #include "sdl_demo.hpp"
 
 class sdl_painter_demo:public sdl_demo
@@ -53,6 +56,20 @@ protected:
   pixel_counter_active(void)
   {
     return m_pixel_counter_stack.value() >= 0;
+  }
+
+  fastuidraw::c_array<const unsigned int>
+  painter_stats(void) const
+  {
+    return cast_c_array(m_painter_stats);
+  }
+
+  unsigned int
+  painter_stat(enum fastuidraw::Painter::query_stats_t t)
+  {
+    return (t < m_painter_stats.size()) ?
+      m_painter_stats[t] :
+      0u;
   }
 
 protected:
@@ -173,4 +190,5 @@ private:
   unsigned int m_num_pixel_counter_buffers;
   unsigned int m_pixel_counter_buffer_binding_index;
   fastuidraw::vecN<uint64_t, 4> m_pixel_counts;
+  std::vector<unsigned int> m_painter_stats;
 };

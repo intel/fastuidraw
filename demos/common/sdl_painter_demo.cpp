@@ -572,7 +572,8 @@ sdl_painter_demo(const std::string &about_text,
                                              "",
                                              *this),
   m_num_pixel_counter_buffers(0),
-  m_pixel_counts(0, 0, 0, 0)
+  m_pixel_counts(0, 0, 0, 0),
+  m_painter_stats(fastuidraw::Painter::number_stats(), 0)
 {}
 
 sdl_painter_demo::
@@ -891,4 +892,5 @@ post_draw_frame(void)
       m_pixel_counter_buffers.pop_front();
       --m_num_pixel_counter_buffers;
     }
+  m_painter->query_stats(cast_c_array(m_painter_stats));
 }
