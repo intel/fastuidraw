@@ -23,21 +23,19 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/rounded_rect.hpp>
 
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/image.hpp>
+#include <fastuidraw/path.hpp>
 
 #include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_writer.hpp>
-#include <fastuidraw/painter/backend/painter_backend.hpp>
-
-#include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/stroking_style.hpp>
-#include <fastuidraw/painter/rounded_rect.hpp>
 #include <fastuidraw/painter/glyph_sequence.hpp>
 #include <fastuidraw/painter/glyph_run.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
@@ -47,6 +45,8 @@
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
+
+#include <fastuidraw/painter/backend/painter_backend.hpp>
 
 namespace fastuidraw
 {

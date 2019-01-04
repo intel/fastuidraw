@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/painter/rect.hpp>
+#include <fastuidraw/util/rect.hpp>
 
 namespace fastuidraw
 {
