@@ -326,6 +326,38 @@ namespace
       || fastuidraw::t_abs(matrix(2, 1)) > tol;
   }
 
+  inline
+  fastuidraw::vec2
+  coords_from_normalized_coords(fastuidraw::vec2 ndc,
+                                fastuidraw::vec2 dims)
+  {
+    ndc += fastuidraw::vec2(1.0f, 1.0f);
+    ndc *= 0.5f;
+    ndc *= fastuidraw::vec2(dims);
+    return ndc;
+  }
+
+  inline
+  fastuidraw::vec2
+  coords_from_normalized_coords(fastuidraw::vec2 ndc,
+                                fastuidraw::ivec2 dims)
+  {
+    return coords_from_normalized_coords(ndc, fastuidraw::vec2(dims));
+  }
+
+  inline
+  fastuidraw::vec2
+  normalized_coords_from_coords(fastuidraw::ivec2 c,
+                                fastuidraw::ivec2 dims)
+  {
+    fastuidraw::vec2 pc(c), pdims(dims);
+
+    pc /= pdims;
+    pc *= 2.0f;
+    pc -= fastuidraw::vec2(1.0f, 1.0f);
+    return pc;
+  }
+
   int
   choose_pixel_size(float pixel_size)
   {
@@ -1933,24 +1965,30 @@ fetch(unsigned int transparency_depth,
 
   TransparencyStackEntry return_value;
   const detail::RectAtlas::rectangle *rect(nullptr);
-  ivec2 dims;
-  vec2 fdims;
+  ivec2 dims, bl, tr;
+  vec2 fbl, ftr;
 
-  /* TODO: we need to discretize the rectangle, so that
+  /* we need to discretize the rectangle, so that
    * the size is correct. Using the normalized_rect.size()
-   * directly is actually WRONG. Rather we need to look
+   * scaled is actually WRONG. Rather we need to look
    * at the range of -sample- points the rect hits.
    */
-  fdims = 0.5f * normalized_rect.size() * vec2(d->m_viewport.m_dimensions);
-  dims = ivec2(fdims);
-  if (fdims.x() > dims.x() && dims.x() < m_current_size.x())
+  fbl = coords_from_normalized_coords(normalized_rect.m_min_point, d->m_viewport.m_dimensions);
+  ftr = coords_from_normalized_coords(normalized_rect.m_max_point, d->m_viewport.m_dimensions);
+  bl = ivec2(fbl);
+  tr = ivec2(ftr);
+  dims = tr - bl;
+  if (ftr.x() > tr.x() && dims.x() < m_current_size.x())
     {
       ++dims.x();
     }
-  if (fdims.y() > dims.y() && dims.y() < m_current_size.y())
+  if (ftr.y() > tr.y() && dims.y() < m_current_size.y())
     {
       ++dims.y();
     }
+
+  fbl = vec2(bl);
+  ftr = vec2(tr);
 
   if (transparency_depth >= m_per_active_depth.size())
     {
@@ -2002,7 +2040,15 @@ fetch(unsigned int transparency_depth,
   FASTUIDRAWassert(return_value.m_image);
   FASTUIDRAWassert(return_value.m_packer);
 
-  return_value.m_normalized_rect = normalized_rect;
+  /* we are NOT taking the original normalized rect,
+   * instead we are taking the normalized rect made
+   * from bl, tr which are the discretizations of
+   * the original rect to pixels.
+   */
+  return_value.m_normalized_rect
+    .min_point(normalized_coords_from_coords(bl, d->m_viewport.m_dimensions))
+    .max_point(normalized_coords_from_coords(tr, d->m_viewport.m_dimensions));
+
   FASTUIDRAWassert(rect);
 
   /* we need to have that:
@@ -2011,7 +2057,7 @@ fetch(unsigned int transparency_depth,
    */
   vec2 Rndc;
   Rndc = m_viewport.compute_normalized_device_coords(vec2(rect->minX_minY()));
-  return_value.m_normalized_translate = Rndc - normalized_rect.m_min_point;
+  return_value.m_normalized_translate = Rndc - return_value.m_normalized_rect.m_min_point;
 
   /* the drawing of the fill_rect in end_layer() draws normalized_rect
    * scaled by m_viewport.m_dimensions. We need to have that
@@ -2019,7 +2065,7 @@ fetch(unsigned int transparency_depth,
    * where S is normalized_rect in -pixel- coordinates
    */
   vec2 Spc;
-  Spc = m_viewport.compute_pixel_coordinates(normalized_rect.m_min_point);
+  Spc = m_viewport.compute_pixel_coordinates(return_value.m_normalized_rect.m_min_point);
   return_value.m_brush_translate = vec2(rect->minX_minY()) - Spc ;
 
   PainterItemMatrix M;
@@ -4707,18 +4753,11 @@ end_layer(void)
    */
   save();
     {
-      vec2 sz, tr, dims, half_dims;
+      vec2 dims;
       PainterBrush brush;
 
-      dims = vec2(d->m_viewport_dimensions);
-      half_dims = 0.5f * dims;
-      /* the rect R.m_normalized_rect is in normalized device coords
-       * we need to scale and translate it to viewport coordinates.
-       */
-      tr = half_dims * (R.m_normalized_rect.m_min_point + vec2(1.0f, 1.0f));
-      sz = half_dims * R.m_normalized_rect.size();
-      transformation(float_orthogonal_projection_params(0, dims.x(),
-                                                        0, dims.y()));
+      dims = d->m_viewport_dimensions;
+      transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
 
       brush
         .transformation_translate(R.m_brush_translate)
@@ -4727,8 +4766,8 @@ end_layer(void)
 
       fill_rect(PainterData(&brush),
                 Rect()
-                .min_point(tr)
-                .size(sz),
+                .min_point(coords_from_normalized_coords(R.m_normalized_rect.m_min_point, dims))
+                .max_point(coords_from_normalized_coords(R.m_normalized_rect.m_max_point, dims)),
                 shader_anti_alias_none);
     }
   restore();
