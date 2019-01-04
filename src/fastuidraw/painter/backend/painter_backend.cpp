@@ -146,33 +146,41 @@ fastuidraw::PainterBackend::Surface::Viewport::
 compute_clip_equations(ivec2 surface_dims,
                        vecN<vec3, 4> *out_clip_equations) const
 {
-  vec2 top_right_ndc, bottom_left_ndc;
+  Rect Rndc;
 
-  bottom_left_ndc = compute_normalized_device_coords(vec2(0.0f, 0.0f));
-  top_right_ndc = compute_normalized_device_coords(vec2(surface_dims));
-
-  bottom_left_ndc.x() = t_max(-1.0f, bottom_left_ndc.x());
-  top_right_ndc.x() = t_min(1.0f, top_right_ndc.x());
-
-  bottom_left_ndc.y() = t_max(-1.0f, bottom_left_ndc.y());
-  top_right_ndc.y() = t_min(1.0f, top_right_ndc.y());
+  compute_normalized_clip_rect(surface_dims, &Rndc);
 
   /* The clip equations are:
    *
-   *  bottom_left_ndc.x() <= x <= top_right_ndc.x()
-   *  bottom_left_ndc.y() <= y <= top_right_ndc.y()
+   *  Rndc.m_min_point.x() <= x <= Rndc.m_max_point.x()
+   *  Rndc.m_min_point.y() <= y <= Rndc.m_max_point.y()
    *
    * Which converts to
    *
-   *  +1.0 * x - bottom_left_ndc.x() * w >= 0
-   *  +1.0 * y - bottom_left_ndc.y() * w >= 0
-   *  -1.0 * x + top_right_ndc.x() * w >= 0
-   *  -1.0 * y + top_right_ndc.y() * w >= 0
+   *  +1.0 * x - Rndc.m_min_point.x() * w >= 0
+   *  +1.0 * y - Rndc.m_min_point.y() * w >= 0
+   *  -1.0 * x + Rndc.m_max_point.x() * w >= 0
+   *  -1.0 * y + Rndc.m_max_point.y() * w >= 0
    */
-  (*out_clip_equations)[0] = vec3(+1.0f, 0.0f, -bottom_left_ndc.x());
-  (*out_clip_equations)[1] = vec3(0.0f, +1.0f, -bottom_left_ndc.y());
-  (*out_clip_equations)[2] = vec3(-1.0f, 0.0f, +top_right_ndc.x());
-  (*out_clip_equations)[3] = vec3(0.0f, -1.0f, +top_right_ndc.y());
+  (*out_clip_equations)[0] = vec3(+1.0f, 0.0f, -Rndc.m_min_point.x());
+  (*out_clip_equations)[1] = vec3(0.0f, +1.0f, -Rndc.m_min_point.y());
+  (*out_clip_equations)[2] = vec3(-1.0f, 0.0f, +Rndc.m_max_point.x());
+  (*out_clip_equations)[3] = vec3(0.0f, -1.0f, +Rndc.m_max_point.y());
+}
+
+void
+fastuidraw::PainterBackend::Surface::Viewport::
+compute_normalized_clip_rect(ivec2 surface_dims,
+                             Rect *out_rect) const
+{
+  out_rect->m_min_point = compute_normalized_device_coords(vec2(0.0f, 0.0f));
+  out_rect->m_max_point = compute_normalized_device_coords(vec2(surface_dims));
+
+  out_rect->m_min_point.x() = t_max(-1.0f, out_rect->m_min_point.x());
+  out_rect->m_max_point.x() = t_min(+1.0f, out_rect->m_max_point.x());
+
+  out_rect->m_min_point.y() = t_max(-1.0f, out_rect->m_min_point.y());
+  out_rect->m_max_point.y() = t_min(+1.0f, out_rect->m_max_point.y());
 }
 
 ////////////////////////////////////

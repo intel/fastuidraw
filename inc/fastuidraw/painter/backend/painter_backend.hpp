@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/util/blend_mode.hpp>
+#include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
@@ -242,7 +243,7 @@ namespace fastuidraw
         }
 
         /*!
-         * Returns the clip-equations (in normalized device coordinates)
+         * Computes the clip-equations (in normalized device coordinates)
          * of this Viewport against a surface with the given dimensions.
          * \param surface_dims dimension of surface
          * \param[out] out_clip_equations location to which to write the
@@ -251,6 +252,19 @@ namespace fastuidraw
         void
         compute_clip_equations(ivec2 surface_dims,
                                vecN<vec3, 4> *out_clip_equations) const;
+
+        /*!
+         * Computes the rectangle in normalized device coordinates
+         * of the intersection of a backing surface with the given
+         * dimensions against this Viewport.
+         * \param surface_dims dimension of surface
+         * \param[out] out_rect location to which to write the
+         *                      clipping rectangle in normalized
+         *                      device coordinates
+         */
+        void
+        compute_normalized_clip_rect(ivec2 surface_dims,
+                                     Rect *out_rect) const;
 
         /*!
          * The origin of the viewport
