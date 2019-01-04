@@ -829,7 +829,7 @@ init_gl(int w, int h)
     }
 
   m_painter_params = m_backend->configuration_gl();
-  m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(fastuidraw::ivec2(w, h));
+  on_resize(w, h);
   derived_init(w, h);
 }
 
@@ -838,7 +838,7 @@ sdl_painter_demo::
 on_resize(int w, int h)
 {
   fastuidraw::ivec2 wh(w, h);
-  if (wh != m_surface->dimensions())
+  if (!m_surface || wh != m_surface->dimensions())
     {
       fastuidraw::PainterBackend::Surface::Viewport vwp(0, 0, w, h);
 
