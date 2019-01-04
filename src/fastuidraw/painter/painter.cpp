@@ -1978,7 +1978,7 @@ fetch(unsigned int transparency_depth,
           reference_counted_ptr<PainterBackend::Surface> surface;
           reference_counted_ptr<const Image> image;
 
-          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend->create_shared());
+          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
           surface = d->m_backend->create_surface(m_current_size, m_viewport);
           image = surface->image(d->m_backend->image_atlas());
           TB = FASTUIDRAWnew TransparencyBuffer(packer, surface, image);
