@@ -1981,10 +1981,12 @@ fetch(unsigned int transparency_depth,
   if (ftr.x() > tr.x() && dims.x() < m_current_size.x())
     {
       ++dims.x();
+      ++tr.x();
     }
   if (ftr.y() > tr.y() && dims.y() < m_current_size.y())
     {
       ++dims.y();
+      ++tr.y();
     }
 
   fbl = vec2(bl);
