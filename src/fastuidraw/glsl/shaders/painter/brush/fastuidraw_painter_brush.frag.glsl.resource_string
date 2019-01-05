@@ -246,15 +246,20 @@ vec4
 fastuidraw_image_of_external_texture(in vec2 texel_coord, in uint image_filter, in float lod)
 {
   vec4 image_color;
+  vec2 recip_sz = 1.0 / vec2(textureSize(fastuidraw_external_texture, 0));
 
   texel_coord += vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
   if (image_filter == uint(fastuidraw_shader_image_filter_nearest))
     {
-      image_color = texelFetch(fastuidraw_external_texture, ivec2(texel_coord), 0);
+      vec2 adjusted;
+      int L;
+
+      L = int(ceil(lod));
+      adjusted = texel_coord * recip_sz * vec2(textureSize(fastuidraw_external_texture, L));
+      image_color = texelFetch(fastuidraw_external_texture, ivec2(adjusted), L);
     }
   else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
     {
-      vec2 recip_sz = 1.0 / vec2(textureSize(fastuidraw_external_texture, 0));
       image_color = textureLod(fastuidraw_external_texture, texel_coord * recip_sz, lod);
     }
   else
@@ -263,7 +268,6 @@ fastuidraw_image_of_external_texture(in vec2 texel_coord, in uint image_filter, 
       vec4 x_weights, y_weights;
       vec4 corner_coords, weight_sums, texture_coords;
       vec4 t00, t10, t01, t11;
-      vec2 recip_texSize = 1.0 / vec2(textureSize(fastuidraw_external_texture, 0));
 
       /* TODO: obey qdx, qdy to get an LOD level */
       texel_coord -= vec2(0.5, 0.5);
@@ -279,7 +283,7 @@ fastuidraw_image_of_external_texture(in vec2 texel_coord, in uint image_filter, 
                          y_weights.x + y_weights.y, y_weights.z + y_weights.w);
 
       texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
-      texture_coords *= recip_texSize.xyxy;
+      texture_coords *= recip_sz.xyxy;
 
       t00 = textureLod(fastuidraw_external_texture, texture_coords.xz, 0.0);
       t10 = textureLod(fastuidraw_external_texture, texture_coords.yz, 0.0);
@@ -314,15 +318,20 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
 
   sampler2D im = sampler2D(handle);
   vec4 image_color;
+  vec2 recip_sz = 1.0 / vec2(textureSize(im, 0));
 
   texel_coord += vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
   if (image_filter == uint(fastuidraw_shader_image_filter_nearest))
     {
-      image_color = texelFetch(im, ivec2(texel_coord), 0);
+      vec2 adjusted;
+      int L;
+
+      L = int(ceil(lod));
+      adjusted = texel_coord * recip_sz * vec2(textureSize(im, L));
+      image_color = texelFetch(im, ivec2(adjusted), L);
     }
   else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
     {
-      vec2 recip_sz = 1.0 / vec2(textureSize(im, 0));
       image_color = textureLod(im, texel_coord * recip_sz, lod);
     }
   else
@@ -331,7 +340,6 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
       vec4 x_weights, y_weights;
       vec4 corner_coords, weight_sums, texture_coords;
       vec4 t00, t10, t01, t11;
-      vec2 recip_texSize = 1.0 / vec2(textureSize(im, 0));
 
       /* TODO: obey qdx, qdy to get an LOD level */
       texel_coord -= vec2(0.5, 0.5);
@@ -347,7 +355,7 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
                          y_weights.x + y_weights.y, y_weights.z + y_weights.w);
 
       texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
-      texture_coords *= recip_texSize.xyxy;
+      texture_coords *= recip_sz.xyxy;
 
       t00 = textureLod(im, texture_coords.xz, 0.0);
       t10 = textureLod(im, texture_coords.yz, 0.0);
