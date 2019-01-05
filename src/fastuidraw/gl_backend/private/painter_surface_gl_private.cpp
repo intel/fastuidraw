@@ -126,6 +126,7 @@ buffer(enum buffer_t tp)
       GLenum tex_target, tex_target_binding;
       GLenum internalFormat;
       GLint old_tex;
+      ClearImageSubData clearer;
 
       tex_target = GL_TEXTURE_2D;
       tex_target_binding = GL_TEXTURE_BINDING_2D;
@@ -141,6 +142,21 @@ buffer(enum buffer_t tp)
 
       detail::tex_storage<GL_TEXTURE_2D>(true, internalFormat,
                                          m_dimensions);
+      /* This is more than just good sanitation; For Intel GPU
+       * drivers on MS-Windows, if we dont't to clear a texture
+       * and derive a bindless handle aftwerwards, clears on
+       * the surface will result in incorrect renders. The cause
+       * is likely that an auxiliary (hidden) surface is attached
+       * AFTER a clear is issued on the surface. If we don't do
+       * the clear now, a bindless handle derived from the surface
+       * will not have the handle attached to it resulting in that
+       * reads of the surface via bindless will produce garbage.
+       */
+      clearer.clear<GL_TEXTURE_2D>(m_buffers[tp], 0,
+                                   0, 0, 0, //origin
+                                   m_dimensions.x(), m_dimensions.y(), 1, //dimensions
+                                   format_from_internal_format(internalFormat),
+                                   type_from_internal_format(internalFormat));
       fastuidraw_glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       fastuidraw_glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       fastuidraw_glBindTexture(tex_target, old_tex);
