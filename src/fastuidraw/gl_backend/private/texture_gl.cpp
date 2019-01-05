@@ -349,34 +349,83 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 }
 
 ///////////////////////////////////
-// ClearImageSubData methods
-fastuidraw::gl::detail::ClearImageSubData::
-ClearImageSubData(void):
-  m_type(uninited)
-{}
-
-enum fastuidraw::gl::detail::ClearImageSubData::type_t
-fastuidraw::gl::detail::ClearImageSubData::
-compute_type(void)
+// non-class methods
+enum fastuidraw::gl::detail::texture_type_t
+fastuidraw::gl::detail::
+compute_texture_type(GLenum format, GLenum type)
 {
-  ContextProperties ctx;
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  FASTUIDRAWunused(type);
+  switch(format)
     {
-      if (ctx.has_extension("GL_EXT_clear_texture"))
-        {
-          return use_clear_texture;
-        }
-
-      return use_clear_fbo;
+    default:
+      return decimal_color_texture_type;
+    case GL_DEPTH_STENCIL:
+      return depth_stencil_texture_type;
+    case GL_DEPTH:
+      return depth_texture_type;
+#ifndef FASTUIDRAW_GL_USE_GLES
+     case GL_GREEN_INTEGER:
+     case GL_BLUE_INTEGER:
+     case GL_BGR_INTEGER:
+     case GL_BGRA_INTEGER:
+#endif
+     case GL_RED_INTEGER:
+     case GL_RGB_INTEGER:
+     case GL_RGBA_INTEGER:
+     case GL_RG_INTEGER:
+       return integer_color_texture_type;
     }
-  #else
+}
+
+void
+fastuidraw::gl::detail::
+clear_texture_2d(GLuint texture, GLint level, enum texture_type_t type)
+{
+  GLuint fbo(0), old_fbo;
+  GLenum attach_pt;
+
+  old_fbo = context_get<GLint>(GL_DRAW_FRAMEBUFFER_BINDING);
+
+  fastuidraw_glGenFramebuffers(1, &fbo);
+  FASTUIDRAWassert(fbo != 0);
+  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+
+  switch(type)
     {
-      if (ctx.version() >= ivec2(4, 4) || ctx.has_extension("GL_ARB_clear_texture"))
-        {
-          return use_clear_texture;
-        }
-
-      return use_clear_fbo;
+    default:
+      FASTUIDRAWassert(!"Invalid texture type passed to clear_texture_2d");
+      return;
+    case decimal_color_texture_type:
+    case integer_color_texture_type:
+      attach_pt = GL_COLOR_ATTACHMENT0;
+      break;
+    case depth_stencil_texture_type:
+      attach_pt = GL_DEPTH_STENCIL_ATTACHMENT;
+      break;
+    case depth_texture_type:
+      attach_pt = GL_DEPTH_ATTACHMENT;
+      break;
     }
-  #endif
+
+  fastuidraw_glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attach_pt, GL_TEXTURE_2D, texture, level);
+  switch (type)
+    {
+    case depth_stencil_texture_type:
+      fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
+      break;
+
+    case depth_texture_type:
+      fastuidraw_glClearBufferfv(GL_DEPTH, 0, vec4(0.0f, 0.0f, 0.0f, 0.0f).c_ptr());
+      break;
+
+    case decimal_color_texture_type:
+      fastuidraw_glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 0.0f).c_ptr());
+      break;
+
+    case integer_color_texture_type:
+      fastuidraw_glClearBufferiv(GL_COLOR, 0, ivec4(0, 0, 0, 0).c_ptr());
+      break;
+    }
+  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fbo);
+  fastuidraw_glDeleteFramebuffers(1, &fbo);
 }

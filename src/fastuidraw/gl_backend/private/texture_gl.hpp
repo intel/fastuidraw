@@ -69,32 +69,6 @@ private:
   mutable enum type_t m_type;
 };
 
-class ClearImageSubData
-{
-public:
-  ClearImageSubData(void);
-
-  template<GLenum texture_target>
-  void
-  clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
-        GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type);
-private:
-  enum type_t
-    {
-      use_clear_texture,
-      use_clear_fbo,
-      uninited,
-    };
-
-  static
-  enum type_t
-  compute_type(void);
-
-  mutable enum type_t m_type;
-};
-
-
-
 template<GLenum texture_target>
 class TextureTargetDimension
 {};
@@ -726,116 +700,44 @@ public:
 };
 
 ////////////////////////////////
-// ClearImageSubData methods
-template<GLenum texture_target>
-void
-ClearImageSubData::
-clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
-      GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
+// non-member methods
+enum texture_type_t
+  {
+      decimal_color_texture_type,
+      integer_color_texture_type,
+      depth_texture_type,
+      depth_stencil_texture_type,
+  };
+
+
+enum texture_type_t
+compute_texture_type(GLenum external_format, GLenum external_type);
+
+inline
+enum texture_type_t
+compute_texture_type_from_internal_format(GLenum internal_format)
 {
-  if (m_type == uninited)
-    {
-      m_type = compute_type();
-    }
-
-  if (m_type == use_clear_texture)
-    {
-      FASTUIDRAW_GL_MESSAGE("ClearImageSubData::clear() with glClearTexSubImage");
-      vecN<uint32_t, 4> zero(0, 0, 0, 0);
-      #ifdef FASTUIDRAW_GL_USE_GLES
-        {
-          fastuidraw_glClearTexSubImageEXT(texture, level,
-                                           xoffset, yoffset, zoffset,
-                                           width, height, depth,
-                                           format, type,
-                                           &zero);
-        }
-      #else
-        {
-          fastuidraw_glClearTexSubImage(texture, level,
-                                        xoffset, yoffset, zoffset,
-                                        width, height, depth,
-                                        format, type,
-                                        &zero);
-        }
-      #endif
-      return;
-    }
-
-  FASTUIDRAW_GL_MESSAGE("ClearImageSubData::clear() with glClearBuffer");
-
-  GLuint fbo(0), old_fbo;
-  GLenum attach_pt;
-
-  old_fbo = context_get<GLint>(GL_DRAW_FRAMEBUFFER_BINDING);
-
-  fastuidraw_glGenFramebuffers(1, &fbo);
-  FASTUIDRAWassert(fbo != 0);
-  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-
-  switch(format)
-    {
-    default:
-      attach_pt = GL_COLOR_ATTACHMENT0;
-      break;
-    case GL_DEPTH_STENCIL:
-      attach_pt = GL_DEPTH_STENCIL_ATTACHMENT;
-      break;
-    case GL_DEPTH:
-      attach_pt = GL_DEPTH_ATTACHMENT;
-      break;
-    }
-
-  fastuidraw_glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attach_pt, texture_target, texture, 0);
-  switch (attach_pt)
-    {
-    case GL_DEPTH_STENCIL:
-      fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
-      break;
-
-    case GL_DEPTH:
-      fastuidraw_glClearBufferfv(GL_DEPTH, 0, vec4(0.0f, 0.0f, 0.0f, 0.0f).c_ptr());
-      break;
-
-    case GL_COLOR_ATTACHMENT0:
-      {
-        bool is_integer_type;
-        switch(format)
-          {
-          default:
-            is_integer_type = false;
-            break;
-
-#ifndef FASTUIDRAW_GL_USE_GLES
-          case GL_GREEN_INTEGER:
-          case GL_BLUE_INTEGER:
-          case GL_BGR_INTEGER:
-          case GL_BGRA_INTEGER:
-#endif
-
-          case GL_RED_INTEGER:
-          case GL_RGB_INTEGER:
-          case GL_RGBA_INTEGER:
-          case GL_RG_INTEGER:
-            is_integer_type = true;
-            break;
-          }
-
-        if (is_integer_type)
-          {
-            fastuidraw_glClearBufferiv(GL_COLOR, 0, ivec4(0, 0, 0, 0).c_ptr());
-          }
-        else
-          {
-            fastuidraw_glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 0.0f).c_ptr());
-          }
-      }
-      break;
-    }
-
-  fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fbo);
-  fastuidraw_glDeleteFramebuffers(1, &fbo);
+  return compute_texture_type(format_from_internal_format(internal_format),
+                              type_from_internal_format(internal_format));
 }
+
+void
+clear_texture_2d(GLuint texture, GLint level, enum texture_type_t);
+
+inline
+void
+clear_texture_2d(GLuint texture, GLint level,
+                 GLenum external_format, GLenum external_type)
+{
+  clear_texture_2d(texture, level, compute_texture_type(external_format, external_type));
+}
+inline
+void
+clear_texture_2d(GLuint texture, GLint level, GLenum internal_format)
+{
+  clear_texture_2d(texture, level, compute_texture_type_from_internal_format(internal_format));
+}
+
 
 } //namespace detail
 } //namespace gl
