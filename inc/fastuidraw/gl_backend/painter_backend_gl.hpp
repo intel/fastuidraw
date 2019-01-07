@@ -641,7 +641,7 @@ namespace fastuidraw
 
       virtual
       reference_counted_ptr<Surface>
-      create_surface(ivec2 dims, const Surface::Viewport &vwp);
+      create_surface(ivec2 dims);
 
       /*!
        * Return the specified Program use to draw

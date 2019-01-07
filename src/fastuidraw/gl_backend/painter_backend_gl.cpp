@@ -1888,11 +1888,10 @@ map_draw(void)
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>
 fastuidraw::gl::PainterBackendGL::
-create_surface(ivec2 dims, const Surface::Viewport &vwp)
+create_surface(ivec2 dims)
 {
   reference_counted_ptr<Surface> S;
   S = FASTUIDRAWnew SurfaceGL(dims);
-  S->viewport(vwp);
   return S;
 }
 

@@ -2019,7 +2019,8 @@ fetch(unsigned int transparency_depth,
           reference_counted_ptr<const Image> image;
 
           packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
-          surface = d->m_backend->create_surface(m_current_size, m_viewport);
+          surface = d->m_backend->create_surface(m_current_size);
+          surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
           image = surface->image(d->m_backend->image_atlas());
           TB = FASTUIDRAWnew TransparencyBuffer(packer, surface, image);
         }
@@ -2031,6 +2032,7 @@ fetch(unsigned int transparency_depth,
 
       ++d->m_stats[Painter::num_render_targets];
       TB->m_depth = transparency_depth;
+      TB->m_surface->viewport(m_viewport);
       m_per_active_depth[transparency_depth].push_back(TB);
 
       rect = TB->m_rect_atlas.add_rectangle(dims, 0, 0, 0, 0);

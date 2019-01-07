@@ -474,12 +474,10 @@ namespace fastuidraw
      * PainterBackend returned by create_shared().
      * \param dims the dimensions of the backing store of
      *             the returned Surface
-     * \param vwp the \ref Viewport of the returned
-     *            Surface
      */
     virtual
     reference_counted_ptr<Surface>
-    create_surface(ivec2 dims, const Surface::Viewport &vwp) = 0;
+    create_surface(ivec2 dims) = 0;
 
     /*!
      * Returns the PainterShaderSet for the backend.
