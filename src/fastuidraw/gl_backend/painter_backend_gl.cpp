@@ -1223,16 +1223,24 @@ viewport(const Viewport &vwp)
   d->m_viewport = vwp;
 }
 
+void
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+clear_color(const vec4 &c)
+{
+  detail::SurfaceGLPrivate *d;
+  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  d->m_clear_color = c;
+}
 
 get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               fastuidraw::ivec2, dimensions)
 get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
-              fastuidraw::PainterBackend::Surface::Viewport, viewport)
-setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
-                 fastuidraw::gl::detail::SurfaceGLPrivate,
-                 const fastuidraw::vec4&, clear_color)
+              const fastuidraw::PainterBackend::Surface::Viewport&, viewport)
+get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
+              fastuidraw::gl::detail::SurfaceGLPrivate,
+              const fastuidraw::vec4&, clear_color)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::ConfigurationGL methods

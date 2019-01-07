@@ -520,19 +520,6 @@ namespace fastuidraw
         texture(void) const;
 
         /*!
-         * Return the clear color of the color buffer
-         * default value is (0.0, 0.0, 0.0, 0.0).
-         */
-        const vec4&
-        clear_color(void) const;
-
-        /*!
-         * Set the clear color.
-         */
-        SurfaceGL&
-        clear_color(const vec4&);
-
-        /*!
          * Blit the SurfaceGL color buffer to the FBO
          * currently bound to GL_DRAW_FRAMEBUFFER.
          * \param src source from this SurfaceGL to which to bit
@@ -560,16 +547,24 @@ namespace fastuidraw
         image(const reference_counted_ptr<ImageAtlas> &atlas) const;
 
         virtual
-        Viewport
+        const Viewport&
         viewport(void) const;
-
-        virtual
-        ivec2
-        dimensions(void) const;
 
         virtual
         void
         viewport(const Viewport &vwp);
+
+        virtual
+        const vec4&
+        clear_color(void) const;
+
+        virtual
+        void
+        clear_color(const vec4&);
+
+        virtual
+        ivec2
+        dimensions(void) const;
 
       private:
         friend class PainterBackendGL;

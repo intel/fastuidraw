@@ -298,7 +298,7 @@ namespace fastuidraw
        * the viewport into the Surface.
        */
       virtual
-      Viewport
+      const Viewport&
       viewport(void) const = 0;
 
       /*!
@@ -311,6 +311,22 @@ namespace fastuidraw
       virtual
       void
       viewport(const Viewport &vwp) = 0;
+
+      /*!
+       * To be implemented by a derived class to return
+       * the clear color.
+       */
+      virtual
+      const vec4&
+      clear_color(void) const = 0;
+
+      /*!
+       * To be implemented by a derived class to set
+       * the clear color.
+       */
+      virtual
+      void
+      clear_color(const vec4&) = 0;
 
       /*!
        * To be implemented by a derived class to return
