@@ -40,9 +40,12 @@ namespace fastuidraw
    * items for items to draw. Indices (stored in \ref m_indices)
    * are -ALWAYS- in groups of three where each group is a single
    * triangle and each index is an index into \ref m_attributes.
+   * The PainterDraw object is NOT thread safe, neither is its
+   * reference count. A PainterDraw object is used \ref Painter
+   * to send attributer and index data to a \ref PainterBackend.
    */
   class PainterDraw:
-    public reference_counted<PainterDraw>::default_base
+    public reference_counted<PainterDraw>::non_concurrent
   {
   public:
     /*!
@@ -56,7 +59,7 @@ namespace fastuidraw
      * PainterDraw object, but a single \ref PainterDraw
      * can have many \ref DelayedAction objects added to it.
      */
-    class DelayedAction:public reference_counted<DelayedAction>::default_base
+    class DelayedAction:public reference_counted<DelayedAction>::non_concurrent
     {
     public:
       /*!
