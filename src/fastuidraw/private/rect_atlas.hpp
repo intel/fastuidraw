@@ -87,29 +87,14 @@ public:
       return m_unpadded_size;
     }
 
-    /*!
-     * Returns the owning RectAtlas of this
-     * rectangle.
-     */
-    const RectAtlas*
-    atlas(void) const
-    {
-      return m_atlas;
-    }
-
-    virtual
-    ~rectangle()
-    {}
-
   private:
     friend class RectAtlas;
     friend class tree_base;
 
-    rectangle(RectAtlas *p, const ivec2 &psize):
-      m_atlas(p),
+    explicit
+    rectangle(const ivec2 &psize):
       m_minX_minY(0, 0),
-      m_size(psize),
-      m_tree(nullptr)
+      m_size(psize)
     {}
 
     void
@@ -120,10 +105,8 @@ public:
       m_unpadded_size = m_size - ivec2(left + right, top + bottom);
     }
 
-    RectAtlas *m_atlas;
     ivec2 m_minX_minY, m_size;
     ivec2 m_unpadded_minX_minY, m_unpadded_size;
-    tree_base *m_tree;
   };
 
   /*!

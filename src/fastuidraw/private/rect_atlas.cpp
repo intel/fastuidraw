@@ -38,106 +38,83 @@
  * is the same as the object, then the routine succeeded
  * and the object should not be deleted.
  */
+class fastuidraw::detail::RectAtlas::tree_base
+{
+public:
+  tree_base(const ivec2 &bl, const ivec2 &sz):
+    m_minX_minY(bl), m_size(sz)
+  {}
 
+  virtual
+  ~tree_base(void)
+  {}
 
-  class fastuidraw::detail::RectAtlas::tree_base
+  const ivec2&
+  size(void) const
   {
-  public:
-    tree_base(const ivec2 &bl, const ivec2 &sz,
-              const tree_base *pparent):
-      m_minX_minY(bl), m_size(sz),
-      m_parent(pparent)
-    {}
+    return m_size;
+  }
 
-    virtual
-    ~tree_base(void)
-    {}
-
-    const ivec2&
-    size(void) const
-    {
-      return m_size;
-    }
-
-    int
-    area(void) const
-    {
-      return m_size.x()*m_size.y();
-    }
-
-    const ivec2&
-    minX_minY(void) const
-    {
-      return m_minX_minY;
-    }
-
-    const tree_base*
-    parent(void) const
-    {
-      return m_parent;
-    }
-
-    virtual
-    add_return_value
-    add(rectangle*) = 0;
-
-    virtual
-    bool
-    empty(void) = 0;
-
-  private:
-    ivec2 m_minX_minY, m_size;
-    const tree_base *m_parent;
-  };
-
-  //a tree_node_without_children represents
-  //a Node which has NO child Node's
-  //but may or maynot have a rectangle.
-  class fastuidraw::detail::RectAtlas::tree_node_without_children:public tree_base
+  int
+  area(void) const
   {
-  public:
-    tree_node_without_children(const tree_base *pparent,
-                               const ivec2 &bl, const ivec2 &sz,
-                               rectangle *rect=nullptr);
-    ~tree_node_without_children();
+    return m_size.x()*m_size.y();
+  }
 
-    virtual
-    add_return_value
-    add(rectangle*);
-
-    virtual
-    bool
-    empty(void);
-
-    rectangle*
-    data(void);
-
-  private:
-    rectangle *m_rectangle;
-  };
-
-  //a tree node with children has _3_ children.
-  //they are spawned when a tree_node_wihout_children
-  //has a rectangle added but it already has a rectangle.
-  class fastuidraw::detail::RectAtlas::tree_node_with_children:public tree_base
+  const ivec2&
+  minX_minY(void) const
   {
-  public:
-    tree_node_with_children(tree_node_without_children *src,
-                            bool split_x, bool split_y);
-    ~tree_node_with_children();
+    return m_minX_minY;
+  }
 
-    virtual
-    add_return_value
-    add(rectangle*);
+  virtual
+  add_return_value
+  add(rectangle*) = 0;
 
-    virtual
-    bool
-    empty(void);
+private:
+  ivec2 m_minX_minY, m_size;
+};
 
-  private:
-    vecN<tree_base*,3> m_children;
-  };
+/* a tree_node_without_children represents
+ * a Node which has NO child Node's
+ * but may or maynot have a rectangle.
+ */
+class fastuidraw::detail::RectAtlas::tree_node_without_children:public tree_base
+{
+public:
+  tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
+                             rectangle *rect = nullptr);
+  ~tree_node_without_children();
 
+  virtual
+  add_return_value
+  add(rectangle*);
+
+  rectangle*
+  data(void);
+
+private:
+  rectangle *m_rectangle;
+};
+
+/* a tree node with children has _3_ children.
+ * they are spawned when a tree_node_wihout_children
+ * has a rectangle added but it already has a rectangle.
+ */
+class fastuidraw::detail::RectAtlas::tree_node_with_children:public tree_base
+{
+public:
+  tree_node_with_children(tree_node_without_children *src,
+                          bool split_x, bool split_y);
+  ~tree_node_with_children();
+
+  virtual
+  add_return_value
+  add(rectangle*);
+
+private:
+  vecN<tree_base*,3> m_children;
+};
 
 ////////////////////////////////////////
 // fastuidraw::detail::RectAtlas::tree_sorter methods
@@ -154,25 +131,19 @@ operator()(tree_base *lhs, tree_base *rhs) const
 //////////////////////////////////////
 // fastuidraw::detail::RectAtlas::tree_node_without_children methods
 fastuidraw::detail::RectAtlas::tree_node_without_children::
-tree_node_without_children(const tree_base *pparent,
-                           const ivec2 &bl, const ivec2 &sz,
+tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
                            rectangle *rect):
-  tree_base(bl, sz, pparent),
+  tree_base(bl, sz),
   m_rectangle(rect)
 {
-  if (m_rectangle != nullptr)
-    {
-      m_rectangle->m_tree = this;
-    }
 }
 
 
 fastuidraw::detail::RectAtlas::tree_node_without_children::
 ~tree_node_without_children()
 {
-  if (m_rectangle!=nullptr)
+  if (m_rectangle)
     {
-      FASTUIDRAWassert(m_rectangle->m_tree == this);
       FASTUIDRAWdelete(m_rectangle);
     }
 }
@@ -197,8 +168,6 @@ add(rectangle *im)
     {
       //do not have a rect so we take it (and move it).
       m_rectangle = im;
-      m_rectangle->m_tree = this;
-
       move_rectangle(m_rectangle, minX_minY());
 
       return add_return_value(this, routine_success);
@@ -258,25 +227,18 @@ add(rectangle *im)
   return add_return_value(new_node, routine_success);
 }
 
-bool
-fastuidraw::detail::RectAtlas::tree_node_without_children::
-empty(void)
-{
-  return m_rectangle == nullptr;
-}
-
 ////////////////////////////////////
 // fastuidraw::detail::RectAtlas::tree_node_with_children methods
 fastuidraw::detail::RectAtlas::tree_node_with_children::
 tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_children *src,
                         bool split_x_works, bool split_y_works):
-  tree_base(src->minX_minY(), src->size(), src->parent()),
+  tree_base(src->minX_minY(), src->size()),
   m_children(nullptr, nullptr, nullptr)
 {
   rectangle *R(src->data());
   FASTUIDRAWassert(R != nullptr);
 
-  m_children[2] = FASTUIDRAWnew tree_node_without_children(this, R->minX_minY(), R->size(), R);
+  m_children[2] = FASTUIDRAWnew tree_node_without_children(R->minX_minY(), R->size(), R);
 
   /* Perhaps we should consider delaying creating m_children[0] and m_children[1]
    * until the first request come to this to add a rectangle so that we can
@@ -285,13 +247,11 @@ tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_childre
   if (split_x_works)
     {
       m_children[0]
-        = FASTUIDRAWnew tree_node_without_children(this,
-                                                   ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
+        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
                                                    ivec2(R->size().x(), size().y() - R->size().y()) );
 
       m_children[1]
-        = FASTUIDRAWnew tree_node_without_children(this,
-                                                   ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
+        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
                                                    ivec2(size().x() - R->size().x(), size().y()) );
     }
   else
@@ -300,13 +260,11 @@ tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_childre
       FASTUIDRAWunused(split_y_works);
 
       m_children[0]
-        = FASTUIDRAWnew tree_node_without_children(this,
-                                                   ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
+        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
                                                    ivec2(size().x() - R->size().x(), R->size().y()) );
 
       m_children[1]
-        = FASTUIDRAWnew tree_node_without_children(this,
-                                                   ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
+        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
                                                    ivec2(size().x(), size().y() - R->size().y()) );
     }
 
@@ -346,24 +304,15 @@ add(rectangle *im)
   return add_return_value(this, routine_fail);
 }
 
-bool
-fastuidraw::detail::RectAtlas::tree_node_with_children::
-empty(void)
-{
-  return m_children[0]->empty()
-    && m_children[1]->empty()
-    && m_children[2]->empty();
-}
-
 ////////////////////////////////////
 // fastuidraw::detail::RectAtlas methods
 fastuidraw::detail::RectAtlas::
 RectAtlas(const ivec2 &dimensions):
   m_root(nullptr),
   m_rejected_request_size(dimensions + ivec2(1, 1)),
-  m_empty_rect(this, ivec2(0, 0))
+  m_empty_rect(ivec2(0, 0))
 {
-  m_root = FASTUIDRAWnew tree_node_without_children(nullptr, ivec2(0,0), dimensions, nullptr);
+  m_root = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
 }
 
 fastuidraw::detail::RectAtlas::
@@ -388,7 +337,7 @@ clear(void)
   ivec2 dimensions(m_root->size());
 
   FASTUIDRAWdelete(m_root);
-  m_root = FASTUIDRAWnew tree_node_without_children(nullptr, ivec2(0,0), dimensions, nullptr);
+  m_root = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
   m_rejected_request_size = dimensions + ivec2(1, 1);
 }
 
@@ -414,7 +363,7 @@ add_rectangle(const ivec2 &dimensions,
       if (dimensions.x() > 0 && dimensions.y() > 0)
         {
           //attempt to add the rect:
-          return_value = FASTUIDRAWnew rectangle(this, dimensions);
+          return_value = FASTUIDRAWnew rectangle(dimensions);
           R = m_root->add(return_value);
 
           if (R.second == routine_success)
