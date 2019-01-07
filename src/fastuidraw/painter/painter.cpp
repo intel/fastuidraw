@@ -600,14 +600,14 @@ namespace
     fastuidraw::Rect m_normalized_rect;
 
     /* the image to blit, together with what pixels of the image to blit */
-    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_image;
+    const fastuidraw::Image *m_image;
     fastuidraw::vec2 m_brush_translate;
     fastuidraw::vec4 m_modulate_color;
 
     /* The translation is from the root surface of Painter::begin()
      * to the location within TransparencyBuffer::m_surface.
      */
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_packer;
+    fastuidraw::PainterPacker *m_packer;
     fastuidraw::vec2 m_normalized_translate;
 
     /* identity matrix state; this is needed because PainterItemMatrix
@@ -1397,11 +1397,11 @@ namespace
     const fastuidraw::FilledPath&
     select_filled_path(const fastuidraw::Path &path);
 
-    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker>&
+    fastuidraw::PainterPacker*
     packer(void)
     {
       return m_transparency_stack.empty() ?
-        m_root_packer :
+        m_root_packer.get() :
         m_transparency_stack.back().m_packer;
     }
 
@@ -2007,8 +2007,8 @@ fetch(unsigned int transparency_depth,
       rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(dims);
       if (rect)
         {
-          return_value.m_image = m_per_active_depth[transparency_depth][i]->m_image;
-          return_value.m_packer = m_per_active_depth[transparency_depth][i]->m_packer;
+          return_value.m_image = m_per_active_depth[transparency_depth][i]->m_image.get();
+          return_value.m_packer = m_per_active_depth[transparency_depth][i]->m_packer.get();
         }
     }
 
@@ -2040,8 +2040,8 @@ fetch(unsigned int transparency_depth,
       m_per_active_depth[transparency_depth].push_back(TB);
 
       rect = TB->m_rect_atlas.add_rectangle(dims);
-      return_value.m_image = TB->m_image;
-      return_value.m_packer = TB->m_packer;
+      return_value.m_image = TB->m_image.get();
+      return_value.m_packer = TB->m_packer.get();
       return_value.m_packer->begin(TB->m_surface, true);
     }
 
