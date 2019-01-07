@@ -25,6 +25,17 @@
 
 namespace
 {
+  enum tree_size_t
+    {
+      num_rects,
+      num_with_children,
+      num_without_children,
+
+      tree_size_count
+    };
+
+  typedef fastuidraw::vecN<int, tree_size_count> TreeSizeCount;
+
   /*
    * Tree structure to construct the texture atlas,
    * basic idea is very simple: walk the tree until one finds
@@ -44,19 +55,25 @@ namespace
   class tree_base
   {
   public:
-    typedef std::pair<tree_base*, enum fastuidraw::return_code> add_return_value;
     typedef fastuidraw::detail::RectAtlas::rectangle rectangle;
     typedef fastuidraw::ivec2 ivec2;
     typedef fastuidraw::detail::SimplePool<4096> SimplePool;
 
     tree_base(const ivec2 &bl, const ivec2 &sz):
-      m_minX_minY(bl), m_size(sz)
+      m_minX_minY(bl), m_size(sz),
+      m_free_area(m_size.x() * m_size.y())
     {}
 
     const ivec2&
     size(void) const
     {
       return m_size;
+    }
+
+    int
+    free_area(void) const
+    {
+      return m_free_area;
     }
 
     int
@@ -72,11 +89,24 @@ namespace
     }
 
     virtual
-    add_return_value
-    add(SimplePool&, rectangle*) = 0;
+    TreeSizeCount
+    count(void) const = 0;
+
+    tree_base*
+    add(SimplePool &pool, rectangle *rect);
 
   private:
+    /*
+     * A return value of nullptr indicates failure;
+     * a return value of non-null but different, means
+     * change pointer to callee.
+     */
+    virtual
+    tree_base*
+    add_implement(SimplePool&, rectangle*) = 0;
+
     ivec2 m_minX_minY, m_size;
+    int m_free_area;
   };
 
   /* a tree_node_without_children represents
@@ -89,14 +119,27 @@ namespace
     tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
                                rectangle *rect = nullptr);
 
-    virtual
-    add_return_value
-    add(SimplePool&, rectangle*);
-
     rectangle*
     data(void);
 
+    virtual
+    TreeSizeCount
+    count(void) const
+    {
+      TreeSizeCount return_value;
+
+      return_value[num_rects] = (m_rectangle) ? 1u : 0u;
+      return_value[num_with_children] = 0;
+      return_value[num_without_children] = 1;
+
+      return return_value;
+    }
+
   private:
+    virtual
+    tree_base*
+    add_implement (SimplePool&, rectangle*);
+
     rectangle *m_rectangle;
   };
 
@@ -112,10 +155,26 @@ namespace
                             bool split_x, bool split_y);
 
     virtual
-    add_return_value
-    add(SimplePool&, rectangle*);
+    TreeSizeCount
+    count(void) const
+    {
+      TreeSizeCount return_value;
+
+      return_value[num_rects] = 0u;
+      return_value[num_with_children] = 1;
+      return_value[num_without_children] = 0;
+
+      return return_value
+        + m_children[0]->count()
+        + m_children[1]->count()
+        + m_children[2]->count();
+    }
 
   private:
+    virtual
+    tree_base*
+    add_implement (SimplePool&, rectangle*);
+
     fastuidraw::vecN<tree_base*, 3> m_children;
   };
 
@@ -131,6 +190,47 @@ namespace
       return lhs->area() < rhs->area();
     }
   };
+}
+
+////////////////////////////////
+// tree_base methods
+tree_base*
+tree_base::
+add(SimplePool &pool, rectangle *rect)
+{
+  /* We are doing a very, very simple quick rejection
+   * test where we reject any rectangle which has
+   * area larger than this's area() or if any of the
+   * dimensions are greater than this's size. This
+   * is far from ideal, and the correct thing would be
+   * to create bins (perhaps keyed by log2) in each
+   * dimension to quickly choose a node to split.
+   * This would prevent the tree walk entirely and
+   * then the root would need a list of nodes
+   * available and the ability to remove elements
+   * from the lists fast (perhaps std::map<K, std::list>)
+   * would work. Only the creation of objects of
+   * type tree_node_without_children would modify the
+   * list, as would their deconsuction.
+   */
+  FASTUIDRAWassert(m_free_area >= 0);
+  if (rect->area() <= m_free_area
+      && rect->size().x() <= m_size.x()
+      && rect->size().y() <= m_size.y())
+    {
+      tree_base *return_value;
+      return_value = add_implement(pool, rect);
+      if (return_value)
+        {
+          m_free_area -= rect->area();
+        }
+
+      return return_value;
+    }
+  else
+    {
+      return nullptr;
+    }
 }
 
 //////////////////////////////////////
@@ -150,14 +250,12 @@ data(void)
   return m_rectangle;
 }
 
-tree_base::add_return_value
+tree_base*
 tree_node_without_children::
-add(SimplePool &pool, rectangle *im)
+add_implement(SimplePool &pool, rectangle *im)
 {
-  if (im->size().x() > size().x() || im->size().y() > size().y())
-    {
-      return add_return_value(this, fastuidraw::routine_fail);
-    }
+  FASTUIDRAWassert(im->size().x() <= size().x());
+  FASTUIDRAWassert(im->size().y() <= size().y());
 
   if (m_rectangle == nullptr)
     {
@@ -165,7 +263,7 @@ add(SimplePool &pool, rectangle *im)
       m_rectangle = im;
       m_rectangle->move(minX_minY());
 
-      return add_return_value(this, fastuidraw::routine_success);
+      return this;
     }
 
   //we have a rectangle already, we need to check
@@ -181,7 +279,7 @@ add(SimplePool &pool, rectangle *im)
 
   if (!split_x_works && !split_y_works)
     {
-      return add_return_value(this, fastuidraw::routine_fail);
+      return nullptr;
     }
 
   if (split_x_works && split_y_works)
@@ -201,21 +299,15 @@ add(SimplePool &pool, rectangle *im)
     }
 
   tree_base *new_node;
-  add_return_value R;
 
   //new_node will hold this->m_rectange:
   new_node = pool.create<tree_node_with_children>(pool, this, split_x_works, split_y_works);
 
   //add the new rectangle im to new_node:
-  R = new_node->add(pool, im);
-  FASTUIDRAWassert(R.second == fastuidraw::routine_success);
+  new_node = new_node->add(pool, im);
+  FASTUIDRAWassert(new_node);
 
-  if (R.first!=new_node)
-    {
-      new_node = R.first;
-    }
-
-  return add_return_value(new_node, fastuidraw::routine_success);
+  return new_node;
 }
 
 ////////////////////////////////////
@@ -263,33 +355,28 @@ tree_node_with_children(SimplePool &pool,
   std::sort(m_children.begin(), m_children.end(), tree_sorter());
 }
 
-tree_base::add_return_value
+tree_base*
 tree_node_with_children::
-add(SimplePool &pool, rectangle *im)
+add_implement(SimplePool &pool, rectangle *im)
 {
-  add_return_value R;
-
+  tree_base *R;
   for(int i = 0; i < 3; ++i)
     {
       R = m_children[i]->add(pool, im);
-      if (R.second == fastuidraw::routine_success)
+      if (R)
         {
-          if (R.first != m_children[i])
-            {
-              m_children[i] = R.first;
-            }
-          return add_return_value(this, fastuidraw::routine_success);
+          m_children[i] = R;
+          return this;
         }
     }
 
-  return add_return_value(this, fastuidraw::routine_fail);
+  return nullptr;
 }
 
 ////////////////////////////////////
 // fastuidraw::detail::RectAtlas methods
 fastuidraw::detail::RectAtlas::
 RectAtlas(const ivec2 &dimensions):
-  m_rejected_request_size(dimensions + ivec2(1, 1)),
   m_empty_rect(ivec2(0, 0))
 {
   m_data = m_pool.create<tree_node_without_children>(ivec2(0,0), dimensions, nullptr);
@@ -316,9 +403,18 @@ clear(void)
 {
   ivec2 dimensions(size());
 
+  tree_base *root;
+  root = static_cast<tree_base*>(m_data);
+
+  /**
+  std::cout << "Clear: " << root->count()
+            << ", free_area = " << root->free_area()
+            << "(" << 100.0f * static_cast<float>(root->free_area()) / static_cast<float>(root->area()) << "%)"
+            << "\n";
+  /**/
+
   m_pool.clear();
   m_data = m_pool.create<tree_node_without_children>(ivec2(0,0), dimensions, nullptr);
-  m_rejected_request_size = dimensions + ivec2(1, 1);
 }
 
 const fastuidraw::detail::RectAtlas::rectangle*
@@ -326,43 +422,27 @@ fastuidraw::detail::RectAtlas::
 add_rectangle(const ivec2 &dimensions)
 {
   rectangle *return_value(nullptr);
-  tree_base *root;
+  tree_base *root, *R;
+
   root = static_cast<tree_base*>(m_data);
-
-  /* We are doing a very, very simple quick rejection
-   * test where we reject any rectangle which has
-   * a dimension atleast as large as the last rejected
-   * rectangle. This will reject some rectangles that
-   * could fit though.
-   */
-  if (dimensions.x() < m_rejected_request_size.x()
-      && dimensions.y() < m_rejected_request_size.y())
+  if (dimensions.x() > 0 && dimensions.y() > 0)
     {
-      tree_base::add_return_value R;
+      //attempt to add the rect:
+      return_value = m_pool.create<rectangle>(dimensions);
+      R = root->add(m_pool, return_value);
 
-      if (dimensions.x() > 0 && dimensions.y() > 0)
+      if (R)
         {
-          //attempt to add the rect:
-          return_value = m_pool.create<rectangle>(dimensions);
-          R = root->add(m_pool, return_value);
-
-          if (R.second == routine_success)
-            {
-              if (R.first != root)
-                {
-                  root = R.first;
-                }
-            }
-          else
-            {
-              return_value = nullptr;
-              m_rejected_request_size = dimensions;
-            }
+          root = R;
         }
       else
         {
-          return_value = &m_empty_rect;
+          return_value = nullptr;
         }
+    }
+  else
+    {
+      return_value = &m_empty_rect;
     }
 
   m_data = root;

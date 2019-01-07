@@ -67,6 +67,12 @@ public:
       return m_minX_minY;
     }
 
+    int
+    area(void) const
+    {
+      return m_size.x() * m_size.y();
+    }
+
     /*!
      * Returns the size of the rectangle.
      */
@@ -129,7 +135,6 @@ public:
 private:
   void *m_data;
   SimplePool<4096> m_pool;
-  ivec2 m_rejected_request_size;
   rectangle m_empty_rect;
 };
 
