@@ -34,6 +34,7 @@ namespace
       tree_size_count
     };
 
+  class tree_node_without_children;
   typedef fastuidraw::vecN<int, tree_size_count> TreeSizeCount;
 
   /*
@@ -60,20 +61,13 @@ namespace
     typedef fastuidraw::detail::SimplePool<4096> SimplePool;
 
     tree_base(const ivec2 &bl, const ivec2 &sz):
-      m_minX_minY(bl), m_size(sz),
-      m_free_area(m_size.x() * m_size.y())
+      m_minX_minY(bl), m_size(sz)
     {}
 
     const ivec2&
     size(void) const
     {
       return m_size;
-    }
-
-    int
-    free_area(void) const
-    {
-      return m_free_area;
     }
 
     int
@@ -88,12 +82,24 @@ namespace
       return m_minX_minY;
     }
 
+    tree_node_without_children*
+    widest_possible_rectangle(void) { return m_widest; }
+
+    tree_node_without_children*
+    tallest_possible_rectangle(void) { return m_tallest; }
+
+    tree_node_without_children*
+    biggest_possible_rectangle(void) { return m_biggest; }
+
     virtual
     TreeSizeCount
     count(void) const = 0;
 
     tree_base*
     add(SimplePool &pool, rectangle *rect);
+
+  protected:
+    tree_node_without_children *m_widest, *m_tallest, *m_biggest;
 
   private:
     /*
@@ -106,7 +112,6 @@ namespace
     add_implement(SimplePool&, rectangle*) = 0;
 
     ivec2 m_minX_minY, m_size;
-    int m_free_area;
   };
 
   /* a tree_node_without_children represents
@@ -121,6 +126,28 @@ namespace
 
     rectangle*
     data(void);
+
+    int
+    widest_possible(void) const
+    {
+      return size().x();
+    }
+
+    int
+    tallest_possible(void) const
+    {
+      return size().y();
+    }
+
+    int
+    biggest_possible(void) const
+    {
+      int A(area());
+
+      return m_rectangle ?
+        A - m_rectangle->area() :
+        A;
+    }
 
     virtual
     TreeSizeCount
@@ -138,7 +165,7 @@ namespace
   private:
     virtual
     tree_base*
-    add_implement (SimplePool&, rectangle*);
+    add_implement(SimplePool&, rectangle*);
 
     rectangle *m_rectangle;
   };
@@ -173,7 +200,10 @@ namespace
   private:
     virtual
     tree_base*
-    add_implement (SimplePool&, rectangle*);
+    add_implement(SimplePool&, rectangle*);
+
+    void
+    recompute_possible(void);
 
     fastuidraw::vecN<tree_base*, 3> m_children;
   };
@@ -213,18 +243,13 @@ add(SimplePool &pool, rectangle *rect)
    * type tree_node_without_children would modify the
    * list, as would their deconsuction.
    */
-  FASTUIDRAWassert(m_free_area >= 0);
-  if (rect->area() <= m_free_area
-      && rect->size().x() <= m_size.x()
-      && rect->size().y() <= m_size.y())
+  if (rect->area() <= biggest_possible_rectangle()->biggest_possible()
+      && rect->size().x() <= widest_possible_rectangle()->widest_possible()
+      && rect->size().y() <= tallest_possible_rectangle()->tallest_possible())
     {
       tree_base *return_value;
-      return_value = add_implement(pool, rect);
-      if (return_value)
-        {
-          m_free_area -= rect->area();
-        }
 
+      return_value = add_implement(pool, rect);
       return return_value;
     }
   else
@@ -241,6 +266,7 @@ tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
   tree_base(bl, sz),
   m_rectangle(rect)
 {
+  m_widest = m_tallest = m_biggest = this;
 }
 
 tree_base::rectangle*
@@ -353,6 +379,7 @@ tree_node_with_children(SimplePool &pool,
     }
 
   std::sort(m_children.begin(), m_children.end(), tree_sorter());
+  recompute_possible();
 }
 
 tree_base*
@@ -366,11 +393,44 @@ add_implement(SimplePool &pool, rectangle *im)
       if (R)
         {
           m_children[i] = R;
+          recompute_possible();
           return this;
         }
     }
 
   return nullptr;
+}
+
+void
+tree_node_with_children::
+recompute_possible(void)
+{
+  m_widest = m_children[0]->widest_possible_rectangle();
+  m_tallest = m_children[0]->tallest_possible_rectangle();
+  m_biggest = m_children[0]->biggest_possible_rectangle();
+
+  for (int i = 1; i < 3; ++i)
+    {
+      tree_node_without_children *p;
+
+      p = m_children[i]->widest_possible_rectangle();
+      if (p->widest_possible() > m_widest->widest_possible())
+        {
+          m_widest = p;
+        }
+
+      p = m_children[i]->tallest_possible_rectangle();
+      if (p->tallest_possible() > m_tallest->tallest_possible())
+        {
+          m_tallest = p;
+        }
+
+      p = m_children[i]->biggest_possible_rectangle();
+      if (p->biggest_possible() > m_biggest->biggest_possible())
+        {
+          m_biggest = p;
+        }
+    }
 }
 
 ////////////////////////////////////
