@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <mutex>
 #include <list>
 #include <map>
 
@@ -43,9 +42,12 @@ class RectAtlas:public fastuidraw::noncopyable
 {
 private:
   class tree_base;
+  class tree_node_with_children;
+  class tree_node_without_children;
+  typedef std::pair<tree_base*, enum return_code> add_return_value;
 
 public:
-  /*!\class rectangle
+  /*!
    * An rectangle gives the location (i.e size and
    * position) of a rectangle within a RectAtlas.
    * The location of a rectangle does not change for the
@@ -55,7 +57,7 @@ public:
   class rectangle:public fastuidraw::noncopyable
   {
   public:
-    /*!\fn const ivec2& minX_minY
+    /*!
      * Returns the minX_minY of the rectangle.
      */
     const ivec2&
@@ -64,7 +66,7 @@ public:
       return m_minX_minY;
     }
 
-    /*!\fn const ivec2& size
+    /*!
      * Returns the size of the rectangle.
      */
     const ivec2&
@@ -85,7 +87,7 @@ public:
       return m_unpadded_size;
     }
 
-    /*!\fn
+    /*!
      * Returns the owning RectAtlas of this
      * rectangle.
      */
@@ -122,12 +124,9 @@ public:
     ivec2 m_minX_minY, m_size;
     ivec2 m_unpadded_minX_minY, m_unpadded_size;
     tree_base *m_tree;
-
-    void
-    build_parent_list(std::list<const tree_base*> &output) const;
   };
 
-  /*!\fn
+  /*!
    * Ctor
    * \param dimensions dimension of the atlas, this is then the return value to size().
    */
@@ -137,7 +136,7 @@ public:
   virtual
   ~RectAtlas();
 
-  /*!\fn const rectangle* add_rectangle
+  /*!
    * Returns a pointer to the a newly created rectangle
    * of the requested size. Returns nullptr on failure.
    * The rectangle is owned by this RectAtlas.
@@ -151,7 +150,7 @@ public:
                 int left_padding, int right_padding,
                 int top_padding, int bottom_padding);
 
-  /*!\fn void clear
+  /*!
    * Clears the RectAtlas, in doing so deleting
    * all recranges allocated by \ref add_rectangle().
    * After clear(), all rectangle objects
@@ -161,26 +160,13 @@ public:
   void
   clear(void);
 
-  /*!\fn ivec2 size
+  /*!
    * Returns the size of the \ref RectAtlas,
    * i.e. the value passed as dimensions
    * in RectAtlas().
    */
   ivec2
   size(void) const;
-
-  /*!\fn enum return_code delete_rectangle
-   * Delete a rectangle, and in doing so remove it
-   * from the owning RectAtlas, and thus allowing
-   * subsequent rectangles added to use the room of the
-   * removed rectangle. Removing a rectangle deallocates
-   * it's backing data structure.
-   * \param im pointer to a rectangle,
-   *           as returned by add_rectangle, to remove
-   */
-  static
-  enum return_code
-  delete_rectangle(const rectangle *im);
 
 private:
   /*
@@ -199,12 +185,6 @@ private:
    * is the same as the object, then the routine succeeded
    * and the object should not be deleted.
    */
-  class tree_base;
-  class tree_node_without_children;
-  class freesize_tracker;
-  typedef std::pair<tree_base*, enum return_code> add_remove_return_value;
-  typedef std::multimap<int, tree_node_without_children*> freesize_map;
-
   class tree_sorter
   {
   public:
@@ -216,11 +196,9 @@ private:
   {
   public:
     tree_base(const ivec2 &bl, const ivec2 &sz,
-              const tree_base *pparent,
-              freesize_tracker *tr):
+              const tree_base *pparent):
       m_minX_minY(bl), m_size(sz),
-      m_parent(pparent),
-      m_tr(tr)
+      m_parent(pparent)
     {}
 
     virtual
@@ -252,41 +230,16 @@ private:
     }
 
     virtual
-    add_remove_return_value
-    add(rectangle*)=0;
-
-    /*
-     * Idea:
-     *
-     * parent_list.front()==this, otherwise
-     * abort.
-     *
-     * For recursive calls, pop_front() parent
-     * list to next element..
-     */
-    virtual
-    add_remove_return_value
-    remove(const rectangle*,
-           std::list<const tree_base*> &parent_list)=0;
-
-    add_remove_return_value
-    api_remove(const rectangle *im);
+    add_return_value
+    add(rectangle*) = 0;
 
     virtual
     bool
-    empty(void)=0;
-
-    freesize_tracker*
-    tracker(void)
-    {
-      return m_tr;
-    }
-
+    empty(void) = 0;
 
   private:
     ivec2 m_minX_minY, m_size;
     const tree_base *m_parent;
-    freesize_tracker *m_tr;
   };
 
   //a tree_node_without_children represents
@@ -296,19 +249,13 @@ private:
   {
   public:
     tree_node_without_children(const tree_base *pparent,
-                               freesize_tracker *tr,
                                const ivec2 &bl, const ivec2 &sz,
                                rectangle *rect=nullptr);
     ~tree_node_without_children();
 
     virtual
-    add_remove_return_value
+    add_return_value
     add(rectangle*);
-
-    virtual
-    add_remove_return_value
-    remove(const rectangle*,
-           std::list<const tree_base*>&);
 
     virtual
     bool
@@ -318,18 +265,7 @@ private:
     data(void);
 
   private:
-    void
-    update_tracking(void);
-
-    void
-    update_tracking_helper(int x, int y);
-
-    void
-    clear_from_tracking(void);
-
     rectangle *m_rectangle;
-    std::vector<freesize_map::iterator> m_sorted_by_x_iters;
-    std::vector<freesize_map::iterator> m_sorted_by_y_iters;
   };
 
   //a tree node with children has _3_ children.
@@ -343,13 +279,8 @@ private:
     ~tree_node_with_children();
 
     virtual
-    add_remove_return_value
+    add_return_value
     add(rectangle*);
-
-    virtual
-    add_remove_return_value
-    remove(const rectangle*,
-           std::list<const tree_base*>&);
 
     virtual
     bool
@@ -358,20 +289,6 @@ private:
   private:
     vecN<tree_base*,3> m_children;
   };
-
-  class freesize_tracker
-  {
-  public:
-
-    bool
-    fast_check(ivec2 psize);
-
-    freesize_map m_sorted_by_x_size;
-    freesize_map m_sorted_by_y_size;
-  };
-
-  enum return_code
-  remove_rectangle_implement(const rectangle *im);
 
   static
   void
@@ -389,8 +306,8 @@ private:
     rect->m_minX_minY = bl;
   }
 
-  freesize_tracker m_tracker;
   tree_base *m_root;
+  ivec2 m_rejected_request_size;
   rectangle m_empty_rect;
 };
 

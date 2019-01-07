@@ -34,52 +34,21 @@ operator()(tree_base *lhs, tree_base *rhs) const
   return lhs->area() < rhs->area();
 }
 
-///////////////////////////////////////////
-// fastuidraw::detail::RectAtlas::rectangle methods
-void
-fastuidraw::detail::RectAtlas::rectangle::
-build_parent_list(std::list<const tree_base*> &output) const
-{
-  const tree_base *p(m_tree);
-
-  while(p != nullptr)
-    {
-      output.push_front(p);
-      p = p->parent();
-    }
-}
-
-//////////////////////////////////////
-// fastuidraw::detail::RectAtlas::tree_base methods
-fastuidraw::detail::RectAtlas::add_remove_return_value
-fastuidraw::detail::RectAtlas::tree_base::
-api_remove(const rectangle *p)
-{
-  std::list<const tree_base*> parentage;
-  FASTUIDRAWassert(p != nullptr);
-
-  p->build_parent_list(parentage);
-  FASTUIDRAWassert(!parentage.empty());
-  FASTUIDRAWassert(this == parentage.front());
-  return remove(p, parentage);
-}
-
 //////////////////////////////////////
 // fastuidraw::detail::RectAtlas::tree_node_without_children methods
 fastuidraw::detail::RectAtlas::tree_node_without_children::
 tree_node_without_children(const tree_base *pparent,
-                           freesize_tracker *tr,
                            const ivec2 &bl, const ivec2 &sz,
                            rectangle *rect):
-  tree_base(bl, sz, pparent, tr),
+  tree_base(bl, sz, pparent),
   m_rectangle(rect)
 {
   if (m_rectangle != nullptr)
     {
       m_rectangle->m_tree = this;
     }
-  update_tracking();
 }
+
 
 fastuidraw::detail::RectAtlas::tree_node_without_children::
 ~tree_node_without_children()
@@ -89,7 +58,6 @@ fastuidraw::detail::RectAtlas::tree_node_without_children::
       FASTUIDRAWassert(m_rectangle->m_tree == this);
       FASTUIDRAWdelete(m_rectangle);
     }
-  clear_from_tracking();
 }
 
 fastuidraw::detail::RectAtlas::rectangle*
@@ -99,70 +67,13 @@ data(void)
   return m_rectangle;
 }
 
-void
-fastuidraw::detail::RectAtlas::tree_node_without_children::
-clear_from_tracking(void)
-{
-  for(std::vector<freesize_map::iterator>::iterator
-        iter = m_sorted_by_x_iters.begin(), end = m_sorted_by_x_iters.end();
-      iter != end; ++iter)
-    {
-      tracker()->m_sorted_by_x_size.erase(*iter);
-    }
-
-  for(std::vector<freesize_map::iterator>::iterator
-        iter = m_sorted_by_y_iters.begin(), end = m_sorted_by_y_iters.end();
-      iter != end; ++iter)
-    {
-      tracker()->m_sorted_by_y_size.erase(*iter);
-    }
-
-  m_sorted_by_x_iters.clear();
-  m_sorted_by_y_iters.clear();
-}
-
-void
-fastuidraw::detail::RectAtlas::tree_node_without_children::
-update_tracking_helper(int x, int y)
-{
-  freesize_map::iterator iter_x, iter_y;
-
-  iter_x = tracker()->m_sorted_by_x_size.insert(freesize_map::value_type(x, this));
-  m_sorted_by_x_iters.push_back(iter_x);
-
-  iter_y = tracker()->m_sorted_by_y_size.insert(freesize_map::value_type(y, this));
-  m_sorted_by_y_iters.push_back(iter_y);
-}
-
-
-void
-fastuidraw::detail::RectAtlas::tree_node_without_children::
-update_tracking(void)
-{
-  clear_from_tracking();
-  if (m_rectangle == nullptr)
-    {
-      update_tracking_helper(size().x(), size().y());
-    }
-  else
-    {
-      /*
-       * we have two possible ways to split,
-       * thus 2 entries:
-       */
-      update_tracking_helper(size().x(), size().y() - m_rectangle->size().y());
-      update_tracking_helper(size().x() - m_rectangle->size().x(), size().y());
-    }
-}
-
-
-fastuidraw::detail::RectAtlas::add_remove_return_value
+fastuidraw::detail::RectAtlas::add_return_value
 fastuidraw::detail::RectAtlas::tree_node_without_children::
 add(rectangle *im)
 {
   if (im->size().x() > size().x() || im->size().y() > size().y())
     {
-      return add_remove_return_value(this, routine_fail);
+      return add_return_value(this, routine_fail);
     }
 
   if (m_rectangle == nullptr)
@@ -172,26 +83,24 @@ add(rectangle *im)
       m_rectangle->m_tree = this;
 
       move_rectangle(m_rectangle, minX_minY());
-      update_tracking();
 
-      return add_remove_return_value(this, routine_success);
+      return add_return_value(this, routine_success);
     }
-
 
   //we have a rectangle already, we need to check
   //if we can split in such a way to take im:
   int dx, dy;
   bool split_y_works, split_x_works;
 
-  dx=size().x() - m_rectangle->size().x();
-  dy=size().y() - m_rectangle->size().y();
+  dx = size().x() - m_rectangle->size().x();
+  dy = size().y() - m_rectangle->size().y();
 
   split_y_works = (dy >= im->size().y());
   split_x_works = (dx >= im->size().x());
 
   if (!split_x_works && !split_y_works)
     {
-      return add_remove_return_value(this, routine_fail);
+      return add_return_value(this, routine_fail);
     }
 
   if (split_x_works && split_y_works)
@@ -210,9 +119,8 @@ add(rectangle *im)
         }
     }
 
-
   tree_base *new_node;
-  add_remove_return_value R;
+  add_return_value R;
 
   //new_node will hold this->m_rectange:
   new_node = FASTUIDRAWnew tree_node_with_children(this, split_x_works, split_y_works);
@@ -230,29 +138,7 @@ add(rectangle *im)
       new_node = R.first;
     }
 
-  return add_remove_return_value(new_node, routine_success);
-}
-
-fastuidraw::detail::RectAtlas::add_remove_return_value
-fastuidraw::detail::RectAtlas::tree_node_without_children::
-remove(const fastuidraw::detail::RectAtlas::rectangle *im,
-       std::list<const tree_base*> &parent_list)
-{
-  FASTUIDRAWassert(!parent_list.empty());
-  if (parent_list.front() != this)
-    {
-      return add_remove_return_value(this, routine_fail);
-    }
-
-  FASTUIDRAWassert(m_rectangle == im);
-  FASTUIDRAWassert(im->m_tree == this);
-  FASTUIDRAWunused(im);
-  FASTUIDRAWdelete(m_rectangle);
-  m_rectangle = nullptr;
-  update_tracking();
-
-  return add_remove_return_value(this, routine_success);
-
+  return add_return_value(new_node, routine_success);
 }
 
 bool
@@ -266,39 +152,43 @@ empty(void)
 // fastuidraw::detail::RectAtlas::tree_node_with_children methods
 fastuidraw::detail::RectAtlas::tree_node_with_children::
 tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_children *src,
-                        bool split_x, bool split_y):
-  tree_base(src->minX_minY(), src->size(), src->parent(), src->tracker()),
+                        bool split_x_works, bool split_y_works):
+  tree_base(src->minX_minY(), src->size(), src->parent()),
   m_children(nullptr, nullptr, nullptr)
 {
   rectangle *R(src->data());
   FASTUIDRAWassert(R != nullptr);
 
-  m_children[2] = FASTUIDRAWnew tree_node_without_children(this, src->tracker(),
-                                                          R->minX_minY(), R->size(), R);
-  if (split_x)
+  m_children[2] = FASTUIDRAWnew tree_node_without_children(this, R->minX_minY(), R->size(), R);
+
+  /* Perhaps we should consider delaying creating m_children[0] and m_children[1]
+   * until the first request come to this to add a rectangle so that we can
+   * possibly take a bigger rectangle.
+   */
+  if (split_x_works)
     {
       m_children[0]
-        = FASTUIDRAWnew tree_node_without_children( this, src->tracker(),
+        = FASTUIDRAWnew tree_node_without_children(this,
                                                    ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
                                                    ivec2(R->size().x(), size().y() - R->size().y()) );
 
       m_children[1]
-        = FASTUIDRAWnew tree_node_without_children( this, src->tracker(),
+        = FASTUIDRAWnew tree_node_without_children(this,
                                                    ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
                                                    ivec2(size().x() - R->size().x(), size().y()) );
     }
   else
     {
-      FASTUIDRAWassert(split_y);
-      FASTUIDRAWunused(split_y);
+      FASTUIDRAWassert(split_y_works);
+      FASTUIDRAWunused(split_y_works);
 
       m_children[0]
-        = FASTUIDRAWnew tree_node_without_children( this, src->tracker(),
+        = FASTUIDRAWnew tree_node_without_children(this,
                                                    ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
                                                    ivec2(size().x() - R->size().x(), R->size().y()) );
 
       m_children[1]
-        = FASTUIDRAWnew tree_node_without_children( this, src->tracker(),
+        = FASTUIDRAWnew tree_node_without_children(this,
                                                    ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
                                                    ivec2(size().x(), size().y() - R->size().y()) );
     }
@@ -316,14 +206,13 @@ fastuidraw::detail::RectAtlas::tree_node_with_children::
     }
 }
 
-
-fastuidraw::detail::RectAtlas::add_remove_return_value
+fastuidraw::detail::RectAtlas::add_return_value
 fastuidraw::detail::RectAtlas::tree_node_with_children::
 add(rectangle *im)
 {
-  add_remove_return_value R;
+  add_return_value R;
 
-  for(int i=0;i<3;++i)
+  for(int i = 0; i < 3; ++i)
     {
       R = m_children[i]->add(im);
       if (R.second == routine_success)
@@ -333,63 +222,11 @@ add(rectangle *im)
               FASTUIDRAWdelete(m_children[i]);
               m_children[i] = R.first;
             }
-          return add_remove_return_value(this, routine_success);
+          return add_return_value(this, routine_success);
         }
     }
 
-  return add_remove_return_value(this, routine_fail);
-}
-
-fastuidraw::detail::RectAtlas::add_remove_return_value
-fastuidraw::detail::RectAtlas::tree_node_with_children::
-remove(const rectangle *im,
-       std::list<const tree_base*> &parent_list)
-{
-  FASTUIDRAWassert(!parent_list.empty());
-  if (parent_list.front() != this)
-    {
-      return add_remove_return_value(this, routine_fail);
-    }
-
-  parent_list.pop_front();
-  tree_base *null_tree_base(nullptr);
-  add_remove_return_value R(null_tree_base, routine_fail);
-  int delete_index(3);
-
-  for(int i = 0; i < 3 && R.second == routine_fail; ++i)
-    {
-      FASTUIDRAWassert(m_children[i] != nullptr);
-
-      R = m_children[i]->remove(im, parent_list);
-      if (R.second == routine_success)
-        {
-          delete_index = i;
-        }
-    }
-
-  FASTUIDRAWassert(R.second == routine_success);
-  FASTUIDRAWassert(delete_index < 3);
-  if (R.first != m_children[delete_index])
-    {
-      FASTUIDRAWdelete(m_children[delete_index]);
-      m_children[delete_index] = R.first;
-    }
-
-  //now check the situation, if all children are
-  //empty and thus we can reform to be a
-  //tree_node_without_children
-  if (empty())
-    {
-      tree_node_without_children *ptr;
-
-      ptr = FASTUIDRAWnew tree_node_without_children(parent(), tracker(), minX_minY(), size());
-      return add_remove_return_value(ptr, routine_success);
-    }
-  else
-    {
-      return add_remove_return_value(this, routine_success);
-    }
-
+  return add_return_value(this, routine_fail);
 }
 
 bool
@@ -401,48 +238,15 @@ empty(void)
     && m_children[2]->empty();
 }
 
-//////////////////////////////////////
-// fastuidraw::detail::RectAtlas::freesize_tracker methods
-bool
-fastuidraw::detail::RectAtlas::freesize_tracker::
-fast_check(ivec2 psize)
-{
-
-  return !m_sorted_by_x_size.empty()
-    && m_sorted_by_x_size.rbegin()->first >= psize.x()
-    && !m_sorted_by_y_size.empty()
-    && m_sorted_by_y_size.rbegin()->first >= psize.y();
-
-  /*
-   * the fast check can cull quickly, but
-   * it does not guarnantee that an element
-   * can be fit, to that would require
-   * checking if the sets
-   * [iterx, m_sorted_by_x_size.end())
-   * and
-   * [itery, m_sorted_by_y_size.end())
-   *
-   * where iterx=m_sorted_by_x_size.lower_bound(psize.x())
-   * and itery=m_sorted_by_y_size.lower_bound(psize.y())
-   *
-   * intersect as sets of pointers sorted by pointer
-   * (not value). Such a check would induce
-   * one to sort, which is O(nlogn),
-   * which is likely much more than just walking
-   * the tree structure.
-   *
-   * The fast test is O(1).
-   */
-}
-
 ////////////////////////////////////
 // fastuidraw::detail::RectAtlas methods
 fastuidraw::detail::RectAtlas::
 RectAtlas(const ivec2 &dimensions):
   m_root(nullptr),
+  m_rejected_request_size(dimensions + ivec2(1, 1)),
   m_empty_rect(this, ivec2(0, 0))
 {
-  m_root = FASTUIDRAWnew tree_node_without_children(nullptr, &m_tracker, ivec2(0,0), dimensions, nullptr);
+  m_root = FASTUIDRAWnew tree_node_without_children(nullptr, ivec2(0,0), dimensions, nullptr);
 }
 
 fastuidraw::detail::RectAtlas::
@@ -467,7 +271,8 @@ clear(void)
   ivec2 dimensions(m_root->size());
 
   FASTUIDRAWdelete(m_root);
-  m_root = FASTUIDRAWnew tree_node_without_children(nullptr, &m_tracker, ivec2(0,0), dimensions, nullptr);
+  m_root = FASTUIDRAWnew tree_node_without_children(nullptr, ivec2(0,0), dimensions, nullptr);
+  m_rejected_request_size = dimensions + ivec2(1, 1);
 }
 
 const fastuidraw::detail::RectAtlas::rectangle*
@@ -478,9 +283,16 @@ add_rectangle(const ivec2 &dimensions,
 {
   rectangle *return_value(nullptr);
 
-  if (m_tracker.fast_check(dimensions))
+  /* We are doing a very, very simple quick rejection
+   * test where we reject any rectangle which has
+   * a dimension atleast as large as the last rejected
+   * rectangle. This will reject some rectangles that
+   * could fit though.
+   */
+  if (dimensions.x() < m_rejected_request_size.x()
+      && dimensions.y() < m_rejected_request_size.y())
     {
-      add_remove_return_value R;
+      add_return_value R;
 
       if (dimensions.x() > 0 && dimensions.y() > 0)
         {
@@ -500,6 +312,7 @@ add_rectangle(const ivec2 &dimensions,
             {
               FASTUIDRAWdelete(return_value);
               return_value = nullptr;
+              m_rejected_request_size = dimensions;
             }
         }
       else
@@ -515,38 +328,4 @@ add_rectangle(const ivec2 &dimensions,
     }
 
   return return_value;
-}
-
-enum fastuidraw::return_code
-fastuidraw::detail::RectAtlas::
-remove_rectangle_implement(const rectangle *im)
-{
-  add_remove_return_value R;
-
-  FASTUIDRAWassert(im->atlas() == this);
-
-  if (im->size().x() <= 0 || im->size().y() <= 0)
-    {
-      FASTUIDRAWassert(im == &im->atlas()->m_empty_rect);
-      return routine_success;
-    }
-  else
-    {
-      R = m_root->api_remove(im);
-      if (R.second == routine_success && R.first != m_root)
-        {
-          FASTUIDRAWdelete(m_root);
-          m_root = R.first;
-        }
-      return R.second;
-    }
-}
-
-enum fastuidraw::return_code
-fastuidraw::detail::RectAtlas::
-delete_rectangle(const RectAtlas::rectangle *im)
-{
-  FASTUIDRAWassert(im);
-  FASTUIDRAWassert(im->m_atlas != nullptr);
-  return im->m_atlas->remove_rectangle_implement(im);
 }
