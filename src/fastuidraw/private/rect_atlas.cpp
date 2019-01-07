@@ -22,115 +22,124 @@
 
 #include "rect_atlas.hpp"
 
-/*
- * Tree structure to construct the texture atlas,
- * basic idea is very simple: walk the tree until one finds
- * a node where the image can fit.
- *
- * if .second is routine_fail, then the routine
- * failed.
- *
- * If .first of the return value of add or remove
- * is not the same as the object, then the return value
- * represents a new child and the old object should be deleted.
- *
- * if .first of the return value of add or remove
- * is the same as the object, then the routine succeeded
- * and the object should not be deleted.
- */
-class fastuidraw::detail::RectAtlas::tree_base
+
+namespace
 {
-public:
-  tree_base(const ivec2 &bl, const ivec2 &sz):
-    m_minX_minY(bl), m_size(sz)
-  {}
-
-  virtual
-  ~tree_base(void)
-  {}
-
-  const ivec2&
-  size(void) const
-  {
-    return m_size;
-  }
-
-  int
-  area(void) const
-  {
-    return m_size.x()*m_size.y();
-  }
-
-  const ivec2&
-  minX_minY(void) const
-  {
-    return m_minX_minY;
-  }
-
-  virtual
-  add_return_value
-  add(rectangle*) = 0;
-
-private:
-  ivec2 m_minX_minY, m_size;
-};
-
-/* a tree_node_without_children represents
- * a Node which has NO child Node's
- * but may or maynot have a rectangle.
- */
-class fastuidraw::detail::RectAtlas::tree_node_without_children:public tree_base
-{
-public:
-  tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
-                             rectangle *rect = nullptr);
-  ~tree_node_without_children();
-
-  virtual
-  add_return_value
-  add(rectangle*);
-
-  rectangle*
-  data(void);
-
-private:
-  rectangle *m_rectangle;
-};
-
-/* a tree node with children has _3_ children.
- * they are spawned when a tree_node_wihout_children
- * has a rectangle added but it already has a rectangle.
- */
-class fastuidraw::detail::RectAtlas::tree_node_with_children:public tree_base
-{
-public:
-  tree_node_with_children(tree_node_without_children *src,
-                          bool split_x, bool split_y);
-  ~tree_node_with_children();
-
-  virtual
-  add_return_value
-  add(rectangle*);
-
-private:
-  vecN<tree_base*,3> m_children;
-};
-
-////////////////////////////////////////
-// fastuidraw::detail::RectAtlas::tree_sorter methods
-bool
-fastuidraw::detail::RectAtlas::tree_sorter::
-operator()(tree_base *lhs, tree_base *rhs) const
-{
-  /* we want to list the smallest "size" first
-   * to avoid splitting large elements
+  /*
+   * Tree structure to construct the texture atlas,
+   * basic idea is very simple: walk the tree until one finds
+   * a node where the image can fit.
+   *
+   * if .second is routine_fail, then the routine
+   * failed.
+   *
+   * If .first of the return value of add or remove
+   * is not the same as the object, then the return value
+   * represents a new child and the old object should be deleted.
+   *
+   * if .first of the return value of add or remove
+   * is the same as the object, then the routine succeeded
+   * and the object should not be deleted.
    */
-  return lhs->area() < rhs->area();
+  class tree_base
+  {
+  public:
+    typedef std::pair<tree_base*, enum fastuidraw::return_code> add_return_value;
+    typedef fastuidraw::detail::RectAtlas::rectangle rectangle;
+    typedef fastuidraw::ivec2 ivec2;
+
+    tree_base(const ivec2 &bl, const ivec2 &sz):
+      m_minX_minY(bl), m_size(sz)
+    {}
+
+    virtual
+    ~tree_base(void)
+    {}
+
+    const ivec2&
+    size(void) const
+    {
+      return m_size;
+    }
+
+    int
+    area(void) const
+    {
+      return m_size.x()*m_size.y();
+    }
+
+    const ivec2&
+    minX_minY(void) const
+    {
+      return m_minX_minY;
+    }
+
+    virtual
+    add_return_value
+    add(rectangle*) = 0;
+
+  private:
+    ivec2 m_minX_minY, m_size;
+  };
+
+  /* a tree_node_without_children represents
+   * a Node which has NO child Node's
+   * but may or maynot have a rectangle.
+   */
+  class tree_node_without_children:public tree_base
+  {
+  public:
+    tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
+                               rectangle *rect = nullptr);
+    ~tree_node_without_children();
+
+    virtual
+    add_return_value
+    add(rectangle*);
+
+    rectangle*
+    data(void);
+
+  private:
+    rectangle *m_rectangle;
+  };
+
+  /* a tree node with children has _3_ children.
+   * they are spawned when a tree_node_wihout_children
+   * has a rectangle added but it already has a rectangle.
+   */
+  class tree_node_with_children:public tree_base
+  {
+  public:
+    tree_node_with_children(tree_node_without_children *src,
+                            bool split_x, bool split_y);
+    ~tree_node_with_children();
+
+    virtual
+    add_return_value
+    add(rectangle*);
+
+  private:
+    fastuidraw::vecN<tree_base*, 3> m_children;
+  };
+
+  class tree_sorter
+  {
+  public:
+    bool
+    operator()(tree_base *lhs, tree_base *rhs) const
+    {
+      /* we want to list the smallest "size" first
+       * to avoid splitting large elements
+       */
+      return lhs->area() < rhs->area();
+    }
+  };
 }
 
 //////////////////////////////////////
-// fastuidraw::detail::RectAtlas::tree_node_without_children methods
-fastuidraw::detail::RectAtlas::tree_node_without_children::
+// tree_node_without_children methods
+tree_node_without_children::
 tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
                            rectangle *rect):
   tree_base(bl, sz),
@@ -139,7 +148,7 @@ tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
 }
 
 
-fastuidraw::detail::RectAtlas::tree_node_without_children::
+tree_node_without_children::
 ~tree_node_without_children()
 {
   if (m_rectangle)
@@ -148,29 +157,29 @@ fastuidraw::detail::RectAtlas::tree_node_without_children::
     }
 }
 
-fastuidraw::detail::RectAtlas::rectangle*
-fastuidraw::detail::RectAtlas::tree_node_without_children::
+tree_base::rectangle*
+tree_node_without_children::
 data(void)
 {
   return m_rectangle;
 }
 
-fastuidraw::detail::RectAtlas::add_return_value
-fastuidraw::detail::RectAtlas::tree_node_without_children::
+tree_base::add_return_value
+tree_node_without_children::
 add(rectangle *im)
 {
   if (im->size().x() > size().x() || im->size().y() > size().y())
     {
-      return add_return_value(this, routine_fail);
+      return add_return_value(this, fastuidraw::routine_fail);
     }
 
   if (m_rectangle == nullptr)
     {
       //do not have a rect so we take it (and move it).
       m_rectangle = im;
-      move_rectangle(m_rectangle, minX_minY());
+      m_rectangle->move(minX_minY());
 
-      return add_return_value(this, routine_success);
+      return add_return_value(this, fastuidraw::routine_success);
     }
 
   //we have a rectangle already, we need to check
@@ -186,7 +195,7 @@ add(rectangle *im)
 
   if (!split_x_works && !split_y_works)
     {
-      return add_return_value(this, routine_fail);
+      return add_return_value(this, fastuidraw::routine_fail);
     }
 
   if (split_x_works && split_y_works)
@@ -215,8 +224,8 @@ add(rectangle *im)
   m_rectangle = nullptr;
 
   //add the new rectangle im to new_node:
-  R=new_node->add(im);
-  FASTUIDRAWassert(R.second == routine_success);
+  R = new_node->add(im);
+  FASTUIDRAWassert(R.second == fastuidraw::routine_success);
 
   if (R.first!=new_node)
     {
@@ -224,13 +233,13 @@ add(rectangle *im)
       new_node = R.first;
     }
 
-  return add_return_value(new_node, routine_success);
+  return add_return_value(new_node, fastuidraw::routine_success);
 }
 
 ////////////////////////////////////
-// fastuidraw::detail::RectAtlas::tree_node_with_children methods
-fastuidraw::detail::RectAtlas::tree_node_with_children::
-tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_children *src,
+// tree_node_with_children methods
+tree_node_with_children::
+tree_node_with_children(tree_node_without_children *src,
                         bool split_x_works, bool split_y_works):
   tree_base(src->minX_minY(), src->size()),
   m_children(nullptr, nullptr, nullptr)
@@ -271,7 +280,7 @@ tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_childre
   std::sort(m_children.begin(), m_children.end(), tree_sorter());
 }
 
-fastuidraw::detail::RectAtlas::tree_node_with_children::
+tree_node_with_children::
 ~tree_node_with_children()
 {
   for(int i=0;i<3;++i)
@@ -281,8 +290,8 @@ fastuidraw::detail::RectAtlas::tree_node_with_children::
     }
 }
 
-fastuidraw::detail::RectAtlas::add_return_value
-fastuidraw::detail::RectAtlas::tree_node_with_children::
+tree_base::add_return_value
+tree_node_with_children::
 add(rectangle *im)
 {
   add_return_value R;
@@ -290,54 +299,59 @@ add(rectangle *im)
   for(int i = 0; i < 3; ++i)
     {
       R = m_children[i]->add(im);
-      if (R.second == routine_success)
+      if (R.second == fastuidraw::routine_success)
         {
           if (R.first != m_children[i])
             {
               FASTUIDRAWdelete(m_children[i]);
               m_children[i] = R.first;
             }
-          return add_return_value(this, routine_success);
+          return add_return_value(this, fastuidraw::routine_success);
         }
     }
 
-  return add_return_value(this, routine_fail);
+  return add_return_value(this, fastuidraw::routine_fail);
 }
 
 ////////////////////////////////////
 // fastuidraw::detail::RectAtlas methods
 fastuidraw::detail::RectAtlas::
 RectAtlas(const ivec2 &dimensions):
-  m_root(nullptr),
   m_rejected_request_size(dimensions + ivec2(1, 1)),
   m_empty_rect(ivec2(0, 0))
 {
-  m_root = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
+  m_data = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
 }
 
 fastuidraw::detail::RectAtlas::
 ~RectAtlas()
 {
-  FASTUIDRAWassert(m_root != nullptr);
-  FASTUIDRAWdelete(m_root);
+  tree_base *root;
+  root = static_cast<tree_base*>(m_data);
+  FASTUIDRAWassert(root != nullptr);
+  FASTUIDRAWdelete(root);
 }
 
 fastuidraw::ivec2
 fastuidraw::detail::RectAtlas::
 size(void) const
 {
-  FASTUIDRAWassert(m_root != nullptr);
-  return m_root->size();
+  tree_base *root;
+  root = static_cast<tree_base*>(m_data);
+  FASTUIDRAWassert(root != nullptr);
+  return root->size();
 }
 
 void
 fastuidraw::detail::RectAtlas::
 clear(void)
 {
-  ivec2 dimensions(m_root->size());
+  tree_base *root;
+  root = static_cast<tree_base*>(m_data);
+  ivec2 dimensions(root->size());
 
-  FASTUIDRAWdelete(m_root);
-  m_root = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
+  FASTUIDRAWdelete(root);
+  m_data = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
   m_rejected_request_size = dimensions + ivec2(1, 1);
 }
 
@@ -348,6 +362,8 @@ add_rectangle(const ivec2 &dimensions,
               int top_padding, int bottom_padding)
 {
   rectangle *return_value(nullptr);
+  tree_base *root;
+  root = static_cast<tree_base*>(m_data);
 
   /* We are doing a very, very simple quick rejection
    * test where we reject any rectangle which has
@@ -358,20 +374,20 @@ add_rectangle(const ivec2 &dimensions,
   if (dimensions.x() < m_rejected_request_size.x()
       && dimensions.y() < m_rejected_request_size.y())
     {
-      add_return_value R;
+      tree_base::add_return_value R;
 
       if (dimensions.x() > 0 && dimensions.y() > 0)
         {
           //attempt to add the rect:
           return_value = FASTUIDRAWnew rectangle(dimensions);
-          R = m_root->add(return_value);
+          R = root->add(return_value);
 
           if (R.second == routine_success)
             {
-              if (R.first != m_root)
+              if (R.first != root)
                 {
-                  FASTUIDRAWdelete(m_root);
-                  m_root = R.first;
+                  FASTUIDRAWdelete(root);
+                  root = R.first;
                 }
             }
           else
@@ -393,5 +409,6 @@ add_rectangle(const ivec2 &dimensions,
                              top_padding, bottom_padding);
     }
 
+  m_data = root;
   return return_value;
 }

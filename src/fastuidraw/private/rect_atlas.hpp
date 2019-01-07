@@ -40,12 +40,6 @@ namespace detail {
  */
 class RectAtlas:public fastuidraw::noncopyable
 {
-private:
-  class tree_base;
-  class tree_node_with_children;
-  class tree_node_without_children;
-  typedef std::pair<tree_base*, enum return_code> add_return_value;
-
 public:
   /*!
    * An rectangle gives the location (i.e size and
@@ -85,6 +79,12 @@ public:
     unpadded_size(void) const
     {
       return m_unpadded_size;
+    }
+
+    void
+    move(const ivec2 &moveby)
+    {
+      m_minX_minY += moveby;
     }
 
   private:
@@ -152,30 +152,7 @@ public:
   size(void) const;
 
 private:
-  class tree_sorter
-  {
-  public:
-    bool
-    operator()(tree_base *lhs, tree_base *rhs) const;
-  };
-
-  static
-  void
-  move_rectangle(rectangle *rect, const ivec2 &moveby)
-  {
-    FASTUIDRAWassert(rect);
-    rect->m_minX_minY += moveby;
-  }
-
-  static
-  void
-  set_minX_minY(rectangle *rect, const ivec2 &bl)
-  {
-    FASTUIDRAWassert(rect);
-    rect->m_minX_minY = bl;
-  }
-
-  tree_base *m_root;
+  void *m_data;
   ivec2 m_rejected_request_size;
   rectangle m_empty_rect;
 };
