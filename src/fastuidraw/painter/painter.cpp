@@ -2000,7 +2000,7 @@ fetch(unsigned int transparency_depth,
   for (unsigned int i = 0, endi = m_per_active_depth[transparency_depth].size();
        !rect && i < endi; ++i)
     {
-      rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(dims, 0, 0, 0, 0);
+      rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(dims);
       if (rect)
         {
           return_value.m_image = m_per_active_depth[transparency_depth][i]->m_image;
@@ -2035,7 +2035,7 @@ fetch(unsigned int transparency_depth,
       TB->m_surface->viewport(m_viewport);
       m_per_active_depth[transparency_depth].push_back(TB);
 
-      rect = TB->m_rect_atlas.add_rectangle(dims, 0, 0, 0, 0);
+      rect = TB->m_rect_atlas.add_rectangle(dims);
       return_value.m_image = TB->m_image;
       return_value.m_packer = TB->m_packer;
       return_value.m_packer->begin(TB->m_surface, true);

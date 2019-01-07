@@ -29,6 +29,7 @@
 #include <fastuidraw/util/c_array.hpp>
 
 #include "util_private.hpp"
+#include "simple_pool.hpp"
 
 
 namespace fastuidraw {
@@ -51,6 +52,12 @@ public:
   class rectangle:public fastuidraw::noncopyable
   {
   public:
+    explicit
+    rectangle(const ivec2 &psize):
+      m_minX_minY(0, 0),
+      m_size(psize)
+    {}
+
     /*!
      * Returns the minX_minY of the rectangle.
      */
@@ -69,18 +76,6 @@ public:
       return m_size;
     }
 
-    const ivec2&
-    unpadded_minX_minY(void) const
-    {
-      return m_unpadded_minX_minY;
-    }
-
-    const ivec2&
-    unpadded_size(void) const
-    {
-      return m_unpadded_size;
-    }
-
     void
     move(const ivec2 &moveby)
     {
@@ -88,25 +83,7 @@ public:
     }
 
   private:
-    friend class RectAtlas;
-    friend class tree_base;
-
-    explicit
-    rectangle(const ivec2 &psize):
-      m_minX_minY(0, 0),
-      m_size(psize)
-    {}
-
-    void
-    finalize(int left, int right,
-             int top, int bottom)
-    {
-      m_unpadded_minX_minY = m_minX_minY - ivec2(left, top);
-      m_unpadded_size = m_size - ivec2(left + right, top + bottom);
-    }
-
     ivec2 m_minX_minY, m_size;
-    ivec2 m_unpadded_minX_minY, m_unpadded_size;
   };
 
   /*!
@@ -129,9 +106,7 @@ public:
    * \param dimension width and height of the rectangle
    */
   const rectangle*
-  add_rectangle(const ivec2 &dimension,
-                int left_padding, int right_padding,
-                int top_padding, int bottom_padding);
+  add_rectangle(const ivec2 &dimension);
 
   /*!
    * Clears the RectAtlas, in doing so deleting
@@ -153,6 +128,7 @@ public:
 
 private:
   void *m_data;
+  SimplePool<4096> m_pool;
   ivec2 m_rejected_request_size;
   rectangle m_empty_rect;
 };

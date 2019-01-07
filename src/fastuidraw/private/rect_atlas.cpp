@@ -47,13 +47,10 @@ namespace
     typedef std::pair<tree_base*, enum fastuidraw::return_code> add_return_value;
     typedef fastuidraw::detail::RectAtlas::rectangle rectangle;
     typedef fastuidraw::ivec2 ivec2;
+    typedef fastuidraw::detail::SimplePool<4096> SimplePool;
 
     tree_base(const ivec2 &bl, const ivec2 &sz):
       m_minX_minY(bl), m_size(sz)
-    {}
-
-    virtual
-    ~tree_base(void)
     {}
 
     const ivec2&
@@ -65,7 +62,7 @@ namespace
     int
     area(void) const
     {
-      return m_size.x()*m_size.y();
+      return m_size.x() * m_size.y();
     }
 
     const ivec2&
@@ -76,7 +73,7 @@ namespace
 
     virtual
     add_return_value
-    add(rectangle*) = 0;
+    add(SimplePool&, rectangle*) = 0;
 
   private:
     ivec2 m_minX_minY, m_size;
@@ -91,11 +88,10 @@ namespace
   public:
     tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
                                rectangle *rect = nullptr);
-    ~tree_node_without_children();
 
     virtual
     add_return_value
-    add(rectangle*);
+    add(SimplePool&, rectangle*);
 
     rectangle*
     data(void);
@@ -111,13 +107,13 @@ namespace
   class tree_node_with_children:public tree_base
   {
   public:
-    tree_node_with_children(tree_node_without_children *src,
+    tree_node_with_children(SimplePool &pool,
+                            tree_node_without_children *src,
                             bool split_x, bool split_y);
-    ~tree_node_with_children();
 
     virtual
     add_return_value
-    add(rectangle*);
+    add(SimplePool&, rectangle*);
 
   private:
     fastuidraw::vecN<tree_base*, 3> m_children;
@@ -147,16 +143,6 @@ tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
 {
 }
 
-
-tree_node_without_children::
-~tree_node_without_children()
-{
-  if (m_rectangle)
-    {
-      FASTUIDRAWdelete(m_rectangle);
-    }
-}
-
 tree_base::rectangle*
 tree_node_without_children::
 data(void)
@@ -166,7 +152,7 @@ data(void)
 
 tree_base::add_return_value
 tree_node_without_children::
-add(rectangle *im)
+add(SimplePool &pool, rectangle *im)
 {
   if (im->size().x() > size().x() || im->size().y() > size().y())
     {
@@ -218,18 +204,14 @@ add(rectangle *im)
   add_return_value R;
 
   //new_node will hold this->m_rectange:
-  new_node = FASTUIDRAWnew tree_node_with_children(this, split_x_works, split_y_works);
-  //set m_rectangle to nullptr since new_node "owns" it now,
-  //the caller will delete this.
-  m_rectangle = nullptr;
+  new_node = pool.create<tree_node_with_children>(pool, this, split_x_works, split_y_works);
 
   //add the new rectangle im to new_node:
-  R = new_node->add(im);
+  R = new_node->add(pool, im);
   FASTUIDRAWassert(R.second == fastuidraw::routine_success);
 
   if (R.first!=new_node)
     {
-      FASTUIDRAWdelete(new_node);
       new_node = R.first;
     }
 
@@ -239,7 +221,8 @@ add(rectangle *im)
 ////////////////////////////////////
 // tree_node_with_children methods
 tree_node_with_children::
-tree_node_with_children(tree_node_without_children *src,
+tree_node_with_children(SimplePool &pool,
+                        tree_node_without_children *src,
                         bool split_x_works, bool split_y_works):
   tree_base(src->minX_minY(), src->size()),
   m_children(nullptr, nullptr, nullptr)
@@ -247,7 +230,7 @@ tree_node_with_children(tree_node_without_children *src,
   rectangle *R(src->data());
   FASTUIDRAWassert(R != nullptr);
 
-  m_children[2] = FASTUIDRAWnew tree_node_without_children(R->minX_minY(), R->size(), R);
+  m_children[2] = pool.create<tree_node_without_children>(R->minX_minY(), R->size(), R);
 
   /* Perhaps we should consider delaying creating m_children[0] and m_children[1]
    * until the first request come to this to add a rectangle so that we can
@@ -256,12 +239,12 @@ tree_node_with_children(tree_node_without_children *src,
   if (split_x_works)
     {
       m_children[0]
-        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
-                                                   ivec2(R->size().x(), size().y() - R->size().y()) );
+        = pool.create<tree_node_without_children>(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
+                                                  ivec2(R->size().x(), size().y() - R->size().y()) );
 
       m_children[1]
-        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
-                                                   ivec2(size().x() - R->size().x(), size().y()) );
+        = pool.create<tree_node_without_children>(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
+                                                  ivec2(size().x() - R->size().x(), size().y()) );
     }
   else
     {
@@ -269,41 +252,30 @@ tree_node_with_children(tree_node_without_children *src,
       FASTUIDRAWunused(split_y_works);
 
       m_children[0]
-        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
-                                                   ivec2(size().x() - R->size().x(), R->size().y()) );
+        = pool.create<tree_node_without_children>(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
+                                                  ivec2(size().x() - R->size().x(), R->size().y()) );
 
       m_children[1]
-        = FASTUIDRAWnew tree_node_without_children(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
-                                                   ivec2(size().x(), size().y() - R->size().y()) );
+        = pool.create<tree_node_without_children>(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
+                                                  ivec2(size().x(), size().y() - R->size().y()) );
     }
 
   std::sort(m_children.begin(), m_children.end(), tree_sorter());
 }
 
-tree_node_with_children::
-~tree_node_with_children()
-{
-  for(int i=0;i<3;++i)
-    {
-      FASTUIDRAWassert(m_children[i] != nullptr);
-      FASTUIDRAWdelete(m_children[i]);
-    }
-}
-
 tree_base::add_return_value
 tree_node_with_children::
-add(rectangle *im)
+add(SimplePool &pool, rectangle *im)
 {
   add_return_value R;
 
   for(int i = 0; i < 3; ++i)
     {
-      R = m_children[i]->add(im);
+      R = m_children[i]->add(pool, im);
       if (R.second == fastuidraw::routine_success)
         {
           if (R.first != m_children[i])
             {
-              FASTUIDRAWdelete(m_children[i]);
               m_children[i] = R.first;
             }
           return add_return_value(this, fastuidraw::routine_success);
@@ -320,16 +292,12 @@ RectAtlas(const ivec2 &dimensions):
   m_rejected_request_size(dimensions + ivec2(1, 1)),
   m_empty_rect(ivec2(0, 0))
 {
-  m_data = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
+  m_data = m_pool.create<tree_node_without_children>(ivec2(0,0), dimensions, nullptr);
 }
 
 fastuidraw::detail::RectAtlas::
 ~RectAtlas()
 {
-  tree_base *root;
-  root = static_cast<tree_base*>(m_data);
-  FASTUIDRAWassert(root != nullptr);
-  FASTUIDRAWdelete(root);
 }
 
 fastuidraw::ivec2
@@ -346,20 +314,16 @@ void
 fastuidraw::detail::RectAtlas::
 clear(void)
 {
-  tree_base *root;
-  root = static_cast<tree_base*>(m_data);
-  ivec2 dimensions(root->size());
+  ivec2 dimensions(size());
 
-  FASTUIDRAWdelete(root);
-  m_data = FASTUIDRAWnew tree_node_without_children(ivec2(0,0), dimensions, nullptr);
+  m_pool.clear();
+  m_data = m_pool.create<tree_node_without_children>(ivec2(0,0), dimensions, nullptr);
   m_rejected_request_size = dimensions + ivec2(1, 1);
 }
 
 const fastuidraw::detail::RectAtlas::rectangle*
 fastuidraw::detail::RectAtlas::
-add_rectangle(const ivec2 &dimensions,
-              int left_padding, int right_padding,
-              int top_padding, int bottom_padding)
+add_rectangle(const ivec2 &dimensions)
 {
   rectangle *return_value(nullptr);
   tree_base *root;
@@ -379,20 +343,18 @@ add_rectangle(const ivec2 &dimensions,
       if (dimensions.x() > 0 && dimensions.y() > 0)
         {
           //attempt to add the rect:
-          return_value = FASTUIDRAWnew rectangle(dimensions);
-          R = root->add(return_value);
+          return_value = m_pool.create<rectangle>(dimensions);
+          R = root->add(m_pool, return_value);
 
           if (R.second == routine_success)
             {
               if (R.first != root)
                 {
-                  FASTUIDRAWdelete(root);
                   root = R.first;
                 }
             }
           else
             {
-              FASTUIDRAWdelete(return_value);
               return_value = nullptr;
               m_rejected_request_size = dimensions;
             }
@@ -401,12 +363,6 @@ add_rectangle(const ivec2 &dimensions,
         {
           return_value = &m_empty_rect;
         }
-    }
-
-  if (return_value != nullptr && return_value != &m_empty_rect)
-    {
-      return_value->finalize(left_padding, right_padding,
-                             top_padding, bottom_padding);
     }
 
   m_data = root;
