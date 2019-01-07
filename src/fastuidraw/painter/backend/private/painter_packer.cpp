@@ -293,6 +293,7 @@ per_draw_command(const reference_counted_ptr<PainterDraw> &r,
   m_prev_state.m_item_group = 0;
   m_prev_state.m_brush = 0;
   m_prev_state.m_composite_group = 0;
+  m_prev_state.m_blend_group = 0;
 }
 
 fastuidraw::c_array<fastuidraw::generic_data>

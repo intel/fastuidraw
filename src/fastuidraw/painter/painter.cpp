@@ -619,6 +619,10 @@ namespace
   class TransparencyStackEntryFactory
   {
   public:
+    TransparencyStackEntryFactory(void):
+      m_current_size(0, 0)
+    {}
+
     /* clears each of the m_rect_atlas within the pool;
      * if the surface_sz changes then also clears the
      * pool entirely.
