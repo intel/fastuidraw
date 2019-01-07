@@ -226,10 +226,10 @@ public:
   bool //returns true if a draw break was needed
   pack_header(unsigned int header_size,
               uint32_t brush_shader,
-              const reference_counted_ptr<PainterBlendShader> &blend_shader,
-              const reference_counted_ptr<PainterCompositeShader> &composite_shader,
+              PainterBlendShader *blend_shader,
+              PainterCompositeShader *composite_shader,
               BlendMode mode,
-              const reference_counted_ptr<PainterItemShader> &item_shader,
+              PainterItemShader *item_shader,
               int z,
               const painter_state_location &loc,
               const std::list<reference_counted_ptr<PainterPacker::DataCallBack> > &call_backs,
@@ -400,10 +400,10 @@ bool
 fastuidraw::PainterPacker::per_draw_command::
 pack_header(unsigned int header_size,
             uint32_t brush_shader,
-            const reference_counted_ptr<PainterBlendShader> &blend_shader,
-            const reference_counted_ptr<PainterCompositeShader> &composite_shader,
+            PainterBlendShader *blend_shader,
+            PainterCompositeShader *composite_shader,
             BlendMode composite_mode,
-            const reference_counted_ptr<PainterItemShader> &item_shader,
+            PainterItemShader *item_shader,
             int z,
             const painter_state_location &loc,
             const std::list<reference_counted_ptr<PainterPacker::DataCallBack> > &call_backs,
@@ -420,11 +420,11 @@ pack_header(unsigned int header_size,
   PainterShader::Tag composite;
   PainterShader::Tag blend;
 
+  FASTUIDRAWassert(item_shader);
   if (composite_shader)
     {
       composite = composite_shader->tag();
     }
-
   if (blend_shader)
     {
       blend = blend_shader->tag();
@@ -505,6 +505,8 @@ PainterPacker(PainterPackedValuePool &pool,
               vecN<unsigned int, num_stats> &stats,
               reference_counted_ptr<PainterBackend> backend):
   m_backend(backend),
+  m_blend_shader(nullptr),
+  m_composite_shader(nullptr),
   m_clear_color_buffer(false),
   m_stats(stats)
 {
@@ -704,7 +706,7 @@ draw_generic_implement(const reference_counted_ptr<PainterItemShader> &shader,
                                              m_blend_shader,
                                              m_composite_shader,
                                              m_composite_mode,
-                                             shader,
+                                             shader.get(),
                                              z, m_painter_state_location,
                                              m_callback_list,
                                              &header_loc);

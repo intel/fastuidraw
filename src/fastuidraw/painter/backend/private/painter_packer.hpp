@@ -126,7 +126,7 @@ namespace fastuidraw
     /*!
      * Returns the active composite shader
      */
-    const reference_counted_ptr<PainterCompositeShader>&
+    PainterCompositeShader*
     composite_shader(void) const
     {
       return m_composite_shader;
@@ -147,8 +147,7 @@ namespace fastuidraw
      * \param blend_mode 3D API blend mode.
      */
     void
-    composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
-                     BlendMode blend_mode)
+    composite_shader(PainterCompositeShader *h, BlendMode blend_mode)
     {
       m_composite_shader = h;
       m_composite_mode = blend_mode;
@@ -157,7 +156,7 @@ namespace fastuidraw
     /*!
      * Returns the active blend shader
      */
-    const reference_counted_ptr<PainterBlendShader>&
+    PainterBlendShader*
     blend_shader(void) const
     {
       return m_blend_shader;
@@ -168,7 +167,7 @@ namespace fastuidraw
      * \param h blend shader to use for blending.
      */
     void
-    blend_shader(const reference_counted_ptr<PainterBlendShader> &h)
+    blend_shader(PainterBlendShader* h)
     {
       m_blend_shader = h;
     }
@@ -362,8 +361,8 @@ namespace fastuidraw
     PainterData::value<PainterBrush> m_default_brush;
     unsigned int m_header_size;
 
-    reference_counted_ptr<PainterBlendShader> m_blend_shader;
-    reference_counted_ptr<PainterCompositeShader> m_composite_shader;
+    PainterBlendShader *m_blend_shader;
+    PainterCompositeShader *m_composite_shader;
     BlendMode m_composite_mode;
     painter_state_location m_painter_state_location;
     int m_number_begins;

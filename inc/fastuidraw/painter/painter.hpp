@@ -143,7 +143,7 @@ namespace fastuidraw
     /*!
      * Returns the active composite shader
      */
-    const reference_counted_ptr<PainterCompositeShader>&
+    PainterCompositeShader*
     composite_shader(void) const;
 
     /*!
@@ -195,7 +195,7 @@ namespace fastuidraw
     /*!
      * Returns the active blend shader
      */
-    const reference_counted_ptr<PainterBlendShader>&
+    PainterBlendShader*
     blend_shader(void) const;
 
     /*!
