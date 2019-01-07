@@ -22,6 +22,123 @@
 
 #include "rect_atlas.hpp"
 
+/*
+ * Tree structure to construct the texture atlas,
+ * basic idea is very simple: walk the tree until one finds
+ * a node where the image can fit.
+ *
+ * if .second is routine_fail, then the routine
+ * failed.
+ *
+ * If .first of the return value of add or remove
+ * is not the same as the object, then the return value
+ * represents a new child and the old object should be deleted.
+ *
+ * if .first of the return value of add or remove
+ * is the same as the object, then the routine succeeded
+ * and the object should not be deleted.
+ */
+
+
+  class fastuidraw::detail::RectAtlas::tree_base
+  {
+  public:
+    tree_base(const ivec2 &bl, const ivec2 &sz,
+              const tree_base *pparent):
+      m_minX_minY(bl), m_size(sz),
+      m_parent(pparent)
+    {}
+
+    virtual
+    ~tree_base(void)
+    {}
+
+    const ivec2&
+    size(void) const
+    {
+      return m_size;
+    }
+
+    int
+    area(void) const
+    {
+      return m_size.x()*m_size.y();
+    }
+
+    const ivec2&
+    minX_minY(void) const
+    {
+      return m_minX_minY;
+    }
+
+    const tree_base*
+    parent(void) const
+    {
+      return m_parent;
+    }
+
+    virtual
+    add_return_value
+    add(rectangle*) = 0;
+
+    virtual
+    bool
+    empty(void) = 0;
+
+  private:
+    ivec2 m_minX_minY, m_size;
+    const tree_base *m_parent;
+  };
+
+  //a tree_node_without_children represents
+  //a Node which has NO child Node's
+  //but may or maynot have a rectangle.
+  class fastuidraw::detail::RectAtlas::tree_node_without_children:public tree_base
+  {
+  public:
+    tree_node_without_children(const tree_base *pparent,
+                               const ivec2 &bl, const ivec2 &sz,
+                               rectangle *rect=nullptr);
+    ~tree_node_without_children();
+
+    virtual
+    add_return_value
+    add(rectangle*);
+
+    virtual
+    bool
+    empty(void);
+
+    rectangle*
+    data(void);
+
+  private:
+    rectangle *m_rectangle;
+  };
+
+  //a tree node with children has _3_ children.
+  //they are spawned when a tree_node_wihout_children
+  //has a rectangle added but it already has a rectangle.
+  class fastuidraw::detail::RectAtlas::tree_node_with_children:public tree_base
+  {
+  public:
+    tree_node_with_children(tree_node_without_children *src,
+                            bool split_x, bool split_y);
+    ~tree_node_with_children();
+
+    virtual
+    add_return_value
+    add(rectangle*);
+
+    virtual
+    bool
+    empty(void);
+
+  private:
+    vecN<tree_base*,3> m_children;
+  };
+
+
 ////////////////////////////////////////
 // fastuidraw::detail::RectAtlas::tree_sorter methods
 bool
