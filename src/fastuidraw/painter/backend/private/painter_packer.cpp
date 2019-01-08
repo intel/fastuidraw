@@ -877,6 +877,14 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
   draw_generic_implement(shader, data, src, z);
 }
 
+unsigned int
+fastuidraw::PainterPacker::
+current_indices_written(void) { return m_accumulated_draws.back().m_indices_written; }
+
+unsigned int
+fastuidraw::PainterPacker::
+current_draw(void) { return m_accumulated_draws.size(); }
+
 ///////////////////////////////
 //
 uint32_t

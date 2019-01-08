@@ -293,6 +293,19 @@ namespace fastuidraw
       return m_backend->hints();
     }
 
+    /*!
+     * Returns the current accumulated draw the PainterPacker is on
+     */
+    unsigned int
+    current_draw(void);
+
+    /*!
+     * Returns the current number of indices written into the
+     * current draw.
+     */
+    unsigned int
+    current_indices_written(void);
+
     /* The data behind a PainterShaderGroup is also defined privately
      * within PainterPacker implementation, so to implement the
      * PainterShaderGroup methods, we implement them here and have
