@@ -509,6 +509,24 @@ namespace
       m_item_matrix.m_normalized_translate = v;
     }
 
+    void
+    update_rect_to_transformation(void)
+    {
+      using namespace fastuidraw;
+      const float3x3 &tr(m_item_matrix.m_item_matrix);
+
+      m_item_matrix_transition_tricky = m_item_matrix_transition_tricky
+        || tr(0, 1) != 0.0f || tr(1, 0) != 0.0f
+        || tr(2, 0) != 0.0f || tr(2, 1) != 0.0f
+        || tr(2, 2) != 1.0f;
+
+      if (!m_item_matrix_transition_tricky)
+        {
+          m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
+          m_clip_rect.shear(1.0f / tr(0, 0), 1.0f / tr(1, 1));
+        }
+    }
+
     clip_rect m_clip_rect;
     bool m_all_content_culled;
 
@@ -1308,7 +1326,8 @@ namespace
                              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality);
 
     int
-    fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
+    fill_convex_polygon(bool allow_sw_clipping,
+                        const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
@@ -1318,9 +1337,29 @@ namespace
     fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
                         const fastuidraw::PainterData &draw,
                         fastuidraw::c_array<const fastuidraw::vec2> pts,
+                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                        int z)
+    {
+      fill_convex_polygon(true, shader, draw, pts, anti_alias_quality, z);
+    }
+
+    int
+    fill_convex_polygon(bool allow_sw_clipping,
+                        const fastuidraw::PainterFillShader &shader,
+                        const fastuidraw::PainterData &draw,
+                        fastuidraw::c_array<const fastuidraw::vec2> pts,
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality)
     {
-      return fill_convex_polygon(shader, draw, pts, anti_alias_quality, m_current_z);
+      return fill_convex_polygon(allow_sw_clipping, shader, draw, pts, anti_alias_quality, m_current_z);
+    }
+
+    int
+    fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
+                        const fastuidraw::PainterData &draw,
+                        fastuidraw::c_array<const fastuidraw::vec2> pts,
+                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality)
+    {
+      return fill_convex_polygon(true, shader, draw, pts, anti_alias_quality, m_current_z);
     }
 
     int
@@ -3685,7 +3724,8 @@ ready_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts,
 
 int
 PainterPrivate::
-fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
+fill_convex_polygon(bool allow_sw_clipping,
+                    const fastuidraw::PainterFillShader &shader,
                     const fastuidraw::PainterData &draw,
                     fastuidraw::c_array<const fastuidraw::vec2> pts,
                     enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
@@ -3698,7 +3738,7 @@ fill_convex_polygon(const fastuidraw::PainterFillShader &shader,
       return 0;
     }
 
-  if (!packer()->hints().clipping_via_hw_clip_planes())
+  if (allow_sw_clipping && !packer()->hints().clipping_via_hw_clip_planes())
     {
       m_clip_rect_state.clip_polygon(pts, m_work_room.m_polygon.m_pts,
                                      m_work_room.m_clipper.m_vec2s[0]);
@@ -3756,17 +3796,26 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
                            const fastuidraw::vec3 &plane)
 {
   using namespace fastuidraw;
+  /* Basic idea:
+   *   (1) Because of that begin_layer() renders to another
+   *       buffer, but potentially translated (by up to 2 units)
+   *       we need to extend the normalized device plane to
+   *       [-3, 3]x[-3, 3] when drawing the occluder
+   *   (2) The occluder is simply the plane passed intersected
+   *       the [-3, 3] square taking the other points on the
+   *       correct side.
+   */
   if (t_abs(plane.x()) > t_abs(plane.y()))
     {
       float a, b, c, d;
-      /* a so that A * a + B * -1 + C = 0 -> a = (+B - C) / A
-       * b so that A * a + B * +1 + C = 0 -> b = (-B - C) / A
+      /* a so that A * a + B * -3 + C = 0 -> a = (+3B - C) / A
+       * b so that A * a + B * +3 + C = 0 -> b = (-3B - C) / A
        */
-      a = (+plane.y() - plane.z()) / plane.x();
-      b = (-plane.y() - plane.z()) / plane.x();
+      a = (+3.0f * plane.y() - plane.z()) / plane.x();
+      b = (-3.0f * plane.y() - plane.z()) / plane.x();
 
-      /* the two points are then (a, -1) and (b, 1). Grab
-       * (c, -1) and (d, 1) so that they are on the correct side
+      /* the two points are then (a, -3) and (b, 3). Grab
+       * (c, -3) and (d, 3) so that they are on the correct side
        * of the half plane
        */
       if (plane.x() > 0.0f)
@@ -3775,58 +3824,58 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
            * and we want the negative side, so take c and
            * d to left of a and b.
            */
-          c = t_min(-1.0f, a);
-          d = t_min(-1.0f, b);
+          c = t_min(-3.0f, a);
+          d = t_min(-3.0f, b);
         }
       else
         {
-          c = t_max(1.0f, a);
-          d = t_max(1.0f, b);
+          c = t_max(3.0f, a);
+          d = t_max(3.0f, b);
         }
       /* the 4 points of the polygon are then
-       * (a, -1), (c, -1), (d, 1), (b, 1).
+       * (a, -3), (c, -3), (d, 3), (b, 3).
        */
-      fill_convex_polygon(shader, draw,
-                          vecN<vec2, 4>(vec2(a, -1.0f),
-                                        vec2(c, -1.0f),
-                                        vec2(d, +1.0f),
-                                        vec2(b, +1.0f)),
+      fill_convex_polygon(false, shader, draw,
+                          vecN<vec2, 4>(vec2(a, -3.0f),
+                                        vec2(c, -3.0f),
+                                        vec2(d, +3.0f),
+                                        vec2(b, +3.0f)),
                           Painter::shader_anti_alias_none);
     }
   else if (t_abs(plane.y()) > 0.0f)
     {
       float a, b, c, d;
-      a = (+plane.x() - plane.z()) / plane.y();
-      b = (-plane.x() - plane.z()) / plane.y();
+      a = (+3.0f * plane.x() - plane.z()) / plane.y();
+      b = (-3.0f * plane.x() - plane.z()) / plane.y();
 
       if (plane.y() > 0.0f)
         {
-          c = t_min(-1.0f, a);
-          d = t_min(-1.0f, b);
+          c = t_min(-3.0f, a);
+          d = t_min(-3.0f, b);
         }
       else
         {
-          c = t_max(1.0f, a);
-          d = t_max(1.0f, b);
+          c = t_max(3.0f, a);
+          d = t_max(3.0f, b);
         }
 
-      fill_convex_polygon(shader, draw,
-                          vecN<vec2, 4>(vec2(-1.0f, a),
-                                        vec2(-1.0f, c),
-                                        vec2(+1.0f, d),
-                                        vec2(+1.0f, b)),
+      fill_convex_polygon(false, shader, draw,
+                          vecN<vec2, 4>(vec2(-3.0f, a),
+                                        vec2(-3.0f, c),
+                                        vec2(+3.0f, d),
+                                        vec2(+3.0f, b)),
                           Painter::shader_anti_alias_none);
 
     }
   else if (plane.z() <= 0.0f)
     {
-      /* complement of half plane covers entire [-1,1]x[-1,1]
+      /* complement of half plane covers entire [-3, 3] x [-3, 3]
        */
-      fill_convex_polygon(shader, draw,
-                          vecN<vec2, 4>(vec2(-1.0f, -1.0f),
-                                        vec2(-1.0f, +1.0f),
-                                        vec2(+1.0f, +1.0f),
-                                        vec2(+1.0f, -1.0f)),
+      fill_convex_polygon(false, shader, draw,
+                          vecN<vec2, 4>(vec2(-3.0f, -3.0f),
+                                        vec2(-3.0f, +3.0f),
+                                        vec2(+3.0f, +3.0f),
+                                        vec2(+3.0f, -3.0f)),
                           Painter::shader_anti_alias_none);
     }
 }
@@ -4723,6 +4772,9 @@ begin_layer(const vec4 &color_modulate)
   d->m_clip_rect_state.m_clip_rect = clip_rect(clip_region_rect);
   d->m_clip_rect_state.set_clip_equations_to_clip_rect(clip_rect_state::rect_in_normalized_device_coordinates);
 
+  /* update d->m_clip_rect_state.m_clip_rect to local coordinates */
+  d->m_clip_rect_state.update_rect_to_transformation();
+
   /* change m_clip_store so that the current value is just from clip_region_rect */
   d->m_clip_store.reset_current_to_rect(clip_region_rect);
 
@@ -4744,12 +4796,16 @@ begin_layer(const vec4 &color_modulate)
    */
   composite_shader(composite_porter_duff_src_over);
   blend_shader(blend_w3c_normal);
+  save();
 }
 
 void
 fastuidraw::Painter::
 end_layer(void)
 {
+  //matches the save() at precisely the end of begin_layer();
+  restore();
+
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
@@ -4757,6 +4813,7 @@ end_layer(void)
   d->m_transparency_stack.pop_back();
 
   /* restore any saves() done within the layer. */
+  FASTUIDRAWassert(R.m_state_stack_size == d->m_state_stack.size());
   while (R.m_state_stack_size > d->m_state_stack.size())
     {
       restore();
