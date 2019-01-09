@@ -125,6 +125,8 @@ private:
   uint64_t m_benchmark_time_us;
   simple_time m_benchmark_timer;
   std::vector<uint64_t> m_frame_times;
+
+  int m_show_surface;
 };
 
 painter_cells::
@@ -226,7 +228,8 @@ painter_cells(void):
                              *this),
   m_table(nullptr),
   m_current_composite(0),
-  m_current_blend(0)
+  m_current_blend(0),
+  m_show_surface(0)
 {
   std::cout << "Controls:\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -651,10 +654,32 @@ draw_frame(void)
                 m_table_params.m_font, PainterData(m_text_brush));
     }
 
-  m_painter->end();
+  c_array<const PainterBackend::Surface* const> surfaces;
+
+  surfaces = m_painter->end();
   fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  m_surface->blit_surface(GL_NEAREST);
+
+  m_show_surface = t_min(m_show_surface, (int)surfaces.size());
+  if (m_show_surface <= 0 || m_show_surface > surfaces.size())
+    {
+      m_surface->blit_surface(GL_NEAREST);
+    }
+  else
+    {
+      const gl::PainterBackendGL::SurfaceGL *S;
+      PainterBackend::Surface::Viewport src, dest;
+
+      src = m_surface->viewport();
+      S = dynamic_cast<const gl::PainterBackendGL::SurfaceGL*>(surfaces[m_show_surface - 1]);
+
+      dest.m_origin = src.m_origin;
+      dest.m_dimensions = ivec2(src.m_dimensions.x(), src.m_dimensions.y() / 2);
+      m_surface->blit_surface(src, dest, GL_LINEAR);
+
+      dest.m_origin.y() +=  dest.m_dimensions.y();
+      S->blit_surface(src, dest, GL_LINEAR);
+    }
 
   ++m_frame;
 }
@@ -740,6 +765,22 @@ handle_event(const SDL_Event &ev)
               std::cout << "Draw cells opaquely\n";
             }
           break;
+
+        case SDLK_o:
+          if (ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT))
+            {
+              if (m_show_surface > 0)
+                {
+                  --m_show_surface;
+                }
+            }
+          else
+            {
+              ++m_show_surface;
+            }
+          std::cout << "Show layer surface: " << m_show_surface << "\n";
+          break;
+
         case SDLK_0:
           m_zoomer.transformation(ScaleTranslate<float>());
           break;
