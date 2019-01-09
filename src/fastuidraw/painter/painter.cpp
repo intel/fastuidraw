@@ -556,7 +556,7 @@ namespace
     }
 
     void
-    on_pop(fastuidraw::Painter *p);
+    on_pop(PainterPrivate *p);
 
   private:
     /* action to execute on popping.
@@ -1340,7 +1340,7 @@ namespace
                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                         int z)
     {
-      fill_convex_polygon(true, shader, draw, pts, anti_alias_quality, z);
+      return fill_convex_polygon(true, shader, draw, pts, anti_alias_quality, z);
     }
 
     int
@@ -1552,19 +1552,19 @@ scale(float s)
 // occluder_stack_entry methods
 void
 occluder_stack_entry::
-on_pop(fastuidraw::Painter *p)
+on_pop(PainterPrivate *p)
 {
   /* depth test is GL_GEQUAL, so we need to increment the Z
    * before hand so that the occluders block all that
    * is drawn below them.
    */
-  p->increment_z();
+  p->m_current_z += 1;
   for(const auto &s : m_set_occluder_z)
     {
       ZDelayedAction *ptr;
       FASTUIDRAWassert(dynamic_cast<ZDelayedAction*>(s.get()) != nullptr);
       ptr = static_cast<ZDelayedAction*>(s.get());
-      ptr->finalize_z(p->current_z());
+      ptr->finalize_z(p->m_current_z);
     }
 }
 
@@ -3978,7 +3978,7 @@ end(void)
   /* pop m_clip_stack to perform necessary writes */
   while (!d->m_occluder_stack.empty())
     {
-      d->m_occluder_stack.back().on_pop(this);
+      d->m_occluder_stack.back().on_pop(d);
       d->m_occluder_stack.pop_back();
     }
   /* clear state stack as well. */
@@ -4016,7 +4016,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
     {
       d->draw_generic(shader, draw, attrib_chunks, index_chunks,
                       index_adjusts, c_array<const unsigned int>(),
-                      current_z());
+                      d->m_current_z);
     }
 }
 
@@ -4034,7 +4034,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
     {
       d->draw_generic(shader, draw, attrib_chunks, index_chunks,
                       index_adjusts, attrib_chunk_selector,
-                      current_z());
+                      d->m_current_z);
     }
 }
 
@@ -4047,7 +4047,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
   d = static_cast<PainterPrivate*>(m_d);
   if (!d->m_clip_rect_state.m_all_content_culled)
     {
-      d->draw_generic(shader, draw, src, current_z());
+      d->draw_generic(shader, draw, src, d->m_current_z);
     }
 }
 
@@ -4747,7 +4747,7 @@ restore(void)
   d->m_curve_flatness = st.m_curve_flatness;
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
-      d->m_occluder_stack.back().on_pop(this);
+      d->m_occluder_stack.back().on_pop(d);
       d->m_occluder_stack.pop_back();
     }
   d->m_state_stack.pop_back();
@@ -5506,22 +5506,4 @@ query_stats(c_array<unsigned int> dst) const
     {
       dst[i] = d->m_stats[i];
     }
-}
-
-int
-fastuidraw::Painter::
-current_z(void) const
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  return d->m_current_z;
-}
-
-void
-fastuidraw::Painter::
-increment_z(int amount)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_current_z += amount;
 }

@@ -62,9 +62,12 @@ namespace fastuidraw
    *  - stroking
    *  - filling
    *  - drawing text
-   *  - applying a brush (see PainterBrush)
+   *  - applying a brush (see \ref PainterBrush)
+   *  - compositing (see \ref PainterEnums::composite_mode_t)
+   *  - blending (see \ref PainterEnums::blend_w3c_mode_t)
    *  - single 3x3 transformation
    *  - save and restore state
+   *  - transparency layers
    *  - clipIn against Path, rectangle or rounded rectangle
    *  - clipOut against Path, rectangle or rounded rectangle
    *
@@ -75,7 +78,7 @@ namespace fastuidraw
    * window is at normalized y-coordinate +1. The transformation is to be
    * applied as matrix-vector multiplication, i.e.
    * \code
-   * ClipCoordinates = transformation().m_item_matrix * vec3(x, y, 1.0)
+   * ClipCoordinates = transformation() * vec3(x, y, 1.0)
    * \endcode
    * for local coordiante (x, y). Normalized device coordinates are
    * defined as
@@ -85,6 +88,30 @@ namespace fastuidraw
    * where (-1, -1) corresponds to the bottom-left hand corner of the
    * viewport (see PainterBackend::Surface::viewport()) and (+1, +1)
    * is the top right hand corner of the viewport.
+   *
+   * The pixel pipeline of \ref Painter is
+   *   # Compute RGBA value from item shader (typically this is (0, 0, 0, alpha)
+   *     where alpha is a coverage value
+   *   # Modulate by the \ref PainterBrush passing the item coordinates
+   *     of the pixel to the \ref PainterBrush
+   *   # Apply blending (see PainterEnums::blend_w3c_mode_t and \ref
+   *     blend_shader()) to the RGB value from the brush against the
+   *     current value in the framebuffer
+   *   # Apply compositing (see PainterEnums::composite_mode_t and
+   *     \ref composite_shader()) to the RGBA value after blending
+   *     against the current value in the framebuffer
+   *
+   * Painter uses clip-planes and the depth buffer to perform clipping.
+   * The depth-buffer clips by occluding elements. For example, the
+   * method clip_out_rect() simply draws a rectangle so that it does
+   * not affect the color buffer but with a depth value that is infront
+   * of the elements that it is to occlude. Painter uses the convention
+   * that elements with greater than or equal depth values are visible
+   * (for example in GL this corresponds to the depth test being set to
+   * GL_GEQUAL). Unless an item occludes (or self occludes), the current
+   * active depth value is unaffected. An item's vertex shader will emit
+   * a relative z-value (i.e. relative to the item) which is then
+   * incremented by the current z-value of the \ref Painter.
    */
   class Painter:
     public PainterEnums,
@@ -1267,19 +1294,6 @@ namespace fastuidraw
     static
     c_string
     stat_name(enum query_stats_t st);
-
-    /*!
-     * Return the z-depth value that the next item will have.
-     */
-    int
-    current_z(void) const;
-
-    /*!
-     * Increment the value of current_z(void) const.
-     * \param amount amount by which to increment current_z(void) const
-     */
-    void
-    increment_z(int amount = 1);
 
   private:
 
