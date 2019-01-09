@@ -669,6 +669,13 @@ namespace
     void
     end(void);
 
+    /* list of active offscreen buffers */
+    const std::vector<const fastuidraw::PainterBackend::Surface*>&
+    active_surfaces(void) const
+    {
+      return m_active_surfaces;
+    }
+
   private:
     typedef std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > PerActiveDepth;
 
@@ -676,6 +683,7 @@ namespace
     fastuidraw::ivec2 m_current_size;
     std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > m_unused_buffers;
     std::vector<PerActiveDepth> m_per_active_depth;
+    std::vector<const fastuidraw::PainterBackend::Surface*> m_active_surfaces;
   };
 
   class ComplementFillRule:public fastuidraw::CustomFillRuleBase
@@ -2009,6 +2017,7 @@ begin(fastuidraw::ivec2 surface_sz,
           v.clear();
         }
     }
+  m_active_surfaces.clear();
   m_viewport = vwp;
 }
 
@@ -2091,6 +2100,7 @@ fetch(unsigned int transparency_depth,
       TB->m_depth = transparency_depth;
       TB->m_surface->viewport(m_viewport);
       m_per_active_depth[transparency_depth].push_back(TB);
+      m_active_surfaces.push_back(TB->m_surface.get());
 
       rect = TB->m_rect_atlas.add_rectangle(dims);
       return_value.m_image = TB->m_image.get();
@@ -3971,7 +3981,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   begin(surface, float3x3(ortho), clear_color_buffer);
 }
 
-void
+fastuidraw::c_array<const fastuidraw::PainterBackend::Surface* const>
 fastuidraw::Painter::
 end(void)
 {
@@ -4001,6 +4011,8 @@ end(void)
   /* unlock resources after the commands are sent to the GPU */
   image_atlas()->unlock_resources();
   colorstop_atlas()->unlock_resources();
+
+  return make_c_array(d->m_transparency_stack_entry_factory.active_surfaces());
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&

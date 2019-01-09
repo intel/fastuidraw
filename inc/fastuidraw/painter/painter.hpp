@@ -285,10 +285,15 @@ namespace fastuidraw
     /*!
      * Indicate to end drawing with methods of this Painter.
      * Drawing commands sent to 3D hardware are buffered and not
-     * sent to hardware until end() is called.
-     * All draw commands must be between a begin()/end() pair.
+     * sent to hardware until end() is called. Returns the
+     * list of surfaces used for offscreen rendering within
+     * the begin()/end() pair; these surfaces are -owned- by
+     * the Painter and their contents are potentially changed
+     * (or even the object destroyed) on the next call to
+     * begin(). All draw commands must be between a begin()/end()
+     * pair.
      */
-    void
+    c_array<const PainterBackend::Surface* const>
     end(void);
 
     /*!
