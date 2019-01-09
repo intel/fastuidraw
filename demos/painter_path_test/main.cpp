@@ -2181,7 +2181,6 @@ draw_frame(void)
            << painter_stat(Painter::num_generic_datas)
            << "\nNumber Draws: "
            << painter_stat(Painter::num_draws)
-           << "\nPainter Z: " << m_painter->current_z()
            << "\nMouse position:"
            << item_coordinates(mouse_position)
            << "\ncurve_flatness: " << m_curve_flatness
