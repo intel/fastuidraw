@@ -152,11 +152,10 @@ namespace fastuidraw
       {
         /*!
          * Specify the shader for rendering a stroked path without
-         * anti-aliasing. The depth value emitted in vertex shading
-         * should be z-value from the painter header (the value is
-         * Painter::current_z()) PLUS a depth value to guarantee that
-         * there is no overdraw, see \ref StrokedPoint::depth() and
-         * \ref ArcStrokedPoint::depth().
+         * anti-aliasing. The depth value emitted in the item's
+         * vertex shader should be z-value to guarantee that there
+         * is no overdraw, see \ref StrokedPoint::depth() and \ref
+         * ArcStrokedPoint::depth().
          */
         non_aa_shader,
 
@@ -164,11 +163,10 @@ namespace fastuidraw
          * Specify the shader for the 1st pass of anti-alias stroking
          * for \ref PainterEnums::shader_anti_alias_simple which draws
          * the portions of the stroked path that cover 100% of the
-         * sample area of a fragment. The depth value emitted in
-         * vertex shading should be z-value from the painter header
-         * (the value is Painter::current_z()) PLUS a depth value to
-         * guarantee that there is no overdraw, see \ref
-         * StrokedPoint::depth() and \ref ArcStrokedPoint::depth().
+         * sample area of a fragment. The depth value emitted in the
+         * item's vertex shader should be z-value to guarantee that
+         * there is no overdraw, see \ref StrokedPoint::depth() and \ref
+         * ArcStrokedPoint::depth().
          */
         aa_shader_pass1,
 
@@ -176,11 +174,10 @@ namespace fastuidraw
          * Specify the shader for the 2nd pass of anti-alias stroking
          * for \ref PainterEnums::shader_anti_alias_simple which draws
          * the portions of the stroked path that cover less than 100%
-         * of the sample area of a fragment. The depth value emitted
-         * in vertex shading should be z-value from the painter header
-         * (the value is Painter::current_z()) PLUS a depth value to
-         * guarantee that there is no overdraw, see \ref
-         * StrokedPoint::depth() and \ref ArcStrokedPoint::depth().
+         * of the sample area of a fragment. The depth value emitted in the
+         * item's vertex shader should be z-value to guarantee that
+         * there is no overdraw, see \ref StrokedPoint::depth() and \ref
+         * ArcStrokedPoint::depth().
          */
         aa_shader_pass2,
 
@@ -188,8 +185,8 @@ namespace fastuidraw
          * Specify the shader for the 1st pass of anti-alias stroking
          * for \ref PainterEnums::shader_anti_alias_high_quality which
          * draws to an offscreen auxiliary buffer the coverage of a
-         * fragment area by the stroked path. The vertex shader is to
-         * emit the same z-value as from the painter header.
+         * fragment area by the stroked path. The item's vertex shader
+         * it to emit a depth value of 0.
          */
         hq_aa_shader_pass1,
 
@@ -198,8 +195,8 @@ namespace fastuidraw
          * for \ref PainterEnums::shader_anti_alias_high_quality which
          * draws emits the coverae value from an offscreen auxiliary
          * buffer the coverage and clears the value from the buffer as
-         * well. The vertex shader is to emit the same z-value as from
-         * the painter header.
+         * well. The item's vertex shader it to emit a depth value of
+         * 0.
          */
         hq_aa_shader_pass2,
 

@@ -128,12 +128,12 @@ namespace fastuidraw
     non_empty_index_data_chunks(void) const;
 
     /*!
-     * Returns the z-range of the data in an attribute/index
-     * pair. After drawing a chunk, Painter will call on
-     * itself Painter::increment_z(range_type::differnce())
-     * and will set the header set to \ref Painter so
-     * that while drawing so that range_type::m_begin maps
-     * to Painter::current_z().
+     * Returns the z-range of the data in an chunk.
+     * Recall that the z-value is used by Painter
+     * to perform occluding. When an item is to
+     * self occlude, z_ranges()[C] holds the
+     * relative z-ranges of the z-value emitted
+     * by the item's vertex shader.
      */
     c_array<const range_type<int> >
     z_ranges(void) const;

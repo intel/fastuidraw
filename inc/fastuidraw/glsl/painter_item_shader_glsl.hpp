@@ -202,8 +202,8 @@ namespace fastuidraw
      * The output brush_p is to hold the coordinate for the brush of
      * the vertex. The out z_add must be written to as well and it
      * is how much to add to the value in \ref PainterHeader::m_z
-     * (the value is the value of Painter::current_z()) for the purpose
-     * of intra-item z-occluding.
+     * for the purpose of intra-item z-occluding. Items that do
+     * not self-occlude should write 0 to z_add.
      *
      * The fragment shader code needs to implement the function:
      * \code

@@ -161,6 +161,8 @@ namespace fastuidraw
     /*!
      * The z-value to use for the item. The z-value is used
      * by Painter to implement clipping and to prevent overdraw.
+     * This is the value by which to increment the z-value of
+     * the output of an item's vertex shader
      */
     int32_t m_z;
 
