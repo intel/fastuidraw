@@ -393,7 +393,12 @@ namespace fastuidraw
         /*!
          * Number of times PainterBackend::end() was called
          */
-        num_ends
+        num_ends,
+
+        /*!
+         * Number of times begin_layer()/end_layer() was called
+         */
+        num_layers,
       };
 
     /*!

@@ -4895,6 +4895,7 @@ begin_layer(const vec4 &color_modulate)
   d->m_clip_rect_state.set_normalized_device_translate(R.m_normalized_translate);
 
   d->m_transparency_stack.push_back(R);
+  ++d->m_stats[num_layers];
 
   /* Set the packer's composite shader, mode and blend shader to
    * Painter default values
@@ -5593,6 +5594,7 @@ stat_name(enum query_stats_t st)
       EASY(num_headers);
       EASY(num_render_targets);
       EASY(num_ends);
+      EASY(num_layers);
     default:
       return "unknown";
     }
