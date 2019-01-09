@@ -4053,6 +4053,42 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 
 void
 fastuidraw::Painter::
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+             const PainterData &draw,
+             c_array<const PainterAttribute> attrib_chunk,
+             c_array<const PainterIndex> index_chunk,
+             range_type<int> z_range,
+             int index_adjust)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  if (!d->m_clip_rect_state.m_all_content_culled)
+    {
+      d->m_current_z -= z_range.m_begin;
+      draw_generic(shader, draw, attrib_chunk, index_chunk, index_adjust);
+      d->m_current_z += z_range.m_end;
+    }
+}
+
+void
+fastuidraw::Painter::
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+             const PainterData &draw,
+             const PainterAttributeWriter &src,
+             range_type<int> z_range)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  if (!d->m_clip_rect_state.m_all_content_culled)
+    {
+      d->m_current_z -= z_range.m_begin;
+      draw_generic(shader, draw, src);
+      d->m_current_z += z_range.m_end;
+    }
+}
+
+void
+fastuidraw::Painter::
 queue_action(const reference_counted_ptr<const PainterDraw::Action> &action)
 {
   PainterPrivate *d;

@@ -1248,6 +1248,36 @@ namespace fastuidraw
                  const PainterAttributeWriter &src);
 
     /*!
+     * Draw generic attribute data where the item self occludes
+     * \param shader shader with which to draw data
+     * \param draw data for how to draw
+     * \param attrib_chunk attribute data to draw
+     * \param index_chunk index data into attrib_chunk
+     * \param index_adjust amount by which to adjust the values in index_chunk
+     * \param z_range z-range of item's attribute data
+     */
+    void
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
+                 c_array<const PainterAttribute> attrib_chunk,
+                 c_array<const PainterIndex> index_chunk,
+                 range_type<int> z_range,
+                 int index_adjust = 0);
+
+    /*!
+     * Draw generic attribute data
+     * \param shader shader with which to draw data
+     * \param draw data for how to draw
+     * \param src generator of attribute and index data
+     * \param z_range z-range of item's attribute data
+     */
+    void
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
+                 const PainterAttributeWriter &src,
+                 range_type<int> z_range);
+
+    /*!
      * Queue an action that uses (or affects) the GPU. Through these actions,
      * one can mix FastUIDraw::Painter with native API calls on a surface.
      * However, adding an action induces a draw-break (and state restore)
