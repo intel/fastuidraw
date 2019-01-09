@@ -1265,6 +1265,25 @@ namespace fastuidraw
                  int index_adjust = 0);
 
     /*!
+     * Draw generic attribute data where the item self occludes
+     * \param shader shader with which to draw data
+     * \param draw data for how to draw
+     * \param attrib_chunks attribute data to draw
+     * \param index_chunks index data into attrib_chunk
+     * \param z_range z-ranges of item's attribute data
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
+     */
+    void
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
+                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                 c_array<const c_array<const PainterIndex> > index_chunks,
+                 c_array<const range_type<int> > z_ranges,
+                 c_array<const int> index_adjusts);
+
+    /*!
      * Draw generic attribute data
      * \param shader shader with which to draw data
      * \param draw data for how to draw

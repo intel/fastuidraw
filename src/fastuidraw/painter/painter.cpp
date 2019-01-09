@@ -1153,6 +1153,14 @@ namespace
     std::vector<fastuidraw::PainterIndex> m_rect_fuzz_indices;
   };
 
+  class GenericLayeredWorkRoom:fastuidraw::noncopyable
+  {
+  public:
+    std::vector<int> m_z_increments;
+    std::vector<int> m_start_zs;
+    std::vector<int> m_empty_adjusts;
+  };
+
   class PainterWorkRoom:fastuidraw::noncopyable
   {
   public:
@@ -1164,6 +1172,7 @@ namespace
     AntiAliasFillWorkRoom m_fill_aa_fuzz;
     GlyphSequenceWorkRoom m_glyph;
     RoundedRectWorkRoom m_rounded_rect;
+    GenericLayeredWorkRoom m_generic_layered;
   };
 
   class PainterPrivate
@@ -4085,6 +4094,54 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
       draw_generic(shader, draw, src);
       d->m_current_z += z_range.m_end;
     }
+}
+
+void
+fastuidraw::Painter::
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+             const PainterData &draw,
+             c_array<const c_array<const PainterAttribute> > attrib_chunks,
+             c_array<const c_array<const PainterIndex> > index_chunks,
+             c_array<const range_type<int> > z_ranges,
+             c_array<const int> index_adjusts)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      return;
+    }
+
+  FASTUIDRAWassert(attrib_chunks.size() == index_chunks.size());
+  FASTUIDRAWassert(attrib_chunks.size() == z_ranges.size());
+  FASTUIDRAWassert(attrib_chunks.size() == index_adjusts.size() || index_adjusts.empty());
+
+  int total_z_increment(0);
+  if (index_adjusts.empty())
+    {
+      d->m_work_room.m_generic_layered.m_empty_adjusts.resize(attrib_chunks.size(), 0);
+      index_adjusts = make_c_array(d->m_work_room.m_generic_layered.m_empty_adjusts);
+    }
+
+  d->m_work_room.m_generic_layered.m_z_increments.clear();
+  d->m_work_room.m_generic_layered.m_start_zs.clear();
+  for (const auto &R : z_ranges)
+    {
+      int diff(R.difference());
+      total_z_increment += diff;
+      d->m_work_room.m_generic_layered.m_z_increments.push_back(diff);
+      d->m_work_room.m_generic_layered.m_start_zs.push_back(R.m_begin);
+    }
+
+  d->draw_generic_z_layered(shader, draw,
+                            make_c_array(d->m_work_room.m_generic_layered.m_z_increments),
+                            total_z_increment,
+                            attrib_chunks,
+                            index_chunks,
+                            index_adjusts,
+                            make_c_array(d->m_work_room.m_generic_layered.m_start_zs),
+                            d->m_current_z);
+  d->m_current_z += total_z_increment;
 }
 
 void
