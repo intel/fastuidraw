@@ -267,6 +267,40 @@ namespace fastuidraw
                                      Rect *out_rect) const;
 
         /*!
+         * Returne the size needed by a surface to contain
+         * the viewport, i.e. how many pixels the viewport
+         * covers.
+         */
+        ivec2
+        visible_dimensions(void) const
+        {
+          ivec2 return_value(m_dimensions);
+
+          /* remove from the portion of the viewport that
+           * is below/left of the surface
+           */
+          return_value.x() += t_min(0, m_origin.x());
+          return_value.y() += t_min(0, m_origin.y());
+          return return_value;
+        }
+
+        /*!
+         * Computes the dimensions of the intersection
+         * of this viewport against a surface with the
+         * given resolution.
+         * \param surface_dims dimension of surface
+         */
+        ivec2
+        compute_visible_dimensions(ivec2 surface_dims) const
+        {
+          ivec2 return_value(visible_dimensions());
+
+          return_value.x() = t_min(return_value.x(), surface_dims.x());
+          return_value.y() = t_min(return_value.y(), surface_dims.y());
+          return return_value;
+        }
+
+        /*!
          * The origin of the viewport
          */
         ivec2 m_origin;
