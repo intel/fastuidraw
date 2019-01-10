@@ -461,18 +461,13 @@ void
 fastuidraw::detail::RectAtlas::
 clear(void)
 {
-  ivec2 dimensions(size());
+  clear(size());
+}
 
-  tree_base *root;
-  root = static_cast<tree_base*>(m_data);
-
-  /**
-  std::cout << "Clear: " << root->count()
-            << ", free_area = " << root->free_area()
-            << "(" << 100.0f * static_cast<float>(root->free_area()) / static_cast<float>(root->area()) << "%)"
-            << "\n";
-  /**/
-
+void
+fastuidraw::detail::RectAtlas::
+clear(ivec2 dimensions)
+{
   m_pool.clear();
   m_data = m_pool.create<tree_node_without_children>(ivec2(0,0), dimensions, nullptr);
 }

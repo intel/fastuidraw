@@ -125,6 +125,17 @@ public:
   clear(void);
 
   /*!
+   * Clears the RectAtlas, in doing so deleting
+   * all recranges allocated by \ref add_rectangle().
+   * After clear(), all rectangle objects
+   * returned by add_rectangle() are deleted, and as
+   * such the pointers are then wild-invalid.
+   * \param new_dimensions new dimensions of the RectAtlas.
+   */
+  void
+  clear(ivec2 new_dimensions);
+
+  /*!
    * Returns the size of the \ref RectAtlas,
    * i.e. the value passed as dimensions
    * in RectAtlas().
