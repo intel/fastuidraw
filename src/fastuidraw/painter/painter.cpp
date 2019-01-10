@@ -643,7 +643,8 @@ namespace
   {
   public:
     TransparencyStackEntryFactory(void):
-      m_current_size(0, 0)
+      m_current_backing_size(0, 0),
+      m_current_backing_useable_size(0, 0)
     {}
 
     /* clears each of the m_rect_atlas within the pool;
@@ -680,7 +681,7 @@ namespace
     typedef std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > PerActiveDepth;
 
     fastuidraw::PainterBackend::Surface::Viewport m_viewport;
-    fastuidraw::ivec2 m_current_size;
+    fastuidraw::ivec2 m_current_backing_size, m_current_backing_useable_size;
     std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > m_unused_buffers;
     std::vector<PerActiveDepth> m_per_active_depth;
     std::vector<const fastuidraw::PainterBackend::Surface*> m_active_surfaces;
@@ -1999,11 +2000,30 @@ TransparencyStackEntryFactory::
 begin(fastuidraw::ivec2 surface_sz,
       const fastuidraw::PainterBackend::Surface::Viewport &vwp)
 {
-  if (surface_sz != m_current_size)
+  bool clear_buffers;
+
+  /* We can freely translate normalized device coords, but we
+   * cannot scale them. Thus set our viewport to the same size
+   * as the passed viewport but the origin at (0, 0).
+   */
+  m_viewport.m_origin = fastuidraw::ivec2(0, 0);
+  m_viewport.m_dimensions = vwp.m_dimensions;
+
+  /* We can only use the portions of the backing store
+   * that is within m_viewport.
+   */
+  m_current_backing_useable_size = vwp.compute_visible_dimensions(surface_sz);
+
+  clear_buffers = (m_current_backing_useable_size.x() > m_current_backing_size.x())
+    || (m_current_backing_useable_size.y() > m_current_backing_size.y())
+    || (m_current_backing_size.x() > 2 * m_current_backing_useable_size.x())
+    || (m_current_backing_size.y() > 2 * m_current_backing_useable_size.y());
+
+  if (clear_buffers)
     {
       m_per_active_depth.clear();
       m_unused_buffers.clear();
-      m_current_size = surface_sz;
+      m_current_backing_size = m_current_backing_useable_size;
     }
   else
     {
@@ -2011,14 +2031,13 @@ begin(fastuidraw::ivec2 surface_sz,
         {
           for (const auto &r : v)
             {
-              r->m_rect_atlas.clear();
+              r->m_rect_atlas.clear(m_current_backing_useable_size);
               m_unused_buffers.push_back(r);
             }
           v.clear();
         }
     }
   m_active_surfaces.clear();
-  m_viewport = vwp;
 }
 
 TransparencyStackEntry
@@ -2044,12 +2063,12 @@ fetch(unsigned int transparency_depth,
   bl = ivec2(fbl);
   tr = ivec2(ftr);
   dims = tr - bl;
-  if (ftr.x() > tr.x() && dims.x() < m_current_size.x())
+  if (ftr.x() > tr.x() && dims.x() < m_current_backing_useable_size.x())
     {
       ++dims.x();
       ++tr.x();
     }
-  if (ftr.y() > tr.y() && dims.y() < m_current_size.y())
+  if (ftr.y() > tr.y() && dims.y() < m_current_backing_useable_size.y())
     {
       ++dims.y();
       ++tr.y();
@@ -2085,7 +2104,7 @@ fetch(unsigned int transparency_depth,
           reference_counted_ptr<const Image> image;
 
           packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
-          surface = d->m_backend->create_surface(m_current_size);
+          surface = d->m_backend->create_surface(m_current_backing_size);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
           image = surface->image(d->m_backend->image_atlas());
           TB = FASTUIDRAWnew TransparencyBuffer(packer, surface, image);
