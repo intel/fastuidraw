@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <fstream>
+#include <cstring>
 #include <fastuidraw/util/data_buffer.hpp>
 #include "../private/util_private.hpp"
 
@@ -30,6 +31,22 @@ fastuidraw::DataBufferBackingStore::
 DataBufferBackingStore(unsigned int num_bytes, uint8_t v)
 {
   m_d = FASTUIDRAWnew DataBufferBackingStorePrivate(num_bytes, v);
+}
+
+fastuidraw::DataBufferBackingStore::
+DataBufferBackingStore(c_array<const uint8_t> init_data)
+{
+  DataBufferBackingStorePrivate *d;
+
+  d = FASTUIDRAWnew DataBufferBackingStorePrivate();
+  m_d = d;
+
+  d->resize(init_data.size());
+  if (!d->empty())
+    {
+      DataBufferBackingStorePrivate &p(*d);
+      std::memcpy(&p[0], init_data.c_ptr(), init_data.size());
+    }
 }
 
 fastuidraw::DataBufferBackingStore::

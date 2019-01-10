@@ -44,7 +44,14 @@ namespace fastuidraw {
      * \param num_bytes number of bytes to give the backing store
      * \param init initial value to give each byte
      */
+    explicit
     DataBufferBackingStore(unsigned int num_bytes, uint8_t init = uint8_t(0));
+
+    /*!
+     * Ctor. Allocates the memory and initializes it with data.
+     */
+    explicit
+    DataBufferBackingStore(c_array<const uint8_t> init_data);
 
     ~DataBufferBackingStore();
 
@@ -71,10 +78,12 @@ namespace fastuidraw {
     /*!
      * Ctor. Initialize the DataBuffer to be backed by uninitalized
      * memory. Use the pointer returned by data() to set the data.
+     * \param num_bytes number of bytes to give the backing store
+     * \param init initial value to give each byte
      */
     explicit
-    DataBuffer(unsigned int num_bytes):
-      DataBufferBackingStore(num_bytes),
+    DataBuffer(unsigned int num_bytes, uint8_t init = uint8_t(0)):
+      DataBufferBackingStore(num_bytes, init),
       DataBufferBase(data(), data())
     {}
 
@@ -85,6 +94,16 @@ namespace fastuidraw {
     explicit
     DataBuffer(c_string filename):
       DataBufferBackingStore(filename),
+      DataBufferBase(data(), data())
+    {}
+
+    /*!
+     * Ctor. Initialize the DataBuffer to be backed by memory
+     * whose value is copied from a file.
+     */
+    explicit
+    DataBuffer(c_array<const uint8_t> init_data):
+      DataBufferBackingStore(init_data),
       DataBufferBase(data(), data())
     {}
   };
