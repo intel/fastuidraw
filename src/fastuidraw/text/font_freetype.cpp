@@ -350,6 +350,7 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
           m_all_faces_null = false;
           m_number_glyphs = m_faces[i].m_face->face()->num_glyphs;
           FT_Set_Transform(m_faces[i].m_face->face(), nullptr, nullptr);
+          FASTUIDRAWwarn_assert(m_faces[i].m_face->face()->face_flags & FT_FACE_FLAG_SCALABLE);
         }
     }
 }
