@@ -559,15 +559,15 @@ sdl_painter_demo(const std::string &about_text,
                                 "glyph are always stored in fixed point 8-bits normalized "
                                 "to [0,1]. This field gives the clamping and conversion "
                                 "to [0,1]", *this),
-  m_restricted_rays_max_recursion(fastuidraw::GlyphRenderDataRestrictedRays::max_recursion(),
+  m_restricted_rays_max_recursion(fastuidraw::GlyphGenerateParams::restricted_rays_max_recursion(),
                                   "glyph_restricted_rays_max_recursion",
                                   "Maximum level of recursion used when creating restricted rays glyphs",
                                   *this),
-  m_restricted_rays_split_thresh(fastuidraw::GlyphRenderDataRestrictedRays::split_thresh(),
+  m_restricted_rays_split_thresh(fastuidraw::GlyphGenerateParams::restricted_rays_split_thresh(),
                                  "glyph_restricted_rays_split_thresh",
                                  "Splitting threshhold used when creating restricted rays glyphs",
                                  *this),
-  m_restricted_rays_expected_min_render_size(fastuidraw::GlyphRenderDataRestrictedRays::expected_min_render_size(),
+  m_restricted_rays_expected_min_render_size(fastuidraw::GlyphGenerateParams::restricted_rays_minimum_render_size(),
                                              "glyph_restricted_rays_expected_min_render_size",
                                              "",
                                              *this),
@@ -760,9 +760,9 @@ init_gl(int w, int h)
 
   fastuidraw::GlyphGenerateParams::distance_field_max_distance(m_distance_field_max_distance.value());
   fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
-  fastuidraw::GlyphRenderDataRestrictedRays::max_recursion(m_restricted_rays_max_recursion.value());
-  fastuidraw::GlyphRenderDataRestrictedRays::split_thresh(m_restricted_rays_split_thresh.value());
-  fastuidraw::GlyphRenderDataRestrictedRays::expected_min_render_size(m_restricted_rays_expected_min_render_size.value());
+  fastuidraw::GlyphGenerateParams::restricted_rays_max_recursion(m_restricted_rays_max_recursion.value());
+  fastuidraw::GlyphGenerateParams::restricted_rays_split_thresh(m_restricted_rays_split_thresh.value());
+  fastuidraw::GlyphGenerateParams::restricted_rays_minimum_render_size(m_restricted_rays_expected_min_render_size.value());
 
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());

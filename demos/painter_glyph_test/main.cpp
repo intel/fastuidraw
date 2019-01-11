@@ -795,7 +795,7 @@ ready_glyph_data(int w, int h)
     }
 
   float sz;
-  sz = GlyphRenderDataRestrictedRays::expected_min_render_size();
+  sz = GlyphGenerateParams::restricted_rays_minimum_render_size();
   m_restricted_rays_box_slack = m_render_pixel_size.value() / sz;
 }
 
