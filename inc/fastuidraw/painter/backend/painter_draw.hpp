@@ -112,7 +112,7 @@ namespace fastuidraw
      * between two indices to be fed the the GPU; an Action
      * will imply an draw break in the underlying 3D API.
      */
-    class Action:public reference_counted<Action>::non_concurrent
+    class Action:public reference_counted<Action>::default_base
     {
     public:
       /*!
