@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <fastuidraw/util/matrix.hpp>
+#include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include "../private/bounding_box.hpp"
 #include "../private/util_private.hpp"
@@ -826,30 +827,6 @@ namespace
     fastuidraw::BoundingBox<int> m_bbox;
     fastuidraw::ivec2 m_glyph_bound_min, m_glyph_bound_max;
     std::vector<Contour> m_contours;
-  };
-
-  class GlyphRendererParams:fastuidraw::noncopyable
-  {
-  public:
-    static
-    GlyphRendererParams&
-    values(void)
-    {
-      static GlyphRendererParams R;
-      return R;
-    }
-
-    unsigned int m_max_recursion;
-    unsigned int m_split_thresh;
-    float m_expected_min_render_size;
-    std::mutex m_mutex;
-
-  private:
-    GlyphRendererParams(void):
-      m_max_recursion(12),
-      m_split_thresh(4),
-      m_expected_min_render_size(32.0f)
-    {}
   };
 
   /* The main trickiness we have hear is that we store
@@ -2118,7 +2095,8 @@ finalize(enum PainterEnums::fill_rule_t f,
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
   ivec2 sz;
-  vec2 near_thresh(units_per_EM / expected_min_render_size());
+  float min_size(GlyphGenerateParams::restricted_rays_minimum_render_size());
+  vec2 near_thresh(units_per_EM / t_max(8.0f, min_size));
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
@@ -2173,7 +2151,8 @@ finalize(enum PainterEnums::fill_rule_t f,
   CurveListHierarchy hierarchy(d->m_glyph,
                                d->m_glyph->glyph_bound_min(),
                                d->m_glyph->glyph_bound_max(),
-                               max_recursion(), split_thresh(),
+                               GlyphGenerateParams::restricted_rays_max_recursion(),
+                               GlyphGenerateParams::restricted_rays_split_thresh(),
                                near_thresh);
 
   /* step 4: assign tree offsets */
@@ -2239,58 +2218,4 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   attributes[6].m_data = uvec4(data_offset);
 
   return routine_success;
-}
-
-unsigned int
-fastuidraw::GlyphRenderDataRestrictedRays::
-max_recursion(void)
-{
-  GlyphRendererParams &R(GlyphRendererParams::values());
-  std::lock_guard<std::mutex> m(R.m_mutex);
-  return R.m_max_recursion;
-}
-
-void
-fastuidraw::GlyphRenderDataRestrictedRays::
-max_recursion(unsigned int v)
-{
-  GlyphRendererParams &R(GlyphRendererParams::values());
-  std::lock_guard<std::mutex> m(R.m_mutex);
-  R.m_max_recursion = v;
-}
-
-unsigned int
-fastuidraw::GlyphRenderDataRestrictedRays::
-split_thresh(void)
-{
-  GlyphRendererParams &R(GlyphRendererParams::values());
-  std::lock_guard<std::mutex> m(R.m_mutex);
-  return R.m_split_thresh;
-}
-
-void
-fastuidraw::GlyphRenderDataRestrictedRays::
-split_thresh(unsigned int v)
-{
-  GlyphRendererParams &R(GlyphRendererParams::values());
-  std::lock_guard<std::mutex> m(R.m_mutex);
-  R.m_split_thresh = v;
-}
-
-float
-fastuidraw::GlyphRenderDataRestrictedRays::
-expected_min_render_size(void)
-{
-  GlyphRendererParams &R(GlyphRendererParams::values());
-  std::lock_guard<std::mutex> m(R.m_mutex);
-  return R.m_expected_min_render_size;
-}
-
-void
-fastuidraw::GlyphRenderDataRestrictedRays::
-expected_min_render_size(float v)
-{
-  GlyphRendererParams &R(GlyphRendererParams::values());
-  std::lock_guard<std::mutex> m(R.m_mutex);
-  R.m_expected_min_render_size = v;
 }

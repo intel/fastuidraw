@@ -67,5 +67,66 @@ namespace fastuidraw
      */
     enum return_code
     distance_field_max_distance(float v);
+
+    /*!
+     * When generating restricted rays glyph data see (\ref
+     * GlyphRenderDataRestrictedRays), specifies the expected
+     * smallest size on the scrren at which to render glyphs
+     * via a \ref GlyphRenderDataRestrictedRays. The value is
+     * used to include curves near the boundary of bounding box
+     * so that anti-aliasing works correctly when the glyph
+     * is renderer very small. A negative value indicates that
+     * no slack is taken/used.
+     */
+    float
+    restricted_rays_minimum_render_size(void);
+
+    /*!
+     * Set the value returned by
+     * restricted_rays_minimum_render_size(void) const,
+     * initial value is 32.0. Returns \ref routine_success
+     * if value is successfully changed.
+     * \param v value
+     */
+    enum return_code
+    restricted_rays_minimum_render_size(float v);
+
+    /*!
+     * When generating restricted rays glyph data see (\ref
+     * GlyphRenderDataRestrictedRays), specifies the
+     * threshhold value for number of curves allowed in
+     * a single box before a box.
+     */
+    int
+    restricted_rays_split_thresh(void);
+
+    /*!
+     * Set the value returned by
+     * restricted_rays_split_thresh(void) const,
+     * initial value is 4. Returns \ref routine_success
+     * if value is successfully changed.
+     * \param v value
+     */
+    enum return_code
+    restricted_rays_split_thresh(int v);
+
+    /*!
+     * When generating restricted rays glyph data see (\ref
+     * GlyphRenderDataRestrictedRays), speicifies the
+     * maximum level of recursion that will be used to
+     * generate the hierarchy of boxes.
+     */
+    int
+    restricted_rays_max_recursion(void);
+
+    /*!
+     * Set the value returned by
+     * restricted_rays_max_recursion(void) const,
+     * initial value is 12. Returns \ref routine_success
+     * if value is successfully changed.
+     * \param v value
+     */
+    enum return_code
+    restricted_rays_max_recursion(int v);
   }
 }

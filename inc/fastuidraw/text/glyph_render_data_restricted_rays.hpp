@@ -395,64 +395,6 @@ namespace fastuidraw
     upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
                     GlyphAttribute::Array &attributes) const;
 
-    /*!
-     * Returns the maximum level of recursion that will be
-     * used to generate the hierarchy of boxes holding the
-     * curves on the next \ref GlyphRenderDataRestrictedRays
-     * object whose finalize() method is called.
-     */
-    static
-    unsigned int
-    max_recursion(void);
-
-    /*!
-     * Set the value returned by max_recursion(). Default
-     * value is 12.
-     */
-    static
-    void
-    max_recursion(unsigned int);
-
-    /*!
-     * Returns the threshhold value for number of curves
-     * allowed in a single box before a box is split on
-     * the next \ref GlyphRenderDataRestrictedRays object
-     * whose finalize() method is called.
-     */
-    static
-    unsigned int
-    split_thresh(void);
-
-    /*!
-     * Set the value returned by split_thresh(). Default
-     * value is 4.
-     */
-    static
-    void
-    split_thresh(unsigned int);
-
-    /*!
-     * Specifies the expected minimum size at which to render
-     * glyphs via  a \ref GlyphRenderDataRestrictedRays. Takes
-     * effect on the next \ref GlyphRenderDataRestrictedRays
-     * whose finalize() method is called. The value is used
-     * to include curves near the boundary of bounding box
-     * so that anti-aliasing works correctly when the glyph
-     * is renderer very small. A negative value indicates that
-     * no slack is taken/used.
-     */
-    static
-    float
-    expected_min_render_size(void);
-
-    /*!
-     * Set the value returned by split_thresh(). Default
-     * value is 32.0.
-     */
-    static
-    void
-    expected_min_render_size(float);
-
   private:
     void *m_d;
   };

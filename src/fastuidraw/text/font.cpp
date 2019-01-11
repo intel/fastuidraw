@@ -36,6 +36,9 @@ namespace
 
     unsigned int m_distance_field_pixel_size;
     float m_distance_field_max_distance;
+    float m_restricted_rays_minimum_render_size;
+    int m_restricted_rays_split_thresh;
+    int m_restricted_rays_max_recursion;
 
     std::mutex m_mutex;
     unsigned int m_number_fonts_alive;
@@ -45,6 +48,9 @@ namespace
     GlyphGenerateParamValues(void):
       m_distance_field_pixel_size(48),
       m_distance_field_max_distance(1.5f),
+      m_restricted_rays_minimum_render_size(32.0f),
+      m_restricted_rays_split_thresh(4),
+      m_restricted_rays_max_recursion(12),
       m_number_fonts_alive(0),
       m_current_unqiue_id(0)
     {}
@@ -98,6 +104,9 @@ namespace
 
 IMPLEMENT(unsigned int, distance_field_pixel_size)
 IMPLEMENT(float, distance_field_max_distance)
+IMPLEMENT(float, restricted_rays_minimum_render_size)
+IMPLEMENT(int, restricted_rays_split_thresh)
+IMPLEMENT(int, restricted_rays_max_recursion)
 
 ///////////////////////////////////////////
 // fastuidraw::FontBase methods
