@@ -119,6 +119,70 @@ namespace fastuidraw
   {
   public:
     /*!
+     * \brief
+     * A \ref GlyphRendererChooser provides an interface for
+     * choosing how to render glyphs depending on the current
+     * transformation matrix, \ref Painter::transformation().
+     */
+    class GlyphRendererChooser
+    {
+    public:
+      virtual
+      ~GlyphRendererChooser()
+      {}
+
+      /*!
+       * To be implemented by a derived class to choose
+       * what GlyphRender to use when the transformation
+       * matrix (see Painter::transformation()) does not
+       * have perspective.
+       * \param logical_pixel_size the pixel size at which
+       *                           the glyphs of a GlyphRun
+       *                           or GlyphSequence are
+       *                           formatted
+       * \param transformation the transformation matrix from
+       *                       logical (i.e. item) coordinates
+       *                       to normalized device coordinates,
+       *                       i.e. the value of \ref
+       *                       Painter::transformation().
+       * \param max_singular_value the largest singluar value
+       *                           the transformation matrix
+       *                           concacted with the viewport
+       *                           transformation
+       * \param max_singular_value the smallest singluar value
+       *                           the transformation matrix
+       *                           concacted with the viewport
+       *                           transformation
+       */
+      virtual
+      GlyphRenderer
+      choose_glyph_render(float logical_pixel_size,
+                          const float3x3 &transformation,
+                          float max_singular_value,
+                          float min_singular_value) const = 0;
+
+      /*!
+       * To be implemented by a derived class to choose
+       * what GlyphRender to use when the transformation
+       * matrix (see Painter::transformation()) has
+       * perspective.
+       * \param logical_pixel_size the pixel size at which
+       *                           the glyphs of a GlyphRun
+       *                           or GlyphSequence are
+       *                           formatted
+       * \param transformation the transformation matrix from
+       *                       logical (i.e. item) coordinates
+       *                       to normalized device coordinates,
+       *                       i.e. the value of \ref
+       *                       Painter::transformation().
+       */
+      virtual
+      GlyphRenderer
+      choose_glyph_render(float logical_pixel_size,
+                          const float3x3 &transformation) const = 0;
+    };
+
+    /*!
      * Ctor.
      */
     explicit
@@ -656,10 +720,16 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
-     * Using the current transformation matrix and a,
-     * compute what is an ideal way to render a sequence
-     * glyphs layed out and scaled in local coordinates
-     * to a given pixel size.
+     * Returns the default \ref GlyphRendererChooser
+     * object that Painter uses.
+     */
+    const GlyphRendererChooser&
+    default_glyph_renderer_chooser(void) const;
+
+    /*!
+     * Feed a logical pixel size and the current transformation
+     * to default_glyph_renderer_chooser() to compute how to
+     * render glyphs.
      * \param pixel_size size of text to render BEFORE
      *                   applying the transformation matrix.
      */
@@ -667,13 +737,25 @@ namespace fastuidraw
     compute_glyph_renderer(float pixel_size);
 
     /*!
+     * Feed a logical pixel size and the current transformation
+     * to a \ref GlyphRendererChooser to compute how to render
+     * glyphs.
+     * \param pixel_size size of text to render BEFORE
+     *                   applying the transformation matrix.
+     * \param chooser object that chooses how to render glyphs
+     */
+    GlyphRenderer
+    compute_glyph_renderer(float pixel_size,
+                           const GlyphRendererChooser &chooser);
+
+    /*!
      * Draw glyphs from a \ref GlyphSequence.
      * \param shader \ref PainterGlyphShader to draw the glyphs
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRenderer suitable
-     *                 for the current transformation() value.
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
      * \return Returns what \ref GlyphRenderer value used
      */
     GlyphRenderer
@@ -687,8 +769,8 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRenderer suitable
-     *                 for the current transformation() value.
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
      * \return Returns what \ref GlyphRenderer value used
      */
     GlyphRenderer
@@ -701,8 +783,8 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param glyph_run \ref GlyphRun providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRenderer suitable
-     *                 for the current transformation() value.
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
      * \param begin first character of GlyphRun to draw
      * \param count number of characters, startng at begin, of the GlyphRun to draw
      * \return Returns what \ref GlyphRenderer value used
@@ -719,8 +801,8 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param glyph_run \ref GlyphRun providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRenderer suitable
-     *                 for the current transformation() value.
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
      * \param begin first character of GlyphRun to draw
      * \param count number of characters, startng at begin, of the GlyphRun to draw
      * \return Returns what \ref GlyphRenderer value used
@@ -736,8 +818,8 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param glyph_run \ref GlyphRun providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRenderer suitable
-     *                 for the current transformation() value.
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
      * \return Returns what \ref GlyphRenderer value used
      */
     GlyphRenderer
@@ -751,13 +833,100 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param glyph_run \ref GlyphRun providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will choose a \ref GlyphRenderer suitable
-     *                 for the current transformation() value.
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
      * \return Returns what \ref GlyphRenderer value used
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
 		GlyphRenderer renderer = GlyphRenderer());
+
+    /*!
+     * Draw glyphs from a \ref GlyphSequence.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
+     * \param draw data for how to draw
+     * \param glyph_sequence \ref GlyphSequence providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const GlyphSequence &glyph_sequence,
+		const GlyphRendererChooser &renderer_chooser);
+
+    /*!
+     * Draw glyphs from a \ref GlyphSequence.
+     * and the data of the passed \ref GlyphSequence.
+     * \param draw data for how to draw
+     * \param glyph_sequence \ref GlyphSequence providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
+		const GlyphRendererChooser &renderer_chooser);
+
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+		const GlyphRendererChooser &renderer_chooser);
+
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * and the data of the passed \ref GlyphRun.
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+		const GlyphRendererChooser &renderer_chooser);
+
+    /*!
+     * Draw all glyphs from a \ref GlyphRun.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const GlyphRun &glyph_run,
+		const GlyphRendererChooser &renderer_chooser);
+
+    /*!
+     * Draw all glyphs from a \ref GlyphRun.
+     * and the data of the passed \ref GlyphRun.
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+		const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Returns what value Painter currently uses for Path::tessellation(float) const

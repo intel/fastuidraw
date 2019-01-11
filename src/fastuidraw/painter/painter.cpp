@@ -358,24 +358,31 @@ namespace
     return pc;
   }
 
-  int
-  choose_pixel_size(float pixel_size)
+  class DefaultGlyphRendererChooser:public fastuidraw::Painter::GlyphRendererChooser
   {
-    using namespace fastuidraw;
+  public:
+    DefaultGlyphRendererChooser(void);
 
-    uint32_t return_value;
+    virtual
+    fastuidraw::GlyphRenderer
+    choose_glyph_render(float logical_pixel_size,
+                        const fastuidraw::float3x3 &transformation,
+                        float max_singular_value,
+                        float min_singular_value) const;
 
-    /* We enforce a minimal glyph size of 4.0 */
-    return_value = static_cast<uint32_t>(t_max(4.0f, pixel_size));
+    virtual
+    fastuidraw::GlyphRenderer
+    choose_glyph_render(float logical_pixel_size,
+                        const fastuidraw::float3x3 &transformation) const;
 
-    /* larger glyph sizes can be stretched more */
-    if (return_value & 1u && return_value >= 16u)
-      {
-        --return_value;
-      }
+  private:
+    static
+    int
+    choose_pixel_size(float pixel_size);
 
-    return return_value;
-  }
+    float m_coverage_text_cut_off;
+    float m_distance_text_cut_off;
+  };
 
   /* Tracks the most recent clipping rect:
    * - the 4 clip equations in clip-coordinates
@@ -1475,6 +1482,11 @@ namespace
         m_transparency_stack.back().m_identity_matrix;
     }
 
+    fastuidraw::GlyphRenderer
+    compute_glyph_renderer(float pixel_size,
+                           const fastuidraw::Painter::GlyphRendererChooser &chooser);
+
+    DefaultGlyphRendererChooser m_default_glyph_renderer_chooser;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_root_packer;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_root_identity_matrix;
     fastuidraw::vecN<unsigned int, fastuidraw::PainterPacker::num_stats> m_stats;
@@ -1564,6 +1576,81 @@ scale(float s)
     {
       std::swap(m_min, m_max);
     }
+}
+
+////////////////////////////////////////
+// DefaultGlyphRendererChooser methods
+DefaultGlyphRendererChooser::
+DefaultGlyphRendererChooser(void)
+{
+  /* Somewhat guessing:
+   *  - using distance field up to a factor 3/8 zoom out still looks ok
+   *  - using distance field up to a factor 2.0 zoom in still looks ok
+   */
+  float distance_field_size;
+  distance_field_size = fastuidraw::GlyphGenerateParams::distance_field_pixel_size();
+  m_coverage_text_cut_off = (distance_field_size * 3.0f) / 8.0f;
+  m_distance_text_cut_off = 2.0f * distance_field_size;
+}
+
+
+fastuidraw::GlyphRenderer
+DefaultGlyphRendererChooser::
+choose_glyph_render(float logical_pixel_size,
+                    const fastuidraw::float3x3 &transformation,
+                    float max_singular_value,
+                    float min_singular_value) const
+{
+  float effective_pixel_width;
+
+  FASTUIDRAWunused(transformation);
+  FASTUIDRAWunused(min_singular_value);
+  effective_pixel_width = logical_pixel_size * max_singular_value;
+  if (effective_pixel_width <= m_coverage_text_cut_off)
+    {
+      int pixel_size;
+
+      pixel_size = choose_pixel_size(effective_pixel_width);
+      return fastuidraw::GlyphRenderer(pixel_size);
+    }
+  else if (effective_pixel_width <= m_distance_text_cut_off)
+    {
+      return fastuidraw::GlyphRenderer(fastuidraw::distance_field_glyph);
+    }
+  else
+    {
+      return fastuidraw::GlyphRenderer(fastuidraw::restricted_rays_glyph);
+    }
+}
+
+fastuidraw::GlyphRenderer
+DefaultGlyphRendererChooser::
+choose_glyph_render(float logical_pixel_size,
+                    const fastuidraw::float3x3 &transformation) const
+{
+  FASTUIDRAWunused(logical_pixel_size);
+  FASTUIDRAWunused(transformation);
+  return fastuidraw::GlyphRenderer(fastuidraw::restricted_rays_glyph);
+}
+
+int
+DefaultGlyphRendererChooser::
+choose_pixel_size(float pixel_size)
+{
+  using namespace fastuidraw;
+
+  uint32_t return_value;
+
+  /* We enforce a minimal glyph size of 4.0 */
+  return_value = static_cast<uint32_t>(t_max(4.0f, pixel_size));
+
+  /* larger glyph sizes can be stretched more */
+  if (return_value & 1u && return_value >= 16u)
+    {
+      --return_value;
+    }
+
+  return return_value;
 }
 
 ////////////////////////////////////////
@@ -2202,15 +2289,6 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_current_z = 1;
   m_max_attribs_per_block = backend->attribs_per_mapping();
   m_max_indices_per_block = backend->indices_per_mapping();
-
-  /* Somewhat guessing:
-   *  - using distance field up to a factor 3/8 zoom out still looks ok
-   *  - using distance field up to a factor 2.0 zoom in still looks ok
-   */
-  float distance_field_size;
-  distance_field_size = fastuidraw::GlyphGenerateParams::distance_field_pixel_size();
-  m_coverage_text_cut_off = (distance_field_size * 3.0f) / 8.0f;
-  m_distance_text_cut_off = 2.0f * distance_field_size;
 
   /* Create a path representing a corner of rounded rectangle.
    * This path will be used/resued to clip against rounded
@@ -3918,6 +3996,26 @@ draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
     }
 }
 
+fastuidraw::GlyphRenderer
+PainterPrivate::
+compute_glyph_renderer(float pixel_size,
+                       const fastuidraw::Painter::GlyphRendererChooser &chooser)
+{
+  if (m_clip_rect_state.matrix_type() == perspective_matrix)
+    {
+      return chooser.choose_glyph_render(pixel_size,
+                                         m_clip_rect_state.item_matrix());
+    }
+  else
+    {
+      fastuidraw::vec2 sing(m_clip_rect_state.item_matrix_singular_values());
+      return chooser.choose_glyph_render(pixel_size,
+                                         m_clip_rect_state.item_matrix(),
+                                         sing[0],
+                                         sing[1]);
+    }
+}
+
 //////////////////////////////////
 // fastuidraw::Painter methods
 fastuidraw::Painter::
@@ -3933,6 +4031,15 @@ fastuidraw::Painter::
   d = static_cast<PainterPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
+}
+
+const fastuidraw::Painter::GlyphRendererChooser&
+fastuidraw::Painter::
+default_glyph_renderer_chooser(void) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_default_glyph_renderer_chooser;
 }
 
 fastuidraw::PainterPackedValuePool&
@@ -4568,40 +4675,19 @@ fastuidraw::Painter::
 compute_glyph_renderer(float pixel_size)
 {
   PainterPrivate *d;
-  GlyphRenderer renderer;
-  enum matrix_type_t tp;
-
   d = static_cast<PainterPrivate*>(m_d);
-  tp = d->m_clip_rect_state.matrix_type();
+  return d->compute_glyph_renderer(pixel_size,
+                                   d->m_default_glyph_renderer_chooser);
+}
 
-  if (tp == perspective_matrix)
-    {
-      renderer = GlyphRenderer(restricted_rays_glyph);
-    }
-  else
-    {
-      float scale_factor, effective_pixel_width;
-      scale_factor = d->m_clip_rect_state.item_matrix_operator_norm();
-      effective_pixel_width = pixel_size * scale_factor;
-
-      if (effective_pixel_width <= d->m_coverage_text_cut_off)
-        {
-          int pixel_size;
-
-          pixel_size = choose_pixel_size(effective_pixel_width);
-          renderer = GlyphRenderer(pixel_size);
-        }
-      else if (effective_pixel_width <= d->m_distance_text_cut_off)
-        {
-          renderer = GlyphRenderer(distance_field_glyph);
-        }
-      else
-        {
-          renderer = GlyphRenderer(restricted_rays_glyph);
-        }
-    }
-
-  return renderer;
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+compute_glyph_renderer(float pixel_size,
+                       const GlyphRendererChooser &chooser)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->compute_glyph_renderer(pixel_size, chooser);
 }
 
 fastuidraw::GlyphRenderer
@@ -4615,7 +4701,8 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 
   if (!renderer.valid())
     {
-      renderer = compute_glyph_renderer(glyph_sequence.pixel_size());
+      renderer = d->compute_glyph_renderer(glyph_sequence.pixel_size(),
+                                           d->m_default_glyph_renderer_chooser);
     }
 
   if (d->m_clip_rect_state.m_all_content_culled)
@@ -4666,11 +4753,12 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
             GlyphRenderer renderer)
 {
   PainterPrivate *d;
-
   d = static_cast<PainterPrivate*>(m_d);
+
   if (!renderer.valid())
     {
-      renderer = compute_glyph_renderer(glyph_run.pixel_size());
+      renderer = d->compute_glyph_renderer(glyph_run.pixel_size(),
+                                           d->m_default_glyph_renderer_chooser);
     }
 
   if (d->m_clip_rect_state.m_all_content_culled)
@@ -4710,6 +4798,67 @@ draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
             GlyphRenderer renderer)
 {
   return draw_glyphs(draw, glyph_run, 0, glyph_run.number_glyphs(), renderer);
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+            const GlyphSequence &glyph_sequence,
+	    const GlyphRendererChooser &renderer_chooser)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  return draw_glyphs(shader, draw, glyph_sequence,
+                     d->compute_glyph_renderer(glyph_sequence.pixel_size(), renderer_chooser));
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterData &draw, const GlyphSequence &data,
+	    const GlyphRendererChooser &renderer_chooser)
+{
+  return draw_glyphs(default_shaders().glyph_shader(), draw, data, renderer_chooser);
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+            const GlyphRun &glyph_run,
+            unsigned int begin, unsigned int count,
+            const GlyphRendererChooser &renderer_chooser)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  return draw_glyphs(shader, draw, glyph_run,
+                     d->compute_glyph_renderer(glyph_run.pixel_size(), renderer_chooser));
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterData &draw, const GlyphRun &data,
+            unsigned int begin, unsigned int count,
+            const GlyphRendererChooser &renderer_chooser)
+{
+  return draw_glyphs(default_shaders().glyph_shader(), draw, data,
+                     begin, count, renderer_chooser);
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+            const GlyphRun &glyph_run, const GlyphRendererChooser &renderer_chooser)
+{
+  return draw_glyphs(shader, draw, glyph_run, 0, glyph_run.number_glyphs(), renderer_chooser);
+}
+
+fastuidraw::GlyphRenderer
+fastuidraw::Painter::
+draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+            const GlyphRendererChooser &renderer_chooser)
+{
+  return draw_glyphs(draw, glyph_run, 0, glyph_run.number_glyphs(), renderer_chooser);
 }
 
 const fastuidraw::float3x3&
