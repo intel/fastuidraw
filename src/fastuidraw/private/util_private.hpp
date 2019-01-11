@@ -18,8 +18,19 @@
 
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <fastuidraw/util/c_array.hpp>
+
+#define FASTUIDRAWwarn_assert(X) do {                           \
+    FASTUIDRAWassert(X);                                        \
+    if (!(X))                                                   \
+      {                                                         \
+        std::cerr << __FILE__ << ":" << __LINE__                \
+                  << ": Assertion '" << #X << "' failed\n";    \
+      }                                                         \
+  } while(0)
+
 
 namespace fastuidraw
 {
