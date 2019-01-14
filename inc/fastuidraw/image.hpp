@@ -444,13 +444,13 @@ class Image;
     /*!
      * Returns a handle to the backing store for the image data.
      */
-    reference_counted_ptr<const AtlasColorBackingStoreBase>
+    const reference_counted_ptr<const AtlasColorBackingStoreBase>&
     color_store(void) const;
 
     /*!
      * Returns a handle to the backing store for the index data.
      */
-    reference_counted_ptr<const AtlasIndexBackingStoreBase>
+    const reference_counted_ptr<const AtlasIndexBackingStoreBase>&
     index_store(void) const;
 
     /*!

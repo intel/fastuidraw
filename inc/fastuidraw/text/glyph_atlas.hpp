@@ -164,7 +164,7 @@ namespace fastuidraw
     /*!
      * Returns the  store for this GlyphAtlas.
      */
-    reference_counted_ptr<const GlyphAtlasBackingStoreBase>
+    const reference_counted_ptr<const GlyphAtlasBackingStoreBase>&
     store(void) const;
 
   private:

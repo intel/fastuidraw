@@ -302,8 +302,10 @@ namespace
                       fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> pcolor_store,
                       fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase> pindex_store):
       m_color_store(pcolor_store),
+      m_color_store_constant(m_color_store),
       m_color_tiles(pcolor_tile_size, pcolor_store->dimensions()),
       m_index_store(pindex_store),
+      m_index_store_constant(m_index_store),
       m_index_tiles(pindex_tile_size, pindex_store->dimensions()),
       m_resizeable(m_color_store->resizeable() && m_index_store->resizeable())
     {}
@@ -312,9 +314,11 @@ namespace
     ResourceReleaseActionList m_delete_actions;
 
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> m_color_store;
+    fastuidraw::reference_counted_ptr<const fastuidraw::AtlasColorBackingStoreBase> m_color_store_constant;
     tile_allocator m_color_tiles;
 
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase> m_index_store;
+    fastuidraw::reference_counted_ptr<const fastuidraw::AtlasIndexBackingStoreBase> m_index_store_constant;
     tile_allocator m_index_tiles;
 
     bool m_resizeable;
@@ -1155,22 +1159,22 @@ flush(void) const
   d->m_color_store->flush();
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::AtlasColorBackingStoreBase>
+const fastuidraw::reference_counted_ptr<const fastuidraw::AtlasColorBackingStoreBase>&
 fastuidraw::ImageAtlas::
 color_store(void) const
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  return d->m_color_store;
+  return d->m_color_store_constant;
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::AtlasIndexBackingStoreBase>
+const fastuidraw::reference_counted_ptr<const fastuidraw::AtlasIndexBackingStoreBase>&
 fastuidraw::ImageAtlas::
 index_store(void) const
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  return d->m_index_store;
+  return d->m_index_store_constant;
 }
 
 bool

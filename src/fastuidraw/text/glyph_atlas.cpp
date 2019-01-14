@@ -44,6 +44,7 @@ namespace
     explicit
     GlyphAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase> pstore):
       m_store(pstore),
+      m_store_constant(m_store),
       m_data_allocator(pstore->size()),
       m_data_allocated(0)
     {
@@ -51,6 +52,7 @@ namespace
     };
 
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase> m_store;
+    fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasBackingStoreBase> m_store_constant;
     fastuidraw::interval_allocator m_data_allocator;
     unsigned int m_data_allocated;
   };
@@ -200,11 +202,11 @@ flush(void) const
   d->m_store->flush();
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasBackingStoreBase>
+const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasBackingStoreBase>&
 fastuidraw::GlyphAtlas::
 store(void) const
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
-  return d->m_store;
+  return d->m_store_constant;
 }
