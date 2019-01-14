@@ -113,7 +113,8 @@ namespace
     remove_from_atlas(void);
 
     enum fastuidraw::return_code
-    upload_to_atlas(fastuidraw::GlyphAtlasProxy &S,
+    upload_to_atlas(fastuidraw::GlyphMetrics metrics,
+                    fastuidraw::GlyphAtlasProxy &S,
                     fastuidraw::GlyphAttribute::Array &T);
 
     /* location into m_cache->m_glyphs  */
@@ -379,7 +380,8 @@ clear(void)
 
 enum fastuidraw::return_code
 GlyphDataPrivate::
-upload_to_atlas(fastuidraw::GlyphAtlasProxy &S,
+upload_to_atlas(fastuidraw::GlyphMetrics metrics,
+                fastuidraw::GlyphAtlasProxy &S,
                 fastuidraw::GlyphAttribute::Array &T)
 {
   enum fastuidraw::return_code return_value;
@@ -397,6 +399,11 @@ upload_to_atlas(fastuidraw::GlyphAtlasProxy &S,
   FASTUIDRAWassert(m_glyph_data);
   FASTUIDRAWassert(m_attributes.empty());
 
+  if (!m_glyph_data)
+    {
+      m_glyph_data = m_metrics->m_font->compute_rendering_data(m_render, metrics, m_path, m_render_size);
+    }
+
   return_value = m_glyph_data->upload_to_atlas(S, T);
   if (return_value == fastuidraw::routine_success)
     {
@@ -406,6 +413,9 @@ upload_to_atlas(fastuidraw::GlyphAtlasProxy &S,
     {
       remove_from_atlas();
     }
+
+  FASTUIDRAWdelete(m_glyph_data);
+  m_glyph_data = nullptr;
 
   return return_value;
 }
@@ -590,7 +600,7 @@ upload_to_atlas(void) const
   std::lock_guard<std::mutex> m(p->m_cache->m_glyphs_mutex);
   GlyphAtlasProxy S(p);
   GlyphAttribute::Array T(&p->m_attributes);
-  return p->upload_to_atlas(S, T);
+  return p->upload_to_atlas(metrics(), S, T);
 }
 
 bool
@@ -840,7 +850,7 @@ fetch_glyph(GlyphRenderer render, const FontBase *font,
     {
       GlyphAtlasProxy S(q);
       GlyphAttribute::Array T(&q->m_attributes);
-      q->upload_to_atlas(S, T);
+      q->upload_to_atlas(GlyphMetrics(q->m_metrics), S, T);
     }
 
   return Glyph(q);
@@ -912,7 +922,7 @@ fetch_glyphs(GlyphRenderer render,
             {
 	      GlyphAtlasProxy S(q);
 	      GlyphAttribute::Array T(&q->m_attributes);
-              q->upload_to_atlas(S, T);
+              q->upload_to_atlas(GlyphMetrics(q->m_metrics), S, T);
             }
 
           out_glyphs[i] = Glyph(q);
@@ -952,7 +962,7 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
         {
 	  GlyphAtlasProxy S(g);
 	  GlyphAttribute::Array T(&g->m_attributes);
-	  g->upload_to_atlas(S, T);
+	  g->upload_to_atlas(GlyphMetrics(g->m_metrics), S, T);
         }
       return routine_success;
     }
@@ -978,7 +988,7 @@ add_glyph(Glyph glyph, bool upload_to_atlas)
     {
       GlyphAtlasProxy S(g);
       GlyphAttribute::Array T(&g->m_attributes);
-      g->upload_to_atlas(S, T);
+      g->upload_to_atlas(GlyphMetrics(g->m_metrics), S, T);
     }
 
   return routine_success;
