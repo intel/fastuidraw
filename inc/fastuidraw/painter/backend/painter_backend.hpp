@@ -229,8 +229,8 @@ namespace fastuidraw
         /*!
          * Compute normalized device coordinates from pixel
          * coordinates.
-         * \param pc pixel coordinates where (0, 0) corresponds to bottom
-         *           left of the surface
+         * \param pixel pixel coordinates where (0, 0) corresponds to bottom
+         *              left of the surface
          */
         vec2
         compute_normalized_device_coords(vec2 pixel) const
@@ -316,11 +316,12 @@ namespace fastuidraw
       {}
 
       /*!
-       * Return an \ref Image whose backing is the same
-       * as the \ref Surface. It is expected that backing
-       * Image is the same for the lifetime of the Surface.
-       * The caller gaurantees that the same ImageAtlas
-       * object will be passed on each call to image().
+       * Return an \ref Image whose backing is the same as
+       * this PainterBackend::Surface. It is expected that
+       * backing \ref Image is the same for the lifetime of
+       * the PainterBackend::Surface. The caller gaurantees
+       * that the same ImageAtlas object will be passed on
+       * each call to image().
        * \param atlas ImageAtlas to manage the returned Image
        */
       virtual

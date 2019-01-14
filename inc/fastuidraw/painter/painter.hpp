@@ -89,16 +89,16 @@ namespace fastuidraw
    * viewport (see PainterBackend::Surface::viewport()) and (+1, +1)
    * is the top right hand corner of the viewport.
    *
-   * The pixel pipeline of \ref Painter is
+   * The pixel pipeline of Painter is
    *   # Compute RGBA value from item shader (typically this is (0, 0, 0, alpha)
    *     where alpha is a coverage value
-   *   # Modulate by the \ref PainterBrush passing the item coordinates
+   *   # Modulate by the PainterBrush passing the item coordinates
    *     of the pixel to the \ref PainterBrush
-   *   # Apply blending (see PainterEnums::blend_w3c_mode_t and \ref
-   *     blend_shader()) to the RGB value from the brush against the
-   *     current value in the framebuffer
+   *   # Apply blending (see PainterEnums::blend_w3c_mode_t and
+   *     Painter::blend_shader()) to the RGB value from the brush
+   *     against the current value in the framebuffer
    *   # Apply compositing (see PainterEnums::composite_mode_t and
-   *     \ref composite_shader()) to the RGBA value after blending
+   *     Painter::composite_shader()) to the RGBA value after blending
    *     against the current value in the framebuffer
    *
    * Painter uses clip-planes and the depth buffer to perform clipping.
@@ -149,7 +149,7 @@ namespace fastuidraw
        *                           the transformation matrix
        *                           concacted with the viewport
        *                           transformation
-       * \param max_singular_value the smallest singluar value
+       * \param min_singular_value the smallest singluar value
        *                           the transformation matrix
        *                           concacted with the viewport
        *                           transformation
@@ -1444,7 +1444,7 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param attrib_chunks attribute data to draw
      * \param index_chunks index data into attrib_chunk
-     * \param z_range z-ranges of item's attribute data
+     * \param z_ranges z-ranges of item's attribute data
      * \param index_adjusts if non-empty, the i'th element is the value by which
      *                      to adjust all of index_chunks[i]; if empty the index
      *                      values are not adjusted.
