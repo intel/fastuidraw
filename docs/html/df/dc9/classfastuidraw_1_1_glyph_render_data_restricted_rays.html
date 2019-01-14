@@ -65,7 +65,6 @@ $(function() {
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="../../dd/d81/classfastuidraw_1_1_glyph_render_data_restricted_rays-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">fastuidraw::GlyphRenderDataRestrictedRays Class Reference<div class="ingroups"><a class="el" href="../../df/d67/group___text.html">Text</a></div></div>  </div>
@@ -154,21 +153,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac8b03d4c6c4393d083cf12235f6f0c1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4aa1ab5adc44ff74dd455fd118635e4"><td class="memItemLeft" align="right" valign="top">virtual enum <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38e">fastuidraw::return_code</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#ad4aa1ab5adc44ff74dd455fd118635e4">upload_to_atlas</a> (<a class="el" href="../../d2/d61/classfastuidraw_1_1_glyph_atlas_proxy.html">GlyphAtlasProxy</a> &amp;atlas_proxy, <a class="el" href="../../db/d4d/classfastuidraw_1_1_glyph_attribute_1_1_array.html">GlyphAttribute::Array</a> &amp;attributes) const</td></tr>
 <tr class="separator:ad4aa1ab5adc44ff74dd455fd118635e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a15f480a90e538a6c4798759e593a89c1"><td class="memItemLeft" align="right" valign="top">static float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a15f480a90e538a6c4798759e593a89c1">expected_min_render_size</a> (void)</td></tr>
-<tr class="separator:a15f480a90e538a6c4798759e593a89c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa440e4ddefe09bfb5167b22185b221d2"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#aa440e4ddefe09bfb5167b22185b221d2">expected_min_render_size</a> (float)</td></tr>
-<tr class="separator:aa440e4ddefe09bfb5167b22185b221d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0609231df9869f6fe0c9cc2698b1af89"><td class="memItemLeft" align="right" valign="top">static unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a0609231df9869f6fe0c9cc2698b1af89">max_recursion</a> (void)</td></tr>
-<tr class="separator:a0609231df9869f6fe0c9cc2698b1af89"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a437053e6b02809824071ef06494a6d3d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a437053e6b02809824071ef06494a6d3d">max_recursion</a> (unsigned int)</td></tr>
-<tr class="separator:a437053e6b02809824071ef06494a6d3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94f09e48380f584439f5b4acb6270968"><td class="memItemLeft" align="right" valign="top">static unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a94f09e48380f584439f5b4acb6270968">split_thresh</a> (void)</td></tr>
-<tr class="separator:a94f09e48380f584439f5b4acb6270968"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0866d12a51344b6e906f3eb64c3658ef"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a0866d12a51344b6e906f3eb64c3658ef">split_thresh</a> (unsigned int)</td></tr>
-<tr class="separator:a0866d12a51344b6e906f3eb64c3658ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html">GlyphRenderDataRestrictedRays</a> represents the data needed to build a glyph to render it with a modification to the technique of "GPU-Centered Font Rendering Directly from Glyph Outlines" by Eric Lengyel. The modifications we have to the technique are as follows.</p><ul>
@@ -357,60 +341,6 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a15f480a90e538a6c4798759e593a89c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a15f480a90e538a6c4798759e593a89c1">&#9670;&nbsp;</a></span>expected_min_render_size() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static float fastuidraw::GlyphRenderDataRestrictedRays::expected_min_render_size </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Specifies the expected minimum size at which to render glyphs via a <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html">GlyphRenderDataRestrictedRays</a>. Takes effect on the next <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html">GlyphRenderDataRestrictedRays</a> whose <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#acbb20407d9ff3140dd8f03f229f35b38">finalize()</a> method is called. The value is used to include curves near the boundary of bounding box so that anti-aliasing works correctly when the glyph is renderer very small. A negative value indicates that no slack is taken/used. </p>
-
-</div>
-</div>
-<a id="aa440e4ddefe09bfb5167b22185b221d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa440e4ddefe09bfb5167b22185b221d2">&#9670;&nbsp;</a></span>expected_min_render_size() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void fastuidraw::GlyphRenderDataRestrictedRays::expected_min_render_size </td>
-          <td>(</td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a94f09e48380f584439f5b4acb6270968">split_thresh()</a>. Default value is 32.0. </p>
-
-</div>
-</div>
 <a id="acbb20407d9ff3140dd8f03f229f35b38"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acbb20407d9ff3140dd8f03f229f35b38">&#9670;&nbsp;</a></span>finalize()</h2>
 
@@ -453,7 +383,7 @@ Static Public Member Functions</h2></td></tr>
     <tr><td class="paramname">f</td><td>fill rule to use for rendering </td></tr>
     <tr><td class="paramname">min_pt</td><td>minimum point of the bounding box of the contours added </td></tr>
     <tr><td class="paramname">max_pt</td><td>maximum point of the bounding box of the contours added </td></tr>
-    <tr><td class="paramname">units_per_EM</td><td>the units per EM for the glyph; this value together with <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a15f480a90e538a6c4798759e593a89c1">expected_min_render_size()</a> is used to decide how close a curve may be to a bounding box to decide if it is included. </td></tr>
+    <tr><td class="paramname">units_per_EM</td><td>the units per EM for the glyph; this value together with expected_min_render_size() is used to decide how close a curve may be to a bounding box to decide if it is included. </td></tr>
   </table>
   </dd>
 </dl>
@@ -481,60 +411,6 @@ Static Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a0609231df9869f6fe0c9cc2698b1af89"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0609231df9869f6fe0c9cc2698b1af89">&#9670;&nbsp;</a></span>max_recursion() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static unsigned int fastuidraw::GlyphRenderDataRestrictedRays::max_recursion </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Returns the maximum level of recursion that will be used to generate the hierarchy of boxes holding the curves on the next <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html">GlyphRenderDataRestrictedRays</a> object whose <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#acbb20407d9ff3140dd8f03f229f35b38">finalize()</a> method is called. </p>
-
-</div>
-</div>
-<a id="a437053e6b02809824071ef06494a6d3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a437053e6b02809824071ef06494a6d3d">&#9670;&nbsp;</a></span>max_recursion() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void fastuidraw::GlyphRenderDataRestrictedRays::max_recursion </td>
-          <td>(</td>
-          <td class="paramtype">unsigned&#160;</td>
-          <td class="paramname"><em>int</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a0609231df9869f6fe0c9cc2698b1af89">max_recursion()</a>. Default value is 12. </p>
 
 </div>
 </div>
@@ -594,60 +470,6 @@ Static Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a94f09e48380f584439f5b4acb6270968"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94f09e48380f584439f5b4acb6270968">&#9670;&nbsp;</a></span>split_thresh() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static unsigned int fastuidraw::GlyphRenderDataRestrictedRays::split_thresh </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Returns the threshhold value for number of curves allowed in a single box before a box is split on the next <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html">GlyphRenderDataRestrictedRays</a> object whose <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#acbb20407d9ff3140dd8f03f229f35b38">finalize()</a> method is called. </p>
-
-</div>
-</div>
-<a id="a0866d12a51344b6e906f3eb64c3658ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0866d12a51344b6e906f3eb64c3658ef">&#9670;&nbsp;</a></span>split_thresh() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void fastuidraw::GlyphRenderDataRestrictedRays::split_thresh </td>
-          <td>(</td>
-          <td class="paramtype">unsigned&#160;</td>
-          <td class="paramname"><em>int</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a94f09e48380f584439f5b4acb6270968">split_thresh()</a>. Default value is 4. </p>
 
 </div>
 </div>

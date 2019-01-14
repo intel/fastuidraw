@@ -73,7 +73,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ae195b3ba15dc0a70843a9e609ff8c2ad">m_indices</a>) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ad0b8008a537aab9050d3f71ac7903178">m_attributes</a>.  
+<p>Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ae195b3ba15dc0a70843a9e609ff8c2ad">m_indices</a>) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ad0b8008a537aab9050d3f71ac7903178">m_attributes</a>. The <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> object is NOT thread safe, neither is its reference count. A <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> object is used <a class="el" href="../../d3/d46/group___painter.html">Painter</a> to send attributer and index data to a <a class="el" href="../../d5/dfa/group___painter_backend.html">Painter Backend</a>.  
  <a href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>&gt;</code></p>
@@ -82,8 +82,8 @@ Inheritance diagram for fastuidraw::PainterDraw:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../da/d39/classfastuidraw_1_1_painter_draw__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_painter_draw_inherit__map" alt="Inheritance graph"/></div>
 <map name="fastuidraw_1_1_painter_draw_inherit__map" id="fastuidraw_1_1_painter_draw_inherit__map">
-<area shape="rect" id="node2" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,197,121"/>
-<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="20,5,183,32"/>
+<area shape="rect" id="node2" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="17,80,156,136"/>
+<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,5,168,32"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -108,8 +108,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af69fda40bfed00c10aac158927e96583"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44d7869af4a90c302dc795c3717f6e3a"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a44d7869af4a90c302dc795c3717f6e3a">draw_break</a> (const <a class="el" href="../../de/d6d/classfastuidraw_1_1_painter_shader_group.html">PainterShaderGroup</a> &amp;old_groups, const <a class="el" href="../../de/d6d/classfastuidraw_1_1_painter_shader_group.html">PainterShaderGroup</a> &amp;new_groups, unsigned int indices_written)=0</td></tr>
 <tr class="separator:a44d7869af4a90c302dc795c3717f6e3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af133b26a2540a427ad3522e0d31a9f76"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#af133b26a2540a427ad3522e0d31a9f76">draw_break</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">Action</a> &gt; &amp;action, unsigned int indices_written)=0</td></tr>
-<tr class="separator:af133b26a2540a427ad3522e0d31a9f76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe2fd1c52b2c17c565bf344c3c253c39"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#abe2fd1c52b2c17c565bf344c3c253c39">draw_break</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">Action</a> &gt; &amp;action, unsigned int indices_written)=0</td></tr>
+<tr class="separator:abe2fd1c52b2c17c565bf344c3c253c39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5317755759bdfde8c8428a6d3f535421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a5317755759bdfde8c8428a6d3f535421">unmap</a> (unsigned int attributes_written, unsigned int indices_written, unsigned int data_store_written)</td></tr>
 <tr class="separator:a5317755759bdfde8c8428a6d3f535421"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b644bcd9058b8cdc63557957d0374eb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a7b644bcd9058b8cdc63557957d0374eb">unmapped</a> (void) const</td></tr>
@@ -143,9 +143,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a337fbbaa63cbc8cc7ad198df52d753da inherit pub_static_methods_classfastuidraw_1_1reference__counted__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ae195b3ba15dc0a70843a9e609ff8c2ad">m_indices</a>) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ad0b8008a537aab9050d3f71ac7903178">m_attributes</a>. </p>
+<div class="textblock"><p>Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ae195b3ba15dc0a70843a9e609ff8c2ad">m_indices</a>) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ad0b8008a537aab9050d3f71ac7903178">m_attributes</a>. The <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> object is NOT thread safe, neither is its reference count. A <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> object is used <a class="el" href="../../d3/d46/group___painter.html">Painter</a> to send attributer and index data to a <a class="el" href="../../d5/dfa/group___painter_backend.html">Painter Backend</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00044">44</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00047">47</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad20d4ad2d2e9fecb998df5fdfc975caa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad20d4ad2d2e9fecb998df5fdfc975caa">&#9670;&nbsp;</a></span>PainterDraw()</h2>
@@ -257,7 +257,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Called to indicate a change in value to the painter header that this <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. ">PainterDraw</a> needs to record. The most common case is to insert API state changes (or just break a draw) for when a <a class="el" href="../../d5/dfa/group___painter_backend.html">Painter Backend</a> cannot accomodate a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> state change without changing the 3D API state. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Called to indicate a change in value to the painter header that this <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> needs to record. The most common case is to insert API state changes (or just break a draw) for when a <a class="el" href="../../d5/dfa/group___painter_backend.html">Painter Backend</a> cannot accomodate a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> state change without changing the 3D API state. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">old_groups</td><td><a class="el" href="../../de/d6d/classfastuidraw_1_1_painter_shader_group.html" title="A PainterShaderGroup gives to what groups the active shaders of a Painter belong. ...">PainterShaderGroup</a> before state change </td></tr>
     <tr><td class="paramname">new_groups</td><td><a class="el" href="../../de/d6d/classfastuidraw_1_1_painter_shader_group.html" title="A PainterShaderGroup gives to what groups the active shaders of a Painter belong. ...">PainterShaderGroup</a> after state change </td></tr>
@@ -269,8 +269,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="af133b26a2540a427ad3522e0d31a9f76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af133b26a2540a427ad3522e0d31a9f76">&#9670;&nbsp;</a></span>draw_break() <span class="overload">[2/2]</span></h2>
+<a id="abe2fd1c52b2c17c565bf344c3c253c39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe2fd1c52b2c17c565bf344c3c253c39">&#9670;&nbsp;</a></span>draw_break() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -279,7 +279,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void fastuidraw::PainterDraw::draw_break </td>
+          <td class="memname">virtual bool fastuidraw::PainterDraw::draw_break </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">Action</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>action</em>, </td>
@@ -302,7 +302,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Called to execute an action (and thus also cause a draw-call break). Implementations are to assume that <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">Action</a> reference is non-null. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Called to execute an action (and thus also cause a draw-call break). Implementations are to assume that <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">Action</a> reference is non-null. Implementations are to return true if the draw_break triggers an extra draw call. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">action</td><td>action to execute </td></tr>
     <tr><td class="paramname">indices_written</td><td>total number of indices written to <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ae195b3ba15dc0a70843a9e609ff8c2ad">m_indices</a> -before- the break </td></tr>
@@ -343,7 +343,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Signals this <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. ">PainterDraw</a> to be unmapped. Actual unmapping is delayed until all actions that have been added with <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a9ebcedb3405fe7f8beadb7b60956723e">add_action()</a> have been called. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Signals this <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> to be unmapped. Actual unmapping is delayed until all actions that have been added with <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a9ebcedb3405fe7f8beadb7b60956723e">add_action()</a> have been called. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">attributes_written</td><td>number of elements written to <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ad0b8008a537aab9050d3f71ac7903178">m_attributes</a> and <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a1533be309e9a621e743e5540cb0f2637">m_header_attributes</a>. </td></tr>
     <tr><td class="paramname">indices_written</td><td>number of elements written to <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ae195b3ba15dc0a70843a9e609ff8c2ad">m_indices</a> </td></tr>
@@ -419,7 +419,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns true if and only if this <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. ">PainterDraw</a> is unmapped. </p>
+<p>Returns true if and only if this <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> is unmapped. </p>
 
 </div>
 </div>
@@ -437,7 +437,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Location to which to place attribute data, the store is understood to be write only. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00133">133</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00136">136</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
 
 </div>
 </div>
@@ -454,7 +454,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Location to which to place the attribute data storing the header <em>locations</em> in <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">m_store</a>. The size of <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a1533be309e9a621e743e5540cb0f2637">m_header_attributes</a> must be the same as the size of <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#ad0b8008a537aab9050d3f71ac7903178">m_attributes</a>, the store is understood to be write only. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00142">142</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00145">145</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
 
 </div>
 </div>
@@ -471,7 +471,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Location to which to place index data. Values are indices into m_attributes, the store is understood to be write only. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00149">149</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00152">152</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
 
 </div>
 </div>
@@ -488,7 +488,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Generic store for data that is shared between vertices within an item and possibly between items. The store is understood to be write only. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00157">157</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html#l00160">160</a> of file <a class="el" href="../../d6/d63/painter__draw_8hpp_source.html">painter_draw.hpp</a>.</p>
 
 </div>
 </div>

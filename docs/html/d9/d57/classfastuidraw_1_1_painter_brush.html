@@ -243,12 +243,17 @@ Public Types</h2></td></tr>
 </td></tr>
 <tr class="separator:af551bbba220617421c56287936840963"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a617afe3afe58343a34ba724413daf177"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177">transformation_matrix_offset_t</a> { <br />
-&#160;&#160;<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177af18e29f82bc2671d057b0f072cadb031">transformation_matrix_m00_offset</a>, 
-<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a8093b38c2a11f9177c92e8dcaf8bc83c">transformation_matrix_m01_offset</a>, 
-<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a685a6234ef9118ef5dc488186b028547">transformation_matrix_m10_offset</a>, 
-<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177af604342fd1882c3334fed4543d5bcc7f">transformation_matrix_m11_offset</a>, 
+&#160;&#160;<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177ae069782ccf09eda0dce58c8e571f1a2a">transformation_matrix_row0_col0_offset</a>, 
+<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177ac9e2c80cdba8c886b844945c7a46a072">transformation_matrix_row0_col1_offset</a>, 
+<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a15cd57f1f0fa58f0bf606e4d41d736c9">transformation_matrix_row1_col0_offset</a>, 
+<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a195db57c06e4e78ac77a5b8206f1912c">transformation_matrix_row1_col1_offset</a>, 
 <br />
-&#160;&#160;<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177aec6562c350238f987e6ca0ba27499bc3">transformation_matrix_data_size</a>
+&#160;&#160;<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177aec6562c350238f987e6ca0ba27499bc3">transformation_matrix_data_size</a>, 
+<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a803673c1dc8ec5d4e79b1f99821611fd">transformation_matrix_col0_row0_offset</a> = transformation_matrix_row0_col0_offset, 
+<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177ad111498f0a1b4fe3bc11ab1af1a0b79e">transformation_matrix_col0_row1_offset</a> = transformation_matrix_row1_col0_offset, 
+<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a9f5f46a08a13bd3996fc3a34e0c4cdc1">transformation_matrix_col1_row0_offset</a> = transformation_matrix_row0_col1_offset, 
+<br />
+&#160;&#160;<a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a7e3339096db47b9cd99f41487af99fed">transformation_matrix_col1_row1_offset</a> = transformation_matrix_row1_col1_offset
 <br />
  }<tr class="memdesc:a617afe3afe58343a34ba724413daf177"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration that provides offset from the start of repeat transformation matrix to data for the transformation matrix data.  <a href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177">More...</a><br /></td></tr>
 </td></tr>
@@ -838,15 +843,23 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Enumeration that provides offset from the start of repeat transformation matrix to data for the transformation matrix data. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177af18e29f82bc2671d057b0f072cadb031"></a>transformation_matrix_m00_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(0, 0) (packed at float) </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177ae069782ccf09eda0dce58c8e571f1a2a"></a>transformation_matrix_row0_col0_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(0, 0) (packed at float) </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177a8093b38c2a11f9177c92e8dcaf8bc83c"></a>transformation_matrix_m01_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(0, 1) (packed at float) </p>
+<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177ac9e2c80cdba8c886b844945c7a46a072"></a>transformation_matrix_row0_col1_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(0, 1) (packed at float) </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177a685a6234ef9118ef5dc488186b028547"></a>transformation_matrix_m10_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(1, 0) (packed at float) </p>
+<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177a15cd57f1f0fa58f0bf606e4d41d736c9"></a>transformation_matrix_row1_col0_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(1, 0) (packed at float) </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177af604342fd1882c3334fed4543d5bcc7f"></a>transformation_matrix_m11_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(1, 1) (packed at float) </p>
+<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177a195db57c06e4e78ac77a5b8206f1912c"></a>transformation_matrix_row1_col1_offset&#160;</td><td class="fielddoc"><p>offset for float2x2(1, 1) (packed at float) </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177aec6562c350238f987e6ca0ba27499bc3"></a>transformation_matrix_data_size&#160;</td><td class="fielddoc"><p>size of data for transformation matrix </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177a803673c1dc8ec5d4e79b1f99821611fd"></a>transformation_matrix_col0_row0_offset&#160;</td><td class="fielddoc"><p>alias of <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177ae069782ccf09eda0dce58c8e571f1a2a">transformation_matrix_row0_col0_offset</a> </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177ad111498f0a1b4fe3bc11ab1af1a0b79e"></a>transformation_matrix_col0_row1_offset&#160;</td><td class="fielddoc"><p>alias of <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a15cd57f1f0fa58f0bf606e4d41d736c9">transformation_matrix_row1_col0_offset</a> </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177a9f5f46a08a13bd3996fc3a34e0c4cdc1"></a>transformation_matrix_col1_row0_offset&#160;</td><td class="fielddoc"><p>alias of <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177ac9e2c80cdba8c886b844945c7a46a072">transformation_matrix_row0_col1_offset</a> </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a617afe3afe58343a34ba724413daf177a7e3339096db47b9cd99f41487af99fed"></a>transformation_matrix_col1_row1_offset&#160;</td><td class="fielddoc"><p>alias of <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a617afe3afe58343a34ba724413daf177a195db57c06e4e78ac77a5b8206f1912c">transformation_matrix_row1_col1_offset</a> </p>
 </td></tr>
 </table>
 
@@ -876,7 +889,7 @@ Static Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00671">671</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00676">676</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -906,7 +919,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Ctor. Initializes the brush to have no image, no gradient, no repeat window and no transformation with the color as (1.0, 1.0, 1.0, 1.0) which is solid white. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00683">683</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00688">688</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -940,7 +953,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00692">692</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00697">697</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -975,7 +988,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01010">1010</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01015">1015</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1009,7 +1022,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01038">1038</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01043">1043</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1054,7 +1067,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01023">1023</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01028">1028</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1083,7 +1096,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Apply a translation to the transformation of the brush. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01058">1058</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01063">1063</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1112,7 +1125,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set the color to the color, default value is (1.0, 1.0, 1.0, 1.0). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00707">707</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00712">712</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1163,7 +1176,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set the color to the color, default value is (1.0, 1.0, 1.0, 1.0). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00717">717</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00722">722</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1192,7 +1205,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the current color-color. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00726">726</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00731">731</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1221,7 +1234,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the value of the handle to the <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html" title="A ColorStopSequenceOnAtlas is a ColorStopSequence on a ColorStopAtlas. A ColorStopAtlas is backed by ...">ColorStopSequenceOnAtlas</a> that the brush is set to use. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01246">1246</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01251">1251</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1355,7 +1368,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Return the gradient_type_t that the brush applies. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00956">956</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00961">961</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1384,7 +1397,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Return the gradient_type_t that the brush applies. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00945">945</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00950">950</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1455,7 +1468,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the value of the handle to the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> that the brush is set to use. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01218">1218</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01223">1223</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1500,7 +1513,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01233">1233</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01238">1238</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1529,7 +1542,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns true if the brush sources from an <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> whose <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#a3498cdb6c1a44951a1ba5def0e8dcc24">Image::type()</a> is <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#aadc9d23baef018704949d6e42f3c4079a23db8baa72337d14b6c8960dde7bad66">Image::context_texture2d</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01207">1207</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01212">1212</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1588,7 +1601,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00776">776</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00781">781</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1617,7 +1630,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the brush to not have a gradient. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00934">934</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00939">939</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1646,7 +1659,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the brush to not have an image. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00762">762</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00767">767</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1675,7 +1688,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the brush to not have a repeat window </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01143">1143</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01148">1148</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1704,7 +1717,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the brush to have no transformation. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01105">1105</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01110">1110</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1733,7 +1746,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the brush to have no matrix in its transformation. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01094">1094</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01099">1099</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1762,7 +1775,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Sets the brush to have no translation in its transformation. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01083">1083</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01088">1088</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1859,7 +1872,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00805">805</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00810">810</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1918,7 +1931,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00839">839</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00844">844</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -1963,7 +1976,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01118">1118</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01123">1123</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2002,7 +2015,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns true if a repeat window is applied to the brush and writes out the position and size of the repeat window as well. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01132">1132</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01137">1137</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2202,7 +2215,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00857">857</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00862">862</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2282,7 +2295,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00890">890</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00895">895</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2355,7 +2368,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00921">921</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00926">926</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2400,7 +2413,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01072">1072</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01077">1077</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2434,7 +2447,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00989">989</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00994">994</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2463,7 +2476,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the matrix of the transformation of the brush. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01000">1000</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01005">1005</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2497,7 +2510,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00968">968</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00973">973</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>
@@ -2526,7 +2539,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the translation of the transformation of the brush. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00979">979</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l00984">984</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
 </div>
 </div>

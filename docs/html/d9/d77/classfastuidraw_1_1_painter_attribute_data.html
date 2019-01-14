@@ -386,7 +386,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the z-range of the data in an attribute/index pair. After drawing a chunk, <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> will call on itself Painter::increment_z(range_type::differnce()) and will set the header set to <a class="el" href="../../d3/d46/group___painter.html">Painter</a> so that while drawing so that <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html#ad4df53fa4fe43cee80461dccb8ad7c96">range_type::m_begin</a> maps to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aba4cf0ced1b6827c8865e7ed932ea821">Painter::current_z()</a>. </p>
+<p>Returns the z-range of the data in an chunk. Recall that the z-value is used by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to perform occluding. When an item is to self occlude, <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html#accf4447ca419a41aa7b2712684419229">z_ranges()</a>[C] holds the relative z-ranges of the z-value emitted by the item's vertex shader. </p>
 
 </div>
 </div>

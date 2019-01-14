@@ -177,7 +177,9 @@ Public Types</h2></td></tr>
 <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da20828c6764d62911b9b9a4930a603ae0">num_draws</a>, 
 <br />
 &#160;&#160;<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da649e54eb8e0e05f5b602fc43212fc13c">num_headers</a>, 
-<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15dac498fa6d79b189d03c35a9211835e9a2">num_stats</a>
+<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da8039855b74b144a123e79d43003c3e7e">num_render_targets</a>, 
+<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15dab730e7a520818c995e90b3de7a6b6f2a">num_ends</a>, 
+<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15dab7c8147417a2b9041d6116c81df948db">num_layers</a>
 <br />
  }<tr class="memdesc:a6c116b1e4d7c761ee6f8a42c180af15d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to query the statistics of how much data has been packed.  <a href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15d">More...</a><br /></td></tr>
 </td></tr>
@@ -475,11 +477,15 @@ Static Public Member Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15dace720e0b34f152a9c022b449eab87868"></a>num_generic_datas&#160;</td><td class="fielddoc"><p>Offset to how many <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html" title="Union to store 32-bit data. ">generic_data</a> values placed onto store buffer(s). </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15da20828c6764d62911b9b9a4930a603ae0"></a>num_draws&#160;</td><td class="fielddoc"><p>Offset to how many <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. ">PainterDraw</a> objects sent </p>
+<tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15da20828c6764d62911b9b9a4930a603ae0"></a>num_draws&#160;</td><td class="fielddoc"><p>Offset to how many <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html" title="Store for attributes, indices of items and shared data of items for items to draw. Indices (stored in m_indices) are -ALWAYS- in groups of three where each group is a single triangle and each index is an index into m_attributes. The PainterDraw object is NOT thread safe, neither is its reference count. A PainterDraw object is used Painter to send attributer and index data to a Painter Backend. ">PainterDraw</a> objects sent </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15da649e54eb8e0e05f5b602fc43212fc13c"></a>num_headers&#160;</td><td class="fielddoc"><p>Offset to how many painter headers packed. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15dac498fa6d79b189d03c35a9211835e9a2"></a>num_stats&#160;</td><td class="fielddoc"><p>Number of stats. </p>
+<tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15da8039855b74b144a123e79d43003c3e7e"></a>num_render_targets&#160;</td><td class="fielddoc"><p>Number of distinct render targets needed. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15dab730e7a520818c995e90b3de7a6b6f2a"></a>num_ends&#160;</td><td class="fielddoc"><p>Number of times PainterBackend::end() was called </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6c116b1e4d7c761ee6f8a42c180af15dab7c8147417a2b9041d6116c81df948db"></a>num_layers&#160;</td><td class="fielddoc"><p>Number of times begin_layer()/end_layer() was called </p>
 </td></tr>
 </table>
 

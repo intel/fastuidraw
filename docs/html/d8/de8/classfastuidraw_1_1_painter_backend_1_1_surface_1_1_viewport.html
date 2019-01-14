@@ -77,6 +77,18 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a5c6e376874898e23e98960c537df1419"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#a5c6e376874898e23e98960c537df1419">Viewport</a> (int x, int y, int w, int h)</td></tr>
 <tr class="separator:a5c6e376874898e23e98960c537df1419"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a916af372c0193553da53e7d8a9fa039c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#a916af372c0193553da53e7d8a9fa039c">compute_clip_equations</a> (<a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a> surface_dims, <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a>, 4 &gt; *out_clip_equations) const</td></tr>
+<tr class="separator:a916af372c0193553da53e7d8a9fa039c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a460c925e59f22db4f87f0aa7c9796f99"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#a460c925e59f22db4f87f0aa7c9796f99">compute_normalized_clip_rect</a> (<a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a> surface_dims, <a class="el" href="../../d7/d48/classfastuidraw_1_1_rect.html">Rect</a> *out_rect) const</td></tr>
+<tr class="separator:a460c925e59f22db4f87f0aa7c9796f99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2c4a086d93675acf418598aba616410"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#af2c4a086d93675acf418598aba616410">compute_normalized_device_coords</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> pixel) const</td></tr>
+<tr class="separator:af2c4a086d93675acf418598aba616410"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecc749aa53e128e881cfa9027b6e4cb6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#aecc749aa53e128e881cfa9027b6e4cb6">compute_pixel_coordinates</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> ndc) const</td></tr>
+<tr class="separator:aecc749aa53e128e881cfa9027b6e4cb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54da6fd741dff9092b514fc038299056"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#a54da6fd741dff9092b514fc038299056">compute_visible_dimensions</a> (<a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a> surface_dims) const</td></tr>
+<tr class="separator:a54da6fd741dff9092b514fc038299056"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5f07ca44e9d2aca90906e76e3b0fbc5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html#ad5f07ca44e9d2aca90906e76e3b0fbc5">visible_dimensions</a> (void) const</td></tr>
+<tr class="separator:ad5f07ca44e9d2aca90906e76e3b0fbc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -88,7 +100,7 @@ Public Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html">Viewport</a> specifies the sub-region within a <a class="el" href="../../d1/dbb/classfastuidraw_1_1_painter_backend_1_1_surface.html">Surface</a> to which one renders. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00192">192</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00193">193</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5c6e376874898e23e98960c537df1419"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5c6e376874898e23e98960c537df1419">&#9670;&nbsp;</a></span>Viewport()</h2>
@@ -145,7 +157,209 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00207">207</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00208">208</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a916af372c0193553da53e7d8a9fa039c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a916af372c0193553da53e7d8a9fa039c">&#9670;&nbsp;</a></span>compute_clip_equations()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::PainterBackend::Surface::Viewport::compute_clip_equations </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a>&#160;</td>
+          <td class="paramname"><em>surface_dims</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a>, 4 &gt; *&#160;</td>
+          <td class="paramname"><em>out_clip_equations</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Computes the clip-equations (in normalized device coordinates) of this <a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html">Viewport</a> against a surface with the given dimensions. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir"></td><td class="paramname">surface_dims</td><td>dimension of surface </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_clip_equations</td><td>location to which to write the clip equations </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a460c925e59f22db4f87f0aa7c9796f99"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a460c925e59f22db4f87f0aa7c9796f99">&#9670;&nbsp;</a></span>compute_normalized_clip_rect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::PainterBackend::Surface::Viewport::compute_normalized_clip_rect </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a>&#160;</td>
+          <td class="paramname"><em>surface_dims</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d7/d48/classfastuidraw_1_1_rect.html">Rect</a> *&#160;</td>
+          <td class="paramname"><em>out_rect</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Computes the rectangle in normalized device coordinates of the intersection of a backing surface with the given dimensions against this <a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html">Viewport</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir"></td><td class="paramname">surface_dims</td><td>dimension of surface </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_rect</td><td>location to which to write the clipping rectangle in normalized device coordinates </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af2c4a086d93675acf418598aba616410"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2c4a086d93675acf418598aba616410">&#9670;&nbsp;</a></span>compute_normalized_device_coords()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> fastuidraw::PainterBackend::Surface::Viewport::compute_normalized_device_coords </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td>
+          <td class="paramname"><em>pixel</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Compute normalized device coordinates from pixel coordinates. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pixel</td><td>pixel coordinates where (0, 0) corresponds to bottom left of the surface </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00236">236</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+
+</div>
+</div>
+<a id="aecc749aa53e128e881cfa9027b6e4cb6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aecc749aa53e128e881cfa9027b6e4cb6">&#9670;&nbsp;</a></span>compute_pixel_coordinates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> fastuidraw::PainterBackend::Surface::Viewport::compute_pixel_coordinates </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td>
+          <td class="paramname"><em>ndc</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Compute pixel coordinates from normalized device coords using this <a class="el" href="../../d8/de8/classfastuidraw_1_1_painter_backend_1_1_surface_1_1_viewport.html">Viewport</a> values. The pixel coordinates are so that (0, 0) is the bottom left. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ndc</td><td>normalized device coordinates </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00220">220</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a54da6fd741dff9092b514fc038299056"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54da6fd741dff9092b514fc038299056">&#9670;&nbsp;</a></span>compute_visible_dimensions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a> fastuidraw::PainterBackend::Surface::Viewport::compute_visible_dimensions </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a>&#160;</td>
+          <td class="paramname"><em>surface_dims</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Computes the dimensions of the intersection of this viewport against a surface with the given resolution. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">surface_dims</td><td>dimension of surface </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00294">294</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ad5f07ca44e9d2aca90906e76e3b0fbc5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5f07ca44e9d2aca90906e76e3b0fbc5">&#9670;&nbsp;</a></span>visible_dimensions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga59250d30200f2501e2bdc91a65b202c7">ivec2</a> fastuidraw::PainterBackend::Surface::Viewport::visible_dimensions </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returne the size needed by a surface to contain the viewport, i.e. how many pixels the viewport covers. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00275">275</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
 
 </div>
 </div>
@@ -163,7 +377,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The dimensions of the viewport </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00220">220</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00311">311</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
 
 </div>
 </div>
@@ -180,7 +394,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The origin of the viewport </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00215">215</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00306">306</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
 
 </div>
 </div>

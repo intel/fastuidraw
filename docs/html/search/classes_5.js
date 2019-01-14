@@ -17,6 +17,7 @@ var searchData=
   ['glyphrenderdatarestrictedrays',['GlyphRenderDataRestrictedRays',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html',1,'fastuidraw']]],
   ['glyphrenderdatatexels',['GlyphRenderDataTexels',['../dc/d3f/classfastuidraw_1_1_glyph_render_data_texels.html',1,'fastuidraw']]],
   ['glyphrenderer',['GlyphRenderer',['../d0/d68/classfastuidraw_1_1_glyph_renderer.html',1,'fastuidraw']]],
+  ['glyphrendererchooser',['GlyphRendererChooser',['../dd/ddb/classfastuidraw_1_1_painter_1_1_glyph_renderer_chooser.html',1,'fastuidraw::Painter']]],
   ['glyphrun',['GlyphRun',['../df/d7e/classfastuidraw_1_1_glyph_run.html',1,'fastuidraw']]],
   ['glyphsequence',['GlyphSequence',['../d3/da9/classfastuidraw_1_1_glyph_sequence.html',1,'fastuidraw']]],
   ['glyphsource',['GlyphSource',['../d6/d25/classfastuidraw_1_1_glyph_source.html',1,'fastuidraw']]],
