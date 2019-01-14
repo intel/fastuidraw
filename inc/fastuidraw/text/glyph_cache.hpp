@@ -181,6 +181,14 @@ namespace fastuidraw
     clear_atlas(void);
 
     /*!
+     * Returns the number of times that this GlyphCache cleared
+     * its GlyphAtlas (i.e. the number of times clear_atlas() or
+     * clear_cache() have been called).
+     */
+    unsigned int
+    number_times_atlas_cleared(void);
+
+    /*!
      * Clear this GlyphCache and the GlyphAtlas backing the glyphs.
      * Thus all previous \ref Glyph and \ref GlyphMetrics values
      * returned are no longer valid. In addition, as a side-effect
