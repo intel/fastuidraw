@@ -140,7 +140,6 @@ namespace fastuidraw
     unsigned int
     number_glyphs(void) const = 0;
 
-  private:
     /*!
      * To be implemented by a derived class to indicate
      * that it will return non-nullptr in
@@ -178,9 +177,7 @@ namespace fastuidraw
     compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
 			   Path &path, vec2 &render_size) const = 0;
 
-    friend class Glyph;
-    friend class GlyphCache;
-
+  private:
     void *m_d;
   };
 /*! @} */
