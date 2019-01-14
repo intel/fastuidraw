@@ -209,6 +209,7 @@ namespace
 
     Splitter m_splitter;
     fastuidraw::vecN<GlyphSubsetPrivate*, 2> m_child;
+    unsigned int m_glyph_atlas_clear_count;
   };
 
   class GlyphSequencePrivate:fastuidraw::noncopyable
@@ -499,7 +500,8 @@ GlyphSubsetPrivate(GlyphSequencePrivate *p):
   m_ID(m_owner->give_subset_ID(this)),
   m_glyph_list(p->number_added_glyphs()),
   m_path(nullptr),
-  m_child(nullptr, nullptr)
+  m_child(nullptr, nullptr),
+  m_glyph_atlas_clear_count(0)
 {
   unsigned int num(m_glyph_list.size());
   for (unsigned int i = 0; i < num; ++i)
@@ -522,7 +524,8 @@ GlyphSubsetPrivate(GlyphSubsetPrivate *parent,
   m_ID(m_owner->give_subset_ID(this)),
   m_bounding_box(bb),
   m_path(nullptr),
-  m_child(nullptr, nullptr)
+  m_child(nullptr, nullptr),
+  m_glyph_atlas_clear_count(0)
 {
   std::swap(m_glyph_list, glyph_list);
   if (m_gen < MaxDepth && m_glyph_list.size() > SplittingSize)
@@ -757,6 +760,11 @@ attributes_indices(fastuidraw::GlyphRenderer R)
   using namespace fastuidraw;
 
   std::map<GlyphRenderer, GlyphAttributesIndices>::const_iterator iter;
+  if (!m_data.empty() && m_glyph_atlas_clear_count != m_owner->cache()->number_times_atlas_cleared())
+    {
+      m_glyph_atlas_clear_count = m_owner->cache()->number_times_atlas_cleared();
+      m_data.clear();
+    }
 
   iter = m_data.find(R);
   if (iter != m_data.end())
