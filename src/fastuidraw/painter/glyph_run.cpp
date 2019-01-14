@@ -97,7 +97,8 @@ namespace
       m_pixel_size(pixel_size),
       m_orientation(orientation),
       m_layout(layout),
-      m_cache(cache)
+      m_cache(cache),
+      m_atlas_clear_count(0)
     {
       FASTUIDRAWassert(cache);
     }
@@ -139,45 +140,21 @@ namespace
     void
     add_glyphs(const fastuidraw::FontBase *font,
                fastuidraw::c_array<const T> sources,
-               fastuidraw::c_array<const fastuidraw::vec2> positions)
-    {
-      unsigned int old_sz;
-      fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs;
+               fastuidraw::c_array<const fastuidraw::vec2> positions);
 
-      old_sz = m_glyphs.size();
-      m_glyphs.resize(sources.size() + old_sz);
-      m_glyph_locations.reserve(sources.size() + old_sz);
-      dst_glyphs = fastuidraw::make_c_array(m_glyphs).sub_array(old_sz);
-      this->grab_metrics(font, sources, dst_glyphs);
-
-      for (unsigned int i = 0; i < positions.size(); ++i)
-        {
-          GlyphLocation L;
-
-          L.m_position = positions[i];
-          if (dst_glyphs[i].valid())
-            {
-              L.m_scale = m_pixel_size / dst_glyphs[i].units_per_EM();
-            }
-          else
-            {
-              L.m_scale = 1.0f;
-            }
-          m_glyph_locations.push_back(L);
-        }
-      m_data.clear();
-    }
+    const PerGlyphRender*
+    fetch_render_data(const fastuidraw::GlyphRenderer &renderer);
 
     float m_pixel_size;
     enum fastuidraw::PainterEnums::screen_orientation m_orientation;
     enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
+    SubSequence m_subsequence;
 
     std::vector<GlyphLocation> m_glyph_locations;
     std::vector<fastuidraw::GlyphMetrics> m_glyphs;
-
     std::map<fastuidraw::GlyphRenderer, PerGlyphRender> m_data;
-    SubSequence m_subsequence;
+    unsigned int m_atlas_clear_count;
   };
 
 }
@@ -274,6 +251,69 @@ set_values(GlyphRunPrivate *p,
                            p->m_orientation,
                            p->m_layout);
     }
+}
+
+////////////////////////////////////////
+// GlyphRunPrivate methods
+template<typename T>
+void
+GlyphRunPrivate::
+add_glyphs(const fastuidraw::FontBase *font,
+           fastuidraw::c_array<const T> sources,
+           fastuidraw::c_array<const fastuidraw::vec2> positions)
+{
+  unsigned int old_sz;
+  fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs;
+
+  old_sz = m_glyphs.size();
+  m_glyphs.resize(sources.size() + old_sz);
+  m_glyph_locations.reserve(sources.size() + old_sz);
+  dst_glyphs = fastuidraw::make_c_array(m_glyphs).sub_array(old_sz);
+  this->grab_metrics(font, sources, dst_glyphs);
+
+  for (unsigned int i = 0; i < positions.size(); ++i)
+    {
+      GlyphLocation L;
+
+      L.m_position = positions[i];
+      if (dst_glyphs[i].valid())
+        {
+          L.m_scale = m_pixel_size / dst_glyphs[i].units_per_EM();
+        }
+      else
+        {
+              L.m_scale = 1.0f;
+        }
+      m_glyph_locations.push_back(L);
+    }
+  m_data.clear();
+}
+
+const PerGlyphRender*
+GlyphRunPrivate::
+fetch_render_data(const fastuidraw::GlyphRenderer &renderer)
+{
+  const PerGlyphRender *data;
+  std::map<fastuidraw::GlyphRenderer, PerGlyphRender>::const_iterator iter;
+
+  if (!m_data.empty() && m_atlas_clear_count != m_cache->number_times_atlas_cleared())
+    {
+      m_atlas_clear_count = m_cache->number_times_atlas_cleared();
+      m_data.clear();
+    }
+
+  iter = m_data.find(renderer);
+  if (iter == m_data.end())
+    {
+      PerGlyphRender &p(m_data[renderer]);
+      p.set_values(this, renderer);
+      data = &p;
+    }
+  else
+    {
+      data = &iter->second;
+    }
+  return data;
 }
 
 ////////////////////////////////
@@ -409,21 +449,9 @@ subsequence(GlyphRenderer renderer, unsigned int begin, unsigned int cnt) const
     }
 
   const PerGlyphRender *data;
-  std::map<fastuidraw::GlyphRenderer, PerGlyphRender>::const_iterator iter;
-
-  iter = d->m_data.find(renderer);
-  if (iter == d->m_data.end())
-    {
-      PerGlyphRender &p(d->m_data[renderer]);
-      p.set_values(d, renderer);
-      data = &p;
-    }
-  else
-    {
-      data = &iter->second;
-    }
-
+  data = d->fetch_render_data(renderer);
   d->m_subsequence.set_src(data, begin, cnt);
+
   return d->m_subsequence;
 }
 
