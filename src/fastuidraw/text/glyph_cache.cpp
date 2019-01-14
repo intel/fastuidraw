@@ -273,7 +273,7 @@ namespace
 
     explicit
     glyph_metrics_key(const fastuidraw::GlyphSource &src):
-      m_font(src.m_font.get()),
+      m_font(src.m_font),
       m_glyph_code(src.m_glyph_code)
     {}
 
@@ -700,8 +700,7 @@ fastuidraw::GlyphCache::
 
 fastuidraw::GlyphMetrics
 fastuidraw::GlyphCache::
-fetch_glyph_metrics(const fastuidraw::reference_counted_ptr<const FontBase> &font,
-                    uint32_t glyph_code)
+fetch_glyph_metrics(const FontBase *font, uint32_t glyph_code)
 {
   if (!font || glyph_code >= font->number_glyphs())
     {
@@ -712,7 +711,7 @@ fetch_glyph_metrics(const fastuidraw::reference_counted_ptr<const FontBase> &fon
   GlyphMetricsPrivate *p;
 
   d = static_cast<GlyphCachePrivate*>(m_d);
-  glyph_metrics_key K(glyph_code, font.get());
+  glyph_metrics_key K(glyph_code, font);
 
   std::lock_guard<std::mutex> m(d->m_glyphs_metrics_mutex);
   p = d->m_glyph_metrics.fetch_or_allocate(d, K);
@@ -729,7 +728,7 @@ fetch_glyph_metrics(const fastuidraw::reference_counted_ptr<const FontBase> &fon
 
 void
 fastuidraw::GlyphCache::
-fetch_glyph_metrics(const reference_counted_ptr<const FontBase> &font,
+fetch_glyph_metrics(const FontBase *font,
                     c_array<const uint32_t> glyph_codes,
                     c_array<GlyphMetrics> out_metrics)
 {
@@ -750,7 +749,7 @@ fetch_glyph_metrics(const reference_counted_ptr<const FontBase> &font,
       if (glyph_codes[i] < num_glyphs_of_font)
 	{
 	  GlyphMetricsPrivate *p;
-	  glyph_metrics_key K(glyph_codes[i], font.get());
+	  glyph_metrics_key K(glyph_codes[i], font);
 
 	  p = d->m_glyph_metrics.fetch_or_allocate(d, K);
 	  if (!p->m_ready)
@@ -806,8 +805,7 @@ fetch_glyph_metrics(c_array<const GlyphSource> glyph_sources,
 
 fastuidraw::Glyph
 fastuidraw::GlyphCache::
-fetch_glyph(GlyphRenderer render,
-            const fastuidraw::reference_counted_ptr<const FontBase> &font,
+fetch_glyph(GlyphRenderer render, const FontBase *font,
             uint32_t glyph_code, bool upload_to_atlas)
 {
   if (!font
@@ -821,7 +819,7 @@ fetch_glyph(GlyphRenderer render,
   d = static_cast<GlyphCachePrivate*>(m_d);
 
   GlyphDataPrivate *q;
-  glyph_key src(font.get(), glyph_code, render);
+  glyph_key src(font, glyph_code, render);
 
   std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
   q = d->m_glyphs.fetch_or_allocate(d, src);
@@ -850,8 +848,7 @@ fetch_glyph(GlyphRenderer render,
 
 void
 fastuidraw::GlyphCache::
-fetch_glyphs(GlyphRenderer render,
-             const reference_counted_ptr<const FontBase> &font,
+fetch_glyphs(GlyphRenderer render, const FontBase *font,
              c_array<const uint32_t> glyph_codes,
              c_array<Glyph> out_glyphs,
              bool upload_to_atlas)

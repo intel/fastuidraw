@@ -4831,7 +4831,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  return draw_glyphs(shader, draw, glyph_run,
+  return draw_glyphs(shader, draw, glyph_run, begin, count,
                      d->compute_glyph_renderer(glyph_run.pixel_size(), renderer_chooser));
 }
 

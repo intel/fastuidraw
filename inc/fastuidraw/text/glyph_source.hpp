@@ -46,7 +46,7 @@ namespace fastuidraw
      * \param f value to assign to \ref m_font
      * \param g value to assign to \ref m_glyph_code
      */
-    GlyphSource(const reference_counted_ptr<const FontBase> &f, uint32_t g):
+    GlyphSource(const FontBase *f, uint32_t g):
       m_glyph_code(g)
     {
       m_font = (f && g < f->number_glyphs()) ? f : nullptr;
@@ -57,7 +57,7 @@ namespace fastuidraw
      * \param f value to assign to \ref m_font
      * \param g value to assign to \ref m_glyph_code
      */
-    GlyphSource(uint32_t g, const reference_counted_ptr<const FontBase> &f):
+    GlyphSource(uint32_t g, const FontBase *f):
       m_glyph_code(g)
     {
       m_font = (f && g < f->number_glyphs()) ? f : nullptr;
@@ -82,7 +82,7 @@ namespace fastuidraw
     /*!
      * Font of a \ref Glyph
      */
-    reference_counted_ptr<const FontBase> m_font;
+    const FontBase *m_font;
   };
 /*! @} */
 }

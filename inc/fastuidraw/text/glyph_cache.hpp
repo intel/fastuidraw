@@ -58,8 +58,7 @@ namespace fastuidraw
      * \param glyph_code glyph code
      */
     GlyphMetrics
-    fetch_glyph_metrics(const reference_counted_ptr<const FontBase> &font,
-                        uint32_t glyph_code);
+    fetch_glyph_metrics(const FontBase *font, uint32_t glyph_code);
 
     /*!
      * Fetch, and if necessay create and store, the metrics
@@ -69,7 +68,7 @@ namespace fastuidraw
      * \param out_metrics location to which to write the Glyph
      */
     void
-    fetch_glyph_metrics(const reference_counted_ptr<const FontBase> &font,
+    fetch_glyph_metrics(const FontBase *font,
                         c_array<const uint32_t> glyph_codes,
                         c_array<GlyphMetrics> out_metrics);
 
@@ -93,8 +92,7 @@ namespace fastuidraw
      * \param upload_to_atlas if true, upload to atlas
      */
     Glyph
-    fetch_glyph(GlyphRenderer render,
-                const reference_counted_ptr<const FontBase> &font,
+    fetch_glyph(GlyphRenderer render, const FontBase *font,
                 uint32_t glyph_code, bool upload_to_atlas = true);
 
     /*!
@@ -109,8 +107,7 @@ namespace fastuidraw
      * \param upload_to_atlas if true, upload glyphs to atlas
      */
     void
-    fetch_glyphs(GlyphRenderer render,
-                 const reference_counted_ptr<const FontBase> &font,
+    fetch_glyphs(GlyphRenderer render, const FontBase *font,
                  c_array<const uint32_t> glyph_codes,
                  c_array<Glyph> out_glyphs,
                  bool upload_to_atlas = true);
@@ -173,7 +170,7 @@ namespace fastuidraw
 
     /*!
      * Call to clear the backing GlyphAtlas. In doing so, the glyphs
-     * will no longer be uploaded to the GlyphAtlas and will need
+     * will lose their backing store in the GlyphAtlas and will need
      * to be re-uploaded (see Glyph::upload_to_atlas()). The glyphs
      * however are NOT removed from this GlyphCache. Thus, the return
      * values of previous calls to create_glyph() are still valie, but
@@ -184,7 +181,11 @@ namespace fastuidraw
     clear_atlas(void);
 
     /*!
-     * Clear this GlyphCache and the GlyphAtlas. Essentially NUKE.
+     * Clear this GlyphCache and the GlyphAtlas backing the glyphs.
+     * Thus all previous \ref Glyph and \ref GlyphMetrics values
+     * returned are no longer valid. In addition, as a side-effect
+     * of clearing all Glyph and GlyphMetrics values, all references
+     * to \ref FontBase objects are also released.
      */
     void
     clear_cache(void);

@@ -104,7 +104,7 @@ namespace
 
     template<typename T>
     void
-    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&,
+    grab_metrics(const fastuidraw::FontBase*,
                  fastuidraw::c_array<const T>,
                  fastuidraw::c_array<fastuidraw::GlyphMetrics>)
     {
@@ -112,7 +112,7 @@ namespace
     }
 
     void
-    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&,
+    grab_metrics(const fastuidraw::FontBase*,
                  fastuidraw::c_array<const fastuidraw::GlyphSource> sources,
                  fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs)
     {
@@ -120,7 +120,7 @@ namespace
     }
 
     void
-    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>&,
+    grab_metrics(const fastuidraw::FontBase*,
                  fastuidraw::c_array<const fastuidraw::GlyphMetrics> metrics,
                  fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs)
     {
@@ -128,7 +128,7 @@ namespace
     }
 
     void
-    grab_metrics(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> &font,
+    grab_metrics(const fastuidraw::FontBase *font,
                  fastuidraw::c_array<const uint32_t> glyph_codes,
                  fastuidraw::c_array<fastuidraw::GlyphMetrics> dst_glyphs)
     {
@@ -137,7 +137,7 @@ namespace
 
     template<typename T>
     void
-    add_glyphs(const fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> &font,
+    add_glyphs(const fastuidraw::FontBase *font,
                fastuidraw::c_array<const T> sources,
                fastuidraw::c_array<const fastuidraw::vec2> positions)
     {
@@ -337,10 +337,9 @@ add_glyphs(c_array<const GlyphSource> sources,
            c_array<const vec2> positions)
 {
   GlyphRunPrivate *d;
-  reference_counted_ptr<const FontBase> null;
 
   d = static_cast<GlyphRunPrivate*>(m_d);
-  d->add_glyphs<GlyphSource>(null, sources, positions);
+  d->add_glyphs<GlyphSource>(nullptr, sources, positions);
 }
 
 void
@@ -349,15 +348,14 @@ add_glyphs(c_array<const GlyphMetrics> glyph_metrics,
            c_array<const vec2> positions)
 {
   GlyphRunPrivate *d;
-  reference_counted_ptr<const FontBase> null;
 
   d = static_cast<GlyphRunPrivate*>(m_d);
-  d->add_glyphs<GlyphMetrics>(null, glyph_metrics, positions);
+  d->add_glyphs<GlyphMetrics>(nullptr, glyph_metrics, positions);
 }
 
 void
 fastuidraw::GlyphRun::
-add_glyphs(const reference_counted_ptr<const FontBase> &font,
+add_glyphs(const FontBase *font,
            c_array<const uint32_t> glyph_codes,
            c_array<const vec2> positions)
 {

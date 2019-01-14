@@ -326,7 +326,7 @@ namespace
                              uint32_t selection_strategy);
 
     fastuidraw::GlyphSource
-    fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
+    fetch_glyph(const fastuidraw::FontBase *h,
                 uint32_t character_code, uint32_t selection_strategy);
 
     fastuidraw::GlyphSource
@@ -334,7 +334,7 @@ namespace
                 uint32_t character_code, uint32_t selection_strategy);
 
     fastuidraw::GlyphSource
-    fetch_glyph_no_merging(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
+    fetch_glyph_no_merging(const fastuidraw::FontBase *h,
                            uint32_t character_code);
 
     AbstractFont*
@@ -393,7 +393,7 @@ fetch_glyph(uint32_t character_code, bool skip_parent)
           r = font->glyph_code(character_code);
           if (r)
             {
-              return fastuidraw::GlyphSource(font, r);
+              return fastuidraw::GlyphSource(font.get(), r);
             }
         }
     }
@@ -404,7 +404,7 @@ fetch_glyph(uint32_t character_code, bool skip_parent)
       r = font->glyph_code(character_code);
       if (r)
         {
-          return fastuidraw::GlyphSource(font, r);
+          return fastuidraw::GlyphSource(font.get(), r);
         }
     }
 
@@ -515,7 +515,7 @@ fetch_glyph(fastuidraw::reference_counted_ptr<font_group> group,
 
 fastuidraw::GlyphSource
 FontDatabasePrivate::
-fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
+fetch_glyph(const fastuidraw::FontBase *h,
             uint32_t character_code, uint32_t selection_strategy)
 {
   using namespace fastuidraw;
@@ -548,7 +548,7 @@ fetch_glyph(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
 
 fastuidraw::GlyphSource
 FontDatabasePrivate::
-fetch_glyph_no_merging(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
+fetch_glyph_no_merging(const fastuidraw::FontBase *h,
                        uint32_t character_code)
 {
   if (!h)
@@ -827,7 +827,7 @@ fetch_font(const FontProperties &prop, uint32_t selection_strategy)
 
 fastuidraw::GlyphSource
 fastuidraw::FontDatabase::
-fetch_glyph_no_merging_no_lock(reference_counted_ptr<const FontBase> h,
+fetch_glyph_no_merging_no_lock(const FontBase *h,
                                uint32_t character_code)
 {
   FontDatabasePrivate *d;
@@ -837,7 +837,7 @@ fetch_glyph_no_merging_no_lock(reference_counted_ptr<const FontBase> h,
 
 fastuidraw::GlyphSource
 fastuidraw::FontDatabase::
-fetch_glyph_no_lock(reference_counted_ptr<const FontBase> h,
+fetch_glyph_no_lock(const FontBase *h,
                     uint32_t character_code, uint32_t selection_strategy)
 {
   FontDatabasePrivate *d;
@@ -936,7 +936,7 @@ fetch_glyph(FontGroup h, uint32_t character_code, uint32_t selection_strategy)
 
 fastuidraw::GlyphSource
 fastuidraw::FontDatabase::
-fetch_glyph(reference_counted_ptr<const FontBase> h,
+fetch_glyph(const FontBase *h,
             uint32_t character_code, uint32_t selection_strategy)
 {
   GlyphSource G;
@@ -948,8 +948,7 @@ fetch_glyph(reference_counted_ptr<const FontBase> h,
 
 fastuidraw::GlyphSource
 fastuidraw::FontDatabase::
-fetch_glyph_no_merging(reference_counted_ptr<const FontBase> h,
-                       uint32_t character_code)
+fetch_glyph_no_merging(const FontBase *h, uint32_t character_code)
 {
   GlyphSource G;
   lock_mutex();

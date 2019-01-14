@@ -94,7 +94,7 @@ namespace fastuidraw
      * \param positions specifies the positions of each glyph added
      */
     void
-    add_glyphs(const reference_counted_ptr<const FontBase> &font,
+    add_glyphs(const FontBase *font,
                c_array<const uint32_t> glyph_codes,
                c_array<const vec2> positions);
 

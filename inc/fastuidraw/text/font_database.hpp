@@ -250,7 +250,7 @@ namespace fastuidraw
     /*!
      * Fetch a GlyphSource with font merging from a glyph rendering type,
      * font preference and character code.
-     * \param h handle to font from which to fetch the glyph, if the glyph
+     * \param h pointer to font from which to fetch the glyph, if the glyph
      *          is not present in the font attempt to get the glyph from
      *          a font of similiar properties
      * \param character_code character code of glyph to fetch
@@ -259,19 +259,18 @@ namespace fastuidraw
      *                           matching criteria of selecting a font.
      */
     GlyphSource
-    fetch_glyph(reference_counted_ptr<const FontBase> h,
-                uint32_t character_code, uint32_t selection_strategy = 0u);
+    fetch_glyph(const FontBase *h, uint32_t character_code,
+                uint32_t selection_strategy = 0u);
 
     /*!
      * Fetch a GlyphSource without font merging from a glyph rendering type,
      * font and character code.
-     * \param h handle to font from which to fetch the glyph, if the glyph
+     * \param h pointer to font from which to fetch the glyph, if the glyph
      *          is not present in the font, then return an invalid Glyph.
      * \param character_code character code of glyph to fetch
      */
     GlyphSource
-    fetch_glyph_no_merging(reference_counted_ptr<const FontBase> h,
-                           uint32_t character_code);
+    fetch_glyph_no_merging(const FontBase *h, uint32_t character_code);
 
     /*!
      * Fill Glyph values from an iterator range of character code values.
@@ -298,7 +297,7 @@ namespace fastuidraw
      * Fill Glyph values from an iterator range of character code values.
      * \tparam input_iterator read iterator to type that is castable to uint32_t
      * \tparam output_iterator write iterator to Glyph
-     * \param h handle to font from which to fetch the glyph, if the glyph
+     * \param h pointer to font from which to fetch the glyph, if the glyph
      *          is not present in the font attempt to get the glyph from
      *          a font of similiar properties
      * \param character_codes_begin iterator to 1st character code
@@ -311,7 +310,7 @@ namespace fastuidraw
     template<typename input_iterator,
              typename output_iterator>
     void
-    create_glyph_sequence(reference_counted_ptr<const FontBase> h,
+    create_glyph_sequence(const FontBase *h,
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
                           output_iterator output_begin,
@@ -321,7 +320,7 @@ namespace fastuidraw
      * Fill an array of Glyph values from an array of character code values.
      * \tparam input_iterator read iterator to type that is castable to uint32_t
      * \tparam output_iterator write iterator to Glyph
-     * \param h handle to font from which to fetch the glyph, if the glyph
+     * \param h pointer to font from which to fetch the glyph, if the glyph
      *          is not present in the font attempt to get the glyph from
      *          a font of similiar properties
      * \param character_codes_begin iterator to first character code
@@ -331,7 +330,7 @@ namespace fastuidraw
     template<typename input_iterator,
              typename output_iterator>
     void
-    create_glyph_sequence_no_merging(reference_counted_ptr<const FontBase> h,
+    create_glyph_sequence_no_merging(const FontBase *h,
                                      input_iterator character_codes_begin,
                                      input_iterator character_codes_end,
                                      output_iterator output_begin);
@@ -348,13 +347,12 @@ namespace fastuidraw
                         uint32_t selection_strategy);
 
     GlyphSource
-    fetch_glyph_no_lock(reference_counted_ptr<const FontBase> h,
+    fetch_glyph_no_lock(const FontBase *h,
                         uint32_t character_code,
                         uint32_t selection_strategy);
 
     GlyphSource
-    fetch_glyph_no_merging_no_lock(reference_counted_ptr<const FontBase> h,
-                                   uint32_t character_code);
+    fetch_glyph_no_merging_no_lock(const FontBase *h, uint32_t character_code);
 
     void *m_d;
   };
@@ -383,7 +381,7 @@ namespace fastuidraw
            typename output_iterator>
   void
   FontDatabase::
-  create_glyph_sequence(reference_counted_ptr<const FontBase> h,
+  create_glyph_sequence(const FontBase *h,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
                         output_iterator output_begin,
@@ -403,7 +401,7 @@ namespace fastuidraw
            typename output_iterator>
   void
   FontDatabase::
-  create_glyph_sequence_no_merging(reference_counted_ptr<const FontBase> h,
+  create_glyph_sequence_no_merging(const FontBase *h,
                                    input_iterator character_codes_begin,
                                    input_iterator character_codes_end,
                                    output_iterator output_begin)
