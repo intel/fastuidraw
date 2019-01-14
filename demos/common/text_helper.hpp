@@ -63,7 +63,7 @@ private:
 void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       const std::vector<uint32_t> &glyph_codes,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      const fastuidraw::FontBase *font,
                       const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
 
 
@@ -77,7 +77,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       std::istream &stream,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
 
@@ -91,7 +91,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 void
 create_formatted_text(fastuidraw::GlyphRun &out_run,
                       std::istream &stream,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &shift_by = fastuidraw::vec2(0.0f, 0.0f));
 

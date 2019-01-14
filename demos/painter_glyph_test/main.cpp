@@ -335,7 +335,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   metrics.resize(num_glyphs);
   for(unsigned int i = 0; i < num_glyphs; ++i)
     {
-      metrics[i] = glyph_cache->fetch_glyph_metrics(font, i);
+      metrics[i] = glyph_cache->fetch_glyph_metrics(font.get(), i);
     }
 
   vec2 pen(0.0f, 0.0f);
@@ -348,7 +348,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
                                      t_max(0.0f, metric.horizontal_layout_offset().x()) + metric.size().x());
       advance += 1.0; //a little additional slack between glyphs.
 
-      m_glyph_sequence->add_glyph(GlyphSource(i, font), pen);
+      m_glyph_sequence->add_glyph(GlyphSource(i, font.get()), pen);
       pen.x() += advance;
 
       if (i + 1 < endi)
@@ -388,7 +388,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
     {
       std::istringstream stream(nav_iter->second);
 
-      create_formatted_text(*m_glyph_sequence, stream, font,
+      create_formatted_text(*m_glyph_sequence, stream, font.get(),
                             font_database,
                             vec2(line_length, nav_iter->first));
     }
@@ -408,7 +408,7 @@ init(const std::vector<uint32_t> &glyph_codes,
   std::cout << "Formatting glyphs ..." << std::flush;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
                                                  screen_orientation, glyph_cache);
-  create_formatted_text(*m_glyph_sequence, glyph_codes, font);
+  create_formatted_text(*m_glyph_sequence, glyph_codes, font.get());
 
   std::cout << "took " << timer.restart() << " ms\n";
 }
@@ -429,7 +429,7 @@ init(std::istream &istr,
       simple_time timer;
 
       std::cout << "Formatting glyphs ..." << std::flush;
-      create_formatted_text(*m_glyph_sequence, istr, font, font_database);
+      create_formatted_text(*m_glyph_sequence, istr, font.get(), font_database);
       std::cout << "took " << timer.restart() << " ms\n";
     }
 }
@@ -833,7 +833,7 @@ stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
   enum Painter::shader_anti_alias_t aa_mode;
 
   FASTUIDRAWassert(R.valid());
-  G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
+  G = m_glyph_cache->fetch_glyph(R, M.font().get(), M.glyph_code());
   aa_mode = (m_anti_alias_path_stroking) ?
     Painter::shader_anti_alias_auto :
     Painter::shader_anti_alias_none;
@@ -850,7 +850,7 @@ fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
   Glyph G;
 
   FASTUIDRAWassert(R.valid());
-  G = m_glyph_cache->fetch_glyph(R, M.font(), M.glyph_code());
+  G = m_glyph_cache->fetch_glyph(R, M.font().get(), M.glyph_code());
   m_painter->fill_path(d, G.path(),
                        Painter::nonzero_fill_rule,
                        (m_anti_alias_path_filling) ?
@@ -1040,7 +1040,7 @@ draw_glyphs(float us)
               vec2 min_bb, max_bb, sz_bb, r;
               float rad;
 
-              G = m_glyph_cache->fetch_glyph(render, metrics.font(), metrics.glyph_code());
+              G = m_glyph_cache->fetch_glyph(render, metrics.font().get(), metrics.glyph_code());
               extract_path_info(G.path(), &pts, &ctl_pts, &arc_center_pts, &descr);
               G.path().approximate_bounding_box(&min_bb, &max_bb);
               sz_bb = max_bb - min_bb;
@@ -1173,7 +1173,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.color(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_font.get(), GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
   else
@@ -1249,7 +1249,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.color(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRenderer(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_font.get(), GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
 

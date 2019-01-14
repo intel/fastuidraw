@@ -651,7 +651,7 @@ draw_frame(void)
           m_text_brush = m_painter->packed_value_pool().create_packed_value(brush);
         }
       draw_text(ostr.str(), m_fps_pixel_size.value(),
-                m_table_params.m_font, PainterData(m_text_brush));
+                m_table_params.m_font.get(), PainterData(m_text_brush));
     }
 
   c_array<const PainterBackend::Surface* const> surfaces;

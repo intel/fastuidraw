@@ -1484,7 +1484,7 @@ construct_paths(int w, int h)
       Glyph g;
 
       glyph_code = m_font->glyph_code(character_code);
-      g = m_glyph_cache->fetch_glyph(renderer, m_font, glyph_code);
+      g = m_glyph_cache->fetch_glyph(renderer, m_font.get(), glyph_code);
       if (g.valid() && g.path().number_contours() > 0)
         {
           std::ostringstream str;
@@ -2190,7 +2190,7 @@ draw_frame(void)
 
       PainterBrush brush;
       brush.color(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, PainterData(&brush));
+      draw_text(ostr.str(), 32.0f, m_font.get(), PainterData(&brush));
     }
 
   m_painter->end();

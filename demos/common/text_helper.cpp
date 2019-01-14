@@ -334,7 +334,7 @@ generate(unsigned int num_threads,
 void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       const std::vector<uint32_t> &glyph_codes,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      const fastuidraw::FontBase *font,
                       const fastuidraw::vec2 &shift_by)
 {
   fastuidraw::vec2 pen(shift_by);
@@ -358,7 +358,7 @@ static
 void
 create_formatted_textT(T &out_sequence,
                        std::istream &istr,
-                       fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                       const fastuidraw::FontBase *font,
                        fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                        const fastuidraw::vec2 &starting_place)
 {
@@ -467,7 +467,7 @@ create_formatted_textT(T &out_sequence,
 void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       std::istream &istr,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &starting_place)
 {
@@ -477,7 +477,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 void
 create_formatted_text(fastuidraw::GlyphRun &out_sequence,
                       std::istream &istr,
-                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &starting_place)
 {

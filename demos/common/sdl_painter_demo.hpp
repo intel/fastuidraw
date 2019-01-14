@@ -75,14 +75,14 @@ protected:
 protected:
   void
   draw_text(const std::string &text, float pixel_size,
-            fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+            const fastuidraw::FontBase *font,
             fastuidraw::GlyphRenderer renderer,
             const fastuidraw::PainterData &draw,
             enum fastuidraw::Painter::screen_orientation orientation
             = fastuidraw::Painter::y_increases_downwards);
   void
   draw_text(const std::string &text, float pixel_size,
-            fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+            const fastuidraw::FontBase *font,
             const fastuidraw::PainterData &draw,
             enum fastuidraw::Painter::screen_orientation orientation
             = fastuidraw::Painter::y_increases_downwards)
