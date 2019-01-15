@@ -440,6 +440,7 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       uint image_filter, image_type, mipmap_max_level;
       vec2 q;
       float lod;
+      vec4 image_color;
 
       /* fract the brush coordinate to the size of
        * the image.
@@ -473,16 +474,23 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 
       if (image_type == uint(fastuidraw_image_type_on_atlas))
         {
-          return_value *= fastuidraw_image_of_atlas(q, image_filter, lod);
+          image_color = fastuidraw_image_of_atlas(q, image_filter, lod);
         }
       else if (image_type == uint(fastuidraw_image_type_bindless_texture2d))
         {
-          return_value *= fastuidraw_image_of_bindless(q, image_filter, lod);
+          image_color = fastuidraw_image_of_bindless(q, image_filter, lod);
         }
       else
         {
-          return_value *= fastuidraw_image_of_external_texture(q, image_filter, lod);
+          image_color = fastuidraw_image_of_external_texture(q, image_filter, lod);
         }
+
+      if ((fastuidraw_brush_shader & fastuidraw_image_ignore_alpha_mask) != 0u)
+	{
+	  image_color.a = 1.0;
+	}
+
+      return_value *= image_color;
     }
 
   return return_value;
