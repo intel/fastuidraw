@@ -689,9 +689,13 @@ namespace fastuidraw
      * any number of begin_layer() calls as well.
      * \param color_modulate color value by which to modulate
      *                       the layer when it is to be blitted
+     * \param ignore_alpha if true, when blitting the buffer
+     *                     region, ignore the buffer's alpha
+     *                     and use 1.0 instead.
      */
     void
-    begin_layer(const vec4 &color_modulate);
+    begin_layer(const vec4 &color_modulate,
+		bool ignore_alpha = true);
 
     /*!
      * Provided as a conveniance, equivalent to
@@ -699,11 +703,14 @@ namespace fastuidraw
      * begin_layer(vec4(1.0f, 1.0f, 1.0f, alpha));
      * \endcode
      * \param alpha alpha value for color modulation.
+     * \param ignore_alpha if true, when blitting the buffer
+     *                     region, ignore the buffer's alpha
+     *                     and use 1.0 instead.
      */
     void
-    begin_layer(float alpha)
+    begin_layer(float alpha, bool ignore_alpha = true)
     {
-      begin_layer(vec4(1.0f, 1.0f, 1.0f, alpha));
+      begin_layer(vec4(1.0f, 1.0f, 1.0f, alpha), ignore_alpha);
     }
 
     /*!

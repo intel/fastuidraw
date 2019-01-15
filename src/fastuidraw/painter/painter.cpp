@@ -633,6 +633,7 @@ namespace
     const fastuidraw::Image *m_image;
     fastuidraw::vec2 m_brush_translate;
     fastuidraw::vec4 m_modulate_color;
+    bool m_ignore_image_alpha;
 
     /* The translation is from the root surface of Painter::begin()
      * to the location within TransparencyBuffer::m_surface.
@@ -5029,7 +5030,7 @@ restore(void)
 
 void
 fastuidraw::Painter::
-begin_layer(const vec4 &color_modulate)
+begin_layer(const vec4 &color_modulate, bool ignore_alpha)
 {
   PainterPrivate *d;
   TransparencyStackEntry R;
@@ -5058,6 +5059,7 @@ begin_layer(const vec4 &color_modulate)
                                                   clip_region_rect, d);
   R.m_state_stack_size = d->m_state_stack.size();
   R.m_modulate_color = color_modulate;
+  R.m_ignore_image_alpha = ignore_alpha;
 
   /* set the normalized translation of d->m_clip_rect_state */
   d->m_clip_rect_state.set_normalized_device_translate(R.m_normalized_translate);
@@ -5106,14 +5108,18 @@ end_layer(void)
     {
       vec2 dims;
       PainterBrush brush;
+      enum PainterBrush::image_alpha_t tp;
 
       dims = d->m_viewport_dimensions;
       transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
+      tp = R.m_ignore_image_alpha ?
+	PainterBrush::ignore_image_alpha :
+	PainterBrush::dont_ignore_image_alpha;
 
       brush
         .transformation_translate(R.m_brush_translate)
         .color(R.m_modulate_color)
-        .image(R.m_image);
+        .image(R.m_image, tp);
 
       fill_rect(PainterData(&brush),
                 Rect()
