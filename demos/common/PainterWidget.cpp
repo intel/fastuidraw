@@ -5,6 +5,7 @@ PainterWidget(PainterWidget *parent):
   m_dimensions(100.0f, 100.0f), //whatever.
   m_clipped(true),
   m_draw_transparent(false),
+  m_ignore_alpha_if_transparent(true),
   m_skip_drawing(false),
   m_parent(parent)
 {
@@ -87,7 +88,8 @@ paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter)
 
       if (m_draw_transparent)
         {
-          painter->begin_layer(fastuidraw::vec4(1.0f, 1.0f, 1.0f, 0.5f));
+          painter->begin_layer(0.5f, m_ignore_alpha_if_transparent);
+          painter->clip_in_rect(fastuidraw::Rect().size(m_dimensions));
         }
 
       painter->save();

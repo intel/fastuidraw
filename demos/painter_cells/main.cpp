@@ -766,6 +766,21 @@ handle_event(const SDL_Event &ev)
             }
           break;
 
+	case SDLK_u:
+	  if (m_cell_shared_state.m_draw_transparent)
+	    {
+	      m_cell_shared_state.m_ignore_alpha_if_transparent = !m_cell_shared_state.m_ignore_alpha_if_transparent;
+	      if (m_cell_shared_state.m_ignore_alpha_if_transparent)
+		{
+		  std::cout << "Draw cells transparently and ignore alpha\n";
+		}
+	      else
+		{
+		  std::cout << "Draw cells transparenty and use alpha\n";
+		}
+	    }
+          break;
+
         case SDLK_o:
           if (ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT))
             {

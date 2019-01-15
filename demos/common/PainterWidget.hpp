@@ -51,6 +51,12 @@ public:
    */
   bool m_draw_transparent;
 
+  /* only has effect if m_draw_transparent is true;
+   * indicates to ignore the image alpha from the
+   * transparency layer
+   */
+  bool m_ignore_alpha_if_transparent;
+
   /* if true, skip drawing both the widgets
      and alls its descendants
    */
