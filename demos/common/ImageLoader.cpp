@@ -264,7 +264,7 @@ create_texture_image(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAt
   FASTUIDRAWassert(texture != 0u);
   fastuidraw_glBindTexture(GL_TEXTURE_2D, texture);
 
-  m = fastuidraw::t_min(m, image.num_mipmap_levels());
+  m = fastuidraw::t_min(m, image.number_levels());
   tex_storage2d_rgba8(w, h, m);
 
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);

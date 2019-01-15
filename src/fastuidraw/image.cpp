@@ -354,7 +354,7 @@ namespace
       m_atlas(patlas),
       m_action(action),
       m_dimensions(w, h),
-      m_num_mipmap_levels(m),
+      m_number_levels(m),
       m_type(t),
       m_slack(0x0FFFFFFF), //use a large value that won't overflow easily
       m_num_color_tiles(-1, -1),
@@ -382,7 +382,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas::ResourceReleaseAction> m_action;
     fastuidraw::ivec2 m_dimensions;
-    int m_num_mipmap_levels;
+    int m_number_levels;
 
     enum fastuidraw::Image::type_t m_type;
 
@@ -411,7 +411,7 @@ ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &pa
              unsigned int pslack):
   m_atlas(patlas),
   m_dimensions(w, h),
-  m_num_mipmap_levels(image_data.num_mipmap_levels()),
+  m_number_levels(image_data.number_levels()),
   m_type(fastuidraw::Image::on_atlas),
   m_slack(pslack),
   m_bindless_handle(-1)
@@ -800,7 +800,7 @@ all_same_color(ivec2 location, int square_size, u8vec4 *dst) const
 
 unsigned int
 fastuidraw::ImageSourceCArray::
-num_mipmap_levels(void) const
+number_levels(void) const
 {
   return m_data.size();
 }
@@ -1122,7 +1122,7 @@ add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data)
   dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
   dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
   sz = d->m_color_tiles.tile_size();
-  end_level = image_data.num_mipmap_levels();
+  end_level = image_data.number_levels();
 
   for (level = 0; level < end_level && sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2)
     {
@@ -1345,7 +1345,7 @@ number_mipmap_levels(void) const
 {
   ImagePrivate *d;
   d = static_cast<ImagePrivate*>(m_d);
-  return d->m_num_mipmap_levels;
+  return d->m_number_levels;
 }
 
 unsigned int

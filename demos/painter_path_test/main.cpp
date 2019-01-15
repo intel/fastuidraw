@@ -2241,7 +2241,7 @@ derived_init(int w, int h)
               m_image = create_texture_image(m_painter->image_atlas(),
                                              image_data.width(),
                                              image_data.height(),
-                                             image_data.num_mipmap_levels(),
+                                             image_data.number_levels(),
                                              image_data);
             }
         }

@@ -64,11 +64,12 @@ class Image;
 
     /*!
      * To be implemented by a derived class to return the number of
-     * mipmap levels of image source has.
+     * levels (including the base-image) of image source has, i.e.
+     * if the image is to have no mipmapping, return 1.
      */
     virtual
     unsigned int
-    num_mipmap_levels(void) const = 0;
+    number_levels(void) const = 0;
 
     /*!
      * To be implemented by a derived class to write to
@@ -78,11 +79,11 @@ class Image;
      * natural dimensions, those pixels outside are to be
      * duplicates of the boundary values.
      *
-     * \param mimpap_level LOD of data where 0 represents the highest
-     *                     level of detail and each successive level
-     *                     is half the resolution in each dimension;
-     *                     it is gauranteed by the called that
-     *                     0 <= mimpap_level() < num_mipmap_levels()
+     * \param level LOD of data where 0 represents the highest
+     *              level of detail and each successive level
+     *              is half the resolution in each dimension;
+     *              it is gauranteed by the called that
+     *              0 <= level() < number_levels()
      * \param location (x, y) location of data from which to copy
      * \param w width of data from which to copy
      * \param h height of data from which to copy
@@ -93,7 +94,7 @@ class Image;
      */
     virtual
     void
-    fetch_texels(unsigned int mimpap_level, ivec2 location,
+    fetch_texels(unsigned int level, ivec2 location,
                  unsigned int w, unsigned int h,
                  c_array<u8vec4> dst) const = 0;
   };
@@ -123,7 +124,7 @@ class Image;
 
     virtual
     unsigned int
-    num_mipmap_levels(void) const;
+    number_levels(void) const;
 
     virtual
     void
