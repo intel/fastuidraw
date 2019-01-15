@@ -560,7 +560,7 @@ add_fonts_from_font_config(fastuidraw::reference_counted_ptr<fastuidraw::FreeTyp
 
       object_set = FcObjectSetBuild(FC_FOUNDRY, FC_FAMILY, FC_STYLE, FC_WEIGHT,
                                     FC_SLANT, FC_SCALABLE, FC_FILE, FC_INDEX,
-                                    nullptr);
+                                    FC_LANG, nullptr);
       pattern = FcPatternCreate();
       FcPatternAddBool(pattern, FC_SCALABLE, FcTrue);
       font_set = FcFontList(config, pattern, object_set);
@@ -617,6 +617,7 @@ select_font_font_config(int weight, int slant,
                         fastuidraw::c_string style,
                         fastuidraw::c_string family,
                         fastuidraw::c_string foundry,
+                        const std::set<std::string> &langs,
                         fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
                         fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database)
 {
@@ -624,6 +625,7 @@ select_font_font_config(int weight, int slant,
     {
       FcConfig *config = FontConfig::get();
       FcPattern* pattern;
+      FcLangSet* lang_set(nullptr);
 
       pattern = FcPatternCreate();
       if (weight >= 0)
@@ -650,6 +652,21 @@ select_font_font_config(int weight, int slant,
         {
           FcPatternAddString(pattern, FC_FOUNDRY, (const FcChar8*)foundry);
         }
+
+      for (const std::string &lang : langs)
+        {
+          if (!lang_set)
+            {
+              lang_set = FcLangSetCreate();
+            }
+          FcLangSetAdd(lang_set, (const FcChar8*)lang.c_str());
+        }
+
+      if (lang_set)
+        {
+          FcPatternAddLangSet(pattern, FC_LANG, lang_set);
+        }
+
       FcPatternAddBool(pattern, FC_SCALABLE, FcTrue);
 
       FcConfigSubstitute(config, pattern, FcMatchPattern);
@@ -684,6 +701,10 @@ select_font_font_config(int weight, int slant,
           FcPatternDestroy(font_pattern);
         }
       FcPatternDestroy(pattern);
+      if (lang_set)
+        {
+          FcLangSetDestroy(lang_set);
+        }
       return font;
     }
   #else

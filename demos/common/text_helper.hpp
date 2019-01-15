@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <set>
 #include <string>
 #include <iostream>
 #include <SDL_thread.h>
@@ -109,6 +110,7 @@ select_font_font_config(int weight, int slant,
                         fastuidraw::c_string style,
                         fastuidraw::c_string family,
                         fastuidraw::c_string foundry,
+                        const std::set<std::string> &langs,
                         fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
                         fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database);
 

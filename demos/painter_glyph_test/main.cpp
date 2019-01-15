@@ -196,6 +196,7 @@ private:
   command_line_argument_value<bool> m_font_bold, m_font_italic;
   command_line_argument_value<bool> m_font_ignore_style, m_font_ignore_bold_italic;
   command_line_argument_value<bool> m_use_font_config;
+  command_line_list<std::string> m_font_langs;
   command_line_argument_value<int> m_font_weight, m_font_slant;
   command_line_argument_value<bool> m_font_exact_match;
   command_line_argument_value<std::string> m_font_file;
@@ -473,6 +474,10 @@ painter_glyph_test(void):
   m_font_ignore_style(false, "font_ignore_style", "if true, when selecting a font ignore style value", *this),
   m_font_ignore_bold_italic(false, "font_ignore_bold_italic", "if true, when selecting a font ignore bold and italic values", *this),
   m_use_font_config(false, "use_font_config", "If true, use font config to select font", *this),
+  m_font_langs("add_font_lang",
+               "Add a language requirement when choosing the font with FontConfig. "
+               "Languages are encoded as strings as defined by RFC-3066. ",
+               *this),
   m_font_weight(-1, "font_weight", "Only has effect if value is non-negative and use_font_config is true. "
                 "Gives the value for FC_WEIGHT to pass for fontconfig for font selection",
                 *this),
@@ -609,6 +614,7 @@ create_and_add_font(void)
                                          m_font_ignore_style.value() ? nullptr : m_font_style.value().c_str(),
                                          m_font_family.value().empty() ? nullptr : m_font_family.value().c_str(),
                                          m_font_foundry.value().empty() ? nullptr : m_font_foundry.value().c_str(),
+                                         m_font_langs,
                                          m_ft_lib, m_font_database);
         }
       else
@@ -1365,6 +1371,11 @@ handle_event(const SDL_Event &ev)
         case SDLK_d:
           cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_draws.size());
           std::cout << "Drawing " << m_draws[m_current_drawer] << " glyphs\n";
+          break;
+
+        case SDLK_c:
+          std::cout << "Clear Cache\n";
+          m_glyph_cache->clear_atlas();
           break;
 
         case SDLK_z:
