@@ -731,7 +731,7 @@ namespace fastuidraw
     /*!
      * Reset the brush to initial conditions.
      */
-    void
+    PainterBrush&
     reset(void);
 
     /*!

@@ -283,7 +283,7 @@ shader(void) const
   return return_value;
 }
 
-void
+fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 reset(void)
 {
@@ -291,6 +291,9 @@ reset(void)
   m_data.m_shader_raw = 0u;
   m_data.m_image = nullptr;
   m_data.m_cs = nullptr;
+  m_data.m_transformation_p = vec2(0.0f, 0.0f);
+  m_data.m_transformation_matrix = float2x2();
+  return *this;
 }
 
 enum fastuidraw::PainterBrush::image_filter
