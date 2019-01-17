@@ -153,39 +153,37 @@ namespace fastuidraw
      * when the interpolate is outside of the range
      * [0, 1].
      */
-    enum gradient_spread_type_t
+    enum spread_type_t
       {
         /*!
          * Clamp the interpolate to [0, 1], i.e
          * feed into the color-stop lookup the
          * value clamp(interpolate, 0, 1).
          */
-        gradient_clamp,
+        spread_clamp,
 
         /*!
-         * Mirror the interpolate, i.e. feed into
-         * the color-stop lookup the value
-         * mirror(clamp(interpolate, 0.0, 2.0))
-         * where mirror(t) is t for 0 <= t <= 1
-         * and 2 - t for 1 <= t <= 2.
+         * Mirror the interpolate across 0, i.e.
+         * feed into the color-stop lookup the
+         * value clamp(abs(interpolate), 0.0, 1.0)
          */
-        gradient_mirror,
+        spread_mirror,
 
         /*!
          * Repeat the interpolate, i.e.
          * feed into the color-stop lookup the
          * value fract(interpolate)
          */
-        gradient_repeat,
+        spread_repeat,
 
         /*!
          * Mirror repeat the interpolate, i.e.
          * feed into the color-stop lookup the
-         * value mirror(2 * fract(t / 2)).
+         * value fract(abs(interpolate))
          */
-        gradient_mirror_repeat,
+        spread_mirror_repeat,
 
-        number_gradient_spread_types
+        number_spread_types
       };
 
     /*!
@@ -233,7 +231,7 @@ namespace fastuidraw
 
         /*!
          * Number of bits used to encode the gradient spread
-         * type, see \ref gradient_spread_type_t
+         * type, see \ref spread_type_t
          */
         gradient_spread_type_num_bits = 2,
 
@@ -796,7 +794,7 @@ namespace fastuidraw
     PainterBrush&
     linear_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                     const vec2 &start_p, const vec2 &end_p,
-                    enum gradient_spread_type_t spread)
+                    enum spread_type_t spread)
     {
       uint32_t gradient_bits;
 
@@ -826,7 +824,7 @@ namespace fastuidraw
     radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                     const vec2 &start_p, float start_r,
                     const vec2 &end_p, float end_r,
-                    enum gradient_spread_type_t spread)
+                    enum spread_type_t spread)
     {
       uint32_t gradient_bits;
 
@@ -858,7 +856,7 @@ namespace fastuidraw
      */
     PainterBrush&
     radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
-                    const vec2 &p, float r, enum gradient_spread_type_t spread)
+                    const vec2 &p, float r, enum spread_type_t spread)
     {
       return radial_gradient(cs, p, 0.0f, p, r, spread);
     }
@@ -877,7 +875,7 @@ namespace fastuidraw
     PainterBrush&
     sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                    const vec2 &p, float theta, float F,
-                   enum gradient_spread_type_t spread)
+                   enum spread_type_t spread)
     {
       uint32_t gradient_bits;
 
@@ -912,7 +910,7 @@ namespace fastuidraw
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation,
-                   float F, enum gradient_spread_type_t spread)
+                   float F, enum spread_type_t spread)
     {
       float S;
       bool b1(orientation == PainterEnums::y_increases_upwards);
@@ -943,7 +941,7 @@ namespace fastuidraw
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation,
-                   enum gradient_spread_type_t spread)
+                   enum spread_type_t spread)
     {
       return sweep_gradient(cs, p, theta, orientation, rotation_orientation, 1.0f, spread);
     }
@@ -966,19 +964,23 @@ namespace fastuidraw
     gradient_type(void) const
     {
       uint32_t v;
-      v = unpack_bits(gradient_type_bit0, gradient_type_num_bits, m_data.m_shader_raw);
+      v = unpack_bits(gradient_type_bit0,
+                      gradient_type_num_bits,
+                      m_data.m_shader_raw);
       return static_cast<enum gradient_type_t>(v);
     }
 
     /*!
      * Return the gradient_type_t that the brush applies.
      */
-    enum gradient_spread_type_t
+    enum spread_type_t
     gradient_spread_type(void) const
     {
       uint32_t v;
-      v = unpack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, m_data.m_shader_raw);
-      return static_cast<enum gradient_spread_type_t>(v);
+      v = unpack_bits(gradient_spread_type_bit0,
+                      gradient_spread_type_num_bits,
+                      m_data.m_shader_raw);
+      return static_cast<enum spread_type_t>(v);
     }
 
     /*!
@@ -1209,7 +1211,7 @@ namespace fastuidraw
      *   unpack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, shader())
      *   \endcode
      *   gives the gradient spread pattern (if any) the brush applies as
-     *   according to \ref gradient_spread_type_t
+     *   according to \ref spread_type_t
      * - If shader() & \ref repeat_window_mask is non-zero, then a repeat
      *   window is applied to the brush.
      * - If shader() & \ref transformation_translation_mask is non-zero, then a
