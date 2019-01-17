@@ -17,6 +17,29 @@
  */
 
 float
+fastuidraw_apply_spread(in float t, in float range,
+                        in uint spread_type)
+{
+  if (spread_type == fastuidraw_shader_spread_mirror)
+    {
+      t = clamp(abs(t), 0.0, range);
+    }
+  else if (spread_type == fastuidraw_shader_spread_repeat)
+    {
+      t = mod(t, range);
+    }
+  else if (spread_type == fastuidraw_shader_spread_mirror_repeat)
+    {
+      t = range - abs(mod(t, 2.0 * range) - range);
+    }
+  else
+    {
+      t = clamp(t, 0.0, range);
+    }
+  return t;
+}
+
+float
 compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
 {
   float t;
@@ -401,8 +424,19 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
    */
   if (fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
     {
+      uint x_spread, y_spread;
+
+      x_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_repeat_window_x_spread_type_bit0,
+                                         fastuidraw_shader_gradient_type_num_bits,
+                                         fastuidraw_brush_shader);
+
+      y_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_repeat_window_y_spread_type_bit0,
+                                         fastuidraw_shader_gradient_type_num_bits,
+                                         fastuidraw_brush_shader);
+
       p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
-      p = mod(p, vec2(fastuidraw_brush_repeat_window_w, fastuidraw_brush_repeat_window_h));
+      p.x = fastuidraw_apply_spread(p.x, fastuidraw_brush_repeat_window_w, x_spread);
+      p.y = fastuidraw_apply_spread(p.y, fastuidraw_brush_repeat_window_h, y_spread);
       p += vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
     }
 

@@ -494,6 +494,9 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro_u32("fastuidraw_shader_spread_mirror", PainterBrush::spread_mirror)
 
     .add_macro_u32("fastuidraw_shader_repeat_window_mask", PainterBrush::repeat_window_mask)
+    .add_macro_u32("fastuidraw_shader_repeat_window_x_spread_type_bit0", PainterBrush::repeat_window_x_spread_type_bit0)
+    .add_macro_u32("fastuidraw_shader_repeat_window_y_spread_type_bit0", PainterBrush::repeat_window_y_spread_type_bit0)
+
     .add_macro_u32("fastuidraw_shader_transformation_translation_mask", PainterBrush::transformation_translation_mask)
     .add_macro_u32("fastuidraw_shader_transformation_matrix_mask", PainterBrush::transformation_matrix_mask)
     .add_macro_u32("fastuidraw_image_number_index_lookup_bit0", PainterBrush::image_number_index_lookups_bit0)
