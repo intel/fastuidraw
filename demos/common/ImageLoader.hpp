@@ -75,7 +75,7 @@ public:
   explicit
   ImageLoader(const std::string &pfilename, bool flip = false):
     ImageLoaderData(pfilename, flip),
-    fastuidraw::ImageSourceCArray(dimensions(), data())
+    fastuidraw::ImageSourceCArray(dimensions(), data(), fastuidraw::Image::rgba_format)
   {}
 };
 

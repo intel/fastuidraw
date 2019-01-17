@@ -418,7 +418,8 @@ private:
               }
           }
         m_image_handles.push_back(Image::create(m_atlas, image_size.x(), image_size.y(),
-                                                cast_c_array(image_data), m_slack.value()));
+                                                cast_c_array(image_data), Image::rgba_format,
+                                                m_slack.value()));
         m_image_names.push_back("Simple Checkerboard");
       }
 
