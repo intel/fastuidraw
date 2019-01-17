@@ -487,9 +487,15 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 
       /* BEWARE: we are just testing if the format bits are non-zero;
        * We get away with this for now because there are only two
-       * image-formats: rgba and premultiplied_rgba
+       * image-formats: rgba and premultiplied_rgba with a non-zero
+       * value indicateing that the rgb components are pre-multiplied.
+       *
+       * TODO: it would be better if the PainterBrush emitted a pre-multiplied
+       * value; however the blending stage (not the compositing stage) needs
+       * to work in non-premultiplied or does it really need to?
        */
-      if ((fastuidraw_brush_shader & fastuidraw_image_format_mask) != 0u)
+      if (image_color.a != 0.0
+          && ((fastuidraw_brush_shader & fastuidraw_image_format_mask) != 0u))
 	{
 	  image_color.rgb /= image_color.a;
 	}
