@@ -486,7 +486,8 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro_u32("fastuidraw_shader_sweep_gradient_type", PainterBrush::sweep_gradient_type)
 
     .add_macro_u32("fastuidraw_shader_gradient_spread_type_bit0", PainterBrush::gradient_spread_type_bit0)
-    .add_macro_u32("fastuidraw_shader_gradient_spread_type_num_bits", PainterBrush::gradient_spread_type_num_bits)
+
+    .add_macro_u32("fastuidraw_shader_spread_type_num_bits", PainterBrush::spread_type_num_bits)
     .add_macro_u32("fastuidraw_shader_spread_clamp", PainterBrush::spread_clamp)
     .add_macro_u32("fastuidraw_shader_spread_repeat", PainterBrush::spread_repeat)
     .add_macro_u32("fastuidraw_shader_spread_mirror_repeat", PainterBrush::spread_mirror_repeat)

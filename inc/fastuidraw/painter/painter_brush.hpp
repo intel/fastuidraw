@@ -149,37 +149,39 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to specify how a gradient behaves
-     * when the interpolate is outside of the range
-     * [0, 1].
+     * Enumeration to specify how a value is interpreted
+     * outside of its natural range. For gradients the
+     * range is [0, 1] acting on its interpolate.
      */
     enum spread_type_t
       {
         /*!
-         * Clamp the interpolate to [0, 1], i.e
-         * feed into the color-stop lookup the
-         * value clamp(interpolate, 0, 1).
+         * Clamp the value to its range, i.e.
+         * for a value t on a range [A, B] the
+         * value is clamp(r, A, B).
          */
         spread_clamp,
 
         /*!
-         * Mirror the interpolate across 0, i.e.
-         * feed into the color-stop lookup the
-         * value clamp(abs(interpolate), 0.0, 1.0)
+         * Mirror the value across the start of
+         * its range, i.e. for a value t on a
+         * range [A, B] the value is
+         * clamp(A + abs(t - A), A, B)
          */
         spread_mirror,
 
         /*!
-         * Repeat the interpolate, i.e.
-         * feed into the color-stop lookup the
-         * value fract(interpolate)
+         * Repeat the value to its range, i.e.
+         * for a value t on a range [A, B] the
+         * value is A + mod(t - A, B - A)
          */
         spread_repeat,
 
         /*!
-         * Mirror repeat the interpolate, i.e.
-         * feed into the color-stop lookup the
-         * value fract(abs(interpolate))
+         * Mirror repeat the  value across the start
+         * of its range, i.e. for a value t on a
+         * range [A, B] the value is
+         * B - abs(mod(t - A, 2 * (B - A)) - (B - A))
          */
         spread_mirror_repeat,
 
@@ -230,10 +232,9 @@ namespace fastuidraw
         gradient_type_num_bits = 2,
 
         /*!
-         * Number of bits used to encode the gradient spread
-         * type, see \ref spread_type_t
+         * Number of bits used to encode a \ref spread_type_t
          */
-        gradient_spread_type_num_bits = 2,
+        spread_type_num_bits = 2,
 
         /*!
          * first bit for if image is present on the brush and if so, what filter
@@ -258,12 +259,22 @@ namespace fastuidraw
         /*!
          * Bit up if the brush has a repeat window
          */
-        repeat_window_bit = gradient_spread_type_bit0 + gradient_spread_type_num_bits,
+        repeat_window_bit = gradient_spread_type_bit0 + spread_type_num_bits,
+
+        /* First bit used to encore the spread mode for the x-coordinate
+         * if a repeat window is active
+         */
+        repeat_window_x_spread_type_bit0,
+
+        /* First bit used to encore the spread mode for the x-coordinate
+         * if a repeat window is active
+         */
+        repeat_window_y_spread_type_bit0 = repeat_window_x_spread_type_bit0 + spread_type_num_bits,
 
         /*!
          * Bit up if transformation 2x2 matrix is present
          */
-        transformation_translation_bit,
+        transformation_translation_bit = repeat_window_y_spread_type_bit0 + spread_type_num_bits,
 
         /*!
          * Bit up is translation is present
@@ -315,12 +326,32 @@ namespace fastuidraw
          * mask generated from \ref gradient_spread_type_bit0 and \ref
          * gradient_spread_type_num_bits
          */
-        gradient_spread_type_mask = FASTUIDRAW_MASK(gradient_spread_type_bit0, gradient_spread_type_num_bits),
+        gradient_spread_type_mask = FASTUIDRAW_MASK(gradient_spread_type_bit0, spread_type_num_bits),
 
         /*!
          * mask generated from \ref repeat_window_bit
          */
         repeat_window_mask = FASTUIDRAW_MASK(repeat_window_bit, 1),
+
+        /*!
+         * mask generated from \ref repeat_window_x_spread_type
+         * and \ref spread_type_num_bits
+         */
+        repeat_window_x_spread_type_mask = FASTUIDRAW_MASK(repeat_window_x_spread_type_bit0,
+                                                           spread_type_num_bits),
+
+        /*!
+         * mask generated from \ref repeat_window_y_spread_type
+         * and \ref spread_type_num_bits
+         */
+        repeat_window_y_spread_type_mask = FASTUIDRAW_MASK(repeat_window_y_spread_type_bit0,
+                                                           spread_type_num_bits),
+
+        /*!
+         * mask of \ref repeat_window_x_spread_type_mask and \ref
+         * repeat_window_y_spread_type bitwise or'd together
+         */
+        repeat_window_spread_type_mask = repeat_window_x_spread_type_mask | repeat_window_y_spread_type_mask,
 
         /*!
          * mask generated from \ref transformation_translation_bit
@@ -803,7 +834,7 @@ namespace fastuidraw
       m_data.m_grad_end = end_p;
       gradient_bits = cs ?
         pack_bits(gradient_type_bit0, gradient_type_num_bits, linear_gradient_type)
-        | pack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, spread) :
+        | pack_bits(gradient_spread_type_bit0, spread_type_num_bits, spread) :
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
@@ -835,7 +866,7 @@ namespace fastuidraw
       m_data.m_grad_end_r = end_r;
       gradient_bits = cs ?
         pack_bits(gradient_type_bit0, gradient_type_num_bits, radial_gradient_type)
-        | pack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, spread) :
+        | pack_bits(gradient_spread_type_bit0, spread_type_num_bits, spread) :
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
@@ -884,7 +915,7 @@ namespace fastuidraw
       m_data.m_grad_end = vec2(theta, F);
       gradient_bits = cs ?
         pack_bits(gradient_type_bit0, gradient_type_num_bits, sweep_gradient_type)
-        | pack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, spread) :
+        | pack_bits(gradient_spread_type_bit0, spread_type_num_bits, spread) :
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
@@ -978,7 +1009,7 @@ namespace fastuidraw
     {
       uint32_t v;
       v = unpack_bits(gradient_spread_type_bit0,
-                      gradient_spread_type_num_bits,
+                      spread_type_num_bits,
                       m_data.m_shader_raw);
       return static_cast<enum spread_type_t>(v);
     }
@@ -1136,13 +1167,24 @@ namespace fastuidraw
      * Sets the brush to have a repeat window
      * \param pos location of repeat window
      * \param size of repeat window
+     * \param x_mode spread mode for x-coordinate
+     * \param y_mode spread mode for y-coordinate
      */
     PainterBrush&
-    repeat_window(const vec2 &pos, const vec2 &size)
+    repeat_window(const vec2 &pos, const vec2 &size,
+                  enum spread_type_t x_mode = spread_repeat,
+                  enum spread_type_t y_mode = spread_repeat)
     {
       m_data.m_window_position = pos;
       m_data.m_window_size = size;
       m_data.m_shader_raw |= repeat_window_mask;
+      m_data.m_shader_raw &= ~repeat_window_spread_type_mask;
+      m_data.m_shader_raw |= pack_bits(repeat_window_x_spread_type_bit0,
+                                       spread_type_num_bits,
+                                       x_mode);
+      m_data.m_shader_raw |= pack_bits(repeat_window_y_spread_type_bit0,
+                                       spread_type_num_bits,
+                                       y_mode);
       return *this;
     }
 
@@ -1160,12 +1202,42 @@ namespace fastuidraw
     }
 
     /*!
+     * Returns the x-coordinate spread type. Return
+     * value is undefined if the repeat_window() is
+     * not active.
+     */
+    enum spread_type_t
+    repeat_window_x_spread_type(void) const
+    {
+      uint32_t v;
+      v = unpack_bits(repeat_window_x_spread_type_bit0,
+                      spread_type_num_bits,
+                      m_data.m_shader_raw);
+      return static_cast<enum spread_type_t>(v);
+    }
+
+    /*!
+     * Returns the y-coordinate spread type. Return
+     * value is undefined if the repeat_window() is
+     * not active.
+     */
+    enum spread_type_t
+    repeat_window_y_spread_type(void) const
+    {
+      uint32_t v;
+      v = unpack_bits(repeat_window_y_spread_type_bit0,
+                      spread_type_num_bits,
+                      m_data.m_shader_raw);
+      return static_cast<enum spread_type_t>(v);
+    }
+
+    /*!
      * Sets the brush to not have a repeat window
      */
     PainterBrush&
     no_repeat_window(void)
     {
-      m_data.m_shader_raw &= ~repeat_window_mask;
+      m_data.m_shader_raw &= ~(repeat_window_mask | repeat_window_spread_type_mask);
       return *this;
     }
 

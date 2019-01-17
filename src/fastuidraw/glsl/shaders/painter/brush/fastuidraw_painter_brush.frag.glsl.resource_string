@@ -417,7 +417,7 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 
       t = compute_gradient_interpolate(p, gradient_type, good);
       spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_gradient_spread_type_bit0,
-                                            fastuidraw_shader_gradient_spread_type_num_bits,
+                                            fastuidraw_shader_spread_type_num_bits,
                                             fastuidraw_brush_shader);
 
       /* NOTE: there is a Mesa/i965 but where if we change the
