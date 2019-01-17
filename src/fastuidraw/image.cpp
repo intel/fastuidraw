@@ -350,12 +350,14 @@ namespace
 
     ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
                  int w, int h, unsigned int m, fastuidraw::Image::type_t t, uint64_t handle,
+                 enum fastuidraw::Image::format_t fmt,
                  const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas::ResourceReleaseAction> &action):
       m_atlas(patlas),
       m_action(action),
       m_dimensions(w, h),
       m_number_levels(m),
       m_type(t),
+      m_format(fmt),
       m_slack(0x0FFFFFFF), //use a large value that won't overflow easily
       m_num_color_tiles(-1, -1),
       m_master_index_tile(-1, -1, -1),
@@ -385,6 +387,7 @@ namespace
     int m_number_levels;
 
     enum fastuidraw::Image::type_t m_type;
+    enum fastuidraw::Image::format_t m_format;
 
     /* Data for when the image has type on_atlas */
     unsigned int m_slack;
@@ -413,6 +416,7 @@ ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &pa
   m_dimensions(w, h),
   m_number_levels(image_data.number_levels()),
   m_type(fastuidraw::Image::on_atlas),
+  m_format(image_data.format()),
   m_slack(pslack),
   m_bindless_handle(-1)
 {
@@ -766,9 +770,11 @@ resize_to_fit(int num_tiles)
 // fastuidraw::ImageSourceCArray methods
 fastuidraw::ImageSourceCArray::
 ImageSourceCArray(uvec2 dimensions,
-                  c_array<const c_array<const u8vec4> > pdata):
+                  c_array<const c_array<const u8vec4> > pdata,
+                  enum Image::format_t fmt):
   m_dimensions(dimensions),
-  m_data(pdata)
+  m_data(pdata),
+  m_format(fmt)
 {}
 
 bool
@@ -823,6 +829,13 @@ fetch_texels(unsigned int mipmap_level, ivec2 location,
                     ivec2(m_dimensions.x() >> mipmap_level,
                           m_dimensions.y() >> mipmap_level));
     }
+}
+
+enum fastuidraw::Image::format_t
+fastuidraw::ImageSourceCArray::
+format(void) const
+{
+  return m_format;
 }
 
 //////////////////////////////////////////////////
@@ -1224,7 +1237,7 @@ queue_resource_release_action(const reference_counted_ptr<ResourceReleaseAction>
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
 create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-       c_array<const u8vec4> image_data, unsigned int pslack)
+       c_array<const u8vec4> image_data, enum format_t fmt, unsigned int pslack)
 {
   if (w <= 0 || h <= 0)
     {
@@ -1232,7 +1245,7 @@ create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
     }
 
   c_array<const c_array<const u8vec4> > data(&image_data, 1);
-  return create(atlas, w, h, ImageSourceCArray(uvec2(w, h), data), pslack);
+  return create(atlas, w, h, ImageSourceCArray(uvec2(w, h), data, fmt), pslack);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
@@ -1261,7 +1274,7 @@ create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
   num_color_tiles = divide_up(ivec2(w, h), tile_interior_size);
   if (!enough_room_in_atlas(num_color_tiles, atlas.get(), index_tiles))
     {
-      /*TODO:
+      /* TODO:
        * there actually might be enough room if we take into account
        * the savings from repeated tiles. The correct thing is to
        * delay this until iamge construction, check if it succeeded
@@ -1283,13 +1296,13 @@ create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
 create_bindless(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-                unsigned int m, enum type_t type, uint64_t handle,
+                unsigned int m, enum type_t type, uint64_t handle, enum format_t fmt,
                 const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action)
 {
   Image *p(nullptr);
   if (type != on_atlas && (!action || atlas))
     {
-      p = FASTUIDRAWnew Image(atlas, w, h, m, type, handle, action);
+      p = FASTUIDRAWnew Image(atlas, w, h, m, type, handle, fmt, action);
     }
   return p;
 }
@@ -1297,9 +1310,10 @@ create_bindless(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
 fastuidraw::Image::
 Image(const reference_counted_ptr<ImageAtlas> &patlas,
       int w, int h, unsigned int m, enum type_t type, uint64_t handle,
+      enum format_t fmt,
       const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action)
 {
-  m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, m, type, handle, action);
+  m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, m, type, handle, fmt, action);
 }
 
 fastuidraw::Image::
@@ -1409,4 +1423,13 @@ atlas(void) const
   ImagePrivate *d;
   d = static_cast<ImagePrivate*>(m_d);
   return d->m_atlas;
+}
+
+enum fastuidraw::Image::format_t
+fastuidraw::Image::
+format(void) const
+{
+  ImagePrivate *d;
+  d = static_cast<ImagePrivate*>(m_d);
+  return d->m_format;
 }

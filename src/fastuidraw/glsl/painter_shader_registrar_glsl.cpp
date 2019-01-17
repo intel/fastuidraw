@@ -468,7 +468,11 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro_u32("fastuidraw_image_type_bindless_texture2d", Image::bindless_texture2d)
     .add_macro_u32("fastuidraw_image_type_context_texture2d", Image::context_texture2d)
 
-    .add_macro_u32("fastuidraw_image_alpha_premultiplied_mask", PainterBrush::image_alpha_premultiplied_mask)
+    .add_macro_u32("fastuidraw_image_format_mask", PainterBrush::image_format_mask)
+    .add_macro_u32("fastuidraw_image_format_bit0", PainterBrush::image_format_bit0)
+    .add_macro_u32("fastuidraw_image_format_num_bits", PainterBrush::image_format_num_bits)
+    .add_macro_u32("fastuidraw_image_format_rgba", Image::rgba_format)
+    .add_macro_u32("fastuidraw_image_format_premultipied_rgba", Image::premultipied_rgba_format)
 
     .add_macro_u32("fastuidraw_image_mipmap_mask", PainterBrush::image_mipmap_mask)
     .add_macro_u32("fastuidraw_image_mipmap_bit0", PainterBrush::image_mipmap_bit0)

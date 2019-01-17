@@ -218,14 +218,13 @@ fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 sub_image(const reference_counted_ptr<const Image> &im,
           uvec2 xy, uvec2 wh, enum image_filter f,
-          unsigned int max_mipmap_level,
-	  enum image_alpha_premultiplied_t tp)
+          unsigned int max_mipmap_level)
 {
-  uint32_t filter_bits, type_bits, mip_bits, tp_bits;
+  uint32_t filter_bits, type_bits, mip_bits, fmt_bits;
 
   filter_bits = (im) ? uint32_t(f) : uint32_t(0);
   type_bits = (im) ? uint32_t(im->type()) : uint32_t(0);
-  tp_bits = (im) ? uint32_t(tp) : uint32_t(0);
+  fmt_bits = (im) ? uint32_t(im->format()) : uint32_t(0);
   mip_bits = (im) ?
     uint32_t(t_min(max_mipmap_level, im->number_mipmap_levels())):
     uint32_t(0);
@@ -244,8 +243,8 @@ sub_image(const reference_counted_ptr<const Image> &im,
   m_data.m_shader_raw &= ~image_mipmap_mask;
   m_data.m_shader_raw |= pack_bits(image_mipmap_bit0, image_mipmap_num_bits, mip_bits);
 
-  m_data.m_shader_raw &= ~image_alpha_premultiplied_mask;
-  m_data.m_shader_raw |= pack_bits(image_alpha_premultiplied_bit, 1, tp_bits);
+  m_data.m_shader_raw &= ~image_format_mask;
+  m_data.m_shader_raw |= pack_bits(image_format_bit0, image_format_num_bits, fmt_bits);
 
   return *this;
 }
@@ -253,15 +252,14 @@ sub_image(const reference_counted_ptr<const Image> &im,
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 image(const reference_counted_ptr<const Image> &im, enum image_filter f,
-      unsigned int max_mipmap_level,
-      enum image_alpha_premultiplied_t tp)
+      unsigned int max_mipmap_level)
 {
   uvec2 sz(0, 0);
   if (im)
     {
       sz = uvec2(im->dimensions());
     }
-  return sub_image(im, uvec2(0,0), sz, f, max_mipmap_level, tp);
+  return sub_image(im, uvec2(0,0), sz, f, max_mipmap_level);
 }
 
 uint32_t

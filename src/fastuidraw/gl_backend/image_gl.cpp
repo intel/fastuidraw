@@ -562,7 +562,8 @@ fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
 fastuidraw::gl::ImageAtlasGL::TextureImage::
 create(const reference_counted_ptr<ImageAtlas> &patlas,
        int w, int h, unsigned int m, GLuint texture,
-       bool object_owns_texture)
+       bool object_owns_texture,
+       enum format_t fmt)
 {
   if (w <= 0 || h <= 0 || m <= 0 || texture == 0)
     {
@@ -571,7 +572,7 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
 
   if (detail::bindless().not_supported())
     {
-      return FASTUIDRAWnew TextureImage(patlas, w, h, m, object_owns_texture, texture);
+      return FASTUIDRAWnew TextureImage(patlas, w, h, m, object_owns_texture, texture, fmt);
     }
   else
     {
@@ -579,7 +580,7 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
 
       handle = detail::bindless().get_texture_handle(texture);
       detail::bindless().make_texture_handle_resident(handle);
-      return FASTUIDRAWnew TextureImage(patlas, w, h, m, object_owns_texture, texture, handle);
+      return FASTUIDRAWnew TextureImage(patlas, w, h, m, object_owns_texture, texture, handle, fmt);
     }
 }
 
@@ -588,7 +589,8 @@ fastuidraw::gl::ImageAtlasGL::TextureImage::
 create(const reference_counted_ptr<ImageAtlas> &patlas,
        int w, int h, unsigned int m,
        GLenum tex_magnification,
-       GLenum tex_minification)
+       GLenum tex_minification,
+       enum format_t fmt)
 {
   GLuint tex(0);
   static detail::UseTexStorage use_tex_storage;
@@ -601,14 +603,15 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex_minification);
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
 
-  return create(patlas, w, h, m, tex, true);
+  return create(patlas, w, h, m, tex, true, fmt);
 }
 
 fastuidraw::gl::ImageAtlasGL::TextureImage::
 TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m,
-             bool object_owns_texture, GLuint texture):
-  Image(patlas, w, h, m, fastuidraw::Image::context_texture2d, -1,
+             bool object_owns_texture, GLuint texture,
+             enum format_t fmt):
+  Image(patlas, w, h, m, fastuidraw::Image::context_texture2d, -1, fmt,
         ReleaseTexture::create(texture, object_owns_texture))
 {
   m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
@@ -617,8 +620,9 @@ TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
 fastuidraw::gl::ImageAtlasGL::TextureImage::
 TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m,
-             bool object_owns_texture, GLuint texture, GLuint64 handle):
-  Image(patlas, w, h, m, fastuidraw::Image::bindless_texture2d, handle,
+             bool object_owns_texture, GLuint texture, GLuint64 handle,
+             enum format_t fmt):
+  Image(patlas, w, h, m, fastuidraw::Image::bindless_texture2d, handle, fmt,
         BindlessReleaseTexture::create(texture, object_owns_texture, handle))
 {
   m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);

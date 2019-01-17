@@ -485,13 +485,11 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
           image_color = fastuidraw_image_of_external_texture(q, image_filter, lod);
         }
 
-      /* TODO: instead of doing an expsensive divide, we should instead
-       * declare that the output value of PainterBrush is also alpha
-       * pre-multiplied and when the mask is DOWN, we multiply the
-       * image_color.rgb by image_color.a. We would also need to do this
-       * multiply on the color and gradient value too.
+      /* BEWARE: we are just testing if the format bits are non-zero;
+       * We get away with this for now because there are only two
+       * image-formats: rgba and premultiplied_rgba
        */
-      if ((fastuidraw_brush_shader & fastuidraw_image_alpha_premultiplied_mask) != 0u)
+      if ((fastuidraw_brush_shader & fastuidraw_image_format_mask) != 0u)
 	{
 	  image_color.rgb /= image_color.a;
 	}

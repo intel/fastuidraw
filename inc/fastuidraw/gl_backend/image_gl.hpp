@@ -216,12 +216,14 @@ namespace gl
        *                            If false, the GL texture must be deleted
        *                            by the caller AFTER the TextureImage is
        *                            deleted.
+       * \param fmt format of the RGBA of the texture
        */
       static
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m, GLuint texture,
-             bool object_owns_texture);
+             bool object_owns_texture,
+             enum format_t fmt = rgba_format);
       /*!
        * Create a GL texture and use it to back a TextureImage; the
        * created TextureImage will own the GL texture.
@@ -231,32 +233,36 @@ namespace gl
        * \param m number of mipmap levels of the texture
        * \param tex_magnification magnification filter to get the texture
        * \param tex_minification minification filter to get the texture
+       * \param fmt format of the RGBA of the texture
        */
       static
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m,
              GLenum tex_magnification,
-             GLenum tex_minification);
+             GLenum tex_minification,
+             enum format_t fmt = rgba_format);
       /*!
        * Create a GL texture with no mipmapping and use it to back
        * a TextureImage; the created TextureImage will own the GL
        * texture. Equivalent to
        * \code
-       * create(patlas, w, h, 1, filter, filter);
+       * create(patlas, w, h, 1, filter, filter, fmt);
        * \endcode
        * \param patlas the ImageAtlas that the created image is part of
        * \param w width of the texture
        * \param h height of the texture
        * \param filter magnification and minification filter to give
        *               the texture
+       * \param fmt format of the RGBA of the texture
        */
       static
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
-             int w, int h, GLenum filter)
+             int w, int h, GLenum filter,
+             enum format_t fmt = rgba_format)
       {
-        return create(patlas, w, h, 1, filter, filter);
+        return create(patlas, w, h, 1, filter, filter, fmt);
       }
 
       ~TextureImage();
@@ -283,10 +289,12 @@ namespace gl
     private:
       TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
                    int w, int h, unsigned int m,
-                   bool object_owns_texture, GLuint texture);
+                   bool object_owns_texture, GLuint texture,
+                   enum format_t fmt);
       TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
                    int w, int h, unsigned int m,
-                   bool object_owns_texture, GLuint texture, GLuint64 handle);
+                   bool object_owns_texture, GLuint texture, GLuint64 handle,
+                   enum format_t fmt);
 
       void *m_d;
     };

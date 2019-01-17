@@ -5106,16 +5106,14 @@ end_layer(void)
     {
       vec2 dims;
       PainterBrush brush;
-      enum PainterBrush::image_alpha_premultiplied_t tp;
 
       dims = d->m_viewport_dimensions;
       transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
-      tp = PainterBrush::image_is_alpha_premultiplied;
 
       brush
         .transformation_translate(R.m_brush_translate)
         .color(R.m_modulate_color)
-        .image(R.m_image, tp);
+        .image(R.m_image);
 
       fill_rect(PainterData(&brush),
                 Rect()

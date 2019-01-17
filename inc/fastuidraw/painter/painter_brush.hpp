@@ -93,26 +93,6 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to indicates whether or the image used
-     * by the brush is premultiplied by alpha channel or
-     * not.
-     */
-    enum image_alpha_premultiplied_t
-      {
-	/*!
-	 * Indicates that the image is NOT premultiplied
-         * by its alpha channel
-	 */
-	image_not_alpha_premultiplied = 0,
-
-	/*!
-	 * Indicates the the image is premultiplied by its
-         * alpha channel
-	 */
-	image_is_alpha_premultiplied
-      };
-
-    /*!
      * \brief
      * Enumeration to specify what kind of gradient is applied
      */
@@ -234,6 +214,12 @@ namespace fastuidraw
         image_type_num_bits = 4,
 
         /*!
+         * Number of bits needed to encode the value of
+         * Image::format().
+         */
+        image_format_num_bits = 1,
+
+        /*!
          * Number of bits used to encode number of mipmap
          * levels (when an image is present).
          */
@@ -293,16 +279,15 @@ namespace fastuidraw
         image_type_bit0,
 
 	/*!
-	 * bit to encode \ref image_alpha_premultiplied_t that determines how the
-	 * alpha channel of the image is used.
+	 * First bit to encode \ref Image::format_t
 	 */
-	image_alpha_premultiplied_bit = image_type_bit0 + image_type_num_bits,
+	image_format_bit0 = image_type_bit0 + image_type_num_bits,
 
         /*!
          * Must be last enum, gives number of bits needed to hold shader bits
          * of a PainterBrush.
          */
-        number_shader_bits,
+        number_shader_bits = image_format_bit0 + image_format_num_bits,
       };
 
     /*!
@@ -355,9 +340,9 @@ namespace fastuidraw
         image_type_mask = FASTUIDRAW_MASK(image_type_bit0, image_type_num_bits),
 
         /*!
-         * mask generated from \ref image_alpha_premultiplied_bit
+         * mask generated from \ref image_format_bit0 and \ref image_format_num_bits
          */
-	image_alpha_premultiplied_mask = FASTUIDRAW_MASK(image_alpha_premultiplied_bit, 1),
+	image_format_mask = FASTUIDRAW_MASK(image_format_bit0, image_format_num_bits),
       };
 
     /*!
@@ -771,52 +756,11 @@ namespace fastuidraw
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
      * \param max_mipmap_level max mipmap level to use with image
-     * \param tp determines if the alpha channel of the image is
-     *           used or not
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im,
           enum image_filter f = image_filter_nearest,
-          unsigned int max_mipmap_level = 0,
-	  enum image_alpha_premultiplied_t tp = image_not_alpha_premultiplied);
-
-    /*!
-     * Sets the brush to have an image, provided as a conveniance,
-     * equivalent to
-     * \code
-     * image(im, f, 0, tp);
-     * \endcode
-     * \param im handle to image to use. If handle is invalid,
-     *           then sets brush to not have an image.
-     * \param f filter to apply to image, only has effect if im
-     *          is non-nullptr
-     * \param tp determines if the alpha channel of the image is
-     *           used or not
-     */
-    PainterBrush&
-    image(const reference_counted_ptr<const Image> &im,
-          enum image_filter f, enum image_alpha_premultiplied_t tp)
-    {
-      return image(im, f, 0, tp);
-    }
-
-    /*!
-     * Sets the brush to have an image, provided as a conveniance,
-     * equivalent to
-     * \code
-     * image(im, image_filter_nearest, 0, tp);
-     * \endcode
-     * \param im handle to image to use. If handle is invalid,
-     *           then sets brush to not have an image.
-     * \param tp determines if the alpha channel of the image is
-     *           used or not
-     */
-    PainterBrush&
-    image(const reference_counted_ptr<const Image> &im,
-          enum image_alpha_premultiplied_t tp)
-    {
-      return image(im, image_filter_nearest, 0, tp);
-    }
+          unsigned int max_mipmap_level = 0);
 
     /*!
      * Set the brush to source from a sub-rectangle of an image
@@ -826,56 +770,11 @@ namespace fastuidraw
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
      * \param max_mipmap_level max mipmap level to use with image
-     * \param tp determines if the alpha channel of the image is
-     *           used or not
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
               enum image_filter f = image_filter_nearest,
-              unsigned int max_mipmap_level = 0,
-	      enum image_alpha_premultiplied_t tp = image_not_alpha_premultiplied);
-
-    /*!
-     * Set the brush to source from a sub-rectangle of an image,
-     * provided as a conveniance, equivalent to
-     * \code
-     * sub_image(im, xy, wh, f, 0, tp);
-     * \endcode
-     * \param im handle to image to use
-     * \param xy top-left corner of sub-rectangle of image to use
-     * \param wh width and height of sub-rectangle of image to use
-     * \param f filter to apply to image, only has effect if im
-     *          is non-nullptr
-     * \param tp determines if the alpha channel of the image is
-     *           used or not
-     */
-    PainterBrush&
-    sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum image_filter f, enum image_alpha_premultiplied_t tp)
-    {
-      return sub_image(im, xy, wh, f, 0, tp);
-    }
-
-    /*!
-     * Set the brush to source from a sub-rectangle of an image,
-     * provided as a conveniance, equivalent to
-     * \code
-     * sub_image(im, xy, wh, image_filter_nearest, 0, tp);
-     * \endcode
-     * \param im handle to image to use
-     * \param xy top-left corner of sub-rectangle of image to use
-     * \param wh width and height of sub-rectangle of image to use
-     * \param f filter to apply to image, only has effect if im
-     *          is non-nullptr
-     * \param tp determines if the alpha channel of the image is
-     *           used or not
-     */
-    PainterBrush&
-    sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum image_alpha_premultiplied_t tp)
-    {
-      return sub_image(im, xy, wh, image_filter_nearest, 0, tp);
-    }
+              unsigned int max_mipmap_level = 0);
 
     /*!
      * Sets the brush to not have an image.

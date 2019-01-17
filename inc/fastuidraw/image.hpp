@@ -30,112 +30,12 @@ namespace fastuidraw
 
 ///@cond
 class Image;
+class ImageSourceBase;
 ///@endcond
 
 /*!\addtogroup Imaging
  * @{
  */
-
-  /*!
-   * \brief
-   * ImageSourceBase defines the inteface for copying texel data
-   * from a source (CPU memory, a file, etc) to an
-   * AtlasColorBackingStoreBase derived object.
-   */
-  class ImageSourceBase
-  {
-  public:
-    virtual
-    ~ImageSourceBase()
-    {}
-
-    /*!
-     * To be implemented by a derived class to return true
-     * if a region (across all mipmap levels) has a constant
-     * color.
-     * \param location location at LOD 0
-     * \param square_size width and height of region to check
-     * \param dst if all have texels of the region have the same
-     *            color, write that color value to dst.
-     */
-    virtual
-    bool
-    all_same_color(ivec2 location, int square_size, u8vec4 *dst) const = 0;
-
-    /*!
-     * To be implemented by a derived class to return the number of
-     * levels (including the base-image) of image source has, i.e.
-     * if the image is to have no mipmapping, return 1.
-     */
-    virtual
-    unsigned int
-    number_levels(void) const = 0;
-
-    /*!
-     * To be implemented by a derived class to write to
-     * a \ref c_array of \ref u8vec4 data a rectangle of
-     * texels of a particular mipmap level. NOTE: if pixels
-     * are requested to be fetched from outside the sources
-     * natural dimensions, those pixels outside are to be
-     * duplicates of the boundary values.
-     *
-     * \param level LOD of data where 0 represents the highest
-     *              level of detail and each successive level
-     *              is half the resolution in each dimension;
-     *              it is gauranteed by the called that
-     *              0 <= level() < number_levels()
-     * \param location (x, y) location of data from which to copy
-     * \param w width of data from which to copy
-     * \param h height of data from which to copy
-     * \param dst location to which to write data, data is to be packed
-     *            dst[x + w * y] holds the texel data
-     *            (x + location.x(), y + location.y()) with
-     *            0 <= x < w and 0 <= y < h
-     */
-    virtual
-    void
-    fetch_texels(unsigned int level, ivec2 location,
-                 unsigned int w, unsigned int h,
-                 c_array<u8vec4> dst) const = 0;
-  };
-
-  /*!
-   * \brief
-   * An implementation of \ref ImageSourceBase where the data is backed
-   * by a c_array<const u8vec4> data.
-   */
-  class ImageSourceCArray:public ImageSourceBase
-  {
-  public:
-    /*!
-     * Ctor.
-     * \param dimensions width and height of the LOD level 0 mipmap;
-     *                   the LOD level n is then assumed to be size
-     *                   (dimensions.x() >> n, dimensions.y() >> n)
-     * \param pdata the texel data, the data is NOT copied, thus the
-     *              contents backing the texel data must not be freed
-     *              until the ImageSourceCArray goes out of scope.
-     */
-    ImageSourceCArray(uvec2 dimensions,
-                      c_array<const c_array<const u8vec4> > pdata);
-    virtual
-    bool
-    all_same_color(ivec2 location, int square_size, u8vec4 *dst) const;
-
-    virtual
-    unsigned int
-    number_levels(void) const;
-
-    virtual
-    void
-    fetch_texels(unsigned int mimpap_level, ivec2 location,
-                 unsigned int w, unsigned int h,
-                 c_array<u8vec4> dst) const;
-
-  private:
-    uvec2 m_dimensions;
-    c_array<const c_array<const u8vec4> > m_data;
-  };
 
   /*!
    * \brief
@@ -580,7 +480,6 @@ class Image;
   private:
     void *m_d;
   };
-
   /*!
    * \brief
    * An Image represents an image comprising of RGBA8 values.
@@ -590,6 +489,25 @@ class Image;
     public reference_counted<Image>::default_base
   {
   public:
+    /*!
+     * Enumeration to describe the format of an image
+     */
+    enum format_t
+      {
+        /*!
+         * Image is non-premultiplied RGBA format (each
+         * color channel of each pixel taking 8-bits).
+         */
+        rgba_format,
+
+        /*!
+         * Image is RGBA format (each color channel of
+         * each pixel taking 8-bits) with the RGB channels
+         * pre-multiplied by the alpha channel.
+         */
+        premultipied_rgba_format,
+      };
+
     /*!
      * Gives the image-type of an Image
      */
@@ -642,6 +560,7 @@ class Image;
      * \param w width of the image
      * \param h height of the image
      * \param image_data image data to which to initialize the image
+     * \param fmt the format of the image data
      * \param pslack number of pixels allowed to sample outside of color tile
      *               for the image. A value of one allows for bilinear
      *               filtering and a value of two allows for cubic filtering
@@ -649,7 +568,8 @@ class Image;
     static
     reference_counted_ptr<Image>
     create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-           c_array<const u8vec4> image_data, unsigned int pslack);
+           c_array<const u8vec4> image_data, enum format_t fmt,
+           unsigned int pslack);
 
     /*!
      * Create an \ref Image backed by a bindless texture.
@@ -661,13 +581,14 @@ class Image;
      *             \ref on_atlas.
      * \param handle the bindless handle value used by the Gfx API in
      *               shaders to reference the texture.
+     * \param fmt the format of the image
      * \param action action to call to release backing resources of
      *               the created Image.
      */
     static
     reference_counted_ptr<Image>
     create_bindless(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-                    unsigned int m, enum type_t type, uint64_t handle,
+                    unsigned int m, enum type_t type, uint64_t handle, enum format_t fmt,
                     const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action =
                     reference_counted_ptr<ImageAtlas::ResourceReleaseAction>());
 
@@ -752,6 +673,12 @@ class Image;
     type_t
     type(void) const;
 
+    /*!
+     * Returns the format of the image.
+     */
+    enum format_t
+    format(void) const;
+
   protected:
     /*!
      * Protected ctor for creating an Image backed by a bindless texture;
@@ -764,6 +691,7 @@ class Image;
      * \param m number of mipmap levels of the image
      * \param type the type of the bindless texture, must NOT have value
      *             \ref on_atlas.
+     * \param fmt the format of the image
      * \param handle the bindless handle value used by the Gfx API in
      *               shaders to reference the texture.
      * \param action action to call to release backing resources of
@@ -771,6 +699,7 @@ class Image;
      */
     Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
           unsigned int m, enum type_t type, uint64_t handle,
+          enum format_t fmt,
           const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action =
           reference_counted_ptr<ImageAtlas::ResourceReleaseAction>());
 
@@ -779,6 +708,122 @@ class Image;
           const ImageSourceBase &image_data, unsigned int pslack);
 
     void *m_d;
+  };
+
+  /*!
+   * \brief
+   * ImageSourceBase defines the inteface for copying texel data
+   * from a source (CPU memory, a file, etc) to an
+   * AtlasColorBackingStoreBase derived object.
+   */
+  class ImageSourceBase
+  {
+  public:
+    virtual
+    ~ImageSourceBase()
+    {}
+
+    /*!
+     * To be implemented by a derived class to return true
+     * if a region (across all mipmap levels) has a constant
+     * color.
+     * \param location location at LOD 0
+     * \param square_size width and height of region to check
+     * \param dst if all have texels of the region have the same
+     *            color, write that color value to dst.
+     */
+    virtual
+    bool
+    all_same_color(ivec2 location, int square_size, u8vec4 *dst) const = 0;
+
+    /*!
+     * To be implemented by a derived class to return the number of
+     * levels (including the base-image) of image source has, i.e.
+     * if the image is to have no mipmapping, return 1.
+     */
+    virtual
+    unsigned int
+    number_levels(void) const = 0;
+
+    /*!
+     * To be implemented by a derived class to write to
+     * a \ref c_array of \ref u8vec4 data a rectangle of
+     * texels of a particular mipmap level. NOTE: if pixels
+     * are requested to be fetched from outside the sources
+     * natural dimensions, those pixels outside are to be
+     * duplicates of the boundary values.
+     *
+     * \param level LOD of data where 0 represents the highest
+     *              level of detail and each successive level
+     *              is half the resolution in each dimension;
+     *              it is gauranteed by the called that
+     *              0 <= level() < number_levels()
+     * \param location (x, y) location of data from which to copy
+     * \param w width of data from which to copy
+     * \param h height of data from which to copy
+     * \param dst location to which to write data, data is to be packed
+     *            dst[x + w * y] holds the texel data
+     *            (x + location.x(), y + location.y()) with
+     *            0 <= x < w and 0 <= y < h
+     */
+    virtual
+    void
+    fetch_texels(unsigned int level, ivec2 location,
+                 unsigned int w, unsigned int h,
+                 c_array<u8vec4> dst) const = 0;
+
+    /*!
+     * To be implemented by a derived class to return
+     * the format of the image data.
+     */
+    virtual
+    enum Image::format_t
+    format(void) const = 0;
+  };
+
+  /*!
+   * \brief
+   * An implementation of \ref ImageSourceBase where the data is backed
+   * by a c_array<const u8vec4> data.
+   */
+  class ImageSourceCArray:public ImageSourceBase
+  {
+  public:
+    /*!
+     * Ctor.
+     * \param dimensions width and height of the LOD level 0 mipmap;
+     *                   the LOD level n is then assumed to be size
+     *                   (dimensions.x() >> n, dimensions.y() >> n)
+     * \param pdata the texel data, the data is NOT copied, thus the
+     *              contents backing the texel data must not be freed
+     *              until the ImageSourceCArray goes out of scope.
+     * \param fmt the format of the image data
+     */
+    ImageSourceCArray(uvec2 dimensions,
+                      c_array<const c_array<const u8vec4> > pdata,
+                      enum Image::format_t fmt);
+    virtual
+    bool
+    all_same_color(ivec2 location, int square_size, u8vec4 *dst) const;
+
+    virtual
+    unsigned int
+    number_levels(void) const;
+
+    virtual
+    void
+    fetch_texels(unsigned int mimpap_level, ivec2 location,
+                 unsigned int w, unsigned int h,
+                 c_array<u8vec4> dst) const;
+
+    virtual
+    enum Image::format_t
+    format(void) const;
+
+  private:
+    uvec2 m_dimensions;
+    c_array<const c_array<const u8vec4> > m_data;
+    enum Image::format_t m_format;
   };
 
 /*! @} */
