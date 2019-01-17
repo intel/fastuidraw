@@ -219,7 +219,7 @@ fastuidraw::PainterBrush::
 sub_image(const reference_counted_ptr<const Image> &im,
           uvec2 xy, uvec2 wh, enum image_filter f,
           unsigned int max_mipmap_level,
-	  enum image_alpha_t tp)
+	  enum image_alpha_premultiplied_t tp)
 {
   uint32_t filter_bits, type_bits, mip_bits, tp_bits;
 
@@ -244,8 +244,8 @@ sub_image(const reference_counted_ptr<const Image> &im,
   m_data.m_shader_raw &= ~image_mipmap_mask;
   m_data.m_shader_raw |= pack_bits(image_mipmap_bit0, image_mipmap_num_bits, mip_bits);
 
-  m_data.m_shader_raw &= ~image_alpha_mask;
-  m_data.m_shader_raw |= pack_bits(image_alpha_bit, 1, tp_bits);
+  m_data.m_shader_raw &= ~image_alpha_premultiplied_mask;
+  m_data.m_shader_raw |= pack_bits(image_alpha_premultiplied_bit, 1, tp_bits);
 
   return *this;
 }
@@ -254,7 +254,7 @@ fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 image(const reference_counted_ptr<const Image> &im, enum image_filter f,
       unsigned int max_mipmap_level,
-      enum image_alpha_t tp)
+      enum image_alpha_premultiplied_t tp)
 {
   uvec2 sz(0, 0);
   if (im)

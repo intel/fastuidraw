@@ -93,21 +93,23 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to indicates whether or not to ignore
-     * the alpha channel of the image of the brush.
+     * Enumeration to indicates whether or the image used
+     * by the brush is premultiplied by alpha channel or
+     * not.
      */
-    enum image_alpha_t
+    enum image_alpha_premultiplied_t
       {
 	/*!
-	 * Indicates to use the alpha channel from the image.
+	 * Indicates that the image is NOT premultiplied
+         * by its alpha channel
 	 */
-	dont_ignore_image_alpha = 0,
+	image_not_alpha_premultiplied = 0,
 
 	/*!
-	 * Indicates to ignore the alpha channel from the image
-	 * and use the value 1.0 for the alpha value.
+	 * Indicates the the image is premultiplied by its
+         * alpha channel
 	 */
-	ignore_image_alpha
+	image_is_alpha_premultiplied
       };
 
     /*!
@@ -291,10 +293,10 @@ namespace fastuidraw
         image_type_bit0,
 
 	/*!
-	 * bit to encode \ref image_alpha_t that determines how the
+	 * bit to encode \ref image_alpha_premultiplied_t that determines how the
 	 * alpha channel of the image is used.
 	 */
-	image_alpha_bit = image_type_bit0 + image_type_num_bits,
+	image_alpha_premultiplied_bit = image_type_bit0 + image_type_num_bits,
 
         /*!
          * Must be last enum, gives number of bits needed to hold shader bits
@@ -353,9 +355,9 @@ namespace fastuidraw
         image_type_mask = FASTUIDRAW_MASK(image_type_bit0, image_type_num_bits),
 
         /*!
-         * mask generated from \ref image_alpha_bit
+         * mask generated from \ref image_alpha_premultiplied_bit
          */
-	image_alpha_mask = FASTUIDRAW_MASK(image_alpha_bit, 1),
+	image_alpha_premultiplied_mask = FASTUIDRAW_MASK(image_alpha_premultiplied_bit, 1),
       };
 
     /*!
@@ -776,7 +778,7 @@ namespace fastuidraw
     image(const reference_counted_ptr<const Image> &im,
           enum image_filter f = image_filter_nearest,
           unsigned int max_mipmap_level = 0,
-	  enum image_alpha_t tp = dont_ignore_image_alpha);
+	  enum image_alpha_premultiplied_t tp = image_not_alpha_premultiplied);
 
     /*!
      * Sets the brush to have an image, provided as a conveniance,
@@ -793,7 +795,7 @@ namespace fastuidraw
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im,
-          enum image_filter f, enum image_alpha_t tp)
+          enum image_filter f, enum image_alpha_premultiplied_t tp)
     {
       return image(im, f, 0, tp);
     }
@@ -810,7 +812,8 @@ namespace fastuidraw
      *           used or not
      */
     PainterBrush&
-    image(const reference_counted_ptr<const Image> &im, enum image_alpha_t tp)
+    image(const reference_counted_ptr<const Image> &im,
+          enum image_alpha_premultiplied_t tp)
     {
       return image(im, image_filter_nearest, 0, tp);
     }
@@ -830,7 +833,7 @@ namespace fastuidraw
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
               enum image_filter f = image_filter_nearest,
               unsigned int max_mipmap_level = 0,
-	      enum image_alpha_t tp = dont_ignore_image_alpha);
+	      enum image_alpha_premultiplied_t tp = image_not_alpha_premultiplied);
 
     /*!
      * Set the brush to source from a sub-rectangle of an image,
@@ -848,7 +851,7 @@ namespace fastuidraw
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum image_filter f, enum image_alpha_t tp)
+              enum image_filter f, enum image_alpha_premultiplied_t tp)
     {
       return sub_image(im, xy, wh, f, 0, tp);
     }
@@ -869,7 +872,7 @@ namespace fastuidraw
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum image_alpha_t tp)
+              enum image_alpha_premultiplied_t tp)
     {
       return sub_image(im, xy, wh, image_filter_nearest, 0, tp);
     }
