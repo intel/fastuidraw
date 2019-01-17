@@ -392,6 +392,13 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
                            fastuidraw_brush_color_z,
                            fastuidraw_brush_color_w);
 
+  /* TODO:
+   *  have bits in x and y to specify the repeat modes
+   *    - clamp
+   *    - mirror
+   *    - repeat
+   *    - mirror-repeat
+   */
   if (fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
     {
       p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
@@ -442,12 +449,11 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       float lod;
       vec4 image_color;
 
-      /* fract the brush coordinate to the size of
-       * the image.
-       * TODO: perhaps shader bit-flags to say to
-       *       repeat (fract), mirror_repeat, etc.
+      /* Clamp the image coordinate to the dimensions of the image;
+       * Should we allow for repeat modes as well?
        */
-      q = mod(p, vec2(fastuidraw_brush_image_size_x, fastuidraw_brush_image_size_y));
+      q.x = clamp(p.x, 0.0, float(fastuidraw_brush_image_size_x) - 1.0);
+      q.y = clamp(p.y, 0.0, float(fastuidraw_brush_image_size_y) - 1.0);
       image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_type_bit0,
                                            fastuidraw_shader_image_filter_num_bits,
                                            fastuidraw_brush_shader);
