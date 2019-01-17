@@ -210,6 +210,8 @@ public:
 
   bool m_repeat_window;
   vec2 m_repeat_xy, m_repeat_wh;
+  enum PainterBrush::spread_type_t m_repeat_window_spread_type_x;
+  enum PainterBrush::spread_type_t m_repeat_window_spread_type_y;
 
   bool m_clipping_window;
   vec2 m_clipping_xy, m_clipping_wh;
@@ -390,6 +392,18 @@ private:
     return m_paths[m_selected_path].m_gradient_spread_type;
   }
 
+  enum PainterBrush::spread_type_t&
+  repeat_window_spread_type_x(void)
+  {
+    return m_paths[m_selected_path].m_repeat_window_spread_type_x;
+  }
+
+  enum PainterBrush::spread_type_t&
+  repeat_window_spread_type_y(void)
+  {
+    return m_paths[m_selected_path].m_repeat_window_spread_type_y;
+  }
+
   bool&
   matrix_brush(void)
   {
@@ -568,6 +582,8 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_matrix_brush(false),
   m_gradient_spread_type(PainterBrush::spread_repeat),
   m_repeat_window(false),
+  m_repeat_window_spread_type_x(PainterBrush::spread_repeat),
+  m_repeat_window_spread_type_y(PainterBrush::spread_repeat),
   m_clipping_window(false)
 {
   m_end_fill_rule =
@@ -743,6 +759,8 @@ painter_stroke_test(void):
             << "\t4,6,2,8 (number pad): change location of clipping window\n"
             << "\tctrl-4,6,2,8 (number pad): change size of clipping window\n"
             << "\tw: toggle brush repeat window active\n"
+            << "\tshift-w: cycle though y-repeat window spread modes\n"
+            << "\tctrl-w: cycle though y-repeat window spread modes\n"
             << "\tarrow keys: change location of brush repeat window\n"
             << "\tctrl-arrow keys: change size of brush repeat window\n"
             << "\tMiddle Mouse Draw: set p0(starting position top left) {drawn black with white inside} of gradient\n"
@@ -1242,8 +1260,29 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_w:
-          repeat_window() = !repeat_window();
-          std::cout << "Brush Repeat window: " << on_off(repeat_window()) << "\n";
+          if (!(ev.key.keysym.mod & (KMOD_SHIFT | KMOD_CTRL)))
+            {
+              repeat_window() = !repeat_window();
+              std::cout << "Brush Repeat window: " << on_off(repeat_window()) << "\n";
+            }
+          else if (repeat_window())
+            {
+              if (ev.key.keysym.mod & KMOD_SHIFT)
+                {
+                  cycle_value(repeat_window_spread_type_x(), false, PainterBrush::number_spread_types);
+                  std::cout << "Brush Repeat window x-spread-type set to "
+                            << m_spread_type_labels[repeat_window_spread_type_x()]
+                            << "\n";
+                }
+
+              if (ev.key.keysym.mod & KMOD_CTRL)
+                {
+                  cycle_value(repeat_window_spread_type_y(), false, PainterBrush::number_spread_types);
+                  std::cout << "Brush Repeat window y-spread-type set to "
+                            << m_spread_type_labels[repeat_window_spread_type_y()]
+                            << "\n";
+                }
+            }
           break;
 
         case SDLK_y:
@@ -1748,7 +1787,9 @@ draw_scene(bool drawing_wire_frame)
 
       if (repeat_window())
         {
-          fill_brush.repeat_window(repeat_xy(), repeat_wh());
+          fill_brush.repeat_window(repeat_xy(), repeat_wh(),
+                                   repeat_window_spread_type_x(),
+                                   repeat_window_spread_type_y());
         }
       else
         {
