@@ -4913,6 +4913,38 @@ clip_region_bounds(vec2 *min_pt, vec2 *max_pt)
   return non_empty;
 }
 
+bool
+fastuidraw::Painter::
+clip_region_logical_bounds(vec2 *min_pt, vec2 *max_pt)
+{
+  if (!clip_region_bounds(min_pt, max_pt))
+    {
+      return false;
+    }
+
+  vec3 p0, p1;
+  PainterPrivate *d;
+
+  d = static_cast<PainterPrivate*>(m_d);
+
+  p0 = vec3(min_pt->x(), min_pt->y(), 1.0f);
+  p1 = vec3(max_pt->x(), max_pt->y(), 1.0f);
+
+  p0 = p0 * d->m_clip_rect_state.item_matrix_inverse_transpose();
+  p1 = p1 * d->m_clip_rect_state.item_matrix_inverse_transpose();
+
+  p0 /= p0.z();
+  p1 /= p1.z();
+
+  min_pt->x() = t_min(p0.x(), p1.x());
+  min_pt->y() = t_min(p0.y(), p1.y());
+
+  max_pt->x() = t_max(p0.x(), p1.x());
+  max_pt->y() = t_max(p0.y(), p1.y());
+
+  return true;
+}
+
 void
 fastuidraw::Painter::
 transformation(const float3x3 &m)

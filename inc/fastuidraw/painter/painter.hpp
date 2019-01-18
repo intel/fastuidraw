@@ -455,6 +455,16 @@ namespace fastuidraw
     clip_region_bounds(vec2 *min_pt, vec2 *max_pt);
 
     /*!
+     * If the clipping region is non-empty, returns true
+     * and writes the min and max corner of the bounding box
+     * in local coordinates of the clipping region.
+     * \param min_pt location to which to write the minimum corner point
+     * \param max_pt location to which to write the maximum corner point
+     */
+    bool
+    clip_region_logical_bounds(vec2 *min_pt, vec2 *max_pt);
+
+    /*!
      * Set clipping to the intersection of the current
      * clipping with a rectangle.
      * \param rect clip-in rectangle
