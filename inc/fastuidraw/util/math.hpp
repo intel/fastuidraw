@@ -28,6 +28,11 @@ namespace fastuidraw
  * @{
  */
 
+/*!\def FASTUIDRAW_PI
+ * Macro giving the value of pi as a float
+ */
+#define FASTUIDRAW_PI 3.14159265358979323846f
+
   /*!
    * Conveniance overload avoiding to rely on std::
    */

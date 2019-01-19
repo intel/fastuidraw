@@ -115,7 +115,7 @@ draw_scene(bool with_clipping)
   float r = (0.125f + 0.25f) * 0.5f;
 
   m_painter->translate(wh * r);
-  m_painter->rotate(30.0f * float(M_PI) / 180.0f);
+  m_painter->rotate(30.0f * float(FASTUIDRAW_PI) / 180.0f);
   brush.color(1.0f, 1.0f, 1.0f, 0.5f);
   m_painter->fill_rect(PainterData(&brush),
                        Rect()

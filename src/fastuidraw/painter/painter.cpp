@@ -2295,7 +2295,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
    * rectangles
    */
   m_rounded_corner_path << fastuidraw::vec2(0.0f, 0.0f)
-                        << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
+                        << fastuidraw::Path::arc(-FASTUIDRAW_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
                         << fastuidraw::vec2(1.0f, 0.0f)
                         << fastuidraw::Path::contour_close();
 
@@ -2306,7 +2306,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
    * that fuzz is present in drawing.
    */
   m_rounded_corner_path_complement << fastuidraw::vec2(0.0f, 0.0f)
-                                   << fastuidraw::Path::arc(-M_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
+                                   << fastuidraw::Path::arc(-FASTUIDRAW_PI / 2.0f, fastuidraw::vec2(1.0f, 1.0f))
                                    << fastuidraw::vec2(0.0f, 1.0f)
                                    << fastuidraw::Path::contour_close();
 

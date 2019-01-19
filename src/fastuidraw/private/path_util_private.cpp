@@ -33,7 +33,7 @@ number_segments_for_tessellation(float arc_angle, float distance_thresh)
   else
     {
       float needed_sizef, d, theta, num_half_circles;
-      const float pi(M_PI);
+      const float pi(FASTUIDRAW_PI);
 
       num_half_circles = std::floor(t_abs(arc_angle / pi));
       arc_angle = t_max(-pi, t_min(arc_angle, pi));

@@ -424,7 +424,7 @@ ArcSegment(const fastuidraw::vec2 &start,
     {
       float s, invRadius;
       vec2 cs, ce;
-      const float pi(M_PI), two_pi(2.0f * pi);
+      const float pi(FASTUIDRAW_PI), two_pi(2.0f * pi);
 
       s = dot(v1, p1 - p0) / det;
       m_center = p0 + s * n0;

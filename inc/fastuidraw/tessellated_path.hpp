@@ -251,7 +251,7 @@ public:
      * arc segment. If necessary, An arc-segment will be broken
      * into multiple segments to that each segment is monotonic
      * in the x and y coordiantes and each segment's arc-angle
-     * is no more than M_PI / 4.0 radians (45 degrees).
+     * is no more than FASTUIDRAW_PI / 4.0 radians (45 degrees).
      * \param start gives the start point of the arc on the path
      * \param end gives the end point of the arc on the path
      * \param center is the center of the circle that defines the arc

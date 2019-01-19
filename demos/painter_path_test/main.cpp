@@ -1125,7 +1125,7 @@ item_coordinates(vec2 p)
    */
   float s, c, a;
   float2x2 tr;
-  a = -angle() * M_PI / 180.0f;
+  a = -angle() * FASTUIDRAW_PI / 180.0f;
   s = t_sin(a);
   c = t_cos(a);
 
@@ -1777,7 +1777,7 @@ draw_scene(bool drawing_wire_frame)
           fill_brush.apply_translate(zoomer().transformation().translation());
           fill_brush.apply_shear(m, m);
           fill_brush.apply_shear(shear().x(), shear().y());
-          fill_brush.apply_rotate(angle() * M_PI / 180.0f);
+          fill_brush.apply_rotate(angle() * FASTUIDRAW_PI / 180.0f);
           fill_brush.apply_shear(shear2().x(), shear2().y());
         }
       else
@@ -2122,7 +2122,7 @@ draw_frame(void)
   m_painter->shear(shear().x(), shear().y());
 
   /* apply rotation */
-  m_painter->rotate(angle() * M_PI / 180.0f);
+  m_painter->rotate(angle() * FASTUIDRAW_PI / 180.0f);
 
   /* apply shear2 */
   m_painter->shear(shear2().x(), shear2().y());

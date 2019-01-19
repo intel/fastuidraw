@@ -861,8 +861,8 @@ solve_cubic(fastuidraw::c_array<const T> poly,
           //not clear if that would be faster or slower though.
           theta = acosf(C);
           v0 = temp * cosf( (theta          ) / 3.0f) - dd;
-          v1 = temp * cosf( (theta + 2.0f * M_PI) / 3.0f) - dd;
-          v2 = temp * cosf( (theta + 4.0f * M_PI) / 3.0f) - dd;
+          v1 = temp * cosf( (theta + 2.0f * FASTUIDRAW_PI) / 3.0f) - dd;
+          v2 = temp * cosf( (theta + 4.0f * FASTUIDRAW_PI) / 3.0f) - dd;
 
           solutions->add_solution_if_acceptable(accepted_solutions, v0);
           solutions->add_solution_if_acceptable(accepted_solutions, v1);

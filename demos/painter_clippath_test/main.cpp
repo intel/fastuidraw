@@ -97,7 +97,7 @@ private:
     void
     concat_to_painter(const reference_counted_ptr<Painter> &ref) const
     {
-      const float conv(M_PI / 180.0f);
+      const float conv(FASTUIDRAW_PI / 180.0f);
       m_zoomer.transformation().concat_to_painter(ref);
       ref->shear(m_shear.x(), m_shear.y());
       ref->rotate(m_angle * conv);

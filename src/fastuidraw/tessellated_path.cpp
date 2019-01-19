@@ -193,7 +193,7 @@ namespace
 
     float a, da, theta;
     unsigned int i, cnt;
-    float max_arc(M_PI / 4.0);
+    float max_arc(FASTUIDRAW_PI / 4.0f);
 
     a = t_abs(arc_angle.m_end - arc_angle.m_begin);
     cnt = 1u + static_cast<unsigned int>(a / max_arc);
@@ -240,7 +240,7 @@ namespace
     using namespace detail;
 
     const unsigned int max_d(MAX_REFINE_RECURSION_LIMIT);
-    const float pi(M_PI), two_pi(2.0f * pi);
+    const float pi(FASTUIDRAW_PI), two_pi(2.0f * pi);
     float max_size_f;
     unsigned int max_size;
 
@@ -320,7 +320,7 @@ namespace
         prev_pt = p;
       }
 
-    const float pi(M_PI);
+    const float pi(FASTUIDRAW_PI);
     float error, eff(t_min(pi, t_abs(0.5f * delta_angle)));
 
     error = S.m_radius * (1.0f - t_cos(eff));
@@ -542,13 +542,13 @@ add_arc_segment(vec2 start, vec2 end,
    */
   const float crit_angles[] =
     {
-      -0.5 * M_PI,
-      0.0,
-      0.5 * M_PI,
-      M_PI,
-      1.5 * M_PI,
-      2.0 * M_PI,
-      2.5 * M_PI,
+      -0.5f * FASTUIDRAW_PI,
+      0.0f,
+      0.5f * FASTUIDRAW_PI,
+      FASTUIDRAW_PI,
+      1.5f * FASTUIDRAW_PI,
+      2.0f * FASTUIDRAW_PI,
+      2.5f * FASTUIDRAW_PI,
     };
 
   const vec2 crit_pts[] =

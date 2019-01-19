@@ -34,7 +34,7 @@ extract_path_info(const fastuidraw::Path &path,
               float delta_angle(angle.m_end - angle.m_begin);
 
               out_arc_center_pts->push_back(a->center());
-              str << "arc " << delta_angle * 180.0f / M_PI;
+              str << "arc " << delta_angle * 180.0f / FASTUIDRAW_PI;
             }
           else if (b)
             {

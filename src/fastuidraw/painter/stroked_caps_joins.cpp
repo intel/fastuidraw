@@ -1962,7 +1962,7 @@ ArcRoundedJoinCreator::PerArcRoundedJoin::
 PerArcRoundedJoin(const PerJoinData &J):
   PerJoinData(J)
 {
-  const float per_arc_angle_max(M_PI / 4.0);
+  const float per_arc_angle_max(FASTUIDRAW_PI / 4.0);
   float delta_angle_mag;
 
   std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
@@ -2412,8 +2412,8 @@ RoundedCapCreator(const PathData &P,
                   float thresh):
   CapCreatorBase(P, st, compute_size(P, thresh))
 {
-  m_num_arc_points_per_cap = fastuidraw::detail::number_segments_for_tessellation(M_PI, thresh);
-  m_delta_theta = static_cast<float>(M_PI) / static_cast<float>(m_num_arc_points_per_cap - 1);
+  m_num_arc_points_per_cap = fastuidraw::detail::number_segments_for_tessellation(FASTUIDRAW_PI, thresh);
+  m_delta_theta = static_cast<float>(FASTUIDRAW_PI) / static_cast<float>(m_num_arc_points_per_cap - 1);
 }
 
 PointIndexCapSize
@@ -2423,7 +2423,7 @@ compute_size(const PathData &P, float thresh)
   unsigned int num_caps, num_arc_points_per_cap;
   PointIndexCapSize return_value;
 
-  num_arc_points_per_cap = fastuidraw::detail::number_segments_for_tessellation(M_PI, thresh);
+  num_arc_points_per_cap = fastuidraw::detail::number_segments_for_tessellation(FASTUIDRAW_PI, thresh);
 
   /* each cap is a triangle fan centered at the cap point. */
   num_caps = P.m_cap_ordering.size();
@@ -2690,7 +2690,7 @@ add_cap(const PerCapData &C, unsigned int depth,
   n = fastuidraw::vec2(v.y(), -v.x());
 
   fastuidraw::detail::pack_arc_join(pt, num_arcs_per_cap,
-                                    n, M_PI, -n,
+                                    n, FASTUIDRAW_PI, -n,
                                     depth, pts, vertex_offset,
                                     indices, index_offset, true);
 }

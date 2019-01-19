@@ -401,7 +401,7 @@ public:
      * Ctor.
      * \param start start of curve
      * \param angle The angle of the arc in radians, the value must not
-     *              be a multiple of 2*M_PI. Assuming a coordinate system
+     *              be a multiple of 2*FASTUIDRAW_PI. Assuming a coordinate system
      *              where y-increases vertically and x-increases to the right,
      *              a positive value indicates to have the arc go counter-clockwise,
      *              a negative angle for the arc to go clockwise.
@@ -796,7 +796,7 @@ public:
   arc
   arc_degrees(float angle, const vec2 &pt)
   {
-    return arc(angle*float(M_PI)/180.0f, pt);
+    return arc(angle*float(FASTUIDRAW_PI)/180.0f, pt);
   }
 
   /*!
@@ -807,7 +807,7 @@ public:
   contour_close_arc
   contour_close_arc_degrees(float angle)
   {
-    return contour_close_arc(angle*float(M_PI)/180.0f);
+    return contour_close_arc(angle*float(FASTUIDRAW_PI)/180.0f);
   }
 
   /*!

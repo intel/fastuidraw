@@ -111,13 +111,13 @@ pre_paint(void)
     }
 
   m_item_rotation =
-    static_cast<float>(M_PI) * static_cast<float>(m_thousandths_degrees_rotation) / (1000.0f * 180.0f);
+    static_cast<float>(FASTUIDRAW_PI) * static_cast<float>(m_thousandths_degrees_rotation) / (1000.0f * 180.0f);
 
   if (m_shared_state->m_rotating)
     {
       float r;
 
-      r = static_cast<float>(M_PI) * static_cast<float>(m_thousandths_degrees_cell_rotation) / (1000.0f * 180.0f);
+      r = static_cast<float>(FASTUIDRAW_PI) * static_cast<float>(m_thousandths_degrees_cell_rotation) / (1000.0f * 180.0f);
       m_parent_matrix_this.reset();
       m_parent_matrix_this.translate(m_dimensions * 0.5f + m_table_pos);
       m_parent_matrix_this.rotate(r);

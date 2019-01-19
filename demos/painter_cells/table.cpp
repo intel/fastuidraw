@@ -269,7 +269,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
     }
 
   m_rotation_radians =
-    static_cast<float>(M_PI) * static_cast<float>(m_thousandths_degrees_rotation) / (1000.0f * 180.0f);
+    static_cast<float>(FASTUIDRAW_PI) * static_cast<float>(m_thousandths_degrees_rotation) / (1000.0f * 180.0f);
 }
 
 void

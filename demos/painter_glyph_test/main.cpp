@@ -816,7 +816,7 @@ item_coordinates(ivec2 scr)
 
   float s, c, a;
   float2x2 tr;
-  a = -m_angle * M_PI / 180.0f;
+  a = -m_angle * FASTUIDRAW_PI / 180.0f;
   s = t_sin(a);
   c = t_cos(a);
 
@@ -897,7 +897,7 @@ draw_glyphs(float us)
   m_painter->save();
   m_zoomer.transformation().concat_to_painter(m_painter);
   m_painter->shear(m_shear.x(), m_shear.y());
-  m_painter->rotate(m_angle * M_PI / 180.0f);
+  m_painter->rotate(m_angle * FASTUIDRAW_PI / 180.0f);
   m_painter->shear(m_shear2.x(), m_shear2.y());
 
   if (m_fill_glyphs || m_stroke_glyphs || m_draw_path_pts)
