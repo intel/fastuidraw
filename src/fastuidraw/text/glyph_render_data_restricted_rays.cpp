@@ -2101,6 +2101,7 @@ finalize(enum PainterEnums::fill_rule_t f,
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
 
+  FASTUIDRAWassert(f == PainterEnums::odd_even_fill_rule || f == PainterEnums::nonzero_fill_rule);
   d->m_fill_rule = f;
   d->m_glyph->set_glyph_bounds(pmin_pt, pmax_pt);
 
@@ -2215,6 +2216,16 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   attributes[3].m_data = uvec4(d->m_size.y());
   attributes[4].m_data = uvec4(d->m_min.x());
   attributes[5].m_data = uvec4(d->m_min.y());
+
+  /* If the fill rule is odd-even, the leading bit
+   * of data_offset is made to be up.
+   */
+  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(31u, 1)) == 0u);
+  if (d->m_fill_rule == PainterEnums::odd_even_fill_rule)
+    {
+      std::cout << "*\n";
+      data_offset |= FASTUIDRAW_MASK(31u, 1);
+    }
   attributes[6].m_data = uvec4(data_offset);
 
   return routine_success;

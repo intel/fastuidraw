@@ -326,8 +326,12 @@ namespace fastuidraw
 
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the offset into the  store for the glyph
-         * data.
+         * the fill rule and the offset into the store for
+         * the glyph data. The offset is encoded in the
+         * lower 31 bits (i.e. just mask off bit31) and
+         * the fill rule is non-zero fill rule if bit31
+         * is down and the odd-even fill rule if bit31 is
+         * up.
          */
         glyph_offset = 4,
 
@@ -375,7 +379,9 @@ namespace fastuidraw
     /*!
      * Finalize the input data after which no more contours or curves
      * may be added. All contours added must be closed as well.
-     * \param f fill rule to use for rendering
+     * \param f fill rule to use for rendering, must be \ref
+     *          PainterEnums::nonzero_fill_rule or \ref
+     *          PainterEnums::odd_even_fill_rule.
      * \param min_pt minimum point of the bounding box of the contours
      *               added
      * \param max_pt maximum point of the bounding box of the contours

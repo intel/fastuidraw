@@ -587,6 +587,7 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord_dy,
                                             in vec2 bb_box_min,
                                             in vec2 bb_box_max,
+                                            in bool use_odd_even_rule,
                                             out fastuidraw_restricted_rays_box_type texel_box,
                                             out fastuidraw_restricted_rays_winding_sample_type S,
                                             out int winding_number, out uint num_curves,
@@ -633,14 +634,14 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
 
   float cvg, distance;
 
-  /* If the winding number at the fragment is 0, use
-   * the minimum of those two; if the winding value is 1
-   * use the decrement value and if the winding is -1 use the
-   * increment winding number; if the absolute value of the
-   * winding value is greater than two, we will view the
-   * fragment as fully covered.
+  /* If using the odd-even fill rule of if the winding number at
+   * the fragment is 0, use the minimum of those two; if the
+   * winding value is 1 use the decrement value and if the winding
+   * is -1 use the increment winding number; if the absolute value
+   * of the winding value is greater than two, we will fallback
+   * and simply view the fragment as fully covered.
    */
-  if (winding_number == 0)
+  if (winding_number == 0 || use_odd_even_rule)
     {
       distance = min(nv.distance_increment,
                      nv.distance_decrement);
@@ -659,6 +660,7 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
     }
 
   distance = min(distance, 0.5);
+  winding_number = (use_odd_even_rule && (winding_number & 1) == 0) ? 0 : winding_number;
   cvg = (winding_number != 0) ?
     (0.5 + distance) :
     (0.5 - distance);
@@ -672,7 +674,8 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord_dx,
                                             in vec2 glyph_coord_dy,
                                             in vec2 bb_box_min,
-                                            in vec2 bb_box_max)
+                                            in vec2 bb_box_max,
+                                            in bool use_odd_even_rule)
 {
   fastuidraw_restricted_rays_box_type texel_box;
   fastuidraw_restricted_rays_winding_sample_type S;
@@ -684,6 +687,7 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                                      glyph_coord,
                                                      glyph_coord_dx, glyph_coord_dy,
                                                      bb_box_min, bb_box_max,
+                                                     use_odd_even_rule,
                                                      texel_box, S, winding_number,
                                                      num_curves, nv);
 }

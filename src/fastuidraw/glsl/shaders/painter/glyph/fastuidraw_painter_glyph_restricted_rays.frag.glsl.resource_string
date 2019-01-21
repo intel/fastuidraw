@@ -23,19 +23,24 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   fastuidraw_restricted_rays_box_type texel_box;
   fastuidraw_restricted_rays_winding_sample_type S;
   int winding_number;
-  uint num_curves;
+  uint num_curves, data_location;
+  const uint bit31 = 0x80000000u;
   fastuidraw_restricted_rays_distance_type nv;
   float cvg, shearing;
+  bool is_odd_even_fill_rule;
 
   glyph_coord = vec2(fastuidraw_glyph_coord_x,
                      fastuidraw_glyph_coord_y);
 
-  cvg = fastuidraw_restricted_rays_compute_coverage(fastuidraw_glyph_data_location,
+  is_odd_even_fill_rule = (fastuidraw_glyph_data_location & bit31) != 0u;
+  data_location = fastuidraw_glyph_data_location & ~bit31;
+  cvg = fastuidraw_restricted_rays_compute_coverage(data_location,
                                                     glyph_coord,
                                                     dFdx(glyph_coord),
                                                     dFdy(glyph_coord),
                                                     vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
                                                     vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
+                                                    is_odd_even_fill_rule,
                                                     texel_box, S, winding_number, num_curves, nv);
   /**
   const float tol = 3.0;
