@@ -304,6 +304,19 @@ fastuidraw_restricted_rays_compute_code(in float y1, in float y2, in float y3)
 {
   uint code;
 
+  /* The purpose of the algorithm is to determine in a numerically stable
+   * way if a an intersection of the quadratic parametric curve against
+   * y = 0 is in the paremtirc range [0, 1]. What is does is to examine
+   * which of the control points are above the line y = 0. There are 8
+   * possibilities each yielding a result of weather or not to use the
+   * first and/or second intersection of the quadratic curve against the
+   * line y = 0. Rather than have a massive cumberson switch-case statement
+   * we simply store a single 16-bit value where 2-bits are given for each
+   * of the cases. The shift by the value of code is choosing which of
+   * those 2-bits and the bit-wise and by 3 is to make the test for the
+   * second bit from checking if a bit if up to just testing if the value
+   * is strictly greater than 1.
+   */
   code = (y1 > 0.0 ? 2u : 0u)
     + (y2 > 0.0 ? 4u : 0u)
     + (y3 > 0.0 ? 8u : 0u);
