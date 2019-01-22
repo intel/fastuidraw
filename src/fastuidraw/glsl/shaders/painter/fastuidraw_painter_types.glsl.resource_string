@@ -17,7 +17,7 @@
  */
 
 
-struct fastuidraw_shader_header
+struct fastuidraw_header
 {
   uint clipping_location;
   uint item_matrix_location;
@@ -56,7 +56,7 @@ struct fastuidraw_dashed_stroking_params_header
 };
 
 void
-fastuidraw_process_header(inout fastuidraw_shader_header h)
+fastuidraw_process_header(inout fastuidraw_header h)
 {
   if ((h.flags & FASTUIDRAW_HEADER_DRAWING_OCCLUDER) != 0u)
     {

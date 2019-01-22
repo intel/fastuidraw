@@ -18,7 +18,7 @@
 
 
 void
-fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_shader_header h)
+fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_header h)
 {
   uint shader;
   uint data_ptr;

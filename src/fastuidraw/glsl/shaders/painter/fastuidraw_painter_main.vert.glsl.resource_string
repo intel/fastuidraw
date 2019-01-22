@@ -51,7 +51,7 @@ fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c)
 void
 main(void)
 {
-  fastuidraw_shader_header h;
+  fastuidraw_header h;
   vec2 brush_p, normalized_translate;
   vec3 clip_p;
   fastuidraw_clipping_data clipping;

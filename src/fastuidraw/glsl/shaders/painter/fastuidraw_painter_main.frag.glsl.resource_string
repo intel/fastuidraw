@@ -106,7 +106,7 @@ main(void)
 
       #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
         {
-          fastuidraw_shader_header h;
+          fastuidraw_header h;
 
           fastuidraw_read_header(fastuidraw_header_varying, h);
           fastuidraw_process_header(h);

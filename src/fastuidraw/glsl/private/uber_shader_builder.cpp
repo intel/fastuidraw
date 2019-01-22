@@ -660,7 +660,7 @@ stream_uber_vert_shader(bool use_switch,
                                                          pre_stream_varyings(declare_varyings, datum),
                                                          post_stream_varyings(declare_varyings, datum),
                                                          "void",
-                                                         "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)",
+                                                         "fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)",
                                                          "fastuidraw_gl_vert_main",
                                                          ", fastuidraw_attribute0, fastuidraw_attribute1, "
                                                          "fastuidraw_attribute2, h.item_shader_data_location, add_z, brush_p, clip_p",

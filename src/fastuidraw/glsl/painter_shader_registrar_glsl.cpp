@@ -579,7 +579,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set(PainterBrush::gradient_end_radius_offset, ".r1")
     .stream_unpack_function(str, "fastuidraw_read_brush_radial_gradient_data");
 
-  UnpackSourceGenerator("fastuidraw_shader_header")
+  UnpackSourceGenerator("fastuidraw_header")
     .set(PainterHeader::clip_equations_location_offset, ".clipping_location", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::item_matrix_location_offset, ".item_matrix_location", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", UnpackSourceGenerator::uint_type)
@@ -1212,7 +1212,7 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
                           uber_shader_varyings,
                           params, discard_macro_value);
   run_vert_shader
-    << "void fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)\n"
+    << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)\n"
     << "{\n"
     << "  fastuidraw_gl_vert_main(uint(h.item_shader) - uint(" << shader->ID() << "), fastuidraw_attribute0,\n"
     << "                          fastuidraw_attribute1, fastuidraw_attribute2,\n"

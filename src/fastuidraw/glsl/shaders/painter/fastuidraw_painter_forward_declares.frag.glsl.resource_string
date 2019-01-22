@@ -17,7 +17,7 @@
  */
 
 void
-fastuidraw_read_header(in uint location, out fastuidraw_shader_header h);
+fastuidraw_read_header(in uint location, out fastuidraw_header h);
 
 
 /* needed functions
