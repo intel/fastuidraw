@@ -16,6 +16,28 @@
  *
  */
 
+float
+FASTUIDRAW_LOCAL(compute_dist)(in vec3 clip_p, in vec3 clip_direction)
+{
+  const float sqrt2 = 1.41421356237;
+  const float two_minus_sqrt2 = 2.0 - 1.41421356237;
+  float hv, r;
+  vec2 normalized_direction;
+
+  /* The basic idea: compute the direction in screen coordinates,
+   * and from that value compute the distance in pixels needed
+   * to touch the next sample. For completely vertical or
+   * horizontal the value is 1; for 45-degrees the value is
+   * sqrt2;
+   */
+  normalized_direction = normalize(clip_direction.xy);
+  hv = min(abs(normalized_direction.x),
+           abs(normalized_direction.y));
+  r = 1.0 + hv * two_minus_sqrt2;
+
+  return fastuidraw_local_distance_from_pixel_distance(r, clip_p, clip_direction);
+}
+
 void
 fastuidraw_gl_vert_main(in uint sub_shader,
                         in uvec4 in_attrib0,
@@ -29,9 +51,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vec2 position;
   vec2 p, n0, n1;
   vec3 clip_direction, clip_p;
-  float dist, sgn;
+  float dist, sgn, hv;
   uint type;
-  const float radius = 1.25;
   const float miter_limit = 1.0;
 
   position = uintBitsToFloat(in_attrib0.xy);
@@ -49,7 +70,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
       n0 = fastuidraw_align_normal_to_screen(clip_p, n0);
       clip_direction = fastuidraw_item_matrix * vec3(n0, 0.0);
-      dist = fastuidraw_local_distance_from_pixel_distance(radius, clip_p, clip_direction);
+      dist = FASTUIDRAW_LOCAL(compute_dist)(clip_p, clip_direction);
       p = position + dist * n0;
     }
   else
@@ -62,12 +83,12 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
       n0 = fastuidraw_align_normal_to_screen(clip_p, n0);
       clip_direction = fastuidraw_item_matrix * vec3(n0, 0.0);
-      r0 = fastuidraw_local_distance_from_pixel_distance(radius, clip_p, clip_direction);
+      r0 = FASTUIDRAW_LOCAL(compute_dist)(clip_p, clip_direction);
       d0 = r0 * n0;
 
       n1 = fastuidraw_align_normal_to_screen(clip_p, n1);
       clip_direction = fastuidraw_item_matrix * vec3(n1, 0.0);
-      r1 = fastuidraw_local_distance_from_pixel_distance(radius, clip_p, clip_direction);
+      r1 = FASTUIDRAW_LOCAL(compute_dist)(clip_p, clip_direction);
       d1 = r1 * n1;
 
       delta_d = d1 - d0;
