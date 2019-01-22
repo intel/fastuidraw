@@ -674,36 +674,36 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterShaderRegistrarGLSL::Uber
       ostr << "FASTUIDRAW_LAYOUT_BINDING("
            << params.binding_points().uniforms_ubo()
            << ") " << " uniform fastuidraw_uniform_block {\n"
-           << "vec4 fastuidraw_shader_uniforms["
+           << "vec4 fastuidraw_uniforms["
            << PainterShaderRegistrarGLSL::ubo_size() / 4 << "];\n"
            << "};\n"
-           << "#define fastuidraw_viewport_pixels vec2(fastuidraw_shader_uniforms["
+           << "#define fastuidraw_viewport_pixels vec2(fastuidraw_uniforms["
            << uniform_ubo_resolution_x_offset / 4 << "]."
            << ext[uniform_ubo_resolution_x_offset % 4]
-           << ", fastuidraw_shader_uniforms[" << uniform_ubo_resolution_y_offset / 4 << "]."
+           << ", fastuidraw_uniforms[" << uniform_ubo_resolution_y_offset / 4 << "]."
            << ext[uniform_ubo_resolution_y_offset % 4] << ")\n"
-           << "#define fastuidraw_viewport_recip_pixels vec2(fastuidraw_shader_uniforms["
+           << "#define fastuidraw_viewport_recip_pixels vec2(fastuidraw_uniforms["
            << uniform_ubo_recip_resolution_x_offset / 4
            << "]."<< ext[uniform_ubo_recip_resolution_x_offset % 4]
-           << ", fastuidraw_shader_uniforms["
+           << ", fastuidraw_uniforms["
            << uniform_ubo_recip_resolution_y_offset / 4 << "]."
            << ext[uniform_ubo_recip_resolution_y_offset % 4] << ")\n"
-           << "#define fastuidraw_viewport_recip_pixels_magnitude fastuidraw_shader_uniforms["
+           << "#define fastuidraw_viewport_recip_pixels_magnitude fastuidraw_uniforms["
            << uniform_ubo_recip_magnitude_offset / 4 << "]."
            << ext[uniform_ubo_recip_magnitude_offset % 4] << "\n";
     }
   else
     {
-      ostr << "uniform float fastuidraw_shader_uniforms["
+      ostr << "uniform float fastuidraw_uniforms["
            << PainterShaderRegistrarGLSL::ubo_size() << "];\n"
-           << "#define fastuidraw_viewport_pixels vec2(fastuidraw_shader_uniforms["
-           << uniform_ubo_resolution_x_offset << "], fastuidraw_shader_uniforms["
+           << "#define fastuidraw_viewport_pixels vec2(fastuidraw_uniforms["
+           << uniform_ubo_resolution_x_offset << "], fastuidraw_uniforms["
            << uniform_ubo_resolution_y_offset << "])\n"
-           << "#define fastuidraw_viewport_recip_pixels vec2(fastuidraw_shader_uniforms["
+           << "#define fastuidraw_viewport_recip_pixels vec2(fastuidraw_uniforms["
            << uniform_ubo_recip_resolution_x_offset
-           << "], fastuidraw_shader_uniforms["
+           << "], fastuidraw_uniforms["
            << uniform_ubo_recip_resolution_y_offset << "])\n"
-           << "#define fastuidraw_viewport_recip_pixels_magnitude fastuidraw_shader_uniforms["
+           << "#define fastuidraw_viewport_recip_pixels_magnitude fastuidraw_uniforms["
            << uniform_ubo_recip_magnitude_offset << "]\n";
     }
 

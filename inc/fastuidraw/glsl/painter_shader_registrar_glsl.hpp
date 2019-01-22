@@ -860,8 +860,8 @@ namespace fastuidraw
          * If true, use a UBO to back the uniforms of the
          * uber-shader. If false, use an array of uniforms
          * instead. The name of the UBO block is
-         * fastuidraw_shader_uniforms and the name of the
-         * uniform is fastuidraw_shader_uniforms. In both cases,
+         * fastuidraw_uniforms and the name of the
+         * uniform is fastuidraw_uniforms. In both cases,
          * the buffer can be filled by the function
          * PainterShaderRegistrarGLSL::fill_uniform_buffer().
          * For the non-UBO case, the uniforms are realized
