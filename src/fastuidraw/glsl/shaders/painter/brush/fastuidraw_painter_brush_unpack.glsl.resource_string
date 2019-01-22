@@ -191,20 +191,20 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
   if (fastuidraw_brush_shader_has_image(shader))
     {
       image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_type_bit0,
-                                           fastuidraw_shader_image_filter_num_bits,
+                                           fastuidraw_brush_image_filter_num_bits,
                                            shader);
       data_ptr = fastuidraw_read_brush_image_data(data_ptr, image_type, image);
     }
 
-  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_gradient_type_bit0,
-                                          fastuidraw_shader_gradient_type_num_bits,
+  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
+                                          fastuidraw_brush_gradient_type_num_bits,
                                           shader);
-  if (gradient_type == fastuidraw_shader_radial_gradient_type)
+  if (gradient_type == fastuidraw_brush_radial_gradient_type)
     {
       data_ptr = fastuidraw_read_brush_radial_gradient_data(data_ptr, gradient);
     }
-  else if (gradient_type == fastuidraw_shader_linear_gradient_type
-           || gradient_type == fastuidraw_shader_sweep_gradient_type)
+  else if (gradient_type == fastuidraw_brush_linear_gradient_type
+           || gradient_type == fastuidraw_brush_sweep_gradient_type)
     {
       data_ptr = fastuidraw_read_brush_linear_or_sweep_gradient_data(data_ptr, gradient);
     }
@@ -277,32 +277,32 @@ fastuidraw_painter_offset_to_transformation(uint shader)
 {
   uint gradient_type, r;
 
-  r = uint(fastuidraw_shader_pen_num_blocks);
+  r = uint(fastuidraw_brush_pen_num_blocks);
 
   if (fastuidraw_brush_shader_has_image(shader))
     {
-      r += uint(fastuidraw_shader_image_num_blocks);
+      r += uint(fastuidraw_brush_image_num_blocks);
     }
 
-  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_gradient_type_bit0,
-                                          fastuidraw_shader_gradient_type_num_bits,
+  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
+                                          fastuidraw_brush_gradient_type_num_bits,
                                           shader);
-  if (gradient_type == fastuidraw_shader_radial_gradient_type)
+  if (gradient_type == fastuidraw_brush_radial_gradient_type)
     {
-      r += uint(fastuidraw_shader_radial_gradient_num_blocks);
+      r += uint(fastuidraw_brush_radial_gradient_num_blocks);
     }
-  else if (gradient_type == fastuidraw_shader_linear_gradient_type)
+  else if (gradient_type == fastuidraw_brush_linear_gradient_type)
     {
-      r += uint(fastuidraw_shader_linear_gradient_num_blocks);
+      r += uint(fastuidraw_brush_linear_gradient_num_blocks);
     }
-  else if (gradient_type == fastuidraw_shader_sweep_gradient_type)
+  else if (gradient_type == fastuidraw_brush_sweep_gradient_type)
     {
-      r += uint(fastuidraw_shader_sweep_gradient_num_blocks);
+      r += uint(fastuidraw_brush_sweep_gradient_num_blocks);
     }
 
   if (fastuidraw_brush_shader_has_repeat_window(shader))
     {
-      r += uint(fastuidraw_shader_repeat_window_num_blocks);
+      r += uint(fastuidraw_brush_repeat_window_num_blocks);
     }
 
   return r;

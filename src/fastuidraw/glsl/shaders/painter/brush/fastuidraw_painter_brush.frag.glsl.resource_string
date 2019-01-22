@@ -20,15 +20,15 @@ float
 fastuidraw_apply_spread(in float t, in float range,
                         in uint spread_type)
 {
-  if (spread_type == fastuidraw_shader_spread_mirror)
+  if (spread_type == fastuidraw_brush_spread_mirror)
     {
       t = clamp(abs(t), 0.0, range);
     }
-  else if (spread_type == fastuidraw_shader_spread_repeat)
+  else if (spread_type == fastuidraw_brush_spread_repeat)
     {
       t = mod(t, range);
     }
-  else if (spread_type == fastuidraw_shader_spread_mirror_repeat)
+  else if (spread_type == fastuidraw_brush_spread_mirror_repeat)
     {
       t = range - abs(mod(t, 2.0 * range) - range);
     }
@@ -45,7 +45,7 @@ compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
   float t;
 
   t = 1.0;
-  if (gradient_type == fastuidraw_shader_radial_gradient_type)
+  if (gradient_type == fastuidraw_brush_radial_gradient_type)
     {
       vec2 q, delta_p;
       float delta_r, a, b, c, desc, t0, t1, recip_two_a;
@@ -95,7 +95,7 @@ compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
             }
         }
     }
-  else if (gradient_type == fastuidraw_shader_linear_gradient_type)
+  else if (gradient_type == fastuidraw_brush_linear_gradient_type)
     {
       vec2 v, d;
       good = 1.0;
@@ -105,7 +105,7 @@ compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
       d.y = p.y - fastuidraw_brush_gradient_p0_y;
       t = dot(v, d) / dot(v, v);
     }
-  else if (gradient_type == fastuidraw_shader_sweep_gradient_type)
+  else if (gradient_type == fastuidraw_brush_sweep_gradient_type)
     {
       vec2 d;
       float angle;
@@ -206,13 +206,13 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
                                              number_lookups, slack,
                                              texel_coord, color_layer);
 
-  if (image_filter == uint(fastuidraw_shader_image_filter_nearest))
+  if (image_filter == uint(fastuidraw_brush_image_filter_nearest))
     {
       image_color = textureLod(fastuidraw_imageAtlasNearest,
                                vec3(texel_coord * fastuidraw_imageAtlasLinear_size_reciprocal, color_layer),
                                lod).rgba;
     }
-  else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
+  else if (image_filter == uint(fastuidraw_brush_image_filter_linear))
     {
       image_color = textureLod(fastuidraw_imageAtlasLinear,
                                vec3(texel_coord * fastuidraw_imageAtlasLinear_size_reciprocal, color_layer),
@@ -272,7 +272,7 @@ fastuidraw_image_of_external_texture(in vec2 texel_coord, in uint image_filter, 
   vec2 recip_sz = 1.0 / vec2(textureSize(fastuidraw_external_texture, 0));
 
   texel_coord += vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
-  if (image_filter == uint(fastuidraw_shader_image_filter_nearest))
+  if (image_filter == uint(fastuidraw_brush_image_filter_nearest))
     {
       vec2 adjusted;
       int L;
@@ -281,7 +281,7 @@ fastuidraw_image_of_external_texture(in vec2 texel_coord, in uint image_filter, 
       adjusted = texel_coord * recip_sz * vec2(textureSize(fastuidraw_external_texture, L));
       image_color = texelFetch(fastuidraw_external_texture, ivec2(adjusted), L);
     }
-  else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
+  else if (image_filter == uint(fastuidraw_brush_image_filter_linear))
     {
       image_color = textureLod(fastuidraw_external_texture, texel_coord * recip_sz, lod);
     }
@@ -344,7 +344,7 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
   vec2 recip_sz = 1.0 / vec2(textureSize(im, 0));
 
   texel_coord += vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
-  if (image_filter == uint(fastuidraw_shader_image_filter_nearest))
+  if (image_filter == uint(fastuidraw_brush_image_filter_nearest))
     {
       vec2 adjusted;
       int L;
@@ -353,7 +353,7 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
       adjusted = texel_coord * recip_sz * vec2(textureSize(im, L));
       image_color = texelFetch(im, ivec2(adjusted), L);
     }
-  else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
+  else if (image_filter == uint(fastuidraw_brush_image_filter_linear))
     {
       image_color = textureLod(im, texel_coord * recip_sz, lod);
     }
@@ -426,12 +426,12 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
     {
       uint x_spread, y_spread;
 
-      x_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_repeat_window_x_spread_type_bit0,
-                                         fastuidraw_shader_gradient_type_num_bits,
+      x_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_repeat_window_x_spread_type_bit0,
+                                         fastuidraw_brush_gradient_type_num_bits,
                                          fastuidraw_brush_shader);
 
-      y_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_repeat_window_y_spread_type_bit0,
-                                         fastuidraw_shader_gradient_type_num_bits,
+      y_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_repeat_window_y_spread_type_bit0,
+                                         fastuidraw_brush_gradient_type_num_bits,
                                          fastuidraw_brush_shader);
 
       p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
@@ -440,33 +440,33 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       p += vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
     }
 
-  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_gradient_type_bit0,
-                                          fastuidraw_shader_gradient_type_num_bits,
+  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
+                                          fastuidraw_brush_gradient_type_num_bits,
                                           fastuidraw_brush_shader);
 
-  if (gradient_type != fastuidraw_shader_no_gradient_type)
+  if (gradient_type != fastuidraw_brush_no_gradient_type)
     {
       float t, good;
       uint spread_type;
 
       t = compute_gradient_interpolate(p, gradient_type, good);
-      spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_gradient_spread_type_bit0,
-                                            fastuidraw_shader_spread_type_num_bits,
+      spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_spread_type_bit0,
+                                            fastuidraw_brush_spread_type_num_bits,
                                             fastuidraw_brush_shader);
 
       /* NOTE: there is a Mesa/i965 but where if we change the
        * order of this if/else chain to something different,
        * it might not correctly evaluate.
        */
-      if (spread_type == fastuidraw_shader_spread_mirror)
+      if (spread_type == fastuidraw_brush_spread_mirror)
         {
           t = clamp(abs(t), 0.0, 1.0);
         }
-      else if (spread_type == fastuidraw_shader_spread_repeat)
+      else if (spread_type == fastuidraw_brush_spread_repeat)
         {
           t = fract(t);
         }
-      else if (spread_type == fastuidraw_shader_spread_mirror_repeat)
+      else if (spread_type == fastuidraw_brush_spread_mirror_repeat)
         {
           t = 1.0 - abs(mod(t, 2.0) - 1.0);
         }
@@ -491,11 +491,11 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       q.x = clamp(p.x, 0.0, float(fastuidraw_brush_image_size_x) - 1.0);
       q.y = clamp(p.y, 0.0, float(fastuidraw_brush_image_size_y) - 1.0);
       image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_type_bit0,
-                                           fastuidraw_shader_image_filter_num_bits,
+                                           fastuidraw_brush_image_filter_num_bits,
                                            fastuidraw_brush_shader);
 
-      image_filter = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_image_filter_bit0,
-                                             fastuidraw_shader_image_filter_num_bits,
+      image_filter = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_filter_bit0,
+                                             fastuidraw_brush_image_filter_num_bits,
                                              fastuidraw_brush_shader);
 
       mipmap_max_level = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_mipmap_bit0,
