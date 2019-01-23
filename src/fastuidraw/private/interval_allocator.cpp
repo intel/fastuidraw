@@ -19,8 +19,8 @@
 #include <algorithm>
 
 #include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/math.hpp>
 #include "interval_allocator.hpp"
-
 
 fastuidraw::interval_allocator::
 interval_allocator(int size)
@@ -34,7 +34,7 @@ reset(int size)
 {
   FASTUIDRAWassert(size >= 0);
 
-  m_size = std::max(0, size);
+  m_size = t_max(0, size);
   m_sorted.clear();
   m_free_intervals.clear();
   if (m_size > 0)
@@ -55,7 +55,6 @@ resize(int size)
       free_interval(old_size, size - old_size);
     }
 }
-
 
 fastuidraw::interval_allocator::interval_status_t
 fastuidraw::interval_allocator::
@@ -161,21 +160,18 @@ allocate_interval(int size)
   FASTUIDRAWassert(interval_reference->second.m_begin <= interval_reference->second.m_end);
   if (interval_reference->second.m_begin == interval_reference->second.m_end)
     {
-      /* if the new interval is empty, then we delete it
-       */
+      /* if the new interval is empty, then we delete it */
       m_free_intervals.erase(interval_reference);
     }
   else
     {
-      /* is not empty, we need to add it to m_sorted
-       */
+      /* is not empty, we need to add it to m_sorted */
       int sz(interval_reference->second.m_end - interval_reference->second.m_begin);
       m_sorted[sz].insert(interval_reference);
     }
 
   return return_value.m_begin;
 }
-
 
 void
 fastuidraw::interval_allocator::
@@ -228,7 +224,7 @@ free_interval(int location, int size)
   interval I(location, end);
   std::pair<interval_ref, bool> R;
 
-  R = m_free_intervals.insert( std::pair<int, interval>(end, I));
+  R = m_free_intervals.insert(std::pair<int, interval>(end, I));
   FASTUIDRAWassert(R.second);
   m_sorted[size].insert(R.first);
 }

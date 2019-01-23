@@ -163,14 +163,14 @@ namespace fastuidraw
     int m_size;
 
     /* List of free intervals, stored in a map
-     *  keyed by interval::m_end
+     * keyed by interval::m_end
      */
     std::map<int, interval> m_free_intervals;
 
     /* Each element of m_sorted[size] refers
-     *  to an element in m_free_intervals. Map
-     *  is keyed by the size of the interval
-     *  pointed to by *second
+     * to an element in m_free_intervals. Map
+     * is keyed by the size of the interval
+     * pointed to by the elements in second.
      */
     std::map<int, interval_ref_set> m_sorted;
   };
