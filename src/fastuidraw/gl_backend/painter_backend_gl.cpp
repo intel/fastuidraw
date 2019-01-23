@@ -929,14 +929,18 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       GLuint last_fbo(0), fbo(0);
       c_array<const GLenum> draw_buffers;
 
-      if (clear_depth)
+      if (clear_depth || clear_color_buffer)
         {
           fbo = m_surface_gl->fbo(aux_type, PainterBackendGL::compositing_single_src);
           draw_buffers = m_surface_gl->draw_buffers(aux_type, PainterBackendGL::compositing_single_src);
 
           fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
           fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
-          fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
+
+          if (clear_depth)
+            {
+              fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
+            }
 
           if (clear_color_buffer)
             {
@@ -949,10 +953,6 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
             }
 
           last_fbo = fbo;
-        }
-      else
-        {
-          FASTUIDRAWassert(!clear_color_buffer);
         }
 
       fbo = m_surface_gl->fbo(aux_type, compositing_type);
@@ -1752,7 +1752,8 @@ indices_per_mapping(void) const
 void
 fastuidraw::gl::PainterBackendGL::
 on_pre_draw(const reference_counted_ptr<Surface> &surface,
-            bool clear_color_buffer)
+            bool clear_color_buffer,
+            bool begin_new_target)
 {
   PainterBackendGLPrivate *d;
 
@@ -1769,7 +1770,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
 
   d->m_uniform_ubo_ready = false;
   d->m_current_external_texture = 0;
-  d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
+  d->set_gl_state(gpu_dirty_state::all, begin_new_target, clear_color_buffer);
 
   //cache the GLSL programs for use.
   d->m_cached_programs = d->m_reg_gl->programs();

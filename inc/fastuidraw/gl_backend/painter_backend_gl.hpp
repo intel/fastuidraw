@@ -625,7 +625,8 @@ namespace fastuidraw
       virtual
       void
       on_pre_draw(const reference_counted_ptr<Surface> &surface,
-                  bool clear_color_buffer);
+                  bool clear_color_buffer,
+                  bool begin_new_target);
 
       virtual
       void

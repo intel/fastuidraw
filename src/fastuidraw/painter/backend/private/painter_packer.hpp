@@ -209,6 +209,10 @@ namespace fastuidraw
     void
     end(void);
 
+    /* Send all accumulated rendering commands to the GPU. */
+    void
+    flush(void);
+
     /*!
      * Returns the PainterBackend::Surface to which the Painter
      * is drawing. If there is no active surface, then returns
@@ -370,6 +374,9 @@ namespace fastuidraw
                            const T &src,
                            int z);
 
+    void
+    flush_implement(void);
+
     reference_counted_ptr<PainterBackend> m_backend;
     PainterData::value<PainterBrush> m_default_brush;
     unsigned int m_header_size;
@@ -378,10 +385,11 @@ namespace fastuidraw
     PainterCompositeShader *m_composite_shader;
     BlendMode m_composite_mode;
     painter_state_location m_painter_state_location;
-    int m_number_begins;
+    unsigned int m_number_commands;
 
     reference_counted_ptr<PainterBackend::Surface> m_surface;
     bool m_clear_color_buffer;
+    bool m_begin_new_target;
     std::vector<per_draw_command> m_accumulated_draws;
     reference_counted_ptr<const Image> m_last_binded_image;
 

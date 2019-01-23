@@ -120,7 +120,6 @@ namespace fastuidraw
          */
         const void *m_painter;
         std::vector<fastuidraw::generic_data> m_data;
-        int m_begin_id;
         unsigned int m_draw_command_id, m_offset;
         const void *m_raw_data;
 
@@ -131,8 +130,7 @@ namespace fastuidraw
           FASTUIDRAWassert(slot == m_pool_slot || m_pool_slot.m_bucket == -1);
           m_pool = p;
           m_pool_slot = slot;
-          m_begin_id = -1;
-          m_draw_command_id = 0;
+          m_draw_command_id = -1;
           m_offset = 0;
           m_painter = nullptr;
         }

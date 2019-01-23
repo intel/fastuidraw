@@ -469,11 +469,17 @@ namespace fastuidraw
      *                render content
      * \param clear_color_buffer if true, clear the color buffer
      *                           on the viewport of the surface.
+     * \param begin_new_target if true indicates that drawing is to
+     *                         start on the surface (typically this
+     *                         means that when this is true that the
+     *                         backend will clear all auxiliary buffers
+     *                         (such as the depth buffer).
      */
     virtual
     void
     on_pre_draw(const reference_counted_ptr<Surface> &surface,
-                bool clear_color_buffer) = 0;
+                bool clear_color_buffer,
+                bool begin_new_target) = 0;
 
     /*!
      * Called just after calling PainterDraw::draw()

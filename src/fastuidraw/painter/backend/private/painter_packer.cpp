@@ -351,8 +351,7 @@ pack_state_data(PainterPacker *p,
                 detail::PackedValuePoolBase::ElementBase *d,
                 uint32_t &location)
 {
-  if (d->m_painter == p && d->m_begin_id == p->m_number_begins
-     && d->m_draw_command_id == p->m_accumulated_draws.size())
+  if (d->m_painter == p && d->m_draw_command_id == p->m_number_commands)
     {
       location = d->m_offset;
       return;
@@ -370,7 +369,6 @@ pack_state_data(PainterPacker *p,
   std::copy(src.begin(), src.end(), dst.begin());
 
   d->m_painter = p;
-  d->m_begin_id = p->m_number_begins;
   d->m_draw_command_id = p->m_accumulated_draws.size();
   d->m_offset = location;
 }
@@ -507,11 +505,11 @@ PainterPacker(PainterPackedValuePool &pool,
   m_backend(backend),
   m_blend_shader(nullptr),
   m_composite_shader(nullptr),
+  m_number_commands(0),
   m_clear_color_buffer(false),
   m_stats(stats)
 {
   m_header_size = PainterHeader::data_size();
-  m_number_begins = 0;
   m_default_brush.make_packed(pool);
 }
 
@@ -537,6 +535,7 @@ start_new_command(void)
 
   reference_counted_ptr<PainterDraw> r;
   r = m_backend->map_draw();
+  ++m_number_commands;
   m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration_base()));
 }
 
@@ -549,8 +548,7 @@ compute_room_needed_for_packing(const PainterData::value<T> &obj)
     {
       detail::PackedValuePoolBase::ElementBase *d;
       d = static_cast<detail::PackedValuePoolBase::ElementBase*>(obj.m_packed_value.opaque_data());
-      if (d->m_painter == this && d->m_begin_id == m_number_begins
-          && d->m_draw_command_id == m_accumulated_draws.size())
+      if (d->m_painter == this && d->m_draw_command_id == m_number_commands)
         {
           return 0;
         }
@@ -803,19 +801,18 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   FASTUIDRAWassert(m_accumulated_draws.empty());
   m_surface = surface;
   m_clear_color_buffer = clear_color_buffer;
+  m_begin_new_target = true;
   start_new_command();
   m_last_binded_image = nullptr;
-  ++m_number_begins;
 }
 
 void
 fastuidraw::PainterPacker::
-end(void)
+flush_implement(void)
 {
   if (!m_accumulated_draws.empty())
     {
       per_draw_command &c(m_accumulated_draws.back());
-
       m_stats[PainterEnums::num_attributes] += c.m_attributes_written;
       m_stats[PainterEnums::num_indices] += c.m_indices_written;
       m_stats[PainterEnums::num_generic_datas] += c.store_written();
@@ -825,14 +822,37 @@ end(void)
   m_stats[PainterEnums::num_draws] += m_accumulated_draws.size();
   m_stats[PainterEnums::num_ends] += 1u;
 
-  m_backend->on_pre_draw(m_surface, m_clear_color_buffer);
+  m_backend->on_pre_draw(m_surface, m_clear_color_buffer, m_begin_new_target);
   for(per_draw_command &cmd : m_accumulated_draws)
     {
       FASTUIDRAWassert(cmd.m_draw_command->unmapped());
       cmd.m_draw_command->draw();
     }
-  m_backend->on_post_draw();
   m_accumulated_draws.clear();
+  m_begin_new_target = false;
+  m_clear_color_buffer = false;
+  m_last_binded_image = nullptr;
+}
+
+void
+fastuidraw::PainterPacker::
+flush(void)
+{
+  if (m_accumulated_draws.size() > 1
+      || m_accumulated_draws.back().m_attributes_written > 0
+      || m_accumulated_draws.back().m_indices_written > 0)
+    {
+      flush_implement();
+      start_new_command();
+    }
+}
+
+void
+fastuidraw::PainterPacker::
+end(void)
+{
+  flush_implement();
+  m_backend->on_post_draw();
   m_surface.clear();
 }
 
