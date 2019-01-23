@@ -642,7 +642,7 @@ draw_frame(void)
           st = static_cast<enum Painter::query_stats_t>(i);
           ostr << "\n" << Painter::stat_name(st) << ": " << stats[i];
         }
-      ostr << "\n";
+      ostr << "\ndraw_generics: " << m_painter->draw_data_added_count() << "\n";
 
       if (!m_text_brush)
         {
