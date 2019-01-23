@@ -34,6 +34,56 @@ namespace
       tree_size_count
     };
 
+  /*!
+   * An rectangle gives the location (i.e size and
+   * position) of a rectangle within a RectAtlas.
+   * The location of a rectangle does not change for the
+   * lifetime of the rectangle after returned by
+   * add_rectangle().
+   */
+  class rectangle:public fastuidraw::noncopyable
+  {
+  public:
+    explicit
+    rectangle(const fastuidraw::ivec2 &psize):
+      m_minX_minY(0, 0),
+      m_size(psize)
+    {}
+
+    /*!
+     * Returns the minX_minY of the rectangle.
+     */
+    const fastuidraw::ivec2&
+    minX_minY(void) const
+    {
+      return m_minX_minY;
+    }
+
+    int
+    area(void) const
+    {
+      return m_size.x() * m_size.y();
+    }
+
+    /*!
+     * Returns the size of the rectangle.
+     */
+    const fastuidraw::ivec2&
+    size(void) const
+    {
+      return m_size;
+    }
+
+    void
+    move(const fastuidraw::ivec2 &moveby)
+    {
+      m_minX_minY += moveby;
+    }
+
+  private:
+    fastuidraw::ivec2 m_minX_minY, m_size;
+  };
+
   class tree_node_without_children;
   typedef fastuidraw::vecN<int, tree_size_count> TreeSizeCount;
 
@@ -56,7 +106,6 @@ namespace
   class tree_base
   {
   public:
-    typedef fastuidraw::detail::RectAtlas::rectangle rectangle;
     typedef fastuidraw::ivec2 ivec2;
     typedef fastuidraw::detail::SimplePool<4096> SimplePool;
 
@@ -95,6 +144,10 @@ namespace
     TreeSizeCount
     count(void) const = 0;
 
+    /* returns nullptr if failed to add rectangle,
+     * otherwise returns what the caller pointer
+     * should be updated to.
+     */
     tree_base*
     add(SimplePool &pool, rectangle *rect);
 
@@ -269,7 +322,7 @@ tree_node_without_children(const ivec2 &bl, const ivec2 &sz,
   m_widest = m_tallest = m_biggest = this;
 }
 
-tree_base::rectangle*
+rectangle*
 tree_node_without_children::
 data(void)
 {
@@ -436,8 +489,7 @@ recompute_possible(void)
 ////////////////////////////////////
 // fastuidraw::detail::RectAtlas methods
 fastuidraw::detail::RectAtlas::
-RectAtlas(const ivec2 &dimensions):
-  m_empty_rect(ivec2(0, 0))
+RectAtlas(const ivec2 &dimensions)
 {
   m_data = m_pool.create<tree_node_without_children>(ivec2(0,0), dimensions, nullptr);
 }
@@ -472,7 +524,7 @@ clear(ivec2 dimensions)
   m_data = m_pool.create<tree_node_without_children>(ivec2(0,0), dimensions, nullptr);
 }
 
-const fastuidraw::detail::RectAtlas::rectangle*
+fastuidraw::ivec2
 fastuidraw::detail::RectAtlas::
 add_rectangle(const ivec2 &dimensions)
 {
@@ -497,9 +549,16 @@ add_rectangle(const ivec2 &dimensions)
     }
   else
     {
-      return_value = &m_empty_rect;
+      return ivec2(0, 0);
     }
 
   m_data = root;
-  return return_value;
+  if (return_value)
+    {
+      return return_value->minX_minY();
+    }
+  else
+    {
+      return ivec2(-1, -1);
+    }
 }

@@ -2136,7 +2136,7 @@ fetch(unsigned int transparency_depth,
   using namespace fastuidraw;
 
   TransparencyStackEntry return_value;
-  const detail::RectAtlas::rectangle *rect(nullptr);
+  ivec2 rect(-1, -1);
   ivec2 dims, bl, tr;
   vec2 fbl, ftr;
 
@@ -2170,17 +2170,17 @@ fetch(unsigned int transparency_depth,
     }
 
   for (unsigned int i = 0, endi = m_per_active_depth[transparency_depth].size();
-       !rect && i < endi; ++i)
+       (rect.x() < 0 || rect.y() < 0) && i < endi; ++i)
     {
       rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(dims);
-      if (rect)
+      if (rect.x() >= 0 && rect.y() >= 0)
         {
           return_value.m_image = m_per_active_depth[transparency_depth][i]->m_image.get();
           return_value.m_packer = m_per_active_depth[transparency_depth][i]->m_packer.get();
         }
     }
 
-  if (!rect)
+  if (rect.x() < 0 || rect.y() < 0)
     {
       reference_counted_ptr<TransparencyBuffer> TB;
 
@@ -2226,14 +2226,14 @@ fetch(unsigned int transparency_depth,
     .min_point(normalized_coords_from_coords(bl, d->m_viewport.m_dimensions))
     .max_point(normalized_coords_from_coords(tr, d->m_viewport.m_dimensions));
 
-  FASTUIDRAWassert(rect);
+  FASTUIDRAWassert(rect.x() >= 0 && rect.y() >= 0);
 
   /* we need to have that:
    *   return_value.m_normalized_translate + normalized_rect = R
    * where R is rect in normalized device coordinates.
    */
   vec2 Rndc;
-  Rndc = m_viewport.compute_normalized_device_coords(vec2(rect->minX_minY()));
+  Rndc = m_viewport.compute_normalized_device_coords(vec2(rect));
   return_value.m_normalized_translate = Rndc - return_value.m_normalized_rect.m_min_point;
 
   /* the drawing of the fill_rect in end_layer() draws normalized_rect
@@ -2243,7 +2243,7 @@ fetch(unsigned int transparency_depth,
    */
   vec2 Spc;
   Spc = m_viewport.compute_pixel_coordinates(return_value.m_normalized_rect.m_min_point);
-  return_value.m_brush_translate = vec2(rect->minX_minY()) - Spc ;
+  return_value.m_brush_translate = vec2(rect) - Spc ;
 
   PainterItemMatrix M;
   M.m_normalized_translate = return_value.m_normalized_translate;

@@ -43,56 +43,6 @@ class RectAtlas:public fastuidraw::noncopyable
 {
 public:
   /*!
-   * An rectangle gives the location (i.e size and
-   * position) of a rectangle within a RectAtlas.
-   * The location of a rectangle does not change for the
-   * lifetime of the rectangle after returned by
-   * add_rectangle().
-   */
-  class rectangle:public fastuidraw::noncopyable
-  {
-  public:
-    explicit
-    rectangle(const ivec2 &psize):
-      m_minX_minY(0, 0),
-      m_size(psize)
-    {}
-
-    /*!
-     * Returns the minX_minY of the rectangle.
-     */
-    const ivec2&
-    minX_minY(void) const
-    {
-      return m_minX_minY;
-    }
-
-    int
-    area(void) const
-    {
-      return m_size.x() * m_size.y();
-    }
-
-    /*!
-     * Returns the size of the rectangle.
-     */
-    const ivec2&
-    size(void) const
-    {
-      return m_size;
-    }
-
-    void
-    move(const ivec2 &moveby)
-    {
-      m_minX_minY += moveby;
-    }
-
-  private:
-    ivec2 m_minX_minY, m_size;
-  };
-
-  /*!
    * Ctor
    * \param dimensions dimension of the atlas, this is then the return value to size().
    */
@@ -103,15 +53,12 @@ public:
   ~RectAtlas();
 
   /*!
-   * Returns a pointer to the a newly created rectangle
-   * of the requested size. Returns nullptr on failure.
-   * The rectangle is owned by this RectAtlas.
-   * An implementation may not change the location
-   * (or size) of a rectangle once it has been
-   * returned by add_rectangle().
+   * Returns the location where the rectangle is palced
+   * in the RectAtlas. Failure is indicated by if any
+   * of the coordinates of the returned value are negative.
    * \param dimension width and height of the rectangle
    */
-  const rectangle*
+  ivec2
   add_rectangle(const ivec2 &dimension);
 
   /*!
@@ -146,7 +93,6 @@ public:
 private:
   void *m_data;
   SimplePool<4096> m_pool;
-  rectangle m_empty_rect;
 };
 
 } //namespace detail
