@@ -1494,7 +1494,7 @@ namespace
     fastuidraw::vec2 m_viewport_dimensions;
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
-    int m_current_z;
+    int m_current_z, m_draw_data_added_count;
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
@@ -2287,6 +2287,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));
   m_root_identity_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
+  m_draw_data_added_count = 0;
   m_max_attribs_per_block = backend->attribs_per_mapping();
   m_max_indices_per_block = backend->indices_per_mapping();
 
@@ -2783,6 +2784,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
   packer()->draw_generic(shader, p, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z);
+  ++m_draw_data_added_count;
 }
 
 void
@@ -2796,6 +2798,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
   packer()->draw_generic(shader, p, src, z);
+  ++m_draw_data_added_count;
 }
 
 void
@@ -4074,6 +4077,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d->m_one_pixel_width = 1.0f / d->m_viewport_dimensions;
 
   d->m_current_z = 1;
+  d->m_draw_data_added_count = 0;
   d->m_clip_rect_state.reset(d->m_viewport, surface->dimensions());
   d->m_clip_store.reset(d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(composite_porter_duff_src_over);
@@ -4139,6 +4143,103 @@ end(void)
   colorstop_atlas()->unlock_resources();
 
   return make_c_array(d->m_transparency_stack_entry_factory.active_surfaces());
+}
+
+enum fastuidraw::return_code
+fastuidraw::Painter::
+flush(void)
+{
+  return flush(surface());
+}
+
+enum fastuidraw::return_code
+fastuidraw::Painter::
+flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  if (!surface() || !new_surface)
+    {
+      /* not actively drawing */
+      return routine_fail;
+    }
+
+  if (!d->m_transparency_stack.empty())
+    {
+      return routine_fail;
+    }
+
+  /* TODO: correclty deal with occluders. Instead of
+   * failing if any element of the current state stack
+   * has m_occluder_stack_position as non-zero to instead
+   * have the occlusion stack entries have an object that
+   * can issue the add of the attribute/index data
+   * itself and using that to issue the draws of the
+   * occluders.
+   */
+  for (const state_stack_entry &e : d->m_state_stack)
+    {
+      if (e.m_occluder_stack_position != 0)
+        {
+          return routine_fail;
+        }
+    }
+
+  /* pop all entries of the occluder stack */
+  while (!d->m_occluder_stack.empty())
+    {
+      d->m_occluder_stack.back().on_pop(d);
+      d->m_occluder_stack.pop_back();
+    }
+
+  /* issue the PainterPacker::end() to send the commands to the GPU */
+  d->m_transparency_stack_entry_factory.end();
+
+  /* start the transparency_stack_entry up again */
+  d->m_transparency_stack_entry_factory.begin(new_surface->dimensions(), d->m_viewport);
+  if (new_surface == surface())
+    {
+      d->m_root_packer->flush();
+    }
+  else
+    {
+      /* get the Image handle to the old-surface */
+      reference_counted_ptr<PainterBackend::Surface> old_surface(surface());
+      reference_counted_ptr<const Image> image;
+
+      image = surface()->image(d->m_backend->image_atlas());
+      new_surface->viewport(d->m_viewport);
+
+      d->m_root_packer->end();
+      d->m_root_packer->begin(new_surface, true);
+
+      /* blit the old surface to the surface */
+      save();
+        {
+          const PainterBackend::Surface::Viewport &vwp(new_surface->viewport());
+          PainterBrush brush;
+
+          brush.sub_image(image, uvec2(vwp.m_origin), uvec2(vwp.m_dimensions));
+          transformation(float_orthogonal_projection_params(0, vwp.m_dimensions.x(), 0, vwp.m_dimensions.y()));
+          composite_shader(composite_porter_duff_src);
+          blend_shader(blend_w3c_normal);
+          fill_rect(PainterData(&brush),
+                    Rect().min_point(0.0f, 0.0f).size(vec2(vwp.m_dimensions)),
+                    shader_anti_alias_none);
+        }
+      restore();
+    }
+  return routine_success;
+}
+
+unsigned int
+fastuidraw::Painter::
+draw_data_added_count(void) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_draw_data_added_count;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&

@@ -361,6 +361,43 @@ namespace fastuidraw
     end(void);
 
     /*!
+     * Flushes the rendering and flushes the rendering commands
+     * to the 3D API and maintain using the current
+     * PainterBackend::Surface. It is not possible to flush
+     * if the Painter is within a begin_layer()/end_layer().
+     * Returns \ref routine_success if flush was executed and
+     * \ref routine_fail if not.
+     */
+    enum return_code
+    flush(void);
+
+    /*!
+     * Flushes the rendering and flushes the rendering commands
+     * to the 3D API and shift to using a the passed surface;
+     * the surface's viewport dimensions MUST match the
+     * current surface's viewport dimensions, i.e. the value
+     * of PainterBackend::Surface::viewport().m_dimensions
+     * surface() and the passed PainterBackend::Surface must
+     * match. It is not possible to flush if the Painter is
+     * within a begin_layer()/end_layer(). Returns \ref
+     * routine_success if flush was executed and \ref
+     * routine_fail if not.
+     */
+    enum return_code
+    flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface);
+
+    /*!
+     * Everytime Painter generates attribute/index data to
+     * be sent to the 3D API, this counter is incremented.
+     * The value is essentially equivalent to the number of
+     * times draw_generic() is called (directly or indirectly
+     * through other methods). The counter is reset when
+     * begin() is called.
+     */
+    unsigned int
+    draw_data_added_count(void) const;
+
+    /*!
      * Returns the PainterBackend::Surface to which the Painter
      * is drawing. If there is no active surface, then returns
      * a null reference.
