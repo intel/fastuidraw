@@ -1028,6 +1028,10 @@ clear_atlas(void)
   ++d->m_number_times_atlas_cleared;
   for(GlyphDataPrivate *g : d->m_glyphs.data())
     {
+      /* setting m_uploaded_to_atlas marks the Glyph
+       * as not uploaded. Clearing m_data_locations
+       * prevents calling GlyphAtlas::deallocate_data().
+       */
       g->m_uploaded_to_atlas = false;
       g->m_data_locations.clear();
     }
