@@ -26,7 +26,7 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Text
+/*!\addtogroup PainterBackend
  * @{
  */
   /*!
@@ -137,7 +137,7 @@ namespace fastuidraw
     allocate_data(c_array<const generic_data> pdata);
 
     /*!
-     * Deallocate  data
+     * Deallocate data
      */
     void
     deallocate_data(int location, int count);
