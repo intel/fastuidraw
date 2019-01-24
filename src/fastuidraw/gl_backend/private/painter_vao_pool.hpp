@@ -102,7 +102,7 @@ public:
   uniform_ubo(unsigned int ubo_size, GLenum target);
 
   void
-  release_vao(const painter_vao &V);
+  release_vao(painter_vao &V);
 
 private:
   void
@@ -113,6 +113,12 @@ private:
 
   GLuint
   generate_bo(GLenum bind_target, GLsizei psize);
+
+  void
+  create_vao(painter_vao &V);
+
+  void
+  release_vao_resources(const painter_vao &V);
 
   unsigned int m_attribute_buffer_size, m_header_buffer_size;
   unsigned int m_index_buffer_size;
