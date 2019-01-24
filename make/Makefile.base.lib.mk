@@ -91,6 +91,24 @@ endef
 
 TARGETLIST += libFastUIDraw libFastUIDraw_release libFastUIDraw_debug
 TARGETLIST += libFastUIDraw-static libFastUIDraw_release-static libFastUIDraw_debug-static
+
+TARGETLIST += libs libs_release libs_debug
+libs: libs_release libs_debug
+.PHONY: libs
+libs_release: libFastUIDraw_release
+.PHONY: libs_release
+libs_debug: libFastUIDraw_debug
+.PHONY: libs_debug
+
+TARGETLIST += libs-static libs_release-static libs_debug-static
+libs-static: libs_release-static libs_debug-static
+.PHONY: libs-static
+libs_release-static: libFastUIDraw_release-static
+.PHONY: libs_release-static
+libs_debug-static: libFastUIDraw_debug-static
+.PHONY: libs_debug-static
+
+
 $(call librules,release)
 $(call librules,debug)
 all: libFastUIDraw
