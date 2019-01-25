@@ -4200,7 +4200,18 @@ flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
   d->m_transparency_stack_entry_factory.begin(new_surface->dimensions(), d->m_viewport);
   if (new_surface == surface())
     {
-      d->m_root_packer->flush();
+      bool clear_z;
+      const int clear_depth_thresh(d->packer()->hints().max_z());
+
+      clear_z = (d->m_current_z > clear_depth_thresh);
+      d->m_root_packer->flush(clear_z);
+      if (clear_z)
+        {
+          d->m_current_z = 1;
+        }
+      const state_stack_entry &st(d->m_state_stack.back());
+      d->packer()->composite_shader(st.m_composite, st.m_composite_mode);
+      d->packer()->blend_shader(st.m_blend);
     }
   else
     {
@@ -4212,6 +4223,7 @@ flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
       new_surface->viewport(d->m_viewport);
 
       d->m_root_packer->end();
+      d->m_current_z = 1;
       d->m_root_packer->begin(new_surface, true);
 
       /* blit the old surface to the surface */

@@ -836,7 +836,7 @@ flush_implement(void)
 
 void
 fastuidraw::PainterPacker::
-flush(void)
+flush(bool clear_z)
 {
   if (m_accumulated_draws.size() > 1
       || m_accumulated_draws.back().m_attributes_written > 0
@@ -844,6 +844,7 @@ flush(void)
     {
       flush_implement();
       start_new_command();
+      m_begin_new_target = clear_z;
     }
 }
 

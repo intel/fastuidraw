@@ -209,9 +209,11 @@ namespace fastuidraw
     void
     end(void);
 
-    /* Send all accumulated rendering commands to the GPU. */
+    /*!
+     * Send all accumulated rendering commands to the GPU.
+     */
     void
-    flush(void);
+    flush(bool clear_z);
 
     /*!
      * Returns the PainterBackend::Surface to which the Painter
