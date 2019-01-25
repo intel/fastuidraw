@@ -26,10 +26,12 @@ namespace
   {
   public:
     PerformanceHintsPrivate(void):
-      m_clipping_via_hw_clip_planes(true)
+      m_clipping_via_hw_clip_planes(true),
+      m_max_z(1u << 20)
     {}
 
     bool m_clipping_via_hw_clip_planes;
+    int m_max_z;
   };
 
   class PainterBackendPrivate
@@ -102,6 +104,9 @@ assign_swap_implement(fastuidraw::PainterBackend::PerformanceHints)
 setget_implement(fastuidraw::PainterBackend::PerformanceHints,
                  PerformanceHintsPrivate,
                  bool, clipping_via_hw_clip_planes)
+setget_implement(fastuidraw::PainterBackend::PerformanceHints,
+                 PerformanceHintsPrivate,
+                 int, max_z)
 
 ///////////////////////////////////////////////////
 // fastuidraw::PainterBackend::ConfigurationBase methods

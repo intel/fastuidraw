@@ -175,6 +175,20 @@ namespace fastuidraw
       PerformanceHints&
       clipping_via_hw_clip_planes(bool v);
 
+      /*!
+       * Gives the maximum z-value an implementation of
+       * PainterBackend support.
+       */
+      int
+      max_z(void) const;
+
+      /*!
+       * Set the value returned by max_z(void) const,
+       * default value is 2^20.
+       */
+      PerformanceHints&
+      max_z(int);
+
     private:
       void *m_d;
     };
