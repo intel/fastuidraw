@@ -19,9 +19,8 @@
 #pragma once
 
 #include <fastuidraw/util/util.hpp>
-#include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
-#include <list>
+#include <vector>
 
 #include "util_private_ostream.hpp"
 #include <iostream>
@@ -39,18 +38,26 @@ namespace fastuidraw { namespace detail {
  * called. The purpose of this object is to allow
  * for a simple "nuke" (embodied by clear()).
  */
-template<size_t PoolSize>
+template<typename T, size_t PoolSize>
 class SimplePool:fastuidraw::noncopyable
 {
 public:
-  template<typename T, typename ...Args>
+  ~SimplePool()
+  {
+    for (SinglePool *p : m_all)
+      {
+        FASTUIDRAWdelete(p);
+      }
+  }
+
+  template<typename ...Args>
   T*
   create(Args&&... args)
   {
     void *data;
     T *p;
 
-    data = allocate(sizeof(T));
+    data = allocate();
     p = new(data) T(std::forward<Args>(args)...);
     FASTUIDRAWassert(p == data);
 
@@ -58,87 +65,75 @@ public:
   }
 
   void
-  clear(void);
-
-  void*
-  allocate(uint64_t num_bytes);
+  clear(void)
+  {
+    m_usable.clear();
+    for (SinglePool *pool : m_all)
+      {
+        pool->clear();
+        m_usable.push_back(pool);
+      }
+  }
 
 private:
+  typedef typename std::aligned_storage<sizeof(T), alignof(T)>::type element;
+
   class SinglePool
   {
   public:
-    void*
-    allocate(uint64_t num_chunks)
-    {
-      uint64_t return_value(m_chunks_allocated);
+    SinglePool(void):
+      m_allocated(0)
+    {}
 
-      FASTUIDRAWassert(m_chunks_allocated + num_chunks <= m_pool.size());
-      m_chunks_allocated += num_chunks;
-      return &m_pool[return_value];
+    void*
+    allocate(void)
+    {
+      unsigned int ct(m_allocated);
+
+      FASTUIDRAWassert(m_allocated < m_pool.size());
+      ++m_allocated;
+
+      return &m_pool[ct];
+    }
+
+    bool
+    full(void) const
+    {
+      return m_allocated == m_pool.size();
     }
 
     void
     clear(void)
     {
-      m_chunks_allocated = 0;
-    }
-
-    uint64_t
-    num_free_chunks(void) const
-    {
-      return m_pool.size() - m_chunks_allocated;
+      m_allocated = 0;
     }
 
   private:
-    vecN<uint64_t, PoolSize> m_pool;
-    unsigned int m_chunks_allocated;
+    vecN<element, PoolSize> m_pool;
+    unsigned int m_allocated;
   };
 
-  std::list<SinglePool> m_usable, m_full;
+  void*
+  allocate(void)
+  {
+    void *return_value;
+
+    if (m_usable.empty())
+      {
+        m_usable.push_back(FASTUIDRAWnew SinglePool());
+        m_all.push_back(m_usable.back());
+      }
+
+    return_value = m_usable.back()->allocate();
+    if (m_usable.back()->full())
+      {
+        m_usable.pop_back();
+      }
+
+    return return_value;
+  }
+
+  std::vector<SinglePool*> m_usable, m_all;
 };
-
-/////////////////////////////////
-// fastuidraw::detail::SimplePool methods
-template<size_t PoolSize>
-void
-fastuidraw::detail::SimplePool<PoolSize>::
-clear(void)
-{
-  m_usable.splice(m_usable.begin(), m_full);
-  for (auto &pool : m_usable)
-    {
-      pool.clear();
-    }
-}
-
-template<size_t PoolSize>
-void*
-fastuidraw::detail::SimplePool<PoolSize>::
-allocate(uint64_t num_bytes)
-{
-  void *return_value(nullptr);
-  unsigned int num_chunks;
-
-  /* make sure num_bytes is a multiple of 8 */
-  num_bytes = (num_bytes + 7u) & ~7u;
-  num_chunks = (num_bytes >> 3u);
-
-  FASTUIDRAWassert(num_chunks * sizeof(uint64_t) >= num_bytes);
-  for (auto iter = m_usable.begin(), end = m_usable.end(); iter != end; ++iter)
-    {
-      if (iter->num_free_chunks() >= num_chunks)
-        {
-          return_value = iter->allocate(num_chunks);
-          if (iter->num_free_chunks() == 0)
-            {
-              m_full.splice(m_full.end(), m_usable, iter);
-            }
-          return return_value;
-        }
-    }
-
-  m_usable.push_back(SinglePool());
-  return m_usable.back().allocate(num_chunks);
-}
 
 }}

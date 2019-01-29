@@ -157,7 +157,7 @@ add_implement(MemoryPool &pool, Rectangle *im)
   NodeBase *new_node;
 
   //new_node will hold this->m_rectange:
-  new_node = pool.create<NodeWithChildren>(pool, this, split_x_works, split_y_works);
+  new_node = pool.create_node_with_children(this, split_x_works, split_y_works);
 
   //add the new rectangle im to new_node:
   new_node = new_node->add(pool, im);
@@ -178,7 +178,7 @@ NodeWithChildren(MemoryPool &pool,
   Rectangle *R(src->data());
   FASTUIDRAWassert(R != nullptr);
 
-  m_children[2] = pool.create<NodeWithoutChildren>(R->minX_minY(), R->size(), R);
+  m_children[2] = pool.create_node_without_children(R->minX_minY(), R->size(), R);
 
   /* Perhaps we should consider delaying creating m_children[0] and m_children[1]
    * until the first request come to this to add a rectangle so that we can
@@ -187,12 +187,12 @@ NodeWithChildren(MemoryPool &pool,
   if (split_x_works)
     {
       m_children[0]
-        = pool.create<NodeWithoutChildren>(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
-                                           ivec2(R->size().x(), size().y() - R->size().y()) );
+        = pool.create_node_without_children(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
+                                            ivec2(R->size().x(), size().y() - R->size().y()) );
 
       m_children[1]
-        = pool.create<NodeWithoutChildren>(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
-                                           ivec2(size().x() - R->size().x(), size().y()) );
+        = pool.create_node_without_children(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
+                                            ivec2(size().x() - R->size().x(), size().y()) );
     }
   else
     {
@@ -200,12 +200,12 @@ NodeWithChildren(MemoryPool &pool,
       FASTUIDRAWunused(split_y_works);
 
       m_children[0]
-        = pool.create<NodeWithoutChildren>(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
-                                           ivec2(size().x() - R->size().x(), R->size().y()) );
+        = pool.create_node_without_children(ivec2(minX_minY().x() + R->size().x(), minX_minY().y()),
+                                            ivec2(size().x() - R->size().x(), R->size().y()) );
 
       m_children[1]
-        = pool.create<NodeWithoutChildren>(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
-                                           ivec2(size().x(), size().y() - R->size().y()) );
+        = pool.create_node_without_children(ivec2(minX_minY().x(), minX_minY().y() + R->size().y()),
+                                            ivec2(size().x(), size().y() - R->size().y()) );
     }
 
   std::sort(m_children.begin(), m_children.end(), NodeSorter());
@@ -268,7 +268,7 @@ recompute_possible(void)
 fastuidraw::detail::RectAtlas::
 RectAtlas(const ivec2 &dimensions)
 {
-  m_root = m_pool.create<NodeWithoutChildren>(ivec2(0,0), dimensions, nullptr);
+  m_root = m_pool.create_node_without_children(ivec2(0,0), dimensions, nullptr);
 }
 
 fastuidraw::detail::RectAtlas::
@@ -295,7 +295,7 @@ fastuidraw::detail::RectAtlas::
 clear(ivec2 dimensions)
 {
   m_pool.clear();
-  m_root = m_pool.create<NodeWithoutChildren>(ivec2(0,0), dimensions, nullptr);
+  m_root = m_pool.create_node_without_children(ivec2(0,0), dimensions, nullptr);
 }
 
 fastuidraw::ivec2
@@ -308,7 +308,7 @@ add_rectangle(const ivec2 &dimensions)
   if (dimensions.x() > 0 && dimensions.y() > 0)
     {
       //attempt to add the rect:
-      return_value = m_pool.create<Rectangle>(dimensions);
+      return_value = m_pool.create_rectangle(dimensions);
       R = m_root->add(m_pool, return_value);
 
       if (R)

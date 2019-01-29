@@ -104,7 +104,7 @@ private:
   class NodeBase;
   class NodeWithoutChildren;
   class NodeWithChildren;
-  typedef SimplePool<4096> MemoryPool;
+  class MemoryPool;
   typedef vecN<int, node_num_count> NodeSizeCount;
 
   class Rectangle:public fastuidraw::noncopyable
@@ -209,7 +209,7 @@ private:
   {
   public:
     NodeWithoutChildren(const ivec2 &bl, const ivec2 &sz,
-                               Rectangle *rect = nullptr);
+                        Rectangle *rect);
 
     Rectangle*
     data(void);
@@ -302,6 +302,43 @@ private:
        */
       return lhs->area() < rhs->area();
     }
+  };
+
+  class MemoryPool:fastuidraw::noncopyable
+  {
+  public:
+    Rectangle*
+    create_rectangle(const ivec2 &psize)
+    {
+      return m_rect_allocator.create(psize);
+    }
+
+    NodeWithoutChildren*
+    create_node_without_children(const ivec2 &bl, const ivec2 &sz,
+                                 Rectangle *rect = nullptr)
+    {
+      return m_node_without_children_allocator.create(bl, sz, rect);
+    }
+
+    NodeWithChildren*
+    create_node_with_children(NodeWithoutChildren *src,
+                              bool split_x, bool split_y)
+    {
+      return m_node_with_children_allocator.create(*this, src, split_x, split_y);
+    }
+
+    void
+    clear(void)
+    {
+      m_rect_allocator.clear();
+      m_node_without_children_allocator.clear();
+      m_node_with_children_allocator.clear();
+    }
+
+  private:
+    SimplePool<Rectangle, 512> m_rect_allocator;
+    SimplePool<NodeWithoutChildren, 512> m_node_without_children_allocator;
+    SimplePool<NodeWithChildren, 512> m_node_with_children_allocator;
   };
 
   NodeBase *m_root;
