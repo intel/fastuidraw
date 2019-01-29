@@ -323,8 +323,7 @@ namespace fastuidraw
         gradient_type_mask = FASTUIDRAW_MASK(gradient_type_bit0, gradient_type_num_bits),
 
         /*!
-         * mask generated from \ref gradient_spread_type_bit0 and \ref
-         * gradient_spread_type_num_bits
+         * mask generated from \ref gradient_spread_type_bit0 and \ref spread_type_num_bits
          */
         gradient_spread_type_mask = FASTUIDRAW_MASK(gradient_spread_type_bit0, spread_type_num_bits),
 
