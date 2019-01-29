@@ -46,8 +46,8 @@ CompositeShaderSetCreator(enum PainterCompositeShader::shader_type tp):
 void
 CompositeShaderSetCreator::
 add_single_src_composite_shader(PainterCompositeShaderSet &out,
-                            enum PainterEnums::composite_mode_t md,
-                            const BlendMode &single_md)
+                                enum PainterEnums::composite_mode_t md,
+                                const BlendMode &single_md)
 {
   FASTUIDRAWassert(m_type == PainterCompositeShader::single_src);
   out.shader(md, single_md, m_single_src_composite_shader_code);
@@ -56,9 +56,9 @@ add_single_src_composite_shader(PainterCompositeShaderSet &out,
 void
 CompositeShaderSetCreator::
 add_dual_src_composite_shader(PainterCompositeShaderSet &out,
-                          enum PainterEnums::composite_mode_t md,
-                          const std::string &dual_src_file,
-                          const BlendMode &dual_md)
+                              enum PainterEnums::composite_mode_t md,
+                              const std::string &dual_src_file,
+                              const BlendMode &dual_md)
 {
   FASTUIDRAWassert(m_type == PainterCompositeShader::dual_src);
 
@@ -73,8 +73,8 @@ add_dual_src_composite_shader(PainterCompositeShaderSet &out,
 void
 CompositeShaderSetCreator::
 add_fbf_composite_shader(PainterCompositeShaderSet &out,
-                     enum PainterEnums::composite_mode_t md,
-                     const std::string &framebuffer_fetch_src_file)
+                         enum PainterEnums::composite_mode_t md,
+                         const std::string &framebuffer_fetch_src_file)
 {
   FASTUIDRAWassert(m_type == PainterCompositeShader::framebuffer_fetch);
 
@@ -89,11 +89,11 @@ add_fbf_composite_shader(PainterCompositeShaderSet &out,
 void
 CompositeShaderSetCreator::
 add_composite_shader(PainterCompositeShaderSet &out,
-                 enum PainterEnums::composite_mode_t md,
-                 const BlendMode &single_md,
-                 const std::string &dual_src_file,
-                 const BlendMode &dual_md,
-                 const std::string &framebuffer_fetch_src_file)
+                     enum PainterEnums::composite_mode_t md,
+                     const BlendMode &single_md,
+                     const std::string &dual_src_file,
+                     const BlendMode &dual_md,
+                     const std::string &framebuffer_fetch_src_file)
 {
   switch(m_type)
     {
@@ -117,10 +117,10 @@ add_composite_shader(PainterCompositeShaderSet &out,
 void
 CompositeShaderSetCreator::
 add_composite_shader(PainterCompositeShaderSet &out,
-                 enum PainterEnums::composite_mode_t md,
-                 const std::string &dual_src_file,
-                 const BlendMode &dual_md,
-                 const std::string &framebuffer_fetch_src_file)
+                     enum PainterEnums::composite_mode_t md,
+                     const std::string &dual_src_file,
+                     const BlendMode &dual_md,
+                     const std::string &framebuffer_fetch_src_file)
 {
   switch(m_type)
     {
@@ -143,8 +143,8 @@ add_composite_shader(PainterCompositeShaderSet &out,
 void
 CompositeShaderSetCreator::
 add_composite_shader(PainterCompositeShaderSet &out,
-                 enum PainterEnums::composite_mode_t md,
-                 const std::string &framebuffer_fetch_src_file)
+                     enum PainterEnums::composite_mode_t md,
+                     const std::string &framebuffer_fetch_src_file)
 {
   switch(m_type)
     {
@@ -252,6 +252,11 @@ create_composite_shaders(void)
                        BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
                        "fastuidraw_porter_duff_xor.glsl.resource_string", one_minus_dst_alpha_src1,
                        "fastuidraw_fbf_porter_duff_xor.glsl.resource_string");
+
+  add_composite_shader(shaders, PainterEnums::composite_porter_duff_plus,
+                       BlendMode().func(BlendMode::ONE, BlendMode::ONE),
+                       "fastuidraw_porter_duff_plus.glsl.resource_string", one_src1,
+                       "fastuidraw_fbf_porter_duff_plus.glsl.resource_string");
 
   return shaders;
 }

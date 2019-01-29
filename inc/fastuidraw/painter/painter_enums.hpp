@@ -270,6 +270,7 @@ namespace fastuidraw
         composite_porter_duff_src_atop, /*!< Source Atop mode of Porter-Duff */
         composite_porter_duff_dst_atop, /*!< Destination Atop mode of Porter-Duff */
         composite_porter_duff_xor, /*!< Xor mode of Porter-Duff */
+        composite_porter_duff_plus, /*!< Plus operator mode of Porter-Duff */
       };
 
     /*!
