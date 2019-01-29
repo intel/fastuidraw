@@ -91,8 +91,221 @@ public:
   size(void) const;
 
 private:
-  void *m_data;
-  SimplePool<4096> m_pool;
+  enum node_num_t
+    {
+      num_rects,
+      num_with_children,
+      num_without_children,
+
+      node_num_count
+    };
+
+  class Rectangle;
+  class NodeBase;
+  class NodeWithoutChildren;
+  class NodeWithChildren;
+  typedef SimplePool<4096> MemoryPool;
+  typedef vecN<int, node_num_count> NodeSizeCount;
+
+  class Rectangle:public fastuidraw::noncopyable
+  {
+  public:
+    explicit
+    Rectangle(const ivec2 &psize):
+      m_minX_minY(0, 0),
+      m_size(psize)
+    {}
+
+    const fastuidraw::ivec2&
+    minX_minY(void) const
+    {
+      return m_minX_minY;
+    }
+
+    int
+    area(void) const
+    {
+      return m_size.x() * m_size.y();
+    }
+
+    const ivec2&
+    size(void) const
+    {
+      return m_size;
+    }
+
+    void
+    move(const ivec2 &moveby)
+    {
+      m_minX_minY += moveby;
+    }
+
+  private:
+    ivec2 m_minX_minY, m_size;
+  };
+
+  class NodeBase
+  {
+  public:
+    NodeBase(const ivec2 &bl, const ivec2 &sz):
+      m_minX_minY(bl), m_size(sz)
+    {}
+
+    const ivec2&
+    size(void) const
+    {
+      return m_size;
+    }
+
+    int
+    area(void) const
+    {
+      return m_size.x() * m_size.y();
+    }
+
+    const ivec2&
+    minX_minY(void) const
+    {
+      return m_minX_minY;
+    }
+
+    NodeWithoutChildren*
+    widest_possible_rectangle(void) { return m_widest; }
+
+    NodeWithoutChildren*
+    tallest_possible_rectangle(void) { return m_tallest; }
+
+    NodeWithoutChildren*
+    biggest_possible_rectangle(void) { return m_biggest; }
+
+    virtual
+    NodeSizeCount
+    count(void) const = 0;
+
+    /* returns nullptr if failed to add rectangle,
+     * otherwise returns what the caller pointer
+     * should be updated to.
+     */
+    NodeBase*
+    add(MemoryPool &pool, Rectangle *rect);
+
+  protected:
+    NodeWithoutChildren *m_widest, *m_tallest, *m_biggest;
+
+  private:
+    /*
+     * A return value of nullptr indicates failure;
+     * a return value of non-null but different, means
+     * change pointer to callee.
+     */
+    virtual
+    NodeBase*
+    add_implement(MemoryPool&, Rectangle*) = 0;
+
+    ivec2 m_minX_minY, m_size;
+  };
+
+  class NodeWithoutChildren:public NodeBase
+  {
+  public:
+    NodeWithoutChildren(const ivec2 &bl, const ivec2 &sz,
+                               Rectangle *rect = nullptr);
+
+    Rectangle*
+    data(void);
+
+    int
+    widest_possible(void) const
+    {
+      return size().x();
+    }
+
+    int
+    tallest_possible(void) const
+    {
+      return size().y();
+    }
+
+    int
+    biggest_possible(void) const
+    {
+      int A(area());
+
+      return m_rectangle ?
+        A - m_rectangle->area() :
+        A;
+    }
+
+    virtual
+    NodeSizeCount
+    count(void) const
+    {
+      NodeSizeCount return_value;
+
+      return_value[num_rects] = (m_rectangle) ? 1u : 0u;
+      return_value[num_with_children] = 0;
+      return_value[num_without_children] = 1;
+
+      return return_value;
+    }
+
+  private:
+    virtual
+    NodeBase*
+    add_implement(MemoryPool&, Rectangle*);
+
+    Rectangle *m_rectangle;
+  };
+
+  class NodeWithChildren:public NodeBase
+  {
+  public:
+    NodeWithChildren(MemoryPool &pool,
+                     NodeWithoutChildren *src,
+                     bool split_x, bool split_y);
+
+    virtual
+    NodeSizeCount
+    count(void) const
+    {
+      NodeSizeCount return_value;
+
+      return_value[num_rects] = 0u;
+      return_value[num_with_children] = 1;
+      return_value[num_without_children] = 0;
+
+      return return_value
+        + m_children[0]->count()
+        + m_children[1]->count()
+        + m_children[2]->count();
+    }
+
+  private:
+    virtual
+    NodeBase*
+    add_implement(MemoryPool&, Rectangle*);
+
+    void
+    recompute_possible(void);
+
+    vecN<NodeBase*, 3> m_children;
+  };
+
+  class NodeSorter
+  {
+  public:
+    bool
+    operator()(NodeBase *lhs, NodeBase *rhs) const
+    {
+      /* we want to list the smallest "size" first
+       * to avoid splitting large elements
+       */
+      return lhs->area() < rhs->area();
+    }
+  };
+
+  NodeBase *m_root;
+  MemoryPool m_pool;
 };
 
 } //namespace detail
