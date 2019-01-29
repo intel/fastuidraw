@@ -151,6 +151,8 @@ Macros</h2></td></tr>
 <tr class="separator:ga88cb80d621486e5fb263275e775b56c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7c9f7be2ce69fbf9f708d1c8842894bd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga7c9f7be2ce69fbf9f708d1c8842894bd">FASTUIDRAW_NUMBER_BLOCK4_NEEDED</a>(X)&#160;&#160;&#160;(<a class="el" href="../../da/d46/group___utility.html#ga6ca5c023ab8865d38272c774ece26854">FASTUIDRAW_ROUND_UP_MULTIPLE_OF4</a>(X) &gt;&gt; 2u)</td></tr>
 <tr class="separator:ga7c9f7be2ce69fbf9f708d1c8842894bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga82cb578eef1431ee8e6ee0a217226a4c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga82cb578eef1431ee8e6ee0a217226a4c">FASTUIDRAW_PI</a>&#160;&#160;&#160;3.14159265358979323846f</td></tr>
+<tr class="separator:ga82cb578eef1431ee8e6ee0a217226a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6ca5c023ab8865d38272c774ece26854"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga6ca5c023ab8865d38272c774ece26854">FASTUIDRAW_ROUND_UP_MULTIPLE_OF4</a>(X)&#160;&#160;&#160;(((X) + 3u) &amp; ~3u)</td></tr>
 <tr class="separator:ga6ca5c023ab8865d38272c774ece26854"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa9f925896ddde7e73402366ebf94b70e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gaa9f925896ddde7e73402366ebf94b70e">FASTUIDRAWassert</a>(X)</td></tr>
@@ -532,6 +534,23 @@ Functions</h2></td></tr>
 <p>Macro to return how many blocks of size 4 to contain a given size, i.e. the smallest integer N so that 4 * N &gt;= X where X is an uint32_t. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00041">41</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ga82cb578eef1431ee8e6ee0a217226a4c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga82cb578eef1431ee8e6ee0a217226a4c">&#9670;&nbsp;</a></span>FASTUIDRAW_PI</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define FASTUIDRAW_PI&#160;&#160;&#160;3.14159265358979323846f</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Macro giving the value of pi as a float </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00034">34</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2096,7 +2115,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00216">216</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00221">221</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2125,7 +2144,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00223">223</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00228">228</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2154,7 +2173,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00230">230</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00235">235</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2183,7 +2202,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00237">237</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00242">242</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2212,7 +2231,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00244">244</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00249">249</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2241,7 +2260,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00251">251</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00256">256</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2270,7 +2289,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00097">97</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00102">102</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2299,7 +2318,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00146">146</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00151">151</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2328,7 +2347,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00195">195</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00200">200</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2357,7 +2376,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00090">90</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00095">95</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2386,7 +2405,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00139">139</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00144">144</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2415,7 +2434,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00188">188</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00193">193</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2444,7 +2463,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00104">104</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00109">109</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2473,7 +2492,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00153">153</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00158">158</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2502,7 +2521,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00202">202</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00207">207</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2541,7 +2560,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00111">111</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00116">116</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2580,7 +2599,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00160">160</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00165">165</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2619,7 +2638,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00209">209</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00214">214</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2648,7 +2667,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00076">76</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00081">81</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2677,7 +2696,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00125">125</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00130">130</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2706,7 +2725,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00174">174</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00179">179</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2747,7 +2766,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00048">48</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00053">53</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2788,7 +2807,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00037">37</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00042">42</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2819,7 +2838,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Return the sign of a value. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00059">59</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00064">64</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2848,7 +2867,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00069">69</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00074">74</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2877,7 +2896,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00118">118</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00123">123</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2906,7 +2925,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00167">167</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00172">172</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2935,7 +2954,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00083">83</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00088">88</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2964,7 +2983,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00132">132</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00137">137</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>
@@ -2993,7 +3012,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Conveniance overload avoiding to rely on std:: </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00181">181</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d78/math_8hpp_source.html#l00186">186</a> of file <a class="el" href="../../d4/d78/math_8hpp_source.html">math.hpp</a>.</p>
 
 </div>
 </div>

@@ -10,6 +10,7 @@ var searchData=
   ['shader_5ftype_5ft',['shader_type_t',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883d',1,'fastuidraw::PainterStrokeShader']]],
   ['shader_5fvariable_5fsrc_5ft',['shader_variable_src_t',['../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a89ffc63665401e7ad046ed3fbdeb5fcd',1,'fastuidraw::gl::Program']]],
   ['source_5ft',['source_t',['../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a1e9d5c062010e4f34964d22b578feddb',1,'fastuidraw::glsl::ShaderSource']]],
+  ['spread_5ftype_5ft',['spread_type_t',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a698a81d6a833ef1972e25846fadd1497',1,'fastuidraw::PainterBrush']]],
   ['stroke_5fdata_5foffset_5ft',['stroke_data_offset_t',['../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3',1,'fastuidraw::PainterDashedStrokeParams::stroke_data_offset_t()'],['../df/df5/classfastuidraw_1_1_painter_stroke_params.html#a5644196f8f0409751b564b8c5adf563b',1,'fastuidraw::PainterStrokeParams::stroke_data_offset_t()']]],
   ['stroke_5ftype_5ft',['stroke_type_t',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a4a4c5e2eea9dc34a657aa760823d715d',1,'fastuidraw::PainterStrokeShader']]],
   ['stroking_5fmethod_5ft',['stroking_method_t',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d',1,'fastuidraw::PainterEnums']]],

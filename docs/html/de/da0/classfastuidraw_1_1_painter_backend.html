@@ -128,8 +128,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a98ef553ef3583575de09eb75271adb14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34966e768ed38348f0fdcb2cb4db61dc"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a34966e768ed38348f0fdcb2cb4db61dc">on_post_draw</a> (void)=0</td></tr>
 <tr class="separator:a34966e768ed38348f0fdcb2cb4db61dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3be36fd0d6956f8bc02959e9ddbc1a2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#af3be36fd0d6956f8bc02959e9ddbc1a2">on_pre_draw</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d1/dbb/classfastuidraw_1_1_painter_backend_1_1_surface.html">Surface</a> &gt; &amp;surface, bool clear_color_buffer)=0</td></tr>
-<tr class="separator:af3be36fd0d6956f8bc02959e9ddbc1a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac819a026628a6a43fa144d1c82c78782"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#ac819a026628a6a43fa144d1c82c78782">on_pre_draw</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d1/dbb/classfastuidraw_1_1_painter_backend_1_1_surface.html">Surface</a> &gt; &amp;surface, bool clear_color_buffer, bool begin_new_target)=0</td></tr>
+<tr class="separator:ac819a026628a6a43fa144d1c82c78782"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a617bb22ca17159b178e1256b54b914db"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html">PainterShaderRegistrar</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a617bb22ca17159b178e1256b54b914db">painter_shader_registrar</a> (void)</td></tr>
 <tr class="separator:a617bb22ca17159b178e1256b54b914db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfastuidraw_1_1reference__counted__base"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfastuidraw_1_1reference__counted__base')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">fastuidraw::reference_counted_base&lt; T, Counter &gt;</a></td></tr>
@@ -545,8 +545,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="af3be36fd0d6956f8bc02959e9ddbc1a2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3be36fd0d6956f8bc02959e9ddbc1a2">&#9670;&nbsp;</a></span>on_pre_draw()</h2>
+<a id="ac819a026628a6a43fa144d1c82c78782"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac819a026628a6a43fa144d1c82c78782">&#9670;&nbsp;</a></span>on_pre_draw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -564,7 +564,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>clear_color_buffer</em>&#160;</td>
+          <td class="paramname"><em>clear_color_buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>begin_new_target</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -582,11 +588,12 @@ Additional Inherited Members</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">surface</td><td>the <a class="el" href="../../d1/dbb/classfastuidraw_1_1_painter_backend_1_1_surface.html">PainterBackend::Surface</a> to which to render content </td></tr>
     <tr><td class="paramname">clear_color_buffer</td><td>if true, clear the color buffer on the viewport of the surface. </td></tr>
+    <tr><td class="paramname">begin_new_target</td><td>if true indicates that drawing is to start on the surface (typically this means that when this is true that the backend will clear all auxiliary buffers (such as the depth buffer). </td></tr>
   </table>
   </dd>
 </dl>
 
-<p>Implemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#abba413760172039a87a3c8da5f0b0e81">fastuidraw::gl::PainterBackendGL</a>.</p>
+<p>Implemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#ab1dc99930347e4d9fd78422c02a5a9d8">fastuidraw::gl::PainterBackendGL</a>.</p>
 
 </div>
 </div>

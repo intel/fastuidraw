@@ -36,7 +36,7 @@ var searchData=
   ['glyphsequence',['GlyphSequence',['../d3/da9/classfastuidraw_1_1_glyph_sequence.html#a18a113c2bf442511d8a857f66def1055',1,'fastuidraw::GlyphSequence']]],
   ['glyphsource',['GlyphSource',['../d6/d25/classfastuidraw_1_1_glyph_source.html#a15d518c3d8bd225cefe3d0beb4a92747',1,'fastuidraw::GlyphSource::GlyphSource(void)'],['../d6/d25/classfastuidraw_1_1_glyph_source.html#a9e536f971d89d75c86d24c2eb9eca27b',1,'fastuidraw::GlyphSource::GlyphSource(const FontBase *f, uint32_t g)'],['../d6/d25/classfastuidraw_1_1_glyph_source.html#a21b1d0017496280c90610e7589000660',1,'fastuidraw::GlyphSource::GlyphSource(uint32_t g, const FontBase *f)']]],
   ['gpu_5fdirty_5fstate',['gpu_dirty_state',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a8c42f00c255ac2b3fa22b21ead8b101d',1,'fastuidraw::gpu_dirty_state']]],
-  ['gradient_5fspread_5ftype',['gradient_spread_type',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a2b3c6285580d3893243c0400f541b58e',1,'fastuidraw::PainterBrush']]],
+  ['gradient_5fspread_5ftype',['gradient_spread_type',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a6b6a0a0cab6427448649bf969a9f5de6',1,'fastuidraw::PainterBrush']]],
   ['gradient_5ftype',['gradient_type',['../d9/d57/classfastuidraw_1_1_painter_brush.html#abf00775859e48df9faa4c4adee4ce5a4',1,'fastuidraw::PainterBrush']]],
   ['group',['group',['../de/d74/classfastuidraw_1_1_painter_shader.html#aa35c64ecee89e6c35b6f99ded7aa8138',1,'fastuidraw::PainterShader']]],
   ['guard',['Guard',['../d7/d0a/classfastuidraw_1_1_mutex_1_1_guard.html#a065b47269b3e97b96a3027ca12f6238c',1,'fastuidraw::Mutex::Guard']]]

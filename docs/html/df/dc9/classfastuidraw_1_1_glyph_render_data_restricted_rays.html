@@ -184,7 +184,7 @@ Public Member Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="a6f4b65b8506e3557b5ae7fdcb798808da40e2c6d49d7ddcb30f87232e3e4f14a5"></a>glyph_height&#160;</td><td class="fielddoc"><p>the index into <a class="el" href="../../d7/dff/classfastuidraw_1_1_glyph_attribute.html#a089b7b6868c72999300371c829619738">GlyphAttribute::m_data</a> storing the height of the glyph in glyph coordinates. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a6f4b65b8506e3557b5ae7fdcb798808da9f0502657347fb793fd1db96b56d1a41"></a>glyph_offset&#160;</td><td class="fielddoc"><p>the index into <a class="el" href="../../d7/dff/classfastuidraw_1_1_glyph_attribute.html#a089b7b6868c72999300371c829619738">GlyphAttribute::m_data</a> storing the offset into the store for the glyph data. </p>
+<tr><td class="fieldname"><a id="a6f4b65b8506e3557b5ae7fdcb798808da9f0502657347fb793fd1db96b56d1a41"></a>glyph_offset&#160;</td><td class="fielddoc"><p>the index into <a class="el" href="../../d7/dff/classfastuidraw_1_1_glyph_attribute.html#a089b7b6868c72999300371c829619738">GlyphAttribute::m_data</a> storing the fill rule and the offset into the store for the glyph data. The offset is encoded in the lower 31 bits (i.e. just mask off bit31) and the fill rule is non-zero fill rule if bit31 is down and the odd-even fill rule if bit31 is up. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a6f4b65b8506e3557b5ae7fdcb798808da5db55f2a26ebbb2b70884fa0fb2ce165"></a>glyph_num_attributes&#160;</td><td class="fielddoc"><p>Number attribute values needed. </p>
 </td></tr>
@@ -380,7 +380,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Finalize the input data after which no more contours or curves may be added. All contours added must be closed as well. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">f</td><td>fill rule to use for rendering </td></tr>
+    <tr><td class="paramname">f</td><td>fill rule to use for rendering, must be <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69adbbc71d91502f785fc81efae253ae480">PainterEnums::nonzero_fill_rule</a> or <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69a6a67a1b2373aacb21fd50bf93ed8a181">PainterEnums::odd_even_fill_rule</a>. </td></tr>
     <tr><td class="paramname">min_pt</td><td>minimum point of the bounding box of the contours added </td></tr>
     <tr><td class="paramname">max_pt</td><td>maximum point of the bounding box of the contours added </td></tr>
     <tr><td class="paramname">units_per_EM</td><td>the units per EM for the glyph; this value together with expected_min_render_size() is used to decide how close a curve may be to a bounding box to decide if it is included. </td></tr>
