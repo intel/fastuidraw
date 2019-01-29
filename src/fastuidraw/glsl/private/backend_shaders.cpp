@@ -181,17 +181,20 @@ create_composite_shaders(void)
   one_src1
     .equation(BlendMode::ADD)
     .func_src(BlendMode::ONE)
-    .func_dst(BlendMode::SRC1_COLOR);
+    .func_dst_rgb(BlendMode::SRC1_COLOR)
+    .func_dst_alpha(BlendMode::SRC1_ALPHA);
 
   dst_alpha_src1
     .equation(BlendMode::ADD)
     .func_src(BlendMode::DST_ALPHA)
-    .func_dst(BlendMode::SRC1_COLOR);
+    .func_dst_rgb(BlendMode::SRC1_COLOR)
+    .func_dst_alpha(BlendMode::SRC1_ALPHA);
 
   one_minus_dst_alpha_src1
     .equation(BlendMode::ADD)
     .func_src(BlendMode::ONE_MINUS_DST_ALPHA)
-    .func_dst(BlendMode::SRC1_COLOR);
+    .func_dst_rgb(BlendMode::SRC1_COLOR)
+    .func_dst_alpha(BlendMode::SRC1_ALPHA);
 
   add_composite_shader(shaders, PainterEnums::composite_porter_duff_src_over,
                        BlendMode().func(BlendMode::ONE, BlendMode::ONE_MINUS_SRC_ALPHA),
@@ -257,6 +260,14 @@ create_composite_shaders(void)
                        BlendMode().func(BlendMode::ONE, BlendMode::ONE),
                        "fastuidraw_porter_duff_plus.glsl.resource_string", one_src1,
                        "fastuidraw_fbf_porter_duff_plus.glsl.resource_string");
+
+  add_composite_shader(shaders, PainterEnums::composite_porter_duff_modulate,
+                       BlendMode()
+                       .func_src_rgb(BlendMode::DST_COLOR)
+                       .func_src_alpha(BlendMode::DST_ALPHA)
+                       .func_dst(BlendMode::ZERO),
+                       "fastuidraw_porter_duff_modulate.glsl.resource_string", dst_alpha_src1,
+                       "fastuidraw_fbf_porter_duff_modulate.glsl.resource_string");
 
   return shaders;
 }

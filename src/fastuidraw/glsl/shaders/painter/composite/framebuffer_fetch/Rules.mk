@@ -18,6 +18,7 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, fastuidraw_fbf_porter_duff_clear.
 	fastuidraw_fbf_porter_duff_src.glsl.resource_string \
 	fastuidraw_fbf_porter_duff_xor.glsl.resource_string \
 	fastuidraw_fbf_porter_duff_plus.glsl.resource_string \
+	fastuidraw_fbf_porter_duff_modulate.glsl.resource_string \
 	)
 
 # Begin standard footer
