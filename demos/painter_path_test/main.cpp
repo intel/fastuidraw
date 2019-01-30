@@ -1879,12 +1879,12 @@ draw_scene(bool drawing_wire_frame)
 
       if (m_fill_by_clipping)
         {
-          vec2 a, b;
+          Rect R;
 
-          path().approximate_bounding_box(&a, &b);
+          path().approximate_bounding_box(&R);
           m_painter->save();
           m_painter->clip_in_path(path(), *fill_rule);
-          m_painter->fill_rect(D, Rect().min_point(a).max_point(b));
+          m_painter->fill_rect(D, R);
           m_painter->restore();
         }
       else

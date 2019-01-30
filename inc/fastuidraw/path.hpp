@@ -22,6 +22,7 @@
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/path_enums.hpp>
@@ -161,14 +162,11 @@ public:
     /*!
      * To be implemented by a derived class to return a fast (and approximate)
      * bounding box for the interpolator.
-     * \param out_min_bb (output) location to which to write the min-x and min-y
-     *                            coordinates of the approximate bounding box.
-     * \param out_max_bb (output) location to which to write the max-x and max-y
-     *                            coordinates of the approximate bounding box.
+     * \param out_bb (output) location to which to write the bounding box value
      */
     virtual
     void
-    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const = 0;
+    approximate_bounding_box(Rect *out_bb) const = 0;
 
     /*!
      * To be implemented by a derived class to create and
@@ -213,7 +211,7 @@ public:
                          float *out_max_distance) const;
     virtual
     void
-    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+    approximate_bounding_box(Rect *out_bb) const;
 
     virtual
     interpolator_base*
@@ -372,7 +370,7 @@ public:
                vec2 *out_p) const;
     virtual
     void
-    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+    approximate_bounding_box(Rect *out_bb) const;
 
     virtual
     interpolator_base*
@@ -432,7 +430,7 @@ public:
 
     virtual
     void
-    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+    approximate_bounding_box(Rect *out_bb) const;
 
     virtual
     interpolator_base*
@@ -591,13 +589,11 @@ public:
    * this PathContour WITHOUT relying on tessellating
    * the \ref interpolator_base objects of this \ref
    * PathContour. Returns false if the box is empty.
-   * \param out_min_bb (output) location to which to write the min-x and min-y
-   *                            coordinates of the approximate bounding box.
-   * \param out_max_bb (output) location to which to write the max-x and max-y
-   *                            coordinates of the approximate bounding box.
+   * \param out_bb (output) location to which to write
+   *                        the bounding box value
    */
   bool
-  approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+  approximate_bounding_box(Rect *out_bb) const;
 
   /*!
    * Returns true if each interpolator of the PathContour is
@@ -1030,13 +1026,11 @@ public:
   /*!
    * Returns an approximation of the bounding box for
    * this Path. Returns false if the Path is empty.
-   * \param out_min_bb (output) location to which to write the min-x and min-y
-   *                            coordinates of the approximate bounding box.
-   * \param out_max_bb (output) location to which to write the max-x and max-y
-   *                            coordinates of the approximate bounding box.
+   * \param out_bb (output) location to which to write
+   *                        the bounding box value
    */
   bool
-  approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+  approximate_bounding_box(Rect *out_bb) const;
 
   /*!
    * Return the tessellation of this Path at a specific

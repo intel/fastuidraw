@@ -1043,13 +1043,14 @@ draw_glyphs(float us)
               std::vector<vec2> pts, ctl_pts, arc_center_pts;
               std::string descr;
               Glyph G;
-              vec2 min_bb, max_bb, sz_bb, r;
+              Rect R;
+              vec2 sz_bb, r;
               float rad;
 
               G = m_glyph_cache->fetch_glyph(render, metrics.font().get(), metrics.glyph_code());
               extract_path_info(G.path(), &pts, &ctl_pts, &arc_center_pts, &descr);
-              G.path().approximate_bounding_box(&min_bb, &max_bb);
-              sz_bb = max_bb - min_bb;
+              G.path().approximate_bounding_box(&R);
+              sz_bb = R.size();
 
               m_painter->save();
               m_painter->translate(position);

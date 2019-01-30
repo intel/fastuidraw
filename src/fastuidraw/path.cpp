@@ -208,11 +208,10 @@ namespace
 
     virtual
     void
-    approximate_bounding_box(fastuidraw::vec2 *out_min_bb,
-                             fastuidraw::vec2 *out_max_bb) const
+    approximate_bounding_box(fastuidraw::Rect *out_bb) const
     {
       FASTUIDRAWassert("Should never be called");
-      flat::approximate_bounding_box(out_min_bb, out_max_bb);
+      flat::approximate_bounding_box(out_bb);
     }
   };
 
@@ -955,12 +954,12 @@ pts(void) const
 
 void
 fastuidraw::PathContour::bezier::
-approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+approximate_bounding_box(Rect *out_bb) const
 {
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
-  *out_min_bb = d->m_bb.min_point();
-  *out_max_bb = d->m_bb.max_point();
+  out_bb->m_min_point = d->m_bb.min_point();
+  out_bb->m_max_point = d->m_bb.max_point();
 }
 
 void
@@ -1035,16 +1034,16 @@ deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const
 
 void
 fastuidraw::PathContour::flat::
-approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+approximate_bounding_box(Rect *out_bb) const
 {
   const vec2 &p0(start_pt());
   const vec2 &p1(end_pt());
 
-  out_min_bb->x() = fastuidraw::t_min(p0.x(), p1.x());
-  out_min_bb->y() = fastuidraw::t_min(p0.y(), p1.y());
+  out_bb->m_min_point.x() = fastuidraw::t_min(p0.x(), p1.x());
+  out_bb->m_min_point.y() = fastuidraw::t_min(p0.y(), p1.y());
 
-  out_max_bb->x() = fastuidraw::t_max(p0.x(), p1.x());
-  out_max_bb->y() = fastuidraw::t_max(p0.y(), p1.y());
+  out_bb->m_max_point.x() = fastuidraw::t_max(p0.x(), p1.x());
+  out_bb->m_max_point.y() = fastuidraw::t_max(p0.y(), p1.y());
 }
 
 //////////////////////////////////////
@@ -1164,12 +1163,12 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
 
 void
 fastuidraw::PathContour::arc::
-approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+approximate_bounding_box(Rect *out_bb) const
 {
   ArcPrivate *d;
   d = static_cast<ArcPrivate*>(m_d);
-  *out_min_bb = d->m_bb.min_point();
-  *out_max_bb = d->m_bb.max_point();
+  out_bb->m_min_point = d->m_bb.min_point();
+  out_bb->m_max_point = d->m_bb.max_point();
 }
 
 fastuidraw::PathContour::interpolator_base*
@@ -1283,10 +1282,10 @@ to_generic(const reference_counted_ptr<const PathContour::interpolator_base> &p)
   d->m_is_flat = d->m_is_flat && p->is_flat();
   d->m_interpolators.push_back(p);
 
-  vec2 p0, p1;
-  p->approximate_bounding_box(&p0, &p1);
-  d->m_bb.union_point(p0);
-  d->m_bb.union_point(p1);
+  Rect R;
+  p->approximate_bounding_box(&R);
+  d->m_bb.union_point(R.m_min_point);
+  d->m_bb.union_point(R.m_max_point);
 }
 
 void
@@ -1486,13 +1485,13 @@ deep_copy(void)
 
 bool
 fastuidraw::PathContour::
-approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+approximate_bounding_box(Rect *out_bb) const
 {
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
 
-  *out_min_bb = d->m_bb.min_point();
-  *out_max_bb = d->m_bb.max_point();
+  out_bb->m_min_point = d->m_bb.min_point();
+  out_bb->m_max_point = d->m_bb.max_point();
 
   return !d->m_bb.empty();
 }
@@ -1868,7 +1867,7 @@ tessellation(float max_distance) const
 
 bool
 fastuidraw::Path::
-approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+approximate_bounding_box(Rect *out_bb) const
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
@@ -1876,17 +1875,17 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
   for(unsigned endi = d->m_contours.size();
       d->m_start_check_bb < endi; ++d->m_start_check_bb)
     {
-      vec2 p0, p1;
+      Rect R;
 
-      if(d->m_contours[d->m_start_check_bb]->approximate_bounding_box(&p0, &p1))
+      if(d->m_contours[d->m_start_check_bb]->approximate_bounding_box(&R))
         {
-          d->m_bb.union_point(p0);
-          d->m_bb.union_point(p1);
+          d->m_bb.union_point(R.m_min_point);
+          d->m_bb.union_point(R.m_max_point);
         }
     }
 
-  *out_min_bb = d->m_bb.min_point();
-  *out_max_bb = d->m_bb.max_point();
+  out_bb->m_min_point = d->m_bb.min_point();
+  out_bb->m_max_point = d->m_bb.max_point();
   return !d->m_bb.empty();
 }
 

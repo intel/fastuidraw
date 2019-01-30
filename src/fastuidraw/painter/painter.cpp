@@ -2446,7 +2446,7 @@ float
 PainterPrivate::
 compute_magnification(const fastuidraw::Path &path)
 {
-  fastuidraw::vec2 bb_min, bb_max;
+  fastuidraw::Rect R;
 
   /* TODO: for stroking, it might be that although the
    * original path is completely clipped, the stroke of
@@ -2454,14 +2454,14 @@ compute_magnification(const fastuidraw::Path &path)
    * of the path by how much slack the stroking parameters
    * require.
    */
-  if (!path.approximate_bounding_box(&bb_min, &bb_max))
+  if (!path.approximate_bounding_box(&R))
     {
       /* Path is empty, does not matter what tessellation
        * is taken.
        */
       return -1.0f;
     }
-  return compute_magnification(bb_min, bb_max);
+  return compute_magnification(R.m_min_point, R.m_max_point);
 }
 
 float
