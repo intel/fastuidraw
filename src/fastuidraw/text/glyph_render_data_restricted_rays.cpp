@@ -2061,6 +2061,10 @@ move_to(ivec2 pt)
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
+  if (!d->m_glyph)
+    {
+      return;
+    }
   d->m_glyph->move_to(pt);
 }
 
@@ -2072,6 +2076,10 @@ quadratic_to(ivec2 ct, ivec2 pt)
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
+  if (!d->m_glyph)
+    {
+      return;
+    }
   d->m_glyph->quadratic_to(ct, pt);
 }
 
@@ -2083,6 +2091,10 @@ line_to(ivec2 pt)
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
+  if (!d->m_glyph)
+    {
+      return;
+    }
   d->m_glyph->line_to(pt);
 }
 
@@ -2112,6 +2124,10 @@ finalize(enum PainterEnums::fill_rule_t f,
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
+  if (!d->m_glyph)
+    {
+      return;
+    }
 
   FASTUIDRAWassert(f == PainterEnums::odd_even_fill_rule || f == PainterEnums::nonzero_fill_rule);
   d->m_fill_rule = f;
@@ -2205,6 +2221,10 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
 
   FASTUIDRAWassert(!d->m_glyph);
+  if (d->m_glyph)
+    {
+      return routine_fail;
+    }
 
   int data_offset;
   data_offset = atlas_proxy.allocate_data(make_c_array(d->m_render_data));
@@ -2238,6 +2258,27 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
       data_offset |= FASTUIDRAW_MASK(31u, 1);
     }
   attributes[6].m_data = uvec4(data_offset);
+
+  return routine_success;
+}
+
+enum fastuidraw::return_code
+fastuidraw::GlyphRenderDataRestrictedRays::
+query(RectT<int> *bb_box,
+      c_array<const fastuidraw::generic_data> *gpu_data) const
+{
+  GlyphRenderDataRestrictedRaysPrivate *d;
+  d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
+
+  FASTUIDRAWassert(!d->m_glyph);
+  if (d->m_glyph)
+    {
+      return routine_fail;
+    }
+
+  *gpu_data = make_c_array(d->m_render_data);
+  bb_box->m_min_point = d->m_min;
+  bb_box->m_max_point = d->m_max;
 
   return routine_success;
 }
