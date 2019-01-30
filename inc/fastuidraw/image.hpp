@@ -27,6 +27,10 @@ namespace fastuidraw
 class ImageSourceBase;
 ///@endcond
 
+/*!\addtogroup Imaging
+ * @{
+ */
+
   /*!
    * \brief
    * An Image represents an image comprising of RGBA8 values.
