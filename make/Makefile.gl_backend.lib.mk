@@ -105,10 +105,10 @@ all: libFastUIDraw$(1)-static libFastUIDraw$(1) libN$(1) libN$(1)-static
 .PHONY: libN$(1)
 .PHONY: libN$(1)_debug
 .PHONY: libN$(1)_release
-libs_release: libFastUIDraw$(1)_release
-libs_debug: libFastUIDraw$(1)_debug
-libs_release-static: libFastUIDraw$(1)_release-static
-libs_debug-static: libFastUIDraw$(1)_debug-static
+libs-release: libFastUIDraw$(1)_release
+libs-debug: libFastUIDraw$(1)_debug
+libs-release-static: libFastUIDraw$(1)_release-static
+libs-debug-static: libFastUIDraw$(1)_debug-static
 endif
 )
 endef
