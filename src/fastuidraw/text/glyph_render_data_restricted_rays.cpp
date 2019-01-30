@@ -2092,10 +2092,23 @@ finalize(enum PainterEnums::fill_rule_t f,
          const RectT<int> &bounding_box,
          float units_per_EM)
 {
-  GlyphRenderDataRestrictedRaysPrivate *d;
-  ivec2 sz;
   float min_size(GlyphGenerateParams::restricted_rays_minimum_render_size());
   vec2 near_thresh(units_per_EM / t_max(8.0f, min_size));
+  finalize(f, bounding_box,
+           GlyphGenerateParams::restricted_rays_split_thresh(),
+           GlyphGenerateParams::restricted_rays_max_recursion(),
+           near_thresh);
+}
+
+void
+fastuidraw::GlyphRenderDataRestrictedRays::
+finalize(enum PainterEnums::fill_rule_t f,
+         const RectT<int> &bounding_box,
+         int split_thresh, int max_recursion,
+         vec2 near_thresh)
+{
+  GlyphRenderDataRestrictedRaysPrivate *d;
+  ivec2 sz;
 
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
   FASTUIDRAWassert(d->m_glyph);
@@ -2151,8 +2164,8 @@ finalize(enum PainterEnums::fill_rule_t f,
   CurveListHierarchy hierarchy(d->m_glyph,
                                d->m_glyph->glyph_bound_min(),
                                d->m_glyph->glyph_bound_max(),
-                               GlyphGenerateParams::restricted_rays_max_recursion(),
-                               GlyphGenerateParams::restricted_rays_split_thresh(),
+                               max_recursion,
+                               split_thresh,
                                near_thresh);
 
   /* step 4: assign tree offsets */

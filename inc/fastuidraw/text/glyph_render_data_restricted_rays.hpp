@@ -378,7 +378,13 @@ namespace fastuidraw
     quadratic_to(ivec2 ct, ivec2 pt);
 
     /*!
-     * Finalize the input data after which no more contours or curves may be added.
+     * Finalize the input data after which no more contours or curves may be added;
+     * all added contours must be closed before calling finale(). How the data is
+     * broken into bounding boxes is specified by
+     * - units_per_EM argument (see below)
+     * - GlyphGenerateParams::restricted_rays_minimum_render_size()
+     * - GlyphGenerateParams::restricted_rays_split_thresh()
+     * - GlyphGenerateParams::restricted_rays_max_recursion()
      * All contours added must be closed as well.
      * \param f fill rule to use for rendering, must be one of
      *          PainterEnums::nonzero_fill_rule or \ref
@@ -390,9 +396,28 @@ namespace fastuidraw
      *                     box to decide if it is included.
      */
     void
-    finalize(enum PainterEnums::fill_rule_t f,
-             const RectT<int> &bounding_box,
+    finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &bounding_box,
              float units_per_EM);
+
+    /*!
+     * Finalize the input data after which no more contours or curves may be added;
+     * all added contours must be closed before calling finale().  Instead of using
+     * methods from \ref GlyphGenerateParams, directly specify how the data is
+     * broken into bounding boxes.
+     * \param f fill rule to use for rendering, must be one of
+     *          PainterEnums::nonzero_fill_rule or \ref
+     *          PainterEnums::odd_even_fill_rule.
+     * \param bounding_box bounding box of the contours added
+     * \param split_thresh if the number of curves within a box is greater than
+     *                     this value, the box is split
+     * \param max_recursion the maximum level of recursion allowed in splitting
+     *                      the data into boxes
+     * \param near_thresh horizontal and vertical threshhold to decide if a curve
+     *                    outside of a box should be added to a box
+     */
+    void
+    finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &bounding_box,
+             int split_thresh, int max_recursion, vec2 near_thresh);
 
     virtual
     enum fastuidraw::return_code
