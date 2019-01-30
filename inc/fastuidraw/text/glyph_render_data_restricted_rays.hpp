@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 
@@ -377,23 +378,20 @@ namespace fastuidraw
     quadratic_to(ivec2 ct, ivec2 pt);
 
     /*!
-     * Finalize the input data after which no more contours or curves
-     * may be added. All contours added must be closed as well.
-     * \param f fill rule to use for rendering, must be \ref
+     * Finalize the input data after which no more contours or curves may be added.
+     * All contours added must be closed as well.
+     * \param f fill rule to use for rendering, must be one of
      *          PainterEnums::nonzero_fill_rule or \ref
      *          PainterEnums::odd_even_fill_rule.
-     * \param min_pt minimum point of the bounding box of the contours
-     *               added
-     * \param max_pt maximum point of the bounding box of the contours
-     *               added
-     * \param units_per_EM the units per EM for the glyph; this value
-     *                     together with expected_min_render_size() is
-     *                     used to decide how close a curve may be to
-     *                     a bounding box to decide if it is included.
+     * \param bounding_box bounding box of the contours added
+     * \param units_per_EM the units per EM for the glyph; this value together with
+     *                     GlyphGenerateParams::restricted_rays_minimum_render_size()
+     *                     is used to decide how close a curve may be to a bounding
+     *                     box to decide if it is included.
      */
     void
     finalize(enum PainterEnums::fill_rule_t f,
-             ivec2 min_pt, ivec2 max_pt,
+             const RectT<int> &bounding_box,
              float units_per_EM);
 
     virtual

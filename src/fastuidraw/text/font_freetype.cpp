@@ -604,7 +604,10 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
     fastuidraw::PainterEnums::odd_even_fill_rule:
     fastuidraw::PainterEnums::nonzero_fill_rule;
 
-  output.finalize(fill_rule, layout_offset, layout_offset + layout_size,
+  output.finalize(fill_rule,
+                  fastuidraw::RectT<int>()
+                  .min_point(layout_offset)
+                  .max_point(layout_offset + layout_size),
                   static_cast<float>(scale_factor) * glyph_metrics.units_per_EM());
 }
 

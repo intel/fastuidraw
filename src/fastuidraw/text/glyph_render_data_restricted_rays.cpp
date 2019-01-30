@@ -792,17 +792,16 @@ namespace
     scale_down(const fastuidraw::ivec2 &v);
 
     void
-    set_glyph_bounds(fastuidraw::ivec2 min_pt,
-                     fastuidraw::ivec2 max_pt)
+    set_glyph_bounds(const fastuidraw::RectT<int> &bb)
     {
       if (!m_contours.empty() && m_contours.back().empty())
         {
           m_contours.pop_back();
         }
-      m_glyph_bound_min = min_pt;
-      m_glyph_bound_max = max_pt;
-      m_bbox.union_point(min_pt);
-      m_bbox.union_point(max_pt);
+      m_glyph_bound_min = bb.m_min_point;
+      m_glyph_bound_max = bb.m_max_point;
+      m_bbox.union_point(bb.m_min_point);
+      m_bbox.union_point(bb.m_max_point);
     }
 
     const fastuidraw::BoundingBox<int>&
@@ -2090,7 +2089,7 @@ line_to(ivec2 pt)
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
-         ivec2 pmin_pt, ivec2 pmax_pt,
+         const RectT<int> &bounding_box,
          float units_per_EM)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
@@ -2103,7 +2102,7 @@ finalize(enum PainterEnums::fill_rule_t f,
 
   FASTUIDRAWassert(f == PainterEnums::odd_even_fill_rule || f == PainterEnums::nonzero_fill_rule);
   d->m_fill_rule = f;
-  d->m_glyph->set_glyph_bounds(pmin_pt, pmax_pt);
+  d->m_glyph->set_glyph_bounds(bounding_box);
 
   if (d->m_glyph->contours().empty())
     {
