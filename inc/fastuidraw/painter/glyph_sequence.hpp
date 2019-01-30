@@ -20,6 +20,7 @@
 
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/text/glyph.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
@@ -81,16 +82,14 @@ namespace fastuidraw
       glyphs(void);
 
       /*!
-       * Returns the bounding box of the glyphs of this
-       * Subset object. Returns false if the
-       * bounding box is empty.
-       * \param out_min_bb location to which to write the
-       *                   min-corner of the bounding box
-       * \param out_max_bb location to which to write the
-       *                   max-corner of the bounding box
+       * Gives the bounding box of the glyphs of this
+       * Subset object. A return value of false indicates
+       * that the bounding box is empty.
+       * \param out_bb_box location to which to write the
+       *                   bounding box
        */
       bool
-      bounding_box(vec2 *out_min_bb, vec2 *out_max_bb);
+      bounding_box(Rect *out_bb_box);
 
       /*!
        * Returns the \ref Path made from the bounding

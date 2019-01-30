@@ -908,7 +908,7 @@ glyphs(void)
 
 bool
 fastuidraw::GlyphSequence::Subset::
-bounding_box(vec2 *out_min_bb, vec2 *out_max_bb)
+bounding_box(Rect *out_bb_box)
 {
   GlyphSubsetPrivate *d;
 
@@ -917,13 +917,14 @@ bounding_box(vec2 *out_min_bb, vec2 *out_max_bb)
 
   if (box.empty())
     {
-      *out_min_bb = *out_max_bb = fastuidraw::vec2(0.0f, 0.0f);
+      out_bb_box->m_min_point = fastuidraw::vec2(0.0f, 0.0f);
+      out_bb_box->m_max_point = fastuidraw::vec2(0.0f, 0.0f);
       return false;
     }
   else
     {
-      *out_min_bb = box.min_point();
-      *out_max_bb = box.max_point();
+      out_bb_box->m_min_point = box.min_point();
+      out_bb_box->m_max_point = box.max_point();
       return true;
     }
 }
