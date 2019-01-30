@@ -5556,9 +5556,7 @@ clip_in_path(const FilledPath &path, enum fill_rule_t fill_rule)
       return;
     }
 
-  clip_in_rect(Rect()
-               .min_point(path.bounding_box_min())
-               .max_point(path.bounding_box_max()));
+  clip_in_rect(path.bounding_box());
   clip_out_path(path, complement_fill_rule(fill_rule));
 }
 
@@ -5576,9 +5574,7 @@ clip_in_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
       return;
     }
 
-  clip_in_rect(Rect()
-               .min_point(path.bounding_box_min())
-               .max_point(path.bounding_box_max()));
+  clip_in_rect(path.bounding_box());
   clip_out_path(path, ComplementFillRule(&fill_rule));
 }
 

@@ -22,6 +22,7 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -196,18 +197,10 @@ public:
   ~FilledPath();
 
   /*!
-   * Returns the minimum point of the bounding box of
-   * the \ref FilledPath.
+   * Returns the the bounding box of the \ref FilledPath.
    */
-  vec2
-  bounding_box_min(void) const;
-
-  /*!
-   * Returns the maximum point of the bounding box of
-   * the \ref FilledPath.
-   */
-  vec2
-  bounding_box_max(void) const;
+  const Rect&
+  bounding_box(void) const;
 
   /*!
    * Returns the number of Subset objects of the FilledPath.

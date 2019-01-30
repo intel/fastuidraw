@@ -3450,22 +3450,13 @@ fastuidraw::FilledPath::
   m_d = nullptr;
 }
 
-fastuidraw::vec2
+const fastuidraw::Rect&
 fastuidraw::FilledPath::
-bounding_box_min(void) const
+bounding_box(void) const
 {
   FilledPathPrivate *d;
   d = static_cast<FilledPathPrivate*>(m_d);
-  return d->m_bounding_box.m_min_point;
-}
-
-fastuidraw::vec2
-fastuidraw::FilledPath::
-bounding_box_max(void) const
-{
-  FilledPathPrivate *d;
-  d = static_cast<FilledPathPrivate*>(m_d);
-  return d->m_bounding_box.m_max_point;
+  return d->m_bounding_box;
 }
 
 unsigned int
