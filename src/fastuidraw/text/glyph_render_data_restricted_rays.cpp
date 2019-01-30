@@ -2223,7 +2223,6 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(31u, 1)) == 0u);
   if (d->m_fill_rule == PainterEnums::odd_even_fill_rule)
     {
-      std::cout << "*\n";
       data_offset |= FASTUIDRAW_MASK(31u, 1);
     }
   attributes[6].m_data = uvec4(data_offset);
