@@ -591,9 +591,11 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
 
   /* set transformation to center and contain path. */
   vec2 p0, p1, delta, dsp(w, h), ratio, mid;
+  const Rect &R(m_path.tessellation()->bounding_box());
   float mm;
-  p0 = m_path.tessellation()->bounding_box_min();
-  p1 = m_path.tessellation()->bounding_box_max();
+
+  p0 = R.m_min_point;
+  p1 = R.m_max_point;
 
   delta = p1 - p0;
   ratio = delta / dsp;
@@ -615,9 +617,9 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_sweep_repeat_factor = 1.0f;
 
   m_repeat_xy = vec2(0.0f, 0.0f);
-  m_repeat_wh = m_path.tessellation()->bounding_box_max() - m_path.tessellation()->bounding_box_min();
+  m_repeat_wh = p1 - p0;
 
-  m_clipping_xy = m_path.tessellation()->bounding_box_min();
+  m_clipping_xy = p0;
   m_clipping_wh = m_repeat_wh;
 
   extract_path_info(m_path, &m_pts, &m_ctl_pts, &m_arc_center_pts, &m_path_string);
@@ -1144,9 +1146,10 @@ item_coordinates(vec2 p)
    */
   if (m_paths[m_selected_path].m_from_glyph)
     {
+      const Rect &R(path().tessellation()->bounding_box());
       float y;
-      y = path().tessellation()->bounding_box_min().y()
-        + path().tessellation()->bounding_box_max().y();
+
+      y = R.m_min_point.y() + R.m_max_point.y();
       p.y() -= y;
       p.y() *= -1.0f;
     }
@@ -1715,10 +1718,10 @@ draw_scene(bool drawing_wire_frame)
       /* Glyphs have y-increasing upwards, rather than
        * downwards; so we reverse the y
        */
+      const Rect &R(path().tessellation()->bounding_box());
       float y;
-      y = path().tessellation()->bounding_box_min().y()
-        + path().tessellation()->bounding_box_max().y();
-      m_painter->translate(vec2(0.0f, y));
+
+      y = R.m_min_point.y() + R.m_max_point.y();
       m_painter->shear(1.0f, -1.0f);
     }
 

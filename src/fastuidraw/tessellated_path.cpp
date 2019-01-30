@@ -909,34 +909,13 @@ edge_segment_data(unsigned int contour, unsigned int edge) const
   return make_c_array(d->m_segment_data).sub_array(edge_range(contour, edge));
 }
 
-fastuidraw::vec2
+const fastuidraw::Rect&
 fastuidraw::TessellatedPath::
-bounding_box_min(void) const
+bounding_box(void) const
 {
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
-
-  return d->m_bounding_box.min_point();
-}
-
-fastuidraw::vec2
-fastuidraw::TessellatedPath::
-bounding_box_max(void) const
-{
-  TessellatedPathPrivate *d;
-  d = static_cast<TessellatedPathPrivate*>(m_d);
-
-  return d->m_bounding_box.max_point();;
-}
-
-fastuidraw::vec2
-fastuidraw::TessellatedPath::
-bounding_box_size(void) const
-{
-  TessellatedPathPrivate *d;
-  d = static_cast<TessellatedPathPrivate*>(m_d);
-
-  return d->m_bounding_box.size();
+  return d->m_bounding_box.as_rect();
 }
 
 bool

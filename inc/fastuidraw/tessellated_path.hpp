@@ -21,6 +21,7 @@
 
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
+#include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -435,25 +436,10 @@ public:
   edge_type(unsigned int contour, unsigned int edge) const;
 
   /*!
-   * Returns the minimum point of the bounding box of
-   * the tessellation.
+   * Returns the bounding box of the tessellation.
    */
-  vec2
-  bounding_box_min(void) const;
-
-  /*!
-   * Returns the maximum point of the bounding box of
-   * the tessellation.
-   */
-  vec2
-  bounding_box_max(void) const;
-
-  /*!
-   * Returns the dimensions of the bounding box
-   * of the tessellated path.
-   */
-  vec2
-  bounding_box_size(void) const;
+  const Rect&
+  bounding_box(void) const;
 
   /*!
    * Returns this \ref TessellatedPath where any arcs are
