@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/rect.hpp>
 
 namespace fastuidraw
 {
@@ -27,34 +28,44 @@ namespace fastuidraw
    * Simple bounding box class
    */
   template<typename T>
-  class BoundingBox
+  class BoundingBox:private RectT<T>
   {
   public:
     typedef vecN<T, 2> pt_type;
 
     BoundingBox(void):
-      m_min(T(0), T(0)),
-      m_max(T(0), T(0)),
       m_empty(true)
-    {}
+    {
+      this->m_min_point = this->m_max_point = pt_type(T(0), T(0));
+    }
 
     BoundingBox(pt_type pmin, pt_type pmax):
-      m_min(pmin),
-      m_max(pmax),
       m_empty(false)
     {
       FASTUIDRAWassert(pmin.x() <= pmax.x());
       FASTUIDRAWassert(pmin.y() <= pmax.y());
+      this->m_min_point = pmin;
+      this->m_max_point = pmax;
+    }
+
+    template<typename S>
+    explicit
+    BoundingBox(const RectT<S> &rect):
+      RectT<T>(rect),
+      m_empty(false)
+    {
+      FASTUIDRAWassert(this->m_min_point.x() <= this->m_max_point.x());
+      FASTUIDRAWassert(this->m_min_point.y() <= this->m_max_point.y());
     }
 
     void
     inflated_polygon(vecN<pt_type, 4> &out_data, T rad) const
     {
       FASTUIDRAWassert(!m_empty);
-      out_data[0] = pt_type(m_min.x() - rad, m_min.y() - rad);
-      out_data[1] = pt_type(m_max.x() + rad, m_min.y() - rad);
-      out_data[2] = pt_type(m_max.x() + rad, m_max.y() + rad);
-      out_data[3] = pt_type(m_min.x() - rad, m_max.y() + rad);
+      out_data[0] = pt_type(this->m_min_point.x() - rad, this->m_min_point.y() - rad);
+      out_data[1] = pt_type(this->m_max_point.x() + rad, this->m_min_point.y() - rad);
+      out_data[2] = pt_type(this->m_max_point.x() + rad, this->m_max_point.y() + rad);
+      out_data[3] = pt_type(this->m_min_point.x() - rad, this->m_max_point.y() + rad);
     }
 
     void
@@ -62,16 +73,16 @@ namespace fastuidraw
     {
       if (!m_empty)
         {
-          m_min -= delta;
-          m_max += delta;
+          this->m_min_point -= delta;
+          this->m_max_point += delta;
         }
     }
 
     void
     enlarge(pt_type delta, BoundingBox *dst) const
     {
-      dst->m_min = m_min;
-      dst->m_max = m_max;
+      dst->m_min_point = this->m_min_point;
+      dst->m_max_point = this->m_max_point;
       dst->m_empty = m_empty;
       dst->enlarge(delta);
     }
@@ -81,8 +92,8 @@ namespace fastuidraw
     {
       if (!m_empty)
         {
-          m_min += tr;
-          m_max += tr;
+          this->m_min_point += tr;
+          this->m_max_point += tr;
         }
     }
 
@@ -91,8 +102,8 @@ namespace fastuidraw
     {
       if (!m_empty)
         {
-          m_min /= tr;
-          m_max /= tr;
+          this->m_min_point /= tr;
+          this->m_max_point /= tr;
         }
     }
 
@@ -101,8 +112,8 @@ namespace fastuidraw
     {
       if (!m_empty)
         {
-          m_min *= tr;
-          m_max *= tr;
+          this->m_min_point *= tr;
+          this->m_max_point *= tr;
         }
     }
 
@@ -115,15 +126,15 @@ namespace fastuidraw
       if (m_empty)
         {
           m_empty = false;
-          m_min = m_max = pt;
+          this->m_min_point = this->m_max_point = pt;
         }
       else
         {
-          m_min.x() = t_min(m_min.x(), pt.x());
-          m_min.y() = t_min(m_min.y(), pt.y());
+          this->m_min_point.x() = t_min(this->m_min_point.x(), pt.x());
+          this->m_min_point.y() = t_min(this->m_min_point.y(), pt.y());
 
-          m_max.x() = t_max(m_max.x(), pt.x());
-          m_max.y() = t_max(m_max.y(), pt.y());
+          this->m_max_point.x() = t_max(this->m_max_point.x(), pt.x());
+          this->m_max_point.y() = t_max(this->m_max_point.y(), pt.y());
         }
       return R;
     }
@@ -146,8 +157,8 @@ namespace fastuidraw
       if (!b.m_empty)
         {
 	  bool r0, r1;
-          r0 = union_point(b.m_min);
-          r1 = union_point(b.m_max);
+          r0 = union_point(b.m_min_point);
+          r1 = union_point(b.m_max_point);
 	  return r0 || r1;
         }
       return false;
@@ -158,7 +169,7 @@ namespace fastuidraw
     {
       return m_empty ?
         pt_type(T(0), T(0)) :
-        m_max - m_min;
+        this->m_max_point - this->m_min_point;
     }
 
     bool
@@ -170,19 +181,19 @@ namespace fastuidraw
     const pt_type&
     min_point(void) const
     {
-      return m_min;
+      return this->m_min_point;
     }
 
     const pt_type&
     max_point(void) const
     {
-      return m_max;
+      return this->m_max_point;
     }
 
     pt_type
     center_point(void) const
     {
-      return (m_min + m_max) / T(2);
+      return (this->m_min_point + this->m_max_point) / T(2);
     }
 
     pt_type
@@ -190,8 +201,8 @@ namespace fastuidraw
     {
       pt_type R;
 
-      R.x() = (max_x) ? m_max.x() : m_min.x();
-      R.y() = (max_y) ? m_max.y() : m_min.y();
+      R.x() = (max_x) ? this->m_max_point.x() : this->m_min_point.x();
+      R.y() = (max_y) ? this->m_max_point.y() : this->m_min_point.y();
       return R;
     }
 
@@ -208,8 +219,8 @@ namespace fastuidraw
       pt_type center;
 
       center = center_point();
-      R[0] = BoundingBox(m_min, pt_type(center.x(), m_max.y()));
-      R[1] = BoundingBox(pt_type(center.x(), m_min.y()), m_max);
+      R[0] = BoundingBox(this->m_min_point, pt_type(center.x(), this->m_max_point.y()));
+      R[1] = BoundingBox(pt_type(center.x(), this->m_min_point.y()), this->m_max_point);
       return R;
     }
 
@@ -226,8 +237,8 @@ namespace fastuidraw
       pt_type center;
 
       center = center_point();
-      R[0] = BoundingBox(m_min, pt_type(m_max.x(), center.y()));
-      R[1] = BoundingBox(pt_type(m_min.x(), center.y()), m_max);
+      R[0] = BoundingBox(this->m_min_point, pt_type(this->m_max_point.x(), center.y()));
+      R[1] = BoundingBox(pt_type(this->m_min_point.x(), center.y()), this->m_max_point);
       return R;
     }
 
@@ -235,24 +246,29 @@ namespace fastuidraw
     intersects(const BoundingBox &obj) const
     {
       return !m_empty &&
-        !(obj.m_min.x() > m_max.x()
-          || m_min.x() > obj.m_max.x()
-          || obj.m_min.y() > m_max.y()
-          || m_min.y() > obj.m_max.y());
+        !(obj.m_min_point.x() > this->m_max_point.x()
+          || this->m_min_point.x() > obj.m_max_point.x()
+          || obj.m_min_point.y() > this->m_max_point.y()
+          || this->m_min_point.y() > obj.m_max_point.y());
     }
 
     bool
     contains(const pt_type &p) const
     {
       return !m_empty
-        && p.x() >= m_min.x()
-        && p.x() <= m_max.x()
-        && p.y() >= m_min.y()
-        && p.y() <= m_max.y();
+        && p.x() >= this->m_min_point.x()
+        && p.x() <= this->m_max_point.x()
+        && p.y() >= this->m_min_point.y()
+        && p.y() <= this->m_max_point.y();
+    }
+
+    const RectT<T>&
+    as_rect(void) const
+    {
+      return *this;
     }
 
   private:
-    pt_type m_min, m_max;
     bool m_empty;
   };
 }
