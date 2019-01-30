@@ -1413,8 +1413,7 @@ namespace
     update_clip_equation_series(const fastuidraw::Rect &rect);
 
     float
-    compute_magnification(const fastuidraw::vec2 &pmin,
-			  const fastuidraw::vec2 &pmax);
+    compute_magnification(const fastuidraw::Rect &rect);
 
     float
     compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> poly);
@@ -2461,22 +2460,21 @@ compute_magnification(const fastuidraw::Path &path)
        */
       return -1.0f;
     }
-  return compute_magnification(R.m_min_point, R.m_max_point);
+  return compute_magnification(R);
 }
 
 float
 PainterPrivate::
-compute_magnification(const fastuidraw::vec2 &bb_min,
-		      const fastuidraw::vec2 &bb_max)
+compute_magnification(const fastuidraw::Rect &rect)
 {
   unsigned int src;
 
-  /* clip the bounding box given by bb_min, bb_max */
+  /* clip the bounding box given by rect */
   m_work_room.m_clipper.m_vec2s[0].resize(4);
-  m_work_room.m_clipper.m_vec2s[0][0] = bb_min;
-  m_work_room.m_clipper.m_vec2s[0][1] = fastuidraw::vec2(bb_min.x(), bb_max.y());
-  m_work_room.m_clipper.m_vec2s[0][2] = bb_max;
-  m_work_room.m_clipper.m_vec2s[0][3] = fastuidraw::vec2(bb_max.x(), bb_min.y());
+  m_work_room.m_clipper.m_vec2s[0][0] = rect.m_min_point;
+  m_work_room.m_clipper.m_vec2s[0][1] = fastuidraw::vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  m_work_room.m_clipper.m_vec2s[0][2] = rect.m_max_point;
+  m_work_room.m_clipper.m_vec2s[0][3] = fastuidraw::vec2(rect.m_max_point.x(), rect.m_min_point.y());
 
   src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
                                           m_work_room.m_clipper.m_vec2s);
