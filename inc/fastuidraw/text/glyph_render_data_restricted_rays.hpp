@@ -302,28 +302,44 @@ namespace fastuidraw
         /*!
          * the index into GlyphAttribute::m_data storing
          * the x-value for the glyph coordinate of the vertex
-         * of a quad to draw a glyph.
+         * of a quad to draw a glyph (packed as int).
          */
         glyph_coordinate_x = 0,
 
         /*!
          * the index into GlyphAttribute::m_data storing
          * the y-value for the glyph coordinate of the vertex
-         * of a quad to draw a glyph.
+         * of a quad to draw a glyph (packed as int).
          */
         glyph_coordinate_y = 1,
 
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the width of the glyph in glyph coordinates.
+         * the width of the glyph in glyph coordinates
+         * (packed as int).
          */
         glyph_width = 2,
 
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the height of the glyph in glyph coordinates.
+         * the height of the glyph in glyph coordinates
+         * (packed as int).
          */
         glyph_height = 3,
+
+        /*!
+         * the index into GlyphAttribute::m_data storing
+         * the minimum x-value for the bounding box of
+         * the glyph (packed as int).
+         */
+        glyph_bounding_box_min_x = 4,
+
+        /*!
+         * the index into GlyphAttribute::m_data storing
+         * the minimum y-value for the bounding box of
+         * the glyph (packed as int).
+         */
+        glyph_bounding_box_min_y = 5,
 
         /*!
          * the index into GlyphAttribute::m_data storing
@@ -334,12 +350,12 @@ namespace fastuidraw
          * is down and the odd-even fill rule if bit31 is
          * up.
          */
-        glyph_offset = 4,
+        glyph_offset = 6,
 
         /*!
          * Number attribute values needed.
          */
-        glyph_num_attributes = 5
+        glyph_num_attributes = 7
       };
 
     /*!
