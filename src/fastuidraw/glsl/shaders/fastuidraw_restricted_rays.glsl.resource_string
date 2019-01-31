@@ -83,6 +83,22 @@ fastuidraw_restricted_rays_update_distance(in float dist, in bool is_increment,
     }
 }
 
+bool
+fastuidraw_restricted_rays_is_increment(in vec2 p, in vec2 dp)
+{
+  float det;
+
+  /* The vector from the origin to the point is given by the point value, p.
+   * the direction of the curve is given by dp. When crossing the curve in the
+   * direction from the origin to p, the winding is incremented if the pair
+   * (p, dp) forms a 2x2 matrix that has positive determinant and decrements
+   * otherwise.
+   */
+  det = p.x * dp.y - p.y * dp.x;
+  return det > 0.0;
+}
+
+
 void
 fastuidraw_restricted_rays_update_distance(in vec2 p, in bool is_increment,
                                            inout fastuidraw_restricted_rays_distance_type nv)
@@ -97,10 +113,7 @@ void
 fastuidraw_restricted_rays_update_distance(in vec2 p, in vec2 dp,
                                            inout fastuidraw_restricted_rays_distance_type nv)
 {
-  float z;
-
-  z = p.x * dp.y - p.y * dp.x;
-  fastuidraw_restricted_rays_update_distance(p, z > 0.0, nv);
+  fastuidraw_restricted_rays_update_distance(p, fastuidraw_restricted_rays_is_increment(p, dp), nv);
 }
 
 uint
@@ -341,6 +354,32 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   B = curve.p1 - curve.p2;
   C = curve.p1;
 
+  /* The winding number computation comes from the paper
+   * "GPU-Centered Font Rendering Directly from Glyph Outlines"
+   * by Eric Lengyel. The reason why the winding at t1 is always
+   * decremented and t2 is always incremented comes from the
+   * following:
+   *
+   *  y(t) = C + Bt + At^2
+   *
+   * which factors into (assuming there are real roots t1 and t2):
+   *
+   *  y(t) = A(t - t1)(t- t2)
+   *
+   * whose derivative is
+   *
+   * y'(t) = A( (t - t1) + (t - t2) )
+   *
+   * the two cases to examine are A > 0 and A < 0.
+   *   case A > 0: then t1 <= t2, thus y'(t1) = A(t - t2) < 0 and y'(t2) = A(t2 - t1) > 0
+   *   case A < 0: then t1 >= t2, thus y'(t1) = A(t - t2) < 0 and y'(t2) = A(t2 - t1) > 0
+   *
+   * That the winding change when going from the origin to point of
+   * intersection is decremented at t1 and incremented at t2, but we
+   * need the winding number change when going from the reference
+   * point to the origin, thus it is incremented at t1 and decremented
+   * at t2.
+   */
   code.x = fastuidraw_restricted_rays_compute_code(curve.p1.x, curve.p2.x, curve.p3.x);
   code.y = fastuidraw_restricted_rays_compute_code(curve.p1.y, curve.p2.y, curve.p3.y);
   if (code.y != 0u)
