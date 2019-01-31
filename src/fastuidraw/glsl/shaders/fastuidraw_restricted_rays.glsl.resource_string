@@ -27,7 +27,7 @@
 struct fastuidraw_restricted_rays_transformation
 {
   vec2 translation;
-  vec2 r_vector, jr_vector;
+  vec2 t_vector, jq_vector;
   float reference_location, orientation;
 };
 
@@ -232,12 +232,24 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
    *
    * the matrix J * K * J * Kinverse is given by
    *
-   * | -(cc + dd) * R   (ac + bd) * R |
-   * |  (ac + bd) * R  -(aa + bb) * R |
+   * | -(cc + dd) / R   (ac + bd) / R |
+   * |  (ac + bd) / R  -(aa + bb) / R |
    *
-   * where R is 1 / det(K). Since we are only looking for
-   * a vector whose pre-image on window coordinates is
-   * perpindicular to q, we can skip the divide by R.
+   * where R is det(K). Since we are only needing the
+   * direction of the vector t, we can skip the divide
+   * by R. Letting L be the above matrix, we set N to
+   * be the matrix
+   *
+   *  |  t.x  t.y |
+   *  | jq.x jq.y |
+   *
+   * where jq = (-q.y, q.x) and t = L * q. Finally,
+   * M is given by N scaled so that F*jq and F*t have
+   * unit L1-length, M*jq = (V, 0) with V > 0 and
+   * M is orientation preserving (this is required
+   * because if M reverses orientation the winding
+   * changes to the refernece point would then need
+   * to be negated).
    */
 
   vec2 q, top_row, bottom_row, em;
@@ -245,8 +257,8 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
 
   tr.translation = frag_point;
   q = reference_point - frag_point;
-  tr.jr_vector.x = -q.y;
-  tr.jr_vector.y = q.x;
+  tr.jq_vector.x = -q.y;
+  tr.jq_vector.y = q.x;
 
   a = frag_point_dx.x;
   b = frag_point_dy.x;
@@ -257,14 +269,14 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
   top_row.y = bottom_row.x = (a * c + b * d);
   bottom_row.y = -(a * a + b * b);
 
-  tr.r_vector.x = dot(top_row, q);
-  tr.r_vector.y = dot(bottom_row, q);
+  tr.t_vector.x = dot(top_row, q);
+  tr.t_vector.y = dot(bottom_row, q);
 
-  /* em represents the normalization so that the pre-image of r_vector
-   * and jr_vector in screen coordinates has length 1.
+  /* em represents the normalization so that the pre-image of t_vector
+   * and jq_vector in screen coordinates has length 1.
    */
-  em.x = abs(dot(tr.r_vector, frag_point_dx)) + abs(dot(tr.r_vector, frag_point_dy));
-  em.y = abs(dot(tr.jr_vector, frag_point_dx)) + abs(dot(tr.jr_vector, frag_point_dy));
+  em.x = abs(dot(tr.t_vector, frag_point_dx)) + abs(dot(tr.t_vector, frag_point_dy));
+  em.y = abs(dot(tr.jq_vector, frag_point_dx)) + abs(dot(tr.jq_vector, frag_point_dy));
 
   /* Prevent divide by zero. if em.x or em.y is very small, that means
    * that on screen the x (repsectively y) local coordinate axis is
@@ -276,30 +288,30 @@ fastuidraw_restricted_rays_compute_transformation(in vec2 frag_point,
   em.x = max(em.x, min_em);
   em.y = max(em.y, min_em);
 
-  tr.r_vector /= em.x;
-  tr.jr_vector /= em.y;
-  tr.reference_location = dot(tr.r_vector, q);
+  tr.t_vector /= em.x;
+  tr.jq_vector /= em.y;
+  tr.reference_location = dot(tr.t_vector, q);
 
   if (tr.reference_location < 0.0)
     {
       /* we need to send q to (V, 0) where
        * V is positive.
        */
-      tr.r_vector = -tr.r_vector;
+      tr.t_vector = -tr.t_vector;
       tr.reference_location = -tr.reference_location;
     }
 
   float det;
 
-  det = (tr.r_vector.x * tr.jr_vector.y - tr.r_vector.y * tr.jr_vector.x);
+  det = (tr.t_vector.x * tr.jq_vector.y - tr.t_vector.y * tr.jq_vector.x);
   /* we need the transformation to be orientation preserving.
-   * The only requirement we have on jr_vector is that
-   * dot(jr_vector, q) is zero, so negate jr_vector to get the
+   * The only requirement we have on jq_vector is that
+   * dot(jq_vector, q) is zero, so negate jq_vector to get the
    * transformation matrix to be orientation preserving.
    */
   if (det < 0.0)
     {
-      tr.jr_vector = -tr.jr_vector;
+      tr.jq_vector = -tr.jq_vector;
     }
 }
 
@@ -308,8 +320,8 @@ fastuidraw_restricted_rays_apply_transformation(in vec2 p,
                                                 in fastuidraw_restricted_rays_transformation tr)
 {
   p -= tr.translation;
-  return vec2(dot(tr.r_vector, p),
-              dot(tr.jr_vector, p));
+  return vec2(dot(tr.t_vector, p),
+              dot(tr.jq_vector, p));
 }
 
 uint
