@@ -68,64 +68,12 @@ namespace fastuidraw
      */
     enum hierarchy_packing_t
       {
-        /*!
-         * If this bit is up, indicates that the 32-bit value
-         * is holding node data. If the bit is down indicates
-         * that the element is a leaf and the value holds the
-         * properties of the curve list in the box and the next
-         * value holds the winding sample information for the
-         * box and are packed as according to \ref
-         * winding_sample_packing_t.
-         */
-        hierarchy_is_node_bit = 31u,
-
-        /*!
-         * For case where the element is a node, i.e. the
-         * bit \ref hierarchy_is_node_bit is up. This bit
-         * indicates if the split of the node is horizontal
-         * of verical. A value of 0 indicates that the split
-         * happens in the x-coordinate (i.e. the child nodes
-         * have the same values for min-y and max-y) and a
-         * value of 1 indicates the split happens in the
-         * y-coordinate.
-         */
-        hierarchy_splitting_coordinate_bit = 30u,
-
-        /*!
-         * For case where the element is a node, i.e. the
-         * bit \ref hierarchy_is_node_bit is up. This is
-         * the first bit holding the offset from the start
-         * of the geomertic data of the glyph for the child
-         * node which comes before the split, i.e. the child
-         * on the left or bottom side.
-         */
-        hierarchy_child0_offset_bit0 = 0u,
-
-        /*!
-         * For case where the element is a node, i.e. the
-         * bit \ref hierarchy_is_node_bit is up. This is
-         * the first bit holding the offset from the start
-         * of the geomertic data of the glyph for the child
-         * node which comes after the split, i.e. the child
-         * on the right or top side.
-         */
-        hierarchy_child1_offset_bit0 = 15u,
 
         /*!
          * This is the number of bits used to store the
          * offsets to a child node.
          */
         hierarchy_child_offset_numbits = 15u,
-
-        /*!
-         * For case where the element is leaf, i.e. the
-         * bit \ref hierarchy_is_node_bit is down. This
-         * is the first bit used to encode the offset
-         * to where the list of curves for the box is
-         * located. The list of curves is packed as
-         * according to \ref curve_list_packing_t.
-         */
-        hierarchy_leaf_curve_list_bit0 = 0u,
 
         /*!
          * For case where the element is leaf, i.e. the
@@ -140,22 +88,75 @@ namespace fastuidraw
         /*!
          * For case where the element is leaf, i.e. the
          * bit \ref hierarchy_is_node_bit is down. This
-         * is the first bit used to encode the size
-         * of the list of curves for the box is located.
-         * The list of curves is packed as according to
-         * \ref curve_list_packing_t.
-         */
-        hierarchy_leaf_curve_list_size_bit0 = 16u,
-
-        /*!
-         * For case where the element is leaf, i.e. the
-         * bit \ref hierarchy_is_node_bit is down. This
          * is the number of bits used to encode the size
          * of the list of curves for the box is located.
          * The list of curves is packed as according to
          * \ref curve_list_packing_t.
          */
         hierarchy_leaf_curve_list_size_numbits = 15u,
+
+        /*!
+         * If this bit is up, indicates that the 32-bit value
+         * is holding node data. If the bit is down indicates
+         * that the element is a leaf and the value holds the
+         * properties of the curve list in the box and the next
+         * value holds the winding sample information for the
+         * box and are packed as according to \ref
+         * winding_sample_packing_t.
+         */
+        hierarchy_is_node_bit = 0u,
+
+        /*!
+         * For case where the element is a node, i.e. the
+         * bit \ref hierarchy_is_node_bit is up. This bit
+         * indicates if the split of the node is horizontal
+         * of verical. A value of 0 indicates that the split
+         * happens in the x-coordinate (i.e. the child nodes
+         * have the same values for min-y and max-y) and a
+         * value of 1 indicates the split happens in the
+         * y-coordinate.
+         */
+        hierarchy_splitting_coordinate_bit = hierarchy_is_node_bit + 1u,
+
+        /*!
+         * For case where the element is a node, i.e. the
+         * bit \ref hierarchy_is_node_bit is up. This is
+         * the first bit holding the offset from the start
+         * of the geomertic data of the glyph for the child
+         * node which comes before the split, i.e. the child
+         * on the left or bottom side.
+         */
+        hierarchy_child0_offset_bit0 = hierarchy_splitting_coordinate_bit + 1u,
+
+        /*!
+         * For case where the element is a node, i.e. the
+         * bit \ref hierarchy_is_node_bit is up. This is
+         * the first bit holding the offset from the start
+         * of the geomertic data of the glyph for the child
+         * node which comes after the split, i.e. the child
+         * on the right or top side.
+         */
+        hierarchy_child1_offset_bit0 = hierarchy_child0_offset_bit0 + hierarchy_child_offset_numbits,
+
+        /*!
+         * For case where the element is leaf, i.e. the
+         * bit \ref hierarchy_is_node_bit is down. This
+         * is the first bit used to encode the offset
+         * to where the list of curves for the box is
+         * located. The list of curves is packed as
+         * according to \ref curve_list_packing_t.
+         */
+        hierarchy_leaf_curve_list_bit0 = hierarchy_is_node_bit + 1u,
+
+        /*!
+         * For case where the element is leaf, i.e. the
+         * bit \ref hierarchy_is_node_bit is down. This
+         * is the first bit used to encode the size
+         * of the list of curves for the box is located.
+         * The list of curves is packed as according to
+         * \ref curve_list_packing_t.
+         */
+        hierarchy_leaf_curve_list_size_bit0 = hierarchy_leaf_curve_list_bit0 + hierarchy_leaf_curve_list_numbits,
       };
 
     /*!
