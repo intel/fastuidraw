@@ -28,17 +28,93 @@
 
 #include "bounding_box.hpp"
 
+namespace fastuidraw { namespace detail {
+
+class PrintBytes
+{
+public:
+  enum rounding_mode_t
+    {
+      round_to_highest_unit = 0,
+      round_to_mb_or_highest_unit = 1,
+      round_to_kb_or_highest_unit = 2,
+      do_not_round= 3,
+    };
+
+  explicit
+  PrintBytes(uint64_t v, enum rounding_mode_t r = round_to_kb_or_highest_unit):
+    m_gb(fastuidraw::uint64_unpack_bits(30u, 34u, v)),
+    m_mb(fastuidraw::uint64_unpack_bits(20u, 10u, v)),
+    m_kb(fastuidraw::uint64_unpack_bits(10u, 10u, v)),
+    m_b(fastuidraw::uint64_unpack_bits(0u, 10u, v)),
+    m_rounding_mode(r)
+  {}
+
+  uint64_t m_gb, m_mb, m_kb, m_b;
+  enum rounding_mode_t m_rounding_mode;
+};
+
+}}
+
+namespace std {
+inline
+ostream&
+operator<<(ostream &str, const fastuidraw::detail::PrintBytes &obj)
+{
+  bool print_spe(false), print(true);
+  char spe(' ');
+
+  if (obj.m_gb && print)
+    {
+      str << obj.m_gb << "GB";
+      print_spe = true;
+      print = (obj.m_rounding_mode > fastuidraw::detail::PrintBytes::round_to_highest_unit);
+    }
+
+  if (obj.m_mb && print)
+    {
+      if (print_spe)
+        {
+          str << spe;
+        }
+      str << obj.m_mb << "MB";
+      print_spe = true;
+      print = (obj.m_rounding_mode > fastuidraw::detail::PrintBytes::round_to_mb_or_highest_unit);
+    }
+
+  if (obj.m_kb && print)
+    {
+      if (print_spe)
+        {
+          str << spe;
+        }
+      str << obj.m_kb << "KB";
+      print_spe = true;
+      print = (obj.m_rounding_mode > fastuidraw::detail::PrintBytes::round_to_kb_or_highest_unit);
+    }
+
+  if (obj.m_b && print)
+    {
+      if (print_spe)
+        {
+          str << spe;
+        }
+      str << obj.m_b << "B";
+    }
+  return str;
+}
+
 template<typename T>
-std::ostream&
-operator<<(std::ostream &ostr, const fastuidraw::range_type<T> &obj)
+ostream&
+operator<<(ostream &ostr, const fastuidraw::range_type<T> &obj)
 {
   ostr << "[" << obj.m_begin << ", " << obj.m_end << ")";
   return ostr;
 }
 
 template<typename T, size_t N>
-std::ostream&
-operator<<(std::ostream &ostr, const fastuidraw::vecN<T, N> &obj)
+ostream&
+operator<<(ostream &ostr, const fastuidraw::vecN<T, N> &obj)
 {
   ostr << "(";
   for(size_t i = 0; i < N; ++i)
@@ -54,8 +130,8 @@ operator<<(std::ostream &ostr, const fastuidraw::vecN<T, N> &obj)
 }
 
 template<typename T>
-std::ostream&
-operator<<(std::ostream &ostr, fastuidraw::c_array<T> obj)
+ostream&
+operator<<(ostream &ostr, fastuidraw::c_array<T> obj)
 {
   ostr << "(";
   for(size_t i = 0; i < obj.size(); ++i)
@@ -71,8 +147,8 @@ operator<<(std::ostream &ostr, fastuidraw::c_array<T> obj)
 }
 
 template<typename T>
-std::ostream&
-operator<<(std::ostream &ostr, const std::vector<T> &obj)
+ostream&
+operator<<(ostream &ostr, const vector<T> &obj)
 {
   ostr << "(";
   for(size_t i = 0; i < obj.size(); ++i)
@@ -88,8 +164,8 @@ operator<<(std::ostream &ostr, const std::vector<T> &obj)
 }
 
 template<typename T>
-std::ostream&
-operator<<(std::ostream &str, const fastuidraw::BoundingBox<T> &obj)
+ostream&
+operator<<(ostream &str, const fastuidraw::BoundingBox<T> &obj)
 {
   if (obj.empty())
     {
@@ -100,6 +176,7 @@ operator<<(std::ostream &str, const fastuidraw::BoundingBox<T> &obj)
       str << "[" << obj.min_point() << " -- " << obj.max_point() << "]";
     }
   return str;
+}
 }
 
 template<typename T>
