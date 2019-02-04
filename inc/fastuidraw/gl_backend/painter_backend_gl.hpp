@@ -610,6 +610,34 @@ namespace fastuidraw
 
       ~PainterBackendGL();
 
+      /*!
+       * Returns the number of UBO binding units used; the
+       * units used are 0, 1, ..., num_ubo_units() - 1.
+       */
+      unsigned int
+      num_ubo_units(void) const;
+
+      /*!
+       * Returns the number of SSBO binding units used; the
+       * units used are 0, 1, ..., num_ssbo_units() - 1.
+       */
+      unsigned int
+      num_ssbo_units(void) const;
+
+      /*!
+       * Returns the number of texture binding units used; the
+       * units used are 0, 1, ..., num_texture_units() - 1.
+       */
+      unsigned int
+      num_texture_units(void) const;
+
+      /*!
+       * Returns the number of image binding units used; the
+       * units used are 0, 1, ..., num_image_units() - 1.
+       */
+      unsigned int
+      num_image_units(void) const;
+
       virtual
       unsigned int
       attribs_per_mapping(void) const;
@@ -658,20 +686,6 @@ namespace fastuidraw
        */
       const ConfigurationGL&
       configuration_gl(void) const;
-
-      /*!
-       * Returns the binding points used by the PainterBackendGL.
-       * If one queues actions (via Painter::queue_action()) and
-       * if that action does not change any of the bindings listed
-       * by the return value, then the corresponding bit of
-       * the PainterDraw::Action::execute() method does not need
-       * to have the corresponding element of \ref gpu_dirty_state
-       * (namely gpu_dirty_state::textures, gpu_dirty_state::images,
-       * gpu_diry_state::constant_buffers, gpu_dirty_state::storage_buffers)
-       * up.
-       */
-      const BindingPoints&
-      binding_points(void) const;
 
     private:
       PainterBackendGL(const ConfigurationGL &config_gl,

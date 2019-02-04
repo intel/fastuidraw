@@ -24,7 +24,7 @@
 fastuidraw::gl::detail::painter_vao_pool::
 painter_vao_pool(const PainterBackendGL::ConfigurationGL &params,
                  enum tex_buffer_support_t tex_buffer_support,
-                 const glsl:: PainterShaderRegistrarGLSL::BindingPoints &binding_points):
+                 unsigned int data_store_binding):
   m_attribute_buffer_size(params.attributes_per_buffer() * sizeof(PainterAttribute)),
   m_header_buffer_size(params.attributes_per_buffer() * sizeof(uint32_t)),
   m_index_buffer_size(params.indices_per_buffer() * sizeof(PainterIndex)),
@@ -32,7 +32,7 @@ painter_vao_pool(const PainterBackendGL::ConfigurationGL &params,
   m_data_buffer_size(m_blocks_per_data_buffer * 4 * sizeof(generic_data)),
   m_data_store_backing(params.data_store_backing()),
   m_tex_buffer_support(tex_buffer_support),
-  m_binding_points(binding_points),
+  m_data_store_binding(data_store_binding),
   m_current_pool(0),
   m_free_vaos(params.number_pools()),
   m_ubos(params.number_pools(), 0)
@@ -89,32 +89,16 @@ request_vao(void)
   if (m_free_vaos[m_current_pool].empty())
     {
       return_value.m_data_store_backing = m_data_store_backing;
+      return_value.m_data_store_binding_point = m_data_store_binding;
       return_value.m_data_bo = generate_bo(GL_ARRAY_BUFFER, m_data_buffer_size);
       return_value.m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
       return_value.m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
       return_value.m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
-      switch(m_data_store_backing)
+      if (m_data_store_backing == glsl::PainterShaderRegistrarGLSL::data_store_tbo)
         {
-        case glsl::PainterShaderRegistrarGLSL::data_store_tbo:
-          {
-            return_value.m_data_store_binding_point = m_binding_points.data_store_buffer_tbo();
-            generate_tbos(return_value);
-          }
-          break;
-
-        case glsl::PainterShaderRegistrarGLSL::data_store_ubo:
-          {
-            return_value.m_data_store_binding_point = m_binding_points.data_store_buffer_ubo();
-          }
-          break;
-
-        case glsl::PainterShaderRegistrarGLSL::data_store_ssbo:
-          {
-            return_value.m_data_store_binding_point = m_binding_points.data_store_buffer_ssbo();
-          }
-          break;
+          return_value.m_data_tbo = generate_tbo(return_value.m_data_bo, GL_RGBA32UI,
+                                                 return_value.m_data_store_binding_point);
         }
-
       return_value.m_pool = m_current_pool;
     }
   else
@@ -199,14 +183,6 @@ release_vao(painter_vao &V)
   fastuidraw_glDeleteVertexArrays(1, &V.m_vao);
   V.m_vao = 0;
   m_free_vaos[V.m_pool].push_back(V);
-}
-
-void
-fastuidraw::gl::detail::painter_vao_pool::
-generate_tbos(painter_vao &vao)
-{
-  vao.m_data_tbo = generate_tbo(vao.m_data_bo, GL_RGBA32UI,
-                                m_binding_points.data_store_buffer_tbo());
 }
 
 GLuint

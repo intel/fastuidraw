@@ -57,7 +57,7 @@ public:
   explicit
   painter_vao_pool(const PainterBackendGL::ConfigurationGL &params,
                    enum tex_buffer_support_t tex_buffer_support,
-                   const glsl::PainterShaderRegistrarGLSL::BindingPoints &binding_points);
+                   unsigned int data_store_binding);
 
   ~painter_vao_pool();
 
@@ -105,9 +105,6 @@ public:
   release_vao(painter_vao &V);
 
 private:
-  void
-  generate_tbos(painter_vao &vao);
-
   GLuint
   generate_tbo(GLuint src_buffer, GLenum fmt, unsigned int unit);
 
@@ -126,7 +123,7 @@ private:
   unsigned int m_data_buffer_size;
   enum glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
   enum tex_buffer_support_t m_tex_buffer_support;
-  glsl::PainterShaderRegistrarGLSL::BindingPoints m_binding_points;
+  unsigned int m_data_store_binding;
 
   unsigned int m_current_pool;
   std::vector<std::vector<painter_vao> > m_free_vaos;

@@ -79,47 +79,6 @@ namespace
     int m_colorstop_atlas_store_width;
   };
 
-  class BindingPointsPrivate
-  {
-  public:
-    BindingPointsPrivate(void):
-      m_colorstop_atlas(0),
-      m_image_atlas_color_tiles_nearest(1),
-      m_image_atlas_color_tiles_linear(2),
-      m_image_atlas_index_tiles(3),
-      m_glyph_atlas_store_texture(4),
-      m_data_store_buffer_tbo(5),
-      m_external_texture(6),
-      m_data_store_buffer_ubo(0),
-      m_uniforms_ubo(1),
-      m_glyph_atlas_store_ssbo(0),
-      m_data_store_buffer_ssbo(1),
-      m_auxiliary_image_buffer(0),
-      m_color_interlock_image_buffer(1)
-    {}
-
-    // texture units
-    unsigned int m_colorstop_atlas;
-    unsigned int m_image_atlas_color_tiles_nearest;
-    unsigned int m_image_atlas_color_tiles_linear;
-    unsigned int m_image_atlas_index_tiles;
-    unsigned int m_glyph_atlas_store_texture;
-    unsigned int m_data_store_buffer_tbo;
-    unsigned int m_external_texture;
-
-    // UBO units
-    unsigned int m_data_store_buffer_ubo;
-    unsigned int m_uniforms_ubo;
-
-    // SSBO units
-    unsigned int m_glyph_atlas_store_ssbo;
-    unsigned int m_data_store_buffer_ssbo;
-
-    // image units
-    unsigned int m_auxiliary_image_buffer;
-    unsigned int m_color_interlock_image_buffer;
-  };
-
   class UberShaderParamsPrivate
   {
   public:
@@ -145,8 +104,23 @@ namespace
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
       m_provide_auxiliary_image_buffer(fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer),
-      m_use_uvec2_for_bindless_handle(true)
+      m_use_uvec2_for_bindless_handle(true),
+
+      m_recompute_binding_points(true),
+      m_colorstop_atlas_binding(-1),
+      m_image_atlas_color_tiles_nearest_binding(-1),
+      m_image_atlas_color_tiles_linear_binding(-1),
+      m_image_atlas_index_tiles_binding(-1),
+      m_glyph_atlas_store_binding(-1),
+      m_data_store_buffer_binding(-1),
+      m_external_texture_binding(-1),
+      m_uniforms_ubo_binding(-1),
+      m_auxiliary_image_buffer_binding(-1),
+      m_color_interlock_image_buffer_binding(-1)
     {}
+
+    void
+    recompute_binding_points(void);
 
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t m_compositing_type;
     bool m_supports_bindless_texturing;
@@ -169,8 +143,24 @@ namespace
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
-    fastuidraw::glsl::PainterShaderRegistrarGLSL::BindingPoints m_binding_points;
     bool m_use_uvec2_for_bindless_handle;
+
+    bool m_recompute_binding_points;
+    int m_colorstop_atlas_binding;
+    int m_image_atlas_color_tiles_nearest_binding;
+    int m_image_atlas_color_tiles_linear_binding;
+    int m_image_atlas_index_tiles_binding;
+    int m_glyph_atlas_store_binding;
+    int m_data_store_buffer_binding;
+    int m_external_texture_binding;
+    int m_uniforms_ubo_binding;
+    int m_auxiliary_image_buffer_binding;
+    int m_color_interlock_image_buffer_binding;
+
+    unsigned int m_num_texture_units;
+    unsigned int m_num_ubo_units;
+    unsigned int m_num_ssbo_units;
+    unsigned int m_num_image_units;
   };
 
   class PainterShaderRegistrarGLSLPrivate
@@ -672,7 +662,7 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterShaderRegistrarGLSL::Uber
        * so instead realize the data directly as vec4[K]
        */
       ostr << "FASTUIDRAW_LAYOUT_BINDING("
-           << params.binding_points().uniforms_ubo()
+           << params.uniforms_ubo_binding()
            << ") " << " uniform fastuidraw_uniform_block {\n"
            << "vec4 fastuidraw_uniforms["
            << PainterShaderRegistrarGLSL::ubo_size() / 4 << "];\n"
@@ -730,7 +720,6 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
   std::string declare_vertex_shader_ins;
   std::string declare_uniforms;
   const varying_list *main_varyings;
-  const PainterShaderRegistrarGLSL::BindingPoints &binding_params(params.binding_points());
   enum PainterCompositeShader::shader_type composite_type;
 
   composite_type = params.composite_type();
@@ -972,17 +961,15 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_source(m_constant_code)
     .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
     .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
-    .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
-    .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", binding_params.image_atlas_color_tiles_linear())
-    .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", binding_params.image_atlas_color_tiles_nearest())
-    .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
-    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", binding_params.glyph_atlas_store(params.glyph_data_backing()))
-    .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
-    .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
-    .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
-    .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
-    .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", binding_params.color_interlock_image_buffer())
-    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", binding_params.external_texture())
+    .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", params.colorstop_atlas_binding())
+    .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", params.image_atlas_color_tiles_linear_binding())
+    .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", params.image_atlas_color_tiles_nearest_binding())
+    .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", params.image_atlas_index_tiles_binding())
+    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", params.auxiliary_image_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
@@ -1054,17 +1041,15 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
     .add_macro("FASTUIDRAW_DISCARD", discard_macro_value)
     .add_macro(shader_composite_macro)
-    .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
-    .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", binding_params.image_atlas_color_tiles_linear())
-    .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", binding_params.image_atlas_color_tiles_nearest())
-    .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
-    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", binding_params.glyph_atlas_store(params.glyph_data_backing()))
-    .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
-    .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
-    .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
-    .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
-    .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", binding_params.color_interlock_image_buffer())
-    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", binding_params.external_texture())
+    .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", params.colorstop_atlas_binding())
+    .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", params.image_atlas_color_tiles_linear_binding())
+    .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", params.image_atlas_color_tiles_nearest_binding())
+    .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", params.image_atlas_index_tiles_binding())
+    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", params.auxiliary_image_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
@@ -1314,88 +1299,81 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConst
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants,
                  BackendConstantsPrivate, int, colorstop_atlas_store_width)
 
-/////////////////////////////////////////////////////////////
-// fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints methods
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints::
-BindingPoints(void)
+/////////////////////////////////////////////////
+// UberShaderParamsPrivate methods
+void
+UberShaderParamsPrivate::
+recompute_binding_points(void)
 {
-  m_d = FASTUIDRAWnew BindingPointsPrivate();
-}
+  FASTUIDRAWassert(m_recompute_binding_points);
+  m_recompute_binding_points = false;
 
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints::
-BindingPoints(const BindingPoints &obj)
-{
-  BindingPointsPrivate *d;
-  d = static_cast<BindingPointsPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew BindingPointsPrivate(*d);
-}
+  m_num_texture_units = 0;
+  m_num_ubo_units = 0;
+  m_num_ssbo_units = 0;
+  m_num_image_units = 0;
 
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints::
-~BindingPoints()
-{
-  BindingPointsPrivate *d;
-  d = static_cast<BindingPointsPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
+  m_colorstop_atlas_binding = m_num_texture_units++;
+  m_image_atlas_color_tiles_nearest_binding = m_num_texture_units++;
+  m_image_atlas_color_tiles_linear_binding = m_num_texture_units++;
+  m_image_atlas_index_tiles_binding = m_num_texture_units++;
+  m_external_texture_binding = m_num_texture_units++;
 
-assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints)
-
-unsigned int
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints::
-glyph_atlas_store(enum glyph_data_backing_t tp) const
-{
-  return (tp == glyph_data_ssbo) ?
-    glyph_atlas_store_ssbo() :
-    glyph_atlas_store_texture();
-}
-
-unsigned int
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints::
-data_store_buffer(enum data_store_backing_t tp) const
-{
-  switch (tp)
+  switch (m_data_store_backing)
     {
-    case data_store_tbo:
-      return data_store_buffer_tbo();
-
-    case data_store_ubo:
-      return data_store_buffer_ubo();
-
-    case data_store_ssbo:
-      return data_store_buffer_ssbo();
+    default:
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_tbo:
+      m_data_store_buffer_binding = m_num_texture_units++;
+      break;
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_ubo:
+      m_data_store_buffer_binding = m_num_ubo_units++;
+      break;
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_ssbo:
+      m_data_store_buffer_binding = m_num_ssbo_units++;
+      break;
     }
 
-  FASTUIDRAWassert(!"Bad data_store_backing_t value");
-  return ~0u;
-}
+  switch (m_glyph_data_backing)
+    {
+    default:
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
+      m_glyph_atlas_store_binding = m_num_texture_units++;
+      break;
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
+      m_glyph_atlas_store_binding = m_num_ssbo_units++;
+      break;
+    }
 
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, colorstop_atlas)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_linear)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_nearest)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, image_atlas_index_tiles)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, glyph_atlas_store_texture)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, glyph_atlas_store_ssbo)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, data_store_buffer_tbo)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, data_store_buffer_ubo)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, data_store_buffer_ssbo)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, auxiliary_image_buffer)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, uniforms_ubo)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, color_interlock_image_buffer)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints,
-                 BindingPointsPrivate, unsigned int, external_texture)
+  if (m_use_ubo_for_uniforms)
+    {
+      m_uniforms_ubo_binding = m_num_ubo_units++;
+    }
+  else
+    {
+      m_uniforms_ubo_binding = -1;
+    }
+
+  if (m_compositing_type == fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock)
+    {
+      m_color_interlock_image_buffer_binding = m_num_image_units++;
+    }
+  else
+    {
+      m_color_interlock_image_buffer_binding = -1;
+    }
+
+  if (m_provide_auxiliary_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic
+      || m_provide_auxiliary_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only
+      || m_provide_auxiliary_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock)
+    {
+      m_auxiliary_image_buffer_binding = m_num_image_units++;
+    }
+  else
+    {
+      m_auxiliary_image_buffer_binding = -1;
+    }
+}
 
 ////////////////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams methods
@@ -1440,11 +1418,6 @@ default_shaders(bool has_auxiliary_coverage_buffer,
 }
 
 assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams)
-
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate,
-                 enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t,
-                 compositing_type)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, supports_bindless_texturing)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
@@ -1474,23 +1447,65 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, unpack_header_and_brush_in_frag_shader)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t, data_store_backing)
+                 UberShaderParamsPrivate, bool, use_uvec2_for_bindless_handle)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, int, data_blocks_per_store_buffer)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t, glyph_data_backing)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, fastuidraw::ivec2, glyph_data_backing_log2_dims)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t, colorstop_atlas_backing)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, bool, use_ubo_for_uniforms)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints&, binding_points)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, bool, use_uvec2_for_bindless_handle)
+get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, unsigned int, num_ubo_units)
+get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, unsigned int, num_ssbo_units)
+get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, unsigned int, num_texture_units)
+get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, unsigned int, num_image_units)
+
+#define uber_shader_params_set_implement_dirty(type, member)            \
+  fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams&       \
+  fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams::      \
+  member(type v)                                                        \
+  {                                                                     \
+    UberShaderParamsPrivate *d;                                         \
+    d = static_cast<UberShaderParamsPrivate*>(m_d);                     \
+    d->m_##member = v;                                                  \
+    d->m_recompute_binding_points = true;                               \
+    return *this;                                                       \
+  }
+
+#define uber_shader_params_setget_implement_dirty(type, member)         \
+  uber_shader_params_set_implement_dirty(type, member)                  \
+  get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, type, member)
+
+uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t, compositing_type)
+uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t, data_store_backing)
+uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t, glyph_data_backing)
+uber_shader_params_setget_implement_dirty(bool, use_ubo_for_uniforms)
+uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
+
+#define uber_shader_params_get_dirty(member)                            \
+  int                                                                   \
+  fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams::      \
+  member(void) const                                                    \
+  {                                                                     \
+    UberShaderParamsPrivate *d;                                         \
+    d = static_cast<UberShaderParamsPrivate*>(m_d);                     \
+    d->m_recompute_binding_points = true;                               \
+    if (d->m_recompute_binding_points)                                  \
+      {                                                                 \
+        d->recompute_binding_points();                                  \
+      }                                                                 \
+    return d->m_##member;                                               \
+  }
+
+uber_shader_params_get_dirty(colorstop_atlas_binding)
+uber_shader_params_get_dirty(image_atlas_color_tiles_nearest_binding)
+uber_shader_params_get_dirty(image_atlas_color_tiles_linear_binding)
+uber_shader_params_get_dirty(image_atlas_index_tiles_binding)
+uber_shader_params_get_dirty(glyph_atlas_store_binding)
+uber_shader_params_get_dirty(data_store_buffer_binding)
+uber_shader_params_get_dirty(external_texture_binding)
+uber_shader_params_get_dirty(auxiliary_image_buffer_binding)
+uber_shader_params_get_dirty(color_interlock_image_buffer_binding)
+uber_shader_params_get_dirty(uniforms_ubo_binding)
 
 //////////////////////////////////////////////
 // fastuidraw::glsl::PainterShaderRegistrarGLSL methods

@@ -271,265 +271,6 @@ namespace fastuidraw
 
       /*!
        * \brief
-       * Specifies the binding points (given in GLSL by layout(binding = ))
-       * for the textures and buffers used by the uber-shader.
-       */
-      class BindingPoints
-      {
-      public:
-        /*!
-         * Ctor.
-         */
-        BindingPoints(void);
-
-        /*!
-         * Copy ctor.
-         * \param obj value from which to copy
-         */
-        BindingPoints(const BindingPoints &obj);
-
-        ~BindingPoints();
-
-        /*!
-         * Assignment operator
-         * \param rhs value from which to copy
-         */
-        BindingPoints&
-        operator=(const BindingPoints &rhs);
-
-        /*!
-         * Swap operation
-         * \param obj object with which to swap
-         */
-        void
-        swap(BindingPoints &obj);
-
-        /*!
-         * Specifies the binding point for ColorStopAtlas::backing_store().
-         * The data type for the uniform is decided from the value
-         * of UberShaderParams::colorstop_atlas_backing():
-         * - sampler1DArray if value is colorstop_texture_1d_array
-         * - sampler2DArray if value is colorstop_texture_2d_array
-         */
-        unsigned int
-        colorstop_atlas(void) const;
-
-        /*!
-         * Set the value returned by colorstop_atlas(void) const.
-         * Default value is 0.
-         */
-        BindingPoints&
-        colorstop_atlas(unsigned int);
-
-        /*!
-         * Specifies the binding point for the sampler2DArray
-         * with nearest filtering backed by ImageAtlas::color_store().
-         */
-        unsigned int
-        image_atlas_color_tiles_nearest(void) const;
-
-        /*!
-         * Set the value returned by (void) const.
-         * Default value is 1.
-         */
-        BindingPoints&
-        image_atlas_color_tiles_nearest(unsigned int);
-
-        /*!
-         * Specifies the binding point for the sampler2DArray
-         * with linear filtering backed by ImageAtlas::color_store().
-         */
-        unsigned int
-        image_atlas_color_tiles_linear(void) const;
-
-        /*!
-         * Set the value returned by image_atlas_color_tiles_linear(void) const.
-         * Default value is 2.
-         */
-        BindingPoints&
-        image_atlas_color_tiles_linear(unsigned int);
-
-        /*!
-         * Specifies the binding point for the usampler2DArray
-         * backed by ImageAtlas::index_store().
-         */
-        unsigned int
-        image_atlas_index_tiles(void) const;
-
-        /*!
-         * Set the value returned by image_atlas_index_tiles(void) const.
-         * Default value is 3.
-         */
-        BindingPoints&
-        image_atlas_index_tiles(unsigned int);
-
-        /*!
-         * Specifies the binding point for the sampler2DArray
-         * or samplerBuffer backed by GlyphAtlas::store().
-         * The data type for the uniform is decided from the value
-         * of UberShaderParams::glyph_data_backing():
-         * - sampler2DArray if value is glyph_data_texture_array
-         * - samplerBuffer if value is glyph_data_tbo
-         */
-        unsigned int
-        glyph_atlas_store_texture(void) const;
-
-        /*!
-         * Set the value returned by
-         * glyph_atlas_store_texture(void) const.
-         * Default value is 4.
-         */
-        BindingPoints&
-        glyph_atlas_store_texture(unsigned int);
-
-        /*!
-         * Specifies the binding point for an SSBO that backs
-         * GlyphAtlas::store(); only active if the
-         * data store is backed by an SSBO.
-         */
-        unsigned int
-        glyph_atlas_store_ssbo(void) const;
-
-        /*!
-         * Set the value returned by
-         * glyph_atlas_store_ssbo(void) const.
-         * Default value is 0.
-         */
-        BindingPoints&
-        glyph_atlas_store_ssbo(unsigned int);
-
-        /*!
-         * Provided as a conveniance, returns one of \ref
-         * glyph_atlas_store_texture() or
-         * glyph_atlas_store_ssbo() based off of
-         * the value of the passed \ref
-         * glyph_data_backing_t.
-         */
-        unsigned int
-        glyph_atlas_store(enum glyph_data_backing_t) const;
-
-        /*!
-         * Specifies the binding point of the UBO for uniforms.
-         * Only active if UberShaderParams::use_ubo_for_uniforms()
-         * is true.
-         */
-        unsigned int
-        uniforms_ubo(void) const;
-
-        /*!
-         * Set the value returned by uniforms_ubo(void) const.
-         * Default value is 1.
-         */
-        BindingPoints&
-        uniforms_ubo(unsigned int);
-
-        /*!
-         * Specifies the buffer binding point of the data store
-         * buffer (PainterDraw::m_store) as a samplerBuffer.
-         * Only active if UberShaderParams::data_store_backing()
-         * is \ref data_store_tbo.
-         */
-        unsigned int
-        data_store_buffer_tbo(void) const;
-
-        /*!
-         * Set the value returned by data_store_buffer_tbo(void) const.
-         * Default value is 5.
-         */
-        BindingPoints&
-        data_store_buffer_tbo(unsigned int);
-
-        /*!
-         * Specifies the buffer binding point of the data store
-         * buffer (PainterDraw::m_store) as a UBO.
-         * Only active if UberShaderParams::data_store_backing()
-         * is \ref data_store_ubo.
-         */
-        unsigned int
-        data_store_buffer_ubo(void) const;
-
-        /*!
-         * Set the value returned by data_store_buffer_ubo(void) const.
-         * Default value is 0.
-         */
-        BindingPoints&
-        data_store_buffer_ubo(unsigned int);
-
-        /*!
-         * Specifies the buffer binding point of the data store
-         * buffer (PainterDraw::m_store) as an SSBO.
-         * Only active if UberShaderParams::data_store_backing()
-         * is \ref data_store_ssbo.
-         */
-        unsigned int
-        data_store_buffer_ssbo(void) const;
-
-        /*!
-         * Set the value returned by data_store_buffer_ssbo(void) const.
-         * Default value is 1.
-         */
-        BindingPoints&
-        data_store_buffer_ssbo(unsigned int);
-
-        /*!
-         * Provided as a conveniance, returns one of \ref
-         * data_store_buffer_tbo(), data_store_buffer_ubo()
-         * or data_store_buffer_ssbo() based off of the
-         * value of the passed \ref data_store_backing_t.
-         */
-        unsigned int
-        data_store_buffer(enum data_store_backing_t) const;
-
-        /*!
-         * Specifies the binding point for the image2D (r8)
-         * auxiliary image buffer; only active if
-         * UberShaderParams::provide_auxiliary_image_buffer()
-         * is true. Default value is 0.
-         */
-        unsigned int
-        auxiliary_image_buffer(void) const;
-
-        /*!
-         * Set the value returned by auxiliary_image_buffer(void) const.
-         * Default value is 0.
-         */
-        BindingPoints&
-        auxiliary_image_buffer(unsigned int);
-
-        /*!
-         * Specifies the binding point for the image2D (rgba8) color
-         * buffer; only active if UberShaderParams::compositing_type()
-         * is \ref compositing_interlock. Default value is 1.
-         */
-        unsigned int
-        color_interlock_image_buffer(void) const;
-
-        /*!
-         * Set the value returned by color_interlock_image_buffer(void) const.
-         * Default value is 0.
-         */
-        BindingPoints&
-        color_interlock_image_buffer(unsigned int);
-
-        /*!
-         * Specifies the binding point of an external texture.
-         */
-        unsigned int
-        external_texture(void) const;
-
-        /*!
-         * Set the value returned by external_texture(void) const.
-         * Default value is 8.
-         */
-        BindingPoints&
-        external_texture(unsigned int);
-
-      private:
-        void *m_d;
-      };
-
-      /*!
-       * \brief
        * An UberShaderParams specifies how to construct an uber-shader.
        * Note that the usage of HW clip-planes is specified by
        * ConfigurationGLSL, NOT UberShaderParams.
@@ -690,22 +431,6 @@ namespace fastuidraw
          */
         UberShaderParams&
         assign_binding_points(bool);
-
-        /*!
-         * Specifies the binding points to use for surfaces and
-         * buffers of the uber-shaders. Values only have effect
-         * if assign_binding_points(void) const returns true.
-         */
-        const BindingPoints&
-        binding_points(void) const;
-
-        /*!
-         * Set the value returned by binding_points(void) const.
-         * Default value is a default constructed BindingPoints
-         * object.
-         */
-        UberShaderParams&
-        binding_points(const BindingPoints&);
 
         /*!
          * If true, use a switch() in the uber-vertex shader to
@@ -913,6 +638,123 @@ namespace fastuidraw
          */
         UberShaderParams&
         use_uvec2_for_bindless_handle(bool);
+
+        /*!
+         * Returns the binding point for ColorStopAtlas::backing_store()
+         * derived from the current value of this UberShaderParams.
+         * The data type for the uniform is decided from the value
+         * colorstop_atlas_backing():
+         * - sampler1DArray if value is colorstop_texture_1d_array
+         * - sampler2DArray if value is colorstop_texture_2d_array
+         */
+        int
+        colorstop_atlas_binding(void) const;
+
+        /*!
+         * Returns the binding point for the sampler2DArray
+         * derived from the current value of this UberShaderParams
+         * with nearest filtering backed by ImageAtlas::color_store().
+         */
+        int
+        image_atlas_color_tiles_nearest_binding(void) const;
+
+        /*!
+         * Returns the binding point for the sampler2DArray
+         * derived from the current value of this UberShaderParams
+         * with linear filtering backed by ImageAtlas::color_store().
+         */
+        int
+        image_atlas_color_tiles_linear_binding(void) const;
+
+        /*!
+         * Returns the binding point for the usampler2DArray
+         * derived from the current value of this UberShaderParams
+         * backed by ImageAtlas::index_store().
+         */
+        int
+        image_atlas_index_tiles_binding(void) const;
+
+        /*!
+         * Returns the binding point for the \ref GlyphAtlas
+         * derived from the current value of this UberShaderParams.
+         */
+        int
+        glyph_atlas_store_binding(void) const;
+
+        /*!
+         * Returns the binding point of the data store buffer
+         * derived from the current value of this UberShaderParams.
+         */
+        int
+        data_store_buffer_binding(void) const;
+
+        /*!
+         * Returns the binding point of an external texture
+         * derived from the current value of this UberShaderParams.
+         */
+        int
+        external_texture_binding(void) const;
+
+        /*!
+         * Returns the binding point for the image2D (r8)
+         * auxiliary image buffer derived from the current
+         * value of this UberShaderParams; A return value
+         * of -1 indicates that the auxiliary buffer does
+         * not use any binding
+         */
+        int
+        auxiliary_image_buffer_binding(void) const;
+
+        /*!
+         * Specifies the binding point for the image2D (rgba8)
+         * color buffer; derived from the current value only
+         * active of this UberShaderParams; A return value of
+         * -1 indicates that the color buffer does not use any
+         * binding point.
+         */
+        int
+        color_interlock_image_buffer_binding(void) const;
+
+        /*!
+         * Returns the binding point of the UBO for uniforms
+         * derived from the current value of this UberShaderParams.
+         * A return value of -1 indicates that the uniforms
+         * does not use any binding points.
+         */
+        int
+        uniforms_ubo_binding(void) const;
+
+        /*!
+         * Returns the number of UBO binding units used derived
+         * from the current values of this UberShaderParams; the
+         * units used are 0, 1, ..., num_ubo_units() - 1.
+         */
+        unsigned int
+        num_ubo_units(void) const;
+
+        /*!
+         * Returns the number of SSBO binding units used derived
+         * from the current values of this UberShaderParams; the
+         * units used are 0, 1, ..., num_ssbo_units() - 1.
+         */
+        unsigned int
+        num_ssbo_units(void) const;
+
+        /*!
+         * Returns the number of texture binding units used derived
+         * from the current values of this UberShaderParams; the
+         * units used are 0, 1, ..., num_texture_units() - 1.
+         */
+        unsigned int
+        num_texture_units(void) const;
+
+        /*!
+         * Returns the number of image binding units used derived
+         * from the current values of this UberShaderParams; the
+         * units used are 0, 1, ..., num_image_units() - 1.
+         */
+        unsigned int
+        num_image_units(void) const;
 
         /*!
          * Returns a PainterShaderSet derived from the current values

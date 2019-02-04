@@ -169,16 +169,21 @@ configure_source_front_matter(void)
   using namespace fastuidraw::glsl;
   if (!m_uber_shader_builder_params.assign_binding_points())
     {
-      const BindingPoints &binding_points(m_uber_shader_builder_params.binding_points());
       m_initializer
-        .add_sampler_initializer("fastuidraw_imageAtlasLinear", binding_points.image_atlas_color_tiles_linear())
-        .add_sampler_initializer("fastuidraw_imageAtlasNearest", binding_points.image_atlas_color_tiles_nearest())
-        .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
+        .add_sampler_initializer("fastuidraw_imageAtlasLinear",
+                                 m_uber_shader_builder_params.image_atlas_color_tiles_linear_binding())
+        .add_sampler_initializer("fastuidraw_imageAtlasNearest",
+                                 m_uber_shader_builder_params.image_atlas_color_tiles_nearest_binding())
+        .add_sampler_initializer("fastuidraw_imageIndexAtlas",
+                                 m_uber_shader_builder_params.image_atlas_index_tiles_binding())
         .add_sampler_initializer("fastuidraw_glyphDataStore",
-                                 binding_points.glyph_atlas_store(m_uber_shader_builder_params.glyph_data_backing()))
-        .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas())
-        .add_sampler_initializer("fastuidraw_external_texture", binding_points.external_texture())
-        .add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
+                                 m_uber_shader_builder_params.glyph_atlas_store_binding())
+        .add_sampler_initializer("fastuidraw_colorStopAtlas",
+                                 m_uber_shader_builder_params.colorstop_atlas_binding())
+        .add_sampler_initializer("fastuidraw_external_texture",
+                                 m_uber_shader_builder_params.external_texture_binding())
+        .add_uniform_block_binding("fastuidraw_uniform_block",
+                                   m_uber_shader_builder_params.uniforms_ubo_binding());
 
       switch(m_uber_shader_builder_params.data_store_backing())
         {
@@ -186,7 +191,7 @@ configure_source_front_matter(void)
           {
             m_initializer
               .add_sampler_initializer("fastuidraw_painterStore_tbo",
-                                       binding_points.data_store_buffer_tbo());
+                                       m_uber_shader_builder_params.data_store_buffer_binding());
           }
           break;
 
@@ -194,7 +199,7 @@ configure_source_front_matter(void)
           {
             m_initializer
               .add_uniform_block_binding("fastuidraw_painterStore_ubo",
-                                         binding_points.data_store_buffer_ubo());
+                                         m_uber_shader_builder_params.data_store_buffer_binding());
           }
           break;
 
@@ -202,7 +207,7 @@ configure_source_front_matter(void)
           {
             m_initializer
               .add_uniform_block_binding("fastuidraw_painterStore_ssbo",
-                                         binding_points.data_store_buffer_ssbo());
+                                         m_uber_shader_builder_params.data_store_buffer_binding());
           }
           break;
         }

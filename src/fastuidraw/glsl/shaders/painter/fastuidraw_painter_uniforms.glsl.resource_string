@@ -77,12 +77,12 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray
 // Painter Data Store
 #ifdef FASTUIDRAW_PAINTER_USE_DATA_TBO
 
-  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_STORE_TBO_BINDING) uniform usamplerBuffer fastuidraw_painterStore_tbo;
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_STORE_BINDING) uniform usamplerBuffer fastuidraw_painterStore_tbo;
   #define fastuidraw_fetch_data(block) texelFetch(fastuidraw_painterStore_tbo, int(block))
 
 #elif defined(FASTUIDRAW_PAINTER_USE_DATA_SSBO)
 
-  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_SSBO_BINDING, std430) restrict readonly buffer fastuidraw_painterStore_ssbo
+  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_BINDING, std430) restrict readonly buffer fastuidraw_painterStore_ssbo
   {
     uvec4 fastuidraw_painterStore[];
   };
@@ -90,7 +90,7 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray
 
 #elif defined(FASTUIDRAW_PAINTER_USE_DATA_UBO)
 
-  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_UBO_BINDING, std140) uniform fastuidraw_painterStore_ubo
+  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_BINDING, std140) uniform fastuidraw_painterStore_ubo
   {
     uvec4 fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
   };
