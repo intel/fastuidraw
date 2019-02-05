@@ -23,6 +23,7 @@
 #include <fastuidraw/painter/arc_stroked_point.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/text/glyph_attribute.hpp>
+#include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include "backend_shaders.hpp"
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -586,6 +587,7 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
     .add_macro("fastuidraw_aa_fuzz_hq_pass2", uint32_t(fill_aa_fuzz_hq_pass2));
 
   m_common_glyph_attribute_macros
+    .add_macro_float("fastuidraw_restricted_rays_glyph_coord_value", GlyphRenderDataRestrictedRays::glyph_coord_value)
     .add_macro("FASTUIDRAW_GLYPH_RECT_WIDTH_NUMBITS", uint32_t(GlyphAttribute::rect_width_num_bits))
     .add_macro("FASTUIDRAW_GLYPH_RECT_HEIGHT_NUMBITS", uint32_t(GlyphAttribute::rect_height_num_bits))
     .add_macro("FASTUIDRAW_GLYPH_RECT_X_NUMBITS", uint32_t(GlyphAttribute::rect_x_num_bits))
@@ -642,10 +644,6 @@ create_glyph_shader(void)
   restricted_rays_varyings
     .add_float_varying("fastuidraw_glyph_coord_x")
     .add_float_varying("fastuidraw_glyph_coord_y")
-    .add_float_varying("fastuidraw_glyph_min_x")
-    .add_float_varying("fastuidraw_glyph_min_y")
-    .add_float_varying("fastuidraw_glyph_max_x")
-    .add_float_varying("fastuidraw_glyph_max_y")
     .add_uint_varying("fastuidraw_glyph_data_location");
 
   return_value

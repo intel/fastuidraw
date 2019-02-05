@@ -118,7 +118,6 @@ fastuidraw_restricted_rays_update_distance(in vec2 p, in vec2 dp,
 
 uint
 fastuidaw_restricted_rays_compute_box(in vec2 p,
-                                      in vec2 bb_box_min, in vec2 bb_box_max,
                                       in uint data_location,
                                       out fastuidraw_restricted_rays_box_type box,
                                       out uint curve_list,
@@ -126,8 +125,8 @@ fastuidaw_restricted_rays_compute_box(in vec2 p,
 {
   uint v, offset;
 
-  box.min_point = bb_box_min;
-  box.max_point = bb_box_max;
+  box.min_point = vec2(-fastuidraw_restricted_rays_glyph_coord_value, -fastuidraw_restricted_rays_glyph_coord_value);
+  box.max_point = vec2(fastuidraw_restricted_rays_glyph_coord_value, fastuidraw_restricted_rays_glyph_coord_value);
 
   offset = data_location;
   v = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(offset);
@@ -176,24 +175,13 @@ fastuidaw_restricted_rays_compute_box(in vec2 p,
   return offset + 1u;
 }
 
-ivec2
+vec2
 fastuidraw_restricted_rays_unpack_point(in uint ptr)
 {
   uint pt_packed;
-  uvec2 pt_u;
-  ivec2 pt_i;
 
   pt_packed = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(ptr);
-
-  pt_u.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_point_x_coordinate_bit0,
-                                   fastuidraw_restricted_rays_point_coordinate_num_bits,
-                                   pt_packed);
-  pt_u.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_point_y_coordinate_bit0,
-                                   fastuidraw_restricted_rays_point_coordinate_num_bits,
-                                   pt_packed);
-  pt_i = ivec2(pt_u);
-
-  return pt_i;
+  return unpackHalf2x16(pt_packed);
 }
 
 void
@@ -580,29 +568,24 @@ fastuidraw_restricted_rays_load_curve(in uint raw,
                                       out fastuidraw_restricted_rays_curve_type curve)
 {
   uint curve_src;
-  ivec2 ip1, ip2, ip3, iA, i2B, iC;
 
   curve_src = glyph_data_location + FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_bit0,
                                                             fastuidraw_restricted_rays_curve_num_bits,
                                                             raw);
   curve.is_quadratic = (raw & fastuidraw_restricted_rays_curve_is_quadratic_mask) != 0u;
 
-  ip1 = fastuidraw_restricted_rays_unpack_point(curve_src);
-  ip2 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
+  curve.p1 = fastuidraw_restricted_rays_unpack_point(curve_src);
+  curve.p2 = fastuidraw_restricted_rays_unpack_point(curve_src + 1u);
 
   if (curve.is_quadratic)
     {
-      ip3 = fastuidraw_restricted_rays_unpack_point(curve_src + 2u);
-      curve.p2 = vec2(ip2);
+      curve.p3 = fastuidraw_restricted_rays_unpack_point(curve_src + 2u);
     }
   else
     {
-      ip3 = ip2;
-      curve.p2 = 0.5 * vec2(ip1 + ip3);
+      curve.p3 = curve.p2;
+      curve.p2 = 0.5 * (curve.p1 + curve.p3);
     }
-
-  curve.p1 = vec2(ip1);
-  curve.p3 = vec2(ip3);
 }
 
 int
@@ -656,8 +639,6 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord,
                                             in vec2 glyph_coord_dx,
                                             in vec2 glyph_coord_dy,
-                                            in vec2 bb_box_min,
-                                            in vec2 bb_box_max,
                                             in bool use_odd_even_rule,
                                             out fastuidraw_restricted_rays_box_type texel_box,
                                             out fastuidraw_restricted_rays_winding_sample_type S,
@@ -669,7 +650,6 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
 
   winding_sample_data_location =
     fastuidaw_restricted_rays_compute_box(glyph_coord,
-                                          bb_box_min, bb_box_max,
                                           glyph_data_location,
                                           texel_box, curve_list, num_curves);
   fastuidraw_restricted_rays_init_distance(nv);
@@ -744,8 +724,6 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord,
                                             in vec2 glyph_coord_dx,
                                             in vec2 glyph_coord_dy,
-                                            in vec2 bb_box_min,
-                                            in vec2 bb_box_max,
                                             in bool use_odd_even_rule)
 {
   fastuidraw_restricted_rays_box_type texel_box;
@@ -757,7 +735,6 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
   return fastuidraw_restricted_rays_compute_coverage(glyph_data_location,
                                                      glyph_coord,
                                                      glyph_coord_dx, glyph_coord_dy,
-                                                     bb_box_min, bb_box_max,
                                                      use_odd_even_rule,
                                                      texel_box, S, winding_number,
                                                      num_curves, nv);

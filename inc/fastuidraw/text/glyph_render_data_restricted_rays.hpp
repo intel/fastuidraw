@@ -266,85 +266,41 @@ namespace fastuidraw
       };
 
     /*!
-     * This enumeration specifies how the points of a curve are packed.
-     * Each point is realized as a single 32-bit value. Both the
-     * x and y-coordinates are integer values coming from the outline
-     * of the glyph.
+     * Points are packed as (fp16, fp16) pairs.
      */
     enum point_packing_t
       {
-        /*!
-         * The number of bits to store a coordinate value
-         */
-        point_coordinate_numbits = 16u,
+      };
 
-        /*!
-         * The first bit used to store the x-coordinate of the point
+    enum
+      {
+        /* The glyph coordinate value in each coordiante varies
+         * from -\ref glyph_coord_value to +\ref glyph_coord_value
          */
-        point_x_coordinate_bit0 = 0u,
-
-        /*!
-         * The first bit used to store the y-coordinate of the point
-         */
-        point_y_coordinate_bit0 = 16u,
+        glyph_coord_value = 32,
       };
 
     /*!
      * This enumeration describes the meaning of the
-     * attributes. The data of the glyph is offset so
-     * that a shader can assume that the bottom left
-     * corner has glyph-coordinate (0, 0) and the top
-     * right corner has glyph-coordinate (width, height)
-     * where width and height are the width and height
-     * of the glyph is glyph coordinates.
+     * attributes. The glyph shader is to assume that
+     * the glyph-coordinates at the min-corner is
+     * (-\ref glyph_coord_value, -\ref glyph_coord_value)
+     * and the glyph coordiantes at the max-corner is
+     * (+\ref glyph_coord_value, +\ref glyph_coord_value)
      */
     enum attribute_values_t
       {
         /*!
-         * the index into GlyphAttribute::m_data storing
-         * the x-value amount difference between the
-         * glyph coordinate at the vertex and the glyph
-         * glyph coordinate at the min-corner of the
-         * glyph (packed as int).
+         * Value is 0 if on min-x side of glyph, value is
+         * 1 if on max-x side of glyph; packed as uint.
          */
-        glyph_coordinate_delta_from_min_x = 0,
+        glyph_normalized_x,
 
         /*!
-         * the index into GlyphAttribute::m_data storing
-         * the y-value amount difference between the
-         * glyph coordinate at the vertex and the glyph
-         * glyph coordinate at the min-corner of the
-         * glyph (packed as int).
+         * Value is 0 if on min-y side of glyph, value is
+         * 1 if on max-y side of glyph; packed as uint.
          */
-        glyph_coordinate_delta_from_min_y,
-
-        /*!
-         * the index into GlyphAttribute::m_data storing
-         * the width of the glyph in glyph coordinates
-         * (packed as int).
-         */
-        glyph_width,
-
-        /*!
-         * the index into GlyphAttribute::m_data storing
-         * the height of the glyph in glyph coordinates
-         * (packed as int).
-         */
-        glyph_height,
-
-        /*!
-         * the index into GlyphAttribute::m_data storing
-         * the x-value of the min-corner of the glyph
-         * (packed as int).
-         */
-        glyph_min_corner_x,
-
-        /*!
-         * the index into GlyphAttribute::m_data storing
-         * the y-value of the min-corner of the glyph
-         * (packed as int).
-         */
-        glyph_min_corner_y,
+        glyph_normalized_y,
 
         /*!
          * the index into GlyphAttribute::m_data storing
@@ -411,14 +367,14 @@ namespace fastuidraw
      * \param f fill rule to use for rendering, must be one of
      *          PainterEnums::nonzero_fill_rule or \ref
      *          PainterEnums::odd_even_fill_rule.
-     * \param bounding_box bounding box of the contours added
+     * \param glyph_rect the rect of the glyph
      * \param units_per_EM the units per EM for the glyph; this value together with
      *                     GlyphGenerateParams::restricted_rays_minimum_render_size()
      *                     is used to decide how close a curve may be to a bounding
      *                     box to decide if it is included.
      */
     void
-    finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &bounding_box,
+    finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect,
              float units_per_EM);
 
     /*!
@@ -445,14 +401,11 @@ namespace fastuidraw
     /*!
      * Query the data; may only be called after finalize(). Returns
      * \ref routine_fail if finalize() has not yet been called.
-     * \param glyph_rect location to which to write the glyph rectangle
-     *                   of the data as seen by the GPU
      * \param gpu_data location to which to write a c_array to the
      *                 GPU data.
      */
     enum return_code
-    query(RectT<int> *glyph_rect,
-          c_array<const fastuidraw::generic_data> *gpu_data) const;
+    query(c_array<const fastuidraw::generic_data> *gpu_data) const;
 
     virtual
     enum fastuidraw::return_code

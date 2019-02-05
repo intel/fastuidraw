@@ -38,8 +38,6 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                     glyph_coord,
                                                     dFdx(glyph_coord),
                                                     dFdy(glyph_coord),
-                                                    vec2(fastuidraw_glyph_min_x, fastuidraw_glyph_min_y),
-                                                    vec2(fastuidraw_glyph_max_x, fastuidraw_glyph_max_y),
                                                     is_odd_even_fill_rule,
                                                     texel_box, S, winding_number, num_curves, nv);
   /**
