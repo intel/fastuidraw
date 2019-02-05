@@ -4,12 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-dir := $(d)/glu-tess
-include $(dir)/Rules.mk
-
-dir := $(d)/ieeehalfprecision
-include $(dir)/Rules.mk
-
+FASTUIDRAW_PRIVATE_SOURCES += $(call filelist, ieeehalfprecision.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))
