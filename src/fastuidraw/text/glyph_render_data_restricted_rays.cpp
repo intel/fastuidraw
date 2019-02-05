@@ -792,14 +792,14 @@ namespace
     scale_down(const fastuidraw::ivec2 &v);
 
     void
-    set_glyph_bounds(const fastuidraw::RectT<int> &bb)
+    set_glyph_rect(const fastuidraw::RectT<int> &bb)
     {
       if (!m_contours.empty() && m_contours.back().empty())
         {
           m_contours.pop_back();
         }
-      m_glyph_bound_min = bb.m_min_point;
-      m_glyph_bound_max = bb.m_max_point;
+      m_glyph_rect_min = bb.m_min_point;
+      m_glyph_rect_max = bb.m_max_point;
       m_bbox.union_point(bb.m_min_point);
       m_bbox.union_point(bb.m_max_point);
     }
@@ -811,20 +811,20 @@ namespace
     }
 
     const fastuidraw::ivec2&
-    glyph_bound_min(void) const
+    glyph_rect_min(void) const
     {
-      return m_glyph_bound_min;
+      return m_glyph_rect_min;
     }
 
     const fastuidraw::ivec2&
-    glyph_bound_max(void) const
+    glyph_rect_max(void) const
     {
-      return m_glyph_bound_max;
+      return m_glyph_rect_max;
     }
 
   private:
     fastuidraw::BoundingBox<int> m_bbox;
-    fastuidraw::ivec2 m_glyph_bound_min, m_glyph_bound_max;
+    fastuidraw::ivec2 m_glyph_rect_min, m_glyph_rect_max;
     std::vector<Contour> m_contours;
   };
 
@@ -1804,8 +1804,8 @@ translate(const fastuidraw::ivec2 &v)
       C.translate(v);
     }
   m_bbox.translate(v);
-  m_glyph_bound_min += v;
-  m_glyph_bound_max += v;
+  m_glyph_rect_min += v;
+  m_glyph_rect_max += v;
 }
 
 void
@@ -1825,8 +1825,8 @@ scale_down(const fastuidraw::ivec2 &v)
         }
     }
   m_bbox.scale_down(v);
-  m_glyph_bound_min /= v;
-  m_glyph_bound_max /= v;
+  m_glyph_rect_min /= v;
+  m_glyph_rect_max /= v;
 }
 
 void
@@ -2115,7 +2115,7 @@ finalize(enum PainterEnums::fill_rule_t f,
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
-         const RectT<int> &bounding_box,
+         const RectT<int> &glyph_rect,
          int split_thresh, int max_recursion,
          vec2 near_thresh)
 {
@@ -2131,7 +2131,7 @@ finalize(enum PainterEnums::fill_rule_t f,
 
   FASTUIDRAWassert(f == PainterEnums::odd_even_fill_rule || f == PainterEnums::nonzero_fill_rule);
   d->m_fill_rule = f;
-  d->m_glyph->set_glyph_bounds(bounding_box);
+  d->m_glyph->set_glyph_rect(glyph_rect);
 
   if (d->m_glyph->contours().empty())
     {
@@ -2178,8 +2178,8 @@ finalize(enum PainterEnums::fill_rule_t f,
 
   /* step 3: create the tree */
   CurveListHierarchy hierarchy(d->m_glyph,
-                               d->m_glyph->glyph_bound_min(),
-                               d->m_glyph->glyph_bound_max(),
+                               d->m_glyph->glyph_rect_min(),
+                               d->m_glyph->glyph_rect_max(),
                                max_recursion,
                                split_thresh,
                                near_thresh);
@@ -2204,8 +2204,8 @@ finalize(enum PainterEnums::fill_rule_t f,
   d->m_glyph->pack_data(render_data);
 
   /* step 8: record the data neeed for shading */
-  d->m_min = d->m_glyph->glyph_bound_min();
-  d->m_max = d->m_glyph->glyph_bound_max();
+  d->m_min = d->m_glyph->glyph_rect_min();
+  d->m_max = d->m_glyph->glyph_rect_max();
   d->m_size = d->m_max - d->m_min;
 
   FASTUIDRAWdelete(d->m_glyph);
@@ -2264,7 +2264,7 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
 
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataRestrictedRays::
-query(RectT<int> *bb_box,
+query(RectT<int> *glyph_rect,
       c_array<const fastuidraw::generic_data> *gpu_data) const
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
@@ -2277,8 +2277,8 @@ query(RectT<int> *bb_box,
     }
 
   *gpu_data = make_c_array(d->m_render_data);
-  bb_box->m_min_point = d->m_min;
-  bb_box->m_max_point = d->m_max;
+  glyph_rect->m_min_point = d->m_min;
+  glyph_rect->m_max_point = d->m_max;
 
   return routine_success;
 }

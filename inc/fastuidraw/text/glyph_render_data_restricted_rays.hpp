@@ -360,7 +360,7 @@ namespace fastuidraw
         /*!
          * Number attribute values needed.
          */
-        glyph_num_attributes = 7
+        glyph_num_attributes
       };
 
     /*!
@@ -430,7 +430,7 @@ namespace fastuidraw
      * \param f fill rule to use for rendering, must be one of
      *          PainterEnums::nonzero_fill_rule or \ref
      *          PainterEnums::odd_even_fill_rule.
-     * \param bounding_box bounding box of the contours added
+     * \param glyph_rect the rect of the glyph
      * \param split_thresh if the number of curves within a box is greater than
      *                     this value, the box is split
      * \param max_recursion the maximum level of recursion allowed in splitting
@@ -439,19 +439,19 @@ namespace fastuidraw
      *                    outside of a box should be added to a box
      */
     void
-    finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &bounding_box,
+    finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect,
              int split_thresh, int max_recursion, vec2 near_thresh);
 
     /*!
      * Query the data; may only be called after finalize(). Returns
      * \ref routine_fail if finalize() has not yet been called.
-     * \param bb_box location to which to write the bounding box
-     *               of the data as seen by the GPU
+     * \param glyph_rect location to which to write the glyph rectangle
+     *                   of the data as seen by the GPU
      * \param gpu_data location to which to write a c_array to the
      *                 GPU data.
      */
     enum return_code
-    query(RectT<int> *bb_box,
+    query(RectT<int> *glyph_rect,
           c_array<const fastuidraw::generic_data> *gpu_data) const;
 
     virtual
