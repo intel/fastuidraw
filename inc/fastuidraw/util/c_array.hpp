@@ -475,6 +475,24 @@ private:
 };
 
 
+/*!
+ * Convert an array of 32-bit floating point values
+ * to an array of 16-bit half values
+ * \param src fp32 value to convert
+ * \param dst location to which to write fp16 values
+ */
+void
+convert_to_fp16(c_array<const float> src, c_array<uint16_t> dst);
+
+/*!
+ * Convert an array of 16-bit floating point values
+ * to an array of 32-bit half values
+ * \param src fp16 value to convert
+ * \param dst location to which to write fp32 values
+ */
+void
+convert_to_fp32(c_array<const uint16_t> src, c_array<float> dst);
+
 /*! @} */
 
 } //namespace

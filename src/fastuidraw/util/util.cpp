@@ -24,6 +24,9 @@
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/c_array.hpp>
+
+#include "../../3rd_party/ieeehalfprecision/ieeehalfprecision.hpp"
 
 uint32_t
 fastuidraw::
@@ -79,6 +82,28 @@ uint64_number_bits_required(uint64_t v)
     {}
 
   return return_value;
+}
+
+void
+fastuidraw::
+convert_to_fp16(c_array<const float> src, c_array<uint16_t> dst)
+{
+  c_array<const uint32_t> srcU;
+
+  FASTUIDRAWassert(src.size() == dst.size());
+  srcU = src.reinterpret_pointer<const uint32_t>();
+  ieeehalfprecision::singles2halfp(dst.c_ptr(), srcU.c_ptr(), src.size());
+}
+
+void
+fastuidraw::
+convert_to_fp32(c_array<const uint16_t> src, c_array<float> dst)
+{
+  c_array<uint32_t> dstU;
+
+  FASTUIDRAWassert(src.size() == dst.size());
+  dstU = dst.reinterpret_pointer<uint32_t>();
+  ieeehalfprecision::halfp2singles(dstU.c_ptr(), src.c_ptr(), src.size());
 }
 
 void
