@@ -302,45 +302,49 @@ namespace fastuidraw
       {
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the x-value for the glyph coordinate of the vertex
-         * of a quad to draw a glyph (packed as int).
+         * the x-value amount difference between the
+         * glyph coordinate at the vertex and the glyph
+         * glyph coordinate at the min-corner of the
+         * glyph (packed as int).
          */
-        glyph_coordinate_x = 0,
+        glyph_coordinate_delta_from_min_x = 0,
 
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the y-value for the glyph coordinate of the vertex
-         * of a quad to draw a glyph (packed as int).
+         * the y-value amount difference between the
+         * glyph coordinate at the vertex and the glyph
+         * glyph coordinate at the min-corner of the
+         * glyph (packed as int).
          */
-        glyph_coordinate_y = 1,
+        glyph_coordinate_delta_from_min_y,
 
         /*!
          * the index into GlyphAttribute::m_data storing
          * the width of the glyph in glyph coordinates
          * (packed as int).
          */
-        glyph_width = 2,
+        glyph_width,
 
         /*!
          * the index into GlyphAttribute::m_data storing
          * the height of the glyph in glyph coordinates
          * (packed as int).
          */
-        glyph_height = 3,
+        glyph_height,
 
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the minimum x-value for the bounding box of
-         * the glyph (packed as int).
+         * the x-value of the min-corner of the glyph
+         * (packed as int).
          */
-        glyph_bounding_box_min_x = 4,
+        glyph_min_corner_x,
 
         /*!
          * the index into GlyphAttribute::m_data storing
-         * the minimum y-value for the bounding box of
-         * the glyph (packed as int).
+         * the y-value of the min-corner of the glyph
+         * (packed as int).
          */
-        glyph_bounding_box_min_y = 5,
+        glyph_min_corner_y,
 
         /*!
          * the index into GlyphAttribute::m_data storing
@@ -351,7 +355,7 @@ namespace fastuidraw
          * is down and the odd-even fill rule if bit31 is
          * up.
          */
-        glyph_offset = 6,
+        glyph_offset,
 
         /*!
          * Number attribute values needed.

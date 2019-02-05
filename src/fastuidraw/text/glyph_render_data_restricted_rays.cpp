@@ -2241,13 +2241,13 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
       x = (c & GlyphAttribute::right_corner_mask) ? d->m_size.x() : 0;
       y = (c & GlyphAttribute::top_corner_mask)   ? d->m_size.y() : 0;
 
-      attributes[glyph_coordinate_x].m_data[c] = x;
-      attributes[glyph_coordinate_y].m_data[c] = y;
+      attributes[glyph_coordinate_delta_from_min_x].m_data[c] = x;
+      attributes[glyph_coordinate_delta_from_min_y].m_data[c] = y;
     }
   attributes[glyph_width].m_data = uvec4(d->m_size.x());
   attributes[glyph_height].m_data = uvec4(d->m_size.y());
-  attributes[glyph_bounding_box_min_x].m_data = uvec4(d->m_min.x());
-  attributes[glyph_bounding_box_min_y].m_data = uvec4(d->m_min.y());
+  attributes[glyph_min_corner_x].m_data = uvec4(d->m_min.x());
+  attributes[glyph_min_corner_y].m_data = uvec4(d->m_min.y());
 
   /* If the fill rule is odd-even, the leading bit
    * of data_offset is made to be up.
