@@ -103,7 +103,7 @@ namespace
   macro_value_as_string(float v)
   {
     std::ostringstream str;
-    str << v;
+    str << "float(" << v << ")";
     return str.str();
   }
 
