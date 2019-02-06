@@ -277,7 +277,7 @@ namespace fastuidraw
         /* The glyph coordinate value in each coordiante varies
          * from -\ref glyph_coord_value to +\ref glyph_coord_value
          */
-        glyph_coord_value = 32,
+        glyph_coord_value = 2048,
       };
 
     /*!
