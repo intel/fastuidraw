@@ -112,6 +112,7 @@ namespace
       m_image_atlas_color_tiles_linear_binding(-1),
       m_image_atlas_index_tiles_binding(-1),
       m_glyph_atlas_store_binding(-1),
+      m_glyph_atlas_store_binding_fp16x2(-1),
       m_data_store_buffer_binding(-1),
       m_external_texture_binding(-1),
       m_uniforms_ubo_binding(-1),
@@ -151,6 +152,7 @@ namespace
     int m_image_atlas_color_tiles_linear_binding;
     int m_image_atlas_index_tiles_binding;
     int m_glyph_atlas_store_binding;
+    int m_glyph_atlas_store_binding_fp16x2;
     int m_data_store_buffer_binding;
     int m_external_texture_binding;
     int m_uniforms_ubo_binding;
@@ -966,6 +968,7 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", params.image_atlas_color_tiles_nearest_binding())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", params.image_atlas_index_tiles_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
+    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", params.auxiliary_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
@@ -1046,6 +1049,7 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", params.image_atlas_color_tiles_nearest_binding())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", params.image_atlas_index_tiles_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
+    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", params.auxiliary_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
@@ -1339,9 +1343,11 @@ recompute_binding_points(void)
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
       m_glyph_atlas_store_binding = m_num_texture_units++;
+      m_glyph_atlas_store_binding_fp16x2 = m_num_texture_units++;
       break;
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
       m_glyph_atlas_store_binding = m_num_ssbo_units++;
+      m_glyph_atlas_store_binding_fp16x2 = -1;
       break;
     }
 
@@ -1501,6 +1507,7 @@ uber_shader_params_get_dirty(image_atlas_color_tiles_nearest_binding)
 uber_shader_params_get_dirty(image_atlas_color_tiles_linear_binding)
 uber_shader_params_get_dirty(image_atlas_index_tiles_binding)
 uber_shader_params_get_dirty(glyph_atlas_store_binding)
+uber_shader_params_get_dirty(glyph_atlas_store_binding_fp16x2)
 uber_shader_params_get_dirty(data_store_buffer_binding)
 uber_shader_params_get_dirty(external_texture_binding)
 uber_shader_params_get_dirty(auxiliary_image_buffer_binding)

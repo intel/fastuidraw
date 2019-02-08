@@ -48,6 +48,7 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray
     uint fastuidraw_glyphDataStore_data[];
   };
   #define fastuidraw_fetch_glyph_data(X) (fastuidraw_glyphDataStore_data[int(X)])
+  #define fastuidraw_fetch_glyph_data_fp16x2(X) unpackHalf2x16(fastuidraw_glyphDataStore_data[int(X)])
 
 #elif defined(FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY)
 
@@ -57,6 +58,7 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray
    * bit shifts and masking to get the correct layer, height and so on.
    */
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_BINDING) uniform usampler2DArray fastuidraw_glyphDataStore;
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING) uniform sampler2DArray fastuidraw_glyphDataStore_fp16x2;
   #define FASTUIDRAW_GLYPH_DATA_WIDTH_PLUS_HEIGHT_LOG2 uint(FASTUIDRAW_GLYPH_DATA_WIDTH_LOG2 + FASTUIDRAW_GLYPH_DATA_HEIGHT_LOG2)
   #define FASTUIDRAW_GLYPH_DATA_LAYER(T) (uint(T) >> FASTUIDRAW_GLYPH_DATA_WIDTH_PLUS_HEIGHT_LOG2)
   #define FASTUIDRAW_GLYPH_DATA_Y(T) FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_DATA_WIDTH_LOG2, FASTUIDRAW_GLYPH_DATA_HEIGHT_LOG2, T)
@@ -64,10 +66,18 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray
   #define FASTUIDRAW_GLYPH_DATA_COORD(v) ivec3(FASTUIDRAW_GLYPH_DATA_X(v), FASTUIDRAW_GLYPH_DATA_Y(v), FASTUIDRAW_GLYPH_DATA_LAYER(v))
   #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphDataStore, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).r)
 
+  /* TODO: have macro system checking for texture-view; for when texture-view is
+   * not supported, then fall back to using unpackHalf2x16 OR require from C++
+   * code that to use 2d-texture-array requires that texture-view is supported.
+   */
+  #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).rg)
+
 #else
 
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_BINDING) uniform usamplerBuffer fastuidraw_glyphDataStore;
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING) uniform samplerBuffer fastuidraw_glyphDataStore_fp16x2;
   #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphDataStore, int(X)).r)
+  #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, int(X)).rg)
 
 #endif
 ////////////////////////////////////////////////////

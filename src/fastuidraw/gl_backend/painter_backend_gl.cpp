@@ -85,6 +85,7 @@ namespace
     int m_image_atlas_color_tiles_linear_binding;
     int m_image_atlas_index_tiles_binding;
     int m_glyph_atlas_store_binding;
+    int m_glyph_atlas_store_binding_fp16;
     int m_data_store_buffer_binding;
     int m_external_texture_binding;
     int m_uniforms_ubo_binding;
@@ -835,6 +836,7 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_binding_points.m_image_atlas_color_tiles_linear_binding = m_reg_gl->uber_shader_builder_params().image_atlas_color_tiles_linear_binding();
   m_binding_points.m_image_atlas_index_tiles_binding = m_reg_gl->uber_shader_builder_params().image_atlas_index_tiles_binding();
   m_binding_points.m_glyph_atlas_store_binding = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding();
+  m_binding_points.m_glyph_atlas_store_binding_fp16 = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding_fp16x2();
   m_binding_points.m_data_store_buffer_binding = m_reg_gl->uber_shader_builder_params().data_store_buffer_binding();
   m_binding_points.m_auxiliary_image_buffer_binding = m_reg_gl->uber_shader_builder_params().auxiliary_image_buffer_binding();
   m_binding_points.m_color_interlock_image_buffer_binding = m_reg_gl->uber_shader_builder_params().color_interlock_image_buffer_binding();
@@ -1121,11 +1123,15 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       fastuidraw_glBindSampler(m_binding_points.m_image_atlas_index_tiles_binding, 0);
       fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, image->index_texture());
 
-      if (glyphs->data_backed_by_texture())
+      if (glyphs->data_binding_point_is_texture_unit())
         {
           fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding);
           fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding, 0);
-          fastuidraw_glBindTexture(glyphs->data_binding_point(), glyphs->data_backing());
+          fastuidraw_glBindTexture(glyphs->data_binding_point(), glyphs->data_backing(GlyphAtlasGL::backing_uint32_fmt));
+
+	  fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding_fp16);
+          fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding_fp16, 0);
+          fastuidraw_glBindTexture(glyphs->data_binding_point(), glyphs->data_backing(GlyphAtlasGL::backing_fp16x2_fmt));
         }
 
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_colorstop_atlas_binding);
@@ -1168,11 +1174,11 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   if (v & gpu_dirty_state::storage_buffers)
     {
-      if (!glyphs->data_backed_by_texture())
+      if (!glyphs->data_binding_point_is_texture_unit())
         {
           fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
                                       m_binding_points.m_glyph_atlas_store_binding,
-                                      glyphs->data_backing());
+                                      glyphs->data_backing(GlyphAtlasGL::backing_uint32_fmt));
         }
     }
 }
@@ -1845,7 +1851,7 @@ on_post_draw(void)
   FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get()));
   glyphs = static_cast<GlyphAtlasGL*>(glyph_atlas().get());
 
-  if (glyphs->data_backed_by_texture())
+  if (glyphs->data_binding_point_is_texture_unit())
     {
       fastuidraw_glActiveTexture(GL_TEXTURE0 + d->m_binding_points.m_glyph_atlas_store_binding);
       fastuidraw_glBindTexture(glyphs->data_binding_point(), 0);

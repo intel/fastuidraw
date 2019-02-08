@@ -398,9 +398,15 @@ public:
                    c_array<const uint8_t> data);
 
   void
-  resize(vecN<int, N> new_num_layers)
+  resize(vecN<int, N> new_dims)
   {
-    m_dims = new_num_layers;
+    m_dims = new_dims;
+  }
+
+  const vecN<int, N>&
+  dims(void) const
+  {
+    return m_dims;
   }
 
   int

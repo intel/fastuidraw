@@ -178,6 +178,14 @@ namespace gl
     };
 
     /*!
+     */
+    enum backing_fmt_t
+      {
+	backing_uint32_fmt,
+	backing_fp16x2_fmt,
+      };
+
+    /*!
      * Ctor.
      * \param P parameters for constrution
      */
@@ -187,11 +195,11 @@ namespace gl
     ~GlyphAtlasGL();
 
     /*!
-     * Returns true if and only if the GlyphAtlasBackingStoreBase
-     * is backed by a texture.
+     * Returns true if and only if the binding point of the
+     * GlyphAtlasBackingStoreBase is a texture unit.
      */
     bool
-    data_backed_by_texture(void) const;
+    data_binding_point_is_texture_unit(void) const;
 
     /*!
      * Returns the GL object ID of the GlyphAtlasBackingStoreBase
@@ -203,20 +211,20 @@ namespace gl
      * by a buffer returns the name of a GL buffer object.
      */
     GLuint
-    data_backing(void) const;
+    data_backing(enum backing_fmt_t fmt) const;
 
     /*!
-     * Returns the binding point to which to bind the texture returned
-     * by data_texture().
+     * Returns the binding point to which to bind the objected returned
+     * by data_backing().
      */
     GLenum
     data_binding_point(void) const;
 
     /*!
      * In the case that the data is stored in a texture
-     * array (GL_TEXTURE_2D_ARRAY) instead of a texture buffer
-     * object, returns the log2 of the width and height of the
-     * backing texture 2D array.
+     * array (GL_TEXTURE_2D_ARRAY), returns the log2 of
+     * the width and height of the backing texture 2D
+     * array.
      */
     ivec2
     data_texture_as_2d_array_log2_dims(void) const;
