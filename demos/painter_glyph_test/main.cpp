@@ -1256,7 +1256,17 @@ draw_glyphs(float us)
 
           if (!m_fill_glyphs)
             {
+              Glyph glyph;
+              c_array<const GlyphRenderCostInfo> render_costs;
+
+              glyph = m_glyph_cache->fetch_glyph(render, metrics.font().get(), metrics.glyph_code());
+              render_costs = glyph.render_cost();
               ostr << render;
+
+              for (const GlyphRenderCostInfo &info : render_costs)
+                {
+                  ostr << "\n\tRenderCost(" << info.m_label << "): " << info.m_value;
+                }
             }
           else
             {
