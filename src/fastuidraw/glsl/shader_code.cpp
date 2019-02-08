@@ -66,7 +66,8 @@ compute_interval(c_string function_name,
 
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-restricted_rays_compute_coverage(c_string fetch_macro_function)
+restricted_rays_compute_coverage(c_string fetch_macro_function,
+				 c_string fetch_macro_function_fp16x2)
 {
   ShaderSource return_value;
 
@@ -97,6 +98,7 @@ restricted_rays_compute_coverage(c_string fetch_macro_function)
     .add_macro_u32("fastuidraw_restricted_rays_curve_num_bits", GlyphRenderDataRestrictedRays::curve_location_numbits)
     .add_macro_float("fastuidraw_restricted_rays_glyph_coord_value", GlyphRenderDataRestrictedRays::glyph_coord_value)
     .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA", fetch_macro_function)
+    .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2", fetch_macro_function_fp16x2)
     .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
     .remove_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA");
 

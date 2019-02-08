@@ -22,6 +22,15 @@
  *
  * that returns a single 32-bit uint value at index X of
  * a large array of 32-bit uint values storing the data
+ *
+ * and optionally define the macro/function
+ *
+ *  FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2(X)
+ *
+ * the reads a single 32-bit uint value that is bit-casted
+ * to a (fp16, fp16) pair realized as a vec2. For example
+ * it can be defined as
+ * unpackHalf2x16(FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(X))
  */
 
 struct fastuidraw_restricted_rays_transformation
@@ -178,10 +187,18 @@ fastuidaw_restricted_rays_compute_box(in vec2 p,
 vec2
 fastuidraw_restricted_rays_unpack_point(in uint ptr)
 {
-  uint pt_packed;
+  #if !defined(FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2)
+    {
+      uint pt_packed;
 
-  pt_packed = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(ptr);
-  return unpackHalf2x16(pt_packed);
+      pt_packed = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(ptr);
+      return unpackHalf2x16(pt_packed);
+    }
+  #else
+    {
+      return FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2(ptr);
+    }
+  #endif
 }
 
 void

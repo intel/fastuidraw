@@ -1092,7 +1092,8 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
   frag
     .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source(code::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
-    .add_source(code::restricted_rays_compute_coverage("fastuidraw_fetch_glyph_data"))
+    .add_source(code::restricted_rays_compute_coverage("fastuidraw_fetch_glyph_data",
+						       "fastuidraw_fetch_glyph_data_fp16x2"))
     .add_source(m_frag_shader_utils)
     .add_source(code::image_atlas_compute_coord("fastuidraw_compute_image_atlas_coord",
                                                 "fastuidraw_imageIndexAtlas",

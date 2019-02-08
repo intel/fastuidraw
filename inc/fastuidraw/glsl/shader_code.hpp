@@ -131,9 +131,14 @@ namespace fastuidraw
        * fastuidraw_restricted_rays_compute_coverage() functions.
        * \param fetch_macro_function function or macro taking one argument
        *                             that returns a single uint of data
+       * \param fetch_macro_function_fp16x2 function or macro taking one argument
+       *                                    that returns a single uint of data
+       *                                    bit casted to an (fp16, fp16) pair
+       *                                    realized as an vec2 in GLSL
        */
       ShaderSource
-      restricted_rays_compute_coverage(c_string fetch_macro_function);
+      restricted_rays_compute_coverage(c_string fetch_macro_function,
+				       c_string fetch_macro_function_fp16x2);
     }
 /*! @} */
   }
