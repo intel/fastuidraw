@@ -274,79 +274,14 @@ namespace
       }
     };
 
-    Band(void)
-    {}
-
-    Band(float min_v, float max_v):
-      m_min_v(min_v),
-      m_max_v(max_v)
-    {}
+    static
+    void
+    create_bands(std::vector<Band> *dst,
+                 const std::vector<Contour> &contours,
+                 float min_v, float max_v);
 
     void
-    add(const Curve &curve)
-    {
-      if (curve.intersects_band<BandType>(m_min_v, m_max_v))
-        {
-          m_curves.push_back(curve);
-        }
-    }
-
-    template<typename iterator>
-    void
-    add(iterator b, iterator e)
-    {
-      for (;b != e; ++b)
-        {
-          add(*b);
-        }
-    }
-
-    void
-    add(const Contour &contour)
-    {
-      const std::vector<Curve> &curves(contour.curves());
-      add(curves.begin(), curves.end());
-    }
-
-    void
-    split(SplitBand *dst, float split_v) const
-    {
-      dst->m_split_pt = split_v;
-
-      dst->m_before_split.m_min_v = m_min_v;
-      dst->m_before_split.m_max_v = m_max_v;
-      dst->m_before_split.m_curves.clear();
-
-      dst->m_after_split.m_min_v = m_min_v;
-      dst->m_after_split.m_max_v = m_max_v;
-      dst->m_after_split.m_curves.clear();
-
-      for (const Curve &C : m_curves)
-        {
-          if (C.present_before_split<BandType>(split_v))
-            {
-              dst->m_before_split.m_curves.push_back(C);
-            }
-
-          if (C.present_after_split<BandType>(split_v))
-            {
-              dst->m_after_split.m_curves.push_back(C);
-            }
-        }
-      std::sort(dst->m_before_split.m_curves.begin(),
-                dst->m_before_split.m_curves.end(),
-                SortCurvesCullBeforeSplit<BandType>());
-
-      std::sort(dst->m_after_split.m_curves.begin(),
-                dst->m_after_split.m_curves.end(),
-                SortCurvesCullAfterSplit<BandType>());
-    }
-
-    const std::vector<Curve>&
-    curves(void) const
-    {
-      return m_curves;
-    }
+    split(SplitBand *dst, float split_v) const;
 
     void
     assign_curve_list_offset(uint32_t &value)
@@ -393,7 +328,57 @@ namespace
     }
 
   private:
+    Band(void)
+    {}
+
+    Band(const std::vector<Contour> &contours,
+         float minv, float maxv):
+      m_min_v(minv),
+      m_max_v(maxv),
+      m_parent_size(~0u) //prevents any divide ever.
+    {
+      add(contours.begin(), contours.end());
+    }
+
+    Band(const Band *parent, float minv, float maxv):
+      m_min_v(minv),
+      m_max_v(maxv),
+      m_parent_size(parent->m_curves.size())
+    {
+      add(parent->m_curves.begin(), parent->m_curves.end());
+    }
+
+    void
+    divide(std::vector<Band> *dst, float slack) const;
+
+    void
+    add(const Curve &curve)
+    {
+      if (curve.intersects_band<BandType>(m_min_v, m_max_v))
+        {
+          m_curves.push_back(curve);
+        }
+    }
+
+    template<typename iterator>
+    void
+    add(iterator b, iterator e)
+    {
+      for (;b != e; ++b)
+        {
+          add(*b);
+        }
+    }
+
+    void
+    add(const Contour &contour)
+    {
+      const std::vector<Curve> &curves(contour.curves());
+      add(curves.begin(), curves.end());
+    }
+
     float m_min_v, m_max_v;
+    unsigned int m_parent_size;
     std::vector<Curve> m_curves;
     uint32_t m_curve_list_offset;
   };
@@ -515,6 +500,139 @@ pack_point(fastuidraw::vec2 p) const
   return fp16.x() | (fp16.y() << 16u);
 }
 
+///////////////////////////////
+// Band methods
+template<enum band_t BandType>
+void
+Band<BandType>::
+divide(std::vector<Band> *dst, float slack) const
+{
+  float split(0.5 * (m_min_v + m_max_v));
+
+  /* we add a little slack around the band to capture
+   * curves that nearly touch the boundary of a band.
+   */
+  dst->push_back(Band(this, m_min_v, split + slack));
+  dst->push_back(Band(this, split - slack, m_max_v));
+}
+
+template<enum band_t BandType>
+void
+Band<BandType>::
+create_bands(std::vector<Band> *pdst,
+             const std::vector<Contour> &contours,
+             float min_v, float max_v)
+{
+  const float avg_curve_thresh(6.0f);
+  const unsigned int max_num_iterations(11);
+
+  const float epsilon(1e-5);
+  float slack(epsilon * (max_v - min_v));
+  float avg_num_curves;
+  unsigned int num_iterations;
+
+  std::vector<std::vector<Band> > tmp(1);
+
+  tmp.reserve(max_num_iterations + 1);
+  tmp.back().push_back(Band(contours, min_v, max_v));
+
+  //std::cout << "\n\nCreateBands(" << BandType << ")\n";
+
+  /* basic idea: keep breaking each band in half until
+   * each band does not have too many curves.
+   */
+  for (num_iterations = 0, avg_num_curves = tmp.back().back().m_curves.size();
+       num_iterations < max_num_iterations && avg_num_curves > avg_curve_thresh; ++num_iterations)
+    {
+      const std::vector<Band> &src(tmp.back());
+
+      //std::cout << "\tIteration #" << num_iterations << " avg_num_curves " << avg_num_curves;
+
+      /* the src reference will stay valid because of the
+       * call to reserve before the loop.
+       */
+      tmp.push_back(std::vector<Band>());
+      for (const Band &band : src)
+        {
+          band.divide(&tmp.back(), slack);
+        }
+      avg_num_curves = 0.0f;
+      for (const Band &band : tmp.back())
+        {
+          avg_num_curves += band.m_curves.size();
+        }
+      avg_num_curves /= static_cast<float>(tmp.back().size());
+      //std::cout << " ---> " << avg_num_curves << "\n";
+    }
+
+  /* reduce the number of bands; it is quite possible that a split
+   * did not reduce the number curves in any band. Work backwards
+   * to remove those splits. We do this as a post-process because
+   * it might be necessary to do several splits before bands start
+   * to seperate curves at all.
+   */
+  for (bool keep_reducing = true; keep_reducing && tmp.size() > 1;)
+    {
+      std::vector<Band> &current(tmp.back());
+      unsigned int sz(current.size());
+      unsigned int half_sz(sz >> 1u);
+
+      for (unsigned int i = 0; keep_reducing && i < half_sz; ++i)
+        {
+          const Band &A(current[2 * i]);
+          const Band &B(current[2 * i + 1]);
+
+          keep_reducing = A.m_curves.size() == A.m_parent_size
+            && B.m_curves.size() == B.m_parent_size;
+        }
+
+      if (keep_reducing)
+        {
+          tmp.pop_back();
+        }
+    }
+
+  std::swap(tmp.back(), *pdst);
+
+  //std::cout << "\n\tNumBands = " << pdst->size() << "\n";
+}
+
+template<enum band_t BandType>
+void
+Band<BandType>::
+split(SplitBand *dst, float split_v) const
+{
+  dst->m_split_pt = split_v;
+
+  dst->m_before_split.m_min_v = m_min_v;
+  dst->m_before_split.m_max_v = m_max_v;
+  dst->m_before_split.m_curves.clear();
+
+  dst->m_after_split.m_min_v = m_min_v;
+  dst->m_after_split.m_max_v = m_max_v;
+  dst->m_after_split.m_curves.clear();
+
+  for (const Curve &C : m_curves)
+    {
+      if (C.present_before_split<BandType>(split_v))
+        {
+          dst->m_before_split.m_curves.push_back(C);
+        }
+
+      if (C.present_after_split<BandType>(split_v))
+        {
+          dst->m_after_split.m_curves.push_back(C);
+        }
+    }
+  std::sort(dst->m_before_split.m_curves.begin(),
+            dst->m_before_split.m_curves.end(),
+            SortCurvesCullBeforeSplit<BandType>());
+
+  std::sort(dst->m_after_split.m_curves.begin(),
+            dst->m_after_split.m_curves.end(),
+            SortCurvesCullAfterSplit<BandType>());
+}
+
 ////////////////////////////////////////////////
 //GlyphPath methods
 GlyphPath::
@@ -527,47 +645,9 @@ void
 GlyphPath::
 create_bands(std::vector<Band<b> > *dst) const
 {
-  unsigned num_curves(0), num_bands;
-  for (const auto &c : m_contours)
-    {
-      num_curves += c.curves().size();
-    }
-
-  /* TODO: have a better way to decide how many
-   * bands, the simple algorithm below simple
-   * gives a ew band for every 8 curves in
-   * the glyph.
-   */
-  num_bands = (num_curves >> 3u);
-  if (num_curves > (num_bands << 3u))
-    {
-      ++num_bands;
-    }
-
-  /* control the max value a little.. */
-  num_bands = fastuidraw::t_min(num_bands, 128u);
-
-  float delta, min_v(m_glyph_rect.m_min_point[b]);
-  delta = (m_glyph_rect.m_max_point[b] - m_glyph_rect.m_min_point[b]) / float(num_bands);
-
-  dst->clear();
-  dst->reserve(num_bands);
-
-  /* we add a little slack around the band to capture
-   * curves that nearly touch the boundary of a band.
-   */
-  const float epsilon(1e-5);
-  float slack(epsilon * (m_glyph_rect.m_max_point[b] - m_glyph_rect.m_min_point[b]));
-
-  /* TODO: make this faster by computing for each curve
-   * what band range it touches, instead of testing for
-   * each band seperately.
-   */
-  for (unsigned int i = 0; i < num_bands; ++i, min_v += delta)
-    {
-      dst->push_back(Band<b>(min_v - slack, min_v + delta + slack));
-      dst->back().add(m_contours.begin(), m_contours.end());
-    }
+  Band<b>::create_bands(dst, m_contours,
+                        m_glyph_rect.m_min_point[b],
+                        m_glyph_rect.m_max_point[b]);
 }
 
 /////////////////////////////////////////////////
