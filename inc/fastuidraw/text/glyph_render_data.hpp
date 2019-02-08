@@ -61,6 +61,13 @@ namespace fastuidraw
       restricted_rays_glyph,
 
       /*!
+       * Glyph is a Banded rays glyph, generated
+       * from a GlyphRenderDataBandedRays. Glyph
+       * is scalable.
+       */
+      banded_rays_glyph,
+
+      /*!
        * Tag to indicate invalid glyph type; the value is much
        * larger than the last glyph type to allow for later ABI
        * compatibility as more glyph types are added. Value is
