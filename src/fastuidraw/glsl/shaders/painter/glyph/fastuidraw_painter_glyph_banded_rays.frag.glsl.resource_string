@@ -1,0 +1,41 @@
+/*!
+ * \file fastuidraw_painter_glyph_banded_rays.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_glyph_banded_rays.frag.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+vec4
+fastuidraw_gl_frag_main(in uint sub_shader,
+                        in uint shader_data_offset)
+{
+  vec2 glyph_coord, glyph_coord_fwidth;
+  uint data_location;
+  float cvg;
+  const uint bit31 = 0x80000000u;
+  bool is_odd_even_fill_rule;
+
+  glyph_coord = vec2(fastuidraw_glyph_coord_x,
+                     fastuidraw_glyph_coord_y);
+  glyph_coord_fwidth = vec2(fwidth(fastuidraw_glyph_coord_x),
+                            fwidth(fastuidraw_glyph_coord_y));
+
+  is_odd_even_fill_rule = (fastuidraw_glyph_data_location & bit31) != 0u;
+  data_location = fastuidraw_glyph_data_location & ~bit31;
+
+  cvg = fastuidraw_banded_rays_compute_coverage(data_location, glyph_coord, glyph_coord_fwidth,
+                                                fastuidraw_glyph_data_num_vertical_bands,
+                                                fastuidraw_glyph_data_num_horizontal_bands);
+
+  return vec4(1.0, 1.0, 1.0, cvg);
+}

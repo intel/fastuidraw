@@ -1,0 +1,72 @@
+/*!
+ * \file fastuidraw_painter_glyph_banded_rays.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_glyph_banded_rays.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+void
+fastuidraw_gl_vert_main(in uint sub_shader,
+                        in uvec4 in_attrib0,
+                        in uvec4 in_attrib1,
+                        in uvec4 in_attrib2,
+                        in uint shader_data_offset,
+                        out int z_add,
+                        out vec2 out_brush_p,
+                        out vec3 out_clip_p)
+{
+  vec2 p, q, push, wh, p0, sign_wh;
+  bvec2 is_min_side;
+  float glyph_min, glyph_size;
+
+  p = uintBitsToFloat(in_attrib0.xy);
+  wh = uintBitsToFloat(in_attrib0.zw);
+
+  glyph_size = 2.0 * fastuidraw_banded_rays_glyph_coord_value;
+  glyph_min = -fastuidraw_banded_rays_glyph_coord_value;
+
+  fastuidraw_glyph_data_num_vertical_bands = in_attrib1.z;
+  fastuidraw_glyph_data_num_horizontal_bands = in_attrib1.w;
+  fastuidraw_glyph_data_location = in_attrib2.x;
+
+  is_min_side = equal(in_attrib1.xy, uvec2(0u, 0u));
+
+  /* we wish to make the glyph one pixel larger in each
+   * direction to improve the anti-aliasing quality. We
+   * need to figure out where we are in the glyph and
+   * to push in the appropiate direction.
+   */
+  sign_wh = sign(wh);
+  push.x = (is_min_side.x) ? -sign_wh.x : +sign_wh.x;
+  push.y = (is_min_side.y) ? -sign_wh.y : +sign_wh.y;
+
+  vec3 clip_p, clip_direction;
+  const float num_pixels = 2.0;
+  float r;
+
+  clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
+  clip_direction = fastuidraw_item_matrix * vec3(push, 0.0);
+  r = fastuidraw_local_distance_from_pixel_distance(num_pixels, clip_p, clip_direction);
+  q = p + r * push;
+
+  p0.x = (is_min_side.x) ? p.x : p.x - wh.x;
+  p0.y = (is_min_side.y) ? p.y : p.y - wh.y;
+
+  fastuidraw_glyph_coord_x = glyph_min + glyph_size * (q.x - p0.x) / (wh.x);
+  fastuidraw_glyph_coord_y = glyph_min + glyph_size * (q.y - p0.y) / (wh.y);
+
+  z_add = 0;
+  out_clip_p = fastuidraw_item_matrix * vec3(q, 1.0);
+  out_brush_p = q;
+}

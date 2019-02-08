@@ -24,6 +24,7 @@
 #include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
+#include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
 #include "backend_shaders.hpp"
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -588,6 +589,7 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
 
   m_common_glyph_attribute_macros
     .add_macro_float("fastuidraw_restricted_rays_glyph_coord_value", GlyphRenderDataRestrictedRays::glyph_coord_value)
+    .add_macro_float("fastuidraw_banded_rays_glyph_coord_value", GlyphRenderDataBandedRays::glyph_coord_value)
     .add_macro("FASTUIDRAW_GLYPH_RECT_WIDTH_NUMBITS", uint32_t(GlyphAttribute::rect_width_num_bits))
     .add_macro("FASTUIDRAW_GLYPH_RECT_HEIGHT_NUMBITS", uint32_t(GlyphAttribute::rect_height_num_bits))
     .add_macro("FASTUIDRAW_GLYPH_RECT_X_NUMBITS", uint32_t(GlyphAttribute::rect_x_num_bits))
@@ -626,6 +628,7 @@ create_glyph_shader(void)
   PainterGlyphShader return_value;
   varying_list coverage_varyings, distance_varyings;
   varying_list restricted_rays_varyings;
+  varying_list banded_rays_varyings;
 
   distance_varyings
     .add_float_varying("fastuidraw_glyph_coord_x")
@@ -646,6 +649,13 @@ create_glyph_shader(void)
     .add_float_varying("fastuidraw_glyph_coord_y")
     .add_uint_varying("fastuidraw_glyph_data_location");
 
+  banded_rays_varyings
+    .add_float_varying("fastuidraw_glyph_coord_x")
+    .add_float_varying("fastuidraw_glyph_coord_y")
+    .add_uint_varying("fastuidraw_glyph_data_num_vertical_bands")
+    .add_uint_varying("fastuidraw_glyph_data_num_horizontal_bands")
+    .add_uint_varying("fastuidraw_glyph_data_location");
+
   return_value
     .shader(coverage_glyph,
             create_glyph_item_shader("fastuidraw_painter_glyph_coverage_distance_field.vert.glsl.resource_string",
@@ -662,6 +672,12 @@ create_glyph_shader(void)
             create_glyph_item_shader("fastuidraw_painter_glyph_coverage_distance_field.vert.glsl.resource_string",
                                      "fastuidraw_painter_glyph_distance_field.frag.glsl.resource_string",
                                      distance_varyings));
+
+  return_value
+    .shader(banded_rays_glyph,
+            create_glyph_item_shader("fastuidraw_painter_glyph_banded_rays.vert.glsl.resource_string",
+                                     "fastuidraw_painter_glyph_banded_rays.frag.glsl.resource_string",
+                                     banded_rays_varyings));
 
   return return_value;
 }
