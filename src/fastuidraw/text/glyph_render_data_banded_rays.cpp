@@ -41,18 +41,37 @@ namespace
       horizontal_band = 1, /* y-range */
     };
 
+  template<enum band_t BandType>
+  uint32_t
+  pack_point(const fastuidraw::vec2 &p)
+  {
+    fastuidraw::u16vec2 fp16;
+    fastuidraw::convert_to_fp16(p, fp16);
+    if (BandType == vertical_band)
+      {
+        std::swap(fp16.x(), fp16.y());
+      }
+    return fp16.x() | (fp16.y() << 16u);
+  }
+
   class Transformation
   {
   public:
     explicit
-    Transformation(const fastuidraw::RectT<int> &glyph_rect);
+    Transformation(const fastuidraw::RectT<int> &glyph_rect)
+    {
+      const float V(2 * fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value);
+      const float M(-fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value);
 
-    template<enum band_t>
-    uint32_t
-    pack_point(fastuidraw::vec2 p) const;
+      m_scale = fastuidraw::vec2(V) / fastuidraw::vec2(glyph_rect.size());
+      m_translate = fastuidraw::vec2(M) - m_scale * fastuidraw::vec2(glyph_rect.m_min_point);
+    }
 
-    static const int min_value = -fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value;
-    static const int max_value = fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value;
+    fastuidraw::vec2
+    operator()(const fastuidraw::vec2 &p) const
+    {
+      return m_scale * p + m_translate;
+    }
 
   private:
     fastuidraw::vec2 m_scale, m_translate;
@@ -77,6 +96,14 @@ namespace
       m_control(ct),
       m_has_control(true)
     {}
+
+    void
+    apply_transformation(const Transformation &tr)
+    {
+      m_start = tr(m_start);
+      m_end = tr(m_end);
+      m_control = tr(m_control);
+    }
 
     const fastuidraw::vec2&
     start(void) const { return m_start; }
@@ -208,6 +235,15 @@ namespace
       return m_curves;
     }
 
+    void
+    apply_transformation(const Transformation &tr)
+    {
+      for (Curve &C : m_curves)
+        {
+          C.apply_transformation(tr);
+        }
+    }
+
   private:
     fastuidraw::vec2 m_last_pt;
     std::vector<Curve> m_curves;
@@ -259,134 +295,78 @@ namespace
   class Band
   {
   public:
-    class SplitBand
-    {
-    public:
-      Band m_before_split;
-      Band m_after_split;
-      float m_split_pt;
-
-      void
-      assign_curve_list_offset(uint32_t &value)
-      {
-        m_before_split.assign_curve_list_offset(value);
-        m_after_split.assign_curve_list_offset(value);
-      }
-    };
-
     static
     void
     create_bands(std::vector<Band> *dst,
-                 const std::vector<Contour> &contours,
-                 float min_v, float max_v);
-
-    void
-    split(SplitBand *dst, float split_v) const;
+                 const std::vector<Contour> &contours);
 
     void
     assign_curve_list_offset(uint32_t &value)
     {
-      m_curve_list_offset = value;
-
-      // each curve takes three 32-bit values.
-      value += 3 * m_curves.size();
-    }
-
-    uint32_t
-    curve_list_offset(void) const
-    {
-      return m_curve_list_offset;
-    }
-
-    uint32_t
-    pack_band_value(void) const
-    {
-      using namespace fastuidraw;
-      typedef GlyphRenderDataBandedRays G;
-
-      uint32_t v;
-      v = pack_bits(G::band_numcurves_bit0,
-                    G::band_numcurves_numbits,
-                    m_curves.size())
-        | pack_bits(G::band_curveoffset_bit0,
-                    G::band_curveoffset_numbits,
-                    m_curve_list_offset);
-      return v;
+      m_before_split.assign_curve_list_offset(value);
+      m_after_split.assign_curve_list_offset(value);
     }
 
     void
-    pack_curves(fastuidraw::c_array<fastuidraw::generic_data> dst,
-                const Transformation &tr) const
+    pack_curves(fastuidraw::c_array<fastuidraw::generic_data> dst) const
     {
-      uint32_t offset(m_curve_list_offset);
-      for (unsigned int i = 0, endi = m_curves.size(); i < endi; ++i, offset += 3)
-        {
-          dst[offset + 0].u = tr.pack_point<BandType>(m_curves[i].start());
-          dst[offset + 1].u = tr.pack_point<BandType>(m_curves[i].control());
-          dst[offset + 2].u = tr.pack_point<BandType>(m_curves[i].end());
-        }
+      m_before_split.pack_curves(dst);
+      m_after_split.pack_curves(dst);
+    }
+
+    uint32_t
+    before_split_packed_band_value(void) const
+    {
+      return m_before_split.pack_band_value();
+    }
+
+    uint32_t
+    after_split_packed_band_value(void) const
+    {
+      return m_after_split.pack_band_value();
     }
 
   private:
-    Band(void)
-    {}
-
-    Band(const std::vector<Contour> &contours,
-         float minv, float maxv):
-      m_min_v(minv),
-      m_max_v(maxv),
-      m_parent_size(~0u) //prevents any divide ever.
+    class SubBand
     {
-      add(contours.begin(), contours.end());
-    }
+    public:
+      SubBand(void);
+      SubBand(const SubBand *parent, float minv, float maxv);
 
-    Band(const Band *parent, float minv, float maxv):
-      m_min_v(minv),
-      m_max_v(maxv),
-      m_parent_size(parent->m_curves.size())
-    {
-      add(parent->m_curves.begin(), parent->m_curves.end());
-    }
+      void
+      assign_curve_list_offset(uint32_t &value);
+
+      uint32_t
+      pack_band_value(void) const;
+
+      void
+      pack_curves(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+
+      std::vector<Curve> m_curves;
+      uint32_t m_curve_list_offset;
+    };
+
+    explicit
+    Band(const std::vector<Contour> &contours);
+
+    Band(const Band *parent, float min_v, float max_v);
+
+    float
+    compute_average_curve_coverage(void) const;
 
     void
     divide(std::vector<Band> *dst, float slack) const;
 
-    void
-    add(const Curve &curve)
-    {
-      if (curve.intersects_band<BandType>(m_min_v, m_max_v))
-        {
-          m_curves.push_back(curve);
-        }
-    }
-
-    template<typename iterator>
-    void
-    add(iterator b, iterator e)
-    {
-      for (;b != e; ++b)
-        {
-          add(*b);
-        }
-    }
-
-    void
-    add(const Contour &contour)
-    {
-      const std::vector<Curve> &curves(contour.curves());
-      add(curves.begin(), curves.end());
-    }
-
     float m_min_v, m_max_v;
-    unsigned int m_parent_size;
-    std::vector<Curve> m_curves;
-    uint32_t m_curve_list_offset;
+    SubBand m_before_split;
+    SubBand m_after_split;
   };
 
   class GlyphPath
   {
   public:
-    GlyphPath(void);
+    GlyphPath(void)
+    {}
 
     void
     move_to(const fastuidraw::vec2 &pt)
@@ -421,27 +401,9 @@ namespace
     }
 
     void
-    set_glyph_rect(const fastuidraw::RectT<int> &bb)
-    {
-      if (!m_contours.empty() && m_contours.back().empty())
-        {
-          m_contours.pop_back();
-        }
-      m_glyph_rect = bb;
-    }
-
-    const fastuidraw::RectT<int>&
-    glyph_rect(void) const
-    {
-      return m_glyph_rect;
-    }
-
-    template<enum band_t b>
-    void
-    create_bands(std::vector<Band<b> > *dst) const;
+    transform_curves(const fastuidraw::RectT<int> &bb);
 
   private:
-    fastuidraw::RectT<int> m_glyph_rect;
     std::vector<Contour> m_contours;
   };
 
@@ -468,40 +430,197 @@ namespace
   };
 }
 
-//////////////////////////
-// Transformation methods
-Transformation::
-Transformation(const fastuidraw::RectT<int> &glyph_rect)
+///////////////////////////////////////
+// Band::SubBand methods
+template<enum band_t BandType>
+Band<BandType>::SubBand::
+SubBand(void)
+{}
+
+template<enum band_t BandType>
+Band<BandType>::SubBand::
+SubBand(const SubBand *parent, float minv, float maxv)
 {
-  float V(max_value - min_value);
+  for (const Curve &C : parent->m_curves)
+    {
+      if (C.intersects_band<BandType>(minv, maxv))
+        {
+          m_curves.push_back(C);
+        }
+    }
+}
 
-  m_scale = fastuidraw::vec2(V, V) / fastuidraw::vec2(glyph_rect.size());
-
-  /*
-   * Want: rect.min * scale + translate = min_value
-   * Thus: translate = min_value - rect.min * scale
-   */
-  m_translate = fastuidraw::vec2(min_value, min_value) - fastuidraw::vec2(glyph_rect.m_min_point) * m_scale;
+template<enum band_t BandType>
+void
+Band<BandType>::SubBand::
+assign_curve_list_offset(uint32_t &value)
+{
+  m_curve_list_offset = value;
+  // each curve takes three 32-bit values.
+  value += 3 * m_curves.size();
 }
 
 template<enum band_t BandType>
 uint32_t
-Transformation::
-pack_point(fastuidraw::vec2 p) const
+Band<BandType>::SubBand::
+pack_band_value(void) const
 {
-  fastuidraw::u16vec2 fp16;
+  using namespace fastuidraw;
+  typedef GlyphRenderDataBandedRays G;
 
-  p = m_scale * p + m_translate;
-  fastuidraw::convert_to_fp16(p, fp16);
-  if (BandType == vertical_band)
+  uint32_t v;
+  v = pack_bits(G::band_numcurves_bit0,
+                G::band_numcurves_numbits,
+                m_curves.size())
+    | pack_bits(G::band_curveoffset_bit0,
+                G::band_curveoffset_numbits,
+                m_curve_list_offset);
+  return v;
+}
+
+template<enum band_t BandType>
+void
+Band<BandType>::SubBand::
+pack_curves(fastuidraw::c_array<fastuidraw::generic_data> dst) const
+{
+  uint32_t offset(m_curve_list_offset);
+  for (unsigned int i = 0, endi = m_curves.size(); i < endi; ++i, offset += 3)
     {
-      std::swap(fp16.x(), fp16.y());
+      dst[offset + 0].u = pack_point<BandType>(m_curves[i].start());
+      dst[offset + 1].u = pack_point<BandType>(m_curves[i].control());
+      dst[offset + 2].u = pack_point<BandType>(m_curves[i].end());
     }
-  return fp16.x() | (fp16.y() << 16u);
 }
 
 ///////////////////////////////
 // Band methods
+template<enum band_t BandType>
+Band<BandType>::
+Band(const std::vector<Contour> &contours):
+  m_min_v(-fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value),
+  m_max_v(fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value)
+{
+  for (const Contour &contour : contours)
+    {
+      for (const Curve &C : contour.curves())
+        {
+          if (C.present_before_split<BandType>(0.0f))
+            {
+              m_before_split.m_curves.push_back(C);
+            }
+
+          if (C.present_after_split<BandType>(0.0f))
+            {
+              m_after_split.m_curves.push_back(C);
+            }
+        }
+    }
+}
+
+template<enum band_t BandType>
+Band<BandType>::
+Band(const Band *parent, float min_v, float max_v):
+  m_min_v(min_v),
+  m_max_v(max_v),
+  m_before_split(&parent->m_before_split, min_v, max_v),
+  m_after_split(&parent->m_after_split, min_v, max_v)
+{}
+
+template<enum band_t BandType>
+void
+Band<BandType>::
+create_bands(std::vector<Band> *pdst,
+             const std::vector<Contour> &contours)
+{
+  const float width(2 * fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value);
+  const float epsilon(1e-5);
+  const float slack(epsilon * width);
+  const float avg_curve_thresh(fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh());
+  const unsigned int max_num_iterations(fastuidraw::GlyphGenerateParams::banded_rays_max_recursion());
+  float avg_num_curves;
+  unsigned int num_iterations;
+  std::vector<std::vector<Band> > tmp(1);
+
+  tmp.reserve(max_num_iterations + 1);
+  tmp.back().push_back(Band(contours));
+
+  //std::cout << "\n\nCreateBands(" << BandType << ")\n";
+
+  /* basic idea: keep breaking each band in half until
+   * each band does not have too many curves.
+   */
+  for (num_iterations = 0, avg_num_curves = tmp.back().back().compute_average_curve_coverage();
+       num_iterations < max_num_iterations && avg_num_curves > avg_curve_thresh; ++num_iterations)
+    {
+      const std::vector<Band> &src(tmp.back());
+
+      //std::cout << "\tIteration #" << num_iterations << " avg_num_curves " << avg_num_curves;
+
+      /* the src reference will stay valid because of the
+       * call to reserve before the loop.
+       */
+      tmp.push_back(std::vector<Band>());
+      tmp.back().reserve(2u << num_iterations);
+      for (const Band &band : src)
+        {
+          band.divide(&tmp.back(), slack);
+        }
+
+      avg_num_curves = 0.0f;
+      for (const Band &band : tmp.back())
+        {
+          avg_num_curves += band.compute_average_curve_coverage();
+        }
+      avg_num_curves /= static_cast<float>(tmp.back().size());
+      //std::cout << " ---> " << avg_num_curves << "\n";
+    }
+
+  /* sort the curves for the shader */
+  for (Band &b : tmp.back())
+    {
+      std::sort(b.m_before_split.m_curves.begin(),
+                b.m_before_split.m_curves.end(),
+                SortCurvesCullBeforeSplit<BandType>());
+
+      std::sort(b.m_after_split.m_curves.begin(),
+                b.m_after_split.m_curves.end(),
+                SortCurvesCullAfterSplit<BandType>());
+    }
+  std::swap(*pdst, tmp.back());
+  //std::cout << "\n\tNumBands = " << pdst->size() << "\n";
+}
+
+template<enum band_t BandType>
+float
+Band<BandType>::
+compute_average_curve_coverage(void) const
+{
+  const float edge(fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value);
+  float curve_draw(0.0f);
+
+  for (const Curve &c : m_after_split.m_curves)
+    {
+      /* a curve after the split hits all the area
+       * between 0 and its maximum coordinate.
+       */
+      float v;
+      v = fastuidraw::t_min(edge, c.max_coordinate(1 - BandType));
+      curve_draw += fastuidraw::t_max(0.0f, v);
+    }
+
+  for (const Curve &c : m_before_split.m_curves)
+    {
+      /* a curve before the split hits all the area
+       * between 0 and its minimum coordinate (which is negative!).
+       */
+      float v;
+      v = fastuidraw::t_min(edge, -c.min_coordinate(1 - BandType));
+      curve_draw += fastuidraw::t_max(0.0f, v);
+    }
+
+  return curve_draw / (2.0f * edge);
+}
+
 template<enum band_t BandType>
 void
 Band<BandType>::
@@ -516,138 +635,23 @@ divide(std::vector<Band> *dst, float slack) const
   dst->push_back(Band(this, split - slack, m_max_v));
 }
 
-template<enum band_t BandType>
-void
-Band<BandType>::
-create_bands(std::vector<Band> *pdst,
-             const std::vector<Contour> &contours,
-             float min_v, float max_v)
-{
-  const float avg_curve_thresh(fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh());
-  const unsigned int max_num_iterations(fastuidraw::GlyphGenerateParams::banded_rays_max_recursion());
-
-  const float epsilon(1e-5);
-  float slack(epsilon * (max_v - min_v));
-  float avg_num_curves;
-  unsigned int num_iterations;
-
-  std::vector<std::vector<Band> > tmp(1);
-
-  tmp.reserve(max_num_iterations + 1);
-  tmp.back().push_back(Band(contours, min_v, max_v));
-
-  //std::cout << "\n\nCreateBands(" << BandType << ")\n";
-
-  /* basic idea: keep breaking each band in half until
-   * each band does not have too many curves.
-   */
-  for (num_iterations = 0, avg_num_curves = tmp.back().back().m_curves.size();
-       num_iterations < max_num_iterations && avg_num_curves > avg_curve_thresh; ++num_iterations)
-    {
-      const std::vector<Band> &src(tmp.back());
-
-      //std::cout << "\tIteration #" << num_iterations << " avg_num_curves " << avg_num_curves;
-
-      /* the src reference will stay valid because of the
-       * call to reserve before the loop.
-       */
-      tmp.push_back(std::vector<Band>());
-      for (const Band &band : src)
-        {
-          band.divide(&tmp.back(), slack);
-        }
-      avg_num_curves = 0.0f;
-      for (const Band &band : tmp.back())
-        {
-          avg_num_curves += band.m_curves.size();
-        }
-      avg_num_curves /= static_cast<float>(tmp.back().size());
-      //std::cout << " ---> " << avg_num_curves << "\n";
-    }
-
-  /* reduce the number of bands; it is quite possible that a split
-   * did not reduce the number curves in any band. Work backwards
-   * to remove those splits. We do this as a post-process because
-   * it might be necessary to do several splits before bands start
-   * to seperate curves at all.
-   */
-  for (bool keep_reducing = true; keep_reducing && tmp.size() > 1;)
-    {
-      std::vector<Band> &current(tmp.back());
-      unsigned int sz(current.size());
-      unsigned int half_sz(sz >> 1u);
-
-      for (unsigned int i = 0; keep_reducing && i < half_sz; ++i)
-        {
-          const Band &A(current[2 * i]);
-          const Band &B(current[2 * i + 1]);
-
-          keep_reducing = A.m_curves.size() == A.m_parent_size
-            && B.m_curves.size() == B.m_parent_size;
-        }
-
-      if (keep_reducing)
-        {
-          tmp.pop_back();
-        }
-    }
-
-  std::swap(tmp.back(), *pdst);
-
-  //std::cout << "\n\tNumBands = " << pdst->size() << "\n";
-}
-
-template<enum band_t BandType>
-void
-Band<BandType>::
-split(SplitBand *dst, float split_v) const
-{
-  dst->m_split_pt = split_v;
-
-  dst->m_before_split.m_min_v = m_min_v;
-  dst->m_before_split.m_max_v = m_max_v;
-  dst->m_before_split.m_curves.clear();
-
-  dst->m_after_split.m_min_v = m_min_v;
-  dst->m_after_split.m_max_v = m_max_v;
-  dst->m_after_split.m_curves.clear();
-
-  for (const Curve &C : m_curves)
-    {
-      if (C.present_before_split<BandType>(split_v))
-        {
-          dst->m_before_split.m_curves.push_back(C);
-        }
-
-      if (C.present_after_split<BandType>(split_v))
-        {
-          dst->m_after_split.m_curves.push_back(C);
-        }
-    }
-  std::sort(dst->m_before_split.m_curves.begin(),
-            dst->m_before_split.m_curves.end(),
-            SortCurvesCullBeforeSplit<BandType>());
-
-  std::sort(dst->m_after_split.m_curves.begin(),
-            dst->m_after_split.m_curves.end(),
-            SortCurvesCullAfterSplit<BandType>());
-}
-
 ////////////////////////////////////////////////
 //GlyphPath methods
-GlyphPath::
-GlyphPath(void)
-{
-}
-
-template<enum band_t b>
 void
 GlyphPath::
-create_bands(std::vector<Band<b> > *dst) const
+transform_curves(const fastuidraw::RectT<int> &bb)
 {
-  Band<b>::create_bands(dst, m_contours,
-                        m_glyph_rect.m_min_point[b],
-                        m_glyph_rect.m_max_point[b]);
+  while (!m_contours.empty() && m_contours.back().empty())
+    {
+      m_contours.pop_back();
+    }
+
+  Transformation tr(bb);
+  for (Contour &contour : m_contours)
+    {
+      FASTUIDRAWassert(contour.is_good());
+      contour.apply_transformation(tr);
+    }
 }
 
 /////////////////////////////////////////////////
@@ -728,9 +732,10 @@ finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
 
   FASTUIDRAWassert(f == PainterEnums::odd_even_fill_rule || f == PainterEnums::nonzero_fill_rule);
   d->m_fill_rule = f;
-  d->m_glyph->set_glyph_rect(glyph_rect);
 
-  if (d->m_glyph->contours().empty())
+  if (d->m_glyph->contours().empty()
+      || glyph_rect.m_min_point.x() == glyph_rect.m_max_point.x()
+      || glyph_rect.m_min_point.y() == glyph_rect.m_max_point.y())
     {
       FASTUIDRAWdelete(d->m_glyph);
       d->m_glyph = nullptr;
@@ -739,36 +744,22 @@ finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
       return;
     }
 
-  /* step 1: break into bands, the icky part is to
-   *         decide how many bands horizontally and
-   *         vetically are needed;
+  /* Transform all the curves from coordinates
+   * they are given in to [-G, G]x[-G, G]
+   * where G = GlyphRenderDataBandedRays::glyph_coord_value
    */
-  std::vector<Band<horizontal_band> > horiz_bands;
-  std::vector<Band<vertical_band> > vert_bands;
+  d->m_glyph->transform_curves(glyph_rect);
 
-  d->m_glyph->create_bands(&horiz_bands);
-  d->m_glyph->create_bands(&vert_bands);
-
-  /* step 2: split each of the horizontal and vertical
-   *         bands in the above (the splitting also
-   *         automatically sorts them as well). The
-   *         split is -ALWAYS- in the middle.
+  /* step 1: break into split-bands; The split is -ALWAYS-
+   *         in the middle.
    */
-  std::vector<Band<horizontal_band>::SplitBand> split_horiz_bands(horiz_bands.size());
-  std::vector<Band<vertical_band>::SplitBand > split_vert_bands(vert_bands.size());
-  vec2 split_pt;
+  std::vector<Band<horizontal_band> > split_horiz_bands;
+  std::vector<Band<vertical_band> > split_vert_bands;
 
-  split_pt = 0.5f * vec2(d->m_glyph->glyph_rect().m_min_point + d->m_glyph->glyph_rect().m_max_point);
-  for (unsigned int i = 0; i < horiz_bands.size(); ++i)
-    {
-      horiz_bands[i].split(&split_horiz_bands[i], split_pt.x());
-    }
-  for (unsigned int i = 0; i < vert_bands.size(); ++i)
-    {
-      vert_bands[i].split(&split_vert_bands[i], split_pt.y());
-    }
+  Band<horizontal_band>::create_bands(&split_horiz_bands, d->m_glyph->contours());
+  Band<vertical_band>::create_bands(&split_vert_bands, d->m_glyph->contours());
 
-  /* step 3: compute the offsets. The data packing is first
+  /* step 2: compute the offsets. The data packing is first
    *         that each band takes a single 32-bit value
    *         (that is packed as according to band_t) then
    *         comes the location of each of the curve lists.
@@ -795,33 +786,29 @@ finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
   d->m_render_data.resize(offset);
   c_array<generic_data> dst(make_c_array(d->m_render_data));
 
-  /* step 4: pack the data
+  /* step 3: pack the data
    * The bands come in a very specific order:
    *  - horizontal_band_plus_infinity <--> split_horiz_bands.m_after_split
    *  - horizontal_band_negative_infinity <--> split_horiz_bands.m_before_split
    *  - vertical_band_plus_infinity <--> split_vert_bands.m_after_split
    *  - vertical_band_negative_infinity <--> split_vert_bands.m_before_split
    */
-  Transformation tr(glyph_rect);
-
   for (unsigned int i = 0; i < H; ++i)
     {
-      dst[i].u = split_horiz_bands[i].m_after_split.pack_band_value();
-      dst[i + H].u = split_horiz_bands[i].m_before_split.pack_band_value();
+      dst[i].u = split_horiz_bands[i].after_split_packed_band_value();
+      dst[i + H].u = split_horiz_bands[i].before_split_packed_band_value();
 
-      split_horiz_bands[i].m_after_split.pack_curves(dst, tr);
-      split_horiz_bands[i].m_before_split.pack_curves(dst, tr);
+      split_horiz_bands[i].pack_curves(dst);
     }
   for (unsigned int i = 0; i < V; ++i)
     {
-      dst[i + 2 * H].u = split_vert_bands[i].m_after_split.pack_band_value();
-      dst[i + 2 * H + V].u = split_vert_bands[i].m_before_split.pack_band_value();
+      dst[i + 2 * H].u = split_vert_bands[i].after_split_packed_band_value();
+      dst[i + 2 * H + V].u = split_vert_bands[i].before_split_packed_band_value();
 
-      split_vert_bands[i].m_after_split.pack_curves(dst, tr);
-      split_vert_bands[i].m_before_split.pack_curves(dst, tr);
+      split_vert_bands[i].pack_curves(dst);
     }
 
-  /* step 6: record the data neeed for shading */
+  /* step 4: record the data neeed for shading */
   d->m_num_bands[vertical_band] = V;
   d->m_num_bands[horizontal_band] = H;
 
