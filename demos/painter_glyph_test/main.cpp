@@ -18,6 +18,12 @@
 
 using namespace fastuidraw;
 
+const char*
+on_off(bool v)
+{
+  return v ? "on" : "off";
+}
+
 std::ostream&
 operator<<(std::ostream &str, GlyphRenderer R)
 {
@@ -37,8 +43,12 @@ operator<<(std::ostream &str, GlyphRenderer R)
           str << "RestrictedRays";
           break;
 
+        case banded_rays_glyph:
+          str << "BandedRays";
+          break;
+
         default:
-          str << "Unkown";
+          str << "Unknown";
         }
     }
   else
@@ -93,7 +103,7 @@ public:
               const PainterData &data) const;
 
   void
-  init(const reference_counted_ptr<const FontFreeType> &font,
+  init(const reference_counted_ptr<const FontBase> &font,
        float line_length,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<FontDatabase> &selector,
@@ -102,14 +112,14 @@ public:
 
   void
   init(const std::vector<uint32_t> &glyph_codes,
-       const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<const FontBase> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        float pixel_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
   void
   init(std::istream &istr,
-       const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<const FontBase> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<FontDatabase> &selector,
        float pixel_size_formatting,
@@ -123,7 +133,7 @@ public:
 
   void
   realize_all_glyphs(GlyphRenderer renderer,
-                     const reference_counted_ptr<const FontFreeType> &font,
+                     const reference_counted_ptr<const FontBase> &font,
                      int num_threads);
 
 private:
@@ -161,6 +171,7 @@ private:
       draw_glyph_coverage,
       draw_glyph_distance,
       draw_glyph_restricted_rays,
+      draw_glyph_banded_rays,
 
       draw_glyph_auto
     };
@@ -212,7 +223,7 @@ private:
   command_line_list<uint32_t> m_explicit_glyph_codes;
   enumerated_command_line_argument_value<screen_orientation> m_screen_orientation;
 
-  reference_counted_ptr<const FontFreeType> m_font;
+  reference_counted_ptr<const FontBase> m_font, m_default_font;
 
   vecN<std::string, Painter::number_join_styles> m_join_labels;
   GlyphDrawsShared m_draw_shared;
@@ -306,7 +317,7 @@ make_hierarchy(void)
 
 void
 GlyphDrawsShared::
-init(const reference_counted_ptr<const FontFreeType> &font,
+init(const reference_counted_ptr<const FontBase> &pfont,
      float line_length,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<FontDatabase> &font_database,
@@ -322,7 +333,9 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   std::vector<GlyphMetrics> metrics;
   simple_time timer;
   reference_counted_ptr<FreeTypeFace> face;
+  reference_counted_ptr<const FontFreeType> font;
 
+  font = pfont.dynamic_cast_ptr<const FontFreeType>();
   face = font->face_generator()->create_face();
   scale_factor = pixel_size_formatting / static_cast<float>(face->face()->units_per_EM);
   y_advance_sign = (screen_orientation == Painter::y_increases_downwards) ? 1.0f : -1.0f;
@@ -399,7 +412,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 void
 GlyphDrawsShared::
 init(const std::vector<uint32_t> &glyph_codes,
-     const reference_counted_ptr<const FontFreeType> &font,
+     const reference_counted_ptr<const FontBase> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      float pixel_size_formatting,
      enum Painter::screen_orientation screen_orientation)
@@ -417,7 +430,7 @@ init(const std::vector<uint32_t> &glyph_codes,
 void
 GlyphDrawsShared::
 init(std::istream &istr,
-     const reference_counted_ptr<const FontFreeType> &font,
+     const reference_counted_ptr<const FontBase> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<FontDatabase> &font_database,
      float pixel_size_formatting,
@@ -538,7 +551,7 @@ painter_glyph_test(void):
   m_draw_stats(false),
   m_draw_restricted_rays_box_slack(false),
   m_stroke_width(1.0f),
-  m_current_drawer(draw_glyph_restricted_rays),
+  m_current_drawer(draw_glyph_banded_rays),
   m_shear(1.0f, 1.0f),
   m_shear2(1.0f, 1.0f),
   m_angle(0.0f),
@@ -585,14 +598,13 @@ enum return_code
 painter_glyph_test::
 create_and_add_font(void)
 {
-  reference_counted_ptr<const FontBase> font;
   if (!m_font_file.value().empty())
     {
       reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
       gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.value().c_str(), 0);
       if (gen->check_creation() == routine_success)
         {
-          font = FASTUIDRAWnew FontFreeType(gen, m_ft_lib);
+          m_font = FASTUIDRAWnew FontFreeType(gen, m_ft_lib);
         }
     }
 
@@ -605,17 +617,17 @@ create_and_add_font(void)
       add_fonts_from_path(m_font_path.value(), m_ft_lib, m_font_database);
     }
 
-  if (!font)
+  if (!m_font)
     {
       if (m_use_font_config.value())
         {
-          font = select_font_font_config(m_font_ignore_bold_italic.value() ? -1 : m_font_weight.value(),
-                                         m_font_ignore_bold_italic.value() ? -1 : m_font_slant.value(),
-                                         m_font_ignore_style.value() ? nullptr : m_font_style.value().c_str(),
-                                         m_font_family.value().empty() ? nullptr : m_font_family.value().c_str(),
-                                         m_font_foundry.value().empty() ? nullptr : m_font_foundry.value().c_str(),
-                                         m_font_langs,
-                                         m_ft_lib, m_font_database);
+          m_font = select_font_font_config(m_font_ignore_bold_italic.value() ? -1 : m_font_weight.value(),
+                                           m_font_ignore_bold_italic.value() ? -1 : m_font_slant.value(),
+                                           m_font_ignore_style.value() ? nullptr : m_font_style.value().c_str(),
+                                           m_font_family.value().empty() ? nullptr : m_font_family.value().c_str(),
+                                           m_font_foundry.value().empty() ? nullptr : m_font_foundry.value().c_str(),
+                                           m_font_langs,
+                                           m_ft_lib, m_font_database);
         }
       else
         {
@@ -644,11 +656,17 @@ create_and_add_font(void)
               flags |= FontDatabase::exact_match;
             }
 
-          font = m_font_database->fetch_font(props, flags);
+          m_font = m_font_database->fetch_font(props, flags);
         }
     }
 
-  m_font = font.dynamic_cast_ptr<const FontFreeType>();
+  m_default_font = m_font_database->fetch_font(FontProperties()
+                                               .style("Book")
+                                               .family("DejaVu Sans")
+                                               .foundry("")
+                                               .bold(false)
+                                               .italic(false),
+                                               0u);
   if (m_font)
     {
       std::cout << "Chose font: \"" << m_font->properties() << "\"\n";
@@ -743,6 +761,7 @@ ready_glyph_data(int w, int h)
 
   m_draws[draw_glyph_distance] = GlyphRenderer(distance_field_glyph);
   m_draws[draw_glyph_restricted_rays] = GlyphRenderer(restricted_rays_glyph);
+  m_draws[draw_glyph_banded_rays] = GlyphRenderer(banded_rays_glyph);
   m_draws[draw_glyph_coverage] = GlyphRenderer(m_coverage_pixel_size.value());
 
   if (m_draw_glyph_set.value())
@@ -1148,8 +1167,25 @@ draw_glyphs(float us)
           ostr << "NAN";
         }
 
-      ostr << "\nms = " << us / 1000.0f
-           << "\nAttribs: "
+      ostr << "\nms = " << us / 1000.0f;
+
+      if (m_fill_glyphs)
+        {
+          ostr << "\nFilling Glyphs (anti-aliasing = "
+               << on_off(m_anti_alias_path_filling) << ")";
+        }
+      else
+        {
+          ostr << "\n" << m_draws[m_current_drawer] << " glyphs";
+        }
+
+      if (m_stroke_glyphs)
+        {
+          ostr << "\nStroking Glyphs (anti-aliasing = "
+               << on_off(m_anti_alias_path_stroking) << ")";
+        }
+
+      ostr << "\nAttribs: "
            << painter_stat(Painter::num_attributes)
            << "\nIndices: "
            << painter_stat(Painter::num_indices)
@@ -1180,7 +1216,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.color(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font.get(), GlyphRenderer(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_default_font.get(), GlyphRenderer(restricted_rays_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
   else
@@ -1256,7 +1292,7 @@ draw_glyphs(float us)
       PainterBrush brush;
 
       brush.color(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font.get(), GlyphRenderer(distance_field_glyph),
+      draw_text(ostr.str(), 32.0f, m_default_font.get(), GlyphRenderer(distance_field_glyph),
                 PainterData(&brush), m_screen_orientation.value());
     }
 
