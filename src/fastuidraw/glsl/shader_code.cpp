@@ -20,6 +20,7 @@
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
+#include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
 #include <fastuidraw/glsl/shader_code.hpp>
 
 /////////////////////////////////
@@ -100,6 +101,28 @@ restricted_rays_compute_coverage(c_string fetch_macro_function,
     .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA", fetch_macro_function)
     .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2", fetch_macro_function_fp16x2)
     .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
+    .remove_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA");
+
+  return return_value;
+}
+
+
+fastuidraw::glsl::ShaderSource
+fastuidraw::glsl::code::
+banded_rays_compute_coverage(c_string fetch_macro_function)
+{
+  ShaderSource return_value;
+
+  return_value
+    .add_macro_u32("fastuidraw_banded_rays_numcurves_numbits", GlyphRenderDataBandedRays::band_numcurves_numbits)
+    .add_macro_u32("fastuidraw_banded_rays_numcurves_bit0", GlyphRenderDataBandedRays::band_numcurves_bit0)
+    .add_macro_u32("fastuidraw_banded_rays_curveoffset_numbits", GlyphRenderDataBandedRays::band_curveoffset_numbits)
+    .add_macro_u32("fastuidraw_banded_rays_curveoffset_bit0", GlyphRenderDataBandedRays::band_curveoffset_bit0)
+    .add_macro_float("fastuidraw_banded_rays_glyph_coord", GlyphRenderDataBandedRays::glyph_coord_value)
+    .add_macro_float("fastuidraw_banded_rays_glyph_coord_half_recip", 0.5f / static_cast<float>(GlyphRenderDataBandedRays::glyph_coord_value))
+    .add_macro_float("fastuidraw_banded_rays_glyph_coord_doubled", 2 * GlyphRenderDataBandedRays::glyph_coord_value)
+    .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA", fetch_macro_function)
+    .add_source("fastuidraw_banded_rays.glsl.resource_string", ShaderSource::from_resource)
     .remove_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA");
 
   return return_value;

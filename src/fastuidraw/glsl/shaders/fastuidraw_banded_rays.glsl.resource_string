@@ -1,0 +1,277 @@
+/*!
+ * \file fastuidraw_banded_rays.glsl.resource_string
+ * \brief file fastuidraw_banded_rays.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+/* must have the macro/function
+ *
+ *  FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(X)
+ *
+ * that returns a single 32-bit uint value at index X of
+ * a large array of 32-bit uint values storing the data
+ */
+
+struct fastuidraw_banded_rays_band
+{
+  uint num_curves;
+  uint curve_offset;
+};
+
+struct fastuidraw_banded_rays_curve
+{
+  vec2 p0, p1, p2;
+};
+
+void
+fastuidraw_banded_rays_load_band(in uint loc, out fastuidraw_banded_rays_band band)
+{
+  uint raw;
+
+  raw = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(loc);
+  band.num_curves = FASTUIDRAW_EXTRACT_BITS(fastuidraw_banded_rays_numcurves_bit0,
+                                            fastuidraw_banded_rays_numcurves_numbits,
+                                            raw);
+  band.curve_offset = FASTUIDRAW_EXTRACT_BITS(fastuidraw_banded_rays_curveoffset_bit0,
+                                              fastuidraw_banded_rays_curveoffset_numbits,
+                                              raw);
+}
+
+vec2
+fastuidraw_banded_rays_load_point(in uint loc)
+{
+  uint raw;
+  raw = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(loc);
+  return unpackHalf2x16(raw);
+}
+
+void
+fastuidraw_banded_rays_load_curve(in uint loc, out fastuidraw_banded_rays_curve curve)
+{
+  /* a reasonable shader compiler should re-order so that the reads of
+   * the curve data come first followed by the assignment of values.
+   */
+  curve.p0 = fastuidraw_banded_rays_load_point(loc);
+  curve.p1 = fastuidraw_banded_rays_load_point(loc + 1u);
+  curve.p2 = fastuidraw_banded_rays_load_point(loc + 2u);
+}
+
+vec2
+fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curve)
+{
+  const float tiny = 0.0001;
+  float rA, D, t1, t2, x1, x2;
+  vec2 A, B, C;
+
+  /* The curve is given by
+   *  f(t) = (1-t)^2 p0 + 2t(t-1) p1 + t^2 p2
+   *       = A t^2 - 2B t + C
+   *
+   * which gives
+   *
+   *  A = p0 - 2p1 + p2
+   *  B = p0 - p1
+   *  C = p0
+   */
+  A = curve.p0 - 2.0 * curve.p1 + curve.p2;
+  B = curve.p0 - curve.p1;
+  C = curve.p0;
+
+  rA = 1.0 / A.y;
+  D = sqrt(max(B.y * B.y - A.y * C.y, 0.0));
+  t1 = (B.y - D) * rA;
+  t2 = (B.y + D) * rA;
+
+  if (abs(A.y) < tiny)
+    {
+      t1 = t2 = 0.5 * C.y / B.y;
+    }
+
+  x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
+  x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
+  return vec2(x1, x2);
+}
+
+uint
+fastuidraw_banded_rays_compute_y_equals_0_code(in fastuidraw_banded_rays_curve curve)
+{
+  uint code;
+  /* TODO: there are faster ways to get the code by
+   * exploiting the expected bit-patterns for floats
+   */
+  code = ((curve.p0.y > 0.0) ? 2u : 0u)
+    | ((curve.p1.y > 0.0) ? 4u : 0u)
+    | ((curve.p2.y > 0.0) ? 8u : 0u);
+  code = (0x2E74u >> code) & 0x3u;
+  return code;
+}
+
+void
+fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
+                                                  in uint num_curves,
+                                                  in vec2 glyph_coord,
+                                                  in float em, in float s,
+                                                  out float coverage,
+                                                  out float nearest_curve_distance)
+{
+  coverage = 0.0;
+  nearest_curve_distance = 0.5;
+  for (uint c = 0u, curve_src = curve_offset; c < num_curves; curve_src += 3u, ++c)
+    {
+      fastuidraw_banded_rays_curve curve;
+      uint code;
+
+      fastuidraw_banded_rays_load_curve(curve_src, curve);
+
+      /* translate the curve so that glyph_coord is the origin */
+      curve.p0 -= glyph_coord;
+      curve.p1 -= glyph_coord;
+      curve.p2 -= glyph_coord;
+
+      if (s > 0.0 && max(curve.p0.x, max(curve.p1.x, curve.p2.x)) * em < -0.5) break;
+      if (s < 0.0 && min(curve.p0.x, min(curve.p1.x, curve.p2.x)) * em > 0.5) break;
+
+      code = fastuidraw_banded_rays_compute_y_equals_0_code(curve);
+      if (code != 0u)
+        {
+          vec2 x1x2;
+          float x1, x2;
+
+          x1x2 = em * fastuidraw_banded_rays_intersect_y_equals_0(curve);
+          x1 = x1x2.x;
+          x2 = x1x2.y;
+
+          if ((code & 1u) != 0u)
+            {
+              coverage += clamp(0.5 + x1 * s, 0.0, 1.0);
+              nearest_curve_distance = min(nearest_curve_distance, abs(x1));
+            }
+
+          if (code > 1u)
+            {
+              coverage -= clamp(0.5 + x2 * s, 0.0, 1.0);
+              nearest_curve_distance = min(nearest_curve_distance, abs(x2));
+            }
+        }
+    }
+  coverage = abs(coverage);
+}
+
+float
+fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
+                                        in vec2 glyph_coord,
+                                        in vec2 glyph_coord_fwidth,
+                                        in uint num_vertical_bands,
+                                        in uint num_horizontal_bands)
+{
+  uint horiz_band_offset, vert_band_offset;
+  uint c, curve_src, num_curves, curve_offset;
+  vec2 em, band_factor;
+  vec2 coverage, nearest_curve_distance;
+  float cvg, wt;
+  float sx, sy;
+  uint horiz_band, vert_band;
+  fastuidraw_banded_rays_band horiz_band_data, vert_band_data;
+
+  em = vec2(1.0, 1.0) / glyph_coord_fwidth;
+
+  /* Glyph coord varies -exactly- as [-G, G]x[-G, G]
+   * where G = fastuidraw_banded_rays_glyph_coord.
+   * So to figure out which band, we need to renormalized
+   * [-G, G]x[-G, G] to [0, V]x[0, H].
+   */
+  band_factor = fastuidraw_banded_rays_glyph_coord_half_recip * vec2(num_vertical_bands, num_horizontal_bands);
+  vert_band = min(num_vertical_bands - 1u,
+                  uint(band_factor.x * (glyph_coord.x + fastuidraw_banded_rays_glyph_coord)));
+  horiz_band = min(num_horizontal_bands - 1u,
+                   uint(band_factor.y * (glyph_coord.y + fastuidraw_banded_rays_glyph_coord)));
+
+  /* choose which bands */
+  horiz_band_offset = horiz_band;
+  if (glyph_coord.x < 0.0)
+    {
+      horiz_band_offset += num_horizontal_bands;
+      sx = -1.0;
+    }
+  else
+    {
+      sx = 1.0;
+    }
+
+  vert_band_offset = vert_band + 2u * num_horizontal_bands;
+  if (glyph_coord.y < 0.0)
+    {
+      vert_band_offset += num_vertical_bands;
+      sy = -1.0;
+    }
+  else
+    {
+      sy = +1.0;
+    }
+
+  /* load the horizontal and vertical band headers */
+  fastuidraw_banded_rays_load_band(glyph_data_location + horiz_band_offset, horiz_band_data);
+  fastuidraw_banded_rays_load_band(glyph_data_location + vert_band_offset, vert_band_data);
+
+  /* TODO: is it better to have a common loop with slightly more icky logic inside
+   * to handle both cases simutaneously or to have a top level if() and each case
+   * has their own loop?
+   *  Pros for common loop: if fragments are across the line with a single frag-shader
+   *                        dispatch, this significantly reduces the code divergence
+   *
+   *  Cons for common loop: We add (up to) two multiplies per curve (the sx multiply)
+   *                        and an additional 2-mins or 2-maxes per curve for the early
+   *                        out test.
+   */
+  fastuidraw_banded_rays_compute_coverage_from_band(horiz_band_data.curve_offset + glyph_data_location,
+                                                    horiz_band_data.num_curves, glyph_coord,
+                                                    em.x, sx, coverage.x, nearest_curve_distance.x);
+
+  /* the curves for the vertical bands are saved with the x-coordinate
+   * and y-coordinate swapped; this way we can avoid writing more
+   * routines (to handle the xy-swapping) and just swap the xy-coords
+   * of glyph_coords.
+   */
+  fastuidraw_banded_rays_compute_coverage_from_band(vert_band_data.curve_offset + glyph_data_location,
+                                                    vert_band_data.num_curves, glyph_coord.yx,
+                                                    em.y, sy, coverage.y, nearest_curve_distance.y);
+
+  /* We assign a weight to each of the coverage values from how close the
+   * closes curve is to the sample point. A curve only starts to provide
+   * anti-aliasing if it is within half a pixel of the sample point (at
+   * glyph-coord) and the calculation is done so that each component of
+   * nearest_curve_distance is in the range [0, 0.5].
+   */
+  const float tiny = 0.0001;
+  float weight_sum;
+  vec2 weight;
+
+  weight = 1.0 - 2.0 * abs(nearest_curve_distance);
+  weight_sum = weight.x + weight.y;
+
+  /* Use the wieghted sum of the coverage values for the final
+   * coverage. If the sum of the weights is small, that indicates
+   * that the nearest curve (in both dimensions) is more than
+   * half a pixel away. In that case, it means that we regard
+   * the pixel as full covered or full uncovered, thus the
+   * coverage value should be 0 or 1 in each dimension. To be
+   * safe, we take the min though.
+   */
+  cvg = (weight_sum > tiny) ?
+    dot(coverage, weight) / weight_sum :
+    min(coverage.x, coverage.y);
+
+  return cvg;
+}

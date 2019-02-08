@@ -139,6 +139,42 @@ namespace fastuidraw
       ShaderSource
       restricted_rays_compute_coverage(c_string fetch_macro_function,
 				       c_string fetch_macro_function_fp16x2);
+
+       /*!
+       * Construct/returns a ShaderSource value that implements the function:
+       * \code
+       * float
+       * fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
+       *                                         in vec2 glyph_coord,
+       *                                         in vec2 glyph_coord_fwidth,
+       *                                         in uint num_vertical_bands,
+       *                                         in uint num_horizontal_bands)
+       *
+       * \endcode
+       * That compute the coverage from glyph data as packed by \ref
+       * GlyphRenderDataBandedRays. The paremeters of the GLSL function
+       * mean:
+       *   - glyph_data_location location of the glyph data within the GlyphAtlas
+       *   - glyph_coord the coordinate within the glyph where the min-value
+       *     in each dimension is -GlyphRenderDataBandedRays::glyph_coord_value
+       *     and the max-value in each dimension is GlyphRenderDataBandedRays::glyph_coord_value
+       *   - glyph_coord_fwidth is the value of fwidth(glyph_coord)
+       *   - num_vertical_bands is the number of verical bands of the banded ray glyph,
+       *     i.e. the value packed into the glyph attribute \ref
+       *     GlyphRenderDataBandedRays::glyph_num_vertical_bands
+       *   - num_horizontal_bands is the number of verical bands of the banded ray glyph,
+       *     i.e. the value packed into the glyph attribute \ref
+       *     GlyphRenderDataBandedRays::glyph_num_horizontal_bands
+       *
+       * The returned \ref ShaderSource also includes a large number of utility
+       * functions and structs each prefixed with fastuidraw_banded_rays_ that
+       * assist in implementing the fastuidraw_banded_rays_compute_coverage()
+       * function.
+       * \param fetch_macro_function function or macro taking one argument
+       *                             that returns a single uint of data
+       */
+      ShaderSource
+      banded_rays_compute_coverage(c_string fetch_macro_function);
     }
 /*! @} */
   }
