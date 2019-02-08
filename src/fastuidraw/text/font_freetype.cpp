@@ -21,6 +21,7 @@
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_render_data_texels.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
+#include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
 
 #include "../private/array2d.hpp"
 #include "../private/util_private.hpp"
@@ -274,11 +275,32 @@ namespace
                                           fastuidraw::Path &path,
                                           fastuidraw::vec2 &render_size);
 
+    template<typename T>
     void
-    compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
-                           fastuidraw::GlyphRenderDataRestrictedRays &output,
-                           fastuidraw::Path &path,
-			   fastuidraw::vec2 &render_size);
+    compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
+                                T &output,
+                                fastuidraw::Path &path,
+                                fastuidraw::vec2 &render_size);
+
+    void
+    compute_rendering_data_rays_finalize(fastuidraw::GlyphMetrics glyph_metrics,
+                                         fastuidraw::GlyphRenderDataRestrictedRays &output,
+                                         const fastuidraw::RectT<int> &rect,
+                                         int scale_factor,
+                                         enum fastuidraw::PainterEnums::fill_rule_t fill_rule)
+    {
+      output.finalize(fill_rule, rect, static_cast<float>(scale_factor) * glyph_metrics.units_per_EM());
+    }
+
+    void
+    compute_rendering_data_rays_finalize(fastuidraw::GlyphMetrics /*glyph_metrics*/,
+                                         fastuidraw::GlyphRenderDataBandedRays &output,
+                                         const fastuidraw::RectT<int> &rect,
+                                         int /*scale_factor*/,
+                                         enum fastuidraw::PainterEnums::fill_rule_t fill_rule)
+    {
+      output.finalize(fill_rule, rect);
+    }
 
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> m_generator;
     GenerateParams m_generate_params;
@@ -517,12 +539,13 @@ compute_rendering_data_distance_field(fastuidraw::GlyphMetrics glyph_metrics,
                                    &output);
 }
 
+template<typename T>
 void
 FontFreeTypePrivate::
-compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
-                       fastuidraw::GlyphRenderDataRestrictedRays &output,
-                       fastuidraw::Path &path,
-		       fastuidraw::vec2 &render_size)
+compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
+                            T &output,
+                            fastuidraw::Path &path,
+                            fastuidraw::vec2 &render_size)
 {
   fastuidraw::detail::IntPath int_path_ecm;
   fastuidraw::ivec2 layout_offset, layout_size;
@@ -604,11 +627,11 @@ compute_rendering_data(fastuidraw::GlyphMetrics glyph_metrics,
     fastuidraw::PainterEnums::odd_even_fill_rule:
     fastuidraw::PainterEnums::nonzero_fill_rule;
 
-  output.finalize(fill_rule,
-                  fastuidraw::RectT<int>()
-                  .min_point(layout_offset)
-                  .max_point(layout_offset + layout_size),
-                  static_cast<float>(scale_factor) * glyph_metrics.units_per_EM());
+  compute_rendering_data_rays_finalize(glyph_metrics, output,
+                                       fastuidraw::RectT<int>()
+                                       .min_point(layout_offset)
+                                       .max_point(layout_offset + layout_size),
+                                       scale_factor, fill_rule);
 }
 
 ///////////////////////////////////////////////////
@@ -696,7 +719,8 @@ can_create_rendering_data(enum glyph_type tp) const
 {
   return tp == coverage_glyph
     || tp == distance_field_glyph
-    || tp == restricted_rays_glyph;
+    || tp == restricted_rays_glyph
+    || tp == banded_rays_glyph;
 }
 
 unsigned int
@@ -767,7 +791,16 @@ compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
       {
         GlyphRenderDataRestrictedRays *data;
         data = FASTUIDRAWnew GlyphRenderDataRestrictedRays();
-        d->compute_rendering_data(glyph_metrics, *data, path, render_size);
+        d->compute_rendering_data_rays(glyph_metrics, *data, path, render_size);
+        return data;
+      }
+      break;
+
+    case banded_rays_glyph:
+      {
+        GlyphRenderDataBandedRays *data;
+        data = FASTUIDRAWnew GlyphRenderDataBandedRays();
+        d->compute_rendering_data_rays(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;
