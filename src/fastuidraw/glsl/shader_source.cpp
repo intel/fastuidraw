@@ -640,11 +640,15 @@ assembled_code(bool code_only) const
                                   << "\n";
         }
 
+      #ifdef FASTUIDRAW_DEBUG
+        {
+          output_glsl_source_code << "#define FASTUIDRAW_DEBUG\n";
+        }
+      #endif
+
       if (!d->m_disable_pre_added_source)
         {
-          output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
-                                  << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
-                                  << "#define FASTUIDRAW_MASK(bit0, num_bits) (fastuidraw_mask(uint(num_bits)) << uint(bit0))\n"
+          output_glsl_source_code << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src << (32u - bit0 - num_bits)) >> (32u - num_bits); }\n"
                                   << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n"
                                   << "void fastuidraw_do_nothing(void) {}\n";
         }
