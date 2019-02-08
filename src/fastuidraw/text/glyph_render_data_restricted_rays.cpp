@@ -598,6 +598,12 @@ namespace
     void
     pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
 
+    float
+    compute_average_curve_cost(void) const;
+
+    float
+    compute_average_node_cost(void) const;
+
   private:
     explicit
     CurveListHierarchy(unsigned int parent_gen):
@@ -799,8 +805,17 @@ namespace
         }
     }
 
+    enum cost_t
+      {
+        node_cost,
+        curve_cost,
+
+        num_costs
+      };
+
     GlyphPath *m_glyph;
     enum fastuidraw::PainterEnums::fill_rule_t m_fill_rule;
+    fastuidraw::vecN<float, num_costs> m_costs;
     std::vector<fastuidraw::generic_data> m_render_data;
   };
 }
@@ -1683,6 +1698,45 @@ subdivide(unsigned int max_recursion, unsigned int split_thresh,
     }
 }
 
+float
+CurveListHierarchy::
+compute_average_curve_cost(void) const
+{
+  if (has_children())
+    {
+      float v0, v1;
+
+      v0 = m_child[0]->compute_average_curve_cost();
+      v1 = m_child[1]->compute_average_curve_cost();
+      return 0.5f * (v0 + v1);
+    }
+  else
+    {
+      return static_cast<float>(m_curves.curves().size());
+    }
+}
+
+float
+CurveListHierarchy::
+compute_average_node_cost(void) const
+{
+  if (has_children())
+    {
+      float v0, v1;
+
+      v0 = m_child[0]->compute_average_node_cost();
+      v1 = m_child[1]->compute_average_node_cost();
+
+      // return the cost of walking this node (value = 1)
+      // plus the average of the cost of the children.
+      return 1.0f + 0.5f * (v0 + v1);
+    }
+  else
+    {
+      return 0.0f;
+    }
+}
+
 //////////////////////////////////////////
 // EdgeTracker methods
 void
@@ -2089,6 +2143,9 @@ finalize(enum PainterEnums::fill_rule_t f,
   curve_lists.pack_data(d->m_glyph, render_data);
   d->m_glyph->pack_data(render_data, tr);
 
+  d->m_costs[GlyphRenderDataRestrictedRaysPrivate::node_cost] = hierarchy.compute_average_node_cost();
+  d->m_costs[GlyphRenderDataRestrictedRaysPrivate::curve_cost] = hierarchy.compute_average_curve_cost();
+
   FASTUIDRAWdelete(d->m_glyph);
   d->m_glyph = nullptr;
 }
@@ -2096,7 +2153,8 @@ finalize(enum PainterEnums::fill_rule_t f,
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataRestrictedRays::
 upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
-                GlyphAttribute::Array &attributes) const
+                GlyphAttribute::Array &attributes,
+                c_array<float> render_cost) const
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
@@ -2136,7 +2194,24 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
     }
   attributes[glyph_offset].m_data = uvec4(data_offset);
 
+  for (unsigned int i = 0; i < GlyphRenderDataRestrictedRaysPrivate::num_costs; ++i)
+    {
+      render_cost[i] = d->m_costs[i];
+    }
+
   return routine_success;
+}
+
+fastuidraw::c_array<const fastuidraw::c_string>
+fastuidraw::GlyphRenderDataRestrictedRays::
+render_info_labels(void) const
+{
+  static c_string s[GlyphRenderDataRestrictedRaysPrivate::num_costs] =
+    {
+      [GlyphRenderDataRestrictedRaysPrivate::node_cost] = "AverageNodeCount",
+      [GlyphRenderDataRestrictedRaysPrivate::curve_cost] = "AverageCurveCount",
+    };
+  return c_array<const c_string>(s, GlyphRenderDataRestrictedRaysPrivate::num_costs);
 }
 
 enum fastuidraw::return_code

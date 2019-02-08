@@ -214,6 +214,14 @@ namespace fastuidraw
                enum fastuidraw::PainterEnums::screen_orientation orientation,
                enum fastuidraw::PainterEnums::glyph_layout_type layout) const;
 
+    /*!
+     * Provides information on the rendering cost of the Glyph,
+     * entirely dependent on the \ref GlyphRenderData that generated
+     * the data.
+     */
+    c_array<const GlyphRenderCostInfo>
+    render_cost(void) const;
+
   private:
     friend class GlyphCache;
 

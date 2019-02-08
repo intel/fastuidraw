@@ -296,7 +296,7 @@ namespace
   {
   public:
     static
-    void
+    float
     create_bands(std::vector<Band> *dst,
                  const std::vector<Contour> &contours);
 
@@ -427,6 +427,7 @@ namespace
     fastuidraw::ivec2 m_num_bands;
     enum fastuidraw::PainterEnums::fill_rule_t m_fill_rule;
     std::vector<fastuidraw::generic_data> m_render_data;
+    fastuidraw::vecN<float, 2> m_render_cost;
   };
 }
 
@@ -527,7 +528,7 @@ Band(const Band *parent, float min_v, float max_v):
 {}
 
 template<enum band_t BandType>
-void
+float
 Band<BandType>::
 create_bands(std::vector<Band> *pdst,
              const std::vector<Contour> &contours)
@@ -588,6 +589,9 @@ create_bands(std::vector<Band> *pdst,
     }
   std::swap(*pdst, tmp.back());
   //std::cout << "\n\tNumBands = " << pdst->size() << "\n";
+
+  //std::cout << "Glyph complexity: " << avg_num_curves << "\n";
+  return avg_num_curves;
 }
 
 template<enum band_t BandType>
@@ -756,8 +760,8 @@ finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
   std::vector<Band<horizontal_band> > split_horiz_bands;
   std::vector<Band<vertical_band> > split_vert_bands;
 
-  Band<horizontal_band>::create_bands(&split_horiz_bands, d->m_glyph->contours());
-  Band<vertical_band>::create_bands(&split_vert_bands, d->m_glyph->contours());
+  d->m_render_cost[horizontal_band] = Band<horizontal_band>::create_bands(&split_horiz_bands, d->m_glyph->contours());
+  d->m_render_cost[vertical_band] = Band<vertical_band>::create_bands(&split_vert_bands, d->m_glyph->contours());
 
   /* step 2: compute the offsets. The data packing is first
    *         that each band takes a single 32-bit value
@@ -816,10 +820,23 @@ finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
   d->m_glyph = nullptr;
 }
 
+fastuidraw::c_array<const fastuidraw::c_string>
+fastuidraw::GlyphRenderDataBandedRays::
+render_info_labels(void) const
+{
+  static c_string s[2] =
+    {
+      [horizontal_band] = "AverageHorizontalCurveCount",
+      [vertical_band] = "AverageVerticalCurveCount"
+    };
+  return c_array<const c_string>(s, 2);
+}
+
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataBandedRays::
 upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
-                GlyphAttribute::Array &attributes) const
+                GlyphAttribute::Array &attributes,
+                c_array<float> render_cost) const
 {
   GlyphRenderDataBandedRaysPrivate *d;
   d = static_cast<GlyphRenderDataBandedRaysPrivate*>(m_d);
@@ -860,6 +877,8 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
       data_offset |= FASTUIDRAW_MASK(31u, 1);
     }
   attributes[glyph_offset].m_data = uvec4(data_offset);
+  render_cost[0] = d->m_render_cost[0];
+  render_cost[1] = d->m_render_cost[1];
 
   return routine_success;
 }

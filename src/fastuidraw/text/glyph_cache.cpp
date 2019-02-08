@@ -134,6 +134,8 @@ namespace
 
     /* data to generate glyph data */
     fastuidraw::GlyphRenderData *m_glyph_data;
+
+    std::vector<fastuidraw::GlyphRenderCostInfo> m_render_cost_info;
   };
 
   template<typename K, typename T>
@@ -405,9 +407,18 @@ upload_to_atlas(fastuidraw::GlyphMetrics metrics,
       m_glyph_data = m_metrics->m_font->compute_rendering_data(m_render, metrics, m_path, m_render_size);
     }
 
-  return_value = m_glyph_data->upload_to_atlas(S, T);
+  fastuidraw::c_array<const fastuidraw::c_string> render_cost_labels(m_glyph_data->render_info_labels());
+  std::vector<float> tmp(render_cost_labels.size(), 0.0f);
+
+  return_value = m_glyph_data->upload_to_atlas(S, T, fastuidraw::make_c_array(tmp));
   if (return_value == fastuidraw::routine_success)
     {
+      m_render_cost_info.resize(render_cost_labels.size());
+      for (unsigned int i = 0; i < render_cost_labels.size(); ++i)
+        {
+          m_render_cost_info[i].m_label = render_cost_labels[i];
+          m_render_cost_info[i].m_value = tmp[i];
+        }
       m_uploaded_to_atlas = true;
     }
   else
@@ -634,6 +645,16 @@ render_size(void) const
   p = static_cast<GlyphDataPrivate*>(m_opaque);
   FASTUIDRAWassert(p != nullptr && p->m_render.valid());
   return p->m_render_size;
+}
+
+fastuidraw::c_array<const fastuidraw::GlyphRenderCostInfo>
+fastuidraw::Glyph::
+render_cost(void) const
+{
+  GlyphDataPrivate *p;
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
+  FASTUIDRAWassert(p != nullptr && p->m_render.valid());
+  return make_c_array(p->m_render_cost_info);
 }
 
 fastuidraw::Glyph

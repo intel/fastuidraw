@@ -90,7 +90,7 @@ namespace fastuidraw
          * where the curves are located RELATIVE to
          * the location of the glyph data.
          */
-        band_curveoffset_numbits = 24,
+        band_curveoffset_numbits = 32 - band_numcurves_numbits,
 
         /*!
          * first bit used to encode the number of curves
@@ -231,9 +231,14 @@ namespace fastuidraw
     query(c_array<const fastuidraw::generic_data> *gpu_data) const;
 
     virtual
+    c_array<const c_string>
+    render_info_labels(void) const;
+
+    virtual
     enum fastuidraw::return_code
     upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
-                    GlyphAttribute::Array &attributes) const;
+                    GlyphAttribute::Array &attributes,
+                    c_array<float> render_costs) const;
 
   private:
     void *m_d;

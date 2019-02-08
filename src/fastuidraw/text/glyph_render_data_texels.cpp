@@ -99,10 +99,18 @@ resize(fastuidraw::ivec2 sz)
   d->resize(sz);
 }
 
+fastuidraw::c_array<const fastuidraw::c_string>
+fastuidraw::GlyphRenderDataTexels::
+render_info_labels(void) const
+{
+  return c_array<const c_string>();
+}
+
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataTexels::
 upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
-                GlyphAttribute::Array &attributes) const
+                GlyphAttribute::Array &attributes,
+                c_array<float> /* render_costs */) const
 {
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
@@ -129,5 +137,6 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
       return routine_fail;
     }
   attributes[1].m_data = vecN<uint32_t, 4>(location);
+
   return routine_success;
 }
