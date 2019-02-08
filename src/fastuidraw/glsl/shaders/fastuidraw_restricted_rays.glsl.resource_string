@@ -656,14 +656,22 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord,
                                             in vec2 glyph_coord_dx,
                                             in vec2 glyph_coord_dy,
-                                            in bool use_odd_even_rule,
-                                            out fastuidraw_restricted_rays_box_type texel_box,
-                                            out fastuidraw_restricted_rays_winding_sample_type S,
-                                            out int winding_number, out uint num_curves,
-                                            out fastuidraw_restricted_rays_distance_type nv)
+                                            in bool use_odd_even_rule
+                                            #ifdef FASTUIDRAW_DEBUG
+                                            ,out fastuidraw_restricted_rays_box_type out_texel_box,
+                                            out fastuidraw_restricted_rays_winding_sample_type out_S,
+                                            out int out_winding_number, out uint out_num_curves,
+                                            out fastuidraw_restricted_rays_distance_type out_nv
+                                            #endif
+                                            )
 {
   uint src, c, curve_list, winding_sample_data_location;
   fastuidraw_restricted_rays_transformation tr;
+  fastuidraw_restricted_rays_box_type texel_box;
+  fastuidraw_restricted_rays_winding_sample_type S;
+  int winding_number;
+  uint num_curves;
+  fastuidraw_restricted_rays_distance_type nv;
 
   winding_sample_data_location =
     fastuidaw_restricted_rays_compute_box(glyph_coord,
@@ -733,9 +741,20 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
     (0.5 + distance) :
     (0.5 - distance);
 
+  #ifdef FASTUIDRAW_DEBUG
+    {
+      out_texel_box = texel_box;
+      out_S = S;
+      out_winding_number = winding_number;
+      out_num_curves = num_curves;
+      out_nv = nv;
+    }
+  #endif
+
   return cvg;
 }
 
+#ifdef FASTUIDRAW_DEBUG
 float
 fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                             in vec2 glyph_coord,
@@ -756,3 +775,4 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                                      texel_box, S, winding_number,
                                                      num_curves, nv);
 }
+#endif

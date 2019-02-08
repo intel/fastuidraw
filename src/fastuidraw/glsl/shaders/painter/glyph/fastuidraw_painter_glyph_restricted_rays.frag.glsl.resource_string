@@ -20,57 +20,71 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
   vec2 glyph_coord;
-  fastuidraw_restricted_rays_box_type texel_box;
-  fastuidraw_restricted_rays_winding_sample_type S;
   int winding_number;
-  uint num_curves, data_location;
+  uint data_location;
   const uint bit31 = 0x80000000u;
-  fastuidraw_restricted_rays_distance_type nv;
-  float cvg, shearing;
   bool is_odd_even_fill_rule;
+  float cvg;
 
   glyph_coord = vec2(fastuidraw_glyph_coord_x,
                      fastuidraw_glyph_coord_y);
 
   is_odd_even_fill_rule = (fastuidraw_glyph_data_location & bit31) != 0u;
   data_location = fastuidraw_glyph_data_location & ~bit31;
-  cvg = fastuidraw_restricted_rays_compute_coverage(data_location,
-                                                    glyph_coord,
-                                                    dFdx(glyph_coord),
-                                                    dFdy(glyph_coord),
-                                                    is_odd_even_fill_rule,
-                                                    texel_box, S, winding_number, num_curves, nv);
-  /**
-  const float tol = 3.0;
-  float tol_x = tol * fwidth(glyph_coord.x);
-  float tol_y = tol * fwidth(glyph_coord.y);
-  vec3 ff = vec3(0.0, 0.0, abs(winding_number));
-  if (abs(glyph_coord.x - texel_box.min_point.x) < tol_x
-      || abs(glyph_coord.x - texel_box.max_point.x) < tol_x
-      || abs(glyph_coord.y - texel_box.min_point.y) < tol_y
-      || abs(glyph_coord.y - texel_box.max_point.y) < tol_y)
-    {
-      ff.x = 1.0;
-    }
 
-  if (length(S.reference_position - glyph_coord) < tol * min(fwidth(glyph_coord.x), fwidth(glyph_coord.y)))
-    {
-      ff.y = 1.0;
-    }
+  #ifdef FASTUIDRAW_DEBUG
+    fastuidraw_restricted_rays_box_type texel_box;
+    fastuidraw_restricted_rays_winding_sample_type S;
+    fastuidraw_restricted_rays_distance_type nv;
+    uint num_curves;
 
-  if (nv.distance_increment < 2.0
-      || nv.distance_decrement < 2.0)
-    {
-      ff.y = 1.0;
-    }
+    cvg = fastuidraw_restricted_rays_compute_coverage(data_location,
+                                                      glyph_coord,
+                                                      dFdx(glyph_coord),
+                                                      dFdy(glyph_coord),
+                                                      is_odd_even_fill_rule,
+                                                      texel_box, S, winding_number, num_curves, nv);
+  #else
+    cvg = fastuidraw_restricted_rays_compute_coverage(data_location,
+                                                      glyph_coord,
+                                                      dFdx(glyph_coord),
+                                                      dFdy(glyph_coord),
+                                                      is_odd_even_fill_rule);
+  #endif
 
-  if (num_curves > 4)
+  #if defined(FASTUIDRAW_DEBUG) && 0
     {
-      ff.xy = ff.yx;
-    }
+      const float tol = 3.0;
+      float tol_x = tol * fwidth(glyph_coord.x);
+      float tol_y = tol * fwidth(glyph_coord.y);
+      vec3 ff = vec3(0.0, 0.0, abs(winding_number));
+      if (abs(glyph_coord.x - texel_box.min_point.x) < tol_x
+          || abs(glyph_coord.x - texel_box.max_point.x) < tol_x
+          || abs(glyph_coord.y - texel_box.min_point.y) < tol_y
+          || abs(glyph_coord.y - texel_box.max_point.y) < tol_y)
+        {
+          ff.x = 1.0;
+        }
 
-  return vec4(ff, 1.0);
-  /**/
+      if (length(S.reference_position - glyph_coord) < tol * min(fwidth(glyph_coord.x), fwidth(glyph_coord.y)))
+        {
+          ff.y = 1.0;
+        }
+
+      if (nv.distance_increment < 2.0
+          || nv.distance_decrement < 2.0)
+        {
+          ff.y = 1.0;
+        }
+
+      if (num_curves > 4)
+        {
+          ff.xy = ff.yx;
+        }
+
+      return vec4(ff, 1.0);
+    }
+  #endif
 
   return vec4(1.0, 1.0, 1.0, cvg);
 }

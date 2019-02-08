@@ -97,38 +97,29 @@ namespace fastuidraw
                        c_string fetch_macro_function);
 
       /*!
-       * Construct/returns a ShaderSource value that
-       * implements the functions:
+       * Construct/returns a ShaderSource value that implements the function:
        * \code
        * float
        * fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
        *                                             in vec2 glyph_coord,
        *                                             in vec2 glyph_coord_dx,
-       *                                             in vec2 glyph_coord_dy,
-       *                                             in vec2 bb_box_min,
-       *                                             in vec2 bb_box_max)
-       *
-       * float
-       * fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
-       *                                             in vec2 glyph_coord,
-       *                                             in vec2 glyph_coord_dx,
-       *                                             in vec2 glyph_coord_dy,
-       *                                             in vec2 bb_box_min,
-       *                                             in vec2 bb_box_max,
-       *                                             out fastuidraw_restricted_rays_box_type texel_box,
-       *                                             out fastuidraw_restricted_rays_winding_sample_type S,
-       *                                             out int winding_number, out uint num_curves,
-       *                                             out fastuidraw_restricted_rays_distance_type nv)
+       *                                             in vec2 glyph_coord_dy)
        * \endcode
        * That compute the coverage from glyph data as packed by \ref
-       * GlyphRenderDataRestrictedRays. The variant with additional out
-       * arguments also outputs in those additional out arguments various
-       * data values that are computed in doing the computation that a
-       * debug version of a shader can visualize the structure of the
-       * glyph. The returned \ref ShaderSource also includes a large
-       * number of utility functions and struct each prefixed with
-       * fastuidraw_restricted_rays_ that assist in implementing the
-       * fastuidraw_restricted_rays_compute_coverage() functions.
+       * GlyphRenderDataRestrictedRays. The paremeters of the GLSL function
+       * mean:
+       *   - glyph_data_location location of the glyph data within the GlyphAtlas
+       *   - glyph_coord the coordinate within the glyph where the min-value
+       *     in each dimension is -GlyphRenderDataRestrictedRays::glyph_coord_value
+       *     and the max-value in each dimension is GlyphRenderDataRestrictedRays::glyph_coord_value
+       *   - glyph_coord_dx is the value of dFdx(glyph_coord)
+       *   - glyph_coord_dy is the value of dFdy(glyph_coord)
+       *
+       * The returned \ref ShaderSource also includes a large number of utility
+       * functions and structs each prefixed with fastuidraw_restricted_rays_ that
+       * assist in implementing the fastuidraw_restricted_rays_compute_coverage()
+       * function.
+       *
        * \param fetch_macro_function function or macro taking one argument
        *                             that returns a single uint of data
        * \param fetch_macro_function_fp16x2 function or macro taking one argument
