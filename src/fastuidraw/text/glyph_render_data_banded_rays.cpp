@@ -523,8 +523,8 @@ create_bands(std::vector<Band> *pdst,
              const std::vector<Contour> &contours,
              float min_v, float max_v)
 {
-  const float avg_curve_thresh(6.0f);
-  const unsigned int max_num_iterations(11);
+  const float avg_curve_thresh(fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh());
+  const unsigned int max_num_iterations(fastuidraw::GlyphGenerateParams::banded_rays_max_recursion());
 
   const float epsilon(1e-5);
   float slack(epsilon * (max_v - min_v));

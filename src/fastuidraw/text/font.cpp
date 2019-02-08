@@ -39,6 +39,8 @@ namespace
     float m_restricted_rays_minimum_render_size;
     int m_restricted_rays_split_thresh;
     int m_restricted_rays_max_recursion;
+    unsigned int m_banded_rays_max_recursion;
+    float m_banded_rays_average_number_curves_thresh;
 
     std::mutex m_mutex;
     unsigned int m_number_fonts_alive;
@@ -51,6 +53,8 @@ namespace
       m_restricted_rays_minimum_render_size(32.0f),
       m_restricted_rays_split_thresh(4),
       m_restricted_rays_max_recursion(12),
+      m_banded_rays_max_recursion(11),
+      m_banded_rays_average_number_curves_thresh(6.0f),
       m_number_fonts_alive(0),
       m_current_unqiue_id(0)
     {}
@@ -107,6 +111,8 @@ IMPLEMENT(float, distance_field_max_distance)
 IMPLEMENT(float, restricted_rays_minimum_render_size)
 IMPLEMENT(int, restricted_rays_split_thresh)
 IMPLEMENT(int, restricted_rays_max_recursion)
+IMPLEMENT(unsigned int, banded_rays_max_recursion)
+IMPLEMENT(float, banded_rays_average_number_curves_thresh)
 
 ///////////////////////////////////////////
 // fastuidraw::FontBase methods
