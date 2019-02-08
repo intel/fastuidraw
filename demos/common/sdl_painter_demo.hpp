@@ -185,6 +185,8 @@ private:
   command_line_argument_value<unsigned int> m_restricted_rays_max_recursion;
   command_line_argument_value<unsigned int> m_restricted_rays_split_thresh;
   command_line_argument_value<float> m_restricted_rays_expected_min_render_size;
+  command_line_argument_value<unsigned int> m_banded_rays_max_recursion;
+  command_line_argument_value<float> m_banded_rays_average_number_curves_thresh;
 
   std::list<GLuint> m_pixel_counter_buffers;
   unsigned int m_num_pixel_counter_buffers;

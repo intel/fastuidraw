@@ -571,6 +571,15 @@ sdl_painter_demo(const std::string &about_text,
                                              "glyph_restricted_rays_expected_min_render_size",
                                              "",
                                              *this),
+  m_banded_rays_max_recursion(fastuidraw::GlyphGenerateParams::banded_rays_max_recursion(),
+                              "glyph_banded_rays_max_recursion",
+                              "Maximum level of recursion to use when generating banded-ray glyphs",
+                              *this),
+  m_banded_rays_average_number_curves_thresh(fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh(),
+                                             "glyph_banded_rays_average_number_curves_thresh",
+                                             "Threshhold to aim for number of curves per band when generating "
+                                             "banded-ray glyphs",
+                                             *this),
   m_num_pixel_counter_buffers(0),
   m_pixel_counts(0, 0, 0, 0),
   m_painter_stats(fastuidraw::Painter::number_stats(), 0)
@@ -763,6 +772,8 @@ init_gl(int w, int h)
   fastuidraw::GlyphGenerateParams::restricted_rays_max_recursion(m_restricted_rays_max_recursion.value());
   fastuidraw::GlyphGenerateParams::restricted_rays_split_thresh(m_restricted_rays_split_thresh.value());
   fastuidraw::GlyphGenerateParams::restricted_rays_minimum_render_size(m_restricted_rays_expected_min_render_size.value());
+  fastuidraw::GlyphGenerateParams::banded_rays_max_recursion(m_banded_rays_max_recursion.value());
+  fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh(m_banded_rays_average_number_curves_thresh.value());
 
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
