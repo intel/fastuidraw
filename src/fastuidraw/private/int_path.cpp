@@ -35,6 +35,7 @@
 #include <iterator>
 #include <set>
 #include "int_path.hpp"
+#include "bezier_util.hpp"
 #include "util_private_ostream.hpp"
 
 namespace
@@ -88,71 +89,13 @@ namespace
   fastuidraw::vecN<fastuidraw::ivec2, 3>
   quadratic_from_cubic(fastuidraw::c_array<const fastuidraw::ivec2> pts)
   {
-    using namespace fastuidraw;
-
-    int64_t det;
-    i64vec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
-    i64vec2 d10(p1 - p0), d32(p3 - p2);
-    i64vec2 Jd32(d32.y(), -d32.x());
-    i64vec2 Jd10(d10.y(), -d10.x());
-    vec2 C;
-
-    det = d10.x() * d32.y() - d10.y() * d32.x();
-    if (det == 0)
-      {
-        C = 0.5f * (vec2(p1 + p2));
-      }
-    else
-      {
-        /* Compute where the lines [p0, p1] and [p2, p3]
-         * intersect. If the intersection point goes
-         * to far beyond p1 or p3, take the average
-         * of clamping it going out upto 3 times the
-         * length of [p0, p1] or [p2, p3].
-         */
-        vec2 Cs, Ct;
-        float s, t;
-
-        s = float(dot(Jd32, p3 - p0)) / float(det);
-        t = float(dot(Jd10, p0 - p3)) / float(det);
-
-        s = t_max(0.0f, t_min(s, 3.0f));
-        t = t_max(0.0f, t_min(t, 3.0f));
-
-        Cs = vec2(p0) + s * vec2(d10);
-        Ct = vec2(p3) - t * vec2(d32);
-
-        C = 0.5f * (Cs + Ct);
-      }
-
-    vecN<ivec2, 3> return_value;
-    return_value[0] = pts[0];
-    return_value[1] = ivec2(C);
-    return_value[2] = pts[3];
-
-    return return_value;
+    return fastuidraw::detail::quadratic_from_cubicT<int>(pts);
   }
 
   fastuidraw::vecN<fastuidraw::vecN<fastuidraw::ivec2, 4>, 2>
   split_cubic(fastuidraw::c_array<const fastuidraw::ivec2> pts)
   {
-    using namespace fastuidraw;
-
-    vecN<vecN<ivec2, 4>, 2> return_value;
-    i64vec2 p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
-    i64vec2 p01, p23, pA, pB, pC;
-    const int64_t two(2), three(3), four(4), eight(8);
-
-    p01 = (p0 + p1) / two;
-    p23 = (p2 + p3) / two;
-    pA = (p0 + two * p1 + p2) / four;
-    pB = (p1 + two * p2 + p3) / four;
-    pC = (p0 + three * p1 + three * p2 + p3) / eight;
-
-    return_value[0] = vecN<ivec2, 4>(pts[0], ivec2(p01), ivec2(pA), ivec2(pC));
-    return_value[1] = vecN<ivec2, 4>(ivec2(pC), ivec2(pB), ivec2(p23), pts[3]);
-
-    return return_value;
+    return fastuidraw::detail::split_cubicT<int>(pts);
   }
 
   class QuadraticBezierCurve:public fastuidraw::vecN<fastuidraw::ivec2, 3>
