@@ -82,21 +82,23 @@ namespace
   class Curve
   {
   public:
-    Curve(const fastuidraw::vec2 &a,
-          const fastuidraw::vec2 &b):
+    Curve(fastuidraw::ivec2 a,
+          fastuidraw::ivec2 b):
       m_start(a),
       m_end(b),
-      m_control((a + b) * 0.5f),
-      m_has_control(false)
+      m_control((m_start + m_end) * 0.5f),
+      m_is_horizontal(a.y() == b.y()),
+      m_is_vertical(a.x() == b.x())
     {}
 
-    Curve(const fastuidraw::vec2 &a,
-          const fastuidraw::vec2 &ct,
-          const fastuidraw::vec2 &b):
+    Curve(fastuidraw::ivec2 a,
+          fastuidraw::ivec2 ct,
+          fastuidraw::ivec2 b):
       m_start(a),
       m_end(b),
       m_control(ct),
-      m_has_control(true)
+      m_is_horizontal(a.y() == b.y() && a.y() == ct.y()),
+      m_is_vertical(a.x() == b.x() && a.x() == ct.x())
     {}
 
     void
@@ -117,12 +119,6 @@ namespace
     control(void) const
     {
       return m_control;
-    }
-
-    bool
-    has_control(void) const
-    {
-      return m_has_control;
     }
 
     template<enum band_t b>
@@ -181,9 +177,17 @@ namespace
       return fastuidraw::t_max(m_start[coord], v);
     }
 
+    bool
+    ignore_curve(enum band_t BandType) const
+    {
+      return (BandType == vertical_band) ?
+        m_is_vertical :
+        m_is_horizontal;
+    }
+
   private:
     fastuidraw::vec2 m_start, m_end, m_control;
-    bool m_has_control;
+    bool m_is_horizontal, m_is_vertical;
   };
 
   class CurveID
@@ -205,12 +209,12 @@ namespace
     {}
 
     explicit
-    Contour(fastuidraw::vec2 pt):
+    Contour(fastuidraw::ivec2 pt):
       m_last_pt(pt)
     {}
 
     void
-    line_to(fastuidraw::vec2 pt)
+    line_to(fastuidraw::ivec2 pt)
     {
       if (m_last_pt != pt)
         {
@@ -220,8 +224,8 @@ namespace
     }
 
     void
-    quadratic_to(fastuidraw::vec2 ct,
-                 fastuidraw::vec2 pt)
+    quadratic_to(fastuidraw::ivec2 ct,
+                 fastuidraw::ivec2 pt)
     {
       if (m_last_pt != pt)
         {
@@ -259,7 +263,7 @@ namespace
     }
 
   private:
-    fastuidraw::vec2 m_last_pt;
+    fastuidraw::ivec2 m_last_pt;
     std::vector<Curve> m_curves;
   };
 
@@ -346,7 +350,7 @@ namespace
     {}
 
     void
-    move_to(const fastuidraw::vec2 &pt)
+    move_to(fastuidraw::ivec2 pt)
     {
       if (!m_contours.empty() && m_contours.back().empty())
         {
@@ -357,15 +361,15 @@ namespace
     }
 
     void
-    quadratic_to(const fastuidraw::vec2 &ct,
-                 const fastuidraw::vec2 &pt)
+    quadratic_to(fastuidraw::ivec2 ct,
+                 fastuidraw::ivec2 pt)
     {
       FASTUIDRAWassert(!m_contours.empty());
       m_contours.back().quadratic_to(ct, pt);
     }
 
     void
-    line_to(const fastuidraw::vec2 &pt)
+    line_to(fastuidraw::ivec2 pt)
     {
       FASTUIDRAWassert(!m_contours.empty());
       m_contours.back().line_to(pt);
@@ -622,14 +626,17 @@ Band(const GlyphPath &path):
 
       for (ID.curve() = 0; ID.curve() < curve_end; ++ID.curve())
         {
-          if (path.curve(ID).present_before_split<BandType>(0.0f))
+          if (!path.curve(ID).ignore_curve(BandType))
             {
-              m_before_split.m_curves.push_back(ID);
-            }
+              if (path.curve(ID).present_before_split<BandType>(0.0f))
+                {
+                  m_before_split.m_curves.push_back(ID);
+                }
 
-          if (path.curve(ID).present_after_split<BandType>(0.0f))
-            {
-              m_after_split.m_curves.push_back(ID);
+              if (path.curve(ID).present_after_split<BandType>(0.0f))
+                {
+                  m_after_split.m_curves.push_back(ID);
+                }
             }
         }
     }
@@ -805,7 +812,7 @@ move_to(ivec2 pt)
     {
       return;
     }
-  d->m_glyph->move_to(vec2(pt));
+  d->m_glyph->move_to(pt);
 }
 
 void
@@ -820,7 +827,7 @@ quadratic_to(ivec2 ct, ivec2 pt)
     {
       return;
     }
-  d->m_glyph->quadratic_to(vec2(ct), vec2(pt));
+  d->m_glyph->quadratic_to(ct, pt);
 }
 
 void
@@ -835,7 +842,7 @@ line_to(ivec2 pt)
     {
       return;
     }
-  d->m_glyph->line_to(vec2(pt));
+  d->m_glyph->line_to(pt);
 }
 
 void
