@@ -163,7 +163,7 @@ namespace fastuidraw
     /*!
      * Set the value returned by
      * banded_rays_average_number_curves_thresh(void) const,
-     * initial value is 6.0. Returns \ref routine_success
+     * initial value is 2.5. Returns \ref routine_success
      * if value is successfully changed.
      * \param v value
      */

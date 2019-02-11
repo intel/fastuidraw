@@ -54,7 +54,7 @@ namespace
       m_restricted_rays_split_thresh(4),
       m_restricted_rays_max_recursion(12),
       m_banded_rays_max_recursion(11),
-      m_banded_rays_average_number_curves_thresh(4.0f),
+      m_banded_rays_average_number_curves_thresh(2.5f),
       m_number_fonts_alive(0),
       m_current_unqiue_id(0)
     {}
