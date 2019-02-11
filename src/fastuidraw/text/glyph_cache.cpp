@@ -42,9 +42,11 @@ namespace
   public:
     explicit
     GlyphAtlasProxyPrivate(GlyphCachePrivate *c):
+      m_total_allocated(0),
       m_cache(c)
     {}
 
+    unsigned int m_total_allocated;
     std::vector<GlyphDataAlloc> m_data_locations;
     GlyphCachePrivate *m_cache;
   };
@@ -413,12 +415,14 @@ upload_to_atlas(fastuidraw::GlyphMetrics metrics,
   return_value = m_glyph_data->upload_to_atlas(S, T, fastuidraw::make_c_array(tmp));
   if (return_value == fastuidraw::routine_success)
     {
-      m_render_cost_info.resize(render_cost_labels.size());
+      m_render_cost_info.resize(render_cost_labels.size() + 1);
       for (unsigned int i = 0; i < render_cost_labels.size(); ++i)
         {
           m_render_cost_info[i].m_label = render_cost_labels[i];
           m_render_cost_info[i].m_value = tmp[i];
         }
+      m_render_cost_info.back().m_label = "SizeOnCacheInKB";
+      m_render_cost_info.back().m_value = static_cast<float>(S.total_allocated() * 4) / 1024.0f;
       m_uploaded_to_atlas = true;
     }
   else
@@ -473,9 +477,19 @@ allocate_data(c_array<const generic_data> pdata)
       GlyphDataAlloc A;
       A.m_location = L;
       A.m_size = pdata.size();
+      d->m_total_allocated += A.m_size;
       d->m_data_locations.push_back(A);
     }
   return L;
+}
+
+unsigned int
+fastuidraw::GlyphAtlasProxy::
+total_allocated(void) const
+{
+  GlyphAtlasProxyPrivate *d;
+  d = static_cast<GlyphAtlasProxyPrivate*>(m_d);
+  return d->m_total_allocated;
 }
 
 //////////////////////////////////////////////

@@ -42,6 +42,13 @@ namespace fastuidraw
     int
     allocate_data(c_array<const generic_data> pdata);
 
+    /*!
+     * Returns the total amount allocated thorugh this
+     * GlyphAtlasProxy.
+     */
+    unsigned int
+    total_allocated(void) const;
+
   private:
     friend class Glyph;
     friend class GlyphCache;
