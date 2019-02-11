@@ -346,10 +346,13 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
   for(uint32_t glyph_code : glyph_codes)
     {
       layout = out_sequence.glyph_cache()->fetch_glyph_metrics(font, glyph_code);
-      out_sequence.add_glyph(fastuidraw::GlyphSource(glyph_code, font), pen);
+      if (layout.valid())
+        {
+          out_sequence.add_glyph(fastuidraw::GlyphSource(glyph_code, font), pen);
 
-      ratio = pixel_size / layout.units_per_EM();
-      pen.x() += ratio * layout.advance().x();
+          ratio = pixel_size / layout.units_per_EM();
+          pen.x() += ratio * layout.advance().x();
+        }
     }
 }
 
