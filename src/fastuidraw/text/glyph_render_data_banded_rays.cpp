@@ -468,6 +468,16 @@ namespace
     const GlyphPath &m_path;
   };
 
+  enum
+    {
+      horizontal_band_avg_curve_count,
+      vertical_band_avg_curve_count,
+      number_horizontal_bands,
+      number_vertical_bands,
+
+      num_costs
+    };
+
   class GlyphRenderDataBandedRaysPrivate
   {
   public:
@@ -488,7 +498,7 @@ namespace
     fastuidraw::ivec2 m_num_bands;
     enum fastuidraw::PainterEnums::fill_rule_t m_fill_rule;
     std::vector<fastuidraw::generic_data> m_render_data;
-    fastuidraw::vecN<float, 2> m_render_cost;
+    fastuidraw::vecN<float, num_costs> m_render_cost;
   };
 }
 
@@ -856,8 +866,10 @@ finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
   std::vector<Band<horizontal_band> > split_horiz_bands;
   std::vector<Band<vertical_band> > split_vert_bands;
 
-  d->m_render_cost[horizontal_band] = Band<horizontal_band>::create_bands(&split_horiz_bands, *d->m_glyph);
-  d->m_render_cost[vertical_band] = Band<vertical_band>::create_bands(&split_vert_bands, *d->m_glyph);
+  d->m_render_cost[horizontal_band_avg_curve_count] = Band<horizontal_band>::create_bands(&split_horiz_bands, *d->m_glyph);
+  d->m_render_cost[vertical_band_avg_curve_count] = Band<vertical_band>::create_bands(&split_vert_bands, *d->m_glyph);
+  d->m_render_cost[number_horizontal_bands] = split_horiz_bands.size();
+  d->m_render_cost[number_vertical_bands] = split_vert_bands.size();
 
   /* step 2: compute the offsets. The data packing is first
    *         that each band takes a single 32-bit value
@@ -920,12 +932,14 @@ fastuidraw::c_array<const fastuidraw::c_string>
 fastuidraw::GlyphRenderDataBandedRays::
 render_info_labels(void) const
 {
-  static c_string s[2] =
+  static c_string s[num_costs] =
     {
-      [horizontal_band] = "AverageHorizontalCurveCount",
-      [vertical_band] = "AverageVerticalCurveCount"
+      [horizontal_band_avg_curve_count] = "AverageHorizontalCurveCount",
+      [vertical_band_avg_curve_count] = "AverageVerticalCurveCount",
+      [number_horizontal_bands] = "NumberHorizontalBands",
+      [number_vertical_bands] = "NumberVerticalBands",
     };
-  return c_array<const c_string>(s, 2);
+  return c_array<const c_string>(s, 4);
 }
 
 enum fastuidraw::return_code
@@ -973,8 +987,11 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
       data_offset |= FASTUIDRAW_MASK(31u, 1);
     }
   attributes[glyph_offset].m_data = uvec4(data_offset);
-  render_cost[0] = d->m_render_cost[0];
-  render_cost[1] = d->m_render_cost[1];
+
+  for (unsigned int i = 0; i < num_costs; ++i)
+    {
+      render_cost[i] = d->m_render_cost[i];
+    }
 
   return routine_success;
 }
