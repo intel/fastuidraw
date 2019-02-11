@@ -778,11 +778,31 @@ namespace
       return m_glyph_rect_max;
     }
 
+    unsigned int
+    number_curves(void) const
+    {
+      unsigned int return_value(0);
+      for (const auto &C : m_contours)
+        {
+          return_value += C.num_curves();
+        }
+      return return_value;
+    }
+
   private:
     fastuidraw::BoundingBox<int> m_bbox;
     fastuidraw::ivec2 m_glyph_rect_min, m_glyph_rect_max;
     std::vector<Contour> m_contours;
   };
+
+  enum cost_t
+    {
+      node_average_cost,
+      curve_average_cost,
+      total_number_curves,
+
+      num_costs
+    };
 
   /* The main trickiness we have hear is that we store
    * the input point times two (forcing it to be even).
@@ -804,14 +824,6 @@ namespace
           FASTUIDRAWdelete(m_glyph);
         }
     }
-
-    enum cost_t
-      {
-        node_cost,
-        curve_cost,
-
-        num_costs
-      };
 
     GlyphPath *m_glyph;
     enum fastuidraw::PainterEnums::fill_rule_t m_fill_rule;
@@ -2143,8 +2155,9 @@ finalize(enum PainterEnums::fill_rule_t f,
   curve_lists.pack_data(d->m_glyph, render_data);
   d->m_glyph->pack_data(render_data, tr);
 
-  d->m_costs[GlyphRenderDataRestrictedRaysPrivate::node_cost] = hierarchy.compute_average_node_cost();
-  d->m_costs[GlyphRenderDataRestrictedRaysPrivate::curve_cost] = hierarchy.compute_average_curve_cost();
+  d->m_costs[node_average_cost] = hierarchy.compute_average_node_cost();
+  d->m_costs[curve_average_cost] = hierarchy.compute_average_curve_cost();
+  d->m_costs[total_number_curves] = d->m_glyph->number_curves();
 
   FASTUIDRAWdelete(d->m_glyph);
   d->m_glyph = nullptr;
@@ -2194,7 +2207,7 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
     }
   attributes[glyph_offset].m_data = uvec4(data_offset);
 
-  for (unsigned int i = 0; i < GlyphRenderDataRestrictedRaysPrivate::num_costs; ++i)
+  for (unsigned int i = 0; i < num_costs; ++i)
     {
       render_cost[i] = d->m_costs[i];
     }
@@ -2206,12 +2219,13 @@ fastuidraw::c_array<const fastuidraw::c_string>
 fastuidraw::GlyphRenderDataRestrictedRays::
 render_info_labels(void) const
 {
-  static c_string s[GlyphRenderDataRestrictedRaysPrivate::num_costs] =
+  static c_string s[num_costs] =
     {
-      [GlyphRenderDataRestrictedRaysPrivate::node_cost] = "AverageNodeCount",
-      [GlyphRenderDataRestrictedRaysPrivate::curve_cost] = "AverageCurveCount",
+      [node_average_cost] = "AverageNodeCount",
+      [curve_average_cost] = "AverageCurveCount",
+      [total_number_curves] = "TotalNumberOfCurves",
     };
-  return c_array<const c_string>(s, GlyphRenderDataRestrictedRaysPrivate::num_costs);
+  return c_array<const c_string>(s, num_costs);
 }
 
 enum fastuidraw::return_code
