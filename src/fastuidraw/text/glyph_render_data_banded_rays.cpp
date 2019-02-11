@@ -391,6 +391,17 @@ namespace
       return m_contours[ID.contour()].curves()[ID.curve()];
     }
 
+    unsigned int
+    total_number_curves(void) const
+    {
+      unsigned int return_value(0);
+      for (const auto &C : m_contours)
+        {
+          return_value += C.curves().size();
+        }
+      return return_value;
+    }
+
     void
     transform_curves(const fastuidraw::RectT<int> &bb);
 
@@ -474,6 +485,7 @@ namespace
       vertical_band_avg_curve_count,
       number_horizontal_bands,
       number_vertical_bands,
+      total_number_curves,
 
       num_costs
     };
@@ -870,6 +882,7 @@ finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
   d->m_render_cost[vertical_band_avg_curve_count] = Band<vertical_band>::create_bands(&split_vert_bands, *d->m_glyph);
   d->m_render_cost[number_horizontal_bands] = split_horiz_bands.size();
   d->m_render_cost[number_vertical_bands] = split_vert_bands.size();
+  d->m_render_cost[total_number_curves] = d->m_glyph->total_number_curves();
 
   /* step 2: compute the offsets. The data packing is first
    *         that each band takes a single 32-bit value
@@ -938,8 +951,9 @@ render_info_labels(void) const
       [vertical_band_avg_curve_count] = "AverageVerticalCurveCount",
       [number_horizontal_bands] = "NumberHorizontalBands",
       [number_vertical_bands] = "NumberVerticalBands",
+      [total_number_curves] = "TotalNumberOfCurves",
     };
-  return c_array<const c_string>(s, 4);
+  return c_array<const c_string>(s, num_costs);
 }
 
 enum fastuidraw::return_code
