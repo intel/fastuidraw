@@ -1096,3 +1096,36 @@ number_times_atlas_cleared(void)
   d = static_cast<GlyphCachePrivate*>(m_d);
   return d->m_atlas->number_times_cleared();
 }
+
+fastuidraw::GlyphCache::AllocationHandle
+fastuidraw::GlyphCache::
+allocate_data(c_array<const generic_data> pdata)
+{
+  AllocationHandle A;
+  GlyphCachePrivate *d;
+  int L;
+
+  d = static_cast<GlyphCachePrivate*>(m_d);
+  std::lock_guard<std::mutex> m1(d->m_glyphs_mutex);
+  L = d->m_atlas->allocate_data(pdata);
+  if (L >= 0)
+    {
+      A.m_size = pdata.size();
+      A.m_location = L;
+    }
+  return A;
+}
+
+void
+fastuidraw::GlyphCache::
+deallocate_data(AllocationHandle h)
+{
+  GlyphCachePrivate *d;
+  d = static_cast<GlyphCachePrivate*>(m_d);
+
+  if (h.m_size > 0)
+    {
+      std::lock_guard<std::mutex> m1(d->m_glyphs_mutex);
+      d->m_atlas->deallocate_data(h.m_location, h.m_size);
+    }
+}

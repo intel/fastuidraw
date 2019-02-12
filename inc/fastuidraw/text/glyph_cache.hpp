@@ -43,6 +43,37 @@ namespace fastuidraw
   {
   public:
     /*!
+     * An AllocationHandle represents a handle to data allocated
+     * on the underlying GlyphAtlas of a GlyphCache. The handle
+     * is to be used to deallocate from the GlyphAtlas. Note that
+     * all data on the GlyphCache is deallocated when \ref
+     * GlyphCache::clear_atlas() or \ref GlyphCache::clear_cache()
+     * is called.
+     */
+    class AllocationHandle
+    {
+    public:
+      AllocationHandle(void):
+        m_location(0),
+        m_size(0)
+      {}
+
+      /*!
+       * Returns true if the AllocationHandle refers
+       * to a successful allocation.
+       */
+      bool
+      valid(void) const
+      {
+        return m_size > 0;
+      }
+
+    private:
+      friend class GlyphCache;
+      unsigned int m_location, m_size;
+    };
+
+    /*!
      * Ctor
      * \param patlas GlyphAtlas to store glyph data
      */
@@ -197,6 +228,19 @@ namespace fastuidraw
      */
     void
     clear_cache(void);
+
+    /*!
+     * Allocate and set data in the GlyphAtlas of this GlyphCache.
+     */
+    AllocationHandle
+    allocate_data(c_array<const generic_data> pdata);
+
+    /*!
+     * Deallocate data in the GlyphAtlas of this GlyphCache
+     * previously allocated with allocate_data().
+     */
+    void
+    deallocate_data(AllocationHandle h);
 
   private:
     void *m_d;
