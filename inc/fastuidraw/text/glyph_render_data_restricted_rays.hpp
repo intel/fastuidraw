@@ -275,7 +275,10 @@ namespace fastuidraw
     enum
       {
         /* The glyph coordinate value in each coordiante varies
-         * from -\ref glyph_coord_value to +\ref glyph_coord_value
+         * from -\ref glyph_coord_value to +\ref glyph_coord_value,
+         * i.e. the glyph is drawn as rect with min-corner
+         * (-\ref glyph_coord_value, -\ref glyph_coord_value)
+         * and max-corner (+\ref glyph_coord_value, +\ref glyph_coord_value)
          */
         glyph_coord_value = 2048,
       };
