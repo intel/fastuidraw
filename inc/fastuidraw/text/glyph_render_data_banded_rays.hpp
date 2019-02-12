@@ -177,6 +177,55 @@ namespace fastuidraw
       };
 
     /*!
+     * A query_info holds data about a \ref GlyphRenderDataBandedRays
+     * value (after its finalized method).
+     */
+    class query_info
+    {
+    public:
+      /*!
+       * Default ctor, initializing the value as empty
+       */
+      query_info(void):
+        m_number_vertical_bands(0),
+        m_number_horizontal_bands(0)
+      {}
+
+      /*!
+       * Set the value of a \ref vecN of \ref GlyphAttribute values
+       * derived from this query_info object
+       * \param out_attribs location to which to write GlyphAttribute values
+       * \param fill_rule fill rule with which to fill the glyphs
+       * \param offset location of glyph data
+       */
+      void
+      set_glyph_attributes(vecN<GlyphAttribute, glyph_num_attributes> *out_attribs,
+                           enum PainterEnums::fill_rule_t fill_rule,
+                           uint32_t offset);
+
+      /*!
+       * The GPU data of the queried \ref GlyphRenderDataBandedRays
+       * object; the data pointed to by the array is backed
+       * internally by the queried \ref GlyphRenderDataBandedRays;
+       * thus, if the point becomes invalid once the queried
+       * \ref GlyphRenderDataBandedRays goes out of scope.
+       */
+      c_array<const generic_data> m_gpu_data;
+
+      /*!
+       * The number of vertical bands of the queried
+       * \ref GlyphRenderDataBandedRays
+       */
+      int m_number_vertical_bands;
+
+      /*!
+       * The number of horizontal bands of the queried
+       * \ref GlyphRenderDataBandedRays
+       */
+      int m_number_horizontal_bands;
+    };
+
+    /*!
      * Ctor.
      */
     GlyphRenderDataBandedRays(void);
@@ -254,16 +303,11 @@ namespace fastuidraw
     /*!
      * Query the data; may only be called after finalize(). Returns
      * \ref routine_fail if finalize() has not yet been called.
-     * \param gpu_data location to which to write a c_array to the
-     *                 GPU data.
-     * \param num_vert_bands location to which to write the number of
-     *                       vertical bands of the glyph
-     * \param num_horiz_bands location to which to write the number of
-     *                        horizontal bands of the glyph
+     * \param out_info location to which to write information about
+     *                 this object.
      */
     enum return_code
-    query(c_array<const fastuidraw::generic_data> *gpu_data,
-          int *num_vert_bands, int *num_horiz_bands) const;
+    query(query_info *out_info) const;
 
     virtual
     c_array<const c_string>

@@ -518,18 +518,17 @@ namespace
   class GlyphRenderDataBandedRaysPrivate
   {
   public:
-    GlyphRenderDataBandedRaysPrivate(void)
-    {
-      m_glyph = FASTUIDRAWnew GlyphPath();
-    }
+    GlyphRenderDataBandedRaysPrivate(void);
+    ~GlyphRenderDataBandedRaysPrivate(void);
 
-    ~GlyphRenderDataBandedRaysPrivate(void)
-    {
-      if (m_glyph)
-        {
-          FASTUIDRAWdelete(m_glyph);
-        }
-    }
+    template<typename Array>
+    static
+    void
+    fill_glyph_attributes(Array &attributes,
+                          int num_vertical_bands,
+                          int num_horizontal_bands,
+                          enum fastuidraw::PainterEnums::fill_rule_t f,
+                          uint32_t data_offset);
 
     GlyphPath *m_glyph;
     fastuidraw::ivec2 m_num_bands;
@@ -803,6 +802,64 @@ transform_curves(const fastuidraw::Rect &bb)
     }
 }
 
+///////////////////////////////////////////
+// GlyphRenderDataBandedRaysPrivate methods
+GlyphRenderDataBandedRaysPrivate::
+GlyphRenderDataBandedRaysPrivate(void)
+{
+  m_glyph = FASTUIDRAWnew GlyphPath();
+}
+
+GlyphRenderDataBandedRaysPrivate::
+~GlyphRenderDataBandedRaysPrivate(void)
+{
+  if (m_glyph)
+    {
+      FASTUIDRAWdelete(m_glyph);
+    }
+}
+
+template<typename Array>
+void
+GlyphRenderDataBandedRaysPrivate::
+fill_glyph_attributes(Array &attributes,
+                      int num_vertical_bands,
+                      int num_horizontal_bands,
+                      enum fastuidraw::PainterEnums::fill_rule_t f,
+                      uint32_t data_offset)
+{
+  using namespace fastuidraw;
+
+  for (unsigned int c = 0; c < 4; ++c)
+    {
+      uint32_t x, y;
+
+      x = (c & GlyphAttribute::right_corner_mask) ? 1u : 0u;
+      y = (c & GlyphAttribute::top_corner_mask)   ? 1u : 0u;
+
+      attributes[GlyphRenderDataBandedRays::glyph_normalized_x].m_data[c] = x;
+      attributes[GlyphRenderDataBandedRays::glyph_normalized_y].m_data[c] = y;
+    }
+  attributes[GlyphRenderDataBandedRays::glyph_num_vertical_bands].m_data = uvec4(num_vertical_bands);
+  attributes[GlyphRenderDataBandedRays::glyph_num_horizontal_bands].m_data = uvec4(num_horizontal_bands);
+
+  /* the leading two bits encode the fill rule */
+  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(31u, 1)) == 0u);
+  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(30u, 1)) == 0u);
+  if (f == PainterEnums::odd_even_fill_rule
+      || f == PainterEnums::complement_odd_even_fill_rule)
+    {
+      data_offset |= FASTUIDRAW_MASK(31u, 1);
+    }
+  if (f == PainterEnums::complement_odd_even_fill_rule
+      || f == PainterEnums::complement_nonzero_fill_rule)
+    {
+      data_offset |= FASTUIDRAW_MASK(30u, 1);
+    }
+
+  attributes[GlyphRenderDataBandedRays::glyph_offset].m_data = uvec4(data_offset);
+}
+
 /////////////////////////////////////////////////
 // fastuidraw::GlyphRenderDataBandedRays methods
 fastuidraw::GlyphRenderDataBandedRays::
@@ -908,7 +965,8 @@ finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect,
   d->m_glyph->transform_curves(glyph_rect);
 
   /* step 1: break into split-bands; The split is -ALWAYS-
-   *         in the middle.
+   *         in the middle. Also, record the render costs
+   *         comptue from the bands.
    */
   std::vector<Band<horizontal_band> > split_horiz_bands;
   std::vector<Band<vertical_band> > split_vert_bands;
@@ -1021,34 +1079,10 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
     }
 
   attributes.resize(glyph_num_attributes);
-  for (unsigned int c = 0; c < 4; ++c)
-    {
-      uint32_t x, y;
-
-      x = (c & GlyphAttribute::right_corner_mask) ? 1u : 0u;
-      y = (c & GlyphAttribute::top_corner_mask)   ? 1u : 0u;
-
-      attributes[glyph_normalized_x].m_data[c] = x;
-      attributes[glyph_normalized_y].m_data[c] = y;
-    }
-  attributes[glyph_num_vertical_bands].m_data = uvec4(d->m_num_bands[vertical_band]);
-  attributes[glyph_num_horizontal_bands].m_data = uvec4(d->m_num_bands[horizontal_band]);
-
-  /* the leading two bits encode the fill rule */
-  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(31u, 1)) == 0u);
-  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(30u, 1)) == 0u);
-  if (d->m_fill_rule == PainterEnums::odd_even_fill_rule
-      || d->m_fill_rule == PainterEnums::complement_odd_even_fill_rule)
-    {
-      data_offset |= FASTUIDRAW_MASK(31u, 1);
-    }
-  if (d->m_fill_rule == PainterEnums::complement_odd_even_fill_rule
-      || d->m_fill_rule == PainterEnums::complement_nonzero_fill_rule)
-    {
-      data_offset |= FASTUIDRAW_MASK(30u, 1);
-    }
-
-  attributes[glyph_offset].m_data = uvec4(data_offset);
+  d->fill_glyph_attributes(attributes,
+                           d->m_num_bands[vertical_band],
+                           d->m_num_bands[horizontal_band],
+                           d->m_fill_rule, data_offset);
 
   for (unsigned int i = 0; i < num_costs; ++i)
     {
@@ -1060,8 +1094,7 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
 
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataBandedRays::
-query(c_array<const fastuidraw::generic_data> *gpu_data,
-      int *number_vertical_bands, int *number_horizontal_bands) const
+query(query_info *out_info) const
 {
   GlyphRenderDataBandedRaysPrivate *d;
   d = static_cast<GlyphRenderDataBandedRaysPrivate*>(m_d);
@@ -1071,10 +1104,23 @@ query(c_array<const fastuidraw::generic_data> *gpu_data,
     {
       return routine_fail;
     }
-
-  *gpu_data = make_c_array(d->m_render_data);
-  *number_vertical_bands = d->m_num_bands[vertical_band];
-  *number_horizontal_bands = d->m_num_bands[horizontal_band];
+  out_info->m_number_vertical_bands = d->m_num_bands[vertical_band];
+  out_info->m_number_horizontal_bands = d->m_num_bands[horizontal_band];
+  out_info->m_gpu_data = make_c_array(d->m_render_data);
 
   return routine_success;
+}
+
+///////////////////////////////////////////////////////////
+// fastuidraw::GlyphRenderDataBandedRays::query_info methods
+void
+fastuidraw::GlyphRenderDataBandedRays::query_info::
+set_glyph_attributes(vecN<GlyphAttribute, glyph_num_attributes> *out_attribs,
+                     enum PainterEnums::fill_rule_t fill_rule,
+                     uint32_t offset)
+{
+  GlyphRenderDataBandedRaysPrivate::fill_glyph_attributes(*out_attribs,
+                                                          m_number_vertical_bands,
+                                                          m_number_horizontal_bands,
+                                                          fill_rule, offset);
 }
