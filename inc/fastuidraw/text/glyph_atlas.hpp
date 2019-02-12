@@ -155,6 +155,12 @@ namespace fastuidraw
     clear(void);
 
     /*!
+     * Returns the number of times that clear() has been called.
+     */
+    unsigned int
+    number_times_cleared(void) const;
+
+    /*!
      * Calls GlyphAtlasBackingStoreBase::flush() on
      * the  backing store (see store()).
      */

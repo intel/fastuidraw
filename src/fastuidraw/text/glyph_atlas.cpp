@@ -46,7 +46,8 @@ namespace
       m_store(pstore),
       m_store_constant(m_store),
       m_data_allocator(pstore->size()),
-      m_data_allocated(0)
+      m_data_allocated(0),
+      m_number_times_cleared(0)
     {
       FASTUIDRAWassert(m_store);
     };
@@ -55,6 +56,7 @@ namespace
     fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasBackingStoreBase> m_store_constant;
     fastuidraw::interval_allocator m_data_allocator;
     unsigned int m_data_allocated;
+    unsigned int m_number_times_cleared;
   };
 }
 
@@ -191,6 +193,16 @@ clear(void)
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
   d->m_data_allocator.reset(d->m_data_allocator.size());
+  ++d->m_number_times_cleared;
+}
+
+unsigned int
+fastuidraw::GlyphAtlas::
+number_times_cleared(void) const
+{
+  GlyphAtlasPrivate *d;
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+  return d->m_number_times_cleared;
 }
 
 void
