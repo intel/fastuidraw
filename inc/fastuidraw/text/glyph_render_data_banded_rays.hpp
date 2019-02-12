@@ -114,7 +114,10 @@ namespace fastuidraw
     enum
       {
         /* The glyph coordinate value in each coordiante varies
-         * from -\ref glyph_coord_value to +\ref glyph_coord_value
+         * from -\ref glyph_coord_value to +\ref glyph_coord_value,
+         * i.e. the glyph is drawn as rect with min-corner
+         * (-\ref glyph_coord_value, -\ref glyph_coord_value)
+         * and max-corner (+\ref glyph_coord_value, +\ref glyph_coord_value)
          */
         glyph_coord_value = 32,
       };
@@ -253,9 +256,14 @@ namespace fastuidraw
      * \ref routine_fail if finalize() has not yet been called.
      * \param gpu_data location to which to write a c_array to the
      *                 GPU data.
+     * \param num_vert_bands location to which to write the number of
+     *                       vertical bands of the glyph
+     * \param num_horiz_bands location to which to write the number of
+     *                        horizontal bands of the glyph
      */
     enum return_code
-    query(c_array<const fastuidraw::generic_data> *gpu_data) const;
+    query(c_array<const fastuidraw::generic_data> *gpu_data,
+          int *num_vert_bands, int *num_horiz_bands) const;
 
     virtual
     c_array<const c_string>

@@ -1055,7 +1055,8 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
 
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataBandedRays::
-query(c_array<const fastuidraw::generic_data> *gpu_data) const
+query(c_array<const fastuidraw::generic_data> *gpu_data,
+      int *number_vertical_bands, int *number_horizontal_bands) const
 {
   GlyphRenderDataBandedRaysPrivate *d;
   d = static_cast<GlyphRenderDataBandedRaysPrivate*>(m_d);
@@ -1067,6 +1068,8 @@ query(c_array<const fastuidraw::generic_data> *gpu_data) const
     }
 
   *gpu_data = make_c_array(d->m_render_data);
+  *number_vertical_bands = d->m_num_bands[vertical_band];
+  *number_horizontal_bands = d->m_num_bands[horizontal_band];
 
   return routine_success;
 }
