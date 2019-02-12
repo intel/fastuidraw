@@ -247,6 +247,19 @@ namespace fastuidraw
              const vec2 p_bl, const vec2 p_tr);
 
     /*!
+     * Given an index into an array of \ref GlyphAttribute values,
+     * as used by pack_raw() or returned by \ref attribute()),
+     * return the point to member variable of which attribute is
+     * written to from the glyph attribute value and what component
+     * of it.
+     */
+    static
+    void
+    glyph_attribute_dst_write(int glyph_attribute_index,
+                              PainterAttribute::pointer_to_field *out_attribute,
+                              int *out_index_into_attribute);
+
+    /*!
      * Provides information on the rendering cost of the Glyph,
      * entirely dependent on the \ref GlyphRenderData that generated
      * the data.
