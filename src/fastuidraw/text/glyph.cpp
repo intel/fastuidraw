@@ -16,6 +16,7 @@
  *
  */
 
+#include <algorithm>
 #include <fastuidraw/text/glyph.hpp>
 
 namespace
