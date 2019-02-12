@@ -275,7 +275,7 @@ namespace
                                           fastuidraw::Path &path,
                                           fastuidraw::vec2 &render_size);
 
-    template<typename T>
+    template<typename T, typename P>
     void
     compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
                                 T &output,
@@ -295,10 +295,11 @@ namespace
     void
     compute_rendering_data_rays_finalize(fastuidraw::GlyphMetrics /*glyph_metrics*/,
                                          fastuidraw::GlyphRenderDataBandedRays &output,
-                                         const fastuidraw::RectT<int> &rect,
+                                         const fastuidraw::RectT<int> &rectI,
                                          int /*scale_factor*/,
                                          enum fastuidraw::PainterEnums::fill_rule_t fill_rule)
     {
+      fastuidraw::Rect rect(rectI);
       output.finalize(fill_rule, rect);
     }
 
@@ -539,7 +540,7 @@ compute_rendering_data_distance_field(fastuidraw::GlyphMetrics glyph_metrics,
                                    &output);
 }
 
-template<typename T>
+template<typename T, typename P>
 void
 FontFreeTypePrivate::
 compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
@@ -605,18 +606,18 @@ compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
     {
       if (!contour.curves().empty())
         {
-          output.move_to(contour.curves().front().control_pts().front());
+          output.move_to(P(contour.curves().front().control_pts().front()));
           for (const auto &curve: contour.curves())
             {
               if (curve.degree() == 2)
                 {
-                  output.quadratic_to(curve.control_pts()[1],
-                                      curve.control_pts()[2]);
+                  output.quadratic_to(P(curve.control_pts()[1]),
+                                      P(curve.control_pts()[2]));
                 }
               else
                 {
                   FASTUIDRAWassert(curve.degree() == 1);
-                  output.line_to(curve.control_pts()[1]);
+                  output.line_to(P(curve.control_pts()[1]));
                 }
             }
         }
@@ -791,7 +792,7 @@ compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
       {
         GlyphRenderDataRestrictedRays *data;
         data = FASTUIDRAWnew GlyphRenderDataRestrictedRays();
-        d->compute_rendering_data_rays(glyph_metrics, *data, path, render_size);
+        d->compute_rendering_data_rays<GlyphRenderDataRestrictedRays, ivec2>(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;
@@ -800,7 +801,7 @@ compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
       {
         GlyphRenderDataBandedRays *data;
         data = FASTUIDRAWnew GlyphRenderDataBandedRays();
-        d->compute_rendering_data_rays(glyph_metrics, *data, path, render_size);
+        d->compute_rendering_data_rays<GlyphRenderDataBandedRays, vec2>(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;

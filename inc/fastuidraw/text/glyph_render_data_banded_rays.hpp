@@ -188,7 +188,7 @@ namespace fastuidraw
      * \param pt start point of the new contour
      */
     void
-    move_to(ivec2 pt);
+    move_to(vec2 pt);
 
     /*!
      * Add a line segment connecting the end point of the
@@ -197,7 +197,7 @@ namespace fastuidraw
      * \param pt end point of the new line segment
      */
     void
-    line_to(ivec2 pt);
+    line_to(vec2 pt);
 
     /*!
      * Add a quadratic curveconnecting the end point of the
@@ -206,7 +206,7 @@ namespace fastuidraw
      * \param pt end point of the quadratic curve
      */
     void
-    quadratic_to(ivec2 ct, ivec2 pt);
+    quadratic_to(vec2 ct, vec2 pt);
 
     /*!
      * Finalize the input data after which no more contours or curves may be added;
@@ -219,7 +219,7 @@ namespace fastuidraw
      * \param glyph_rect the rect of the glpyh
      */
     void
-    finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect);
+    finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect);
 
     /*!
      * Query the data; may only be called after finalize(). Returns

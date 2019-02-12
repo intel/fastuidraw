@@ -54,13 +54,33 @@ namespace
     return fp16.x() | (fp16.y() << 16u);
   }
 
+  bool
+  is_flat(float a, float b, float c)
+  {
+    fastuidraw::vec3 v(a, b, c);
+    fastuidraw::vecN<uint16_t, 3> hv;
+
+    fastuidraw::convert_to_fp16(v, hv);
+    return hv[0] == hv[1] && hv[1] == hv[2];
+  }
+
+  bool
+  is_flat(float a, float b)
+  {
+    fastuidraw::vec2 v(a, b);
+    fastuidraw::vecN<uint16_t, 2> hv;
+
+    fastuidraw::convert_to_fp16(v, hv);
+    return hv[0] == hv[1];
+  }
+
   class GlyphPath;
 
   class Transformation
   {
   public:
     explicit
-    Transformation(const fastuidraw::RectT<int> &glyph_rect)
+    Transformation(const fastuidraw::Rect &glyph_rect)
     {
       const float V(2 * fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value);
       const float M(-fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value);
@@ -82,23 +102,23 @@ namespace
   class Curve
   {
   public:
-    Curve(fastuidraw::ivec2 a,
-          fastuidraw::ivec2 b):
+    Curve(fastuidraw::vec2 a,
+          fastuidraw::vec2 b):
       m_start(a),
       m_end(b),
       m_control((m_start + m_end) * 0.5f),
-      m_is_horizontal(a.y() == b.y()),
-      m_is_vertical(a.x() == b.x())
+      m_is_horizontal(is_flat(a.y(), b.y())),
+      m_is_vertical(is_flat(a.x(), b.x()))
     {}
 
-    Curve(fastuidraw::ivec2 a,
-          fastuidraw::ivec2 ct,
-          fastuidraw::ivec2 b):
+    Curve(fastuidraw::vec2 a,
+          fastuidraw::vec2 ct,
+          fastuidraw::vec2 b):
       m_start(a),
       m_end(b),
       m_control(ct),
-      m_is_horizontal(a.y() == b.y() && a.y() == ct.y()),
-      m_is_vertical(a.x() == b.x() && a.x() == ct.x())
+      m_is_horizontal(is_flat(a.y(), b.y(), ct.y())),
+      m_is_vertical(is_flat(a.x(), b.x(), ct.x()))
     {}
 
     void
@@ -209,12 +229,12 @@ namespace
     {}
 
     explicit
-    Contour(fastuidraw::ivec2 pt):
+    Contour(fastuidraw::vec2 pt):
       m_last_pt(pt)
     {}
 
     void
-    line_to(fastuidraw::ivec2 pt)
+    line_to(fastuidraw::vec2 pt)
     {
       if (m_last_pt != pt)
         {
@@ -224,8 +244,8 @@ namespace
     }
 
     void
-    quadratic_to(fastuidraw::ivec2 ct,
-                 fastuidraw::ivec2 pt)
+    quadratic_to(fastuidraw::vec2 ct,
+                 fastuidraw::vec2 pt)
     {
       if (m_last_pt != pt)
         {
@@ -263,7 +283,7 @@ namespace
     }
 
   private:
-    fastuidraw::ivec2 m_last_pt;
+    fastuidraw::vec2 m_last_pt;
     std::vector<Curve> m_curves;
   };
 
@@ -350,7 +370,7 @@ namespace
     {}
 
     void
-    move_to(fastuidraw::ivec2 pt)
+    move_to(fastuidraw::vec2 pt)
     {
       if (!m_contours.empty() && m_contours.back().empty())
         {
@@ -361,15 +381,15 @@ namespace
     }
 
     void
-    quadratic_to(fastuidraw::ivec2 ct,
-                 fastuidraw::ivec2 pt)
+    quadratic_to(fastuidraw::vec2 ct,
+                 fastuidraw::vec2 pt)
     {
       FASTUIDRAWassert(!m_contours.empty());
       m_contours.back().quadratic_to(ct, pt);
     }
 
     void
-    line_to(fastuidraw::ivec2 pt)
+    line_to(fastuidraw::vec2 pt)
     {
       FASTUIDRAWassert(!m_contours.empty());
       m_contours.back().line_to(pt);
@@ -407,7 +427,7 @@ namespace
     }
 
     void
-    transform_curves(const fastuidraw::RectT<int> &bb);
+    transform_curves(const fastuidraw::Rect &bb);
 
   private:
     std::vector<Contour> m_contours;
@@ -768,7 +788,7 @@ divide(std::vector<Band> *dst, const GlyphPath &path, float slack) const
 //GlyphPath methods
 void
 GlyphPath::
-transform_curves(const fastuidraw::RectT<int> &bb)
+transform_curves(const fastuidraw::Rect &bb)
 {
   while (!m_contours.empty() && m_contours.back().empty())
     {
@@ -802,7 +822,7 @@ fastuidraw::GlyphRenderDataBandedRays::
 
 void
 fastuidraw::GlyphRenderDataBandedRays::
-move_to(ivec2 pt)
+move_to(vec2 pt)
 {
   GlyphRenderDataBandedRaysPrivate *d;
 
@@ -817,7 +837,7 @@ move_to(ivec2 pt)
 
 void
 fastuidraw::GlyphRenderDataBandedRays::
-quadratic_to(ivec2 ct, ivec2 pt)
+quadratic_to(vec2 ct, vec2 pt)
 {
   GlyphRenderDataBandedRaysPrivate *d;
 
@@ -832,7 +852,7 @@ quadratic_to(ivec2 ct, ivec2 pt)
 
 void
 fastuidraw::GlyphRenderDataBandedRays::
-line_to(ivec2 pt)
+line_to(vec2 pt)
 {
   GlyphRenderDataBandedRaysPrivate *d;
 
@@ -847,7 +867,7 @@ line_to(ivec2 pt)
 
 void
 fastuidraw::GlyphRenderDataBandedRays::
-finalize(enum PainterEnums::fill_rule_t f, const RectT<int> &glyph_rect)
+finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect)
 {
   GlyphRenderDataBandedRaysPrivate *d;
   ivec2 sz;
