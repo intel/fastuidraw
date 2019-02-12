@@ -68,6 +68,16 @@ namespace fastuidraw
         return m_size > 0;
       }
 
+      /*!
+       * Returns the location within the GlyphAtlas of the
+       * allocated data.
+       */
+      unsigned int
+      location(void) const
+      {
+        return m_location;
+      }
+
     private:
       friend class GlyphCache;
       unsigned int m_location, m_size;
