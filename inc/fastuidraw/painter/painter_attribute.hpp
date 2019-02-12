@@ -38,6 +38,12 @@ namespace fastuidraw
   {
   public:
     /*!
+     * conveniance typedef to declare point to an element
+     * of PainterAttribute.
+     */
+    typedef uvec4 PainterAttribute::*pointer_to_field;
+
+    /*!
      * Generic attribute data
      */
     uvec4 m_attrib0;
