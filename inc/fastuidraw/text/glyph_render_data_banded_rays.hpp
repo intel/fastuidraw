@@ -162,11 +162,11 @@ namespace fastuidraw
         /*!
          * the index into GlyphAttribute::m_data storing
          * the fill rule and the offset into the store for
-         * the glyph data. The offset is encoded in the
-         * lower 31 bits (i.e. just mask off bit31) and
-         * the fill rule is non-zero fill rule if bit31
-         * is down and the odd-even fill rule if bit31
-         * is up.
+         * the glyph data. The offset is encoded as follows
+         *  - bits0-bits29 encode the offset
+         *  - bit30 indicates to complement fill
+         *  - bit31 up indicates odd-even fill rule and
+         *          down indicates non-zero fill rule.
          */
         glyph_offset,
 

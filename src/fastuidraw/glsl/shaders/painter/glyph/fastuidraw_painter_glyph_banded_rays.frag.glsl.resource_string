@@ -23,6 +23,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   uint data_location;
   float cvg;
   const uint bit31 = 0x80000000u;
+  const uint bit30 = 0x40000000u;
   bool is_odd_even_fill_rule;
 
   glyph_coord = vec2(fastuidraw_glyph_coord_x,
@@ -31,11 +32,16 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                             fwidth(fastuidraw_glyph_coord_y));
 
   is_odd_even_fill_rule = (fastuidraw_glyph_data_location & bit31) != 0u;
-  data_location = fastuidraw_glyph_data_location & ~bit31;
+  data_location = fastuidraw_glyph_data_location & ~(bit31 | bit30);
 
   cvg = fastuidraw_banded_rays_compute_coverage(data_location, glyph_coord, glyph_coord_fwidth,
                                                 fastuidraw_glyph_data_num_vertical_bands,
                                                 fastuidraw_glyph_data_num_horizontal_bands);
+
+  if ((fastuidraw_glyph_data_location & bit30) != 0u)
+    {
+      cvg = 1.0 - cvg;
+    }
 
   return vec4(1.0, 1.0, 1.0, cvg);
 }

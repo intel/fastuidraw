@@ -888,7 +888,6 @@ finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect,
       return;
     }
 
-  FASTUIDRAWassert(f == PainterEnums::odd_even_fill_rule || f == PainterEnums::nonzero_fill_rule);
   d->m_fill_rule = f;
 
   if (d->m_glyph->num_contours() == 0
@@ -1035,14 +1034,20 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
   attributes[glyph_num_vertical_bands].m_data = uvec4(d->m_num_bands[vertical_band]);
   attributes[glyph_num_horizontal_bands].m_data = uvec4(d->m_num_bands[horizontal_band]);
 
-  /* If the fill rule is odd-even, the leading bit
-   * of data_offset is made to be up.
-   */
+  /* the leading two bits encode the fill rule */
   FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(31u, 1)) == 0u);
-  if (d->m_fill_rule == PainterEnums::odd_even_fill_rule)
+  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(30u, 1)) == 0u);
+  if (d->m_fill_rule == PainterEnums::odd_even_fill_rule
+      || d->m_fill_rule == PainterEnums::complement_odd_even_fill_rule)
     {
       data_offset |= FASTUIDRAW_MASK(31u, 1);
     }
+  if (d->m_fill_rule == PainterEnums::complement_odd_even_fill_rule
+      || d->m_fill_rule == PainterEnums::complement_nonzero_fill_rule)
+    {
+      data_offset |= FASTUIDRAW_MASK(30u, 1);
+    }
+
   attributes[glyph_offset].m_data = uvec4(data_offset);
 
   for (unsigned int i = 0; i < num_costs; ++i)
