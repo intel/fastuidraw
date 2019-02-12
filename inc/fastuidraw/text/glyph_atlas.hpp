@@ -113,8 +113,9 @@ namespace fastuidraw
    * \brief
    * A GlyphAtlas is a common location to place glyph data of
    * an application. Ideally, all glyph data is placed into a
-   * single GlyphAtlas. Methods of GlyphAtlas are thread
-   * safe, locked behind a mutex of the GlyphAtlas.
+   * single GlyphAtlas. Methods of GlyphAtlas are NOT thread
+   * safe and a user of GlyphAtlas must make sure that access
+   * is locked behind a mutex.
    */
   class GlyphAtlas:
     public reference_counted<GlyphAtlas>::default_base
@@ -168,7 +169,7 @@ namespace fastuidraw
     flush(void) const;
 
     /*!
-     * Returns the  store for this GlyphAtlas.
+     * Returns the store for this GlyphAtlas.
      */
     const reference_counted_ptr<const GlyphAtlasBackingStoreBase>&
     store(void) const;
