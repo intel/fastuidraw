@@ -582,7 +582,7 @@ metrics(void) const
   return GlyphMetrics(p->m_metrics);
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>
+fastuidraw::GlyphCache*
 fastuidraw::Glyph::
 cache(void) const
 {

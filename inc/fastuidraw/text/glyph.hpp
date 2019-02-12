@@ -108,10 +108,10 @@ namespace fastuidraw
     /*!
      * Returns the GlyphCache on which the glyph
      * resides. The return value of valid() must be
-     * true. If not, debug builds FASTUIDRAWassert and release
-     * builds crash.
+     * true. If not, debug builds FASTUIDRAWassert
+     * and release builds crash.
      */
-    reference_counted_ptr<GlyphCache>
+    GlyphCache*
     cache(void) const;
 
     /*!
