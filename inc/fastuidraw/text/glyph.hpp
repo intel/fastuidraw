@@ -215,6 +215,38 @@ namespace fastuidraw
                enum fastuidraw::PainterEnums::glyph_layout_type layout) const;
 
     /*!
+     * Pack a single glyph into attribute and index data. A
+     * single glyph takes exactly 4 attributes and 6 indices.
+     * The data is packed as follows:
+     *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates of the
+     *                                        vertex of the quad to draw the glyph (float)
+     *   - PainterAttribute::m_attrib0 .zw -> the difference in item coordinates
+     *                                        between the bottom-left vertex position
+     *                                        and the top-right vertex position.
+     *   - PainterAttribute::m_attrib1 .x  -> Glyph::attribute()[0]
+     *   - PainterAttribute::m_attrib1 .y  -> Glyph::attribute()[1]
+     *   - PainterAttribute::m_attrib1. z  -> Glyph::attribute()[2]
+     *   - PainterAttribute::m_attrib1 .w  -> Glyph::attribute()[3]
+     *   - PainterAttribute::m_attrib2 .x  -> Glyph::attribute()[4]
+     *   - PainterAttribute::m_attrib2 .y  -> Glyph::attribute()[5]
+     *   - PainterAttribute::m_attrib2 .z  -> Glyph::attribute()[6]
+     *   - PainterAttribute::m_attrib2 .w  -> Glyph::attribute()[7]
+     * \param glyph_attributes glyph attribute data
+     * \param attrib_loc index into dst_attrib to which to write data
+     * \param dst_attrib location to which to pack attributes
+     * \param index_loc index into dst_index to which to write data
+     * \param dst_index location to which to pack indices
+     * \param p_bl position of bottom left of glyph
+     * \param p_tr position of top right of glyph
+     */
+    static
+    void
+    pack_raw(c_array<const GlyphAttribute> glyph_attributes,
+             unsigned int attrib_loc, c_array<PainterAttribute> dst_attrib,
+             unsigned int index_loc, c_array<PainterIndex> dst_index,
+             const vec2 p_bl, const vec2 p_tr);
+
+    /*!
      * Provides information on the rendering cost of the Glyph,
      * entirely dependent on the \ref GlyphRenderData that generated
      * the data.

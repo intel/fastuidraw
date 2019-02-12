@@ -23,7 +23,7 @@ namespace
 {
   inline
   fastuidraw::vec2
-  glyph_position(fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
+  glyph_position(const fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
                  unsigned int corner_enum)
   {
     fastuidraw::vec2 v;
@@ -51,7 +51,7 @@ namespace
   inline
   void
   pack_glyph_attribute(fastuidraw::PainterAttribute *dst, unsigned int corner_enum,
-                       fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
+                       const fastuidraw::vec2 &p_bl, const fastuidraw::vec2 &p_tr,
                        fastuidraw::c_array<const fastuidraw::GlyphAttribute> glyph_attribs)
   {
     fastuidraw::vec2 p(glyph_position(p_bl, p_tr, corner_enum));
@@ -85,29 +85,20 @@ pack_glyph(unsigned int attrib_loc, c_array<PainterAttribute> dst,
            enum fastuidraw::PainterEnums::screen_orientation orientation,
            enum fastuidraw::PainterEnums::glyph_layout_type layout) const
 {
-  dst = dst.sub_array(attrib_loc, 4);
-  dst_index = dst_index.sub_array(index_loc, 6);
-
   if (!valid())
     {
-      std::fill(dst_index.begin(), dst_index.end(), 0);
+      dst = dst.sub_array(attrib_loc, 4);
+      dst_index = dst_index.sub_array(index_loc, 6);
+      std::fill(dst_index.begin(), dst_index.end(), attrib_loc);
       std::fill(dst.begin(), dst.end(), PainterAttribute());
       return;
     }
 
-  dst_index[0] = attrib_loc + fastuidraw::GlyphAttribute::bottom_left_corner;
-  dst_index[1] = attrib_loc + fastuidraw::GlyphAttribute::bottom_right_corner;
-  dst_index[2] = attrib_loc + fastuidraw::GlyphAttribute::top_right_corner;
-  dst_index[3] = attrib_loc + fastuidraw::GlyphAttribute::bottom_left_corner;
-  dst_index[4] = attrib_loc + fastuidraw::GlyphAttribute::top_left_corner;
-  dst_index[5] = attrib_loc + fastuidraw::GlyphAttribute::top_right_corner;
-
-  c_array<const GlyphAttribute> glyph_attributes;
+  Rect rect;
   vec2 glyph_size(0.0f, 0.0f);
   vec2 p_bl, p_tr;
   vec2 layout_offset(0.0f, 0.0f);
 
-  glyph_attributes = attributes();
   glyph_size = scale_factor * render_size();
   layout_offset = (layout == fastuidraw::PainterEnums::glyph_layout_horizontal) ?
     metrics().horizontal_layout_offset() :
@@ -126,6 +117,27 @@ pack_glyph(unsigned int attrib_loc, c_array<PainterAttribute> dst,
       p_bl = p + scale_factor * layout_offset;
       p_tr = p_bl + glyph_size;
     }
+
+  pack_raw(attributes(), attrib_loc, dst,
+           index_loc, dst_index, p_bl, p_tr);
+}
+
+void
+fastuidraw::Glyph::
+pack_raw(c_array<const GlyphAttribute> glyph_attributes,
+         unsigned int attrib_loc, c_array<PainterAttribute> dst,
+         unsigned int index_loc, c_array<PainterIndex> dst_index,
+         const vec2 p_bl, const vec2 p_tr)
+{
+  dst = dst.sub_array(attrib_loc, 4);
+  dst_index = dst_index.sub_array(index_loc, 6);
+
+  dst_index[0] = attrib_loc + fastuidraw::GlyphAttribute::bottom_left_corner;
+  dst_index[1] = attrib_loc + fastuidraw::GlyphAttribute::bottom_right_corner;
+  dst_index[2] = attrib_loc + fastuidraw::GlyphAttribute::top_right_corner;
+  dst_index[3] = attrib_loc + fastuidraw::GlyphAttribute::bottom_left_corner;
+  dst_index[4] = attrib_loc + fastuidraw::GlyphAttribute::top_left_corner;
+  dst_index[5] = attrib_loc + fastuidraw::GlyphAttribute::top_right_corner;
 
   for (unsigned int corner_enum = 0; corner_enum < 4; ++corner_enum)
     {
