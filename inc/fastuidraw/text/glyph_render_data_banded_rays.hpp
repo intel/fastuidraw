@@ -217,6 +217,33 @@ namespace fastuidraw
      *          PainterEnums::nonzero_fill_rule or \ref
      *          PainterEnums::odd_even_fill_rule.
      * \param glyph_rect the rect of the glpyh
+     * \param max_recursion maximum level of recursion to employ to reduce the
+     *                      complexity of each band. The number of bands that are
+     *                      generated in a dimension is 2^N where N is the number
+     *                      of levels of recursion used to generate bands.
+     * \param avg_num_curves_thresh when a band is generated, the average number of
+     *                              curves needed to perform the coverage computation
+     *                              is computed. When that value is lower than this
+     *                              parameter, the band is considered that is does
+     *                              not need to be reduced to smaller bands.
+     */
+    void
+    finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect,
+             int max_recursion, float avg_num_curves_thresh);
+
+    /*!
+     * Finalize the input data after which no more contours or curves may be added;
+     * all added contours must be closed before calling finalize(). Once finalize()
+     * is called, no further data can be added. All contours added must be closed as
+     * well. Provided as a conveniance, equivalent to
+     * \code
+     * finalize(f, glyph_rect, GlyphGenerateParams::banded_rays_max_recursion(),
+     *          GlyphGenerateParams::banded_rays_average_number_curves_thresh());
+     * \endcode
+     * \param f fill rule to use for rendering, must be one of
+     *          PainterEnums::nonzero_fill_rule or \ref
+     *          PainterEnums::odd_even_fill_rule.
+     * \param glyph_rect the rect of the glpyh
      */
     void
     finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect);

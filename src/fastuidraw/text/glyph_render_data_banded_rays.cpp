@@ -308,7 +308,8 @@ namespace
   public:
     static
     float
-    create_bands(std::vector<Band> *dst, const GlyphPath &path);
+    create_bands(std::vector<Band> *dst, const GlyphPath &path,
+                 unsigned int max_num_iterations, float avg_curve_thresh);
 
     void
     assign_curve_list_offset(CurveListHoard<BandType> &hoard, uint32_t &value)
@@ -674,13 +675,12 @@ Band(const GlyphPath &path, const Band *parent, float min_v, float max_v):
 template<enum band_t BandType>
 float
 Band<BandType>::
-create_bands(std::vector<Band> *pdst, const GlyphPath &path)
+create_bands(std::vector<Band> *pdst, const GlyphPath &path,
+             unsigned int max_num_iterations, float avg_curve_thresh)
 {
   const float width(2 * fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value);
   const float epsilon(1e-5);
   const float slack(epsilon * width);
-  const float avg_curve_thresh(fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh());
-  const unsigned int max_num_iterations(fastuidraw::GlyphGenerateParams::banded_rays_max_recursion());
   float avg_num_curves;
   unsigned int num_iterations;
   std::vector<std::vector<Band> > tmp(1);
@@ -869,6 +869,15 @@ void
 fastuidraw::GlyphRenderDataBandedRays::
 finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect)
 {
+  finalize(f, glyph_rect, GlyphGenerateParams::banded_rays_max_recursion(),
+           GlyphGenerateParams::banded_rays_average_number_curves_thresh());
+}
+
+void
+fastuidraw::GlyphRenderDataBandedRays::
+finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect,
+         int max_recursion, float avg_num_curves_thresh)
+{
   GlyphRenderDataBandedRaysPrivate *d;
   ivec2 sz;
 
@@ -905,10 +914,17 @@ finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect)
   std::vector<Band<horizontal_band> > split_horiz_bands;
   std::vector<Band<vertical_band> > split_vert_bands;
 
-  d->m_render_cost[horizontal_band_avg_curve_count] = Band<horizontal_band>::create_bands(&split_horiz_bands, *d->m_glyph);
-  d->m_render_cost[vertical_band_avg_curve_count] = Band<vertical_band>::create_bands(&split_vert_bands, *d->m_glyph);
+  d->m_render_cost[horizontal_band_avg_curve_count]
+    = Band<horizontal_band>::create_bands(&split_horiz_bands, *d->m_glyph,
+                                          max_recursion, avg_num_curves_thresh);
+
+  d->m_render_cost[vertical_band_avg_curve_count]
+    = Band<vertical_band>::create_bands(&split_vert_bands, *d->m_glyph,
+                                        max_recursion, avg_num_curves_thresh);
+
   d->m_render_cost[number_horizontal_bands] = split_horiz_bands.size();
   d->m_render_cost[number_vertical_bands] = split_vert_bands.size();
+
   d->m_render_cost[total_number_curves] = d->m_glyph->total_number_curves();
 
   /* step 2: compute the offsets. The data packing is first
