@@ -6,7 +6,7 @@ d		:= $(dir)
 
 FASTUIDRAW_SOURCES += $(call filelist, glyph_atlas.cpp \
 	font.cpp glyph_attribute.cpp font_database.cpp \
-	glyph_render_data.cpp \
+	glyph_renderer.cpp \
 	glyph_render_data_restricted_rays.cpp \
 	glyph_render_data_banded_rays.cpp \
 	glyph_render_data_texels.cpp \

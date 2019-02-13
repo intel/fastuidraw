@@ -1,6 +1,6 @@
 /*!
- * \file glyph_render_data.cpp
- * \brief file glyph_render_data.cpp
+ * \file glyph_renderer.cpp
+ * \brief file glyph_renderer.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -79,11 +79,4 @@ fastuidraw::GlyphRenderer::
 scalable(enum glyph_type tp)
 {
   return tp != coverage_glyph;
-}
-
-////////////////////////////////////
-// fastuidraw::GlyphRenderData methods
-fastuidraw::GlyphRenderData::
-~GlyphRenderData()
-{
 }
