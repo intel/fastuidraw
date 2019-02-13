@@ -4063,6 +4063,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
   image_atlas()->lock_resources();
   colorstop_atlas()->lock_resources();
+  glyph_atlas()->lock_resources();
 
   d->m_viewport = surface->viewport();
   d->m_transparency_stack_entry_factory.begin(surface->dimensions(), d->m_viewport);
@@ -4139,6 +4140,7 @@ end(void)
   /* unlock resources after the commands are sent to the GPU */
   image_atlas()->unlock_resources();
   colorstop_atlas()->unlock_resources();
+  glyph_atlas()->unlock_resources();
 
   return make_c_array(d->m_transparency_stack_entry_factory.active_surfaces());
 }
