@@ -174,7 +174,8 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
                                         in vec2 glyph_coord,
                                         in vec2 glyph_coord_fwidth,
                                         in uint num_vertical_bands,
-                                        in uint num_horizontal_bands)
+                                        in uint num_horizontal_bands,
+                                        in bool use_odd_even_rule)
 {
   uint horiz_band_offset, vert_band_offset;
   uint c, curve_src, num_curves, curve_offset;
@@ -247,6 +248,14 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
   fastuidraw_banded_rays_compute_coverage_from_band(vert_band_data.curve_offset + glyph_data_location,
                                                     vert_band_data.num_curves, glyph_coord.yx,
                                                     em.y, sy, coverage.y, nearest_curve_distance.y);
+
+  /* We support the odd-even fill rule by removing
+   * the "2n" part of coverage.
+   */
+  if (use_odd_even_rule)
+    {
+      coverage = 2.0 * fract(0.5 * coverage);
+    }
 
   /* We assign a weight to each of the coverage values from how close the
    * closes curve is to the sample point. A curve only starts to provide

@@ -139,7 +139,8 @@ namespace fastuidraw
        *                                         in vec2 glyph_coord,
        *                                         in vec2 glyph_coord_fwidth,
        *                                         in uint num_vertical_bands,
-       *                                         in uint num_horizontal_bands)
+       *                                         in uint num_horizontal_bands,
+       *                                         in bool use_odd_even_rule)
        *
        * \endcode
        * That compute the coverage from glyph data as packed by \ref
@@ -156,6 +157,8 @@ namespace fastuidraw
        *   - num_horizontal_bands is the number of verical bands of the banded ray glyph,
        *     i.e. the value packed into the glyph attribute \ref
        *     GlyphRenderDataBandedRays::glyph_num_horizontal_bands
+       *   - use_odd_even_rule if true, fill with the odd-even fill rule, otherwise
+       *     fill with the non-zero fill rule.
        *
        * The returned \ref ShaderSource also includes a large number of utility
        * functions and structs each prefixed with fastuidraw_banded_rays_ that

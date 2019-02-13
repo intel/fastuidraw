@@ -36,7 +36,8 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   cvg = fastuidraw_banded_rays_compute_coverage(data_location, glyph_coord, glyph_coord_fwidth,
                                                 fastuidraw_glyph_data_num_vertical_bands,
-                                                fastuidraw_glyph_data_num_horizontal_bands);
+                                                fastuidraw_glyph_data_num_horizontal_bands,
+                                                is_odd_even_fill_rule);
 
   if ((fastuidraw_glyph_data_location & bit30) != 0u)
     {
