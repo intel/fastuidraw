@@ -1294,6 +1294,29 @@ namespace fastuidraw
               enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_auto);
 
     /*!
+     * Fill a path via \ref ShaderFilledPath
+     * \param shader shader with which to draw the \ref ShaderFilledPath
+     * \param draw data for how to draw
+     * \param path \ref ShaderFilledPath to fill
+     * \param fill_rule fill rule to apply to fill
+     */
+    void
+    fill_path(const PainterGlyphShader &shader, const PainterData &draw,
+              const ShaderFilledPath &path, enum fill_rule_t fill_rule);
+
+    /*!
+     * Fill a path via \ref ShaderFilledPath using the default shader
+     * to draw the fill.
+     * \param shader shader with which to draw the \ref ShaderFilledPath
+     * \param draw data for how to draw
+     * \param path \ref ShaderFilledPath to fill
+     * \param fill_rule fill rule to apply to fill
+     */
+    void
+    fill_path(const PainterData &draw, const ShaderFilledPath &path,
+              enum fill_rule_t fill_rule);
+
+    /*!
      * Fill a convex polygon using a custom shader.
      * \param shader shader with which to draw the convex polygon
      * \param draw data for how to draw

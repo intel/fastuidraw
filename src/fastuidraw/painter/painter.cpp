@@ -4783,6 +4783,28 @@ fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &f
             anti_alias_quality);
 }
 
+void
+fastuidraw::Painter::
+fill_path(const PainterGlyphShader &sh, const PainterData &draw,
+          const ShaderFilledPath &path, enum fill_rule_t fill_rule)
+{
+  enum glyph_type tp(path.render_type());
+  const reference_counted_ptr<PainterItemShader> &shader(sh.shader(tp));
+  c_array<const PainterAttribute> attribs;
+  c_array<const PainterIndex> indices;
+
+  path.render_data(glyph_atlas(), fill_rule, &attribs, &indices);
+  draw_generic(shader, draw, attribs, indices);
+}
+
+void
+fastuidraw::Painter::
+fill_path(const PainterData &draw, const ShaderFilledPath &path,
+          enum fill_rule_t fill_rule)
+{
+  fill_path(default_shaders().glyph_shader(), draw, path, fill_rule);
+}
+
 fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 compute_glyph_renderer(float pixel_size)
