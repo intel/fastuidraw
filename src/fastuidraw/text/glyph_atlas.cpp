@@ -16,7 +16,7 @@
  *
  */
 
-
+#include <atomic>
 #include <mutex>
 #include <fastuidraw/text/glyph_atlas.hpp>
 
@@ -61,6 +61,11 @@ namespace
       FASTUIDRAWassert(m_store);
     };
 
+    ~GlyphAtlasPrivate()
+    {
+      FASTUIDRAWassert(m_lock_resource_counter == 0);
+    }
+
     void
     clear_implement(void)
     {
@@ -80,11 +85,13 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase> m_store;
     fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasBackingStoreBase> m_store_constant;
     fastuidraw::interval_allocator m_data_allocator;
-    unsigned int m_data_allocated;
-    unsigned int m_number_times_cleared;
-    int m_lock_resource_counter;
-    bool m_clear_issued;
     std::vector<DelayedDeallocate> m_delayed_deallocates;
+
+    std::mutex m_mutex;
+    std::atomic<unsigned int> m_data_allocated;
+    std::atomic<unsigned int> m_number_times_cleared;
+    std::atomic<int> m_lock_resource_counter;
+    std::atomic<bool> m_clear_issued;
   };
 }
 
@@ -164,6 +171,8 @@ allocate_data(c_array<const generic_data> pdata)
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
+  std::lock_guard<std::mutex> m(d->m_mutex);
+
   int return_value;
   return_value = d->m_data_allocator.allocate_interval(pdata.size());
   if (return_value == -1)
@@ -202,14 +211,17 @@ deallocate_data(int location, int count)
   FASTUIDRAWassert(count > 0);
   if (d->m_lock_resource_counter == 0)
     {
+      std::lock_guard<std::mutex> m(d->m_mutex);
       d->deallocate_implement(location, count);
     }
   else
     {
-      DelayedDeallocate m;
-      m.m_location = location;
-      m.m_count = count;
-      d->m_delayed_deallocates.push_back(m);
+      DelayedDeallocate D;
+      D.m_location = location;
+      D.m_count = count;
+
+      std::lock_guard<std::mutex> m(d->m_mutex);
+      d->m_delayed_deallocates.push_back(D);
     }
 }
 
@@ -232,6 +244,7 @@ clear(void)
 
   if (d->m_lock_resource_counter == 0)
     {
+      std::lock_guard<std::mutex> m(d->m_mutex);
       d->clear_implement();
     }
   else
@@ -255,6 +268,7 @@ flush(void) const
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_store->flush();
 }
 
@@ -287,6 +301,7 @@ unlock_resources(void)
   --d->m_lock_resource_counter;
   if (d->m_lock_resource_counter == 0)
     {
+      std::lock_guard<std::mutex> m(d->m_mutex);
       if (d->m_clear_issued)
         {
           d->clear_implement();
@@ -302,3 +317,11 @@ unlock_resources(void)
       FASTUIDRAWassert(d->m_delayed_deallocates.empty());
     }
 }
+
+/* TODO:
+ *  Should we have also lock-free methods in GlyphAtlas ?
+ *  The use case is for GlyphAtlas when it is doing many
+ *  Glyph uploads, in that case it could just lock its
+ *  own mutex once instead of locking the mutex for each
+ *  GlyphAtlas interaction.
+ */

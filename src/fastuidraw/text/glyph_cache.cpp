@@ -1056,8 +1056,8 @@ clear_atlas(void)
   GlyphCachePrivate *d;
   d = static_cast<GlyphCachePrivate*>(m_d);
 
-  std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
   d->m_atlas->clear();
+  std::lock_guard<std::mutex> m(d->m_glyphs_mutex);
   for(GlyphDataPrivate *g : d->m_glyphs.data())
     {
       /* setting m_uploaded_to_atlas marks the Glyph
@@ -1106,7 +1106,6 @@ allocate_data(c_array<const generic_data> pdata)
   int L;
 
   d = static_cast<GlyphCachePrivate*>(m_d);
-  std::lock_guard<std::mutex> m1(d->m_glyphs_mutex);
   L = d->m_atlas->allocate_data(pdata);
   if (L >= 0)
     {
@@ -1125,7 +1124,6 @@ deallocate_data(AllocationHandle h)
 
   if (h.m_size > 0)
     {
-      std::lock_guard<std::mutex> m1(d->m_glyphs_mutex);
       d->m_atlas->deallocate_data(h.m_location, h.m_size);
     }
 }
