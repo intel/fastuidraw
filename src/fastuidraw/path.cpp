@@ -23,11 +23,15 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/tessellated_path.hpp>
 #include "private/util_private.hpp"
+#include "private/util_private_ostream.hpp"
 #include "private/path_util_private.hpp"
 #include "private/bounding_box.hpp"
+#include "private/bezier_util.hpp"
 
 namespace
 {
+  typedef fastuidraw::vecN<fastuidraw::vec2, 4> BezierCubic;
+
   inline
   float
   compute_distance(const fastuidraw::vec2 &a,
@@ -379,6 +383,14 @@ namespace
     void
     start_contour_if_necessary(void);
 
+    void
+    ready_shader_filled_path(void);
+
+    enum fastuidraw::return_code
+    ready_shader_filled_path_contour(fastuidraw::ShaderFilledPath::Builder *B,
+                                     const fastuidraw::PathContour *contour,
+                                     float tol);
+
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_contours;
     enum fastuidraw::PathEnums::edge_type_t m_next_edge_type;
 
@@ -390,6 +402,8 @@ namespace
     unsigned int m_start_check_bb;
     fastuidraw::BoundingBox<float> m_bb;
     bool m_is_flat;
+    bool m_shader_filled_path_ready;
+    fastuidraw::reference_counted_ptr<const fastuidraw::ShaderFilledPath> m_shader_filled_path;
     fastuidraw::Path *m_p;
   };
 }
@@ -688,6 +702,13 @@ edge_type(void) const
   InterpolatorBasePrivate *d;
   d = static_cast<InterpolatorBasePrivate*>(m_d);
   return d->m_type;
+}
+
+enum fastuidraw::return_code
+fastuidraw::PathContour::interpolator_base::
+add_to_builder(ShaderFilledPath::Builder*, float) const
+{
+  return routine_fail;
 }
 
 //////////////////////////////////////////////
@@ -1003,6 +1024,31 @@ minimum_tessellation_recursion(void) const
   return 1 + uint32_log2(d->m_start_region->pts().size());
 }
 
+enum fastuidraw::return_code
+fastuidraw::PathContour::bezier::
+add_to_builder(ShaderFilledPath::Builder *B, float tol) const
+{
+  c_array<const vec2> p(pts());
+
+  switch (p.size())
+    {
+    case 2:
+      B->line_to(p[1]);
+      return routine_success;
+    case 3:
+      B->quadratic_to(p[1], p[2]);
+      return routine_success;
+    case 4:
+      {
+        int max_recursion(5);
+        detail::add_cubic_adaptive(max_recursion, B, p, tol);
+        return routine_success;
+      }
+    default:
+      return routine_fail;
+    }
+}
+
 //////////////////////////////////////
 // fastuidraw::PathContour::flat methods
 bool
@@ -1044,6 +1090,14 @@ approximate_bounding_box(Rect *out_bb) const
 
   out_bb->m_max_point.x() = fastuidraw::t_max(p0.x(), p1.x());
   out_bb->m_max_point.y() = fastuidraw::t_max(p0.y(), p1.y());
+}
+
+enum fastuidraw::return_code
+fastuidraw::PathContour::flat::
+add_to_builder(ShaderFilledPath::Builder *B, float) const
+{
+  B->line_to(end_pt());
+  return routine_success;
 }
 
 //////////////////////////////////////
@@ -1176,6 +1230,20 @@ fastuidraw::PathContour::arc::
 deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const
 {
   return FASTUIDRAWnew arc(*this, prev);
+}
+
+enum fastuidraw::return_code
+fastuidraw::PathContour::arc::
+add_to_builder(ShaderFilledPath::Builder *builder, float tol) const
+{
+  ArcPrivate *d;
+  d = static_cast<ArcPrivate*>(m_d);
+
+  const int max_recursion(5);
+  detail::add_arc_as_cubics(max_recursion, builder, tol,
+                            start_pt(), end_pt(), d->m_center,
+                            d->m_radius, d->m_start_angle, d->m_angle_speed);
+  return routine_success;
 }
 
 ///////////////////////////////////
@@ -1582,6 +1650,7 @@ PathPrivate(fastuidraw::Path *p):
   m_tess_list(),
   m_start_check_bb(0),
   m_is_flat(true),
+  m_shader_filled_path_ready(false),
   m_p(p)
 {
 }
@@ -1594,6 +1663,8 @@ PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
   m_start_check_bb(obj.m_start_check_bb),
   m_bb(obj.m_bb),
   m_is_flat(obj.m_is_flat),
+  m_shader_filled_path_ready(obj.m_shader_filled_path_ready),
+  m_shader_filled_path(obj.m_shader_filled_path),
   m_p(p)
 {
   /* if the last contour is not closed, we need to do a
@@ -1633,6 +1704,8 @@ void
 PathPrivate::
 clear_tesses(void)
 {
+  m_shader_filled_path_ready = false;
+  m_shader_filled_path.clear();
   m_tess_list.clear();
 }
 
@@ -1655,6 +1728,68 @@ start_contour_if_necessary(void)
       pt = m_contours.back()->point(m_contours.back()->number_points() - 1);
     }
   move_common(pt);
+}
+
+enum fastuidraw::return_code
+PathPrivate::
+ready_shader_filled_path_contour(fastuidraw::ShaderFilledPath::Builder *B,
+                                 const fastuidraw::PathContour *contour,
+                                 float tol)
+{
+  using namespace fastuidraw;
+
+  /* skip empty and non-closed contours */
+  if (contour->number_interpolators() == 0)
+    {
+      return routine_success;
+    }
+
+  B->move_to(contour->interpolator(0)->start_pt());
+  for (unsigned int I = 0, endI = contour->number_interpolators(); I < endI; ++I)
+    {
+      enum return_code R;
+
+      R = contour->interpolator(I)->add_to_builder(B, tol);
+      if (R == routine_fail)
+        {
+          return R;
+        }
+    }
+
+  if (!contour->closed())
+    {
+      B->line_to(contour->interpolator(0)->start_pt());
+    }
+
+  return routine_success;
+}
+
+void
+PathPrivate::
+ready_shader_filled_path(void)
+{
+  using namespace fastuidraw;
+
+  if (m_shader_filled_path_ready)
+    {
+      return;
+    }
+  ShaderFilledPath::Builder B;
+  vec2 bb_sz(m_bb.size());
+  const float rel_tol(1e-4);
+  float tol;
+
+  tol = rel_tol * fastuidraw::t_min(bb_sz.x(), bb_sz.y());
+  m_shader_filled_path_ready = true;
+  m_shader_filled_path.clear();
+  for (const auto &contour : m_contours)
+    {
+      if (routine_fail == ready_shader_filled_path_contour(&B, contour.get(), tol))
+        {
+          return;
+        }
+    }
+  m_shader_filled_path = FASTUIDRAWnew ShaderFilledPath(B);
 }
 
 /////////////////////////////////////////
@@ -2070,4 +2205,15 @@ contour(unsigned int i) const
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
   return d->m_contours[i];
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::ShaderFilledPath>&
+fastuidraw::Path::
+shader_filled_path(void) const
+{
+  PathPrivate *d;
+  d = static_cast<PathPrivate*>(m_d);
+
+  d->ready_shader_filled_path();
+  return d->m_shader_filled_path;
 }

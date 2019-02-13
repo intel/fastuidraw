@@ -27,6 +27,7 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/path_enums.hpp>
 #include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/painter/shader_filled_path.hpp>
 
 namespace fastuidraw  {
 
@@ -176,6 +177,23 @@ public:
     interpolator_base*
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const = 0;
 
+    /*!
+     * To be optionally implemented by a derived class to add this
+     * interpolator to a \ref ShaderFilledPath::Builder. A return
+     * code of \ref routine_file means that the interpolator cannot
+     * be realized in such a way to be added and a \ref Path that
+     * includes such an interpolator in a closed contour will
+     * be unable to realized a \ref ShaderFilledPath value and
+     * \ref Path::shader_filled_path() will return a null handle.
+     * Default implementation is to return routine_fail.
+     * \param builder object to which to add interpolator.
+     * \param tol error goal between the interpolator and how it
+     *            is realized on the ShaderFilledPath::Builder
+     */
+    virtual
+    enum return_code
+    add_to_builder(ShaderFilledPath::Builder *builder, float tol) const;
+
   private:
     friend class PathContour;
     void *m_d;
@@ -216,6 +234,10 @@ public:
     virtual
     interpolator_base*
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+
+    virtual
+    enum return_code
+    add_to_builder(ShaderFilledPath::Builder *builder, float tol) const;
   };
 
   /*!
@@ -380,6 +402,10 @@ public:
     unsigned int
     minimum_tessellation_recursion(void) const;
 
+    virtual
+    enum return_code
+    add_to_builder(ShaderFilledPath::Builder *builder, float tol) const;
+
   private:
     bezier(const bezier &q,
            const reference_counted_ptr<const interpolator_base> &prev);
@@ -441,6 +467,10 @@ public:
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
                          float *out_max_distance) const;
+
+    virtual
+    enum return_code
+    add_to_builder(ShaderFilledPath::Builder *builder, float tol) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
@@ -1055,6 +1085,15 @@ public:
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;
+
+  /*!
+   * Returns the \ref ShaderFilledPath coming from this
+   * Path. The returned reference will be null if the
+   * Path contains anything besides line segments,
+   * quadratic Bezier curves or cubic Bezier curves.
+   */
+  const reference_counted_ptr<const ShaderFilledPath>&
+  shader_filled_path(void) const;
 
 private:
   void *m_d;
