@@ -174,6 +174,27 @@ namespace fastuidraw
     const reference_counted_ptr<const GlyphAtlasBackingStoreBase>&
     store(void) const;
 
+    /*!
+     * Increments an internal counter. If this internal
+     * counter is greater than zero, then clear() and
+     * deallocate_data() are -delayed- until the counter
+     * reaches zero again (see unlock_resources()). The
+     * use case is for buffered painting where the GPU
+     * calls are delayed for later (to batch commands)
+     * and a clear() or deallocate_data() was issued
+     * during painting.
+     */
+    void
+    lock_resources(void);
+
+    /*!
+     * Decrements an internal counter. If this internal
+     * counter reaches zero then any deallocate_data()
+     * and clear() calls are issued.
+     */
+    void
+    unlock_resources(void);
+
   private:
     void *m_d;
   };

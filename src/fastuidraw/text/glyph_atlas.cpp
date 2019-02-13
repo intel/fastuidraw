@@ -38,6 +38,13 @@ namespace
     unsigned int m_size;
   };
 
+  class DelayedDeallocate
+  {
+  public:
+    int m_location;
+    int m_count;
+  };
+
   class GlyphAtlasPrivate
   {
   public:
@@ -47,16 +54,37 @@ namespace
       m_store_constant(m_store),
       m_data_allocator(pstore->size()),
       m_data_allocated(0),
-      m_number_times_cleared(0)
+      m_number_times_cleared(0),
+      m_lock_resource_counter(0),
+      m_clear_issued(false)
     {
       FASTUIDRAWassert(m_store);
     };
+
+    void
+    clear_implement(void)
+    {
+      m_data_allocator.reset(m_data_allocator.size());
+      ++m_number_times_cleared;
+      m_clear_issued = false;
+      m_delayed_deallocates.clear();
+    }
+
+    void
+    deallocate_implement(int location, int count)
+    {
+      m_data_allocated -= count;
+      m_data_allocator.free_interval(location, count);
+    }
 
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase> m_store;
     fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasBackingStoreBase> m_store_constant;
     fastuidraw::interval_allocator m_data_allocator;
     unsigned int m_data_allocated;
     unsigned int m_number_times_cleared;
+    int m_lock_resource_counter;
+    bool m_clear_issued;
+    std::vector<DelayedDeallocate> m_delayed_deallocates;
   };
 }
 
@@ -172,8 +200,17 @@ deallocate_data(int location, int count)
     }
 
   FASTUIDRAWassert(count > 0);
-  d->m_data_allocated -= count;
-  d->m_data_allocator.free_interval(location, count);
+  if (d->m_lock_resource_counter == 0)
+    {
+      d->deallocate_implement(location, count);
+    }
+  else
+    {
+      DelayedDeallocate m;
+      m.m_location = location;
+      m.m_count = count;
+      d->m_delayed_deallocates.push_back(m);
+    }
 }
 
 unsigned int
@@ -192,8 +229,15 @@ clear(void)
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
-  d->m_data_allocator.reset(d->m_data_allocator.size());
-  ++d->m_number_times_cleared;
+
+  if (d->m_lock_resource_counter == 0)
+    {
+      d->clear_implement();
+    }
+  else
+    {
+      d->m_clear_issued = true;
+    }
 }
 
 unsigned int
@@ -221,4 +265,40 @@ store(void) const
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
   return d->m_store_constant;
+}
+
+void
+fastuidraw::GlyphAtlas::
+lock_resources(void)
+{
+  GlyphAtlasPrivate *d;
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+  ++d->m_lock_resource_counter;
+}
+
+void
+fastuidraw::GlyphAtlas::
+unlock_resources(void)
+{
+  GlyphAtlasPrivate *d;
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
+
+  FASTUIDRAWassert(d->m_lock_resource_counter > 0);
+  --d->m_lock_resource_counter;
+  if (d->m_lock_resource_counter == 0)
+    {
+      if (d->m_clear_issued)
+        {
+          d->clear_implement();
+        }
+      else
+        {
+          for (const auto &m : d->m_delayed_deallocates)
+            {
+              d->deallocate_implement(m.m_location, m.m_count);
+            }
+          d->m_delayed_deallocates.clear();
+        }
+      FASTUIDRAWassert(d->m_delayed_deallocates.empty());
+    }
 }
