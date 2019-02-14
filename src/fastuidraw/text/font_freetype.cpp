@@ -285,10 +285,11 @@ namespace
     void
     compute_rendering_data_rays_finalize(fastuidraw::GlyphMetrics glyph_metrics,
                                          fastuidraw::GlyphRenderDataRestrictedRays &output,
-                                         const fastuidraw::RectT<int> &rect,
+                                         const fastuidraw::RectT<int> &rectI,
                                          int scale_factor,
                                          enum fastuidraw::PainterEnums::fill_rule_t fill_rule)
     {
+      fastuidraw::Rect rect(rectI);
       output.finalize(fill_rule, rect, static_cast<float>(scale_factor) * glyph_metrics.units_per_EM());
     }
 
@@ -792,7 +793,7 @@ compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
       {
         GlyphRenderDataRestrictedRays *data;
         data = FASTUIDRAWnew GlyphRenderDataRestrictedRays();
-        d->compute_rendering_data_rays<GlyphRenderDataRestrictedRays, ivec2>(glyph_metrics, *data, path, render_size);
+        d->compute_rendering_data_rays<GlyphRenderDataRestrictedRays, vec2>(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;

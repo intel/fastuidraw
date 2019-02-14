@@ -28,6 +28,7 @@
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include "../private/bounding_box.hpp"
 #include "../private/util_private.hpp"
+#include "../private/util_private_ostream.hpp"
 
 namespace
 {
@@ -396,13 +397,6 @@ namespace
         }
     }
 
-    bool
-    is_good(void) const
-    {
-      return !m_curves.empty()
-        && m_curves.front().start() == m_curves.back().end();
-    }
-
     const Curve&
     operator[](unsigned int C) const
     {
@@ -669,6 +663,31 @@ namespace
     EdgesOfPath m_data;
   };
 
+  class InputCommand
+  {
+  public:
+    explicit
+    InputCommand(const fastuidraw::vec2 &pt):
+      m_pt(pt),
+      m_has_control(false)
+    {}
+
+    InputCommand(const fastuidraw::vec2 &ct,
+                 const fastuidraw::vec2 &pt):
+      m_pt(pt),
+      m_has_control(true),
+      m_control(ct)
+    {}
+
+    fastuidraw::vec2 m_pt;
+    bool m_has_control;
+    fastuidraw::vec2 m_control;
+  };
+
+  /* first point is the move_to. */
+  typedef std::vector<InputCommand> InputContour;
+  typedef std::vector<InputContour> InputPath;
+
   class GlyphPath
   {
   public:
@@ -678,33 +697,27 @@ namespace
     compute_winding_number(fastuidraw::vec2 xy, float *dist) const;
 
     void
-    move_to(const fastuidraw::ivec2 &pt)
+    move_to(const fastuidraw::vec2 &pt)
     {
-      if (!m_contours.empty() && m_contours.back().empty())
-        {
-          m_contours.pop_back();
-        }
-      FASTUIDRAWassert(m_contours.empty() || m_contours.back().is_good());
-      m_bbox.union_point(pt);
-      m_contours.push_back(Contour(pt));
+      m_input_path.push_back(InputContour());
+      m_input_path.back().push_back(InputCommand(pt));
+      m_input_bbox.union_point(pt);
     }
 
     void
-    quadratic_to(const fastuidraw::ivec2 &ct,
-                 const fastuidraw::ivec2 &pt)
+    line_to(const fastuidraw::vec2 &pt)
     {
-      FASTUIDRAWassert(!m_contours.empty());
-      m_bbox.union_point(ct);
-      m_bbox.union_point(pt);
-      m_contours.back().quadratic_to(ct, pt);
+      m_input_path.back().push_back(InputCommand(pt));
+      m_input_bbox.union_point(pt);
     }
 
     void
-    line_to(const fastuidraw::ivec2 &pt)
+    quadratic_to(const fastuidraw::vec2 &ct,
+                 const fastuidraw::vec2 &pt)
     {
-      FASTUIDRAWassert(!m_contours.empty());
-      m_bbox.union_point(pt);
-      m_contours.back().line_to(pt);
+      m_input_path.back().push_back(InputCommand(ct, pt));
+      m_input_bbox.union_point(pt);
+      m_input_bbox.union_point(ct);
     }
 
     const std::vector<Contour>&
@@ -748,17 +761,8 @@ namespace
     mark_exact_cancel_edges(void);
 
     void
-    set_glyph_rect(const fastuidraw::RectT<int> &bb)
-    {
-      if (!m_contours.empty() && m_contours.back().empty())
-        {
-          m_contours.pop_back();
-        }
-      m_glyph_rect_min = bb.m_min_point;
-      m_glyph_rect_max = bb.m_max_point;
-      m_bbox.union_point(bb.m_min_point);
-      m_bbox.union_point(bb.m_max_point);
-    }
+    discretize_input_contours(const fastuidraw::Rect &bb,
+                              fastuidraw::vec2 *near_thresh);
 
     const fastuidraw::BoundingBox<int>&
     bbox(void) const
@@ -790,9 +794,23 @@ namespace
     }
 
   private:
+
+    void
+    construct_contours_move_to(const fastuidraw::ivec2 &pt);
+
+    void
+    construct_contours_line_to(const fastuidraw::ivec2 &pt);
+
+    void
+    construct_contours_quadratic_to(const fastuidraw::ivec2 &ct,
+                                    const fastuidraw::ivec2 &pt);
+
     fastuidraw::BoundingBox<int> m_bbox;
     fastuidraw::ivec2 m_glyph_rect_min, m_glyph_rect_max;
     std::vector<Contour> m_contours;
+
+    fastuidraw::BoundingBox<float> m_input_bbox;
+    InputPath m_input_path;
   };
 
   enum cost_t
@@ -1222,7 +1240,6 @@ Contour(const Contour &contour,
     {
       add_curve(c, contour.m_curves[c], cH, cV);
     }
-  FASTUIDRAWassert(is_good());
 }
 
 void
@@ -1283,7 +1300,6 @@ void
 Contour::
 assign_curve_offsets(unsigned int &current_offset)
 {
-  FASTUIDRAWassert(is_good());
   for (Curve &curve : m_curves)
     {
       unsigned int cnt;
@@ -1810,6 +1826,85 @@ GlyphPath(void)
 
 void
 GlyphPath::
+construct_contours_move_to(const fastuidraw::ivec2 &pt)
+{
+  if (!m_contours.empty() && m_contours.back().empty())
+    {
+      m_contours.pop_back();
+    }
+  m_bbox.union_point(pt);
+  m_contours.push_back(Contour(pt));
+}
+
+void
+GlyphPath::
+construct_contours_line_to(const fastuidraw::ivec2 &pt)
+{
+  FASTUIDRAWassert(!m_contours.empty());
+  m_bbox.union_point(pt);
+  m_contours.back().line_to(pt);
+}
+
+void
+GlyphPath::
+construct_contours_quadratic_to(const fastuidraw::ivec2 &ct,
+                                const fastuidraw::ivec2 &pt)
+{
+  FASTUIDRAWassert(!m_contours.empty());
+  m_bbox.union_point(ct);
+  m_bbox.union_point(pt);
+  m_contours.back().quadratic_to(ct, pt);
+}
+
+void
+GlyphPath::
+discretize_input_contours(const fastuidraw::Rect &bb,
+                          fastuidraw::vec2 *near_thresh)
+{
+  /* use m_input_bbox to decide the transformation
+   * from our float32 inputs to int internal used
+   * to detect curve cancellation.
+   */
+  const float tgt(65536.0f);
+  fastuidraw::vec2 scale, translate;
+
+  scale = fastuidraw::vec2(2.0f * tgt, 2.0f * tgt) / m_input_bbox.size();
+  translate = fastuidraw::vec2(-tgt, -tgt) - scale * m_input_bbox.min_point();
+
+  for (const auto &contour : m_input_path)
+    {
+      fastuidraw::ivec2 move_pt(scale * contour.front().m_pt + translate);
+      construct_contours_move_to(move_pt);
+      for (unsigned int i = 1, endi = contour.size(); i < endi; ++i)
+        {
+          const InputCommand &cmd(contour[i]);
+          fastuidraw::ivec2 pt(cmd.m_pt * scale + translate);
+
+          if (cmd.m_has_control)
+            {
+              fastuidraw::ivec2 ct(cmd.m_control * scale + translate);
+              construct_contours_quadratic_to(ct, pt);
+            }
+          else
+            {
+              construct_contours_line_to(pt);
+            }
+        }
+    }
+
+  *near_thresh *= scale;
+  m_glyph_rect_min = fastuidraw::ivec2(bb.m_min_point * scale + translate);
+  m_glyph_rect_max = fastuidraw::ivec2(bb.m_max_point * scale + translate);
+  if (!m_contours.empty() && m_contours.back().empty())
+    {
+      m_contours.pop_back();
+    }
+  m_bbox.union_point(m_glyph_rect_min);
+  m_bbox.union_point(m_glyph_rect_max);
+}
+
+void
+GlyphPath::
 compute_edges_of_path(int coord, EdgesOfPath *dst)
 {
   std::map<int, std::vector<CurveID> > hoard;
@@ -2089,7 +2184,7 @@ fastuidraw::GlyphRenderDataRestrictedRays::
 
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
-move_to(ivec2 pt)
+move_to(vec2 pt)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
 
@@ -2104,7 +2199,7 @@ move_to(ivec2 pt)
 
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
-quadratic_to(ivec2 ct, ivec2 pt)
+quadratic_to(vec2 ct, vec2 pt)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
 
@@ -2119,7 +2214,7 @@ quadratic_to(ivec2 ct, ivec2 pt)
 
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
-line_to(ivec2 pt)
+line_to(vec2 pt)
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
 
@@ -2135,7 +2230,7 @@ line_to(ivec2 pt)
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
-         const RectT<int> &bounding_box,
+         const Rect &bounding_box,
          float units_per_EM)
 {
   float min_size(GlyphGenerateParams::restricted_rays_minimum_render_size());
@@ -2149,7 +2244,7 @@ finalize(enum PainterEnums::fill_rule_t f,
 void
 fastuidraw::GlyphRenderDataRestrictedRays::
 finalize(enum PainterEnums::fill_rule_t f,
-         const RectT<int> &glyph_rect,
+         const Rect &glyph_rect,
          int split_thresh, int max_recursion,
          vec2 near_thresh)
 {
@@ -2162,8 +2257,11 @@ finalize(enum PainterEnums::fill_rule_t f,
       return;
     }
 
+  /* Step 1: discretize to 16-bit integer values for
+   *         curve cancellation
+   */
   d->m_fill_rule = f;
-  d->m_glyph->set_glyph_rect(glyph_rect);
+  d->m_glyph->discretize_input_contours(glyph_rect, &near_thresh);
 
   if (d->m_glyph->contours().empty())
     {
@@ -2197,7 +2295,9 @@ finalize(enum PainterEnums::fill_rule_t f,
   total_size = d->m_glyph->assign_curve_offsets(curve_lists.current_offset());
 
   /* step 7: pack the data */
-  Transformation tr(glyph_rect);
+  Transformation tr(RectT<int>()
+                    .min_point(d->m_glyph->glyph_rect_min())
+                    .max_point(d->m_glyph->glyph_rect_max()));
   d->m_render_data.resize(total_size);
   c_array<generic_data> render_data(make_c_array(d->m_render_data));
 
