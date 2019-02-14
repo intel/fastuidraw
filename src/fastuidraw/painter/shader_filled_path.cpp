@@ -28,8 +28,34 @@
 
 namespace
 {
+  #if 1
+  typedef fastuidraw::GlyphRenderDataRestrictedRays RenderData;
+  const enum fastuidraw::glyph_type GlyphType = fastuidraw::restricted_rays_glyph;
+  #else
   typedef fastuidraw::GlyphRenderDataBandedRays RenderData;
   const enum fastuidraw::glyph_type GlyphType = fastuidraw::banded_rays_glyph;
+  #endif
+
+  inline
+  void
+  finalize_data(enum fastuidraw::PainterEnums::fill_rule_t f,
+                const fastuidraw::BoundingBox<float> &bbox,
+                fastuidraw::GlyphRenderDataRestrictedRays *data)
+  {
+    data->finalize(f, bbox.as_rect(),
+                   4, //aim for 4 curves per box
+                   12, //recurse up to 8 times.
+                   fastuidraw::vec2(-1.0f, -1.0f));
+  }
+
+  inline
+  void
+  finalize_data(enum fastuidraw::PainterEnums::fill_rule_t f,
+                const fastuidraw::BoundingBox<float> &bbox,
+                fastuidraw::GlyphRenderDataBandedRays *data)
+  {
+    data->finalize(f, bbox.as_rect());
+  }
 
   class BuilderPrivate
   {
@@ -87,7 +113,7 @@ ShaderFilledPathPrivate(BuilderPrivate &B):
   /* the fill rule actually does not matter, since ShaderFilledPath
    * constructs its own attribute data.
    */
-  B.m_data.finalize(PainterEnums::nonzero_fill_rule, B.m_bbox.as_rect());
+  finalize_data(PainterEnums::nonzero_fill_rule, B.m_bbox, &B.m_data);
   B.m_data.query(&m_query_data);
 
   /* Because B may go out of scope, we need to save the GPU data
