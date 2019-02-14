@@ -1911,11 +1911,6 @@ draw_scene(bool drawing_wire_frame)
               m_painter->fill_path(D, *sf,
                                    static_cast<Painter::fill_rule_t>(current_fill_rule()));
             }
-          else
-            {
-              std::cout << "Unable to fill, sf = " << sf << ", rule = "
-                        << current_fill_rule() << "\n";
-            }
         }
     }
 
@@ -2214,29 +2209,52 @@ draw_frame(void)
 
       if (m_draw_fill != dont_draw_fill_path)
         {
-          ostr << "\n\t[u]AA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode]
-               << "\n\t[f]Fill Mode: " << m_draw_fill_labels[m_draw_fill]
-               << "(via " << m_fill_by_mode_labels[m_fill_by_mode] << ")";
+          bool print_fill_stats(true);
 
-          ostr << "\n\t[r]Fill Rule: ";
-          if (current_fill_rule() < Painter::fill_rule_data_count)
+          if (m_fill_by_mode == fill_by_shader_filled_path)
             {
-              ostr << m_fill_labels[current_fill_rule()];
+              if (!path().shader_filled_path())
+                {
+                  print_fill_stats = false;
+                  ostr << "\n\nUnable to fill by " << m_fill_by_mode_labels[m_fill_by_mode]
+                       << "\nbecause Path does not have\nShaderFilledPath\n";
+                }
+              else if (current_fill_rule() >= Painter::fill_rule_data_count)
+                {
+                  print_fill_stats = false;
+                  ostr << "\n\nUnable to fill by " << m_fill_by_mode_labels[m_fill_by_mode]
+                       << "\nbecause ShaderFilledPath\nonly supports the standard fill modes\n";
+                }
             }
-          else if (current_fill_rule() == current_end_fill_rule())
+
+          if (print_fill_stats)
             {
-              ostr << "Custom (All Windings Filled)";
-            }
-          else
-            {
-              c_array<const int> wnd;
-              int value;
-              wnd = path().tessellation()->filled()->subset(0).winding_numbers();
-              value = wnd[current_fill_rule() - Painter::fill_rule_data_count];
-              ostr << "Custom (Winding == " << value << ")";
+              if (m_fill_by_mode == fill_by_filled_path)
+                {
+                  ostr << "\n\t[u]AA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode];
+                }
+
+              ostr << "\n\t[f]Fill Mode: " << m_draw_fill_labels[m_draw_fill]
+                   << "(via " << m_fill_by_mode_labels[m_fill_by_mode] << ")"
+                   << "\n\t[r]Fill Rule: ";
+              if (current_fill_rule() < Painter::fill_rule_data_count)
+                {
+                  ostr << m_fill_labels[current_fill_rule()];
+                }
+              else if (current_fill_rule() == current_end_fill_rule())
+                {
+                  ostr << "Custom (All Windings Filled)";
+                }
+              else
+                {
+                  c_array<const int> wnd;
+                  int value;
+                  wnd = path().tessellation()->filled()->subset(0).winding_numbers();
+                  value = wnd[current_fill_rule() - Painter::fill_rule_data_count];
+                  ostr << "Custom (Winding == " << value << ")";
+                }
             }
         }
-
       ostr << "\nAttribs: "
            << painter_stat(Painter::num_attributes)
            << "\nIndices: "
