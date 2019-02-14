@@ -73,6 +73,8 @@ namespace fastuidraw
     {
       if (!m_empty)
         {
+          delta.x() = t_max(T(0), delta.x());
+          delta.y() = t_max(T(0), delta.y());
           this->m_min_point -= delta;
           this->m_max_point += delta;
         }
