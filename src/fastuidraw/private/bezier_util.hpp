@@ -18,7 +18,7 @@
 
 #pragma once
 
-
+#include <cmath>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
