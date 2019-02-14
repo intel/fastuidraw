@@ -284,6 +284,15 @@ private:
       number_fill_modes,
     };
 
+  enum fill_by_mode_t
+    {
+      fill_by_filled_path,
+      fill_by_clipping,
+      fill_by_shader_filled_path,
+
+      fill_by_number_modes
+    };
+
   typedef std::pair<std::string,
                     reference_counted_ptr<ColorStopSequenceOnAtlas> > named_color_stop;
 
@@ -504,6 +513,7 @@ private:
   vecN<std::string, PainterBrush::number_spread_types> m_spread_type_labels;
   vecN<enum Painter::stroking_method_t, number_stroking_modes> m_stroke_mode_values;
   vecN<enum Painter::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
+  vecN<std::string, fill_by_number_modes> m_fill_by_mode_labels;
 
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
@@ -554,7 +564,7 @@ private:
   bool m_wire_frame;
   bool m_stroke_width_in_pixels;
 
-  bool m_fill_by_clipping;
+  int m_fill_by_mode;
   bool m_draw_grid;
 
   simple_time m_draw_timer, m_fps_timer;
@@ -720,7 +730,7 @@ painter_stroke_test(void):
   m_draw_path_pts(false),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
-  m_fill_by_clipping(false),
+  m_fill_by_mode(fill_by_filled_path),
   m_draw_grid(false),
   m_grid_path_dirty(true),
   m_clip_window_path_dirty(true)
@@ -798,6 +808,10 @@ painter_stroke_test(void):
   m_fill_labels[Painter::nonzero_fill_rule] = "nonzero_fill_rule";
   m_fill_labels[Painter::complement_odd_even_fill_rule] = "complement_odd_even_fill_rule";
   m_fill_labels[Painter::complement_nonzero_fill_rule] = "complement_nonzero_fill_rule";
+
+  m_fill_by_mode_labels[fill_by_filled_path] = "FilledPath";
+  m_fill_by_mode_labels[fill_by_clipping] = "clipping against FilledPath";
+  m_fill_by_mode_labels[fill_by_shader_filled_path] = "ShaderFilledPath";
 
   m_image_filter_mode_labels[no_image] = "no_image";
   m_image_filter_mode_labels[image_nearest_filter] = "image_nearest_filter";
@@ -1429,16 +1443,8 @@ handle_event(const SDL_Event &ev)
         case SDLK_e:
           if (m_draw_fill != dont_draw_fill_path)
             {
-              m_fill_by_clipping = !m_fill_by_clipping;
-              std::cout << "Set to ";
-              if (m_fill_by_clipping)
-                {
-                  std::cout << "fill by drawing rectangle clipped to path\n";
-                }
-              else
-                {
-                  std::cout << "fill by drawing fill\n";
-                }
+              cycle_value(m_fill_by_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), fill_by_number_modes);
+              std::cout << "Set to fill by " << m_fill_by_mode_labels[m_fill_by_mode] << "\n";
             }
           break;
 
@@ -1880,7 +1886,7 @@ draw_scene(bool drawing_wire_frame)
           D = PainterData(&fill_brush);
         }
 
-      if (m_fill_by_clipping)
+      if (m_fill_by_mode == fill_by_clipping)
         {
           Rect R;
 
@@ -1890,10 +1896,26 @@ draw_scene(bool drawing_wire_frame)
           m_painter->fill_rect(D, R);
           m_painter->restore();
         }
-      else
+      else if (m_fill_by_mode == fill_by_filled_path)
         {
           m_painter->fill_path(D, path(), *fill_rule,
                                m_shader_anti_alias_mode_values[m_aa_fill_mode]);
+        }
+      else
+        {
+          const ShaderFilledPath *sf;
+
+          sf = path().shader_filled_path().get();
+          if (sf && current_fill_rule() < Painter::fill_rule_data_count)
+            {
+              m_painter->fill_path(D, *sf,
+                                   static_cast<Painter::fill_rule_t>(current_fill_rule()));
+            }
+          else
+            {
+              std::cout << "Unable to fill, sf = " << sf << ", rule = "
+                        << current_fill_rule() << "\n";
+            }
         }
     }
 
@@ -2193,11 +2215,9 @@ draw_frame(void)
       if (m_draw_fill != dont_draw_fill_path)
         {
           ostr << "\n\t[u]AA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode]
-               << "\n\t[f]Fill Mode: " << m_draw_fill_labels[m_draw_fill];
-          if (m_fill_by_clipping)
-            {
-              ostr << "(via clipping)";
-            }
+               << "\n\t[f]Fill Mode: " << m_draw_fill_labels[m_draw_fill]
+               << "(via " << m_fill_by_mode_labels[m_fill_by_mode] << ")";
+
           ostr << "\n\t[r]Fill Rule: ";
           if (current_fill_rule() < Painter::fill_rule_data_count)
             {
