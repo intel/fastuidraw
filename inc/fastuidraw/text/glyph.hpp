@@ -248,10 +248,23 @@ namespace fastuidraw
 
     /*!
      * Given an index into an array of \ref GlyphAttribute values,
-     * as used by pack_raw() or returned by \ref attribute()),
+     * as used by pack_raw() or returned by \ref attributes()),
      * return the point to member variable of which attribute is
      * written to from the glyph attribute value and what component
      * of it.
+     * \param glyph_attribute_index into an array of \ref GlyphAttribute
+     *                              values, for example the array returned
+     *                              by \ref attributes().
+     * \param out_attribute location to which to write the pointer
+     *                      member of \ref PainterAttribute that
+     *                      the glyph attribute value is written to
+     *                      in pack_raw() and/or pack_glyph().
+     * \param out_index_into_attribute location to which to write the
+     *                                 array-index element of the
+     *                                 member of \ref PainterAttribute
+     *                                 that the glyph attribute value
+     *                                 is written to in pack_raw()
+     *                                 and/or pack_glyph().
      */
     static
     void

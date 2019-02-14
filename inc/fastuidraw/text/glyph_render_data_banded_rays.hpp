@@ -113,7 +113,8 @@ namespace fastuidraw
 
     enum
       {
-        /* The glyph coordinate value in each coordiante varies
+        /*!
+         * The glyph coordinate value in each coordiante varies
          * from -\ref glyph_coord_value to +\ref glyph_coord_value,
          * i.e. the glyph is drawn as rect with min-corner
          * (-\ref glyph_coord_value, -\ref glyph_coord_value)

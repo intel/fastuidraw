@@ -48,7 +48,8 @@ class ShaderFilledPath:
 {
 public:
   /*!
-   *
+   * A Builder is the means of specifying the contours for
+   * a \ref ShaderFilledPath.
    */
   class Builder:fastuidraw::noncopyable
   {
@@ -89,6 +90,11 @@ public:
     void *m_d;
   };
 
+  /*!
+   * Ctor.
+   * \param B \ref Builder object specifying the contours
+   *          of the \ref ShaderFilledPath constructed.
+   */
   explicit
   ShaderFilledPath(const Builder &B);
 

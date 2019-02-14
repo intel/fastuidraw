@@ -1307,7 +1307,6 @@ namespace fastuidraw
     /*!
      * Fill a path via \ref ShaderFilledPath using the default shader
      * to draw the fill.
-     * \param shader shader with which to draw the \ref ShaderFilledPath
      * \param draw data for how to draw
      * \param path \ref ShaderFilledPath to fill
      * \param fill_rule fill rule to apply to fill

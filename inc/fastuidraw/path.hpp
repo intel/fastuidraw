@@ -180,7 +180,7 @@ public:
     /*!
      * To be optionally implemented by a derived class to add this
      * interpolator to a \ref ShaderFilledPath::Builder. A return
-     * code of \ref routine_file means that the interpolator cannot
+     * code of \ref routine_fail means that the interpolator cannot
      * be realized in such a way to be added and a \ref Path that
      * includes such an interpolator in a closed contour will
      * be unable to realized a \ref ShaderFilledPath value and

@@ -110,8 +110,10 @@ namespace fastuidraw
        * mean:
        *   - glyph_data_location location of the glyph data within the GlyphAtlas
        *   - glyph_coord the coordinate within the glyph where the min-value
-       *     in each dimension is -GlyphRenderDataRestrictedRays::glyph_coord_value
-       *     and the max-value in each dimension is GlyphRenderDataRestrictedRays::glyph_coord_value
+       *     in each dimension is -\ref
+       *     fastuidraw::GlyphRenderDataRestrictedRays::glyph_coord_value
+       *     and the max-value in each dimension is \ref
+       *     fastuidraw::GlyphRenderDataRestrictedRays::glyph_coord_value
        *   - glyph_coord_dx is the value of dFdx(glyph_coord)
        *   - glyph_coord_dy is the value of dFdy(glyph_coord)
        *
@@ -148,8 +150,10 @@ namespace fastuidraw
        * mean:
        *   - glyph_data_location location of the glyph data within the GlyphAtlas
        *   - glyph_coord the coordinate within the glyph where the min-value
-       *     in each dimension is -GlyphRenderDataBandedRays::glyph_coord_value
-       *     and the max-value in each dimension is GlyphRenderDataBandedRays::glyph_coord_value
+       *     in each dimension is -\ref
+       *     fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value
+       *     and the max-value in each dimension is \ref
+       *     fastuidraw::GlyphRenderDataBandedRays::glyph_coord_value
        *   - glyph_coord_fwidth is the value of fwidth(glyph_coord)
        *   - num_vertical_bands is the number of verical bands of the banded ray glyph,
        *     i.e. the value packed into the glyph attribute \ref

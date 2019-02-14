@@ -129,7 +129,7 @@ namespace fastuidraw
     enum return_code
     restricted_rays_max_recursion(int v);
 
-    /*
+    /*!
      * When generating banded rays glyphs see (\ref
      * GlyphRenderDataBandedRays), specifies the
      * maximum number of times to recurse when
