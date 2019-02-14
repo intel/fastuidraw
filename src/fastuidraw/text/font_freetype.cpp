@@ -26,6 +26,7 @@
 #include "../private/array2d.hpp"
 #include "../private/util_private.hpp"
 #include "../private/int_path.hpp"
+#include "../private/bezier_util.hpp"
 
 #include <ft2build.h>
 #include FT_OUTLINE_H
@@ -275,7 +276,7 @@ namespace
                                           fastuidraw::Path &path,
                                           fastuidraw::vec2 &render_size);
 
-    template<typename T, typename P>
+    template<typename T>
     void
     compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
                                 T &output,
@@ -286,18 +287,16 @@ namespace
     compute_rendering_data_rays_finalize(fastuidraw::GlyphMetrics glyph_metrics,
                                          fastuidraw::GlyphRenderDataRestrictedRays &output,
                                          const fastuidraw::RectT<int> &rectI,
-                                         int scale_factor,
                                          enum fastuidraw::PainterEnums::fill_rule_t fill_rule)
     {
       fastuidraw::Rect rect(rectI);
-      output.finalize(fill_rule, rect, static_cast<float>(scale_factor) * glyph_metrics.units_per_EM());
+      output.finalize(fill_rule, rect, glyph_metrics.units_per_EM());
     }
 
     void
     compute_rendering_data_rays_finalize(fastuidraw::GlyphMetrics /*glyph_metrics*/,
                                          fastuidraw::GlyphRenderDataBandedRays &output,
                                          const fastuidraw::RectT<int> &rectI,
-                                         int /*scale_factor*/,
                                          enum fastuidraw::PainterEnums::fill_rule_t fill_rule)
     {
       fastuidraw::Rect rect(rectI);
@@ -541,7 +540,7 @@ compute_rendering_data_distance_field(fastuidraw::GlyphMetrics glyph_metrics,
                                    &output);
 }
 
-template<typename T, typename P>
+template<typename T>
 void
 FontFreeTypePrivate::
 compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
@@ -549,11 +548,14 @@ compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
                             fastuidraw::Path &path,
                             fastuidraw::vec2 &render_size)
 {
-  fastuidraw::detail::IntPath int_path_ecm;
-  fastuidraw::ivec2 layout_offset, layout_size;
+  using namespace fastuidraw;
+
+  const float rel_tol(1e-4);
+  detail::IntPath int_path_ecm;
+  ivec2 layout_offset, layout_size;
   int outline_flags;
   uint32_t glyph_code(glyph_metrics.glyph_code());
-  int scale_factor;
+  float cubic_tol;
 
   {
     FaceGrabber p(this);
@@ -565,60 +567,54 @@ compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
     FT_Face face(p.m_p->face());
     load_glyph(face, glyph_code);
     outline_flags = face->glyph->outline.flags;
-    layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
-                                      face->glyph->metrics.horiBearingY);
+    layout_offset = ivec2(face->glyph->metrics.horiBearingX,
+                          face->glyph->metrics.horiBearingY);
     layout_offset.y() -= face->glyph->metrics.height;
-    layout_size = fastuidraw::ivec2(face->glyph->metrics.width,
-                                    face->glyph->metrics.height);
+    layout_size = ivec2(face->glyph->metrics.width,
+                        face->glyph->metrics.height);
 
-    if (ComputeOutlineDegree::compute(&face->glyph->outline) > 2)
-      {
-        /* When breaking cubics into quadratics, the first step is
-         * to break each cubic into 4 (via De Casteljau's algorithm)
-         * and then approximate each cubic with a single quadratic.
-         * Each run of De Casteljau's algorithm on a cubic invokes
-         * a dived by 8, running it twice gives a divide by 64; thus
-         * to avoid losing any information from that, we scale up by
-         * 64.
-         */
-        scale_factor = 64;
-      }
-    else
-      {
-        scale_factor = 1;
-      }
-
-    layout_offset *= scale_factor;
-    layout_size *= scale_factor;
+    int scale_factor(1);
     IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm, scale_factor);
   }
 
   /* render size is identical to metric's size because there is
-   * no discretization from the glyph'sp outline data.
+   * no discretization from the glyph's outline data.
    */
   render_size = glyph_metrics.size();
+  cubic_tol = t_max(render_size.x(), render_size.y()) * rel_tol;
 
   /* extract to a Path */
-  fastuidraw::detail::IntBezierCurve::transformation<float> tr(1.0f / float(scale_factor));
+  detail::IntBezierCurve::transformation<float> tr;
   int_path_ecm.add_to_path(tr, &path);
 
-  int_path_ecm.replace_cubics_with_quadratics();
   for (const auto &contour : int_path_ecm.contours())
     {
       if (!contour.curves().empty())
         {
-          output.move_to(P(contour.curves().front().control_pts().front()));
+          output.move_to(vec2(contour.curves().front().control_pts().front()));
           for (const auto &curve: contour.curves())
             {
-              if (curve.degree() == 2)
+              c_array<const ivec2> pts(curve.control_pts());
+              switch(curve.degree())
                 {
-                  output.quadratic_to(P(curve.control_pts()[1]),
-                                      P(curve.control_pts()[2]));
-                }
-              else
-                {
-                  FASTUIDRAWassert(curve.degree() == 1);
-                  output.line_to(P(curve.control_pts()[1]));
+                case 1:
+                  output.line_to(vec2(pts[1]));
+                  break;
+                case 2:
+                  output.quadratic_to(vec2(pts[1]), vec2(pts[2]));
+                  break;
+                case 3:
+                  {
+                    const int max_recursion(6);
+                    vecN<vec2, 4> cubic;
+
+                    cubic[0] = vec2(pts[0]);
+                    cubic[1] = vec2(pts[1]);
+                    cubic[2] = vec2(pts[2]);
+                    cubic[3] = vec2(pts[3]);
+                    detail::add_cubic_adaptive(max_recursion, &output, cubic, cubic_tol);
+                  }
+                  break;
                 }
             }
         }
@@ -633,7 +629,7 @@ compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
                                        fastuidraw::RectT<int>()
                                        .min_point(layout_offset)
                                        .max_point(layout_offset + layout_size),
-                                       scale_factor, fill_rule);
+                                       fill_rule);
 }
 
 ///////////////////////////////////////////////////
@@ -793,7 +789,7 @@ compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
       {
         GlyphRenderDataRestrictedRays *data;
         data = FASTUIDRAWnew GlyphRenderDataRestrictedRays();
-        d->compute_rendering_data_rays<GlyphRenderDataRestrictedRays, vec2>(glyph_metrics, *data, path, render_size);
+        d->compute_rendering_data_rays<GlyphRenderDataRestrictedRays>(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;
@@ -802,7 +798,7 @@ compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
       {
         GlyphRenderDataBandedRays *data;
         data = FASTUIDRAWnew GlyphRenderDataBandedRays();
-        d->compute_rendering_data_rays<GlyphRenderDataBandedRays, vec2>(glyph_metrics, *data, path, render_size);
+        d->compute_rendering_data_rays<GlyphRenderDataBandedRays>(glyph_metrics, *data, path, render_size);
         return data;
       }
       break;
