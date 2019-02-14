@@ -158,7 +158,7 @@ namespace fastuidraw
     }
 
     template<typename Builder>
-    void
+    unsigned int
     add_cubic_adaptive(int max_recursion, Builder *B,
                        c_array<const vec2> p, float tol)
     {
@@ -168,20 +168,23 @@ namespace fastuidraw
           vec2 q1;
           q1 = (3.0f * p[2] - p[3] + 3.0f * p[1] - p[0]) * 0.25f;
           B->quadratic_to(q1, p[3]);
+          return 1;
         }
       else
         {
           /* split the cubic */
           vecN<vecN<vec2, 4>, 2> split;
+          unsigned int v0, v1;
 
           split = split_cubicT<float>(p);
-          add_cubic_adaptive(max_recursion - 1, B, split[0], tol);
-          add_cubic_adaptive(max_recursion - 1, B, split[1], tol);
+          v0 = add_cubic_adaptive(max_recursion - 1, B, split[0], tol);
+          v1 = add_cubic_adaptive(max_recursion - 1, B, split[1], tol);
+          return v0 + v1;
         }
     }
 
     template<typename Builder>
-    void
+    unsigned int
     add_arc_as_single_cubic(int max_recursion, Builder *B, float tol,
                             vec2 from_pt, vec2 to_pt, float angle)
     {
@@ -195,13 +198,13 @@ namespace fastuidraw
       c0 = from_pt + vp - jp;
       c1 = to_pt - vp - jp;
 
-      add_cubic_adaptive(max_recursion, B,
-                         vecN<vec2, 4>(from_pt, c0, c1, to_pt),
-                         tol);
+      return add_cubic_adaptive(max_recursion, B,
+                                vecN<vec2, 4>(from_pt, c0, c1, to_pt),
+                                tol);
     }
 
     template<typename Builder>
-    void
+    unsigned int
     add_arc_as_cubics(int max_recursion, Builder *B, float tol,
                       vec2 start_pt, vec2 end_pt, vec2 center,
                       float radius, float start_angle, float angle)
@@ -246,7 +249,7 @@ namespace fastuidraw
       if (mag_vp < tol)
         {
           B->line_to(end_pt);
-          return;
+          return 1;
         }
 
       /* half the tolerance for the cubic to quadratic and half
@@ -262,6 +265,7 @@ namespace fastuidraw
       float angle_direction(t_sign(angle));
       float angle_advance(angle_max * angle_direction);
       vec2 last_pt(start_pt);
+      unsigned int return_value(0);
 
       while (t_abs(angle_remaining) > angle_max)
         {
@@ -272,14 +276,15 @@ namespace fastuidraw
 
           next_pt.x() = center.x() + cos_next_angle * radius;
           next_pt.y() = center.y() + sin_next_angle * radius;
-          add_arc_as_single_cubic(max_recursion, B, tol, last_pt, next_pt, angle_advance);
+          return_value += add_arc_as_single_cubic(max_recursion, B, tol, last_pt, next_pt, angle_advance);
 
           current_angle += angle_advance;
           angle_remaining -= angle_advance;
           last_pt = next_pt;
         }
 
-      add_arc_as_single_cubic(max_recursion, B, tol, last_pt, end_pt, angle_remaining);
+      return_value += add_arc_as_single_cubic(max_recursion, B, tol, last_pt, end_pt, angle_remaining);
+      return return_value;
     }
 
   }
