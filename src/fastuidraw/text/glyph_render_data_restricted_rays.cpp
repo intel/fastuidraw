@@ -812,18 +812,15 @@ namespace
   class GlyphRenderDataRestrictedRaysPrivate
   {
   public:
-    GlyphRenderDataRestrictedRaysPrivate(void)
-    {
-      m_glyph = FASTUIDRAWnew GlyphPath();
-    }
+    GlyphRenderDataRestrictedRaysPrivate(void);
+    ~GlyphRenderDataRestrictedRaysPrivate(void);
 
-    ~GlyphRenderDataRestrictedRaysPrivate(void)
-    {
-      if (m_glyph)
-        {
-          FASTUIDRAWdelete(m_glyph);
-        }
-    }
+    template<typename Array>
+    static
+    void
+    fill_glyph_attributes(Array &dst,
+                          enum fastuidraw::PainterEnums::fill_rule_t f,
+                          uint32_t data_offset);
 
     GlyphPath *m_glyph;
     enum fastuidraw::PainterEnums::fill_rule_t m_fill_rule;
@@ -2019,6 +2016,60 @@ compute_winding_number(fastuidraw::vec2 xy, float *dist) const
   return w.y();
 }
 
+////////////////////////////////////////////////
+// GlyphRenderDataRestrictedRaysPrivate methods
+GlyphRenderDataRestrictedRaysPrivate::
+GlyphRenderDataRestrictedRaysPrivate(void)
+{
+  m_glyph = FASTUIDRAWnew GlyphPath();
+}
+
+GlyphRenderDataRestrictedRaysPrivate::
+~GlyphRenderDataRestrictedRaysPrivate(void)
+{
+  if (m_glyph)
+    {
+      FASTUIDRAWdelete(m_glyph);
+    }
+}
+
+template<typename Array>
+void
+GlyphRenderDataRestrictedRaysPrivate::
+fill_glyph_attributes(Array &attributes,
+                      enum fastuidraw::PainterEnums::fill_rule_t f,
+                      uint32_t data_offset)
+{
+  using namespace fastuidraw;
+
+  for (unsigned int c = 0; c < 4; ++c)
+    {
+      uint32_t vx, vy;
+
+      vx = (c & GlyphAttribute::right_corner_mask) ? 1u : 0u;
+      vy = (c & GlyphAttribute::top_corner_mask)   ? 1u : 0u;
+
+      attributes[GlyphRenderDataRestrictedRays::glyph_normalized_x].m_data[c] = vx;
+      attributes[GlyphRenderDataRestrictedRays::glyph_normalized_y].m_data[c] = vy;
+    }
+
+  /* the leading two bits encode the fill rule */
+  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(31u, 1)) == 0u);
+  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(30u, 1)) == 0u);
+  if (f == PainterEnums::odd_even_fill_rule
+      || f == PainterEnums::complement_odd_even_fill_rule)
+    {
+      data_offset |= FASTUIDRAW_MASK(31u, 1);
+    }
+  if (f == PainterEnums::complement_odd_even_fill_rule
+      || f == PainterEnums::complement_nonzero_fill_rule)
+    {
+      data_offset |= FASTUIDRAW_MASK(30u, 1);
+    }
+
+  attributes[GlyphRenderDataRestrictedRays::glyph_offset].m_data = uvec4(data_offset);
+}
+
 /////////////////////////////////////////////////
 // fastuidraw::GlyphRenderDataRestrictedRays methods
 fastuidraw::GlyphRenderDataRestrictedRays::
@@ -2111,7 +2162,6 @@ finalize(enum PainterEnums::fill_rule_t f,
       return;
     }
 
-  FASTUIDRAWassert(f == PainterEnums::odd_even_fill_rule || f == PainterEnums::nonzero_fill_rule);
   d->m_fill_rule = f;
   d->m_glyph->set_glyph_rect(glyph_rect);
 
@@ -2186,26 +2236,7 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
     }
 
   attributes.resize(glyph_num_attributes);
-  for (unsigned int c = 0; c < 4; ++c)
-    {
-      uint32_t vx, vy;
-
-      vx = (c & GlyphAttribute::right_corner_mask) ? 1u : 0u;
-      vy = (c & GlyphAttribute::top_corner_mask)   ? 1u : 0u;
-
-      attributes[glyph_normalized_x].m_data[c] = vx;
-      attributes[glyph_normalized_y].m_data[c] = vy;
-    }
-
-  /* If the fill rule is odd-even, the leading bit
-   * of data_offset is made to be up.
-   */
-  FASTUIDRAWassert((data_offset & FASTUIDRAW_MASK(31u, 1)) == 0u);
-  if (d->m_fill_rule == PainterEnums::odd_even_fill_rule)
-    {
-      data_offset |= FASTUIDRAW_MASK(31u, 1);
-    }
-  attributes[glyph_offset].m_data = uvec4(data_offset);
+  d->fill_glyph_attributes(attributes, d->m_fill_rule, data_offset);
 
   for (unsigned int i = 0; i < num_costs; ++i)
     {
@@ -2230,7 +2261,7 @@ render_info_labels(void) const
 
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataRestrictedRays::
-query(c_array<const fastuidraw::generic_data> *gpu_data) const
+query(query_info *out_info) const
 {
   GlyphRenderDataRestrictedRaysPrivate *d;
   d = static_cast<GlyphRenderDataRestrictedRaysPrivate*>(m_d);
@@ -2241,7 +2272,19 @@ query(c_array<const fastuidraw::generic_data> *gpu_data) const
       return routine_fail;
     }
 
-  *gpu_data = make_c_array(d->m_render_data);
+  out_info->m_gpu_data = make_c_array(d->m_render_data);
 
   return routine_success;
+}
+
+///////////////////////////////////////////////////////////
+// fastuidraw::GlyphRenderDataRestrictedRays::query_info methods
+void
+fastuidraw::GlyphRenderDataRestrictedRays::query_info::
+set_glyph_attributes(vecN<GlyphAttribute, glyph_num_attributes> *out_attribs,
+                     enum PainterEnums::fill_rule_t fill_rule,
+                     uint32_t offset)
+{
+  GlyphRenderDataRestrictedRaysPrivate::fill_glyph_attributes(*out_attribs,
+                                                              fill_rule, offset);
 }

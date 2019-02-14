@@ -308,11 +308,11 @@ namespace fastuidraw
         /*!
          * the index into GlyphAttribute::m_data storing
          * the fill rule and the offset into the store for
-         * the glyph data. The offset is encoded in the
-         * lower 31 bits (i.e. just mask off bit31) and
-         * the fill rule is non-zero fill rule if bit31
-         * is down and the odd-even fill rule if bit31 is
-         * up.
+         * the glyph data. The offset is encoded as follows
+         *  - bits0-bits29 encode the offset
+         *  - bit30 indicates to complement fill
+         *  - bit31 up indicates odd-even fill rule and
+         *          down indicates non-zero fill rule.
          */
         glyph_offset,
 
@@ -321,6 +321,41 @@ namespace fastuidraw
          */
         glyph_num_attributes
       };
+
+    /*!
+     * A query_info holds data about a \ref GlyphRenderDataRestrictedRays
+     * value (after its finalized method).
+     */
+    class query_info
+    {
+    public:
+      /*!
+       * Default ctor, initializing the value as empty
+       */
+      query_info(void)
+      {}
+
+      /*!
+       * Set the value of a \ref vecN of \ref GlyphAttribute values
+       * derived from this query_info object
+       * \param out_attribs location to which to write GlyphAttribute values
+       * \param fill_rule fill rule with which to fill the glyphs
+       * \param offset location of glyph data
+       */
+      void
+      set_glyph_attributes(vecN<GlyphAttribute, glyph_num_attributes> *out_attribs,
+                           enum PainterEnums::fill_rule_t fill_rule,
+                           uint32_t offset);
+
+      /*!
+       * The GPU data of the queried \ref GlyphRenderDataRestrictedRays
+       * object; the data pointed to by the array is backed
+       * internally by the queried \ref GlyphRenderDataRestrictedRays;
+       * thus, if the point becomes invalid once the queried
+       * \ref GlyphRenderDataRestrictedRays goes out of scope.
+       */
+      c_array<const generic_data> m_gpu_data;
+    };
 
     /*!
      * Ctor.
@@ -367,9 +402,7 @@ namespace fastuidraw
      * - GlyphGenerateParams::restricted_rays_split_thresh()
      * - GlyphGenerateParams::restricted_rays_max_recursion()
      * All contours added must be closed as well.
-     * \param f fill rule to use for rendering, must be one of
-     *          PainterEnums::nonzero_fill_rule or \ref
-     *          PainterEnums::odd_even_fill_rule.
+     * \param f fill rule to use for rendering
      * \param glyph_rect the rect of the glyph
      * \param units_per_EM the units per EM for the glyph; this value together with
      *                     GlyphGenerateParams::restricted_rays_minimum_render_size()
@@ -386,9 +419,7 @@ namespace fastuidraw
      * is called, no further data can be added. Instead of using methods from
      * \ref GlyphGenerateParams, directly specify how the data is broken into
      * boxes.
-     * \param f fill rule to use for rendering, must be one of
-     *          PainterEnums::nonzero_fill_rule or \ref
-     *          PainterEnums::odd_even_fill_rule.
+     * \param f fill rule to use for rendering
      * \param glyph_rect the rect of the glyph
      * \param split_thresh if the number of curves within a box is greater than
      *                     this value, the box is split
@@ -404,11 +435,11 @@ namespace fastuidraw
     /*!
      * Query the data; may only be called after finalize(). Returns
      * \ref routine_fail if finalize() has not yet been called.
-     * \param gpu_data location to which to write a c_array to the
-     *                 GPU data.
+     * \param out_info location to which to write information about
+     *                 this object.
      */
     enum return_code
-    query(c_array<const fastuidraw::generic_data> *gpu_data) const;
+    query(query_info *out_info) const;
 
     virtual
     c_array<const c_string>
