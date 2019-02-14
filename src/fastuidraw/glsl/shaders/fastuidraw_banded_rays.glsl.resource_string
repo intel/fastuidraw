@@ -263,11 +263,11 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
    * glyph-coord) and the calculation is done so that each component of
    * nearest_curve_distance is in the range [0, 0.5].
    */
-  const float tiny = 0.0001;
+  const float tiny = 0.001;
   float weight_sum;
   vec2 weight;
 
-  weight = 1.0 - 2.0 * abs(nearest_curve_distance);
+  weight = vec2(1.0) - 2.0 * clamp(abs(nearest_curve_distance), 0.0, 0.5);
   weight_sum = weight.x + weight.y;
 
   /* Use the wieghted sum of the coverage values for the final
@@ -276,11 +276,11 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
    * half a pixel away. In that case, it means that we regard
    * the pixel as full covered or full uncovered, thus the
    * coverage value should be 0 or 1 in each dimension. To be
-   * safe, we take the min though.
+   * safe, we take the average though.
    */
   cvg = (weight_sum > tiny) ?
     dot(coverage, weight) / weight_sum :
-    min(coverage.x, coverage.y);
+    0.5 * (coverage.x + coverage.y);
 
   return cvg;
 }
