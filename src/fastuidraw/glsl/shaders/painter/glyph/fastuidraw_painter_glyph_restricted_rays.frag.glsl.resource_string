@@ -23,6 +23,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   int winding_number;
   uint data_location;
   const uint bit31 = 0x80000000u;
+  const uint bit30 = 0x40000000u;
   bool is_odd_even_fill_rule;
   float cvg;
 
@@ -30,7 +31,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                      fastuidraw_glyph_coord_y);
 
   is_odd_even_fill_rule = (fastuidraw_glyph_data_location & bit31) != 0u;
-  data_location = fastuidraw_glyph_data_location & ~bit31;
+  data_location = fastuidraw_glyph_data_location & ~(bit31 | bit30);
 
   #ifdef FASTUIDRAW_DEBUG
     fastuidraw_restricted_rays_box_type texel_box;
@@ -51,6 +52,11 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                       dFdy(glyph_coord),
                                                       is_odd_even_fill_rule);
   #endif
+
+  if ((fastuidraw_glyph_data_location & bit30) != 0u)
+    {
+      cvg = 1.0 - cvg;
+    }
 
   #if defined(FASTUIDRAW_DEBUG) && 0
     {
