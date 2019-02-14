@@ -85,6 +85,13 @@ namespace fastuidraw
    */
   inline
   float
+  t_tan(float x) { return ::tanf(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  float
   t_sqrt(float x) { return ::sqrtf(x); }
 
   /*!
@@ -134,6 +141,13 @@ namespace fastuidraw
    */
   inline
   double
+  t_tan(double x) { return ::tan(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  double
   t_sqrt(double x) { return ::sqrt(x); }
 
   /*!
@@ -177,6 +191,13 @@ namespace fastuidraw
   inline
   long double
   t_cos(long double x) { return ::cosl(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  long double
+  t_tan(long double x) { return ::tanl(x); }
 
   /*!
    * Conveniance overload avoiding to rely on std::
