@@ -81,6 +81,15 @@ Building
   variables that control what is built and how. On MS-Windows, the helper
   library NEGL is NOT built by default and on other platforms it is.
 
+Running Demos
+=============
+  The demos (naturally) link against the FastUIDraw libraries, thus they
+  need to be in the linrary path. For Unix platforms, this is done by
+  appending the path where the libraries are located to LD_LIBRARY_PATH.
+  A simple quick hack is to do `export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH`.
+  All demos have options which can be see by passing `--help` as the one
+  and only command line option to the demo.
+
 Installing
 ==========
   Doing "make INSTALL_LOCATION=/path/to/install/to install"
@@ -116,8 +125,6 @@ Notes
     the release flags. If you are building for debug use the debug
     libraries and the debug flags. One can get the flag values by
     using either pkg-config or the script fastuidraw-config.
-  - All demos when given -help as command line display all options
-  - The demos require that the libraries are in the library path
 
 Successfully builds under
 =========================
