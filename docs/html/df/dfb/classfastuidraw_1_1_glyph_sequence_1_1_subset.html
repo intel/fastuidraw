@@ -77,8 +77,8 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a6fbe70fc908c64bec5834a25da34315d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#a6fbe70fc908c64bec5834a25da34315d">attributes_and_indices</a> (<a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> render, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; *out_attributes, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d3/d46/group___painter.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; *out_indices)</td></tr>
 <tr class="separator:a6fbe70fc908c64bec5834a25da34315d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c33105e2dcb4959dc87073033865844"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#a8c33105e2dcb4959dc87073033865844">bounding_box</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *out_min_bb, <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *out_max_bb)</td></tr>
-<tr class="separator:a8c33105e2dcb4959dc87073033865844"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8ded46b8f9e5706dd625b7e644fd72f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#ab8ded46b8f9e5706dd625b7e644fd72f">bounding_box</a> (<a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *out_bb_box)</td></tr>
+<tr class="separator:ab8ded46b8f9e5706dd625b7e644fd72f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43dee2df958b6b62cf1c2e3a5ba8ca29"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const unsigned int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#a43dee2df958b6b62cf1c2e3a5ba8ca29">glyphs</a> (void)</td></tr>
 <tr class="separator:a43dee2df958b6b62cf1c2e3a5ba8ca29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17efdca91a7cb5c696efcff9e7f90550"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#a17efdca91a7cb5c696efcff9e7f90550">path</a> (void)</td></tr>
@@ -93,7 +93,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> represents a subset of the glyphs of a <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a> for the purpose of culling when rendering. Different <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> values from the same <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a> are guaranteed to have disjoint glyphs. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html#l00057">57</a> of file <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html">glyph_sequence.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html#l00058">58</a> of file <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html">glyph_sequence.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a6fbe70fc908c64bec5834a25da34315d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6fbe70fc908c64bec5834a25da34315d">&#9670;&nbsp;</a></span>attributes_and_indices()</h2>
@@ -137,8 +137,8 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
 
 </div>
 </div>
-<a id="a8c33105e2dcb4959dc87073033865844"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c33105e2dcb4959dc87073033865844">&#9670;&nbsp;</a></span>bounding_box()</h2>
+<a id="ab8ded46b8f9e5706dd625b7e644fd72f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8ded46b8f9e5706dd625b7e644fd72f">&#9670;&nbsp;</a></span>bounding_box()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -146,26 +146,15 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
         <tr>
           <td class="memname">bool fastuidraw::GlyphSequence::Subset::bounding_box </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *&#160;</td>
-          <td class="paramname"><em>out_min_bb</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype"><a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *&#160;</td>
+          <td class="paramname"><em>out_bb_box</em></td><td>)</td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *&#160;</td>
-          <td class="paramname"><em>out_max_bb</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the bounding box of the glyphs of this <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> object. Returns false if the bounding box is empty. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Gives the bounding box of the glyphs of this <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> object. A return value of false indicates that the bounding box is empty. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">out_min_bb</td><td>location to which to write the min-corner of the bounding box </td></tr>
-    <tr><td class="paramname">out_max_bb</td><td>location to which to write the max-corner of the bounding box </td></tr>
+    <tr><td class="paramname">out_bb_box</td><td>location to which to write the bounding box </td></tr>
   </table>
   </dd>
 </dl>

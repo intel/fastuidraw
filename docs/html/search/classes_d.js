@@ -1,11 +1,21 @@
 var searchData=
 [
-  ['tag',['Tag',['../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html',1,'fastuidraw::PainterShader']]],
-  ['tessellated_5fregion',['tessellated_region',['../d4/d3e/classfastuidraw_1_1_path_contour_1_1interpolator__generic_1_1tessellated__region.html',1,'fastuidraw::PathContour::interpolator_generic']]],
-  ['tessellatedpath',['TessellatedPath',['../da/df4/classfastuidraw_1_1_tessellated_path.html',1,'fastuidraw']]],
-  ['tessellation_5fstate',['tessellation_state',['../df/da8/classfastuidraw_1_1_path_contour_1_1tessellation__state.html',1,'fastuidraw::PathContour']]],
-  ['tessellationparams',['TessellationParams',['../d9/d6a/classfastuidraw_1_1_tessellated_path_1_1_tessellation_params.html',1,'fastuidraw::TessellatedPath']]],
-  ['textureimage',['TextureImage',['../d7/d40/classfastuidraw_1_1gl_1_1_image_atlas_g_l_1_1_texture_image.html',1,'fastuidraw::gl::ImageAtlasGL']]],
-  ['transformfeedbackvarying',['TransformFeedbackVarying',['../dd/d88/classfastuidraw_1_1gl_1_1_transform_feedback_varying.html',1,'fastuidraw::gl']]],
-  ['true_5ftype',['true_type',['../d9/d35/classfastuidraw_1_1true__type.html',1,'fastuidraw']]]
+  ['scratchspace',['ScratchSpace',['../d3/dcd/classfastuidraw_1_1_stroked_caps_joins_1_1_scratch_space.html',1,'fastuidraw::StrokedCapsJoins::ScratchSpace'],['../df/dac/classfastuidraw_1_1_filled_path_1_1_scratch_space.html',1,'fastuidraw::FilledPath::ScratchSpace'],['../d0/d0c/classfastuidraw_1_1_glyph_sequence_1_1_scratch_space.html',1,'fastuidraw::GlyphSequence::ScratchSpace'],['../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html',1,'fastuidraw::StrokedPath::ScratchSpace']]],
+  ['segment',['segment',['../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html',1,'fastuidraw::TessellatedPath']]],
+  ['segmentstorage',['SegmentStorage',['../d1/def/classfastuidraw_1_1_tessellated_path_1_1_segment_storage.html',1,'fastuidraw::TessellatedPath']]],
+  ['shader',['Shader',['../d6/d88/classfastuidraw_1_1gl_1_1_shader.html',1,'fastuidraw::gl']]],
+  ['shader_5fvariable_5finfo',['shader_variable_info',['../d5/de8/classfastuidraw_1_1gl_1_1_program_1_1shader__variable__info.html',1,'fastuidraw::gl::Program']]],
+  ['shaderfilledpath',['ShaderFilledPath',['../d7/d86/classfastuidraw_1_1_shader_filled_path.html',1,'fastuidraw']]],
+  ['shadersource',['ShaderSource',['../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html',1,'fastuidraw::glsl']]],
+  ['shaderstorageblockinitializer',['ShaderStorageBlockInitializer',['../df/d22/classfastuidraw_1_1gl_1_1_shader_storage_block_initializer.html',1,'fastuidraw::gl']]],
+  ['static_5fresource',['static_resource',['../d9/d1b/classfastuidraw_1_1static__resource.html',1,'fastuidraw']]],
+  ['string_5farray',['string_array',['../dd/dea/classfastuidraw_1_1string__array.html',1,'fastuidraw']]],
+  ['strokedcapsjoins',['StrokedCapsJoins',['../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html',1,'fastuidraw']]],
+  ['strokedpath',['StrokedPath',['../d7/d83/classfastuidraw_1_1_stroked_path.html',1,'fastuidraw']]],
+  ['strokedpoint',['StrokedPoint',['../d4/d1b/classfastuidraw_1_1_stroked_point.html',1,'fastuidraw']]],
+  ['strokingdataselectorbase',['StrokingDataSelectorBase',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html',1,'fastuidraw']]],
+  ['strokingstyle',['StrokingStyle',['../d6/d1e/classfastuidraw_1_1_stroking_style.html',1,'fastuidraw']]],
+  ['subset',['Subset',['../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html',1,'fastuidraw::GlyphSequence::Subset'],['../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html',1,'fastuidraw::FilledPath::Subset'],['../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html',1,'fastuidraw::StrokedPath::Subset']]],
+  ['surface',['Surface',['../d1/dbb/classfastuidraw_1_1_painter_backend_1_1_surface.html',1,'fastuidraw::PainterBackend']]],
+  ['surfacegl',['SurfaceGL',['../d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html',1,'fastuidraw::gl::PainterBackendGL']]]
 ];

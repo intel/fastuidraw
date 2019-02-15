@@ -1,6 +1,7 @@
 var searchData=
 [
   ['action',['Action',['../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html',1,'fastuidraw::PainterDraw']]],
+  ['allocationhandle',['AllocationHandle',['../da/d4a/classfastuidraw_1_1_glyph_cache_1_1_allocation_handle.html',1,'fastuidraw::GlyphCache']]],
   ['apibase',['APIBase',['../d8/dcc/classfastuidraw_1_1_painter_draw_1_1_a_p_i_base.html',1,'fastuidraw::PainterDraw']]],
   ['apicallbackset',['APICallbackSet',['../df/d9c/classfastuidraw_1_1_a_p_i_callback_set.html',1,'fastuidraw']]],
   ['arc',['arc',['../de/dfc/classfastuidraw_1_1_path_contour_1_1arc.html',1,'fastuidraw::PathContour::arc'],['../d5/ded/classfastuidraw_1_1_path_1_1arc.html',1,'fastuidraw::Path::arc']]],

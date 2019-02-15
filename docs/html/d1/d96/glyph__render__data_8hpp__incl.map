@@ -2,9 +2,10 @@
 <area shape="rect" id="node3" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="643,474,793,501"/>
 <area shape="rect" id="node5" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="242,385,405,411"/>
 <area shape="rect" id="node10" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="344,295,519,322"/>
-<area shape="rect" id="node11" href="$de/d47/glyph__atlas_8hpp.html" title="file glyph_atlas.hpp " alt="" coords="587,199,729,240"/>
-<area shape="rect" id="node20" href="$db/d1d/glyph__attribute_8hpp.html" title="file glyph_attribute.hpp " alt="" coords="363,109,505,151"/>
-<area shape="rect" id="node21" href="$db/d0d/glyph__atlas__proxy_8hpp.html" title="file glyph_atlas_proxy.hpp " alt="" coords="587,109,729,151"/>
+<area shape="rect" id="node11" href="$de/d47/glyph__atlas_8hpp.html" title="file glyph_atlas.hpp " alt="" coords="616,199,759,240"/>
+<area shape="rect" id="node20" href="$db/d1d/glyph__attribute_8hpp.html" title="file glyph_attribute.hpp " alt="" coords="452,109,595,151"/>
+<area shape="rect" id="node21" href="$db/d0d/glyph__atlas__proxy_8hpp.html" title="file glyph_atlas_proxy.hpp " alt="" coords="671,109,813,151"/>
+<area shape="rect" id="node22" href="$db/d25/glyph__renderer_8hpp.html" title="file glyph_renderer.hpp " alt="" coords="1376,109,1519,151"/>
 <area shape="rect" id="node7" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="5,474,167,501"/>
 <area shape="rect" id="node12" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="881,288,1043,329"/>
 <area shape="rect" id="node13" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="1376,377,1543,419"/>

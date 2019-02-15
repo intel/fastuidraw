@@ -1,13 +1,14 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/tessellated_path.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/tessellated_path.hpp">
-<area shape="rect" id="node2" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="124,199,291,240"/>
-<area shape="rect" id="node6" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="315,206,478,233"/>
-<area shape="rect" id="node14" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="431,117,605,143"/>
-<area shape="rect" id="node15" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="629,109,791,151"/>
-<area shape="rect" id="node19" href="$d6/d99/path__enums_8hpp.html" title="file path_enums.hpp " alt="" coords="815,117,997,143"/>
+<area shape="rect" id="node2" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="73,199,240,240"/>
+<area shape="rect" id="node6" href="$d0/db4/rect_8hpp_source.html" title="fastuidraw/util/rect.hpp" alt="" coords="1091,117,1246,143"/>
+<area shape="rect" id="node7" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="995,206,1158,233"/>
+<area shape="rect" id="node15" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="841,117,1016,143"/>
+<area shape="rect" id="node16" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="464,109,625,151"/>
+<area shape="rect" id="node20" href="$d6/d99/path__enums_8hpp.html" title="file path_enums.hpp " alt="" coords="1271,117,1453,143"/>
 <area shape="rect" id="node4" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="5,288,172,329"/>
-<area shape="rect" id="node8" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="707,295,857,322"/>
-<area shape="rect" id="node11" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="299,295,460,322"/>
-<area shape="rect" id="node16" href="$d4/df8/reference__count__mutex_8hpp.html" title="file reference_count_mutex.hpp " alt="" coords="1048,199,1209,240"/>
-<area shape="rect" id="node17" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="604,199,765,240"/>
-<area shape="rect" id="node18" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="789,199,972,240"/>
+<area shape="rect" id="node12" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="1089,295,1251,322"/>
+<area shape="rect" id="node9" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="621,295,770,322"/>
+<area shape="rect" id="node17" href="$d4/df8/reference__count__mutex_8hpp.html" title="file reference_count_mutex.hpp " alt="" coords="523,199,684,240"/>
+<area shape="rect" id="node18" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="708,199,869,240"/>
+<area shape="rect" id="node19" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="264,199,447,240"/>
 </map>

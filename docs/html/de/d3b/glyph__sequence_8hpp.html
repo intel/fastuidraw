@@ -74,6 +74,7 @@ $(function() {
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;<a class="el" href="../../df/dce/matrix_8hpp_source.html">fastuidraw/util/matrix.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../db/d2d/c__array_8hpp_source.html">fastuidraw/util/c_array.hpp</a>&gt;</code><br />
+<code>#include &lt;fastuidraw/util/rect.hpp&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../df/d50/font_8hpp_source.html">fastuidraw/text/font.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../d9/d71/glyph_8hpp_source.html">fastuidraw/text/glyph.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../dc/d40/glyph__cache_8hpp_source.html">fastuidraw/text/glyph_cache.hpp</a>&gt;</code><br />
@@ -85,36 +86,39 @@ Include dependency graph for glyph_sequence.hpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d5/dff/glyph__sequence_8hpp__incl.png" border="0" usemap="#_2media_2kevin_2_p4_2github_2fastuidraw_2inc_2fastuidraw_2painter_2glyph__sequence_8hpp" alt=""/></div>
 <map name="_2media_2kevin_2_p4_2github_2fastuidraw_2inc_2fastuidraw_2painter_2glyph__sequence_8hpp" id="_2media_2kevin_2_p4_2github_2fastuidraw_2inc_2fastuidraw_2painter_2glyph__sequence_8hpp">
-<area shape="rect" id="node2" href="../../df/dce/matrix_8hpp.html" title="file matrix.hpp " alt="" coords="5,653,173,679"/>
-<area shape="rect" id="node11" href="../../db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="1023,653,1198,679"/>
-<area shape="rect" id="node12" href="../../df/d50/font_8hpp.html" title="file font.hpp " alt="" coords="1598,288,1757,315"/>
-<area shape="rect" id="node32" href="../../d9/d71/glyph_8hpp.html" title="file glyph.hpp " alt="" coords="953,288,1121,315"/>
-<area shape="rect" id="node34" href="../../d5/d08/painter__enums_8hpp.html" title="file painter_enums.hpp " alt="" coords="344,363,480,404"/>
-<area shape="rect" id="node35" href="../../dc/d40/glyph__cache_8hpp.html" title="file glyph_cache.hpp " alt="" coords="1606,109,1749,151"/>
-<area shape="rect" id="node36" href="../../df/d6f/glyph__source_8hpp.html" title="file glyph_source.hpp " alt="" coords="1071,199,1214,240"/>
-<area shape="rect" id="node37" href="../../dd/da6/painter__attribute__data_8hpp.html" title="file painter_attribute_data.hpp " alt="" coords="181,452,357,493"/>
-<area shape="rect" id="node3" href="../../d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="281,831,442,858"/>
-<area shape="rect" id="node6" href="../../d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="1117,742,1280,769"/>
-<area shape="rect" id="node8" href="../../d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="1513,831,1663,858"/>
-<area shape="rect" id="node13" href="../../d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="1687,645,1849,687"/>
-<area shape="rect" id="node21" href="../../d1/d4c/path_8hpp.html" title="file path.hpp " alt="" coords="771,459,907,486"/>
-<area shape="rect" id="node24" href="../../da/d3d/character__encoding_8hpp_source.html" title="fastuidraw/text/character\l_encoding.hpp" alt="" coords="1989,363,2155,404"/>
-<area shape="rect" id="node25" href="../../d0/d0b/font__properties_8hpp.html" title="file font_properties.hpp " alt="" coords="2179,363,2314,404"/>
-<area shape="rect" id="node26" href="../../d6/df0/glyph__render__data_8hpp.html" title="file glyph_render_data.hpp " alt="" coords="1337,363,1479,404"/>
-<area shape="rect" id="node30" href="../../df/d10/glyph__metrics_8hpp.html" title="file glyph_metrics.hpp " alt="" coords="1801,549,1943,590"/>
-<area shape="rect" id="node31" href="../../d4/da3/glyph__metrics__value_8hpp_source.html" title="fastuidraw/text/glyph\l_metrics_value.hpp" alt="" coords="2070,549,2213,590"/>
-<area shape="rect" id="node14" href="../../da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="837,735,1003,776"/>
-<area shape="rect" id="node18" href="../../d4/df8/reference__count__mutex_8hpp.html" title="file reference_count_mutex.hpp " alt="" coords="1507,735,1669,776"/>
-<area shape="rect" id="node19" href="../../dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="1693,735,1854,776"/>
-<area shape="rect" id="node20" href="../../d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="1878,735,2061,776"/>
-<area shape="rect" id="node16" href="../../dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="766,824,933,865"/>
-<area shape="rect" id="node22" href="../../d6/d99/path__enums_8hpp.html" title="file path_enums.hpp " alt="" coords="699,653,882,679"/>
-<area shape="rect" id="node23" href="../../dc/dbd/tessellated__path_8hpp.html" title="file tessellated_path.hpp " alt="" coords="749,549,899,590"/>
-<area shape="rect" id="node27" href="../../de/d47/glyph__atlas_8hpp.html" title="file glyph_atlas.hpp " alt="" coords="1481,549,1623,590"/>
-<area shape="rect" id="node28" href="../../db/d1d/glyph__attribute_8hpp.html" title="file glyph_attribute.hpp " alt="" coords="1177,452,1319,493"/>
-<area shape="rect" id="node29" href="../../db/d0d/glyph__atlas__proxy_8hpp.html" title="file glyph_atlas_proxy.hpp " alt="" coords="1497,452,1639,493"/>
-<area shape="rect" id="node33" href="../../d1/d66/painter__attribute_8hpp.html" title="file painter_attribute.hpp " alt="" coords="328,645,472,687"/>
-<area shape="rect" id="node38" href="../../d1/dff/painter__attribute__data__filler_8hpp.html" title="file painter_attribute_data_filler.hpp " alt="" coords="219,541,370,597"/>
+<area shape="rect" id="node2" href="../../df/dce/matrix_8hpp.html" title="file matrix.hpp " alt="" coords="146,549,314,575"/>
+<area shape="rect" id="node11" href="../../db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="1400,831,1574,858"/>
+<area shape="rect" id="node12" href="../../d0/db4/rect_8hpp_source.html" title="fastuidraw/util/rect.hpp" alt="" coords="212,831,367,858"/>
+<area shape="rect" id="node13" href="../../df/d50/font_8hpp.html" title="file font.hpp " alt="" coords="2461,288,2620,315"/>
+<area shape="rect" id="node31" href="../../dd/da6/painter__attribute__data_8hpp.html" title="file painter_attribute_data.hpp " alt="" coords="903,631,1079,672"/>
+<area shape="rect" id="node34" href="../../d5/d08/painter__enums_8hpp.html" title="file painter_enums.hpp " alt="" coords="338,541,474,583"/>
+<area shape="rect" id="node39" href="../../d9/d71/glyph_8hpp.html" title="file glyph.hpp " alt="" coords="1336,288,1504,315"/>
+<area shape="rect" id="node40" href="../../dc/d40/glyph__cache_8hpp.html" title="file glyph_cache.hpp " alt="" coords="1720,109,1862,151"/>
+<area shape="rect" id="node41" href="../../df/d6f/glyph__source_8hpp.html" title="file glyph_source.hpp " alt="" coords="1534,199,1677,240"/>
+<area shape="rect" id="node3" href="../../d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="209,1010,370,1037"/>
+<area shape="rect" id="node6" href="../../d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="959,921,1122,947"/>
+<area shape="rect" id="node8" href="../../d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="1952,1010,2102,1037"/>
+<area shape="rect" id="node14" href="../../d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="2249,824,2410,865"/>
+<area shape="rect" id="node22" href="../../d1/d4c/path_8hpp.html" title="file path.hpp " alt="" coords="806,370,942,397"/>
+<area shape="rect" id="node27" href="../../d6/df0/glyph__render__data_8hpp.html" title="file glyph_render_data.hpp " alt="" coords="1829,541,1972,583"/>
+<area shape="rect" id="node35" href="../../da/d3d/character__encoding_8hpp_source.html" title="fastuidraw/text/character\l_encoding.hpp" alt="" coords="2906,452,3073,493"/>
+<area shape="rect" id="node36" href="../../d0/d0b/font__properties_8hpp.html" title="file font_properties.hpp " alt="" coords="2788,363,2922,404"/>
+<area shape="rect" id="node37" href="../../df/d10/glyph__metrics_8hpp.html" title="file glyph_metrics.hpp " alt="" coords="2418,727,2561,769"/>
+<area shape="rect" id="node38" href="../../d4/da3/glyph__metrics__value_8hpp_source.html" title="fastuidraw/text/glyph\l_metrics_value.hpp" alt="" coords="2688,727,2830,769"/>
+<area shape="rect" id="node15" href="../../da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="541,913,708,955"/>
+<area shape="rect" id="node19" href="../../d4/df8/reference__count__mutex_8hpp.html" title="file reference_count_mutex.hpp " alt="" coords="2065,913,2226,955"/>
+<area shape="rect" id="node20" href="../../dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="2250,913,2412,955"/>
+<area shape="rect" id="node21" href="../../d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="2436,913,2618,955"/>
+<area shape="rect" id="node17" href="../../dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="492,1003,658,1044"/>
+<area shape="rect" id="node23" href="../../d6/d99/path__enums_8hpp.html" title="file path_enums.hpp " alt="" coords="762,831,945,858"/>
+<area shape="rect" id="node24" href="../../dc/dbd/tessellated__path_8hpp.html" title="file tessellated_path.hpp " alt="" coords="602,727,751,769"/>
+<area shape="rect" id="node25" href="../../dd/d51/shader__filled__path_8hpp_source.html" title="fastuidraw/painter\l/shader_filled_path.hpp" alt="" coords="853,452,1009,493"/>
+<area shape="rect" id="node26" href="../../de/d47/glyph__atlas_8hpp.html" title="file glyph_atlas.hpp " alt="" coords="1766,727,1909,769"/>
+<area shape="rect" id="node28" href="../../db/d1d/glyph__attribute_8hpp.html" title="file glyph_attribute.hpp " alt="" coords="1458,631,1601,672"/>
+<area shape="rect" id="node29" href="../../db/d0d/glyph__atlas__proxy_8hpp.html" title="file glyph_atlas_proxy.hpp " alt="" coords="2098,631,2241,672"/>
+<area shape="rect" id="node30" href="../../db/d25/glyph__renderer_8hpp.html" title="file glyph_renderer.hpp " alt="" coords="1880,631,2022,672"/>
+<area shape="rect" id="node32" href="../../d1/d66/painter__attribute_8hpp.html" title="file painter_attribute.hpp " alt="" coords="492,824,636,865"/>
+<area shape="rect" id="node33" href="../../d1/dff/painter__attribute__data__filler_8hpp.html" title="file painter_attribute_data_filler.hpp " alt="" coords="928,720,1078,776"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">

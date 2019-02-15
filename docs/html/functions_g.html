@@ -97,14 +97,14 @@ $(function() {
 , <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a11e182da1f01e140a4b2cb6da984db0e">fastuidraw::Painter</a>
 , <a class="el" href="de/da0/classfastuidraw_1_1_painter_backend.html#a99cbdd5e7e7ee9437478d5d48c761288">fastuidraw::PainterBackend</a>
 </li>
-<li>glyph_atlas_store()
-: <a class="el" href="d0/d5b/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_binding_points.html#a3c350cbdacf6172a32e4c3bc1d0969e5">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints</a>
+<li>glyph_atlas_store_binding()
+: <a class="el" href="d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a848ba5ca8037b1f9d73eb576e0fe8397">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams</a>
 </li>
-<li>glyph_atlas_store_ssbo()
-: <a class="el" href="d0/d5b/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_binding_points.html#acc49cf917764ccfac1d245b7d37b74bd">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints</a>
+<li>glyph_atlas_store_binding_fp16x2()
+: <a class="el" href="d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a5064318808b0f2c011ec00685a10f276">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams</a>
 </li>
-<li>glyph_atlas_store_texture()
-: <a class="el" href="d0/d5b/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_binding_points.html#adeb300236b5e323975ec75233c1772ba">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints</a>
+<li>glyph_attribute_dst_write()
+: <a class="el" href="d7/df2/classfastuidraw_1_1_glyph.html#ae735c08d3dfaf4f27e4347e971999c48">fastuidraw::Glyph</a>
 </li>
 <li>glyph_cache()
 : <a class="el" href="df/d7e/classfastuidraw_1_1_glyph_run.html#a719fc147d062b5a365d0f19d5d51075b">fastuidraw::GlyphRun</a>
@@ -118,11 +118,9 @@ $(function() {
 : <a class="el" href="d6/dd4/classfastuidraw_1_1_font_base.html#ab1f5c378b3668b5aa42fe64986e058da">fastuidraw::FontBase</a>
 , <a class="el" href="da/d34/classfastuidraw_1_1_font_free_type.html#a6eea30b600134e4feadbfe9e0054727f">fastuidraw::FontFreeType</a>
 </li>
-<li>glyph_coordinate_x
-: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808da2a43ad512a32490af680ec954161ad5a">fastuidraw::GlyphRenderDataRestrictedRays</a>
-</li>
-<li>glyph_coordinate_y
-: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808dad2b1673913693a6b5eab98a1ad975cb6">fastuidraw::GlyphRenderDataRestrictedRays</a>
+<li>glyph_coord_value
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#a5ddc994b9df826d657729fac80a57151a9ad11bce27f9f106d35942c51d36dd4d">fastuidraw::GlyphRenderDataBandedRays</a>
+, <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a3e09133a411f7bd32211d2353a638c62a2b7cb4aa46b872d176520e553fa2680f">fastuidraw::GlyphRenderDataRestrictedRays</a>
 </li>
 <li>glyph_data_backing()
 : <a class="el" href="d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a6d126cbd26f8067512c90706a6fe3982">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams</a>
@@ -145,9 +143,6 @@ $(function() {
 <li>glyph_data_texture_array
 : <a class="el" href="db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a33e73f20400b909ed8dfde60a8bbee0ea17bb220f26b285a81c7c11c7ac8a9603">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes</a>
 </li>
-<li>glyph_height
-: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808da40e2c6d49d7ddcb30f87232e3e4f14a5">fastuidraw::GlyphRenderDataRestrictedRays</a>
-</li>
 <li>glyph_layout_horizontal
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#aa1330294fb339fa585f902bafb99ec57adb6a10c3271dd6a126d395b6b4f1a07c">fastuidraw::PainterEnums</a>
 </li>
@@ -157,17 +152,30 @@ $(function() {
 <li>glyph_layout_vertical
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#aa1330294fb339fa585f902bafb99ec57a1a72ea9eb053cf502adb32aa8731b68f">fastuidraw::PainterEnums</a>
 </li>
+<li>glyph_normalized_x
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#ac5ac96cbf68f183736a6a6a1ed9067aca6d0e7a219d4100f978ceb3dc51d1555a">fastuidraw::GlyphRenderDataBandedRays</a>
+, <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808dae8a8dce2075d9cb39f41f28fd0b61b18">fastuidraw::GlyphRenderDataRestrictedRays</a>
+</li>
+<li>glyph_normalized_y
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#ac5ac96cbf68f183736a6a6a1ed9067acaff76d9dd0b85b53a9311704f04069fd3">fastuidraw::GlyphRenderDataBandedRays</a>
+, <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808dab98025503d39fd25ae4a5afbb98a600c">fastuidraw::GlyphRenderDataRestrictedRays</a>
+</li>
 <li>glyph_num_attributes
-: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808da5db55f2a26ebbb2b70884fa0fb2ce165">fastuidraw::GlyphRenderDataRestrictedRays</a>
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#ac5ac96cbf68f183736a6a6a1ed9067aca911db8c30b2bb6a06ea9b37fdb04bed3">fastuidraw::GlyphRenderDataBandedRays</a>
+, <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808da5db55f2a26ebbb2b70884fa0fb2ce165">fastuidraw::GlyphRenderDataRestrictedRays</a>
+</li>
+<li>glyph_num_horizontal_bands
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#ac5ac96cbf68f183736a6a6a1ed9067acaf2c773451f76fe1cf77e98031e736951">fastuidraw::GlyphRenderDataBandedRays</a>
+</li>
+<li>glyph_num_vertical_bands
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#ac5ac96cbf68f183736a6a6a1ed9067acaa40313b5f9367c3a8042b390363c1318">fastuidraw::GlyphRenderDataBandedRays</a>
 </li>
 <li>glyph_offset
-: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808da9f0502657347fb793fd1db96b56d1a41">fastuidraw::GlyphRenderDataRestrictedRays</a>
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#ac5ac96cbf68f183736a6a6a1ed9067aca920cb9a2070a40e63b018f96a750fa8c">fastuidraw::GlyphRenderDataBandedRays</a>
+, <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808da9f0502657347fb793fd1db96b56d1a41">fastuidraw::GlyphRenderDataRestrictedRays</a>
 </li>
 <li>glyph_shader()
-: <a class="el" href="db/d4b/classfastuidraw_1_1_painter_shader_set.html#a661b1514e9796e88e71c8b2581d95087">fastuidraw::PainterShaderSet</a>
-</li>
-<li>glyph_width
-: <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a6f4b65b8506e3557b5ae7fdcb798808daa735c7491f41421d9b45d139e539af8f">fastuidraw::GlyphRenderDataRestrictedRays</a>
+: <a class="el" href="db/d4b/classfastuidraw_1_1_painter_shader_set.html#a7aed33a1d1dee7858e098bfd69400069">fastuidraw::PainterShaderSet</a>
 </li>
 <li>GlyphAtlas()
 : <a class="el" href="da/da8/classfastuidraw_1_1_glyph_atlas.html#adbd8c51d4c2543f9fbcbea165420ee26">fastuidraw::GlyphAtlas</a>
@@ -183,6 +191,9 @@ $(function() {
 </li>
 <li>GlyphMetrics()
 : <a class="el" href="d2/d4c/classfastuidraw_1_1_glyph_metrics.html#af68b1ff91fb933820813b09de8a51e64">fastuidraw::GlyphMetrics</a>
+</li>
+<li>GlyphRenderDataBandedRays()
+: <a class="el" href="da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#a291b55663921d7c59fb7e0a7d257a1c0">fastuidraw::GlyphRenderDataBandedRays</a>
 </li>
 <li>GlyphRenderDataRestrictedRays()
 : <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a78eab348a425e722c17a38b6fd40406e">fastuidraw::GlyphRenderDataRestrictedRays</a>

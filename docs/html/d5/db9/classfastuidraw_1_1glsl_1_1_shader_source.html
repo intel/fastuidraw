@@ -117,6 +117,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a76479b39ab85972968344165f9b22dae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfd5bde46de2b4655c20f4a354ac3d77"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#abfd5bde46de2b4655c20f4a354ac3d77">add_macro</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> macro_name, float macro_value, enum <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#ab269bc99ee7b280690ceec1dbf4f84b0">add_location_t</a> loc=<a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#ab269bc99ee7b280690ceec1dbf4f84b0a28684f9173bd97fb530dbc3aa431fa02">push_back</a>)</td></tr>
 <tr class="separator:abfd5bde46de2b4655c20f4a354ac3d77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab172834186ec3a1cacdbad8ef586e6c5"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ab172834186ec3a1cacdbad8ef586e6c5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#ab172834186ec3a1cacdbad8ef586e6c5">add_macro_float</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> macro_name, T macro_value)</td></tr>
+<tr class="separator:ab172834186ec3a1cacdbad8ef586e6c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7ad2b439ff742d46793161b1bc26927"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:af7ad2b439ff742d46793161b1bc26927"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#af7ad2b439ff742d46793161b1bc26927">add_macro_u32</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> macro_name, T macro_value)</td></tr>
 <tr class="separator:af7ad2b439ff742d46793161b1bc26927"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -443,6 +446,53 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ab172834186ec3a1cacdbad8ef586e6c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab172834186ec3a1cacdbad8ef586e6c5">&#9670;&nbsp;</a></span>add_macro_float()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a>&amp; fastuidraw::glsl::ShaderSource::add_macro_float </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>macro_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">T&#160;</td>
+          <td class="paramname"><em>macro_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Add a macro to this <a class="el" href="../../db/d65/classfastuidraw_1_1glsl_1_1_shader_source_1_1_macro_set.html">MacroSet</a> for casted to float </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">macro_name</td><td>name of macro </td></tr>
+    <tr><td class="paramname">macro_value</td><td>value to which macro is given </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d0/dbd/shader__source_8hpp_source.html#l00353">353</a> of file <a class="el" href="../../d0/dbd/shader__source_8hpp_source.html">shader_source.hpp</a>.</p>
+
+</div>
+</div>
 <a id="af7ad2b439ff742d46793161b1bc26927"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af7ad2b439ff742d46793161b1bc26927">&#9670;&nbsp;</a></span>add_macro_u32()</h2>
 
@@ -486,7 +536,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/dbd/shader__source_8hpp_source.html#l00327">327</a> of file <a class="el" href="../../d0/dbd/shader__source_8hpp_source.html">shader_source.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/dbd/shader__source_8hpp_source.html#l00340">340</a> of file <a class="el" href="../../d0/dbd/shader__source_8hpp_source.html">shader_source.hpp</a>.</p>
 
 </div>
 </div>

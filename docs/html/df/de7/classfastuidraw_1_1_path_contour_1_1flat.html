@@ -89,8 +89,10 @@ Inheritance diagram for fastuidraw::PathContour::flat:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a94ac49e9a06e52d5c69d05cf4978dacc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#a94ac49e9a06e52d5c69d05cf4978dacc">flat</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">interpolator_base</a> &gt; &amp;prev, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;end, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> tp)</td></tr>
 <tr class="separator:a94ac49e9a06e52d5c69d05cf4978dacc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0a75ad49b0be1015ba6362a61b8b412"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#aa0a75ad49b0be1015ba6362a61b8b412">approximate_bounding_box</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *out_min_bb, <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *out_max_bb) const</td></tr>
-<tr class="separator:aa0a75ad49b0be1015ba6362a61b8b412"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d5e9d98bbbbc07d71bee47097e82d85"><td class="memItemLeft" align="right" valign="top">virtual enum <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38e">return_code</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#a7d5e9d98bbbbc07d71bee47097e82d85">add_to_builder</a> (<a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html">ShaderFilledPath::Builder</a> *builder, float tol) const</td></tr>
+<tr class="separator:a7d5e9d98bbbbc07d71bee47097e82d85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa647fd8d1ca0afe9d46429f8e4b2d91e"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#aa647fd8d1ca0afe9d46429f8e4b2d91e">approximate_bounding_box</a> (<a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *out_bb) const</td></tr>
+<tr class="separator:aa647fd8d1ca0afe9d46429f8e4b2d91e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37ed49f243f2ea74ba3e5a78f9f3570d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">interpolator_base</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#a37ed49f243f2ea74ba3e5a78f9f3570d">deep_copy</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">interpolator_base</a> &gt; &amp;prev) const</td></tr>
 <tr class="separator:a37ed49f243f2ea74ba3e5a78f9f3570d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad87efd50e773e8296eae6caad54af76b"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#ad87efd50e773e8296eae6caad54af76b">is_flat</a> (void) const</td></tr>
@@ -123,7 +125,7 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A flat interpolator represents a flat edge. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00190">190</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00206">206</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a94ac49e9a06e52d5c69d05cf4978dacc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a94ac49e9a06e52d5c69d05cf4978dacc">&#9670;&nbsp;</a></span>flat()</h2>
@@ -173,13 +175,13 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00200">200</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00216">216</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa0a75ad49b0be1015ba6362a61b8b412"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0a75ad49b0be1015ba6362a61b8b412">&#9670;&nbsp;</a></span>approximate_bounding_box()</h2>
+<a id="a7d5e9d98bbbbc07d71bee47097e82d85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d5e9d98bbbbc07d71bee47097e82d85">&#9670;&nbsp;</a></span>add_to_builder()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -188,16 +190,16 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void fastuidraw::PathContour::flat::approximate_bounding_box </td>
+          <td class="memname">virtual enum <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38e">return_code</a> fastuidraw::PathContour::flat::add_to_builder </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *&#160;</td>
-          <td class="paramname"><em>out_min_bb</em>, </td>
+          <td class="paramtype"><a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html">ShaderFilledPath::Builder</a> *&#160;</td>
+          <td class="paramname"><em>builder</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *&#160;</td>
-          <td class="paramname"><em>out_max_bb</em>&#160;</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>tol</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -211,15 +213,49 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to return a fast (and approximate) bounding box for the interpolator. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>To be optionally implemented by a derived class to add this interpolator to a <a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html">ShaderFilledPath::Builder</a>. A return code of <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38ea07012bc3a0da9650c25fbfacdb05742a">routine_fail</a> means that the interpolator cannot be realized in such a way to be added and a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> that includes such an interpolator in a closed contour will be unable to realized a <a class="el" href="../../d7/d86/classfastuidraw_1_1_shader_filled_path.html">ShaderFilledPath</a> value and <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#af5c2867087bbcb25401bb07845254e46">Path::shader_filled_path()</a> will return a null handle. Default implementation is to return routine_fail. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">out_min_bb</td><td>(output) location to which to write the min-x and min-y coordinates of the approximate bounding box. </td></tr>
-    <tr><td class="paramname">out_max_bb</td><td>(output) location to which to write the max-x and max-y coordinates of the approximate bounding box. </td></tr>
+    <tr><td class="paramname">builder</td><td>object to which to add interpolator. </td></tr>
+    <tr><td class="paramname">tol</td><td>error goal between the interpolator and how it is realized on the <a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html">ShaderFilledPath::Builder</a> </td></tr>
   </table>
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html#ade1e4daa452026943992859718b11cbf">fastuidraw::PathContour::interpolator_base</a>.</p>
+<p>Reimplemented from <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html#ae2715f7e79edec14db9dd5c7267fb54e">fastuidraw::PathContour::interpolator_base</a>.</p>
+
+</div>
+</div>
+<a id="aa647fd8d1ca0afe9d46429f8e4b2d91e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa647fd8d1ca0afe9d46429f8e4b2d91e">&#9670;&nbsp;</a></span>approximate_bounding_box()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void fastuidraw::PathContour::flat::approximate_bounding_box </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *&#160;</td>
+          <td class="paramname"><em>out_bb</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>To be implemented by a derived class to return a fast (and approximate) bounding box for the interpolator. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out_bb</td><td>(output) location to which to write the bounding box value </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implements <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html#aa61dbbf944acce7d13eacedd987202ce">fastuidraw::PathContour::interpolator_base</a>.</p>
 
 </div>
 </div>

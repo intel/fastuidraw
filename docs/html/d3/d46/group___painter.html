@@ -161,7 +161,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">fastuidraw::PainterStrokeShader</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. Both PainterEnums::shader_anti_alias_high_quality a...">PainterStrokeShader</a> holds shaders for stroking. Both <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa6d3ee150af33f519c011f87355ce4080">PainterEnums::shader_anti_alias_high_quality</a> and <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fae4d71253cad7d4c01e9221df636768d5">PainterEnums::shader_anti_alias_simple</a> are two pass solutions. For <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fae4d71253cad7d4c01e9221df636768d5">PainterEnums::shader_anti_alias_simple</a>, the first pass draws the portions of the path that have 100% coverage and the 2nd pass draws those portions with less than 100% coverage; both of these passes rely on depth testing to prevent overdraw. For <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa6d3ee150af33f519c011f87355ce4080">PainterEnums::shader_anti_alias_high_quality</a>, the first pass draws to an offscreen coverage buffer the coverage values so that when a fragment is hit multiple times the largest coverage value is retained and the 2nd pass reads and clears the coverage values using the value from the coverage buffer for the coverage.  <a href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d48/classfastuidraw_1_1_rect.html">fastuidraw::Rect</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d17/classfastuidraw_1_1_rect_enums.html">fastuidraw::RectEnums</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d44/classfastuidraw_1_1_rect_t.html">fastuidraw::RectT&lt; T &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d72/classfastuidraw_1_1_rounded_rect.html">fastuidraw::RoundedRect</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,9 +179,29 @@ Typedefs</h2></td></tr>
 typedef uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d46/group___painter.html#ga4ca331d8a5d5ca308cfe3850d6606519">fastuidraw::PainterIndex</a></td></tr>
 <tr class="memdesc:ga4ca331d8a5d5ca308cfe3850d6606519"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef for the index type used by <a class="el" href="../../d3/d46/group___painter.html">Painter</a>. <br /></td></tr>
 <tr class="separator:ga4ca331d8a5d5ca308cfe3850d6606519"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga93ac7c37c68e4f483709db208d90cea4"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d3/d44/classfastuidraw_1_1_rect_t.html">RectT</a>&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">fastuidraw::Rect</a></td></tr>
+<tr class="separator:ga93ac7c37c68e4f483709db208d90cea4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> provides the interface for Canvas drawing, the most important class being <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a>. Part of the main library libFastUIDraw. </p>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="ga93ac7c37c68e4f483709db208d90cea4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga93ac7c37c68e4f483709db208d90cea4">&#9670;&nbsp;</a></span>Rect</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="../../d3/d44/classfastuidraw_1_1_rect_t.html">RectT</a>&lt;float&gt; <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">fastuidraw::Rect</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Conveniance typedef for RectT&lt;float&gt; </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d0/db4/rect_8hpp_source.html#l00338">338</a> of file <a class="el" href="../../d0/db4/rect_8hpp_source.html">rect.hpp</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

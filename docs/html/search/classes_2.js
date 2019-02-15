@@ -2,6 +2,7 @@ var searchData=
 [
   ['c_5farray',['c_array',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20const_20fastuidraw_3a_3ac_5farray_3c_20const_20fastuidraw_3a_3avecn_20_3e_20_3e',['c_array&lt; const fastuidraw::c_array&lt; const fastuidraw::vecN &gt; &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
+  ['c_5farray_3c_20const_20fastuidraw_3a_3ageneric_5fdata_20_3e',['c_array&lt; const fastuidraw::generic_data &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20const_20t_20_3e',['c_array&lt; const T &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20const_20uint8_5ft_20_3e',['c_array&lt; const uint8_t &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20fastuidraw_3a_3ageneric_5fdata_20_3e',['c_array&lt; fastuidraw::generic_data &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],

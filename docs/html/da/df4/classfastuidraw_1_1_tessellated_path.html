@@ -112,12 +112,8 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a996d102d25764127dce9955e30632331"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a996d102d25764127dce9955e30632331">TessellatedPath</a> (const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;input, <a class="el" href="../../d9/d6a/classfastuidraw_1_1_tessellated_path_1_1_tessellation_params.html">TessellationParams</a> P, <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d1/d80/classfastuidraw_1_1_tessellated_path_1_1_refiner.html">Refiner</a> &gt; *ref=nullptr)</td></tr>
 <tr class="separator:a996d102d25764127dce9955e30632331"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a129961da7ee92a9b659ea3cc6c1ea2ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a129961da7ee92a9b659ea3cc6c1ea2ec">bounding_box_max</a> (void) const</td></tr>
-<tr class="separator:a129961da7ee92a9b659ea3cc6c1ea2ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc62b063b66b27f257e25388c651ddff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#adc62b063b66b27f257e25388c651ddff">bounding_box_min</a> (void) const</td></tr>
-<tr class="separator:adc62b063b66b27f257e25388c651ddff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd405445b80c975c215d409c3517863c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#acd405445b80c975c215d409c3517863c">bounding_box_size</a> (void) const</td></tr>
-<tr class="separator:acd405445b80c975c215d409c3517863c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a958a81e0de3696aca63d02eeff712d"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a6a958a81e0de3696aca63d02eeff712d">bounding_box</a> (void) const</td></tr>
+<tr class="separator:a6a958a81e0de3696aca63d02eeff712d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a025e293bf21ea6072bcd589dd99203b6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a025e293bf21ea6072bcd589dd99203b6">contour_closed</a> (unsigned int contour) const</td></tr>
 <tr class="separator:a025e293bf21ea6072bcd589dd99203b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ce5ad598cad24a4c6e657a6815ab5ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; unsigned int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a7ce5ad598cad24a4c6e657a6815ab5ef">contour_range</a> (unsigned int contour) const</td></tr>
@@ -170,7 +166,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>An <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> represents the tessellation of a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> into line segments and arcs. </p>
 <p>A single contour of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is constructed from a single <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> of the source <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>. Each edge of a contour of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is contructed from a single <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> of the source <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a>. The ordering of the contours of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is the same ordering as the source <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> objects of the source <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>. Also, the ordering of edges within a contour is the same ordering as the <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> objects of the source <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a>. In particular, for each contour of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a>, if an edge is closed, the closing edge is the last edge. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00059">59</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00060">60</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a7e80892f4d3808c47222960ef8baedea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7e80892f4d3808c47222960ef8baedea">&#9670;&nbsp;</a></span>segment_type_t</h2>
@@ -192,7 +188,7 @@ Additional Inherited Members</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00067">67</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00068">68</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
 
 </div>
 </div>
@@ -240,14 +236,14 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a129961da7ee92a9b659ea3cc6c1ea2ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a129961da7ee92a9b659ea3cc6c1ea2ec">&#9670;&nbsp;</a></span>bounding_box_max()</h2>
+<a id="a6a958a81e0de3696aca63d02eeff712d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a958a81e0de3696aca63d02eeff712d">&#9670;&nbsp;</a></span>bounding_box()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> fastuidraw::TessellatedPath::bounding_box_max </td>
+          <td class="memname">const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a>&amp; fastuidraw::TessellatedPath::bounding_box </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -255,45 +251,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the maximum point of the bounding box of the tessellation. </p>
-
-</div>
-</div>
-<a id="adc62b063b66b27f257e25388c651ddff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc62b063b66b27f257e25388c651ddff">&#9670;&nbsp;</a></span>bounding_box_min()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> fastuidraw::TessellatedPath::bounding_box_min </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the minimum point of the bounding box of the tessellation. </p>
-
-</div>
-</div>
-<a id="acd405445b80c975c215d409c3517863c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd405445b80c975c215d409c3517863c">&#9670;&nbsp;</a></span>bounding_box_size()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> fastuidraw::TessellatedPath::bounding_box_size </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the dimensions of the bounding box of the tessellated path. </p>
+<p>Returns the bounding box of the tessellation. </p>
 
 </div>
 </div>

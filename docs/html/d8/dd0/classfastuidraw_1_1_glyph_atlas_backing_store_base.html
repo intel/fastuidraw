@@ -118,7 +118,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>GlyphAtlasStoreBase represents an interface to an aray of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html" title="Union to store 32-bit data. ">generic_data</a> values. </p>
-<p>An example implementation in GL would be a buffer object that backs a single usamplerBuffer. An implementation of the class does NOT need to be thread safe because the ultimate user of the backing store (<a class="el" href="../../d7/d38/classfastuidraw_1_1_glyph_cache.html" title="A GlyphCache represents a cache of glyphs and manages the uploading of the data to a GlyphAtlas...">GlyphCache</a>) performs calls to the backing store behind its own mutex. </p>
+<p>An example implementation in GL would be a buffer object that backs a single usamplerBuffer. An implementation of the class does NOT need to be thread safe because the user of the backing store, <a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html">GlyphAtlas</a> performs calls to the backing store behind its own mutex. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../de/d47/glyph__atlas_8hpp_source.html#l00042">42</a> of file <a class="el" href="../../de/d47/glyph__atlas_8hpp_source.html">glyph_atlas.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>

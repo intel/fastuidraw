@@ -112,8 +112,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6aef088dede0773c2489ae5ed7cdcd14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b6aab2c2211ee5956d7ef94a500afc6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#a6b6aab2c2211ee5956d7ef94a500afc6">add_control_point</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt)</td></tr>
 <tr class="separator:a6b6aab2c2211ee5956d7ef94a500afc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac50264a8477fddd6dc4fc32060abe057"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#ac50264a8477fddd6dc4fc32060abe057">approximate_bounding_box</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *out_min_bb, <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *out_max_bb) const</td></tr>
-<tr class="separator:ac50264a8477fddd6dc4fc32060abe057"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13cf0f36070300874fdc9d941b9096e8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#a13cf0f36070300874fdc9d941b9096e8">approximate_bounding_box</a> (<a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *out_bb) const</td></tr>
+<tr class="separator:a13cf0f36070300874fdc9d941b9096e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c5c3930ce10b2bc1b6370df31cecea6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#a0c5c3930ce10b2bc1b6370df31cecea6">clear_control_points</a> (void)</td></tr>
 <tr class="separator:a0c5c3930ce10b2bc1b6370df31cecea6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a995fd5ecbeb577b5d028437ca1882942"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#a995fd5ecbeb577b5d028437ca1882942">close</a> (enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp)</td></tr>
@@ -162,7 +162,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>An <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html" title="An PathContour represents a single contour within a Path. ">PathContour</a> represents a single contour within a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a>. </p>
 <p>Closeing a contour (see <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#a995fd5ecbeb577b5d028437ca1882942">close()</a>, <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#a2e552493b1c7bf9e0a11a112b6ba5d96">close_generic()</a> and <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#ade3d9cf8eca548d62b73c48a1a467502">close_arc()</a>) means to specify the edge from the last point of the <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html" title="An PathContour represents a single contour within a Path. ">PathContour</a> to the first point. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00046">46</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00048">48</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a6aef088dede0773c2489ae5ed7cdcd14"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6aef088dede0773c2489ae5ed7cdcd14">&#9670;&nbsp;</a></span>PathContour()</h2>
@@ -216,8 +216,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="ac50264a8477fddd6dc4fc32060abe057"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac50264a8477fddd6dc4fc32060abe057">&#9670;&nbsp;</a></span>approximate_bounding_box()</h2>
+<a id="a13cf0f36070300874fdc9d941b9096e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13cf0f36070300874fdc9d941b9096e8">&#9670;&nbsp;</a></span>approximate_bounding_box()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -225,26 +225,15 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">bool fastuidraw::PathContour::approximate_bounding_box </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *&#160;</td>
-          <td class="paramname"><em>out_min_bb</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> *&#160;</td>
-          <td class="paramname"><em>out_max_bb</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
+          <td class="paramtype"><a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *&#160;</td>
+          <td class="paramname"><em>out_bb</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>Returns an approximation of the bounding box for this <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html" title="An PathContour represents a single contour within a Path. ">PathContour</a> WITHOUT relying on tessellating the <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">interpolator_base</a> objects of this <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a>. Returns false if the box is empty. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">out_min_bb</td><td>(output) location to which to write the min-x and min-y coordinates of the approximate bounding box. </td></tr>
-    <tr><td class="paramname">out_max_bb</td><td>(output) location to which to write the max-x and max-y coordinates of the approximate bounding box. </td></tr>
+    <tr><td class="paramname">out_bb</td><td>(output) location to which to write the bounding box value </td></tr>
   </table>
   </dd>
 </dl>

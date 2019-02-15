@@ -98,10 +98,8 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a055f433ed02865dc531c064977b451f9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#a055f433ed02865dc531c064977b451f9">FilledPath</a> (const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;P)</td></tr>
 <tr class="separator:a055f433ed02865dc531c064977b451f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e90c17cbd46fd766735f968a58f69ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#a0e90c17cbd46fd766735f968a58f69ff">bounding_box_max</a> (void) const</td></tr>
-<tr class="separator:a0e90c17cbd46fd766735f968a58f69ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50c38aa6c09001153283641b6a0e5eff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#a50c38aa6c09001153283641b6a0e5eff">bounding_box_min</a> (void) const</td></tr>
-<tr class="separator:a50c38aa6c09001153283641b6a0e5eff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9da65f364589b77d99ca23d737c95ec"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#ab9da65f364589b77d99ca23d737c95ec">bounding_box</a> (void) const</td></tr>
+<tr class="separator:ab9da65f364589b77d99ca23d737c95ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae11118f6f09d2f502108c6e92d703ef6"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#ae11118f6f09d2f502108c6e92d703ef6">number_subsets</a> (void) const</td></tr>
 <tr class="separator:ae11118f6f09d2f502108c6e92d703ef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3a76f691873c495fd2520a4dcc26e3a"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#ab3a76f691873c495fd2520a4dcc26e3a">select_subsets</a> (<a class="el" href="../../df/dac/classfastuidraw_1_1_filled_path_1_1_scratch_space.html">ScratchSpace</a> &amp;scratch_space, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a> &gt; clip_equations, const <a class="el" href="../../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3">float3x3</a> &amp;clip_matrix_local, unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst) const</td></tr>
@@ -125,7 +123,7 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html" title="A FilledPath represents the data needed to draw a path filled. It contains -all- the data needed to f...">FilledPath</a> represents the data needed to draw a path filled. It contains -all- the data needed to fill a path regardless of the fill rule. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d73/filled__path_8hpp_source.html#l00050">50</a> of file <a class="el" href="../../d7/d73/filled__path_8hpp_source.html">filled_path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d73/filled__path_8hpp_source.html#l00051">51</a> of file <a class="el" href="../../d7/d73/filled__path_8hpp_source.html">filled_path.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a055f433ed02865dc531c064977b451f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a055f433ed02865dc531c064977b451f9">&#9670;&nbsp;</a></span>FilledPath()</h2>
@@ -160,14 +158,14 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a0e90c17cbd46fd766735f968a58f69ff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0e90c17cbd46fd766735f968a58f69ff">&#9670;&nbsp;</a></span>bounding_box_max()</h2>
+<a id="ab9da65f364589b77d99ca23d737c95ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9da65f364589b77d99ca23d737c95ec">&#9670;&nbsp;</a></span>bounding_box()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> fastuidraw::FilledPath::bounding_box_max </td>
+          <td class="memname">const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a>&amp; fastuidraw::FilledPath::bounding_box </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -175,26 +173,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the maximum point of the bounding box of the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>. </p>
-
-</div>
-</div>
-<a id="a50c38aa6c09001153283641b6a0e5eff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a50c38aa6c09001153283641b6a0e5eff">&#9670;&nbsp;</a></span>bounding_box_min()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> fastuidraw::FilledPath::bounding_box_min </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the minimum point of the bounding box of the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>. </p>
+<p>Returns the the bounding box of the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>. </p>
 
 </div>
 </div>
