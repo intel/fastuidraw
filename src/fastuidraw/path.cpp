@@ -383,14 +383,6 @@ namespace
     void
     start_contour_if_necessary(void);
 
-    void
-    ready_shader_filled_path(void);
-
-    enum fastuidraw::return_code
-    ready_shader_filled_path_contour(fastuidraw::ShaderFilledPath::Builder *B,
-                                     const fastuidraw::PathContour *contour,
-                                     float tol);
-
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_contours;
     enum fastuidraw::PathEnums::edge_type_t m_next_edge_type;
 
@@ -402,7 +394,6 @@ namespace
     unsigned int m_start_check_bb;
     fastuidraw::BoundingBox<float> m_bb;
     bool m_is_flat;
-    bool m_shader_filled_path_ready;
     fastuidraw::reference_counted_ptr<const fastuidraw::ShaderFilledPath> m_shader_filled_path;
     fastuidraw::Path *m_p;
   };
@@ -1650,7 +1641,6 @@ PathPrivate(fastuidraw::Path *p):
   m_tess_list(),
   m_start_check_bb(0),
   m_is_flat(true),
-  m_shader_filled_path_ready(false),
   m_p(p)
 {
 }
@@ -1663,7 +1653,6 @@ PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
   m_start_check_bb(obj.m_start_check_bb),
   m_bb(obj.m_bb),
   m_is_flat(obj.m_is_flat),
-  m_shader_filled_path_ready(obj.m_shader_filled_path_ready),
   m_shader_filled_path(obj.m_shader_filled_path),
   m_p(p)
 {
@@ -1704,7 +1693,6 @@ void
 PathPrivate::
 clear_tesses(void)
 {
-  m_shader_filled_path_ready = false;
   m_shader_filled_path.clear();
   m_tess_list.clear();
 }
@@ -1728,68 +1716,6 @@ start_contour_if_necessary(void)
       pt = m_contours.back()->point(m_contours.back()->number_points() - 1);
     }
   move_common(pt);
-}
-
-enum fastuidraw::return_code
-PathPrivate::
-ready_shader_filled_path_contour(fastuidraw::ShaderFilledPath::Builder *B,
-                                 const fastuidraw::PathContour *contour,
-                                 float tol)
-{
-  using namespace fastuidraw;
-
-  /* skip empty and non-closed contours */
-  if (contour->number_interpolators() == 0)
-    {
-      return routine_success;
-    }
-
-  B->move_to(contour->interpolator(0)->start_pt());
-  for (unsigned int I = 0, endI = contour->number_interpolators(); I < endI; ++I)
-    {
-      enum return_code R;
-
-      R = contour->interpolator(I)->add_to_builder(B, tol);
-      if (R == routine_fail)
-        {
-          return R;
-        }
-    }
-
-  if (!contour->closed())
-    {
-      B->line_to(contour->interpolator(0)->start_pt());
-    }
-
-  return routine_success;
-}
-
-void
-PathPrivate::
-ready_shader_filled_path(void)
-{
-  using namespace fastuidraw;
-
-  if (m_shader_filled_path_ready)
-    {
-      return;
-    }
-  ShaderFilledPath::Builder B;
-  vec2 bb_sz(m_bb.size());
-  const float rel_tol(1e-4);
-  float tol;
-
-  tol = rel_tol * fastuidraw::t_min(bb_sz.x(), bb_sz.y());
-  m_shader_filled_path_ready = true;
-  m_shader_filled_path.clear();
-  for (const auto &contour : m_contours)
-    {
-      if (routine_fail == ready_shader_filled_path_contour(&B, contour.get(), tol))
-        {
-          return;
-        }
-    }
-  m_shader_filled_path = FASTUIDRAWnew ShaderFilledPath(B);
 }
 
 /////////////////////////////////////////
@@ -2214,6 +2140,16 @@ shader_filled_path(void) const
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
 
-  d->ready_shader_filled_path();
+  if (!d->m_shader_filled_path)
+    {
+      ShaderFilledPath::Builder B;
+      vec2 bb_sz(d->m_bb.size());
+      const float rel_tol(1e-4);
+      float tol;
+
+      tol = rel_tol * fastuidraw::t_min(bb_sz.x(), bb_sz.y());
+      B.add_path(tol, *this);
+      d->m_shader_filled_path = FASTUIDRAWnew ShaderFilledPath(B);
+    }
   return d->m_shader_filled_path;
 }
