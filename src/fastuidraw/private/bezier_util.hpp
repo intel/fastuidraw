@@ -58,54 +58,6 @@ namespace fastuidraw
 
     template<typename InputType,
              typename IntermediateType = typename DefaultIntermediateType<InputType>::int_type,
-             typename IntermediateFloatType = typename DefaultIntermediateType<InputType>::float_type,
-             typename OutputType = InputType>
-    vecN<vecN<OutputType, 2>, 3>
-    quadratic_from_cubicT(c_array<const vecN<InputType, 2> > pts)
-    {
-      FASTUIDRAWassert(pts.size() == 4);
-
-      IntermediateType det;
-      vecN<IntermediateType, 2> p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
-      vecN<IntermediateType, 2> d10(p1 - p0), d32(p3 - p2);
-      vecN<IntermediateType, 2> Jd32(d32.y(), -d32.x());
-      vecN<IntermediateType, 2> Jd10(d10.y(), -d10.x());
-      vecN<IntermediateFloatType, 2> C;
-
-      det = d10.x() * d32.y() - d10.y() * d32.x();
-      if (det == IntermediateType(0))
-        {
-          C = IntermediateFloatType(0.5) * ( vecN<IntermediateFloatType, 2>(p1 + p2));
-        }
-      else
-        {
-          IntermediateFloatType three(3), four(4);
-          vecN<IntermediateFloatType, 2> q0(pts[0]), q1(pts[1]), q2(pts[2]), q3(pts[3]);
-
-          C = (three * q2 - q3 + three * q1 - q0) / four;
-        }
-
-      vecN<vecN<OutputType, 2>, 3> return_value;
-      return_value[0] = vecN<OutputType, 2>(pts[0]);
-      return_value[1] = vecN<OutputType, 2>(C);
-      return_value[2] = vecN<OutputType, 2>(pts[3]);
-
-      return return_value;
-    }
-
-    template<typename InputType,
-             typename IntermediateType = typename DefaultIntermediateType<InputType>::int_type,
-             typename IntermediateFloatType = typename DefaultIntermediateType<InputType>::float_type,
-             typename OutputType = InputType>
-    vecN<vecN<OutputType, 2>, 3>
-    quadratic_from_cubicT(const vecN<vecN<InputType, 2>, 4> &pts)
-    {
-      c_array<const vecN<InputType, 2> > q(pts.c_ptr(), 4);
-      return quadratic_from_cubicT<InputType, IntermediateType, IntermediateFloatType, OutputType>(q);
-    }
-
-    template<typename InputType,
-             typename IntermediateType = typename DefaultIntermediateType<InputType>::int_type,
              typename OutputType = InputType>
     vecN<vecN<vecN<OutputType, 2>, 4>, 2>
     split_cubicT(c_array<const vecN<InputType, 2> > pts)
@@ -142,14 +94,71 @@ namespace fastuidraw
       return split_cubicT<InputType, IntermediateType, OutputType>(q);
     }
 
+    template<typename InputType,
+             typename IntermediateType = typename DefaultIntermediateType<InputType>::int_type,
+             typename IntermediateFloatType = typename DefaultIntermediateType<InputType>::float_type,
+             typename OutputType = InputType>
+    vecN<vecN<OutputType, 2>, 3>
+    quadratic_from_cubicT(c_array<const vecN<InputType, 2> > pts)
+    {
+      FASTUIDRAWassert(pts.size() == 4);
+
+      vecN<IntermediateType, 2> p0(pts[0]), p1(pts[1]), p2(pts[2]), p3(pts[3]);
+      IntermediateFloatType three(3), four(4);
+      vecN<IntermediateFloatType, 2> q0(pts[0]), q1(pts[1]), q2(pts[2]), q3(pts[3]);
+      vecN<IntermediateFloatType, 2> C;
+
+      /* see the discussion at compute_quadratic_cubic_approximate_error()
+       * for what the error between the returned quadratic and original
+       * cubic is.
+       */
+      C = (three * q2 - q3 + three * q1 - q0) / four;
+
+      vecN<vecN<OutputType, 2>, 3> return_value;
+      return_value[0] = vecN<OutputType, 2>(pts[0]);
+      return_value[1] = vecN<OutputType, 2>(C);
+      return_value[2] = vecN<OutputType, 2>(pts[3]);
+
+      return return_value;
+    }
+
+    template<typename InputType,
+             typename IntermediateType = typename DefaultIntermediateType<InputType>::int_type,
+             typename IntermediateFloatType = typename DefaultIntermediateType<InputType>::float_type,
+             typename OutputType = InputType>
+    vecN<vecN<OutputType, 2>, 3>
+    quadratic_from_cubicT(const vecN<vecN<InputType, 2>, 4> &pts)
+    {
+      c_array<const vecN<InputType, 2> > q(pts.c_ptr(), 4);
+      return quadratic_from_cubicT<InputType, IntermediateType, IntermediateFloatType, OutputType>(q);
+    }
+
     inline
     float
     compute_quadratic_cubic_approximate_error(fastuidraw::c_array<const fastuidraw::vec2> p)
     {
-      /* taking the comptuation from http://caffeineowl.com/graphics/2d/vectorial/cubic2quad01.html,
-       * letting q1 = (3p2 - p3 + 3p1 - p0) / 4, the error between the quadratic [p0, q1, p2] and
-       * the cube [p0, p1, p2, p3] is given by ||p3 - 3p2 + 3p1 - p0 || sqrt(3) / 36. We split
-       * the cubic until that error is achieved and then approximate by q.
+      /* This is derivied fromt the article at
+       *     http://caffeineowl.com/graphics/2d/vectorial/cubic2quad01.html
+       *
+       * The derivation for the error comes from the following:
+       *
+       * Let p(t) = (1-t)^3 p0 + 3t(1-t)^2 p1 + 3t^2(1-t) p2 + t^3 p3
+       *
+       * Set A = 3p1 - p0, B = 3p2 - p1
+       * q0 = p0, q1 = (A + B) / 4 and q2 = p2
+       *
+       * then, after lots of algebra,
+       *
+       * p(t) - q(t) = (A - B) (t^3 - 1.5t^2 + 0.5t)
+       *
+       * then the maximum error in each coordinate occurs when
+       * the polynomial Z(t) =  t^3 - 1.5t^2 + 0.5t has maixmal
+       * absolute value the critical points; thus we need to only
+       * check the critical points which are when Z'(t) = 0 which
+       * are t1 = 0.5 * (1 - sqrt(3)) and t2 = 0.5 * (1 + sqrt(3)).
+       * Z(t1) = sqrt(3) / 36 and Z(t2) = -sqrt(3) / 36. Hence,
+       * the maximal error of max ||p(t) - q(t) || over 0 <= t < 1
+       * is ||A - B|| * sqrt(3) / 36
        */
       const float error_coeff(0.04811252243f);
       fastuidraw::vec2 error_vec(p[3] - 3.0f * p[2] + 3.0f * p[1] - p[0]);
@@ -225,7 +234,7 @@ namespace fastuidraw
        *
        * and the error between the arc and [p0, p1, p2, p3] is given by
        *
-       *   error <= |vp| * |D|^5 / 54(1 + D^2)
+       *   error <= |vp| * |D|^5 / (54(1 + D^2))
        *
        * Now, |angle| < 2 * PI, implies |angle| / 4 < PI / 4 thus |D| < 1, giving
        *
