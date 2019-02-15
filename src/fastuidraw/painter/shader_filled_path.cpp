@@ -17,6 +17,8 @@
  */
 
 #include <vector>
+#include <fastuidraw/path.hpp>
+#include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/text/glyph.hpp>
 #include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
@@ -67,7 +69,39 @@ namespace
   public:
     RenderData m_data;
     fastuidraw::BoundingBox<float> m_bbox;
-    fastuidraw::vec2 m_last_pt;
+  };
+
+  class AddPath
+  {
+  public:
+    explicit
+    AddPath(float tol,
+            const fastuidraw::Path *path,
+            fastuidraw::ShaderFilledPath::Builder *b):
+      m_tol(tol),
+      m_b(b),
+      m_path(path),
+      m_tess(nullptr)
+    {}
+
+    void
+    add_to_render_data(void);
+
+  private:
+    void
+    add_contour(unsigned int contour);
+
+    void
+    add_interpolator(const fastuidraw::PathContour *contour,
+                     unsigned int contour_id, unsigned int interpolator_id);
+
+    void
+    add_interpolator_from_tess(unsigned int contour_id, unsigned int interpolator_id);
+
+    float m_tol;
+    fastuidraw::ShaderFilledPath::Builder *m_b;
+    const fastuidraw::Path *m_path;
+    const fastuidraw::TessellatedPath *m_tess;
   };
 
   class PerFillRule
@@ -103,6 +137,92 @@ namespace
     fastuidraw::vecN<PerFillRule, fastuidraw::PainterEnums::fill_rule_data_count> m_per_fill_rule;
     unsigned int m_number_times_atlas_cleared;
   };
+}
+
+////////////////////////////////
+// AddPath methods
+void
+AddPath::
+add_to_render_data(void)
+{
+  for (unsigned int i = 0, endi = m_path->number_contours(); i < endi; ++i)
+    {
+      add_contour(i);
+    }
+}
+
+void
+AddPath::
+add_contour(unsigned int contour_id)
+{
+  using namespace fastuidraw;
+
+  reference_counted_ptr<const PathContour> contour(m_path->contour(contour_id));
+  if (contour->number_interpolators() == 0)
+    {
+      return;
+    }
+
+  m_b->move_to(contour->point(0));
+  for (unsigned int i = 0, endi = contour->number_interpolators(); i < endi; ++i)
+    {
+      add_interpolator(contour.get(), contour_id, i);
+    }
+
+  if (!contour->closed())
+    {
+      m_b->line_to(contour->point(0));
+    }
+}
+
+void
+AddPath::
+add_interpolator(const fastuidraw::PathContour *contour,
+                 unsigned int contour_id, unsigned int interpolator_id)
+{
+  using namespace fastuidraw;
+
+  enum return_code R;
+  const PathContour::interpolator_base *interpolator(contour->interpolator(interpolator_id).get());
+
+  R = interpolator->add_to_builder(m_b, m_tol);
+  if (R == routine_fail)
+    {
+      add_interpolator_from_tess(contour_id, interpolator_id);
+    }
+}
+
+void
+AddPath::
+add_interpolator_from_tess(unsigned int contour_id, unsigned int interpolator_id)
+{
+  using namespace fastuidraw;
+
+  float half_tol(0.5f * m_tol);
+  if (!m_tess)
+    {
+      m_tess = m_path->tessellation(half_tol).get();
+    }
+
+  /* walk through the segments of the named interpolator */
+  c_array<const TessellatedPath::segment> segments;
+  segments = m_tess->edge_segment_data(contour_id, interpolator_id);
+
+  for (const TessellatedPath::segment &S : segments)
+    {
+      if (S.m_type == TessellatedPath::line_segment)
+        {
+          m_b->line_to(S.m_end_pt);
+        }
+      else
+        {
+          unsigned int max_recustion(5);
+          detail::add_arc_as_cubics(max_recustion, m_b, half_tol,
+                                    S.m_start_pt, S.m_end_pt, S.m_center,
+                                    S.m_radius, S.m_arc_angle.m_begin,
+                                    S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
+        }
+    }
 }
 
 ////////////////////////////////////
@@ -207,7 +327,6 @@ move_to(vec2 pt)
   BuilderPrivate *d;
   d = static_cast<BuilderPrivate*>(m_d);
   d->m_data.move_to(pt);
-  d->m_last_pt = pt;
   d->m_bbox.union_point(pt);
 }
 
@@ -218,7 +337,6 @@ line_to(vec2 pt)
   BuilderPrivate *d;
   d = static_cast<BuilderPrivate*>(m_d);
   d->m_data.line_to(pt);
-  d->m_last_pt = pt;
   d->m_bbox.union_point(pt);
 }
 
@@ -229,9 +347,16 @@ quadratic_to(vec2 ct, vec2 pt)
   BuilderPrivate *d;
   d = static_cast<BuilderPrivate*>(m_d);
   d->m_data.quadratic_to(ct, pt);
-  d->m_last_pt = pt;
   d->m_bbox.union_point(pt);
   d->m_bbox.union_point(ct);
+}
+
+void
+fastuidraw::ShaderFilledPath::Builder::
+add_path(float tol, const Path &path)
+{
+  AddPath add_path(tol, &path, this);
+  add_path.add_to_render_data();
 }
 
 ////////////////////////////////////////

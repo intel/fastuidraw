@@ -32,6 +32,10 @@
 
 namespace fastuidraw {
 
+///@cond
+class Path;
+///@endcond
+
 /*!\addtogroup Paths
  * @{
  */
@@ -84,6 +88,13 @@ public:
      */
     void
     quadratic_to(vec2 ct, vec2 pt);
+
+    /*!
+     * Add the contours from a Path. Each contour of the
+     * passed path will start with a move_to().
+     */
+    void
+    add_path(float tol, const Path &path);
 
   private:
     friend class ShaderFilledPath;
