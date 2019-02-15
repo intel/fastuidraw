@@ -28,13 +28,12 @@
 
 namespace
 {
-  #if 1
+  /* RestrictedRays, although slower in performance, gives more robust
+   * anti-aliasing when zoomed in a great deal than BandedRays.
+   */
+#if 1
   typedef fastuidraw::GlyphRenderDataRestrictedRays RenderData;
   const enum fastuidraw::glyph_type GlyphType = fastuidraw::restricted_rays_glyph;
-  #else
-  typedef fastuidraw::GlyphRenderDataBandedRays RenderData;
-  const enum fastuidraw::glyph_type GlyphType = fastuidraw::banded_rays_glyph;
-  #endif
 
   inline
   void
@@ -44,9 +43,13 @@ namespace
   {
     data->finalize(f, bbox.as_rect(),
                    4, //aim for 4 curves per box
-                   12, //recurse up to 8 times.
+                   12, //recurse up to 12 times.
                    fastuidraw::vec2(-1.0f, -1.0f));
   }
+
+#else
+  typedef fastuidraw::GlyphRenderDataBandedRays RenderData;
+  const enum fastuidraw::glyph_type GlyphType = fastuidraw::banded_rays_glyph;
 
   inline
   void
@@ -56,6 +59,8 @@ namespace
   {
     data->finalize(f, bbox.as_rect());
   }
+
+#endif
 
   class BuilderPrivate
   {
