@@ -206,22 +206,49 @@ add_interpolator_from_tess(unsigned int contour_id, unsigned int interpolator_id
 
   /* walk through the segments of the named interpolator */
   c_array<const TessellatedPath::segment> segments;
-  segments = m_tess->edge_segment_data(contour_id, interpolator_id);
+  const TessellatedPath::segment *start_arc(nullptr), *prev_segment(nullptr);
 
+  segments = m_tess->edge_segment_data(contour_id, interpolator_id);
   for (const TessellatedPath::segment &S : segments)
     {
+      if (prev_segment && start_arc
+	  && (S.m_type == TessellatedPath::line_segment
+	      || !S.m_continuation_with_predecessor))
+	{
+	  unsigned int max_recustion(5);
+	  FASTUIDRAWassert(prev_segment->m_type == TessellatedPath::arc_segment);
+	  detail::add_arc_as_cubics(max_recustion, m_b, half_tol,
+				    start_arc->m_start_pt, prev_segment->m_end_pt,
+				    start_arc->m_center, start_arc->m_radius,
+				    start_arc->m_arc_angle.m_begin,
+				    prev_segment->m_arc_angle.m_end - start_arc->m_arc_angle.m_begin);
+	  start_arc = nullptr;
+	}
+
       if (S.m_type == TessellatedPath::line_segment)
         {
-          m_b->line_to(S.m_end_pt);
+	  m_b->line_to(S.m_end_pt);
+	  start_arc = nullptr;
         }
       else
         {
-          unsigned int max_recustion(5);
-          detail::add_arc_as_cubics(max_recustion, m_b, half_tol,
-                                    S.m_start_pt, S.m_end_pt, S.m_center,
-                                    S.m_radius, S.m_arc_angle.m_begin,
-                                    S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
+	  if (!start_arc)
+	    {
+	      start_arc = &S;
+	    }
         }
+      prev_segment = &S;
+    }
+
+  if (start_arc)
+    {
+      unsigned int max_recustion(5);
+      FASTUIDRAWassert(prev_segment->m_type == TessellatedPath::arc_segment);
+      detail::add_arc_as_cubics(max_recustion, m_b, half_tol,
+				start_arc->m_start_pt, prev_segment->m_end_pt,
+				start_arc->m_center, start_arc->m_radius,
+				start_arc->m_arc_angle.m_begin,
+				prev_segment->m_arc_angle.m_end - start_arc->m_arc_angle.m_begin);
     }
 }
 
