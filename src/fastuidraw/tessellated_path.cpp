@@ -186,7 +186,7 @@ namespace
   add_tessellated_arc_segment(fastuidraw::vec2 start, fastuidraw::vec2 end,
                               fastuidraw::vec2 center, float radius,
                               fastuidraw::range_type<float> arc_angle,
-                              bool tangent_with_predecessor,
+                              bool continuation_with_predecessor,
                               std::vector<fastuidraw::TessellatedPath::segment> *d)
   {
     using namespace fastuidraw;
@@ -206,12 +206,12 @@ namespace
         if (i == 0)
           {
             S.m_start_pt = start;
-            S.m_tangent_with_predecessor = tangent_with_predecessor;
+            S.m_continuation_with_predecessor = continuation_with_predecessor;
           }
         else
           {
             S.m_start_pt = d->back().m_end_pt;
-            S.m_tangent_with_predecessor = true;
+            S.m_continuation_with_predecessor = true;
           }
 
         if (i + 1 == cnt)
@@ -314,7 +314,7 @@ namespace
         newS.m_center = vec2(0.0f, 0.0f);
         newS.m_arc_angle = range_type<float>(0.0f, 0.0f);
         newS.m_radius = 0;
-        newS.m_tangent_with_predecessor = false;
+        newS.m_continuation_with_predecessor = false;
 
         dst->push_back(newS);
         prev_pt = p;
@@ -520,7 +520,7 @@ add_line_segment(vec2 start, vec2 end)
   S.m_center = vec2(0.0f, 0.0f);
   S.m_arc_angle = range_type<float>(0.0f, 0.0f);
   S.m_type = line_segment;
-  S.m_tangent_with_predecessor = false;
+  S.m_continuation_with_predecessor = false;
 
   d->push_back(S);
 }
@@ -564,7 +564,7 @@ add_arc_segment(vec2 start, vec2 end,
 
   float prev_angle(arc_angle.m_begin);
   vec2 prev_pt(start);
-  bool tangent_with_predessor(false);
+  bool continuation_with_predessor(false);
 
   for (unsigned int i = 0, reverse_i = 6; i < 7; ++i, --reverse_i)
     {
@@ -591,16 +591,16 @@ add_arc_segment(vec2 start, vec2 end,
           end_pt = center + radius * crit_pts[K];
           add_tessellated_arc_segment(prev_pt, end_pt, center, radius,
                                       range_type<float>(prev_angle, crit_angles[K]),
-                                      tangent_with_predessor, d);
+                                      continuation_with_predessor, d);
           prev_pt = end_pt;
           prev_angle = crit_angles[K];
-          tangent_with_predessor = false;
+          continuation_with_predessor = true;
         }
     }
 
   add_tessellated_arc_segment(prev_pt, end, center, radius,
                               range_type<float>(prev_angle, arc_angle.m_end),
-                              tangent_with_predessor, d);
+                              continuation_with_predessor, d);
 }
 
 ///////////////////////////////////////////////

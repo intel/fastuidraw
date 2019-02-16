@@ -220,12 +220,12 @@ public:
     vec2 m_leaving_segment_unit_vector;
 
     /*!
-     * If true, indicates that the arc is tangent with its
-     * predecessor. This happens when TessellatedPath breaks
-     * a \ref segment into smaller pieces to make its angle
-     * smaller or to make it monotonic.
+     * If true, indicates that the arc is a continuation of
+     * its predecessor. This happens when TessellatedPath
+     * breaks a \ref segment into smaller pieces to make its
+     * angle smaller or to make it monotonic.
      */
-    bool m_tangent_with_predecessor;
+    bool m_continuation_with_predecessor;
   };
 
   /*!
