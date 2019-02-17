@@ -20,7 +20,7 @@ Of the above, we do not yet have clipOutRoundedRect(),
 clipConvexPolygon() and clipToImageBuffer(). Implementing
 clipOutRoundedRect() is trivial since we can already
 draw rounded rectangles. Clipping to a convex polygon
-should be doable directly (without needing to contruct
+should be doable directly (without needing to construct
 a path) by making triangle fans get emitted from the
 corners of the bounding rect of the polygon. The last
 one, clipToImageBuffer() is ugly since it would involve
@@ -45,7 +45,7 @@ modes: Union, XOR, Reverse Difference and Replace.
 We can support clipping directly to a specified path by
 just popping the entire occluder stack (and resetting the
 clip-equations to not clip). However, that plays havoc with
-save()/restore(). The only way to support arbitary set is
+save()/restore(). The only way to support arbitrary set is
 to save the occluder stack (and other state potentially)
 to allow for setClip. This is possible, but really, really
 messy and potentially inefficient.
@@ -60,7 +60,7 @@ number for any point is 1 or 0.
         with the winding rule windind_number == 1
         gives the exact same fill of the original path
         with the fill rule f. The implementation of this
-        is esentially get the contours of the original
+        is essentially get the contours of the original
         Path of the fill rule and use them to define the
         return value.
 
