@@ -396,9 +396,10 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
                * changing the code to zero.
                */
               code.y = 0u;
+              D = 0.0;
             }
 
-          D = sqrt(max(D, 0.0));
+          D = sqrt(D);
           t1 = (B.y - D) * rA;
           t2 = (B.y + D) * rA;
         }
@@ -442,8 +443,12 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
        * Similairly, the change in winding from the fragment point is -1 for
        * x2 < 0 and +1 if x2 > 0 for t2.
        *
-       * Lastly, although the condition x1 >= 0 (and x2 >= 0) are numerically unstable
+       * Additionally, although the condition x1 >= 0 (and x2 >= 0) are numerically unstable
        * near the curve, that is OK because the anti-aliasing molifies the instability.
+       *
+       * Lastly, the entire point of the code value is to avoid testing against
+       * if t is in the range [0, 1]. Thus, for the distance updates we do not need
+       * to check if t is in range.
        */
 
       if ((code.y & 1u) != 0u)
@@ -452,11 +457,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
             {
               R += 1;
             }
-
-          if (t1 >= 0.0 && t1 <= 1.0)
-            {
-              fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
-            }
+          fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
         }
 
       if (code.y > 1u)
@@ -465,11 +466,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
             {
               R -= 1;
             }
-
-          if (t2 >= 0.0 && t2 <= 1.0)
-            {
-              fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
-            }
+          fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
         }
     }
 
@@ -486,9 +483,10 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
           if (D < 0.0)
             {
               code.x = 0u;
+              D = 0.0;
             }
 
-          D = sqrt(max(D, 0.0));
+          D = sqrt(D);
           t1 = (B.x - D) * rA;
           t2 = (B.x + D) * rA;
         }
@@ -500,82 +498,22 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
       y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
 
-      if ((code.x & 1u) != 0u && t1 >= 0.0 && t1 <= 1.0)
+      if ((code.x & 1u) != 0u)
         {
           fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
         }
 
-      if (code.x > 1u && t2 >= 0.0 && t2 <= 1.0)
+      if (code.x > 1u)
         {
           fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
         }
     }
 
-  /* When computing the L1-distance, we also need to minimum with the
-   * endpoint of the curve. In local coordinates, the curve is given by:
-   *
-   *  p(t) = (A * t - 2B) * t + C
-   *
-   * so
-   *
-   *  p'(t) = 2At - 2B
+  /* We are just computing a distance-like value to perform anti-aliasing;
+   * as such we can skip computing the other critical points for the L1-distance
+   * function f(t) = |x(t) - x| + |y(t) - y| which are the end points and the
+   * points p(t) = (x(t), y(t)) where |x'(t)| = |y'(t)|.
    */
-  vec2 dp1, dp3;
-
-  dp1 = -B;
-  dp3 = A - B;
-  fastuidraw_restricted_rays_update_distance(curve.p1, dp1, dst);
-  fastuidraw_restricted_rays_update_distance(curve.p3, dp3, dst);
-
-  /* The last ingredient of minimizing the L1-distance is to minimize
-   * against those t for which:
-   *
-   *   x'(t) - y'(t) = 0 or x'(t) + y'(t) = 0
-   *
-   * thus the t's are t0 and t1 where
-   *
-   * (A.x * t0 - B.x) + (A.y * t0 - B.y) = 0 --> t0 = (B.x + B.y) / (A.x + A.y)
-   * (A.x * t1 - B.x) - (A.y * t1 - B.y) = 0 --> t1 = (B.x - B.y) / (A.x - A.y)
-   *
-   */
-  if (curve.is_quadratic)
-    {
-      float d0, d1, n0, n1;
-      const float tol = 0.0001;
-
-      n0 = B.x + B.y;
-      d0 = A.x + A.y;
-      n0 *= sign(d0);
-      d0 = abs(d0);
-
-      n1 = B.x - B.y;
-      d1 = A.x - A.y;
-      n1 *= sign(d1);
-      d1 = abs(d1);
-
-      if (n0 > 0.0 && d0 > n0)
-        {
-          float t0;
-          vec2 p, dp;
-
-          t0 = n0 / d0;
-          p = (A * t0 - 2.0 * B) * t0 + C;
-          dp = A * t0 - B;
-          fastuidraw_restricted_rays_update_distance(p, dp, dst);
-        }
-
-      if (n1 > 0.0 && d1 > n1)
-        {
-          float t1;
-          vec2 p, dp;
-
-          t1 = n1 / d1;
-          p = (A * t1 - 2.0 * B) * t1 + C;
-          dp = A * t1 - B;
-          fastuidraw_restricted_rays_update_distance(p, dp, dst);
-        }
-    }
-
   return R;
 }
 
