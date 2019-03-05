@@ -287,7 +287,7 @@ namespace fastuidraw
 
     /*!
      * Set the value returned by shader(enum stroke_type_t, enum shader_type_t) const.
-     * \param tp specify to return non-aa shader for arc or linear stroking
+     * \param tp specify to return shader for arc or linear stroking
      * \param sh spcify which shader to return
      * \param v value to use
      */
