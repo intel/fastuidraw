@@ -31,17 +31,16 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterGlyphShader holds a shader pair
-   * for each glyph_type. The shaders are to
-   * handle attribute data as packed by
+   * A PainterGlyphShader holds a shader for each \ref glyph_type.
+   * The shaders are to handle attribute data as packed by
    * Glyph::pack_glyph().
    */
   class PainterGlyphShader
   {
   public:
     /*!
-     * Ctor, inits as all return value from shader(enum glyph_type)
-     * as a nullptr PainterItemShader
+     * Ctor, inits as return value from shader(enum glyph_type)
+     * as a nullptr for each \ref glyph_type value.
      */
     PainterGlyphShader(void);
 
@@ -66,16 +65,14 @@ namespace fastuidraw
     swap(PainterGlyphShader &obj);
 
     /*!
-     * Return the PainterItemShader for a given
-     * glyph_type.
+     * Return the PainterItemShader for a given \ref glyph_type.
      * \param tp glyph type to render
      */
     const reference_counted_ptr<PainterItemShader>&
     shader(enum glyph_type tp) const;
 
     /*!
-     * Set the PainterItemShader for a given
-     * glyph_type.
+     * Set the PainterItemShader for a given \ref glyph_type.
      * \param tp glyph type to render
      * \param sh PainterItemShader to use for the glyph type
      */
