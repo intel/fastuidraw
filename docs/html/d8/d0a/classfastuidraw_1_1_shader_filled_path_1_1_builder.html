@@ -101,7 +101,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>ShaderFilledPath</b>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html">Builder</a> is the means of specifying the contours for a <a class="el" href="../../d7/d86/classfastuidraw_1_1_shader_filled_path.html">ShaderFilledPath</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html#l00058">58</a> of file <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html">shader_filled_path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html#l00059">59</a> of file <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html">shader_filled_path.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ab39e392f04dc412be79d004566f2dedd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab39e392f04dc412be79d004566f2dedd">&#9670;&nbsp;</a></span>add_path()</h2>
@@ -128,7 +128,13 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>ShaderFilledPath</b>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Add the contours from a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a>. Each contour of the passed path will start with a <a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html#a57313ae6db7f0acb84e43dffa1780da7">move_to()</a>. </p>
+<p>Add the contours from a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a>. Each contour of the passed path will start with a <a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html#a57313ae6db7f0acb84e43dffa1780da7">move_to()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tol</td><td>when approximating an interpolate, the tolerance to use for how close the approximation needs to be </td></tr>
+    <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> to add </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
