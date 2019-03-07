@@ -15,6 +15,7 @@
 #include "generic_hierarchy.hpp"
 #include "command_line_list.hpp"
 #include "print_utils.hpp"
+#include "simple_time_circular_array.hpp"
 
 using namespace fastuidraw;
 
@@ -247,6 +248,7 @@ private:
 
   PanZoomTrackerSDLEvent m_zoomer;
   simple_time m_draw_timer;
+  simple_time_circular_array<128> m_draw_times;
 };
 
 ///////////////////////////////////
@@ -895,6 +897,7 @@ draw_frame(void)
                               m_bg_blue.value(),
                               1.0f));
   draw_glyphs(us);
+  m_draw_times.advance();
 
   fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -1166,8 +1169,26 @@ draw_glyphs(float us)
         {
           ostr << "NAN";
         }
-
       ostr << "\nms = " << us / 1000.0f;
+
+      float avg_us;
+      int num_frames;
+
+      avg_us = static_cast<float>(m_draw_times.oldest_elapsed_us(&num_frames));
+      if (num_frames > 0)
+        {
+          avg_us /= static_cast<float>(num_frames);
+          ostr << "\nFPS(over " << num_frames << " frames) = ";
+          if (avg_us > 0.0f)
+            {
+              ostr << 1000.0f * 1000.0f / avg_us;
+            }
+          else
+            {
+              ostr << "NAN";
+            }
+          ostr << "\nms(over " << num_frames << " frames) = " << avg_us / 1000.0f;
+        }
 
       if (m_fill_glyphs)
         {
