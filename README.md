@@ -32,7 +32,7 @@ GL requirements
   performance with optimal rendering quality, GL_EXT_shader_framebuffer_fetch or
   GL_ARB_shader_image_load_store with one of GL_INTEL_fragment_shader_ordering,
   GL_ARB_fragment_shader_interlock or GL_NV_fragment_shader_interlock is strongly
-  recommended. Lastly, to support the non-seperarable blending operations,
+  recommended. Lastly, to support the non-separable blending operations,
   GL_EXT_shader_framebuffer_fetch or GL_ARB_shader_image_load_store with one of
   GL_INTEL_fragment_shader_ordering, GL_ARB_fragment_shader_interlock or
   GL_NV_fragment_shader_interlock is required. The PorterDuff composition modes
@@ -45,7 +45,7 @@ GL requirements
   For optimal rendering quality, one of GLES 3.1 or GL_EXT_shader_framebuffer_fetch
   is recommended. For optimal performance with optimal rendering quality,
   GL_EXT_shader_framebuffer_fetch or GLES 3.1 with GL_NV_fragment_shader_interlock
-  is strongly recommended. Lastly, to support the non-seperarable blending operations,
+  is strongly recommended. Lastly, to support the non-separable blending operations,
   GL_EXT_shader_framebuffer_fetch or GLES 3.1 with GL_NV_fragment_shader_interlock
   is required. The PorterDuff composition modes do not require any extensions though,
   but the extension GL_EXT_blend_func_extended will improve performance.
@@ -80,6 +80,15 @@ Building
   "make targets" to see all build targets and the list of environmental
   variables that control what is built and how. On MS-Windows, the helper
   library NEGL is NOT built by default and on other platforms it is.
+
+Running Demos
+=============
+  The demos (naturally) link against the FastUIDraw libraries, thus they
+  need to be in the library path. For Unix platforms, this is done by
+  appending the path where the libraries are located to LD_LIBRARY_PATH.
+  A simple quick hack is to do `export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH`.
+  All demos have options which can be see by passing `--help` as the one
+  and only command line option to the demo.
 
 Installing
 ==========
@@ -116,8 +125,6 @@ Notes
     the release flags. If you are building for debug use the debug
     libraries and the debug flags. One can get the flag values by
     using either pkg-config or the script fastuidraw-config.
-  - All demos when given -help as command line display all options
-  - The demos require that the libraries are in the library path
 
 Successfully builds under
 =========================

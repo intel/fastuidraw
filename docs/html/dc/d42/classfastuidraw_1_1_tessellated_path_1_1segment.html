@@ -81,6 +81,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a5e2515ed5ae8ba7f48149b2a930a0ee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e2fcbfe100ae264accf51c437d99563"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a4e2fcbfe100ae264accf51c437d99563">m_center</a></td></tr>
 <tr class="separator:a4e2fcbfe100ae264accf51c437d99563"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6872b68a7e4ef79aa3bc74d92ddb07f3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a6872b68a7e4ef79aa3bc74d92ddb07f3">m_continuation_with_predecessor</a></td></tr>
+<tr class="separator:a6872b68a7e4ef79aa3bc74d92ddb07f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a737519eccf5d20801c5f21237c0d6b91"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a737519eccf5d20801c5f21237c0d6b91">m_contour_length</a></td></tr>
 <tr class="separator:a737519eccf5d20801c5f21237c0d6b91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1997a364b913df99fabaf15e85100ff"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#af1997a364b913df99fabaf15e85100ff">m_distance_from_contour_start</a></td></tr>
@@ -101,8 +103,6 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a9f435a777c64d405d2ba66b559aad2e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1cad7c11b3d549b7cfd6de68aefc4ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#ae1cad7c11b3d549b7cfd6de68aefc4ba">m_start_pt</a></td></tr>
 <tr class="separator:ae1cad7c11b3d549b7cfd6de68aefc4ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32afd0ea134c15997395ca2fa2909865"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a32afd0ea134c15997395ca2fa2909865">m_tangent_with_predecessor</a></td></tr>
-<tr class="separator:a32afd0ea134c15997395ca2fa2909865"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab217932ed571f340cca559bbf1dddda8"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a7e80892f4d3808c47222960ef8baedea">segment_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#ab217932ed571f340cca559bbf1dddda8">m_type</a></td></tr>
 <tr class="separator:ab217932ed571f340cca559bbf1dddda8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -142,6 +142,23 @@ Public Attributes</h2></td></tr>
 <p>Only valid if <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#ab217932ed571f340cca559bbf1dddda8">m_type</a> is <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a7e80892f4d3808c47222960ef8baedeaad808cdae4c7c9ec10aa695ce192cc02a">arc_segment</a>; gives the center of the arc. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00166">166</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a6872b68a7e4ef79aa3bc74d92ddb07f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6872b68a7e4ef79aa3bc74d92ddb07f3">&#9670;&nbsp;</a></span>m_continuation_with_predecessor</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool fastuidraw::TessellatedPath::segment::m_continuation_with_predecessor</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>If true, indicates that the arc is a continuation of its predecessor. This happens when <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> breaks a <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> into smaller pieces to make its angle smaller or to make it monotonic. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00228">228</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
 
 </div>
 </div>
@@ -312,23 +329,6 @@ Public Attributes</h2></td></tr>
 <p>Gives the start point on the path of the segment. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00155">155</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
-
-</div>
-</div>
-<a id="a32afd0ea134c15997395ca2fa2909865"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32afd0ea134c15997395ca2fa2909865">&#9670;&nbsp;</a></span>m_tangent_with_predecessor</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool fastuidraw::TessellatedPath::segment::m_tangent_with_predecessor</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>If true, indicates that the arc is tangent with its predecessor. This happens when <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> breaks a <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> into smaller pieces to make its angle smaller or to make it monotonic. </p>
-
-<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00228">228</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
 
 </div>
 </div>

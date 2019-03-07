@@ -83,6 +83,8 @@ Inheritance diagram for fastuidraw::ShaderFilledPath::Builder:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:ab39e392f04dc412be79d004566f2dedd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html#ab39e392f04dc412be79d004566f2dedd">add_path</a> (float tol, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path)</td></tr>
+<tr class="separator:ab39e392f04dc412be79d004566f2dedd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe785e478ff765333c62a36487158d2a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html#abe785e478ff765333c62a36487158d2a">line_to</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> pt)</td></tr>
 <tr class="separator:abe785e478ff765333c62a36487158d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57313ae6db7f0acb84e43dffa1780da7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html#a57313ae6db7f0acb84e43dffa1780da7">move_to</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> pt)</td></tr>
@@ -99,8 +101,37 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>ShaderFilledPath</b>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html">Builder</a> is the means of specifying the contours for a <a class="el" href="../../d7/d86/classfastuidraw_1_1_shader_filled_path.html">ShaderFilledPath</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html#l00054">54</a> of file <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html">shader_filled_path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html#l00058">58</a> of file <a class="el" href="../../dd/d51/shader__filled__path_8hpp_source.html">shader_filled_path.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="ab39e392f04dc412be79d004566f2dedd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab39e392f04dc412be79d004566f2dedd">&#9670;&nbsp;</a></span>add_path()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::ShaderFilledPath::Builder::add_path </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td>
+          <td class="paramname"><em>path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Add the contours from a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a>. Each contour of the passed path will start with a <a class="el" href="../../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html#a57313ae6db7f0acb84e43dffa1780da7">move_to()</a>. </p>
+
+</div>
+</div>
 <a id="abe785e478ff765333c62a36487158d2a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abe785e478ff765333c62a36487158d2a">&#9670;&nbsp;</a></span>line_to()</h2>
 
