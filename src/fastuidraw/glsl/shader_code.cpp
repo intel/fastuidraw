@@ -101,6 +101,7 @@ restricted_rays_compute_coverage(c_string fetch_macro_function,
     .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA", fetch_macro_function)
     .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2", fetch_macro_function_fp16x2)
     .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
+    .remove_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2")
     .remove_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA");
 
   return return_value;
@@ -121,9 +122,9 @@ banded_rays_compute_coverage(c_string fetch_macro_function)
     .add_macro_float("fastuidraw_banded_rays_glyph_coord", GlyphRenderDataBandedRays::glyph_coord_value)
     .add_macro_float("fastuidraw_banded_rays_glyph_coord_half_recip", 0.5f / static_cast<float>(GlyphRenderDataBandedRays::glyph_coord_value))
     .add_macro_float("fastuidraw_banded_rays_glyph_coord_doubled", 2 * GlyphRenderDataBandedRays::glyph_coord_value)
-    .add_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA", fetch_macro_function)
+    .add_macro("FASTUIDRAW_BANDED_RAYS_FETCH_DATA", fetch_macro_function)
     .add_source("fastuidraw_banded_rays.glsl.resource_string", ShaderSource::from_resource)
-    .remove_macro("FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA");
+    .remove_macro("FASTUIDRAW_BANDED_RAYS_FETCH_DATA");
 
   return return_value;
 }
