@@ -34,7 +34,7 @@ public:
   }
 
   int32_t
-  elapsed(void)
+  elapsed(void) const
   {
     return time_difference_ms(std::chrono::steady_clock::now(), m_start_time);
   }
@@ -49,7 +49,7 @@ public:
   }
 
   int64_t
-  elapsed_us(void)
+  elapsed_us(void) const
   {
     return time_difference_us(std::chrono::steady_clock::now(), m_start_time);
   }
