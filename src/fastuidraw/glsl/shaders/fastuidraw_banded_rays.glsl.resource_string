@@ -22,6 +22,15 @@
  *
  * that returns a single 32-bit uint value at index X of
  * a large array of 32-bit uint values storing the data
+ *
+ * and optionally define the macro/function
+ *
+ *  FASTUIDRAW_BANDED_RAYS_FETCH_DATA_FP16X2(X)
+ *
+ * the reads a single 32-bit uint value that is bit-casted
+ * to a (fp16, fp16) pair realized as a vec2. For example
+ * it can be defined as
+ * unpackHalf2x16(FASTUIDRAW_BANDED_RAYS_FETCH_DATA(X))
  */
 
 struct fastuidraw_banded_rays_band
@@ -52,9 +61,17 @@ fastuidraw_banded_rays_load_band(in uint loc, out fastuidraw_banded_rays_band ba
 vec2
 fastuidraw_banded_rays_load_point(in uint loc)
 {
-  uint raw;
-  raw = FASTUIDRAW_BANDED_RAYS_FETCH_DATA(loc);
-  return unpackHalf2x16(raw);
+  #if !defined(FASTUIDRAW_BANDED_RAYS_FETCH_DATA_FP16X2)
+    {
+      uint raw;
+      raw = FASTUIDRAW_BANDED_RAYS_FETCH_DATA(loc);
+      return unpackHalf2x16(raw);
+    }
+  #else
+    {
+      return FASTUIDRAW_BANDED_RAYS_FETCH_DATA_FP16X2(loc);
+    }
+  #endif
 }
 
 void
