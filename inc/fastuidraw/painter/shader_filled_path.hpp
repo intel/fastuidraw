@@ -41,6 +41,7 @@ class Path;
  */
 
 /*!
+ * \brief
  * A ShaderFilledPath represents a path that is drawn as a rectangle
  * where the fragment shader acting on the rectangle performs the
  * coverage computation of each pixel. Generally speaking, one
@@ -92,6 +93,9 @@ public:
     /*!
      * Add the contours from a Path. Each contour of the
      * passed path will start with a move_to().
+     * \param tol when approximating an interpolate, the tolerance
+     *            to use for how close the approximation needs to be
+     * \param path \ref Path to add
      */
     void
     add_path(float tol, const Path &path);
