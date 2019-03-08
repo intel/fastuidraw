@@ -108,6 +108,7 @@ protected:
     log_program(m_backend->program(gl::PainterBackendGL::program_all), "painter.all");
     log_program(m_backend->program(gl::PainterBackendGL::program_without_discard), "painter.without_discard");
     log_program(m_backend->program(gl::PainterBackendGL::program_with_discard), "painter.with_discard");
+    log_program(m_backend->program(gl::PainterBackendGL::program_deferred_coverage_buffer), "painter.deferred_coverage_buffer");
 
     std::cout << "\nUseful command to see shader after pre-processor:\n"
               << "\tsed 's/#version/@version/g' file.glsl | sed 's/#extension/@extension/g'"
