@@ -80,12 +80,12 @@ namespace fastuidraw
     /*!
      * Ctor to create a PainterCompositeShader realized as a sub-shader
      * of an existing PainterCompositeShader
-     * \param sub_shader which sub-shader of the parent PainterCompositeShader
      * \param parent parent PainterCompositeShader that has sub-shaders
+     * \param sub_shader which sub-shader of the parent PainterCompositeShader
      */
-    PainterCompositeShader(unsigned int sub_shader,
-                           reference_counted_ptr<PainterCompositeShader> parent):
-      PainterShader(sub_shader, parent),
+    PainterCompositeShader(reference_counted_ptr<PainterCompositeShader> parent,
+                           unsigned int sub_shader):
+      PainterShader(parent, sub_shader),
       m_type(parent->type())
     {}
 

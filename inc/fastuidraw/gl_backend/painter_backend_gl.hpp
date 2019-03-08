@@ -49,21 +49,26 @@ namespace fastuidraw
       enum program_type_t
         {
           /*!
-           * Get the GLSL program that handles all shaders
+           * Get the GLSL program that handles all item shaders
            */
           program_all,
 
           /*!
-           * Get the GLSL program that only handles those
-           * shader without discard
+           * Get the GLSL program that handles those item shaders
+           * which do not have discard
            */
           program_without_discard,
 
           /*!
-           * Get the GLSL program that only handles those
-           * shader with discard
+           * Get the GLSL program that handles those item shaders
+           * which do have discard
            */
           program_with_discard,
+
+          /*!
+           * Get the GLSL program that handles all item coverage shaders
+           */
+          program_deferred_coverage_buffer,
 
           /*!
            */
@@ -402,17 +407,17 @@ namespace fastuidraw
          * If true, provide an image2D (of type r8) uniform to
          * which to write coverage value for multi-pass shaders
          * (in particular shader based ant-aliased stroking).
-         * Default value is \ref no_auxiliary_buffer.
+         * Default value is \ref no_immediate_coverage_buffer.
          */
-        enum auxiliary_buffer_t
-        provide_auxiliary_image_buffer(void) const;
+        enum immediate_coverage_buffer_t
+        provide_immediate_coverage_image_buffer(void) const;
 
         /*!
          * Set the value returned by
-         * provide_auxiliary_image_buffer(void) const.
+         * provide_immediate_coverage_image_buffer(void) const.
          */
         ConfigurationGL&
-        provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
+        provide_immediate_coverage_image_buffer(enum immediate_coverage_buffer_t);
 
         /*!
          * If a non-empty string, gives the GLSL version to be used
@@ -474,12 +479,12 @@ namespace fastuidraw
       };
 
       /*!
-       * A SurfaceGL is the implementatin of \ref PainterBackend::Surface
+       * A SurfaceGL is the implementatin of \ref PainterSurface
        * for the GL backend. A SurfaceGL must only be used with at most
        * one GL context (even GL contexts in the same share group cannot
        * shader SurfaceGL objects).
        */
-      class SurfaceGL:public Surface
+      class SurfaceGL:public PainterSurface
       {
       public:
         /*!
@@ -487,9 +492,13 @@ namespace fastuidraw
          * The viewport() is initialized to be exactly the
          * entire backing store.
          * \param dims the width and height of the SurfaceGL
+         * \param render_type the render type of the surface (i.e.
+         *                    is it a color buffer or deferred
+         *                    coverage buffer)
          */
         explicit
-        SurfaceGL(ivec2 dims);
+        SurfaceGL(ivec2 dims,
+                  enum render_type_t render_type = color_buffer_type);
 
         /*!
          * Ctor. Use the passed GL texture to which to render
@@ -506,9 +515,13 @@ namespace fastuidraw
          * backing store.
          * \param dims width and height of the GL texture
          * \param gl_texture GL name of texture
+         * \param render_type the render type of the surface (i.e.
+         *                    is it a color buffer or deferred
+         *                    coverage buffer)
          */
         explicit
-        SurfaceGL(ivec2 dims, GLuint gl_texture);
+        SurfaceGL(ivec2 dims, GLuint gl_texture,
+                  enum render_type_t render_type = color_buffer_type);
 
         ~SurfaceGL();
 
@@ -544,27 +557,31 @@ namespace fastuidraw
 
         virtual
         reference_counted_ptr<const Image>
-        image(const reference_counted_ptr<ImageAtlas> &atlas) const;
+        image(const reference_counted_ptr<ImageAtlas> &atlas) const override final;
 
         virtual
         const Viewport&
-        viewport(void) const;
+        viewport(void) const override final;
 
         virtual
         void
-        viewport(const Viewport &vwp);
+        viewport(const Viewport &vwp) override final;
 
         virtual
         const vec4&
-        clear_color(void) const;
+        clear_color(void) const override final;
 
         virtual
         void
-        clear_color(const vec4&);
+        clear_color(const vec4&) override final;
 
         virtual
         ivec2
-        dimensions(void) const;
+        dimensions(void) const override final;
+
+        virtual
+        enum render_type_t
+        render_type(void) const override final;
 
       private:
         friend class PainterBackendGL;
@@ -640,37 +657,41 @@ namespace fastuidraw
 
       virtual
       unsigned int
-      attribs_per_mapping(void) const;
+      attribs_per_mapping(void) const override final;
 
       virtual
       unsigned int
-      indices_per_mapping(void) const;
+      indices_per_mapping(void) const override final;
 
       virtual
       reference_counted_ptr<PainterBackend>
-      create_shared(void);
+      create_shared(void) override final;
 
       virtual
       void
-      on_pre_draw(const reference_counted_ptr<Surface> &surface,
-                  bool clear_color_buffer,
-                  bool begin_new_target);
+      on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
+                  bool clear_color_buffer, bool begin_new_target) override final;
 
       virtual
       void
-      on_post_draw(void);
+      on_post_draw(void) override final;
 
       virtual
       reference_counted_ptr<PainterDraw::Action>
-      bind_image(const reference_counted_ptr<const Image> &im);
+      bind_image(const reference_counted_ptr<const Image> &im) override final;
+
+      virtual
+      reference_counted_ptr<PainterDraw::Action>
+      bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface) override final;
 
       virtual
       reference_counted_ptr<PainterDraw>
-      map_draw(void);
+      map_draw(void) override final;
 
       virtual
-      reference_counted_ptr<Surface>
-      create_surface(ivec2 dims);
+      reference_counted_ptr<PainterSurface>
+      create_surface(ivec2 dims,
+                     enum PainterSurface::render_type_t render_type) override final;
 
       /*!
        * Return the specified Program use to draw

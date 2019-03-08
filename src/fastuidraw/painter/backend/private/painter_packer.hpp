@@ -192,13 +192,13 @@ namespace fastuidraw
      * Indicate to start drawing. Commands are buffered and not
      * set to the backend until end() or flush() is called.
      * All draw commands must be between a begin() / end() pair.
-     * \param surface the \ref PainterBackend::Surface to which
+     * \param surface the \ref PainterSurface to which
      *                 to render content
      * \param clear_color_buffer if true, clear the color buffer
      *                           on the viewport of the surface.
      */
     void
-    begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+    begin(const reference_counted_ptr<PainterSurface> &surface,
           bool clear_color_buffer);
 
     /*!
@@ -216,11 +216,11 @@ namespace fastuidraw
     flush(bool clear_z);
 
     /*!
-     * Returns the PainterBackend::Surface to which the Painter
+     * Returns the PainterSurface to which the Painter
      * is drawing. If there is no active surface, then returns
      * a null reference.
      */
-    const reference_counted_ptr<PainterBackend::Surface>&
+    const reference_counted_ptr<PainterSurface>&
     surface(void) const;
 
     /*!
@@ -231,7 +231,14 @@ namespace fastuidraw
     draw_break(const reference_counted_ptr<const PainterDraw::Action> &action);
 
     /*!
+     * To be called whenever the coverage surface read source changes.
+     */
+    void
+    set_coverage_surface(const reference_counted_ptr<PainterSurface> &surface);
+
+    /*!
      * Draw generic attribute data
+     * \param deferred_coverage_buffer_offset offset in pixel to deffered coverage buffer
      * \param shader shader with which to draw data
      * \param data data for how to draw
      * \param attrib_chunks attribute data to draw
@@ -242,16 +249,78 @@ namespace fastuidraw
      * \param z z-value z value placed into the header
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(ivec2 deferred_coverage_buffer_offset,
+                 const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
                  c_array<const int> index_adjusts,
                  int z)
     {
-      draw_generic(shader, data, attrib_chunks, index_chunks,
+      draw_generic(deferred_coverage_buffer_offset,
+                   shader, data, attrib_chunks, index_chunks,
                    index_adjusts, c_array<const unsigned int>(),
                    z);
+    }
+
+    /*!
+     * Draw generic attribute data
+     * \param deferred_coverage_buffer_offset offset in pixel to deffered coverage buffer
+     * \param shader shader with which to draw data
+     * \param data data for how to draw
+     * \param attrib_chunks attribute data to draw
+     * \param index_chunks the i'th element is index data into attrib_chunks[K]
+     *                     where K = attrib_chunk_selector[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
+     * \param attrib_chunk_selector selects which attribute chunk to use for
+     *        each index chunk
+     * \param z z-value z value placed into the header
+     */
+    void
+    draw_generic(ivec2 deferred_coverage_buffer_offset,
+                 const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterPackerData &data,
+                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                 c_array<const c_array<const PainterIndex> > index_chunks,
+                 c_array<const int> index_adjusts,
+                 c_array<const unsigned int> attrib_chunk_selector,
+                 int z);
+    /*!
+     * Draw generic attribute data
+     * \param deferred_coverage_buffer_offset offset in pixel to deffered coverage buffer
+     * \param shader shader with which to draw data
+     * \param data data for how to draw
+     * \param src DrawWriter to use to write attribute and index data
+     * \param z z-value z value placed into the header
+     */
+    void
+    draw_generic(ivec2 deferred_coverage_buffer_offset,
+                 const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterPackerData &data,
+                 const PainterAttributeWriter &src,
+                 int z);
+
+    /*!
+     * Draw generic attribute data
+     * \param shader shader with which to draw data
+     * \param data data for how to draw
+     * \param attrib_chunks attribute data to draw
+     * \param index_chunks the i'th element is index data into attrib_chunks[i]
+     * \param index_adjusts if non-empty, the i'th element is the value by which
+     *                      to adjust all of index_chunks[i]; if empty the index
+     *                      values are not adjusted.
+     */
+    void
+    draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+                 const PainterPackerData &data,
+                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                 c_array<const c_array<const PainterIndex> > index_chunks,
+                 c_array<const int> index_adjusts)
+    {
+      draw_generic(shader, data, attrib_chunks, index_chunks,
+                   index_adjusts, c_array<const unsigned int>());
     }
 
     /*!
@@ -269,25 +338,22 @@ namespace fastuidraw
      * \param z z-value z value placed into the header
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
                  c_array<const int> index_adjusts,
-                 c_array<const unsigned int> attrib_chunk_selector,
-                 int z);
+                 c_array<const unsigned int> attrib_chunk_selector);
     /*!
      * Draw generic attribute data
      * \param shader shader with which to draw data
      * \param data data for how to draw
      * \param src DrawWriter to use to write attribute and index data
-     * \param z z-value z value placed into the header
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
                  const PainterPackerData &data,
-                 const PainterAttributeWriter &src,
-                 int z);
+                 const PainterAttributeWriter &src);
 
     /*!
      * Returns the PainterBackend::PerformanceHints of the underlying
@@ -369,9 +435,10 @@ namespace fastuidraw
     unsigned int
     compute_room_needed_for_packing(const PainterData::value<T> &obj);
 
-    template<typename T>
+    template<typename T, typename ShaderType>
     void
-    draw_generic_implement(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
+                           const reference_counted_ptr<ShaderType> &shader,
                            const PainterPackerData &data,
                            const T &src,
                            int z);
@@ -389,11 +456,13 @@ namespace fastuidraw
     painter_state_location m_painter_state_location;
     unsigned int m_number_commands;
 
-    reference_counted_ptr<PainterBackend::Surface> m_surface;
+    reference_counted_ptr<PainterSurface> m_surface;
+    enum PainterSurface::render_type_t m_render_type;
     bool m_clear_color_buffer;
     bool m_begin_new_target;
     std::vector<per_draw_command> m_accumulated_draws;
     reference_counted_ptr<const Image> m_last_binded_image;
+    reference_counted_ptr<PainterSurface> m_last_binded_cvg_image;
 
     Workroom m_work_room;
     vecN<unsigned int, num_stats> &m_stats;

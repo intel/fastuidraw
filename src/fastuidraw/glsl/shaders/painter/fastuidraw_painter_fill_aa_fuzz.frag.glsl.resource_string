@@ -22,7 +22,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 {
   if (sub_shader == fastuidraw_aa_fuzz_hq_pass2)
     {
-      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
+      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
     }
   else
     {
@@ -33,7 +33,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
       if (sub_shader == fastuidraw_aa_fuzz_hq_pass1)
         {
-          fastuidraw_max_auxiliary(alpha);
+          fastuidraw_max_immediate_coverage(alpha);
           alpha = 0.0;
         }
 

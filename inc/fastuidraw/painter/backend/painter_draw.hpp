@@ -26,7 +26,9 @@
 #include <fastuidraw/util/gpu_dirty_state.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
 #include <fastuidraw/painter/painter_shader.hpp>
+#include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/painter/backend/painter_shader_group.hpp>
+#include <fastuidraw/painter/backend/painter_surface.hpp>
 
 namespace fastuidraw
 {
@@ -175,6 +177,7 @@ namespace fastuidraw
      * state changes (or just break a draw) for when a
      * \ref PainterBackend cannot accomodate a Painter
      * state change without changing the 3D API state.
+     * \param render_type the render target type of the rendering
      * \param old_groups PainterShaderGroup before state change
      * \param new_groups PainterShaderGroup after state change
      * \param indices_written total number of indices written to m_indices -before- the change
@@ -182,7 +185,8 @@ namespace fastuidraw
      */
     virtual
     bool
-    draw_break(const PainterShaderGroup &old_groups,
+    draw_break(enum PainterSurface::render_type_t render_type,
+               const PainterShaderGroup &old_groups,
                const PainterShaderGroup &new_groups,
                unsigned int indices_written) = 0;
 

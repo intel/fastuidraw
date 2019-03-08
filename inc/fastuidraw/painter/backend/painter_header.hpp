@@ -38,20 +38,53 @@ namespace fastuidraw
   class PainterHeader
   {
   public:
-    /*!
-     * Bit-masks for \ref m_flags.
-     */
-    enum flags_t
+    enum
       {
         /*!
-         * Indicates that the drawing is for drawing
-         * an occluder; These draws are to have no
-         * net-effect on the color framebuffer.
+         * When \ref m_blend_shader is set to \ref drawing_occluder,
+         * it indicates that the item being drawing is an occluder,
+         * and no blending is active.
          */
-        drawing_occluder = 1u
+        drawing_occluder = ~0u
       };
 
     /*!
+     * \brief
+     * Gives how the offset to coverage value stored in
+     * \ref m_offset_to_deferred_coverage is packed
+     * at \ref offset_to_deferred_coverage_offset
+     */
+    enum offset_to_deferred_coverage_packing
+      {
+        /*!
+         * The values are encoded as unsigned integers
+         * biased by this amount. To get the actual
+         * value, requires to subtract this value from
+         * the unpacked value.
+         */
+        offset_to_deferred_coverage_bias = 32768u,
+
+        /*!
+         * The number of bits used to encode a single
+         * coordinate of the offset.
+         */
+        offset_to_deferred_coverage_coord_num_bits = 16,
+
+        /*!
+         * The first bit used to encode the biased x-coordinate
+         * of \ref m_offset_to_deferred_coverage
+         */
+        offset_to_deferred_coverage_x_coord_bit0 = 0,
+
+        /*!
+         * The first bit used to encode the biased x-coordinate
+         * of \ref m_offset_to_deferred_coverage
+         */
+        offset_to_deferred_coverage_y_coord_bit0 = offset_to_deferred_coverage_coord_num_bits,
+      };
+
+    /*!
+     * \brief
      * Enumerations specifying how the contents of a PainterHeader
      * are packed into a data store buffer (PainterDraw::m_store).
      */
@@ -68,7 +101,12 @@ namespace fastuidraw
         composite_shader_offset, /*!< offset to \ref m_composite_shader */
         blend_shader_offset, /*!< offset to \ref m_blend_shader */
         z_offset, /*!< offset to \ref m_z */
-        flags_offset, /*!< offset to \ref m_flags */
+
+        /*!
+         * offset to \ref m_offset_to_deferred_coverage, packed as
+         * according to \ref offset_to_deferred_coverage_packing
+         */
+        offset_to_deferred_coverage_offset,
 
         header_size /*!< size of header */
       };
@@ -155,6 +193,9 @@ namespace fastuidraw
 
     /*!
      * The ID of the blend shader (i.e. PainterBlendShader::ID()).
+     * If this value is \ref drawing_occluder, that indicates that
+     * the header is for drawing an occluder and no blending is
+     * active.
      */
     uint32_t m_blend_shader;
 
@@ -167,9 +208,10 @@ namespace fastuidraw
     int32_t m_z;
 
     /*!
-     * Additional flags for information about a painter draw.
+     * Offset in pixels from where to read the deferred coverage
+     * values.
      */
-    uint32_t m_flags;
+    ivec2 m_offset_to_deferred_coverage;
 
     /*!
      * Pack the values of this PainterHeader

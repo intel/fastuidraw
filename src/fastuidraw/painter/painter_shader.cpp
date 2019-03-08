@@ -54,8 +54,8 @@ PainterShader(unsigned int num_sub_shaders)
 }
 
 fastuidraw::PainterShader::
-PainterShader(unsigned int sub_shader,
-              reference_counted_ptr<PainterShader> parent)
+PainterShader(reference_counted_ptr<PainterShader> parent,
+              unsigned int sub_shader)
 {
   PainterShaderPrivate *d;
   m_d = d = FASTUIDRAWnew PainterShaderPrivate(1);

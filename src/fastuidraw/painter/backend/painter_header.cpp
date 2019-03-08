@@ -17,6 +17,7 @@
  */
 
 #include <fastuidraw/painter/backend/painter_header.hpp>
+#include <fastuidraw/util/util.hpp>
 
 void
 fastuidraw::PainterHeader::
@@ -33,5 +34,11 @@ pack_data(c_array<generic_data> dst) const
   dst[composite_shader_offset].u               = m_composite_shader;
   dst[blend_shader_offset].u                   = m_blend_shader;
   dst[z_offset].i                              = m_z;
-  dst[flags_offset].u                          = m_flags;
+  dst[offset_to_deferred_coverage_offset].u =
+    pack_bits(offset_to_deferred_coverage_x_coord_bit0,
+              offset_to_deferred_coverage_coord_num_bits,
+              m_offset_to_deferred_coverage.x() + offset_to_deferred_coverage_bias)
+    | pack_bits(offset_to_deferred_coverage_y_coord_bit0,
+                offset_to_deferred_coverage_coord_num_bits,
+                m_offset_to_deferred_coverage.y() + offset_to_deferred_coverage_bias);
 }

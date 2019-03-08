@@ -20,36 +20,43 @@ void
 fastuidraw_read_header(in uint location, out fastuidraw_header h);
 
 
-/* needed functions
- */
-vec4
-fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
+/* needed functions */
+#if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
+  vec4
+  fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
 
-vec4
-fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy);
+  vec4
+  fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy);
 
 
 
-#ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
-void
-fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
-                                in vec4 in_src, out vec4 out_src);
-#endif
+  #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
+    void
+    fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
+                                    in vec4 in_src, out vec4 out_src);
+  #endif
 
-#ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
-void
-fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
-                                in vec4 color0, out vec4 src0, out vec4 src1);
-#endif
+  #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
+    void
+    fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
+                                    in vec4 color0, out vec4 src0, out vec4 src1);
+  #endif
 
-#if defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH) || defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
-void
-fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location,
-                            in vec3 in_src, in vec3 in_fb, out vec3 out_src);
+  #if defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH) || defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
+    void
+    fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location,
+                                in vec3 in_src, in vec3 in_fb, out vec3 out_src);
 
-void
-fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
-                                in vec4 in_src, in vec4 in_fb, out vec4 out_src);
+    void
+    fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
+                                    in vec4 in_src, in vec4 in_fb, out vec4 out_src);
+  #endif
+
+#else
+
+  float
+  fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
+
 #endif
 
 void

@@ -146,6 +146,18 @@ stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
                         const AliasVaryingLocation &datum);
 
 void
+stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
+                        c_array<const reference_counted_ptr<PainterItemCoverageShaderGLSL> > item_shaders,
+                        const UberShaderVaryings &declare_varyings,
+                        const AliasVaryingLocation &datum);
+
+void
+stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
+                        c_array<const reference_counted_ptr<PainterItemCoverageShaderGLSL> > item_shaders,
+                        const UberShaderVaryings &declare_varyings,
+                        const AliasVaryingLocation &datum);
+
+void
 stream_uber_composite_shader(bool use_switch, ShaderSource &frag,
                              c_array<const reference_counted_ptr<PainterCompositeShaderGLSL> > composite_shaders,
                              enum PainterCompositeShader::shader_type tp);

@@ -86,7 +86,7 @@ namespace fastuidraw
    * NormalizedDeviceCoordinates = ClipCoordinates.xy / ClipCoordinates.w
    * \endcode
    * where (-1, -1) corresponds to the bottom-left hand corner of the
-   * viewport (see PainterBackend::Surface::viewport()) and (+1, +1)
+   * viewport (see PainterSurface::viewport()) and (+1, +1)
    * is the top right hand corner of the viewport.
    *
    * The pixel pipeline of Painter is
@@ -315,7 +315,7 @@ namespace fastuidraw
      * Drawing commands sent to 3D hardware are buffered and not sent
      * to the hardware until end() is called. All draw commands must
      * be between a begin()/end() pair.
-     * \param surface the \ref PainterBackend::Surface to which to render content
+     * \param surface the \ref PainterSurface to which to render content
      * \param initial_transformation value to initialize transformation() which
      *                               is the matrix from logical coordinates to
      *                               API 3D clip coordinates.
@@ -323,7 +323,7 @@ namespace fastuidraw
      *                           of the surface.
      */
     void
-    begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+    begin(const reference_counted_ptr<PainterSurface> &surface,
           const float3x3 &initial_transformation,
           bool clear_color_buffer = true);
 
@@ -331,18 +331,18 @@ namespace fastuidraw
      * Indicate to start drawing with methods of this Painter. The
      * ransformation matrix will be intialized with a projection
      * matrix derived from the passed screen_orientation
-     * and the viewort of the passed PainterBackend::Surface. Drawing
+     * and the viewort of the passed PainterSurface. Drawing
      * commands sent to 3D hardware are buffered and not sent to the
      * hardware until end() is called. All draw commands must be between
      * a begin()/end() pair.
-     * \param surface the \ref PainterBackend::Surface to which to render content
+     * \param surface the \ref PainterSurface to which to render content
      * \param orientation orientation convention with which to initialize the
      *                    transformation
      * \param clear_color_buffer if true, clear the color buffer on the viewport
      *                           of the surface.
      */
     void
-    begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+    begin(const reference_counted_ptr<PainterSurface> &surface,
           enum screen_orientation orientation,
           bool clear_color_buffer = true);
 
@@ -357,13 +357,13 @@ namespace fastuidraw
      * begin(). All draw commands must be between a begin()/end()
      * pair.
      */
-    c_array<const PainterBackend::Surface* const>
+    c_array<const PainterSurface* const>
     end(void);
 
     /*!
      * Flushes the rendering and flushes the rendering commands
      * to the 3D API and maintain using the current
-     * PainterBackend::Surface. It is not possible to flush
+     * PainterSurface. It is not possible to flush
      * if the Painter is within a begin_layer()/end_layer().
      * Returns \ref routine_success if flush was executed and
      * \ref routine_fail if not.
@@ -376,15 +376,15 @@ namespace fastuidraw
      * to the 3D API and shift to using a the passed surface;
      * the surface's viewport dimensions MUST match the
      * current surface's viewport dimensions, i.e. the value
-     * of PainterBackend::Surface::viewport().m_dimensions
-     * surface() and the passed PainterBackend::Surface must
+     * of PainterSurface::viewport().m_dimensions
+     * surface() and the passed PainterSurface must
      * match. It is not possible to flush if the Painter is
      * within a begin_layer()/end_layer(). Returns \ref
      * routine_success if flush was executed and \ref
      * routine_fail if not.
      */
     enum return_code
-    flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface);
+    flush(const reference_counted_ptr<PainterSurface> &new_surface);
 
     /*!
      * Everytime Painter generates attribute/index data to
@@ -398,11 +398,11 @@ namespace fastuidraw
     draw_data_added_count(void) const;
 
     /*!
-     * Returns the PainterBackend::Surface to which the Painter
+     * Returns the PainterSurface to which the Painter
      * is drawing. If there is no active surface, then returns
      * a null reference.
      */
-    const reference_counted_ptr<PainterBackend::Surface>&
+    const reference_counted_ptr<PainterSurface>&
     surface(void) const;
 
     /*!

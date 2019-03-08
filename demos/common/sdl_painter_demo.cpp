@@ -120,28 +120,28 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t> v)
+             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer:
-        str << "no_auxiliary_buffer";
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer:
+        str << "no_immediate_coverage_buffer";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic:
-        str << "auxiliary_buffer_atomic";
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic:
+        str << "immediate_coverage_buffer_atomic";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock:
-        str << "auxiliary_buffer_interlock";
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock:
+        str << "immediate_coverage_buffer_interlock";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only:
-        str << "auxiliary_buffer_interlock_main_only";
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only:
+        str << "immediate_coverage_buffer_interlock_main_only";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch:
-        str << "auxiliary_buffer_framebuffer_fetch";
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch:
+        str << "immediate_coverage_buffer_framebuffer_fetch";
         break;
 
       default:
@@ -394,48 +394,48 @@ sdl_painter_demo(const std::string &about_text,
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
                                         *this),
-  m_provide_auxiliary_image_buffer(m_painter_params.provide_auxiliary_image_buffer(),
-                                  enumerated_string_type<auxiliary_buffer_t>()
-                                  .add_entry("no_auxiliary_buffer",
-                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer,
+  m_provide_immediate_coverage_image_buffer(m_painter_params.provide_immediate_coverage_image_buffer(),
+                                  enumerated_string_type<immediate_coverage_buffer_t>()
+                                  .add_entry("no_immediate_coverage_buffer",
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer,
                                              "No auxiliary buffer provided")
-                                  .add_entry("auxiliary_buffer_atomic",
-                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic,
+                                  .add_entry("immediate_coverage_buffer_atomic",
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic,
                                              "Auxiliary buffer through atomic ops; this can be quite poor "
                                              "performing because atomics can be quite slow AND (worse) "
                                              "a draw break appears to issue a memory barrier within each "
                                              "path stroking and after each path stroking. Requires only "
                                              "GL 4.2 (or GL_ARB_shader_image_load_store extension) for GL "
                                              "and GLES 3.1 for GLES")
-                                  .add_entry("auxiliary_buffer_interlock",
-                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock,
+                                  .add_entry("immediate_coverage_buffer_interlock",
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock,
                                              "Auxiliary buffer with interlock; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_INTEL_fragment_shader_ordering "
                                              "and GL 4.2 (or GL_ARB_shader_image_load_store extension); if requirements "
-                                             "are not satisfied will try to fall back to auxiliary_buffer_interlock_main_only "
-                                             "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
-                                             "if those requirement are not satsified, then no_auxiliary_buffer")
-                                  .add_entry("auxiliary_buffer_interlock_main_only",
-                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only,
+                                             "are not satisfied will try to fall back to immediate_coverage_buffer_interlock_main_only "
+                                             "and if those are not satisfied will fall back to immediate_coverage_buffer_atomic and "
+                                             "if those requirement are not satsified, then no_immediate_coverage_buffer")
+                                  .add_entry("immediate_coverage_buffer_interlock_main_only",
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only,
                                              "Auxiliary buffer with interlock; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_ARB_fragment_shader_interlock "
                                              "OR GL_NV_fragment_shader_interlock together with GL 4.2 (or "
                                              "GL_ARB_shader_image_load_store) for GL and GLES 3.1 for GLES; if requirements "
-                                             "are not satisfied will try to fall back to auxiliary_buffer_interlock "
-                                             "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
-                                             "if those requirement are not satsified, then no_auxiliary_buffer")
-                                  .add_entry("auxiliary_buffer_framebuffer_fetch",
-                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch,
+                                             "are not satisfied will try to fall back to immediate_coverage_buffer_interlock "
+                                             "and if those are not satisfied will fall back to immediate_coverage_buffer_atomic and "
+                                             "if those requirement are not satsified, then no_immediate_coverage_buffer")
+                                  .add_entry("immediate_coverage_buffer_framebuffer_fetch",
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch,
                                              "Auxilary buffer via framebuffer fetch; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_EXT_shader_framebuffer_fetch; "
-                                             "if requirement is not satisfied will try to fall back to auxiliary_buffer_interlock "
-                                             "which if not satisfied will fall back to auxiliary_buffer_interlock_main_only "
-                                             "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
-                                             "if those requirement are not satsified, then no_auxiliary_buffer"),
-                                  "provide_auxiliary_image_buffer",
+                                             "if requirement is not satisfied will try to fall back to immediate_coverage_buffer_interlock "
+                                             "which if not satisfied will fall back to immediate_coverage_buffer_interlock_main_only "
+                                             "and if those are not satisfied will fall back to immediate_coverage_buffer_atomic and "
+                                             "if those requirement are not satsified, then no_immediate_coverage_buffer"),
+                                  "provide_immediate_coverage_image_buffer",
                                   "Specifies if and how to provide auxiliary image buffer; "
                                   "will remove rendering artifacts on shader-based anti-aliased "
                                   "transparent path stroking",
@@ -708,7 +708,7 @@ init_gl(int w, int h)
   APPLY_PARAM(assign_layout_to_varyings, m_assign_layout_to_varyings);
   APPLY_PARAM(assign_binding_points, m_assign_binding_points);
   APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
-  APPLY_PARAM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
+  APPLY_PARAM(provide_immediate_coverage_image_buffer, m_provide_immediate_coverage_image_buffer);
   APPLY_PARAM(compositing_type, m_composite_type);
   APPLY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
 
@@ -813,7 +813,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(assign_layout_to_varyings, m_assign_layout_to_varyings);
       LAZY_PARAM_ENUM(assign_binding_points, m_assign_binding_points);
       LAZY_PARAM_ENUM(separate_program_for_discard, m_separate_program_for_discard);
-      LAZY_PARAM_ENUM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
+      LAZY_PARAM_ENUM(provide_immediate_coverage_image_buffer, m_provide_immediate_coverage_image_buffer);
       LAZY_PARAM_ENUM(compositing_type, m_composite_type);
       std::cout << std::setw(40) << "geometry_backing_store_type:"
                 << std::setw(8) << m_glyph_atlas->param_values().glyph_data_backing_store_type()

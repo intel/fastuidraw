@@ -30,7 +30,7 @@ namespace
       || (tp == fastuidraw::gl::PainterBackendGL::program_with_discard && uses_discard);
   }
 
-  class DiscardItemShaderFilter:public fastuidraw::gl::PainterBackendGL::ItemShaderFilter
+  class DiscardItemShaderFilter:public fastuidraw::gl::PainterBackendGL::ShaderFilter<fastuidraw::glsl::PainterItemShaderGLSL>
   {
   public:
     explicit
@@ -119,6 +119,21 @@ compute_item_shader_group(PainterShader::Tag tag,
   return return_value;
 }
 
+uint32_t
+fastuidraw::gl::detail::PainterShaderRegistrarGL::
+compute_item_coverage_shader_group(PainterShader::Tag tag,
+                                   const reference_counted_ptr<PainterItemCoverageShader> &shader)
+{
+  uint32_t return_value;
+  bool group_id_is_shader_id;
+
+  FASTUIDRAWunused(shader);
+  group_id_is_shader_id = (!m_params.use_uber_item_shader() || m_params.break_on_shader_change());
+  return_value = (group_id_is_shader_id) ? tag.m_ID : 0u;
+
+  return return_value;
+}
+
 void
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
 configure_backend(void)
@@ -169,6 +184,10 @@ configure_source_front_matter(void)
   using namespace fastuidraw::glsl;
   if (!m_uber_shader_builder_params.assign_binding_points())
     {
+      /* TODO: the names of the GLSL uniforms are not publicly documented;
+       * we should have an interface in UberShaderParams that gives the
+       * GLSL name for each of these uniforms.
+       */
       m_initializer
         .add_sampler_initializer("fastuidraw_imageAtlasLinear",
                                  m_uber_shader_builder_params.image_atlas_color_tiles_linear_binding())
@@ -182,6 +201,8 @@ configure_source_front_matter(void)
                                  m_uber_shader_builder_params.colorstop_atlas_binding())
         .add_sampler_initializer("fastuidraw_external_texture",
                                  m_uber_shader_builder_params.external_texture_binding())
+        .add_sampler_initializer("fastuidraw_deferred_coverage_buffer",
+                                 m_uber_shader_builder_params.coverage_buffer_texture_binding())
         .add_uniform_block_binding("fastuidraw_uniform_block",
                                    m_uber_shader_builder_params.uniforms_ubo_binding());
 
@@ -253,7 +274,7 @@ configure_source_front_matter(void)
     .add_macro("fastuidraw_end_interlock", end_interlock_fcn);
 
   if (m_params.compositing_type() == compositing_interlock
-      || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)
+      || m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
     {
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
        * The issue is that when early_fragment_tests are enabled, then the depth
@@ -329,7 +350,7 @@ configure_source_front_matter(void)
         || (glyphs->data_binding_point() == GL_SHADER_STORAGE_BUFFER);
 
       require_image_load_store = (m_params.compositing_type() == compositing_interlock)
-        || (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)
+        || (m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
         || require_ssbo;
 
       using_glsl42 = m_ctx_properties.version() >= ivec2(4, 2)
@@ -463,24 +484,32 @@ programs(void)
 
 fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-program_of_item_shader(unsigned int shader_group)
+program_of_item_shader(enum PainterSurface::render_type_t render_type,
+                       unsigned int shader_group)
 {
   unsigned int shader;
 
   shader = shader_group & ~PainterShaderRegistrarGL::shader_group_discard_mask;
-  if (shader >= m_item_programs.size())
+  if (shader >= m_item_programs[render_type].size())
     {
-      m_item_programs.resize(shader + 1);
+      m_item_programs[render_type].resize(shader + 1);
     }
 
-  if (!m_item_programs[shader])
+  if (!m_item_programs[render_type][shader])
     {
-      m_item_programs[shader] =
-        build_program_of_item_shader(shader,
-                                     shader_group & ~PainterShaderRegistrarGL::shader_group_discard_mask);
+      if (render_type == PainterSurface::color_buffer_type)
+        {
+          m_item_programs[render_type][shader] =
+            build_program_of_item_shader(shader,
+                                         shader_group & PainterShaderRegistrarGL::shader_group_discard_mask);
+        }
+      else
+        {
+          m_item_programs[render_type][shader] = build_program_of_coverage_item_shader(shader);
+        }
     }
 
-  return m_item_programs[shader];
+  return m_item_programs[render_type][shader];
 }
 
 void
@@ -507,7 +536,7 @@ build_program_of_item_shader(unsigned int shader, bool allow_discard)
   program_ref return_value;
   c_string discard_macro;
 
-  if (allow_discard)
+  if (!allow_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
@@ -539,16 +568,45 @@ build_program_of_item_shader(unsigned int shader, bool allow_discard)
 
 fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
+build_program_of_coverage_item_shader(unsigned int shader)
+{
+  using namespace fastuidraw::glsl;
+
+  ShaderSource vert, frag;
+  program_ref return_value;
+
+  vert
+    .specify_version(m_front_matter_vert.version())
+    .specify_extensions(m_front_matter_vert)
+    .add_source(m_front_matter_vert);
+
+  frag
+    .specify_version(m_front_matter_frag.version())
+    .specify_extensions(m_front_matter_frag)
+    .add_source(m_front_matter_frag);
+
+  construct_item_coverage_shader(m_backend_constants, vert, frag,
+                                 m_uber_shader_builder_params,
+                                 shader);
+
+  return_value = FASTUIDRAWnew Program(vert, frag,
+                                       m_attribute_binder,
+                                       m_initializer);
+  return return_value;
+}
+
+fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
+fastuidraw::gl::detail::PainterShaderRegistrarGL::
 build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 {
   using namespace fastuidraw::glsl;
 
   ShaderSource vert, frag;
   program_ref return_value;
-  DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
   c_string discard_macro;
 
-  if (tp == PainterBackendGL::program_without_discard)
+  if (tp == PainterBackendGL::program_without_discard
+      || tp == PainterBackendGL::program_deferred_coverage_buffer)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
@@ -568,9 +626,20 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
-  construct_shader(m_backend_constants, vert, frag,
-                   m_uber_shader_builder_params,
-                   &item_filter, discard_macro);
+
+  if (tp == PainterBackendGL::program_deferred_coverage_buffer)
+    {
+      construct_item_uber_coverage_shader(m_backend_constants, vert, frag,
+                                          m_uber_shader_builder_params,
+                                          nullptr);
+    }
+  else
+    {
+      DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
+      construct_item_uber_shader(m_backend_constants, vert, frag,
+                                 m_uber_shader_builder_params,
+                                 &item_filter, discard_macro);
+    }
 
   return_value = FASTUIDRAWnew Program(vert, frag,
                                        m_attribute_binder,

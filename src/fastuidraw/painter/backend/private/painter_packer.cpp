@@ -220,16 +220,20 @@ public:
   }
 
   void
-  pack_painter_state(const PainterPackerData &state,
+  pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
+                     const PainterPackerData &state,
                      PainterPacker *p, painter_state_location &out_data);
 
+  template<typename T>
   bool //returns true if a draw break was needed
-  pack_header(unsigned int header_size,
+  pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
+              unsigned int header_size,
+              fastuidraw::ivec2 deferred_coverage_buffer_offset,
               uint32_t brush_shader,
               PainterBlendShader *blend_shader,
               PainterCompositeShader *composite_shader,
               BlendMode mode,
-              PainterItemShader *item_shader,
+              T *item_shader,
               int z,
               const painter_state_location &loc,
               const std::list<reference_counted_ptr<PainterPacker::DataCallBack> > &call_backs,
@@ -259,7 +263,8 @@ private:
   }
 
   void
-  pack_state_data(PainterPacker *p,
+  pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
+                  PainterPacker *p,
                   detail::PackedValuePoolBase::ElementBase *st_d,
                   uint32_t &location);
 
@@ -269,14 +274,14 @@ private:
 
   template<typename T>
   void
-  pack_state_data(PainterPacker *p,
+  pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
+                  PainterPacker *p,
                   const PainterData::value<T> &obj,
                   uint32_t &location);
 
   unsigned int m_store_blocks_written;
   uint32_t m_brush_shader_mask;
   PainterShaderGroupPrivate m_prev_state;
-  BlendMode m_prev_composite_mode;
 };
 
 //////////////////////////////////////////
@@ -294,6 +299,7 @@ per_draw_command(const reference_counted_ptr<PainterDraw> &r,
   m_prev_state.m_brush = 0;
   m_prev_state.m_composite_group = 0;
   m_prev_state.m_blend_group = 0;
+  m_prev_state.m_composite_mode.set_as_invalid();
 }
 
 fastuidraw::c_array<fastuidraw::generic_data>
@@ -324,7 +330,8 @@ pack_state_data_from_value(const T &st, uint32_t &location)
 template<typename T>
 void
 fastuidraw::PainterPacker::per_draw_command::
-pack_state_data(PainterPacker *p,
+pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
+                PainterPacker *p,
                 const PainterData::value<T> &obj,
                 uint32_t &location)
 {
@@ -332,7 +339,7 @@ pack_state_data(PainterPacker *p,
     {
       detail::PackedValuePoolBase::ElementBase *e;
       e = static_cast<detail::PackedValuePoolBase::ElementBase*>(obj.m_packed_value.opaque_data());
-      pack_state_data(p, e, location);
+      pack_state_data(render_type, p, e, location);
     }
   else if (obj.m_value != nullptr)
     {
@@ -347,13 +354,14 @@ pack_state_data(PainterPacker *p,
 
 void
 fastuidraw::PainterPacker::per_draw_command::
-pack_state_data(PainterPacker *p,
+pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
+                PainterPacker *p,
                 detail::PackedValuePoolBase::ElementBase *d,
                 uint32_t &location)
 {
-  if (d->m_painter == p && d->m_draw_command_id == p->m_number_commands)
+  if (d->m_painter[render_type] == p && d->m_draw_command_id[render_type] == p->m_number_commands)
     {
-      location = d->m_offset;
+      location = d->m_offset[render_type];
       return;
     }
 
@@ -368,40 +376,53 @@ pack_state_data(PainterPacker *p,
   dst = allocate_store(src.size());
   std::copy(src.begin(), src.end(), dst.begin());
 
-  d->m_painter = p;
-  d->m_draw_command_id = p->m_accumulated_draws.size();
-  d->m_offset = location;
+  d->m_painter[render_type] = p;
+  d->m_draw_command_id[render_type] = p->m_accumulated_draws.size();
+  d->m_offset[render_type] = location;
 }
 
 void
 fastuidraw::PainterPacker::per_draw_command::
-pack_painter_state(const fastuidraw::PainterPackerData &state,
+pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
+                   const fastuidraw::PainterPackerData &state,
                    PainterPacker *p, painter_state_location &out_data)
 {
-  pack_state_data(p, state.m_clip, out_data.m_clipping_data_loc);
-  pack_state_data(p, state.m_matrix, out_data.m_item_matrix_data_loc);
-  pack_state_data(p, state.m_item_shader_data, out_data.m_item_shader_data_loc);
-  pack_state_data(p, state.m_composite_shader_data, out_data.m_composite_shader_data_loc);
-  pack_state_data(p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
+  pack_state_data(render_type, p, state.m_clip, out_data.m_clipping_data_loc);
+  pack_state_data(render_type, p, state.m_matrix, out_data.m_item_matrix_data_loc);
+  pack_state_data(render_type, p, state.m_item_shader_data, out_data.m_item_shader_data_loc);
 
-  if (state.m_brush.has_data())
+  if (render_type == PainterSurface::color_buffer_type)
     {
-      pack_state_data(p, state.m_brush, out_data.m_brush_shader_data_loc);
+      pack_state_data(render_type, p, state.m_composite_shader_data, out_data.m_composite_shader_data_loc);
+      pack_state_data(render_type, p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
+      if (state.m_brush.has_data())
+        {
+          pack_state_data(render_type, p, state.m_brush, out_data.m_brush_shader_data_loc);
+        }
+      else
+        {
+          pack_state_data(render_type, p, p->m_default_brush, out_data.m_brush_shader_data_loc);
+        }
     }
   else
     {
-      pack_state_data(p, p->m_default_brush, out_data.m_brush_shader_data_loc);
+      out_data.m_composite_shader_data_loc = 0u;
+      out_data.m_blend_shader_data_loc = 0u;
+      out_data.m_brush_shader_data_loc = 0u;
     }
 }
 
+template<typename T>
 bool
 fastuidraw::PainterPacker::per_draw_command::
-pack_header(unsigned int header_size,
+pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
+            unsigned int header_size,
+            fastuidraw::ivec2 deferred_coverage_buffer_offset,
             uint32_t brush_shader,
             PainterBlendShader *blend_shader,
             PainterCompositeShader *composite_shader,
             BlendMode composite_mode,
-            PainterItemShader *item_shader,
+            T *item_shader,
             int z,
             const painter_state_location &loc,
             const std::list<reference_counted_ptr<PainterPacker::DataCallBack> > &call_backs,
@@ -419,13 +440,27 @@ pack_header(unsigned int header_size,
   PainterShader::Tag blend;
 
   FASTUIDRAWassert(item_shader);
-  if (composite_shader)
+  if (render_type == PainterSurface::color_buffer_type)
     {
-      composite = composite_shader->tag();
+      if (composite_shader)
+        {
+          composite = composite_shader->tag();
+        }
+      if (blend_shader)
+        {
+          blend = blend_shader->tag();
+        }
     }
-  if (blend_shader)
+  else
     {
-      blend = blend_shader->tag();
+      /* if rendering to a deferred buffer, leave the tags as 0
+       * and the composite mode is to be MAX.
+       */
+      composite_mode
+        .blending_on(true)
+        .equation(BlendMode::MAX)
+        .func_src(BlendMode::ONE)
+        .func_dst(BlendMode::ONE);
     }
 
   current.m_item_group = item_shader->group();
@@ -445,16 +480,18 @@ pack_header(unsigned int header_size,
   header.m_composite_shader = composite.m_ID;
   header.m_blend_shader = blend.m_ID;
   header.m_z = z;
-  header.m_flags = 0u;
+  header.m_offset_to_deferred_coverage = deferred_coverage_buffer_offset;
   header.pack_data(dst);
 
   if (current.m_item_group != m_prev_state.m_item_group
-      || current.m_composite_group != m_prev_state.m_composite_group
-      || current.m_blend_group != m_prev_state.m_blend_group
-      || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u
-      || current.m_composite_mode != m_prev_state.m_composite_mode)
+      || current.m_composite_mode != m_prev_state.m_composite_mode
+      || (render_type == PainterSurface::color_buffer_type &&
+          (current.m_composite_group != m_prev_state.m_composite_group
+           || current.m_blend_group != m_prev_state.m_blend_group
+           || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u)))
     {
-      return_value = m_draw_command->draw_break(m_prev_state, current,
+      return_value = m_draw_command->draw_break(render_type,
+                                                m_prev_state, current,
                                                 m_indices_written);
     }
 
@@ -548,7 +585,7 @@ compute_room_needed_for_packing(const PainterData::value<T> &obj)
     {
       detail::PackedValuePoolBase::ElementBase *d;
       d = static_cast<detail::PackedValuePoolBase::ElementBase*>(obj.m_packed_value.opaque_data());
-      if (d->m_painter == this && d->m_draw_command_id == m_number_commands)
+      if (d->m_painter[m_render_type] == this && d->m_draw_command_id[m_render_type] == m_number_commands)
         {
           return 0;
         }
@@ -575,10 +612,14 @@ compute_room_needed_for_packing(const PainterPackerData &draw_state)
   unsigned int R(0);
   R += compute_room_needed_for_packing(draw_state.m_clip);
   R += compute_room_needed_for_packing(draw_state.m_matrix);
-  R += compute_room_needed_for_packing(draw_state.m_brush);
   R += compute_room_needed_for_packing(draw_state.m_item_shader_data);
-  R += compute_room_needed_for_packing(draw_state.m_composite_shader_data);
-  R += compute_room_needed_for_packing(draw_state.m_blend_shader_data);
+
+  if (m_render_type == PainterSurface::color_buffer_type && draw_state.m_brush.has_data())
+    {
+      R += compute_room_needed_for_packing(draw_state.m_brush);
+      R += compute_room_needed_for_packing(draw_state.m_composite_shader_data);
+      R += compute_room_needed_for_packing(draw_state.m_blend_shader_data);
+    }
   return R;
 }
 
@@ -594,9 +635,10 @@ upload_draw_state(const PainterPackerData &draw_state)
     {
       start_new_command();
     }
-  m_accumulated_draws.back().pack_painter_state(draw_state, this, m_painter_state_location);
+  m_accumulated_draws.back().pack_painter_state(m_render_type, draw_state,
+                                                this, m_painter_state_location);
 
-  if (draw_state.m_brush.has_data())
+  if (m_render_type == PainterSurface::color_buffer_type && draw_state.m_brush.has_data())
     {
       const PainterBrush &brush(draw_state.m_brush.data());
       if (brush.image_requires_binding() && brush.image() != m_last_binded_image)
@@ -613,10 +655,11 @@ upload_draw_state(const PainterPackerData &draw_state)
     }
 }
 
-template<typename T>
+template<typename T, typename ShaderType>
 void
 fastuidraw::PainterPacker::
-draw_generic_implement(const reference_counted_ptr<PainterItemShader> &shader,
+draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
+                       const reference_counted_ptr<ShaderType> &shader,
                        const PainterPackerData &draw,
                        const T &src,
                        int z)
@@ -699,7 +742,8 @@ draw_generic_implement(const reference_counted_ptr<PainterItemShader> &shader,
 
           ++m_stats[PainterEnums::num_headers];
           allocate_header = false;
-          draw_break_added = cmd.pack_header(m_header_size,
+          draw_break_added = cmd.pack_header(m_render_type, m_header_size,
+                                             deferred_coverage_buffer_offset,
                                              fetch_value(draw.m_brush).shader(),
                                              m_blend_shader,
                                              m_composite_shader,
@@ -795,15 +839,19 @@ remove_callback(const reference_counted_ptr<DataCallBack> &callback)
 
 void
 fastuidraw::PainterPacker::
-begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+begin(const reference_counted_ptr<PainterSurface> &surface,
       bool clear_color_buffer)
 {
   FASTUIDRAWassert(m_accumulated_draws.empty());
+  FASTUIDRAWassert(surface);
+
   m_surface = surface;
+  m_render_type = m_surface->render_type();
   m_clear_color_buffer = clear_color_buffer;
   m_begin_new_target = true;
   start_new_command();
   m_last_binded_image = nullptr;
+  m_last_binded_cvg_image = nullptr;
 }
 
 void
@@ -857,7 +905,7 @@ end(void)
   m_surface.clear();
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface>&
 fastuidraw::PainterPacker::
 surface(void) const
 {
@@ -876,7 +924,25 @@ draw_break(const reference_counted_ptr<const PainterDraw::Action> &action)
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+set_coverage_surface(const reference_counted_ptr<PainterSurface> &surface)
+{
+  if (surface != m_last_binded_cvg_image)
+    {
+      reference_counted_ptr<PainterDraw::Action> action;
+
+      action = m_backend->bind_coverage_surface(surface);
+      if (m_accumulated_draws.back().draw_break(action))
+        {
+          ++m_stats[PainterEnums::num_draws];
+        }
+      m_last_binded_cvg_image = surface;
+    }
+}
+
+void
+fastuidraw::PainterPacker::
+draw_generic(ivec2 deferred_coverage_buffer_offset,
+             const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &draw,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
              c_array<const c_array<const PainterIndex> > index_chunks,
@@ -885,17 +951,40 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              int z)
 {
   AttributeIndexSrcFromArray src(attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector);
-  draw_generic_implement(shader, draw, src, z);
+  draw_generic_implement(deferred_coverage_buffer_offset, shader, draw, src, z);
 }
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+draw_generic(ivec2 deferred_coverage_buffer_offset,
+             const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &data,
              const PainterAttributeWriter &src,
              int z)
 {
-  draw_generic_implement(shader, data, src, z);
+  draw_generic_implement(deferred_coverage_buffer_offset, shader, data, src, z);
+}
+
+void
+fastuidraw::PainterPacker::
+draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+             const PainterPackerData &draw,
+             c_array<const c_array<const PainterAttribute> > attrib_chunks,
+             c_array<const c_array<const PainterIndex> > index_chunks,
+             c_array<const int> index_adjusts,
+             c_array<const unsigned int> attrib_chunk_selector)
+{
+  AttributeIndexSrcFromArray src(attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector);
+  draw_generic_implement(ivec2(0, 0), shader, draw, src, 0);
+}
+
+void
+fastuidraw::PainterPacker::
+draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+             const PainterPackerData &data,
+             const PainterAttributeWriter &src)
+{
+  draw_generic_implement(ivec2(0, 0), shader, data, src, 0);
 }
 
 unsigned int

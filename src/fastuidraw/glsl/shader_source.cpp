@@ -498,14 +498,8 @@ add_macro(c_string macro_name, c_string macro_value,
           enum add_location_t loc)
 {
   std::ostringstream ostr;
-  std::string stripped(stripped_macro_name(macro_name));
 
-  ostr << "#ifdef " << stripped << "\n"
-       << "#error \"FastUIDraw: ShaderSource::add_macro() used on "
-       << "already defined macro " << stripped << "\"\n"
-       << "#endif\n"
-       << "#define " << macro_name << " " << macro_value
-       << "\n";
+  ostr << "#define " << macro_name << " " << macro_value << "\n";
   return add_source(ostr.str().c_str(), from_string, loc);
 }
 

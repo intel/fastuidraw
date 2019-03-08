@@ -19,6 +19,7 @@
 
 #pragma once
 #include <fastuidraw/painter/painter_shader.hpp>
+#include <fastuidraw/painter/painter_item_coverage_shader.hpp>
 
 namespace fastuidraw
 {
@@ -38,9 +39,18 @@ namespace fastuidraw
   public:
     /*!
      * Ctor for a PainterItemShader with no sub-shaders.
+     * \param cvg coverage shader for the PainterItemShader;
+     *            the coverage shader, if present is to use
+     *            the exact same \ref PainterItemShaderData
+     *            value but render to the coverage buffer.
+     *            The \ref PainterItemShader can then use
+     *            those coverage values in its shader code.
      */
-    PainterItemShader(void):
-      PainterShader()
+    explicit
+    PainterItemShader(const reference_counted_ptr<PainterItemCoverageShader> &cvg =
+                      reference_counted_ptr<PainterItemCoverageShader>()):
+      PainterShader(),
+      m_coverage_shader(cvg)
     {}
 
     /*!
@@ -50,22 +60,56 @@ namespace fastuidraw
      * code differences can be realized by examining a sub-shader
      * ID.
      * \param num_sub_shaders number of sub-shaders
+     * \param cvg coverage shader for the PainterItemShader;
+     *            the coverage shader, if present is to use
+     *            the exact same \ref PainterItemShaderData
+     *            value but render to the coverage buffer.
+     *            The \ref PainterItemShader can then use
+     *            those coverage values in its shader code.
      */
     explicit
-    PainterItemShader(unsigned int num_sub_shaders):
-      PainterShader(num_sub_shaders)
+    PainterItemShader(unsigned int num_sub_shaders,
+                      const reference_counted_ptr<PainterItemCoverageShader> &cvg =
+                      reference_counted_ptr<PainterItemCoverageShader>()):
+      PainterShader(num_sub_shaders),
+      m_coverage_shader(cvg)
     {}
 
     /*!
      * Ctor to create a PainterItemShader realized as a sub-shader
      * of an existing PainterItemShader
-     * \param sub_shader which sub-shader of the parent PainterItemShader
      * \param parent parent PainterItemShader that has sub-shaders
+     * \param sub_shader which sub-shader of the parent PainterItemShader
+     * \param cvg coverage shader for the PainterItemShader;
+     *            the coverage shader, if present is to use
+     *            the exact same \ref PainterItemShaderData
+     *            value but render to the coverage buffer.
+     *            The \ref PainterItemShader can then use
+     *            those coverage values in its shader code.
      */
-    PainterItemShader(unsigned int sub_shader,
-                      reference_counted_ptr<PainterItemShader> parent):
-      PainterShader(sub_shader, parent)
+    PainterItemShader(reference_counted_ptr<PainterItemShader> parent,
+                      unsigned int sub_shader,
+                      const reference_counted_ptr<PainterItemCoverageShader> &cvg =
+                      reference_counted_ptr<PainterItemCoverageShader>()):
+      PainterShader(parent, sub_shader),
+      m_coverage_shader(cvg)
     {}
+
+    /*!
+     * The coverage shader used by this \ref PainterItemShader;
+     * the coverage shader, if present is to use the exact same
+     * \ref PainterItemShaderData value but renders to the
+     * coverage buffer. The \ref PainterItemShader can then use
+     * those coverage values in its shader code.
+     */
+    const reference_counted_ptr<PainterItemCoverageShader>&
+    coverage_shader(void) const
+    {
+      return m_coverage_shader;
+    }
+
+  private:
+    reference_counted_ptr<PainterItemCoverageShader> m_coverage_shader;
   };
 
 /*! @} */

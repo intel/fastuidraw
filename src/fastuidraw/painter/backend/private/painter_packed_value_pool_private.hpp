@@ -19,6 +19,7 @@
 #include <vector>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/painter/backend/painter_surface.hpp>
 #include "../../../private/util_private.hpp"
 
 namespace fastuidraw
@@ -116,11 +117,12 @@ namespace fastuidraw
         }
 
         /* To what PainterPacker and where in data store buffer
-         * already packed into PainterDraw::m_store
+         * already packed into PainterDraw::m_store; we track
+         * a PainterPacker for each Surface::render_type_t.
          */
-        const void *m_painter;
-        std::vector<fastuidraw::generic_data> m_data;
-        unsigned int m_draw_command_id, m_offset;
+        vecN<const void *, PainterSurface::number_buffer_types> m_painter;
+        std::vector<generic_data> m_data;
+        vecN<unsigned int, PainterSurface::number_buffer_types> m_draw_command_id, m_offset;
         const void *m_raw_data;
 
       protected:
@@ -130,9 +132,9 @@ namespace fastuidraw
           FASTUIDRAWassert(slot == m_pool_slot || m_pool_slot.m_bucket == -1);
           m_pool = p;
           m_pool_slot = slot;
-          m_draw_command_id = -1;
-          m_offset = 0;
-          m_painter = nullptr;
+          m_draw_command_id.fill(-1);
+          m_offset.fill(0);
+          m_painter.fill(nullptr);
         }
 
       private:

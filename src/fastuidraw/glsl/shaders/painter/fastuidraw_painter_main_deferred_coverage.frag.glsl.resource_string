@@ -1,0 +1,80 @@
+/*!
+ * \file fastuidraw_painter_main_deferred_coverage.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_main_deferred_coverage.frag.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+layout(location = 0) out float fastuidraw_deferred_coverage;
+
+#ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
+
+  bool
+  fastuidraw_apply_clipping(void)
+  {
+    /* hardware clipping is slightly different in output (on GEN atleast)
+       that using discard style clipping. The cause is because hardware
+       clipping changes what geometry is rasterized to the clip planes
+       where as discard style evaluates the value at a sample point
+       and the value is interpolated from the vertices. In exact arithematic
+       they are the same, but we do not have exact arithmatic. We fudge
+       the clip value by epsilon which is set to the width of half a
+       pixel (recall the clipping equations are already in clip coordinates).
+     */
+    float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
+    return (fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
+       || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon);
+  }
+
+#endif
+
+
+void
+main(void)
+{
+  float v = 0.0;
+
+  #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
+  float clipped;
+  clipped = float(fastuidraw_apply_clipping());
+  #endif
+
+  #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
+    {
+      fastuidraw_header h;
+
+      fastuidraw_read_header(fastuidraw_header_varying, h);
+
+      fastuidraw_frag_shader = h.item_shader;
+      fastuidraw_frag_shader_data_location = h.item_shader_data_location;
+    }
+  #endif
+
+  #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
+  if (!clipped || dFdx(float(clipped)) != 0.0 || dFdy(float(clipped)) != 0.0)
+  #endif
+    {
+      v = fastuidraw_run_frag_shader(fastuidraw_frag_shader,
+                                     fastuidraw_frag_shader_data_location);
+    }
+
+  #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
+  if (clipped)
+    {
+      v = 0.0;
+    }
+  #endif
+
+  fastuidraw_deferred_coverage = v;
+}

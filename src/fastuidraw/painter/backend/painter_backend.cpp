@@ -145,9 +145,9 @@ setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  bool, supports_bindless_texturing)
 
 /////////////////////////////////////////////////////////
-// fastuidraw::PainterBackend::Surface::Viewport methods
+// fastuidraw::PainterSurface::Viewport methods
 void
-fastuidraw::PainterBackend::Surface::Viewport::
+fastuidraw::PainterSurface::Viewport::
 compute_clip_equations(ivec2 surface_dims,
                        vecN<vec3, 4> *out_clip_equations) const
 {
@@ -174,7 +174,7 @@ compute_clip_equations(ivec2 surface_dims,
 }
 
 void
-fastuidraw::PainterBackend::Surface::Viewport::
+fastuidraw::PainterSurface::Viewport::
 compute_normalized_clip_rect(ivec2 surface_dims,
                              Rect *out_rect) const
 {

@@ -87,7 +87,6 @@ namespace
       m_supports_bindless_texturing(false),
       m_clipping_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance),
       m_z_coordinate_convention(fastuidraw::glsl::PainterShaderRegistrarGLSL::z_minus_1_to_1),
-      m_negate_normalized_y_coordinate(false),
       m_assign_layout_to_vertex_shader_inputs(true),
       m_assign_layout_to_varyings(true),
       m_assign_binding_points(true),
@@ -103,7 +102,7 @@ namespace
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
-      m_provide_auxiliary_image_buffer(fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer),
+      m_provide_immediate_coverage_image_buffer(fastuidraw::glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer),
       m_use_uvec2_for_bindless_handle(true),
 
       m_recompute_binding_points(true),
@@ -115,8 +114,9 @@ namespace
       m_glyph_atlas_store_binding_fp16x2(-1),
       m_data_store_buffer_binding(-1),
       m_external_texture_binding(-1),
+      m_coverage_buffer_texture_binding(-1),
       m_uniforms_ubo_binding(-1),
-      m_auxiliary_image_buffer_binding(-1),
+      m_immediate_coverage_image_buffer_binding(-1),
       m_color_interlock_image_buffer_binding(-1)
     {}
 
@@ -127,7 +127,6 @@ namespace
     bool m_supports_bindless_texturing;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t m_clipping_type;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::z_coordinate_convention_t m_z_coordinate_convention;
-    bool m_negate_normalized_y_coordinate;
     bool m_assign_layout_to_vertex_shader_inputs;
     bool m_assign_layout_to_varyings;
     bool m_assign_binding_points;
@@ -143,7 +142,7 @@ namespace
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
-    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t m_provide_immediate_coverage_image_buffer;
     bool m_use_uvec2_for_bindless_handle;
 
     bool m_recompute_binding_points;
@@ -155,14 +154,71 @@ namespace
     int m_glyph_atlas_store_binding_fp16x2;
     int m_data_store_buffer_binding;
     int m_external_texture_binding;
+    int m_coverage_buffer_texture_binding;
     int m_uniforms_ubo_binding;
-    int m_auxiliary_image_buffer_binding;
+    int m_immediate_coverage_image_buffer_binding;
     int m_color_interlock_image_buffer_binding;
 
     unsigned int m_num_texture_units;
     unsigned int m_num_ubo_units;
     unsigned int m_num_ssbo_units;
     unsigned int m_num_image_units;
+  };
+
+  template<typename T>
+  class PerItemShaderRenderType:fastuidraw::noncopyable
+  {
+  public:
+    PerItemShaderRenderType(void):
+      m_next_item_shader_ID(1),
+      m_number_float_varyings(0),
+      m_number_uint_varyings(0),
+      m_number_int_varyings(0)
+    {}
+
+    void
+    update_varying_size(const fastuidraw::glsl::varying_list &plist)
+    {
+      m_number_uint_varyings = std::max(m_number_uint_varyings, plist.uints().size());
+      m_number_int_varyings = std::max(m_number_int_varyings, plist.ints().size());
+      for(unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolation_number_types; ++i)
+        {
+          enum fastuidraw::glsl::varying_list::interpolation_qualifier_t q;
+          q = static_cast<enum fastuidraw::glsl::varying_list::interpolation_qualifier_t>(i);
+          m_number_float_varyings[q] = std::max(m_number_float_varyings[q], plist.floats(q).size());
+        }
+    }
+
+    unsigned int
+    absorb_item_shader(const fastuidraw::reference_counted_ptr<T> &h)
+    {
+      unsigned int return_value(m_next_item_shader_ID);
+
+      m_shaders.push_back(h);
+      update_varying_size(h->varyings());
+      while (m_shaders_keyed_by_id.size() < m_next_item_shader_ID)
+        {
+          m_shaders_keyed_by_id.push_back(nullptr);
+        }
+      for (unsigned int i = 0, endi = h->number_sub_shaders(); i < endi; ++i)
+        {
+          m_shaders_keyed_by_id.push_back(h);
+        }
+      m_next_item_shader_ID += h->number_sub_shaders();
+
+      return return_value;
+    }
+
+    std::vector<fastuidraw::reference_counted_ptr<T> > m_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<T> > m_shaders_keyed_by_id;
+    unsigned int m_next_item_shader_ID;
+
+    fastuidraw::vecN<size_t, fastuidraw::glsl::varying_list::interpolation_number_types> m_number_float_varyings;
+    size_t m_number_uint_varyings;
+    size_t m_number_int_varyings;
+
+    fastuidraw::glsl::varying_list m_main_varyings_header_only;
+    fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
   };
 
   class PainterShaderRegistrarGLSLPrivate
@@ -172,28 +228,37 @@ namespace
     PainterShaderRegistrarGLSLPrivate(void);
     ~PainterShaderRegistrarGLSLPrivate();
 
+    template<typename T>
     void
-    construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
+    construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+                     const PerItemShaderRenderType<T> &shaders,
+                     const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
                      fastuidraw::glsl::ShaderSource &out_vertex,
                      fastuidraw::glsl::ShaderSource &out_fragment,
-                     const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &contruct_params,
-                     const fastuidraw::glsl::PainterShaderRegistrarGLSL::ItemShaderFilter *item_shader_filter,
+                     const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &construct_params,
+                     const fastuidraw::glsl::PainterShaderRegistrarGLSL::ShaderFilter<T> *shader_filter,
                      fastuidraw::c_string discard_macro_value);
 
+    template<typename T>
     void
-    construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
+    construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+                     const PerItemShaderRenderType<T> &shaders,
+                     const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
                      fastuidraw::glsl::ShaderSource &out_vertex,
                      fastuidraw::glsl::ShaderSource &out_fragment,
-                     const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &contruct_params,
+                     const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &construct_params,
                      unsigned int shader_id,
                      fastuidraw::c_string discard_macro_value);
 
+    template<typename T>
     void
-    construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
+    construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_type,
+                            const PerItemShaderRenderType<T> &shaders,
+                            const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
                             fastuidraw::glsl::ShaderSource &out_vertex,
                             fastuidraw::glsl::ShaderSource &out_fragment,
                             fastuidraw::glsl::detail::UberShaderVaryings &uber_shader_varyings,
-                            const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &contruct_params,
+                            const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &construct_params,
                             fastuidraw::c_string discard_macro_value);
 
     void
@@ -216,12 +281,13 @@ namespace
                           fastuidraw::glsl::ShaderSource &src);
 
     void
-    stream_unpack_code(fastuidraw::glsl::ShaderSource &src);
+    stream_unpack_code(fastuidraw::glsl::ShaderSource &src,
+                       enum fastuidraw::PainterSurface::render_type_t render_type);
 
     enum fastuidraw::PainterCompositeShader::shader_type m_composite_type;
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders;
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders_keyed_by_id;
-    unsigned int m_next_item_shader_ID;
+    PerItemShaderRenderType<fastuidraw::glsl::PainterItemShaderGLSL> m_item_shaders;
+    PerItemShaderRenderType<fastuidraw::glsl::PainterItemCoverageShaderGLSL> m_item_coverage_shaders;
+
     fastuidraw::vecN<CompositeShaderGroup, fastuidraw::PainterCompositeShader::number_types> m_composite_shaders;
     unsigned int m_next_composite_shader_ID;
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterBlendShaderGLSL> > m_blend_shaders;
@@ -230,12 +296,6 @@ namespace
     fastuidraw::glsl::ShaderSource m_vert_shader_utils;
     fastuidraw::glsl::ShaderSource m_frag_shader_utils;
 
-    fastuidraw::vecN<size_t, fastuidraw::glsl::varying_list::interpolation_number_types> m_number_float_varyings;
-    size_t m_number_uint_varyings;
-    size_t m_number_int_varyings;
-
-    fastuidraw::glsl::varying_list m_main_varyings_header_only;
-    fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
     fastuidraw::glsl::varying_list m_clip_varyings;
     fastuidraw::glsl::varying_list m_brush_varyings;
   };
@@ -245,12 +305,8 @@ namespace
 // PainterShaderRegistrarGLSLPrivate methods
 PainterShaderRegistrarGLSLPrivate::
 PainterShaderRegistrarGLSLPrivate(void):
-  m_next_item_shader_ID(1),
   m_next_composite_shader_ID(1),
-  m_next_blend_shader_ID(1),
-  m_number_float_varyings(0),
-  m_number_uint_varyings(0),
-  m_number_int_varyings(0)
+  m_next_blend_shader_ID(1)
 {
   /* add varyings needed by fastuidraw_painter_main
    */
@@ -293,20 +349,30 @@ void
 PainterShaderRegistrarGLSLPrivate::
 ready_main_varyings(void)
 {
-  m_main_varyings_header_only
+  using namespace fastuidraw;
+
+  m_item_shaders.m_main_varyings_header_only
     .add_uint_varying("fastuidraw_header_varying")
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
 
-  m_main_varyings_shaders_and_shader_datas
+  m_item_shaders.m_main_varyings_shaders_and_shader_datas
     .add_uint_varying("fastuidraw_frag_shader")
     .add_uint_varying("fastuidraw_frag_shader_data_location")
     .add_uint_varying("fastuidraw_composite_shader")
     .add_uint_varying("fastuidraw_composite_shader_data_location")
     .add_uint_varying("fastuidraw_blend_shader")
     .add_uint_varying("fastuidraw_blend_shader_data_location")
+    .add_uint_varying("fastuidraw_deferred_buffer_offset_packed")
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
+
+  m_item_coverage_shaders.m_main_varyings_header_only
+    .add_uint_varying("fastuidraw_header_varying");
+
+  m_item_coverage_shaders.m_main_varyings_shaders_and_shader_datas
+    .add_uint_varying("fastuidraw_frag_shader")
+    .add_uint_varying("fastuidraw_frag_shader_data_location");
 
   m_clip_varyings
     .add_float_varying("fastuidraw_clip_plane0")
@@ -445,6 +511,10 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro_u32("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
     .add_macro_u32("fastuidraw_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported))
     .add_macro_u32("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", PainterHeader::drawing_occluder)
+    .add_macro_i32("fastuidraw_deferred_offset_bias", PainterHeader::offset_to_deferred_coverage_bias)
+    .add_macro_u32("fastuidraw_deferred_offset_coord_num_bits", PainterHeader::offset_to_deferred_coverage_coord_num_bits)
+    .add_macro_u32("fastuidraw_deferred_offset_x_bit0", PainterHeader::offset_to_deferred_coverage_x_coord_bit0)
+    .add_macro_u32("fastuidraw_deferred_offset_y_bit0", PainterHeader::offset_to_deferred_coverage_y_coord_bit0)
 
     .add_macro_u32("fastuidraw_brush_image_mask", PainterBrush::image_mask)
     .add_macro_u32("fastuidraw_brush_image_filter_bit0", PainterBrush::image_filter_bit0)
@@ -513,63 +583,67 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
 
 void
 PainterShaderRegistrarGLSLPrivate::
-stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
+stream_unpack_code(fastuidraw::glsl::ShaderSource &str,
+                   enum fastuidraw::PainterSurface::render_type_t render_type)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
 
-  UnpackSourceGenerator("vec4")
-    .set(PainterBrush::color_red_offset, ".r")
-    .set(PainterBrush::color_green_offset, ".g")
-    .set(PainterBrush::color_blue_offset, ".b")
-    .set(PainterBrush::color_alpha_offset, ".a")
-    .stream_unpack_function(str, "fastuidraw_read_color");
+  if (render_type == PainterSurface::color_buffer_type)
+    {
+      UnpackSourceGenerator("vec4")
+        .set(PainterBrush::color_red_offset, ".r")
+        .set(PainterBrush::color_green_offset, ".g")
+        .set(PainterBrush::color_blue_offset, ".b")
+        .set(PainterBrush::color_alpha_offset, ".a")
+        .stream_unpack_function(str, "fastuidraw_read_color");
 
-  UnpackSourceGenerator("mat2")
-    .set(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
-    .set(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
-    .set(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
-    .set(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
-    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix");
+      UnpackSourceGenerator("mat2")
+        .set(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
+        .set(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
+        .set(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
+        .set(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
+        .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix");
 
-  UnpackSourceGenerator("vec2")
-    .set(PainterBrush::transformation_translation_x_offset, ".x")
-    .set(PainterBrush::transformation_translation_y_offset, ".y")
-    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_translation");
+      UnpackSourceGenerator("vec2")
+        .set(PainterBrush::transformation_translation_x_offset, ".x")
+        .set(PainterBrush::transformation_translation_y_offset, ".y")
+        .stream_unpack_function(str, "fastuidraw_read_brush_transformation_translation");
 
-  UnpackSourceGenerator("fastuidraw_brush_repeat_window")
-    .set(PainterBrush::repeat_window_x_offset, ".xy.x")
-    .set(PainterBrush::repeat_window_y_offset, ".xy.y")
-    .set(PainterBrush::repeat_window_width_offset, ".wh.x")
-    .set(PainterBrush::repeat_window_height_offset, ".wh.y")
-    .stream_unpack_function(str, "fastuidraw_read_brush_repeat_window");
+      UnpackSourceGenerator("fastuidraw_brush_repeat_window")
+        .set(PainterBrush::repeat_window_x_offset, ".xy.x")
+        .set(PainterBrush::repeat_window_y_offset, ".xy.y")
+        .set(PainterBrush::repeat_window_width_offset, ".wh.x")
+        .set(PainterBrush::repeat_window_height_offset, ".wh.y")
+        .stream_unpack_function(str, "fastuidraw_read_brush_repeat_window");
 
-  UnpackSourceGenerator("fastuidraw_brush_image_data_raw")
-    .set(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::image_size_xy_offset, ".image_size_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::image_start_xy_offset, ".image_start_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::image_slack_number_lookups_offset, ".image_slack_number_lookups", UnpackSourceGenerator::uint_type)
-    .stream_unpack_function(str, "fastuidraw_read_brush_image_raw_data");
+      UnpackSourceGenerator("fastuidraw_brush_image_data_raw")
+        .set(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz", UnpackSourceGenerator::uint_type)
+        .set(PainterBrush::image_size_xy_offset, ".image_size_xy", UnpackSourceGenerator::uint_type)
+        .set(PainterBrush::image_start_xy_offset, ".image_start_xy", UnpackSourceGenerator::uint_type)
+        .set(PainterBrush::image_slack_number_lookups_offset, ".image_slack_number_lookups", UnpackSourceGenerator::uint_type)
+        .stream_unpack_function(str, "fastuidraw_read_brush_image_raw_data");
 
-  UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
-    .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
-    .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
-    .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
-    .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
-    .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
-    .stream_unpack_function(str, "fastuidraw_read_brush_linear_or_sweep_gradient_data");
+      UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
+        .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
+        .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
+        .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
+        .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
+        .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
+        .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
+        .stream_unpack_function(str, "fastuidraw_read_brush_linear_or_sweep_gradient_data");
 
-  UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
-    .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
-    .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
-    .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
-    .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
-    .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::gradient_start_radius_offset, ".r0")
-    .set(PainterBrush::gradient_end_radius_offset, ".r1")
-    .stream_unpack_function(str, "fastuidraw_read_brush_radial_gradient_data");
+      UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
+        .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
+        .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
+        .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
+        .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
+        .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
+        .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
+        .set(PainterBrush::gradient_start_radius_offset, ".r0")
+        .set(PainterBrush::gradient_end_radius_offset, ".r1")
+        .stream_unpack_function(str, "fastuidraw_read_brush_radial_gradient_data");
+    }
 
   UnpackSourceGenerator("fastuidraw_header")
     .set(PainterHeader::clip_equations_location_offset, ".clipping_location", UnpackSourceGenerator::uint_type)
@@ -583,7 +657,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set(PainterHeader::item_shader_offset, ".item_shader", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::composite_shader_offset, ".composite_shader", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::blend_shader_offset, ".blend_shader", UnpackSourceGenerator::uint_type)
-    .set(PainterHeader::flags_offset, ".flags", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::offset_to_deferred_coverage_offset, ".deferred_buffer_offset_packed", UnpackSourceGenerator::uint_type)
     .stream_unpack_function(str, "fastuidraw_read_header", false);
 
   UnpackSourceGenerator("fastuidraw_clipping_data")
@@ -633,20 +707,6 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set(PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset, ".first_interval_start_on_looping")
     .set(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals", UnpackSourceGenerator::uint_type)
     .stream_unpack_function(str, "fastuidraw_read_dashed_stroking_params_header", true);
-}
-
-void
-PainterShaderRegistrarGLSLPrivate::
-update_varying_size(const fastuidraw::glsl::varying_list &plist)
-{
-  m_number_uint_varyings = std::max(m_number_uint_varyings, plist.uints().size());
-  m_number_int_varyings = std::max(m_number_int_varyings, plist.ints().size());
-  for(unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolation_number_types; ++i)
-    {
-      enum fastuidraw::glsl::varying_list::interpolation_qualifier_t q;
-      q = static_cast<enum fastuidraw::glsl::varying_list::interpolation_qualifier_t>(i);
-      m_number_float_varyings[q] = std::max(m_number_float_varyings[q], plist.floats(q).size());
-    }
 }
 
 std::string
@@ -702,9 +762,12 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterShaderRegistrarGLSL::Uber
   return ostr.str();
 }
 
+template<typename T>
 void
 PainterShaderRegistrarGLSLPrivate::
-construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
+construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_type,
+                        const PerItemShaderRenderType<T> &shaders,
+                        const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
                         fastuidraw::glsl::ShaderSource &vert,
                         fastuidraw::glsl::ShaderSource &frag,
                         fastuidraw::glsl::detail::UberShaderVaryings &uber_shader_varyings,
@@ -784,12 +847,15 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
 
   if (params.unpack_header_and_brush_in_frag_shader())
     {
-      main_varyings = &m_main_varyings_header_only;
+      main_varyings = &shaders.m_main_varyings_header_only;
     }
   else
     {
-      main_varyings = &m_main_varyings_shaders_and_shader_datas;
-      uber_shader_varyings.add_varyings("brush", m_brush_varyings, &brush_varying_datum);
+      main_varyings = &shaders.m_main_varyings_shaders_and_shader_datas;
+      if (render_type == PainterSurface::color_buffer_type)
+        {
+          uber_shader_varyings.add_varyings("brush", m_brush_varyings, &brush_varying_datum);
+        }
     }
 
   uber_shader_varyings.add_varyings("main", *main_varyings, &main_varying_datum);
@@ -803,12 +869,6 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
       frag.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
     }
 
-  if (params.negate_normalized_y_coordinate())
-    {
-      vert.add_macro("FASTUIDRAW_PAINTER_NEGATE_POSITION_Y_COORDINATE");
-      frag.add_macro("FASTUIDRAW_PAINTER_NEGATE_POSITION_Y_COORDINATE");
-    }
-
   if (params.z_coordinate_convention() == PainterShaderRegistrarGLSL::z_minus_1_to_1)
     {
       vert.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1");
@@ -820,18 +880,32 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
       frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
     }
 
+  if (render_type == PainterSurface::color_buffer_type)
+    {
+      vert.add_macro("FASTUIDRAW_RENDER_TO_COLOR_BUFFER");
+      frag.add_macro("FASTUIDRAW_RENDER_TO_COLOR_BUFFER");
+    }
+  else
+    {
+      vert.add_macro("FASTUIDRAW_RENDER_TO_IMMEDIATE_COVERAGE_BUFFER");
+      frag.add_macro("FASTUIDRAW_RENDER_TO_IMMEDIATE_COVERAGE_BUFFER");
+    }
+
   switch(params.clipping_type())
     {
     case PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance:
       vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
+      frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
       break;
 
     case PainterShaderRegistrarGLSL::clipping_via_discard:
+      vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
       frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
       break;
 
     case PainterShaderRegistrarGLSL::clipping_via_skip_color_write:
       FASTUIDRAWassert(composite_type == PainterCompositeShader::framebuffer_fetch);
+      vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
       frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
       break;
     }
@@ -931,27 +1005,27 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
       break;
     }
 
-  switch(params.provide_auxiliary_image_buffer())
+  switch(params.provide_immediate_coverage_image_buffer())
     {
-    case PainterShaderRegistrarGLSL::auxiliary_buffer_atomic:
-      frag.add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_ATOMIC");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILIARY_BUFFER");
+    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic:
+      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_ATOMIC");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
       break;
 
-    case PainterShaderRegistrarGLSL::auxiliary_buffer_interlock:
-      frag.add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILIARY_BUFFER");
+    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock:
+      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_INTERLOCK");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
       break;
       break;
 
-    case PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only:
-      frag.add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK_MAIN_ONLY");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILIARY_BUFFER");
+    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only:
+      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_INTERLOCK_MAIN_ONLY");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
       break;
 
-    case PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch:
-      frag.add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_FRAMEBUFFER_FETCH");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILIARY_BUFFER");
+    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch:
+      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_FRAMEBUFFER_FETCH");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
       break;
 
     default:
@@ -970,9 +1044,10 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
-    .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", params.auxiliary_image_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_BINDING", params.immediate_coverage_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
+    .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
@@ -983,32 +1058,48 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     }
   uber_shader_varyings.stream_alias_varyings(vert, *main_varyings, true, main_varying_datum);
 
-  if (params.unpack_header_and_brush_in_frag_shader())
+  if (render_type == PainterSurface::color_buffer_type)
     {
-      /* we need to declare the values named in m_brush_varyings */
-      stream_as_local_variables(vert, m_brush_varyings);
-    }
-  else
-    {
-      uber_shader_varyings.stream_alias_varyings(vert, m_brush_varyings, true, brush_varying_datum);
+      if (params.unpack_header_and_brush_in_frag_shader())
+        {
+          /* we need to declare the values named in m_brush_varyings */
+          stream_as_local_variables(vert, m_brush_varyings);
+        }
+      else
+        {
+          uber_shader_varyings.stream_alias_varyings(vert, m_brush_varyings, true, brush_varying_datum);
+        }
     }
 
   vert
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_globals.vert.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", ShaderSource::from_resource);
+
+  const char *vert_main_src;
+  if (render_type == PainterSurface::color_buffer_type)
+    {
+      vert_main_src = "fastuidraw_painter_main.vert.glsl.resource_string";
+      vert
+        .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
+        .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
+        .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
+        .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource)
+        .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", ShaderSource::from_resource);
+    }
+  else
+    {
+      vert_main_src = "fastuidraw_painter_main_deferred_coverage.vert.glsl.resource_string";
+    }
+
+  vert
     .add_source(code::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
     .add_source(m_vert_shader_utils)
-    .add_source("fastuidraw_painter_main.vert.glsl.resource_string", ShaderSource::from_resource);
+    .add_source(vert_main_src, ShaderSource::from_resource);
 
-  stream_unpack_code(vert);
+  stream_unpack_code(vert, render_type);
 
   bool blending_supported(false);
   c_string shader_composite_macro;
@@ -1051,9 +1142,10 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
-    .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", params.auxiliary_image_buffer_binding())
+    .add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_BINDING", params.immediate_coverage_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
+    .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
@@ -1062,35 +1154,52 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
       uber_shader_varyings.stream_alias_varyings(frag, m_clip_varyings, true, clip_varying_datum);
     }
   uber_shader_varyings.stream_alias_varyings(frag, *main_varyings, true, main_varying_datum);
-  if (params.unpack_header_and_brush_in_frag_shader())
+
+  if (render_type == PainterSurface::color_buffer_type)
     {
-      /* we need to declare the values named in m_brush_varyings */
-      stream_as_local_variables(frag, m_brush_varyings);
-    }
-  else
-    {
-      uber_shader_varyings.stream_alias_varyings(frag, m_brush_varyings, true, brush_varying_datum);
+      if (params.unpack_header_and_brush_in_frag_shader())
+        {
+          /* we need to declare the values named in m_brush_varyings */
+          stream_as_local_variables(frag, m_brush_varyings);
+        }
+      else
+        {
+          uber_shader_varyings.stream_alias_varyings(frag, m_brush_varyings, true, brush_varying_datum);
+        }
     }
 
   frag
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_globals.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_auxiliary_image_buffer.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_immediate_coverage_image_buffer.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource);
 
-  if (params.unpack_header_and_brush_in_frag_shader())
+  const char *frag_main_src;
+  if (render_type == PainterSurface::color_buffer_type)
     {
+      frag_main_src = "fastuidraw_painter_main.frag.glsl.resource_string";
       frag
-        .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
-        .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource);
+        .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
+        .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource);
+
+      if (params.unpack_header_and_brush_in_frag_shader())
+        {
+          frag
+            .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
+            .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource);
+        }
+      frag
+        .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
+        .add_source("fastuidraw_painter_deferred_coverage_buffer.frag.glsl.resource_string", ShaderSource::from_resource);
+    }
+  else
+    {
+      frag_main_src = "fastuidraw_painter_main_deferred_coverage.frag.glsl.resource_string";
     }
 
   frag
-    .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source(code::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
     .add_source(code::banded_rays_compute_coverage("fastuidraw_fetch_glyph_data",
                                                    "fastuidraw_fetch_glyph_data_fp16x2"))
@@ -1101,43 +1210,50 @@ construct_shader_common(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:
                                                 "fastuidraw_imageIndexAtlas",
                                                 backend.image_atlas_index_tile_size(),
                                                 backend.image_atlas_color_tile_size()))
-    .add_source("fastuidraw_painter_main.frag.glsl.resource_string", ShaderSource::from_resource);
+    .add_source(frag_main_src, ShaderSource::from_resource);
 
-  stream_unpack_code(frag);
-  stream_uber_composite_shader(params.composite_shader_use_switch(), frag,
-                               make_c_array(m_composite_shaders[composite_type].m_shaders),
-                               composite_type);
+  stream_unpack_code(frag, render_type);
 
-  if (blending_supported)
+  if (render_type == PainterSurface::color_buffer_type)
     {
-      stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
-                               make_c_array(m_blend_shaders));
+      stream_uber_composite_shader(params.composite_shader_use_switch(), frag,
+                                   make_c_array(m_composite_shaders[composite_type].m_shaders),
+                                   composite_type);
+
+      if (blending_supported)
+        {
+          stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
+                                   make_c_array(m_blend_shaders));
+        }
     }
 }
 
+template<typename T>
 void
 PainterShaderRegistrarGLSLPrivate::
-construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
+construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+                 const PerItemShaderRenderType<T> &shaders,
+                 const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
                  fastuidraw::glsl::ShaderSource &vert,
                  fastuidraw::glsl::ShaderSource &frag,
                  const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &params,
-                 const fastuidraw::glsl::PainterShaderRegistrarGLSL::ItemShaderFilter *item_shader_filter,
+                 const fastuidraw::glsl::PainterShaderRegistrarGLSL::ShaderFilter<T> *shader_filter,
                  fastuidraw::c_string discard_macro_value)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
   using namespace fastuidraw::glsl::detail;
 
-  std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
-  c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
+  std::vector<reference_counted_ptr<T> > work_shaders;
+  c_array<const reference_counted_ptr<T> > item_shaders;
   UberShaderVaryings uber_shader_varyings;
   AliasVaryingLocation shader_varying_datum;
 
-  if (item_shader_filter)
+  if (shader_filter)
     {
-      for(const auto &sh : m_item_shaders)
+      for(const auto &sh : shaders.m_shaders)
         {
-          if (item_shader_filter->use_shader(sh))
+          if (shader_filter->use_shader(sh))
             {
               work_shaders.push_back(sh);
             }
@@ -1146,16 +1262,16 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
     }
   else
     {
-      item_shaders = make_c_array(m_item_shaders);
+      item_shaders = make_c_array(shaders.m_shaders);
     }
 
   uber_shader_varyings.add_varyings("shader",
-                                    m_number_uint_varyings,
-                                    m_number_int_varyings,
-                                    m_number_float_varyings,
+                                    shaders.m_number_uint_varyings,
+                                    shaders.m_number_int_varyings,
+                                    shaders.m_number_float_varyings,
                                     &shader_varying_datum);
 
-  construct_shader_common(backend, vert, frag,
+  construct_shader_common(render_type, shaders, backend, vert, frag,
                           uber_shader_varyings,
                           params, discard_macro_value);
 
@@ -1166,9 +1282,12 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
                           uber_shader_varyings, shader_varying_datum);
 }
 
+template<typename T>
 void
 PainterShaderRegistrarGLSLPrivate::
-construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
+construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+                 const PerItemShaderRenderType<T> &shaders,
+                 const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
                  fastuidraw::glsl::ShaderSource &vert,
                  fastuidraw::glsl::ShaderSource &frag,
                  const fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams &params,
@@ -1179,15 +1298,15 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
   using namespace fastuidraw::glsl;
   using namespace fastuidraw::glsl::detail;
 
-  reference_counted_ptr<PainterItemShaderGLSL> shader;
+  reference_counted_ptr<T> shader;
   UberShaderVaryings uber_shader_varyings;
   AliasVaryingLocation shader_varying_datum;
   std::ostringstream run_vert_shader, run_frag_shader;
 
-  FASTUIDRAWassert(shader_id < m_item_shaders_keyed_by_id.size());
-  FASTUIDRAWassert(m_item_shaders_keyed_by_id[shader_id]);
+  FASTUIDRAWassert(shader_id < shaders.m_shaders_keyed_by_id.size());
+  FASTUIDRAWassert(shaders.m_shaders_keyed_by_id[shader_id]);
 
-  shader = m_item_shaders_keyed_by_id[shader_id];
+  shader = shaders.m_shaders_keyed_by_id[shader_id];
   FASTUIDRAWassert(shader_id >= shader->ID());
 
   uber_shader_varyings.add_varyings("item",
@@ -1200,17 +1319,33 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
   frag
     .add_macro("FASTUIDRAW_LOCAL(X)", "X");
 
-  construct_shader_common(backend, vert, frag,
+  construct_shader_common(render_type, shaders, backend, vert, frag,
                           uber_shader_varyings,
                           params, discard_macro_value);
-  run_vert_shader
-    << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)\n"
-    << "{\n"
-    << "  fastuidraw_gl_vert_main(uint(h.item_shader) - uint(" << shader->ID() << "), fastuidraw_attribute0,\n"
-    << "                          fastuidraw_attribute1, fastuidraw_attribute2,\n"
-    << "                          h.item_shader_data_location, add_z, brush_p, clip_p);\n"
-    << "}\n"
-    << "\n";
+
+  if (render_type == PainterSurface::color_buffer_type)
+    {
+      run_vert_shader
+        << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)\n"
+        << "{\n"
+        << "  fastuidraw_gl_vert_main(uint(h.item_shader) - uint(" << shader->ID() << "), fastuidraw_attribute0,\n"
+        << "                          fastuidraw_attribute1, fastuidraw_attribute2,\n"
+        << "                          h.item_shader_data_location, add_z, brush_p, clip_p);\n"
+        << "}\n"
+        << "\n";
+    }
+  else
+    {
+      run_vert_shader
+        << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 clip_p)\n"
+        << "{\n"
+        << "  fastuidraw_gl_vert_main(uint(h.item_shader) - uint(" << shader->ID() << "), fastuidraw_attribute0,\n"
+        << "                          fastuidraw_attribute1, fastuidraw_attribute2,\n"
+        << "                          h.item_shader_data_location, clip_p);\n"
+        << "}\n"
+        << "\n";
+    }
+
   uber_shader_varyings.stream_alias_varyings(vert, shader->varyings(), true, shader_varying_datum);
   vert.add_source(shader->vertex_src());
   vert.add_source(run_vert_shader.str().c_str(), ShaderSource::from_string);
@@ -1325,6 +1460,7 @@ recompute_binding_points(void)
   m_image_atlas_color_tiles_linear_binding = m_num_texture_units++;
   m_image_atlas_index_tiles_binding = m_num_texture_units++;
   m_external_texture_binding = m_num_texture_units++;
+  m_coverage_buffer_texture_binding = m_num_texture_units++;
 
   switch (m_data_store_backing)
     {
@@ -1372,15 +1508,15 @@ recompute_binding_points(void)
       m_color_interlock_image_buffer_binding = -1;
     }
 
-  if (m_provide_auxiliary_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic
-      || m_provide_auxiliary_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only
-      || m_provide_auxiliary_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock)
+  if (m_provide_immediate_coverage_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic
+      || m_provide_immediate_coverage_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only
+      || m_provide_immediate_coverage_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock)
     {
-      m_auxiliary_image_buffer_binding = m_num_image_units++;
+      m_immediate_coverage_image_buffer_binding = m_num_image_units++;
     }
   else
     {
-      m_auxiliary_image_buffer_binding = -1;
+      m_immediate_coverage_image_buffer_binding = -1;
     }
 }
 
@@ -1419,10 +1555,10 @@ composite_type(void) const
 fastuidraw::PainterShaderSet
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
 default_shaders(bool has_auxiliary_coverage_buffer,
-                const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws) const
+                const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws) const
 {
   detail::ShaderSetCreator S(has_auxiliary_coverage_buffer, composite_type(),
-                             flush_auxiliary_buffer_between_draws);
+                             flush_immediate_coverage_buffer_between_draws);
   return S.create_shader_set();
 }
 
@@ -1437,8 +1573,6 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate,
                  enum fastuidraw::glsl::PainterShaderRegistrarGLSL::z_coordinate_convention_t,
                  z_coordinate_convention)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, bool, negate_normalized_y_coordinate)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, assign_layout_to_vertex_shader_inputs)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
@@ -1488,7 +1622,7 @@ uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRe
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t, data_store_backing)
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t, glyph_data_backing)
 uber_shader_params_setget_implement_dirty(bool, use_ubo_for_uniforms)
-uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
+uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t, provide_immediate_coverage_image_buffer)
 
 #define uber_shader_params_get_dirty(member)                            \
   int                                                                   \
@@ -1513,7 +1647,8 @@ uber_shader_params_get_dirty(glyph_atlas_store_binding)
 uber_shader_params_get_dirty(glyph_atlas_store_binding_fp16x2)
 uber_shader_params_get_dirty(data_store_buffer_binding)
 uber_shader_params_get_dirty(external_texture_binding)
-uber_shader_params_get_dirty(auxiliary_image_buffer_binding)
+uber_shader_params_get_dirty(coverage_buffer_texture_binding)
+uber_shader_params_get_dirty(immediate_coverage_image_buffer_binding)
 uber_shader_params_get_dirty(color_interlock_image_buffer_binding)
 uber_shader_params_get_dirty(uniforms_ubo_binding)
 
@@ -1564,6 +1699,16 @@ compute_item_shader_group(PainterShader::Tag tag,
 
 uint32_t
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
+compute_item_coverage_shader_group(PainterShader::Tag tag,
+                                   const reference_counted_ptr<PainterItemCoverageShader> &shader)
+{
+  FASTUIDRAWunused(shader);
+  FASTUIDRAWunused(tag);
+  return 0u;
+}
+
+uint32_t
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
 compute_composite_shader_group(PainterShader::Tag tag,
                            const reference_counted_ptr<PainterCompositeShader> &shader)
 {
@@ -1596,22 +1741,8 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
   h = shader.static_cast_ptr<PainterItemShaderGLSL>();
 
-  d->m_item_shaders.push_back(h);
-  d->update_varying_size(h->varyings());
-
-  while (d->m_item_shaders_keyed_by_id.size() < d->m_next_item_shader_ID)
-    {
-      d->m_item_shaders_keyed_by_id.push_back(nullptr);
-    }
-
-  for (unsigned int i = 0, endi = h->number_sub_shaders(); i < endi; ++i)
-    {
-      d->m_item_shaders_keyed_by_id.push_back(h);
-    }
-
-  return_value.m_ID = d->m_next_item_shader_ID;
+  return_value.m_ID = d->m_item_shaders.absorb_item_shader(h);
   return_value.m_group = 0;
-  d->m_next_item_shader_ID += h->number_sub_shaders();
   return_value.m_group = compute_item_shader_group(return_value, shader);
 
   return return_value;
@@ -1624,6 +1755,36 @@ compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &sh
   PainterShader::Tag tg(shader->parent()->tag());
   tg.m_ID += shader->sub_shader();
   return compute_item_shader_group(tg, shader);
+}
+
+fastuidraw::PainterShader::Tag
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+absorb_item_coverage_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader)
+{
+  PainterShaderRegistrarGLSLPrivate *d;
+  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
+
+  reference_counted_ptr<glsl::PainterItemCoverageShaderGLSL> h;
+  PainterShader::Tag return_value;
+
+  FASTUIDRAWassert(!shader->parent());
+  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterItemCoverageShaderGLSL>());
+  h = shader.static_cast_ptr<PainterItemCoverageShaderGLSL>();
+
+  return_value.m_ID = d->m_item_coverage_shaders.absorb_item_shader(h);
+  return_value.m_group = 0;
+  return_value.m_group = compute_item_coverage_shader_group(return_value, shader);
+
+  return return_value;
+}
+
+uint32_t
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+compute_item_coverage_sub_shader_group(const reference_counted_ptr<PainterItemCoverageShader> &shader)
+{
+  PainterShader::Tag tg(shader->parent()->tag());
+  tg.m_ID += shader->sub_shader();
+  return compute_item_coverage_shader_group(tg, shader);
 }
 
 fastuidraw::PainterShader::Tag
@@ -1700,7 +1861,9 @@ registered_shader_count(void)
   PainterShaderRegistrarGLSLPrivate *d;
 
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  return_value = d->m_item_shaders.size() + d->m_blend_shaders.size();
+  return_value = d->m_blend_shaders.size()
+    + d->m_item_shaders.m_shaders.size()
+    + d->m_item_coverage_shaders.m_shaders.size();
   for (unsigned int i = 0; i < PainterCompositeShader::number_types; ++i)
     {
       return_value += d->m_composite_shaders[i].m_shaders.size();
@@ -1711,18 +1874,37 @@ registered_shader_count(void)
 
 void
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
-construct_shader(const BackendConstants &backend_constants,
-                 ShaderSource &out_vertex,
-                 ShaderSource &out_fragment,
-                 const UberShaderParams &construct_params,
-                 const ItemShaderFilter *item_shader_filter,
-                 c_string discard_macro_value)
+construct_item_uber_shader(const BackendConstants &backend_constants,
+                           ShaderSource &out_vertex,
+                           ShaderSource &out_fragment,
+                           const UberShaderParams &construct_params,
+                           const ShaderFilter<PainterItemShaderGLSL> *item_shader_filter,
+                           c_string discard_macro_value)
 {
   PainterShaderRegistrarGLSLPrivate *d;
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  d->construct_shader(backend_constants, out_vertex, out_fragment,
-                      construct_params, item_shader_filter,
-                      discard_macro_value);
+  d->construct_shader<PainterItemShaderGLSL>(PainterSurface::color_buffer_type,
+                                             d->m_item_shaders,
+                                             backend_constants, out_vertex, out_fragment,
+                                             construct_params, item_shader_filter,
+                                             discard_macro_value);
+}
+
+void
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+construct_item_uber_coverage_shader(const BackendConstants &backend_constants,
+                                    ShaderSource &out_vertex,
+                                    ShaderSource &out_fragment,
+                                    const UberShaderParams &construct_params,
+                                    const ShaderFilter<PainterItemCoverageShaderGLSL> *item_shader_filter)
+{
+  PainterShaderRegistrarGLSLPrivate *d;
+  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
+  d->construct_shader<PainterItemCoverageShaderGLSL>(PainterSurface::deferred_coverage_buffer_type,
+                                                     d->m_item_coverage_shaders,
+                                                     backend_constants, out_vertex, out_fragment,
+                                                     construct_params, item_shader_filter,
+                                                     "fastuidraw_do_nothing()");
 }
 
 void
@@ -1736,9 +1918,28 @@ construct_item_shader(const BackendConstants &backend_constants,
 {
   PainterShaderRegistrarGLSLPrivate *d;
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  d->construct_shader(backend_constants, out_vertex, out_fragment,
-                      construct_params, shader_id,
-                      discard_macro_value);
+  d->construct_shader<PainterItemShaderGLSL>(PainterSurface::color_buffer_type,
+                                             d->m_item_shaders,
+                                             backend_constants, out_vertex, out_fragment,
+                                             construct_params, shader_id,
+                                             discard_macro_value);
+}
+
+void
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+construct_item_coverage_shader(const BackendConstants &backend_constants,
+                               ShaderSource &out_vertex,
+                               ShaderSource &out_fragment,
+                               const UberShaderParams &construct_params,
+                               unsigned int shader_id)
+{
+  PainterShaderRegistrarGLSLPrivate *d;
+  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
+  d->construct_shader<PainterItemCoverageShaderGLSL>(PainterSurface::deferred_coverage_buffer_type,
+                                                     d->m_item_coverage_shaders,
+                                                     backend_constants, out_vertex, out_fragment,
+                                                     construct_params, shader_id,
+                                                     "fastuidraw_do_nothing()");
 }
 
 uint32_t
@@ -1750,7 +1951,7 @@ ubo_size(void)
 
 void
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
-fill_uniform_buffer(const PainterBackend::Surface::Viewport &vwp,
+fill_uniform_buffer(const PainterSurface::Viewport &vwp,
                     c_array<generic_data> p)
 {
   int w, h;

@@ -193,12 +193,20 @@ namespace fastuidraw
         /*!
          * Specify the shader for the 2nd pass of anti-alias stroking
          * for \ref PainterEnums::shader_anti_alias_high_quality which
-         * draws emits the coverae value from an offscreen auxiliary
+         * draws emits the coverage value from an offscreen auxiliary
          * buffer the coverage and clears the value from the buffer as
          * well. The item's vertex shader it to emit a depth value of
          * 0.
          */
         hq_aa_shader_pass2,
+
+        /*!
+         * Specifies a two-pass shader where the first pass renders
+         * to the deferred coverage buffer and the second pass reads
+         * from it. The item's vertex shader it to emit a depth value
+         * of 0.
+         */
+        hq_aa_shader_deferred_coverage,
 
         number_shader_types,
       };

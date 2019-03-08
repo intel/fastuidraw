@@ -53,7 +53,8 @@ public:
   programs(void);
 
   program_ref
-  program_of_item_shader(unsigned int shader_group);
+  program_of_item_shader(enum PainterSurface::render_type_t render_type,
+                         unsigned int shader_group);
 
   const PainterBackendGL::ConfigurationGL&
   params(void) const
@@ -100,14 +101,18 @@ public:
 protected:
   uint32_t
   compute_blend_shader_group(PainterShader::Tag tag,
-                             const reference_counted_ptr<PainterBlendShader> &shader);
+                             const reference_counted_ptr<PainterBlendShader> &shader) override;
   uint32_t
   compute_composite_shader_group(PainterShader::Tag tag,
-                                 const reference_counted_ptr<PainterCompositeShader> &shader);
+                                 const reference_counted_ptr<PainterCompositeShader> &shader) override;
 
   uint32_t
   compute_item_shader_group(PainterShader::Tag tag,
-                            const reference_counted_ptr<PainterItemShader> &shader);
+                            const reference_counted_ptr<PainterItemShader> &shader) override;
+
+  uint32_t
+  compute_item_coverage_shader_group(PainterShader::Tag tag,
+                                     const reference_counted_ptr<PainterItemCoverageShader> &shader) override;
 
 private:
   void
@@ -125,6 +130,9 @@ private:
   program_ref
   build_program_of_item_shader(unsigned int shader, bool allow_discard);
 
+  program_ref
+  build_program_of_coverage_item_shader(unsigned int shader);
+
   PainterBackendGL::ConfigurationGL m_params;
   UberShaderParams m_uber_shader_builder_params;
   enum interlock_type_t m_interlock_type;
@@ -137,7 +145,7 @@ private:
   glsl::ShaderSource m_front_matter_frag;
   unsigned int m_number_shaders_in_program;
   program_set m_programs;
-  std::vector<program_ref> m_item_programs;
+  vecN<std::vector<program_ref>, 2> m_item_programs;
 
   ContextProperties m_ctx_properties;
   enum tex_buffer_support_t m_tex_buffer_support;

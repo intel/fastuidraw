@@ -57,6 +57,9 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
   FASTUIDRAWassert(shader->registered_to() == nullptr);
   if (shader->registered_to() == nullptr)
     {
+      /* register the coverage shader if it has one. */
+      register_shader(shader->coverage_shader());
+
       if (shader->parent())
         {
           register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
@@ -73,6 +76,38 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
           PainterShader::Tag tag;
 
           tag = absorb_item_shader(shader);
+          shader->register_shader(tag, this);
+        }
+    }
+}
+
+void
+fastuidraw::PainterShaderRegistrar::
+register_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader)
+{
+  if (!shader || shader->registered_to() == this)
+    {
+      return;
+    }
+  FASTUIDRAWassert(shader->registered_to() == nullptr);
+  if (shader->registered_to() == nullptr)
+    {
+      if (shader->parent())
+        {
+          register_shader(shader->parent().static_cast_ptr<PainterItemCoverageShader>());
+
+          /* activate the guard AFTER calling register_shader(),
+           * otherwise we would attempt to double-lock the mutex
+           */
+          Mutex::Guard m(mutex());
+          shader->set_group_of_sub_shader(compute_item_coverage_sub_shader_group(shader));
+        }
+      else
+        {
+          Mutex::Guard m(mutex());
+          PainterShader::Tag tag;
+
+          tag = absorb_item_coverage_shader(shader);
           shader->register_shader(tag, this);
         }
     }

@@ -37,15 +37,15 @@ enum interlock_type_t
 bool
 shader_storage_buffers_supported(const ContextProperties &ctx);
 
-enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t
-compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t in_value,
+enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t
+compute_provide_immediate_coverage_buffer(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t in_value,
                                  const ContextProperties &ctx);
 
 enum interlock_type_t
 compute_interlock_type(const ContextProperties &ctx);
 
 enum glsl::PainterShaderRegistrarGLSL::compositing_type_t
-compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t aux_value,
+compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t aux_value,
                       enum interlock_type_t interlock_value,
                       enum glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value,
                       const ContextProperties &ctx);

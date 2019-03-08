@@ -145,7 +145,7 @@ public:
   explicit
   ShaderSetCreator(bool has_auxiliary_coverage_buffer,
                    enum PainterCompositeShader::shader_type composite_tp,
-                   const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws);
+                   const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws);
 
   PainterShaderSet
   create_shader_set(void);
@@ -189,7 +189,7 @@ private:
   create_blend_shaders(void);
 
   bool m_has_auxiliary_coverage_buffer;
-  reference_counted_ptr<const PainterDraw::Action> m_flush_auxiliary_buffer_between_draws;
+  reference_counted_ptr<const PainterDraw::Action> m_flush_immediate_coverage_buffer_between_draws;
   enum PainterEnums::hq_anti_alias_support_t m_hq_support;
 
   ShaderSource::MacroSet m_fill_macros;

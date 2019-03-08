@@ -79,9 +79,9 @@ main(void)
 {
   vec4 v = vec4(0.0);
   vec2 pbrush, pbrush_dx, pbrush_dy;
-  bool fragment_discarded;
+  bool discard_color_write;
 
-  fragment_discarded = fastuidraw_apply_clipping();
+  discard_color_write = fastuidraw_apply_clipping();
   pbrush = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
   pbrush_dx = dFdx(pbrush);
   pbrush_dy = dFdy(pbrush);
@@ -99,7 +99,7 @@ main(void)
    * fixed and we can remove this #if/#endif awfulness.
    */
   #if !defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
-  if (!fragment_discarded)
+  if (!discard_color_write)
   #endif
     {
       vec4 b, c;
@@ -109,7 +109,6 @@ main(void)
           fastuidraw_header h;
 
           fastuidraw_read_header(fastuidraw_header_varying, h);
-          fastuidraw_process_header(h);
 
           fastuidraw_frag_shader = h.item_shader;
           fastuidraw_frag_shader_data_location = h.item_shader_data_location;
@@ -117,6 +116,7 @@ main(void)
           fastuidraw_composite_shader_data_location = h.composite_shader_data_location;
           fastuidraw_blend_shader = h.blend_shader;
           fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
+          fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
 
           uint brush_data_loc;
           brush_data_loc = h.brush_shader_data_location;
@@ -124,7 +124,23 @@ main(void)
         }
       #endif
 
-      if (fastuidraw_blend_shader != ~0u)
+      /* unpack fastuidraw_deferred_buffer_offset_packed to
+       * fastuidraw_deferred_buffer_offset
+       */
+      uvec2 tmp;
+
+      tmp.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_deferred_offset_x_bit0,
+                                      fastuidraw_deferred_offset_coord_num_bits,
+                                      fastuidraw_deferred_buffer_offset_packed);
+
+      tmp.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_deferred_offset_y_bit0,
+                                      fastuidraw_deferred_offset_coord_num_bits,
+                                      fastuidraw_deferred_buffer_offset_packed);
+
+      fastuidraw_deferred_buffer_offset = ivec2(tmp) - ivec2(fastuidraw_deferred_offset_bias,
+                                                             fastuidraw_deferred_offset_bias);
+
+      if (fastuidraw_blend_shader != FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
         {
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
           b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
@@ -133,7 +149,7 @@ main(void)
       else
         {
           v = vec4(0.0);
-          fragment_discarded = true;
+          discard_color_write = true;
         }
     }
 
@@ -166,7 +182,7 @@ main(void)
       vec4 in_fb, out_fb, out_blend;
 
       in_fb = fastuidraw_final_color;
-      if(!fragment_discarded)
+      if (!discard_color_write)
         {
           fastuidraw_run_blend_shader(fastuidraw_blend_shader,
                                       fastuidraw_composite_shader_data_location,
@@ -186,13 +202,13 @@ main(void)
   #elif defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
     {
       #if !defined(FASTUIDRAW_AUX_NEEDS_MAIN_INTERLOCK)
-          #if defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK)
+          #if defined(FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_INTERLOCK)
           if (!fastuidraw_auxiliary_interlock_called)
           #endif
             fastuidraw_begin_interlock();
       #endif
 
-      if(!fragment_discarded)
+      if (!discard_color_write)
         {
           vec4 in_fb, out_fb, out_blend;
           ivec2 pos = ivec2(gl_FragCoord.xy);

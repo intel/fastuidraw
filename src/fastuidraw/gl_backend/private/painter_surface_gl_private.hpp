@@ -29,40 +29,41 @@ public:
   enum fbo_tp_bits
     {
       fbo_color_buffer_bit,
-      fbo_auxiliary_buffer_bit,
+      fbo_immediate_coverage_buffer_bit,
       fbo_num_bits,
 
       fbo_color_buffer = FASTUIDRAW_MASK(fbo_color_buffer_bit, 1),
-      fbo_auxiliary_buffer = FASTUIDRAW_MASK(fbo_auxiliary_buffer_bit, 1),
+      fbo_immediate_coverage_buffer = FASTUIDRAW_MASK(fbo_immediate_coverage_buffer_bit, 1),
 
       number_fbo_t = FASTUIDRAW_MASK(0, fbo_num_bits) + 1
     };
 
-  enum auxiliary_buffer_fmt_t
+  enum immediate_coverage_buffer_fmt_t
     {
-      auxiliary_buffer_fmt_u8,
-      auxiliary_buffer_fmt_u32,
+      immediate_coverage_buffer_fmt_u8,
+      immediate_coverage_buffer_fmt_u32,
 
-      number_auxiliary_buffer_fmt_t
+      number_immediate_coverage_buffer_fmt_t
     };
 
   explicit
-  SurfaceGLPrivate(GLuint texture, ivec2 dimensions);
+  SurfaceGLPrivate(enum PainterSurface::render_type_t type,
+                   GLuint texture, ivec2 dimensions);
 
   ~SurfaceGLPrivate();
 
   static
   PainterBackendGL::SurfaceGL*
-  surface_gl(const reference_counted_ptr<PainterBackend::Surface> &surface);
+  surface_gl(const reference_counted_ptr<PainterSurface> &surface);
 
   GLuint
-  auxiliary_buffer(enum auxiliary_buffer_fmt_t tp);
+  immediate_coverage_buffer(enum immediate_coverage_buffer_fmt_t tp);
 
   static
   GLenum
-  auxiliaryBufferInternalFmt(enum auxiliary_buffer_fmt_t tp)
+  auxiliaryBufferInternalFmt(enum immediate_coverage_buffer_fmt_t tp)
   {
-    return tp == auxiliary_buffer_fmt_u8 ?
+    return tp == immediate_coverage_buffer_fmt_u8 ?
       GL_R8 :
       GL_R32UI;
   }
@@ -73,9 +74,8 @@ public:
     return buffer(buffer_color);
   }
 
-  static
   uint32_t
-  fbo_bits(enum PainterBackendGL::auxiliary_buffer_t aux,
+  fbo_bits(enum PainterBackendGL::immediate_coverage_buffer_t aux,
            enum PainterBackendGL::compositing_type_t compositing);
 
   GLuint
@@ -85,14 +85,14 @@ public:
   draw_buffers(uint32_t tp);
 
   GLuint
-  fbo(enum PainterBackendGL::auxiliary_buffer_t aux,
+  fbo(enum PainterBackendGL::immediate_coverage_buffer_t aux,
       enum PainterBackendGL::compositing_type_t compositing)
   {
     return fbo(fbo_bits(aux, compositing));
   }
 
   c_array<const GLenum>
-  draw_buffers(enum PainterBackendGL::auxiliary_buffer_t aux,
+  draw_buffers(enum PainterBackendGL::immediate_coverage_buffer_t aux,
                enum PainterBackendGL::compositing_type_t compositing)
   {
     return draw_buffers(fbo_bits(aux, compositing));
@@ -101,7 +101,8 @@ public:
   reference_counted_ptr<const Image>
   image(const reference_counted_ptr<ImageAtlas> &atlas);
 
-  PainterBackend::Surface::Viewport m_viewport;
+  enum PainterSurface::render_type_t m_render_type;
+  PainterSurface::Viewport m_viewport;
   vec4 m_clear_color;
   ivec2 m_dimensions;
 
@@ -117,7 +118,7 @@ private:
   GLuint
   buffer(enum buffer_t);
 
-  vecN<GLuint, number_auxiliary_buffer_fmt_t> m_auxiliary_buffer;
+  vecN<GLuint, number_immediate_coverage_buffer_fmt_t> m_immediate_coverage_buffer;
   vecN<GLuint, number_buffer_t> m_buffers;
   vecN<GLuint, number_fbo_t> m_fbo;
   vecN<vecN<GLenum, 2>, 4> m_draw_buffer_values;

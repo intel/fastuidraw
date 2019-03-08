@@ -93,13 +93,13 @@ namespace fastuidraw
      * of an existing PainterShader. A sub-shader does not need
      * to be registered to a PainterShaderRegistrar (if register_shader()
      * is called on such a shader, the call is ignored).
-     * \param sub_shader which sub-shader of the parent PainterShader
      * \param parent parent PainterShader that has sub-shaders.
+     * \param sub_shader which sub-shader of the parent PainterShader
      *               The parent PainterShader MUST already be registered
      *               to a PainterShaderRegistrar.
      */
-    PainterShader(unsigned int sub_shader,
-                  reference_counted_ptr<PainterShader> parent);
+    PainterShader(reference_counted_ptr<PainterShader> parent,
+                  unsigned int sub_shader);
 
     virtual
     ~PainterShader();

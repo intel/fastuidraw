@@ -20,6 +20,7 @@
 
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
 #include <fastuidraw/painter/backend/painter_backend.hpp>
+#include <fastuidraw/painter/backend/painter_surface.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
@@ -190,14 +191,21 @@ namespace fastuidraw
         };
 
       /*!
-       * Enumeration to describe auxiliary buffer support
+       * Enumeration to describe immediate auxiliary buffer support;
+       * An immediate auxiliary buffer is available only to \ref
+       * PainterItemShader shaders whose PainterItemShader::render_type()
+       * has value PainterItemShader::color_buffer_type(). The
+       * immediate auxiliary buffer is used for multi-pass algorithms
+       * where a first pass writes a coverage value and the second
+       * reads and clears the coverage value to do shader-based
+       * anti-aliasing.
        */
-      enum auxiliary_buffer_t
+      enum immediate_coverage_buffer_t
         {
           /*!
            * No auxiliary buffer is present
            */
-          no_auxiliary_buffer,
+          no_immediate_coverage_buffer,
 
           /*!
            * Auxiliary buffer is realized by atomic operations;
@@ -207,7 +215,7 @@ namespace fastuidraw
            * (for example in GL, glMemoryBarrier()).The buffer
            * is realized as an "r32ui" image2D in the shader source.
            */
-          auxiliary_buffer_atomic,
+          immediate_coverage_buffer_atomic,
 
           /*!
            * Auxiliary buffer is present and ordering guarantees
@@ -217,7 +225,7 @@ namespace fastuidraw
            * WITHOUT any draw-breaks. The buffer is realized as
            * an "r8" image2D in the shader source.
            */
-          auxiliary_buffer_interlock,
+          immediate_coverage_buffer_interlock,
 
           /*!
            * Auxiliary buffer is present and ordering guarantees
@@ -227,7 +235,7 @@ namespace fastuidraw
            * WITHOUT any draw-breaks. The buffer is realized as
            * an "r8" image2D in the shader source.
            */
-          auxiliary_buffer_interlock_main_only,
+          immediate_coverage_buffer_interlock_main_only,
 
           /*!
            * Auxiliary buffer is present and ordering guarantees
@@ -235,7 +243,7 @@ namespace fastuidraw
            * buffer is present as an inout global with type float
            * and layout(location = 1).
            */
-          auxiliary_buffer_framebuffer_fetch,
+          immediate_coverage_buffer_framebuffer_fetch,
         };
 
       /*!
@@ -369,27 +377,8 @@ namespace fastuidraw
         z_coordinate_convention(enum z_coordinate_convention_t);
 
         /*!
-         * If set to true, negate te y-coordinate of
-         * gl_Position before emitting it. The convention
-         * in FastUIDraw is that normalized coordinates are
-         * so that the top of the window is y = -1 and the
-         * bottom is y = 1. For those API's that have this
-         * reversed (for example Vulkan), then set this to
-         * true.
-         */
-        bool
-        negate_normalized_y_coordinate(void) const;
-
-        /*!
-         * Set the value returned by negate_normalized_y_coordinate(void) const.
-         * Default value is false.
-         */
-        UberShaderParams&
-        negate_normalized_y_coordinate(bool);
-
-        /*!
          * if true, assign the slot location of the vertex shader
-         * inputs (via layout(location =) in GLSL ). The layout
+         * inputs (via layout(location =) in GLSL). The layout
          * locations are defined by the enumeration
          * vertex_shader_in_layout.
          */
@@ -608,19 +597,19 @@ namespace fastuidraw
          * (in particular shader based ant-aliased stroking).
          * Writing to the buffer should not be done, instead
          * one should use the functions:
-         * - float fastuidraw_clear_auxiliary(void): clears the value to 0 and returns the old value
-         * - void fastuidraw_max_auxiliary(in float v): maxes the value with the passed value
+         * - float fastuidraw_clear_immediate_coverage(void): clears the value to 0 and returns the old value
+         * - void fastuidraw_max_immediate_coverage(in float v): maxes the value with the passed value
          */
-        enum auxiliary_buffer_t
-        provide_auxiliary_image_buffer(void) const;
+        enum immediate_coverage_buffer_t
+        provide_immediate_coverage_image_buffer(void) const;
 
         /*!
          * Set the value returned by
-         * provide_auxiliary_image_buffer(void) const.
-         * Default value is \ref no_auxiliary_buffer.
+         * provide_immediate_coverage_image_buffer(void) const.
+         * Default value is \ref no_immediate_coverage_buffer.
          */
         UberShaderParams&
-        provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
+        provide_immediate_coverage_image_buffer(enum immediate_coverage_buffer_t);
 
         /*!
          * If the PainterShaderRegistrarGLSL has bindless texturing enabled,
@@ -705,6 +694,14 @@ namespace fastuidraw
         external_texture_binding(void) const;
 
         /*!
+         * Returns the binding point of the deferred coverage
+         * buffer (ala PainterSurface::deferred_coverage_buffer_type)
+         * for reading.
+         */
+        int
+        coverage_buffer_texture_binding(void) const;
+
+        /*!
          * Returns the binding point for the image2D (r8)
          * auxiliary image buffer derived from the current
          * value of this UberShaderParams; A return value
@@ -712,7 +709,7 @@ namespace fastuidraw
          * not use any binding
          */
         int
-        auxiliary_image_buffer_binding(void) const;
+        immediate_coverage_image_buffer_binding(void) const;
 
         /*!
          * Specifies the binding point for the image2D (rgba8)
@@ -771,7 +768,7 @@ namespace fastuidraw
          */
         PainterShaderSet
         default_shaders(bool has_auxiliary_coverage_buffer,
-                        const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws) const;
+                        const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws) const;
 
       private:
         void *m_d;
@@ -905,14 +902,17 @@ namespace fastuidraw
 
       /*!
        * \brief
-       * An ItemShaderFilter is used to specify whether or not
+       * An ShaderFilter is used to specify whether or not
        * to include a named shader when creating an uber-shader.
+       * \tparam ShaderType should be \ref PainterItemShaderGLSL
+       *                    or \ref PainterItemCoverageShaderGLSL
        */
-      class ItemShaderFilter
+      template<typename ShaderType>
+      class ShaderFilter
       {
       public:
         virtual
-        ~ItemShaderFilter(void)
+        ~ShaderFilter(void)
         {}
 
         /*!
@@ -921,7 +921,7 @@ namespace fastuidraw
          */
         virtual
         bool
-        use_shader(const reference_counted_ptr<PainterItemShaderGLSL> &shader) const = 0;
+        use_shader(const reference_counted_ptr<ShaderType> &shader) const = 0;
       };
     };
 
@@ -971,13 +971,13 @@ namespace fastuidraw
        *  - fastuidraw_begin_interlock() which is called before access
        *  - fastuidraw_end_interlock() which is called after access
        * if UberShaderParams::compositing_type() is \ref compositing_interlock
-       * or if UberShaderParams::provide_auxiliary_image_buffer() is \ref
-       * auxiliary_buffer_interlock or \ref auxiliary_buffer_interlock_main_only.
+       * or if UberShaderParams::provide_immediate_coverage_image_buffer() is \ref
+       * immediate_coverage_buffer_interlock or \ref immediate_coverage_buffer_interlock_main_only.
        * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
-       * \param contruct_params specifies how to construct the uber-shaders.
-       * \param item_shader_filter pointer to ItemShaderFilter to use to filter
+       * \param construct_params specifies how to construct the uber-shaders.
+       * \param item_shader_filter pointer to \ref ShaderFilter to use to filter
        *                           which shader to place into the uber-shader.
        *                           A value of nullptr indicates to add all item
        *                           shaders to the uber-shader.
@@ -987,12 +987,33 @@ namespace fastuidraw
        *                            instead of discard.
        */
       void
-      construct_shader(const BackendConstants &backend_constants,
-                       ShaderSource &out_vertex,
-                       ShaderSource &out_fragment,
-                       const UberShaderParams &contruct_params,
-                       const ItemShaderFilter *item_shader_filter = nullptr,
-                       c_string discard_macro_value = "discard");
+      construct_item_uber_shader(const BackendConstants &backend_constants,
+                                 ShaderSource &out_vertex,
+                                 ShaderSource &out_fragment,
+                                 const UberShaderParams &construct_params,
+                                 const ShaderFilter<PainterItemShaderGLSL> *item_shader_filter = nullptr,
+                                 c_string discard_macro_value = "discard");
+
+      /*!
+       * Add the uber-vertex and fragment shaders to given ShaderSource values.
+       * The \ref Mutex mutex() is NOT locked during this call, a caller should
+       * lock the mutex before calling it. This way a derived class can use the
+       * same lock as used by the PainterShaderRegistrarGLSL.
+       * \param backend_constants constant values that affect the created uber-shader.
+       * \param out_vertex ShaderSource to which to add uber-vertex shader
+       * \param out_fragment ShaderSource to which to add uber-fragment shader
+       * \param construct_params specifies how to construct the uber-shaders.
+       * \param item_shader_filter pointer to \ref ShaderFilter to use to filter
+       *                           which shader to place into the uber-shader.
+       *                           A value of nullptr indicates to add all item
+       *                           shaders to the uber-shader.
+       */
+      void
+      construct_item_uber_coverage_shader(const BackendConstants &backend_constants,
+                                          ShaderSource &out_vertex,
+                                          ShaderSource &out_fragment,
+                                          const UberShaderParams &construct_params,
+                                          const ShaderFilter<PainterItemCoverageShaderGLSL> *item_shader_filter = nullptr);
 
       /*!
        * Add the vertex and fragment shaders of a specific item shader to given
@@ -1002,7 +1023,7 @@ namespace fastuidraw
        * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
-       * \param contruct_params specifies how to construct the uber-shaders.
+       * \param construct_params specifies how to construct the uber-shaders.
        * \param shader_id item shader ID, i.e. PainterItemShader::ID().
        * \param discard_macro_value macro-value definintion for the macro
        *                            FASTUIDRAW_DISCARD. PainterItemShaderGLSL
@@ -1013,9 +1034,27 @@ namespace fastuidraw
       construct_item_shader(const BackendConstants &backend_constants,
                             ShaderSource &out_vertex,
                             ShaderSource &out_fragment,
-                            const UberShaderParams &contruct_params,
+                            const UberShaderParams &construct_params,
                             unsigned int shader_id,
                             c_string discard_macro_value = "discard");
+
+      /*!
+       * Add the vertex and fragment shaders of a specific item shader to given
+       * ShaderSource values. The \ref Mutex mutex() is NOT locked during this call,
+       * a caller should lock the mutex before calling it. This way a derived class
+       * can use the same lock as used by the PainterShaderRegistrarGLSL.
+       * \param backend_constants constant values that affect the created uber-shader.
+       * \param out_vertex ShaderSource to which to add uber-vertex shader
+       * \param out_fragment ShaderSource to which to add uber-fragment shader
+       * \param construct_params specifies how to construct the uber-shaders.
+       * \param shader_id item shader ID, i.e. PainterItemShader::ID().
+       */
+      void
+      construct_item_coverage_shader(const BackendConstants &backend_constants,
+                                     ShaderSource &out_vertex,
+                                     ShaderSource &out_fragment,
+                                     const UberShaderParams &construct_params,
+                                     unsigned int shader_id);
 
       /*!
        * Returns the total number of shaders (item and composite)
@@ -1030,11 +1069,11 @@ namespace fastuidraw
       /*!
        * Fill a buffer to hold the values used by the uber-shader.
        * The buffer must be that p.size() is atleast ubo_size().
-       * \param vwp current PainterBackend::Surface::Viewport to which is being rendered
+       * \param vwp current PainterSurface::Viewport to which is being rendered
        * \param p buffer to which to fill uniform data
        */
       void
-      fill_uniform_buffer(const PainterBackend::Surface::Viewport &vwp,
+      fill_uniform_buffer(const PainterSurface::Viewport &vwp,
                           c_array<generic_data> p);
 
       /*!
@@ -1078,6 +1117,23 @@ namespace fastuidraw
        */
       virtual
       uint32_t
+      compute_item_coverage_shader_group(PainterShader::Tag tag,
+                                         const reference_counted_ptr<PainterItemCoverageShader> &shader);
+
+      /*!
+       * To be optionally implemented by a derived class to
+       * compute the shader group of a PainterItemShader.
+       * The passed shader may or may not be a sub-shader.
+       * The mutex() is locked for the duration of the function.
+       * Default implementation is to return 0.
+       * \param tag The value of PainterShader::tag() that PainterShaderRegistrarGLSL
+       *            will assign to the shader. Do NOT access PainterShader::tag(),
+       *            PainterShader::ID() or PainterShader::group() as they are
+       *            not yet assgined.
+       * \param shader shader whose group is to be computed
+       */
+      virtual
+      uint32_t
       compute_composite_shader_group(PainterShader::Tag tag,
                                      const reference_counted_ptr<PainterCompositeShader> &shader);
 
@@ -1098,31 +1154,37 @@ namespace fastuidraw
       compute_blend_shader_group(PainterShader::Tag tag,
                                  const reference_counted_ptr<PainterBlendShader> &shader);
 
-      //////////////////////////////////////////////////////////////
-      // virtual methods from PainterRegistrar, do NOT reimplement(!)
       virtual
       PainterShader::Tag
-      absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);
+      absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader) final override;
 
       virtual
       uint32_t
-      compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader);
+      compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader) final override;
 
       virtual
       PainterShader::Tag
-      absorb_composite_shader(const reference_counted_ptr<PainterCompositeShader> &shader);
+      absorb_item_coverage_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader) final override;
 
       virtual
       uint32_t
-      compute_composite_sub_shader_group(const reference_counted_ptr<PainterCompositeShader> &shader);
+      compute_item_coverage_sub_shader_group(const reference_counted_ptr<PainterItemCoverageShader> &shader) final override;
 
       virtual
       PainterShader::Tag
-      absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader);
+      absorb_composite_shader(const reference_counted_ptr<PainterCompositeShader> &shader) final override;
 
       virtual
       uint32_t
-      compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader);
+      compute_composite_sub_shader_group(const reference_counted_ptr<PainterCompositeShader> &shader) final override;
+
+      virtual
+      PainterShader::Tag
+      absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader) final override;
+
+      virtual
+      uint32_t
+      compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader) final override;
 
     private:
       void *m_d;

@@ -30,7 +30,7 @@ struct fastuidraw_header
   uint composite_shader;
   uint blend_shader;
   int z;
-  uint flags;
+  uint deferred_buffer_offset_packed;
 };
 
 struct fastuidraw_clipping_data
@@ -54,15 +54,3 @@ struct fastuidraw_dashed_stroking_params_header
   float first_interval_start_on_looping;
   uint number_intervals;
 };
-
-void
-fastuidraw_process_header(inout fastuidraw_header h)
-{
-  if ((h.flags & FASTUIDRAW_HEADER_DRAWING_OCCLUDER) != 0u)
-    {
-      /* We pass along that the drawing is for drawing an occluder
-       * by setting the composite shader to all bits up.
-       */
-      h.blend_shader = ~0u;
-    }
-}

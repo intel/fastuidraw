@@ -465,7 +465,7 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
     }
 
   sub_shader = compute_sub_shader(is_hq_shader, stroke_dash_style, render_pass);
-  return_value = FASTUIDRAWnew PainterItemShader(sub_shader, m_shaders[shader_choice]);
+  return_value = FASTUIDRAWnew PainterItemShader(m_shaders[shader_choice], sub_shader);
   return return_value;
 }
 
@@ -560,17 +560,17 @@ build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
 ShaderSetCreator::
 ShaderSetCreator(bool has_auxiliary_coverage_buffer,
                  enum PainterCompositeShader::shader_type composite_tp,
-                 const reference_counted_ptr<const PainterDraw::Action> &flush_auxiliary_buffer_between_draws):
+                 const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws):
   CompositeShaderSetCreator(composite_tp),
   StrokeShaderCreator(),
   m_has_auxiliary_coverage_buffer(has_auxiliary_coverage_buffer),
-  m_flush_auxiliary_buffer_between_draws(flush_auxiliary_buffer_between_draws)
+  m_flush_immediate_coverage_buffer_between_draws(flush_immediate_coverage_buffer_between_draws)
 {
   if (!m_has_auxiliary_coverage_buffer)
     {
       m_hq_support = PainterEnums::hq_anti_alias_no_support;
     }
-  else if (m_flush_auxiliary_buffer_between_draws)
+  else if (m_flush_immediate_coverage_buffer_between_draws)
     {
       m_hq_support = PainterEnums::hq_anti_alias_slow;
     }
@@ -693,8 +693,8 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
   return_value
     .hq_anti_alias_support(m_hq_support)
     .stroking_data_selector(stroke_data_selector)
-    .hq_aa_action_pass1(m_flush_auxiliary_buffer_between_draws)
-    .hq_aa_action_pass2(m_flush_auxiliary_buffer_between_draws)
+    .hq_aa_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
+    .hq_aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws)
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_none, false) //because of discard
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_simple, false) //because of discard
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_high_quality,
@@ -794,7 +794,7 @@ create_fill_shader(void)
                                                          varying_list().add_float_varying("fastuidraw_aa_fuzz"),
                                                          fill_aa_fuzz_number_passes);
 
-  aa_fuzz_direct_shader = FASTUIDRAWnew PainterItemShader(fill_aa_fuzz_direct_pass, uber_fuzz_shader);
+  aa_fuzz_direct_shader = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_direct_pass);
   fill_shader
     .hq_anti_alias_support(m_hq_support)
     .fastest_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
@@ -805,14 +805,14 @@ create_fill_shader(void)
     {
       reference_counted_ptr<PainterItemShader> hq1, hq2;
 
-      hq1 = FASTUIDRAWnew PainterItemShader(fill_aa_fuzz_hq_pass1, uber_fuzz_shader);
-      hq2 = FASTUIDRAWnew PainterItemShader(fill_aa_fuzz_hq_pass2, uber_fuzz_shader);
+      hq1 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass1);
+      hq2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass2);
 
       fill_shader
         .aa_fuzz_hq_shader_pass1(hq1)
         .aa_fuzz_hq_shader_pass2(hq2)
-        .aa_fuzz_hq_action_pass1(m_flush_auxiliary_buffer_between_draws)
-        .aa_fuzz_hq_action_pass2(m_flush_auxiliary_buffer_between_draws);
+        .aa_fuzz_hq_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
+        .aa_fuzz_hq_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
     }
 
   return fill_shader;

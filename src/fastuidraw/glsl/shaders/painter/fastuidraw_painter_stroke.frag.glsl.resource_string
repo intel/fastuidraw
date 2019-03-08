@@ -35,7 +35,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   if (aa_method == fastuidraw_stroke_cover_then_draw && render_pass == fastuidraw_stroke_aa_pass2)
     {
-      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
+      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
     }
 
   if (dash_style != fastuidraw_stroke_not_dashed)
@@ -83,7 +83,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           q = 1.0 - fastuidraw_stroking_on_boundary;
           dd = max(q, fwidth(q));
           alpha *= q / dd;
-          fastuidraw_max_auxiliary(alpha);
+          fastuidraw_max_immediate_coverage(alpha);
           alpha = 0.0;
         }
     }

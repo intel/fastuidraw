@@ -26,6 +26,7 @@
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/backend/painter_draw.hpp>
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
+#include <fastuidraw/painter/backend/painter_surface.hpp>
 
 
 namespace fastuidraw
@@ -194,199 +195,6 @@ namespace fastuidraw
     };
 
     /*!
-     * Surface represents an interface to specify a buffer to
-     * which a PainterBackend renders content.
-     */
-    class Surface:public reference_counted<Surface>::default_base
-    {
-    public:
-      /*!
-       * A Viewport specifies the sub-region within a Surface
-       * to which one renders.
-       */
-      class Viewport
-      {
-      public:
-        Viewport(void):
-          m_origin(0, 0),
-          m_dimensions(1, 1)
-        {}
-
-        /*!
-         * Ctor.
-         * \param x value with which to initialize x-coordinate of \ref m_origin
-         * \param y value with which to initialize y-coordinate of \ref m_origin
-         * \param w value with which to initialize x-coordinate of \ref m_dimensions
-         * \param h value with which to initialize y-coordinate of \ref m_dimensions
-         */
-        Viewport(int x, int y, int w, int h):
-          m_origin(x, y),
-          m_dimensions(w, h)
-        {}
-
-        /*!
-         * Compute pixel coordinates from normalized device coords
-         * using this Viewport values. The pixel coordinates are so
-         * that (0, 0) is the bottom left.
-         * \param ndc normalized device coordinates
-         */
-        vec2
-        compute_pixel_coordinates(vec2 ndc) const
-        {
-          ndc += vec2(1.0f); // place in range [0, 2]
-          ndc *= 0.5f;       // normalize to [0, 1]
-          ndc *= vec2(m_dimensions); // normalize to dimension
-          ndc += vec2(m_origin); // translate to origin
-          return ndc;
-        }
-
-        /*!
-         * Compute normalized device coordinates from pixel
-         * coordinates.
-         * \param pixel pixel coordinates where (0, 0) corresponds to bottom
-         *              left of the surface
-         */
-        vec2
-        compute_normalized_device_coords(vec2 pixel) const
-        {
-          pixel -= vec2(m_origin); // translate from origin
-          pixel /= vec2(m_dimensions); // normalize to [0, 1]
-          pixel *= 2.0f; // normalize to [0, 2]
-          pixel -= vec2(1.0f); // palce in range [-1, 1]
-          return pixel;
-        }
-
-        /*!
-         * Computes the clip-equations (in normalized device coordinates)
-         * of this Viewport against a surface with the given dimensions.
-         * \param surface_dims dimension of surface
-         * \param[out] out_clip_equations location to which to write the
-         *                                clip equations
-         */
-        void
-        compute_clip_equations(ivec2 surface_dims,
-                               vecN<vec3, 4> *out_clip_equations) const;
-
-        /*!
-         * Computes the rectangle in normalized device coordinates
-         * of the intersection of a backing surface with the given
-         * dimensions against this Viewport.
-         * \param surface_dims dimension of surface
-         * \param[out] out_rect location to which to write the
-         *                      clipping rectangle in normalized
-         *                      device coordinates
-         */
-        void
-        compute_normalized_clip_rect(ivec2 surface_dims,
-                                     Rect *out_rect) const;
-
-        /*!
-         * Returne the size needed by a surface to contain
-         * the viewport, i.e. how many pixels the viewport
-         * covers.
-         */
-        ivec2
-        visible_dimensions(void) const
-        {
-          ivec2 return_value(m_dimensions);
-
-          /* remove from the portion of the viewport that
-           * is below/left of the surface
-           */
-          return_value.x() += t_min(0, m_origin.x());
-          return_value.y() += t_min(0, m_origin.y());
-          return return_value;
-        }
-
-        /*!
-         * Computes the dimensions of the intersection
-         * of this viewport against a surface with the
-         * given resolution.
-         * \param surface_dims dimension of surface
-         */
-        ivec2
-        compute_visible_dimensions(ivec2 surface_dims) const
-        {
-          ivec2 return_value(visible_dimensions());
-
-          return_value.x() = t_min(return_value.x(), surface_dims.x());
-          return_value.y() = t_min(return_value.y(), surface_dims.y());
-          return return_value;
-        }
-
-        /*!
-         * The origin of the viewport
-         */
-        ivec2 m_origin;
-
-        /*!
-         * The dimensions of the viewport
-         */
-        ivec2 m_dimensions;
-      };
-
-      virtual
-      ~Surface()
-      {}
-
-      /*!
-       * Return an \ref Image whose backing is the same as
-       * this PainterBackend::Surface. It is expected that
-       * backing \ref Image is the same for the lifetime of
-       * the PainterBackend::Surface. The caller gaurantees
-       * that the same ImageAtlas object will be passed on
-       * each call to image().
-       * \param atlas ImageAtlas to manage the returned Image
-       */
-      virtual
-      reference_counted_ptr<const Image>
-      image(const reference_counted_ptr<ImageAtlas> &atlas) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the viewport into the Surface.
-       */
-      virtual
-      const Viewport&
-      viewport(void) const = 0;
-
-      /*!
-       * To be implemented by a derived class to set
-       * the viewport into the surface. The viewport
-       * cannot be changed while the Surface is in
-       * use by a \ref PainterBackend or \ref Painter.
-       * \param vwp new viewport into the surface to use
-       */
-      virtual
-      void
-      viewport(const Viewport &vwp) = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the clear color.
-       */
-      virtual
-      const vec4&
-      clear_color(void) const = 0;
-
-      /*!
-       * To be implemented by a derived class to set
-       * the clear color.
-       */
-      virtual
-      void
-      clear_color(const vec4&) = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the dimensions of the Surface backing store.
-       */
-      virtual
-      ivec2
-      dimensions(void) const = 0;
-    };
-
-    /*!
      * Ctor.
      * \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
      * \param image_atlas ImageAtlas for images drawn by the PainterBackend
@@ -478,8 +286,8 @@ namespace fastuidraw
      * of PainterDraw objects who have had their PainterDraw::unmap()
      * routine called. An implementation will  will clear the depth
      * (aka occlusion) buffer and optionally the color buffer in the
-     * viewport of the \ref PainterBackend::Surface.
-     * \param surface the \ref PainterBackend::Surface to which to
+     * viewport of the \ref PainterSurface.
+     * \param surface the \ref PainterSurface to which to
      *                render content
      * \param clear_color_buffer if true, clear the color buffer
      *                           on the viewport of the surface.
@@ -491,7 +299,7 @@ namespace fastuidraw
      */
     virtual
     void
-    on_pre_draw(const reference_counted_ptr<Surface> &surface,
+    on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
                 bool clear_color_buffer,
                 bool begin_new_target) = 0;
 
@@ -515,6 +323,16 @@ namespace fastuidraw
     bind_image(const reference_counted_ptr<const Image> &im) = 0;
 
     /*!
+     * Called to return an action to bind a \ref PainterSurface
+     * to be used as the read from the deferred coverage buffer.
+     * \param cvg_surface coverage surface backing the deferred
+     *                    coverage buffer from which to read
+     */
+    virtual
+    reference_counted_ptr<PainterDraw::Action>
+    bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface) = 0;
+
+    /*!
      * To be implemented by a derived class to return a PainterDraw
      * for filling of data.
      */
@@ -529,10 +347,14 @@ namespace fastuidraw
      * PainterBackend returned by create_shared().
      * \param dims the dimensions of the backing store of
      *             the returned Surface
+     * \param render_type the render type of the surface (i.e.
+     *                    is it a color buffer or deferred
+     *                    coverage buffer).
      */
     virtual
-    reference_counted_ptr<Surface>
-    create_surface(ivec2 dims) = 0;
+    reference_counted_ptr<PainterSurface>
+    create_surface(ivec2 dims,
+                   enum PainterSurface::render_type_t render_type) = 0;
 
     /*!
      * Returns the PainterShaderSet for the backend.

@@ -51,12 +51,12 @@ namespace fastuidraw
     /*!
      * Ctor to create a PainterBlendShader realized as a sub-shader
      * of an existing PainterBlendShader
-     * \param sub_shader which sub-shader of the parent PainterBlendShader
      * \param parent parent PainterBlendShader that has sub-shaders
+     * \param sub_shader which sub-shader of the parent PainterBlendShader
      */
-    PainterBlendShader(unsigned int sub_shader,
-                       reference_counted_ptr<PainterBlendShader> parent):
-      PainterShader(sub_shader, parent)
+    PainterBlendShader(reference_counted_ptr<PainterBlendShader> parent,
+                       unsigned int sub_shader):
+      PainterShader(parent, sub_shader)
     {}
   };
 

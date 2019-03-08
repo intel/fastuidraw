@@ -56,6 +56,15 @@ namespace fastuidraw
     register_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
     /*!
+     * Registers an item shader for use; registring a shader more than
+     * once to the SAME PainterShaderRegistrar has no effect. However,
+     * registering a shader to multiple PainterShaderRegistrar objects
+     * is an error.
+     */
+    void
+    register_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader);
+
+    /*!
      * Registers a composite shader for use; registring a shader more than
      * once to the SAME PainterShaderRegistrar has no effect. However,
      * registering a shader to multiple PainterShaderRegistrar objects
@@ -166,6 +175,34 @@ namespace fastuidraw
     virtual
     uint32_t
     compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader) = 0;
+
+    /*!
+     * To be implemented by a derived class to take into use
+     * an item shader. Typically this means inserting the
+     * the shader into a large uber shader. Returns
+     * the PainterShader::Tag to be used by the backend
+     * to identify the shader.  An implementation will never
+     * be passed an object for which PainterShader::parent()
+     * is non-nullptr. In addition, mutex() will be locked on
+     * entry.
+     * \param shader shader whose Tag is to be computed
+     */
+    virtual
+    PainterShader::Tag
+    absorb_item_coverage_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader) = 0;
+
+    /*!
+     * To be implemented by a derived class to compute the PainterShader::group()
+     * of a sub-shader. When called, the value of the shader's PainterShader::ID()
+     * and PainterShader::registered_to() are already set correctly. In addition,
+     * the value of PainterShader::group() is initialized to the same value as
+     * that of the PainterItemShader::parent(). In addition, mutex() will be
+     * locked on entry.
+     * \param shader shader whose group is to be computed
+     */
+    virtual
+    uint32_t
+    compute_item_coverage_sub_shader_group(const reference_counted_ptr<PainterItemCoverageShader> &shader) = 0;
 
     /*!
      * To be implemented by a derived class to take into use

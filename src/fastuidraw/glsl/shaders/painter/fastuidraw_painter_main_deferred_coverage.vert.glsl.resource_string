@@ -1,6 +1,6 @@
 /*!
- * \file fastuidraw_painter_main.vert.glsl.resource_string
- * \brief file fastuidraw_painter_main.vert.glsl.resource_string
+ * \file fastuidraw_painter_main_deferred_coverage.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_main_deferred_coverage.vert.glsl.resource_string
  *
  * Copyright 2018 by Intel.
  *
@@ -49,14 +49,17 @@ fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c)
 }
 
 void
+fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_header h)
+{
+}
+
+void
 main(void)
 {
   fastuidraw_header h;
-  vec2 brush_p, normalized_translate;
+  vec2 normalized_translate;
   vec3 clip_p;
   fastuidraw_clipping_data clipping;
-  float normalized_depth, raw_depth;
-  int add_z;
 
   fastuidraw_read_header(fastuidraw_header_attribute, h);
   fastuidraw_read_clipping(h.clipping_location, clipping);
@@ -70,40 +73,12 @@ main(void)
     {
       fastuidraw_frag_shader = h.item_shader;
       fastuidraw_frag_shader_data_location = h.item_shader_data_location;
-      fastuidraw_composite_shader = h.composite_shader;
-      fastuidraw_composite_shader_data_location = h.composite_shader_data_location;
-      fastuidraw_blend_shader = h.blend_shader;
-      fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
-      fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
     }
   #endif
 
-  fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
-  fastuidraw_vert_brush_processing(brush_p, h);
-  if (h.blend_shader == FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
-    {
-      add_z = 0;
-    }
-
+  fastuidraw_run_vert_shader(h, clip_p);
   fastuidraw_apply_clipping(clip_p, clipping);
 
-  /* and finally emit gl_Position; the value needed in the
-   * depth buffer is stored in h.z, but it is an integer that
-   * starts at 0 and is incremented by one, we need to convert it
-   * to normalized coords.
-   */
-  raw_depth = float(add_z + h.z);
-
-  #ifdef FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1
-    {
-      normalized_depth = (FASTUIDRAW_DEPTH_COEFF * raw_depth) - 1.0;
-    }
-  #else
-    {
-      normalized_depth = (FASTUIDRAW_DEPTH_COEFF * raw_depth);
-    }
-  #endif
-
   clip_p.xy += normalized_translate * clip_p.z;
-  gl_Position = vec4(clip_p.xy, normalized_depth * clip_p.z, clip_p.z);
+  gl_Position = vec4(clip_p.xy, 0.0, clip_p.z);
 }

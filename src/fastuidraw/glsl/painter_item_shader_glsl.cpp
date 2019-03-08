@@ -77,24 +77,39 @@ namespace
     fastuidraw::vecN<size_t, interpolation_number_types> m_float_counts;
   };
 
-  class PainterShaderGLSLPrivate
+  class PainterShaderGLSLPrivateCommon
   {
   public:
-    PainterShaderGLSLPrivate(bool uses_discard,
-                             const fastuidraw::glsl::ShaderSource &vertex_src,
-                             const fastuidraw::glsl::ShaderSource &fragment_src,
-                             const fastuidraw::glsl::varying_list &varyings):
-      m_uses_discard(uses_discard),
+    PainterShaderGLSLPrivateCommon(const fastuidraw::glsl::ShaderSource &vertex_src,
+                                   const fastuidraw::glsl::ShaderSource &fragment_src,
+                                   const fastuidraw::glsl::varying_list &varyings):
       m_vertex_src(vertex_src),
       m_fragment_src(fragment_src),
       m_varyings(varyings)
     {}
 
-    bool m_uses_discard;
     fastuidraw::glsl::ShaderSource m_vertex_src;
     fastuidraw::glsl::ShaderSource m_fragment_src;
     fastuidraw::glsl::varying_list m_varyings;
+  };
 
+  typedef PainterShaderGLSLPrivateCommon PainterItemCoverageShaderGLSLPrivate;
+
+  class PainterItemShaderGLSLPrivate:public PainterShaderGLSLPrivateCommon
+  {
+  public:
+    PainterItemShaderGLSLPrivate(bool uses_discard,
+                                 const fastuidraw::glsl::ShaderSource &vertex_src,
+                                 const fastuidraw::glsl::ShaderSource &fragment_src,
+                                 const fastuidraw::glsl::varying_list &varyings,
+                                 const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemCoverageShaderGLSL> &cvg):
+      PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, varyings),
+      m_uses_discard(uses_discard),
+      m_coverage_shader(cvg)
+    {}
+
+    bool m_uses_discard;
+    fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemCoverageShaderGLSL> m_coverage_shader;
   };
 }
 
@@ -285,60 +300,81 @@ add_int_varying(c_string pname)
   return set_int_varying(ints().size(), pname);
 }
 
-///////////////////////////////////////////////
+/////////////////////////////////////////////
 // fastuidraw::glsl::PainterItemShaderGLSL methods
 fastuidraw::glsl::PainterItemShaderGLSL::
 PainterItemShaderGLSL(bool puses_discard,
                       const glsl::ShaderSource &v_src,
                       const glsl::ShaderSource &f_src,
                       const varying_list &varyings,
-                      unsigned int num_sub_shaders):
+                      unsigned int num_sub_shaders,
+                      const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg):
   PainterItemShader(num_sub_shaders)
 {
-  m_d = FASTUIDRAWnew PainterShaderGLSLPrivate(puses_discard, v_src, f_src, varyings);
+  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings, cvg);
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
 ~PainterItemShaderGLSL(void)
 {
-  PainterShaderGLSLPrivate *d;
-  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
+  PainterItemShaderGLSLPrivate *d;
+  d = static_cast<PainterItemShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
 }
 
-const fastuidraw::glsl::varying_list&
-fastuidraw::glsl::PainterItemShaderGLSL::
-varyings(void) const
+get_implement(fastuidraw::glsl::PainterItemShaderGLSL,
+              PainterItemShaderGLSLPrivate,
+              const fastuidraw::glsl::varying_list&,
+              varyings)
+
+get_implement(fastuidraw::glsl::PainterItemShaderGLSL,
+              PainterItemShaderGLSLPrivate,
+              const fastuidraw::glsl::ShaderSource&,
+              vertex_src)
+
+get_implement(fastuidraw::glsl::PainterItemShaderGLSL,
+              PainterItemShaderGLSLPrivate,
+              const fastuidraw::glsl::ShaderSource&,
+              fragment_src)
+
+get_implement(fastuidraw::glsl::PainterItemShaderGLSL,
+              PainterItemShaderGLSLPrivate,
+              bool,
+              uses_discard)
+
+///////////////////////////////////////////////
+// fastuidraw::glsl::PainterItemCoverageShaderGLSL methods
+fastuidraw::glsl::PainterItemCoverageShaderGLSL::
+PainterItemCoverageShaderGLSL(const glsl::ShaderSource &v_src,
+                              const glsl::ShaderSource &f_src,
+                              const varying_list &varyings,
+                              unsigned int num_sub_shaders):
+  PainterItemCoverageShader(num_sub_shaders)
 {
-  PainterShaderGLSLPrivate *d;
-  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
-  return d->m_varyings;
+  m_d = FASTUIDRAWnew PainterItemCoverageShaderGLSLPrivate(v_src, f_src, varyings);
 }
 
-const fastuidraw::glsl::ShaderSource&
-fastuidraw::glsl::PainterItemShaderGLSL::
-vertex_src(void) const
+fastuidraw::glsl::PainterItemCoverageShaderGLSL::
+~PainterItemCoverageShaderGLSL(void)
 {
-  PainterShaderGLSLPrivate *d;
-  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
-  return d->m_vertex_src;
+  PainterItemCoverageShaderGLSLPrivate *d;
+  d = static_cast<PainterItemCoverageShaderGLSLPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = nullptr;
 }
 
-const fastuidraw::glsl::ShaderSource&
-fastuidraw::glsl::PainterItemShaderGLSL::
-fragment_src(void) const
-{
-  PainterShaderGLSLPrivate *d;
-  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
-  return d->m_fragment_src;
-}
+get_implement(fastuidraw::glsl::PainterItemCoverageShaderGLSL,
+              PainterItemCoverageShaderGLSLPrivate,
+              const fastuidraw::glsl::varying_list&,
+              varyings)
 
-bool
-fastuidraw::glsl::PainterItemShaderGLSL::
-uses_discard(void) const
-{
-  PainterShaderGLSLPrivate *d;
-  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
-  return d->m_uses_discard;
-}
+get_implement(fastuidraw::glsl::PainterItemCoverageShaderGLSL,
+              PainterItemCoverageShaderGLSLPrivate,
+              const fastuidraw::glsl::ShaderSource&,
+              vertex_src)
+
+get_implement(fastuidraw::glsl::PainterItemCoverageShaderGLSL,
+              PainterItemCoverageShaderGLSLPrivate,
+              const fastuidraw::glsl::ShaderSource&,
+              fragment_src)

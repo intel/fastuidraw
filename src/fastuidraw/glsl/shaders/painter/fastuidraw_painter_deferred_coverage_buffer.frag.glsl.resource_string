@@ -1,0 +1,23 @@
+/*!
+ * \file fastuidraw_painter_deferred_coverage_buffer.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_deferred_coverage_buffer.frag.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+ivec2 fastuidraw_deferred_buffer_offset;
+FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING) uniform sampler2D fastuidraw_deferred_coverage_buffer;
+
+#define fastuidraw_read_deferred_coverage_buffer \
+  (texelFetch(fastuidraw_deferred_coverage_buffer, ivec2(gl_FragCoord.xy) + fastuidraw_read_deferred_coverage_buffer, 0).r)

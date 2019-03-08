@@ -88,8 +88,9 @@ namespace
     int m_glyph_atlas_store_binding_fp16;
     int m_data_store_buffer_binding;
     int m_external_texture_binding;
+    int m_coverage_buffer_texture_binding;
     int m_uniforms_ubo_binding;
-    int m_auxiliary_image_buffer_binding;
+    int m_immediate_coverage_image_buffer_binding;
     int m_color_interlock_image_buffer_binding;
   };
 
@@ -120,6 +121,7 @@ namespace
     bool m_uniform_ubo_ready;
     fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
     GLuint m_current_external_texture;
+    GLuint m_current_coverage_buffer_texture;
     bool m_use_uber_shader;
     BindingPoints m_binding_points;
 
@@ -150,9 +152,53 @@ namespace
 
       /* if the user makes an action that affects texture
        * unit m_texture_unit, we need to give the backend
-       * the knowledge of what is the external texture.
+       * the knowledge of what is the external texture
+       * so that it an correctly restore its state.
        */
       m_p->m_current_external_texture = m_image->texture();
+
+      /* we do not regard changing the texture unit
+       * as changing the GPU texture state because the
+       * restore of GL state would be all those texture
+       * states we did not change
+       */
+      return fastuidraw::gpu_dirty_state();
+    }
+
+  private:
+    fastuidraw::reference_counted_ptr<const TextureImage> m_image;
+    PainterBackendGLPrivate *m_p;
+    unsigned int m_texture_unit;
+  };
+
+  class CoverageTextureBindAction:public fastuidraw::PainterDraw::Action
+  {
+  public:
+    typedef fastuidraw::gl::ImageAtlasGL::TextureImage TextureImage;
+
+    CoverageTextureBindAction(const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &im,
+                              PainterBackendGLPrivate *p):
+      m_p(p),
+      m_texture_unit(p->m_binding_points.m_coverage_buffer_texture_binding)
+    {
+      FASTUIDRAWassert(im);
+      FASTUIDRAWassert(im.dynamic_cast_ptr<const TextureImage>());
+      m_image = im.static_cast_ptr<const TextureImage>();
+    }
+
+    virtual
+    fastuidraw::gpu_dirty_state
+    execute(fastuidraw::PainterDraw::APIBase*) const
+    {
+      fastuidraw_glActiveTexture(GL_TEXTURE0 + m_texture_unit);
+      fastuidraw_glBindTexture(GL_TEXTURE_2D, m_image->texture());
+
+      /* if the user makes an action that affects texture
+       * unit m_texture_unit, we need to give the backend
+       * the knowledge of what is the texture so that it an
+       * correctly restore its state.
+       */
+      m_p->m_current_coverage_buffer_texture = m_image->texture();
 
       /* we do not regard changing the texture unit
        * as changing the GPU texture state because the
@@ -199,8 +245,7 @@ namespace
   {
   public:
     DrawEntry(const fastuidraw::BlendMode &mode,
-              PainterBackendGLPrivate *pr,
-              unsigned int pz);
+              fastuidraw::gl::Program *new_program);
 
     DrawEntry(const fastuidraw::BlendMode &mode);
 
@@ -239,7 +284,8 @@ namespace
 
     virtual
     bool
-    draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
+    draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
+               const fastuidraw::PainterShaderGroup &old_shaders,
                const fastuidraw::PainterShaderGroup &new_shaders,
                unsigned int indices_written);
 
@@ -305,7 +351,7 @@ namespace
       m_assign_binding_points(true),
       m_separate_program_for_discard(true),
       m_compositing_type(fastuidraw::gl::PainterBackendGL::compositing_dual_src),
-      m_provide_auxiliary_image_buffer(fastuidraw::gl::PainterBackendGL::no_auxiliary_buffer),
+      m_provide_immediate_coverage_image_buffer(fastuidraw::gl::PainterBackendGL::no_immediate_coverage_buffer),
       m_use_uber_item_shader(true)
     {}
 
@@ -328,7 +374,7 @@ namespace
     bool m_assign_binding_points;
     bool m_separate_program_for_discard;
     enum fastuidraw::gl::PainterBackendGL::compositing_type_t m_compositing_type;
-    enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
+    enum fastuidraw::gl::PainterBackendGL::immediate_coverage_buffer_t m_provide_immediate_coverage_image_buffer;
     bool m_use_uber_item_shader;
 
     std::string m_glsl_version_override;
@@ -389,6 +435,7 @@ restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
   if (flags & gpu_dirty_state::blend_mode)
     {
       FASTUIDRAWassert(m_current_blend_mode);
+      FASTUIDRAWassert(m_current_blend_mode->is_valid());
       if (m_current_blend_mode->blending_on())
         {
           fastuidraw_glEnable(GL_BLEND);
@@ -472,19 +519,11 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 // DrawEntry methods
 DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode,
-          PainterBackendGLPrivate *pr,
-          unsigned int pz):
+          fastuidraw::gl::Program *new_program):
   m_set_blend(true),
-  m_blend_mode(mode)
+  m_blend_mode(mode),
+  m_new_program(new_program)
 {
-  if (pr->m_use_uber_shader)
-    {
-      m_new_program = pr->m_cached_programs[pz].get();
-    }
-  else
-    {
-      m_new_program = pr->m_reg_gl->program_of_item_shader(pz).get();
-    }
 }
 
 DrawEntry::
@@ -648,7 +687,8 @@ draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw
 
 bool
 DrawCommand::
-draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
+draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
+           const fastuidraw::PainterShaderGroup &old_shaders,
            const fastuidraw::PainterShaderGroup &new_shaders,
            unsigned int indices_written)
 {
@@ -677,16 +717,22 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
 
   if (old_disc != new_disc)
     {
-      unsigned int pz;
+      Program *new_program;
       if (m_pr->m_use_uber_shader)
         {
+          unsigned int pz;
+
+          // we should only change uber-shader on color-buffer rendering
+          FASTUIDRAWassert(render_type == PainterSurface::color_buffer_type);
+
           pz = (new_disc != 0u) ?
             PainterBackendGL::program_with_discard :
             PainterBackendGL::program_without_discard;
+          new_program = m_pr->m_cached_programs[pz].get();
         }
       else
         {
-          pz = new_disc;
+          new_program = m_pr->m_reg_gl->program_of_item_shader(render_type, new_disc).get();
         }
 
       if (!m_draws.empty())
@@ -694,7 +740,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
           add_entry(indices_written);
           return_value = true;
         }
-      m_draws.push_back(DrawEntry(fastuidraw::BlendMode(new_mode), m_pr, pz));
+      m_draws.push_back(DrawEntry(fastuidraw::BlendMode(new_mode), new_program));
       return return_value;
     }
   else if (old_mode != new_mode)
@@ -721,6 +767,7 @@ void
 DrawCommand::
 draw(void) const
 {
+  using namespace fastuidraw;
   using namespace fastuidraw::gl;
 
   fastuidraw_glBindVertexArray(m_vao.m_vao);
@@ -749,10 +796,20 @@ draw(void) const
       FASTUIDRAWassert(!"Bad value for m_vao.m_data_store_backing");
     }
 
+  /* draw() only gets called AFTER PainterBackend::on_pre_draw() is called.
+   * Thus the PainterBackendGL, m_pr, has m_surface_gl set correctly.
+   */
   unsigned int choice;
-  choice = m_pr->m_reg_gl->params().separate_program_for_discard() ?
-    PainterBackendGL::program_without_discard :
-    PainterBackendGL::program_all;
+  if (m_pr->m_surface_gl->m_render_type == PainterSurface::color_buffer_type)
+    {
+      choice = m_pr->m_reg_gl->params().separate_program_for_discard() ?
+        PainterBackendGL::program_without_discard :
+        PainterBackendGL::program_all;
+    }
+  else
+    {
+      choice = PainterBackendGL::program_deferred_coverage_buffer;
+    }
 
   DrawState st(m_pr->m_reg_gl->programs()[choice].get());
   st.m_current_program->use_program();
@@ -838,9 +895,10 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_binding_points.m_glyph_atlas_store_binding = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding();
   m_binding_points.m_glyph_atlas_store_binding_fp16 = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding_fp16x2();
   m_binding_points.m_data_store_buffer_binding = m_reg_gl->uber_shader_builder_params().data_store_buffer_binding();
-  m_binding_points.m_auxiliary_image_buffer_binding = m_reg_gl->uber_shader_builder_params().auxiliary_image_buffer_binding();
+  m_binding_points.m_immediate_coverage_image_buffer_binding = m_reg_gl->uber_shader_builder_params().immediate_coverage_image_buffer_binding();
   m_binding_points.m_color_interlock_image_buffer_binding = m_reg_gl->uber_shader_builder_params().color_interlock_image_buffer_binding();
   m_binding_points.m_external_texture_binding = m_reg_gl->uber_shader_builder_params().external_texture_binding();
+  m_binding_points.m_coverage_buffer_texture_binding = m_reg_gl->uber_shader_builder_params().coverage_buffer_texture_binding();
   m_binding_points.m_uniforms_ubo_binding = m_reg_gl->uber_shader_builder_params().uniforms_ubo_binding();
 
   m_use_uber_shader = m_reg_gl->params().use_uber_item_shader();
@@ -869,7 +927,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
 
-  enum PainterBackendGL::auxiliary_buffer_t aux_type;
+  enum PainterBackendGL::immediate_coverage_buffer_t aux_type;
   bool supports_bindless;
 
   supports_bindless = ctx.has_extension("GL_ARB_bindless_texture")
@@ -897,7 +955,6 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     .use_ubo_for_uniforms(true)
     .clipping_type(params.clipping_type())
     .z_coordinate_convention(PainterBackendGL::z_minus_1_to_1)
-    .negate_normalized_y_coordinate(false)
     .vert_shader_use_switch(params.vert_shader_use_switch())
     .frag_shader_use_switch(params.frag_shader_use_switch())
     .composite_shader_use_switch(params.composite_shader_use_switch())
@@ -907,13 +964,13 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     .glyph_data_backing(params.glyph_atlas()->param_values().glyph_data_backing_store_type())
     .glyph_data_backing_log2_dims(params.glyph_atlas()->param_values().texture_2d_array_store_log2_dims())
     .colorstop_atlas_backing(colorstop_tp)
-    .provide_auxiliary_image_buffer(params.provide_auxiliary_image_buffer())
+    .provide_immediate_coverage_image_buffer(params.provide_immediate_coverage_image_buffer())
     .use_uvec2_for_bindless_handle(ctx.has_extension("GL_ARB_bindless_texture"));
 
   reference_counted_ptr<const PainterDraw::Action> q;
 
-  aux_type = params.provide_auxiliary_image_buffer();
-  if (aux_type == PainterBackendGL::auxiliary_buffer_atomic)
+  aux_type = params.provide_immediate_coverage_image_buffer();
+  if (aux_type == PainterBackendGL::immediate_coverage_buffer_atomic)
     {
       bool use_by_region;
 
@@ -938,7 +995,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
         }
     }
 
-  out_shaders = out_params.default_shaders(aux_type != PainterBackendGL::no_auxiliary_buffer, q);
+  out_shaders = out_params.default_shaders(aux_type != PainterBackendGL::no_immediate_coverage_buffer, q);
 }
 
 void
@@ -950,17 +1007,31 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
   using namespace fastuidraw::glsl;
 
   const PainterBackendGL::UberShaderParams &uber_params(m_reg_gl->uber_shader_builder_params());
-  enum PainterBackendGL::auxiliary_buffer_t aux_type;
+  enum PainterBackendGL::immediate_coverage_buffer_t aux_type;
   enum PainterBackendGL::compositing_type_t compositing_type;
-  const PainterBackend::Surface::Viewport &vwp(m_surface_gl->m_viewport);
+  const PainterSurface::Viewport &vwp(m_surface_gl->m_viewport);
   ivec2 dimensions(m_surface_gl->m_dimensions);
   bool has_images;
 
-  aux_type = uber_params.provide_auxiliary_image_buffer();
-  compositing_type = m_reg_gl->params().compositing_type();
-  has_images = (aux_type != PainterBackendGL::no_auxiliary_buffer
-                && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
-    || (compositing_type == PainterBackendGL::compositing_interlock);
+  if (m_surface_gl->m_render_type == PainterSurface::color_buffer_type)
+    {
+      aux_type = uber_params.provide_immediate_coverage_image_buffer();
+      compositing_type = m_reg_gl->params().compositing_type();
+      has_images = (aux_type != PainterBackendGL::no_immediate_coverage_buffer
+                    && aux_type != PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
+        || (compositing_type == PainterBackendGL::compositing_interlock);
+    }
+  else
+    {
+      /* When rendering to a deferred coverage buffer, there is
+       * no immediate coverage buffer, no (real) compositing
+       * no depth buffer and no images.
+       */
+      aux_type = PainterBackendGL::no_immediate_coverage_buffer;
+      compositing_type = PainterBackendGL::compositing_single_src;
+      has_images = false;
+      clear_depth = false;
+    }
 
   if (v & gpu_dirty_state::render_target)
     {
@@ -983,7 +1054,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
           if (clear_color_buffer)
             {
               fastuidraw_glClearBufferfv(GL_COLOR, 0, m_surface_gl->m_clear_color.c_ptr());
-              if (aux_type == PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
+              if (aux_type == PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
                 {
                   vec4 zero(0.0f);
                   fastuidraw_glClearBufferfv(GL_COLOR, 1, zero.c_ptr());
@@ -1011,17 +1082,17 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   if ((v & gpu_dirty_state::images) != 0 && has_images)
     {
-      detail::SurfaceGLPrivate::auxiliary_buffer_fmt_t tp;
+      detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_t tp;
 
-      if (aux_type != PainterBackendGL::no_auxiliary_buffer
-          && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
+      if (aux_type != PainterBackendGL::no_immediate_coverage_buffer
+          && aux_type != PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
         {
-          tp = (aux_type == gl::PainterBackendGL::auxiliary_buffer_atomic) ?
-            detail::SurfaceGLPrivate::auxiliary_buffer_fmt_u32 :
-            detail::SurfaceGLPrivate::auxiliary_buffer_fmt_u8;
+          tp = (aux_type == gl::PainterBackendGL::immediate_coverage_buffer_atomic) ?
+            detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u32 :
+            detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u8;
 
-          fastuidraw_glBindImageTexture(m_binding_points.m_auxiliary_image_buffer_binding,
-                                        m_surface_gl->auxiliary_buffer(tp), //texture
+          fastuidraw_glBindImageTexture(m_binding_points.m_immediate_coverage_image_buffer_binding,
+                                        m_surface_gl->immediate_coverage_buffer(tp), //texture
                                         0, //level
                                         GL_FALSE, //layered
                                         0, //layer
@@ -1141,6 +1212,10 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_external_texture_binding);
       fastuidraw_glBindTexture(GL_TEXTURE_2D, m_current_external_texture);
       fastuidraw_glBindSampler(m_binding_points.m_external_texture_binding, 0);
+
+      fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_coverage_buffer_texture_binding);
+      fastuidraw_glBindTexture(GL_TEXTURE_2D, m_current_coverage_buffer_texture);
+      fastuidraw_glBindSampler(m_binding_points.m_coverage_buffer_texture_binding, 0);
     }
 
   if (v & gpu_dirty_state::constant_buffers)
@@ -1186,15 +1261,16 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::SurfaceGL methods
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
-SurfaceGL(ivec2 dims)
+SurfaceGL(ivec2 dims, enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(0u, dims);
+  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, 0u, dims);
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
-SurfaceGL(ivec2 dims, GLuint color_buffer_texture)
+SurfaceGL(ivec2 dims, GLuint color_buffer_texture,
+          enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(color_buffer_texture, dims);
+  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, color_buffer_texture, dims);
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
@@ -1279,10 +1355,13 @@ get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::ivec2, dimensions)
 get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
-              const fastuidraw::PainterBackend::Surface::Viewport&, viewport)
+              const fastuidraw::PainterSurface::Viewport&, viewport)
 get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               const fastuidraw::vec4&, clear_color)
+get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
+              fastuidraw::gl::detail::SurfaceGLPrivate,
+              enum fastuidraw::PainterSurface::render_type_t, render_type)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::ConfigurationGL methods
@@ -1372,20 +1451,20 @@ configure_from_context(bool choose_optimal_rendering_quality,
    */
   if (have_ffb)
     {
-      d->m_provide_auxiliary_image_buffer = auxiliary_buffer_framebuffer_fetch;
+      d->m_provide_immediate_coverage_image_buffer = immediate_coverage_buffer_framebuffer_fetch;
     }
   else if (interlock_type == no_interlock && !choose_optimal_rendering_quality)
     {
-      d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
+      d->m_provide_immediate_coverage_image_buffer = no_immediate_coverage_buffer;
     }
   else
     {
-      d->m_provide_auxiliary_image_buffer =
-        compute_provide_auxiliary_buffer(auxiliary_buffer_interlock, ctx);
+      d->m_provide_immediate_coverage_image_buffer =
+        compute_provide_immediate_coverage_buffer(immediate_coverage_buffer_interlock, ctx);
     }
 
   /* Adjust compositing type from GL context properties */
-  d->m_compositing_type = compute_compositing_type(d->m_provide_auxiliary_image_buffer,
+  d->m_compositing_type = compute_compositing_type(d->m_provide_immediate_coverage_image_buffer,
                                                    interlock_type, d->m_compositing_type,
                                                    ctx);
 
@@ -1579,10 +1658,10 @@ adjust_for_context(const ContextProperties &ctx)
   #endif
 
   interlock_type = compute_interlock_type(ctx);
-  d->m_provide_auxiliary_image_buffer =
-    compute_provide_auxiliary_buffer(d->m_provide_auxiliary_image_buffer, ctx);
+  d->m_provide_immediate_coverage_image_buffer =
+    compute_provide_immediate_coverage_buffer(d->m_provide_immediate_coverage_image_buffer, ctx);
 
-  d->m_compositing_type = compute_compositing_type(d->m_provide_auxiliary_image_buffer,
+  d->m_compositing_type = compute_compositing_type(d->m_provide_immediate_coverage_image_buffer,
                                                    interlock_type,
                                                    d->m_compositing_type, ctx);
 
@@ -1669,7 +1748,7 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterBackendGL::compositing_type_t, compositing_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
+                 enum fastuidraw::gl::PainterBackendGL::immediate_coverage_buffer_t, provide_immediate_coverage_image_buffer)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_uber_item_shader)
 
@@ -1796,7 +1875,7 @@ indices_per_mapping(void) const
 
 void
 fastuidraw::gl::PainterBackendGL::
-on_pre_draw(const reference_counted_ptr<Surface> &surface,
+on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
             bool clear_color_buffer,
             bool begin_new_target)
 {
@@ -1815,6 +1894,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
 
   d->m_uniform_ubo_ready = false;
   d->m_current_external_texture = 0;
+  d->m_current_coverage_buffer_texture = 0;
   d->set_gl_state(gpu_dirty_state::all, begin_new_target, clear_color_buffer);
 
   //cache the GLSL programs for use.
@@ -1866,12 +1946,12 @@ on_post_draw(void)
   fastuidraw_glActiveTexture(GL_TEXTURE0 + d->m_binding_points.m_colorstop_atlas_binding);
   fastuidraw_glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
 
-  enum auxiliary_buffer_t aux_type;
-  aux_type = uber_params.provide_auxiliary_image_buffer();
-  if (aux_type != PainterBackendGL::no_auxiliary_buffer
-      && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
+  enum immediate_coverage_buffer_t aux_type;
+  aux_type = uber_params.provide_immediate_coverage_image_buffer();
+  if (aux_type != PainterBackendGL::no_immediate_coverage_buffer
+      && aux_type != PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
     {
-      fastuidraw_glBindImageTexture(d->m_binding_points.m_auxiliary_image_buffer_binding, 0,
+      fastuidraw_glBindImageTexture(d->m_binding_points.m_immediate_coverage_image_buffer_binding, 0,
                                     0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
     }
 
@@ -1917,8 +1997,27 @@ bind_image(const reference_counted_ptr<const Image> &im)
 {
   PainterBackendGLPrivate *d;
 
+  /* TODO: instead of creating an action each time
+   * bind_image(), create the action once, attach it
+   * to the image and retrieve the action instead.
+   */
   d = static_cast<PainterBackendGLPrivate*>(m_d);
   return FASTUIDRAWnew TextureImageBindAction(im, d);
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::Action>
+fastuidraw::gl::PainterBackendGL::
+bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface)
+{
+  PainterBackendGLPrivate *d;
+
+  /* TODO: instead of creating an action each time
+   * bind_coverage_surface(), create the action once,
+   * attach it to the image and retrieve the action
+   * instead.
+   */
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
+  return FASTUIDRAWnew CoverageTextureBindAction(surface->image(image_atlas()), d);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw>
@@ -1931,12 +2030,13 @@ map_draw(void)
   return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_reg_gl->params(), d);
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>
+fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface>
 fastuidraw::gl::PainterBackendGL::
-create_surface(ivec2 dims)
+create_surface(ivec2 dims,
+               enum PainterSurface::render_type_t render_type)
 {
-  reference_counted_ptr<Surface> S;
-  S = FASTUIDRAWnew SurfaceGL(dims);
+  reference_counted_ptr<PainterSurface> S;
+  S = FASTUIDRAWnew SurfaceGL(dims, render_type);
   return S;
 }
 

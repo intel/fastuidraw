@@ -173,7 +173,7 @@ namespace
       for(const fastuidraw::c_array<fastuidraw::generic_data> &d : m_dests)
         {
           d[fastuidraw::PainterHeader::z_offset].i = m_z_to_write;
-          d[fastuidraw::PainterHeader::flags_offset].u = fastuidraw::PainterHeader::drawing_occluder;
+          d[fastuidraw::PainterHeader::blend_shader_offset].u = fastuidraw::PainterHeader::drawing_occluder;
         }
     }
 
@@ -409,7 +409,7 @@ namespace
     {}
 
     void
-    reset(const fastuidraw::PainterBackend::Surface::Viewport &vwp,
+    reset(const fastuidraw::PainterSurface::Viewport &vwp,
           fastuidraw::ivec2 surface_dims);
 
     void
@@ -475,7 +475,29 @@ namespace
       m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || mark_dirty;
       m_inverse_transpose_not_ready = m_inverse_transpose_not_ready || mark_dirty;
       m_item_matrix_state = v;
+      m_item_matrix_coverage_buffer_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
       m_item_matrix = v.value();
+    }
+
+    const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
+    current_item_matrix_coverage_buffer_state(fastuidraw::PainterPackedValuePool &pool)
+    {
+      if (!m_item_matrix_coverage_buffer_state)
+        {
+          fastuidraw::PainterItemMatrix tmp;
+
+          tmp = m_item_matrix;
+          tmp.m_normalized_translate = m_coverage_buffer_normalized_translate;
+          m_item_matrix_coverage_buffer_state = pool.create_packed_value(tmp);
+        }
+      return m_item_matrix_coverage_buffer_state;
+    }
+
+    void
+    coverage_buffer_normalized_translate(fastuidraw::vec2 v)
+    {
+      m_item_matrix_coverage_buffer_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+      m_coverage_buffer_normalized_translate = v;
     }
 
     const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>&
@@ -544,6 +566,8 @@ namespace
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_state;
     fastuidraw::PainterClipEquations m_clip_equations;
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_equations_state;
+    fastuidraw::vec2 m_coverage_buffer_normalized_translate;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_coverage_buffer_state;
     bool m_inverse_transpose_not_ready;
     fastuidraw::vec2 m_viewport_dimensions;
     fastuidraw::float3x3 m_item_matrix_inverse_transpose;
@@ -589,17 +613,44 @@ namespace
     float m_curve_flatness;
   };
 
+  class BufferRect
+  {
+  public:
+    BufferRect(const fastuidraw::Rect &normalized_rect,
+               fastuidraw::ivec2 useable_size,
+               PainterPrivate *d);
+
+    fastuidraw::vec2
+    compute_normalized_translate(fastuidraw::ivec2 rect_dst,
+                                 const fastuidraw::PainterSurface::Viewport &vwp) const
+    {
+      /* we need to have that:
+       *   return_value + normalized_rect = R
+       * where R is rect in normalized device coordinates.
+       */
+      fastuidraw::vec2 Rndc;
+      Rndc = vwp.compute_normalized_device_coords(fastuidraw::vec2(rect_dst));
+      return Rndc - m_normalized_rect.m_min_point;
+    }
+
+    fastuidraw::ivec2 m_bl, m_tr, m_dims;
+    fastuidraw::vec2 m_fbl, m_ftr;
+    fastuidraw::Rect m_normalized_rect;
+    fastuidraw::RectT<int> m_pixel_rect;
+  };
+
   class TransparencyBuffer:
     public fastuidraw::reference_counted<TransparencyBuffer>::non_concurrent
   {
   public:
     TransparencyBuffer(const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> &packer,
-                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> &surface,
-                       const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &image):
+                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> &surface,
+                       const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &image,
+                       fastuidraw::ivec2 useable_size):
       m_packer(packer),
       m_surface(surface),
       m_image(image),
-      m_rect_atlas(surface->dimensions())
+      m_rect_atlas(useable_size)
     {}
 
     /* the PainterPacker used */
@@ -609,7 +660,7 @@ namespace
     unsigned int m_depth;
 
     /* the surface used by the TransparencyBuffer */
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> m_surface;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> m_surface;
 
     /* the surface realized as an image */
     fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_image;
@@ -629,6 +680,9 @@ namespace
     /* The region of the transparency in normalized coords */
     fastuidraw::Rect m_normalized_rect;
 
+    /* The region of the transparency region in pixel coords */
+    fastuidraw::RectT<int> m_pixel_rect;
+
     /* the image to blit, together with what pixels of the image to blit */
     const fastuidraw::Image *m_image;
     fastuidraw::vec2 m_brush_translate;
@@ -639,6 +693,11 @@ namespace
      */
     fastuidraw::PainterPacker *m_packer;
     fastuidraw::vec2 m_normalized_translate;
+
+    /* The bottom left hand corner of the rect within
+     * TransparencyBuffer::m_surface
+     */
+    fastuidraw::ivec2 m_bottom_left_corner_in_surface;
 
     /* identity matrix state; this is needed because PainterItemMatrix
      * also stores the normalized translation.
@@ -659,8 +718,7 @@ namespace
      * pool entirely.
      */
     void
-    begin(fastuidraw::ivec2 surface_dimensions,
-          const fastuidraw::PainterBackend::Surface::Viewport &vwp);
+    begin(fastuidraw::PainterSurface &surface);
 
     /* creates a TransparencyStackEntry value using the
      * available pools.
@@ -677,21 +735,164 @@ namespace
     void
     end(void);
 
-    /* list of active offscreen buffers */
-    const std::vector<const fastuidraw::PainterBackend::Surface*>&
-    active_surfaces(void) const
-    {
-      return m_active_surfaces;
-    }
-
   private:
     typedef std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > PerActiveDepth;
 
-    fastuidraw::PainterBackend::Surface::Viewport m_viewport;
+    fastuidraw::PainterSurface::Viewport m_transparency_buffer_viewport;
     fastuidraw::ivec2 m_current_backing_size, m_current_backing_useable_size;
     std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > m_unused_buffers;
     std::vector<PerActiveDepth> m_per_active_depth;
-    std::vector<const fastuidraw::PainterBackend::Surface*> m_active_surfaces;
+  };
+
+  class DeferredCoverageBuffer:
+    public fastuidraw::reference_counted<DeferredCoverageBuffer>::non_concurrent
+  {
+  public:
+    explicit
+    DeferredCoverageBuffer(const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> &packer,
+                           const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> &surface,
+                           fastuidraw::ivec2 useable_size):
+      m_packer(packer),
+      m_surface(surface),
+      m_rect_atlas(useable_size)
+    {}
+
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_packer;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> m_surface;
+    fastuidraw::detail::RectAtlas m_rect_atlas;
+  };
+
+  class DeferredCoverageBufferStackEntry
+  {
+  public:
+    DeferredCoverageBufferStackEntry(fastuidraw::PainterPacker *p_packer,
+                                     fastuidraw::ivec2 p_bottom_left_corner_in_surface,
+                                     const BufferRect &buffer_rect,
+                                     const fastuidraw::PainterSurface::Viewport &vwp,
+                                     const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &p_clip_eq_state):
+      m_packer(p_packer),
+      m_normalized_translate(buffer_rect.compute_normalized_translate(p_bottom_left_corner_in_surface, vwp)),
+      m_root_surface_bottom_left_corner(buffer_rect.m_bl),
+      m_clip_eq_state(p_clip_eq_state),
+      m_bottom_left_corner_in_surface(p_bottom_left_corner_in_surface)
+    {
+      FASTUIDRAWassert(m_packer);
+      FASTUIDRAWassert(m_bottom_left_corner_in_surface.x() >= 0);
+      FASTUIDRAWassert(m_bottom_left_corner_in_surface.y() >= 0);
+    }
+
+    /* represents that coverage buffer takes no pixel area and
+     * that there is effectivly no coverage buffer.
+     */
+    DeferredCoverageBufferStackEntry(void):
+      m_packer(nullptr)
+    {}
+
+    void
+    update_coverage_buffer_offset(const PainterPrivate *d);
+
+    fastuidraw::PainterPacker*
+    packer(void) const
+    {
+      return m_packer;
+    }
+
+    fastuidraw::ivec2
+    bottom_left_corner_in_surface(void) const
+    {
+      return m_bottom_left_corner_in_surface;
+    }
+
+    fastuidraw::ivec2
+    coverage_buffer_offset(void) const
+    {
+      return m_coverage_buffer_offset;
+    }
+
+    fastuidraw::vec2
+    normalized_translate(void) const
+    {
+      return m_normalized_translate;
+    }
+
+    const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>&
+    clip_eq_state(void) const
+    {
+      return m_clip_eq_state ;
+    }
+
+  private:
+    fastuidraw::PainterPacker *m_packer;
+
+    /* the translate from root surface normalized
+     * device coordinates to the deferred coverage
+     * surface normalized device coordinates; this
+     * value does not change regardless if the
+     * transparency layer changes because the vertex
+     * uber-shader for a Painter operates in root
+     * surface normalized device coordinates until
+     * just the end when it adjusts the value to
+     * the surface; since the coverage buffer surfce
+     * stays the same regardless if the transparency
+     * layer changes, this value is a constant.
+     */
+    fastuidraw::vec2 m_normalized_translate;
+
+    /* the location within the root surface of
+     * the bottom left corner.
+     */
+    fastuidraw::ivec2 m_root_surface_bottom_left_corner;
+
+    /* the clip-equation state guarantees that the
+     * drawing is clipped to within the region
+     * of the coverage for this entry only
+     */
+    fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_eq_state;
+
+    /* The bottom left corner of the source rect
+     * relative to the root surface.
+     */
+    fastuidraw::vec2 m_root_bottom_left_normalized;
+
+    /* The bottom left hand corner of the rect within
+     * DeferredCoverageBuffer::m_surface
+     */
+    fastuidraw::ivec2 m_bottom_left_corner_in_surface;
+
+    /* computed from the current state of PainterPacker, updated
+     * whenever the transparency stack changes
+     */
+    fastuidraw::ivec2 m_coverage_buffer_offset;
+  };
+
+  class DeferredCoverageBufferStackEntryFactory
+  {
+  public:
+    DeferredCoverageBufferStackEntryFactory(void):
+      m_current_backing_size(0, 0),
+      m_current_backing_useable_size(0, 0)
+    {}
+
+    void
+    begin(fastuidraw::PainterSurface &surface);
+
+    DeferredCoverageBufferStackEntry
+    fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d);
+
+    void
+    end(void);
+
+    const fastuidraw::PainterSurface::Viewport&
+    coverage_buffer_viewport(void) const
+    {
+      return m_coverage_buffer_viewport;
+    }
+
+  private:
+    fastuidraw::PainterSurface::Viewport m_coverage_buffer_viewport;
+    fastuidraw::ivec2 m_current_backing_size, m_current_backing_useable_size;
+    std::vector<fastuidraw::reference_counted_ptr<DeferredCoverageBuffer> > m_unused_buffers;
+    std::vector<fastuidraw::reference_counted_ptr<DeferredCoverageBuffer> > m_active_buffers;
   };
 
   class ComplementFillRule:public fastuidraw::CustomFillRuleBase
@@ -864,28 +1065,38 @@ namespace
                  unsigned int start, unsigned int size):
       m_range(start, start + size)
     {
-      enum fastuidraw::PainterStrokeShader::shader_type_t pass1, pass2;
-      enum fastuidraw::PainterStrokeShader::stroke_type_t tp;
+      using namespace fastuidraw;
+      enum PainterStrokeShader::stroke_type_t tp;
 
       tp = (use_arc_shading) ?
-        fastuidraw::PainterStrokeShader::arc_stroke_type:
-        fastuidraw::PainterStrokeShader::linear_stroke_type;
+        PainterStrokeShader::arc_stroke_type:
+        PainterStrokeShader::linear_stroke_type;
 
-      pass1 = (with_aa == fastuidraw::Painter::shader_anti_alias_high_quality) ?
-        fastuidraw::PainterStrokeShader::hq_aa_shader_pass1:
-        fastuidraw::PainterStrokeShader::aa_shader_pass1;
+      if (with_aa == Painter::shader_anti_alias_deferred_coverage)
+        {
+          m_shader_pass1 = &shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage);
+          m_shader_pass2 = nullptr;
+        }
+      else
+        {
+          enum PainterStrokeShader::shader_type_t pass1, pass2;
 
-      pass2 = (with_aa == fastuidraw::Painter::shader_anti_alias_high_quality) ?
-        fastuidraw::PainterStrokeShader::hq_aa_shader_pass2:
-        fastuidraw::PainterStrokeShader::aa_shader_pass2;
+          pass1 = (with_aa == Painter::shader_anti_alias_high_quality) ?
+            PainterStrokeShader::hq_aa_shader_pass1:
+            PainterStrokeShader::aa_shader_pass1;
 
-      m_shader_pass1 = (with_aa == fastuidraw::Painter::shader_anti_alias_none) ?
-        &shader.shader(tp, fastuidraw::PainterStrokeShader::non_aa_shader) :
-        &shader.shader(tp, pass1);
+          pass2 = (with_aa == Painter::shader_anti_alias_high_quality) ?
+            PainterStrokeShader::hq_aa_shader_pass2:
+            PainterStrokeShader::aa_shader_pass2;
 
-      m_shader_pass2 = (with_aa == fastuidraw::Painter::shader_anti_alias_none) ?
-        nullptr :
-        &shader.shader(tp, pass2);
+          m_shader_pass1 = (with_aa == Painter::shader_anti_alias_none) ?
+            &shader.shader(tp, PainterStrokeShader::non_aa_shader) :
+            &shader.shader(tp, pass1);
+
+          m_shader_pass2 = (with_aa == Painter::shader_anti_alias_none) ?
+            nullptr :
+            &shader.shader(tp, pass2);
+        }
     }
 
     fastuidraw::range_type<unsigned int> m_range;
@@ -1217,6 +1428,12 @@ namespace
     rotate(float angle);
 
     void
+    begin_coverage_buffer(void);
+
+    void
+    end_coverage_buffer(void);
+
+    void
     draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
                  const fastuidraw::PainterData &draw,
                  fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
@@ -1473,6 +1690,14 @@ namespace
         m_transparency_stack.back().m_packer;
     }
 
+    fastuidraw::PainterPacker*
+    deferred_coverage_packer(void)
+    {
+      return m_deferred_coverage_stack.empty() ?
+        nullptr :
+        m_deferred_coverage_stack.back().packer();
+    }
+
     const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
     identity_matrix(void)
     {
@@ -1489,7 +1714,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_root_packer;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_root_identity_matrix;
     fastuidraw::vecN<unsigned int, fastuidraw::PainterPacker::num_stats> m_stats;
-    fastuidraw::PainterBackend::Surface::Viewport m_viewport;
+    fastuidraw::PainterSurface::Viewport m_viewport;
     fastuidraw::vec2 m_viewport_dimensions;
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
@@ -1499,6 +1724,9 @@ namespace
     std::vector<state_stack_entry> m_state_stack;
     TransparencyStackEntryFactory m_transparency_stack_entry_factory;
     std::vector<TransparencyStackEntry> m_transparency_stack;
+    DeferredCoverageBufferStackEntryFactory m_deferred_coverage_stack_entry_factory;
+    std::vector<DeferredCoverageBufferStackEntry> m_deferred_coverage_stack;
+    std::vector<const fastuidraw::PainterSurface*> m_active_surfaces;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterPackedValuePool m_pool;
@@ -1673,10 +1901,10 @@ on_pop(PainterPrivate *p)
 }
 
 ///////////////////////////////////////////////
-// clip_rect_stat methods
+// clip_rect_state methods
 void
 clip_rect_state::
-reset(const fastuidraw::PainterBackend::Surface::Viewport &vwp,
+reset(const fastuidraw::PainterSurface::Viewport &vwp,
       fastuidraw::ivec2 surface_dims)
 {
   using namespace fastuidraw;
@@ -1724,6 +1952,7 @@ item_matrix(const fastuidraw::float3x3 &v,
   m_inverse_transpose_not_ready = true;
   m_item_matrix.m_item_matrix = v;
   m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+  m_item_matrix_coverage_buffer_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
   if (singular_value_scaled < 0.0f)
     {
       m_item_matrix_singular_values_ready = false;
@@ -2079,24 +2308,70 @@ set_current(const fastuidraw::float3x3 &transform,
     }
 }
 
+///////////////////////////////////////
+// BufferRect methods
+BufferRect::
+BufferRect(const fastuidraw::Rect &normalized_rect,
+           fastuidraw::ivec2 useable_size,
+           PainterPrivate *d)
+{
+  /* we need to discretize the rectangle, so that
+   * the size is correct. Using the normalized_rect.size()
+   * scaled is actually WRONG. Rather we need to look
+   * at the range of -sample- points the rect hits.
+   */
+  m_fbl = coords_from_normalized_coords(normalized_rect.m_min_point, d->m_viewport.m_dimensions);
+  m_ftr = coords_from_normalized_coords(normalized_rect.m_max_point, d->m_viewport.m_dimensions);
+  m_bl = fastuidraw::ivec2(m_fbl);
+  m_tr = fastuidraw::ivec2(m_ftr);
+  m_dims = m_tr - m_bl;
+  if (m_ftr.x() > m_tr.x() && m_dims.x() < useable_size.x())
+    {
+      ++m_dims.x();
+      ++m_tr.x();
+    }
+  if (m_ftr.y() > m_tr.y() && m_dims.y() < useable_size.y())
+    {
+      ++m_dims.y();
+      ++m_tr.y();
+    }
+
+  m_fbl = fastuidraw::vec2(m_bl);
+  m_ftr = fastuidraw::vec2(m_tr);
+
+  /* we are NOT taking the original normalized rect,
+   * instead we are taking the normalized rect made
+   * from bl, tr which are the discretizations of
+   * the original rect to pixels.
+   */
+  m_normalized_rect
+    .min_point(normalized_coords_from_coords(m_bl, d->m_viewport.m_dimensions))
+    .max_point(normalized_coords_from_coords(m_tr, d->m_viewport.m_dimensions));
+
+  m_pixel_rect
+    .min_point(m_bl)
+    .max_point(m_tr);
+}
+
 ////////////////////////////////////////
 // TransparencyStackEntryFactory methods
 void
 TransparencyStackEntryFactory::
-begin(fastuidraw::ivec2 surface_sz,
-      const fastuidraw::PainterBackend::Surface::Viewport &vwp)
+begin(fastuidraw::PainterSurface &surface)
 {
   bool clear_buffers;
+  const fastuidraw::PainterSurface::Viewport &vwp(surface.viewport());
+  fastuidraw::ivec2 surface_sz(surface.dimensions());
 
   /* We can freely translate normalized device coords, but we
    * cannot scale them. Thus set our viewport to the same size
    * as the passed viewport but the origin at (0, 0).
    */
-  m_viewport.m_origin = fastuidraw::ivec2(0, 0);
-  m_viewport.m_dimensions = vwp.m_dimensions;
+  m_transparency_buffer_viewport.m_origin = fastuidraw::ivec2(0, 0);
+  m_transparency_buffer_viewport.m_dimensions = vwp.m_dimensions;
 
   /* We can only use the portions of the backing store
-   * that is within m_viewport.
+   * that is within m_ransparency_buffer_viewport.
    */
   m_current_backing_useable_size = vwp.compute_visible_dimensions(surface_sz);
 
@@ -2123,7 +2398,6 @@ begin(fastuidraw::ivec2 surface_sz,
           v.clear();
         }
     }
-  m_active_surfaces.clear();
 }
 
 TransparencyStackEntry
@@ -2135,33 +2409,8 @@ fetch(unsigned int transparency_depth,
   using namespace fastuidraw;
 
   TransparencyStackEntry return_value;
+  BufferRect buffer_rect(normalized_rect, m_current_backing_useable_size, d);
   ivec2 rect(-1, -1);
-  ivec2 dims, bl, tr;
-  vec2 fbl, ftr;
-
-  /* we need to discretize the rectangle, so that
-   * the size is correct. Using the normalized_rect.size()
-   * scaled is actually WRONG. Rather we need to look
-   * at the range of -sample- points the rect hits.
-   */
-  fbl = coords_from_normalized_coords(normalized_rect.m_min_point, d->m_viewport.m_dimensions);
-  ftr = coords_from_normalized_coords(normalized_rect.m_max_point, d->m_viewport.m_dimensions);
-  bl = ivec2(fbl);
-  tr = ivec2(ftr);
-  dims = tr - bl;
-  if (ftr.x() > tr.x() && dims.x() < m_current_backing_useable_size.x())
-    {
-      ++dims.x();
-      ++tr.x();
-    }
-  if (ftr.y() > tr.y() && dims.y() < m_current_backing_useable_size.y())
-    {
-      ++dims.y();
-      ++tr.y();
-    }
-
-  fbl = vec2(bl);
-  ftr = vec2(tr);
 
   if (transparency_depth >= m_per_active_depth.size())
     {
@@ -2171,7 +2420,7 @@ fetch(unsigned int transparency_depth,
   for (unsigned int i = 0, endi = m_per_active_depth[transparency_depth].size();
        (rect.x() < 0 || rect.y() < 0) && i < endi; ++i)
     {
-      rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(dims);
+      rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
       if (rect.x() >= 0 && rect.y() >= 0)
         {
           return_value.m_image = m_per_active_depth[transparency_depth][i]->m_image.get();
@@ -2186,14 +2435,15 @@ fetch(unsigned int transparency_depth,
       if (m_unused_buffers.empty())
         {
           reference_counted_ptr<PainterPacker> packer;
-          reference_counted_ptr<PainterBackend::Surface> surface;
+          reference_counted_ptr<PainterSurface> surface;
           reference_counted_ptr<const Image> image;
 
           packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
-          surface = d->m_backend->create_surface(m_current_backing_size);
+          surface = d->m_backend->create_surface(m_current_backing_size,
+                                                 PainterSurface::color_buffer_type);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
           image = surface->image(d->m_backend->image_atlas());
-          TB = FASTUIDRAWnew TransparencyBuffer(packer, surface, image);
+          TB = FASTUIDRAWnew TransparencyBuffer(packer, surface, image, m_current_backing_useable_size);
         }
       else
         {
@@ -2203,11 +2453,11 @@ fetch(unsigned int transparency_depth,
 
       ++d->m_stats[Painter::num_render_targets];
       TB->m_depth = transparency_depth;
-      TB->m_surface->viewport(m_viewport);
+      TB->m_surface->viewport(m_transparency_buffer_viewport);
       m_per_active_depth[transparency_depth].push_back(TB);
-      m_active_surfaces.push_back(TB->m_surface.get());
+      d->m_active_surfaces.push_back(TB->m_surface.get());
 
-      rect = TB->m_rect_atlas.add_rectangle(dims);
+      rect = TB->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
       return_value.m_image = TB->m_image.get();
       return_value.m_packer = TB->m_packer.get();
       return_value.m_packer->begin(TB->m_surface, true);
@@ -2215,33 +2465,30 @@ fetch(unsigned int transparency_depth,
 
   FASTUIDRAWassert(return_value.m_image);
   FASTUIDRAWassert(return_value.m_packer);
-
-  /* we are NOT taking the original normalized rect,
-   * instead we are taking the normalized rect made
-   * from bl, tr which are the discretizations of
-   * the original rect to pixels.
-   */
-  return_value.m_normalized_rect
-    .min_point(normalized_coords_from_coords(bl, d->m_viewport.m_dimensions))
-    .max_point(normalized_coords_from_coords(tr, d->m_viewport.m_dimensions));
-
   FASTUIDRAWassert(rect.x() >= 0 && rect.y() >= 0);
+
+  return_value.m_normalized_rect = buffer_rect.m_normalized_rect;
+  return_value.m_pixel_rect
+    .min_point(buffer_rect.m_bl)
+    .max_point(buffer_rect.m_tr);
+  return_value.m_bottom_left_corner_in_surface = rect;
 
   /* we need to have that:
    *   return_value.m_normalized_translate + normalized_rect = R
    * where R is rect in normalized device coordinates.
    */
   vec2 Rndc;
-  Rndc = m_viewport.compute_normalized_device_coords(vec2(rect));
+  Rndc = m_transparency_buffer_viewport.compute_normalized_device_coords(vec2(rect));
   return_value.m_normalized_translate = Rndc - return_value.m_normalized_rect.m_min_point;
 
   /* the drawing of the fill_rect in end_layer() draws normalized_rect
-   * scaled by m_viewport.m_dimensions. We need to have that
+   * scaled by m_transparency_buffer_viewport.m_dimensions. We need to
+   * have that
    *   return_value.m_brush_translate + S = rect
    * where S is normalized_rect in -pixel- coordinates
    */
   vec2 Spc;
-  Spc = m_viewport.compute_pixel_coordinates(return_value.m_normalized_rect.m_min_point);
+  Spc = m_transparency_buffer_viewport.compute_pixel_coordinates(return_value.m_normalized_rect.m_min_point);
   return_value.m_brush_translate = vec2(rect) - Spc ;
 
   PainterItemMatrix M;
@@ -2262,6 +2509,161 @@ end(void)
         {
           r->m_packer->end();
         }
+    }
+}
+
+/////////////////////////////////
+// DeferredCoverageBufferStackEntry methods
+void
+DeferredCoverageBufferStackEntry::
+update_coverage_buffer_offset(const PainterPrivate *d)
+{
+  using namespace fastuidraw;
+
+  /* We need to give the translation value from pixels of
+   * m_packer->surface() to return_value.m_surface. The
+   * convention is that pixel coordinates are coordinates
+   * of the -SURFACE-, not relative to the viewport.
+   * The value m_coverage_buffer_offset needs to satsify:
+   *
+   *   m_coverage_buffer_offset + m_color_surface_viewport.m_origin + T
+   *    == m_coverage_buffer_viewport.m_origin + rect
+   *
+   * where T is
+   *   if d->m_transparency_stack.empty()  --> T = (0, 0)
+   *   if !d->m_transparency_stack.empty() --> T = m_bottom_left_corner_in_surface - m_pixel_rect.min_point()
+   */
+  ivec2 T, color_surface_viewport_origin;
+  if (d->m_transparency_stack.empty())
+    {
+      T = ivec2(0, 0);
+      color_surface_viewport_origin = d->m_viewport.m_origin;
+    }
+  else
+    {
+      T = d->m_transparency_stack.back().m_bottom_left_corner_in_surface
+        - d->m_transparency_stack.back().m_pixel_rect.m_min_point;
+      color_surface_viewport_origin = ivec2(0, 0);
+    }
+
+  m_coverage_buffer_offset =
+    d->m_deferred_coverage_stack_entry_factory.coverage_buffer_viewport().m_origin
+    - m_root_surface_bottom_left_corner
+    + m_bottom_left_corner_in_surface - color_surface_viewport_origin - T;
+}
+
+////////////////////////////////////////////////
+// DeferredCoverageBufferStackEntryFactory methods
+void
+DeferredCoverageBufferStackEntryFactory::
+begin(fastuidraw::PainterSurface &surface)
+{
+  bool clear_buffers;
+
+  /* We can freely translate normalized device coords, but we
+   * cannot scale them. Thus set our viewport to the same size
+   * as the passed viewport but the origin at (0, 0).
+   */
+  m_coverage_buffer_viewport.m_origin = fastuidraw::ivec2(0, 0);
+  m_coverage_buffer_viewport.m_dimensions = surface.viewport().m_dimensions;
+
+  m_current_backing_useable_size = surface.compute_visible_dimensions();
+
+  clear_buffers = (m_current_backing_useable_size.x() > m_current_backing_size.x())
+    || (m_current_backing_useable_size.y() > m_current_backing_size.y())
+    || (m_current_backing_size.x() > 2 * m_current_backing_useable_size.x())
+    || (m_current_backing_size.y() > 2 * m_current_backing_useable_size.y());
+
+  if (clear_buffers)
+    {
+      m_active_buffers.clear();
+      m_unused_buffers.clear();
+      m_current_backing_size = m_current_backing_useable_size;
+    }
+  else
+    {
+      for (const auto &r : m_active_buffers)
+        {
+          r->m_rect_atlas.clear(m_current_backing_useable_size);
+          m_unused_buffers.push_back(r);
+        }
+      m_active_buffers.clear();
+    }
+}
+
+DeferredCoverageBufferStackEntry
+DeferredCoverageBufferStackEntryFactory::
+fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
+{
+  using namespace fastuidraw;
+
+  ivec2 rect;
+  BufferRect buffer_rect(normalized_rect, m_current_backing_useable_size, d);
+  PainterPacker *return_packer(nullptr);
+
+  /* Tallocate a region from m_active_buffers (or m_unused_buffers) */
+  for (unsigned int i = 0, endi = m_active_buffers.size();
+       !return_packer && i < endi; ++i)
+    {
+      rect = m_active_buffers[i]->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
+      if (rect.x() >= 0 && rect.y() >= 0)
+        {
+          return_packer = m_active_buffers[i]->m_packer.get();
+        }
+    }
+
+  if (!return_packer)
+    {
+      reference_counted_ptr<DeferredCoverageBuffer> TB;
+
+      if (m_unused_buffers.empty())
+        {
+          reference_counted_ptr<PainterPacker> packer;
+          reference_counted_ptr<PainterSurface> surface;
+
+          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
+          surface = d->m_backend->create_surface(m_current_backing_size,
+                                                 PainterSurface::deferred_coverage_buffer_type);
+          surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
+          TB = FASTUIDRAWnew DeferredCoverageBuffer(packer, surface, m_current_backing_useable_size);
+        }
+      else
+        {
+          TB = m_unused_buffers.back();
+          m_unused_buffers.pop_back();
+        }
+
+      ++d->m_stats[Painter::num_render_targets];
+      TB->m_surface->viewport(m_coverage_buffer_viewport);
+      m_active_buffers.push_back(TB);
+
+      rect = TB->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
+      return_packer = TB->m_packer.get();
+      return_packer->begin(TB->m_surface, true);
+      d->m_active_surfaces.push_back(TB->m_surface.get());
+    }
+
+  /* compute the clip equations made from rect. */
+  PainterClipEquations clip_eq;
+  clip_eq.m_clip_equations[0] = vec3( 1.0f,  0.0f, -normalized_rect.m_min_point.x());
+  clip_eq.m_clip_equations[1] = vec3(-1.0f,  0.0f,  normalized_rect.m_max_point.x());
+  clip_eq.m_clip_equations[2] = vec3( 0.0f,  1.0f, -normalized_rect.m_min_point.y());
+  clip_eq.m_clip_equations[3] = vec3( 0.0f, -1.0f,  normalized_rect.m_max_point.y());
+
+  DeferredCoverageBufferStackEntry return_value(return_packer, rect, buffer_rect,
+                                                m_coverage_buffer_viewport,
+                                                d->m_pool.create_packed_value(clip_eq));
+
+  return return_value;
+}
+
+void
+DeferredCoverageBufferStackEntryFactory::
+end(void)
+{
+  for (const auto &r : m_active_buffers)
+    {
+      r->m_packer->end();
     }
 }
 
@@ -2407,6 +2809,36 @@ rotate(float angle)
   float3x3 m(m_clip_rect_state.item_matrix());
   m = m * tr;
   m_clip_rect_state.item_matrix(m, true, non_scaling_matrix, 1.0f);
+}
+
+void
+PainterPrivate::
+begin_coverage_buffer(void)
+{
+  bool non_empty;
+
+  non_empty = !m_clip_rect_state.m_all_content_culled
+    && !m_clip_store.current_poly().empty()
+    && !m_clip_store.current_bb().empty();
+
+  if (non_empty)
+    {
+      const fastuidraw::Rect &rect(m_clip_store.current_bb().as_rect());
+      m_deferred_coverage_stack.push_back(m_deferred_coverage_stack_entry_factory.fetch(rect, this));
+      m_deferred_coverage_stack.back().update_coverage_buffer_offset(this);
+      m_clip_rect_state.coverage_buffer_normalized_translate(m_deferred_coverage_stack.back().normalized_translate());
+    }
+  else
+    {
+      m_deferred_coverage_stack.push_back(DeferredCoverageBufferStackEntry());
+    }
+}
+
+void
+PainterPrivate::
+end_coverage_buffer(void)
+{
+  m_deferred_coverage_stack.pop_back();
 }
 
 bool
@@ -2778,10 +3210,34 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
              int z)
 {
   fastuidraw::PainterPackerData p(draw);
+  fastuidraw::PainterPacker *cvg_packer(deferred_coverage_packer());
+  fastuidraw::ivec2 coverage_buffer_offset(0, 0);
+
+  if (shader->coverage_shader() && cvg_packer)
+    {
+      FASTUIDRAWassert(!m_deferred_coverage_stack.empty());
+      p.m_clip = m_deferred_coverage_stack.back().clip_eq_state();
+      p.m_matrix = m_clip_rect_state.current_item_matrix_coverage_buffer_state(m_pool);
+      coverage_buffer_offset = m_deferred_coverage_stack.back().coverage_buffer_offset();
+
+      FASTUIDRAWassert(p.m_clip.m_packed_value);
+      FASTUIDRAWassert(p.m_matrix.m_packed_value);
+      cvg_packer->draw_generic(shader->coverage_shader(), p,
+                               attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector);
+      packer()->set_coverage_surface(cvg_packer->surface());
+    }
+  else if (shader->coverage_shader())
+    {
+      FASTUIDRAWwarning(!"Warning: coverage_shader present but no coverage buffer present\n");
+    }
 
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
-  packer()->draw_generic(shader, p, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z);
+  FASTUIDRAWassert(p.m_clip.m_packed_value);
+  FASTUIDRAWassert(p.m_matrix.m_packed_value);
+  packer()->draw_generic(coverage_buffer_offset, shader, p,
+                         attrib_chunks, index_chunks, index_adjusts,
+                         attrib_chunk_selector, z);
   ++m_draw_data_added_count;
 }
 
@@ -2793,9 +3249,31 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
              int z)
 {
   fastuidraw::PainterPackerData p(draw);
+  fastuidraw::PainterPacker *cvg_packer(deferred_coverage_packer());
+  fastuidraw::ivec2 coverage_buffer_offset(0, 0);
+
+  if (shader->coverage_shader() && cvg_packer)
+    {
+      FASTUIDRAWassert(!m_deferred_coverage_stack.empty());
+      p.m_clip = m_deferred_coverage_stack.back().clip_eq_state();
+      p.m_matrix = m_clip_rect_state.current_item_matrix_coverage_buffer_state(m_pool);
+      coverage_buffer_offset = m_deferred_coverage_stack.back().coverage_buffer_offset();
+
+      FASTUIDRAWassert(p.m_clip.m_packed_value);
+      FASTUIDRAWassert(p.m_matrix.m_packed_value);
+      cvg_packer->draw_generic(shader->coverage_shader(), p, src);
+      packer()->set_coverage_surface(cvg_packer->surface());
+    }
+  else if (shader->coverage_shader())
+    {
+      FASTUIDRAWwarning(!"Warning: coverage_shader present but no coverage buffer present\n");
+    }
+
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
-  packer()->draw_generic(shader, p, src, z);
+  FASTUIDRAWassert(p.m_clip.m_packed_value);
+  FASTUIDRAWassert(p.m_matrix.m_packed_value);
+  packer()->draw_generic(coverage_buffer_offset, shader, p, src, z);
   ++m_draw_data_added_count;
 }
 
@@ -3285,13 +3763,14 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
         }
     }
 
-  bool with_anti_aliasing;
+  bool two_shaders;
 
-  with_anti_aliasing = (anti_aliasing != Painter::shader_anti_alias_none);
+  two_shaders = (anti_aliasing != Painter::shader_anti_alias_none
+                 && anti_aliasing != Painter::shader_anti_alias_deferred_coverage);
   modify_z = (anti_aliasing != Painter::shader_anti_alias_high_quality);
-  modify_z_coeff = (with_anti_aliasing) ? 2 : 1;
+  modify_z_coeff = (two_shaders) ? 2 : 1;
 
-  if (modify_z || with_anti_aliasing)
+  if (modify_z || two_shaders)
     {
       /* if any of the data elements of draw are NOT packed state,
        * make them as packed state so that they are reused
@@ -3317,6 +3796,21 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
       packer()->draw_break(shader.hq_aa_action_pass1());
     }
 
+  if (anti_aliasing == Painter::shader_anti_alias_deferred_coverage)
+    {
+      /* TODO
+       *  1. instead of taking the entire clip-region, limit
+       *     the coverage buffer to the bounding box of the stroke-path
+       *     as well.
+       *  2. better still: request from the StrokePath finer subsets,
+       *     draw each subset seperately surrounded by a
+       *     begin_coverage_buffer()/end_coverage_buffer() pair
+       *     with inflated rects to limit the amount of area needed
+       *     for the deferred coverage buffer.
+       */
+      begin_coverage_buffer();
+    }
+
   if (modify_z)
     {
       draw_generic_z_layered(shaders_pass1, draw, z_increments, zinc_sum,
@@ -3337,7 +3831,12 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
         }
     }
 
-  if (with_anti_aliasing)
+  if (anti_aliasing == Painter::shader_anti_alias_deferred_coverage)
+    {
+      end_coverage_buffer();
+    }
+
+  if (two_shaders)
     {
       if (anti_aliasing == Painter::shader_anti_alias_high_quality)
         {
@@ -3494,6 +3993,14 @@ fill_path(const fastuidraw::PainterFillShader &shader,
       || m_work_room.m_fill_subset.m_subsets.empty())
     {
       return;
+    }
+
+  if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+    {
+      /* TODO: implement Painter::shader_anti_alias_high_quality
+       * for PainterFillShader.
+       */
+      anti_alias_quality = Painter::shader_anti_alias_high_quality;
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
@@ -4054,7 +4561,7 @@ packed_value_pool(void)
 
 void
 fastuidraw::Painter::
-begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+begin(const reference_counted_ptr<PainterSurface> &surface,
       const float3x3 &initial_transformation,
       bool clear_color_buffer)
 {
@@ -4066,8 +4573,10 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   glyph_atlas()->lock_resources();
 
   d->m_viewport = surface->viewport();
-  d->m_transparency_stack_entry_factory.begin(surface->dimensions(), d->m_viewport);
+  d->m_transparency_stack_entry_factory.begin(*surface);
+  d->m_deferred_coverage_stack_entry_factory.begin(*surface);
   d->m_root_packer->begin(surface, clear_color_buffer);
+  d->m_active_surfaces.clear();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->m_stats[Painter::num_render_targets] = 1;
   d->m_viewport_dimensions = vec2(d->m_viewport.m_dimensions);
@@ -4090,11 +4599,11 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
 
 void
 fastuidraw::Painter::
-begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+begin(const reference_counted_ptr<PainterSurface> &surface,
       enum screen_orientation orientation, bool clear_color_buffer)
 {
   float y1, y2;
-  const PainterBackend::Surface::Viewport &vwp(surface->viewport());
+  const PainterSurface::Viewport &vwp(surface->viewport());
 
   if (orientation == Painter::y_increases_downwards)
     {
@@ -4110,7 +4619,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   begin(surface, float3x3(ortho), clear_color_buffer);
 }
 
-fastuidraw::c_array<const fastuidraw::PainterBackend::Surface* const>
+fastuidraw::c_array<const fastuidraw::PainterSurface* const>
 fastuidraw::Painter::
 end(void)
 {
@@ -4123,17 +4632,32 @@ end(void)
       end_layer();
     }
 
+  /* pop the deferred coverage stack until it is empty */
+  while (!d->m_deferred_coverage_stack.empty())
+    {
+      d->end_coverage_buffer();
+    }
+
   /* pop m_clip_stack to perform necessary writes */
   while (!d->m_occluder_stack.empty())
     {
       d->m_occluder_stack.back().on_pop(d);
       d->m_occluder_stack.pop_back();
     }
+
   /* clear state stack as well. */
   d->m_clip_store.clear();
   d->m_state_stack.clear();
 
-  /* issue the PainterPacker::end() to send the commands to the GPU */
+  /* issue the PainterPacker::end() to send the commands to the GPU;
+   * we issue the end()'s in the order:
+   *   1. m_deferred_coverage_stack_entry_factory because a transparency
+   *      color buffer might use a deferred coverage buffer to render
+   *   2. m_transparency_stack_entry_factory (in reverse depth order)
+   *      so that layer renders are ready for root
+   *   3. m_root_packer last.
+   */
+  d->m_deferred_coverage_stack_entry_factory.end();
   d->m_transparency_stack_entry_factory.end();
   d->m_root_packer->end();
 
@@ -4142,7 +4666,7 @@ end(void)
   colorstop_atlas()->unlock_resources();
   glyph_atlas()->unlock_resources();
 
-  return make_c_array(d->m_transparency_stack_entry_factory.active_surfaces());
+  return make_c_array(d->m_active_surfaces);
 }
 
 enum fastuidraw::return_code
@@ -4154,7 +4678,7 @@ flush(void)
 
 enum fastuidraw::return_code
 fastuidraw::Painter::
-flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
+flush(const reference_counted_ptr<PainterSurface> &new_surface)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -4166,6 +4690,11 @@ flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
     }
 
   if (!d->m_transparency_stack.empty())
+    {
+      return routine_fail;
+    }
+
+  if (!d->m_deferred_coverage_stack.empty())
     {
       return routine_fail;
     }
@@ -4194,10 +4723,13 @@ flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
     }
 
   /* issue the PainterPacker::end() to send the commands to the GPU */
+  d->m_deferred_coverage_stack_entry_factory.end();
   d->m_transparency_stack_entry_factory.end();
 
+  /* clear the list of active surfaces */
+  d->m_active_surfaces.clear();
+
   /* start the transparency_stack_entry up again */
-  d->m_transparency_stack_entry_factory.begin(new_surface->dimensions(), d->m_viewport);
   if (new_surface == surface())
     {
       bool clear_z;
@@ -4205,6 +4737,8 @@ flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
 
       clear_z = (d->m_current_z > clear_depth_thresh);
       d->m_root_packer->flush(clear_z);
+      d->m_transparency_stack_entry_factory.begin(*new_surface);
+      d->m_deferred_coverage_stack_entry_factory.begin(*new_surface);
       if (clear_z)
         {
           d->m_current_z = 1;
@@ -4216,7 +4750,7 @@ flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
   else
     {
       /* get the Image handle to the old-surface */
-      reference_counted_ptr<PainterBackend::Surface> old_surface(surface());
+      reference_counted_ptr<PainterSurface> old_surface(surface());
       reference_counted_ptr<const Image> image;
 
       image = surface()->image(d->m_backend->image_atlas());
@@ -4225,11 +4759,13 @@ flush(const reference_counted_ptr<PainterBackend::Surface> &new_surface)
       d->m_root_packer->end();
       d->m_current_z = 1;
       d->m_root_packer->begin(new_surface, true);
+      d->m_deferred_coverage_stack_entry_factory.begin(*new_surface);
+      d->m_transparency_stack_entry_factory.begin(*new_surface);
 
       /* blit the old surface to the surface */
       save();
         {
-          const PainterBackend::Surface::Viewport &vwp(new_surface->viewport());
+          const PainterSurface::Viewport &vwp(new_surface->viewport());
           PainterBrush brush;
 
           brush.sub_image(image, uvec2(vwp.m_origin), uvec2(vwp.m_dimensions));
@@ -4254,7 +4790,7 @@ draw_data_added_count(void) const
   return d->m_draw_data_added_count;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface>&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface>&
 fastuidraw::Painter::
 surface(void) const
 {
@@ -5232,6 +5768,11 @@ begin_layer(const vec4 &color_modulate)
   d->m_transparency_stack.push_back(R);
   ++d->m_stats[num_layers];
 
+  if (!d->m_deferred_coverage_stack.empty())
+    {
+      d->m_deferred_coverage_stack.back().update_coverage_buffer_offset(d);
+    }
+
   /* Set the packer's composite shader, mode and blend shader to
    * Painter default values
    */
@@ -5289,6 +5830,11 @@ end_layer(void)
                 shader_anti_alias_none);
     }
   restore();
+
+  if (!d->m_deferred_coverage_stack.empty())
+    {
+      d->m_deferred_coverage_stack.back().update_coverage_buffer_offset(d);
+    }
 }
 
 /* How we handle clipping.

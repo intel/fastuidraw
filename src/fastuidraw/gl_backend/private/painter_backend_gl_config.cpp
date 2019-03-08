@@ -35,22 +35,22 @@ shader_storage_buffers_supported(const ContextProperties &ctx)
   #endif
 }
 
-enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t
-compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t in_value,
+enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t
+compute_provide_immediate_coverage_buffer(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t in_value,
                                  const ContextProperties &ctx)
 {
-  if (in_value == glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer)
+  if (in_value == glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer)
     {
       return in_value;
     }
 
-  /* If asking for auxiliary_buffer_framebuffer_fetch and have
+  /* If asking for immediate_coverage_buffer_framebuffer_fetch and have
    * the extension, immediately give the return value, otherwise
    * fall back to interlock. Note that we do NOT fallback
    * from interlock to framebuffer fetch because framebuffer-fetch
    * makes MSAA render targets become shaded per-sample.
    */
-  if (in_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch)
+  if (in_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch)
     {
       if (ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
         {
@@ -58,7 +58,7 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
         }
       else
         {
-          in_value = glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock;
+          in_value = glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock;
         }
     }
 
@@ -66,10 +66,10 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
     {
       if (ctx.version() <= ivec2(3, 0))
         {
-          return glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer;
+          return glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer;
         }
 
-      if (in_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic)
+      if (in_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic)
         {
           return in_value;
         }
@@ -77,11 +77,11 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
       if (ctx.has_extension("GL_NV_fragment_shader_interlock")
           && ctx.has_extension("GL_NV_image_formats"))
         {
-          return glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only;
+          return glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only;
         }
       else
         {
-          return glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic;
+          return glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic;
         }
     }
   #else
@@ -90,10 +90,10 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
 
       if (ctx.version() <= ivec2(4, 1) && !ctx.has_extension("GL_ARB_shader_image_load_store"))
         {
-          return glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer;
+          return glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer;
         }
 
-      if (in_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic)
+      if (in_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic)
         {
           return in_value;
         }
@@ -126,23 +126,23 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
 
       if (!have_interlock && !have_interlock_main)
         {
-          return glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic;
+          return glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic;
         }
 
       switch(in_value)
         {
-        case glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only:
+        case glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only:
           return (have_interlock_main) ?
-            glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only:
-            glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock;
+            glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only:
+            glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock;
 
-        case glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock:
+        case glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock:
           return (have_interlock) ?
-            glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock:
-            glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only;
+            glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock:
+            glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only;
 
         default:
-          return glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic;
+          return glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic;
         }
     }
   #endif
@@ -185,7 +185,7 @@ compute_interlock_type(const ContextProperties &ctx)
 }
 
 enum glsl::PainterShaderRegistrarGLSL::compositing_type_t
-compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t aux_value,
+compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t aux_value,
                          enum interlock_type_t interlock_value,
                          enum glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value,
                          const ContextProperties &ctx)
@@ -200,7 +200,7 @@ compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer
       in_value = glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch;
     }
 
-  if (aux_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch)
+  if (aux_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch)
     {
       /*
        * auxiliary framebuffer fetch cannot be used with single and
@@ -223,7 +223,7 @@ compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer
     {
       have_dual_src_compositing = true;
     }
-  have_framebuffer_fetch = (aux_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch)
+  have_framebuffer_fetch = (aux_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch)
     || ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
   if (in_value == glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch

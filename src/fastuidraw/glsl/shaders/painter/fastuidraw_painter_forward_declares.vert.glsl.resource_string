@@ -34,9 +34,18 @@ fastuidraw_read_clipping(in uint clipping_location, out fastuidraw_clipping_data
 void
 fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m, out vec2 t);
 
+#if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
+
 void
 fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z,
                            out vec2 brush_p, out vec3 out_clip_p);
+
+#else
+
+void
+fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 out_clip_p);
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////
 // routines implemented in .glsl.resource_string files
