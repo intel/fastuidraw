@@ -102,6 +102,28 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
       have_interlock_main = ctx.has_extension("GL_ARB_fragment_shader_interlock")
         || ctx.has_extension("GL_NV_fragment_shader_interlock");
 
+      if (have_interlock_main && !have_interlock)
+        {
+          std::string vendor, device;
+
+          /* Intel on Mesa treats beginInvocationInterlockARB
+           * the same as beginFragmentShaderOrderingINTEL;
+           * the upshot being that we can get avoid the stall
+           * (potentially) that is hit if the shader does
+           * not use the auxiliary buffer.
+           *
+           * WARNING: this is a hack that may stop working
+           * if Mesa's GLSL front-end enforces the rules
+           * or the ARB-extension. The better thing would be
+           * if Mesa did not revert the patch providing
+           * support for GL_INTEL_fragment_shader_ordering
+           */
+          vendor = fastuidraw_glGetString(GL_VENDOR);
+          device = fastuidraw_glGetString(GL_RENDERER);
+          have_interlock = vendor.find("Intel") != std::string::npos
+            && device.find("Mesa") != std::string::npos;
+        }
+
       if (!have_interlock && !have_interlock_main)
         {
           return glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic;
