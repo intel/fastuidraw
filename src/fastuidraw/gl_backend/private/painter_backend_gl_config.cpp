@@ -118,8 +118,8 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
            * if Mesa did not revert the patch providing
            * support for GL_INTEL_fragment_shader_ordering
            */
-          vendor = fastuidraw_glGetString(GL_VENDOR);
-          device = fastuidraw_glGetString(GL_RENDERER);
+          vendor = reinterpret_cast<const char*>(fastuidraw_glGetString(GL_VENDOR));
+          device = reinterpret_cast<const char*>(fastuidraw_glGetString(GL_RENDERER));
           have_interlock = vendor.find("Intel") != std::string::npos
             && device.find("Mesa") != std::string::npos;
         }
