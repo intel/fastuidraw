@@ -501,7 +501,7 @@ namespace fastuidraw {
    - fastuidraw::PainterBackend (the GL backend class is given by fastuidraw::gl::PainterBackendGL)
    - fastuidraw::PainterBlendShader (the GL backend class is given by fastuidraw::glsl::PainterBlendShaderGLSL)
    - fastuidraw::PainterItemShader (the GL backend class is given by fastuidraw::glsl::PainterItemShaderGLSL)
-   - fastuidraw::PainterBackend::Surface (the GL backend class is given by fastuidraw::gl::PainterBackendGL::SurfaceGL)
+   - fastuidraw::PainterSurface (the GL backend class is given by fastuidraw::gl::PainterBackendGL::SurfaceGL)
 
   To create a GL backend, one does:
   \code
@@ -512,7 +512,7 @@ namespace fastuidraw {
   //to its ctor determines its properties. Of important note is that
   //a SurfaceGL can use as its backing store a GL texture passed FROM
   //the caller.
-  fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::SurfaceGL> surface;
+  fastuidraw::reference_counted_ptr<fastuidraw::PainterSurfaceGL> surface;
 
   fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
   props.dimensions(ivec2(resolution_width, resolution_height));
