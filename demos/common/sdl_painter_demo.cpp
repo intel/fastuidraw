@@ -852,7 +852,7 @@ on_resize(int w, int h)
   fastuidraw::ivec2 wh(w, h);
   if (!m_surface || wh != m_surface->dimensions())
     {
-      fastuidraw::PainterBackend::Surface::Viewport vwp(0, 0, w, h);
+      fastuidraw::PainterSurface::Viewport vwp(0, 0, w, h);
 
       m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(fastuidraw::ivec2(w, h));
       m_surface->viewport(vwp);

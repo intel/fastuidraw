@@ -2082,7 +2082,7 @@ draw_frame(void)
 {
   ivec2 wh(dimensions());
   float us;
-  PainterBackend::Surface::Viewport vwp;
+  PainterSurface::Viewport vwp;
 
   us = static_cast<float>(m_fps_timer.restart_us());
 

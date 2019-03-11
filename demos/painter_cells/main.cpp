@@ -654,7 +654,7 @@ draw_frame(void)
                 m_table_params.m_font.get(), PainterData(m_text_brush));
     }
 
-  c_array<const PainterBackend::Surface* const> surfaces;
+  c_array<const PainterSurface* const> surfaces;
 
   surfaces = m_painter->end();
   fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -668,7 +668,7 @@ draw_frame(void)
   else
     {
       const gl::PainterBackendGL::SurfaceGL *S;
-      PainterBackend::Surface::Viewport src, dest;
+      PainterSurface::Viewport src, dest;
 
       src = m_surface->viewport();
       S = dynamic_cast<const gl::PainterBackendGL::SurfaceGL*>(surfaces[m_show_surface - 1]);
