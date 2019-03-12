@@ -82,7 +82,10 @@ namespace fastuidraw
       };
 
     /*!
-     * Ctor.
+     * Ctor. Initializes as valid with blending on,
+     * with blend equation as add in all channels,
+     * with src func in all channels as \ref ONE
+     * and dest func in all channels as \ref ZERO.
      */
     BlendMode(void)
     {
@@ -111,6 +114,36 @@ namespace fastuidraw
     operator!=(BlendMode rhs) const
     {
       return m_value != rhs.m_value;
+    }
+
+    /*!
+     * Set the BlendMode to a value to mark it as invalid.
+     */
+    BlendMode&
+    set_as_invalid(void)
+    {
+      m_value |= (1u << invalid_bit);
+      return *this;
+    }
+
+    /*!
+     * Set the BlendMode to a value to mark it as valid.
+     */
+    BlendMode&
+    set_as_valid(void)
+    {
+      m_value &= ~(1u << invalid_bit);
+      return *this;
+    }
+
+    /*!
+     * Returns true if the BlendMode has been marked as invalid,
+     * see set_as_invalid() and set_as_valid().
+     */
+    bool
+    is_valid(void) const
+    {
+      return !(m_value & (1u << invalid_bit));
     }
 
     /*!
@@ -334,7 +367,9 @@ namespace fastuidraw
         src_func_alpha_bit0 = src_func_rgb_bit0 + func_num_bits,
 
         dst_func_rgb_bit0 = src_func_alpha_bit0 + func_num_bits,
-        dst_func_alpha_bit0 = dst_func_rgb_bit0 + func_num_bits
+        dst_func_alpha_bit0 = dst_func_rgb_bit0 + func_num_bits,
+
+        invalid_bit = dst_func_alpha_bit0 + func_num_bits,
       };
 
     uint32_t m_value;
