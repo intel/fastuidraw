@@ -76,6 +76,12 @@ public:
     painter_data(void) const;
 
     /*!
+     * Returns the bounding box.
+     */
+    const Rect&
+    bounding_box(void) const;
+
+    /*!
      * Returns the bounding box realized as a \ref Path.
      */
     const Path&

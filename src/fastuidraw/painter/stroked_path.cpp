@@ -252,6 +252,12 @@ namespace
       return m_bounding_path;
     }
 
+    const fastuidraw::Rect&
+    bounding_box(void) const
+    {
+      return m_bounding_box.as_rect();
+    }
+
     const fastuidraw::PainterAttributeData&
     painter_data(void) const
     {
@@ -2049,6 +2055,15 @@ bounding_path(void) const
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
   return d->bounding_path();
+}
+
+const fastuidraw::Rect&
+fastuidraw::StrokedPath::Subset::
+bounding_box(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  return d->bounding_box();
 }
 
 //////////////////////////////////////////////////////////////
