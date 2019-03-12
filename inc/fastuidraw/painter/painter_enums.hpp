@@ -198,9 +198,24 @@ namespace fastuidraw
          * that avoids the issues that come from \ref
          * shader_anti_alias_simple. This option will give
          * the highest quality anti-aliasing at the
-         * potential cost of performance.
+         * potential cost of performance. The shader works
+         * in two passes: the first pass renders to the
+         * IMMEDIATE coverage buffer and the 2nd pass reads
+         * from it and uses that as the coverage value.
          */
         shader_anti_alias_high_quality,
+
+        /*!
+         * Applies higher quality anti-aliasing shading
+         * that avoids the issues that come from \ref
+         * shader_anti_alias_simple.  This option will give
+         * the highest quality anti-aliasing at the
+         * potential cost of performance. The shader works
+         * in two passes: the first pass renders to the
+         * IMMEDIATE coverage buffer and the 2nd pass reads
+         * from it and uses that as the coverage value.
+         */
+        shader_anti_alias_deferred_coverage,
 
         /* make the modes that indicate for Painter to choose
          * to come after the modes that precisely specify a
@@ -219,6 +234,11 @@ namespace fastuidraw
          * (which is not shader_anti_alias_none).
          */
         shader_anti_alias_fastest,
+
+        /*!
+         * Number of shader-anti-alias enums present.
+         */
+        number_shader_anti_alias_enums,
       };
 
     /*!
