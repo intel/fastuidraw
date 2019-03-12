@@ -118,8 +118,6 @@ namespace
     fastuidraw::vec2 m_bevel_normal;
     bool m_use_arc_for_bevel;
 
-    fastuidraw::BoundingBox<float> m_bounding_box;
-
     //only make sense when m_from_line_segment is true
     fastuidraw::vec2 m_delta;
 
@@ -490,12 +488,6 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg, uint32_t flags):
   m_has_start_dashed_capper(flags & first_segment_of_edge),
   m_has_end_dashed_capper(flags & last_segment_of_edge)
 {
-  /* We know that the even if it is an arc, the edge is monotonic,
-   * thus the bounding box of the arc is given by the bounding box
-   * containing the end points.
-   */
-  m_bounding_box.union_point(m_pt0);
-  m_bounding_box.union_point(m_pt1);
 }
 
 bool
@@ -575,7 +567,14 @@ add_sub_edge(const SingleSubEdge *prev_subedge_of_edge,
       sub_edge.m_use_arc_for_bevel = !(sub_edge.m_from_line_segment && prev_subedge_of_edge->m_from_line_segment);
     }
 
-  bx.union_box(sub_edge.m_bounding_box);
+  /* When the edge is an arc, we have that it is monotonic
+   * in both coordinates, thus regardless if the edge is
+   * a line segment or arc, the bounding box is given
+   * by the bounding box of the end-points.
+   */
+  bx.union_point(sub_edge.m_pt0);
+  bx.union_point(sub_edge.m_pt1);
+
   dst.push_back(sub_edge);
 }
 
@@ -590,18 +589,14 @@ split_sub_edge(int splitting_coordinate,
   fastuidraw::vec2 p, mid_normal;
   fastuidraw::vecN<SingleSubEdge, 2> out_edges;
 
-  if (m_bounding_box.max_point()[splitting_coordinate] <= split_value)
+  if (m_pt0[splitting_coordinate] <= split_value && m_pt1[splitting_coordinate] <= split_value)
     {
-      FASTUIDRAWassert(m_pt0[splitting_coordinate] <= split_value);
-      FASTUIDRAWassert(m_pt1[splitting_coordinate] <= split_value);
       dst_before_split_value->push_back(*this);
       return;
     }
 
-  if (m_bounding_box.min_point()[splitting_coordinate] >= split_value)
+  if (m_pt0[splitting_coordinate] >= split_value && m_pt1[splitting_coordinate] >= split_value)
     {
-      FASTUIDRAWassert(m_pt0[splitting_coordinate] >= split_value);
-      FASTUIDRAWassert(m_pt1[splitting_coordinate] >= split_value);
       dst_after_split_value->push_back(*this);
       return;
     }
@@ -614,8 +609,11 @@ split_sub_edge(int splitting_coordinate,
       v1 = m_pt1[splitting_coordinate];
       t = (split_value - v0) / (v1 - v0);
 
+      FASTUIDRAWassert(t >= 0.0f && t <= 1.0f);
+
       s = 1.0 - t;
-      p = (1.0f - t) * m_pt0 + t * m_pt1;
+      p[1 - splitting_coordinate] = s * m_pt0[1 - splitting_coordinate] + t * m_pt1[1 - splitting_coordinate];
+      p[splitting_coordinate] = split_value;
       mid_normal = m_begin_normal;
 
       /* strictly speaking this is non-sense, but lets silence
@@ -675,8 +673,6 @@ split_sub_edge(int splitting_coordinate,
   out_edges[0].m_distance_from_edge_start = m_distance_from_edge_start;
   out_edges[0].m_distance_from_contour_start = m_distance_from_contour_start;
   out_edges[0].m_sub_edge_length = t * m_sub_edge_length;
-  out_edges[0].m_bounding_box.union_point(m_pt0);
-  out_edges[0].m_bounding_box.union_point(p);
   out_edges[0].m_has_start_dashed_capper = m_has_start_dashed_capper;
   out_edges[0].m_has_end_dashed_capper = false;
 
@@ -689,10 +685,20 @@ split_sub_edge(int splitting_coordinate,
   out_edges[1].m_distance_from_edge_start = m_distance_from_edge_start + out_edges[0].m_sub_edge_length;
   out_edges[1].m_distance_from_contour_start = m_distance_from_contour_start + out_edges[0].m_sub_edge_length;
   out_edges[1].m_sub_edge_length = s * m_sub_edge_length;
-  out_edges[1].m_bounding_box.union_point(p);
-  out_edges[1].m_bounding_box.union_point(m_pt1);
   out_edges[1].m_has_start_dashed_capper = false;
   out_edges[1].m_has_end_dashed_capper = m_has_end_dashed_capper;
+
+  int i_before, i_after;
+  if (m_pt0[splitting_coordinate] < split_value)
+    {
+      i_before = 0;
+      i_after = 1;
+    }
+  else
+    {
+      i_before = 1;
+      i_after = 0;
+    }
 
   for(unsigned int i = 0; i < 2; ++i)
     {
@@ -710,8 +716,8 @@ split_sub_edge(int splitting_coordinate,
       out_edges[i].m_contour_length = m_contour_length;
     }
 
-  dst_before_split_value->push_back(out_edges[0]);
-  dst_after_split_value->push_back(out_edges[1]);
+  dst_before_split_value->push_back(out_edges[i_before]);
+  dst_after_split_value->push_back(out_edges[i_after]);
 }
 
 ////////////////////////////////////////////
@@ -911,7 +917,8 @@ update_bounding_box(unsigned int &begin,
 {
   for (unsigned int end = segs.size(); begin < end; ++begin)
     {
-      box.union_box(segs[begin].m_bounding_box);
+      box.union_point(segs[begin].m_pt0);
+      box.union_point(segs[begin].m_pt1);
     }
 }
 
