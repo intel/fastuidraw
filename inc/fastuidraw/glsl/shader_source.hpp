@@ -203,6 +203,19 @@ public:
     }
 
     /*!
+     * Add a macro to this MacroSet for casted to int32_t
+     * \param macro_name name of macro
+     * \param macro_value value to which macro is given
+     */
+    template<typename T>
+    MacroSet&
+    add_macro_i32(c_string macro_name, T macro_value)
+    {
+      int32_t v(macro_value);
+      return add_macro(macro_name, v);
+    }
+
+    /*!
      * Add a macro to this MacroSet for casted to float
      * \param macro_name name of macro
      * \param macro_value value to which macro is given
@@ -340,6 +353,19 @@ public:
   add_macro_u32(c_string macro_name, T macro_value)
   {
     uint32_t v(macro_value);
+    return add_macro(macro_name, v);
+  }
+
+  /*!
+   * Add a macro to this MacroSet for casted to int32_t
+   * \param macro_name name of macro
+   * \param macro_value value to which macro is given
+   */
+  template<typename T>
+  ShaderSource&
+  add_macro_i32(c_string macro_name, T macro_value)
+  {
+    int32_t v(macro_value);
     return add_macro(macro_name, v);
   }
 
