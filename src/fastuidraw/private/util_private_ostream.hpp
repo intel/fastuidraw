@@ -177,6 +177,14 @@ operator<<(ostream &str, const fastuidraw::BoundingBox<T> &obj)
     }
   return str;
 }
+
+template<typename T>
+ostream&
+operator<<(ostream &str, const fastuidraw::RectT<T> &obj)
+{
+  str << "[" << obj.m_min_point << " -- " << obj.m_max_point << "]";
+  return str;
+}
 }
 
 template<typename T>
