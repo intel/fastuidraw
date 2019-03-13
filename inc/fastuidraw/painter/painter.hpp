@@ -112,6 +112,10 @@ namespace fastuidraw
    * active depth value is unaffected. An item's vertex shader will emit
    * a relative z-value (i.e. relative to the item) which is then
    * incremented by the current z-value of the \ref Painter.
+   *
+   * A Painter is a HEAVY object (it creates pools of buffers during its
+   * lifetime for reuse). As such, one should reuse Painter objects as
+   * much as reasonably possible.
    */
   class Painter:
     public PainterEnums,
