@@ -5976,6 +5976,37 @@ end_layer(void)
     }
 }
 
+void
+fastuidraw::Painter::
+begin_coverage_buffer(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  d->begin_coverage_buffer();
+}
+
+void
+fastuidraw::Painter::
+begin_coverage_buffer(const Rect &logical_rect,
+                      float additional_pixel_slack)
+{
+  fastuidraw::BoundingBox<float> nr;
+  PainterPrivate *d;
+
+  d = static_cast<PainterPrivate*>(m_d);
+  nr = d->compute_clip_intersect_rect(logical_rect, additional_pixel_slack, 0.0f);
+  d->begin_coverage_buffer_normalized_rect(nr.as_rect(), !nr.empty());
+}
+
+void
+fastuidraw::Painter::
+end_coverage_buffer(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  d->end_coverage_buffer();
+}
+
 /* How we handle clipping.
  *      - clipOut by path P
  *         1. add "draw" the path P filled, but with call back for

@@ -362,9 +362,10 @@ namespace fastuidraw
 
     /*!
      * Flushes the rendering and flushes the rendering commands
-     * to the 3D API and maintain using the current
-     * PainterSurface. It is not possible to flush
-     * if the Painter is within a begin_layer()/end_layer().
+     * to the 3D API and maintain using the current PainterSurface.
+     * It is not possible to flush if the Painter is within a
+     * begin_layer()/end_layer() pair or if it is within a
+     * begin_coverage_buffer()/end_coverage_buffer() pair.
      * Returns \ref routine_success if flush was executed and
      * \ref routine_fail if not.
      */
@@ -376,12 +377,12 @@ namespace fastuidraw
      * to the 3D API and shift to using a the passed surface;
      * the surface's viewport dimensions MUST match the
      * current surface's viewport dimensions, i.e. the value
-     * of PainterSurface::viewport().m_dimensions
-     * surface() and the passed PainterSurface must
-     * match. It is not possible to flush if the Painter is
-     * within a begin_layer()/end_layer(). Returns \ref
-     * routine_success if flush was executed and \ref
-     * routine_fail if not.
+     * of PainterSurface::viewport().m_dimensions surface() and
+     * the passed PainterSurface must match. It is not possible
+     * if the Painter is within a begin_layer()/end_layer() pair
+     * or if it is within a begin_coverage_buffer()/end_coverage_buffer()
+     * pair. Returns \ref routine_success if flush was executed
+     * and \ref routine_fail if not.
      */
     enum return_code
     flush(const reference_counted_ptr<PainterSurface> &new_surface);
@@ -713,6 +714,14 @@ namespace fastuidraw
      * - composite shader (see composite_shader())
      * - composite mode (see composite_mode())
      * - blend shader (see blend_shader())
+     * NOTE: it is an error (that is silently ignored) to end a
+     * transparency layer (see begin_layer() and end_layer())
+     * within a save()/restore() pair that was not started within
+     * that same save()/restore() pair. In addition, it is also
+     * an error to not end a layer within a save()/restore() pair
+     * that was started in the that same save()/restore() pair.
+     * The same rules apply to coverage buffers (see begin_coverage_buffer()
+     * and end_coverage_buffer()).
      */
     void
     save(void);
@@ -759,6 +768,44 @@ namespace fastuidraw
      */
     void
     end_layer(void);
+
+    /*!
+     * Begin a deferred coverage buffer layer. A deferred
+     * coverage buffer is needed for those \ref PainterItemShader
+     * values for which PainterItemShader::coverage_shader()
+     * is non-null. When a coverage buffer is active, those
+     * \ref PainterItemCoverageShader will render to the
+     * current deferred coverage buffer and the \ref
+     * PainterItemShader will read from it for its rendering.
+     * This starts a coverage buffer layer region of the
+     * size of the bounding box of the current clip-region.
+     * It is strongly suggested to use begin_coverage_buffer(const Rect&)
+     * to limit the size of the coverage buffer.
+     */
+    void
+    begin_coverage_buffer(void);
+
+    /*!
+     * Acts the same as begin_coverage_buffer(void), but
+     * limits the coverage buffer to the bounding box
+     * of the intersection of the current clipping region
+     * with the passed rectangle.
+     * \param logical_rect rectangle in LOGICAL coordinates,
+     *                     i.e. before transformation() is
+     *                     applied.
+     * \param additional_pixel_slack inflate the coverage buffer
+     *                               region by this many pixels on
+     *                               each side
+     */
+    void
+    begin_coverage_buffer(const Rect &logical_rect,
+                          float additional_pixel_slack = 0.0f);
+
+    /*!
+     * End the current coverage buffer.
+     */
+    void
+    end_coverage_buffer(void);
 
     /*!
      * Return the default shaders for common drawing types.
