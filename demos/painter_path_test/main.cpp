@@ -608,15 +608,27 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   p0 = R.m_min_point;
   p1 = R.m_max_point;
 
+  if (m_from_glyph)
+    {
+      /* the path is rendered y-flipped, so we need to adjust
+       * p0 and p1 correctly for it.
+       */
+      p0.y() *= -1.0f;
+      p1.y() *= -1.0f;
+      std::swap(p0.y(), p1.y());
+    }
+
   delta = p1 - p0;
   ratio = delta / dsp;
   mm = t_max(0.00001f, t_max(ratio.x(), ratio.y()) );
   mid = 0.5 * (p1 + p0);
 
   ScaleTranslate<float> sc, tr1, tr2;
+
   tr1.translation(-mid);
-  sc.scale( 1.0f / mm);
+  sc.scale(1.0f / mm);
   tr2.translation(dsp * 0.5f);
+
   m_path_zoomer.transformation(tr2 * sc * tr1);
 
   m_gradient_p0 = p0;
@@ -1163,11 +1175,6 @@ item_coordinates(vec2 p)
    */
   if (m_paths[m_selected_path].m_from_glyph)
     {
-      const Rect &R(path().tessellation()->bounding_box());
-      float y;
-
-      y = R.m_min_point.y() + R.m_max_point.y();
-      p.y() -= y;
       p.y() *= -1.0f;
     }
 
@@ -1727,10 +1734,6 @@ draw_scene(bool drawing_wire_frame)
       /* Glyphs have y-increasing upwards, rather than
        * downwards; so we reverse the y
        */
-      const Rect &R(path().tessellation()->bounding_box());
-      float y;
-
-      y = R.m_min_point.y() + R.m_max_point.y();
       m_painter->shear(1.0f, -1.0f);
     }
 
