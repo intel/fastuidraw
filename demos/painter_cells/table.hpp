@@ -83,7 +83,7 @@ private:
   bool m_first_draw;
   PainterAttributeData m_lines;
   PainterPackedValue<PainterBrush> m_line_brush;
-  Path m_grid_path, m_outline_path;
+  Path m_grid_path;
 
   simple_time m_time;
   int m_thousandths_degrees_rotation;

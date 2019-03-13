@@ -21,7 +21,7 @@ public:
     m_rotating(false),
     m_stroke_width(10.0f),
     m_pause(false),
-    m_anti_alias_stroking(true),
+    m_anti_alias_stroking(Painter::shader_anti_alias_auto),
     m_cells_drawn(0),
     m_draw_transparent(false),
     m_rect_composite_mode(Painter::composite_porter_duff_src_over),
@@ -34,8 +34,8 @@ public:
   Path m_path;
   float m_stroke_width;
   bool m_pause;
-  bool m_anti_alias_stroking;
   bool m_draw_transparent;
+  Painter::shader_anti_alias_t m_anti_alias_stroking;
 
   int m_cells_drawn;
   enum Painter::composite_mode_t m_rect_composite_mode;

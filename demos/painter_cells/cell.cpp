@@ -174,19 +174,15 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   if (m_shared_state->m_rotating && m_shared_state->m_stroke_width > 0.0f)
     {
       PainterStrokeParams st;
-      enum Painter::shader_anti_alias_t aa_mode;
 
       st.miter_limit(-1.0f);
       st.width(m_shared_state->m_stroke_width);
-      aa_mode = (m_shared_state->m_anti_alias_stroking) ?
-        Painter::shader_anti_alias_auto :
-        Painter::shader_anti_alias_none;
 
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_shared_state->m_path,
                            StrokingStyle()
                            .join_style(Painter::miter_clip_joins),
-                           aa_mode);
+                           m_shared_state->m_anti_alias_stroking);
     }
   m_shared_state->m_cells_drawn++;
 }

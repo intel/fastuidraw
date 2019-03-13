@@ -210,11 +210,11 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
                                     << Path::contour_close();
 
 
-      m_outline_path << vec2(0.0f, 0.0f)
-                     << vec2(m_params.m_wh.x(), 0.0f)
-                     << vec2(m_params.m_wh.x(), m_params.m_wh.y())
-                     << vec2(0.0f, m_params.m_wh.y())
-                     << Path::contour_close();
+      m_grid_path << vec2(0.0f, 0.0f)
+                  << vec2(m_params.m_wh.x(), 0.0f)
+                  << vec2(m_params.m_wh.x(), m_params.m_wh.y())
+                  << vec2(0.0f, m_params.m_wh.y())
+                  << Path::contour_close();
 
       for(x = 1, cell_loc.x() = m_cell_sz.x(); x < m_params.m_cell_count.x(); ++x, cell_loc.x() += m_cell_sz.x())
         {
@@ -322,25 +322,15 @@ paint_post_children(const reference_counted_ptr<Painter> &painter)
   if (!m_params.m_cell_state->m_rotating && m_params.m_cell_state->m_stroke_width > 0.0f)
     {
       PainterStrokeParams st;
-      enum Painter::shader_anti_alias_t aa_mode;
 
       st.miter_limit(-1.0f);
       st.width(m_params.m_cell_state->m_stroke_width);
-      aa_mode = (m_params.m_cell_state->m_anti_alias_stroking) ?
-        Painter::shader_anti_alias_auto :
-        Painter::shader_anti_alias_none;
-
-      painter->stroke_path(PainterData(m_line_brush, &st),
-                           m_outline_path,
-                           StrokingStyle()
-                           .join_style(Painter::rounded_joins),
-                           aa_mode);
 
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_grid_path,
                            StrokingStyle()
                            .cap_style(Painter::flat_caps)
-                           .join_style(Painter::no_joins),
-                           aa_mode);
+                           .join_style(Painter::rounded_joins),
+                           m_params.m_cell_state->m_anti_alias_stroking);
     }
 }

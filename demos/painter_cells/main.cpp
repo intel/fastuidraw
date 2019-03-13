@@ -106,7 +106,7 @@ private:
   command_line_argument_value<bool> m_init_draw_text;
   command_line_argument_value<bool> m_init_draw_images;
   command_line_argument_value<float> m_init_stroke_width;
-  command_line_argument_value<bool> m_init_anti_alias_stroking;
+  enumerated_command_line_argument_value<enum Painter::shader_anti_alias_t> m_init_anti_alias_stroking;
 
   CellSharedState m_cell_shared_state;
   TableParams m_table_params;
@@ -223,7 +223,15 @@ painter_cells(void):
   m_init_stroke_width(10.0f, "init_stroke_width",
                       "Initial value for stroking width",
                       *this),
-  m_init_anti_alias_stroking(true, "init_antialias_stroking",
+  m_init_anti_alias_stroking(Painter::shader_anti_alias_fastest,
+                             enumerated_string_type<enum Painter::shader_anti_alias_t>()
+                             .add_entry("shader_anti_alias_none", Painter::shader_anti_alias_none, "")
+                             .add_entry("shader_anti_alias_simple", Painter::shader_anti_alias_simple, "")
+                             .add_entry("shader_anti_alias_high_quality", Painter::shader_anti_alias_high_quality, "")
+                             .add_entry("shader_anti_alias_deferred_coverage", Painter::shader_anti_alias_deferred_coverage, "")
+                             .add_entry("shader_anti_alias_auto", Painter::shader_anti_alias_auto, "")
+                             .add_entry("shader_anti_alias_fastest", Painter::shader_anti_alias_fastest, ""),
+                             "init_antialias_stroking",
                              "Initial value for anti-aliasing for stroking",
                              *this),
   m_table(nullptr),
@@ -712,8 +720,21 @@ handle_event(const SDL_Event &ev)
         case SDLK_a:
           if (m_cell_shared_state.m_stroke_width > 0.0f)
             {
-              m_cell_shared_state.m_anti_alias_stroking = !m_cell_shared_state.m_anti_alias_stroking;
-              std::cout << "Stroking anti-aliasing = " << m_cell_shared_state.m_anti_alias_stroking << "\n";
+              static c_string labels[Painter::number_shader_anti_alias_enums] =
+                {
+                  [Painter::shader_anti_alias_none] = "shader_anti_alias_none",
+                  [Painter::shader_anti_alias_simple] = "shader_anti_alias_simple",
+                  [Painter::shader_anti_alias_high_quality] = "shader_anti_alias_high_quality",
+                  [Painter::shader_anti_alias_deferred_coverage] = "shader_anti_alias_deferred_coverage",
+                  [Painter::shader_anti_alias_auto] = "shader_anti_alias_auto",
+                  [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",
+                };
+              int v(m_cell_shared_state.m_anti_alias_stroking);
+              cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
+                          Painter::number_shader_anti_alias_enums);
+
+              m_cell_shared_state.m_anti_alias_stroking = static_cast<enum Painter::shader_anti_alias_t>(v);
+              std::cout << "Stroking anti-aliasing = " << labels[v] << "\n";
             }
           break;
         case SDLK_v:
