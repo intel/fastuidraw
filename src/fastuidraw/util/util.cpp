@@ -21,12 +21,61 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <algorithm>
+#include <cstring>
+#ifdef __linux__
+#include <execinfo.h>
+#include <unistd.h>
+#include <cxxabi.h>
+#endif
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 
 #include "../../3rd_party/ieeehalfprecision/ieeehalfprecision.hpp"
+
+#ifdef __linux__
+std::string
+demangled_function_name(const char *backtrace_string)
+{
+  /* backtrace gives the symbol as follows:
+   *  library_name(mangled_function_name+offset) [return_address]
+   */
+  const char *open_paren, *plus, *close_paren, *end;
+
+  end = backtrace_string + std::strlen(backtrace_string);
+  open_paren = std::find(backtrace_string, end, '(');
+  if (open_paren == end)
+    {
+      return "";
+    }
+  ++open_paren;
+  plus = std::find(open_paren, end, '+');
+  if (plus == end)
+    {
+      return "";
+    }
+
+  char* demangle_c_string;
+  int status;
+  std::string tmp(open_paren, plus);
+
+  demangle_c_string = abi::__cxa_demangle(tmp.c_str(),
+                                          nullptr,
+                                          nullptr,
+                                          &status);
+  if (demangle_c_string == nullptr)
+    {
+      return "";
+    }
+
+  std::string return_value(demangle_c_string);
+  free(demangle_c_string);
+  return return_value;
+}
+#endif
+
 
 uint32_t
 fastuidraw::
@@ -111,5 +160,23 @@ fastuidraw::
 assert_fail(c_string str, c_string file, int line)
 {
   std::cerr << file << ":" << line << ": Assertion '" << str << "' failed\n";
+
+#ifdef __linux__
+  #define STACK_MAX_BACKTRACE_SIZE 30
+  void *backtrace_data[STACK_MAX_BACKTRACE_SIZE];
+  char **backtrace_strings;
+  size_t backtrace_size;
+
+  std::cerr << "Backtrace:\n" << std::flush;
+  backtrace_size = backtrace(backtrace_data, STACK_MAX_BACKTRACE_SIZE);
+  backtrace_strings = backtrace_symbols(backtrace_data, backtrace_size);
+  for (size_t i = 0; i < backtrace_size; ++i)
+    {
+      std::cerr << "\t" << backtrace_strings[i]
+                << "{" << demangled_function_name(backtrace_strings[i])
+                << "}\n";
+    }
+  free(backtrace_strings);
+#endif
   std::abort();
 }
