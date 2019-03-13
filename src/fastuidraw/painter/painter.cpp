@@ -1427,8 +1427,17 @@ namespace
     void
     rotate(float angle);
 
+    fastuidraw::BoundingBox<float>
+    compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
+                                float additional_pixel_slack,
+                                float additional_logical_slack);
+
     void
     begin_coverage_buffer(void);
+
+    void
+    begin_coverage_buffer_normalized_rect(const fastuidraw::Rect &normalized_rect,
+                                          bool non_empty);
 
     void
     end_coverage_buffer(void);
@@ -2300,7 +2309,7 @@ set_current(const fastuidraw::float3x3 &transform,
       vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
       vec3 clip_pt(transform * vec3(poly[i].x(), poly[i].y(), 1.0f));
       float recip_z(1.0f / clip_pt.z());
-      vec2 normalized_pt(clip_pt * recip_z);
+      vec2 normalized_pt(vec2(clip_pt) * recip_z);
 
       m_clip.current().push_back(inverse_transpose * nn);
       m_poly.current().push_back(clip_pt);
@@ -2811,6 +2820,71 @@ rotate(float angle)
   m_clip_rect_state.item_matrix(m, true, non_scaling_matrix, 1.0f);
 }
 
+fastuidraw::BoundingBox<float>
+PainterPrivate::
+compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
+                            float additional_pixel_slack,
+                            float additional_logical_slack)
+{
+  using namespace fastuidraw;
+
+  unsigned int src;
+
+  m_work_room.m_clipper.m_pts_update_series[0].resize(4);
+
+  m_work_room.m_clipper.m_pts_update_series[0][0] = vec2(logical_rect.m_min_point.x() - additional_logical_slack,
+                                                         logical_rect.m_min_point.y() - additional_logical_slack);
+
+  m_work_room.m_clipper.m_pts_update_series[0][1] = vec2(logical_rect.m_min_point.x() - additional_logical_slack,
+                                                         logical_rect.m_max_point.y() + additional_logical_slack);
+
+  m_work_room.m_clipper.m_pts_update_series[0][2] = vec2(logical_rect.m_max_point.x() + additional_logical_slack,
+                                                         logical_rect.m_max_point.y() + additional_logical_slack);
+
+  m_work_room.m_clipper.m_pts_update_series[0][3] = vec2(logical_rect.m_max_point.x() + additional_logical_slack,
+                                                         logical_rect.m_min_point.y() - additional_logical_slack);
+
+  src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
+                                          m_work_room.m_clipper.m_pts_update_series);
+
+  /* logical_rect clipped against the current clip equations array
+   * is now stored in _work_room.m_clipper.m_pts_update_series[src]
+   * and in logical-coordinates
+   */
+  c_array<const vec2> poly;
+  poly = make_c_array(m_work_room.m_clipper.m_pts_update_series[src]);
+
+  BoundingBox<float> bbox;
+  const float3x3 &transform(m_clip_rect_state.item_matrix());
+  for (const vec2 &pt : poly)
+    {
+      vec3 clip_pt(transform * vec3(pt.x(), pt.y(), 1.0f));
+      float recip_z(1.0f / clip_pt.z());
+
+      bbox.union_point(vec2(clip_pt) * recip_z);
+    }
+
+  bbox.enlarge(vec2(additional_pixel_slack, additional_pixel_slack));
+  return bbox;
+}
+
+void
+PainterPrivate::
+begin_coverage_buffer_normalized_rect(const fastuidraw::Rect &normalized_rect,
+                                      bool non_empty)
+{
+  if (non_empty)
+    {
+      m_deferred_coverage_stack.push_back(m_deferred_coverage_stack_entry_factory.fetch(normalized_rect, this));
+      m_deferred_coverage_stack.back().update_coverage_buffer_offset(this);
+      m_clip_rect_state.coverage_buffer_normalized_translate(m_deferred_coverage_stack.back().normalized_translate());
+    }
+  else
+    {
+      m_deferred_coverage_stack.push_back(DeferredCoverageBufferStackEntry());
+    }
+}
+
 void
 PainterPrivate::
 begin_coverage_buffer(void)
@@ -2820,18 +2894,7 @@ begin_coverage_buffer(void)
   non_empty = !m_clip_rect_state.m_all_content_culled
     && !m_clip_store.current_poly().empty()
     && !m_clip_store.current_bb().empty();
-
-  if (non_empty)
-    {
-      const fastuidraw::Rect &rect(m_clip_store.current_bb().as_rect());
-      m_deferred_coverage_stack.push_back(m_deferred_coverage_stack_entry_factory.fetch(rect, this));
-      m_deferred_coverage_stack.back().update_coverage_buffer_offset(this);
-      m_clip_rect_state.coverage_buffer_normalized_translate(m_deferred_coverage_stack.back().normalized_translate());
-    }
-  else
-    {
-      m_deferred_coverage_stack.push_back(DeferredCoverageBufferStackEntry());
-    }
+  begin_coverage_buffer_normalized_rect(m_clip_store.current_bb().as_rect(), non_empty);
 }
 
 void
@@ -3600,6 +3663,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                                      m_max_attribs_per_block,
                                      m_max_indices_per_block,
                                      make_c_array(m_work_room.m_stroke.m_subsets));
+
   FASTUIDRAWassert(subset_count <= m_work_room.m_stroke.m_subsets.size());
   m_work_room.m_stroke.m_subsets.resize(subset_count);
 
@@ -3614,11 +3678,53 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             is_miter_join,
                             m_work_room.m_stroke.m_caps_joins_chunk_set);
 
+
+  if (anti_aliasing == Painter::shader_anti_alias_deferred_coverage)
+    {
+      /* Make the coverage buffer limited to the bounding box
+       * containing the union of the bounding boxes of the subsets
+       * chosen. TODO: we need to actually make the box larger
+       * if we are drawing miter-joins and the miter-limit is large.
+       * Ideally, we should request from the StrokePath finer subsets,
+       * draw each subset seperately surrounded by a
+       * begin_coverage_buffer()/end_coverage_buffer() pair
+       * with inflated rects to limit the amount of area needed
+       * for the deferred coverage buffer.
+       */
+      BoundingBox<float> bbox, in_bbox;
+      for (unsigned int subset_id : m_work_room.m_stroke.m_subsets)
+        {
+          const Rect &rect(path.subset(subset_id).bounding_box());
+          in_bbox.union_point(rect.m_min_point);
+          in_bbox.union_point(rect.m_max_point);
+        }
+
+      if (in_bbox.empty())
+        {
+          return;
+        }
+
+      bbox = compute_clip_intersect_rect(in_bbox.as_rect(),
+                                         pixels_additional_room,
+                                         item_space_additional_room);
+
+      if (bbox.empty())
+        {
+          return;
+        }
+      begin_coverage_buffer_normalized_rect(bbox.as_rect(), true);
+    }
+
   stroke_path_raw(shader, edge_arc_shader, join_arc_shader, cap_arc_shader, draw,
                   &path, make_c_array(m_work_room.m_stroke.m_subsets),
                   cap_data, m_work_room.m_stroke.m_caps_joins_chunk_set.cap_chunks(),
                   join_data, m_work_room.m_stroke.m_caps_joins_chunk_set.join_chunks(),
                   anti_aliasing);
+
+  if (anti_aliasing == Painter::shader_anti_alias_deferred_coverage)
+    {
+      end_coverage_buffer();
+    }
 }
 
 void
@@ -3796,21 +3902,6 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
       packer()->draw_break(shader.hq_aa_action_pass1());
     }
 
-  if (anti_aliasing == Painter::shader_anti_alias_deferred_coverage)
-    {
-      /* TODO
-       *  1. instead of taking the entire clip-region, limit
-       *     the coverage buffer to the bounding box of the stroke-path
-       *     as well.
-       *  2. better still: request from the StrokePath finer subsets,
-       *     draw each subset seperately surrounded by a
-       *     begin_coverage_buffer()/end_coverage_buffer() pair
-       *     with inflated rects to limit the amount of area needed
-       *     for the deferred coverage buffer.
-       */
-      begin_coverage_buffer();
-    }
-
   if (modify_z)
     {
       draw_generic_z_layered(shaders_pass1, draw, z_increments, zinc_sum,
@@ -3829,11 +3920,6 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
                        fastuidraw::c_array<const unsigned int>(),
                        m_current_z);
         }
-    }
-
-  if (anti_aliasing == Painter::shader_anti_alias_deferred_coverage)
-    {
-      end_coverage_buffer();
     }
 
   if (two_shaders)
