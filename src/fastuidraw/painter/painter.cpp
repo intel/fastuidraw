@@ -648,6 +648,9 @@ namespace
 
     clip_rect_state m_clip_rect_state;
     float m_curve_flatness;
+
+    // checking
+    unsigned int m_deferred_coverage_buffer_depth;
   };
 
   class BufferRect
@@ -2938,6 +2941,7 @@ void
 PainterPrivate::
 end_coverage_buffer(void)
 {
+  FASTUIDRAWassert(m_state_stack.empty() || m_state_stack.back().m_deferred_coverage_buffer_depth < m_deferred_coverage_stack.size());
   m_deferred_coverage_stack.pop_back();
 }
 
@@ -5841,6 +5845,7 @@ save(void)
   st.m_composite_mode = d->packer()->composite_mode();
   st.m_clip_rect_state = d->m_clip_rect_state;
   st.m_curve_flatness = d->m_curve_flatness;
+  st.m_deferred_coverage_buffer_depth = d->m_deferred_coverage_stack.size();
 
   d->m_state_stack.push_back(st);
   d->m_clip_store.push();
@@ -5865,6 +5870,7 @@ restore(void)
       d->m_occluder_stack.back().on_pop(d);
       d->m_occluder_stack.pop_back();
     }
+  FASTUIDRAWassert(st.m_deferred_coverage_buffer_depth == d->m_deferred_coverage_stack.size());
   d->m_state_stack.pop_back();
   d->m_clip_store.pop();
 }
