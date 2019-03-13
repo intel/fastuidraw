@@ -287,9 +287,9 @@ ShaderSetCreatorStrokingConstants(void)
   FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_dash_style_num_bits) >= PainterEnums::number_cap_styles);
   FASTUIDRAWassert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 2u <= 32u);
 
-  m_stroke_render_pass_bit0 = 0;
-  m_stroke_dash_style_bit0 = m_stroke_render_pass_bit0 + m_stroke_render_pass_num_bits;
-  m_stroke_aa_method_bit = m_stroke_dash_style_bit0 + m_stroke_dash_style_num_bits;
+  m_stroke_dash_style_bit0 = 0;
+  m_stroke_render_pass_bit0 = m_stroke_dash_style_bit0 + m_stroke_dash_style_num_bits;
+  m_stroke_aa_method_bit = m_stroke_render_pass_bit0 + m_stroke_render_pass_num_bits;
 
   create_macro_set(m_subshader_constants);
 
@@ -408,6 +408,12 @@ StrokeShaderCreator(void)
   m_shaders[arc_shader | discard_shader] = build_uber_stroke_shader(arc_shader | discard_shader, num_sub_shaders);
   FASTUIDRAWassert(!m_shaders[arc_shader]->uses_discard());
   FASTUIDRAWassert(m_shaders[arc_shader | discard_shader]->uses_discard());
+
+  m_coverage_shaders[0] = build_uber_stroke_coverage_shader(coverage_shader, PainterEnums::number_cap_styles + 1u);
+  m_coverage_shaders[arc_shader] = build_uber_stroke_coverage_shader(coverage_shader | arc_shader, PainterEnums::number_cap_styles + 1u);
+
+  m_post_coverage_shaders[0] = build_uber_stroke_shader(coverage_shader, PainterEnums::number_cap_styles + 1u);
+  m_post_coverage_shaders[arc_shader] = build_uber_stroke_shader(coverage_shader | arc_shader, PainterEnums::number_cap_styles + 1u);
 }
 
 reference_counted_ptr<PainterItemShader>
@@ -466,6 +472,25 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
 
   sub_shader = compute_sub_shader(is_hq_shader, stroke_dash_style, render_pass);
   return_value = FASTUIDRAWnew PainterItemShader(m_shaders[shader_choice], sub_shader);
+  return return_value;
+}
+
+reference_counted_ptr<PainterItemShader>
+StrokeShaderCreator::
+create_stroke_item_shader_using_coverage(enum PainterEnums::cap_style stroke_dash_style,
+                                         enum PainterStrokeShader::stroke_type_t tp)
+{
+  reference_counted_ptr<PainterItemShader> return_value;
+  reference_counted_ptr<PainterItemCoverageShader> cvg_shader;
+  uint32_t shader_choice(0u);
+
+  if (tp == PainterStrokeShader::arc_stroke_type)
+    {
+      shader_choice |= arc_shader;
+    }
+
+  cvg_shader = FASTUIDRAWnew PainterItemCoverageShader(m_coverage_shaders[shader_choice], stroke_dash_style);
+  return_value = FASTUIDRAWnew PainterItemShader(m_post_coverage_shaders[shader_choice], stroke_dash_style, cvg_shader);
   return return_value;
 }
 
@@ -531,6 +556,11 @@ build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const
     .add_macros(m_subshader_constants)
     .add_macros(*stroke_constants_ptr);
 
+  if (flags & coverage_shader)
+    {
+      return_value.add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE");
+    }
+
   if (src_util)
     {
       return_value.add_source(src_util, ShaderSource::from_resource);
@@ -541,7 +571,23 @@ build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const
     .remove_macros(*stroke_constants_ptr)
     .remove_macros(m_subshader_constants);
 
+  if (flags & coverage_shader)
+    {
+      return_value.remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE");
+    }
+
   return return_value;
+}
+
+PainterItemCoverageShaderGLSL*
+StrokeShaderCreator::
+build_uber_stroke_coverage_shader(uint32_t flags, unsigned int num_sub_shaders) const
+{
+  flags |= coverage_shader;
+  return FASTUIDRAWnew PainterItemCoverageShaderGLSL(build_uber_stroke_source(flags, true),
+                                                     build_uber_stroke_source(flags, false),
+                                                     build_uber_stroke_varyings(flags),
+                                                     num_sub_shaders);
 }
 
 PainterItemShaderGLSL*
@@ -736,7 +782,12 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
           is_hq_pass = (e_sh == PainterStrokeShader::hq_aa_shader_pass1
                         || e_sh == PainterStrokeShader::hq_aa_shader_pass2);
 
-          if (!is_hq_pass || m_has_auxiliary_coverage_buffer)
+          if (e_sh == PainterStrokeShader::hq_aa_shader_deferred_coverage)
+            {
+              return_value.shader(e_tp, e_sh,
+                                  create_stroke_item_shader_using_coverage(cap_style, e_tp));
+            }
+          else if (!is_hq_pass || m_has_auxiliary_coverage_buffer)
             {
               return_value.shader(e_tp, e_sh, create_stroke_item_shader(cap_style, e_tp, e_sh));
             }

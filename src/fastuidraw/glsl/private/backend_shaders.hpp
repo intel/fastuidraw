@@ -118,15 +118,23 @@ public:
   create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
                             enum PainterStrokeShader::stroke_type_t tp,
                             enum PainterStrokeShader::shader_type_t pass);
+
+  reference_counted_ptr<PainterItemShader>
+  create_stroke_item_shader_using_coverage(enum PainterEnums::cap_style stroke_dash_style,
+                                           enum PainterStrokeShader::stroke_type_t tp);
 private:
   enum
     {
       arc_shader = 1,
       discard_shader = 2,
+      coverage_shader = 4,
     };
 
   PainterItemShaderGLSL*
   build_uber_stroke_shader(uint32_t flags, unsigned int num_shaders) const;
+
+  PainterItemCoverageShaderGLSL*
+  build_uber_stroke_coverage_shader(uint32_t flags, unsigned int num_shaders) const;
 
   varying_list
   build_uber_stroke_varyings(uint32_t flags) const;
@@ -135,6 +143,8 @@ private:
   build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const;
 
   vecN<reference_counted_ptr<PainterItemShaderGLSL>, 4> m_shaders;
+  vecN<reference_counted_ptr<PainterItemCoverageShaderGLSL>, 2> m_coverage_shaders;
+  vecN<reference_counted_ptr<PainterItemShaderGLSL>, 2> m_post_coverage_shaders;
 };
 
 class ShaderSetCreator:

@@ -22,8 +22,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         in uvec4 in_attrib1,
                         in uvec4 in_attrib2,
                         in uint shader_data_offset,
+                        #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
                         out int z_add,
                         out vec2 out_brush_p,
+                        #endif
                         out vec3 out_clip_p)
 {
   vec4 primary_attrib, secondary_attrib;
@@ -50,15 +52,33 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_stroking_params stroke_params;
   mat2 rotate_by = mat2(1.0, 0.0, 0.0, 1.0);
 
-  dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                       fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                       sub_shader);
+  #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
+    {
+      dash_style = sub_shader;
+      aa_method = fastuidraw_stroke_cover_then_draw;
+      #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
+        {
+          stroking_pass = fastuidraw_stroke_aa_pass2;
+        }
+      #else
+        {
+          stroking_pass = fastuidraw_stroke_aa_pass1;
+        }
+      #endif
+    }
+  #else
+    {
+      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                           fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                           sub_shader);
 
-  aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
+      aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
 
-  stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                          fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                          sub_shader);
+      stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                              fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                              sub_shader);
+    }
+  #endif
 
   if (dash_style != fastuidraw_stroke_not_dashed)
     {
@@ -419,26 +439,40 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       fastuidraw_arc_stroking_relative_to_center_x = float(on_boundary);
     }
 
-  if (aa_method == fastuidraw_stroke_cover_then_draw)
+  #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
     {
-      if (stroking_pass != fastuidraw_stroke_non_aa)
-        {
-          z_add = 0;
-        }
-      else
+      out_brush_p = p;
+      #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
         {
           z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
                                               fastuidraw_arc_stroke_depth_num_bits,
                                               point_packed_data));
         }
+      #else
+        {
+          if (aa_method == fastuidraw_stroke_cover_then_draw)
+            {
+              if (stroking_pass != fastuidraw_stroke_non_aa)
+                {
+                  z_add = 0;
+                }
+              else
+                {
+                  z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
+                                                      fastuidraw_arc_stroke_depth_num_bits,
+                                                      point_packed_data));
+                }
+            }
+          else
+            {
+              z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
+                                                  fastuidraw_arc_stroke_depth_num_bits,
+                                                  point_packed_data));
+            }
+        }
+      #endif
     }
-  else
-    {
-      z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
-                                          fastuidraw_arc_stroke_depth_num_bits,
-                                          point_packed_data));
-    }
+  #endif
 
   out_clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
-  out_brush_p = p;
 }

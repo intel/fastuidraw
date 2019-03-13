@@ -20,4 +20,4 @@ ivec2 fastuidraw_deferred_buffer_offset;
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING) uniform sampler2D fastuidraw_deferred_coverage_buffer;
 
 #define fastuidraw_read_deferred_coverage_buffer \
-  (texelFetch(fastuidraw_deferred_coverage_buffer, ivec2(gl_FragCoord.xy) + fastuidraw_read_deferred_coverage_buffer, 0).r)
+  (texelFetch(fastuidraw_deferred_coverage_buffer, ivec2(gl_FragCoord.xy) + fastuidraw_deferred_buffer_offset, 0).r)

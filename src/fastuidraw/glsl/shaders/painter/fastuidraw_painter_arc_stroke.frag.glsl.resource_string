@@ -16,191 +16,219 @@
  *
  */
 
-
+#ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
 vec4
+#else
+float
+#endif
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  float alpha = 1.0;
-  uint render_pass, aa_method, dash_style;
-
-  render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                        fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                        sub_shader);
-
-  dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                       fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                       sub_shader);
-
-  aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
-
-  if (aa_method == fastuidraw_stroke_cover_then_draw && render_pass == fastuidraw_stroke_aa_pass2)
+  #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER) && defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {
-      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
+      return vec4(1.0, 1.0, 1.0, fastuidraw_read_deferred_coverage_buffer);
     }
-
-  float r, d, q, qw, ql, qlw;
-  float S, R;
-
-  r = length(vec2(fastuidraw_arc_stroking_relative_to_center_x,
-                  fastuidraw_arc_stroking_relative_to_center_y));
-
-  S = fastuidraw_arc_stroking_stroke_radius;
-  R = fastuidraw_arc_stroking_arc_radius;
-  if (dash_style != fastuidraw_stroke_not_dashed)
+  #else
     {
-      if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_inverted_inner_region_mask) != 0u)
+      float alpha = 1.0;
+      uint render_pass, aa_method, dash_style;
+
+      #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
         {
-          S = fastuidraw_arc_stroking_stroke_radius - fastuidraw_arc_stroking_arc_radius;
-          R = 0.0;
+          dash_style = sub_shader;
+          aa_method = fastuidraw_stroke_cover_then_draw;
+          render_pass = fastuidraw_stroke_aa_pass1;
         }
-    }
-
-  q = S - abs(r - R);
-  qw = fwidth(q);
-  d = max(abs(q), qw);
-
-  ql = 1.0 - fastuidraw_arc_stroking_relative_to_center_x;
-  qlw = fwidth(ql);
-
-  if (dash_style != fastuidraw_stroke_not_dashed)
-    {
-      float theta, thetaw, dist, distw, bd, bdw;
-
-      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                           fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                           sub_shader);
-
-      theta = atan(fastuidraw_arc_stroking_relative_to_center_y,
-                   fastuidraw_arc_stroking_relative_to_center_x);
-      thetaw = fwidth(theta);
-      dist = fastuidraw_arc_stroking_distance;
-      distw = fwidth(fastuidraw_arc_stroking_distance);
-
-      if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) == 0u)
+      #else
         {
-          if (fastuidraw_arc_stroking_arc_radius > -0.5)
+          dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                               sub_shader);
+
+          render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                                fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                                sub_shader);
+
+          aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
+
+          if (aa_method == fastuidraw_stroke_cover_then_draw && render_pass == fastuidraw_stroke_aa_pass2)
             {
-              if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_negative_arc_angle_mask) != 0u)
+              return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
+            }
+        }
+      #endif
+
+      float r, d, q, qw, ql, qlw;
+      float S, R;
+
+      r = length(vec2(fastuidraw_arc_stroking_relative_to_center_x,
+                      fastuidraw_arc_stroking_relative_to_center_y));
+
+      S = fastuidraw_arc_stroking_stroke_radius;
+      R = fastuidraw_arc_stroking_arc_radius;
+      if (dash_style != fastuidraw_stroke_not_dashed)
+        {
+          if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_inverted_inner_region_mask) != 0u)
+            {
+              S = fastuidraw_arc_stroking_stroke_radius - fastuidraw_arc_stroking_arc_radius;
+              R = 0.0;
+            }
+        }
+
+      q = S - abs(r - R);
+      qw = fwidth(q);
+      d = max(abs(q), qw);
+
+      ql = 1.0 - fastuidraw_arc_stroking_relative_to_center_x;
+      qlw = fwidth(ql);
+
+      if (dash_style != fastuidraw_stroke_not_dashed)
+        {
+          float theta, thetaw, dist, distw, bd, bdw;
+
+          theta = atan(fastuidraw_arc_stroking_relative_to_center_y,
+                       fastuidraw_arc_stroking_relative_to_center_x);
+          thetaw = fwidth(theta);
+          dist = fastuidraw_arc_stroking_distance;
+          distw = fwidth(fastuidraw_arc_stroking_distance);
+
+          if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) == 0u)
+            {
+              if (fastuidraw_arc_stroking_arc_radius > -0.5)
                 {
-                  theta = -theta;
-                }
-              if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) != 0u)
-                {
-                  theta = -theta;
-                }
-              float recip = 1.0 / fastuidraw_arc_stroking_stroke_radius;
+                  if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_negative_arc_angle_mask) != 0u)
+                    {
+                      theta = -theta;
+                    }
+                  if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) != 0u)
+                    {
+                      theta = -theta;
+                    }
+                  float recip = 1.0 / fastuidraw_arc_stroking_stroke_radius;
 
-              dist += theta * fastuidraw_arc_stroking_arc_radius;
-              distw = thetaw * fastuidraw_arc_stroking_arc_radius;
-              bd = 1.0 - q * recip;
-              bdw = qw * recip;
-            }
-          else
-            {
-              bd = fastuidraw_arc_stroking_relative_to_center_x;
-              bdw = qlw;
-            }
-
-          bool dont_anti_alias_dash_boundary, skip_lookup;
-
-          skip_lookup =
-            (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_skip_dash_interval_lookup_mask) != 0u;
-
-          dont_anti_alias_dash_boundary = (render_pass == fastuidraw_stroke_non_aa)
-            || (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) != 0u;
-
-          if (dash_style == fastuidraw_stroke_dashed_flat_caps)
-            {
-              alpha = fastuidraw_stroke_compute_dash_coverage(shader_data_offset, dist, distw,
-                                                              skip_lookup, dont_anti_alias_dash_boundary);
-            }
-          else
-            {
-              alpha = fastuidraw_stroke_compute_dash_coverage(dash_style == fastuidraw_stroke_dashed_rounded_caps,
-                                                              dash_style == fastuidraw_stroke_dashed_square_caps,
-                                                              shader_data_offset,
-                                                              dist, distw, bd, bdw,
-                                                              fastuidraw_arc_stroking_distance_sub_edge_start,
-                                                              fastuidraw_arc_stroking_distance_sub_edge_end,
-                                                              skip_lookup, dont_anti_alias_dash_boundary);
-            }
-
-          if (aa_method != fastuidraw_stroke_cover_then_draw
-              && render_pass == fastuidraw_stroke_aa_pass1
-              && alpha < 1.0 - 1.0 / 255.0)
-            {
-              alpha = 0.0;
-            }
-
-          if (render_pass == fastuidraw_stroke_non_aa)
-            {
-              if (alpha < 1.0 - 1.0 / 255.0)
-                {
-                  FASTUIDRAW_DISCARD;
+                  dist += theta * fastuidraw_arc_stroking_arc_radius;
+                  distw = thetaw * fastuidraw_arc_stroking_arc_radius;
+                  bd = 1.0 - q * recip;
+                  bdw = qw * recip;
                 }
               else
                 {
-                  alpha = 1.0;
+                  bd = fastuidraw_arc_stroking_relative_to_center_x;
+                  bdw = qlw;
+                }
+
+              bool dont_anti_alias_dash_boundary, skip_lookup;
+
+              skip_lookup =
+                (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_skip_dash_interval_lookup_mask) != 0u;
+
+              dont_anti_alias_dash_boundary = (render_pass == fastuidraw_stroke_non_aa)
+                || (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) != 0u;
+
+              if (dash_style == fastuidraw_stroke_dashed_flat_caps)
+                {
+                  alpha = fastuidraw_stroke_compute_dash_coverage(shader_data_offset, dist, distw,
+                                                                  skip_lookup, dont_anti_alias_dash_boundary);
+                }
+              else
+                {
+                  alpha = fastuidraw_stroke_compute_dash_coverage(dash_style == fastuidraw_stroke_dashed_rounded_caps,
+                                                                  dash_style == fastuidraw_stroke_dashed_square_caps,
+                                                                  shader_data_offset,
+                                                                  dist, distw, bd, bdw,
+                                                                  fastuidraw_arc_stroking_distance_sub_edge_start,
+                                                                  fastuidraw_arc_stroking_distance_sub_edge_end,
+                                                                  skip_lookup, dont_anti_alias_dash_boundary);
+                }
+
+              if (aa_method != fastuidraw_stroke_cover_then_draw
+                  && render_pass == fastuidraw_stroke_aa_pass1
+                  && alpha < 1.0 - 1.0 / 255.0)
+                {
+                  alpha = 0.0;
+                }
+
+              if (render_pass == fastuidraw_stroke_non_aa)
+                {
+                  if (alpha < 1.0 - 1.0 / 255.0)
+                    {
+                      FASTUIDRAW_DISCARD;
+                    }
+                  else
+                    {
+                      alpha = 1.0;
+                    }
                 }
             }
         }
-    }
 
-  /* A negtive arc_radius indicates that it is a segment */
-  if (fastuidraw_arc_stroking_arc_radius > -0.5)
-    {
-      if (render_pass != fastuidraw_stroke_non_aa)
+      /* A negtive arc_radius indicates that it is a segment */
+      if (fastuidraw_arc_stroking_arc_radius > -0.5)
         {
-          alpha *= max(0.0, q / d);
-        }
-      else
-        {
-          if (q < 0.0)
+          if (render_pass != fastuidraw_stroke_non_aa)
             {
-              FASTUIDRAW_DISCARD;
+              alpha *= max(0.0, q / d);
             }
-          alpha = 1.0;
-        }
-
-    }
-  else
-    {
-      if (render_pass != fastuidraw_stroke_non_aa)
-        {
-          float dd;
-          q = 1.0;
-          dd = max(ql, qlw);
-          alpha *= ql / dd;
+          else
+            {
+              if (q < 0.0)
+                {
+                  FASTUIDRAW_DISCARD;
+                }
+              alpha = 1.0;
+            }
         }
       else
         {
-          alpha = 1.0;
+          if (render_pass != fastuidraw_stroke_non_aa)
+            {
+              float dd;
+              q = 1.0;
+              dd = max(ql, qlw);
+              alpha *= ql / dd;
+            }
+          else
+            {
+              alpha = 1.0;
+            }
         }
-    }
 
-  if (aa_method == fastuidraw_stroke_cover_then_draw)
-    {
-      if (render_pass == fastuidraw_stroke_aa_pass1)
+      #if !defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
         {
-          fastuidraw_max_immediate_coverage(alpha);
-          alpha = 0.0;
+          if (aa_method == fastuidraw_stroke_cover_then_draw)
+            {
+              if (render_pass == fastuidraw_stroke_aa_pass1)
+                {
+                  fastuidraw_max_immediate_coverage(alpha);
+                  alpha = 0.0;
+                }
+            }
+          else if (dash_style != fastuidraw_stroke_not_dashed)
+            {
+              if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
+                {
+                  FASTUIDRAW_DISCARD;
+                }
+            }
+          else
+            {
+              if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
+                {
+                  FASTUIDRAW_DISCARD;
+                }
+            }
         }
-    }
-  else if (dash_style != fastuidraw_stroke_not_dashed)
-    {
-      if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
-        {
-          FASTUIDRAW_DISCARD;
-        }
-    }
-  else
-    {
-      if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
-        {
-          FASTUIDRAW_DISCARD;
-        }
-    }
+      #endif
 
-  return vec4(1.0, 1.0, 1.0, alpha);
+      #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
+        {
+          return vec4(1.0, 1.0, 1.0, alpha);
+        }
+      #else
+        {
+          return alpha;
+        }
+      #endif
+    }
+  #endif
 }

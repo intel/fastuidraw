@@ -16,66 +16,103 @@
  *
  */
 
+#ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
 vec4
+#else
+float
+#endif
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  float alpha = 1.0, red = 1.0;
-  uint render_pass, aa_method, dash_style;
-
-  render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                        fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                        sub_shader);
-
-  dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                       fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                       sub_shader);
-
-  aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
-
-  if (aa_method == fastuidraw_stroke_cover_then_draw && render_pass == fastuidraw_stroke_aa_pass2)
+  #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER) && defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {
-      return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
+      return vec4(1.0, 1.0, 1.0, fastuidraw_read_deferred_coverage_buffer);
     }
-
-  if (dash_style != fastuidraw_stroke_not_dashed)
+  #else
     {
-      if ((fastuidraw_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) == 0u)
+      float alpha = 1.0, red = 1.0;
+      uint render_pass, aa_method, dash_style;
+
+      #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
         {
-          float fwidth_fastuidraw_stroking_distance = fwidth(fastuidraw_stroking_distance);
-          float fwidth_fastuidraw_stroking_on_boundary = fwidth(fastuidraw_stroking_on_boundary);
+          dash_style = sub_shader;
+          aa_method = fastuidraw_stroke_cover_then_draw;
+          render_pass = fastuidraw_stroke_aa_pass1;
+        }
+      #else
+        {
+          render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                                fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                                sub_shader);
 
-          if ((fastuidraw_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) != 0u)
-            {
-              alpha = 1.0;
-            }
-          else
-            {
-              alpha = fastuidraw_stroke_compute_dash_coverage(dash_style == fastuidraw_stroke_dashed_rounded_caps,
-                                                              dash_style == fastuidraw_stroke_dashed_square_caps,
-                                                              shader_data_offset,
-                                                              fastuidraw_stroking_distance,
-                                                              fwidth_fastuidraw_stroking_distance,
-                                                              fastuidraw_stroking_on_boundary,
-                                                              fwidth_fastuidraw_stroking_on_boundary,
-                                                              fastuidraw_stroking_distance_sub_edge_start,
-                                                              fastuidraw_stroking_distance_sub_edge_end,
-                                                              (fastuidraw_stroking_dash_bits & fastuidraw_stroke_skip_dash_interval_lookup_mask) != 0u,
-                                                              (fastuidraw_stroking_dash_bits & fastuidraw_stroke_distance_constant) != 0u);
-            }
+          dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                               sub_shader);
 
-          if (aa_method != fastuidraw_stroke_cover_then_draw
-              && render_pass == fastuidraw_stroke_aa_pass1
-              && alpha < 1.0 - 1.0 / 255.0)
+          aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
+
+          if (aa_method == fastuidraw_stroke_cover_then_draw && render_pass == fastuidraw_stroke_aa_pass2)
             {
-              alpha = 0.0;
+              return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
             }
         }
-    }
+      #endif
 
-  if (aa_method == fastuidraw_stroke_cover_then_draw)
-    {
-      if (render_pass == fastuidraw_stroke_aa_pass1)
+      if (dash_style != fastuidraw_stroke_not_dashed)
+        {
+          if ((fastuidraw_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) == 0u)
+            {
+              float fwidth_fastuidraw_stroking_distance = fwidth(fastuidraw_stroking_distance);
+              float fwidth_fastuidraw_stroking_on_boundary = fwidth(fastuidraw_stroking_on_boundary);
+
+              if ((fastuidraw_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) != 0u)
+                {
+                  alpha = 1.0;
+                }
+              else
+                {
+                  alpha = fastuidraw_stroke_compute_dash_coverage(dash_style == fastuidraw_stroke_dashed_rounded_caps,
+                                                                  dash_style == fastuidraw_stroke_dashed_square_caps,
+                                                                  shader_data_offset,
+                                                                  fastuidraw_stroking_distance,
+                                                                  fwidth_fastuidraw_stroking_distance,
+                                                                  fastuidraw_stroking_on_boundary,
+                                                                  fwidth_fastuidraw_stroking_on_boundary,
+                                                                  fastuidraw_stroking_distance_sub_edge_start,
+                                                                  fastuidraw_stroking_distance_sub_edge_end,
+                                                                  (fastuidraw_stroking_dash_bits & fastuidraw_stroke_skip_dash_interval_lookup_mask) != 0u,
+                                                                  (fastuidraw_stroking_dash_bits & fastuidraw_stroke_distance_constant) != 0u);
+                }
+
+              if (aa_method != fastuidraw_stroke_cover_then_draw
+                  && render_pass == fastuidraw_stroke_aa_pass1
+                  && alpha < 1.0 - 1.0 / 255.0)
+                {
+                  alpha = 0.0;
+                }
+            }
+        }
+
+      if (aa_method == fastuidraw_stroke_cover_then_draw)
+        {
+          if (render_pass == fastuidraw_stroke_aa_pass1)
+            {
+              float dd, q;
+
+              // modulate by coverage to boundary
+              q = 1.0 - fastuidraw_stroking_on_boundary;
+              dd = max(q, fwidth(q));
+              alpha *= q / dd;
+
+              #if !defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
+                {
+                  fastuidraw_max_immediate_coverage(alpha);
+                  alpha = 0.0;
+                }
+              #endif
+            }
+        }
+      else if (dash_style != fastuidraw_stroke_not_dashed)
         {
           float dd, q;
 
@@ -83,40 +120,38 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           q = 1.0 - fastuidraw_stroking_on_boundary;
           dd = max(q, fwidth(q));
           alpha *= q / dd;
-          fastuidraw_max_immediate_coverage(alpha);
-          alpha = 0.0;
-        }
-    }
-  else if (dash_style != fastuidraw_stroke_not_dashed)
-    {
-      float dd, q;
 
-      // modulate by coverage to boundary
-      q = 1.0 - fastuidraw_stroking_on_boundary;
-      dd = max(q, fwidth(q));
-      alpha *= q / dd;
-
-      if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
-        {
-          FASTUIDRAW_DISCARD;
-        }
-    }
-  else
-    {
-      if (render_pass == fastuidraw_stroke_aa_pass2)
-        {
-          float dd, q;
-
-          // modulate by coverage to boundary
-          q = 1.0 - fastuidraw_stroking_on_boundary;
-          dd = max(q, fwidth(q));
-          alpha *= q / dd;
+          if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
+            {
+              FASTUIDRAW_DISCARD;
+            }
         }
       else
         {
-          alpha = 1.0;
-        }
-    }
+          if (render_pass == fastuidraw_stroke_aa_pass2)
+            {
+              float dd, q;
 
-  return vec4(1.0, 1.0, 1.0, alpha);
+              // modulate by coverage to boundary
+              q = 1.0 - fastuidraw_stroking_on_boundary;
+              dd = max(q, fwidth(q));
+              alpha *= q / dd;
+            }
+          else
+            {
+              alpha = 1.0;
+            }
+        }
+
+      #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
+        {
+          return vec4(1.0, 1.0, 1.0, alpha);
+        }
+      #else
+        {
+          return alpha;
+        }
+      #endif
+    }
+  #endif
 }
