@@ -514,7 +514,7 @@ public:
    * \param obj Value to set all objects as.
    */
   const vecN&
-  Set(const T &obj)
+  fill(const T &obj)
   {
     for(size_type i = 0; i < N; ++i)
       {
