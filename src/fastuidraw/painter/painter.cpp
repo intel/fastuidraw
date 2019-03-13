@@ -1431,7 +1431,7 @@ namespace
   class PainterWorkRoom:fastuidraw::noncopyable
   {
   public:
-    ClipperWorkRoom m_clipper;
+    ClipperWorkRoom m_clipper, m_compute_clip_intersect_rect;
     PolygonWorkRoom m_polygon;
     StrokingWorkRoom m_stroke;
     FillSubsetWorkRoom m_fill_subset;
@@ -2364,6 +2364,8 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
            fastuidraw::ivec2 useable_size,
            PainterPrivate *d)
 {
+  using namespace fastuidraw;
+
   /* we need to discretize the rectangle, so that
    * the size is correct. Using the normalized_rect.size()
    * scaled is actually WRONG. Rather we need to look
@@ -2371,6 +2373,7 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
    */
   m_fbl = coords_from_normalized_coords(normalized_rect.m_min_point, d->m_viewport.m_dimensions);
   m_ftr = coords_from_normalized_coords(normalized_rect.m_max_point, d->m_viewport.m_dimensions);
+
   m_bl = fastuidraw::ivec2(m_fbl);
   m_tr = fastuidraw::ivec2(m_ftr);
   m_dims = m_tr - m_bl;
@@ -2870,29 +2873,38 @@ compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
 
   unsigned int src;
 
-  m_work_room.m_clipper.m_pts_update_series[0].resize(4);
+  FASTUIDRAWassert(additional_pixel_slack >= 0.0f);
+  FASTUIDRAWassert(additional_logical_slack >= 0.0f);
+  FASTUIDRAWassert(logical_rect.m_max_point.x() >= logical_rect.m_min_point.x());
+  FASTUIDRAWassert(logical_rect.m_max_point.y() >= logical_rect.m_min_point.y());
 
-  m_work_room.m_clipper.m_pts_update_series[0][0] = vec2(logical_rect.m_min_point.x() - additional_logical_slack,
-                                                         logical_rect.m_min_point.y() - additional_logical_slack);
+  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0].resize(4);
 
-  m_work_room.m_clipper.m_pts_update_series[0][1] = vec2(logical_rect.m_min_point.x() - additional_logical_slack,
-                                                         logical_rect.m_max_point.y() + additional_logical_slack);
+  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][0] =
+    vec2(logical_rect.m_min_point.x() - additional_logical_slack,
+         logical_rect.m_min_point.y() - additional_logical_slack);
 
-  m_work_room.m_clipper.m_pts_update_series[0][2] = vec2(logical_rect.m_max_point.x() + additional_logical_slack,
-                                                         logical_rect.m_max_point.y() + additional_logical_slack);
+  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][1]
+    = vec2(logical_rect.m_min_point.x() - additional_logical_slack,
+           logical_rect.m_max_point.y() + additional_logical_slack);
 
-  m_work_room.m_clipper.m_pts_update_series[0][3] = vec2(logical_rect.m_max_point.x() + additional_logical_slack,
-                                                         logical_rect.m_min_point.y() - additional_logical_slack);
+  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][2] =
+    vec2(logical_rect.m_max_point.x() + additional_logical_slack,
+         logical_rect.m_max_point.y() + additional_logical_slack);
+
+  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][3] =
+    vec2(logical_rect.m_max_point.x() + additional_logical_slack,
+         logical_rect.m_min_point.y() - additional_logical_slack);
 
   src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
-                                          m_work_room.m_clipper.m_pts_update_series);
+                                          m_work_room.m_compute_clip_intersect_rect.m_pts_update_series);
 
   /* logical_rect clipped against the current clip equations array
-   * is now stored in _work_room.m_clipper.m_pts_update_series[src]
+   * is now stored in m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[src]
    * and in logical-coordinates
    */
   c_array<const vec2> poly;
-  poly = make_c_array(m_work_room.m_clipper.m_pts_update_series[src]);
+  poly = make_c_array(m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[src]);
 
   BoundingBox<float> bbox;
   const float3x3 &transform(m_clip_rect_state.item_matrix());
@@ -2904,7 +2916,15 @@ compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
       bbox.union_point(vec2(clip_pt) * recip_z);
     }
 
-  bbox.enlarge(vec2(additional_pixel_slack, additional_pixel_slack));
+  /* convert additional_pixel_slack from pixel coordinates
+   * to normalized-device coordinates
+   */
+  bbox.enlarge(additional_pixel_slack * m_one_pixel_width);
+
+  /* intersect against the square [-1, 1]x[-1, 1] */
+  bbox.instersect_against(BoundingBox<float>(vec2(-1.0f, -1.0f),
+                                             vec2(+1.0f, +1.0f)));
+
   return bbox;
 }
 
