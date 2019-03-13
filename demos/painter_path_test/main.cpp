@@ -262,6 +262,7 @@ private:
       by_anti_alias_simple,
       by_anti_alias_hq,
       by_anti_alias_fastest,
+      by_anti_alias_hq_deferred,
 
       number_anti_alias_modes
     };
@@ -823,12 +824,14 @@ painter_stroke_test(void):
   m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
   m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
   m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
+  m_anti_alias_mode_labels[by_anti_alias_hq_deferred] = "by_anti_alias_hq_deferred";
 
   m_shader_anti_alias_mode_values[no_anti_alias] = Painter::shader_anti_alias_none;
   m_shader_anti_alias_mode_values[by_anti_alias_auto] = Painter::shader_anti_alias_auto;
   m_shader_anti_alias_mode_values[by_anti_alias_simple] = Painter::shader_anti_alias_simple;
   m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_high_quality;
   m_shader_anti_alias_mode_values[by_anti_alias_fastest] = Painter::shader_anti_alias_fastest;
+  m_shader_anti_alias_mode_values[by_anti_alias_hq_deferred] = Painter::shader_anti_alias_deferred_coverage;
 
   m_stroke_mode_labels[stroke_linear_path] = "stroke_linear_path";
   m_stroke_mode_labels[stroke_arc_path] = "stroke_arc_path";
@@ -2255,14 +2258,15 @@ draw_frame(void)
                 }
             }
         }
-      ostr << "\nAttribs: "
-           << painter_stat(Painter::num_attributes)
-           << "\nIndices: "
-           << painter_stat(Painter::num_indices)
-           << "\nGenericData: "
-           << painter_stat(Painter::num_generic_datas)
-           << "\nNumber Draws: "
-           << painter_stat(Painter::num_draws)
+      fastuidraw::c_array<const unsigned int> stats(painter_stats());
+      for (unsigned int i = 0; i < stats.size(); ++i)
+        {
+          enum Painter::query_stats_t st;
+
+          st = static_cast<enum Painter::query_stats_t>(i);
+          ostr << "\n" << Painter::stat_name(st) << ": " << stats[i];
+        }
+      ostr << painter_stat(Painter::num_draws)
            << "\nMouse position:"
            << item_coordinates(mouse_position)
            << "\ncurve_flatness: " << m_curve_flatness
