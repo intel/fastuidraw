@@ -270,6 +270,11 @@ namespace fastuidraw
          * Choose for optimal performance.
          */
         stroking_method_auto,
+
+        /*!
+         * Number of stroking enums present.
+         */
+        number_stroking_methods,
       };
 
     /*!
