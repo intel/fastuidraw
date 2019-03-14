@@ -452,7 +452,7 @@ namespace
     compute_chunks(ScratchSpacePrivate &work_room,
                    fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                    const fastuidraw::float3x3 &clip_matrix_local,
-                   const fastuidraw::vec2 &recip_dimensions,
+                   const fastuidraw::vec2 &one_pixel_width,
                    float pixels_additional_room,
                    float item_space_additional_room,
                    unsigned int max_attribute_cnt,
@@ -1422,7 +1422,7 @@ SubsetPrivate::
 compute_chunks(ScratchSpacePrivate &scratch,
                fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                const fastuidraw::float3x3 &clip_matrix_local,
-               const fastuidraw::vec2 &recip_dimensions,
+               const fastuidraw::vec2 &one_pixel_width,
                float pixels_additional_room,
                float item_space_additional_room,
                unsigned int max_attribute_cnt,
@@ -1438,8 +1438,8 @@ compute_chunks(ScratchSpacePrivate &scratch,
 
       /* make "w" larger by the named number of pixels.
        */
-      f = fastuidraw::t_abs(c.x()) * recip_dimensions.x()
-        + fastuidraw::t_abs(c.y()) * recip_dimensions.y();
+      f = fastuidraw::t_abs(c.x()) * one_pixel_width.x()
+        + fastuidraw::t_abs(c.y()) * one_pixel_width.y();
 
       c.z() += pixels_additional_room * f;
 
@@ -2984,7 +2984,7 @@ fastuidraw::StrokedCapsJoins::
 compute_chunks(ScratchSpace &scratch_space,
                c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
-               const vec2 &recip_dimensions,
+               const vec2 &one_pixel_width,
                float pixels_additional_room,
                float item_space_additional_room,
                unsigned int max_attribute_cnt,
@@ -3009,7 +3009,7 @@ compute_chunks(ScratchSpace &scratch_space,
   d->m_subset->compute_chunks(*scratch_space_ptr,
                               clip_equations,
                               clip_matrix_local,
-                              recip_dimensions,
+                              one_pixel_width,
                               pixels_additional_room,
                               item_space_additional_room,
                               max_attribute_cnt,

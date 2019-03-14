@@ -228,7 +228,7 @@ namespace
     select_subsets(ScratchSpacePrivate &scratch,
                    fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                    const fastuidraw::float3x3 &clip_matrix_local,
-                   const fastuidraw::vec2 &recip_dimensions,
+                   const fastuidraw::vec2 &one_pixel_width,
                    float pixels_additional_room,
                    float item_space_additional_room,
                    unsigned int max_attribute_cnt,
@@ -1138,7 +1138,7 @@ SubsetPrivate::
 select_subsets(ScratchSpacePrivate &scratch,
                fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                const fastuidraw::float3x3 &clip_matrix_local,
-               const fastuidraw::vec2 &recip_dimensions,
+               const fastuidraw::vec2 &one_pixel_width,
                float pixels_additional_room,
                float item_space_additional_room,
                unsigned int max_attribute_cnt,
@@ -1153,10 +1153,9 @@ select_subsets(ScratchSpacePrivate &scratch,
       vec3 c(clip_equations[i]);
       float f;
 
-      /* make "w" larger by the named number of pixels.
-       */
-      f = t_abs(c.x()) * recip_dimensions.x()
-        + t_abs(c.y()) * recip_dimensions.y();
+      /* make "w" larger by the named number of pixels. */
+      f = t_abs(c.x()) * one_pixel_width.x()
+        + t_abs(c.y()) * one_pixel_width.y();
 
       c.z() += pixels_additional_room * f;
 
@@ -2130,7 +2129,7 @@ fastuidraw::StrokedPath::
 select_subsets(ScratchSpace &scratch_space,
                c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
-               const vec2 &recip_dimensions,
+               const vec2 &one_pixel_width,
                float pixels_additional_room,
                float item_space_additional_room,
                unsigned int max_attribute_cnt,
@@ -2150,7 +2149,7 @@ select_subsets(ScratchSpace &scratch_space,
       return_value = d->m_root->select_subsets(*scratch_space_ptr,
                                                clip_equations,
                                                clip_matrix_local,
-                                               recip_dimensions,
+                                               one_pixel_width,
                                                pixels_additional_room,
                                                item_space_additional_room,
                                                max_attribute_cnt,

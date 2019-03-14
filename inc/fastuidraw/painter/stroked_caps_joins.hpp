@@ -182,7 +182,8 @@ public:
    * \param clip_equations array of clip equations
    * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
    *                          coordinates to clip coordinates.
-   * \param recip_dimensions holds the reciprocal of the dimensions of the viewport
+   * \param one_pixel_width holds the size of a single pixel in
+   *                        normalized device coordinates
    * \param pixels_additional_room amount in -pixels- to push clip equations by
    *                               to grab additional edges
    * \param item_space_additional_room amount in local coordinates to push clip
@@ -202,7 +203,7 @@ public:
   compute_chunks(ScratchSpace &scratch_space,
                  c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
-                 const vec2 &recip_dimensions,
+                 const vec2 &one_pixel_width,
                  float pixels_additional_room,
                  float item_space_additional_room,
                  unsigned int max_attribute_cnt,
