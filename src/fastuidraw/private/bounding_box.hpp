@@ -254,6 +254,19 @@ namespace fastuidraw
           || this->m_min_point.y() > obj.m_max_point.y());
     }
 
+    void
+    instersect_against(const BoundingBox &obj)
+    {
+      m_empty = !intersects(obj);
+      if (!m_empty)
+        {
+          this->m_min_point.x() = t_max(obj.m_min_point.x(), this->m_min_point.x());
+          this->m_min_point.y() = t_max(obj.m_min_point.y(), this->m_min_point.y());
+          this->m_max_point.x() = t_min(obj.m_max_point.x(), this->m_max_point.x());
+          this->m_max_point.y() = t_min(obj.m_max_point.y(), this->m_max_point.y());
+        }
+    }
+
     bool
     contains(const pt_type &p) const
     {
