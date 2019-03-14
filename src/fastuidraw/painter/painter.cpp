@@ -4745,7 +4745,12 @@ begin(const reference_counted_ptr<PainterSurface> &surface,
   d->m_viewport_dimensions = vec2(d->m_viewport.m_dimensions);
   d->m_viewport_dimensions.x() = t_max(1.0f, d->m_viewport_dimensions.x());
   d->m_viewport_dimensions.y() = t_max(1.0f, d->m_viewport_dimensions.y());
-  d->m_one_pixel_width = 1.0f / d->m_viewport_dimensions;
+  /* m_one_pixel_width holds the size of a pixel in
+   * normalized device coordinates whose range is [-1, 1].
+   * Thus, the value is twice the reciprocal of the viewport
+   * dimensions.
+   */
+  d->m_one_pixel_width = 2.0f / d->m_viewport_dimensions;
 
   d->m_current_z = 1;
   d->m_draw_data_added_count = 0;
