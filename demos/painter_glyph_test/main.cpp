@@ -35,6 +35,13 @@ static c_string anti_alias_labels[Painter::number_shader_anti_alias_enums] =
     [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",
   };
 
+static c_string stroking_method_labels[Painter::number_stroking_methods] =
+  {
+    [Painter::stroking_method_linear] = "stroking_method_linear",
+    [Painter::stroking_method_arc] = "stroking_method_arc",
+    [Painter::stroking_method_auto] = "stroking_method_auto",
+  };
+
 std::ostream&
 operator<<(std::ostream &str, GlyphRenderer R)
 {
@@ -247,6 +254,7 @@ private:
 
   bool m_stroke_glyphs, m_fill_glyphs, m_draw_path_pts;
   enum Painter::shader_anti_alias_t m_anti_alias_path_stroking, m_anti_alias_path_filling;
+  enum Painter::stroking_method_t m_stroking_method;
   bool m_pixel_width_stroking;
   bool m_draw_stats, m_draw_restricted_rays_box_slack;
   float m_stroke_width;
@@ -559,7 +567,8 @@ painter_glyph_test(void):
   m_draw_path_pts(false),
   m_anti_alias_path_stroking(Painter::shader_anti_alias_none),
   m_anti_alias_path_filling(Painter::shader_anti_alias_none),
-  m_pixel_width_stroking(true),
+  m_stroking_method(Painter::stroking_method_auto),
+  m_pixel_width_stroking(false),
   m_draw_stats(false),
   m_draw_restricted_rays_box_slack(false),
   m_stroke_width(1.0f),
@@ -576,8 +585,9 @@ painter_glyph_test(void):
             << "[hold shift, control or mode to reverse cycle]\n"
             << "\td: Cycle though text renderer\n"
             << "\tf: Toggle rendering text as filled path\n"
-            << "\tq: Toggle anti-aliasing filled path rendering\n"
-            << "\tw: Toggle anti-aliasing stroked path rendering\n"
+            << "\tq: Cycle through anti-aliasing filled path rendering modes\n"
+            << "\tw: Cycle through anti-aliasing stroked path rendering modes\n"
+            << "\tx: Cycle through stroking path realization mode\n"
             << "\tp: Toggle pixel width stroking\n"
             << "\tctrl-p: toggle showing points (blue), control pts(blue) and arc-center(green) of glyphs"
             << "\tz: reset zoom factor to 1.0\n"
@@ -873,7 +883,7 @@ stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
   m_painter->stroke_path(d, G.path(),
                          StrokingStyle()
                          .join_style(static_cast<enum Painter::join_style>(m_join_style)),
-                         m_anti_alias_path_stroking);
+                         m_anti_alias_path_stroking, m_stroking_method);
 }
 
 void
@@ -1206,8 +1216,12 @@ draw_glyphs(float us)
 
       if (m_stroke_glyphs)
         {
-          ostr << "\nStroking Glyphs (anti-aliasing = "
-               << anti_alias_labels[m_anti_alias_path_stroking] << ")";
+          ostr << "\nStroking Glyphs\n\tanti-aliasing = "
+               << anti_alias_labels[m_anti_alias_path_stroking]
+               << "\n\tstroking_method = "
+               << stroking_method_labels[m_stroking_method]
+               << "\n\tpixel_width_stroking = "
+               << on_off(m_pixel_width_stroking);
         }
 
       fastuidraw::c_array<const unsigned int> stats(painter_stats());
@@ -1487,6 +1501,20 @@ handle_event(const SDL_Event &ev)
               m_anti_alias_path_stroking = static_cast<enum Painter::shader_anti_alias_t>(v);
               std::cout << "Anti-aliasing of path stroking set to "
                         << anti_alias_labels[m_anti_alias_path_stroking]
+                        << "\n";
+            }
+          break;
+
+        case SDLK_x:
+          if (m_stroke_glyphs)
+            {
+              int v(m_stroking_method);
+
+              cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
+                          Painter::number_stroking_methods);
+              m_stroking_method = static_cast<enum Painter::stroking_method_t>(v);
+              std::cout << "Anti-aliasing of path stroking set to "
+                        << stroking_method_labels[m_stroking_method]
                         << "\n";
             }
           break;
