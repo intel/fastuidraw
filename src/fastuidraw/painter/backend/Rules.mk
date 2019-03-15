@@ -9,6 +9,7 @@ include $(dir)/Rules.mk
 
 FASTUIDRAW_SOURCES += $(call filelist, \
 	painter_shader_group.cpp \
+	painter_surface.cpp \
 	painter_backend.cpp painter_header.cpp \
 	painter_clip_equations.cpp \
 	painter_item_matrix.cpp \

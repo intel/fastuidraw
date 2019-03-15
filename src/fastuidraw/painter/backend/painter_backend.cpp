@@ -144,50 +144,6 @@ setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
                  bool, supports_bindless_texturing)
 
-/////////////////////////////////////////////////////////
-// fastuidraw::PainterSurface::Viewport methods
-void
-fastuidraw::PainterSurface::Viewport::
-compute_clip_equations(ivec2 surface_dims,
-                       vecN<vec3, 4> *out_clip_equations) const
-{
-  Rect Rndc;
-
-  compute_normalized_clip_rect(surface_dims, &Rndc);
-
-  /* The clip equations are:
-   *
-   *  Rndc.m_min_point.x() <= x <= Rndc.m_max_point.x()
-   *  Rndc.m_min_point.y() <= y <= Rndc.m_max_point.y()
-   *
-   * Which converts to
-   *
-   *  +1.0 * x - Rndc.m_min_point.x() * w >= 0
-   *  +1.0 * y - Rndc.m_min_point.y() * w >= 0
-   *  -1.0 * x + Rndc.m_max_point.x() * w >= 0
-   *  -1.0 * y + Rndc.m_max_point.y() * w >= 0
-   */
-  (*out_clip_equations)[0] = vec3(+1.0f, 0.0f, -Rndc.m_min_point.x());
-  (*out_clip_equations)[1] = vec3(0.0f, +1.0f, -Rndc.m_min_point.y());
-  (*out_clip_equations)[2] = vec3(-1.0f, 0.0f, +Rndc.m_max_point.x());
-  (*out_clip_equations)[3] = vec3(0.0f, -1.0f, +Rndc.m_max_point.y());
-}
-
-void
-fastuidraw::PainterSurface::Viewport::
-compute_normalized_clip_rect(ivec2 surface_dims,
-                             Rect *out_rect) const
-{
-  out_rect->m_min_point = compute_normalized_device_coords(vec2(0.0f, 0.0f));
-  out_rect->m_max_point = compute_normalized_device_coords(vec2(surface_dims));
-
-  out_rect->m_min_point.x() = t_max(-1.0f, out_rect->m_min_point.x());
-  out_rect->m_max_point.x() = t_min(+1.0f, out_rect->m_max_point.x());
-
-  out_rect->m_min_point.y() = t_max(-1.0f, out_rect->m_min_point.y());
-  out_rect->m_max_point.y() = t_min(+1.0f, out_rect->m_max_point.y());
-}
-
 ////////////////////////////////////
 // fastuidraw::PainterBackend methods
 fastuidraw::PainterBackend::
