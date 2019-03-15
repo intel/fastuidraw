@@ -2296,7 +2296,35 @@ reset_current_to_rect(const fastuidraw::Rect &R)
   pts[1] = vec2(R.m_min_point.x(), R.m_max_point.y());
   pts[2] = vec2(R.m_max_point.x(), R.m_max_point.y());
   pts[3] = vec2(R.m_max_point.x(), R.m_min_point.y());
-  set_current(id, id, pts);
+
+  m_poly.current().clear();
+  m_clip.current().clear();
+
+  /* the current clip region in normalized device
+   * coordinates becomes exactly R:
+   */
+  m_current_bb = BoundingBox<float>();
+  m_current_bb.union_point(R.m_min_point);
+  m_current_bb.union_point(R.m_max_point);
+
+  m_poly.current().push_back(vec3(R.m_min_point.x(), R.m_min_point.y(), 1.0f));
+  m_poly.current().push_back(vec3(R.m_min_point.x(), R.m_max_point.y(), 1.0f));
+  m_poly.current().push_back(vec3(R.m_max_point.x(), R.m_max_point.y(), 1.0f));
+  m_poly.current().push_back(vec3(R.m_max_point.x(), R.m_min_point.y(), 1.0f));
+
+  /* The clip-equations are simple as well:
+   *    R.m_min_poimt.x() <= x <= R.m_max_point.x()
+   *    R.m_min_poimt.y() <= y <= R.m_max_point.y()
+   * becomes (using w = 1)
+   *    +1.0 * x + -R.m_min_point.x() * w >= 0
+   *    -1.0 * x +  R.m_max_point.x() * w >= 0
+   *    +1.0 * y + -R.m_min_point.y() * w >= 0
+   *    -1.0 * y +  R.m_max_point.y() * w >= 0
+   */
+  m_clip.current().push_back(vec3(+1.0f, 0.0f, -R.m_min_point.x()));
+  m_clip.current().push_back(vec3(-1.0f, 0.0f, +R.m_max_point.x()));
+  m_clip.current().push_back(vec3(0.0f, +1.0f, -R.m_min_point.y()));
+  m_clip.current().push_back(vec3(0.0f, -1.0f, +R.m_max_point.y()));
 }
 
 void
