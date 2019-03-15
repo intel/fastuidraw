@@ -988,7 +988,7 @@ public:
    * Normalize this vecN up to a tolerance,
    * equivalent to
    * \code
-   * operator/=t_sqrt(t_max(tol, magnitudeSq()))
+   * operator/=(t_sqrt(t_max(tol, magnitudeSq())))
    * \endcode
    * \param tol tolerance to avoid dividing by too small values
    */
@@ -1019,7 +1019,7 @@ public:
    * by calling normalize(void).
    */
   vecN
-  normal_vector(void) const
+  unit_vector(void) const
   {
     vecN retval(*this);
     retval.normalize();
@@ -1031,7 +1031,7 @@ public:
    * by calling normalize(T).
    */
   vecN
-  normal_vector(T tol) const
+  unit_vector(T tol) const
   {
     vecN retval(*this);
     retval.normalize(tol);
@@ -1437,6 +1437,18 @@ pack_vec4(float x, float y, float z, float w)
     d2 = p2.magnitude();
     d = (d0 + d1 + d2) / T(2);
     return t_sqrt(d * (d - d0) * (d - d1) * (d - d2));
+  }
+
+  /*!
+   * Compute the cross produces of two vectors
+   */
+  template<typename T>
+  vecN<T, 3>
+  cross_product(const vecN<T, 3> &a, const vecN<T, 3> &b)
+  {
+    return vecN<T, 3>(a.y() * b.z() - a.z() * b.y(),
+                      a.z() * b.x() - a.x() * b.z(),
+                      a.x() * b.y() - a.y() * b.x());
   }
 
 /*! @} */
