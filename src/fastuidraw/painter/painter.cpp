@@ -2398,21 +2398,15 @@ intersect_current_against_polygon(fastuidraw::c_array<const fastuidraw::vec3> po
           next_i = 0;
         }
 
-      const float tiny(1e-5);
       const vec3 &p(clipped_poly[i]);
       const vec3 &next_p(clipped_poly[next_i]);
-      float L1norm;
 
       n = cross_product(p, next_p);
-      L1norm = n.L1norm();
-      if (L1norm > tiny)
+      if (dot(n, multiple_of_center) < 0.0f)
         {
-          if (dot(n, multiple_of_center) < 0.0f)
-            {
-              n = -n;
-            }
-          m_clip.current().push_back(n / L1norm);
+          n = -n;
         }
+      m_clip.current().push_back(n);
     }
   return clipped_poly.empty();
 }
