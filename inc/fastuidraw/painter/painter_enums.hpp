@@ -423,9 +423,14 @@ namespace fastuidraw
         num_ends,
 
         /*!
-         * Number of times begin_layer()/end_layer() was called
+         * Number of begin_layer()/end_layer() pairs called
          */
         num_layers,
+
+        /*!
+         * Number of begin_coverage_buffer()/end_coverage_buffer() pairs called
+         */
+        num_deferred_coverages,
       };
 
     /*!

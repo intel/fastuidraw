@@ -64,7 +64,7 @@ namespace fastuidraw
          * supported. Sync this with the last enumeration
          * in PainterEnums::query_stats_t
          */
-        num_stats = PainterEnums::num_layers + 1
+        num_stats = PainterEnums::num_deferred_coverages + 1
       };
 
     /*!

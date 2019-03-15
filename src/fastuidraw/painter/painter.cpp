@@ -1079,14 +1079,6 @@ namespace
       return m_current_bb;
     }
 
-    /* @param (input) clip_matrix_local transformation from local to clip coordinates
-     * @param (input) in_out_pts[0] convex polygon to clip
-     * @return what index into in_out_pts that holds polygon clipped
-     */
-    unsigned int
-    clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
-                         fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts);
-
   private:
     class Vec3Stack
     {
@@ -2308,25 +2300,6 @@ reset(fastuidraw::c_array<const fastuidraw::vec3> clip)
   m_current_bb.union_point(fastuidraw::vec2(+1.0f, +1.0f));
 }
 
-unsigned int
-ClipEquationStore::
-clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
-                     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts)
-{
-  fastuidraw::c_array<const fastuidraw::vec3> clips(current());
-  unsigned int src, dst, i;
-  for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
-    {
-      fastuidraw::vec3 nc;
-      fastuidraw::c_array<const fastuidraw::vec2> in;
-
-      nc = clips[i] * clip_matrix_local;
-      in = fastuidraw::make_c_array(in_out_pts[src]);
-      fastuidraw::detail::clip_against_plane(nc, in, in_out_pts[dst]);
-    }
-  return src;
-}
-
 void
 ClipEquationStore::
 reset_current_to_rect(const fastuidraw::Rect &R)
@@ -2425,15 +2398,21 @@ intersect_current_against_polygon(fastuidraw::c_array<const fastuidraw::vec3> po
           next_i = 0;
         }
 
+      const float tiny(1e-5);
       const vec3 &p(clipped_poly[i]);
       const vec3 &next_p(clipped_poly[next_i]);
+      float L1norm;
 
       n = cross_product(p, next_p);
-      if (dot(n, multiple_of_center) < 0.0f)
+      L1norm = n.L1norm();
+      if (L1norm > tiny)
         {
-          n = -n;
+          if (dot(n, multiple_of_center) < 0.0f)
+            {
+              n = -n;
+            }
+          m_clip.current().push_back(n / L1norm);
         }
-      m_clip.current().push_back(n);
     }
   return clipped_poly.empty();
 }
@@ -2996,9 +2975,8 @@ compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
    */
   return_value.enlarge(additional_pixel_slack * m_one_pixel_width);
 
-  /* intersect against the square [-1, 1]x[-1, 1] */
-  return_value.instersect_against(BoundingBox<float>(vec2(-1.0f, -1.0f),
-                                                     vec2(+1.0f, +1.0f)));
+  /* intersect against the the current clipping bound */
+  return_value.intersect_against(m_clip_store.current_bb());
 
   return return_value;
 }
@@ -3010,6 +2988,8 @@ begin_coverage_buffer_normalized_rect(const fastuidraw::Rect &normalized_rect,
 {
   if (non_empty)
     {
+      /* intersect normalized_rect with the current
+       */
       m_deferred_coverage_stack.push_back(m_deferred_coverage_stack_entry_factory.fetch(normalized_rect, this));
       m_deferred_coverage_stack.back().update_coverage_buffer_offset(this);
       m_clip_rect_state.coverage_buffer_normalized_translate(m_deferred_coverage_stack.back().normalized_translate());
@@ -3018,6 +2998,7 @@ begin_coverage_buffer_normalized_rect(const fastuidraw::Rect &normalized_rect,
     {
       m_deferred_coverage_stack.push_back(DeferredCoverageBufferStackEntry());
     }
+  ++m_stats[fastuidraw::Painter::num_deferred_coverages];
 }
 
 void
@@ -6657,6 +6638,7 @@ stat_name(enum query_stats_t st)
       EASY(num_render_targets);
       EASY(num_ends);
       EASY(num_layers);
+      EASY(num_deferred_coverages);
     default:
       return "unknown";
     }

@@ -255,7 +255,7 @@ namespace fastuidraw
     }
 
     void
-    instersect_against(const BoundingBox &obj)
+    intersect_against(const BoundingBox &obj)
     {
       m_empty = !intersects(obj);
       if (!m_empty)
