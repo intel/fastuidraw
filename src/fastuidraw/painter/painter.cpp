@@ -988,9 +988,9 @@ namespace
     reset(fastuidraw::c_array<const fastuidraw::vec3> clip);
 
     void
-    set_current(const fastuidraw::float3x3 &transform,
-                const fastuidraw::float3x3 &inverse_transpose,
-                fastuidraw::c_array<const fastuidraw::vec2> new_poly);
+    intersect_current_against_poly(const fastuidraw::float3x3 &transform,
+                                   const fastuidraw::float3x3 &inverse_transpose,
+                                   fastuidraw::c_array<const fastuidraw::vec2> new_poly);
 
     void
     reset_current_to_rect(const fastuidraw::Rect &rect_normalized_device_coords);
@@ -2318,9 +2318,9 @@ reset_current_to_rect(const fastuidraw::Rect &R)
 
 void
 ClipEquationStore::
-set_current(const fastuidraw::float3x3 &transform,
-            const fastuidraw::float3x3 &inverse_transpose,
-            fastuidraw::c_array<const fastuidraw::vec2> poly)
+intersect_current_against_poly(const fastuidraw::float3x3 &transform,
+                               const fastuidraw::float3x3 &inverse_transpose,
+                               fastuidraw::c_array<const fastuidraw::vec2> poly)
 {
   using namespace fastuidraw;
 
@@ -3010,9 +3010,9 @@ intersect_clip_against_item_rect(const fastuidraw::Rect &rect)
    */
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = fastuidraw::make_c_array(m_work_room.m_clipper.m_pts_update_series[src]);
-  m_clip_store.set_current(m_clip_rect_state.item_matrix(),
-                           m_clip_rect_state.item_matrix_inverse_transpose(),
-                           poly);
+  m_clip_store.intersect_current_against_poly(m_clip_rect_state.item_matrix(),
+                                              m_clip_rect_state.item_matrix_inverse_transpose(),
+                                              poly);
   return poly.empty();
 }
 
