@@ -1428,10 +1428,17 @@ namespace
     std::vector<int> m_empty_adjusts;
   };
 
+  class ComputeClipIntersectRectWorkRoom:fastuidraw::noncopyable
+  {
+  public:
+    fastuidraw::vecN<fastuidraw::vec3, 4> m_rect_pts;
+    fastuidraw::vecN<std::vector<fastuidraw::vec3>, 2> m_scratch;
+  };
+
   class PainterWorkRoom:fastuidraw::noncopyable
   {
   public:
-    ClipperWorkRoom m_clipper, m_compute_clip_intersect_rect;
+    ClipperWorkRoom m_clipper;
     PolygonWorkRoom m_polygon;
     StrokingWorkRoom m_stroke;
     FillSubsetWorkRoom m_fill_subset;
@@ -1440,6 +1447,7 @@ namespace
     GlyphSequenceWorkRoom m_glyph;
     RoundedRectWorkRoom m_rounded_rect;
     GenericLayeredWorkRoom m_generic_layered;
+    ComputeClipIntersectRectWorkRoom m_compute_clip_intersect_rect;
   };
 
   class PainterPrivate
@@ -2871,61 +2879,55 @@ compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
 {
   using namespace fastuidraw;
 
-  unsigned int src;
+  const float3x3 &transform(m_clip_rect_state.item_matrix());
+  c_array<const vec3> poly;
+  fastuidraw::BoundingBox<float> return_value;
 
   FASTUIDRAWassert(additional_pixel_slack >= 0.0f);
   FASTUIDRAWassert(additional_logical_slack >= 0.0f);
   FASTUIDRAWassert(logical_rect.m_max_point.x() >= logical_rect.m_min_point.x());
   FASTUIDRAWassert(logical_rect.m_max_point.y() >= logical_rect.m_min_point.y());
 
-  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0].resize(4);
+  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[0] =
+    transform * vec3(logical_rect.m_min_point.x() - additional_logical_slack,
+                     logical_rect.m_min_point.y() - additional_logical_slack,
+                     1.0f);
 
-  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][0] =
-    vec2(logical_rect.m_min_point.x() - additional_logical_slack,
-         logical_rect.m_min_point.y() - additional_logical_slack);
+  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[1]
+    = transform * vec3(logical_rect.m_min_point.x() - additional_logical_slack,
+                       logical_rect.m_max_point.y() + additional_logical_slack,
+                       1.0f);
 
-  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][1]
-    = vec2(logical_rect.m_min_point.x() - additional_logical_slack,
-           logical_rect.m_max_point.y() + additional_logical_slack);
+  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[2] =
+    transform * vec3(logical_rect.m_max_point.x() + additional_logical_slack,
+                     logical_rect.m_max_point.y() + additional_logical_slack,
+                     1.0f);
 
-  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][2] =
-    vec2(logical_rect.m_max_point.x() + additional_logical_slack,
-         logical_rect.m_max_point.y() + additional_logical_slack);
+  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[3] =
+    transform * vec3(logical_rect.m_max_point.x() + additional_logical_slack,
+                     logical_rect.m_min_point.y() - additional_logical_slack,
+                     1.0f);
 
-  m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[0][3] =
-    vec2(logical_rect.m_max_point.x() + additional_logical_slack,
-         logical_rect.m_min_point.y() - additional_logical_slack);
+  detail::clip_against_planes(m_clip_store.current(),
+                              m_work_room.m_compute_clip_intersect_rect.m_rect_pts,
+                              &poly, m_work_room.m_compute_clip_intersect_rect.m_scratch);
 
-  src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
-                                          m_work_room.m_compute_clip_intersect_rect.m_pts_update_series);
-
-  /* logical_rect clipped against the current clip equations array
-   * is now stored in m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[src]
-   * and in logical-coordinates
-   */
-  c_array<const vec2> poly;
-  poly = make_c_array(m_work_room.m_compute_clip_intersect_rect.m_pts_update_series[src]);
-
-  BoundingBox<float> bbox;
-  const float3x3 &transform(m_clip_rect_state.item_matrix());
-  for (const vec2 &pt : poly)
+  for (const vec3 &clip_pt : poly)
     {
-      vec3 clip_pt(transform * vec3(pt.x(), pt.y(), 1.0f));
       float recip_z(1.0f / clip_pt.z());
-
-      bbox.union_point(vec2(clip_pt) * recip_z);
+      return_value.union_point(vec2(clip_pt) * recip_z);
     }
 
   /* convert additional_pixel_slack from pixel coordinates
    * to normalized-device coordinates
    */
-  bbox.enlarge(additional_pixel_slack * m_one_pixel_width);
+  return_value.enlarge(additional_pixel_slack * m_one_pixel_width);
 
   /* intersect against the square [-1, 1]x[-1, 1] */
-  bbox.instersect_against(BoundingBox<float>(vec2(-1.0f, -1.0f),
-                                             vec2(+1.0f, +1.0f)));
+  return_value.instersect_against(BoundingBox<float>(vec2(-1.0f, -1.0f),
+                                                     vec2(+1.0f, +1.0f)));
 
-  return bbox;
+  return return_value;
 }
 
 void
