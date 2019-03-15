@@ -1343,6 +1343,7 @@ namespace
   public:
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_series;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_vec2s;
+    fastuidraw::vecN<std::vector<fastuidraw::vec3>, 2> m_vec3s;
   };
 
   class PolygonWorkRoom:fastuidraw::noncopyable
@@ -1561,14 +1562,6 @@ namespace
                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias);
 
     void
-    stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
-                       const fastuidraw::PainterData &draw,
-                       fastuidraw::c_array<const fastuidraw::vec2> pts,
-                       enum fastuidraw::Painter::cap_style cp,
-                       enum fastuidraw::Painter::join_style js,
-                       enum fastuidraw::Painter::shader_anti_alias_t anti_alias);
-
-    void
     pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
                              enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
                              const FillSubsetWorkRoom &fill_subset,
@@ -1684,20 +1677,16 @@ namespace
                                const fastuidraw::vec3 &plane);
 
     bool
-    update_clip_equation_series(const fastuidraw::Rect &rect);
+    intersect_clip_against_item_rect(const fastuidraw::Rect &rect);
 
     float
     compute_magnification(const fastuidraw::Rect &rect);
 
     float
-    compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> poly);
+    compute_max_magnification_at_local_points(fastuidraw::c_array<const fastuidraw::vec2> poly);
 
     float
-    compute_magnification_at_point(fastuidraw::vec2 p)
-    {
-      fastuidraw::c_array<const fastuidraw::vec2> poly(&p, 1);
-      return compute_max_magnification_at_points(poly);
-    }
+    compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::vec3> poly);
 
     float
     compute_magnification(const fastuidraw::Path &path);
@@ -2997,7 +2986,7 @@ end_coverage_buffer(void)
 
 bool
 PainterPrivate::
-update_clip_equation_series(const fastuidraw::Rect &rect)
+intersect_clip_against_item_rect(const fastuidraw::Rect &rect)
 {
   /* We compute the rectangle clipped against the current
    * clipping planes which gives us a convex polygon.
@@ -3053,27 +3042,37 @@ float
 PainterPrivate::
 compute_magnification(const fastuidraw::Rect &rect)
 {
-  unsigned int src;
+  using namespace fastuidraw;
 
-  /* clip the bounding box given by rect */
-  m_work_room.m_clipper.m_vec2s[0].resize(4);
-  m_work_room.m_clipper.m_vec2s[0][0] = rect.m_min_point;
-  m_work_room.m_clipper.m_vec2s[0][1] = fastuidraw::vec2(rect.m_min_point.x(), rect.m_max_point.y());
-  m_work_room.m_clipper.m_vec2s[0][2] = rect.m_max_point;
-  m_work_room.m_clipper.m_vec2s[0][3] = fastuidraw::vec2(rect.m_max_point.x(), rect.m_min_point.y());
+  /* early out to avoid clipping the rect against the
+   * clip-equations
+   */
+  const float3x3 &m(m_clip_rect_state.item_matrix());
+  if (!matrix_has_perspective(m))
+    {
+      return m_clip_rect_state.item_matrix_operator_norm() / t_abs(m(2, 2));
+    }
 
-  src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
-                                          m_work_room.m_clipper.m_vec2s);
+  /* Rect is in local coordinates; get the rect in clip-coordinates */
+  vecN<vec3, 4> poly;
+  c_array<const vec3> clipped_poly;
 
-  fastuidraw::c_array<const fastuidraw::vec2> poly;
-  poly = make_c_array(m_work_room.m_clipper.m_vec2s[src]);
+  poly[0] = m * vec3(rect.m_min_point.x(), rect.m_min_point.y(), 1.0f);
+  poly[1] = m * vec3(rect.m_min_point.x(), rect.m_max_point.y(), 1.0f);
+  poly[2] = m * vec3(rect.m_max_point.x(), rect.m_max_point.y(), 1.0f);
+  poly[3] = m * vec3(rect.m_max_point.x(), rect.m_min_point.y(), 1.0f);
 
-  return compute_max_magnification_at_points(poly);
+  /* clip poly against the clip-equations */
+  detail::clip_against_planes(m_clip_store.current(), poly,
+                              &clipped_poly, m_work_room.m_clipper.m_vec3s);
+
+  /* now compute the worst case magnification */
+  return compute_max_magnification_at_clip_points(clipped_poly);
 }
 
 float
 PainterPrivate::
-compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> poly)
+compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::vec3> poly)
 {
   using namespace fastuidraw;
 
@@ -3177,12 +3176,64 @@ compute_max_magnification_at_points(fastuidraw::c_array<const fastuidraw::vec2> 
   min_w = 1e+6;
 
   /* find the smallest w of all the clipped points */
-  for(unsigned int i = 0, endi = poly.size(); i < endi; ++i)
+  for(const vec3 &q: poly)
+    {
+      const float tol_w = 1e-6;
+
+      /* the clip equations from the start guarnatee that
+       * q.z() >= 0. If it is zero, then the edge of q satsifies
+       * |x| = w and |y| = w which means we should probably
+       * ignore q.
+       */
+      if (q.z() > tol_w)
+	{
+	  min_w = t_min(min_w, q.z());
+	}
+    }
+
+  float v_norm;
+  v_norm = 0.5f * t_max(t_abs(m(2, 0) * m_viewport_dimensions.x()),
+                        t_abs(m(2, 1) * m_viewport_dimensions.y()));
+
+  return (op_norm + v_norm) / min_w;
+}
+
+float
+PainterPrivate::
+compute_max_magnification_at_local_points(fastuidraw::c_array<const fastuidraw::vec2> poly)
+{
+  using namespace fastuidraw;
+
+  if (poly.empty())
+    {
+      /* bounding box is completely clipped */
+      return -1.0f;
+    }
+
+  float op_norm;
+  const float3x3 &m(m_clip_rect_state.item_matrix());
+
+  op_norm = m_clip_rect_state.item_matrix_operator_norm();
+  if (!matrix_has_perspective(m))
+    {
+      return op_norm / t_abs(m(2, 2));
+    }
+
+  float min_w;
+
+  /* initalize min_w to some obsecenely large value */
+  min_w = 1e+6;
+
+  /* this is same compation as found in compute_max_magnification_at_points(c_array<vec3>),
+   * except that we need to apply the item-matrix transformation to the points in poly
+   * to get the clip-coordinate value.
+   */
+  for(const vec2 &p : poly)
     {
       vec3 q;
       const float tol_w = 1e-6;
 
-      q = m * vec3(poly[i].x(), poly[i].y(), 1.0f);
+      q = m * vec3(p.x(), p.y(), 1.0f);
       /* the clip equations from the start guarnatee that
        * q.z() >= 0. If it is zero, then the edge of q satsifies
        * |x| = w and |y| = w which means we should probably
@@ -3577,75 +3628,6 @@ draw_generic_z_layered(fastuidraw::c_array<const ConstItemShaderRefPtr> shaders,
                    fastuidraw::c_array<const unsigned int>(),
                    z);
     }
-}
-
-void
-PainterPrivate::
-stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
-                   const fastuidraw::PainterData &draw,
-                   fastuidraw::c_array<const fastuidraw::vec2> line_strip,
-                   enum fastuidraw::Painter::cap_style cp,
-                   enum fastuidraw::Painter::join_style js,
-                   enum fastuidraw::Painter::shader_anti_alias_t anti_alias)
-{
-  using namespace fastuidraw;
-
-  if (m_clip_rect_state.m_all_content_culled || line_strip.empty())
-    {
-      return;
-    }
-
-  Path path;
-  float thresh(-1.0f);
-
-  if (line_strip.size() < 2)
-    {
-      js = fastuidraw::Painter::no_joins;
-    }
-
-  /* TODO: creating a temporary path makes unnecessary memory
-   * allocation/deallocation noise; instead we should compute
-   * the attribute data directly and feed it directly to
-   * stroke_path_raw().
-   */
-  for (const vec2 &pt : line_strip)
-    {
-      path << pt;
-    }
-
-  if (cp == Painter::rounded_caps || js == Painter::bevel_joins)
-    {
-      const PainterShaderData::DataBase *shader_data;
-      float mag;
-
-      if (js == Painter::bevel_joins)
-        {
-          c_array<const vec2> tmp(line_strip);
-          tmp.pop_front();
-          tmp.pop_back();
-          mag = compute_max_magnification_at_points(tmp);
-        }
-      else
-        {
-          mag = -1.0f;
-        }
-
-      if (cp == Painter::rounded_caps)
-        {
-          mag = t_max(mag, compute_magnification_at_point(line_strip.front()));
-          mag = t_max(mag, compute_magnification_at_point(line_strip.back()));
-        }
-
-      if (mag > 0.0f)
-        {
-          shader_data = draw.m_item_shader_data.data().data_base();
-          thresh = shader.stroking_data_selector()->compute_thresh(shader_data, mag, m_curve_flatness);
-        }
-    }
-
-  stroke_path_common(shader, draw,
-                     *path.tessellation(-1.0f)->stroked(), thresh,
-                     cp, js, anti_alias);
 }
 
 void
@@ -5391,66 +5373,6 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
 
 void
 fastuidraw::Painter::
-stroke_line_strip(const PainterStrokeShader &shader, const PainterData &draw,
-                  c_array<const vec2> line_strip,
-                  const StrokingStyle &stroke_style,
-                  enum shader_anti_alias_t anti_alias_quality)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-
-  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
-  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
-  d->stroke_path_common(shader, draw, line_strip,
-                        stroke_style.m_cap_style,
-                        stroke_style.m_join_style,
-                        anti_alias_quality);
-}
-
-void
-fastuidraw::Painter::
-stroke_line_strip(const PainterData &draw,
-                  c_array<const vec2> line_strip,
-                  const StrokingStyle &stroke_style,
-                  enum shader_anti_alias_t anti_alias_quality)
-{
-  stroke_line_strip(default_shaders().stroke_shader(), draw,
-                    line_strip, stroke_style, anti_alias_quality);
-}
-
-void
-fastuidraw::Painter::
-stroke_dashed_line_strip(const PainterDashedStrokeShaderSet &shader,
-                         const PainterData &draw,
-                         c_array<const vec2> line_strip,
-                         const StrokingStyle &stroke_style,
-                         enum shader_anti_alias_t anti_alias_quality)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-
-  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
-  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
-  d->stroke_path_common(shader.shader(stroke_style.m_cap_style),
-                        draw, line_strip,
-                        stroke_style.m_cap_style,
-                        stroke_style.m_join_style,
-                        anti_alias_quality);
-}
-
-void
-fastuidraw::Painter::
-stroke_dashed_line_strip(const PainterData &draw,
-                         c_array<const vec2> line_strip,
-                         const StrokingStyle &stroke_style,
-                         enum shader_anti_alias_t anti_alias_quality)
-{
-  stroke_dashed_line_strip(default_shaders().dashed_stroke_shader(), draw,
-                           line_strip, stroke_style, anti_alias_quality);
-}
-
-void
-fastuidraw::Painter::
 fill_path(const PainterFillShader &shader, const PainterData &draw,
           const FilledPath &filled_path, enum fill_rule_t fill_rule,
           enum shader_anti_alias_t anti_alias_quality)
@@ -6444,7 +6366,7 @@ clip_in_rect(const Rect &rect)
   d->m_clip_rect_state.m_all_content_culled =
     d->m_clip_rect_state.m_all_content_culled ||
     d->m_clip_rect_state.rect_is_culled(rect) ||
-    d->update_clip_equation_series(rect);
+    d->intersect_clip_against_item_rect(rect);
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
