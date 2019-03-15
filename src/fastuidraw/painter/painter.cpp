@@ -987,10 +987,10 @@ namespace
     void
     reset(fastuidraw::c_array<const fastuidraw::vec3> clip);
 
-    void
-    intersect_current_against_poly(const fastuidraw::float3x3 &transform,
+    bool //returns true if clipping becomes so that all is clipped
+    intersect_current_against_rect(const fastuidraw::float3x3 &transform,
                                    const fastuidraw::float3x3 &inverse_transpose,
-                                   fastuidraw::c_array<const fastuidraw::vec2> new_poly);
+                                   const fastuidraw::Rect &rect);
 
     void
     reset_current_to_rect(const fastuidraw::Rect &rect_normalized_device_coords);
@@ -1087,6 +1087,7 @@ namespace
       std::vector<fastuidraw::vec3> m_current;
     };
 
+    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_scratch;
     Vec3Stack m_clip, m_poly;
 
     fastuidraw::BoundingBox<float> m_current_bb;
@@ -1341,7 +1342,6 @@ namespace
   class ClipperWorkRoom:fastuidraw::noncopyable
   {
   public:
-    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_series;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_vec2s;
     fastuidraw::vecN<std::vector<fastuidraw::vec3>, 2> m_vec3s;
   };
@@ -1675,9 +1675,6 @@ namespace
     draw_half_plane_complement(const fastuidraw::PainterFillShader &shader,
                                const fastuidraw::PainterData &draw,
                                const fastuidraw::vec3 &plane);
-
-    bool
-    intersect_clip_against_item_rect(const fastuidraw::Rect &rect);
 
     float
     compute_magnification(const fastuidraw::Rect &rect);
@@ -2316,13 +2313,26 @@ reset_current_to_rect(const fastuidraw::Rect &R)
   m_clip.current().push_back(vec3(0.0f, -1.0f, +R.m_max_point.y()));
 }
 
-void
+bool //returns true if clipping becomes so that all is clipped
 ClipEquationStore::
-intersect_current_against_poly(const fastuidraw::float3x3 &transform,
+intersect_current_against_rect(const fastuidraw::float3x3 &transform,
                                const fastuidraw::float3x3 &inverse_transpose,
-                               fastuidraw::c_array<const fastuidraw::vec2> poly)
+                               const fastuidraw::Rect &rect)
 {
   using namespace fastuidraw;
+
+  /* clip rect against the current clipping equations */
+  unsigned int src;
+
+  m_scratch[0].resize(4);
+  m_scratch[0][0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
+  m_scratch[0][1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
+  m_scratch[0][2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
+  m_scratch[0][3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
+  src = clip_against_current(transform, m_scratch);
+
+  c_array<const vec2> poly;
+  poly = make_c_array(m_scratch[src]);
 
   m_poly.current().clear();
   m_clip.current().clear();
@@ -2330,13 +2340,13 @@ intersect_current_against_poly(const fastuidraw::float3x3 &transform,
 
   if (poly.empty())
     {
-      return;
+      return true;
     }
 
   /* compute center of polygon so that we can correctly
    * orient the normal vectors of the sides.
    */
-  fastuidraw::vec2 center(0.0f, 0.0f);
+  vec2 center(0.0f, 0.0f);
   for(const auto &pt : poly)
     {
       center += pt;
@@ -2348,7 +2358,7 @@ intersect_current_against_poly(const fastuidraw::float3x3 &transform,
    */
   for(unsigned int i = 0; i < poly.size(); ++i)
     {
-      fastuidraw::vec2 v, n;
+      vec2 v, n;
       unsigned int next_i;
 
       next_i = i + 1;
@@ -2380,6 +2390,8 @@ intersect_current_against_poly(const fastuidraw::float3x3 &transform,
       m_poly.current().push_back(clip_pt);
       m_current_bb.union_point(normalized_pt);
     }
+
+  return false;
 }
 
 ///////////////////////////////////////
@@ -2982,38 +2994,6 @@ end_coverage_buffer(void)
 {
   FASTUIDRAWassert(m_state_stack.empty() || m_state_stack.back().m_deferred_coverage_buffer_depth < m_deferred_coverage_stack.size());
   m_deferred_coverage_stack.pop_back();
-}
-
-bool
-PainterPrivate::
-intersect_clip_against_item_rect(const fastuidraw::Rect &rect)
-{
-  /* We compute the rectangle clipped against the current
-   * clipping planes which gives us a convex polygon.
-   * That convex polygon then satsifies all of the
-   * previous clip equations. We then generate the
-   * clip equations coming from that polygon and REPLACE
-   * the old clip equations with the new ones.
-   */
-  unsigned int src;
-
-  m_work_room.m_clipper.m_pts_update_series[0].resize(4);
-  m_work_room.m_clipper.m_pts_update_series[0][0] = rect.m_min_point;
-  m_work_room.m_clipper.m_pts_update_series[0][1] = fastuidraw::vec2(rect.m_min_point.x(), rect.m_max_point.y());
-  m_work_room.m_clipper.m_pts_update_series[0][2] = rect.m_max_point;
-  m_work_room.m_clipper.m_pts_update_series[0][3] = fastuidraw::vec2(rect.m_max_point.x(), rect.m_min_point.y());
-  src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
-                                          m_work_room.m_clipper.m_pts_update_series);
-
-  /* the input rectangle clipped to the previous clipping equation
-   * array is now stored in m_work_room.m_clipper.m_pts_update_series[src]
-   */
-  fastuidraw::c_array<const fastuidraw::vec2> poly;
-  poly = fastuidraw::make_c_array(m_work_room.m_clipper.m_pts_update_series[src]);
-  m_clip_store.intersect_current_against_poly(m_clip_rect_state.item_matrix(),
-                                              m_clip_rect_state.item_matrix_inverse_transpose(),
-                                              poly);
-  return poly.empty();
 }
 
 float
@@ -6366,7 +6346,9 @@ clip_in_rect(const Rect &rect)
   d->m_clip_rect_state.m_all_content_culled =
     d->m_clip_rect_state.m_all_content_culled ||
     d->m_clip_rect_state.rect_is_culled(rect) ||
-    d->intersect_clip_against_item_rect(rect);
+    d->m_clip_store.intersect_current_against_rect(d->m_clip_rect_state.item_matrix(),
+                                                   d->m_clip_rect_state.item_matrix_inverse_transpose(),
+                                                   rect);
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
