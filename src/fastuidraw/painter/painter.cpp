@@ -441,7 +441,7 @@ namespace
     clip_rect_state(void):
       m_all_content_culled(false),
       m_item_matrix_transition_tricky(false),
-      m_inverse_transpose_not_ready(false),
+      m_inverse_transpose_ready(true),
       m_item_matrix_singular_values_ready(false)
     {}
 
@@ -457,25 +457,32 @@ namespace
                                     enum rect_coordinate_type_t c);
 
     const fastuidraw::float3x3&
-    item_matrix_inverse_transpose(void);
+    item_matrix_inverse_transpose(void) const;
 
     const fastuidraw::float3x3&
-    item_matrix(void)
+    item_matrix(void) const
     {
-      return m_item_matrix.m_item_matrix;
+      if (m_override_matrix_state)
+        {
+          return m_override_matrix_state.value().m_item_matrix;
+        }
+
+      return (m_item_matrix_state) ?
+        m_item_matrix_state.value().m_item_matrix :
+        m_item_matrix.m_item_matrix;
     }
 
     const fastuidraw::vec2&
-    item_matrix_singular_values(void);
+    item_matrix_singular_values(void) const;
 
     float
-    item_matrix_operator_norm(void)
+    item_matrix_operator_norm(void) const
     {
       return item_matrix_singular_values()[0];
     }
 
     enum matrix_type_t
-    matrix_type(void);
+    matrix_type(void) const;
 
     void //a negative value for singular_value_scaled indicates to recompute singular values
     item_matrix(const fastuidraw::float3x3 &v,
@@ -483,7 +490,7 @@ namespace
 		float singular_value_scaled = -1.0f);
 
     const fastuidraw::PainterClipEquations&
-    clip_equations(void)
+    clip_equations(void) const
     {
       return m_clip_equations;
     }
@@ -496,8 +503,13 @@ namespace
     }
 
     const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
-    current_item_matrix_state(fastuidraw::PainterPackedValuePool &pool)
+    current_item_matrix_state(fastuidraw::PainterPackedValuePool &pool) const
     {
+      if (m_override_matrix_state)
+        {
+          return m_override_matrix_state;
+        }
+
       if (!m_item_matrix_state)
         {
           m_item_matrix_state = pool.create_packed_value(m_item_matrix);
@@ -505,20 +517,27 @@ namespace
       return m_item_matrix_state;
     }
 
+    /* Dangerous function: override the current value for the item_matrix_state();
+     * All logic of checking if various other state and values are ready are not
+     * applied; the use case is to temporarily change the matrix state to a given
+     * state value and to restore it back to the previous state.
+     */
     void
-    item_matrix_state(const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> &v,
-                      bool mark_dirty)
+    override_item_matrix_state(const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> &v)
     {
-      m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || mark_dirty;
-      m_inverse_transpose_not_ready = m_inverse_transpose_not_ready || mark_dirty;
-      m_item_matrix_state = v;
-      m_item_matrix_coverage_buffer_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
-      m_item_matrix = v.value();
+      m_override_matrix_state = v;
+    }
+
+    void
+    stop_override_item_matrix_state(void)
+    {
+      m_override_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
     }
 
     const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
     current_item_matrix_coverage_buffer_state(fastuidraw::PainterPackedValuePool &pool)
     {
+      FASTUIDRAWassert(!m_override_matrix_state);
       if (!m_item_matrix_coverage_buffer_state)
         {
           fastuidraw::PainterItemMatrix tmp;
@@ -538,7 +557,7 @@ namespace
     }
 
     const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>&
-    clip_equations_state(fastuidraw::PainterPackedValuePool &pool)
+    clip_equations_state(fastuidraw::PainterPackedValuePool &pool) const
     {
       if (!m_clip_equations_state)
         {
@@ -555,7 +574,7 @@ namespace
     }
 
     bool
-    item_matrix_transition_tricky(void)
+    item_matrix_transition_tricky(void) const
     {
       return m_item_matrix_transition_tricky;
     }
@@ -566,7 +585,7 @@ namespace
                  std::vector<fastuidraw::vec2> &work_vec2s);
 
     bool
-    rect_is_culled(const fastuidraw::Rect &rect);
+    rect_is_culled(const fastuidraw::Rect &rect) const;
 
     void
     set_normalized_device_translate(const fastuidraw::vec2 &v)
@@ -597,19 +616,21 @@ namespace
     bool m_all_content_culled;
 
   private:
-    enum matrix_type_t m_matrix_type;
+    mutable enum matrix_type_t m_matrix_type;
     bool m_item_matrix_transition_tricky;
     fastuidraw::PainterItemMatrix m_item_matrix;
-    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_state;
+    mutable fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_state;
     fastuidraw::PainterClipEquations m_clip_equations;
-    fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_equations_state;
+    mutable fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_equations_state;
     fastuidraw::vec2 m_coverage_buffer_normalized_translate;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_coverage_buffer_state;
-    bool m_inverse_transpose_not_ready;
+    mutable bool m_inverse_transpose_ready;
     fastuidraw::vec2 m_viewport_dimensions;
-    fastuidraw::float3x3 m_item_matrix_inverse_transpose;
-    bool m_item_matrix_singular_values_ready;
-    fastuidraw::vec2 m_item_matrix_singular_values;
+    mutable fastuidraw::float3x3 m_item_matrix_inverse_transpose;
+    mutable bool m_item_matrix_singular_values_ready;
+    mutable fastuidraw::vec2 m_item_matrix_singular_values;
+
+    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_override_matrix_state;
   };
 
   class occluder_stack_entry
@@ -988,8 +1009,7 @@ namespace
     reset(fastuidraw::c_array<const fastuidraw::vec3> clip);
 
     bool //returns true if clipping becomes so that all is clipped
-    intersect_current_against_rect(const fastuidraw::float3x3 &transform,
-                                   const fastuidraw::float3x3 &inverse_transpose,
+    intersect_current_against_rect(const clip_rect_state &state,
                                    const fastuidraw::Rect &rect);
 
     void
@@ -1087,7 +1107,7 @@ namespace
       std::vector<fastuidraw::vec3> m_current;
     };
 
-    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_scratch;
+    fastuidraw::vecN<std::vector<fastuidraw::vec3>, 2> m_scratch;
     Vec3Stack m_clip, m_poly;
 
     fastuidraw::BoundingBox<float> m_current_bb;
@@ -1956,7 +1976,7 @@ reset(const fastuidraw::PainterSurface::Viewport &vwp,
 
   m_all_content_culled = false;
   m_item_matrix_transition_tricky = false;
-  m_inverse_transpose_not_ready = false;
+  m_inverse_transpose_ready = true;
   m_matrix_type = non_scaling_matrix;
   m_viewport_dimensions = vec2(vwp.m_dimensions);
 
@@ -1964,13 +1984,17 @@ reset(const fastuidraw::PainterSurface::Viewport &vwp,
   m_clip_rect.m_enabled = false;
   clip_equations(clip_eq);
 
-  item_matrix(float3x3(), false, non_scaling_matrix);
+  /* set the fields, without marking the transition as tricky
+   * but resetting the singular values as not yet computed.
+   */
+  item_matrix(float3x3(), false, non_scaling_matrix, -1.0f);
 }
 
 const fastuidraw::vec2&
 clip_rect_state::
-item_matrix_singular_values(void)
+item_matrix_singular_values(void) const
 {
+  FASTUIDRAWassert(!m_override_matrix_state);
   if (!m_item_matrix_singular_values_ready)
     {
       fastuidraw::float2x2 M;
@@ -1991,8 +2015,10 @@ item_matrix(const fastuidraw::float3x3 &v,
 	    bool trick_transition, enum matrix_type_t M,
 	    float singular_value_scaled)
 {
+  FASTUIDRAWassert(!m_override_matrix_state);
+
   m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || trick_transition;
-  m_inverse_transpose_not_ready = true;
+  m_inverse_transpose_ready = false;
   m_item_matrix.m_item_matrix = v;
   m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
   m_item_matrix_coverage_buffer_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
@@ -2022,8 +2048,9 @@ item_matrix(const fastuidraw::float3x3 &v,
 
 enum matrix_type_t
 clip_rect_state::
-matrix_type(void)
+matrix_type(void) const
 {
+  FASTUIDRAWassert(!m_override_matrix_state);
   if (m_matrix_type == unclassified_matrix)
     {
       if (matrix_has_perspective(m_item_matrix.m_item_matrix))
@@ -2057,11 +2084,12 @@ matrix_type(void)
 
 const fastuidraw::float3x3&
 clip_rect_state::
-item_matrix_inverse_transpose(void)
+item_matrix_inverse_transpose(void) const
 {
-  if (m_inverse_transpose_not_ready)
+  FASTUIDRAWassert(!m_override_matrix_state);
+  if (!m_inverse_transpose_ready)
     {
-      m_inverse_transpose_not_ready = false;
+      m_inverse_transpose_ready = true;
       m_item_matrix.m_item_matrix.inverse_transpose(m_item_matrix_inverse_transpose);
     }
   return m_item_matrix_inverse_transpose;
@@ -2191,7 +2219,7 @@ clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
 
 bool
 clip_rect_state::
-rect_is_culled(const fastuidraw::Rect &rect)
+rect_is_culled(const fastuidraw::Rect &rect) const
 {
   /* apply the current transformation matrix to
    * the corners of the clipping rectangle and check
@@ -2273,7 +2301,6 @@ reset_current_to_rect(const fastuidraw::Rect &R)
 {
   using namespace fastuidraw;
   vecN<vec2, 4> pts;
-  float3x3 id;
 
   /* the Rect R is in normalized device coordinates, so
    * the transformation to apply is just the identity
@@ -2315,83 +2342,77 @@ reset_current_to_rect(const fastuidraw::Rect &R)
 
 bool //returns true if clipping becomes so that all is clipped
 ClipEquationStore::
-intersect_current_against_rect(const fastuidraw::float3x3 &transform,
-                               const fastuidraw::float3x3 &inverse_transpose,
+intersect_current_against_rect(const clip_rect_state &state,
                                const fastuidraw::Rect &rect)
 {
   using namespace fastuidraw;
 
   /* clip rect against the current clipping equations */
-  unsigned int src;
+  const float3x3 &transform(state.item_matrix());
+  vecN<vec3, 4> rect_clip_coords;
+  c_array<const vec3> clipped_rect;
+  bool unclipped;
 
-  m_scratch[0].resize(4);
-  m_scratch[0][0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
-  m_scratch[0][1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
-  m_scratch[0][2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
-  m_scratch[0][3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
-  src = clip_against_current(transform, m_scratch);
-
-  c_array<const vec2> poly;
-  poly = make_c_array(m_scratch[src]);
+  rect_clip_coords[0] = transform * vec3(rect.m_min_point.x(), rect.m_min_point.y(), 1.0f);
+  rect_clip_coords[1] = transform * vec3(rect.m_min_point.x(), rect.m_max_point.y(), 1.0f);
+  rect_clip_coords[2] = transform * vec3(rect.m_max_point.x(), rect.m_max_point.y(), 1.0f);
+  rect_clip_coords[3] = transform * vec3(rect.m_max_point.x(), rect.m_min_point.y(), 1.0f);
+  detail::clip_against_planes(current(), rect_clip_coords, &clipped_rect, m_scratch);
 
   m_poly.current().clear();
   m_clip.current().clear();
   m_current_bb = BoundingBox<float>();
 
-  if (poly.empty())
+  vec3 multiple_of_center(0.0f, 0.0f, 0.0f);
+  m_poly.current().reserve(clipped_rect.size());
+  for(const vec3 &clip_pt : clipped_rect)
     {
-      return true;
+      m_poly.current().push_back(clip_pt);
+      m_current_bb.union_point(vec2(clip_pt) / clip_pt.z());
+      multiple_of_center += clip_pt;
     }
 
-  /* compute center of polygon so that we can correctly
-   * orient the normal vectors of the sides.
+  /* extract the clip-equations from the clipping polygon which
+   * is in clip coordinates. The algorithm is based off the following:
+   *
+   * Let {p_i} be the points of clipped_rect. Then each of the
+   * points lie on a common plane P. A point p is within the
+   * clipping region if there is an L > 0 so that
+   *   (1) L * p in on of the plane P
+   *   (2) L * p is within the convex hull of {p_i}.
+   *
+   * Geometrically, conditions (1) and (2) are equivalent
+   * to that p is an element of the set S where S is the
+   * intersection of the half-spaces H_i where the plane of
+   * the triangle [0, p_i, [p_{i+1}] is the plane of H_i and
+   * H_i contains the average of the {p_i}. Thus the i'th
+   * clip-equation is n_i = A_i * cross_product(p_i, p_{i+1})
+   * where A_i is so that dot(n_i, center) >= 0. Since the
+   * expression is homogenous in center, we can take any
+   * multiple of center as well.
    */
-  vec2 center(0.0f, 0.0f);
-  for(const auto &pt : poly)
+  m_clip.current().reserve(clipped_rect.size());
+  for (unsigned int i = 0; i < clipped_rect.size(); ++i)
     {
-      center += pt;
-    }
-  center /= static_cast<float>(poly.size());
+      unsigned int next_i(i + 1);
+      vec3 n;
 
-  /* extract the normal vectors of the polygon sides with
-   * correct orientation.
-   */
-  for(unsigned int i = 0; i < poly.size(); ++i)
-    {
-      vec2 v, n;
-      unsigned int next_i;
+      if (next_i == clipped_rect.size())
+        {
+          next_i = 0;
+        }
 
-      next_i = i + 1;
-      next_i = (next_i == poly.size()) ? 0 : next_i;
-      v = poly[next_i] - poly[i];
-      n = vec2(v.y(), -v.x());
-      if (dot(center - poly[i], n) < 0.0f)
+      const vec3 &p(clipped_rect[i]);
+      const vec3 &next_p(clipped_rect[next_i]);
+
+      n = cross_product(p, next_p);
+      if (dot(n, multiple_of_center) < 0.0f)
         {
           n = -n;
         }
-
-      /* The clip equation we have in local coordinates
-       * is dot(n, p - poly[i]) >= 0. Algebra time:
-       *   dot(n, p - poly[i]) = n.x * p.x + n.y * p.y + (-poly[i].x * n.x - poly[i].y * n.y)
-       *                       = dot( (n, R), (p, 1))
-       * where
-       *   R = -poly[i].x * n.x - poly[i].y * n.y = -dot(n, poly[i])
-       * We want the clip equations in clip coordinates though:
-       *   dot( (n, R), (p, 1) ) = dot( (n, R), inverseM(M(p, 1)) )
-       *                         = dot( inverse_transpose_M(R, 1), M(p, 1))
-       * thus the vector to use is inverse_transpose_M(R, 1)
-       */
-      vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
-      vec3 clip_pt(transform * vec3(poly[i].x(), poly[i].y(), 1.0f));
-      float recip_z(1.0f / clip_pt.z());
-      vec2 normalized_pt(vec2(clip_pt) * recip_z);
-
-      m_clip.current().push_back(inverse_transpose * nn);
-      m_poly.current().push_back(clip_pt);
-      m_current_bb.union_point(normalized_pt);
+      m_clip.current().push_back(n);
     }
-
-  return false;
+  return clipped_poly.empty();
 }
 
 ///////////////////////////////////////
@@ -6346,9 +6367,7 @@ clip_in_rect(const Rect &rect)
   d->m_clip_rect_state.m_all_content_culled =
     d->m_clip_rect_state.m_all_content_culled ||
     d->m_clip_rect_state.rect_is_culled(rect) ||
-    d->m_clip_store.intersect_current_against_rect(d->m_clip_rect_state.item_matrix(),
-                                                   d->m_clip_rect_state.item_matrix_inverse_transpose(),
-                                                   rect);
+    d->m_clip_store.intersect_current_against_rect(d->m_clip_rect_state, rect);
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
@@ -6426,10 +6445,7 @@ clip_in_rect(const Rect &rect)
    * to prevent marking the derived values from the matrix
    * state from being marked as dirty.
    */
-  PainterPackedValue<PainterItemMatrix> matrix_state;
-  matrix_state = d->m_clip_rect_state.current_item_matrix_state(d->m_pool);
-  FASTUIDRAWassert(matrix_state);
-  d->m_clip_rect_state.item_matrix_state(d->identity_matrix(), false);
+  d->m_clip_rect_state.override_item_matrix_state(d->identity_matrix());
 
   reference_counted_ptr<ZDataCallBack> zdatacallback;
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
@@ -6479,7 +6495,7 @@ clip_in_rect(const Rect &rect)
   /* add to occluder stack */
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 
-  d->m_clip_rect_state.item_matrix_state(matrix_state, false);
+  d->m_clip_rect_state.stop_override_item_matrix_state();
   d->packer()->composite_shader(old_composite, old_composite_mode);
   d->packer()->blend_shader(old_blend);
 }
