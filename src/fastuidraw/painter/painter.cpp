@@ -213,15 +213,27 @@ namespace
 
   inline
   bool
-  all_pts_culled_by_one_half_plane(const fastuidraw::vecN<fastuidraw::vec3, 4> &pts,
+  all_pts_culled_by_half_plane(fastuidraw::c_array<const fastuidraw::vec3> pts,
+                               const fastuidraw::vec3 &eq)
+  {
+    for (const fastuidraw::vec3 &pt : pts)
+      {
+        if (fastuidraw::dot(pt, eq) >= 0.0f)
+          {
+            return false;
+          }
+      }
+    return true;
+  }
+
+  inline
+  bool
+  all_pts_culled_by_one_half_plane(fastuidraw::c_array<const fastuidraw::vec3> pts,
                                    const fastuidraw::PainterClipEquations &eq)
   {
     for(int i = 0; i < 4; ++i)
       {
-        if (fastuidraw::dot(pts[0], eq.m_clip_equations[i]) < 0.0f
-           && fastuidraw::dot(pts[1], eq.m_clip_equations[i]) < 0.0f
-           && fastuidraw::dot(pts[2], eq.m_clip_equations[i]) < 0.0f
-           && fastuidraw::dot(pts[3], eq.m_clip_equations[i]) < 0.0f)
+        if (all_pts_culled_by_half_plane(pts, eq.m_clip_equations[i]))
           {
             return true;
           }
@@ -429,7 +441,7 @@ namespace
    *   only "makes sense" if m_item_matrix_transition_tricky
    *   is false
    */
-  class clip_rect_state
+  class ClipRectState
   {
   public:
     enum rect_coordinate_type_t
@@ -438,12 +450,37 @@ namespace
         rect_in_normalized_device_coordinates,
       };
 
-    clip_rect_state(void):
+    ClipRectState(void):
       m_all_content_culled(false),
       m_item_matrix_transition_tricky(false),
       m_inverse_transpose_ready(true),
       m_item_matrix_singular_values_ready(false)
     {}
+
+    void
+    apply_item_matrix(fastuidraw::c_array<const fastuidraw::vec2> in_pts,
+                      fastuidraw::c_array<fastuidraw::vec3> out_pts) const
+    {
+      const fastuidraw::float3x3 &m(item_matrix());
+
+      FASTUIDRAWassert(in_pts.size() == out_pts.size());
+      for (unsigned int i = 0; i < in_pts.size(); ++i)
+        {
+          out_pts[i] = m * fastuidraw::vec3(in_pts[i].x(), in_pts[i].y(), 1.0f);
+        }
+    }
+
+    void
+    apply_item_matrix(const fastuidraw::Rect &rect,
+                      fastuidraw::vecN<fastuidraw::vec3, 4> &out_pts) const
+    {
+      fastuidraw::vecN<fastuidraw::vec2, 4> pts;
+      pts[0] = rect.point(fastuidraw::Rect::minx_miny_corner);
+      pts[1] = rect.point(fastuidraw::Rect::minx_maxy_corner);
+      pts[2] = rect.point(fastuidraw::Rect::maxx_maxy_corner);
+      pts[3] = rect.point(fastuidraw::Rect::maxx_miny_corner);
+      apply_item_matrix(pts, out_pts);
+    }
 
     void
     reset(const fastuidraw::PainterSurface::Viewport &vwp,
@@ -585,7 +622,7 @@ namespace
                  std::vector<fastuidraw::vec2> &work_vec2s);
 
     bool
-    rect_is_culled(const fastuidraw::Rect &rect) const;
+    poly_is_culled(fastuidraw::c_array<const fastuidraw::vec3> pts) const;
 
     void
     set_normalized_device_translate(const fastuidraw::vec2 &v)
@@ -667,7 +704,7 @@ namespace
     fastuidraw::BlendMode m_composite_mode;
     fastuidraw::range_type<unsigned int> m_clip_equation_series;
 
-    clip_rect_state m_clip_rect_state;
+    ClipRectState m_clip_rect_state;
     float m_curve_flatness;
 
     // checking
@@ -1009,8 +1046,7 @@ namespace
     reset(fastuidraw::c_array<const fastuidraw::vec3> clip);
 
     bool //returns true if clipping becomes so that all is clipped
-    intersect_current_against_rect(const clip_rect_state &state,
-                                   const fastuidraw::Rect &rect);
+    intersect_current_against_polygon(fastuidraw::c_array<const fastuidraw::vec3> poly);
 
     void
     reset_current_to_rect(const fastuidraw::Rect &rect_normalized_device_coords);
@@ -1782,7 +1818,7 @@ namespace
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
     int m_current_z, m_draw_data_added_count;
-    clip_rect_state m_clip_rect_state;
+    ClipRectState m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
     TransparencyStackEntryFactory m_transparency_stack_entry_factory;
@@ -1964,9 +2000,9 @@ on_pop(PainterPrivate *p)
 }
 
 ///////////////////////////////////////////////
-// clip_rect_state methods
+// ClipRectState methods
 void
-clip_rect_state::
+ClipRectState::
 reset(const fastuidraw::PainterSurface::Viewport &vwp,
       fastuidraw::ivec2 surface_dims)
 {
@@ -1991,7 +2027,7 @@ reset(const fastuidraw::PainterSurface::Viewport &vwp,
 }
 
 const fastuidraw::vec2&
-clip_rect_state::
+ClipRectState::
 item_matrix_singular_values(void) const
 {
   FASTUIDRAWassert(!m_override_matrix_state);
@@ -2010,7 +2046,7 @@ item_matrix_singular_values(void) const
 }
 
 void
-clip_rect_state::
+ClipRectState::
 item_matrix(const fastuidraw::float3x3 &v,
 	    bool trick_transition, enum matrix_type_t M,
 	    float singular_value_scaled)
@@ -2047,7 +2083,7 @@ item_matrix(const fastuidraw::float3x3 &v,
 }
 
 enum matrix_type_t
-clip_rect_state::
+ClipRectState::
 matrix_type(void) const
 {
   FASTUIDRAWassert(!m_override_matrix_state);
@@ -2083,7 +2119,7 @@ matrix_type(void) const
 }
 
 const fastuidraw::float3x3&
-clip_rect_state::
+ClipRectState::
 item_matrix_inverse_transpose(void) const
 {
   FASTUIDRAWassert(!m_override_matrix_state);
@@ -2096,7 +2132,7 @@ item_matrix_inverse_transpose(void) const
 }
 
 void
-clip_rect_state::
+ClipRectState::
 set_clip_equations_to_clip_rect(enum rect_coordinate_type_t c)
 {
   fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> null;
@@ -2104,7 +2140,7 @@ set_clip_equations_to_clip_rect(enum rect_coordinate_type_t c)
 }
 
 std::bitset<4>
-clip_rect_state::
+ClipRectState::
 set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &pcl,
                                 enum rect_coordinate_type_t c)
 {
@@ -2169,10 +2205,20 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
   /* return_value[i] is true exactly when each point of the rectangle is inside
    *                 the i'th clip equation.
    */
-  q[0] = m * fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_min.y(), 1.0f);
-  q[1] = m * fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_min.y(), 1.0f);
-  q[2] = m * fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_max.y(), 1.0f);
-  q[3] = m * fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_max.y(), 1.0f);
+  if (c == rect_in_local_coordinates)
+    {
+      q[0] = m * fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_min.y(), 1.0f);
+      q[1] = m * fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_min.y(), 1.0f);
+      q[2] = m * fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_max.y(), 1.0f);
+      q[3] = m * fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_max.y(), 1.0f);
+    }
+  else
+    {
+      q[0] = fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_min.y(), 1.0f);
+      q[1] = fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_min.y(), 1.0f);
+      q[2] = fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_max.y(), 1.0f);
+      q[3] = fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_max.y(), 1.0f);
+    }
 
   for(int i = 0; i < 4; ++i)
     {
@@ -2186,7 +2232,7 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
 }
 
 void
-clip_rect_state::
+ClipRectState::
 clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
              std::vector<fastuidraw::vec2> &out_pts,
              std::vector<fastuidraw::vec2> &work_vec2s)
@@ -2218,28 +2264,14 @@ clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
 }
 
 bool
-clip_rect_state::
-rect_is_culled(const fastuidraw::Rect &rect) const
+ClipRectState::
+poly_is_culled(fastuidraw::c_array<const fastuidraw::vec3> pts) const
 {
   /* apply the current transformation matrix to
    * the corners of the clipping rectangle and check
    * if there is a clipping plane for which all
    * those points are on the wrong size.
    */
-  const fastuidraw::vec2 &pmin(rect.m_min_point);
-  const fastuidraw::vec2 &pmax(rect.m_max_point);
-
-  if (pmin.x() >= pmax.x() || pmin.y() >= pmax.y())
-    {
-      return true;
-    }
-
-  fastuidraw::vecN<fastuidraw::vec3, 4> pts;
-  pts[0] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmin.y(), 1.0f);
-  pts[1] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmax.y(), 1.0f);
-  pts[2] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmax.x(), pmax.y(), 1.0f);
-  pts[3] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmax.x(), pmin.y(), 1.0f);
-
   if (m_clip_rect.m_enabled)
     {
       /* use equations from clip state
@@ -2342,30 +2374,21 @@ reset_current_to_rect(const fastuidraw::Rect &R)
 
 bool //returns true if clipping becomes so that all is clipped
 ClipEquationStore::
-intersect_current_against_rect(const clip_rect_state &state,
-                               const fastuidraw::Rect &rect)
+intersect_current_against_polygon(fastuidraw::c_array<const fastuidraw::vec3> poly)
 {
   using namespace fastuidraw;
 
-  /* clip rect against the current clipping equations */
-  const float3x3 &transform(state.item_matrix());
-  vecN<vec3, 4> rect_clip_coords;
-  c_array<const vec3> clipped_rect;
-  bool unclipped;
-
-  rect_clip_coords[0] = transform * vec3(rect.m_min_point.x(), rect.m_min_point.y(), 1.0f);
-  rect_clip_coords[1] = transform * vec3(rect.m_min_point.x(), rect.m_max_point.y(), 1.0f);
-  rect_clip_coords[2] = transform * vec3(rect.m_max_point.x(), rect.m_max_point.y(), 1.0f);
-  rect_clip_coords[3] = transform * vec3(rect.m_max_point.x(), rect.m_min_point.y(), 1.0f);
-  detail::clip_against_planes(current(), rect_clip_coords, &clipped_rect, m_scratch);
+  /* clip poly against the current clipping equations*/
+  c_array<const vec3> clipped_poly;
+  detail::clip_against_planes(current(), poly, &clipped_poly, m_scratch);
 
   m_poly.current().clear();
   m_clip.current().clear();
   m_current_bb = BoundingBox<float>();
 
   vec3 multiple_of_center(0.0f, 0.0f, 0.0f);
-  m_poly.current().reserve(clipped_rect.size());
-  for(const vec3 &clip_pt : clipped_rect)
+  m_poly.current().reserve(clipped_poly.size());
+  for(const vec3 &clip_pt : clipped_poly)
     {
       m_poly.current().push_back(clip_pt);
       m_current_bb.union_point(vec2(clip_pt) / clip_pt.z());
@@ -2391,19 +2414,19 @@ intersect_current_against_rect(const clip_rect_state &state,
    * expression is homogenous in center, we can take any
    * multiple of center as well.
    */
-  m_clip.current().reserve(clipped_rect.size());
-  for (unsigned int i = 0; i < clipped_rect.size(); ++i)
+  m_clip.current().reserve(clipped_poly.size());
+  for (unsigned int i = 0; i < clipped_poly.size(); ++i)
     {
       unsigned int next_i(i + 1);
       vec3 n;
 
-      if (next_i == clipped_rect.size())
+      if (next_i == clipped_poly.size())
         {
           next_i = 0;
         }
 
-      const vec3 &p(clipped_rect[i]);
-      const vec3 &next_p(clipped_rect[next_i]);
+      const vec3 &p(clipped_poly[i]);
+      const vec3 &next_p(clipped_poly[next_i]);
 
       n = cross_product(p, next_p);
       if (dot(n, multiple_of_center) < 0.0f)
@@ -4220,7 +4243,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
   using namespace fastuidraw;
 
   /* Save our transformation and clipping state */
-  clip_rect_state m(m_clip_rect_state);
+  ClipRectState m(m_clip_rect_state);
   RoundedRectTransformations rect_transforms(draw, R);
   int total_incr_z(0);
   Rect interior_rect, r_min, r_max, r_min_extra, r_max_extra;
@@ -5869,7 +5892,7 @@ begin_layer(const vec4 &color_modulate)
 
   /* Set the clipping equations to the equations coming from clip_region_rect */
   d->m_clip_rect_state.m_clip_rect = clip_rect(clip_region_rect);
-  d->m_clip_rect_state.set_clip_equations_to_clip_rect(clip_rect_state::rect_in_normalized_device_coordinates);
+  d->m_clip_rect_state.set_clip_equations_to_clip_rect(ClipRectState::rect_in_normalized_device_coordinates);
 
   /* update d->m_clip_rect_state.m_clip_rect to local coordinates */
   d->m_clip_rect_state.update_rect_to_transformation();
@@ -6319,7 +6342,7 @@ clip_in_rounded_rect(const RoundedRect &R)
    * we are going to shear and translate the transformation
    * matrix to draw the corner occluders.
    */
-  clip_rect_state m(d->m_clip_rect_state);
+  ClipRectState m(d->m_clip_rect_state);
 
   PainterBlendShader* old_blend;
   fastuidraw::PainterCompositeShader* old_composite;
@@ -6364,15 +6387,26 @@ clip_in_rect(const Rect &rect)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  d->m_clip_rect_state.m_all_content_culled =
-    d->m_clip_rect_state.m_all_content_culled ||
-    d->m_clip_rect_state.rect_is_culled(rect) ||
-    d->m_clip_store.intersect_current_against_rect(d->m_clip_rect_state, rect);
+  d->m_clip_rect_state.m_all_content_culled = d->m_clip_rect_state.m_all_content_culled
+    || rect.m_min_point.x() >= rect.m_max_point.x()
+    || rect.m_min_point.y() >= rect.m_max_point.y();
 
   if (d->m_clip_rect_state.m_all_content_culled)
     {
-      /* everything is clipped anyways, adding more clipping does not matter
-       */
+      /* everything is clipped anyways, adding more clipping does not matter */
+      return;
+    }
+
+  vecN<vec3, 4> rect_clip_pts;
+
+  d->m_clip_rect_state.apply_item_matrix(rect, rect_clip_pts);
+  d->m_clip_rect_state.m_all_content_culled = d->m_clip_rect_state.m_all_content_culled
+    || d->m_clip_rect_state.poly_is_culled(rect_clip_pts)
+    || d->m_clip_store.intersect_current_against_polygon(rect_clip_pts);
+
+  if (d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter */
       return;
     }
 
@@ -6382,7 +6416,7 @@ clip_in_rect(const Rect &rect)
        * as the clipping window
        */
       d->m_clip_rect_state.m_clip_rect = clip_rect(rect);
-      d->m_clip_rect_state.set_clip_equations_to_clip_rect(clip_rect_state::rect_in_local_coordinates);
+      d->m_clip_rect_state.set_clip_equations_to_clip_rect(ClipRectState::rect_in_local_coordinates);
       return;
     }
   else if (!d->m_clip_rect_state.item_matrix_transition_tricky())
@@ -6395,7 +6429,7 @@ clip_in_rect(const Rect &rect)
        * the passed rectangle.
        */
       d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(rect));
-      d->m_clip_rect_state.set_clip_equations_to_clip_rect(clip_rect_state::rect_in_local_coordinates);
+      d->m_clip_rect_state.set_clip_equations_to_clip_rect(ClipRectState::rect_in_local_coordinates);
       return;
     }
 
@@ -6418,7 +6452,7 @@ clip_in_rect(const Rect &rect)
 
   std::bitset<4> skip_occluder;
   skip_occluder = d->m_clip_rect_state.set_clip_equations_to_clip_rect(prev_clip,
-                                                                       clip_rect_state::rect_in_local_coordinates);
+                                                                       ClipRectState::rect_in_local_coordinates);
   current_clip = d->m_clip_rect_state.clip_equations_state(d->m_pool);
 
   if (d->m_clip_rect_state.m_all_content_culled)
