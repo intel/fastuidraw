@@ -1012,6 +1012,56 @@ namespace
     const fastuidraw::CustomFillRuleBase *m_p;
   };
 
+  void
+  compute_clip_equations_from_clip_polygon(fastuidraw::c_array<const fastuidraw::vec3> in_poly,
+                                           fastuidraw::c_array<fastuidraw::vec3> out_clip_eq)
+  {
+    FASTUIDRAWassert(in_poly.size() == out_clip_eq.size());
+    /* extract the clip-equations from the clipping polygon which
+     * is in clip coordinates. The algorithm is based off the following:
+     *
+     * Let {p_i} be the points of clipped_rect. Then each of the
+     * points lie on a common plane P. A point p is within the
+     * clipping region if there is an L > 0 so that
+     *   (1) L * p in on of the plane P
+     *   (2) L * p is within the convex hull of {p_i}.
+     *
+     * Geometrically, conditions (1) and (2) are equivalent
+     * to that p is an element of the set S where S is the
+     * intersection of the half-spaces H_i where the plane of
+     * the triangle [0, p_i, [p_{i+1}] is the plane of H_i and
+     * H_i contains the average of the {p_i}. Thus the i'th
+     * clip-equation is n_i = A_i * cross_product(p_i, p_{i+1})
+     * where A_i is so that dot(n_i, center) >= 0. Since the
+     * expression is homogenous in center, we can take any
+     * multiple of center as well.
+     */
+    fastuidraw::vec3 multiple_of_center(0.0f, 0.0f, 0.0f);
+    for (const fastuidraw::vec3 &pt : in_poly)
+      {
+        multiple_of_center += pt;
+      }
+
+    for (unsigned int i = 0; i < in_poly.size(); ++i)
+      {
+        unsigned int next_i(i + 1);
+        if (next_i == in_poly.size())
+          {
+            next_i = 0;
+          }
+
+        const fastuidraw::vec3 &p(in_poly[i]);
+        const fastuidraw::vec3 &next_p(in_poly[next_i]);
+        fastuidraw::vec3 n(fastuidraw::cross_product(p, next_p));
+
+        if (dot(n, multiple_of_center) < 0.0f)
+          {
+            n = -n;
+          }
+        out_clip_eq[i] = n;
+      }
+  }
+
   /* To avoid allocating memory all the time, we store the
    * clip polygon data within the same std::vector<vec3>.
    * The usage pattern is that the last element allocated
@@ -2355,59 +2405,18 @@ intersect_current_against_polygon(fastuidraw::c_array<const fastuidraw::vec3> po
   c_array<const vec3> clipped_poly;
   detail::clip_against_planes(current(), poly, &clipped_poly, m_scratch);
 
-  m_poly.current().clear();
-  m_clip.current().clear();
+  m_poly.current().resize(clipped_poly.size());
+  m_clip.current().resize(clipped_poly.size());
   m_current_bb = BoundingBox<float>();
-
-  vec3 multiple_of_center(0.0f, 0.0f, 0.0f);
-  m_poly.current().reserve(clipped_poly.size());
-  for(const vec3 &clip_pt : clipped_poly)
-    {
-      m_poly.current().push_back(clip_pt);
-      m_current_bb.union_point(vec2(clip_pt) / clip_pt.z());
-      multiple_of_center += clip_pt;
-    }
-
-  /* extract the clip-equations from the clipping polygon which
-   * is in clip coordinates. The algorithm is based off the following:
-   *
-   * Let {p_i} be the points of clipped_rect. Then each of the
-   * points lie on a common plane P. A point p is within the
-   * clipping region if there is an L > 0 so that
-   *   (1) L * p in on of the plane P
-   *   (2) L * p is within the convex hull of {p_i}.
-   *
-   * Geometrically, conditions (1) and (2) are equivalent
-   * to that p is an element of the set S where S is the
-   * intersection of the half-spaces H_i where the plane of
-   * the triangle [0, p_i, [p_{i+1}] is the plane of H_i and
-   * H_i contains the average of the {p_i}. Thus the i'th
-   * clip-equation is n_i = A_i * cross_product(p_i, p_{i+1})
-   * where A_i is so that dot(n_i, center) >= 0. Since the
-   * expression is homogenous in center, we can take any
-   * multiple of center as well.
-   */
-  m_clip.current().reserve(clipped_poly.size());
   for (unsigned int i = 0; i < clipped_poly.size(); ++i)
     {
-      unsigned int next_i(i + 1);
-      vec3 n;
+      const vec3 &clip_pt(clipped_poly[i]);
 
-      if (next_i == clipped_poly.size())
-        {
-          next_i = 0;
-        }
-
-      const vec3 &p(clipped_poly[i]);
-      const vec3 &next_p(clipped_poly[next_i]);
-
-      n = cross_product(p, next_p);
-      if (dot(n, multiple_of_center) < 0.0f)
-        {
-          n = -n;
-        }
-      m_clip.current().push_back(n);
+      m_poly.current()[i] = clip_pt;
+      m_current_bb.union_point(vec2(clip_pt) / clip_pt.z());
     }
+  compute_clip_equations_from_clip_polygon(clipped_poly,
+                                           make_c_array(m_clip.current()));
   return clipped_poly.empty();
 }
 
