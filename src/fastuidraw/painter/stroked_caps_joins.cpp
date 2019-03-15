@@ -343,7 +343,7 @@ namespace
   {
   public:
     std::vector<fastuidraw::vec3> m_adjusted_clip_eqs;
-    std::vector<fastuidraw::vec2> m_clipped_rect;
+    fastuidraw::c_array<const fastuidraw::vec2> m_clipped_rect;
 
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clip_scratch_vec2s;
   };
@@ -1506,7 +1506,7 @@ compute_chunks_implement(ScratchSpacePrivate &scratch,
 
   m_bb.inflated_polygon(bb, item_space_additional_room);
   unclipped = clip_against_planes(make_c_array(scratch.m_adjusted_clip_eqs),
-                                  bb, scratch.m_clipped_rect,
+                                  bb, &scratch.m_clipped_rect,
                                   scratch.m_clip_scratch_vec2s);
   //completely unclipped.
   if (unclipped || !have_children())
