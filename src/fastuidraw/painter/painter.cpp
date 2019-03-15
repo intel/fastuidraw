@@ -2186,6 +2186,7 @@ ClipRectState::
 set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &pcl,
                                 enum rect_coordinate_type_t c)
 {
+  FASTUIDRAWassert(!m_override_matrix_state);
   if (m_clip_rect.empty())
     {
       m_all_content_culled = true;
@@ -2194,32 +2195,23 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
 
   m_item_matrix_transition_tricky = false;
 
+  const fastuidraw::float3x3 &m(item_matrix());
+  fastuidraw::vecN<fastuidraw::vec3, 4> rect_pts;
   fastuidraw::PainterClipEquations cl;
-  cl.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, -m_clip_rect.m_min.x());
-  cl.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f,  m_clip_rect.m_max.x());
-  cl.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, -m_clip_rect.m_min.y());
-  cl.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f,  m_clip_rect.m_max.y());
+
+  rect_pts[0] = fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_min.y(), 1.0f);
+  rect_pts[1] = fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_max.y(), 1.0f);
+  rect_pts[2] = fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_max.y(), 1.0f);
+  rect_pts[3] = fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_min.y(), 1.0f);
 
   if (c == rect_in_local_coordinates)
     {
-      /* The clipping window is given by:
-       *   w * min_x <= x <= w * max_x
-       *   w * min_y <= y <= w * max_y
-       * which expands to
-       *     x + w * min_x >= 0  --> ( 1,  0, -min_x)
-       *    -x - w * max_x >= 0  --> (-1,  0, max_x)
-       *     y + w * min_y >= 0  --> ( 0,  1, -min_y)
-       *    -y - w * max_y >= 0  --> ( 0, -1, max_y)
-       * However, the clip equations are in clip coordinates
-       * so we need to apply the inverse transpose of the
-       * transformation matrix to the 4 vectors
-       */
-      const fastuidraw::float3x3 &inverse_transpose(item_matrix_inverse_transpose());
-      for (int i = 0; i < 4; ++i)
+      for (fastuidraw::vec3 &pt : rect_pts)
         {
-          cl.m_clip_equations[i] =  inverse_transpose * cl.m_clip_equations[i];
+          pt = m * pt;
         }
     }
+  compute_clip_equations_from_clip_polygon(rect_pts, cl.m_clip_equations);
   clip_equations(cl);
 
   for(int i = 0; i < 4; ++i)
@@ -2236,38 +2228,21 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
       return std::bitset<4>();
     }
 
-  /* see if the vertices of the clipping rectangle (post m_item_matrix applied)
-   * are all within the passed clipped equations.
+  /* see if the vertices of the clipping rectangle are all within the
+   * passed clipped equations.
    */
   const fastuidraw::PainterClipEquations &eq(pcl.value());
-  const fastuidraw::float3x3 &m(m_item_matrix.m_item_matrix);
   std::bitset<4> return_value;
-  fastuidraw::vecN<fastuidraw::vec3, 4> q;
 
   /* return_value[i] is true exactly when each point of the rectangle is inside
    *                 the i'th clip equation.
    */
-  if (c == rect_in_local_coordinates)
-    {
-      q[0] = m * fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_min.y(), 1.0f);
-      q[1] = m * fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_min.y(), 1.0f);
-      q[2] = m * fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_max.y(), 1.0f);
-      q[3] = m * fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_max.y(), 1.0f);
-    }
-  else
-    {
-      q[0] = fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_min.y(), 1.0f);
-      q[1] = fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_min.y(), 1.0f);
-      q[2] = fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_max.y(), 1.0f);
-      q[3] = fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_max.y(), 1.0f);
-    }
-
   for(int i = 0; i < 4; ++i)
     {
-      return_value[i] = dot(q[0], eq.m_clip_equations[i]) >= 0.0f
-        && dot(q[1], eq.m_clip_equations[i]) >= 0.0f
-        && dot(q[2], eq.m_clip_equations[i]) >= 0.0f
-        && dot(q[3], eq.m_clip_equations[i]) >= 0.0f;
+      return_value[i] = dot(rect_pts[0], eq.m_clip_equations[i]) >= 0.0f
+        && dot(rect_pts[1], eq.m_clip_equations[i]) >= 0.0f
+        && dot(rect_pts[2], eq.m_clip_equations[i]) >= 0.0f
+        && dot(rect_pts[3], eq.m_clip_equations[i]) >= 0.0f;
     }
 
   return return_value;
