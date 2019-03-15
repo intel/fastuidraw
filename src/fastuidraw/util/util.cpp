@@ -39,10 +39,15 @@
 std::string
 demangled_function_name(const char *backtrace_string)
 {
+  if (!backtrace_string)
+    {
+      return "";
+    }
+
   /* backtrace gives the symbol as follows:
    *  library_name(mangled_function_name+offset) [return_address]
    */
-  const char *open_paren, *plus, *close_paren, *end;
+  const char *open_paren, *plus, *end;
 
   end = backtrace_string + std::strlen(backtrace_string);
   open_paren = std::find(backtrace_string, end, '(');
