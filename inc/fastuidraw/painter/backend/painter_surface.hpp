@@ -103,6 +103,46 @@ namespace fastuidraw
       }
 
       /*!
+       * Compute viewport coordiantes from normalized device coordinates
+       * \param ndc normalized device coordinates
+       * \param dims size of viewport (i.e. the value of \ref m_dimensions)
+       */
+      static
+      vec2
+      compute_viewport_coordinates(vec2 ndc, vec2 dims)
+      {
+        ndc += vec2(1.0f); // place in range [0, 2]
+        ndc *= 0.5f;       // normalize to [0, 1]
+        ndc *= dims;       // normalize to dimension
+        return ndc;
+      }
+
+      /*!
+       * Compute viewport coordiantes from normalized device coordinates
+       * \param ndc normalized device coordinates
+       * \param dims size of viewport (i.e. the value of \ref m_dimensions)
+       */
+      static
+      vec2
+      compute_viewport_coordinates(vec2 ndc, ivec2 dims)
+      {
+        return compute_viewport_coordinates(ndc, vec2(dims));
+      }
+
+      /*!
+       * Compute viewport coordinates from normalized device coords
+       * using this Viewport values. The viewport coordinates are so
+       * that (0, 0) corresponds to pixel coordinates of value \ref
+       * m_origin.
+       * \param ndc normalized device coordinates
+       */
+      vec2
+      compute_viewport_coordinates(vec2 ndc) const
+      {
+        return compute_viewport_coordinates(ndc, m_dimensions);
+      }
+
+      /*!
        * Compute normalized device coordinates from pixel
        * coordinates.
        * \param pixel pixel coordinates where (0, 0) corresponds to bottom
@@ -116,6 +156,31 @@ namespace fastuidraw
         pixel *= 2.0f; // normalize to [0, 2]
         pixel -= vec2(1.0f); // palce in range [-1, 1]
         return pixel;
+      }
+
+      /*!
+       * Compute normalized device coordinates from viewport
+       * coordinates.
+       * \param viewport viewport coordinates
+       */
+      vec2
+      compute_normalized_device_coords_from_viewport_coords(vec2 viewport_coords) const
+      {
+        viewport_coords /= vec2(m_dimensions); // normalize to [0, 1]
+        viewport_coords *= 2.0f; // normalize to [0, 2]
+        viewport_coords -= vec2(1.0f); // palce in range [-1, 1]
+        return viewport_coords;
+      }
+
+      /*!
+       * Compute normalized device coordinates from viewport
+       * coordinates.
+       * \param viewport viewport coordinates
+       */
+      vec2
+      compute_normalized_device_coords_from_viewport_coords(ivec2 viewport_coords) const
+      {
+        return compute_normalized_device_coords_from_viewport_coords(vec2(viewport_coords));
       }
 
       /*!
