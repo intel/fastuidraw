@@ -87,10 +87,15 @@ pack_glyph(unsigned int attrib_loc, c_array<PainterAttribute> dst,
 {
   if (!valid())
     {
+      PainterAttribute zero;
+
+      zero.m_attrib0 = uvec4(0u, 0u, 0u, 0u);
+      zero.m_attrib1 = uvec4(0u, 0u, 0u, 0u);
+      zero.m_attrib2 = uvec4(0u, 0u, 0u, 0u);
       dst = dst.sub_array(attrib_loc, 4);
       dst_index = dst_index.sub_array(index_loc, 6);
       std::fill(dst_index.begin(), dst_index.end(), attrib_loc);
-      std::fill(dst.begin(), dst.end(), PainterAttribute());
+      std::fill(dst.begin(), dst.end(), zero);
       return;
     }
 
