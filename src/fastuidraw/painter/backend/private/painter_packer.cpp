@@ -168,7 +168,16 @@ namespace
       src = m_attrib_chunks[attribute_chunk];
 
       FASTUIDRAWassert(dst.size() == src.size());
-      std::memcpy(dst.c_ptr(), src.c_ptr(), sizeof(fastuidraw::PainterAttribute) * dst.size());
+      /* use void pointers to silence a compiler warning on
+       * using memcpy PainterAttributeData; some compilers
+       * will warn on using memcpy with pointer to a type
+       * that is not POD. That PainterAttributeData is not
+       * a POD comes from that vecN() has non-trivial ctor's
+       * (which for the generic_type are the same as memcpy
+       * though ).
+       */
+      void *dst_ptr(dst.c_ptr());
+      std::memcpy(dst_ptr, src.c_ptr(), sizeof(fastuidraw::PainterAttribute) * dst.size());
     }
 
     fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attrib_chunks;
