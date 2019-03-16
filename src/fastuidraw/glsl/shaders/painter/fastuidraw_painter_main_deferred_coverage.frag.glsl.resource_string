@@ -46,8 +46,8 @@ main(void)
   float v = 0.0;
 
   #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
-  float clipped;
-  clipped = float(fastuidraw_apply_clipping());
+  bool clipped;
+  clipped = fastuidraw_apply_clipping();
   #endif
 
   #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
