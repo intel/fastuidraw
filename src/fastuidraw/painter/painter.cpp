@@ -1778,9 +1778,6 @@ namespace
     compute_magnification(const fastuidraw::Rect &rect);
 
     float
-    compute_max_magnification_at_local_points(fastuidraw::c_array<const fastuidraw::vec2> poly);
-
-    float
     compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::vec3> poly);
 
     float
@@ -3163,60 +3160,6 @@ compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::v
     {
       const float tol_w = 1e-6;
 
-      /* the clip equations from the start guarnatee that
-       * q.z() >= 0. If it is zero, then the edge of q satsifies
-       * |x| = w and |y| = w which means we should probably
-       * ignore q.
-       */
-      if (q.z() > tol_w)
-	{
-	  min_w = t_min(min_w, q.z());
-	}
-    }
-
-  float v_norm;
-  v_norm = 0.5f * t_max(t_abs(m(2, 0) * m_viewport_dimensions.x()),
-                        t_abs(m(2, 1) * m_viewport_dimensions.y()));
-
-  return (op_norm + v_norm) / min_w;
-}
-
-float
-PainterPrivate::
-compute_max_magnification_at_local_points(fastuidraw::c_array<const fastuidraw::vec2> poly)
-{
-  using namespace fastuidraw;
-
-  if (poly.empty())
-    {
-      /* bounding box is completely clipped */
-      return -1.0f;
-    }
-
-  float op_norm;
-  const float3x3 &m(m_clip_rect_state.item_matrix());
-
-  op_norm = m_clip_rect_state.item_matrix_operator_norm();
-  if (!matrix_has_perspective(m))
-    {
-      return op_norm / t_abs(m(2, 2));
-    }
-
-  float min_w;
-
-  /* initalize min_w to some obsecenely large value */
-  min_w = 1e+6;
-
-  /* this is same compation as found in compute_max_magnification_at_points(c_array<vec3>),
-   * except that we need to apply the item-matrix transformation to the points in poly
-   * to get the clip-coordinate value.
-   */
-  for(const vec2 &p : poly)
-    {
-      vec3 q;
-      const float tol_w = 1e-6;
-
-      q = m * vec3(p.x(), p.y(), 1.0f);
       /* the clip equations from the start guarnatee that
        * q.z() >= 0. If it is zero, then the edge of q satsifies
        * |x| = w and |y| = w which means we should probably
