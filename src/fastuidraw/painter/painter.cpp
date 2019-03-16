@@ -375,38 +375,6 @@ namespace
       || fastuidraw::t_abs(matrix(2, 1)) > tol;
   }
 
-  inline
-  fastuidraw::vec2
-  coords_from_normalized_coords(fastuidraw::vec2 ndc,
-                                fastuidraw::vec2 dims)
-  {
-    ndc += fastuidraw::vec2(1.0f, 1.0f);
-    ndc *= 0.5f;
-    ndc *= fastuidraw::vec2(dims);
-    return ndc;
-  }
-
-  inline
-  fastuidraw::vec2
-  coords_from_normalized_coords(fastuidraw::vec2 ndc,
-                                fastuidraw::ivec2 dims)
-  {
-    return coords_from_normalized_coords(ndc, fastuidraw::vec2(dims));
-  }
-
-  inline
-  fastuidraw::vec2
-  normalized_coords_from_coords(fastuidraw::ivec2 c,
-                                fastuidraw::ivec2 dims)
-  {
-    fastuidraw::vec2 pc(c), pdims(dims);
-
-    pc /= pdims;
-    pc *= 2.0f;
-    pc -= fastuidraw::vec2(1.0f, 1.0f);
-    return pc;
-  }
-
   class DefaultGlyphRendererChooser:public fastuidraw::Painter::GlyphRendererChooser
   {
   public:
@@ -2406,8 +2374,8 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
    * scaled is actually WRONG. Rather we need to look
    * at the range of -sample- points the rect hits.
    */
-  m_fbl = coords_from_normalized_coords(normalized_rect.m_min_point, d->m_viewport.m_dimensions);
-  m_ftr = coords_from_normalized_coords(normalized_rect.m_max_point, d->m_viewport.m_dimensions);
+  m_fbl = d->m_viewport.compute_viewport_coordinates(normalized_rect.m_min_point);
+  m_ftr = d->m_viewport.compute_viewport_coordinates(normalized_rect.m_max_point);
 
   m_bl = fastuidraw::ivec2(m_fbl);
   m_tr = fastuidraw::ivec2(m_ftr);
@@ -2432,8 +2400,8 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
    * the original rect to pixels.
    */
   m_normalized_rect
-    .min_point(normalized_coords_from_coords(m_bl, d->m_viewport.m_dimensions))
-    .max_point(normalized_coords_from_coords(m_tr, d->m_viewport.m_dimensions));
+    .min_point(d->m_viewport.compute_normalized_device_coords_from_viewport_coords(m_fbl))
+    .max_point(d->m_viewport.compute_normalized_device_coords_from_viewport_coords(m_ftr));
 
   m_pixel_rect
     .min_point(m_bl)
@@ -5873,8 +5841,8 @@ end_layer(void)
 
       fill_rect(PainterData(&brush),
                 Rect()
-                .min_point(coords_from_normalized_coords(R.m_normalized_rect.m_min_point, dims))
-                .max_point(coords_from_normalized_coords(R.m_normalized_rect.m_max_point, dims)),
+                .min_point(PainterSurface::Viewport::compute_viewport_coordinates(R.m_normalized_rect.m_min_point, dims))
+                .max_point(PainterSurface::Viewport::compute_viewport_coordinates(R.m_normalized_rect.m_max_point, dims)),
                 shader_anti_alias_none);
     }
   restore();
