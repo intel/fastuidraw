@@ -448,6 +448,21 @@ namespace fastuidraw
     static
     enum fill_rule_t
     complement_fill_rule(enum fill_rule_t f);
+
+    /*!
+     * Returns true if a \ref join_style is a miter-type join, i.e.
+     * one of \ref miter_clip_joins, \ref miter_bevel_joins or
+     * \ref miter_joins.
+     * \param js join style to query
+     */
+    inline
+    bool
+    is_miter_join(enum join_style js)
+    {
+      return js == miter_clip_joins
+        || js == miter_bevel_joins
+        || js == miter_joins;
+    }
   };
 /*! @} */
 }
