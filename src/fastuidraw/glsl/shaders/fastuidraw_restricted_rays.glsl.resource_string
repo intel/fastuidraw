@@ -513,6 +513,20 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    * as such we can skip computing the other critical points for the L1-distance
    * function f(t) = |x(t) - x| + |y(t) - y| which are the end points and the
    * points p(t) = (x(t), y(t)) where |x'(t)| = |y'(t)|.
+   *
+   * If we are to check the end-points, we would need to only check t = 0.
+   * This is because if t = 1 is within the cell, then the curve that starts
+   * at t = 1 would also be within the cell. Checking the end point t = 0
+   * is the code:
+   *
+   *   fastuidraw_restricted_rays_update_distance(curve.p1, -B, dst);
+   *
+   * this is because the curve is p(t) = At^2 -2Bt + C, thus its
+   * derivative is p'(t) = -2At - 2B which at p'(0) = -2B. We only need
+   * the direction of the derivative in the 2nd argument, so -B is
+   * sufficient and the curve at 0 is curve.p1.
+   *
+   * TODO: decide if need the end point or not.
    */
   return R;
 }
