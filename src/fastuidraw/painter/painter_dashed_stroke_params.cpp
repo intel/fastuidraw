@@ -145,7 +145,7 @@ miter_limit(float f)
   PainterDashedStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_miter_limit = f;
+  d->m_miter_limit = t_max(f, 0.0f);
   return *this;
 }
 

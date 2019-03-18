@@ -86,7 +86,7 @@ miter_limit(float f)
   PainterStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_miter_limit = f;
+  d->m_miter_limit = t_max(0.0f, f);
   return *this;
 }
 

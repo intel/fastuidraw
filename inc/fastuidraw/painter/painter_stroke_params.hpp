@@ -63,7 +63,7 @@ namespace fastuidraw
         /*!
          * Offset to stroke radius (packed as float).
          * The absolute value gives the stroking radius,
-         * if teh value is negative then the stroking radius
+         * if the value is negative then the stroking radius
          * is in units of pixels, if positive it is in local
          * path coordinates.
          */
@@ -86,7 +86,8 @@ namespace fastuidraw
     miter_limit(void) const;
 
     /*!
-     * Set the value of miter_limit(void) const
+     * Set the value of miter_limit(void) const;
+     * value is clamped to be non-negative.
      */
     PainterStrokeParams&
     miter_limit(float f);

@@ -108,6 +108,7 @@ namespace fastuidraw
 
     /*!
      * Set the value of miter_limit(void) const
+     * value is clamped to be non-negative.
      */
     PainterDashedStrokeParams&
     miter_limit(float f);
