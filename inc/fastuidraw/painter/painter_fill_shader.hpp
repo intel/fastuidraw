@@ -138,6 +138,20 @@ namespace fastuidraw
     aa_fuzz_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
+     * Returns the PainterItemShader to use to draw the
+     * anti-alias fuzz via the deferred coverage buffer.
+     */
+    const reference_counted_ptr<PainterItemShader>&
+    aa_fuzz_hq_deferred_coverage(void) const;
+
+    /*!
+     * Set the value returned by aa_fuzz_hq_deferred_coverae(void) const.
+     * \param sh value to use
+     */
+    PainterFillShader&
+    aa_fuzz_hq_deferred_coverage(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
      * Returns the PainterItemShader to use to draw
      * the 1st pass for high quality anti-alias fuzz
      * around the boundary of a filled path. The
