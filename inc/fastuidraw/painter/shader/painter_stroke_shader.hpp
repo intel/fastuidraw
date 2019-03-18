@@ -69,6 +69,25 @@ namespace fastuidraw
          * inflation by \ref pixel_space_distance is applied
          */
         item_space_distance,
+
+        /*!
+         * Index into \ref c_array<float> to indicate how much
+         * the bounding box for taking miter-joins is inflated
+         * in pixels after its inflation in in item coordinates
+         * and having the current transformation matrix applied.
+         */
+        pixel_space_distance_miter_joins,
+
+        /*!
+         * Index into \ref c_array<float> to indicate how much
+         * the bounding box for taking miter-joins is inflated
+         * in path cordinates before the transformation matrix
+         * applied or the inflation by \ref pixel_space_distance_joins
+         * is applied
+         */
+        item_space_distance_miter_joins,
+
+        path_geometry_inflation_index_count,
       };
 
     /*!
@@ -100,6 +119,7 @@ namespace fastuidraw
      * by *out_pixel_space_distance
      * \param data PainterItemShaderData::DataBase object holding
      *             the data to be sent to the shader
+     * \param js join style
      * \param[out] out_values output with array indexed as according
      *                        to \ref path_geometry_inflation_index_t
      */

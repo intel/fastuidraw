@@ -81,10 +81,10 @@ namespace fastuidraw
             out_item_space_distance = 0.0f;
           }
 
-        FASTUIDRAWassert(out_geometry_inflation.size() > pixel_space_distance);
-        FASTUIDRAWassert(out_geometry_inflation.size() > item_space_distance);
         out_geometry_inflation[pixel_space_distance] = out_pixel_distance;
         out_geometry_inflation[item_space_distance] = out_item_space_distance;
+        out_geometry_inflation[pixel_space_distance_miter_joins] = d->m_miter_limit * out_pixel_distance;
+        out_geometry_inflation[item_space_distance_miter_joins] = d->m_miter_limit * out_item_space_distance;
       }
 
       bool

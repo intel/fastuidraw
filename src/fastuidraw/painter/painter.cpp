@@ -3722,7 +3722,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       join_data = nullptr;
     }
 
-  vecN<float, 2> additional_room(0.0f, 0.0f);
+  vecN<float, StrokingDataSelectorBase::path_geometry_inflation_index_count> additional_room(0.0f);
   shader.stroking_data_selector()->stroking_distances(raw_data, additional_room);
 
   unsigned int subset_count;
