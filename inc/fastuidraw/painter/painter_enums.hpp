@@ -455,6 +455,7 @@ namespace fastuidraw
      * \ref miter_joins.
      * \param js join style to query
      */
+    static
     inline
     bool
     is_miter_join(enum join_style js)
