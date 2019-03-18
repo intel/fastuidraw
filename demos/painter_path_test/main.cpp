@@ -2269,8 +2269,7 @@ draw_frame(void)
           st = static_cast<enum Painter::query_stats_t>(i);
           ostr << "\n" << Painter::stat_name(st) << ": " << stats[i];
         }
-      ostr << painter_stat(Painter::num_draws)
-           << "\nMouse position:"
+      ostr << "\nMouse position:"
            << item_coordinates(mouse_position)
            << "\ncurve_flatness: " << m_curve_flatness
            << "\nView:\n\tzoom = " << zoomer().transformation().scale()
