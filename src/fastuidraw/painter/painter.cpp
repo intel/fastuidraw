@@ -1784,15 +1784,13 @@ namespace
 
     unsigned int
     select_subsets(const fastuidraw::StrokedPath &path,
-                   float pixels_additional_room,
-                   float item_space_additional_room,
+                   fastuidraw::c_array<const float> geometry_inflation,
                    fastuidraw::c_array<unsigned int> dst);
 
     void
     select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
-                  float pixels_additional_room,
-                  float item_space_additional_room,
-                  bool select_joins_for_miter_style,
+                  fastuidraw::c_array<const float> geometry_inflation,
+                  enum fastuidraw::Painter::join_style js,
                   fastuidraw::StrokedCapsJoins::ChunkSet *dst);
 
     const fastuidraw::StrokedPath*
@@ -3255,8 +3253,7 @@ select_subsets(const fastuidraw::FilledPath &path,
 unsigned int
 PainterPrivate::
 select_subsets(const fastuidraw::StrokedPath &path,
-               float pixels_additional_room,
-               float item_space_additional_room,
+               fastuidraw::c_array<const float> geometry_inflation,
                fastuidraw::c_array<unsigned int> dst)
 {
   FASTUIDRAWassert(dst.size() >= path.number_subsets());
@@ -3270,8 +3267,7 @@ select_subsets(const fastuidraw::StrokedPath &path,
                              m_clip_store.current(),
                              m_clip_rect_state.item_matrix(),
                              m_one_pixel_width,
-                             pixels_additional_room,
-                             item_space_additional_room,
+                             geometry_inflation,
                              m_max_attribs_per_block,
                              m_max_indices_per_block,
                              dst);
@@ -3280,9 +3276,8 @@ select_subsets(const fastuidraw::StrokedPath &path,
 void
 PainterPrivate::
 select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
-              float pixels_additional_room,
-              float item_space_additional_room,
-              bool select_joins_for_miter_style,
+              fastuidraw::c_array<const float> geometry_inflation,
+              enum fastuidraw::Painter::join_style js,
               fastuidraw::StrokedCapsJoins::ChunkSet *dst)
 {
   FASTUIDRAWassert(dst);
@@ -3296,11 +3291,10 @@ select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
                             m_clip_store.current(),
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
-                            pixels_additional_room,
-                            item_space_additional_room,
+                            geometry_inflation,
                             m_max_attribs_per_block,
                             m_max_indices_per_block,
-                            select_joins_for_miter_style,
+                            js,
                             *dst);
 }
 
@@ -3661,7 +3655,6 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
     }
 
   const PainterAttributeData *cap_data(nullptr), *join_data(nullptr);
-  bool is_miter_join;
   const PainterShaderData::DataBase *raw_data;
   const StrokedCapsJoins &caps_joins(path.caps_joins());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
@@ -3698,27 +3691,22 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   switch(js)
     {
     case Painter::miter_clip_joins:
-      is_miter_join = true;
       join_data = &caps_joins.miter_clip_joins();
       break;
 
     case Painter::miter_bevel_joins:
-      is_miter_join = true;
       join_data = &caps_joins.miter_bevel_joins();
       break;
 
     case Painter::miter_joins:
-      is_miter_join = true;
       join_data = &caps_joins.miter_joins();
       break;
 
     case Painter::bevel_joins:
-      is_miter_join = false;
       join_data = &caps_joins.bevel_joins();
       break;
 
     case Painter::rounded_joins:
-      is_miter_join = false;
       if (edge_arc_shader)
         {
           join_data = &caps_joins.arc_rounded_joins();
@@ -3732,11 +3720,10 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
 
     default:
       join_data = nullptr;
-      is_miter_join = false;
     }
 
-  float pixels_additional_room(0.0f), item_space_additional_room(0.0f);
-  shader.stroking_data_selector()->stroking_distances(raw_data, &pixels_additional_room, &item_space_additional_room);
+  vecN<float, 2> additional_room(0.0f, 0.0f);
+  shader.stroking_data_selector()->stroking_distances(raw_data, additional_room);
 
   unsigned int subset_count;
   m_work_room.m_stroke.m_subsets.resize(path.number_subsets());
@@ -3745,8 +3732,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                                      m_clip_store.current(),
                                      m_clip_rect_state.item_matrix(),
                                      m_one_pixel_width,
-                                     pixels_additional_room,
-                                     item_space_additional_room,
+                                     additional_room,
                                      m_max_attribs_per_block,
                                      m_max_indices_per_block,
                                      make_c_array(m_work_room.m_stroke.m_subsets));
@@ -3758,11 +3744,10 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             m_clip_store.current(),
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
-                            pixels_additional_room,
-                            item_space_additional_room,
+                            additional_room,
                             m_max_attribs_per_block,
                             m_max_indices_per_block,
-                            is_miter_join,
+                            js,
                             m_work_room.m_stroke.m_caps_joins_chunk_set);
 
   enum Painter::shader_anti_alias_t fastest;
@@ -3787,7 +3772,8 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
     {
       coverage_buffer_bb =
         compute_coverage_buffer_bounding_box_of_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
-                                                     pixels_additional_room, item_space_additional_room);
+                                                     additional_room[StrokingDataSelectorBase::pixel_space_distance],
+                                                     additional_room[StrokingDataSelectorBase::item_space_distance]);
       if (coverage_buffer_bb.empty())
         {
           return;
@@ -3819,7 +3805,8 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
         {
           coverage_buffer_bb =
             compute_coverage_buffer_bounding_box_of_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
-                                                         pixels_additional_room, item_space_additional_room);
+                                                         additional_room[StrokingDataSelectorBase::pixel_space_distance],
+                                                         additional_room[StrokingDataSelectorBase::item_space_distance]);
           if (coverage_buffer_bb.empty())
             {
               return;
@@ -5251,31 +5238,24 @@ select_subsets(const FilledPath &path, c_array<unsigned int> dst)
 unsigned int
 fastuidraw::Painter::
 select_subsets(const StrokedPath &path,
-               float pixels_additional_room,
-               float item_space_additional_room,
+               c_array<const float> geometry_inflation,
                c_array<unsigned int> dst)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->select_subsets(path, pixels_additional_room,
-                           item_space_additional_room, dst);
+  return d->select_subsets(path, geometry_inflation, dst);
 }
 
 void
 fastuidraw::Painter::
 select_chunks(const StrokedCapsJoins &caps_joins,
-              float pixels_additional_room,
-              float item_space_additional_room,
-              bool select_joins_for_miter_style,
+              fastuidraw::c_array<const float> geometry_inflation,
+              enum fastuidraw::Painter::join_style js,
               StrokedCapsJoins::ChunkSet *dst)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->select_chunks(caps_joins,
-                   pixels_additional_room,
-                   item_space_additional_room,
-                   select_joins_for_miter_style,
-                   dst);
+  d->select_chunks(caps_joins, geometry_inflation, js, dst);
 }
 
 void

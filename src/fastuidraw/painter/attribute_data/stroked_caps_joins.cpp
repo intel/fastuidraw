@@ -27,6 +27,7 @@
 #include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data_filler.hpp>
+#include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 #include <private/util_private.hpp>
 #include <private/util_private_ostream.hpp>
 #include <private/bounding_box.hpp>
@@ -2983,11 +2984,10 @@ compute_chunks(ScratchSpace &scratch_space,
                c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                const vec2 &one_pixel_width,
-               float pixels_additional_room,
-               float item_space_additional_room,
+               c_array<const float> geometry_inflation,
                unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,
-               bool take_joins_outside_of_region,
+               enum PainterEnums::join_style js,
                ChunkSet &dst) const
 {
   StrokedCapsJoinsPrivate *d;
@@ -3004,15 +3004,25 @@ compute_chunks(ScratchSpace &scratch_space,
       return;
     }
 
+  bool miter_joins;
+  miter_joins = js == PainterEnums::miter_clip_joins
+    || js == PainterEnums::miter_bevel_joins
+    || js == PainterEnums::miter_joins;
+
+  /* TODO
+   *   1. if js is no_joins, then to skip taking joins
+   *   2. use larger inflation if taking miter-joins where
+   *      inflation also takes into account miter-limit.
+   */
   d->m_subset->compute_chunks(*scratch_space_ptr,
                               clip_equations,
                               clip_matrix_local,
                               one_pixel_width,
-                              pixels_additional_room,
-                              item_space_additional_room,
+                              geometry_inflation[StrokingDataSelectorBase::pixel_space_distance],
+                              geometry_inflation[StrokingDataSelectorBase::item_space_distance],
                               max_attribute_cnt,
                               max_index_cnt,
-                              take_joins_outside_of_region,
+                              miter_joins,
                               *chunk_set_ptr);
 }
 

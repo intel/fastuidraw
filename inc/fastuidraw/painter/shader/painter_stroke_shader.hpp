@@ -49,6 +49,29 @@ namespace fastuidraw
   {
   public:
     /*!
+     * Enumeration to specify indexes into a \ref c_array<float>
+     * on how much a path's geometry is inflated by stroking.
+     */
+    enum path_geometry_inflation_index_t
+      {
+        /*!
+         * Index into \ref c_array<float> to indicate how much
+         * the path geometry is inflated in pixels after its
+         * inflation in in item coordinates and having the current
+         * transformation matrix applied.
+         */
+        pixel_space_distance = 0,
+
+        /*!
+         * Index into \ref c_array<float> to indicate how much
+         * the path geometry is inflated in path cordinates
+         * before the transformation matrix applied or the
+         * inflation by \ref pixel_space_distance is applied
+         */
+        item_space_distance,
+      };
+
+    /*!
      * To be implemented by a derived class to compute the value
      * used to select rounded join level of detail (\ref
      * StrokedCapsJoins::rounded_joins()) and rounded cap level of detail
@@ -77,14 +100,13 @@ namespace fastuidraw
      * by *out_pixel_space_distance
      * \param data PainterItemShaderData::DataBase object holding
      *             the data to be sent to the shader
-     * \param[out] out_pixel_space_distance how much geometry inflates in pixels
-     * \param[out] out_item_space_distance how much geometry inflates in local coordinates
+     * \param[out] out_values output with array indexed as according
+     *                        to \ref path_geometry_inflation_index_t
      */
     virtual
     void
     stroking_distances(const PainterShaderData::DataBase *data,
-                       float *out_pixel_space_distance,
-                       float *out_item_space_distance) const = 0;
+                       c_array<float> out_values) const = 0;
 
     /*!
      * To be implemented by a derived class to specify if

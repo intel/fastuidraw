@@ -24,6 +24,7 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw  {
 
@@ -182,19 +183,14 @@ public:
    *                          coordinates to clip coordinates.
    * \param one_pixel_width holds the size of a single pixel in
    *                        normalized device coordinates
-   * \param pixels_additional_room amount in -pixels- to push clip equations by
-   *                               to grab additional edges
-   * \param item_space_additional_room amount in local coordinates to push clip
-   *                              equations by to grab additional edges
-   *                              draw the closing edges of each contour
+   * \param geometry_inflation amount path geometry is inflated, array
+   *                           is indexed by the enumeration \ref
+   *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
    * \param max_attribute_cnt only allow those chunks for which have no more
    *                          than max_attribute_cnt attributes
    * \param max_index_cnt only allow those chunks for which have no more
    *                      than max_index_cnt indices
-   * \param take_joins_outside_of_region if true, take even those joins outside of the region
-   *                                     (this is for handling miter-joins where the weather
-   *                                     or not a miter-join is included is also a function of
-   *                                     the miter-limit when stroking).
+   * \param js join style
    * \param[out] dst location to which to write output
    */
   void
@@ -202,11 +198,10 @@ public:
                  c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  const vec2 &one_pixel_width,
-                 float pixels_additional_room,
-                 float item_space_additional_room,
+                 c_array<const float> geometry_inflation,
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,
-                 bool take_joins_outside_of_region,
+                 enum PainterEnums::join_style js,
                  ChunkSet &dst) const;
 
   /*!

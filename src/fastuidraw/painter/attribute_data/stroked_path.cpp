@@ -28,6 +28,7 @@
 #include <fastuidraw/painter/attribute_data/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
+#include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 #include <private/util_private.hpp>
 #include <private/util_private_ostream.hpp>
 #include <private/bounding_box.hpp>
@@ -2131,8 +2132,7 @@ select_subsets(ScratchSpace &scratch_space,
                c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                const vec2 &one_pixel_width,
-               float pixels_additional_room,
-               float item_space_additional_room,
+               c_array<const float> geometry_inflation,
                unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,
                c_array<unsigned int> dst) const
@@ -2151,8 +2151,8 @@ select_subsets(ScratchSpace &scratch_space,
                                                clip_equations,
                                                clip_matrix_local,
                                                one_pixel_width,
-                                               pixels_additional_room,
-                                               item_space_additional_room,
+                                               geometry_inflation[StrokingDataSelectorBase::pixel_space_distance],
+                                               geometry_inflation[StrokingDataSelectorBase::item_space_distance],
                                                max_attribute_cnt,
                                                max_index_cnt,
                                                dst);

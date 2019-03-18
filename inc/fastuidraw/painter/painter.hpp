@@ -1069,39 +1069,32 @@ namespace fastuidraw
      * Calls StrokedPath::select_subsets() passing arguments derived from the
      * current state of the Painter.
      * \param path \ref StrokedPath from which to compute subset selection
-     * \param pixels_additional_room additional slack in -pixels- in selecting
-     *                               subsets from the StrokedPath geometry data
-     * \param item_space_additional_room amount additional slack in -local coordinate-
-     *                                   in selecting subsets from the StrokedPath
-     *                                   geometry data
+     * \param geometry_inflation amount path geometry is inflated, array
+     *                           is indexed by the enumeration \ref
+     *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
      * \param[out] dst location to which to write the StrokedPath::Subset ID values
      * \returns the number of Subset object ID's written to dst, that
      *          number is guaranteed to be no more than StrokedPath::number_subsets().
      */
     unsigned int
     select_subsets(const StrokedPath &path,
-                   float pixels_additional_room,
-                   float item_space_additional_room,
+                   c_array<const float> geometry_inflation,
                    c_array<unsigned int> dst);
 
     /*!
      * Calls StrokedCapsJoins::compute_chunks() passing arguments derived
      * from the current state of the Painter.
      * \param caps_joins \ref StrokedCapsJoins from which to compute chunk selection
-     * \param pixels_additional_room additional slack in -pixels- in selecting
-     *                               subsets from the StrokedPath geometry data
-     * \param item_space_additional_room amount additional slack in -local coordinate-
-     *                                   in selecting subsets from the StrokedPath
-     *                                   geometry data
-     * \param take_all_joins if true, filtering of joins is not performed, i.e. all
-     *                       joins of the \ref StrokedCapsJoins are selected
+     * \param geometry_inflation amount path geometry is inflated, array
+     *                           is indexed by the enumeration \ref
+     *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
+     * \param js join style
      * \param[out] dst location to which to write what chunks
      */
     void
     select_chunks(const StrokedCapsJoins &caps_joins,
-                  float pixels_additional_room,
-                  float item_space_additional_room,
-                  bool take_all_joins,
+                  c_array<const float> geometry_inflation,
+                  enum join_style js,
                   StrokedCapsJoins::ChunkSet *dst);
 
     /*!

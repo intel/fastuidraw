@@ -63,22 +63,28 @@ namespace fastuidraw
 
       void
       stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
-                         float *out_pixel_distance,
-                         float *out_item_space_distance) const override final
+                         fastuidraw::c_array<float> out_geometry_inflation) const override final
       {
         const T *d;
         d = static_cast<const T*>(data);
 
+        float out_pixel_distance, out_item_space_distance;
+
         if (d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units)
           {
-            *out_pixel_distance = 0.0f;
-            *out_item_space_distance = d->m_radius;
+            out_pixel_distance = 0.0f;
+            out_item_space_distance = d->m_radius;
           }
         else
           {
-            *out_pixel_distance = d->m_radius;
-            *out_item_space_distance = 0.0f;
+            out_pixel_distance = d->m_radius;
+            out_item_space_distance = 0.0f;
           }
+
+        FASTUIDRAWassert(out_geometry_inflation.size() > pixel_space_distance);
+        FASTUIDRAWassert(out_geometry_inflation.size() > item_space_distance);
+        out_geometry_inflation[pixel_space_distance] = out_pixel_distance;
+        out_geometry_inflation[item_space_distance] = out_item_space_distance;
       }
 
       bool
@@ -92,7 +98,7 @@ namespace fastuidraw
       }
 
       bool
-      data_compatible(const fastuidraw::PainterShaderData::DataBase *data) const
+      data_compatible(const fastuidraw::PainterShaderData::DataBase *data) const override final
       {
         return dynamic_cast<const T*>(data);
       }
