@@ -399,6 +399,22 @@ namespace fastuidraw
                             const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg =
                             reference_counted_ptr<PainterItemCoverageShaderGLSL>());
 
+      /*!
+       * Ctor.
+       * \param puses_discard set to true if and only if the shader code
+       *                      will use discard. Discard should be used
+       *                      in the GLSL code via the macro FASTUIDRAW_DISCARD.
+       * \param vertex_src GLSL source holding vertex shader routine
+       * \param fragment_src GLSL source holding fragment shader routine
+       * \param varyings list of varyings of the shader
+       * \param cvg the coverage shader (if any) to be used by the item shader
+       */
+      PainterItemShaderGLSL(bool puses_discard,
+                            const ShaderSource &vertex_src,
+                            const ShaderSource &fragment_src,
+                            const varying_list &varyings,
+                            const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg);
+
       ~PainterItemShaderGLSL();
 
       /*!

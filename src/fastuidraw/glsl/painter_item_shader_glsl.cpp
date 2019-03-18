@@ -312,6 +312,17 @@ PainterItemShaderGLSL(bool puses_discard,
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
+PainterItemShaderGLSL(bool puses_discard,
+                      const glsl::ShaderSource &v_src,
+                      const glsl::ShaderSource &f_src,
+                      const varying_list &varyings,
+                      const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg):
+  PainterItemShader(cvg)
+{
+  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings);
+}
+
+fastuidraw::glsl::PainterItemShaderGLSL::
 ~PainterItemShaderGLSL(void)
 {
   PainterItemShaderGLSLPrivate *d;
