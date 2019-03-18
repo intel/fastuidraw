@@ -260,11 +260,12 @@ private:
   enum anti_alias_mode_t
     {
       no_anti_alias,
-      by_anti_alias_auto,
       by_anti_alias_simple,
       by_anti_alias_hq,
-      by_anti_alias_fastest,
       by_anti_alias_hq_deferred,
+      by_anti_alias_fastest,
+      by_anti_alias_auto,
+      by_anti_alias_hq_auto,
 
       number_anti_alias_modes
     };
@@ -839,6 +840,7 @@ painter_stroke_test(void):
   m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
   m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
   m_anti_alias_mode_labels[by_anti_alias_hq_deferred] = "by_anti_alias_hq_deferred";
+  m_anti_alias_mode_labels[by_anti_alias_hq_auto] = "by_anti_alias_hq_auto";
 
   m_shader_anti_alias_mode_values[no_anti_alias] = Painter::shader_anti_alias_none;
   m_shader_anti_alias_mode_values[by_anti_alias_auto] = Painter::shader_anti_alias_auto;
@@ -846,6 +848,7 @@ painter_stroke_test(void):
   m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_high_quality;
   m_shader_anti_alias_mode_values[by_anti_alias_fastest] = Painter::shader_anti_alias_fastest;
   m_shader_anti_alias_mode_values[by_anti_alias_hq_deferred] = Painter::shader_anti_alias_deferred_coverage;
+  m_shader_anti_alias_mode_values[by_anti_alias_hq_auto] = Painter::shader_anti_alias_hq_auto;
 
   m_stroke_mode_labels[stroke_linear_path] = "stroke_linear_path";
   m_stroke_mode_labels[stroke_arc_path] = "stroke_arc_path";

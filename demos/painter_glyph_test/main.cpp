@@ -33,6 +33,7 @@ static c_string anti_alias_labels[Painter::number_shader_anti_alias_enums] =
     [Painter::shader_anti_alias_deferred_coverage] = "shader_anti_alias_deferred_coverage",
     [Painter::shader_anti_alias_auto] = "shader_anti_alias_auto",
     [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",
+    [Painter::shader_anti_alias_hq_auto] = "shader_anti_alias_hq_auto",
   };
 
 static c_string stroking_method_labels[Painter::number_stroking_methods] =

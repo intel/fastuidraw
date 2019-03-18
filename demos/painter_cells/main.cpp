@@ -728,6 +728,7 @@ handle_event(const SDL_Event &ev)
                   [Painter::shader_anti_alias_deferred_coverage] = "shader_anti_alias_deferred_coverage",
                   [Painter::shader_anti_alias_auto] = "shader_anti_alias_auto",
                   [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",
+                  [Painter::shader_anti_alias_hq_auto] = "shader_anti_alias_hq_auto",
                 };
               int v(m_cell_shared_state.m_anti_alias_stroking);
               cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),

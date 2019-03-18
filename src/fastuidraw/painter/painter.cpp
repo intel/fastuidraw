@@ -311,11 +311,6 @@ namespace
       case Painter::shader_anti_alias_deferred_coverage:
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage));
 
-      case Painter::shader_anti_alias_hq_auto:
-        return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage))
-          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_pass1))
-          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_pass2));
-
       default:
         FASTUIDRAWassert(!"Bad enum value");
         return false;
@@ -1644,6 +1639,11 @@ namespace
                        enum fastuidraw::Painter::cap_style cp,
                        enum fastuidraw::Painter::join_style js,
                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias);
+
+    fastuidraw::BoundingBox<float>
+    compute_coverage_buffer_bounding_box_of_path(const fastuidraw::StrokedPath &stroked_path,
+                                                 fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                                                 float pixels_additional_room, float item_space_additional_room);
 
     void
     pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
@@ -3615,6 +3615,35 @@ draw_generic_z_layered(fastuidraw::c_array<const ConstItemShaderRefPtr> shaders,
     }
 }
 
+fastuidraw::BoundingBox<float>
+PainterPrivate::
+compute_coverage_buffer_bounding_box_of_path(const fastuidraw::StrokedPath &path,
+                                             fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                                             float pixels_additional_room, float item_space_additional_room)
+{
+  fastuidraw::BoundingBox<float> bbox, in_bbox;
+  /* TODO: we need to actually make the box larger if we
+   * ie are drawing miter-joins and the miter-limit is large.
+   * To do so, we need to requrest from the StrokedCapsJoins
+   * the list of joins and then use "something" to figure out
+   * how much bounding box each miter join adds.
+   */
+  for (unsigned int subset_id : stroked_subset_ids)
+    {
+      const fastuidraw::Rect &rect(path.subset(subset_id).bounding_box());
+      in_bbox.union_point(rect.m_min_point);
+      in_bbox.union_point(rect.m_max_point);
+    }
+
+  if (!in_bbox.empty())
+    {
+      return compute_clip_intersect_rect(in_bbox.as_rect(),
+                                         pixels_additional_room,
+                                         item_space_additional_room);
+    }
+  return in_bbox;
+}
+
 void
 PainterPrivate::
 stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
@@ -3739,6 +3768,8 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   enum Painter::shader_anti_alias_t fastest;
   enum PainterStrokeShader::stroke_type_t tp;
   bool requires_coverage_buffer;
+  BoundingBox<float> coverage_buffer_bb;
+  bool coverage_buffer_bb_ready(false);
 
   tp = (edge_arc_shader) ?
     PainterStrokeShader::arc_stroke_type:
@@ -3748,6 +3779,25 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   anti_aliasing = compute_shader_anti_alias(anti_aliasing,
                                             shader.hq_anti_alias_support(),
                                             fastest);
+
+  /* we need the logic for choosing hq mode before the logic of
+   * choosing a coverage buffer.
+   */
+  if (anti_aliasing == Painter::shader_anti_alias_hq_auto)
+    {
+      coverage_buffer_bb =
+        compute_coverage_buffer_bounding_box_of_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
+                                                     pixels_additional_room, item_space_additional_room);
+      if (coverage_buffer_bb.empty())
+        {
+          return;
+        }
+
+      coverage_buffer_bb_ready = true;
+      anti_aliasing = (should_use_immediate_coverage_instead(coverage_buffer_bb.as_rect())) ?
+        Painter::shader_anti_alias_high_quality :
+        Painter::shader_anti_alias_deferred_coverage;
+    }
 
   requires_coverage_buffer = compute_requires_coverage_buffer(shader, tp, anti_aliasing);
   if (!requires_coverage_buffer
@@ -3763,58 +3813,20 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       requires_coverage_buffer = compute_requires_coverage_buffer(shader, other_tp, anti_aliasing);
     }
 
-  if (requires_coverage_buffer || anti_aliasing == Painter::shader_anti_alias_hq_auto)
+  if (requires_coverage_buffer)
     {
-      /* Make the coverage buffer limited to the bounding box
-       * containing the union of the bounding boxes of the subsets
-       * chosen. TODO: we need to actually make the box larger
-       * if we are drawing miter-joins and the miter-limit is large.
-       * To do so, we need to requrest from the StrokedCapsJoins
-       * the list of joins and then use "something" to figure out
-       * how much bounding box each miter join adds.
-       */
-      BoundingBox<float> bbox, in_bbox;
-      for (unsigned int subset_id : m_work_room.m_stroke.m_subsets)
+      if (!coverage_buffer_bb_ready)
         {
-          const Rect &rect(path.subset(subset_id).bounding_box());
-          in_bbox.union_point(rect.m_min_point);
-          in_bbox.union_point(rect.m_max_point);
-        }
-
-      if (in_bbox.empty())
-        {
-          return;
-        }
-
-      bbox = compute_clip_intersect_rect(in_bbox.as_rect(),
-                                         pixels_additional_room,
-                                         item_space_additional_room);
-
-      if (bbox.empty())
-        {
-          return;
-        }
-
-      if (anti_aliasing == Painter::shader_anti_alias_hq_auto)
-        {
-          bool use_immediate;
-
-          use_immediate = should_use_immediate_coverage_instead(bbox.as_rect());
-          if (use_immediate)
+          coverage_buffer_bb =
+            compute_coverage_buffer_bounding_box_of_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
+                                                         pixels_additional_room, item_space_additional_room);
+          if (coverage_buffer_bb.empty())
             {
-              anti_aliasing = Painter::shader_anti_alias_high_quality;
-              requires_coverage_buffer = false;
+              return;
             }
-          else
-            {
-              anti_aliasing = Painter::shader_anti_alias_deferred_coverage;
-            }
+          coverage_buffer_bb_ready = true;
         }
-
-      if (requires_coverage_buffer)
-        {
-          begin_coverage_buffer_normalized_rect(bbox.as_rect(), true);
-        }
+      begin_coverage_buffer_normalized_rect(coverage_buffer_bb.as_rect(), !coverage_buffer_bb.empty());
     }
 
   stroke_path_raw(shader, edge_arc_shader, join_arc_shader, cap_arc_shader, draw,
