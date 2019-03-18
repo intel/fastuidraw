@@ -101,15 +101,12 @@ namespace
     PainterItemShaderGLSLPrivate(bool uses_discard,
                                  const fastuidraw::glsl::ShaderSource &vertex_src,
                                  const fastuidraw::glsl::ShaderSource &fragment_src,
-                                 const fastuidraw::glsl::varying_list &varyings,
-                                 const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemCoverageShaderGLSL> &cvg):
+                                 const fastuidraw::glsl::varying_list &varyings):
       PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, varyings),
-      m_uses_discard(uses_discard),
-      m_coverage_shader(cvg)
+      m_uses_discard(uses_discard)
     {}
 
     bool m_uses_discard;
-    fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemCoverageShaderGLSL> m_coverage_shader;
   };
 }
 
@@ -309,9 +306,9 @@ PainterItemShaderGLSL(bool puses_discard,
                       const varying_list &varyings,
                       unsigned int num_sub_shaders,
                       const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg):
-  PainterItemShader(num_sub_shaders)
+  PainterItemShader(num_sub_shaders, cvg)
 {
-  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings, cvg);
+  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings);
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
