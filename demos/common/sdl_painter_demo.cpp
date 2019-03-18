@@ -185,6 +185,7 @@ namespace
     shader_type_labels[PainterStrokeShader::aa_shader_pass2] = "aa_shader_pass2";
     shader_type_labels[PainterStrokeShader::hq_aa_shader_pass1] = "hq_aa_shader_pass1";
     shader_type_labels[PainterStrokeShader::hq_aa_shader_pass2] = "hq_aa_shader_pass2";
+    shader_type_labels[PainterStrokeShader::hq_aa_shader_deferred_coverage] = "hq_aa_shader_deferred_coverage";
 
     for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
       {
