@@ -24,8 +24,7 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/stroked_point.hpp>
-#include <fastuidraw/painter/stroked_caps_joins.hpp>
+#include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw  {

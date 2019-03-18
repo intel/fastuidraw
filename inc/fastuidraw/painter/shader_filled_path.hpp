@@ -27,8 +27,8 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
-#include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
 
 namespace fastuidraw {
 

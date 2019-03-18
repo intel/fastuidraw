@@ -20,8 +20,8 @@
 #pragma once
 
 #include <fastuidraw/util/util.hpp>
-#include <fastuidraw/painter/painter_attribute.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_data_filler.hpp>
 
 namespace fastuidraw
 {

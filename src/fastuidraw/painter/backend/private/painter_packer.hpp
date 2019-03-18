@@ -34,8 +34,8 @@
 
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_attribute_writer.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_writer.hpp>
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
 #include <fastuidraw/painter/backend/painter_draw.hpp>
 #include <fastuidraw/painter/backend/painter_backend.hpp>

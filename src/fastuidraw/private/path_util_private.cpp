@@ -19,7 +19,6 @@
 #include <cmath>
 #include <complex>
 #include <fastuidraw/util/math.hpp>
-#include <fastuidraw/painter/arc_stroked_point.hpp>
 #include "path_util_private.hpp"
 
 unsigned int

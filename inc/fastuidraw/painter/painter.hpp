@@ -32,20 +32,21 @@
 
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_attribute_writer.hpp>
 #include <fastuidraw/painter/stroking_style.hpp>
-#include <fastuidraw/painter/glyph_sequence.hpp>
-#include <fastuidraw/painter/glyph_run.hpp>
-#include <fastuidraw/painter/stroked_path.hpp>
-#include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
-#include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
 
+#include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_writer.hpp>
+#include <fastuidraw/painter/attribute_data/glyph_sequence.hpp>
+#include <fastuidraw/painter/attribute_data/glyph_run.hpp>
+#include <fastuidraw/painter/attribute_data/stroked_path.hpp>
+#include <fastuidraw/painter/attribute_data/filled_path.hpp>
+
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
+
 #include <fastuidraw/painter/backend/painter_backend.hpp>
 
 namespace fastuidraw

@@ -6,6 +6,8 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/painter/backend/painter_header.hpp>
+#include <fastuidraw/painter/attribute_data/stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
 
 #include "sdl_painter_demo.hpp"
 

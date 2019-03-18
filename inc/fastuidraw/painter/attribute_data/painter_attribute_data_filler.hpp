@@ -21,7 +21,7 @@
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
-#include <fastuidraw/painter/painter_attribute.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 
 namespace fastuidraw
 {

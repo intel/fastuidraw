@@ -19,9 +19,9 @@
 #include <string>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/stroked_point.hpp>
-#include <fastuidraw/painter/arc_stroked_point.hpp>
-#include <fastuidraw/painter/filled_path.hpp>
+#include <fastuidraw/painter/attribute_data/stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/filled_path.hpp>
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/text/glyph_render_data_banded_rays.hpp>

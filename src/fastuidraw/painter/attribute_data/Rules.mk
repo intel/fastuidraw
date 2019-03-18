@@ -1,0 +1,17 @@
+# Begin standard header
+sp 		:= $(sp).x
+dirstack_$(sp)	:= $(d)
+d		:= $(dir)
+# End standard header
+
+FASTUIDRAW_SOURCES += $(call filelist, \
+	painter_attribute_data.cpp \
+	stroked_caps_joins.cpp stroked_point.cpp \
+	stroked_path.cpp filled_path.cpp \
+	glyph_sequence.cpp glyph_run.cpp \
+	arc_stroked_point.cpp)
+
+# Begin standard footer
+d		:= $(dirstack_$(sp))
+sp		:= $(basename $(sp))
+# End standard footer

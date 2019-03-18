@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 
 //////////////////////////////////////
 // fastuidraw::StrokedPoint methods

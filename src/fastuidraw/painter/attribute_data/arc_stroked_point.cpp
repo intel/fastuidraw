@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/arc_stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
 
 //////////////////////////////////////
 // fastuidraw::ArcStrokedPoint methods

@@ -25,8 +25,8 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_source.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_attribute_writer.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_writer.hpp>
 
 namespace fastuidraw
 {

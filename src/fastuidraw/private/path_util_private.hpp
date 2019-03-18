@@ -20,9 +20,9 @@
 #pragma once
 
 #include <fastuidraw/tessellated_path.hpp>
-#include <fastuidraw/painter/painter_attribute.hpp>
-#include <fastuidraw/painter/stroked_point.hpp>
-#include <fastuidraw/painter/arc_stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
+#include <fastuidraw/painter/attribute_data/stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
 #include "bounding_box.hpp"
 #include "util_private.hpp"
 

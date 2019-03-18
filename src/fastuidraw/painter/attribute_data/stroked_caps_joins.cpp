@@ -22,17 +22,16 @@
 
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
-#include <fastuidraw/painter/stroked_point.hpp>
-#include <fastuidraw/painter/arc_stroked_point.hpp>
-#include <fastuidraw/painter/stroked_caps_joins.hpp>
-#include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler.hpp>
-#include "../private/util_private.hpp"
-#include "../private/util_private_ostream.hpp"
-#include "../private/bounding_box.hpp"
-#include "../private/path_util_private.hpp"
-#include "../private/clip.hpp"
-
+#include <fastuidraw/painter/attribute_data/stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
+#include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_data_filler.hpp>
+#include "../../private/util_private.hpp"
+#include "../../private/util_private_ostream.hpp"
+#include "../../private/bounding_box.hpp"
+#include "../../private/path_util_private.hpp"
+#include "../../private/clip.hpp"
 
 namespace
 {

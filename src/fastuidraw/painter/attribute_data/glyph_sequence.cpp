@@ -16,13 +16,13 @@
  *
  */
 
-#include <fastuidraw/painter/glyph_sequence.hpp>
+#include <fastuidraw/painter/attribute_data/glyph_sequence.hpp>
 #include <vector>
 #include <map>
 #include <algorithm>
-#include "../private/util_private.hpp"
-#include "../private/bounding_box.hpp"
-#include "../private/clip.hpp"
+#include "../../private/util_private.hpp"
+#include "../../private/bounding_box.hpp"
+#include "../../private/clip.hpp"
 
 namespace
 {
