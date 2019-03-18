@@ -146,14 +146,6 @@ everything_filled(int)
   return true;
 }
 
-bool
-is_miter_join_style(unsigned int js)
-{
-  return js == Painter::miter_clip_joins
-    || js == Painter::miter_bevel_joins
-    || js == Painter::miter_joins;
-}
-
 #ifndef FASTUIDRAW_GL_USE_GLES
 
 class EnableWireFrameAction:public PainterDraw::Action
@@ -551,7 +543,6 @@ private:
     return m_dash - 1;
   }
 
-  bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
   unsigned int m_draw_fill;
   unsigned int m_aa_stroke_mode;
@@ -731,7 +722,6 @@ painter_stroke_test(void):
   m_join_style(Painter::rounded_joins),
   m_cap_style(Painter::square_caps),
   m_dash(0),
-  m_have_miter_limit(true),
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
   m_draw_fill(draw_fill_path),
@@ -1051,7 +1041,7 @@ update_cts_params(void)
         }
     }
 
-  if (is_miter_join_style(m_join_style) && m_have_miter_limit)
+  if (Painter::is_miter_join(static_cast<enum Painter::join_style>(m_join_style)))
     {
       if (keyboard_state[SDL_SCANCODE_N])
         {
@@ -1331,19 +1321,6 @@ handle_event(const SDL_Event &ev)
               std::cout << "Gradient spread type set to : "
                         << m_spread_type_labels[gradient_spread_type()]
                         << "\n";
-            }
-          break;
-
-        case SDLK_m:
-          if (is_miter_join_style(m_join_style))
-            {
-              m_have_miter_limit = !m_have_miter_limit;
-              std::cout << "Miter limit ";
-              if (!m_have_miter_limit)
-                {
-                  std::cout << "NOT ";
-                }
-              std::cout << "applied\n";
             }
           break;
 
@@ -1977,14 +1954,8 @@ draw_scene(bool drawing_wire_frame)
       if (is_dashed_stroking())
         {
           PainterDashedStrokeParams st;
-          if (m_have_miter_limit)
-            {
-              st.miter_limit(m_miter_limit);
-            }
-          else
-            {
-              st.miter_limit(-1.0f);
-            }
+
+          st.miter_limit(m_miter_limit);
           st.width(m_stroke_width);
 
           unsigned int D(dash_pattern());
@@ -2008,14 +1979,8 @@ draw_scene(bool drawing_wire_frame)
       else
         {
           PainterStrokeParams st;
-          if (m_have_miter_limit)
-            {
-              st.miter_limit(m_miter_limit);
-            }
-          else
-            {
-              st.miter_limit(-1.0f);
-            }
+
+          st.miter_limit(m_miter_limit);
           st.width(m_stroke_width);
           if (m_stroke_width_in_pixels)
             {
