@@ -30,7 +30,7 @@
 namespace fastuidraw
 {
 
-/*!\addtogroup Painter
+/*!\addtogroup PainterShaders
  * @{
  */
 

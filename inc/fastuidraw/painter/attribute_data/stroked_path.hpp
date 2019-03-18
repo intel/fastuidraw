@@ -36,7 +36,7 @@ class PainterAttribute;
 class PainterAttributeData;
 ///@endcond
 
-/*!\addtogroup Paths
+/*!\addtogroup PainterAttribute
  * @{
  */
 

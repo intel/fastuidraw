@@ -24,7 +24,7 @@ namespace fastuidraw
 {
   class PainterShaderRegistrar;
 
-/*!\addtogroup Painter
+/*!\addtogroup PainterShaders
  * @{
  */
 

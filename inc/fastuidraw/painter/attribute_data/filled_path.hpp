@@ -38,7 +38,7 @@ class TessellatedPath;
 class Path;
 ///@endcond
 
-/*!\addtogroup Paths
+/*!\addtogroup PainterAttribute
  * @{
  */
 

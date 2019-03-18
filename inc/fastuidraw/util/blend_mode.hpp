@@ -42,10 +42,29 @@ namespace fastuidraw
      */
     enum equation_t
       {
+        /*!
+         * Indicates to add the values.
+         */
         ADD,
+
+        /*!
+         * Indicates to subtract the values.
+         */
         SUBTRACT,
+
+        /*!
+         * Indicates to reverse-subtract the values.
+         */
         REVERSE_SUBTRACT,
+
+        /*!
+         * Indicates to min the values.
+         */
         MIN,
+
+        /*!
+         * Indicates to max the values.
+         */
         MAX,
 
         NUMBER_OPS
@@ -58,24 +77,129 @@ namespace fastuidraw
      */
     enum func_t
       {
+        /*!
+         * Indicates the coefficient value of 0 in each channel.
+         */
         ZERO,
+
+        /*!
+         * Indicates the coefficient value of 1 in each channel.
+         */
         ONE,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is the output of the fragment shader.
+         */
         SRC_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is one minus the output of the fragment shader.
+         */
         ONE_MINUS_SRC_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is the value in the framebuffer.
+         */
         DST_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is one minus the value in the framebuffer.
+         */
         ONE_MINUS_DST_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is the alpha value of the output of the fragment shader.
+         */
         SRC_ALPHA,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is one minus the alpha value of the output of the
+         * fragment shader.
+         */
         ONE_MINUS_SRC_ALPHA,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is the alpha value in the framebuffer.
+         */
         DST_ALPHA,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is one minus the alpha value in the framebuffer.
+         */
         ONE_MINUS_DST_ALPHA,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * comes from the constant color value specified as part
+         * of the 3D API state.
+         */
         CONSTANT_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * comes from one minus the constant color value specified
+         * as part of the 3D API state.
+         */
         ONE_MINUS_CONSTANT_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel is
+         * the alpha channel of the constant color value
+         * specified as part of the 3D API state.
+         */
         CONSTANT_ALPHA,
+
+        /*!
+         * Indicates the coefficient where each channel is
+         * one minus the alpha channel of the constant color
+         * value specified as part of the 3D API state.
+         */
         ONE_MINUS_CONSTANT_ALPHA,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is the alpha value of the output of the fragment shader
+         * clamped to [0, 1].
+         */
         SRC_ALPHA_SATURATE,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is the secondary output of the fragment shader (the
+         * secondary output as present in dual-src blending).
+         */
         SRC1_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is one minus the secondary output of the fragment
+         * shader (the secondary output as present in dual-src
+         * blending).
+         */
         ONE_MINUS_SRC1_COLOR,
+
+        /*!
+         * Indicates the coefficient where each channel value
+         * is the alpha channel of the secondary output of the
+         * fragment shader (the secondary output as present in
+         * dual-src blending).
+         */
         SRC1_ALPHA,
+
+        /*!
+         * Indicates the coefficient  where each channel value
+         * is one minus the alpha channel of the secondary output
+         * of the fragment shader (the secondary output as present
+         * in dual-src blending).
+         */
         ONE_MINUS_SRC1_ALPHA,
 
         NUMBER_FUNCS,

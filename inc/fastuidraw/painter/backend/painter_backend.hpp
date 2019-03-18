@@ -330,7 +330,7 @@ namespace fastuidraw
      */
     virtual
     reference_counted_ptr<PainterDraw::Action>
-    bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface) = 0;
+    bind_coverage_surface(const reference_counted_ptr<PainterSurface> &cvg_surface) = 0;
 
     /*!
      * To be implemented by a derived class to return a PainterDraw

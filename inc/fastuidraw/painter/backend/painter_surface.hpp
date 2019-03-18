@@ -45,14 +45,14 @@ namespace fastuidraw
     enum render_type_t
       {
         /*!
-         * Indicates that a \ref Surface represents a color
-         * buffer; such \ref Surface objects are to also have
+         * Indicates that a \ref PainterSurface represents a color
+         * buffer; such \ref PainterSurface objects are to also have
          * a depth buffer as well.
          */
         color_buffer_type,
 
         /*!
-         * Indicates that a \ref Surface represents a
+         * Indicates that a \ref PainterSurface represents a
          * coverage buffer; such surfaces will have the
          * blending set to \ref BlendMode::MAX and do
          * not have a depth buffer.
@@ -161,7 +161,7 @@ namespace fastuidraw
       /*!
        * Compute normalized device coordinates from viewport
        * coordinates.
-       * \param viewport viewport coordinates
+       * \param viewport_coords viewport coordinates
        */
       vec2
       compute_normalized_device_coords_from_viewport_coords(vec2 viewport_coords) const
@@ -175,7 +175,7 @@ namespace fastuidraw
       /*!
        * Compute normalized device coordinates from viewport
        * coordinates.
-       * \param viewport viewport coordinates
+       * \param viewport_coords viewport coordinates
        */
       vec2
       compute_normalized_device_coords_from_viewport_coords(ivec2 viewport_coords) const

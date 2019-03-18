@@ -977,10 +977,10 @@ namespace fastuidraw
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
        * \param construct_params specifies how to construct the uber-shaders.
-       * \param item_shader_filter pointer to \ref ShaderFilter to use to filter
-       *                           which shader to place into the uber-shader.
-       *                           A value of nullptr indicates to add all item
-       *                           shaders to the uber-shader.
+       * \param item_shader_filter pointer to \ref PainterShaderRegistrarGLSLTypes::ShaderFilter
+       *                           to use to filter which shaders to place into the uber-shader.
+       *                           A value of nullptr indicates to add all item shaders to the
+       *                           uber-shader.
        * \param discard_macro_value macro-value definintion for the macro
        *                            FASTUIDRAW_DISCARD. PainterItemShaderGLSL
        *                            fragment sources use FASTUIDRAW_DISCARD
@@ -1003,10 +1003,10 @@ namespace fastuidraw
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
        * \param construct_params specifies how to construct the uber-shaders.
-       * \param item_shader_filter pointer to \ref ShaderFilter to use to filter
-       *                           which shader to place into the uber-shader.
-       *                           A value of nullptr indicates to add all item
-       *                           shaders to the uber-shader.
+       * \param item_shader_filter pointer to \ref PainterShaderRegistrarGLSLTypes::ShaderFilter
+       *                           to use to filter which shaders to place into the uber-shader.
+       *                           A value of nullptr indicates to add all item coverage shaders
+       *                           to the uber-shader.
        */
       void
       construct_item_uber_coverage_shader(const BackendConstants &backend_constants,

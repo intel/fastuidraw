@@ -49,6 +49,21 @@ Painter provides the interface for Canvas drawing, the most important class
 being Painter. Part of the main library libFastUIDraw.
 @}
 
+\defgroup PainterAttribute Painter Attribute
+@{
+\brief
+Painter Attribute provides the interface to define the attribute data
+to be used by shaders. This includes how glyphs, stroked paths and filled
+paths are realized as attribute data.
+@}
+
+\defgroup PainterShaders Painter Shaders
+@{
+\brief
+Painter Shaders defines the interface how to specify shaders used by
+\ref Painter to render items.
+@}
+
 \defgroup PainterBackend Painter Backend
 @{
 \brief

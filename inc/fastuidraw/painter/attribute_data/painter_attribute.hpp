@@ -23,7 +23,7 @@
 #include <fastuidraw/util/vecN.hpp>
 namespace fastuidraw
 {
-/*!\addtogroup Painter
+/*!\addtogroup PainterAttribute
  * @{
  */
 
