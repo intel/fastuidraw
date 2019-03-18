@@ -149,7 +149,8 @@ namespace fastuidraw
     /*!
      * Enumeration to describe high quality shader
      * anti-aliasing support in \ref PainterFillShader
-     * and \ref PainterStrokeShader.
+     * and \ref PainterStrokeShader that uses the
+     * immediate coverage buffer.
      */
     enum hq_anti_alias_support_t
       {
@@ -212,7 +213,7 @@ namespace fastuidraw
          * the highest quality anti-aliasing at the
          * potential cost of performance. The shader works
          * in two passes: the first pass renders to the
-         * IMMEDIATE coverage buffer and the 2nd pass reads
+         * DEFERRED coverage buffer and the 2nd pass reads
          * from it and uses that as the coverage value.
          */
         shader_anti_alias_deferred_coverage,
@@ -228,6 +229,14 @@ namespace fastuidraw
          * and otherwise to use \ref shader_anti_alias_simple.
          */
         shader_anti_alias_auto,
+
+        /*!
+         * Represents to use either \ref shader_anti_alias_high_quality
+         * or \ref shader_anti_alias_deferred_coverage decided from
+         * which modes are supported and the size of deferred coverage
+         * buffer needed.
+         */
+        shader_anti_alias_hq_auto,
 
         /*!
          * Represents to use the fastest anti-alias mode

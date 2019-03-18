@@ -311,10 +311,27 @@ namespace
       case Painter::shader_anti_alias_deferred_coverage:
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage));
 
+      case Painter::shader_anti_alias_hq_auto:
+        return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage))
+          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_pass1))
+          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_pass2));
+
       default:
         FASTUIDRAWassert(!"Bad enum value");
         return false;
       }
+  }
+
+  bool
+  should_use_immediate_coverage_instead(const fastuidraw::Rect &normalized_rect)
+  {
+    /* The entire screen is represented by the rect [-1, 1]x[-1, 1] which
+     * has area 4. We say that the immediate covereage buffer should be
+     * used instead of the area needed for the coverage buffer is greater
+     * than 1/4 the screen area, which corresponds to an area of 1.
+     */
+    const float thresh(1.0f);
+    return normalized_rect.width() * normalized_rect.height() >= thresh;
   }
 
   class clip_rect
@@ -1630,7 +1647,7 @@ namespace
 
     void
     pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
-                             enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                             enum fastuidraw::Painter::shader_anti_alias_t &anti_alias_quality,
                              const FillSubsetWorkRoom &fill_subset,
                              AntiAliasFillWorkRoom *output);
 
@@ -3379,11 +3396,11 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 void
 PainterPrivate::
 pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
-                         enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality,
+                         enum fastuidraw::Painter::shader_anti_alias_t &anti_alias_quality,
                          const FillSubsetWorkRoom &fill_subset,
                          AntiAliasFillWorkRoom *output)
 {
-  fastuidraw::BoundingBox<float> bb;
+  using namespace fastuidraw;
 
   output->m_total_increment_z = 0;
   output->m_z_increments.clear();
@@ -3391,30 +3408,75 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
   output->m_index_chunks.clear();
   output->m_index_adjusts.clear();
   output->m_start_zs.clear();
+
+  if (anti_alias_quality == Painter::shader_anti_alias_hq_auto
+      || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+    {
+      BoundingBox<float> bb;
+      for(unsigned int s : fill_subset.m_subsets)
+        {
+          bool include_subset_bb(false);
+          FilledPath::Subset subset(filled_path.subset(s));
+          c_array<const int> winding_numbers(subset.winding_numbers());
+
+          for(int w : winding_numbers)
+            {
+              if (fill_subset.m_ws(w))
+                {
+                  include_subset_bb = true;
+                  break;
+                }
+            }
+
+          if (include_subset_bb)
+            {
+              bb.union_box(subset.bounding_box());
+            }
+        }
+
+      if (!bb.empty())
+        {
+          output->m_normalized_device_coords_bounding_box = compute_clip_intersect_rect(bb.as_rect(), 1.0f, 0.0f);
+          if (anti_alias_quality == Painter::shader_anti_alias_hq_auto)
+            {
+              bool use_immediate;
+
+              use_immediate = should_use_immediate_coverage_instead(output->m_normalized_device_coords_bounding_box.as_rect());
+              anti_alias_quality = (use_immediate) ?
+                Painter::shader_anti_alias_high_quality :
+                Painter::shader_anti_alias_deferred_coverage;
+            }
+        }
+      else
+        {
+          output->m_normalized_device_coords_bounding_box.clear();
+          anti_alias_quality = Painter::shader_anti_alias_deferred_coverage;
+          std::cout << "Selected: " << anti_alias_quality << "\n";
+        }
+    }
+
   for(unsigned int s : fill_subset.m_subsets)
     {
-      fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
-      const fastuidraw::PainterAttributeData &data(subset.aa_fuzz_painter_data());
-      fastuidraw::c_array<const int> winding_numbers(subset.winding_numbers());
-      bool include_subset_bb(false);
+      FilledPath::Subset subset(filled_path.subset(s));
+      const PainterAttributeData &data(subset.aa_fuzz_painter_data());
+      c_array<const int> winding_numbers(subset.winding_numbers());
 
       for(int w : winding_numbers)
         {
           if (fill_subset.m_ws(w))
             {
               unsigned int ch;
-              fastuidraw::range_type<int> R;
+              range_type<int> R;
 
-              include_subset_bb = true;
-              ch = fastuidraw::FilledPath::Subset::aa_fuzz_chunk_from_winding_number(w);
+              ch = FilledPath::Subset::aa_fuzz_chunk_from_winding_number(w);
               R = data.z_range(ch);
 
               output->m_attrib_chunks.push_back(data.attribute_data_chunk(ch));
               output->m_index_chunks.push_back(data.index_data_chunk(ch));
               output->m_index_adjusts.push_back(data.index_adjust_chunk(ch));
 
-              if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_simple
-                  || anti_alias_quality == fastuidraw::Painter::shader_anti_alias_deferred_coverage)
+              if (anti_alias_quality == Painter::shader_anti_alias_simple
+                  || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
                 {
                   output->m_z_increments.push_back(R.difference());
                   output->m_start_zs.push_back(R.m_begin);
@@ -3427,20 +3489,6 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
                 }
             }
         }
-
-      if (include_subset_bb)
-        {
-          bb.union_box(subset.bounding_box());
-        }
-    }
-
-  if (!bb.empty())
-    {
-      output->m_normalized_device_coords_bounding_box = compute_clip_intersect_rect(bb.as_rect(), 1.0f, 0.0f);
-    }
-  else
-    {
-      output->m_normalized_device_coords_bounding_box.clear();
     }
 
   if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_high_quality
@@ -3459,6 +3507,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                      int z)
 {
   using namespace fastuidraw;
+
   if (anti_alias_quality == Painter::shader_anti_alias_simple)
     {
       draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
@@ -3714,7 +3763,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       requires_coverage_buffer = compute_requires_coverage_buffer(shader, other_tp, anti_aliasing);
     }
 
-  if (requires_coverage_buffer)
+  if (requires_coverage_buffer || anti_aliasing == Painter::shader_anti_alias_hq_auto)
     {
       /* Make the coverage buffer limited to the bounding box
        * containing the union of the bounding boxes of the subsets
@@ -3745,7 +3794,27 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
         {
           return;
         }
-      begin_coverage_buffer_normalized_rect(bbox.as_rect(), true);
+
+      if (anti_aliasing == Painter::shader_anti_alias_hq_auto)
+        {
+          bool use_immediate;
+
+          use_immediate = should_use_immediate_coverage_instead(bbox.as_rect());
+          if (use_immediate)
+            {
+              anti_aliasing = Painter::shader_anti_alias_high_quality;
+              requires_coverage_buffer = false;
+            }
+          else
+            {
+              anti_aliasing = Painter::shader_anti_alias_deferred_coverage;
+            }
+        }
+
+      if (requires_coverage_buffer)
+        {
+          begin_coverage_buffer_normalized_rect(bbox.as_rect(), true);
+        }
     }
 
   stroke_path_raw(shader, edge_arc_shader, join_arc_shader, cap_arc_shader, draw,
