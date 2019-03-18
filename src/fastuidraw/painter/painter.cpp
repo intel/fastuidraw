@@ -1448,6 +1448,7 @@ namespace
     std::vector<int> m_start_zs;
     std::vector<int> m_z_increments;
     int m_total_increment_z;
+    fastuidraw::BoundingBox<float> m_normalized_device_coords_bounding_box;
   };
 
   class OpaqueFillWorkRoom:fastuidraw::noncopyable
@@ -2931,8 +2932,7 @@ begin_coverage_buffer_normalized_rect(const fastuidraw::Rect &normalized_rect,
 {
   if (non_empty)
     {
-      /* intersect normalized_rect with the current
-       */
+      /* intersect normalized_rect with the current */
       m_deferred_coverage_stack.push_back(m_deferred_coverage_stack_entry_factory.fetch(normalized_rect, this));
       m_deferred_coverage_stack.back().update_coverage_buffer_offset(this);
       m_clip_rect_state.coverage_buffer_normalized_translate(m_deferred_coverage_stack.back().normalized_translate());
@@ -3383,6 +3383,8 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
                          const FillSubsetWorkRoom &fill_subset,
                          AntiAliasFillWorkRoom *output)
 {
+  fastuidraw::BoundingBox<float> bb;
+
   output->m_total_increment_z = 0;
   output->m_z_increments.clear();
   output->m_attrib_chunks.clear();
@@ -3394,6 +3396,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
       fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
       const fastuidraw::PainterAttributeData &data(subset.aa_fuzz_painter_data());
       fastuidraw::c_array<const int> winding_numbers(subset.winding_numbers());
+      bool include_subset_bb(false);
 
       for(int w : winding_numbers)
         {
@@ -3402,6 +3405,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               unsigned int ch;
               fastuidraw::range_type<int> R;
 
+              include_subset_bb = true;
               ch = fastuidraw::FilledPath::Subset::aa_fuzz_chunk_from_winding_number(w);
               R = data.z_range(ch);
 
@@ -3409,7 +3413,8 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               output->m_index_chunks.push_back(data.index_data_chunk(ch));
               output->m_index_adjusts.push_back(data.index_adjust_chunk(ch));
 
-              if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_simple)
+              if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_simple
+                  || anti_alias_quality == fastuidraw::Painter::shader_anti_alias_deferred_coverage)
                 {
                   output->m_z_increments.push_back(R.difference());
                   output->m_start_zs.push_back(R.m_begin);
@@ -3422,6 +3427,20 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
                 }
             }
         }
+
+      if (include_subset_bb)
+        {
+          bb.union_box(subset.bounding_box());
+        }
+    }
+
+  if (!bb.empty())
+    {
+      output->m_normalized_device_coords_bounding_box = compute_clip_intersect_rect(bb.as_rect(), 1.0f, 0.0f);
+    }
+  else
+    {
+      output->m_normalized_device_coords_bounding_box.clear();
     }
 
   if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_high_quality
@@ -3451,6 +3470,29 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                              make_c_array(data.m_start_zs),
                              z);
 
+    }
+  else if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+    {
+      /* TODO: instead of allocating a coverage buffer area the size of
+       * the entire Path, we should instead walk through each Subset
+       * seperately. For those that have anti-alias fuzz, allocate the
+       * coverage buffer for their area and draw them.
+       */
+      FASTUIDRAWassert(shader.aa_fuzz_hq_deferred_coverage());
+      FASTUIDRAWassert(shader.aa_fuzz_hq_deferred_coverage()->coverage_shader());
+      if (!data.m_normalized_device_coords_bounding_box.empty())
+        {
+          begin_coverage_buffer_normalized_rect(data.m_normalized_device_coords_bounding_box.as_rect(), true);
+          draw_generic_z_layered(shader.aa_fuzz_hq_deferred_coverage(), draw,
+                                 make_c_array(data.m_z_increments),
+                                 data.m_total_increment_z,
+                                 make_c_array(data.m_attrib_chunks),
+                                 make_c_array(data.m_index_chunks),
+                                 make_c_array(data.m_index_adjusts),
+                                 make_c_array(data.m_start_zs),
+                                 z);
+          end_coverage_buffer();
+        }
     }
   else if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_high_quality)
     {
@@ -3678,11 +3720,9 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
        * containing the union of the bounding boxes of the subsets
        * chosen. TODO: we need to actually make the box larger
        * if we are drawing miter-joins and the miter-limit is large.
-       * Ideally, we should request from the StrokePath finer subsets,
-       * draw each subset seperately surrounded by a
-       * begin_coverage_buffer()/end_coverage_buffer() pair
-       * with inflated rects to limit the amount of area needed
-       * for the deferred coverage buffer.
+       * To do so, we need to requrest from the StrokedCapsJoins
+       * the list of joins and then use "something" to figure out
+       * how much bounding box each miter join adds.
        */
       BoundingBox<float> bbox, in_bbox;
       for (unsigned int subset_id : m_work_room.m_stroke.m_subsets)
@@ -4062,14 +4102,6 @@ fill_path(const fastuidraw::PainterFillShader &shader,
       || m_work_room.m_fill_subset.m_subsets.empty())
     {
       return;
-    }
-
-  if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
-    {
-      /* TODO: implement Painter::shader_anti_alias_high_quality
-       * for PainterFillShader.
-       */
-      anti_alias_quality = Painter::shader_anti_alias_high_quality;
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
@@ -6542,6 +6574,7 @@ query_stats(c_array<unsigned int> dst) const
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
+  FASTUIDRAWassert(dst.size() == PainterPacker::num_stats);
   for (unsigned int i = 0; i < dst.size() && i < PainterPacker::num_stats; ++i)
     {
       dst[i] = d->m_stats[i];
