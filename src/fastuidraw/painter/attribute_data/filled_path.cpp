@@ -30,11 +30,12 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/attribute_data/filled_path.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
-#include "../../private/util_private.hpp"
-#include "../../private/util_private_ostream.hpp"
-#include "../../private/bounding_box.hpp"
-#include "../../private/clip.hpp"
-#include "../../../3rd_party/glu-tess/glu-tess.hpp"
+
+#include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
+#include <private/bounding_box.hpp>
+#include <private/clip.hpp>
+#include <3rd_party/glu-tess/glu-tess.hpp>
 
 /* Actual triangulation is handled by GLU-tess.
  * The main complexity in creating a FilledPath

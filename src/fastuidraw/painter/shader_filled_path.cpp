@@ -24,9 +24,9 @@
 #include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/painter/shader_filled_path.hpp>
-#include "../private/util_private.hpp"
-#include "../private/bounding_box.hpp"
-#include "../private/bezier_util.hpp"
+#include <private/util_private.hpp>
+#include <private/bounding_box.hpp>
+#include <private/bezier_util.hpp>
 
 namespace
 {

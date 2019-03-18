@@ -19,9 +19,9 @@
 
 #include <vector>
 #include <fastuidraw/text/glyph_render_data_texels.hpp>
-#include "../private/pack_texels.hpp"
-#include "../private/util_private.hpp"
-#include "../private/util_private_ostream.hpp"
+#include <private/pack_texels.hpp>
+#include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
 
 namespace
 {

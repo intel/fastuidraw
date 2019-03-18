@@ -25,7 +25,7 @@
 #include "private/buffer_object_gl.hpp"
 #include "private/tex_buffer.hpp"
 #include "private/texture_view.hpp"
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

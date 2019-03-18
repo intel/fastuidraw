@@ -33,7 +33,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 
-#include "../../3rd_party/ieeehalfprecision/ieeehalfprecision.hpp"
+#include <ieeehalfprecision/ieeehalfprecision.hpp>
 
 #ifdef __linux__
 std::string

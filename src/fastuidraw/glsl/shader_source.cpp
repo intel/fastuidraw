@@ -36,7 +36,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

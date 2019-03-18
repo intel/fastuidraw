@@ -19,7 +19,7 @@
 #include <mutex>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/font.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

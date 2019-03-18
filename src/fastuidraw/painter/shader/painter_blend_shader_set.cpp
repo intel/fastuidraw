@@ -19,7 +19,7 @@
 
 #include <vector>
 #include <fastuidraw/painter/shader/painter_blend_shader_set.hpp>
-#include "../../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

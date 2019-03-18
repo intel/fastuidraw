@@ -17,7 +17,7 @@
  */
 
 #include <fastuidraw/painter/painter_packed_value.hpp>
-#include "backend/private/painter_packed_value_pool_private.hpp"
+#include <private/painter_backend/painter_packed_value_pool_private.hpp>
 
 namespace
 {

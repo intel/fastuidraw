@@ -19,7 +19,7 @@
 
 #include <vector>
 #include <fastuidraw/painter/shader/painter_glyph_shader.hpp>
-#include "../../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

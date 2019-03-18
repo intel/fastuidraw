@@ -21,7 +21,7 @@
 #include <sstream>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/text/font_properties.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

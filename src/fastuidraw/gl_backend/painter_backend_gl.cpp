@@ -30,7 +30,7 @@
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 #include "private/tex_buffer.hpp"
 #include "private/texture_gl.hpp"
 #include "private/painter_backend_gl_config.hpp"

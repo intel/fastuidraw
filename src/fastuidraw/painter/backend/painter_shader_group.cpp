@@ -16,7 +16,7 @@
  *
  */
 
-#include "private/painter_packer.hpp"
+#include <private/painter_backend/painter_packer.hpp>
 
 uint32_t
 fastuidraw::PainterShaderGroup::

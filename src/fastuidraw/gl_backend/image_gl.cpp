@@ -23,7 +23,7 @@
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include "private/texture_gl.hpp"
 #include "private/bindless.hpp"
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 
 

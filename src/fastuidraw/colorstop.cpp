@@ -21,7 +21,7 @@
 #include <vector>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/colorstop.hpp>
-#include "private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

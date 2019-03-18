@@ -20,7 +20,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include "../../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

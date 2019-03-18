@@ -28,12 +28,12 @@
 #include <fastuidraw/painter/attribute_data/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
-#include "../../private/util_private.hpp"
-#include "../../private/util_private_ostream.hpp"
-#include "../../private/bounding_box.hpp"
-#include "../../private/path_util_private.hpp"
-#include "../../private/point_attribute_data_merger.hpp"
-#include "../../private/clip.hpp"
+#include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
+#include <private/bounding_box.hpp>
+#include <private/path_util_private.hpp>
+#include <private/point_attribute_data_merger.hpp>
+#include <private/clip.hpp>
 
 namespace
 {

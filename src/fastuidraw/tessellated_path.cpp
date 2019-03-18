@@ -24,9 +24,9 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_path.hpp>
 #include <fastuidraw/painter/attribute_data/filled_path.hpp>
-#include "private/util_private.hpp"
-#include "private/bounding_box.hpp"
-#include "private/path_util_private.hpp"
+#include <private/util_private.hpp>
+#include <private/bounding_box.hpp>
+#include <private/path_util_private.hpp>
 
 namespace
 {

@@ -36,9 +36,9 @@
 #include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/glsl/unpack_source_generator.hpp>
 
-#include "private/uber_shader_builder.hpp"
-#include "private/backend_shaders.hpp"
-#include "../private/util_private.hpp"
+#include <private/glsl/uber_shader_builder.hpp>
+#include <private/glsl/backend_shaders.hpp>
+#include <private/util_private.hpp>
 
 namespace
 {

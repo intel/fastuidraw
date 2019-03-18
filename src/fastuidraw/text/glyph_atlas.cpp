@@ -20,8 +20,8 @@
 #include <mutex>
 #include <fastuidraw/text/glyph_atlas.hpp>
 
-#include "../private/interval_allocator.hpp"
-#include "../private/util_private.hpp"
+#include <private/interval_allocator.hpp>
+#include <private/util_private.hpp>
 
 namespace
 {

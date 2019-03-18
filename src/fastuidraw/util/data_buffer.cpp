@@ -20,7 +20,7 @@
 #include <fstream>
 #include <cstring>
 #include <fastuidraw/util/data_buffer.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

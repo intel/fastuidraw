@@ -20,7 +20,7 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/painter/backend/painter_surface.hpp>
-#include "../../../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace fastuidraw
 {

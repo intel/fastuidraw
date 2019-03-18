@@ -18,8 +18,7 @@
 
 
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
-#include "../../private/util_private.hpp"
-
+#include <private/util_private.hpp>
 
 ////////////////////////////////////
 // fastuidraw::PainterShaderRegistrar methods

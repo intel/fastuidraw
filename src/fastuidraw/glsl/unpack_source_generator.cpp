@@ -22,7 +22,7 @@
 
 #include <fastuidraw/glsl/unpack_source_generator.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

@@ -22,7 +22,7 @@ include $(dir)/Rules.mk
 dir := $(d)/painter
 include $(dir)/Rules.mk
 
-dir := $(d)/private
+dir := $(d)/internal
 include $(dir)/Rules.mk
 
 dir := $(d)/glsl

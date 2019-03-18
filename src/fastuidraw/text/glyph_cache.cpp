@@ -22,12 +22,10 @@
 #include <mutex>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
-#include "../private/util_private.hpp"
-
+#include <private/util_private.hpp>
 
 namespace
 {
-
   class GlyphCachePrivate;
 
   class GlyphDataAlloc

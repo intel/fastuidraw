@@ -28,13 +28,12 @@
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
-#include "../private/bounding_box.hpp"
-#include "../private/util_private.hpp"
-#include "../private/util_private_ostream.hpp"
+#include <private/bounding_box.hpp>
+#include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
 
 namespace
 {
-
   enum band_t
     {
       vertical_band = 0, /* x-range */

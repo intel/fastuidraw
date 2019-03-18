@@ -27,7 +27,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

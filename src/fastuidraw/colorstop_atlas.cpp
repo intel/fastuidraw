@@ -21,8 +21,8 @@
 #include <algorithm>
 #include <mutex>
 #include <fastuidraw/colorstop_atlas.hpp>
-#include "private/interval_allocator.hpp"
-#include "private/util_private.hpp"
+#include <private/interval_allocator.hpp>
+#include <private/util_private.hpp>
 
 namespace
 {

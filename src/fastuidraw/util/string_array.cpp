@@ -20,7 +20,7 @@
 #include <vector>
 #include <fastuidraw/util/string_array.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

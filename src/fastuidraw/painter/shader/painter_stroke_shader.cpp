@@ -17,7 +17,7 @@
  */
 
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
-#include "../../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

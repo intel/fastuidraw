@@ -27,11 +27,11 @@
 #include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data_filler.hpp>
-#include "../../private/util_private.hpp"
-#include "../../private/util_private_ostream.hpp"
-#include "../../private/bounding_box.hpp"
-#include "../../private/path_util_private.hpp"
-#include "../../private/clip.hpp"
+#include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
+#include <private/bounding_box.hpp>
+#include <private/path_util_private.hpp>
+#include <private/clip.hpp>
 
 namespace
 {

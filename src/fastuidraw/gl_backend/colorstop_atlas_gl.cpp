@@ -23,7 +23,7 @@
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 
 #include "private/texture_gl.hpp"
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

@@ -19,9 +19,9 @@
 #include <sstream>
 #include <iomanip>
 
-#include "uber_shader_builder.hpp"
-#include "../../private/util_private.hpp"
-#include "../../private/util_private_ostream.hpp"
+#include <private/glsl/uber_shader_builder.hpp>
+#include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
 
 namespace
 {

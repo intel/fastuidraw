@@ -21,9 +21,9 @@
 #include <list>
 #include <cstring>
 
-#include "painter_packer.hpp"
-#include "painter_packed_value_pool_private.hpp"
-#include "../../../private/util_private.hpp"
+#include <private/painter_backend/painter_packer.hpp>
+#include <private/painter_backend/painter_packed_value_pool_private.hpp>
+#include <private/util_private.hpp>
 
 namespace
 {

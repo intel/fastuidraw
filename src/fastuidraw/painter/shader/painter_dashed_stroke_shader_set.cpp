@@ -18,11 +18,10 @@
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/painter/shader/painter_dashed_stroke_shader_set.hpp>
-#include "../../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {
-
   class PainterDashedStrokeShaderSetPrivate
   {
   public:
@@ -32,7 +31,6 @@ namespace
     fastuidraw::vecN<PainterStrokeShader, count> m_shaders;
   };
 }
-
 
 ///////////////////////////////////////////////////
 // fastuidraw::PainterDashedStrokeShaderSet methods

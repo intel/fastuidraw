@@ -4,12 +4,11 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-FASTUIDRAW_PRIVATE_SOURCES += $(call filelist, \
-	interval_allocator.cpp \
-	path_util_private.cpp \
-	clip.cpp int_path.cpp \
-	util_private_math.cpp \
-	pack_texels.cpp rect_atlas.cpp)
+dir := $(d)/3rd_party
+include $(dir)/Rules.mk
+
+dir := $(d)/private
+include $(dir)/Rules.mk
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

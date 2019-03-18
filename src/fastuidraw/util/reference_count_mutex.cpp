@@ -22,7 +22,7 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/reference_count_mutex.hpp>
 
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

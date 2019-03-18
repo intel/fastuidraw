@@ -26,13 +26,13 @@
 #include <fastuidraw/painter/backend/painter_header.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
-#include "../private/util_private.hpp"
-#include "../private/util_private_math.hpp"
-#include "../private/util_private_ostream.hpp"
-#include "../private/clip.hpp"
-#include "../private/bounding_box.hpp"
-#include "../private/rect_atlas.hpp"
-#include "backend/private/painter_packer.hpp"
+#include <private/util_private.hpp>
+#include <private/util_private_math.hpp>
+#include <private/util_private_ostream.hpp>
+#include <private/clip.hpp>
+#include <private/bounding_box.hpp>
+#include <private/rect_atlas.hpp>
+#include <private/painter_backend/painter_packer.hpp>
 
 namespace
 {

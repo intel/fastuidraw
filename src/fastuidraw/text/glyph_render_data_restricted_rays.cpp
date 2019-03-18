@@ -26,9 +26,9 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
-#include "../private/bounding_box.hpp"
-#include "../private/util_private.hpp"
-#include "../private/util_private_ostream.hpp"
+#include <private/bounding_box.hpp>
+#include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
 
 namespace
 {

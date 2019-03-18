@@ -25,7 +25,7 @@
 #include <atomic>
 
 #include <fastuidraw/text/font_database.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 namespace
 {

@@ -21,13 +21,11 @@
 #include <map>
 #include <mutex>
 #include <fastuidraw/image.hpp>
-#include "private/array3d.hpp"
-#include "private/util_private.hpp"
-
+#include <private/array3d.hpp>
+#include <private/util_private.hpp>
 
 namespace
 {
-
   /*
    * Copies from src the rectangle:
    *  [source_x, source_x + dest_dim) x [source_y, source_y + dest_dim)

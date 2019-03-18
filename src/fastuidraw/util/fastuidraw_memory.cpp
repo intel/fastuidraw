@@ -27,7 +27,7 @@
 #include <mutex>
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
-#include "../private/util_private.hpp"
+#include <private/util_private.hpp>
 
 #ifdef FASTUIDRAW_DEBUG
 
