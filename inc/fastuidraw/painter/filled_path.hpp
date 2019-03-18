@@ -131,6 +131,12 @@ public:
     bounding_path(void) const;
 
     /*!
+     * Returns the bounding box of the Subset.
+     */
+    const Rect&
+    bounding_box(void) const;
+
+    /*!
      * Returns what chunk to pass PainterAttributeData::index_data_chunk()
      * called on the \ref PainterAttributeData returned by painter_data()
      * to get the triangles of a specified winding number. The same

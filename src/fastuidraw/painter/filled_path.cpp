@@ -1033,6 +1033,12 @@ namespace
       return fastuidraw::make_c_array(m_winding_numbers);
     }
 
+    const fastuidraw::BoundingBox<float>&
+    bounding_box(void) const
+    {
+      return m_bounds_f;
+    }
+
     const fastuidraw::Path&
     bounding_path(void) const
     {
@@ -3396,6 +3402,15 @@ bounding_path(void) const
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
   return d->bounding_path();
+}
+
+const fastuidraw::Rect&
+fastuidraw::FilledPath::Subset::
+bounding_box(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  return d->bounding_box().as_rect();
 }
 
 unsigned int
