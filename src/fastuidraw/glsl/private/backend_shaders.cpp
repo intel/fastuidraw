@@ -900,7 +900,6 @@ create_fill_shader(void)
                                                          .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
                                                          .remove_macros(m_fill_macros),
                                                          varying_list().add_float_varying("fastuidraw_aa_fuzz"),
-                                                         1,
                                                          aa_fuzz_deferred_coverage);
 
   fill_shader.aa_fuzz_hq_deferred_coverage(aa_fuzz_deferred);
