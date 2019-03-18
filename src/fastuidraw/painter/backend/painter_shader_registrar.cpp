@@ -257,6 +257,7 @@ register_shader(const PainterFillShader &p)
   register_shader(p.aa_fuzz_shader());
   register_shader(p.aa_fuzz_hq_shader_pass1());
   register_shader(p.aa_fuzz_hq_shader_pass2());
+  register_shader(p.aa_fuzz_hq_deferred_coverage());
 }
 
 void
