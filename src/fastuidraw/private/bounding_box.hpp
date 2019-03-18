@@ -69,6 +69,12 @@ namespace fastuidraw
     }
 
     void
+    clear(void)
+    {
+      m_empty = true;
+    }
+
+    void
     enlarge(pt_type delta)
     {
       if (!m_empty)
@@ -164,6 +170,15 @@ namespace fastuidraw
 	  return r0 || r1;
         }
       return false;
+    }
+
+    bool
+    union_box(const RectT<T> &b)
+    {
+      bool r0, r1;
+      r0 = union_point(b.m_min_point);
+      r1 = union_point(b.m_max_point);
+      return r0 || r1;
     }
 
     pt_type
