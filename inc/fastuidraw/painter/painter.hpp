@@ -30,7 +30,6 @@
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/path.hpp>
 
-#include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
@@ -46,6 +45,7 @@
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
 
+#include <fastuidraw/painter/shader/painter_shader_set.hpp>
 #include <fastuidraw/painter/backend/painter_backend.hpp>
 
 namespace fastuidraw

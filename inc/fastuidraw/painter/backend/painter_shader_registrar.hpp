@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_shader_set.hpp>
+#include <fastuidraw/painter/shader/painter_shader_set.hpp>
 #include <fastuidraw/util/mutex.hpp>
 
 namespace fastuidraw

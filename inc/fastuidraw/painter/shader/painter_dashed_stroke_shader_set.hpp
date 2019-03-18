@@ -22,9 +22,9 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
-#include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
+#include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 
 namespace fastuidraw
 {

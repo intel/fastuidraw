@@ -17,8 +17,8 @@
  */
 
 #include <utility>
-#include <fastuidraw/painter/painter_fill_shader.hpp>
-#include "../private/util_private.hpp"
+#include <fastuidraw/painter/shader/painter_fill_shader.hpp>
+#include "../../private/util_private.hpp"
 
 namespace
 {

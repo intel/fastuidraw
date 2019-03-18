@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>

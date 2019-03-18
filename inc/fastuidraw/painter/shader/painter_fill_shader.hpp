@@ -20,8 +20,8 @@
 #pragma once
 
 
-#include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/shader/painter_item_shader.hpp>
 #include <fastuidraw/painter/backend/painter_draw.hpp>
 
 namespace fastuidraw

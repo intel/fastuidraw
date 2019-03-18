@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/text/glyph.hpp>
+#include <fastuidraw/painter/shader/painter_item_shader.hpp>
 
 namespace fastuidraw
 {

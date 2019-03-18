@@ -18,8 +18,8 @@
 
 
 #include <vector>
-#include <fastuidraw/painter/painter_composite_shader_set.hpp>
-#include "../private/util_private.hpp"
+#include <fastuidraw/painter/shader/painter_composite_shader_set.hpp>
+#include "../../private/util_private.hpp"
 
 namespace
 {

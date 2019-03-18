@@ -27,7 +27,6 @@
 #include <fastuidraw/painter/stroked_caps_joins.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
-#include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
 #include "../private/util_private.hpp"
 #include "../private/util_private_ostream.hpp"
 #include "../private/bounding_box.hpp"

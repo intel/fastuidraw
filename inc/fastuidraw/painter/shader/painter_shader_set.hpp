@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_fill_shader.hpp>
-#include <fastuidraw/painter/painter_stroke_shader.hpp>
-#include <fastuidraw/painter/painter_glyph_shader.hpp>
-#include <fastuidraw/painter/painter_composite_shader_set.hpp>
-#include <fastuidraw/painter/painter_blend_shader_set.hpp>
-#include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/shader/painter_fill_shader.hpp>
+#include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
+#include <fastuidraw/painter/shader/painter_glyph_shader.hpp>
+#include <fastuidraw/painter/shader/painter_composite_shader_set.hpp>
+#include <fastuidraw/painter/shader/painter_blend_shader_set.hpp>
+#include <fastuidraw/painter/shader/painter_dashed_stroke_shader_set.hpp>
 
 namespace fastuidraw
 {

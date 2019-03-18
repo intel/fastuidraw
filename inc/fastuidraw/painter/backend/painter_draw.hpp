@@ -25,8 +25,6 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/gpu_dirty_state.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
-#include <fastuidraw/painter/painter_shader.hpp>
-#include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/painter/backend/painter_shader_group.hpp>
 #include <fastuidraw/painter/backend/painter_surface.hpp>
 

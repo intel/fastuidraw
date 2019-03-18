@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_blend_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/shader/painter_blend_shader.hpp>
 
 namespace fastuidraw
 {

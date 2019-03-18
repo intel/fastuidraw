@@ -21,7 +21,7 @@
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/blend_mode.hpp>
-#include <fastuidraw/painter/painter_blend_shader.hpp>
+#include <fastuidraw/painter/shader/painter_blend_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 
 namespace fastuidraw
