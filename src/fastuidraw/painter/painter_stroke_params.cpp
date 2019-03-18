@@ -20,6 +20,7 @@
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_path.hpp>
 #include <private/util_private.hpp>
+#include <private/painter_stroking_data_selector_common.hpp>
 
 namespace
 {
@@ -68,107 +69,6 @@ namespace
     float m_radius;
     enum fastuidraw::PainterStrokeParams::stroking_units_t m_stroking_units;
   };
-
-  class StrokingDataSelector:public fastuidraw::StrokingDataSelectorBase
-  {
-  public:
-    explicit
-    StrokingDataSelector(bool pixel_arc_stroking_possible);
-
-    virtual
-    float
-    compute_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-                   float path_magnification,
-                   float curve_flatness) const;
-    void
-    stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
-                       float *out_pixel_distance,
-                       float *out_item_space_distance) const;
-    bool
-    arc_stroking_possible(const fastuidraw::PainterShaderData::DataBase *data) const;
-
-    bool
-    data_compatible(const fastuidraw::PainterShaderData::DataBase *data) const;
-
-  private:
-    bool m_pixel_arc_stroking_possible;
-  };
-
-}
-
-////////////////////////////////
-// StrokingDataSelector methods
-StrokingDataSelector::
-StrokingDataSelector(bool pixel_arc_stroking_possible):
-  m_pixel_arc_stroking_possible(pixel_arc_stroking_possible)
-{}
-
-float
-StrokingDataSelector::
-compute_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-               float path_magnification,
-               float curve_flatness) const
-{
-  const PainterStrokeParamsData *d;
-  d = static_cast<const PainterStrokeParamsData*>(data);
-
-  if (d->m_radius <= 0.0f)
-    {
-      /* Not really stroking, just select a LARGE value
-       * to get a very low level of detail.
-       */
-      return 10000.0f;
-    }
-  else
-    {
-      float return_value;
-
-      return_value = curve_flatness / fastuidraw::t_max(1.0f, d->m_radius);
-      if (d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units)
-        {
-          return_value /= path_magnification;
-        }
-      return return_value;
-    }
-}
-
-void
-StrokingDataSelector::
-stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
-                   float *out_pixel_distance,
-                   float *out_item_space_distance) const
-{
-  const PainterStrokeParamsData *d;
-  d = static_cast<const PainterStrokeParamsData*>(data);
-
-  if (d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units)
-    {
-      *out_pixel_distance = 0.0f;
-      *out_item_space_distance = d->m_radius;
-    }
-  else
-    {
-      *out_pixel_distance = d->m_radius;
-      *out_item_space_distance = 0.0f;
-    }
-}
-
-bool
-StrokingDataSelector::
-arc_stroking_possible(const fastuidraw::PainterShaderData::DataBase *data) const
-{
-  const PainterStrokeParamsData *d;
-  d = static_cast<const PainterStrokeParamsData*>(data);
-
-  return m_pixel_arc_stroking_possible
-    || d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units;
-}
-
-bool
-StrokingDataSelector::
-data_compatible(const fastuidraw::PainterShaderData::DataBase *data) const
-{
-  return dynamic_cast<const PainterStrokeParamsData*>(data);
 }
 
 ///////////////////////////////////
@@ -267,5 +167,5 @@ fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterStrokeParams::
 stroking_data_selector(bool pixel_arc_stroking_possible)
 {
-  return FASTUIDRAWnew StrokingDataSelector(pixel_arc_stroking_possible);
+  return FASTUIDRAWnew detail::StrokingDataSelectorT<PainterStrokeParamsData>(pixel_arc_stroking_possible);
 }
