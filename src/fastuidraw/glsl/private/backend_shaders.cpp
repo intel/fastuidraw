@@ -821,6 +821,8 @@ create_fill_shader(void)
   reference_counted_ptr<PainterItemShader> item_shader;
   reference_counted_ptr<PainterItemShader> uber_fuzz_shader;
   reference_counted_ptr<PainterItemShader> aa_fuzz_direct_shader;
+  reference_counted_ptr<PainterItemShader> aa_fuzz_deferred;
+  reference_counted_ptr<PainterItemCoverageShaderGLSL> aa_fuzz_deferred_coverage;
 
   item_shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                     ShaderSource()
@@ -865,6 +867,43 @@ create_fill_shader(void)
         .aa_fuzz_hq_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
         .aa_fuzz_hq_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
     }
+
+  /* the aa-fuzz shader via deferred coverage is not a part of the uber-fuzz shader */
+  aa_fuzz_deferred_coverage = FASTUIDRAWnew PainterItemCoverageShaderGLSL(ShaderSource()
+                                                                          .add_macros(m_fill_macros)
+                                                                          .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                                          .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
+                                                                                      ShaderSource::from_resource)
+                                                                          .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                                          .remove_macros(m_fill_macros),
+                                                                          ShaderSource()
+                                                                          .add_macros(m_fill_macros)
+                                                                          .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                                          .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
+                                                                                      ShaderSource::from_resource)
+                                                                          .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                                          .remove_macros(m_fill_macros),
+                                                                          varying_list().add_float_varying("fastuidraw_aa_fuzz"));
+  aa_fuzz_deferred = FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                                         ShaderSource()
+                                                         .add_macros(m_fill_macros)
+                                                         .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
+                                                                     ShaderSource::from_resource)
+                                                         .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                         .remove_macros(m_fill_macros),
+                                                         ShaderSource()
+                                                         .add_macros(m_fill_macros)
+                                                         .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
+                                                                     ShaderSource::from_resource)
+                                                         .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                         .remove_macros(m_fill_macros),
+                                                         varying_list().add_float_varying("fastuidraw_aa_fuzz"),
+                                                         1,
+                                                         aa_fuzz_deferred_coverage);
+
+  fill_shader.aa_fuzz_hq_deferred_coverage(aa_fuzz_deferred);
 
   return fill_shader;
 }
