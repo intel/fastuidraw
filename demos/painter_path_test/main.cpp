@@ -249,28 +249,6 @@ private:
       number_image_filter_modes
     };
 
-  enum anti_alias_mode_t
-    {
-      no_anti_alias,
-      by_anti_alias_simple,
-      by_anti_alias_hq,
-      by_anti_alias_hq_deferred,
-      by_anti_alias_fastest,
-      by_anti_alias_auto,
-      by_anti_alias_hq_auto,
-
-      number_anti_alias_modes
-    };
-
-  enum stroking_mode_t
-    {
-      stroke_linear_path,
-      stroke_arc_path,
-      stroke_auto_path,
-
-      number_stroking_modes
-    };
-
   enum fill_mode_t
     {
       draw_fill_path,
@@ -499,16 +477,9 @@ private:
   reference_counted_ptr<const FontBase> m_font;
 
   vecN<std::string, number_gradient_draw_modes> m_gradient_mode_labels;
-  vecN<std::string, Painter::number_cap_styles> m_cap_labels;
-  vecN<std::string, Painter::number_join_styles> m_join_labels;
-  vecN<std::string, Painter::fill_rule_data_count> m_fill_labels;
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
-  vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
-  vecN<std::string, number_stroking_modes> m_stroke_mode_labels;
   vecN<std::string, number_fill_modes> m_draw_fill_labels;
   vecN<std::string, PainterBrush::number_spread_types> m_spread_type_labels;
-  vecN<enum Painter::stroking_method_t, number_stroking_modes> m_stroke_mode_values;
-  vecN<enum Painter::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
   vecN<std::string, fill_by_number_modes> m_fill_by_mode_labels;
 
   PainterPackedValue<PainterBrush> m_black_pen;
@@ -522,8 +493,8 @@ private:
   Path m_rect;
 
   unsigned int m_selected_path;
-  unsigned int m_join_style;
-  unsigned int m_cap_style;
+  enum Painter::join_style m_join_style;
+  enum Painter::cap_style m_cap_style;
 
   /* m_dash pattern:
       0 -> undashed stroking
@@ -545,9 +516,9 @@ private:
 
   float m_miter_limit, m_stroke_width;
   unsigned int m_draw_fill;
-  unsigned int m_aa_stroke_mode;
-  unsigned int m_stroking_mode;
-  unsigned int m_aa_fill_mode;
+  enum Painter::shader_anti_alias_t m_aa_stroke_mode;
+  enum Painter::stroking_method_t m_stroking_mode;
+  enum Painter::shader_anti_alias_t m_aa_fill_mode;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
   unsigned int m_image_filter;
@@ -580,7 +551,7 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_label(label),
   m_from_glyph(from_gylph),
   m_fill_rule(Painter::odd_even_fill_rule),
-  m_end_fill_rule(Painter::fill_rule_data_count),
+  m_end_fill_rule(Painter::number_fill_rule),
   m_shear(1.0f, 1.0f),
   m_shear2(1.0f, 1.0f),
   m_angle(0.0f),
@@ -592,7 +563,7 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_clipping_window(false)
 {
   m_end_fill_rule =
-    m_path.tessellation()->filled()->subset(0).winding_numbers().size() + Painter::fill_rule_data_count;
+    m_path.tessellation()->filled()->subset(0).winding_numbers().size() + Painter::number_fill_rule;
 
   /* set transformation to center and contain path. */
   vec2 p0, p1, delta, dsp(w, h), ratio, mid;
@@ -725,9 +696,9 @@ painter_stroke_test(void):
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
   m_draw_fill(draw_fill_path),
-  m_aa_stroke_mode(by_anti_alias_auto),
-  m_stroking_mode(stroke_auto_path),
-  m_aa_fill_mode(by_anti_alias_auto),
+  m_aa_stroke_mode(Painter::shader_anti_alias_auto),
+  m_stroking_mode(Painter::stroking_method_auto),
+  m_aa_fill_mode(Painter::shader_anti_alias_auto),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_image_filter(image_nearest_filter),
@@ -799,22 +770,6 @@ painter_stroke_test(void):
   m_spread_type_labels[PainterBrush::spread_mirror_repeat] = "spread_mirror_repeat";
   m_spread_type_labels[PainterBrush::spread_mirror] = "spread_mirror";
 
-  m_join_labels[Painter::no_joins] = "no_joins";
-  m_join_labels[Painter::rounded_joins] = "rounded_joins";
-  m_join_labels[Painter::bevel_joins] = "bevel_joins";
-  m_join_labels[Painter::miter_clip_joins] = "miter_clip_joins";
-  m_join_labels[Painter::miter_bevel_joins] = "miter_bevel_joins";
-  m_join_labels[Painter::miter_joins] = "miter_joins";
-
-  m_cap_labels[Painter::flat_caps] = "flat_caps";
-  m_cap_labels[Painter::rounded_caps] = "rounded_caps";
-  m_cap_labels[Painter::square_caps] = "square_caps";
-
-  m_fill_labels[Painter::odd_even_fill_rule] = "odd_even_fill_rule";
-  m_fill_labels[Painter::nonzero_fill_rule] = "nonzero_fill_rule";
-  m_fill_labels[Painter::complement_odd_even_fill_rule] = "complement_odd_even_fill_rule";
-  m_fill_labels[Painter::complement_nonzero_fill_rule] = "complement_nonzero_fill_rule";
-
   m_fill_by_mode_labels[fill_by_filled_path] = "FilledPath";
   m_fill_by_mode_labels[fill_by_clipping] = "clipping against FilledPath";
   m_fill_by_mode_labels[fill_by_shader_filled_path] = "ShaderFilledPath";
@@ -823,30 +778,6 @@ painter_stroke_test(void):
   m_image_filter_mode_labels[image_nearest_filter] = "image_nearest_filter";
   m_image_filter_mode_labels[image_linear_filter] = "image_linear_filter";
   m_image_filter_mode_labels[image_cubic_filter] = "image_cubic_filter";
-
-  m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
-  m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
-  m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
-  m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
-  m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
-  m_anti_alias_mode_labels[by_anti_alias_hq_deferred] = "by_anti_alias_hq_deferred";
-  m_anti_alias_mode_labels[by_anti_alias_hq_auto] = "by_anti_alias_hq_auto";
-
-  m_shader_anti_alias_mode_values[no_anti_alias] = Painter::shader_anti_alias_none;
-  m_shader_anti_alias_mode_values[by_anti_alias_auto] = Painter::shader_anti_alias_auto;
-  m_shader_anti_alias_mode_values[by_anti_alias_simple] = Painter::shader_anti_alias_simple;
-  m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_hq_immediate_coverage;
-  m_shader_anti_alias_mode_values[by_anti_alias_fastest] = Painter::shader_anti_alias_fastest;
-  m_shader_anti_alias_mode_values[by_anti_alias_hq_deferred] = Painter::shader_anti_alias_hq_deferred_coverage;
-  m_shader_anti_alias_mode_values[by_anti_alias_hq_auto] = Painter::shader_anti_alias_hq_auto;
-
-  m_stroke_mode_labels[stroke_linear_path] = "stroke_linear_path";
-  m_stroke_mode_labels[stroke_arc_path] = "stroke_arc_path";
-  m_stroke_mode_labels[stroke_auto_path] = "stroke_auto_path";
-
-  m_stroke_mode_values[stroke_linear_path] = Painter::stroking_method_linear;
-  m_stroke_mode_values[stroke_arc_path] = Painter::stroking_method_arc;
-  m_stroke_mode_values[stroke_auto_path] = Painter::stroking_method_auto;
 
   m_draw_fill_labels[draw_fill_path] = "draw_fill";
   m_draw_fill_labels[draw_fill_path_occludes_stroking] = "draw_fill_path_occludes_stroking";
@@ -1041,7 +972,7 @@ update_cts_params(void)
         }
     }
 
-  if (Painter::is_miter_join(static_cast<enum Painter::join_style>(m_join_style)))
+  if (Painter::is_miter_join(m_join_style))
     {
       if (keyboard_state[SDL_SCANCODE_N])
         {
@@ -1115,7 +1046,7 @@ fill_centered_rect(const vec2 &pt, float r, const PainterData &draw)
 
   rect.m_min_point = pt - sz;
   rect.m_max_point = pt + sz;
-  m_painter->fill_rect(draw, rect, m_shader_anti_alias_mode_values[m_aa_fill_mode]);
+  m_painter->fill_rect(draw, rect, m_aa_fill_mode);
 }
 
 vec2
@@ -1219,8 +1150,9 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_v:
-          cycle_value(m_stroking_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_stroking_modes);
-          std::cout << "Stroking mode set to: " << m_stroke_mode_labels[m_stroking_mode] << "\n";
+          cycle_value(m_stroking_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
+                      Painter::number_stroking_methods);
+          std::cout << "Stroking mode set to: " << Painter::label(m_stroking_mode) << "\n";
           break;
 
         case SDLK_k:
@@ -1373,7 +1305,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_j:
           cycle_value(m_join_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), Painter::number_join_styles);
-          std::cout << "Join drawing mode set to: " << m_join_labels[m_join_style] << "\n";
+          std::cout << "Join drawing mode set to: " << Painter::label(m_join_style) << "\n";
           break;
 
         case SDLK_d:
@@ -1403,7 +1335,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_c:
           cycle_value(m_cap_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), Painter::number_cap_styles);
-          std::cout << "Cap drawing mode set to: " << m_cap_labels[m_cap_style] << "\n";
+          std::cout << "Cap drawing mode set to: " << Painter::label(m_cap_style) << "\n";
           break;
 
         case SDLK_r:
@@ -1412,9 +1344,11 @@ handle_event(const SDL_Event &ev)
               cycle_value(current_fill_rule(),
                           ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
                           current_end_fill_rule() + 1);
-              if (current_fill_rule() < Painter::fill_rule_data_count)
+              if (current_fill_rule() < Painter::number_fill_rule)
                 {
-                  std::cout << "Fill rule set to: " << m_fill_labels[current_fill_rule()] << "\n";
+                  std::cout << "Fill rule set to: "
+                            << Painter::label(static_cast<enum Painter::fill_rule_t>(current_fill_rule()))
+                            << "\n";
                 }
               else if (current_fill_rule() == current_end_fill_rule())
                 {
@@ -1425,7 +1359,7 @@ handle_event(const SDL_Event &ev)
                   c_array<const int> wnd;
                   int value;
                   wnd = path().tessellation()->filled()->subset(0).winding_numbers();
-                  value = wnd[current_fill_rule() - Painter::fill_rule_data_count];
+                  value = wnd[current_fill_rule() - Painter::number_fill_rule];
                   std::cout << "Fill rule set to custom fill rule: winding_number == "
                             << value << "\n";
                 }
@@ -1452,9 +1386,9 @@ handle_event(const SDL_Event &ev)
             {
               cycle_value(m_aa_fill_mode,
                           ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                          number_anti_alias_modes);
+                          Painter::number_shader_anti_alias);
               std::cout << "Filling anti-alias mode set to: "
-                        << m_anti_alias_mode_labels[m_aa_fill_mode]
+                        << Painter::label(m_aa_fill_mode)
                         << "\n";
             }
           break;
@@ -1464,9 +1398,9 @@ handle_event(const SDL_Event &ev)
             {
               cycle_value(m_aa_stroke_mode,
                           ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                          number_anti_alias_modes);
+                          Painter::number_shader_anti_alias);
               std::cout << "Stroking anti-alias mode set to: "
-                        << m_anti_alias_mode_labels[m_aa_stroke_mode]
+                        << Painter::label(m_aa_stroke_mode)
                         << "\n";
             }
           break;
@@ -1849,9 +1783,9 @@ draw_scene(bool drawing_wire_frame)
                                mip_max_level);
         }
 
-      if (current_fill_rule() < Painter::fill_rule_data_count)
+      if (current_fill_rule() < Painter::number_fill_rule)
         {
-          fill_rule_function = CustomFillRuleFunction(static_cast<Painter::fill_rule_t>(current_fill_rule()));
+          fill_rule_function = CustomFillRuleFunction(static_cast<enum Painter::fill_rule_t>(current_fill_rule()));
         }
       else if (current_fill_rule() != current_end_fill_rule())
         {
@@ -1859,7 +1793,7 @@ draw_scene(bool drawing_wire_frame)
           c_array<const int> wnd;
 
           wnd = path().tessellation()->filled()->subset(0).winding_numbers();
-          value = wnd[current_fill_rule() - Painter::fill_rule_data_count];
+          value = wnd[current_fill_rule() - Painter::number_fill_rule];
           value_fill_rule = WindingValueFillRule(value);
           fill_rule = &value_fill_rule;
         }
@@ -1886,18 +1820,16 @@ draw_scene(bool drawing_wire_frame)
         }
       else if (m_fill_by_mode == fill_by_filled_path)
         {
-          m_painter->fill_path(D, path(), *fill_rule,
-                               m_shader_anti_alias_mode_values[m_aa_fill_mode]);
+          m_painter->fill_path(D, path(), *fill_rule, m_aa_fill_mode);
         }
       else
         {
           const ShaderFilledPath *sf;
 
           sf = path().shader_filled_path().get();
-          if (sf && current_fill_rule() < Painter::fill_rule_data_count)
+          if (sf && current_fill_rule() < Painter::number_fill_rule)
             {
-              m_painter->fill_path(D, *sf,
-                                   static_cast<Painter::fill_rule_t>(current_fill_rule()));
+              m_painter->fill_path(D, *sf, static_cast<enum Painter::fill_rule_t>(current_fill_rule()));
             }
         }
     }
@@ -1970,10 +1902,9 @@ draw_scene(bool drawing_wire_frame)
           m_painter->stroke_dashed_path(PainterData(*stroke_pen, &st),
                                         path(),
                                         StrokingStyle()
-                                        .join_style(static_cast<enum Painter::join_style>(m_join_style))
-                                        .cap_style(static_cast<enum Painter::cap_style>(m_cap_style)),
-                                        m_shader_anti_alias_mode_values[m_aa_stroke_mode],
-                                        m_stroke_mode_values[m_stroking_mode]);
+                                        .join_style(m_join_style)
+                                        .cap_style(m_cap_style),
+                                        m_aa_stroke_mode, m_stroking_mode);
 
         }
       else
@@ -1990,10 +1921,9 @@ draw_scene(bool drawing_wire_frame)
           m_painter->stroke_path(PainterData(*stroke_pen, &st),
                                  path(),
                                  StrokingStyle()
-                                 .join_style(static_cast<enum Painter::join_style>(m_join_style))
-                                 .cap_style(static_cast<enum Painter::cap_style>(m_cap_style)),
-                                 m_shader_anti_alias_mode_values[m_aa_stroke_mode],
-                                 m_stroke_mode_values[m_stroking_mode]);
+                                 .join_style(m_join_style)
+                                 .cap_style(m_cap_style),
+                                 m_aa_stroke_mode, m_stroking_mode);
         }
 
       if (m_draw_fill == draw_fill_path_occludes_stroking)
@@ -2159,8 +2089,8 @@ draw_frame(void)
 
       if (m_stroke_width > 0.0f)
         {
-          ostr << "\n\t[a]AA-Stroking mode:" << m_anti_alias_mode_labels[m_aa_stroke_mode]
-	       << "\n\t[v]Stroke by: " <<  m_stroke_mode_labels[m_stroking_mode]
+          ostr << "\n\t[a]AA-Stroking mode:" << Painter::label(m_aa_stroke_mode)
+	       << "\n\t[v]Stroke by: " << Painter::label(m_stroking_mode)
                << "\n\tStroke Width: " << m_stroke_width;
           if (m_stroke_width_in_pixels)
             {
@@ -2179,8 +2109,8 @@ draw_frame(void)
               ostr << "([d]non-dashed)";
             }
 
-          ostr << "\n\t[c]CapStyle: " << m_cap_labels[m_cap_style]
-               << "\n\t[j]JoinStyle: " << m_join_labels[m_join_style];
+          ostr << "\n\t[c]CapStyle: " << Painter::label(m_cap_style)
+               << "\n\t[j]JoinStyle: " << Painter::label(m_join_style);
         }
 
       if (m_draw_fill != dont_draw_fill_path)
@@ -2195,7 +2125,7 @@ draw_frame(void)
                   ostr << "\n\nUnable to fill by " << m_fill_by_mode_labels[m_fill_by_mode]
                        << "\nbecause Path does not have\nShaderFilledPath\n";
                 }
-              else if (current_fill_rule() >= Painter::fill_rule_data_count)
+              else if (current_fill_rule() >= Painter::number_fill_rule)
                 {
                   print_fill_stats = false;
                   ostr << "\n\nUnable to fill by " << m_fill_by_mode_labels[m_fill_by_mode]
@@ -2207,15 +2137,15 @@ draw_frame(void)
             {
               if (m_fill_by_mode == fill_by_filled_path)
                 {
-                  ostr << "\n\t[u]AA-Filling mode: " << m_anti_alias_mode_labels[m_aa_fill_mode];
+                  ostr << "\n\t[u]AA-Filling mode: " << Painter::label(m_aa_fill_mode);
                 }
 
               ostr << "\n\t[f]Fill Mode: " << m_draw_fill_labels[m_draw_fill]
                    << "(via " << m_fill_by_mode_labels[m_fill_by_mode] << ")"
                    << "\n\t[r]Fill Rule: ";
-              if (current_fill_rule() < Painter::fill_rule_data_count)
+              if (current_fill_rule() < Painter::number_fill_rule)
                 {
-                  ostr << m_fill_labels[current_fill_rule()];
+                  ostr << Painter::label(static_cast<enum Painter::fill_rule_t>(current_fill_rule()));
                 }
               else if (current_fill_rule() == current_end_fill_rule())
                 {
@@ -2226,7 +2156,7 @@ draw_frame(void)
                   c_array<const int> wnd;
                   int value;
                   wnd = path().tessellation()->filled()->subset(0).winding_numbers();
-                  value = wnd[current_fill_rule() - Painter::fill_rule_data_count];
+                  value = wnd[current_fill_rule() - Painter::number_fill_rule];
                   ostr << "Custom (Winding == " << value << ")";
                 }
             }
@@ -2237,7 +2167,7 @@ draw_frame(void)
           enum Painter::query_stats_t st;
 
           st = static_cast<enum Painter::query_stats_t>(i);
-          ostr << "\n" << Painter::stat_name(st) << ": " << stats[i];
+          ostr << "\n" << Painter::label(st) << ": " << stats[i];
         }
       ostr << "\nMouse position:"
            << item_coordinates(mouse_position)

@@ -6656,9 +6656,25 @@ number_stats(void)
   return PainterPacker::num_stats;
 }
 
-fastuidraw::c_string
+void
 fastuidraw::Painter::
-stat_name(enum query_stats_t st)
+query_stats(c_array<unsigned int> dst) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+
+  FASTUIDRAWassert(dst.size() == PainterPacker::num_stats);
+  for (unsigned int i = 0; i < dst.size() && i < PainterPacker::num_stats; ++i)
+    {
+      dst[i] = d->m_stats[i];
+    }
+}
+
+/////////////////////////////////////
+// PainterEnums methods
+fastuidraw::c_string
+fastuidraw::PainterEnums::
+label(enum query_stats_t st)
 {
 #define EASY(X) case X: return #X
 
@@ -6678,18 +6694,4 @@ stat_name(enum query_stats_t st)
     }
 
 #undef EASY
-}
-
-void
-fastuidraw::Painter::
-query_stats(c_array<unsigned int> dst) const
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-
-  FASTUIDRAWassert(dst.size() == PainterPacker::num_stats);
-  for (unsigned int i = 0; i < dst.size() && i < PainterPacker::num_stats; ++i)
-    {
-      dst[i] = d->m_stats[i];
-    }
 }

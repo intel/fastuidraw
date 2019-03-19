@@ -3419,7 +3419,7 @@ fastuidraw::FilledPath::Subset::
 fill_chunk_from_winding_number(int winding_number)
 {
   /* basic idea:
-   * - start counting at fill_rule_data_count
+   * - start counting at number_fill_rule
    * - ordering is: 1, -1, 2, -2, ...
    */
   int value, sg;
@@ -3431,14 +3431,14 @@ fill_chunk_from_winding_number(int winding_number)
 
   value = std::abs(winding_number);
   sg = (winding_number < 0) ? 1 : 0;
-  return fastuidraw::PainterEnums::fill_rule_data_count + sg + 2 * (value - 1);
+  return fastuidraw::PainterEnums::number_fill_rule + sg + 2 * (value - 1);
 }
 
 unsigned int
 fastuidraw::FilledPath::Subset::
 fill_chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule)
 {
-  FASTUIDRAWassert(fill_rule < fastuidraw::PainterEnums::fill_rule_data_count);
+  FASTUIDRAWassert(fill_rule < fastuidraw::PainterEnums::number_fill_rule);
   return fill_rule;
 }
 

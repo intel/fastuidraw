@@ -648,7 +648,7 @@ draw_frame(void)
           enum Painter::query_stats_t st;
 
           st = static_cast<enum Painter::query_stats_t>(i);
-          ostr << "\n" << Painter::stat_name(st) << ": " << stats[i];
+          ostr << "\n" << Painter::label(st) << ": " << stats[i];
         }
       ostr << "\ndraw_generics: " << m_painter->draw_data_added_count() << "\n";
 
@@ -720,7 +720,7 @@ handle_event(const SDL_Event &ev)
         case SDLK_a:
           if (m_cell_shared_state.m_stroke_width > 0.0f)
             {
-              static c_string labels[Painter::number_shader_anti_alias_enums] =
+              static c_string labels[Painter::number_shader_anti_alias] =
                 {
                   [Painter::shader_anti_alias_none] = "shader_anti_alias_none",
                   [Painter::shader_anti_alias_simple] = "shader_anti_alias_simple",
@@ -732,7 +732,7 @@ handle_event(const SDL_Event &ev)
                 };
               int v(m_cell_shared_state.m_anti_alias_stroking);
               cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
-                          Painter::number_shader_anti_alias_enums);
+                          Painter::number_shader_anti_alias);
 
               m_cell_shared_state.m_anti_alias_stroking = static_cast<enum Painter::shader_anti_alias_t>(v);
               std::cout << "Stroking anti-aliasing = " << labels[v] << "\n";

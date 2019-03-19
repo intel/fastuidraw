@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <fastuidraw/util/util.hpp>
+
 namespace fastuidraw
 {
 /*!\addtogroup Painter
@@ -40,7 +42,9 @@ namespace fastuidraw
     enum screen_orientation
       {
         y_increases_downwards, /*!< y-coordinate increases downwards */
-        y_increases_upwards /*!< y-coordinate increases upwards */
+        y_increases_upwards, /*!< y-coordinate increases upwards */
+
+        number_screen_orientation,
       };
 
     /*!
@@ -50,7 +54,9 @@ namespace fastuidraw
     enum rotation_orientation_t
       {
         clockwise, /*!< indicates clockwise */
-        counter_clockwise /*!< indicates counter-clockwise */
+        counter_clockwise, /*!< indicates counter-clockwise */
+
+        number_rotation_orientation
       };
 
     /*!
@@ -72,7 +78,9 @@ namespace fastuidraw
          * \ref GlyphMetrics::vertical_layout_offset()
          * to offset the glyphs.
          */
-        glyph_layout_vertical
+        glyph_layout_vertical,
+
+        number_glyph_layout
       };
 
     /*!
@@ -143,7 +151,7 @@ namespace fastuidraw
         nonzero_fill_rule, /*!< indicates to use the non-zero fill rule */
         complement_nonzero_fill_rule, /*!< indicates to give the complement of the non-zero fill rule */
 
-        fill_rule_data_count /*!< count of enums */
+        number_fill_rule /*!< count of enums */
       };
 
     /*!
@@ -171,6 +179,8 @@ namespace fastuidraw
          * supported with no or minimal performance impact.
          */
         hq_anti_alias_fast,
+
+        number_hq_immediate_coverage_support
       };
 
     /*!
@@ -247,7 +257,7 @@ namespace fastuidraw
         /*!
          * Number of shader-anti-alias enums present.
          */
-        number_shader_anti_alias_enums,
+        number_shader_anti_alias,
       };
 
     /*!
@@ -306,6 +316,8 @@ namespace fastuidraw
         composite_porter_duff_xor, /*!< Xor mode of Porter-Duff */
         composite_porter_duff_plus, /*!< Plus operator mode of Porter-Duff */
         composite_porter_duff_modulate, /*! < Modulate operator mode of Porter-Duff */
+
+        number_composite_mode,
       };
 
     /*!
@@ -386,6 +398,8 @@ namespace fastuidraw
          * w3c luminosity mode, see w3c for formula
          */
         blend_w3c_luminosity,
+
+        number_blend_mode,
       };
 
     /*!
@@ -464,6 +478,102 @@ namespace fastuidraw
         || js == miter_bevel_joins
         || js == miter_joins;
     }
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum screen_orientation v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum rotation_orientation_t v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum glyph_layout_type v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum cap_style v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum join_style v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum fill_rule_t v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum hq_immediate_coverage_support_t v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum shader_anti_alias_t v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum stroking_method_t v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum composite_mode_t v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum blend_w3c_mode_t v);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum query_stats_t v);
   };
 /*! @} */
 }

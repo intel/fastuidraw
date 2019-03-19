@@ -134,7 +134,7 @@ namespace
     std::vector<fastuidraw::generic_data> m_gpu_data;
     RenderData::query_info m_query_data;
 
-    fastuidraw::vecN<PerFillRule, fastuidraw::PainterEnums::fill_rule_data_count> m_per_fill_rule;
+    fastuidraw::vecN<PerFillRule, fastuidraw::PainterEnums::number_fill_rule> m_per_fill_rule;
     unsigned int m_number_times_atlas_cleared;
   };
 }

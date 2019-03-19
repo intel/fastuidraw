@@ -1563,14 +1563,6 @@ namespace fastuidraw
     unsigned int
     number_stats(void);
 
-    /*!
-     * String given name of a stat.
-     * \param st stat from which to get a name
-     */
-    static
-    c_string
-    stat_name(enum query_stats_t st);
-
   private:
 
     void *m_d;

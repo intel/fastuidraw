@@ -25,7 +25,7 @@ on_off(bool v)
   return v ? "on" : "off";
 }
 
-static c_string anti_alias_labels[Painter::number_shader_anti_alias_enums] =
+static c_string anti_alias_labels[Painter::number_shader_anti_alias] =
   {
     [Painter::shader_anti_alias_none] = "shader_anti_alias_none",
     [Painter::shader_anti_alias_simple] = "shader_anti_alias_simple",
@@ -1231,7 +1231,7 @@ draw_glyphs(float us)
           enum Painter::query_stats_t st;
 
           st = static_cast<enum Painter::query_stats_t>(i);
-          ostr << "\n" << Painter::stat_name(st) << ": " << stats[i];
+          ostr << "\n" << Painter::label(st) << ": " << stats[i];
         }
       ostr << "\nGlyph Atlas size: ";
       if (glyph_atlas_size_mb > 0u)
@@ -1498,7 +1498,7 @@ handle_event(const SDL_Event &ev)
               int v(m_anti_alias_path_stroking);
 
               cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
-                          Painter::number_shader_anti_alias_enums);
+                          Painter::number_shader_anti_alias);
               m_anti_alias_path_stroking = static_cast<enum Painter::shader_anti_alias_t>(v);
               std::cout << "Anti-aliasing of path stroking set to "
                         << anti_alias_labels[m_anti_alias_path_stroking]
@@ -1576,7 +1576,7 @@ handle_event(const SDL_Event &ev)
               int v(m_anti_alias_path_filling);
 
               cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
-                          Painter::number_shader_anti_alias_enums);
+                          Painter::number_shader_anti_alias);
               m_anti_alias_path_filling = static_cast<enum Painter::shader_anti_alias_t>(v);
               std::cout << "Anti-aliasing of path fill set to "
                         << anti_alias_labels[m_anti_alias_path_filling]
