@@ -229,25 +229,18 @@ namespace fastuidraw
          */
         shader_anti_alias_hq_deferred_coverage,
 
-        /* make the modes that indicate for Painter to choose
-         * to come after the modes that precisely specify a
-         * choice.
-         */
-
-        /*!
-         * Represents to use \ref shader_anti_alias_hq_immediate_coverage
-         * if using it does not have a large performance impact
-         * and otherwise to use \ref shader_anti_alias_simple.
-         */
-        shader_anti_alias_auto,
-
         /*!
          * Represents to use either \ref shader_anti_alias_hq_immediate_coverage
          * or \ref shader_anti_alias_hq_deferred_coverage decided from
          * which modes are supported and the size of deferred coverage
          * buffer needed.
          */
-        shader_anti_alias_hq_auto,
+        shader_anti_alias_hq_adaptive,
+
+        /* make the modes that indicate for Painter to choose
+         * to come after the modes that precisely specify a
+         * choice.
+         */
 
         /*!
          * Represents to use the fastest anti-alias mode
@@ -282,6 +275,11 @@ namespace fastuidraw
          */
         stroking_method_arc,
 
+        /*!
+         *
+         */
+        stroking_method_number_precise_choices,
+
         /* make the modes that indicate to choose to come
          * after the modes that precisely specify a value.
          */
@@ -289,7 +287,7 @@ namespace fastuidraw
         /*!
          * Choose for optimal performance.
          */
-        stroking_method_auto,
+        stroking_method_fastest = stroking_method_number_precise_choices,
 
         /*!
          * Number of stroking enums present.

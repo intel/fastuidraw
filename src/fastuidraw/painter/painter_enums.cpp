@@ -145,8 +145,7 @@ label(enum shader_anti_alias_t v)
       [shader_anti_alias_simple] = "shader_anti_alias_simple",
       [shader_anti_alias_hq_immediate_coverage] = "shader_anti_alias_hq_immediate_coverage",
       [shader_anti_alias_hq_deferred_coverage] = "shader_anti_alias_hq_deferred_coverage",
-      [shader_anti_alias_auto] = "shader_anti_alias_auto",
-      [shader_anti_alias_hq_auto] = "shader_anti_alias_hq_auto",
+      [shader_anti_alias_hq_adaptive] = "shader_anti_alias_hq_adaptive",
       [shader_anti_alias_fastest] = "shader_anti_alias_fastest",
     };
   return (v < number_shader_anti_alias) ? labels[v] : "InvalidEnum";
@@ -160,7 +159,7 @@ label(enum stroking_method_t v)
     {
       [stroking_method_linear] = "stroking_method_linear",
       [stroking_method_arc] = "stroking_method_arc",
-      [stroking_method_auto] = "stroking_method_auto",
+      [stroking_method_fastest] = "stroking_method_fastest",
     };
   return (v < number_stroking_methods) ? labels[v] : "InvalidEnum";
 }

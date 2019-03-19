@@ -25,24 +25,6 @@ on_off(bool v)
   return v ? "on" : "off";
 }
 
-static c_string anti_alias_labels[Painter::number_shader_anti_alias] =
-  {
-    [Painter::shader_anti_alias_none] = "shader_anti_alias_none",
-    [Painter::shader_anti_alias_simple] = "shader_anti_alias_simple",
-    [Painter::shader_anti_alias_hq_immediate_coverage] = "shader_anti_alias_hq_immediate_coverage",
-    [Painter::shader_anti_alias_hq_deferred_coverage] = "shader_anti_alias_hq_deferred_coverage",
-    [Painter::shader_anti_alias_auto] = "shader_anti_alias_auto",
-    [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",
-    [Painter::shader_anti_alias_hq_auto] = "shader_anti_alias_hq_auto",
-  };
-
-static c_string stroking_method_labels[Painter::number_stroking_methods] =
-  {
-    [Painter::stroking_method_linear] = "stroking_method_linear",
-    [Painter::stroking_method_arc] = "stroking_method_arc",
-    [Painter::stroking_method_auto] = "stroking_method_auto",
-  };
-
 std::ostream&
 operator<<(std::ostream &str, GlyphRenderer R)
 {
@@ -243,8 +225,6 @@ private:
   enumerated_command_line_argument_value<screen_orientation> m_screen_orientation;
 
   reference_counted_ptr<const FontBase> m_font, m_default_font;
-
-  vecN<std::string, Painter::number_join_styles> m_join_labels;
   GlyphDrawsShared m_draw_shared;
 
   /* The last entry value is left as invalid to represent
@@ -260,7 +240,7 @@ private:
   bool m_draw_stats, m_draw_restricted_rays_box_slack;
   float m_stroke_width;
   unsigned int m_current_drawer;
-  unsigned int m_join_style;
+  enum Painter::join_style m_join_style;
   vec2 m_shear, m_shear2;
   float m_angle;
   float m_restricted_rays_box_slack;
@@ -568,7 +548,7 @@ painter_glyph_test(void):
   m_draw_path_pts(false),
   m_anti_alias_path_stroking(Painter::shader_anti_alias_none),
   m_anti_alias_path_filling(Painter::shader_anti_alias_none),
-  m_stroking_method(Painter::stroking_method_auto),
+  m_stroking_method(Painter::stroking_method_fastest),
   m_pixel_width_stroking(false),
   m_draw_stats(false),
   m_draw_restricted_rays_box_slack(false),
@@ -603,13 +583,6 @@ painter_glyph_test(void):
             << "\t9: Rotate right\n"
             << "\tMouse Drag (left button): pan\n"
             << "\tHold Mouse (left button), then drag up/down: zoom out/in\n";
-
-  m_join_labels[Painter::no_joins] = "no_joins";
-  m_join_labels[Painter::rounded_joins] = "rounded_joins";
-  m_join_labels[Painter::bevel_joins] = "bevel_joins";
-  m_join_labels[Painter::miter_clip_joins] = "miter_clip_joins";
-  m_join_labels[Painter::miter_bevel_joins] = "miter_bevel_joins";
-  m_join_labels[Painter::miter_joins] = "miter_joins";
 }
 
 painter_glyph_test::
@@ -1208,7 +1181,7 @@ draw_glyphs(float us)
       if (m_fill_glyphs)
         {
           ostr << "\nFilling Glyphs (anti-aliasing = "
-               << anti_alias_labels[m_anti_alias_path_filling] << ")";
+               << Painter::label(m_anti_alias_path_filling) << ")";
         }
       else
         {
@@ -1218,9 +1191,9 @@ draw_glyphs(float us)
       if (m_stroke_glyphs)
         {
           ostr << "\nStroking Glyphs\n\tanti-aliasing = "
-               << anti_alias_labels[m_anti_alias_path_stroking]
+               << Painter::label(m_anti_alias_path_stroking)
                << "\n\tstroking_method = "
-               << stroking_method_labels[m_stroking_method]
+               << Painter::label(m_stroking_method)
                << "\n\tpixel_width_stroking = "
                << on_off(m_pixel_width_stroking);
         }
@@ -1488,7 +1461,7 @@ handle_event(const SDL_Event &ev)
           if (m_stroke_glyphs)
             {
               cycle_value(m_join_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), Painter::number_join_styles);
-              std::cout << "Join drawing mode set to: " << m_join_labels[m_join_style] << "\n";
+              std::cout << "Join drawing mode set to: " << Painter::label(m_join_style) << "\n";
             }
           break;
 
@@ -1501,7 +1474,7 @@ handle_event(const SDL_Event &ev)
                           Painter::number_shader_anti_alias);
               m_anti_alias_path_stroking = static_cast<enum Painter::shader_anti_alias_t>(v);
               std::cout << "Anti-aliasing of path stroking set to "
-                        << anti_alias_labels[m_anti_alias_path_stroking]
+                        << Painter::label(m_anti_alias_path_stroking)
                         << "\n";
             }
           break;
@@ -1515,7 +1488,7 @@ handle_event(const SDL_Event &ev)
                           Painter::number_stroking_methods);
               m_stroking_method = static_cast<enum Painter::stroking_method_t>(v);
               std::cout << "Anti-aliasing of path stroking set to "
-                        << stroking_method_labels[m_stroking_method]
+                        << Painter::label(m_stroking_method)
                         << "\n";
             }
           break;
@@ -1579,7 +1552,7 @@ handle_event(const SDL_Event &ev)
                           Painter::number_shader_anti_alias);
               m_anti_alias_path_filling = static_cast<enum Painter::shader_anti_alias_t>(v);
               std::cout << "Anti-aliasing of path fill set to "
-                        << anti_alias_labels[m_anti_alias_path_filling]
+                        << Painter::label(m_anti_alias_path_filling)
                         << "\n";
             }
           break;

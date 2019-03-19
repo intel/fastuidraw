@@ -170,11 +170,7 @@ namespace
                           const std::string &prefix = "\t\t")
   {
     using namespace fastuidraw;
-    vecN<c_string, PainterStrokeShader::number_stroke_types> stroke_type_labels;
     vecN<c_string, PainterStrokeShader::number_shader_types> shader_type_labels;
-
-    stroke_type_labels[PainterStrokeShader::linear_stroke_type] = "linear_stroke_type";
-    stroke_type_labels[PainterStrokeShader::arc_stroke_type] = "arc_stroke_type";
 
     shader_type_labels[PainterStrokeShader::non_aa_shader] = "non_aa_shader";
     shader_type_labels[PainterStrokeShader::simple_aa_shader_pass1] = "simple_aa_shader_pass1";
@@ -183,17 +179,17 @@ namespace
     shader_type_labels[PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2] = "hq_aa_shader_immediate_coverage_pass2";
     shader_type_labels[PainterStrokeShader::hq_aa_shader_deferred_coverage] = "hq_aa_shader_deferred_coverage";
 
-    for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
+    for (unsigned int tp = 0; tp < PainterEnums::stroking_method_number_precise_choices; ++tp)
       {
-        enum PainterStrokeShader::stroke_type_t e_tp;
+        enum PainterEnums::stroking_method_t e_tp;
 
-        e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
+        e_tp = static_cast<enum PainterEnums::stroking_method_t>(tp);
         for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
           {
             enum PainterStrokeShader::shader_type_t e_sh;
 
             e_sh = static_cast<enum PainterStrokeShader::shader_type_t>(sh);
-            std::cout << prefix << "(" << stroke_type_labels[e_tp]
+            std::cout << prefix << "(" << PainterEnums::label(e_tp)
                       << ", " << shader_type_labels[e_sh] << "): ";
 
             if (shader.shader(e_tp, e_sh))

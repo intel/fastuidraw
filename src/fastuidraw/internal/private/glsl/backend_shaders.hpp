@@ -115,12 +115,12 @@ public:
 
   reference_counted_ptr<PainterItemShader>
   create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
-                            enum PainterStrokeShader::stroke_type_t tp,
+                            enum PainterEnums::stroking_method_t tp,
                             enum PainterStrokeShader::shader_type_t pass);
 
   reference_counted_ptr<PainterItemShader>
   create_stroke_item_shader_using_coverage(enum PainterEnums::cap_style stroke_dash_style,
-                                           enum PainterStrokeShader::stroke_type_t tp);
+                                           enum PainterEnums::stroking_method_t tp);
 private:
   enum
     {

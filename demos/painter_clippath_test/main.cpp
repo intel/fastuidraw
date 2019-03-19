@@ -75,17 +75,6 @@ private:
       number_combine_clip_modes
     };
 
-  enum anti_alias_mode_t
-    {
-      no_anti_alias,
-      by_anti_alias_auto,
-      by_anti_alias_simple,
-      by_anti_alias_hq,
-      by_anti_alias_fastest,
-
-      number_anti_alias_modes
-    };
-
   class Transformer
   {
   public:
@@ -141,13 +130,11 @@ private:
   unsigned int m_path1_clip_mode, m_path2_clip_mode;
   unsigned int m_combine_clip_mode, m_rounded_rect_mode;
   unsigned int m_active_transformer;
-  unsigned int m_aa_mode;
+  enum Painter::shader_anti_alias_t m_aa_mode;
   vecN<Transformer, number_transformers> m_transformers;
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_transformers> m_transformer_labels;
   vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
-  vecN<std::string, number_anti_alias_modes> m_anti_alias_mode_labels;
-  vecN<enum Painter::shader_anti_alias_t, number_anti_alias_modes> m_shader_anti_alias_mode_values;
   simple_time m_draw_timer;
 };
 
@@ -172,7 +159,7 @@ painter_clip_test():
   m_combine_clip_mode(separate_clipping),
   m_rounded_rect_mode(no_clip),
   m_active_transformer(view_transformer),
-  m_aa_mode(by_anti_alias_auto)
+  m_aa_mode(Painter::shader_anti_alias_hq_adaptive)
 {
   std::cout << "Controls:\n"
             << "\t1: cycle through clip modes for path1\n"
@@ -198,18 +185,6 @@ painter_clip_test():
   m_combine_clip_labels[separate_clipping] = "separate_clipping";
   m_combine_clip_labels[path1_then_path2] = "path1_then_path2";
   m_combine_clip_labels[path2_then_path1] = "path2_then_path1";
-
-  m_anti_alias_mode_labels[no_anti_alias] = "no_anti_alias";
-  m_anti_alias_mode_labels[by_anti_alias_auto] = "by_anti_alias_auto";
-  m_anti_alias_mode_labels[by_anti_alias_simple] = "by_anti_alias_simple";
-  m_anti_alias_mode_labels[by_anti_alias_hq] = "by_anti_alias_hq";
-  m_anti_alias_mode_labels[by_anti_alias_fastest] = "by_anti_alias_fastest";
-
-  m_shader_anti_alias_mode_values[no_anti_alias] = Painter::shader_anti_alias_none;
-  m_shader_anti_alias_mode_values[by_anti_alias_auto] = Painter::shader_anti_alias_auto;
-  m_shader_anti_alias_mode_values[by_anti_alias_simple] = Painter::shader_anti_alias_simple;
-  m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_hq_immediate_coverage;
-  m_shader_anti_alias_mode_values[by_anti_alias_fastest] = Painter::shader_anti_alias_fastest;
 }
 
 void
@@ -270,9 +245,9 @@ handle_event(const SDL_Event &ev)
         case SDLK_u:
           cycle_value(m_aa_mode,
                       ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                      number_anti_alias_modes);
+                      Painter::number_shader_anti_alias);
           std::cout << "RoundedRect drawing anti-alias mode set to: "
-                    << m_anti_alias_mode_labels[m_aa_mode]
+                    << Painter::label(m_aa_mode)
                     << "\n";
           break;
         }
@@ -485,8 +460,7 @@ draw_frame(void)
         PainterBrush brush;
         brush.color(vec4(1.0f, 1.0f, 0.0f, 1.0f));
         m_painter->fill_rounded_rect(m_painter->default_shaders().fill_shader(),
-                                     PainterData(&brush), m_rect,
-                                     m_shader_anti_alias_mode_values[m_aa_mode]);
+                                     PainterData(&brush), m_rect, m_aa_mode);
       }
       break;
 

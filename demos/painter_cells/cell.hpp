@@ -21,7 +21,7 @@ public:
     m_rotating(false),
     m_stroke_width(10.0f),
     m_pause(false),
-    m_anti_alias_stroking(Painter::shader_anti_alias_auto),
+    m_anti_alias_stroking(Painter::shader_anti_alias_fastest),
     m_cells_drawn(0),
     m_draw_transparent(false),
     m_rect_composite_mode(Painter::composite_porter_duff_src_over),

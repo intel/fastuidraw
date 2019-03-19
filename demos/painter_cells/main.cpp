@@ -126,7 +126,7 @@ private:
   simple_time m_benchmark_timer;
   std::vector<uint64_t> m_frame_times;
 
-  int m_show_surface;
+  int m_show_surface, m_last_shown_surface;
 };
 
 painter_cells::
@@ -229,7 +229,7 @@ painter_cells(void):
                              .add_entry("shader_anti_alias_simple", Painter::shader_anti_alias_simple, "")
                              .add_entry("shader_anti_alias_hq_immediate_coverage", Painter::shader_anti_alias_hq_immediate_coverage, "")
                              .add_entry("shader_anti_alias_hq_deferred_coverage", Painter::shader_anti_alias_hq_deferred_coverage, "")
-                             .add_entry("shader_anti_alias_auto", Painter::shader_anti_alias_auto, "")
+                             .add_entry("shader_anti_alias_hq_adaptive", Painter::shader_anti_alias_hq_adaptive, "")
                              .add_entry("shader_anti_alias_fastest", Painter::shader_anti_alias_fastest, ""),
                              "init_antialias_stroking",
                              "Initial value for anti-aliasing for stroking",
@@ -237,7 +237,8 @@ painter_cells(void):
   m_table(nullptr),
   m_current_composite(0),
   m_current_blend(0),
-  m_show_surface(0)
+  m_show_surface(0),
+  m_last_shown_surface(0)
 {
   std::cout << "Controls:\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -689,6 +690,18 @@ draw_frame(void)
       S->blit_surface(src, dest, GL_LINEAR);
     }
 
+  if (m_last_shown_surface != m_show_surface)
+    {
+      if (m_show_surface > 0)
+        {
+          std::cout << "Show offscreen surface: " << m_show_surface - 1 << "\n";
+        }
+      else
+        {
+          std::cout << "Don't show offscreen surface\n";
+        }
+      m_last_shown_surface = m_show_surface;
+    }
   ++m_frame;
 }
 
@@ -720,22 +733,12 @@ handle_event(const SDL_Event &ev)
         case SDLK_a:
           if (m_cell_shared_state.m_stroke_width > 0.0f)
             {
-              static c_string labels[Painter::number_shader_anti_alias] =
-                {
-                  [Painter::shader_anti_alias_none] = "shader_anti_alias_none",
-                  [Painter::shader_anti_alias_simple] = "shader_anti_alias_simple",
-                  [Painter::shader_anti_alias_hq_immediate_coverage] = "shader_anti_alias_hq_immediate_coverage",
-                  [Painter::shader_anti_alias_hq_deferred_coverage] = "shader_anti_alias_hq_deferred_coverage",
-                  [Painter::shader_anti_alias_auto] = "shader_anti_alias_auto",
-                  [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",
-                  [Painter::shader_anti_alias_hq_auto] = "shader_anti_alias_hq_auto",
-                };
-              int v(m_cell_shared_state.m_anti_alias_stroking);
-              cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
+              cycle_value(m_cell_shared_state.m_anti_alias_stroking,
+                          ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
                           Painter::number_shader_anti_alias);
-
-              m_cell_shared_state.m_anti_alias_stroking = static_cast<enum Painter::shader_anti_alias_t>(v);
-              std::cout << "Stroking anti-aliasing = " << labels[v] << "\n";
+              std::cout << "Stroking anti-aliasing = "
+                        << Painter::label(m_cell_shared_state.m_anti_alias_stroking)
+                        << "\n";
             }
           break;
         case SDLK_v:
@@ -800,7 +803,6 @@ handle_event(const SDL_Event &ev)
             {
               ++m_show_surface;
             }
-          std::cout << "Show layer surface: " << m_show_surface << "\n";
           break;
 
         case SDLK_0:

@@ -419,7 +419,7 @@ StrokeShaderCreator(void)
 reference_counted_ptr<PainterItemShader>
 StrokeShaderCreator::
 create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
-                          enum PainterStrokeShader::stroke_type_t tp,
+                          enum PainterEnums::stroking_method_t tp,
                           enum PainterStrokeShader::shader_type_t pass)
 {
   reference_counted_ptr<PainterItemShader> shader, return_value;
@@ -427,7 +427,7 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
   enum render_pass_t render_pass;
   bool is_hq_shader;
 
-  if (tp == PainterStrokeShader::arc_stroke_type)
+  if (tp == PainterEnums::stroking_method_arc)
     {
       shader_choice |= arc_shader;
     }
@@ -465,7 +465,7 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
     }
 
   if (!is_hq_shader &&
-      (tp == PainterStrokeShader::arc_stroke_type || stroke_dash_style != fastuidraw::PainterEnums::number_cap_styles))
+      (tp == PainterEnums::stroking_method_arc || stroke_dash_style != fastuidraw::PainterEnums::number_cap_styles))
     {
       shader_choice |= discard_shader;
     }
@@ -478,13 +478,13 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
 reference_counted_ptr<PainterItemShader>
 StrokeShaderCreator::
 create_stroke_item_shader_using_coverage(enum PainterEnums::cap_style stroke_dash_style,
-                                         enum PainterStrokeShader::stroke_type_t tp)
+                                         enum PainterEnums::stroking_method_t tp)
 {
   reference_counted_ptr<PainterItemShader> return_value;
   reference_counted_ptr<PainterItemCoverageShader> cvg_shader;
   uint32_t shader_choice(0u);
 
-  if (tp == PainterStrokeShader::arc_stroke_type)
+  if (tp == PainterEnums::stroking_method_arc)
     {
       shader_choice |= arc_shader;
     }
@@ -737,30 +737,15 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
   PainterStrokeShader return_value;
 
   return_value
-    .immediate_coverage_support(m_hq_support)
     .stroking_data_selector(stroke_data_selector)
     .hq_aa_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
     .hq_aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
 
-  for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
+  for (unsigned int tp = 0; tp < PainterEnums::stroking_method_number_precise_choices; ++tp)
     {
-      enum PainterStrokeShader::stroke_type_t e_tp;
+      enum PainterEnums::stroking_method_t e_tp;
 
-      e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
-
-      /* Simple does discard on arc-stroking and dashed-stroking,
-       * hencethe hq_auto is faster.
-       */
-      if (e_tp == PainterStrokeShader::arc_stroke_type
-          || cap_style != PainterEnums::number_cap_styles)
-        {
-          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_hq_auto);
-        }
-      else
-        {
-          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_simple);
-        }
-
+      e_tp = static_cast<enum PainterEnums::stroking_method_t>(tp);
       for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
         {
           enum PainterStrokeShader::shader_type_t e_sh;
@@ -782,16 +767,26 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
         }
     }
 
+  if (cap_style == PainterEnums::number_cap_styles)
+    {
+      return_value
+        .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_linear)
+        .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_linear)
+        .fastest_anti_aliasing(PainterEnums::stroking_method_linear,
+                               PainterEnums::shader_anti_alias_simple);
+    }
+  else
+    {
+      return_value
+        .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
+        .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
+        .fastest_anti_aliasing(PainterEnums::stroking_method_linear,
+                               PainterEnums::shader_anti_alias_hq_adaptive);
+    }
+
   return_value
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_none, false) //because of discard
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_simple, false) //because of discard
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_hq_immediate_coverage, true)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_hq_deferred_coverage, true)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_hq_auto, true)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_auto,
-                          cap_style != PainterEnums::number_cap_styles)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_fastest,
-                          cap_style != PainterEnums::number_cap_styles);
+    .fastest_anti_aliasing(PainterEnums::stroking_method_arc,
+                           PainterEnums::shader_anti_alias_hq_adaptive);
 
   return return_value;
 }

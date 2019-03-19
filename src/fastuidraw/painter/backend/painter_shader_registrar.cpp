@@ -235,10 +235,10 @@ void
 fastuidraw::PainterShaderRegistrar::
 register_shader(const PainterStrokeShader &p)
 {
-  for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
+  for (unsigned int tp = 0; tp < PainterEnums::stroking_method_number_precise_choices; ++tp)
     {
-      enum PainterStrokeShader::stroke_type_t e_tp;
-      e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
+      enum PainterEnums::stroking_method_t e_tp;
+      e_tp = static_cast<enum PainterEnums::stroking_method_t>(tp);
       for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
         {
           enum PainterStrokeShader::shader_type_t e_sh;

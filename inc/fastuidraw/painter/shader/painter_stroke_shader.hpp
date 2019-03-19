@@ -168,26 +168,6 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Enumeration to specify stroking arc or linear stroke data.
-     */
-    enum stroke_type_t
-      {
-        /*!
-         * Shader is for drawing linearly stroke data with
-         * attribute data packed by StrokedPoint::pack_data().
-         */
-        linear_stroke_type,
-
-        /*!
-         * Shader is for drawing arc stroke data with
-         * attribute data packed by ArcStrokedPoint::pack_data().
-         */
-        arc_stroke_type,
-
-        number_stroke_types,
-      };
-
-    /*!
      * Enumeration to specify what shader
      */
     enum shader_type_t
@@ -219,7 +199,8 @@ namespace fastuidraw
          * of the sample area of a fragment. The depth value emitted in the
          * item's vertex shader should be z-value to guarantee that
          * there is no overdraw, see \ref StrokedPoint::depth() and \ref
-         * ArcStrokedPoint::depth().
+         * ArcStrokedPoint::depth(). An implementation must provide
+         * this shader for \ref linear_stroke_type atleast.
          */
         simple_aa_shader_pass2,
 
@@ -228,7 +209,8 @@ namespace fastuidraw
          * for \ref PainterEnums::shader_anti_alias_hq_immediate_coverage which
          * draws to a the immediate coverage buffer the coverage of a
          * fragment area by the stroked path. The item's vertex shader
-         * it to emit a depth value of 0.
+         * it to emit a depth value of 0. It is optional to support
+         * this shader type.
          */
         hq_aa_shader_immediate_coverage_pass1,
 
@@ -238,7 +220,7 @@ namespace fastuidraw
          * draws emits the coverage value from the immediated coverage
          * buffer and clears the value from the immediate coverage buffer
          * as well. The item's vertex shader it to emit a depth value of
-         * 0.
+         * 0.  It is optional to support this shader type.
          */
         hq_aa_shader_immediate_coverage_pass2,
 
@@ -281,71 +263,79 @@ namespace fastuidraw
     swap(PainterStrokeShader &obj);
 
     /*!
-     * Returns if high quality two pass anti-alias shading
-     * is supported.
-     */
-    enum PainterEnums::immediate_coverage_support_t
-    immediate_coverage_support(void) const;
-
-    /*!
-     * Set the value returned by immediate_coverage_support(void) const.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    immediate_coverage_support(enum PainterEnums::immediate_coverage_support_t sh);
-
-    /*!
-     * Used by \ref Painter for the PainterEnums::shader_anti_alias_t value
-     * to use when PainterEnums::shader_anti_alias_fastest is requested.
-     * \param tp specify to return non-aa shader for arc or linear stroking
-     */
-    enum PainterEnums::shader_anti_alias_t
-    fastest_anti_alias_mode(enum stroke_type_t tp) const;
-
-    /*!
-     * Set the value returned by fastest_anti_alias_mode(enum stroke_type_t) const.
-     * \param tp specify to return non-aa shader for arc or linear stroking
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    fastest_anti_alias_mode(enum stroke_type_t tp,
-                            enum PainterEnums::shader_anti_alias_t sh);
-
-    /*!
-     * Given how to anti-alias, returns true if arc-stroking is
-     * fast (i.e. avoids memory barries and dicard).
-     * \param sh anti-alias mode when stroking
-     */
-    bool
-    arc_stroking_is_fast(enum PainterEnums::shader_anti_alias_t sh) const;
-
-    /*!
-     * Set the value returned by
-     * arc_stroking_is_faster(enum PainterEnums::shader_anti_alias_t sh) const.
-     * \param sh anti-alias mode when stroking
-     * \param v value to use
-     */
-    PainterStrokeShader&
-    arc_stroking_is_fast(enum PainterEnums::shader_anti_alias_t sh, bool v);
-
-    /*!
      * Returns the \ref PainterItemShader for a given pass of a given
      * type of stroking.
      * \param tp specify to return a shader for arc or linear stroking
      * \param sh spcify which shader to return
      */
     const reference_counted_ptr<PainterItemShader>&
-    shader(enum stroke_type_t tp, enum shader_type_t sh) const;
+    shader(enum PainterEnums::stroking_method_t tp, enum shader_type_t sh) const;
 
     /*!
-     * Set the value returned by shader(enum stroke_type_t, enum shader_type_t) const.
+     * Set the value returned by shader(enum PainterEnums::stroking_method_t, enum shader_type_t) const.
      * \param tp specify to return shader for arc or linear stroking
      * \param sh spcify which shader to return
      * \param v value to use
      */
     PainterStrokeShader&
-    shader(enum stroke_type_t tp, enum shader_type_t sh,
+    shader(enum PainterEnums::stroking_method_t tp, enum shader_type_t sh,
            const reference_counted_ptr<PainterItemShader> &v);
+
+    /*!
+     * Return what PainterEnums::stroking_method_t is fastest to
+     * stroke with anti-aliasing.
+     */
+    enum PainterEnums::stroking_method_t
+    fastest_anti_aliased_stroking_method(void) const;
+
+    /*!
+     * Set the value returned by fastest_anti_aliased_stroking_method(void) const.
+     * \param v value to use
+     */
+    PainterStrokeShader&
+    fastest_anti_aliased_stroking_method(enum PainterEnums::stroking_method_t v);
+
+    /*!
+     * Returns the fastest anti-aliasing mode for stroking with a
+     * given \ref PainterEnums::stroking_method_t
+     * \param tp stroking method to query
+     */
+    enum PainterEnums::shader_anti_alias_t
+    fastest_anti_aliasing(enum PainterEnums::stroking_method_t tp) const;
+
+    /*!
+     * Set the value returned by fastest_stroking_method(enum PainterEnums::stroking_method_t) const.
+     * \param tp stroking method to set
+     * \param v value to use
+     */
+    PainterStrokeShader&
+    fastest_anti_aliasing(enum PainterEnums::stroking_method_t tp,
+                          enum PainterEnums::shader_anti_alias_t v);
+
+    /*!
+     * Return the fastest stroking method to use when stroking
+     * without anti-aliasing.
+     */
+    enum PainterEnums::stroking_method_t
+    fastest_non_anti_aliased_stroking_method(void) const;
+
+    /*!
+     * Set the value returned by fastest_non_anti_aliased_stroking_method(void) const.
+     * \param v value to use
+     */
+    PainterStrokeShader&
+    fastest_non_anti_aliased_stroking_method(enum PainterEnums::stroking_method_t v);
+
+    /*!
+     * Provided as a conveniance; equivalent to
+     * \code
+     * shader(tp, hq_aa_shader_immediate_coverage_pass1)
+     *   && shader(tp, hq_aa_shader_immediate_coverage_pass2)
+     * \endcode
+     * \param tp arc or linear stroking to query
+     */
+    bool
+    hq_aa_shader_immediate_coverage_supported(enum PainterEnums::stroking_method_t tp) const;
 
     /*!
      * Returns the action to be called before the 1st high quality

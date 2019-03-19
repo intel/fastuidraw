@@ -252,30 +252,18 @@ namespace
 
   inline
   enum fastuidraw::Painter::shader_anti_alias_t
-  select_anti_alias_from_auto(enum fastuidraw::Painter::immediate_coverage_support_t support)
-  {
-    return (support == fastuidraw::Painter::immediate_coverage_fast) ?
-      fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage :
-      fastuidraw::Painter::shader_anti_alias_simple;
-  }
-
-  inline
-  enum fastuidraw::Painter::shader_anti_alias_t
   compute_shader_anti_alias(enum fastuidraw::Painter::shader_anti_alias_t v,
-                            enum fastuidraw::Painter::immediate_coverage_support_t support,
+                            bool supports_immediate_coverage_buffer,
                             enum fastuidraw::Painter::shader_anti_alias_t fastest)
   {
     v = (v == fastuidraw::Painter::shader_anti_alias_fastest) ?
       fastest :
       v;
 
-    v = (v == fastuidraw::Painter::shader_anti_alias_auto) ?
-      select_anti_alias_from_auto(support):
-      v;
-
-    v = (v == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage
-         && support == fastuidraw::Painter::immediate_coverage_no_support) ?
-      fastuidraw::Painter::shader_anti_alias_simple :
+    v = (!supports_immediate_coverage_buffer
+         && (v == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage
+             || v == fastuidraw::Painter::shader_anti_alias_hq_adaptive)) ?
+      fastuidraw::Painter::shader_anti_alias_hq_deferred_coverage :
       v;
 
     return v;
@@ -291,7 +279,7 @@ namespace
   inline
   bool
   compute_requires_coverage_buffer(const fastuidraw::PainterStrokeShader &shader,
-                                   enum fastuidraw::PainterStrokeShader::stroke_type_t tp,
+                                   enum fastuidraw::PainterEnums::stroking_method_t tp,
                                    enum fastuidraw::Painter::shader_anti_alias_t anti_aliasing)
   {
     using namespace fastuidraw;
@@ -1185,11 +1173,11 @@ namespace
       m_range(start, start + size)
     {
       using namespace fastuidraw;
-      enum PainterStrokeShader::stroke_type_t tp;
+      enum PainterEnums::stroking_method_t tp;
 
       tp = (use_arc_shading) ?
-        PainterStrokeShader::arc_stroke_type:
-        PainterStrokeShader::linear_stroke_type;
+        PainterEnums::stroking_method_arc:
+        PainterEnums::stroking_method_linear;
 
       if (with_aa == Painter::shader_anti_alias_hq_deferred_coverage)
         {
@@ -3215,11 +3203,11 @@ select_stroked_path(const fastuidraw::Path &path,
       return nullptr;
     }
 
-  if (stroking_method == Painter::stroking_method_auto)
+  if (stroking_method == Painter::stroking_method_fastest)
     {
-      stroking_method = shader.arc_stroking_is_fast(aa_mode) ?
-        Painter::stroking_method_arc:
-        Painter::stroking_method_linear;
+      stroking_method = (aa_mode == Painter::shader_anti_alias_none) ?
+        shader.fastest_non_anti_aliased_stroking_method() :
+        shader.fastest_anti_aliased_stroking_method();
     }
 
   const TessellatedPath *tess;
@@ -3415,7 +3403,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
   output->m_index_adjusts.clear();
   output->m_start_zs.clear();
 
-  if (anti_alias_quality == Painter::shader_anti_alias_hq_auto
+  if (anti_alias_quality == Painter::shader_anti_alias_hq_adaptive
       || anti_alias_quality == Painter::shader_anti_alias_hq_deferred_coverage)
     {
       BoundingBox<float> bb;
@@ -3443,7 +3431,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
       if (!bb.empty())
         {
           output->m_normalized_device_coords_bounding_box = compute_clip_intersect_rect(bb.as_rect(), 1.0f, 0.0f);
-          if (anti_alias_quality == Painter::shader_anti_alias_hq_auto)
+          if (anti_alias_quality == Painter::shader_anti_alias_hq_adaptive)
             {
               bool use_immediate;
 
@@ -3802,24 +3790,24 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             m_work_room.m_stroke.m_caps_joins_chunk_set);
 
   enum Painter::shader_anti_alias_t fastest;
-  enum PainterStrokeShader::stroke_type_t tp;
+  enum Painter::stroking_method_t tp;
   bool requires_coverage_buffer;
   BoundingBox<float> coverage_buffer_bb;
   bool coverage_buffer_bb_ready(false);
 
   tp = (edge_arc_shader) ?
-    PainterStrokeShader::arc_stroke_type:
-    PainterStrokeShader::linear_stroke_type;
+    Painter::stroking_method_arc:
+    Painter::stroking_method_linear;
 
-  fastest = shader.fastest_anti_alias_mode(tp);
+  fastest = shader.fastest_anti_aliasing(tp);
   anti_aliasing = compute_shader_anti_alias(anti_aliasing,
-                                            shader.immediate_coverage_support(),
+                                            shader.hq_aa_shader_immediate_coverage_supported(tp),
                                             fastest);
 
   /* we need the logic for choosing hq mode before the logic of
    * choosing a coverage buffer.
    */
-  if (anti_aliasing == Painter::shader_anti_alias_hq_auto)
+  if (anti_aliasing == Painter::shader_anti_alias_hq_adaptive)
     {
       coverage_buffer_bb =
         compute_bounding_box_of_stroked_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
@@ -3841,11 +3829,11 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       && ((join_arc_shader != edge_arc_shader && join_data && !m_work_room.m_stroke.m_caps_joins_chunk_set.join_chunks().empty())
           || (cap_arc_shader != edge_arc_shader && cap_data && !m_work_room.m_stroke.m_caps_joins_chunk_set.cap_chunks().empty())))
     {
-      enum PainterStrokeShader::stroke_type_t other_tp;
+      enum PainterEnums::stroking_method_t other_tp;
 
       other_tp = (!edge_arc_shader) ?
-        PainterStrokeShader::arc_stroke_type:
-        PainterStrokeShader::linear_stroke_type;
+        PainterEnums::stroking_method_arc:
+        PainterEnums::stroking_method_linear;
 
       requires_coverage_buffer = compute_requires_coverage_buffer(shader, other_tp, anti_aliasing);
     }
