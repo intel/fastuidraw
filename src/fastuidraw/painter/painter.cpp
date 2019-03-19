@@ -1641,9 +1641,21 @@ namespace
                        enum fastuidraw::Painter::shader_anti_alias_t anti_alias);
 
     fastuidraw::BoundingBox<float>
-    compute_coverage_buffer_bounding_box_of_path(const fastuidraw::StrokedPath &stroked_path,
-                                                 fastuidraw::c_array<const unsigned int> stroked_subset_ids,
-                                                 float pixels_additional_room, float item_space_additional_room);
+    compute_bounding_box_of_path(const fastuidraw::StrokedPath &stroked_path,
+                                 fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                                 float pixels_additional_room, float item_space_additional_room);
+
+    fastuidraw::BoundingBox<float>
+    compute_bounding_box_of_miter_joins(fastuidraw::c_array<const fastuidraw::vec2> join_positions,
+                                        float miter_pixels_additional_room,
+                                        float miter_item_space_additional_room);
+
+    fastuidraw::BoundingBox<float>
+    compute_bounding_box_of_stroked_path(const fastuidraw::StrokedPath &stroked_path,
+                                         fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                                         fastuidraw::c_array<const float> geometry_inflation,
+                                         enum fastuidraw::Painter::join_style js,
+                                         fastuidraw::c_array<const fastuidraw::vec2> join_positions);
 
     void
     pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
@@ -3611,17 +3623,12 @@ draw_generic_z_layered(fastuidraw::c_array<const ConstItemShaderRefPtr> shaders,
 
 fastuidraw::BoundingBox<float>
 PainterPrivate::
-compute_coverage_buffer_bounding_box_of_path(const fastuidraw::StrokedPath &path,
-                                             fastuidraw::c_array<const unsigned int> stroked_subset_ids,
-                                             float pixels_additional_room, float item_space_additional_room)
+compute_bounding_box_of_path(const fastuidraw::StrokedPath &path,
+                             fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                             float pixels_additional_room, float item_space_additional_room)
 {
   fastuidraw::BoundingBox<float> bbox, in_bbox;
-  /* TODO: we need to actually make the box larger if we
-   * ie are drawing miter-joins and the miter-limit is large.
-   * To do so, we need to requrest from the StrokedCapsJoins
-   * the list of joins and then use "something" to figure out
-   * how much bounding box each miter join adds.
-   */
+
   for (unsigned int subset_id : stroked_subset_ids)
     {
       const fastuidraw::Rect &rect(path.subset(subset_id).bounding_box());
@@ -3636,6 +3643,52 @@ compute_coverage_buffer_bounding_box_of_path(const fastuidraw::StrokedPath &path
                                          item_space_additional_room);
     }
   return in_bbox;
+}
+
+fastuidraw::BoundingBox<float>
+PainterPrivate::
+compute_bounding_box_of_miter_joins(fastuidraw::c_array<const fastuidraw::vec2> join_positions,
+                                    float miter_pixels_additional_room,
+                                    float miter_item_space_additional_room)
+{
+  fastuidraw::BoundingBox<float> return_value;
+  for (const fastuidraw::vec2 &p : join_positions)
+    {
+      fastuidraw::BoundingBox<float> tmp;
+      tmp = compute_clip_intersect_rect(fastuidraw::Rect().min_point(p).max_point(p),
+                                        miter_pixels_additional_room,
+                                        miter_item_space_additional_room);
+      return_value.union_box(tmp);
+    }
+  return return_value;
+}
+
+fastuidraw::BoundingBox<float>
+PainterPrivate::
+compute_bounding_box_of_stroked_path(const fastuidraw::StrokedPath &stroked_path,
+                                     fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                                     fastuidraw::c_array<const float> additional_room,
+                                     enum fastuidraw::Painter::join_style js,
+                                     fastuidraw::c_array<const fastuidraw::vec2> join_positions)
+{
+  using namespace fastuidraw;
+
+  BoundingBox<float> return_value;
+  return_value =
+    compute_bounding_box_of_path(stroked_path, stroked_subset_ids,
+                                 additional_room[StrokingDataSelectorBase::pixel_space_distance],
+                                 additional_room[StrokingDataSelectorBase::item_space_distance]);
+
+  if (Painter::is_miter_join(js))
+    {
+      BoundingBox<float> tmp;
+      float pixel_dist(additional_room[StrokingDataSelectorBase::pixel_space_distance_miter_joins]);
+      float item_dist(additional_room[StrokingDataSelectorBase::item_space_distance_miter_joins]);
+
+      tmp = compute_bounding_box_of_miter_joins(join_positions, pixel_dist, item_dist);
+      return_value.union_box(tmp);
+    }
+  return return_value;
 }
 
 void
@@ -3769,9 +3822,9 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   if (anti_aliasing == Painter::shader_anti_alias_hq_auto)
     {
       coverage_buffer_bb =
-        compute_coverage_buffer_bounding_box_of_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
-                                                     additional_room[StrokingDataSelectorBase::pixel_space_distance],
-                                                     additional_room[StrokingDataSelectorBase::item_space_distance]);
+        compute_bounding_box_of_stroked_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
+                                             additional_room, js,
+                                             m_work_room.m_stroke.m_caps_joins_chunk_set.join_positions());
       if (coverage_buffer_bb.empty())
         {
           return;
@@ -3802,9 +3855,9 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       if (!coverage_buffer_bb_ready)
         {
           coverage_buffer_bb =
-            compute_coverage_buffer_bounding_box_of_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
-                                                         additional_room[StrokingDataSelectorBase::pixel_space_distance],
-                                                         additional_room[StrokingDataSelectorBase::item_space_distance]);
+            compute_bounding_box_of_stroked_path(path, make_c_array(m_work_room.m_stroke.m_subsets),
+                                                 additional_room, js,
+                                                 m_work_room.m_stroke.m_caps_joins_chunk_set.join_positions());
           if (coverage_buffer_bb.empty())
             {
               return;
