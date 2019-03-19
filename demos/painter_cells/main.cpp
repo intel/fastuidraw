@@ -228,7 +228,7 @@ painter_cells(void):
                              .add_entry("shader_anti_alias_none", Painter::shader_anti_alias_none, "")
                              .add_entry("shader_anti_alias_simple", Painter::shader_anti_alias_simple, "")
                              .add_entry("shader_anti_alias_high_quality", Painter::shader_anti_alias_high_quality, "")
-                             .add_entry("shader_anti_alias_deferred_coverage", Painter::shader_anti_alias_deferred_coverage, "")
+                             .add_entry("shader_anti_alias_hq_deferred_coverage", Painter::shader_anti_alias_hq_deferred_coverage, "")
                              .add_entry("shader_anti_alias_auto", Painter::shader_anti_alias_auto, "")
                              .add_entry("shader_anti_alias_fastest", Painter::shader_anti_alias_fastest, ""),
                              "init_antialias_stroking",
@@ -725,7 +725,7 @@ handle_event(const SDL_Event &ev)
                   [Painter::shader_anti_alias_none] = "shader_anti_alias_none",
                   [Painter::shader_anti_alias_simple] = "shader_anti_alias_simple",
                   [Painter::shader_anti_alias_high_quality] = "shader_anti_alias_high_quality",
-                  [Painter::shader_anti_alias_deferred_coverage] = "shader_anti_alias_deferred_coverage",
+                  [Painter::shader_anti_alias_hq_deferred_coverage] = "shader_anti_alias_hq_deferred_coverage",
                   [Painter::shader_anti_alias_auto] = "shader_anti_alias_auto",
                   [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",
                   [Painter::shader_anti_alias_hq_auto] = "shader_anti_alias_hq_auto",

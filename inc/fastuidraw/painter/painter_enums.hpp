@@ -216,7 +216,7 @@ namespace fastuidraw
          * DEFERRED coverage buffer and the 2nd pass reads
          * from it and uses that as the coverage value.
          */
-        shader_anti_alias_deferred_coverage,
+        shader_anti_alias_hq_deferred_coverage,
 
         /* make the modes that indicate for Painter to choose
          * to come after the modes that precisely specify a
@@ -232,7 +232,7 @@ namespace fastuidraw
 
         /*!
          * Represents to use either \ref shader_anti_alias_high_quality
-         * or \ref shader_anti_alias_deferred_coverage decided from
+         * or \ref shader_anti_alias_hq_deferred_coverage decided from
          * which modes are supported and the size of deferred coverage
          * buffer needed.
          */

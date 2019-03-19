@@ -308,7 +308,7 @@ namespace
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1))
           || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2));
 
-      case Painter::shader_anti_alias_deferred_coverage:
+      case Painter::shader_anti_alias_hq_deferred_coverage:
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage));
 
       default:
@@ -1191,7 +1191,7 @@ namespace
         PainterStrokeShader::arc_stroke_type:
         PainterStrokeShader::linear_stroke_type;
 
-      if (with_aa == Painter::shader_anti_alias_deferred_coverage)
+      if (with_aa == Painter::shader_anti_alias_hq_deferred_coverage)
         {
           m_shader_pass1 = &shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage);
           m_shader_pass2 = nullptr;
@@ -3416,7 +3416,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
   output->m_start_zs.clear();
 
   if (anti_alias_quality == Painter::shader_anti_alias_hq_auto
-      || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+      || anti_alias_quality == Painter::shader_anti_alias_hq_deferred_coverage)
     {
       BoundingBox<float> bb;
       for(unsigned int s : fill_subset.m_subsets)
@@ -3450,13 +3450,13 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               use_immediate = should_use_immediate_coverage_instead(output->m_normalized_device_coords_bounding_box.as_rect());
               anti_alias_quality = (use_immediate) ?
                 Painter::shader_anti_alias_high_quality :
-                Painter::shader_anti_alias_deferred_coverage;
+                Painter::shader_anti_alias_hq_deferred_coverage;
             }
         }
       else
         {
           output->m_normalized_device_coords_bounding_box.clear();
-          anti_alias_quality = Painter::shader_anti_alias_deferred_coverage;
+          anti_alias_quality = Painter::shader_anti_alias_hq_deferred_coverage;
           std::cout << "Selected: " << anti_alias_quality << "\n";
         }
     }
@@ -3482,7 +3482,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               output->m_index_adjusts.push_back(data.index_adjust_chunk(ch));
 
               if (anti_alias_quality == Painter::shader_anti_alias_simple
-                  || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+                  || anti_alias_quality == Painter::shader_anti_alias_hq_deferred_coverage)
                 {
                   output->m_z_increments.push_back(R.difference());
                   output->m_start_zs.push_back(R.m_begin);
@@ -3526,7 +3526,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                              z);
 
     }
-  else if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+  else if (anti_alias_quality == Painter::shader_anti_alias_hq_deferred_coverage)
     {
       /* TODO: instead of allocating a coverage buffer area the size of
        * the entire Path, we should instead walk through each Subset
@@ -3833,7 +3833,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       coverage_buffer_bb_ready = true;
       anti_aliasing = (should_use_immediate_coverage_instead(coverage_buffer_bb.as_rect())) ?
         Painter::shader_anti_alias_high_quality :
-        Painter::shader_anti_alias_deferred_coverage;
+        Painter::shader_anti_alias_hq_deferred_coverage;
     }
 
   requires_coverage_buffer = compute_requires_coverage_buffer(shader, tp, anti_aliasing);
@@ -4014,7 +4014,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
   bool two_shaders;
 
   two_shaders = (anti_aliasing != Painter::shader_anti_alias_none
-                 && anti_aliasing != Painter::shader_anti_alias_deferred_coverage);
+                 && anti_aliasing != Painter::shader_anti_alias_hq_deferred_coverage);
   modify_z = (anti_aliasing != Painter::shader_anti_alias_high_quality);
   modify_z_coeff = (two_shaders) ? 2 : 1;
 

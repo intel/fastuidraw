@@ -837,7 +837,7 @@ painter_stroke_test(void):
   m_shader_anti_alias_mode_values[by_anti_alias_simple] = Painter::shader_anti_alias_simple;
   m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_high_quality;
   m_shader_anti_alias_mode_values[by_anti_alias_fastest] = Painter::shader_anti_alias_fastest;
-  m_shader_anti_alias_mode_values[by_anti_alias_hq_deferred] = Painter::shader_anti_alias_deferred_coverage;
+  m_shader_anti_alias_mode_values[by_anti_alias_hq_deferred] = Painter::shader_anti_alias_hq_deferred_coverage;
   m_shader_anti_alias_mode_values[by_anti_alias_hq_auto] = Painter::shader_anti_alias_hq_auto;
 
   m_stroke_mode_labels[stroke_linear_path] = "stroke_linear_path";

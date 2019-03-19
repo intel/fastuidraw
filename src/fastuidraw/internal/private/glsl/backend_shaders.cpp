@@ -786,7 +786,7 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_none, false) //because of discard
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_simple, false) //because of discard
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_high_quality, true)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_deferred_coverage, true)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_hq_deferred_coverage, true)
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_hq_auto, true)
     .arc_stroking_is_fast(PainterEnums::shader_anti_alias_auto,
                           cap_style != PainterEnums::number_cap_styles)
