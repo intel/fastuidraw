@@ -45,10 +45,9 @@ enum interlock_type_t
 compute_interlock_type(const ContextProperties &ctx);
 
 enum glsl::PainterShaderRegistrarGLSL::compositing_type_t
-compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t aux_value,
-                      enum interlock_type_t interlock_value,
-                      enum glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value,
-                      const ContextProperties &ctx);
+compute_compositing_type(enum interlock_type_t interlock_value,
+                         enum glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value,
+                         const ContextProperties &ctx);
 
 enum glsl::PainterShaderRegistrarGLSL::clipping_type_t
 compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::compositing_type_t compositing_type,

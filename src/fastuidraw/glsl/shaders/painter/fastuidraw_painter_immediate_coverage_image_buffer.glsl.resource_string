@@ -92,26 +92,6 @@
     imageAtomicMax(fastuidraw_immediate_coverage_buffer, pos, r);
   }
 
-#elif defined(FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_FRAMEBUFFER_FETCH)
-
-  layout(location = 1) inout float fastuidraw_immediate_coverage_buffer_inout;
-
-  float
-  fastuidraw_clear_immediate_coverage(void)
-  {
-    float r;
-    r = fastuidraw_immediate_coverage_buffer_inout;
-    fastuidraw_immediate_coverage_buffer_inout = 0.0;
-    return r;
-  }
-
-  void
-  fastuidraw_max_immediate_coverage(in float f)
-  {
-    f = clamp(f, 0.0, 1.0);
-    fastuidraw_immediate_coverage_buffer_inout = max(fastuidraw_immediate_coverage_buffer_inout, f);
-  }
-
 #else
 
   float

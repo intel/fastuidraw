@@ -236,14 +236,6 @@ namespace fastuidraw
            * an "r8" image2D in the shader source.
            */
           immediate_coverage_buffer_interlock_main_only,
-
-          /*!
-           * Auxiliary buffer is present and ordering guarantees
-           * are implemented via framebuffer fetch, i.e. the auxiliary
-           * buffer is present as an inout global with type float
-           * and layout(location = 1).
-           */
-          immediate_coverage_buffer_framebuffer_fetch,
         };
 
       /*!

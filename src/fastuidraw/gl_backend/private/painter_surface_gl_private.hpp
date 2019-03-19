@@ -29,11 +29,9 @@ public:
   enum fbo_tp_bits
     {
       fbo_color_buffer_bit,
-      fbo_immediate_coverage_buffer_bit,
       fbo_num_bits,
 
       fbo_color_buffer = FASTUIDRAW_MASK(fbo_color_buffer_bit, 1),
-      fbo_immediate_coverage_buffer = FASTUIDRAW_MASK(fbo_immediate_coverage_buffer_bit, 1),
 
       number_fbo_t = FASTUIDRAW_MASK(0, fbo_num_bits) + 1
     };
@@ -74,28 +72,22 @@ public:
     return buffer(buffer_color);
   }
 
-  uint32_t
-  fbo_bits(enum PainterBackendGL::immediate_coverage_buffer_t aux,
-           enum PainterBackendGL::compositing_type_t compositing);
+  c_array<const GLenum>
+  draw_buffers(uint32_t tp);
+
+  GLuint
+  fbo(enum PainterBackendGL::compositing_type_t compositing)
+  {
+    return fbo(fbo_bits(compositing));
+  }
 
   GLuint
   fbo(uint32_t tp);
 
   c_array<const GLenum>
-  draw_buffers(uint32_t tp);
-
-  GLuint
-  fbo(enum PainterBackendGL::immediate_coverage_buffer_t aux,
-      enum PainterBackendGL::compositing_type_t compositing)
+  draw_buffers(enum PainterBackendGL::compositing_type_t compositing)
   {
-    return fbo(fbo_bits(aux, compositing));
-  }
-
-  c_array<const GLenum>
-  draw_buffers(enum PainterBackendGL::immediate_coverage_buffer_t aux,
-               enum PainterBackendGL::compositing_type_t compositing)
-  {
-    return draw_buffers(fbo_bits(aux, compositing));
+    return draw_buffers(fbo_bits(compositing));
   }
 
   reference_counted_ptr<const Image>
@@ -115,14 +107,17 @@ private:
       number_buffer_t
     };
 
+  uint32_t
+  fbo_bits(enum PainterBackendGL::compositing_type_t compositing);
+
   GLuint
   buffer(enum buffer_t);
 
   vecN<GLuint, number_immediate_coverage_buffer_fmt_t> m_immediate_coverage_buffer;
   vecN<GLuint, number_buffer_t> m_buffers;
   vecN<GLuint, number_fbo_t> m_fbo;
-  vecN<vecN<GLenum, 2>, 4> m_draw_buffer_values;
-  vecN<c_array<const GLenum>, 4> m_draw_buffers;
+  vecN<vecN<GLenum, 1>, number_fbo_t> m_draw_buffer_values;
+  vecN<c_array<const GLenum>, number_fbo_t> m_draw_buffers;
   reference_counted_ptr<const Image> m_image;
 
   bool m_own_texture;

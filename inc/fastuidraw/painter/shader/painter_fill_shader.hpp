@@ -94,7 +94,7 @@ namespace fastuidraw
      * Returns if high quality two pass anti-alias shading
      * is supported.
      */
-    enum PainterEnums::hq_anti_alias_support_t
+    enum PainterEnums::hq_immediate_coverage_support_t
     hq_anti_alias_support(void) const;
 
     /*!
@@ -102,7 +102,7 @@ namespace fastuidraw
      * \param sh value to use
      */
     PainterFillShader&
-    hq_anti_alias_support(enum PainterEnums::hq_anti_alias_support_t sh);
+    hq_anti_alias_support(enum PainterEnums::hq_immediate_coverage_support_t sh);
 
     /*!
      * Used by \ref Painter for the PainterEnums:shader_anti_alias_t

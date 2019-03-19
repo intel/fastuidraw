@@ -1023,11 +1023,6 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
       frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
       break;
 
-    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch:
-      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_FRAMEBUFFER_FETCH");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
-      break;
-
     default:
       break;
     }

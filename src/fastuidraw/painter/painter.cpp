@@ -252,7 +252,7 @@ namespace
 
   inline
   enum fastuidraw::Painter::shader_anti_alias_t
-  select_anti_alias_from_auto(enum fastuidraw::Painter::hq_anti_alias_support_t support)
+  select_anti_alias_from_auto(enum fastuidraw::Painter::hq_immediate_coverage_support_t support)
   {
     return (support == fastuidraw::Painter::hq_anti_alias_fast) ?
       fastuidraw::Painter::shader_anti_alias_high_quality :
@@ -262,7 +262,7 @@ namespace
   inline
   enum fastuidraw::Painter::shader_anti_alias_t
   compute_shader_anti_alias(enum fastuidraw::Painter::shader_anti_alias_t v,
-                            enum fastuidraw::Painter::hq_anti_alias_support_t support,
+                            enum fastuidraw::Painter::hq_immediate_coverage_support_t support,
                             enum fastuidraw::Painter::shader_anti_alias_t fastest)
   {
     v = (v == fastuidraw::Painter::shader_anti_alias_fastest) ?

@@ -28,7 +28,7 @@ SurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
   m_render_type(render_type),
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
   m_dimensions(dimensions),
-  m_immediate_coverage_buffer(0),
+  m_immediate_coverage_buffer(0, 0),
   m_buffers(0),
   m_fbo(0),
   m_own_texture(texture == 0)
@@ -45,7 +45,8 @@ fastuidraw::gl::detail::SurfaceGLPrivate::
     {
       m_buffers[buffer_color] = 0;
     }
-  fastuidraw_glDeleteTextures(m_immediate_coverage_buffer.size(), m_immediate_coverage_buffer.c_ptr());
+  fastuidraw_glDeleteTextures(m_immediate_coverage_buffer.size(),
+                              m_immediate_coverage_buffer.c_ptr());
   fastuidraw_glDeleteFramebuffers(m_fbo.size(), m_fbo.c_ptr());
   fastuidraw_glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
 }
@@ -193,12 +194,6 @@ fbo(uint32_t tp)
                                             tex_target, buffer(buffer_color), 0);
         }
 
-      if (tp & fbo_immediate_coverage_buffer)
-        {
-          FASTUIDRAWassert(m_render_type == PainterSurface::color_buffer_type);
-          fastuidraw_glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                                            tex_target, immediate_coverage_buffer(immediate_coverage_buffer_fmt_u8), 0);
-        }
       fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
     }
   return m_fbo[tp];
@@ -219,16 +214,6 @@ draw_buffers(uint32_t tp)
         {
           m_draw_buffer_values[tp][0] = GL_NONE;
         }
-
-      if (tp & fbo_immediate_coverage_buffer)
-        {
-          m_draw_buffer_values[tp][1] = GL_COLOR_ATTACHMENT1;
-        }
-      else
-        {
-          m_draw_buffers[tp] = m_draw_buffers[tp].sub_array(0, 1);
-          m_draw_buffer_values[tp][1] = GL_NONE;
-        }
     }
 
   return m_draw_buffers[tp];
@@ -236,20 +221,13 @@ draw_buffers(uint32_t tp)
 
 uint32_t
 fastuidraw::gl::detail::SurfaceGLPrivate::
-fbo_bits(enum PainterBackendGL::immediate_coverage_buffer_t aux,
-         enum PainterBackendGL::compositing_type_t compositing)
+fbo_bits(enum PainterBackendGL::compositing_type_t compositing)
 {
   uint32_t tp(0u);
   if (compositing != PainterBackendGL::compositing_interlock
       || m_render_type != PainterSurface::color_buffer_type)
     {
       tp |= fbo_color_buffer;
-    }
-
-  if (aux == PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
-    {
-      FASTUIDRAWassert(m_render_type == PainterSurface::color_buffer_type);
-      tp |= fbo_immediate_coverage_buffer;
     }
 
   return tp;

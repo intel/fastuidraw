@@ -37,29 +37,11 @@ shader_storage_buffers_supported(const ContextProperties &ctx)
 
 enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t
 compute_provide_immediate_coverage_buffer(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t in_value,
-                                 const ContextProperties &ctx)
+                                          const ContextProperties &ctx)
 {
   if (in_value == glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer)
     {
       return in_value;
-    }
-
-  /* If asking for immediate_coverage_buffer_framebuffer_fetch and have
-   * the extension, immediately give the return value, otherwise
-   * fall back to interlock. Note that we do NOT fallback
-   * from interlock to framebuffer fetch because framebuffer-fetch
-   * makes MSAA render targets become shaded per-sample.
-   */
-  if (in_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch)
-    {
-      if (ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
-        {
-          return in_value;
-        }
-      else
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock;
-        }
     }
 
   #ifdef FASTUIDRAW_GL_USE_GLES
@@ -185,8 +167,7 @@ compute_interlock_type(const ContextProperties &ctx)
 }
 
 enum glsl::PainterShaderRegistrarGLSL::compositing_type_t
-compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t aux_value,
-                         enum interlock_type_t interlock_value,
+compute_compositing_type(enum interlock_type_t interlock_value,
                          enum glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value,
                          const ContextProperties &ctx)
 {
@@ -200,20 +181,6 @@ compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::immediate_covera
       in_value = glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch;
     }
 
-  if (aux_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch)
-    {
-      /*
-       * auxiliary framebuffer fetch cannot be used with single and
-       * dual source compositing; if it is single or dual source compositing
-       * we will set it to framebuffer_fetch.
-       */
-      if (in_value == glsl::PainterShaderRegistrarGLSL::compositing_single_src
-          || in_value == glsl::PainterShaderRegistrarGLSL::compositing_dual_src)
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch;
-        }
-    }
-
   bool have_dual_src_compositing, have_framebuffer_fetch;
   if (ctx.is_es())
     {
@@ -223,8 +190,7 @@ compute_compositing_type(enum glsl::PainterShaderRegistrarGLSL::immediate_covera
     {
       have_dual_src_compositing = true;
     }
-  have_framebuffer_fetch = (aux_value == glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch)
-    || ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
+  have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
   if (in_value == glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch
       && !have_framebuffer_fetch)

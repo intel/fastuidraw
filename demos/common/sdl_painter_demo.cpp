@@ -140,10 +140,6 @@ namespace
         str << "immediate_coverage_buffer_interlock_main_only";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch:
-        str << "immediate_coverage_buffer_framebuffer_fetch";
-        break;
-
       default:
         str << "invalid value";
       }
@@ -425,15 +421,6 @@ sdl_painter_demo(const std::string &about_text,
                                              "OR GL_NV_fragment_shader_interlock together with GL 4.2 (or "
                                              "GL_ARB_shader_image_load_store) for GL and GLES 3.1 for GLES; if requirements "
                                              "are not satisfied will try to fall back to immediate_coverage_buffer_interlock "
-                                             "and if those are not satisfied will fall back to immediate_coverage_buffer_atomic and "
-                                             "if those requirement are not satsified, then no_immediate_coverage_buffer")
-                                  .add_entry("immediate_coverage_buffer_framebuffer_fetch",
-                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_framebuffer_fetch,
-                                             "Auxilary buffer via framebuffer fetch; this is high performant option "
-                                             "as it does NOT use atomic ops and does not force any draw call "
-                                             "breaks to issue a memory barrier; requires GL_EXT_shader_framebuffer_fetch; "
-                                             "if requirement is not satisfied will try to fall back to immediate_coverage_buffer_interlock "
-                                             "which if not satisfied will fall back to immediate_coverage_buffer_interlock_main_only "
                                              "and if those are not satisfied will fall back to immediate_coverage_buffer_atomic and "
                                              "if those requirement are not satsified, then no_immediate_coverage_buffer"),
                                   "provide_immediate_coverage_image_buffer",

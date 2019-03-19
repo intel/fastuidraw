@@ -152,7 +152,7 @@ namespace fastuidraw
      * and \ref PainterStrokeShader that uses the
      * immediate coverage buffer.
      */
-    enum hq_anti_alias_support_t
+    enum hq_immediate_coverage_support_t
       {
         /*!
          * Indicates that high quality anti-aliasing is NOT

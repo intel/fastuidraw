@@ -1018,8 +1018,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       aux_type = uber_params.provide_immediate_coverage_image_buffer();
       compositing_type = m_reg_gl->params().compositing_type();
       has_images = (aux_type != PainterBackendGL::no_immediate_coverage_buffer
-                    && aux_type != PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
-        || (compositing_type == PainterBackendGL::compositing_interlock);
+                    || compositing_type == PainterBackendGL::compositing_interlock);
     }
   else
     {
@@ -1040,8 +1039,8 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
       if (clear_depth || clear_color_buffer)
         {
-          fbo = m_surface_gl->fbo(aux_type, PainterBackendGL::compositing_single_src);
-          draw_buffers = m_surface_gl->draw_buffers(aux_type, PainterBackendGL::compositing_single_src);
+          fbo = m_surface_gl->fbo(PainterBackendGL::compositing_single_src);
+          draw_buffers = m_surface_gl->draw_buffers(PainterBackendGL::compositing_single_src);
 
           fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
           fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
@@ -1054,20 +1053,15 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
           if (clear_color_buffer)
             {
               fastuidraw_glClearBufferfv(GL_COLOR, 0, m_surface_gl->m_clear_color.c_ptr());
-              if (aux_type == PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
-                {
-                  vec4 zero(0.0f);
-                  fastuidraw_glClearBufferfv(GL_COLOR, 1, zero.c_ptr());
-                }
             }
 
           last_fbo = fbo;
         }
 
-      fbo = m_surface_gl->fbo(aux_type, compositing_type);
+      fbo = m_surface_gl->fbo(compositing_type);
       if (fbo != last_fbo)
         {
-          draw_buffers = m_surface_gl->draw_buffers(aux_type, compositing_type);
+          draw_buffers = m_surface_gl->draw_buffers(compositing_type);
           fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
           fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
         }
@@ -1082,11 +1076,10 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   if ((v & gpu_dirty_state::images) != 0 && has_images)
     {
-      detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_t tp;
-
-      if (aux_type != PainterBackendGL::no_immediate_coverage_buffer
-          && aux_type != PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
+      if (aux_type != PainterBackendGL::no_immediate_coverage_buffer)
         {
+          detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_t tp;
+
           tp = (aux_type == gl::PainterBackendGL::immediate_coverage_buffer_atomic) ?
             detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u32 :
             detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u8;
@@ -1416,11 +1409,9 @@ configure_from_context(bool choose_optimal_rendering_quality,
 
   ConfigurationGLPrivate *d;
   enum interlock_type_t interlock_type;
-  bool have_ffb;
 
   d = static_cast<ConfigurationGLPrivate*>(m_d);
   interlock_type = compute_interlock_type(ctx);
-  have_ffb = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
   d->m_break_on_shader_change = false;
   d->m_clipping_type = clipping_via_gl_clip_distance;
@@ -1443,30 +1434,12 @@ configure_from_context(bool choose_optimal_rendering_quality,
    */
   d->m_separate_program_for_discard = true;
 
-  d->m_compositing_type = compositing_framebuffer_fetch;
-
-  /* Performance testing indicates that framebuffer_fetch
-   * is faster than interlock so use framebuffer_fetch if
-   * it is available.
-   */
-  if (have_ffb)
-    {
-      d->m_provide_immediate_coverage_image_buffer = immediate_coverage_buffer_framebuffer_fetch;
-    }
-  else if (interlock_type == no_interlock && !choose_optimal_rendering_quality)
-    {
-      d->m_provide_immediate_coverage_image_buffer = no_immediate_coverage_buffer;
-    }
-  else
-    {
-      d->m_provide_immediate_coverage_image_buffer =
-        compute_provide_immediate_coverage_buffer(immediate_coverage_buffer_interlock, ctx);
-    }
+  d->m_provide_immediate_coverage_image_buffer =
+    compute_provide_immediate_coverage_buffer(immediate_coverage_buffer_interlock, ctx);
 
   /* Adjust compositing type from GL context properties */
-  d->m_compositing_type = compute_compositing_type(d->m_provide_immediate_coverage_image_buffer,
-                                                   interlock_type, d->m_compositing_type,
-                                                   ctx);
+  d->m_compositing_type =
+    compute_compositing_type(interlock_type, compositing_framebuffer_fetch, ctx);
 
   /* Adjust clipping type from GL context properties */
   d->m_clipping_type = compute_clipping_type(d->m_compositing_type,
@@ -1544,6 +1517,11 @@ configure_from_context(bool choose_optimal_rendering_quality,
    * so we play it safe and make it 3.
    */
   d->m_number_pools = 3;
+
+  /* For now, choosing optimal rendering quality does not
+   * have impact on options.
+   */
+  FASTUIDRAWunused(choose_optimal_rendering_quality);
 
   return *this;
 }
@@ -1661,9 +1639,7 @@ adjust_for_context(const ContextProperties &ctx)
   d->m_provide_immediate_coverage_image_buffer =
     compute_provide_immediate_coverage_buffer(d->m_provide_immediate_coverage_image_buffer, ctx);
 
-  d->m_compositing_type = compute_compositing_type(d->m_provide_immediate_coverage_image_buffer,
-                                                   interlock_type,
-                                                   d->m_compositing_type, ctx);
+  d->m_compositing_type = compute_compositing_type(interlock_type, d->m_compositing_type, ctx);
 
   /* if have to use discard for clipping, then there is zero point to
    * separate the discarding and non-discarding item shaders.
@@ -1948,8 +1924,7 @@ on_post_draw(void)
 
   enum immediate_coverage_buffer_t aux_type;
   aux_type = uber_params.provide_immediate_coverage_image_buffer();
-  if (aux_type != PainterBackendGL::no_immediate_coverage_buffer
-      && aux_type != PainterBackendGL::immediate_coverage_buffer_framebuffer_fetch)
+  if (aux_type != PainterBackendGL::no_immediate_coverage_buffer)
     {
       fastuidraw_glBindImageTexture(d->m_binding_points.m_immediate_coverage_image_buffer_binding, 0,
                                     0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
