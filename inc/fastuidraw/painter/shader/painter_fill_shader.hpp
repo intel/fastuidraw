@@ -35,7 +35,7 @@ namespace fastuidraw
    * A PainterFillShader holds the shaders for drawing filled paths.
    * Anti-aliasing is accomplished by drawing 1-pixel thick rects
    * about the boundary of the filled path. The high quality method
-   * \ref PainterEnums::shader_anti_alias_high_quality renders the
+   * \ref PainterEnums::shader_anti_alias_hq_immediate_coverage renders the
    * anti-alias pixels in two passes; the first pass to a coverage
    * buffer and the second pass returns the value as the coverage
    * and clears the auxilary buffer. The other renering method,

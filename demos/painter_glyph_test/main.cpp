@@ -29,7 +29,7 @@ static c_string anti_alias_labels[Painter::number_shader_anti_alias_enums] =
   {
     [Painter::shader_anti_alias_none] = "shader_anti_alias_none",
     [Painter::shader_anti_alias_simple] = "shader_anti_alias_simple",
-    [Painter::shader_anti_alias_high_quality] = "shader_anti_alias_high_quality",
+    [Painter::shader_anti_alias_hq_immediate_coverage] = "shader_anti_alias_hq_immediate_coverage",
     [Painter::shader_anti_alias_hq_deferred_coverage] = "shader_anti_alias_hq_deferred_coverage",
     [Painter::shader_anti_alias_auto] = "shader_anti_alias_auto",
     [Painter::shader_anti_alias_fastest] = "shader_anti_alias_fastest",

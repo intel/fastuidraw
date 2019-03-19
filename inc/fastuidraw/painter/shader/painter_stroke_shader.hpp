@@ -150,14 +150,14 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterStrokeShader holds shaders for stroking. Both
-   * \ref PainterEnums::shader_anti_alias_high_quality and
+   * \ref PainterEnums::shader_anti_alias_hq_immediate_coverage and
    * \ref PainterEnums::shader_anti_alias_simple are two pass
    * solutions. For PainterEnums::shader_anti_alias_simple,
    * the first pass draws the portions of the path that have
    * 100% coverage and the 2nd pass draws those portions with
    * less than 100% coverage; both of these passes rely on
    * depth testing to prevent overdraw. For \ref
-   * PainterEnums::shader_anti_alias_high_quality, the first
+   * PainterEnums::shader_anti_alias_hq_immediate_coverage, the first
    * pass draws to an offscreen coverage buffer the coverage
    * values so that when a fragment is hit multiple times
    * the largest coverage value is retained and the 2nd pass
@@ -225,7 +225,7 @@ namespace fastuidraw
 
         /*!
          * Specify the shader for the 1st pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_high_quality which
+         * for \ref PainterEnums::shader_anti_alias_hq_immediate_coverage which
          * draws to a the immediate coverage buffer the coverage of a
          * fragment area by the stroked path. The item's vertex shader
          * it to emit a depth value of 0.
@@ -234,7 +234,7 @@ namespace fastuidraw
 
         /*!
          * Specify the shader for the 2nd pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_high_quality which
+         * for \ref PainterEnums::shader_anti_alias_hq_immediate_coverage which
          * draws emits the coverage value from the immediated coverage
          * buffer and clears the value from the immediate coverage buffer
          * as well. The item's vertex shader it to emit a depth value of

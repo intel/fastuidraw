@@ -208,7 +208,7 @@ painter_clip_test():
   m_shader_anti_alias_mode_values[no_anti_alias] = Painter::shader_anti_alias_none;
   m_shader_anti_alias_mode_values[by_anti_alias_auto] = Painter::shader_anti_alias_auto;
   m_shader_anti_alias_mode_values[by_anti_alias_simple] = Painter::shader_anti_alias_simple;
-  m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_high_quality;
+  m_shader_anti_alias_mode_values[by_anti_alias_hq] = Painter::shader_anti_alias_hq_immediate_coverage;
   m_shader_anti_alias_mode_values[by_anti_alias_fastest] = Painter::shader_anti_alias_fastest;
 }
 

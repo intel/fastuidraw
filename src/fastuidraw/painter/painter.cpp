@@ -255,7 +255,7 @@ namespace
   select_anti_alias_from_auto(enum fastuidraw::Painter::hq_immediate_coverage_support_t support)
   {
     return (support == fastuidraw::Painter::hq_anti_alias_fast) ?
-      fastuidraw::Painter::shader_anti_alias_high_quality :
+      fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage :
       fastuidraw::Painter::shader_anti_alias_simple;
   }
 
@@ -273,7 +273,7 @@ namespace
       select_anti_alias_from_auto(support):
       v;
 
-    v = (v == fastuidraw::Painter::shader_anti_alias_high_quality
+    v = (v == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage
          && support == fastuidraw::Painter::hq_anti_alias_no_support) ?
       fastuidraw::Painter::shader_anti_alias_simple :
       v;
@@ -304,7 +304,7 @@ namespace
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::simple_aa_shader_pass1))
           || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::simple_aa_shader_pass2));
 
-      case Painter::shader_anti_alias_high_quality:
+      case Painter::shader_anti_alias_hq_immediate_coverage:
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1))
           || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2));
 
@@ -1200,11 +1200,11 @@ namespace
         {
           enum PainterStrokeShader::shader_type_t pass1, pass2;
 
-          pass1 = (with_aa == Painter::shader_anti_alias_high_quality) ?
+          pass1 = (with_aa == Painter::shader_anti_alias_hq_immediate_coverage) ?
             PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1:
             PainterStrokeShader::simple_aa_shader_pass1;
 
-          pass2 = (with_aa == Painter::shader_anti_alias_high_quality) ?
+          pass2 = (with_aa == Painter::shader_anti_alias_hq_immediate_coverage) ?
             PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2:
             PainterStrokeShader::simple_aa_shader_pass2;
 
@@ -3449,7 +3449,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
 
               use_immediate = should_use_immediate_coverage_instead(output->m_normalized_device_coords_bounding_box.as_rect());
               anti_alias_quality = (use_immediate) ?
-                Painter::shader_anti_alias_high_quality :
+                Painter::shader_anti_alias_hq_immediate_coverage :
                 Painter::shader_anti_alias_hq_deferred_coverage;
             }
         }
@@ -3497,7 +3497,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
         }
     }
 
-  if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_high_quality
+  if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage
       && !output->m_attrib_chunks.empty())
     {
       ++output->m_total_increment_z;
@@ -3549,7 +3549,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
           end_coverage_buffer();
         }
     }
-  else if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_high_quality)
+  else if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage)
     {
       draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
                    make_c_array(data.m_attrib_chunks),
@@ -3832,7 +3832,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
 
       coverage_buffer_bb_ready = true;
       anti_aliasing = (should_use_immediate_coverage_instead(coverage_buffer_bb.as_rect())) ?
-        Painter::shader_anti_alias_high_quality :
+        Painter::shader_anti_alias_hq_immediate_coverage :
         Painter::shader_anti_alias_hq_deferred_coverage;
     }
 
@@ -4015,7 +4015,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
 
   two_shaders = (anti_aliasing != Painter::shader_anti_alias_none
                  && anti_aliasing != Painter::shader_anti_alias_hq_deferred_coverage);
-  modify_z = (anti_aliasing != Painter::shader_anti_alias_high_quality);
+  modify_z = (anti_aliasing != Painter::shader_anti_alias_hq_immediate_coverage);
   modify_z_coeff = (two_shaders) ? 2 : 1;
 
   if (modify_z || two_shaders)
@@ -4028,7 +4028,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
       draw.make_packed(m_pool);
     }
 
-  if (anti_aliasing == Painter::shader_anti_alias_high_quality)
+  if (anti_aliasing == Painter::shader_anti_alias_hq_immediate_coverage)
     {
       /* prevent the draw from changing color values so that it
        * only hits auxiliar buffer values.
@@ -4066,7 +4066,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
 
   if (two_shaders)
     {
-      if (anti_aliasing == Painter::shader_anti_alias_high_quality)
+      if (anti_aliasing == Painter::shader_anti_alias_hq_immediate_coverage)
         {
           packer()->blend_shader(old_blend);
           packer()->composite_shader(old_composite, old_composite_mode);
@@ -4559,7 +4559,7 @@ ready_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts,
           m_work_room.m_polygon.m_aa_fuzz_indices.push_back(center);
         }
 
-      if (anti_alias_quality == Painter::shader_anti_alias_high_quality)
+      if (anti_alias_quality == Painter::shader_anti_alias_hq_immediate_coverage)
         {
           m_work_room.m_polygon.m_fuzz_increment_z = 1u;
         }
