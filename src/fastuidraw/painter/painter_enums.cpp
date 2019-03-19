@@ -124,15 +124,15 @@ label(enum fill_rule_t v)
 
 fastuidraw::c_string
 fastuidraw::PainterEnums::
-label(enum hq_immediate_coverage_support_t v)
+label(enum immediate_coverage_support_t v)
 {
-  static const c_string labels[number_hq_immediate_coverage_support] =
+  static const c_string labels[number_immediate_coverage_support] =
     {
-      [hq_anti_alias_no_support] = "hq_anti_alias_no_support",
-      [hq_anti_alias_slow] = "hq_anti_alias_slow",
-      [hq_anti_alias_fast] = "hq_anti_alias_fast",
+      [immediate_coverage_no_support] = "immediate_coverage_no_support",
+      [immediate_coverage_slow] = "immediate_coverage_slow",
+      [immediate_coverage_fast] = "immediate_coverage_fast",
     };
-  return (v < number_hq_immediate_coverage_support) ? labels[v] : "InvalidEnum";
+  return (v < number_immediate_coverage_support) ? labels[v] : "InvalidEnum";
 }
 
 fastuidraw::c_string

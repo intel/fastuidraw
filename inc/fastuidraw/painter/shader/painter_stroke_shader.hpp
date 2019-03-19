@@ -284,15 +284,15 @@ namespace fastuidraw
      * Returns if high quality two pass anti-alias shading
      * is supported.
      */
-    enum PainterEnums::hq_immediate_coverage_support_t
-    hq_anti_alias_support(void) const;
+    enum PainterEnums::immediate_coverage_support_t
+    immediate_coverage_support(void) const;
 
     /*!
-     * Set the value returned by hq_anti_alias_support(void) const.
+     * Set the value returned by immediate_coverage_support(void) const.
      * \param sh value to use
      */
     PainterStrokeShader&
-    hq_anti_alias_support(enum PainterEnums::hq_immediate_coverage_support_t sh);
+    immediate_coverage_support(enum PainterEnums::immediate_coverage_support_t sh);
 
     /*!
      * Used by \ref Painter for the PainterEnums::shader_anti_alias_t value

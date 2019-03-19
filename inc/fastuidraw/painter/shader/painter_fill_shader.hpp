@@ -94,15 +94,15 @@ namespace fastuidraw
      * Returns if high quality two pass anti-alias shading
      * is supported.
      */
-    enum PainterEnums::hq_immediate_coverage_support_t
-    hq_anti_alias_support(void) const;
+    enum PainterEnums::immediate_coverage_support_t
+    immediate_coverage_support(void) const;
 
     /*!
-     * Set the value returned by hq_anti_alias_support(void) const.
+     * Set the value returned by immediate_coverage_support(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    hq_anti_alias_support(enum PainterEnums::hq_immediate_coverage_support_t sh);
+    immediate_coverage_support(enum PainterEnums::immediate_coverage_support_t sh);
 
     /*!
      * Used by \ref Painter for the PainterEnums:shader_anti_alias_t
@@ -169,14 +169,14 @@ namespace fastuidraw
      * \ref FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_hq_immediate_coverage_pass1(void) const;
+    aa_fuzz_immediate_coverage_pass1(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_immediate_coverage_pass1(void) const.
+     * Set the value returned by aa_fuzz_immediate_coverage_pass1(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_immediate_coverage_pass1(const reference_counted_ptr<PainterItemShader> &sh);
+    aa_fuzz_immediate_coverage_pass1(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the PainterItemShader to use to draw
@@ -187,14 +187,14 @@ namespace fastuidraw
      * \ref FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_hq_immediate_coverage_pass2(void) const;
+    aa_fuzz_immediate_coverage_pass2(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_immediate_coverage_pass2(void) const.
+     * Set the value returned by aa_fuzz_immediate_coverage_pass2(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_immediate_coverage_pass2(const reference_counted_ptr<PainterItemShader> &sh);
+    aa_fuzz_immediate_coverage_pass2(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the action to be called before the 1st pass

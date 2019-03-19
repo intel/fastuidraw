@@ -155,32 +155,33 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to describe high quality shader
-     * anti-aliasing support in \ref PainterFillShader
-     * and \ref PainterStrokeShader that uses the
-     * immediate coverage buffer.
+     * Enumeration to describe immediate coverage buffer
+     * support.
      */
-    enum hq_immediate_coverage_support_t
+    enum immediate_coverage_support_t
       {
         /*!
-         * Indicates that high quality anti-aliasing is NOT
-         * supported.
+         * Indicates that immediate coverage buffer is
+         * NOT supported.
          */
-        hq_anti_alias_no_support,
+        immediate_coverage_no_support,
 
         /*!
-         * Indicates that high quality anti-aliasing is
-         * supported with significant performance impact.
+         * Indicates that immediate coverage buffer is
+         * supported with performance impact (typically
+         * of the form of draw breaks between passes
+         * to issue a memory barrier command).
          */
-        hq_anti_alias_slow,
+        immediate_coverage_slow,
 
         /*!
-         * Indicates that high quality anti-aliasing is
-         * supported with no or minimal performance impact.
+         * Indicates that immediate coverage buffer is
+         * supported with no or minimal performance impact
+         * (i.e. no draw breaks).
          */
-        hq_anti_alias_fast,
+        immediate_coverage_fast,
 
-        number_hq_immediate_coverage_support
+        number_immediate_coverage_support
       };
 
     /*!
@@ -533,7 +534,7 @@ namespace fastuidraw
      */
     static
     c_string
-    label(enum hq_immediate_coverage_support_t v);
+    label(enum immediate_coverage_support_t v);
 
     /*!
      * Returns a \ref c_string for an enumerated value.

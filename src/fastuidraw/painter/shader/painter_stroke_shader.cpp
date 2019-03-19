@@ -28,7 +28,7 @@ namespace
     typedef fastuidraw::vecN<shader, fastuidraw::PainterStrokeShader::number_shader_types> shader_set;
 
     fastuidraw::vecN<shader_set, 2> m_shaders;
-    enum fastuidraw::PainterEnums::hq_immediate_coverage_support_t m_hq_anti_alias_support;
+    enum fastuidraw::PainterEnums::immediate_coverage_support_t m_immediate_coverage_support;
     fastuidraw::vecN<enum fastuidraw::PainterEnums::shader_anti_alias_t, 2> m_fastest_anti_alias_mode;
     fastuidraw::vecN<bool, fastuidraw::PainterEnums::number_shader_anti_alias> m_arc_stroking_is_fast;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> m_stroking_data_selector;
@@ -124,8 +124,8 @@ arc_stroking_is_fast(enum PainterEnums::shader_anti_alias_t sh, bool v)
 }
 
 setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
-                 enum fastuidraw::PainterEnums::hq_immediate_coverage_support_t,
-                 hq_anti_alias_support);
+                 enum fastuidraw::PainterEnums::immediate_coverage_support_t,
+                 immediate_coverage_support);
 
 setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
                  const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>&,

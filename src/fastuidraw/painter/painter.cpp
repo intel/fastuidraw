@@ -252,9 +252,9 @@ namespace
 
   inline
   enum fastuidraw::Painter::shader_anti_alias_t
-  select_anti_alias_from_auto(enum fastuidraw::Painter::hq_immediate_coverage_support_t support)
+  select_anti_alias_from_auto(enum fastuidraw::Painter::immediate_coverage_support_t support)
   {
-    return (support == fastuidraw::Painter::hq_anti_alias_fast) ?
+    return (support == fastuidraw::Painter::immediate_coverage_fast) ?
       fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage :
       fastuidraw::Painter::shader_anti_alias_simple;
   }
@@ -262,7 +262,7 @@ namespace
   inline
   enum fastuidraw::Painter::shader_anti_alias_t
   compute_shader_anti_alias(enum fastuidraw::Painter::shader_anti_alias_t v,
-                            enum fastuidraw::Painter::hq_immediate_coverage_support_t support,
+                            enum fastuidraw::Painter::immediate_coverage_support_t support,
                             enum fastuidraw::Painter::shader_anti_alias_t fastest)
   {
     v = (v == fastuidraw::Painter::shader_anti_alias_fastest) ?
@@ -274,7 +274,7 @@ namespace
       v;
 
     v = (v == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage
-         && support == fastuidraw::Painter::hq_anti_alias_no_support) ?
+         && support == fastuidraw::Painter::immediate_coverage_no_support) ?
       fastuidraw::Painter::shader_anti_alias_simple :
       v;
 
@@ -3551,7 +3551,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
     }
   else if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage)
     {
-      draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
+      draw_generic(shader.aa_fuzz_immediate_coverage_pass1(), draw,
                    make_c_array(data.m_attrib_chunks),
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
@@ -3559,7 +3559,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    z);
       packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
-      draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
+      draw_generic(shader.aa_fuzz_immediate_coverage_pass2(), draw,
                    make_c_array(data.m_attrib_chunks),
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
@@ -3813,7 +3813,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
 
   fastest = shader.fastest_anti_alias_mode(tp);
   anti_aliasing = compute_shader_anti_alias(anti_aliasing,
-                                            shader.hq_anti_alias_support(),
+                                            shader.immediate_coverage_support(),
                                             fastest);
 
   /* we need the logic for choosing hq mode before the logic of
@@ -4224,7 +4224,7 @@ fill_path(const fastuidraw::PainterFillShader &shader,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support(),
+                                                 shader.immediate_coverage_support(),
                                                  shader.fastest_anti_alias_mode());
 
   if (anti_alias_quality != Painter::shader_anti_alias_none)
@@ -4287,7 +4287,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
                            R.m_max_point.y());
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support(),
+                                                 shader.immediate_coverage_support(),
                                                  shader.fastest_anti_alias_mode());
 
   if (anti_alias_quality != Painter::shader_anti_alias_none)
@@ -4432,13 +4432,13 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       else
         {
           incr_z -= 1;
-          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
+          draw_generic(shader.aa_fuzz_immediate_coverage_pass1(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
           packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
-          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
+          draw_generic(shader.aa_fuzz_immediate_coverage_pass2(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
@@ -4594,7 +4594,7 @@ fill_convex_polygon(bool allow_sw_clipping,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.hq_anti_alias_support(),
+                                                 shader.immediate_coverage_support(),
                                                  shader.fastest_anti_alias_mode());
   ready_aa_polygon_attribs(pts, anti_alias_quality);
   ready_non_aa_polygon_attribs(pts);
@@ -4616,13 +4616,13 @@ fill_convex_polygon(bool allow_sw_clipping,
         }
       else
         {
-          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
+          draw_generic(shader.aa_fuzz_immediate_coverage_pass1(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
           packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
-          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
+          draw_generic(shader.aa_fuzz_immediate_coverage_pass2(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);

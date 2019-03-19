@@ -614,15 +614,15 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
 {
   if (!m_has_auxiliary_coverage_buffer)
     {
-      m_hq_support = PainterEnums::hq_anti_alias_no_support;
+      m_hq_support = PainterEnums::immediate_coverage_no_support;
     }
   else if (m_flush_immediate_coverage_buffer_between_draws)
     {
-      m_hq_support = PainterEnums::hq_anti_alias_slow;
+      m_hq_support = PainterEnums::immediate_coverage_slow;
     }
   else
     {
-      m_hq_support = PainterEnums::hq_anti_alias_fast;
+      m_hq_support = PainterEnums::immediate_coverage_fast;
     }
 
   m_fill_macros
@@ -737,7 +737,7 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
   PainterStrokeShader return_value;
 
   return_value
-    .hq_anti_alias_support(m_hq_support)
+    .immediate_coverage_support(m_hq_support)
     .stroking_data_selector(stroke_data_selector)
     .hq_aa_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
     .hq_aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
@@ -848,7 +848,7 @@ create_fill_shader(void)
 
   aa_fuzz_direct_shader = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_direct_pass);
   fill_shader
-    .hq_anti_alias_support(m_hq_support)
+    .immediate_coverage_support(m_hq_support)
     .fastest_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
     .item_shader(item_shader)
     .aa_fuzz_shader(aa_fuzz_direct_shader);
@@ -861,8 +861,8 @@ create_fill_shader(void)
       hq2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass2);
 
       fill_shader
-        .aa_fuzz_hq_immediate_coverage_pass1(hq1)
-        .aa_fuzz_hq_immediate_coverage_pass2(hq2)
+        .aa_fuzz_immediate_coverage_pass1(hq1)
+        .aa_fuzz_immediate_coverage_pass2(hq2)
         .aa_fuzz_hq_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
         .aa_fuzz_hq_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
     }

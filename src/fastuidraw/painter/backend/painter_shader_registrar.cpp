@@ -254,8 +254,8 @@ register_shader(const PainterFillShader &p)
 {
   register_shader(p.item_shader());
   register_shader(p.aa_fuzz_shader());
-  register_shader(p.aa_fuzz_hq_immediate_coverage_pass1());
-  register_shader(p.aa_fuzz_hq_immediate_coverage_pass2());
+  register_shader(p.aa_fuzz_immediate_coverage_pass1());
+  register_shader(p.aa_fuzz_immediate_coverage_pass2());
   register_shader(p.aa_fuzz_hq_deferred_coverage());
 }
 
