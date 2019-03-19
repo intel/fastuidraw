@@ -3504,7 +3504,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
 
   if (anti_alias_quality == Painter::shader_anti_alias_simple)
     {
-      draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
+      draw_generic_z_layered(shader.aa_fuzz_simple_shader(), draw,
                              make_c_array(data.m_z_increments),
                              data.m_total_increment_z,
                              make_c_array(data.m_attrib_chunks),
@@ -3539,21 +3539,21 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
     }
   else if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_hq_immediate_coverage)
     {
-      draw_generic(shader.aa_fuzz_immediate_coverage_pass1(), draw,
+      draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
                    make_c_array(data.m_attrib_chunks),
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
                    z);
-      packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
+      packer()->draw_break(shader.aa_fuzz_hq_immediate_coverage_action_pass1());
 
-      draw_generic(shader.aa_fuzz_immediate_coverage_pass2(), draw,
+      draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
                    make_c_array(data.m_attrib_chunks),
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
                    fastuidraw::c_array<const unsigned int>(),
                    z);
-      packer()->draw_break(shader.aa_fuzz_hq_action_pass2());
+      packer()->draw_break(shader.aa_fuzz_hq_immediate_coverage_action_pass2());
     }
 }
 
@@ -4212,7 +4212,7 @@ fill_path(const fastuidraw::PainterFillShader &shader,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.immediate_coverage_support(),
+                                                 shader.hq_aa_fuzz_shader_immediate_coverage_supported(),
                                                  shader.fastest_anti_alias_mode());
 
   if (anti_alias_quality != Painter::shader_anti_alias_none)
@@ -4275,7 +4275,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
                            R.m_max_point.y());
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.immediate_coverage_support(),
+                                                 shader.hq_aa_fuzz_shader_immediate_coverage_supported(),
                                                  shader.fastest_anti_alias_mode());
 
   if (anti_alias_quality != Painter::shader_anti_alias_none)
@@ -4412,7 +4412,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       if (anti_alias_quality == Painter::shader_anti_alias_simple)
         {
           incr_z -= 4;
-          draw_generic(shader.aa_fuzz_shader(), draw,
+          draw_generic(shader.aa_fuzz_simple_shader(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
@@ -4420,17 +4420,17 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       else
         {
           incr_z -= 1;
-          draw_generic(shader.aa_fuzz_immediate_coverage_pass1(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
-          packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
+          packer()->draw_break(shader.aa_fuzz_hq_immediate_coverage_action_pass1());
 
-          draw_generic(shader.aa_fuzz_immediate_coverage_pass2(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
-          packer()->draw_break(shader.aa_fuzz_hq_action_pass2());
+          packer()->draw_break(shader.aa_fuzz_hq_immediate_coverage_action_pass2());
         }
 
       for (int i = 0; i < 4; ++i)
@@ -4582,7 +4582,7 @@ fill_convex_polygon(bool allow_sw_clipping,
     }
 
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.immediate_coverage_support(),
+                                                 shader.hq_aa_fuzz_shader_immediate_coverage_supported(),
                                                  shader.fastest_anti_alias_mode());
   ready_aa_polygon_attribs(pts, anti_alias_quality);
   ready_non_aa_polygon_attribs(pts);
@@ -4597,24 +4597,24 @@ fill_convex_polygon(bool allow_sw_clipping,
     {
       if (anti_alias_quality == Painter::shader_anti_alias_simple)
         {
-          draw_generic(shader.aa_fuzz_shader(), draw,
+          draw_generic(shader.aa_fuzz_simple_shader(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
         }
       else
         {
-          draw_generic(shader.aa_fuzz_immediate_coverage_pass1(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
-          packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
+          packer()->draw_break(shader.aa_fuzz_hq_immediate_coverage_action_pass1());
 
-          draw_generic(shader.aa_fuzz_immediate_coverage_pass2(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
-          packer()->draw_break(shader.aa_fuzz_hq_action_pass2());
+          packer()->draw_break(shader.aa_fuzz_hq_immediate_coverage_action_pass2());
         }
     }
 

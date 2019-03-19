@@ -843,10 +843,9 @@ create_fill_shader(void)
 
   aa_fuzz_direct_shader = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_direct_pass);
   fill_shader
-    .immediate_coverage_support(m_hq_support)
     .fastest_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
     .item_shader(item_shader)
-    .aa_fuzz_shader(aa_fuzz_direct_shader);
+    .aa_fuzz_simple_shader(aa_fuzz_direct_shader);
 
   if (m_has_auxiliary_coverage_buffer)
     {
@@ -856,10 +855,10 @@ create_fill_shader(void)
       hq2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass2);
 
       fill_shader
-        .aa_fuzz_immediate_coverage_pass1(hq1)
-        .aa_fuzz_immediate_coverage_pass2(hq2)
-        .aa_fuzz_hq_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
-        .aa_fuzz_hq_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
+        .aa_fuzz_hq_immediate_coverage_pass1(hq1)
+        .aa_fuzz_hq_immediate_coverage_pass2(hq2)
+        .aa_fuzz_hq_immediate_coverage_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
+        .aa_fuzz_hq_immediate_coverage_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
     }
 
   /* the aa-fuzz shader via deferred coverage is not a part of the uber-fuzz shader */
