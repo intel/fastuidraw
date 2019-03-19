@@ -552,7 +552,7 @@ public:
               }
             ostr_desc << *siter;
           }
-        ostr_desc << ":" << iter->second.description() << "\n\n";
+        ostr_desc << ": " << iter->second.description() << "\n\n";
       }
     ostr << format_description_string(m_name, ostr_desc.str());
     m_description = tabs_to_spaces(ostr.str());
