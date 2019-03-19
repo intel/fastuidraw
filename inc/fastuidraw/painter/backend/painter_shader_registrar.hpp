@@ -83,12 +83,9 @@ namespace fastuidraw
     register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
 
     /*!
-     * Provided as a conveniance, equivalent to
-     * \code
-     * register_shader(p.non_aa_shader());
-     * register_shader(p.aa_shader_pass1());
-     * register_shader(p.aa_shader_pass2());
-     * \endcode
+     * Provided as a conveniance, equivalent to registering
+     * each of the non-null shaders returned by
+     * PainterStrokeShader::shader(enum stroke_type_t, enum shader_type_t) const.
      * \param p PainterStrokeShader hold shaders to register
      */
     void

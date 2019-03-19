@@ -443,22 +443,22 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
       is_hq_shader = false;
       break;
 
-    case PainterStrokeShader::aa_shader_pass1:
+    case PainterStrokeShader::simple_aa_shader_pass1:
       render_pass = render_aa_pass1;
       is_hq_shader = false;
       break;
 
-    case PainterStrokeShader::aa_shader_pass2:
+    case PainterStrokeShader::simple_aa_shader_pass2:
       render_pass = render_aa_pass2;
       is_hq_shader = false;
       break;
 
-    case PainterStrokeShader::hq_aa_shader_pass1:
+    case PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1:
       render_pass = render_aa_pass1;
       is_hq_shader = true;
       break;
 
-    case PainterStrokeShader::hq_aa_shader_pass2:
+    case PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2:
       render_pass = render_aa_pass2;
       is_hq_shader = true;
       break;
@@ -740,18 +740,7 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
     .hq_anti_alias_support(m_hq_support)
     .stroking_data_selector(stroke_data_selector)
     .hq_aa_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
-    .hq_aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_none, false) //because of discard
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_simple, false) //because of discard
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_high_quality,
-                          m_hq_support == PainterEnums::hq_anti_alias_fast)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_deferred_coverage, true)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_hq_auto, true)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_auto,
-                          m_hq_support == PainterEnums::hq_anti_alias_fast)
-    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_fastest,
-                          m_hq_support == PainterEnums::hq_anti_alias_fast
-                          && cap_style != PainterEnums::number_cap_styles);
+    .hq_aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
 
   for (unsigned int tp = 0; tp < PainterStrokeShader::number_stroke_types; ++tp)
     {
@@ -759,15 +748,13 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
 
       e_tp = static_cast<enum PainterStrokeShader::stroke_type_t>(tp);
 
-      /* If hq is fast (i.e. no actions to call), then it will be
-       * faster than the simple whenever the simple would do discard;
-       * simple does discard on arc-stroking and dashed-stroking.
+      /* Simple does discard on arc-stroking and dashed-stroking,
+       * hencethe hq_auto is faster.
        */
-      if (m_hq_support == PainterEnums::hq_anti_alias_fast &&
-          (e_tp == PainterStrokeShader::arc_stroke_type
-           || cap_style != PainterEnums::number_cap_styles))
+      if (e_tp == PainterStrokeShader::arc_stroke_type
+          || cap_style != PainterEnums::number_cap_styles)
         {
-          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_high_quality);
+          return_value.fastest_anti_alias_mode(e_tp, PainterEnums::shader_anti_alias_hq_auto);
         }
       else
         {
@@ -780,8 +767,8 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
           bool is_hq_pass;
 
           e_sh = static_cast<enum PainterStrokeShader::shader_type_t>(sh);
-          is_hq_pass = (e_sh == PainterStrokeShader::hq_aa_shader_pass1
-                        || e_sh == PainterStrokeShader::hq_aa_shader_pass2);
+          is_hq_pass = (e_sh == PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1
+                        || e_sh == PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2);
 
           if (e_sh == PainterStrokeShader::hq_aa_shader_deferred_coverage)
             {
@@ -794,6 +781,17 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
             }
         }
     }
+
+  return_value
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_none, false) //because of discard
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_simple, false) //because of discard
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_high_quality, true)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_deferred_coverage, true)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_hq_auto, true)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_auto,
+                          cap_style != PainterEnums::number_cap_styles)
+    .arc_stroking_is_fast(PainterEnums::shader_anti_alias_fastest,
+                          cap_style != PainterEnums::number_cap_styles);
 
   return return_value;
 }

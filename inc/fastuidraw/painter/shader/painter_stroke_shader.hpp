@@ -210,7 +210,7 @@ namespace fastuidraw
          * there is no overdraw, see \ref StrokedPoint::depth() and \ref
          * ArcStrokedPoint::depth().
          */
-        aa_shader_pass1,
+        simple_aa_shader_pass1,
 
         /*!
          * Specify the shader for the 2nd pass of anti-alias stroking
@@ -221,32 +221,34 @@ namespace fastuidraw
          * there is no overdraw, see \ref StrokedPoint::depth() and \ref
          * ArcStrokedPoint::depth().
          */
-        aa_shader_pass2,
+        simple_aa_shader_pass2,
 
         /*!
          * Specify the shader for the 1st pass of anti-alias stroking
          * for \ref PainterEnums::shader_anti_alias_high_quality which
-         * draws to an offscreen auxiliary buffer the coverage of a
+         * draws to a the immediate coverage buffer the coverage of a
          * fragment area by the stroked path. The item's vertex shader
          * it to emit a depth value of 0.
          */
-        hq_aa_shader_pass1,
+        hq_aa_shader_immediate_coverage_pass1,
 
         /*!
          * Specify the shader for the 2nd pass of anti-alias stroking
          * for \ref PainterEnums::shader_anti_alias_high_quality which
-         * draws emits the coverage value from an offscreen auxiliary
-         * buffer the coverage and clears the value from the buffer as
-         * well. The item's vertex shader it to emit a depth value of
+         * draws emits the coverage value from the immediated coverage
+         * buffer and clears the value from the immediate coverage buffer
+         * as well. The item's vertex shader it to emit a depth value of
          * 0.
          */
-        hq_aa_shader_pass2,
+        hq_aa_shader_immediate_coverage_pass2,
 
         /*!
-         * Specifies a two-pass shader where the first pass renders
-         * to the deferred coverage buffer and the second pass reads
-         * from it. The item's vertex shader it to emit a depth value
-         * of 0.
+         * Specifies a two-pass shader where the first pass renders to the
+         * deferred coverage buffer (via PainterItemShader::coverage_shader())
+         * and the second pass reads from it. The depth value emitted in the
+         * item's vertex shader should be z-value to guarantee that
+         * there is no overdraw, see \ref StrokedPoint::depth() and \ref
+         * ArcStrokedPoint::depth().
          */
         hq_aa_shader_deferred_coverage,
 

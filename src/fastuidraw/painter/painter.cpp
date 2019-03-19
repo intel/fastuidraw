@@ -301,12 +301,12 @@ namespace
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::non_aa_shader));
 
       case Painter::shader_anti_alias_simple:
-        return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::aa_shader_pass1))
-          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::aa_shader_pass2));
+        return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::simple_aa_shader_pass1))
+          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::simple_aa_shader_pass2));
 
       case Painter::shader_anti_alias_high_quality:
-        return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_pass1))
-          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_pass2));
+        return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1))
+          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2));
 
       case Painter::shader_anti_alias_deferred_coverage:
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::hq_aa_shader_deferred_coverage));
@@ -1201,12 +1201,12 @@ namespace
           enum PainterStrokeShader::shader_type_t pass1, pass2;
 
           pass1 = (with_aa == Painter::shader_anti_alias_high_quality) ?
-            PainterStrokeShader::hq_aa_shader_pass1:
-            PainterStrokeShader::aa_shader_pass1;
+            PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1:
+            PainterStrokeShader::simple_aa_shader_pass1;
 
           pass2 = (with_aa == Painter::shader_anti_alias_high_quality) ?
-            PainterStrokeShader::hq_aa_shader_pass2:
-            PainterStrokeShader::aa_shader_pass2;
+            PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2:
+            PainterStrokeShader::simple_aa_shader_pass2;
 
           m_shader_pass1 = (with_aa == Painter::shader_anti_alias_none) ?
             &shader.shader(tp, PainterStrokeShader::non_aa_shader) :
