@@ -1089,12 +1089,14 @@ namespace fastuidraw
      *                           is indexed by the enumeration \ref
      *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
      * \param js join style
+     * \param cp cap style
      * \param[out] dst location to which to write what chunks
      */
     void
     select_chunks(const StrokedCapsJoins &caps_joins,
                   c_array<const float> geometry_inflation,
                   enum join_style js,
+                  enum fastuidraw::Painter::cap_style cp,
                   StrokedCapsJoins::ChunkSet *dst);
 
     /*!

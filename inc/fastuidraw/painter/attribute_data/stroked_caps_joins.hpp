@@ -199,6 +199,7 @@ public:
    *                           is indexed by the enumeration \ref
    *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
    * \param js join style
+   * \param cp cap style
    * \param[out] dst location to which to write output
    */
   void
@@ -208,6 +209,7 @@ public:
                  const vec2 &one_pixel_width,
                  c_array<const float> geometry_inflation,
                  enum PainterEnums::join_style js,
+                 enum PainterEnums::cap_style cp,
                  ChunkSet &dst) const;
 
   /*!

@@ -1480,7 +1480,6 @@ compute_chunks(ScratchSpacePrivate &scratch,
       scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
     }
 
-  dst.reset();
   compute_chunks_implement(scratch, item_space_additional_room, dst);
 }
 
@@ -3020,6 +3019,7 @@ compute_chunks(ScratchSpace &scratch_space,
                const vec2 &one_pixel_width,
                c_array<const float> geometry_inflation,
                enum PainterEnums::join_style js,
+               enum PainterEnums::cap_style cp,
                ChunkSet &dst) const
 {
   StrokedCapsJoinsPrivate *d;
@@ -3029,10 +3029,15 @@ compute_chunks(ScratchSpace &scratch_space,
   d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
   scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
   chunk_set_ptr = static_cast<ChunkSetPrivate*>(dst.m_d);
+  chunk_set_ptr->reset();
 
   if (d->m_empty_path)
     {
-      chunk_set_ptr->reset();
+      return;
+    }
+
+  if (js == PainterEnums::no_joins && cp == PainterEnums::flat_caps)
+    {
       return;
     }
 
@@ -3052,6 +3057,11 @@ compute_chunks(ScratchSpace &scratch_space,
        */
       pixel_dist = geometry_inflation[StrokingDataSelectorBase::pixel_space_distance_miter_joins];
       item_dist = geometry_inflation[StrokingDataSelectorBase::item_space_distance_miter_joins];
+    }
+
+  if (cp == PainterEnums::flat_caps)
+    {
+      chunk_set_ptr->ignore_cap_adds();
     }
 
   d->m_subset->compute_chunks(*scratch_space_ptr, clip_equations, clip_matrix_local,

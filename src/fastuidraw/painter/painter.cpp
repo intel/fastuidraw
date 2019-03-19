@@ -1791,6 +1791,7 @@ namespace
     select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
                   fastuidraw::c_array<const float> geometry_inflation,
                   enum fastuidraw::Painter::join_style js,
+                  enum fastuidraw::Painter::cap_style cp,
                   fastuidraw::StrokedCapsJoins::ChunkSet *dst);
 
     const fastuidraw::StrokedPath*
@@ -3278,6 +3279,7 @@ PainterPrivate::
 select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
               fastuidraw::c_array<const float> geometry_inflation,
               enum fastuidraw::Painter::join_style js,
+              enum fastuidraw::Painter::cap_style cp,
               fastuidraw::StrokedCapsJoins::ChunkSet *dst)
 {
   FASTUIDRAWassert(dst);
@@ -3292,7 +3294,7 @@ select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
                             geometry_inflation,
-                            js,
+                            js, cp,
                             *dst);
 }
 
@@ -3743,7 +3745,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
                             additional_room,
-                            js,
+                            js, cp,
                             m_work_room.m_stroke.m_caps_joins_chunk_set);
 
   enum Painter::shader_anti_alias_t fastest;
@@ -5247,11 +5249,12 @@ fastuidraw::Painter::
 select_chunks(const StrokedCapsJoins &caps_joins,
               fastuidraw::c_array<const float> geometry_inflation,
               enum fastuidraw::Painter::join_style js,
+              enum fastuidraw::Painter::cap_style cp,
               StrokedCapsJoins::ChunkSet *dst)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->select_chunks(caps_joins, geometry_inflation, js, dst);
+  d->select_chunks(caps_joins, geometry_inflation, js, cp, dst);
 }
 
 void
