@@ -379,13 +379,17 @@ namespace
       m_ignore_cap_adds = false;
       m_join_chunks.clear();
       m_cap_chunks.clear();
+      m_join_positions.clear();
+      m_cap_positions.clear();
     }
 
     void
-    add_join_chunk(const RangeAndChunk &j);
+    add_join_chunk(const RangeAndChunk &j,
+                   fastuidraw::c_array<const fastuidraw::vec2> positions);
 
     void
-    add_cap_chunk(const RangeAndChunk &c);
+    add_cap_chunk(const RangeAndChunk &c,
+                  fastuidraw::c_array<const fastuidraw::vec2> positions);
 
     fastuidraw::c_array<const unsigned int>
     join_chunks(void) const
@@ -397,6 +401,18 @@ namespace
     cap_chunks(void) const
     {
       return fastuidraw::make_c_array(m_cap_chunks);
+    }
+
+    fastuidraw::c_array<const fastuidraw::vec2>
+    join_positions(void) const
+    {
+      return fastuidraw::make_c_array(m_join_positions);
+    }
+
+    fastuidraw::c_array<const fastuidraw::vec2>
+    cap_positions(void) const
+    {
+      return fastuidraw::make_c_array(m_cap_positions);
     }
 
     void
@@ -413,10 +429,11 @@ namespace
 
   private:
     std::vector<unsigned int> m_join_chunks, m_cap_chunks;
+    std::vector<fastuidraw::vec2> m_join_positions, m_cap_positions;
     bool m_ignore_join_adds, m_ignore_cap_adds;
   };
 
-  /* Subset of a StrokedCapsJoins. Edges are to be placed into
+  /* Subset of a StrokedCapsJoins. Joins/Caps are to be placed into
    * the store as follows:
    *   1. child0
    *   2. child1
@@ -425,7 +442,6 @@ namespace
   class SubsetPrivate
   {
   public:
-
     class CreationValues
     {
     public:
@@ -454,9 +470,6 @@ namespace
                    const fastuidraw::vec2 &one_pixel_width,
                    float pixels_additional_room,
                    float item_space_additional_room,
-                   unsigned int max_attribute_cnt,
-                   unsigned int max_index_cnt,
-                   bool take_joins_outside_of_region,
                    ChunkSetPrivate &dst);
 
     bool
@@ -485,10 +498,22 @@ namespace
       return m_joins;
     }
 
+    fastuidraw::c_array<const fastuidraw::vec2>
+    join_positions(void) const
+    {
+      return fastuidraw::make_c_array(m_join_positions);
+    }
+
     const RangeAndChunk&
     caps(void) const
     {
       return m_caps;
+    }
+
+    fastuidraw::c_array<const fastuidraw::vec2>
+    cap_positions(void) const
+    {
+      return fastuidraw::make_c_array(m_cap_positions);
     }
 
   private:
@@ -512,14 +537,10 @@ namespace
     void
     compute_chunks_implement(ScratchSpacePrivate &work_room,
                              float item_space_additional_room,
-                             unsigned int max_attribute_cnt,
-                             unsigned int max_index_cnt,
                              ChunkSetPrivate &dst);
 
     void
-    compute_chunks_take_all(unsigned int max_attribute_cnt,
-                            unsigned int max_index_cnt,
-                            ChunkSetPrivate &dst);
+    compute_chunks_take_all(ChunkSetPrivate &dst);
     void
     post_process(PostProcessVariables &variables,
                  const CreationValues &constants,
@@ -530,9 +551,11 @@ namespace
 
     /* book keeping for joins */
     RangeAndChunk m_joins;
+    std::vector<fastuidraw::vec2> m_join_positions;
 
     /* book keeping for caps */
     RangeAndChunk m_caps;
+    std::vector<fastuidraw::vec2> m_cap_positions;
 
     fastuidraw::BoundingBox<float> m_bb;
 
@@ -1392,17 +1415,29 @@ SubsetPrivate(CreationValues &out_values,
           FASTUIDRAWassert(src->child(i) != nullptr);
           m_children[i] = FASTUIDRAWnew SubsetPrivate(out_values, join_ordering, cap_ordering, src->child(i));
         }
+
+      for(const PerJoinData &J : src->joins())
+        {
+          m_join_positions.push_back(J.m_p);
+        }
+
+      for(const PerCapData &C : src->caps())
+        {
+          m_cap_positions.push_back(C.m_p);
+        }
     }
   else
     {
       for(const PerJoinData &J : src->joins())
         {
           join_ordering.add_element(J, out_values.m_join_chunk_cnt);
+          m_join_positions.push_back(J.m_p);
         }
 
       for(const PerCapData &C : src->caps())
         {
           cap_ordering.add_element(C, out_values.m_cap_chunk_cnt);
+          m_cap_positions.push_back(C.m_p);
         }
     }
 
@@ -1424,9 +1459,6 @@ compute_chunks(ScratchSpacePrivate &scratch,
                const fastuidraw::vec2 &one_pixel_width,
                float pixels_additional_room,
                float item_space_additional_room,
-               unsigned int max_attribute_cnt,
-               unsigned int max_index_cnt,
-               bool take_joins_outside_of_region,
                ChunkSetPrivate &dst)
 {
   scratch.m_adjusted_clip_eqs.resize(clip_equations.size());
@@ -1449,46 +1481,26 @@ compute_chunks(ScratchSpacePrivate &scratch,
     }
 
   dst.reset();
-  if (take_joins_outside_of_region)
-    {
-      dst.add_join_chunk(m_joins);
-      dst.ignore_join_adds();
-    }
-  compute_chunks_implement(scratch, item_space_additional_room,
-                           max_attribute_cnt, max_index_cnt, dst);
+  compute_chunks_implement(scratch, item_space_additional_room, dst);
 }
 
 void
 SubsetPrivate::
-compute_chunks_take_all(unsigned int max_attribute_cnt,
-                        unsigned int max_index_cnt,
-                        ChunkSetPrivate &dst)
+compute_chunks_take_all(ChunkSetPrivate &dst)
 {
   if (m_empty_subset)
     {
       return;
     }
 
-  /*
-   * TODO: take into account  max_attribute_cnt/max_indent
-   * ISSUE: rounded joins/caps have variable attribue/index count,
-   *       solve this by giving cap coefficient and join coefficient
-   *       and multiplying the number of caps and joins by their
-   *       coefficients to get the correct value.
-   */
-  FASTUIDRAWunused(max_attribute_cnt);
-  FASTUIDRAWunused(max_index_cnt);
-
-  dst.add_join_chunk(m_joins);
-  dst.add_cap_chunk(m_caps);
+  dst.add_join_chunk(joins(), join_positions());
+  dst.add_cap_chunk(caps(), cap_positions());
 }
 
 void
 SubsetPrivate::
 compute_chunks_implement(ScratchSpacePrivate &scratch,
                          float item_space_additional_room,
-                         unsigned int max_attribute_cnt,
-                         unsigned int max_index_cnt,
                          ChunkSetPrivate &dst)
 {
   using namespace fastuidraw;
@@ -1510,7 +1522,7 @@ compute_chunks_implement(ScratchSpacePrivate &scratch,
   //completely unclipped.
   if (unclipped || !have_children())
     {
-      compute_chunks_take_all(max_attribute_cnt, max_index_cnt, dst);
+      compute_chunks_take_all(dst);
       return;
     }
 
@@ -1524,12 +1536,8 @@ compute_chunks_implement(ScratchSpacePrivate &scratch,
 
   FASTUIDRAWassert(m_children[0] != nullptr);
   FASTUIDRAWassert(m_children[1] != nullptr);
-  m_children[0]->compute_chunks_implement(scratch, item_space_additional_room,
-                                          max_attribute_cnt, max_index_cnt,
-                                          dst);
-  m_children[1]->compute_chunks_implement(scratch, item_space_additional_room,
-                                          max_attribute_cnt, max_index_cnt,
-                                          dst);
+  m_children[0]->compute_chunks_implement(scratch, item_space_additional_room, dst);
+  m_children[1]->compute_chunks_implement(scratch, item_space_additional_room, dst);
 }
 
 ////////////////////////////////////////////////
@@ -2825,21 +2833,29 @@ fastuidraw::StrokedCapsJoins::ScratchSpace::
 // ChunkSetPrivate methods
 void
 ChunkSetPrivate::
-add_join_chunk(const RangeAndChunk &j)
+add_join_chunk(const RangeAndChunk &j,
+               fastuidraw::c_array<const fastuidraw::vec2> positions)
 {
   if (j.non_empty() && !m_ignore_join_adds)
     {
       m_join_chunks.push_back(j.m_chunk);
+      m_join_positions.reserve(m_join_positions.size() + positions.size());
+      std::copy(positions.begin(), positions.end(),
+                std::back_inserter(m_join_positions));
     }
 }
 
 void
 ChunkSetPrivate::
-add_cap_chunk(const RangeAndChunk &c)
+add_cap_chunk(const RangeAndChunk &c,
+              fastuidraw::c_array<const fastuidraw::vec2> positions)
 {
   if (c.non_empty() && !m_ignore_cap_adds)
     {
       m_cap_chunks.push_back(c.m_chunk);
+      m_cap_positions.reserve(m_cap_positions.size() + positions.size());
+      std::copy(positions.begin(), positions.end(),
+                std::back_inserter(m_cap_positions));
     }
 }
 
@@ -2875,6 +2891,24 @@ cap_chunks(void) const
   ChunkSetPrivate *d;
   d = static_cast<ChunkSetPrivate*>(m_d);
   return d->cap_chunks();
+}
+
+fastuidraw::c_array<const fastuidraw::vec2>
+fastuidraw::StrokedCapsJoins::ChunkSet::
+join_positions(void) const
+{
+  ChunkSetPrivate *d;
+  d = static_cast<ChunkSetPrivate*>(m_d);
+  return d->join_positions();
+}
+
+fastuidraw::c_array<const fastuidraw::vec2>
+fastuidraw::StrokedCapsJoins::ChunkSet::
+cap_positions(void) const
+{
+  ChunkSetPrivate *d;
+  d = static_cast<ChunkSetPrivate*>(m_d);
+  return d->cap_positions();
 }
 
 void
@@ -2985,8 +3019,6 @@ compute_chunks(ScratchSpace &scratch_space,
                const float3x3 &clip_matrix_local,
                const vec2 &one_pixel_width,
                c_array<const float> geometry_inflation,
-               unsigned int max_attribute_cnt,
-               unsigned int max_index_cnt,
                enum PainterEnums::join_style js,
                ChunkSet &dst) const
 {
@@ -3004,26 +3036,26 @@ compute_chunks(ScratchSpace &scratch_space,
       return;
     }
 
-  bool miter_joins;
-  miter_joins = js == PainterEnums::miter_clip_joins
-    || js == PainterEnums::miter_bevel_joins
-    || js == PainterEnums::miter_joins;
+  float pixel_dist(geometry_inflation[StrokingDataSelectorBase::pixel_space_distance]);
+  float item_dist(geometry_inflation[StrokingDataSelectorBase::item_space_distance]);
 
-  /* TODO
-   *   1. if js is no_joins, then to skip taking joins
-   *   2. use larger inflation if taking miter-joins where
-   *      inflation also takes into account miter-limit.
-   */
-  d->m_subset->compute_chunks(*scratch_space_ptr,
-                              clip_equations,
-                              clip_matrix_local,
-                              one_pixel_width,
-                              geometry_inflation[StrokingDataSelectorBase::pixel_space_distance],
-                              geometry_inflation[StrokingDataSelectorBase::item_space_distance],
-                              max_attribute_cnt,
-                              max_index_cnt,
-                              miter_joins,
-                              *chunk_set_ptr);
+  if (js == PainterEnums::no_joins)
+    {
+      chunk_set_ptr->ignore_join_adds();
+    }
+  else if (PainterEnums::is_miter_join(js))
+    {
+      /* TODO:
+       *   Perhaps have two Subset hierarchies: one for caps and another for joins;
+       *   this way we use the miter-threshholds only for taking joins instead of
+       *   both caps and joins.
+       */
+      pixel_dist = geometry_inflation[StrokingDataSelectorBase::pixel_space_distance_miter_joins];
+      item_dist = geometry_inflation[StrokingDataSelectorBase::item_space_distance_miter_joins];
+    }
+
+  d->m_subset->compute_chunks(*scratch_space_ptr, clip_equations, clip_matrix_local,
+                              one_pixel_width, pixel_dist, item_dist, *chunk_set_ptr);
 }
 
 unsigned int

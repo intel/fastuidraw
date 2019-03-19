@@ -3292,8 +3292,6 @@ select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
                             geometry_inflation,
-                            m_max_attribs_per_block,
-                            m_max_indices_per_block,
                             js,
                             *dst);
 }
@@ -3745,8 +3743,6 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
                             additional_room,
-                            m_max_attribs_per_block,
-                            m_max_indices_per_block,
                             js,
                             m_work_room.m_stroke.m_caps_joins_chunk_set);
 

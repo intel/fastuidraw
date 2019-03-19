@@ -95,6 +95,18 @@ public:
     cap_chunks(void) const;
 
     /*!
+     * The positions of the joins chosen in the ChunkSet.
+     */
+    c_array<const vec2>
+    join_positions(void) const;
+
+    /*!
+     * The positions of the caps chosen in the ChunkSet.
+     */
+    c_array<const vec2>
+    cap_positions(void) const;
+
+    /*!
      * Clear the values (i.e. make join_chunks() and cap_chunks()
      * empty).
      */
@@ -186,10 +198,6 @@ public:
    * \param geometry_inflation amount path geometry is inflated, array
    *                           is indexed by the enumeration \ref
    *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
-   * \param max_attribute_cnt only allow those chunks for which have no more
-   *                          than max_attribute_cnt attributes
-   * \param max_index_cnt only allow those chunks for which have no more
-   *                      than max_index_cnt indices
    * \param js join style
    * \param[out] dst location to which to write output
    */
@@ -199,8 +207,6 @@ public:
                  const float3x3 &clip_matrix_local,
                  const vec2 &one_pixel_width,
                  c_array<const float> geometry_inflation,
-                 unsigned int max_attribute_cnt,
-                 unsigned int max_index_cnt,
                  enum PainterEnums::join_style js,
                  ChunkSet &dst) const;
 
