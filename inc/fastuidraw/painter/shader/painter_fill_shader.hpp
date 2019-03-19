@@ -140,6 +140,12 @@ namespace fastuidraw
     /*!
      * Returns the PainterItemShader to use to draw the
      * anti-alias fuzz via the deferred coverage buffer.
+     * This shader will draw the aa-fuzz in two passes:
+     * the first pass draws the coverage as computed by
+     * a fragment shader to the deferred coverage buffer
+     * (via the PainterItemShader::coverage_shader())
+     * and the 2nd pass reads from the deferred coverage
+     * buffer to emit the alpha value.
      */
     const reference_counted_ptr<PainterItemShader>&
     aa_fuzz_hq_deferred_coverage(void) const;
@@ -154,38 +160,41 @@ namespace fastuidraw
     /*!
      * Returns the PainterItemShader to use to draw
      * the 1st pass for high quality anti-alias fuzz
-     * around the boundary of a filled path. The
-     * expected format of the attributes is as found
-     * in the \ref PainterAttributeData returned by
+     * around the boundary of a filled path. The first
+     * pass renders a coverage value to the immediate
+     * coverage buffer and the 2nd pass reads the coverage
+     * value from the immediate coverage buffer and clears
+     * it. The expected format of the attributes is as
+     * found in the \ref PainterAttributeData returned by
      * \ref FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_hq_shader_pass1(void) const;
+    aa_fuzz_hq_immediate_coverage_pass1(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_shader_pass1(void) const.
+     * Set the value returned by aa_fuzz_hq_immediate_coverage_pass1(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_shader_pass1(const reference_counted_ptr<PainterItemShader> &sh);
+    aa_fuzz_hq_immediate_coverage_pass1(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the PainterItemShader to use to draw
      * the 2nd pass for high quality anti-alias fuzz
-     * around the boundary of a filled path. The
+     * using the immediate coverage buffer. The
      * expected format of the attributes is as found
      * in the \ref PainterAttributeData returned by
      * \ref FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_hq_shader_pass2(void) const;
+    aa_fuzz_hq_immediate_coverage_pass2(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_shader_pass2(void) const.
+     * Set the value returned by aa_fuzz_hq_immediate_coverage_pass2(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_shader_pass2(const reference_counted_ptr<PainterItemShader> &sh);
+    aa_fuzz_hq_immediate_coverage_pass2(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the action to be called before the 1st pass

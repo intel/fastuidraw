@@ -861,8 +861,8 @@ create_fill_shader(void)
       hq2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass2);
 
       fill_shader
-        .aa_fuzz_hq_shader_pass1(hq1)
-        .aa_fuzz_hq_shader_pass2(hq2)
+        .aa_fuzz_hq_immediate_coverage_pass1(hq1)
+        .aa_fuzz_hq_immediate_coverage_pass2(hq2)
         .aa_fuzz_hq_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
         .aa_fuzz_hq_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
     }

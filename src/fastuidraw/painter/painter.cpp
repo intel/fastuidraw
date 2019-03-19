@@ -3551,7 +3551,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
     }
   else if (anti_alias_quality == fastuidraw::Painter::shader_anti_alias_high_quality)
     {
-      draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
+      draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
                    make_c_array(data.m_attrib_chunks),
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
@@ -3559,7 +3559,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
                    z);
       packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
-      draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
+      draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
                    make_c_array(data.m_attrib_chunks),
                    make_c_array(data.m_index_chunks),
                    make_c_array(data.m_index_adjusts),
@@ -4432,13 +4432,13 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       else
         {
           incr_z -= 1;
-          draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
           packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
-          draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
@@ -4616,13 +4616,13 @@ fill_convex_polygon(bool allow_sw_clipping,
         }
       else
         {
-          draw_generic(shader.aa_fuzz_hq_shader_pass1(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass1(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
           packer()->draw_break(shader.aa_fuzz_hq_action_pass1());
 
-          draw_generic(shader.aa_fuzz_hq_shader_pass2(), draw,
+          draw_generic(shader.aa_fuzz_hq_immediate_coverage_pass2(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
