@@ -2336,6 +2336,13 @@ reset_current_to_rect(const fastuidraw::Rect &R)
   using namespace fastuidraw;
   vecN<vec2, 4> pts;
 
+  FASTUIDRAWassert(R.m_min_point.x() >= -1.0f);
+  FASTUIDRAWassert(R.m_min_point.y() >= -1.0f);
+  FASTUIDRAWassert(R.m_max_point.x() <= +1.0f);
+  FASTUIDRAWassert(R.m_max_point.y() <= +1.0f);
+  FASTUIDRAWassert(R.m_max_point.x() >= R.m_min_point.x());
+  FASTUIDRAWassert(R.m_max_point.y() >= R.m_min_point.y());
+
   /* the Rect R is in normalized device coordinates, so
    * the transformation to apply is just the identity
    */
@@ -2394,6 +2401,13 @@ intersect_current_against_polygon(fastuidraw::c_array<const fastuidraw::vec3> po
       m_poly.current()[i] = clip_pt;
       m_current_bb.union_point(vec2(clip_pt) / clip_pt.z());
     }
+
+  /* because of floating point round-off (in particular
+   * from the perspective-divide), we need to bound the
+   * m_current_bb against the normalized-rect.
+   */
+  m_current_bb.intersect_against(BoundingBox<float>(vec2(-1.0f, -1.0f),
+                                                    vec2(+1.0f, +1.0f)));
   compute_clip_equations_from_clip_polygon(clipped_poly,
                                            make_c_array(m_clip.current()));
   return clipped_poly.empty();
@@ -2418,6 +2432,7 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
 
   m_bl = fastuidraw::ivec2(m_fbl);
   m_tr = fastuidraw::ivec2(m_ftr);
+
   m_dims = m_tr - m_bl;
   if (m_ftr.x() > m_tr.x() && m_dims.x() < useable_size.x())
     {
@@ -2430,8 +2445,8 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
       ++m_tr.y();
     }
 
-  m_fbl = fastuidraw::vec2(m_bl);
-  m_ftr = fastuidraw::vec2(m_tr);
+  m_fbl = vec2(m_bl);
+  m_ftr = vec2(m_tr);
 
   /* we are NOT taking the original normalized rect,
    * instead we are taking the normalized rect made
