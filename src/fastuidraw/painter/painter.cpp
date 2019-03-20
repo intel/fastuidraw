@@ -1396,6 +1396,30 @@ namespace
       }
   }
 
+  class PackedAntiAliasEdgeData
+  {
+  public:
+    fastuidraw::BoundingBox<float> m_box;
+    fastuidraw::range_type<unsigned int> m_attrib_range;
+    fastuidraw::range_type<unsigned int> m_index_range;
+  };
+
+  void
+  pack_anti_alias_edge(const fastuidraw::vec2 &start, const fastuidraw::vec2 &end,
+                       int z,
+                       PackedAntiAliasEdgeData *out_data,
+                       std::vector<fastuidraw::PainterAttribute> &dst_attribs,
+                       std::vector<fastuidraw::PainterIndex> &dst_idx)
+  {
+    out_data->m_box.union_point(start);
+    out_data->m_box.union_point(end);
+    out_data->m_attrib_range.m_begin = dst_attribs.size();
+    out_data->m_index_range.m_begin = dst_idx.size();
+    pack_anti_alias_edge(start, end, z, dst_attribs, dst_idx);
+    out_data->m_attrib_range.m_end = dst_attribs.size();
+    out_data->m_index_range.m_end = dst_idx.size();
+  }
+
   class ClipperWorkRoom:fastuidraw::noncopyable
   {
   public:
@@ -1471,10 +1495,17 @@ namespace
   class RoundedRectWorkRoom:fastuidraw::noncopyable
   {
   public:
-    fastuidraw::vecN<OpaqueFillWorkRoom, 4> m_opaque_fill;
-    fastuidraw::vecN<AntiAliasFillWorkRoom, 4> m_aa_fuzz;
-    fastuidraw::vecN<FillSubsetWorkRoom, 4> m_subsets;
-    fastuidraw::vecN<const fastuidraw::FilledPath*, 4> m_filled_paths;
+    class PerCorner
+    {
+    public:
+      OpaqueFillWorkRoom m_opaque_fill;
+      AntiAliasFillWorkRoom m_aa_fuzz;
+      FillSubsetWorkRoom m_subsets;
+      const fastuidraw::FilledPath* m_filled_path;
+      enum fastuidraw::Painter::shader_anti_alias_t m_anti_alias_quality;
+    };
+
+    fastuidraw::vecN<PerCorner, 4> m_per_corner;
     std::vector<fastuidraw::PainterAttribute> m_rect_fuzz_attributes;
     std::vector<fastuidraw::PainterIndex> m_rect_fuzz_indices;
   };
@@ -4225,7 +4256,7 @@ PainterPrivate::
 fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
                   const fastuidraw::PainterData &draw,
                   const fastuidraw::RoundedRect &R,
-                  enum fastuidraw::Painter::shader_anti_alias_t anti_alias_quality)
+                  enum fastuidraw::Painter::shader_anti_alias_t p_anti_alias_quality)
 {
   using namespace fastuidraw;
 
@@ -4235,6 +4266,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
   int total_incr_z(0);
   Rect interior_rect, r_min, r_max, r_min_extra, r_max_extra;
   float wedge_miny, wedge_maxy;
+  vecN<PackedAntiAliasEdgeData, 4> per_line;
 
   wedge_miny = t_max(R.m_corner_radii[Rect::minx_miny_corner].y(), R.m_corner_radii[Rect::maxx_miny_corner].y());
   wedge_maxy = t_max(R.m_corner_radii[Rect::minx_maxy_corner].y(), R.m_corner_radii[Rect::maxx_maxy_corner].y());
@@ -4252,76 +4284,55 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
   r_max.m_max_point = vec2(R.m_max_point.x() - R.m_corner_radii[Rect::maxx_maxy_corner].x(),
                            R.m_max_point.y());
 
-  anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
-                                                 shader.aa_fuzz_shader_immediate_coverage_supported(),
-                                                 shader.fastest_anti_alias_mode());
+  p_anti_alias_quality = compute_shader_anti_alias(p_anti_alias_quality,
+                                                   shader.aa_fuzz_shader_immediate_coverage_supported(),
+                                                   shader.fastest_anti_alias_mode());
 
-  if (anti_alias_quality == Painter::shader_anti_alias_adaptive
-      || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+  for (int i = 0; i < 4; ++i)
     {
-      BoundingBox<float> cvg_rect;
-
-      /* TODO: It is WAY to coarse to just use the bounding box
-       * of the rounded-rect. Indeed, the anti-alias fuzz is
-       * only at the boundary, which means that we could reduce
-       * the fuzz to the 4-corner blocks together with a 1-pixel
-       * wide/high fuzz for each of the sides.
-       */
-      cvg_rect = compute_clip_intersect_rect(R, 1.0f, 0.0f);
-      if (cvg_rect.empty())
-        {
-          return;
-        }
-
-      if (anti_alias_quality == Painter::shader_anti_alias_adaptive
-          && should_use_immediate_coverage_instead(cvg_rect.as_rect()))
-        {
-          anti_alias_quality = Painter::shader_anti_alias_immediate_coverage;
-        }
-      else
-        {
-          anti_alias_quality = Painter::shader_anti_alias_deferred_coverage;
-          begin_coverage_buffer_normalized_rect(cvg_rect.as_rect(), true);
-        }
+      m_work_room.m_rounded_rect.m_per_corner[i].m_anti_alias_quality = p_anti_alias_quality;
     }
 
-  if (anti_alias_quality != Painter::shader_anti_alias_none)
+  /* now that the anti-aliasing is correctly set for each of the
+   * corners from p_anti_alias_quality, we set it to the value for
+   * doing the edges.
+   */
+  if (p_anti_alias_quality == Painter::shader_anti_alias_adaptive)
+    {
+      p_anti_alias_quality = Painter::shader_anti_alias_deferred_coverage;
+    }
+
+  if (p_anti_alias_quality != Painter::shader_anti_alias_none)
     {
       int incr;
+      vecN<vec2, 4> start_pts, end_pts;
 
-      incr = (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage) ? 1 : 0;
+      incr = (p_anti_alias_quality == Painter::shader_anti_alias_deferred_coverage) ? 1 : 0;
+
+      start_pts[0] = r_min.m_min_point;
+      end_pts[0] = vec2(r_min.m_max_point.x(), r_min.m_min_point.y());
+
+      start_pts[1] = vec2(r_max.m_min_point.x(), r_max.m_max_point.y());
+      end_pts[1] = r_max.m_max_point;
+
+      start_pts[2] = vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y());
+      end_pts[2] = vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y());
+
+      start_pts[3] = vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y());
+      end_pts[3] = vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y());
 
       m_work_room.m_rounded_rect.m_rect_fuzz_attributes.clear();
       m_work_room.m_rounded_rect.m_rect_fuzz_indices.clear();
-      pack_anti_alias_edge(r_min.m_min_point,
-                           vec2(r_min.m_max_point.x(), r_min.m_min_point.y()),
-                           total_incr_z,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
+      for (int i = 0; i < 4; ++i)
+        {
+          pack_anti_alias_edge(start_pts[i], end_pts[i],
+                               total_incr_z, &per_line[i],
+                               m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
+                               m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+          total_incr_z += incr;
+        }
 
-      pack_anti_alias_edge(vec2(r_max.m_min_point.x(), r_max.m_max_point.y()),
-                           r_max.m_max_point,
-                           total_incr_z,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
-
-      pack_anti_alias_edge(vec2(R.m_min_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::minx_miny_corner].y()),
-                           vec2(R.m_min_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y()),
-                           total_incr_z,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
-
-      pack_anti_alias_edge(vec2(R.m_max_point.x(), R.m_min_point.y() + R.m_corner_radii[Rect::maxx_miny_corner].y()),
-                           vec2(R.m_max_point.x(), R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y()),
-                           total_incr_z,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_attributes,
-                           m_work_room.m_rounded_rect.m_rect_fuzz_indices);
-      total_incr_z += incr;
-
-      if (anti_alias_quality != Painter::shader_anti_alias_deferred_coverage)
+      if (p_anti_alias_quality != Painter::shader_anti_alias_deferred_coverage)
         {
           /* one for the above edges */
           total_incr_z = 1;
@@ -4332,23 +4343,23 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
     {
       translate(rect_transforms.m_translates[i]);
       shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-      m_work_room.m_rounded_rect.m_filled_paths[i] = &select_filled_path(m_rounded_corner_path);
-      fill_path_compute_opaque_chunks(*m_work_room.m_rounded_rect.m_filled_paths[i],
+      m_work_room.m_rounded_rect.m_per_corner[i].m_filled_path = &select_filled_path(m_rounded_corner_path);
+      fill_path_compute_opaque_chunks(*m_work_room.m_rounded_rect.m_per_corner[i].m_filled_path,
                                       Painter::nonzero_fill_rule,
-                                      m_work_room.m_rounded_rect.m_subsets[i],
-                                      &m_work_room.m_rounded_rect.m_opaque_fill[i]);
+                                      m_work_room.m_rounded_rect.m_per_corner[i].m_subsets,
+                                      &m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill);
 
-      if (anti_alias_quality != Painter::shader_anti_alias_none)
+      if (m_work_room.m_rounded_rect.m_per_corner[i].m_anti_alias_quality != Painter::shader_anti_alias_none)
         {
-          pre_draw_anti_alias_fuzz(*m_work_room.m_rounded_rect.m_filled_paths[i],
-                                   anti_alias_quality,
-                                   m_work_room.m_rounded_rect.m_subsets[i],
-                                   &m_work_room.m_rounded_rect.m_aa_fuzz[i]);
-          total_incr_z += m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
+          pre_draw_anti_alias_fuzz(*m_work_room.m_rounded_rect.m_per_corner[i].m_filled_path,
+                                   m_work_room.m_rounded_rect.m_per_corner[i].m_anti_alias_quality,
+                                   m_work_room.m_rounded_rect.m_per_corner[i].m_subsets,
+                                   &m_work_room.m_rounded_rect.m_per_corner[i].m_aa_fuzz);
+          total_incr_z += m_work_room.m_rounded_rect.m_per_corner[i].m_aa_fuzz.m_total_increment_z;
         }
       else
         {
-          m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z = 0;
+          m_work_room.m_rounded_rect.m_per_corner[i].m_aa_fuzz.m_total_increment_z = 0;
         }
       m_clip_rect_state = m;
     }
@@ -4404,59 +4415,68 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       translate(rect_transforms.m_translates[i]);
       shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
       draw_generic(shader.item_shader(), *rect_transforms.m_use[i],
-                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_attrib_chunks),
-                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_chunks),
-                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_index_adjusts),
-                   make_c_array(m_work_room.m_rounded_rect.m_opaque_fill[i].m_chunk_selector),
+                   make_c_array(m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill.m_attrib_chunks),
+                   make_c_array(m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill.m_index_chunks),
+                   make_c_array(m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill.m_index_adjusts),
+                   make_c_array(m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill.m_chunk_selector),
                    m_current_z + total_incr_z);
       m_clip_rect_state = m;
     }
 
-  if (anti_alias_quality != Painter::shader_anti_alias_none)
+  if (p_anti_alias_quality != Painter::shader_anti_alias_none)
     {
       int incr_z(total_incr_z);
+      c_array<const PainterAttribute> attribs;
+      c_array<const PainterIndex> indices;
 
-      if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+      attribs = make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes);
+      indices = make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices);
+
+      if (p_anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
         {
           incr_z -= 4;
-          draw_generic(shader.aa_fuzz_deferred_coverage(), draw,
-                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
-                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
-                       0, m_current_z + incr_z);
+          for (int i = 0; i < 4; ++i)
+            {
+              BoundingBox<float> bb;
+
+              bb = compute_clip_intersect_rect(per_line[i].m_box.as_rect(), 1.0f, 0.0f);
+              if (!bb.empty())
+                {
+                  begin_coverage_buffer_normalized_rect(bb.as_rect(), true);
+                  draw_generic(shader.aa_fuzz_deferred_coverage(), draw,
+                               attribs.sub_array(per_line[i].m_attrib_range),
+                               indices.sub_array(per_line[i].m_index_range),
+                               -per_line[i].m_attrib_range.m_begin,
+                               m_current_z + incr_z);
+                  end_coverage_buffer();
+                }
+            }
         }
       else
         {
           incr_z -= 1;
           draw_generic(shader.aa_fuzz_immediate_coverage_pass1(), draw,
-                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
-                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
-                       0, m_current_z + incr_z);
+                       attribs, indices, 0, m_current_z + incr_z);
           packer()->draw_break(shader.aa_fuzz_immediate_coverage_action_pass1());
 
           draw_generic(shader.aa_fuzz_immediate_coverage_pass2(), draw,
-                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
-                       make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
-                       0, m_current_z + incr_z);
+                       attribs, indices, 0, m_current_z + incr_z);
           packer()->draw_break(shader.aa_fuzz_immediate_coverage_action_pass2());
         }
 
       for (int i = 0; i < 4; ++i)
         {
-          incr_z -= m_work_room.m_rounded_rect.m_aa_fuzz[i].m_total_increment_z;
+          incr_z -= m_work_room.m_rounded_rect.m_per_corner[i].m_aa_fuzz.m_total_increment_z;
           translate(rect_transforms.m_translates[i]);
           shear(rect_transforms.m_shears[i].x(), rect_transforms.m_shears[i].y());
-          draw_anti_alias_fuzz(shader, *rect_transforms.m_use[i], anti_alias_quality,
-                               m_work_room.m_rounded_rect.m_aa_fuzz[i],
+          draw_anti_alias_fuzz(shader, *rect_transforms.m_use[i],
+                               m_work_room.m_rounded_rect.m_per_corner[i].m_anti_alias_quality,
+                               m_work_room.m_rounded_rect.m_per_corner[i].m_aa_fuzz,
                                m_current_z + incr_z);
           m_clip_rect_state = m;
         }
     }
   m_current_z += total_incr_z;
-
-  if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
-    {
-      end_coverage_buffer();
-    }
 }
 
 void
