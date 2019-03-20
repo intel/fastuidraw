@@ -605,9 +605,8 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
     .add_macro("fastuidraw_aa_fuzz_type_on_path", uint32_t(FilledPath::Subset::aa_fuzz_type_on_path))
     .add_macro("fastuidraw_aa_fuzz_type_on_boundary", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary))
     .add_macro("fastuidraw_aa_fuzz_type_on_boundary_miter", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary_miter))
-    .add_macro("fastuidraw_aa_fuzz_direct_pass", uint32_t(fill_aa_fuzz_direct_pass))
-    .add_macro("fastuidraw_aa_fuzz_hq_pass1", uint32_t(fill_aa_fuzz_hq_pass1))
-    .add_macro("fastuidraw_aa_fuzz_hq_pass2", uint32_t(fill_aa_fuzz_hq_pass2));
+    .add_macro("fastuidraw_aa_fuzz_pass1", uint32_t(fill_aa_fuzz_pass1))
+    .add_macro("fastuidraw_aa_fuzz_pass2", uint32_t(fill_aa_fuzz_pass2));
 
   m_common_glyph_attribute_macros
     .add_macro_float("fastuidraw_restricted_rays_glyph_coord_value", GlyphRenderDataRestrictedRays::glyph_coord_value)
@@ -807,14 +806,14 @@ create_fill_shader(void)
 
   if (m_has_auxiliary_coverage_buffer)
     {
-      reference_counted_ptr<PainterItemShader> hq1, hq2;
+      reference_counted_ptr<PainterItemShader> pass1, pass2;
 
-      hq1 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass1);
-      hq2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass2);
+      pass1 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_pass1);
+      pass2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_pass2);
 
       fill_shader
-        .aa_fuzz_immediate_coverage_pass1(hq1)
-        .aa_fuzz_immediate_coverage_pass2(hq2)
+        .aa_fuzz_immediate_coverage_pass1(pass1)
+        .aa_fuzz_immediate_coverage_pass2(pass2)
         .aa_fuzz_immediate_coverage_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
         .aa_fuzz_immediate_coverage_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
     }

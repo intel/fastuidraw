@@ -159,9 +159,8 @@ public:
 private:
   enum
     {
-      fill_aa_fuzz_direct_pass,
-      fill_aa_fuzz_hq_pass1,
-      fill_aa_fuzz_hq_pass2,
+      fill_aa_fuzz_pass1,
+      fill_aa_fuzz_pass2,
 
       fill_aa_fuzz_number_passes
     };
