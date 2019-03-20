@@ -136,6 +136,7 @@ private:
   vecN<std::string, number_transformers> m_transformer_labels;
   vecN<std::string, number_combine_clip_modes> m_combine_clip_labels;
   simple_time m_draw_timer;
+  int m_show_surface, m_last_shown_surface;
 };
 
 painter_clip_test::
@@ -159,7 +160,9 @@ painter_clip_test():
   m_combine_clip_mode(separate_clipping),
   m_rounded_rect_mode(no_clip),
   m_active_transformer(view_transformer),
-  m_aa_mode(Painter::shader_anti_alias_adaptive)
+  m_aa_mode(Painter::shader_anti_alias_adaptive),
+  m_show_surface(0),
+  m_last_shown_surface(0)
 {
   std::cout << "Controls:\n"
             << "\t1: cycle through clip modes for path1\n"
@@ -249,6 +252,20 @@ handle_event(const SDL_Event &ev)
           std::cout << "RoundedRect drawing anti-alias mode set to: "
                     << Painter::label(m_aa_mode)
                     << "\n";
+          break;
+
+        case SDLK_o:
+          if (ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT))
+            {
+              if (m_show_surface > 0)
+                {
+                  --m_show_surface;
+                }
+            }
+          else
+            {
+              ++m_show_surface;
+            }
           break;
         }
       break;
@@ -497,11 +514,45 @@ draw_frame(void)
       break;
     }
 
-  m_painter->end();
+  c_array<const PainterSurface* const> surfaces;
+
+  surfaces = m_painter->end();
   fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  m_surface->blit_surface(GL_NEAREST);
 
+  m_show_surface = t_min(m_show_surface, (int)surfaces.size());
+  if (m_show_surface <= 0 || m_show_surface > surfaces.size())
+    {
+      m_surface->blit_surface(GL_NEAREST);
+    }
+  else
+    {
+      const gl::PainterBackendGL::SurfaceGL *S;
+      PainterSurface::Viewport src, dest;
+
+      src = m_surface->viewport();
+      S = dynamic_cast<const gl::PainterBackendGL::SurfaceGL*>(surfaces[m_show_surface - 1]);
+
+      dest.m_origin = src.m_origin;
+      dest.m_dimensions = ivec2(src.m_dimensions.x(), src.m_dimensions.y() / 2);
+      m_surface->blit_surface(src, dest, GL_LINEAR);
+
+      dest.m_origin.y() +=  dest.m_dimensions.y();
+      S->blit_surface(src, dest, GL_LINEAR);
+    }
+
+  if (m_last_shown_surface != m_show_surface)
+    {
+      if (m_show_surface > 0)
+        {
+          std::cout << "Show offscreen surface: " << m_show_surface - 1 << "\n";
+        }
+      else
+        {
+          std::cout << "Don't show offscreen surface\n";
+        }
+      m_last_shown_surface = m_show_surface;
+    }
 }
 
 int

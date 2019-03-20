@@ -541,6 +541,7 @@ private:
   bool m_clip_window_path_dirty;
 
   float3x3 m_pixel_matrix;
+  int m_show_surface, m_last_shown_surface;
 };
 
 ///////////////////////////////////
@@ -710,7 +711,9 @@ painter_stroke_test(void):
   m_fill_by_mode(fill_by_filled_path),
   m_draw_grid(false),
   m_grid_path_dirty(true),
-  m_clip_window_path_dirty(true)
+  m_clip_window_path_dirty(true),
+  m_show_surface(0),
+  m_last_shown_surface(0)
 {
   std::cout << "Controls:\n"
             << "\tv: cycle through stroking modes\n"
@@ -744,6 +747,7 @@ painter_stroke_test(void):
             << "\th: cycle though gradient spead types\n"
             << "\ty: toggle applying matrix brush so that brush appears to be in pixel coordinates\n"
             << "\to: toggle clipping window\n"
+            << "\tctrl-o: cycle through buffers to show\n"
             << "\tz: increase/decrease curve flatness\n"
             << "\t4,6,2,8 (number pad): change location of clipping window\n"
             << "\tctrl-4,6,2,8 (number pad): change size of clipping window\n"
@@ -1209,8 +1213,25 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_o:
-          clipping_window() = !clipping_window();
-          std::cout << "Clipping window: " << on_off(clipping_window()) << "\n";
+          if (ev.key.keysym.mod & KMOD_CTRL)
+            {
+              if (ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT))
+                {
+                  if (m_show_surface > 0)
+                    {
+                      --m_show_surface;
+                    }
+                }
+              else
+                {
+                  ++m_show_surface;
+                }
+            }
+          else
+            {
+              clipping_window() = !clipping_window();
+              std::cout << "Clipping window: " << on_off(clipping_window()) << "\n";
+            }
           break;
 
         case SDLK_w:
@@ -2181,10 +2202,45 @@ draw_frame(void)
       draw_text(ostr.str(), 32.0f, m_font.get(), PainterData(&brush));
     }
 
-  m_painter->end();
+  c_array<const PainterSurface* const> surfaces;
+
+  surfaces = m_painter->end();
   fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   fastuidraw_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  m_surface->blit_surface(GL_NEAREST);
+
+  m_show_surface = t_min(m_show_surface, (int)surfaces.size());
+  if (m_show_surface <= 0 || m_show_surface > surfaces.size())
+    {
+      m_surface->blit_surface(GL_NEAREST);
+    }
+  else
+    {
+      const gl::PainterBackendGL::SurfaceGL *S;
+      PainterSurface::Viewport src, dest;
+
+      src = m_surface->viewport();
+      S = dynamic_cast<const gl::PainterBackendGL::SurfaceGL*>(surfaces[m_show_surface - 1]);
+
+      dest.m_origin = src.m_origin;
+      dest.m_dimensions = ivec2(src.m_dimensions.x(), src.m_dimensions.y() / 2);
+      m_surface->blit_surface(src, dest, GL_LINEAR);
+
+      dest.m_origin.y() +=  dest.m_dimensions.y();
+      S->blit_surface(src, dest, GL_LINEAR);
+    }
+
+  if (m_last_shown_surface != m_show_surface)
+    {
+      if (m_show_surface > 0)
+        {
+          std::cout << "Show offscreen surface: " << m_show_surface - 1 << "\n";
+        }
+      else
+        {
+          std::cout << "Don't show offscreen surface\n";
+        }
+      m_last_shown_surface = m_show_surface;
+    }
 }
 
 void
