@@ -280,94 +280,434 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Enumeration specifying composite modes
+     * Enumeration specifying composite modes. The following function-formulas
+     * are used in a number of the blend modes:
+     * \code
+     * UndoAlpha(C.rgba) = (0, 0, 0) if Ca = 0
+     *                     C.rgb / C.a otherwise
+     * MinColorChannel(C.rgb) = min(C.r, C.g, C.b)
+     * MaxColorChannel(C.rgb) = max(C.r, C.g, C.b)
+     * Luminosity(C.rgb) = dot(C.rgb, vec3(0.30, 0.59, 0.11))
+     * Saturation(C.rgb) = MaxColorChannel(C.rgb) - MinColorChannel(C.rgb)
+     * \endcode
+     * The next set of functions are a little messier and written in GLSL
+     * \code
+     * vec3 ClipColor(in vec3 C)
+     * {
+     *    float L = Luminosity(C);
+     *    float MinC = MinColorChannel(C);
+     *    float MaxC = MaxColorChannel(C);
+     *    if (MinC < 0.0)
+     *       C = vec3(L) + (C - vec3(L)) * (L / (L - MinC));
+     *    if (MaxC > 1.0)
+     *       C = vec3(L) + (C - vec3(L)) * ((1 - L) / (MaxC - L));
+     *    return C;
+     * }
+     *
+     * vec3 OverrideLuminosity(vec3 C, vec3 L)
+     * {
+     *    float Clum = Luminosity(C);
+     *    float Llum = Luminosity(L);
+     *    float Delta = Llum - Clum;
+     *    return ClipColor(C + vec3(Delta));
+     * }
+     *
+     * vec3 OverrideLuminosityAndSaturation(vec3 C, vec3 S, vec3 L)
+     * {
+     *    float Cmin = MinColorChannel(C);
+     *    float Csat = Saturation(C);
+     *    float Ssat = Saturation(S);
+     *    if (Csat > 0.0)
+     *      {
+     *         C = (C - Cmin) * Ssat / Csat;
+     *      }
+     *    else
+     *      {
+     *         C = vec3(0.0);
+     *      }
+     *    return OverrideLuminosity(C, L);
+     * }
+     * \endcode
      */
     enum composite_mode_t
       {
-        composite_porter_duff_clear, /*!< Clear mode of Porter-Duff */
-        composite_porter_duff_src, /*!< Source mode of Porter-Duff */
-        composite_porter_duff_dst, /*!< Destination mode of Porter-Duff */
-        composite_porter_duff_src_over, /*!< Source over mode of Porter-Duff */
-        composite_porter_duff_dst_over, /*!< Destination over mode of Porter-Duff */
-        composite_porter_duff_src_in, /*!< Source In mode of Porter-Duff */
-        composite_porter_duff_dst_in, /*!< Destination In mode of Porter-Duff */
-        composite_porter_duff_src_out, /*!< Source Out mode of Porter-Duff */
-        composite_porter_duff_dst_out, /*!< Destination Out mode of Porter-Duff */
-        composite_porter_duff_src_atop, /*!< Source Atop mode of Porter-Duff */
-        composite_porter_duff_dst_atop, /*!< Destination Atop mode of Porter-Duff */
-        composite_porter_duff_xor, /*!< Xor mode of Porter-Duff */
-        composite_porter_duff_plus, /*!< Plus operator mode of Porter-Duff */
-        composite_porter_duff_modulate, /*! < Modulate operator mode of Porter-Duff */
-
-        blend_w3c_multiply, /*!< W3C multiply mode: Dest * Src */
-        blend_w3c_screen, /*!< W3C screen mode: 1 - (1 - Dest) * (1 - Src) */
+        /*!
+         * Porter-Duff clear mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where
+         * F.rgba = (0, 0, 0, 0).
+         */
+        composite_porter_duff_clear,
 
         /*!
-         * W3C overlay mode: for each channel,
-         * (Dst <= 0.5) ?
-         *    2.0 * Dest * Src :
-         *    1 - 2 * (1 - Dst) * (1 - Src)
+         * Porter-Duff src mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F = S.
+         */
+        composite_porter_duff_src,
+
+        /*!
+         * Porter-Duff dst mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F = D.
+         */
+        composite_porter_duff_dst,
+
+        /*!
+         * Porter-Duff src-over mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = S.rgb + D.rgb * (1 - S.a)
+         * \endcode
+         */
+        composite_porter_duff_src_over,
+
+        /*!
+         * Porter-Duff dst-over mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = D.a + S.a * (1 - D.a)
+         * F.rgb = D.rgb + S.rgb * (1 - D.a)
+         * \endcode
+         */
+        composite_porter_duff_dst_over,
+
+        /*!
+         * Porter-Duff src-in mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a * D.a
+         * F.rgb = S.rgb * D.a
+         * \endcode
+         */
+        composite_porter_duff_src_in,
+
+        /*!
+         * Porter-Duff dst-in mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is
+         * \code
+         * F.a = S.a * D.a
+         * F.rgb = D.rgb * S.a
+         * \endcode
+         */
+        composite_porter_duff_dst_in,
+
+        /*!
+         * Porter-Duff  mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a * (1 - D.a)
+         * F.rgb =  S.rgb * (1 - D.a)
+         * \endcode
+         */
+        composite_porter_duff_src_out,
+
+        /*!
+         * Porter-Duff src-out mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = D.a * (1.0 - S.a)
+         * F.rgb = D.rgb * (1.0 - S.a)
+         * \endcode
+         */
+        composite_porter_duff_dst_out,
+
+        /*!
+         * Porter-Duff src-atop mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = D.a
+         * F.rgb = S.rgb * D.a + D.rgb * (1.0 - S.a)
+         * \endcode
+         */
+        composite_porter_duff_src_atop,
+
+        /*!
+         * Porter-Duff dst-atop mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a
+         * F.rgb = D.rgb * S.a + S.rgb * (1 - D.a)
+         * \endcode
+         */
+        composite_porter_duff_dst_atop,
+
+        /*!
+         * Porter-Duff xor mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a * (1 - D.a) + D.a * (1 - S.a)
+         * F.rgb = S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         */
+        composite_porter_duff_xor,
+
+        /*!
+         * Plus blend mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a
+         * F.rgb = S.rgb + D.rgb
+         * \endcode
+         */
+        composite_porter_duff_plus,
+
+        /*!
+         * Modulate blend mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a * D.a
+         * F.rgb = S.rgb * D.rgb
+         * \endcode
+         */
+        composite_porter_duff_modulate,
+
+        /*!
+         * Screen mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c = S.c + D.c - S.c * D.c
+         * \endcode
+         */
+        blend_w3c_screen,
+
+        /*!
+         * Overlay mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c =
+         *           2 * S * D, if D <= 0.5
+         *           1 - 2 * (1 - S) * (1 - D), otherwise
+         * \endcode
          */
         blend_w3c_overlay,
-        blend_w3c_darken, /*!< W3C darken mode: min(Src, Dest) */
-        blend_w3c_lighten, /*!< W3C lighten mode: max(Src, Dest) */
 
         /*!
-         * W3C color-dodge mode: for each channel
-         * (Dest == 0) ? 0 : (Src == 1) ? 1 : min(1, Dst / (1 - Src) )
-         * i.e. if Dest is 0, write 0. If Src is 1, write 1. Otherwise
-         * write Dst / (1 - Src)
+         * Darken mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c = min(S, D)
+         * \endcode
+         */
+        blend_w3c_darken,
+
+        /*!
+         * Lighten mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c = max(S.c, D.c)
+         * \endcode
+         */
+        blend_w3c_lighten,
+
+        /*!
+         * Color dodge mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c =
+         *           0, if D.c <= 0
+         *           min(1, D.c / (1 - S.c)), if D.c > 0 and S.c < 1
+         *           1, if D.c > 0 and S.c >= 1
+         * \endcode
          */
         blend_w3c_color_dodge,
 
         /*!
-         * W3C color-burn mode: for each channel
-         * (Dest == 1) ? 1 : (Src == 0) ? 0 : 1 - min(1, (1 - Dst) / Src)
-         * i.e. if Dest is 1, write 1. If Src is 0, write 0. Otherwise
-         * write (1 - Dst ) / Src
+         * Color burn mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c =
+         *           1, if D.c >= 1
+         *           1 - min(1, (1 - D.c) / S.c), if D.c < 1 and S.c > 0
+         *           0, if D.c < 1 and S.c <= 0
+         * \endcode
          */
         blend_w3c_color_burn,
 
         /*!
-         * W3C hardlight mode: for each channel,
-         * (Src <= 0.5) ?
-         *    2.0 * Dest * Src :
-         *    1 - 2 * (1 - Dst) * (1 - Src)
+         * Harlight mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c = 2 * S.c * D.c, if S.c <= 0.5
+         *           1 - 2 * (1 - S.c) * (1 - D.c), otherwise
+         * \endcode
          */
         blend_w3c_hardlight,
 
         /*!
-         * W3C soft light mode: for each channel:
-         * (Src <= 0.5) ?
-         *   Dst - (1 - 2 * Src) * Dst * (1 - Dst) :
-         *   Dst + (2 * Src - 1) * (Z - Dst)
-         * where
-         *   Z = (Dst <= 0.25) ?
-         *     ((16 * Dst - 12) * Dst + 4) * Dst :
-         *     sqrt(Dst)
+         * Softlight mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c =
+         *          D.c - (1 - 2 * S.c) * D.c * (1 - D.c), if S.c <= 0.5
+         *          D.c + (2 * S.c - 1) * D.c * ((16 * D.c - 12) * D.c + 3), if S.c > 0.5 and D.c <= 0.25
+         *          D.c + (2 * S.c - 1) * (sqrt(D.c) - D.c), if S.c > 0.5 and D.c > 0.25
+         * \endcode
          */
         blend_w3c_softlight,
 
-        blend_w3c_difference, /*!< W3C difference mode: for each channel, abs(Dest - Src) */
-        blend_w3c_exclusion, /*!< W3C exclusion mode: for each channel, Dest + Src - 2 * Dest * Src */
+        /*!
+         * Difference mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a  +  D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c = abs(S.c - D.c)
+         * \endcode
+         */
+        blend_w3c_difference,
 
         /*!
-         * w3c hue mode, see w3c for formula
+         * Exclusion mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c = S.c + D.c - 2 * S.c * D.c
+         * \endcode
+         */
+        blend_w3c_exclusion,
+
+        /*!
+         * Multiply mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where for each channel c,
+         * \code
+         * f(S, D).c = S.c * D.c
+         * \endcode
+         */
+        blend_w3c_multiply,
+
+        /*!
+         * Hue mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where
+         * \code
+         * f(S.rgb, D.rgb).rgb = OverrideLuminosityAndSaturation(S.rgb, D.rgb, D.rgb)
+         * \endcode
          */
         blend_w3c_hue,
 
         /*!
-         * w3c saturation mode, see w3c for formula
+         * Saturation mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where
+         * \code
+         * f(S.rgb, D.rgb).rgb = OverrideLuminosityAndSaturation(D.rgb, S.rgb, D.rgb)
+         * \endcode
          */
         blend_w3c_saturation,
 
         /*!
-         * w3c color mode, see w3c for formula
+         * Color mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where
+         * \code
+         * f(S.rgb, D.rgb).rgb = OverrideLuminosity(S.rgb, D.rgb)
+         * \endcode
          */
         blend_w3c_color,
 
         /*!
-         * w3c luminosity mode, see w3c for formula
+         * Luminosity mode. Letting S be the value from the
+         * fragment shader and D be the current value in the framebuffer,
+         * replaces the value in the framebuffer with F where F is:
+         * \code
+         * F.a = S.a + D.a * (1 - S.a)
+         * F.rgb = f(UndoAlpha(S), UndoAlpha(D)) * S.a * D.a + S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
+         * \endcode
+         * where
+         * \code
+         * f(S.rgb, D.rgb).rgb = OverrideLuminosity(D.rgb, S.rgb)
+         * \endcode
          */
         blend_w3c_luminosity,
 
