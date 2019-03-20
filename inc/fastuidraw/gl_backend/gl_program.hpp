@@ -55,7 +55,7 @@ namespace gl {
  * thread.
  */
 class Shader:
-  public reference_counted<Shader>::default_base
+  public reference_counted<Shader>::concurrent
 {
 public:
   /*!
@@ -164,7 +164,7 @@ private:
  * after attaching shaders but before linking.
  */
 class PreLinkAction:
-  public reference_counted<PreLinkAction>::default_base
+  public reference_counted<PreLinkAction>::concurrent
 {
 public:
   virtual
@@ -421,7 +421,7 @@ class Program;
  * uniform values.
  */
 class ProgramInitializer:
-  public reference_counted<ProgramInitializer>::default_base
+  public reference_counted<ProgramInitializer>::concurrent
 {
 public:
   virtual
@@ -777,7 +777,7 @@ private:
  * as such have a resource manager.
  */
 class Program:
-  public reference_counted<Program>::default_base
+  public reference_counted<Program>::concurrent
 {
 public:
   /*!

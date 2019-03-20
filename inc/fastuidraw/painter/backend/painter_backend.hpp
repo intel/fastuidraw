@@ -40,7 +40,7 @@ namespace fastuidraw
    * A PainterBackend is an interface that defines the API-specific
    * elements to implement Painter:
    */
-  class PainterBackend:public reference_counted<PainterBackend>::default_base
+  class PainterBackend:public reference_counted<PainterBackend>::concurrent
   {
   public:
     /*!

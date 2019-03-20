@@ -37,7 +37,7 @@ namespace fastuidraw
    * code -fragment- that is placed into a large uber-shader.
    */
   class PainterShader:
-    public reference_counted<PainterShader>::default_base
+    public reference_counted<PainterShader>::concurrent
   {
   public:
     /*!

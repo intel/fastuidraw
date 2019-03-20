@@ -65,7 +65,7 @@ namespace fastuidraw
      * \brief
      * Typedef for "default" way to reference count.
      */
-    typename reference_counted<base>::default_base default_base;
+    typename reference_counted<base>::concurrent concurrent;
   };
 
 /*! @} */

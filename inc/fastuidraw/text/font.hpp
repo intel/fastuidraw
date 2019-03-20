@@ -43,7 +43,7 @@ namespace fastuidraw
    * to generate glyph rendering data.
    */
   class FontBase:
-    public reference_counted<FontBase>::default_base
+    public reference_counted<FontBase>::concurrent
   {
   public:
     /*!

@@ -35,7 +35,7 @@ namespace fastuidraw
    * are registered to a unique PainterShaderRegistrar for their lifetime.
    */
   class PainterShaderRegistrar:
-    public reference_counted<PainterShaderRegistrar>::default_base
+    public reference_counted<PainterShaderRegistrar>::concurrent
   {
   public:
     /*!

@@ -40,7 +40,7 @@ namespace fastuidraw
    * calls to the backing store behind its own mutex.
    */
   class GlyphAtlasBackingStoreBase:
-    public reference_counted<GlyphAtlasBackingStoreBase>::default_base
+    public reference_counted<GlyphAtlasBackingStoreBase>::concurrent
   {
   public:
     /*!
@@ -117,7 +117,7 @@ namespace fastuidraw
    * protected behind atomics and a mutex within the GlyphAtlas.
    */
   class GlyphAtlas:
-    public reference_counted<GlyphAtlas>::default_base
+    public reference_counted<GlyphAtlas>::concurrent
   {
   public:
     /*!

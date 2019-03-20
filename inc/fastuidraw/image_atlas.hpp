@@ -47,7 +47,7 @@ class ImageSourceBase;
    * its own mutex.
    */
   class AtlasColorBackingStoreBase:
-    public reference_counted<AtlasColorBackingStoreBase>::default_base
+    public reference_counted<AtlasColorBackingStoreBase>::concurrent
   {
   public:
     /*!
@@ -154,7 +154,7 @@ class ImageSourceBase;
    * its own mutex.
    */
   class AtlasIndexBackingStoreBase:
-    public reference_counted<AtlasIndexBackingStoreBase>::default_base
+    public reference_counted<AtlasIndexBackingStoreBase>::concurrent
   {
   public:
     /*!
@@ -285,7 +285,7 @@ class ImageSourceBase;
    * thread safe, locked behind a mutex of the ImageAtlas.
    */
   class ImageAtlas:
-    public reference_counted<ImageAtlas>::default_base
+    public reference_counted<ImageAtlas>::concurrent
   {
   public:
     /*!
@@ -295,7 +295,7 @@ class ImageSourceBase;
      * back the image.
      */
     class ResourceReleaseAction:
-      public reference_counted<ResourceReleaseAction>::default_base
+      public reference_counted<ResourceReleaseAction>::concurrent
     {
     public:
       /*!

@@ -120,7 +120,7 @@ namespace fastuidraw
    */
   class Painter:
     public PainterEnums,
-    public reference_counted<Painter>::default_base
+    public reference_counted<Painter>::concurrent
   {
   public:
     /*!

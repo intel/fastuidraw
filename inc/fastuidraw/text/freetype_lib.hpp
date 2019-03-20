@@ -44,7 +44,7 @@ namespace fastuidraw
    * - If an FT_Face is accessed from multiple threads, the FT_Face
    *   (but not the FT_Library) needs to be mutex locked
    */
-  class FreeTypeLib:public reference_counted<FreeTypeLib>::default_base
+  class FreeTypeLib:public reference_counted<FreeTypeLib>::concurrent
   {
   public:
     /*!

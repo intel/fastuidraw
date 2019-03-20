@@ -23,7 +23,6 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 
-#include <fastuidraw/util/reference_count_mutex.hpp>
 #include <fastuidraw/util/reference_count_atomic.hpp>
 #include <fastuidraw/util/reference_count_non_concurrent.hpp>
 
@@ -492,23 +491,10 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Typedef to reference counting which is thread safe by locking
-     * a mutex on adding and removing reference
-     */
-    typedef reference_counted_base<T, reference_count_mutex> mutex;
-
-    /*!
-     * \brief
      * Typedef to reference counting which is thread safe by atomically
      * adding and removing reference
      */
-    typedef reference_counted_base<T, reference_count_atomic> atomic;
-
-    /*!
-     * \brief
-     * Typedef for "default" way to reference count.
-     */
-    typedef atomic default_base;
+    typedef reference_counted_base<T, reference_count_atomic> concurrent;
   };
 /*! @} */
 

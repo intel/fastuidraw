@@ -39,7 +39,7 @@ namespace fastuidraw
    * safe because it maintains an internal mutex lock for the durations
    * of its methods.
    */
-  class GlyphCache:public reference_counted<GlyphCache>::default_base
+  class GlyphCache:public reference_counted<GlyphCache>::concurrent
   {
   public:
     /*!

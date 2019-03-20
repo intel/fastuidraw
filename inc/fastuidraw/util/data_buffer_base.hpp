@@ -33,7 +33,7 @@ namespace fastuidraw
    * classes have the responsibility of maintaining storage
    * cleanup at destruction.
    */
-  class DataBufferBase:public reference_counted<DataBufferBase>::default_base
+  class DataBufferBase:public reference_counted<DataBufferBase>::concurrent
   {
   public:
     /*!

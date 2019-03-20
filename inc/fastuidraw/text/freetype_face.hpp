@@ -42,14 +42,14 @@ namespace fastuidraw
    * - If an FT_Face is accessed from multiple threads, the FT_Face
    *   (but not the FT_Library) needs to be mutex locked
    */
-  class FreeTypeFace:public reference_counted<FreeTypeFace>::default_base
+  class FreeTypeFace:public reference_counted<FreeTypeFace>::concurrent
   {
   public:
     /*!\brief
      * A Generator provides an interface to create FreeTypeFace
      * objects.
      */
-    class GeneratorBase:public reference_counted<GeneratorBase>::default_base
+    class GeneratorBase:public reference_counted<GeneratorBase>::concurrent
     {
     public:
       virtual

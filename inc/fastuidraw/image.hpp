@@ -37,7 +37,7 @@ class ImageSourceBase;
    * The texel values themselves are stored in a ImageAtlas.
    */
   class Image:
-    public reference_counted<Image>::default_base
+    public reference_counted<Image>::concurrent
   {
   public:
     /*!

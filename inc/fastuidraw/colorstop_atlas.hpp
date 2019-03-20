@@ -41,7 +41,7 @@ namespace fastuidraw
    * calls to the backing store behind its own mutex.
    */
   class ColorStopBackingStore:
-    public reference_counted<ColorStopBackingStore>::default_base
+    public reference_counted<ColorStopBackingStore>::concurrent
   {
   public:
     /*!
@@ -139,7 +139,7 @@ namespace fastuidraw
    * ColorStopAtlas (changes of ColorStopAtlas force draw-call breaks).
    */
   class ColorStopAtlas:
-    public reference_counted<ColorStopAtlas>::default_base
+    public reference_counted<ColorStopAtlas>::concurrent
   {
   public:
     /*!
@@ -250,7 +250,7 @@ namespace fastuidraw
    * ColorStop 's of a ColorStopSequence are interpolated.
    */
   class ColorStopSequenceOnAtlas:
-    public reference_counted<ColorStopSequenceOnAtlas>::default_base
+    public reference_counted<ColorStopSequenceOnAtlas>::concurrent
   {
   public:
     /*!

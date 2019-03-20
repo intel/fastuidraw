@@ -103,7 +103,7 @@ namespace
    * the loading of data until the first time the data
    * is requested.
    */
-  class DataBufferLoader:public fastuidraw::reference_counted<DataBufferLoader>::default_base
+  class DataBufferLoader:public fastuidraw::reference_counted<DataBufferLoader>::concurrent
   {
   public:
     explicit

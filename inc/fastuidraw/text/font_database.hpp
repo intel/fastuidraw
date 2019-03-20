@@ -34,7 +34,7 @@ namespace fastuidraw
    * for FontProperties::source_label()) to select suitable font
    * or fonts.
    */
-  class FontDatabase:public reference_counted<FontDatabase>::default_base
+  class FontDatabase:public reference_counted<FontDatabase>::concurrent
   {
   public:
 
@@ -44,7 +44,7 @@ namespace fastuidraw
      * via a FontGenerator allows one to avoid opening and creating
      * the font until the font is actually needed.
      */
-    class FontGeneratorBase:public reference_counted<FontGeneratorBase>::default_base
+    class FontGeneratorBase:public reference_counted<FontGeneratorBase>::concurrent
     {
     public:
       /*!

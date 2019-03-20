@@ -5,7 +5,7 @@
 #include <fastuidraw/util/reference_counted.hpp>
 
 class StreamHolder:
-  public fastuidraw::reference_counted<StreamHolder>::default_base
+  public fastuidraw::reference_counted<StreamHolder>::concurrent
 {
 public:
   StreamHolder(const std::string &filename);

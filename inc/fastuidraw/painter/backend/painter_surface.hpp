@@ -35,7 +35,7 @@ namespace fastuidraw
    * PainterSurface represents an interface to specify a buffer to
    * which a PainterBackend renders content.
    */
-  class PainterSurface:public reference_counted<PainterSurface>::default_base
+  class PainterSurface:public reference_counted<PainterSurface>::concurrent
   {
   public:
     /*!

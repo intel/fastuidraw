@@ -45,7 +45,7 @@ namespace fastuidraw
    * the stroking parameters.
    */
   class StrokingDataSelectorBase:
-    public reference_counted<StrokingDataSelectorBase>::default_base
+    public reference_counted<StrokingDataSelectorBase>::concurrent
   {
   public:
     /*!
