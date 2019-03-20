@@ -387,6 +387,13 @@ StrokeShaderCreator(void)
 {
   unsigned int num_sub_shaders;
 
+  /* TODO:
+   *   1. only the non-anti-aliased shader will ever issue discard.
+   *      It will only issue discard in arc-stroking or dashed
+   *      stroking.
+   *   2. Using (1), it might be better to make a seperate shader
+   *      for non-anti aliased shading.
+   */
   num_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits);
 
   m_shaders[0] = build_uber_stroke_shader(0u, num_sub_shaders);
