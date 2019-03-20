@@ -3013,8 +3013,15 @@ void
 PainterPrivate::
 end_coverage_buffer(void)
 {
+  FASTUIDRAWassert(!m_deferred_coverage_stack.empty());
   FASTUIDRAWassert(m_state_stack.empty() || m_state_stack.back().m_deferred_coverage_buffer_depth < m_deferred_coverage_stack.size());
+
   m_deferred_coverage_stack.pop_back();
+  if (!m_deferred_coverage_stack.empty() && m_deferred_coverage_stack.back().packer())
+    {
+      m_deferred_coverage_stack.back().update_coverage_buffer_offset(this);
+      m_clip_rect_state.coverage_buffer_normalized_translate(m_deferred_coverage_stack.back().normalized_translate());
+    }
 }
 
 float
@@ -5994,7 +6001,8 @@ begin_layer(const vec4 &color_modulate)
   d->m_transparency_stack.push_back(R);
   ++d->m_stats[num_layers];
 
-  if (!d->m_deferred_coverage_stack.empty())
+  if (!d->m_deferred_coverage_stack.empty()
+      && d->m_deferred_coverage_stack.back().packer())
     {
       d->m_deferred_coverage_stack.back().update_coverage_buffer_offset(d);
     }
@@ -6057,7 +6065,8 @@ end_layer(void)
     }
   restore();
 
-  if (!d->m_deferred_coverage_stack.empty())
+  if (!d->m_deferred_coverage_stack.empty()
+      && d->m_deferred_coverage_stack.back().packer())
     {
       d->m_deferred_coverage_stack.back().update_coverage_buffer_offset(d);
     }
