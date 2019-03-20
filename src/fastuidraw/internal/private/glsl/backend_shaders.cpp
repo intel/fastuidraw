@@ -443,16 +443,6 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
       is_hq_shader = false;
       break;
 
-    case PainterStrokeShader::simple_aa_shader_pass1:
-      render_pass = render_aa_pass1;
-      is_hq_shader = false;
-      break;
-
-    case PainterStrokeShader::simple_aa_shader_pass2:
-      render_pass = render_aa_pass2;
-      is_hq_shader = false;
-      break;
-
     case PainterStrokeShader::aa_shader_immediate_coverage_pass1:
       render_pass = render_aa_pass1;
       is_hq_shader = true;
@@ -614,15 +604,15 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
 {
   if (!m_has_auxiliary_coverage_buffer)
     {
-      m_hq_support = PainterEnums::immediate_coverage_no_support;
+      m_fastest_anti_alias_mode = PainterEnums::shader_anti_alias_deferred_coverage;
     }
   else if (m_flush_immediate_coverage_buffer_between_draws)
     {
-      m_hq_support = PainterEnums::immediate_coverage_slow;
+      m_fastest_anti_alias_mode = PainterEnums::shader_anti_alias_adaptive;
     }
   else
     {
-      m_hq_support = PainterEnums::immediate_coverage_fast;
+      m_fastest_anti_alias_mode = PainterEnums::shader_anti_alias_immediate_coverage;
     }
 
   m_fill_macros
@@ -767,26 +757,11 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
         }
     }
 
-  if (cap_style == PainterEnums::number_cap_styles)
-    {
-      return_value
-        .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_linear)
-        .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_linear)
-        .fastest_anti_aliasing(PainterEnums::stroking_method_linear,
-                               PainterEnums::shader_anti_alias_simple);
-    }
-  else
-    {
-      return_value
-        .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
-        .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
-        .fastest_anti_aliasing(PainterEnums::stroking_method_linear,
-                               PainterEnums::shader_anti_alias_adaptive);
-    }
-
   return_value
-    .fastest_anti_aliasing(PainterEnums::stroking_method_arc,
-                           PainterEnums::shader_anti_alias_adaptive);
+    .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
+    .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
+    .fastest_anti_aliasing(PainterEnums::stroking_method_linear, m_fastest_anti_alias_mode)
+    .fastest_anti_aliasing(PainterEnums::stroking_method_arc, m_fastest_anti_alias_mode);
 
   return return_value;
 }
@@ -814,7 +789,6 @@ create_fill_shader(void)
   PainterFillShader fill_shader;
   reference_counted_ptr<PainterItemShader> item_shader;
   reference_counted_ptr<PainterItemShader> uber_fuzz_shader;
-  reference_counted_ptr<PainterItemShader> aa_fuzz_direct_shader;
   reference_counted_ptr<PainterItemShader> aa_fuzz_deferred;
   reference_counted_ptr<PainterItemCoverageShaderGLSL> aa_fuzz_deferred_coverage;
 
@@ -841,11 +815,9 @@ create_fill_shader(void)
                                                          varying_list().add_float_varying("fastuidraw_aa_fuzz"),
                                                          fill_aa_fuzz_number_passes);
 
-  aa_fuzz_direct_shader = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_direct_pass);
   fill_shader
-    .fastest_anti_alias_mode(PainterEnums::shader_anti_alias_simple)
-    .item_shader(item_shader)
-    .aa_fuzz_simple_shader(aa_fuzz_direct_shader);
+    .fastest_anti_alias_mode(m_fastest_anti_alias_mode)
+    .item_shader(item_shader);
 
   if (m_has_auxiliary_coverage_buffer)
     {
@@ -862,38 +834,40 @@ create_fill_shader(void)
     }
 
   /* the aa-fuzz shader via deferred coverage is not a part of the uber-fuzz shader */
-  aa_fuzz_deferred_coverage = FASTUIDRAWnew PainterItemCoverageShaderGLSL(ShaderSource()
-                                                                          .add_macros(m_fill_macros)
-                                                                          .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                                          .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
-                                                                                      ShaderSource::from_resource)
-                                                                          .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                                          .remove_macros(m_fill_macros),
-                                                                          ShaderSource()
-                                                                          .add_macros(m_fill_macros)
-                                                                          .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                                          .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
-                                                                                      ShaderSource::from_resource)
-                                                                          .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                                          .remove_macros(m_fill_macros),
-                                                                          varying_list().add_float_varying("fastuidraw_aa_fuzz"));
-  aa_fuzz_deferred = FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                                         ShaderSource()
-                                                         .add_macros(m_fill_macros)
-                                                         .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
-                                                                     ShaderSource::from_resource)
-                                                         .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                         .remove_macros(m_fill_macros),
-                                                         ShaderSource()
-                                                         .add_macros(m_fill_macros)
-                                                         .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
-                                                                     ShaderSource::from_resource)
-                                                         .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
-                                                         .remove_macros(m_fill_macros),
-                                                         varying_list().add_float_varying("fastuidraw_aa_fuzz"),
-                                                         aa_fuzz_deferred_coverage);
+  aa_fuzz_deferred_coverage =
+    FASTUIDRAWnew PainterItemCoverageShaderGLSL(ShaderSource()
+                                                .add_macros(m_fill_macros)
+                                                .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
+                                                            ShaderSource::from_resource)
+                                                .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                .remove_macros(m_fill_macros),
+                                                ShaderSource()
+                                                .add_macros(m_fill_macros)
+                                                .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
+                                                            ShaderSource::from_resource)
+                                                .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                                .remove_macros(m_fill_macros),
+                                                varying_list().add_float_varying("fastuidraw_aa_fuzz"));
+  aa_fuzz_deferred =
+    FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                        ShaderSource()
+                                        .add_macros(m_fill_macros)
+                                        .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                        .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
+                                                    ShaderSource::from_resource)
+                                        .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                        .remove_macros(m_fill_macros),
+                                        ShaderSource()
+                                        .add_macros(m_fill_macros)
+                                        .add_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                        .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
+                                                    ShaderSource::from_resource)
+                                        .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
+                                        .remove_macros(m_fill_macros),
+                                        varying_list().add_float_varying("fastuidraw_aa_fuzz"),
+                                        aa_fuzz_deferred_coverage);
 
   fill_shader.aa_fuzz_deferred_coverage(aa_fuzz_deferred);
 

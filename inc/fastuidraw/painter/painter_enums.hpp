@@ -197,15 +197,6 @@ namespace fastuidraw
         shader_anti_alias_none,
 
         /*!
-         * Applies simpler anti-aliasing shading to path
-         * fill or stroke. This will potentially give under
-         * coverage to fragments (typically where the path
-         * crosses itself or when the path is filled or
-         * stroke highly minified).
-         */
-        shader_anti_alias_simple,
-
-        /*!
          * Applies higher quality anti-aliasing shading
          * that avoids the issues that come from \ref
          * shader_anti_alias_simple. This option will give

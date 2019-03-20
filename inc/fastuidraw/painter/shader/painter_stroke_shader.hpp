@@ -183,29 +183,6 @@ namespace fastuidraw
 
         /*!
          * Specify the shader for the 1st pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_simple which draws
-         * the portions of the stroked path that cover 100% of the
-         * sample area of a fragment. The depth value emitted in the
-         * item's vertex shader should be z-value to guarantee that
-         * there is no overdraw, see \ref StrokedPoint::depth() and \ref
-         * ArcStrokedPoint::depth().
-         */
-        simple_aa_shader_pass1,
-
-        /*!
-         * Specify the shader for the 2nd pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_simple which draws
-         * the portions of the stroked path that cover less than 100%
-         * of the sample area of a fragment. The depth value emitted in the
-         * item's vertex shader should be z-value to guarantee that
-         * there is no overdraw, see \ref StrokedPoint::depth() and \ref
-         * ArcStrokedPoint::depth(). An implementation must provide
-         * this shader for \ref linear_stroke_type atleast.
-         */
-        simple_aa_shader_pass2,
-
-        /*!
-         * Specify the shader for the 1st pass of anti-alias stroking
          * for \ref PainterEnums::shader_anti_alias_immediate_coverage which
          * draws to a the immediate coverage buffer the coverage of a
          * fragment area by the stroked path. The item's vertex shader

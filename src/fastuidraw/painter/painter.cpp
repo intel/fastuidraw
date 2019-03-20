@@ -288,10 +288,6 @@ namespace
       case Painter::shader_anti_alias_none:
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::non_aa_shader));
 
-      case Painter::shader_anti_alias_simple:
-        return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::simple_aa_shader_pass1))
-          || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::simple_aa_shader_pass2));
-
       case Painter::shader_anti_alias_immediate_coverage:
         return shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::aa_shader_immediate_coverage_pass1))
           || shader_requires_coverage_buffer(shader.shader(tp, PainterStrokeShader::aa_shader_immediate_coverage_pass2));
@@ -1188,13 +1184,8 @@ namespace
         {
           enum PainterStrokeShader::shader_type_t pass1, pass2;
 
-          pass1 = (with_aa == Painter::shader_anti_alias_immediate_coverage) ?
-            PainterStrokeShader::aa_shader_immediate_coverage_pass1:
-            PainterStrokeShader::simple_aa_shader_pass1;
-
-          pass2 = (with_aa == Painter::shader_anti_alias_immediate_coverage) ?
-            PainterStrokeShader::aa_shader_immediate_coverage_pass2:
-            PainterStrokeShader::simple_aa_shader_pass2;
+          pass1 = PainterStrokeShader::aa_shader_immediate_coverage_pass1;
+          pass2 = PainterStrokeShader::aa_shader_immediate_coverage_pass2;
 
           m_shader_pass1 = (with_aa == Painter::shader_anti_alias_none) ?
             &shader.shader(tp, PainterStrokeShader::non_aa_shader) :
@@ -3469,8 +3460,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
               output->m_index_chunks.push_back(data.index_data_chunk(ch));
               output->m_index_adjusts.push_back(data.index_adjust_chunk(ch));
 
-              if (anti_alias_quality == Painter::shader_anti_alias_simple
-                  || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+              if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
                 {
                   output->m_z_increments.push_back(R.difference());
                   output->m_start_zs.push_back(R.m_begin);
@@ -3502,19 +3492,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
 {
   using namespace fastuidraw;
 
-  if (anti_alias_quality == Painter::shader_anti_alias_simple)
-    {
-      draw_generic_z_layered(shader.aa_fuzz_simple_shader(), draw,
-                             make_c_array(data.m_z_increments),
-                             data.m_total_increment_z,
-                             make_c_array(data.m_attrib_chunks),
-                             make_c_array(data.m_index_chunks),
-                             make_c_array(data.m_index_adjusts),
-                             make_c_array(data.m_start_zs),
-                             z);
-
-    }
-  else if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+  if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
     {
       /* TODO: instead of allocating a coverage buffer area the size of
        * the entire Path, we should instead walk through each Subset
@@ -4278,11 +4256,40 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
                                                  shader.aa_fuzz_shader_immediate_coverage_supported(),
                                                  shader.fastest_anti_alias_mode());
 
+  if (anti_alias_quality == Painter::shader_anti_alias_adaptive
+      || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+    {
+      BoundingBox<float> cvg_rect;
+
+      /* TODO: It is WAY to coarse to just use the bounding box
+       * of the rounded-rect. Indeed, the anti-alias fuzz is
+       * only at the boundary, which means that we could reduce
+       * the fuzz to the 4-corner blocks together with a 1-pixel
+       * wide/high fuzz for each of the sides.
+       */
+      cvg_rect = compute_clip_intersect_rect(R, 1.0f, 0.0f);
+      if (cvg_rect.empty())
+        {
+          return;
+        }
+
+      if (anti_alias_quality == Painter::shader_anti_alias_adaptive
+          && should_use_immediate_coverage_instead(cvg_rect.as_rect()))
+        {
+          anti_alias_quality = Painter::shader_anti_alias_immediate_coverage;
+        }
+      else
+        {
+          anti_alias_quality = Painter::shader_anti_alias_deferred_coverage;
+          begin_coverage_buffer_normalized_rect(cvg_rect.as_rect(), true);
+        }
+    }
+
   if (anti_alias_quality != Painter::shader_anti_alias_none)
     {
       int incr;
 
-      incr = (anti_alias_quality == Painter::shader_anti_alias_simple) ? 1 : 0;
+      incr = (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage) ? 1 : 0;
 
       m_work_room.m_rounded_rect.m_rect_fuzz_attributes.clear();
       m_work_room.m_rounded_rect.m_rect_fuzz_indices.clear();
@@ -4314,7 +4321,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
                            m_work_room.m_rounded_rect.m_rect_fuzz_indices);
       total_incr_z += incr;
 
-      if (anti_alias_quality != Painter::shader_anti_alias_simple)
+      if (anti_alias_quality != Painter::shader_anti_alias_deferred_coverage)
         {
           /* one for the above edges */
           total_incr_z = 1;
@@ -4409,10 +4416,10 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
     {
       int incr_z(total_incr_z);
 
-      if (anti_alias_quality == Painter::shader_anti_alias_simple)
+      if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
         {
           incr_z -= 4;
-          draw_generic(shader.aa_fuzz_simple_shader(), draw,
+          draw_generic(shader.aa_fuzz_deferred_coverage(), draw,
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_attributes),
                        make_c_array(m_work_room.m_rounded_rect.m_rect_fuzz_indices),
                        0, m_current_z + incr_z);
@@ -4445,6 +4452,11 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
         }
     }
   m_current_z += total_incr_z;
+
+  if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+    {
+      end_coverage_buffer();
+    }
 }
 
 void
@@ -4483,7 +4495,7 @@ ready_aa_polygon_attribs(fastuidraw::c_array<const fastuidraw::vec2> pts,
     {
       int mult;
 
-      mult = (anti_alias_quality == Painter::shader_anti_alias_simple) ? 1 : 0;
+      mult = (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage) ? 1 : 0;
       m_work_room.m_polygon.m_aa_fuzz_attribs.clear();
       m_work_room.m_polygon.m_aa_fuzz_indices.clear();
 
@@ -4584,6 +4596,30 @@ fill_convex_polygon(bool allow_sw_clipping,
   anti_alias_quality = compute_shader_anti_alias(anti_alias_quality,
                                                  shader.aa_fuzz_shader_immediate_coverage_supported(),
                                                  shader.fastest_anti_alias_mode());
+  if (anti_alias_quality == Painter::shader_anti_alias_adaptive
+      || anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
+    {
+      BoundingBox<float> in_bb, cvg_bb;
+
+      in_bb.union_points(pts.begin(), pts.end());
+      cvg_bb = compute_clip_intersect_rect(in_bb.as_rect(), 1.0f, 0.0f);
+      if (cvg_bb.empty())
+        {
+          return 0;
+        }
+
+      if (anti_alias_quality == Painter::shader_anti_alias_adaptive
+          && should_use_immediate_coverage_instead(cvg_bb.as_rect()))
+        {
+          anti_alias_quality = Painter::shader_anti_alias_immediate_coverage;
+        }
+      else
+        {
+          anti_alias_quality = Painter::shader_anti_alias_deferred_coverage;
+          begin_coverage_buffer_normalized_rect(cvg_bb.as_rect(), true);
+        }
+    }
+
   ready_aa_polygon_attribs(pts, anti_alias_quality);
   ready_non_aa_polygon_attribs(pts);
 
@@ -4595,12 +4631,13 @@ fill_convex_polygon(bool allow_sw_clipping,
 
   if (anti_alias_quality != Painter::shader_anti_alias_none)
     {
-      if (anti_alias_quality == Painter::shader_anti_alias_simple)
+      if (anti_alias_quality == Painter::shader_anti_alias_deferred_coverage)
         {
-          draw_generic(shader.aa_fuzz_simple_shader(), draw,
+          draw_generic(shader.aa_fuzz_deferred_coverage(), draw,
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                        make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                        0, z);
+          end_coverage_buffer();
         }
       else
         {
@@ -5204,6 +5241,11 @@ fill_rect(const PainterFillShader &shader,
 {
   vecN<vec2, 4> pts;
 
+  /* TODO: the code for fill_convex_polygon() if it does
+   * anti-aliasing with deferred coverage buffer will
+   * use an area of the side of the rect instead of
+   * four smaller areas for the sides of the rect.
+   */
   pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
   pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
   pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());

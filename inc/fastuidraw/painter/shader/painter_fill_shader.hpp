@@ -108,24 +108,6 @@ namespace fastuidraw
     fastest_anti_alias_mode(enum PainterEnums::shader_anti_alias_t sh);
 
     /*!
-     * Returns the PainterItemShader to use to draw
-     * the anti-alias fuzz around the boundary of a
-     * filled path in a single pass. The expected
-     * format of the attributes is as found in the
-     * \ref PainterAttributeData returned by \ref
-     * FilledPath::Subset::aa_fuzz_painter_data().
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_simple_shader(void) const;
-
-    /*!
-     * Set the value returned by aa_fuzz_simple_shader(void) const.
-     * \param sh value to use
-     */
-    PainterFillShader&
-    aa_fuzz_simple_shader(const reference_counted_ptr<PainterItemShader> &sh);
-
-    /*!
      * Returns the PainterItemShader to use to draw the
      * anti-alias fuzz via the deferred coverage buffer.
      * This shader will draw the aa-fuzz in two passes:

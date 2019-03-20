@@ -173,8 +173,6 @@ namespace
     vecN<c_string, PainterStrokeShader::number_shader_types> shader_type_labels;
 
     shader_type_labels[PainterStrokeShader::non_aa_shader] = "non_aa_shader";
-    shader_type_labels[PainterStrokeShader::simple_aa_shader_pass1] = "simple_aa_shader_pass1";
-    shader_type_labels[PainterStrokeShader::simple_aa_shader_pass2] = "simple_aa_shader_pass2";
     shader_type_labels[PainterStrokeShader::aa_shader_immediate_coverage_pass1] = "aa_shader_immediate_coverage_pass1";
     shader_type_labels[PainterStrokeShader::aa_shader_immediate_coverage_pass2] = "aa_shader_immediate_coverage_pass2";
     shader_type_labels[PainterStrokeShader::aa_shader_deferred_coverage] = "aa_shader_deferred_coverage";

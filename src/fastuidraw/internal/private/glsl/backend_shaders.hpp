@@ -199,7 +199,7 @@ private:
 
   bool m_has_auxiliary_coverage_buffer;
   reference_counted_ptr<const PainterDraw::Action> m_flush_immediate_coverage_buffer_between_draws;
-  enum PainterEnums::immediate_coverage_support_t m_hq_support;
+  enum PainterEnums::shader_anti_alias_t m_fastest_anti_alias_mode;
 
   ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;

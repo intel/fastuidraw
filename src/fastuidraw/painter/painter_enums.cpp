@@ -142,7 +142,6 @@ label(enum shader_anti_alias_t v)
   static const c_string labels[number_shader_anti_alias] =
     {
       [shader_anti_alias_none] = "shader_anti_alias_none",
-      [shader_anti_alias_simple] = "shader_anti_alias_simple",
       [shader_anti_alias_immediate_coverage] = "shader_anti_alias_immediate_coverage",
       [shader_anti_alias_deferred_coverage] = "shader_anti_alias_deferred_coverage",
       [shader_anti_alias_adaptive] = "shader_anti_alias_adaptive",
