@@ -47,7 +47,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   float stroke_radius;
   uint on_boundary, offset_type;
-  uint point_packed_data, dash_style, aa_method;
+  uint point_packed_data, dash_style;
   fastuidraw_dashed_stroking_params_header dashed_stroke_params;
   fastuidraw_stroking_params stroke_params;
   mat2 rotate_by = mat2(1.0, 0.0, 0.0, 1.0);
@@ -55,7 +55,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {
       dash_style = sub_shader;
-      aa_method = fastuidraw_stroke_cover_then_draw;
       #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
         {
           stroking_pass = fastuidraw_stroke_aa_pass2;
@@ -71,8 +70,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
                                            fastuidraw_stroke_sub_shader_dash_style_num_bits,
                                            sub_shader);
-
-      aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
 
       stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
                                               fastuidraw_stroke_sub_shader_render_pass_num_bits,
@@ -450,18 +447,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
       #else
         {
-          if (aa_method == fastuidraw_stroke_cover_then_draw)
+          if (stroking_pass != fastuidraw_stroke_non_aa)
             {
-              if (stroking_pass != fastuidraw_stroke_non_aa)
-                {
-                  z_add = 0;
-                }
-              else
-                {
-                  z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
-                                                      fastuidraw_arc_stroke_depth_num_bits,
-                                                      point_packed_data));
-                }
+              z_add = 0;
             }
           else
             {

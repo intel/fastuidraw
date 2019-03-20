@@ -31,30 +31,27 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   #else
     {
       float alpha = 1.0;
-      uint render_pass, aa_method, dash_style;
+      uint render_pass, dash_style;
 
       #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
         {
           dash_style = sub_shader;
-          aa_method = fastuidraw_stroke_cover_then_draw;
           render_pass = fastuidraw_stroke_aa_pass1;
         }
       #else
         {
-          dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                               sub_shader);
-
           render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
                                                 fastuidraw_stroke_sub_shader_render_pass_num_bits,
                                                 sub_shader);
 
-          aa_method = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_aa_method_bit0, 1u, sub_shader);
-
-          if (aa_method == fastuidraw_stroke_cover_then_draw && render_pass == fastuidraw_stroke_aa_pass2)
+          if (render_pass == fastuidraw_stroke_aa_pass2)
             {
               return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
             }
+
+          dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                               sub_shader);
         }
       #endif
 
@@ -141,13 +138,6 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                                   skip_lookup, dont_anti_alias_dash_boundary);
                 }
 
-              if (aa_method != fastuidraw_stroke_cover_then_draw
-                  && render_pass == fastuidraw_stroke_aa_pass1
-                  && alpha < 1.0 - 1.0 / 255.0)
-                {
-                  alpha = 0.0;
-                }
-
               if (render_pass == fastuidraw_stroke_non_aa)
                 {
                   if (alpha < 1.0 - 1.0 / 255.0)
@@ -195,27 +185,10 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
       #if !defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
         {
-          if (aa_method == fastuidraw_stroke_cover_then_draw)
+          if (render_pass == fastuidraw_stroke_aa_pass1)
             {
-              if (render_pass == fastuidraw_stroke_aa_pass1)
-                {
-                  fastuidraw_max_immediate_coverage(alpha);
-                  alpha = 0.0;
-                }
-            }
-          else if (dash_style != fastuidraw_stroke_not_dashed)
-            {
-              if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
-                {
-                  FASTUIDRAW_DISCARD;
-                }
-            }
-          else
-            {
-              if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
-                {
-                  FASTUIDRAW_DISCARD;
-                }
+              fastuidraw_max_immediate_coverage(alpha);
+              alpha = 0.0;
             }
         }
       #endif
