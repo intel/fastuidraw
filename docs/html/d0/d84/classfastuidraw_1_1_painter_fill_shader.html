@@ -66,11 +66,11 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="../../d6/d25/classfastuidraw_1_1_painter_fill_shader-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">fastuidraw::PainterFillShader Class Reference<div class="ingroups"><a class="el" href="../../d3/d46/group___painter.html">Painter</a></div></div>  </div>
+<div class="title">fastuidraw::PainterFillShader Class Reference<div class="ingroups"><a class="el" href="../../d9/d90/group___painter_shaders.html">Painter Shaders</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html" title="A PainterFillShader holds the shaders for drawing filled paths. Anti-aliasing is accomplished by draw...">PainterFillShader</a> holds the shaders for drawing filled paths. Anti-aliasing is accomplished by drawing 1-pixel thick rects about the boundary of the filled path. The high quality method <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa6d3ee150af33f519c011f87355ce4080">PainterEnums::shader_anti_alias_high_quality</a> renders the anti-alias pixels in two passes; the first pass to a coverage buffer and the second pass returns the value as the coverage and clears the auxilary buffer. The other renering method, <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fae4d71253cad7d4c01e9221df636768d5">PainterEnums::shader_anti_alias_simple</a>, is a single pass solution that relies on the depth buffer to avoid overdraw at the possible expense than some fragments (typically where the path crosses itself or when the path is drawn very minified) will have lower coverage than they should.  
+<p>A <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html" title="A PainterFillShader holds the shaders for drawing filled paths. Anti-aliasing is accomplished by draw...">PainterFillShader</a> holds the shaders for drawing filled paths. Anti-aliasing is accomplished by drawing 1-pixel thick rects about the boundary of the filled path.  
  <a href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d6/d8d/painter__fill__shader_8hpp_source.html">painter_fill_shader.hpp</a>&gt;</code></p>
@@ -81,34 +81,32 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a63669d8d4c88a18d4b8ecd4178dd2fd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5cbcfee4508d3936ae3d12f991f3122e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a5cbcfee4508d3936ae3d12f991f3122e">PainterFillShader</a> (const <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;obj)</td></tr>
 <tr class="separator:a5cbcfee4508d3936ae3d12f991f3122e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af65c5ce96984d288dc8099eac05a6c18"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#af65c5ce96984d288dc8099eac05a6c18">aa_fuzz_hq_action_pass1</a> (void) const</td></tr>
-<tr class="separator:af65c5ce96984d288dc8099eac05a6c18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5d0832c27f5465eccd8a4f0fe968047"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ad5d0832c27f5465eccd8a4f0fe968047">aa_fuzz_hq_action_pass1</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;a)</td></tr>
-<tr class="separator:ad5d0832c27f5465eccd8a4f0fe968047"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae40efb40d29ce2a55ba9342780ee2273"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ae40efb40d29ce2a55ba9342780ee2273">aa_fuzz_hq_action_pass2</a> (void) const</td></tr>
-<tr class="separator:ae40efb40d29ce2a55ba9342780ee2273"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c6ab17ca4211b015b75bb43af1d9ab7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a7c6ab17ca4211b015b75bb43af1d9ab7">aa_fuzz_hq_action_pass2</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;a)</td></tr>
-<tr class="separator:a7c6ab17ca4211b015b75bb43af1d9ab7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82a1fc8a466b4583a6a1c5d569459106"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a82a1fc8a466b4583a6a1c5d569459106">aa_fuzz_hq_shader_pass1</a> (void) const</td></tr>
-<tr class="separator:a82a1fc8a466b4583a6a1c5d569459106"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af617c1d675908ec0c90ed4dbbb283aef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#af617c1d675908ec0c90ed4dbbb283aef">aa_fuzz_hq_shader_pass1</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;sh)</td></tr>
-<tr class="separator:af617c1d675908ec0c90ed4dbbb283aef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad013e998eab198c8f66374a9c3ac49ee"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ad013e998eab198c8f66374a9c3ac49ee">aa_fuzz_hq_shader_pass2</a> (void) const</td></tr>
-<tr class="separator:ad013e998eab198c8f66374a9c3ac49ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a09250ceeb16d97f54422acdd665b27"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a6a09250ceeb16d97f54422acdd665b27">aa_fuzz_hq_shader_pass2</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;sh)</td></tr>
-<tr class="separator:a6a09250ceeb16d97f54422acdd665b27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2467ec0c1a43a388d312d5a575b80621"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a2467ec0c1a43a388d312d5a575b80621">aa_fuzz_shader</a> (void) const</td></tr>
-<tr class="separator:a2467ec0c1a43a388d312d5a575b80621"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a860b59d5cf55fb6f5c1af2129544ee6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a860b59d5cf55fb6f5c1af2129544ee6f">aa_fuzz_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;sh)</td></tr>
-<tr class="separator:a860b59d5cf55fb6f5c1af2129544ee6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d8d8eccf5177ac53b1836c74506a16b"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a6d8d8eccf5177ac53b1836c74506a16b">aa_fuzz_deferred_coverage</a> (void) const</td></tr>
+<tr class="separator:a6d8d8eccf5177ac53b1836c74506a16b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a995801e7428120c572b266f9b532b235"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a995801e7428120c572b266f9b532b235">aa_fuzz_deferred_coverage</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;sh)</td></tr>
+<tr class="separator:a995801e7428120c572b266f9b532b235"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45f1ad1408422357fb8181ea038da9bb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a45f1ad1408422357fb8181ea038da9bb">aa_fuzz_immediate_coverage_action_pass1</a> (void) const</td></tr>
+<tr class="separator:a45f1ad1408422357fb8181ea038da9bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b88e947afb6c65bc95df8311d1e2548"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a8b88e947afb6c65bc95df8311d1e2548">aa_fuzz_immediate_coverage_action_pass1</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;a)</td></tr>
+<tr class="separator:a8b88e947afb6c65bc95df8311d1e2548"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac52ca15315df59fc9a4161308ba3c0a1"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ac52ca15315df59fc9a4161308ba3c0a1">aa_fuzz_immediate_coverage_action_pass2</a> (void) const</td></tr>
+<tr class="separator:ac52ca15315df59fc9a4161308ba3c0a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73bf430e923a7c52e0aa4a196d7c0057"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a73bf430e923a7c52e0aa4a196d7c0057">aa_fuzz_immediate_coverage_action_pass2</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;a)</td></tr>
+<tr class="separator:a73bf430e923a7c52e0aa4a196d7c0057"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bd5b6eecd5ed0eca33c33f7173c771f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a2bd5b6eecd5ed0eca33c33f7173c771f">aa_fuzz_immediate_coverage_pass1</a> (void) const</td></tr>
+<tr class="separator:a2bd5b6eecd5ed0eca33c33f7173c771f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a081a8b708501950a6def5299ff4e8668"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a081a8b708501950a6def5299ff4e8668">aa_fuzz_immediate_coverage_pass1</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;sh)</td></tr>
+<tr class="separator:a081a8b708501950a6def5299ff4e8668"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab388eaad37836fe0107e80adb38f6ef7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ab388eaad37836fe0107e80adb38f6ef7">aa_fuzz_immediate_coverage_pass2</a> (void) const</td></tr>
+<tr class="separator:ab388eaad37836fe0107e80adb38f6ef7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a20cca55e9e22fb9a247dbe2e9baebb0b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a20cca55e9e22fb9a247dbe2e9baebb0b">aa_fuzz_immediate_coverage_pass2</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;sh)</td></tr>
+<tr class="separator:a20cca55e9e22fb9a247dbe2e9baebb0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0205658a2820dafd8c00fc3d94ec3fa9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a0205658a2820dafd8c00fc3d94ec3fa9">aa_fuzz_shader_immediate_coverage_supported</a> (void) const</td></tr>
+<tr class="separator:a0205658a2820dafd8c00fc3d94ec3fa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cbaa204e8bceb71904285cd98f28f0e"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a6cbaa204e8bceb71904285cd98f28f0e">fastest_anti_alias_mode</a> (void) const</td></tr>
 <tr class="separator:a6cbaa204e8bceb71904285cd98f28f0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3b2914836ce01a60bcc004dd4484684"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ab3b2914836ce01a60bcc004dd4484684">fastest_anti_alias_mode</a> (enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a> sh)</td></tr>
 <tr class="separator:ab3b2914836ce01a60bcc004dd4484684"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b86c21a0ff8db1b65cadd9f8049acfa"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a05544dde1269b60c1529d7bbde00fe20">PainterEnums::hq_anti_alias_support_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a4b86c21a0ff8db1b65cadd9f8049acfa">hq_anti_alias_support</a> (void) const</td></tr>
-<tr class="separator:a4b86c21a0ff8db1b65cadd9f8049acfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01e18c7767169cb1ecb55d1d161adb0a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a01e18c7767169cb1ecb55d1d161adb0a">hq_anti_alias_support</a> (enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a05544dde1269b60c1529d7bbde00fe20">PainterEnums::hq_anti_alias_support_t</a> sh)</td></tr>
-<tr class="separator:a01e18c7767169cb1ecb55d1d161adb0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae748893674f18d546d0b153b15e7b3ab"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ae748893674f18d546d0b153b15e7b3ab">item_shader</a> (void) const</td></tr>
 <tr class="separator:ae748893674f18d546d0b153b15e7b3ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc8c7b43a8181130d0c35923215dbe53"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#abc8c7b43a8181130d0c35923215dbe53">item_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;sh)</td></tr>
@@ -119,9 +117,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8be031083e5f88c2c1792b36121eedad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html" title="A PainterFillShader holds the shaders for drawing filled paths. Anti-aliasing is accomplished by draw...">PainterFillShader</a> holds the shaders for drawing filled paths. Anti-aliasing is accomplished by drawing 1-pixel thick rects about the boundary of the filled path. The high quality method <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa6d3ee150af33f519c011f87355ce4080">PainterEnums::shader_anti_alias_high_quality</a> renders the anti-alias pixels in two passes; the first pass to a coverage buffer and the second pass returns the value as the coverage and clears the auxilary buffer. The other renering method, <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fae4d71253cad7d4c01e9221df636768d5">PainterEnums::shader_anti_alias_simple</a>, is a single pass solution that relies on the depth buffer to avoid overdraw at the possible expense than some fragments (typically where the path crosses itself or when the path is drawn very minified) will have lower coverage than they should. </p>
+<div class="textblock"><p>A <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html" title="A PainterFillShader holds the shaders for drawing filled paths. Anti-aliasing is accomplished by draw...">PainterFillShader</a> holds the shaders for drawing filled paths. Anti-aliasing is accomplished by drawing 1-pixel thick rects about the boundary of the filled path. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d8d/painter__fill__shader_8hpp_source.html#l00048">48</a> of file <a class="el" href="../../d6/d8d/painter__fill__shader_8hpp_source.html">painter_fill_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d8d/painter__fill__shader_8hpp_source.html#l00039">39</a> of file <a class="el" href="../../d6/d8d/painter__fill__shader_8hpp_source.html">painter_fill_shader.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a63669d8d4c88a18d4b8ecd4178dd2fd1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63669d8d4c88a18d4b8ecd4178dd2fd1">&#9670;&nbsp;</a></span>PainterFillShader() <span class="overload">[1/2]</span></h2>
@@ -162,14 +160,57 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="af65c5ce96984d288dc8099eac05a6c18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af65c5ce96984d288dc8099eac05a6c18">&#9670;&nbsp;</a></span>aa_fuzz_hq_action_pass1() <span class="overload">[1/2]</span></h2>
+<a id="a6d8d8eccf5177ac53b1836c74506a16b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d8d8eccf5177ac53b1836c74506a16b">&#9670;&nbsp;</a></span>aa_fuzz_deferred_coverage() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_action_pass1 </td>
+          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_deferred_coverage </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a> to use to draw the anti-alias fuzz via the deferred coverage buffer. This shader will draw the aa-fuzz in two passes: the first pass draws the coverage as computed by a fragment shader to the deferred coverage buffer (via the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html#a2a718fc86162342f487a0a19661fe3e6">PainterItemShader::coverage_shader()</a>) and the 2nd pass reads from the deferred coverage buffer to emit the alpha value. </p>
+
+</div>
+</div>
+<a id="a995801e7428120c572b266f9b532b235"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a995801e7428120c572b266f9b532b235">&#9670;&nbsp;</a></span>aa_fuzz_deferred_coverage() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_deferred_coverage </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>sh</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the value returned by aa_fuzz_deferred_coverae(void) const. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sh</td><td>value to use </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a45f1ad1408422357fb8181ea038da9bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45f1ad1408422357fb8181ea038da9bb">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_action_pass1() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_action_pass1 </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -181,14 +222,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ad5d0832c27f5465eccd8a4f0fe968047"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5d0832c27f5465eccd8a4f0fe968047">&#9670;&nbsp;</a></span>aa_fuzz_hq_action_pass1() <span class="overload">[2/2]</span></h2>
+<a id="a8b88e947afb6c65bc95df8311d1e2548"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b88e947afb6c65bc95df8311d1e2548">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_action_pass1() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_action_pass1 </td>
+          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_action_pass1 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>a</em></td><td>)</td>
@@ -196,7 +237,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#af65c5ce96984d288dc8099eac05a6c18">aa_fuzz_hq_action_pass1(void) const</a>. Initial value is nullptr. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a45f1ad1408422357fb8181ea038da9bb">aa_fuzz_immediate_coverage_action_pass1(void) const</a>. Initial value is nullptr. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">a</td><td>value to use </td></tr>
   </table>
@@ -205,14 +246,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ae40efb40d29ce2a55ba9342780ee2273"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae40efb40d29ce2a55ba9342780ee2273">&#9670;&nbsp;</a></span>aa_fuzz_hq_action_pass2() <span class="overload">[1/2]</span></h2>
+<a id="ac52ca15315df59fc9a4161308ba3c0a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac52ca15315df59fc9a4161308ba3c0a1">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_action_pass2() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_action_pass2 </td>
+          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_action_pass2 </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -224,14 +265,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a7c6ab17ca4211b015b75bb43af1d9ab7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7c6ab17ca4211b015b75bb43af1d9ab7">&#9670;&nbsp;</a></span>aa_fuzz_hq_action_pass2() <span class="overload">[2/2]</span></h2>
+<a id="a73bf430e923a7c52e0aa4a196d7c0057"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73bf430e923a7c52e0aa4a196d7c0057">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_action_pass2() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_action_pass2 </td>
+          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_action_pass2 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>a</em></td><td>)</td>
@@ -239,7 +280,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ae40efb40d29ce2a55ba9342780ee2273">aa_fuzz_hq_action_pass2(void) const</a>. Initial value is nullptr. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ac52ca15315df59fc9a4161308ba3c0a1">aa_fuzz_immediate_coverage_action_pass2(void) const</a>. Initial value is nullptr. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">a</td><td>value to use </td></tr>
   </table>
@@ -248,14 +289,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a82a1fc8a466b4583a6a1c5d569459106"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a82a1fc8a466b4583a6a1c5d569459106">&#9670;&nbsp;</a></span>aa_fuzz_hq_shader_pass1() <span class="overload">[1/2]</span></h2>
+<a id="a2bd5b6eecd5ed0eca33c33f7173c771f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bd5b6eecd5ed0eca33c33f7173c771f">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_pass1() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_shader_pass1 </td>
+          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_pass1 </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -263,18 +304,18 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a> to use to draw the 1st pass for high quality anti-alias fuzz around the boundary of a filled path. The expected format of the attributes is as found in the <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> returned by <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html#a537c0683a4f3e52ec698fa26fda375e7">FilledPath::Subset::aa_fuzz_painter_data()</a>. </p>
+<p>Returns the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a> to use to draw the 1st pass of the anti-alias fuzz via the immediate coverage buffer. The first pass renders a coverage value to the immediate coverage buffer and the 2nd pass reads the coverage value from the immediate coverage buffer and clears it. The expected format of the attributes is as found in the <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> returned by <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html#a537c0683a4f3e52ec698fa26fda375e7">FilledPath::Subset::aa_fuzz_painter_data()</a>. </p>
 
 </div>
 </div>
-<a id="af617c1d675908ec0c90ed4dbbb283aef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af617c1d675908ec0c90ed4dbbb283aef">&#9670;&nbsp;</a></span>aa_fuzz_hq_shader_pass1() <span class="overload">[2/2]</span></h2>
+<a id="a081a8b708501950a6def5299ff4e8668"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a081a8b708501950a6def5299ff4e8668">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_pass1() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_shader_pass1 </td>
+          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_pass1 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>sh</em></td><td>)</td>
@@ -282,7 +323,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a82a1fc8a466b4583a6a1c5d569459106">aa_fuzz_hq_shader_pass1(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a2bd5b6eecd5ed0eca33c33f7173c771f">aa_fuzz_immediate_coverage_pass1(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sh</td><td>value to use </td></tr>
   </table>
@@ -291,14 +332,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ad013e998eab198c8f66374a9c3ac49ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad013e998eab198c8f66374a9c3ac49ee">&#9670;&nbsp;</a></span>aa_fuzz_hq_shader_pass2() <span class="overload">[1/2]</span></h2>
+<a id="ab388eaad37836fe0107e80adb38f6ef7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab388eaad37836fe0107e80adb38f6ef7">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_pass2() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_shader_pass2 </td>
+          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_pass2 </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -306,18 +347,18 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a> to use to draw the 2nd pass for high quality anti-alias fuzz around the boundary of a filled path. The expected format of the attributes is as found in the <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> returned by <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html#a537c0683a4f3e52ec698fa26fda375e7">FilledPath::Subset::aa_fuzz_painter_data()</a>. </p>
+<p>Returns the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a> to use to draw the 2nd pass for high quality anti-alias fuzz using the immediate coverage buffer. The expected format of the attributes is as found in the <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> returned by <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html#a537c0683a4f3e52ec698fa26fda375e7">FilledPath::Subset::aa_fuzz_painter_data()</a>. </p>
 
 </div>
 </div>
-<a id="a6a09250ceeb16d97f54422acdd665b27"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a09250ceeb16d97f54422acdd665b27">&#9670;&nbsp;</a></span>aa_fuzz_hq_shader_pass2() <span class="overload">[2/2]</span></h2>
+<a id="a20cca55e9e22fb9a247dbe2e9baebb0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20cca55e9e22fb9a247dbe2e9baebb0b">&#9670;&nbsp;</a></span>aa_fuzz_immediate_coverage_pass2() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_hq_shader_pass2 </td>
+          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_immediate_coverage_pass2 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>sh</em></td><td>)</td>
@@ -325,7 +366,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ad013e998eab198c8f66374a9c3ac49ee">aa_fuzz_hq_shader_pass2(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ab388eaad37836fe0107e80adb38f6ef7">aa_fuzz_immediate_coverage_pass2(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sh</td><td>value to use </td></tr>
   </table>
@@ -334,14 +375,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a2467ec0c1a43a388d312d5a575b80621"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2467ec0c1a43a388d312d5a575b80621">&#9670;&nbsp;</a></span>aa_fuzz_shader() <span class="overload">[1/2]</span></h2>
+<a id="a0205658a2820dafd8c00fc3d94ec3fa9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0205658a2820dafd8c00fc3d94ec3fa9">&#9670;&nbsp;</a></span>aa_fuzz_shader_immediate_coverage_supported()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a>&gt;&amp; fastuidraw::PainterFillShader::aa_fuzz_shader </td>
+          <td class="memname">bool fastuidraw::PainterFillShader::aa_fuzz_shader_immediate_coverage_supported </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -349,28 +390,9 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a> to use to draw the anti-alias fuzz around the boundary of a filled path. The expected format of the attributes is as found in the <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> returned by <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html#a537c0683a4f3e52ec698fa26fda375e7">FilledPath::Subset::aa_fuzz_painter_data()</a>. </p>
-
-</div>
-</div>
-<a id="a860b59d5cf55fb6f5c1af2129544ee6f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a860b59d5cf55fb6f5c1af2129544ee6f">&#9670;&nbsp;</a></span>aa_fuzz_shader() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::aa_fuzz_shader </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>sh</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a2467ec0c1a43a388d312d5a575b80621">aa_fuzz_shader(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Provided as a conveniance; equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a2bd5b6eecd5ed0eca33c33f7173c771f">aa_fuzz_immediate_coverage_pass1</a>()</div><div class="line">  &amp;&amp; <a class="code" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#ab388eaad37836fe0107e80adb38f6ef7">aa_fuzz_immediate_coverage_pass2</a>()</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sh</td><td>value to use </td></tr>
+    <tr><td class="paramname">tp</td><td>arc or linear stroking to query </td></tr>
   </table>
   </dd>
 </dl>
@@ -412,49 +434,6 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a6cbaa204e8bceb71904285cd98f28f0e">fastest_anti_alias_mode(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">sh</td><td>value to use </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a4b86c21a0ff8db1b65cadd9f8049acfa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b86c21a0ff8db1b65cadd9f8049acfa">&#9670;&nbsp;</a></span>hq_anti_alias_support() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a05544dde1269b60c1529d7bbde00fe20">PainterEnums::hq_anti_alias_support_t</a> fastuidraw::PainterFillShader::hq_anti_alias_support </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns if high quality two pass anti-alias shading is supported. </p>
-
-</div>
-</div>
-<a id="a01e18c7767169cb1ecb55d1d161adb0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01e18c7767169cb1ecb55d1d161adb0a">&#9670;&nbsp;</a></span>hq_anti_alias_support() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html">PainterFillShader</a>&amp; fastuidraw::PainterFillShader::hq_anti_alias_support </td>
-          <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a05544dde1269b60c1529d7bbde00fe20">PainterEnums::hq_anti_alias_support_t</a>&#160;</td>
-          <td class="paramname"><em>sh</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../d0/d84/classfastuidraw_1_1_painter_fill_shader.html#a4b86c21a0ff8db1b65cadd9f8049acfa">hq_anti_alias_support(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sh</td><td>value to use </td></tr>
   </table>
@@ -550,7 +529,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/<a class="el" href="../../d6/d8d/painter__fill__shader_8hpp_source.html">painter_fill_shader.hpp</a></li>
+<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/shader/<a class="el" href="../../d6/d8d/painter__fill__shader_8hpp_source.html">painter_fill_shader.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

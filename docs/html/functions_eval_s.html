@@ -64,20 +64,20 @@ $(function() {
 <li>shader
 : <a class="el" href="d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba2d4d935c8cae1d855420be8f70d644d4">fastuidraw::gpu_dirty_state</a>
 </li>
-<li>shader_anti_alias_auto
-: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa29c4f6ed83a55ec7be414bd0229f5d73">fastuidraw::PainterEnums</a>
+<li>shader_anti_alias_adaptive
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fae48edf0d9b348c9664283be99c2692d8">fastuidraw::PainterEnums</a>
+</li>
+<li>shader_anti_alias_deferred_coverage
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa22680f3c7ce73abc46e2e8c51260a6c5">fastuidraw::PainterEnums</a>
 </li>
 <li>shader_anti_alias_fastest
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa311db4364b61d47b5d5042df4517cd79">fastuidraw::PainterEnums</a>
 </li>
-<li>shader_anti_alias_high_quality
-: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa6d3ee150af33f519c011f87355ce4080">fastuidraw::PainterEnums</a>
+<li>shader_anti_alias_immediate_coverage
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22">fastuidraw::PainterEnums</a>
 </li>
 <li>shader_anti_alias_none
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa93cfd6235fe7ae9b1850f07112af4545">fastuidraw::PainterEnums</a>
-</li>
-<li>shader_anti_alias_simple
-: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fae4d71253cad7d4c01e9221df636768d5">fastuidraw::PainterEnums</a>
 </li>
 <li>sin_sign_bit
 : <a class="el" href="d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1a145d5f6483a68a41a1feeea514174835">fastuidraw::StrokedPoint</a>
@@ -106,8 +106,23 @@ $(function() {
 <li>square_caps
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aaf9cd6425a95f3f3668fe9f53123ef396">fastuidraw::PainterEnums</a>
 </li>
+<li>SRC1_ALPHA
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859ae2596441798de4959ac8f6a3969e86ed">fastuidraw::BlendMode</a>
+</li>
+<li>SRC1_COLOR
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859a2dbd93152fa84d57ecd98498c53a3064">fastuidraw::BlendMode</a>
+</li>
 <li>src_abo
 : <a class="el" href="d0/d53/classfastuidraw_1_1gl_1_1_program.html#a89ffc63665401e7ad046ed3fbdeb5fcda4dedd89f9b9434126a68f76a64ed8f23">fastuidraw::gl::Program</a>
+</li>
+<li>SRC_ALPHA
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859aa3d436699938bac1e3de5309897ab610">fastuidraw::BlendMode</a>
+</li>
+<li>SRC_ALPHA_SATURATE
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859a24635094cdaf549f9db2da079cfdefe6">fastuidraw::BlendMode</a>
+</li>
+<li>SRC_COLOR
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859a1ecda21189654558e29b4ed09adaf0c5">fastuidraw::BlendMode</a>
 </li>
 <li>src_default_uniform_block
 : <a class="el" href="d0/d53/classfastuidraw_1_1gl_1_1_program.html#a89ffc63665401e7ad046ed3fbdeb5fcda316d9fec67b92137628d6623367ba811">fastuidraw::gl::Program</a>
@@ -168,11 +183,14 @@ $(function() {
 <li>stroking_method_arc
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dade1434903b8662d7b5a918958f6fca17">fastuidraw::PainterEnums</a>
 </li>
-<li>stroking_method_auto
-: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5da41875c43a8183775be59bcd19a33e5a7">fastuidraw::PainterEnums</a>
+<li>stroking_method_fastest
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">fastuidraw::PainterEnums</a>
 </li>
 <li>stroking_method_linear
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dab9c8c0192fca2f513287232dbee34cde">fastuidraw::PainterEnums</a>
+</li>
+<li>SUBTRACT
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a73b66e27681b83563258b0f2334c2355ac712768b6e13e4f21c01e0d6a62757a1">fastuidraw::BlendMode</a>
 </li>
 <li>sweep_gradient_angle_offset
 : <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#ada2ca9e2625bd1f37beae1952a94963da29fd57c90dbcb32619ccbb96405007df">fastuidraw::PainterBrush</a>

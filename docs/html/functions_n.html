@@ -68,12 +68,6 @@ $(function() {
 , <a class="el" href="d5/de8/classfastuidraw_1_1gl_1_1_program_1_1shader__variable__info.html#ace1d0a12a91cd4c00f65f637ec8f0d18">fastuidraw::gl::Program::shader_variable_info</a>
 , <a class="el" href="d6/d88/classfastuidraw_1_1gl_1_1_shader.html#a981206639c1fd054acf7009200a99824">fastuidraw::gl::Shader</a>
 </li>
-<li>negate_normalized_y_coordinate()
-: <a class="el" href="d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a88952d183a8ba3a83e90d38bd43b10d0">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams</a>
-</li>
-<li>no_auxiliary_buffer
-: <a class="el" href="db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206acf0f0b3412542796e59f526936d5160e">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes</a>
-</li>
 <li>no_gradient()
 : <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#a8f9adbe41eec85eff049ac697e7bdf4c">fastuidraw::PainterBrush</a>
 </li>
@@ -82,6 +76,9 @@ $(function() {
 </li>
 <li>no_image()
 : <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#a95b4c7cbb6620d28f89cee014ffb68b4">fastuidraw::PainterBrush</a>
+</li>
+<li>no_immediate_coverage_buffer
+: <a class="el" href="db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0adb3f1ae964346e90e9e1bd5dc0dd6510">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes</a>
 </li>
 <li>no_joins
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbcabcb159bb7eac36e80839b5278cf87bf6">fastuidraw::PainterEnums</a>
@@ -123,9 +120,6 @@ $(function() {
 <li>normal1_y_sign_mask
 : <a class="el" href="d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a8e0771e5185ea4d2c4460b42ba90563a">fastuidraw::StrokedPoint</a>
 </li>
-<li>normal_vector()
-: <a class="el" href="d1/d96/classfastuidraw_1_1vec_n.html#a66726f16aa2d868d149259a391747d8c">fastuidraw::vecN&lt; T, N &gt;</a>
-</li>
 <li>normalize()
 : <a class="el" href="d1/d96/classfastuidraw_1_1vec_n.html#a54d9c7711027e848ffb94f0b05c9570a">fastuidraw::vecN&lt; T, N &gt;</a>
 </li>
@@ -140,6 +134,9 @@ $(function() {
 </li>
 <li>num_color_layers()
 : <a class="el" href="d5/d27/classfastuidraw_1_1gl_1_1_image_atlas_g_l_1_1params.html#aaf201c91e02b24976d89319cfa61c501">fastuidraw::gl::ImageAtlasGL::params</a>
+</li>
+<li>num_deferred_coverages
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da4fd986fc7f35207d6960b16cb20912ff">fastuidraw::PainterEnums</a>
 </li>
 <li>num_draws
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da20828c6764d62911b9b9a4930a603ae0">fastuidraw::PainterEnums</a>
@@ -207,11 +204,14 @@ $(function() {
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa73e197c0acd6dc0fced1c0b53f7f0367">fastuidraw::PainterEnums</a>
 </li>
 <li>number_cols
-: <a class="el" href="d9/d36/classfastuidraw_1_1matrix_nx_m.html#a7bd564b4ac781e3fe0ffcd81879ab2afa7534c519814ee6b0e8bc903dea11a5e5">fastuidraw::matrixNxM&lt; N, M, T &gt;</a>
+: <a class="el" href="d9/d36/classfastuidraw_1_1matrix_nx_m.html#abb7e2b0e97a97a6dbd76eb993a1a74aba7534c519814ee6b0e8bc903dea11a5e5">fastuidraw::matrixNxM&lt; N, M, T &gt;</a>
 </li>
 <li>number_common_bits
 : <a class="el" href="d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a0364105ff2b0bd42c5bc09085f6de579afae0f960882b5d30f8e00b3365d2aa89">fastuidraw::ArcStrokedPoint</a>
 , <a class="el" href="d4/d1b/classfastuidraw_1_1_stroked_point.html#a3db90bfdf62dcfab204e72c0317b664aa6f915c68ffb3e012edae327c7f4f86d3">fastuidraw::StrokedPoint</a>
+</li>
+<li>number_composite_mode
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a227d3cf153cf652fa27a1649bfdbeb7aa53aec11721a42c586011cf58cc8bfc42">fastuidraw::PainterEnums</a>
 </li>
 <li>number_contours()
 : <a class="el" href="df/dea/classfastuidraw_1_1_path.html#af5f27ee54a6dd4154254394c31a3c74c">fastuidraw::Path</a>
@@ -219,6 +219,9 @@ $(function() {
 </li>
 <li>number_edges()
 : <a class="el" href="da/df4/classfastuidraw_1_1_tessellated_path.html#a568d3c018bd25e6a19afdbb6ce792db6">fastuidraw::TessellatedPath</a>
+</li>
+<li>number_fill_rule
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69a738b2b2027ec0016e48513a6eb58b4fc">fastuidraw::PainterEnums</a>
 </li>
 <li>number_floats()
 : <a class="el" href="d0/de1/classfastuidraw_1_1gl_1_1_glyph_atlas_g_l_1_1params.html#a51434a307ae868804272fc0cfe28d99b">fastuidraw::gl::GlyphAtlasGL::params</a>
@@ -271,16 +274,22 @@ $(function() {
 : <a class="el" href="dc/dfc/classfastuidraw_1_1_path_contour.html#aa4c3d71fb556cdf9048f8c8e42940a06">fastuidraw::PathContour</a>
 </li>
 <li>number_pools()
-: <a class="el" href="dc/db3/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_configuration_g_l.html#aef6503790e536e8ef7ad629f1a6d1620">fastuidraw::gl::PainterBackendGL::ConfigurationGL</a>
+: <a class="el" href="dc/db3/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_configuration_g_l.html#ae62582ed358e5fa4ebf10cc98ac7c287">fastuidraw::gl::PainterBackendGL::ConfigurationGL</a>
 </li>
 <li>number_rows
-: <a class="el" href="d9/d36/classfastuidraw_1_1matrix_nx_m.html#a7bd564b4ac781e3fe0ffcd81879ab2afaf6f4eb85c8b1d52ae99d04d6b58e23e5">fastuidraw::matrixNxM&lt; N, M, T &gt;</a>
+: <a class="el" href="d9/d36/classfastuidraw_1_1matrix_nx_m.html#abb7e2b0e97a97a6dbd76eb993a1a74abaf6f4eb85c8b1d52ae99d04d6b58e23e5">fastuidraw::matrixNxM&lt; N, M, T &gt;</a>
+</li>
+<li>number_shader_anti_alias
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fab0f9239f856bcaa4a146f3438bf7b741">fastuidraw::PainterEnums</a>
 </li>
 <li>number_shader_bits
 : <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#a1fbb71848ccfb03b874de71173e2289da26b7b848b2fa6e38323769a2ee291f1a">fastuidraw::PainterBrush</a>
 </li>
 <li>number_stats()
 : <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a129ee3ccd337c5c952b1c0ba86e6e3e6">fastuidraw::Painter</a>
+</li>
+<li>number_stroking_methods
+: <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5da47179d57c634038e295d6e2c5798e111">fastuidraw::PainterEnums</a>
 </li>
 <li>number_sub_shaders()
 : <a class="el" href="de/d74/classfastuidraw_1_1_painter_shader.html#a9cf30e77d388ec57d660a20bb1d15f3a">fastuidraw::PainterShader</a>

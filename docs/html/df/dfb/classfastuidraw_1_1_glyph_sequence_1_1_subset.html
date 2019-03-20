@@ -75,7 +75,7 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6fbe70fc908c64bec5834a25da34315d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#a6fbe70fc908c64bec5834a25da34315d">attributes_and_indices</a> (<a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> render, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; *out_attributes, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d3/d46/group___painter.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; *out_indices)</td></tr>
+<tr class="memitem:a6fbe70fc908c64bec5834a25da34315d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#a6fbe70fc908c64bec5834a25da34315d">attributes_and_indices</a> (<a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> render, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; *out_attributes, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; *out_indices)</td></tr>
 <tr class="separator:a6fbe70fc908c64bec5834a25da34315d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8ded46b8f9e5706dd625b7e644fd72f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html#ab8ded46b8f9e5706dd625b7e644fd72f">bounding_box</a> (<a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *out_bb_box)</td></tr>
 <tr class="separator:ab8ded46b8f9e5706dd625b7e644fd72f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -116,7 +116,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d3/d46/group___painter.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; *&#160;</td>
+          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; *&#160;</td>
           <td class="paramname"><em>out_indices</em>&#160;</td>
         </tr>
         <tr>
@@ -126,7 +126,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Given a <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>, returns <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> and <a class="el" href="../../d3/d46/group___painter.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> data for specified <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value. The data is constructed lazily on demand. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Given a <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>, returns <a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a> and <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> data for specified <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value. The data is constructed lazily on demand. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">render</td><td><a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html" title="Specifies how to render a glyph. ">GlyphRenderer</a> how to render the glyphs of this <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> </td></tr>
     <tr><td class="paramname">out_attributes</td><td>location to which to write the array of the attributes to render the glyphs </td></tr>
@@ -200,7 +200,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/<a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html">glyph_sequence.hpp</a></li>
+<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/attribute_data/<a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html">glyph_sequence.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

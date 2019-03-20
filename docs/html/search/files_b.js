@@ -35,6 +35,7 @@ var searchData=
   ['painter_5fshader_5fset_2ehpp',['painter_shader_set.hpp',['../df/d62/painter__shader__set_8hpp.html',1,'']]],
   ['painter_5fstroke_5fparams_2ehpp',['painter_stroke_params.hpp',['../d6/db8/painter__stroke__params_8hpp.html',1,'']]],
   ['painter_5fstroke_5fshader_2ehpp',['painter_stroke_shader.hpp',['../d1/d91/painter__stroke__shader_8hpp.html',1,'']]],
+  ['painter_5fsurface_2ehpp',['painter_surface.hpp',['../d2/d7b/painter__surface_8hpp.html',1,'']]],
   ['path_2ehpp',['path.hpp',['../d1/d4c/path_8hpp.html',1,'']]],
   ['path_5fenums_2ehpp',['path_enums.hpp',['../d6/d99/path__enums_8hpp.html',1,'']]],
   ['pixel_5fdistance_5fmath_2ehpp',['pixel_distance_math.hpp',['../dd/de0/pixel__distance__math_8hpp.html',1,'']]]

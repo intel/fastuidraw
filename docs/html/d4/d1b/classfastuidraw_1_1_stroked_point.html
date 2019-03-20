@@ -221,7 +221,7 @@ Public Attributes</h2></td></tr>
 </ul>
 </td></tr>
 <tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299a94c74e9bb1c2b2bbdcdbc487c7808459"></a>offset_rounded_join&#160;</td><td class="fielddoc"><p>The point is for a boundary point of a rounded join of the path. The meanings of the members <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> the .x() component holds the unit normal vector between the join point and the edge going into the join. The .y() component holds the unit normal vector between the join point and the edge leaving the join. The packing is that the x-coordinate value is given and the y-coordinate magnitude is <img class="formulaInl" alt="$ sqrt(1 - x^2) $" src="../../form_1.png"/>. If the bit <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1a9ce19c75868849cfa8ef581c64d492c5">normal0_y_sign_bit</a> is up, then the y-coordinate for the normal vector of going into the join, then the y-value is negative. If the bit <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1aa7d5a5746ad9a6a8ebc5f01a4d6cc89a">normal1_y_sign_bit</a> is up, then the y-coordinate for the normal vector of leaving the join, then the y-value is negative.</li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> the .x() component holds the unit normal vector between the join point and the edge going into the join. The .y() component holds the unit normal vector between the join point and the edge leaving the join. The packing is that the x-coordinate value is given and the y-coordinate magnitude is <img class="formulaInl" alt="$ sqrt(1 - x^2) $" src="../../form_0.png"/>. If the bit <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1a9ce19c75868849cfa8ef581c64d492c5">normal0_y_sign_bit</a> is up, then the y-coordinate for the normal vector of going into the join, then the y-value is negative. If the bit <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1aa7d5a5746ad9a6a8ebc5f01a4d6cc89a">normal1_y_sign_bit</a> is up, then the y-coordinate for the normal vector of leaving the join, then the y-value is negative.</li>
 <li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> the .x() component gives an interpolation in the range [0, 1] to interpolate between the normal vectors packed in <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a>. The .y() value gives the normal vector directly but packed (as in <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a>) where the y-coordinate sign is negative if the bit <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a4ac465cb114de585425162fb54a25288">sin_sign_mask</a> is up. </li>
 </ul>
 </td></tr>
@@ -622,7 +622,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Pack the data of this <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> into a <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a>. The packing is as follows:</p><ul>
+<p>Pack the data of this <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> into a <a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a>. The packing is as follows:</p><ul>
 <li><a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html#a966d21ea328a05102ecd353d8f7a4e9d">PainterAttribute::m_attrib0</a> .xy -&gt; <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a053c7fe06d478575bb5487b8cef85d6d">m_position</a> (float)</li>
 <li><a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html#a966d21ea328a05102ecd353d8f7a4e9d">PainterAttribute::m_attrib0</a> .zw -&gt; <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> (float)</li>
 <li><a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html#a2a16ec1df08ac336bf5f9d566c729e6a">PainterAttribute::m_attrib1</a> .x -&gt; <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a80cafa933790fd1d0382b757dd56f847">m_distance_from_edge_start</a> (float)</li>
@@ -675,7 +675,7 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Unpack a <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> from a <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Unpack a <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> from a <a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">dst</td><td>point to which to unpack data </td></tr>
     <tr><td class="paramname">src</td><td><a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html" title="The attribute data generated/filled by Painter. Attribute data is sent to 3D API as raw bits with the...">PainterAttribute</a> from which to unpack data </td></tr>
@@ -823,7 +823,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/<a class="el" href="../../de/de7/stroked__point_8hpp_source.html">stroked_point.hpp</a></li>
+<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/attribute_data/<a class="el" href="../../de/de7/stroked__point_8hpp_source.html">stroked_point.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

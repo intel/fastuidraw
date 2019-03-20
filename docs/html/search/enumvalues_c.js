@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['no_5fauxiliary_5fbuffer',['no_auxiliary_buffer',['../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206acf0f0b3412542796e59f526936d5160e',1,'fastuidraw::glsl::PainterShaderRegistrarGLSLTypes']]],
   ['no_5fgradient_5ftype',['no_gradient_type',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ac3edf1ceab12796cff0d12fa12689e96ab856b0875fd99184bff29440fc3f0275',1,'fastuidraw::PainterBrush']]],
+  ['no_5fimmediate_5fcoverage_5fbuffer',['no_immediate_coverage_buffer',['../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0adb3f1ae964346e90e9e1bd5dc0dd6510',1,'fastuidraw::glsl::PainterShaderRegistrarGLSLTypes']]],
   ['no_5fjoins',['no_joins',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbcabcb159bb7eac36e80839b5278cf87bf6',1,'fastuidraw::PainterEnums']]],
   ['non_5faa_5fshader',['non_aa_shader',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da9bc77cacfd8767512bd0c0dbf7fa69d3',1,'fastuidraw::PainterStrokeShader']]],
   ['nonzero_5ffill_5frule',['nonzero_fill_rule',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69adbbc71d91502f785fc81efae253ae480',1,'fastuidraw::PainterEnums']]],
@@ -12,6 +12,7 @@ var searchData=
   ['normalized_5ftranslate_5fx',['normalized_translate_x',['../d6/daa/classfastuidraw_1_1_painter_item_matrix.html#ac468cbd213b2a8080adb09c6e39a90fba61e10aca985865543d9279cc144065d4',1,'fastuidraw::PainterItemMatrix']]],
   ['normalized_5ftranslate_5fy',['normalized_translate_y',['../d6/daa/classfastuidraw_1_1_painter_item_matrix.html#ac468cbd213b2a8080adb09c6e39a90fba821c2d4668b868ceb08949f5471251a8',1,'fastuidraw::PainterItemMatrix']]],
   ['num_5fattributes',['num_attributes',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15daf31e8a27fd579da2be313c81f14979a6',1,'fastuidraw::PainterEnums']]],
+  ['num_5fdeferred_5fcoverages',['num_deferred_coverages',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da4fd986fc7f35207d6960b16cb20912ff',1,'fastuidraw::PainterEnums']]],
   ['num_5fdraws',['num_draws',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da20828c6764d62911b9b9a4930a603ae0',1,'fastuidraw::PainterEnums']]],
   ['num_5fends',['num_ends',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15dab730e7a520818c995e90b3de7a6b6f2a',1,'fastuidraw::PainterEnums']]],
   ['num_5fgeneric_5fdatas',['num_generic_datas',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15dace720e0b34f152a9c022b449eab87868',1,'fastuidraw::PainterEnums']]],
@@ -20,10 +21,14 @@ var searchData=
   ['num_5flayers',['num_layers',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15dab7c8147417a2b9041d6116c81df948db',1,'fastuidraw::PainterEnums']]],
   ['num_5frender_5ftargets',['num_render_targets',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15da8039855b74b144a123e79d43003c3e7e',1,'fastuidraw::PainterEnums']]],
   ['number_5fcap_5fstyles',['number_cap_styles',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa73e197c0acd6dc0fced1c0b53f7f0367',1,'fastuidraw::PainterEnums']]],
-  ['number_5fcols',['number_cols',['../d9/d36/classfastuidraw_1_1matrix_nx_m.html#a7bd564b4ac781e3fe0ffcd81879ab2afa7534c519814ee6b0e8bc903dea11a5e5',1,'fastuidraw::matrixNxM']]],
+  ['number_5fcols',['number_cols',['../d9/d36/classfastuidraw_1_1matrix_nx_m.html#abb7e2b0e97a97a6dbd76eb993a1a74aba7534c519814ee6b0e8bc903dea11a5e5',1,'fastuidraw::matrixNxM']]],
   ['number_5fcommon_5fbits',['number_common_bits',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a0364105ff2b0bd42c5bc09085f6de579afae0f960882b5d30f8e00b3365d2aa89',1,'fastuidraw::ArcStrokedPoint::number_common_bits()'],['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a3db90bfdf62dcfab204e72c0317b664aa6f915c68ffb3e012edae327c7f4f86d3',1,'fastuidraw::StrokedPoint::number_common_bits()']]],
+  ['number_5fcomposite_5fmode',['number_composite_mode',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a227d3cf153cf652fa27a1649bfdbeb7aa53aec11721a42c586011cf58cc8bfc42',1,'fastuidraw::PainterEnums']]],
+  ['number_5ffill_5frule',['number_fill_rule',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69a738b2b2027ec0016e48513a6eb58b4fc',1,'fastuidraw::PainterEnums']]],
   ['number_5fjoin_5fstyles',['number_join_styles',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbca3ca539412f32d303ad2d40849676fcb6',1,'fastuidraw::PainterEnums']]],
   ['number_5foffset_5ftypes',['number_offset_types',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a76ed00458679c6b30991f092907f773ca3399117a400e3bcda936a2195a06a7db',1,'fastuidraw::ArcStrokedPoint::number_offset_types()'],['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a6eaca992387f5dd0df1052fdefe75299a6d4f2cde0bce0bf53483ea899b6c9593',1,'fastuidraw::StrokedPoint::number_offset_types()']]],
-  ['number_5frows',['number_rows',['../d9/d36/classfastuidraw_1_1matrix_nx_m.html#a7bd564b4ac781e3fe0ffcd81879ab2afaf6f4eb85c8b1d52ae99d04d6b58e23e5',1,'fastuidraw::matrixNxM']]],
-  ['number_5fshader_5fbits',['number_shader_bits',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a1fbb71848ccfb03b874de71173e2289da26b7b848b2fa6e38323769a2ee291f1a',1,'fastuidraw::PainterBrush']]]
+  ['number_5frows',['number_rows',['../d9/d36/classfastuidraw_1_1matrix_nx_m.html#abb7e2b0e97a97a6dbd76eb993a1a74abaf6f4eb85c8b1d52ae99d04d6b58e23e5',1,'fastuidraw::matrixNxM']]],
+  ['number_5fshader_5fanti_5falias',['number_shader_anti_alias',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fab0f9239f856bcaa4a146f3438bf7b741',1,'fastuidraw::PainterEnums']]],
+  ['number_5fshader_5fbits',['number_shader_bits',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a1fbb71848ccfb03b874de71173e2289da26b7b848b2fa6e38323769a2ee291f1a',1,'fastuidraw::PainterBrush']]],
+  ['number_5fstroking_5fmethods',['number_stroking_methods',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5da47179d57c634038e295d6e2c5798e111',1,'fastuidraw::PainterEnums']]]
 ];

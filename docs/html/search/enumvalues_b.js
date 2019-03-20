@@ -19,6 +19,8 @@ var searchData=
   ['matrix_5frow2_5fcol0_5foffset',['matrix_row2_col0_offset',['../d6/daa/classfastuidraw_1_1_painter_item_matrix.html#ac468cbd213b2a8080adb09c6e39a90fba3d3eb656886d978e823638b3d1e288e0',1,'fastuidraw::PainterItemMatrix']]],
   ['matrix_5frow2_5fcol1_5foffset',['matrix_row2_col1_offset',['../d6/daa/classfastuidraw_1_1_painter_item_matrix.html#ac468cbd213b2a8080adb09c6e39a90fbaa6f4e19ec96ec4fa2d71c2ffc1172b6d',1,'fastuidraw::PainterItemMatrix']]],
   ['matrix_5frow2_5fcol2_5foffset',['matrix_row2_col2_offset',['../d6/daa/classfastuidraw_1_1_painter_item_matrix.html#ac468cbd213b2a8080adb09c6e39a90fba279d5de5cfd25459ce07a9b7f0c6356b',1,'fastuidraw::PainterItemMatrix']]],
+  ['max',['MAX',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a73b66e27681b83563258b0f2334c2355ae74c3a0f0478589a072e6ee7e79757f6',1,'fastuidraw::BlendMode']]],
+  ['min',['MIN',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a73b66e27681b83563258b0f2334c2355a2deddd0647e709749159bbf5e0e4b985',1,'fastuidraw::BlendMode']]],
   ['miter_5fbevel_5fjoins',['miter_bevel_joins',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbca1c9aaef86a50d8ca403d9cee0803d96c',1,'fastuidraw::PainterEnums']]],
   ['miter_5fclip_5fjoins',['miter_clip_joins',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbca8aa4b8595533ded988955ef5633b07d6',1,'fastuidraw::PainterEnums']]],
   ['miter_5fjoins',['miter_joins',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbcaba337968ef1125d91a73aeae4c043b58',1,'fastuidraw::PainterEnums']]],

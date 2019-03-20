@@ -1,16 +1,14 @@
-<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/stroked_caps_joins.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/stroked_caps_joins.hpp">
-<area shape="rect" id="node2" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="73,288,240,329"/>
-<area shape="rect" id="node6" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="1170,295,1333,322"/>
-<area shape="rect" id="node14" href="$df/dce/matrix_8hpp.html" title="file matrix.hpp " alt="" coords="1389,206,1557,233"/>
-<area shape="rect" id="node15" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="869,206,1044,233"/>
-<area shape="rect" id="node16" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="541,199,703,240"/>
-<area shape="rect" id="node20" href="$de/de7/stroked__point_8hpp.html" title="file stroked_point.hpp " alt="" coords="1171,109,1300,151"/>
-<area shape="rect" id="node22" href="$d9/ddd/painter__shader__data_8hpp.html" title="file painter_shader_data.hpp " alt="" coords="811,109,979,151"/>
-<area shape="rect" id="node4" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="5,377,172,419"/>
-<area shape="rect" id="node8" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="806,385,955,411"/>
-<area shape="rect" id="node11" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="1340,385,1501,411"/>
-<area shape="rect" id="node17" href="$d4/df8/reference__count__mutex_8hpp.html" title="file reference_count_mutex.hpp " alt="" coords="264,288,425,329"/>
-<area shape="rect" id="node18" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="449,288,611,329"/>
-<area shape="rect" id="node19" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="635,288,817,329"/>
-<area shape="rect" id="node21" href="$d1/d66/painter__attribute_8hpp.html" title="file painter_attribute.hpp " alt="" coords="1221,199,1365,240"/>
+<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/attribute_data/stroked_caps_joins.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/attribute_data/stroked_caps_joins.hpp">
+<area shape="rect" id="node2" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="20,213,187,255"/>
+<area shape="rect" id="node6" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="993,221,1155,247"/>
+<area shape="rect" id="node14" href="$df/dce/matrix_8hpp.html" title="file matrix.hpp " alt="" coords="1109,131,1277,158"/>
+<area shape="rect" id="node15" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="859,131,1033,158"/>
+<area shape="rect" id="node16" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="372,124,533,165"/>
+<area shape="rect" id="node20" href="$d5/d08/painter__enums_8hpp.html" title="file painter_enums.hpp " alt="" coords="698,124,834,165"/>
+<area shape="rect" id="node4" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="89,303,256,344"/>
+<area shape="rect" id="node8" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="650,310,799,337"/>
+<area shape="rect" id="node11" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="1087,310,1248,337"/>
+<area shape="rect" id="node17" href="$d4/df8/reference__count__mutex_8hpp.html" title="file reference_count_mutex.hpp " alt="" coords="263,213,424,255"/>
+<area shape="rect" id="node18" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="448,213,609,255"/>
+<area shape="rect" id="node19" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="633,213,816,255"/>
 </map>

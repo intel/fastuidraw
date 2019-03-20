@@ -11,10 +11,5 @@ var searchData=
   ['hierarchy_5fleaf_5fcurve_5flist_5fsize_5fbit0',['hierarchy_leaf_curve_list_size_bit0',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784a1ecc92ada95e00574b128d1c49d354a6',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['hierarchy_5fleaf_5fcurve_5flist_5fsize_5fnumbits',['hierarchy_leaf_curve_list_size_numbits',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784afbc883c796f468da01c6503796fea7aa',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['hierarchy_5fsplitting_5fcoordinate_5fbit',['hierarchy_splitting_coordinate_bit',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784a2884a9e9ab4a944e6705aa589c872d88',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
-  ['hq_5faa_5fshader_5fpass1',['hq_aa_shader_pass1',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da06535a6f829f42e23c22448ea1113b71',1,'fastuidraw::PainterStrokeShader']]],
-  ['hq_5faa_5fshader_5fpass2',['hq_aa_shader_pass2',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da1780aa0a1c51ef5213914926021fbff9',1,'fastuidraw::PainterStrokeShader']]],
-  ['hq_5fanti_5falias_5ffast',['hq_anti_alias_fast',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a05544dde1269b60c1529d7bbde00fe20a69e39bc7b1aba7037633ba83b3f06a3e',1,'fastuidraw::PainterEnums']]],
-  ['hq_5fanti_5falias_5fno_5fsupport',['hq_anti_alias_no_support',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a05544dde1269b60c1529d7bbde00fe20a2e13b3deaa4228173897df746ea7a82a',1,'fastuidraw::PainterEnums']]],
-  ['hq_5fanti_5falias_5fslow',['hq_anti_alias_slow',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a05544dde1269b60c1529d7bbde00fe20a3f104b9f8b6b5cf72de8c8c30c9c46e9',1,'fastuidraw::PainterEnums']]],
   ['hw_5fclip',['hw_clip',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba0eb313ac00ef1ba10002b574e465c5b5',1,'fastuidraw::gpu_dirty_state']]]
 ];

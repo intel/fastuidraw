@@ -173,12 +173,15 @@ $(function() {
 : <a class="el" href="d6/d88/classfastuidraw_1_1gl_1_1_shader.html#afa3281e6907f49b7c359ba760bd59ccc">fastuidraw::gl::Shader</a>
 </li>
 <li>default_shaders()
-: <a class="el" href="d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#aed95412bb86322b929e0e6607e7eb949">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams</a>
+: <a class="el" href="d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a0471119787c1a26330d6b06a59332af0">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams</a>
 , <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#af63cbbeb1fda1717e73e0ac31d42ec13">fastuidraw::Painter</a>
 , <a class="el" href="de/da0/classfastuidraw_1_1_painter_backend.html#a7593f08962dea776ffacb8db2846e223">fastuidraw::PainterBackend</a>
 </li>
 <li>default_uniform_block()
 : <a class="el" href="d0/d53/classfastuidraw_1_1gl_1_1_program.html#a5242fe2f7e039e6919aba6a569694eb2">fastuidraw::gl::Program</a>
+</li>
+<li>deferred_coverage_buffer_type
+: <a class="el" href="d5/d60/classfastuidraw_1_1_painter_surface.html#a66b8fea85877f6cb29641e63f240518aac1e03b12bc865f7976083ba6a1622834">fastuidraw::PainterSurface</a>
 </li>
 <li>delayed()
 : <a class="el" href="df/d38/classfastuidraw_1_1gl_1_1_color_stop_atlas_g_l_1_1params.html#a3a4cb12a2644c40a3fac743e7697cacc">fastuidraw::gl::ColorStopAtlasGL::params</a>
@@ -243,9 +246,9 @@ $(function() {
 : <a class="el" href="d9/df4/classfastuidraw_1_1_atlas_color_backing_store_base.html#af59e6cd249a049a0a4f6fa887d273882">fastuidraw::AtlasColorBackingStoreBase</a>
 , <a class="el" href="d0/dff/classfastuidraw_1_1_atlas_index_backing_store_base.html#aaba2bcbe3486349ac7902a0e360547cb">fastuidraw::AtlasIndexBackingStoreBase</a>
 , <a class="el" href="de/dac/classfastuidraw_1_1_color_stop_backing_store.html#ad5f173e3a4780fa9b57f3459c4b1eabb">fastuidraw::ColorStopBackingStore</a>
-, <a class="el" href="d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html#a758ccce861826ad76edb0712ad60ca79">fastuidraw::gl::PainterBackendGL::SurfaceGL</a>
+, <a class="el" href="d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html#abcc8e958109782cf8dad8f36d9ab0ce3">fastuidraw::gl::PainterBackendGL::SurfaceGL</a>
 , <a class="el" href="dc/dd5/classfastuidraw_1_1_image.html#a9ca40de25d5b96168fa8ea03681fbecf">fastuidraw::Image</a>
-, <a class="el" href="d1/dbb/classfastuidraw_1_1_painter_backend_1_1_surface.html#a66070520631ea766c27409b9abe155a8">fastuidraw::PainterBackend::Surface</a>
+, <a class="el" href="d5/d60/classfastuidraw_1_1_painter_surface.html#acf868519100da865bcae8202ebd0228b">fastuidraw::PainterSurface</a>
 </li>
 <li>dimensions_index_divisor()
 : <a class="el" href="dc/dd5/classfastuidraw_1_1_image.html#a8fe911b18bb5ea5b5bd886a7ef5fe28d">fastuidraw::Image</a>
@@ -275,7 +278,7 @@ $(function() {
 : <a class="el" href="d4/d67/classfastuidraw_1_1_painter_draw.html#af69fda40bfed00c10aac158927e96583">fastuidraw::PainterDraw</a>
 </li>
 <li>draw_break()
-: <a class="el" href="d4/d67/classfastuidraw_1_1_painter_draw.html#abe2fd1c52b2c17c565bf344c3c253c39">fastuidraw::PainterDraw</a>
+: <a class="el" href="d4/d67/classfastuidraw_1_1_painter_draw.html#aa159ceb59896c69d5aa787f4f5f7d13a">fastuidraw::PainterDraw</a>
 </li>
 <li>draw_data_added_count()
 : <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a7cce450c8c0d8553b6d44f8773526162">fastuidraw::Painter</a>
@@ -284,10 +287,16 @@ $(function() {
 : <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a5c4700e7611cd067bd1e9eaf72a9c2aa">fastuidraw::Painter</a>
 </li>
 <li>draw_glyphs()
-: <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a42598bf0e90ebd3bb153bcec18c3029d">fastuidraw::Painter</a>
+: <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a8c1d06f2355dcc1c7e65e10188e9fb24">fastuidraw::Painter</a>
 </li>
 <li>drawing_occluder
-: <a class="el" href="d9/d8f/classfastuidraw_1_1_painter_header.html#a4fcb4c623dcefcd0b647fcba42b6fe0da3863bdd17369eb8e9ac726878a5dc246">fastuidraw::PainterHeader</a>
+: <a class="el" href="d9/d8f/classfastuidraw_1_1_painter_header.html#a5ed39c64994e78e20a2256f0b9d5106fa3863bdd17369eb8e9ac726878a5dc246">fastuidraw::PainterHeader</a>
+</li>
+<li>DST_ALPHA
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859ad22ad86f76f80c2b5d1703426b882a5b">fastuidraw::BlendMode</a>
+</li>
+<li>DST_COLOR
+: <a class="el" href="da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859a62e48ea1b69101afcb20b08b855ea91b">fastuidraw::BlendMode</a>
 </li>
 <li>dual_src
 : <a class="el" href="d6/db0/classfastuidraw_1_1_painter_composite_shader.html#ac91222f873cec9a6b8ac06f126abec96ad3235b7426ebecada4ce77163b31afb9">fastuidraw::PainterCompositeShader</a>

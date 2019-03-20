@@ -86,8 +86,8 @@ Inheritance diagram for fastuidraw::glsl::PainterShaderRegistrarGLSLTypes:</div>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d25/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_item_shader_filter.html">ItemShaderFilter</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An <a class="el" href="../../d2/d25/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_item_shader_filter.html" title="An ItemShaderFilter is used to specify whether or not to include a named shader when creating an uber...">ItemShaderFilter</a> is used to specify whether or not to include a named shader when creating an uber-shader.  <a href="../../d2/d25/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_item_shader_filter.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d32/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_shader_filter.html">ShaderFilter</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An <a class="el" href="../../de/d32/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_shader_filter.html" title="An ShaderFilter is used to specify whether or not to include a named shader when creating an uber-sha...">ShaderFilter</a> is used to specify whether or not to include a named shader when creating an uber-shader.  <a href="../../de/d32/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_shader_filter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html" title="An UberShaderParams specifies how to construct an uber-shader. Note that the usage of HW clip-planes ...">UberShaderParams</a> specifies how to construct an uber-shader. Note that the usage of HW clip-planes is specified by ConfigurationGLSL, NOT <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html" title="An UberShaderParams specifies how to construct an uber-shader. Note that the usage of HW clip-planes ...">UberShaderParams</a>.  <a href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#details">More...</a><br /></td></tr>
@@ -95,16 +95,6 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a6d233c9fa975ac60d51634afc5b6c206"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206">auxiliary_buffer_t</a> { <br />
-&#160;&#160;<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206acf0f0b3412542796e59f526936d5160e">no_auxiliary_buffer</a>, 
-<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206a222cf858a3c50688dc5d80495d7170eb">auxiliary_buffer_atomic</a>, 
-<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206afad33cf6edd9b551c102b0fbfd4f2e54">auxiliary_buffer_interlock</a>, 
-<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206aede21966dc3610e9de5799236abec331">auxiliary_buffer_interlock_main_only</a>, 
-<br />
-&#160;&#160;<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206a2485facb8c0a640df33f246ee6bcca3d">auxiliary_buffer_framebuffer_fetch</a>
-<br />
- }</td></tr>
-<tr class="separator:a6d233c9fa975ac60d51634afc5b6c206"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd3aa1f37e9202836e25cf37c4b999df"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#afd3aa1f37e9202836e25cf37c4b999df">clipping_type_t</a> { <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#afd3aa1f37e9202836e25cf37c4b999dfaea545afdefe36d2464096b534c72f0fe">clipping_via_gl_clip_distance</a>, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#afd3aa1f37e9202836e25cf37c4b999dfa948db989077919e5f79ffa5ebe84de3c">clipping_via_discard</a>, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#afd3aa1f37e9202836e25cf37c4b999dfa4eb6f03650ab35b303a10469b6aef18f">clipping_via_skip_color_write</a>
@@ -134,6 +124,12 @@ Public Types</h2></td></tr>
  }<tr class="memdesc:a33e73f20400b909ed8dfde60a8bbee0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to specify how to access the backing store of the glyph data stored in <a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html#a433224350b0e1f63b1c459d49a87e735">GlyphAtlas::store()</a>  <a href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a33e73f20400b909ed8dfde60a8bbee0e">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:a33e73f20400b909ed8dfde60a8bbee0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabbad74d1977e2516284a6aa295cd1f0"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0">immediate_coverage_buffer_t</a> { <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0adb3f1ae964346e90e9e1bd5dc0dd6510">no_immediate_coverage_buffer</a>, 
+<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0a8fab5b9a80247380a23dad1e44b4010f">immediate_coverage_buffer_atomic</a>, 
+<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0a0f543b38d965662a6bf623430e445176">immediate_coverage_buffer_interlock</a>, 
+<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0af4020de81f070da2a2bb4309bb89ba52">immediate_coverage_buffer_interlock_main_only</a>
+ }</td></tr>
+<tr class="separator:aabbad74d1977e2516284a6aa295cd1f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a089b989bafff551140e9613c54252abc"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a089b989bafff551140e9613c54252abc">vertex_shader_in_layout</a> { <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a089b989bafff551140e9613c54252abca0b73fd717d7125f872694238aa5805fe">attribute0_slot</a> = 0, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a089b989bafff551140e9613c54252abca2ad1e2028e4a643d2d1d32a3e62d33a7">attribute1_slot</a>, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a089b989bafff551140e9613c54252abca83294d6a0e61e0f262c9d62dc2286248">attribute2_slot</a>, 
@@ -150,37 +146,8 @@ Public Types</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Conveniance class to hold types from which to inherit </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00037">37</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00038">38</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="a6d233c9fa975ac60d51634afc5b6c206"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d233c9fa975ac60d51634afc5b6c206">&#9670;&nbsp;</a></span>auxiliary_buffer_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a6d233c9fa975ac60d51634afc5b6c206">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::auxiliary_buffer_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Enumeration to describe auxiliary buffer support </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6d233c9fa975ac60d51634afc5b6c206acf0f0b3412542796e59f526936d5160e"></a>no_auxiliary_buffer&#160;</td><td class="fielddoc"><p>No auxiliary buffer is present </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a6d233c9fa975ac60d51634afc5b6c206a222cf858a3c50688dc5d80495d7170eb"></a>auxiliary_buffer_atomic&#160;</td><td class="fielddoc"><p>Auxiliary buffer is realized by atomic operations; To guarantee ordering between computing coverage and using coverage a backend must intert a memory barrier at the API level between such passed (for example in GL, glMemoryBarrier()).The buffer is realized as an "r32ui" image2D in the shader source. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a6d233c9fa975ac60d51634afc5b6c206afad33cf6edd9b551c102b0fbfd4f2e54"></a>auxiliary_buffer_interlock&#160;</td><td class="fielddoc"><p>Auxiliary buffer is present and ordering guarantees are implemented by an interlock that can be called in GLSL from any function and/or control flow. This allows for cover then draw methods to be performed WITHOUT any draw-breaks. The buffer is realized as an "r8" image2D in the shader source. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a6d233c9fa975ac60d51634afc5b6c206aede21966dc3610e9de5799236abec331"></a>auxiliary_buffer_interlock_main_only&#160;</td><td class="fielddoc"><p>Auxiliary buffer is present and ordering guarantees are implemented by an interlock that can only be called in GLSL from main under NO conrol flow. This allows for cover then draw methods to be performed WITHOUT any draw-breaks. The buffer is realized as an "r8" image2D in the shader source. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a6d233c9fa975ac60d51634afc5b6c206a2485facb8c0a640df33f246ee6bcca3d"></a>auxiliary_buffer_framebuffer_fetch&#160;</td><td class="fielddoc"><p>Auxiliary buffer is present and ordering guarantees are implemented via framebuffer fetch, i.e. the auxiliary buffer is present as an inout global with type float and layout(location = 1). </p>
-</td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00195">195</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
-
-</div>
-</div>
 <a id="afd3aa1f37e9202836e25cf37c4b999df"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afd3aa1f37e9202836e25cf37c4b999df">&#9670;&nbsp;</a></span>clipping_type_t</h2>
 
@@ -202,7 +169,7 @@ Public Types</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00071">71</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00072">72</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 
 </div>
 </div>
@@ -226,7 +193,7 @@ Public Types</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00157">157</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00158">158</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 
 </div>
 </div>
@@ -254,7 +221,7 @@ Public Types</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00101">101</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00102">102</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 
 </div>
 </div>
@@ -280,7 +247,7 @@ Public Types</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00045">45</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00046">46</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 
 </div>
 </div>
@@ -306,7 +273,34 @@ Public Types</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00134">134</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00135">135</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+
+</div>
+</div>
+<a id="aabbad74d1977e2516284a6aa295cd1f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabbad74d1977e2516284a6aa295cd1f0">&#9670;&nbsp;</a></span>immediate_coverage_buffer_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0">fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::immediate_coverage_buffer_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Enumeration to describe immediate auxiliary buffer support; An immediate auxiliary buffer is available only to <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> shaders whose PainterItemShader::render_type() has value PainterItemShader::color_buffer_type(). The immediate auxiliary buffer is used for multi-pass algorithms where a first pass writes a coverage value and the second reads and clears the coverage value to do shader-based anti-aliasing. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aabbad74d1977e2516284a6aa295cd1f0adb3f1ae964346e90e9e1bd5dc0dd6510"></a>no_immediate_coverage_buffer&#160;</td><td class="fielddoc"><p>No auxiliary buffer is present </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aabbad74d1977e2516284a6aa295cd1f0a8fab5b9a80247380a23dad1e44b4010f"></a>immediate_coverage_buffer_atomic&#160;</td><td class="fielddoc"><p>Auxiliary buffer is realized by atomic operations; To guarantee ordering between computing coverage and using coverage a backend must intert a memory barrier at the API level between such passed (for example in GL, glMemoryBarrier()).The buffer is realized as an "r32ui" image2D in the shader source. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aabbad74d1977e2516284a6aa295cd1f0a0f543b38d965662a6bf623430e445176"></a>immediate_coverage_buffer_interlock&#160;</td><td class="fielddoc"><p>Auxiliary buffer is present and ordering guarantees are implemented by an interlock that can be called in GLSL from any function and/or control flow. This allows for cover then draw methods to be performed WITHOUT any draw-breaks. The buffer is realized as an "r8" image2D in the shader source. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aabbad74d1977e2516284a6aa295cd1f0af4020de81f070da2a2bb4309bb89ba52"></a>immediate_coverage_buffer_interlock_main_only&#160;</td><td class="fielddoc"><p>Auxiliary buffer is present and ordering guarantees are implemented by an interlock that can only be called in GLSL from main under NO conrol flow. This allows for cover then draw methods to be performed WITHOUT any draw-breaks. The buffer is realized as an "r8" image2D in the shader source. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00203">203</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 
 </div>
 </div>
@@ -358,7 +352,7 @@ Public Types</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00177">177</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00178">178</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 
 </div>
 </div>
