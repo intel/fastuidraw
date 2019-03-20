@@ -473,6 +473,22 @@ namespace fastuidraw
       return func_dst(dst);
     }
 
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum equation_t);
+
+    /*!
+     * Returns a \ref c_string for an enumerated value.
+     * \param v value to get the label-string of.
+     */
+    static
+    c_string
+    label(enum func_t);
+
   private:
     enum
       {
