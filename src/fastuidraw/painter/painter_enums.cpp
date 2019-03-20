@@ -143,9 +143,9 @@ label(enum shader_anti_alias_t v)
     {
       [shader_anti_alias_none] = "shader_anti_alias_none",
       [shader_anti_alias_simple] = "shader_anti_alias_simple",
-      [shader_anti_alias_hq_immediate_coverage] = "shader_anti_alias_hq_immediate_coverage",
-      [shader_anti_alias_hq_deferred_coverage] = "shader_anti_alias_hq_deferred_coverage",
-      [shader_anti_alias_hq_adaptive] = "shader_anti_alias_hq_adaptive",
+      [shader_anti_alias_immediate_coverage] = "shader_anti_alias_immediate_coverage",
+      [shader_anti_alias_deferred_coverage] = "shader_anti_alias_deferred_coverage",
+      [shader_anti_alias_adaptive] = "shader_anti_alias_adaptive",
       [shader_anti_alias_fastest] = "shader_anti_alias_fastest",
     };
   return (v < number_shader_anti_alias) ? labels[v] : "InvalidEnum";

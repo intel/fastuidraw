@@ -215,7 +215,7 @@ namespace fastuidraw
          * IMMEDIATE coverage buffer and the 2nd pass reads
          * from it and uses that as the coverage value.
          */
-        shader_anti_alias_hq_immediate_coverage,
+        shader_anti_alias_immediate_coverage,
 
         /*!
          * Applies higher quality anti-aliasing shading
@@ -227,15 +227,15 @@ namespace fastuidraw
          * DEFERRED coverage buffer and the 2nd pass reads
          * from it and uses that as the coverage value.
          */
-        shader_anti_alias_hq_deferred_coverage,
+        shader_anti_alias_deferred_coverage,
 
         /*!
-         * Represents to use either \ref shader_anti_alias_hq_immediate_coverage
-         * or \ref shader_anti_alias_hq_deferred_coverage decided from
+         * Represents to use either \ref shader_anti_alias_immediate_coverage
+         * or \ref shader_anti_alias_deferred_coverage decided from
          * which modes are supported and the size of deferred coverage
          * buffer needed.
          */
-        shader_anti_alias_hq_adaptive,
+        shader_anti_alias_adaptive,
 
         /* make the modes that indicate for Painter to choose
          * to come after the modes that precisely specify a

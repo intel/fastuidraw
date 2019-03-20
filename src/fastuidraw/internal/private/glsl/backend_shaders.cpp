@@ -453,12 +453,12 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
       is_hq_shader = false;
       break;
 
-    case PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1:
+    case PainterStrokeShader::aa_shader_immediate_coverage_pass1:
       render_pass = render_aa_pass1;
       is_hq_shader = true;
       break;
 
-    case PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2:
+    case PainterStrokeShader::aa_shader_immediate_coverage_pass2:
       render_pass = render_aa_pass2;
       is_hq_shader = true;
       break;
@@ -738,8 +738,8 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
 
   return_value
     .stroking_data_selector(stroke_data_selector)
-    .hq_aa_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
-    .hq_aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
+    .aa_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
+    .aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
 
   for (unsigned int tp = 0; tp < PainterEnums::stroking_method_number_precise_choices; ++tp)
     {
@@ -752,10 +752,10 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
           bool is_hq_pass;
 
           e_sh = static_cast<enum PainterStrokeShader::shader_type_t>(sh);
-          is_hq_pass = (e_sh == PainterStrokeShader::hq_aa_shader_immediate_coverage_pass1
-                        || e_sh == PainterStrokeShader::hq_aa_shader_immediate_coverage_pass2);
+          is_hq_pass = (e_sh == PainterStrokeShader::aa_shader_immediate_coverage_pass1
+                        || e_sh == PainterStrokeShader::aa_shader_immediate_coverage_pass2);
 
-          if (e_sh == PainterStrokeShader::hq_aa_shader_deferred_coverage)
+          if (e_sh == PainterStrokeShader::aa_shader_deferred_coverage)
             {
               return_value.shader(e_tp, e_sh,
                                   create_stroke_item_shader_using_coverage(cap_style, e_tp));
@@ -781,12 +781,12 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
         .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
         .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
         .fastest_anti_aliasing(PainterEnums::stroking_method_linear,
-                               PainterEnums::shader_anti_alias_hq_adaptive);
+                               PainterEnums::shader_anti_alias_adaptive);
     }
 
   return_value
     .fastest_anti_aliasing(PainterEnums::stroking_method_arc,
-                           PainterEnums::shader_anti_alias_hq_adaptive);
+                           PainterEnums::shader_anti_alias_adaptive);
 
   return return_value;
 }
@@ -855,10 +855,10 @@ create_fill_shader(void)
       hq2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_hq_pass2);
 
       fill_shader
-        .aa_fuzz_hq_immediate_coverage_pass1(hq1)
-        .aa_fuzz_hq_immediate_coverage_pass2(hq2)
-        .aa_fuzz_hq_immediate_coverage_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
-        .aa_fuzz_hq_immediate_coverage_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
+        .aa_fuzz_immediate_coverage_pass1(hq1)
+        .aa_fuzz_immediate_coverage_pass2(hq2)
+        .aa_fuzz_immediate_coverage_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
+        .aa_fuzz_immediate_coverage_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
     }
 
   /* the aa-fuzz shader via deferred coverage is not a part of the uber-fuzz shader */
@@ -895,7 +895,7 @@ create_fill_shader(void)
                                                          varying_list().add_float_varying("fastuidraw_aa_fuzz"),
                                                          aa_fuzz_deferred_coverage);
 
-  fill_shader.aa_fuzz_hq_deferred_coverage(aa_fuzz_deferred);
+  fill_shader.aa_fuzz_deferred_coverage(aa_fuzz_deferred);
 
   return fill_shader;
 }

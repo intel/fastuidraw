@@ -1115,7 +1115,7 @@ namespace fastuidraw
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                 const StrokedPath &path, float rounded_thresh,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Stroke a path.
@@ -1130,7 +1130,7 @@ namespace fastuidraw
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive,
+                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive,
                 enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1145,7 +1145,7 @@ namespace fastuidraw
     void
     stroke_path(const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive,
+                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive,
                 enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1164,7 +1164,7 @@ namespace fastuidraw
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
                        const StrokedPath &path, float rounded_thresh,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Stroke a path dashed.
@@ -1179,7 +1179,7 @@ namespace fastuidraw
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive,
+                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive,
                        enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1194,7 +1194,7 @@ namespace fastuidraw
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive,
+                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive,
                        enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1311,7 +1311,7 @@ namespace fastuidraw
     void
     fill_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
                         c_array<const vec2> pts,
-                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Fill a convex polygon using the default fill shader.
@@ -1323,7 +1323,7 @@ namespace fastuidraw
      */
     void
     fill_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
-                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Fill a convex quad using a custom shader.
@@ -1339,7 +1339,7 @@ namespace fastuidraw
     void
     fill_quad(const PainterFillShader &shader, const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Fill a quad using the default fill shader.
@@ -1354,7 +1354,7 @@ namespace fastuidraw
     void
     fill_quad(const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Fill a rect using a custom shader.
@@ -1367,7 +1367,7 @@ namespace fastuidraw
     void
     fill_rect(const PainterFillShader &shader, const PainterData &draw,
               const Rect &rect,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Fill a rect using the default fill shader.
@@ -1378,7 +1378,7 @@ namespace fastuidraw
      */
     void
     fill_rect(const PainterData &draw, const Rect &rect,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Fill a rounded rect using a fill shader
@@ -1391,7 +1391,7 @@ namespace fastuidraw
     void
     fill_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
                       const RoundedRect &R,
-                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Fill a rounded rect using the default fill shader
@@ -1402,7 +1402,7 @@ namespace fastuidraw
      */
     void
     fill_rounded_rect(const PainterData &draw, const RoundedRect &R,
-                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_adaptive);
 
     /*!
      * Draw generic attribute data.

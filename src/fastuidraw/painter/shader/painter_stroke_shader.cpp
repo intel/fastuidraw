@@ -30,13 +30,13 @@ namespace
     PainterStrokeShaderPrivate(void):
       m_fastest_anti_aliased_stroking_method(fastuidraw::PainterEnums::stroking_method_arc),
       m_fastest_non_anti_aliased_stroking_method(fastuidraw::PainterEnums::stroking_method_linear),
-      m_fastest_anti_aliasing(fastuidraw::PainterEnums::shader_anti_alias_hq_adaptive)
+      m_fastest_anti_aliasing(fastuidraw::PainterEnums::shader_anti_alias_adaptive)
     {}
 
     fastuidraw::vecN<shader_set, fastuidraw::PainterEnums::stroking_method_number_precise_choices> m_shaders;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> m_stroking_data_selector;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_hq_aa_action_pass1;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_hq_aa_action_pass2;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_action_pass1;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_action_pass2;
 
     enum fastuidraw::PainterEnums::stroking_method_t m_fastest_anti_aliased_stroking_method;
     enum fastuidraw::PainterEnums::stroking_method_t m_fastest_non_anti_aliased_stroking_method;
@@ -116,12 +116,12 @@ fastest_anti_aliasing(enum PainterEnums::stroking_method_t tp,
 
 bool
 fastuidraw::PainterStrokeShader::
-hq_aa_shader_immediate_coverage_supported(enum PainterEnums::stroking_method_t tp) const
+aa_shader_immediate_coverage_supported(enum PainterEnums::stroking_method_t tp) const
 {
   PainterStrokeShaderPrivate *d;
   d = static_cast<PainterStrokeShaderPrivate*>(m_d);
-  return d->m_shaders[tp][hq_aa_shader_immediate_coverage_pass1]
-    && d->m_shaders[tp][hq_aa_shader_immediate_coverage_pass2];
+  return d->m_shaders[tp][aa_shader_immediate_coverage_pass1]
+    && d->m_shaders[tp][aa_shader_immediate_coverage_pass2];
 }
 
 setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
@@ -138,8 +138,8 @@ setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
 
 setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
                  const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
-                 hq_aa_action_pass1)
+                 aa_action_pass1)
 
 setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
                  const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
-                 hq_aa_action_pass2)
+                 aa_action_pass2)

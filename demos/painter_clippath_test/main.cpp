@@ -159,7 +159,7 @@ painter_clip_test():
   m_combine_clip_mode(separate_clipping),
   m_rounded_rect_mode(no_clip),
   m_active_transformer(view_transformer),
-  m_aa_mode(Painter::shader_anti_alias_hq_adaptive)
+  m_aa_mode(Painter::shader_anti_alias_adaptive)
 {
   std::cout << "Controls:\n"
             << "\t1: cycle through clip modes for path1\n"

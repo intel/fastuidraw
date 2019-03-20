@@ -150,14 +150,14 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterStrokeShader holds shaders for stroking. Both
-   * \ref PainterEnums::shader_anti_alias_hq_immediate_coverage and
+   * \ref PainterEnums::shader_anti_alias_immediate_coverage and
    * \ref PainterEnums::shader_anti_alias_simple are two pass
    * solutions. For PainterEnums::shader_anti_alias_simple,
    * the first pass draws the portions of the path that have
    * 100% coverage and the 2nd pass draws those portions with
    * less than 100% coverage; both of these passes rely on
    * depth testing to prevent overdraw. For \ref
-   * PainterEnums::shader_anti_alias_hq_immediate_coverage, the first
+   * PainterEnums::shader_anti_alias_immediate_coverage, the first
    * pass draws to an offscreen coverage buffer the coverage
    * values so that when a fragment is hit multiple times
    * the largest coverage value is retained and the 2nd pass
@@ -206,23 +206,23 @@ namespace fastuidraw
 
         /*!
          * Specify the shader for the 1st pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_hq_immediate_coverage which
+         * for \ref PainterEnums::shader_anti_alias_immediate_coverage which
          * draws to a the immediate coverage buffer the coverage of a
          * fragment area by the stroked path. The item's vertex shader
          * it to emit a depth value of 0. It is optional to support
          * this shader type.
          */
-        hq_aa_shader_immediate_coverage_pass1,
+        aa_shader_immediate_coverage_pass1,
 
         /*!
          * Specify the shader for the 2nd pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_hq_immediate_coverage which
+         * for \ref PainterEnums::shader_anti_alias_immediate_coverage which
          * draws emits the coverage value from the immediated coverage
          * buffer and clears the value from the immediate coverage buffer
          * as well. The item's vertex shader it to emit a depth value of
          * 0.  It is optional to support this shader type.
          */
-        hq_aa_shader_immediate_coverage_pass2,
+        aa_shader_immediate_coverage_pass2,
 
         /*!
          * Specifies a two-pass shader where the first pass renders to the
@@ -232,7 +232,7 @@ namespace fastuidraw
          * there is no overdraw, see \ref StrokedPoint::depth() and \ref
          * ArcStrokedPoint::depth().
          */
-        hq_aa_shader_deferred_coverage,
+        aa_shader_deferred_coverage,
 
         number_shader_types,
       };
@@ -329,13 +329,13 @@ namespace fastuidraw
     /*!
      * Provided as a conveniance; equivalent to
      * \code
-     * shader(tp, hq_aa_shader_immediate_coverage_pass1)
-     *   && shader(tp, hq_aa_shader_immediate_coverage_pass2)
+     * shader(tp, aa_shader_immediate_coverage_pass1)
+     *   && shader(tp, aa_shader_immediate_coverage_pass2)
      * \endcode
      * \param tp arc or linear stroking to query
      */
     bool
-    hq_aa_shader_immediate_coverage_supported(enum PainterEnums::stroking_method_t tp) const;
+    aa_shader_immediate_coverage_supported(enum PainterEnums::stroking_method_t tp) const;
 
     /*!
      * Returns the action to be called before the 1st high quality
@@ -343,15 +343,15 @@ namespace fastuidraw
      * (and thus no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    hq_aa_action_pass1(void) const;
+    aa_action_pass1(void) const;
 
     /*!
-     * Set the value returned by hq_aa_action_pass1(void) const.
+     * Set the value returned by aa_action_pass1(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterStrokeShader&
-    hq_aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
+    aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
      * Returns the action to be called before the 2nd high quality
@@ -359,15 +359,15 @@ namespace fastuidraw
      * (and thus no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    hq_aa_action_pass2(void) const;
+    aa_action_pass2(void) const;
 
     /*!
-     * Set the value returned by hq_aa_action_pass2(void) const.
+     * Set the value returned by aa_action_pass2(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterStrokeShader&
-    hq_aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
+    aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
      * Returns the StrokingDataSelectorBase associated to this

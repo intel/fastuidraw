@@ -227,9 +227,9 @@ painter_cells(void):
                              enumerated_string_type<enum Painter::shader_anti_alias_t>()
                              .add_entry("shader_anti_alias_none", Painter::shader_anti_alias_none, "")
                              .add_entry("shader_anti_alias_simple", Painter::shader_anti_alias_simple, "")
-                             .add_entry("shader_anti_alias_hq_immediate_coverage", Painter::shader_anti_alias_hq_immediate_coverage, "")
-                             .add_entry("shader_anti_alias_hq_deferred_coverage", Painter::shader_anti_alias_hq_deferred_coverage, "")
-                             .add_entry("shader_anti_alias_hq_adaptive", Painter::shader_anti_alias_hq_adaptive, "")
+                             .add_entry("shader_anti_alias_immediate_coverage", Painter::shader_anti_alias_immediate_coverage, "")
+                             .add_entry("shader_anti_alias_deferred_coverage", Painter::shader_anti_alias_deferred_coverage, "")
+                             .add_entry("shader_anti_alias_adaptive", Painter::shader_anti_alias_adaptive, "")
                              .add_entry("shader_anti_alias_fastest", Painter::shader_anti_alias_fastest, ""),
                              "init_antialias_stroking",
                              "Initial value for anti-aliasing for stroking",

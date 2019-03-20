@@ -84,13 +84,13 @@ namespace fastuidraw
     /*!
      * Provided as a conveniance; equivalent to
      * \code
-     * aa_fuzz_hq_immediate_coverage_pass1()
-     *   && aa_fuzz_hq_immediate_coverage_pass2()
+     * aa_fuzz_immediate_coverage_pass1()
+     *   && aa_fuzz_immediate_coverage_pass2()
      * \endcode
      * \param tp arc or linear stroking to query
      */
     bool
-    hq_aa_fuzz_shader_immediate_coverage_supported(void) const;
+    aa_fuzz_shader_immediate_coverage_supported(void) const;
 
     /*!
      * Used by \ref Painter for the PainterEnums:shader_anti_alias_t
@@ -136,14 +136,14 @@ namespace fastuidraw
      * buffer to emit the alpha value.
      */
     const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_hq_deferred_coverage(void) const;
+    aa_fuzz_deferred_coverage(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_deferred_coverae(void) const.
+     * Set the value returned by aa_fuzz_deferred_coverae(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_deferred_coverage(const reference_counted_ptr<PainterItemShader> &sh);
+    aa_fuzz_deferred_coverage(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the PainterItemShader to use to draw
@@ -157,14 +157,14 @@ namespace fastuidraw
      * \ref FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_hq_immediate_coverage_pass1(void) const;
+    aa_fuzz_immediate_coverage_pass1(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_immediate_coverage_pass1(void) const.
+     * Set the value returned by aa_fuzz_immediate_coverage_pass1(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_immediate_coverage_pass1(const reference_counted_ptr<PainterItemShader> &sh);
+    aa_fuzz_immediate_coverage_pass1(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the PainterItemShader to use to draw
@@ -175,14 +175,14 @@ namespace fastuidraw
      * \ref FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
-    aa_fuzz_hq_immediate_coverage_pass2(void) const;
+    aa_fuzz_immediate_coverage_pass2(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_immediate_coverage_pass2(void) const.
+     * Set the value returned by aa_fuzz_immediate_coverage_pass2(void) const.
      * \param sh value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_immediate_coverage_pass2(const reference_counted_ptr<PainterItemShader> &sh);
+    aa_fuzz_immediate_coverage_pass2(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the action to be called before the 1st pass
@@ -191,15 +191,15 @@ namespace fastuidraw
      * no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    aa_fuzz_hq_immediate_coverage_action_pass1(void) const;
+    aa_fuzz_immediate_coverage_action_pass1(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_immediate_coverage_action_pass1(void) const.
+     * Set the value returned by aa_fuzz_immediate_coverage_action_pass1(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_immediate_coverage_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
+    aa_fuzz_immediate_coverage_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
      * Returns the action to be called before the 2nd pass
@@ -208,15 +208,15 @@ namespace fastuidraw
      * no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
-    aa_fuzz_hq_immediate_coverage_action_pass2(void) const;
+    aa_fuzz_immediate_coverage_action_pass2(void) const;
 
     /*!
-     * Set the value returned by aa_fuzz_hq_immediate_coverage_action_pass2(void) const.
+     * Set the value returned by aa_fuzz_immediate_coverage_action_pass2(void) const.
      * Initial value is nullptr.
      * \param a value to use
      */
     PainterFillShader&
-    aa_fuzz_hq_immediate_coverage_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
+    aa_fuzz_immediate_coverage_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
 
   private:
     void *m_d;
