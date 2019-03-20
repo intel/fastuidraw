@@ -1,6 +1,6 @@
 <map id="fastuidraw::PainterItemCoverageShader" name="fastuidraw::PainterItemCoverageShader">
 <area shape="rect" id="node5" href="$d5/dd9/classfastuidraw_1_1glsl_1_1_painter_item_coverage_shader_g_l_s_l.html" title="A PainterItemCoverageShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegi..." alt="" coords="23,333,201,375"/>
 <area shape="rect" id="node2" href="$de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. " alt="" coords="26,169,198,196"/>
-<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="11,80,213,121"/>
+<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="17,80,207,121"/>
 <area shape="rect" id="node4" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="31,5,193,32"/>
 </map>

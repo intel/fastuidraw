@@ -1,4 +1,4 @@
 <map id="fastuidraw::FreeTypeLib" name="fastuidraw::FreeTypeLib">
-<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,197,121"/>
-<area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="20,5,183,32"/>
+<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,184,121"/>
+<area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="13,5,176,32"/>
 </map>

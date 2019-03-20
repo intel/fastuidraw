@@ -1,5 +1,5 @@
 <map id="fastuidraw::PainterSurface" name="fastuidraw::PainterSurface">
-<area shape="rect" id="node4" href="$d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html" title="fastuidraw::gl::PainterBackend\lGL::SurfaceGL" alt="" coords="9,244,209,285"/>
-<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,212,121"/>
-<area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="27,5,190,32"/>
+<area shape="rect" id="node4" href="$d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html" title="fastuidraw::gl::PainterBackend\lGL::SurfaceGL" alt="" coords="5,244,205,285"/>
+<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="9,80,202,121"/>
+<area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="24,5,187,32"/>
 </map>

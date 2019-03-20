@@ -1,6 +1,6 @@
 <map id="fastuidraw::APICallbackSet::CallBack" name="fastuidraw::APICallbackSet::CallBack">
 <area shape="rect" id="node4" href="$d1/ded/classfastuidraw_1_1egl__binding_1_1_callback_e_g_l.html" title="A CallbackEGL defines the interface (via its base class) for callbacks before and after each EGL call..." alt="" coords="5,259,160,300"/>
 <area shape="rect" id="node5" href="$d9/ded/classfastuidraw_1_1gl__binding_1_1_callback_g_l.html" title="A CallbackGL defines the interface (via its base class) for callbacks before and after each GL call..." alt="" coords="185,259,333,300"/>
-<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="84,80,257,121"/>
+<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="91,80,251,121"/>
 <area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="89,5,252,32"/>
 </map>

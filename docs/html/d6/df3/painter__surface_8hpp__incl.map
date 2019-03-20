@@ -1,15 +1,14 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_surface.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_surface.hpp">
 <area shape="rect" id="node2" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="167,370,329,397"/>
-<area shape="rect" id="node10" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="725,273,886,315"/>
-<area shape="rect" id="node18" href="$d0/db4/rect_8hpp_source.html" title="fastuidraw/util/rect.hpp" alt="" coords="5,281,160,307"/>
-<area shape="rect" id="node19" href="$d3/d42/image_8hpp.html" title="file image.hpp " alt="" coords="268,124,415,151"/>
-<area shape="rect" id="node4" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="535,459,684,486"/>
+<area shape="rect" id="node10" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="558,273,719,315"/>
+<area shape="rect" id="node17" href="$d0/db4/rect_8hpp_source.html" title="fastuidraw/util/rect.hpp" alt="" coords="5,281,160,307"/>
+<area shape="rect" id="node18" href="$d3/d42/image_8hpp.html" title="file image.hpp " alt="" coords="268,124,415,151"/>
+<area shape="rect" id="node4" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="456,459,605,486"/>
 <area shape="rect" id="node7" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="65,459,226,486"/>
-<area shape="rect" id="node11" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="1158,363,1325,404"/>
-<area shape="rect" id="node15" href="$d4/df8/reference__count__mutex_8hpp.html" title="file reference_count_mutex.hpp " alt="" coords="973,363,1134,404"/>
-<area shape="rect" id="node16" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="529,363,690,404"/>
-<area shape="rect" id="node17" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="714,363,897,404"/>
-<area shape="rect" id="node13" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="1089,452,1255,493"/>
-<area shape="rect" id="node20" href="$d8/d02/image__atlas_8hpp.html" title="file image_atlas.hpp " alt="" coords="283,199,464,225"/>
-<area shape="rect" id="node21" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="286,281,461,307"/>
+<area shape="rect" id="node11" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="971,363,1138,404"/>
+<area shape="rect" id="node15" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="579,363,741,404"/>
+<area shape="rect" id="node16" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="765,363,947,404"/>
+<area shape="rect" id="node13" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="902,452,1069,493"/>
+<area shape="rect" id="node19" href="$d8/d02/image__atlas_8hpp.html" title="file image_atlas.hpp " alt="" coords="283,199,464,225"/>
+<area shape="rect" id="node20" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="286,281,461,307"/>
 </map>

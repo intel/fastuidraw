@@ -1,5 +1,5 @@
 <map id="fastuidraw::gl::ImageAtlasGL" name="fastuidraw::gl::ImageAtlasGL">
 <area shape="rect" id="node2" href="$d7/d13/classfastuidraw_1_1_image_atlas.html" title="An ImageAtlas is a common location to place images of an application. " alt="" coords="23,169,179,196"/>
-<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="7,80,194,121"/>
+<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="14,80,187,121"/>
 <area shape="rect" id="node4" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="19,5,182,32"/>
 </map>

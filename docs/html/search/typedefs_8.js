@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['painterindex',['PainterIndex',['../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519',1,'fastuidraw']]],
-  ['pointer',['pointer',['../de/df7/classfastuidraw_1_1c__array.html#a652fedd7e8f2d347a96ec37ef161a720',1,'fastuidraw::c_array::pointer()'],['../d1/d96/classfastuidraw_1_1vec_n.html#a62819d974fffa33bf173b7af008d6db4',1,'fastuidraw::vecN::pointer()']]],
-  ['pointer_5fto_5ffield',['pointer_to_field',['../d7/d5e/classfastuidraw_1_1_painter_attribute.html#af11b6e7d1c2b0638b11d71df81c59eef',1,'fastuidraw::PainterAttribute']]]
+  ['samplerinitializer',['SamplerInitializer',['../d5/de7/group___g_l_utility.html#gade83f8589b4a3d76d7db724ab5b67575',1,'fastuidraw::gl']]],
+  ['size_5ftype',['size_type',['../de/df7/classfastuidraw_1_1c__array.html#ae53e7a81c86a45efe53ee7142c07bb50',1,'fastuidraw::c_array::size_type()'],['../d1/d96/classfastuidraw_1_1vec_n.html#ae7ea4d1f5fee6e3991f0f24553b03da5',1,'fastuidraw::vecN::size_type()']]]
 ];

@@ -77,18 +77,10 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:abd70180a73bb412377693ad815891a57"><td class="memItemLeft" align="right" valign="top"><a id="abd70180a73bb412377693ad815891a57"></a>
-typedef <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">reference_counted_base</a>&lt; T, <a class="el" href="../../dc/d69/classfastuidraw_1_1reference__count__atomic.html">reference_count_atomic</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/db6/classfastuidraw_1_1reference__counted.html#abd70180a73bb412377693ad815891a57">atomic</a></td></tr>
-<tr class="memdesc:abd70180a73bb412377693ad815891a57"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef to reference counting which is thread safe by atomically adding and removing reference. <br /></td></tr>
-<tr class="separator:abd70180a73bb412377693ad815891a57"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80f84d86b13dc14e733e9db14b0ac633"><td class="memItemLeft" align="right" valign="top"><a id="a80f84d86b13dc14e733e9db14b0ac633"></a>
-typedef <a class="el" href="../../dd/db6/classfastuidraw_1_1reference__counted.html#abd70180a73bb412377693ad815891a57">atomic</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/db6/classfastuidraw_1_1reference__counted.html#a80f84d86b13dc14e733e9db14b0ac633">default_base</a></td></tr>
-<tr class="memdesc:a80f84d86b13dc14e733e9db14b0ac633"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef for "default" way to reference count. <br /></td></tr>
-<tr class="separator:a80f84d86b13dc14e733e9db14b0ac633"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6740e82a56c43bc18636edf49222aa09"><td class="memItemLeft" align="right" valign="top"><a id="a6740e82a56c43bc18636edf49222aa09"></a>
-typedef <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">reference_counted_base</a>&lt; T, <a class="el" href="../../d6/d36/classfastuidraw_1_1reference__count__mutex.html">reference_count_mutex</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/db6/classfastuidraw_1_1reference__counted.html#a6740e82a56c43bc18636edf49222aa09">mutex</a></td></tr>
-<tr class="memdesc:a6740e82a56c43bc18636edf49222aa09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef to reference counting which is thread safe by locking a mutex on adding and removing reference. <br /></td></tr>
-<tr class="separator:a6740e82a56c43bc18636edf49222aa09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d6ee9b6a92e67805dec6fe16cba6170"><td class="memItemLeft" align="right" valign="top"><a id="a0d6ee9b6a92e67805dec6fe16cba6170"></a>
+typedef <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">reference_counted_base</a>&lt; T, <a class="el" href="../../dc/d69/classfastuidraw_1_1reference__count__atomic.html">reference_count_atomic</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/db6/classfastuidraw_1_1reference__counted.html#a0d6ee9b6a92e67805dec6fe16cba6170">concurrent</a></td></tr>
+<tr class="memdesc:a0d6ee9b6a92e67805dec6fe16cba6170"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef to reference counting which is thread safe by atomically adding and removing reference. <br /></td></tr>
+<tr class="separator:a0d6ee9b6a92e67805dec6fe16cba6170"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3a4191987cdf5bab7133f292a149d95"><td class="memItemLeft" align="right" valign="top"><a id="ab3a4191987cdf5bab7133f292a149d95"></a>
 typedef <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">reference_counted_base</a>&lt; T, <a class="el" href="../../dc/d59/classfastuidraw_1_1reference__count__non__concurrent.html">reference_count_non_concurrent</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/db6/classfastuidraw_1_1reference__counted.html#ab3a4191987cdf5bab7133f292a149d95">non_concurrent</a></td></tr>
 <tr class="memdesc:ab3a4191987cdf5bab7133f292a149d95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef to reference counting which is NOT thread safe. <br /></td></tr>
@@ -101,7 +93,7 @@ class fastuidraw::reference_counted&lt; T &gt;</h3>
 <p>Defines default reference counting base classes. </p>
 <p>See also <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_...">reference_counted_base</a> and <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html" title="A wrapper over a pointer to implement reference counting. ">reference_counted_ptr</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00484">484</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00483">483</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/util/<a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a></li>
 </ul>

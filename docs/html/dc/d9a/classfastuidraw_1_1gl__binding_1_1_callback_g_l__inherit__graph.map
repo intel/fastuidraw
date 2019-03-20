@@ -1,5 +1,5 @@
 <map id="fastuidraw::gl_binding::CallbackGL" name="fastuidraw::gl_binding::CallbackGL">
 <area shape="rect" id="node2" href="$dc/d3e/classfastuidraw_1_1_a_p_i_callback_set_1_1_call_back.html" title="fastuidraw::APICallbackSet\l::CallBack" alt="" coords="5,169,188,211"/>
-<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="10,80,183,121"/>
+<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="17,80,177,121"/>
 <area shape="rect" id="node4" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="15,5,178,32"/>
 </map>
