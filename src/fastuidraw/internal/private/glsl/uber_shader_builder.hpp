@@ -25,7 +25,6 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -161,10 +160,6 @@ void
 stream_uber_composite_shader(bool use_switch, ShaderSource &frag,
                              c_array<const reference_counted_ptr<PainterCompositeShaderGLSL> > composite_shaders,
                              enum PainterCompositeShader::shader_type tp);
-
-void
-stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
-                         c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders);
 
 
 }}}

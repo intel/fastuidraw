@@ -154,25 +154,6 @@ namespace fastuidraw
     }
 
     /*!
-     * Returns the active blend shader
-     */
-    PainterBlendShader*
-    blend_shader(void) const
-    {
-      return m_blend_shader;
-    }
-
-    /*!
-     * Sets the active blend shader.
-     * \param h blend shader to use for blending.
-     */
-    void
-    blend_shader(PainterBlendShader* h)
-    {
-      m_blend_shader = h;
-    }
-
-    /*!
      * Add a \ref DataCallBack to this PainterPacker. A fixed DataCallBack
      * can only be active on one PainterPacker, but a single PainterPacker
      * can have multiple objects active on it. Callback objects are called
@@ -389,10 +370,6 @@ namespace fastuidraw
 
     static
     uint32_t
-    blend_group(const PainterShaderGroup *md);
-
-    static
-    uint32_t
     item_group(const PainterShaderGroup *md);
 
     static
@@ -450,7 +427,6 @@ namespace fastuidraw
     PainterData::value<PainterBrush> m_default_brush;
     unsigned int m_header_size;
 
-    PainterBlendShader *m_blend_shader;
     PainterCompositeShader *m_composite_shader;
     BlendMode m_composite_mode;
     painter_state_location m_painter_state_location;

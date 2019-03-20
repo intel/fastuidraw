@@ -169,30 +169,6 @@ namespace fastuidraw
     }
 
     /*!
-     * Ctor to initialize three fields.
-     * \param r1 calls one of the set() functions relying on C++
-     *           conversion and template logic to select the correct
-     *           field to set.
-     * \param r2 calls one of the set() functions relying on C++
-     *           conversion and template logic to select the correct
-     *           field to set.
-     * \param r3 calls one of the set() functions relying on C++
-     *           conversion and template logic to select the correct
-     *           field to set.
-     * \param r4 calls one of the set() functions relying on C++
-     *           conversion and template logic to select the correct
-     *           field to set.
-     */
-    template<typename T1, typename T2, typename T3, typename T4>
-    PainterData(const T1 &r1, const T2 &r2, const T3 &r3, const T4 &r4)
-    {
-      set(r1);
-      set(r2);
-      set(r3);
-      set(r4);
-    }
-
-    /*!
      * value for brush
      */
     value<PainterBrush> m_brush;
@@ -206,11 +182,6 @@ namespace fastuidraw
      * value for composite shader data
      */
     value<PainterCompositeShaderData> m_composite_shader_data;
-
-    /*!
-     * value for blend shader data
-     */
-    value<PainterBlendShaderData> m_blend_shader_data;
 
     /*!
      * Sets \ref m_brush
@@ -243,19 +214,9 @@ namespace fastuidraw
     }
 
     /*!
-     * Sets \ref m_blend_shader_data
-     */
-    PainterData&
-    set(const value<PainterBlendShaderData> &value)
-    {
-      m_blend_shader_data = value;
-      return *this;
-    }
-
-    /*!
      * Call value::make_packed() on \ref m_brush,
-     * \ref m_item_shader_data, \ref m_blend_shader_data
-     * and \ref m_composite_shader_data.
+     * \ref m_item_shader_data, and \ref
+     * m_composite_shader_data.
      * \param pool \ref PainterPackedValuePool from
      *             which to create the packed value
      */
@@ -265,7 +226,6 @@ namespace fastuidraw
       m_brush.make_packed(pool);
       m_item_shader_data.make_packed(pool);
       m_composite_shader_data.make_packed(pool);
-      m_blend_shader_data.make_packed(pool);
     }
   };
 

@@ -86,17 +86,6 @@ compute_composite_shader_group(PainterShader::Tag tag,
 
 uint32_t
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-compute_blend_shader_group(PainterShader::Tag tag,
-                           const reference_counted_ptr<PainterBlendShader> &shader)
-{
-  FASTUIDRAWunused(shader);
-  return m_params.break_on_shader_change() ?
-    tag.m_ID:
-    0u;
-}
-
-uint32_t
-fastuidraw::gl::detail::PainterShaderRegistrarGL::
 compute_item_shader_group(PainterShader::Tag tag,
                           const reference_counted_ptr<PainterItemShader> &shader)
 {

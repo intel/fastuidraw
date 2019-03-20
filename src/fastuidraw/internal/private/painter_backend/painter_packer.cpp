@@ -32,7 +32,6 @@ namespace
   public:
     uint32_t m_composite_group;
     uint32_t m_item_group;
-    uint32_t m_blend_group;
     uint32_t m_brush;
     fastuidraw::BlendMode m_composite_mode;
   };
@@ -239,7 +238,6 @@ public:
               unsigned int header_size,
               fastuidraw::ivec2 deferred_coverage_buffer_offset,
               uint32_t brush_shader,
-              PainterBlendShader *blend_shader,
               PainterCompositeShader *composite_shader,
               BlendMode mode,
               T *item_shader,
@@ -307,7 +305,6 @@ per_draw_command(const reference_counted_ptr<PainterDraw> &r,
   m_prev_state.m_item_group = 0;
   m_prev_state.m_brush = 0;
   m_prev_state.m_composite_group = 0;
-  m_prev_state.m_blend_group = 0;
   m_prev_state.m_composite_mode.set_as_invalid();
 }
 
@@ -403,7 +400,6 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
   if (render_type == PainterSurface::color_buffer_type)
     {
       pack_state_data(render_type, p, state.m_composite_shader_data, out_data.m_composite_shader_data_loc);
-      pack_state_data(render_type, p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
       if (state.m_brush.has_data())
         {
           pack_state_data(render_type, p, state.m_brush, out_data.m_brush_shader_data_loc);
@@ -416,7 +412,6 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
   else
     {
       out_data.m_composite_shader_data_loc = 0u;
-      out_data.m_blend_shader_data_loc = 0u;
       out_data.m_brush_shader_data_loc = 0u;
     }
 }
@@ -428,7 +423,6 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
             unsigned int header_size,
             fastuidraw::ivec2 deferred_coverage_buffer_offset,
             uint32_t brush_shader,
-            PainterBlendShader *blend_shader,
             PainterCompositeShader *composite_shader,
             BlendMode composite_mode,
             T *item_shader,
@@ -446,7 +440,6 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
 
   PainterShaderGroupPrivate current;
   PainterShader::Tag composite;
-  PainterShader::Tag blend;
 
   FASTUIDRAWassert(item_shader);
   if (render_type == PainterSurface::color_buffer_type)
@@ -454,10 +447,6 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
       if (composite_shader)
         {
           composite = composite_shader->tag();
-        }
-      if (blend_shader)
-        {
-          blend = blend_shader->tag();
         }
     }
   else
@@ -473,7 +462,6 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
     }
 
   current.m_item_group = item_shader->group();
-  current.m_blend_group = blend.m_group;
   current.m_brush = brush_shader;
   current.m_composite_group = composite.m_group;
   current.m_composite_mode = composite_mode;
@@ -483,11 +471,9 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
   header.m_brush_shader_data_location = loc.m_brush_shader_data_loc;
   header.m_item_shader_data_location = loc.m_item_shader_data_loc;
   header.m_composite_shader_data_location = loc.m_composite_shader_data_loc;
-  header.m_blend_shader_data_location = loc.m_blend_shader_data_loc;
   header.m_item_shader = item_shader->ID();
   header.m_brush_shader = current.m_brush;
   header.m_composite_shader = composite.m_ID;
-  header.m_blend_shader = blend.m_ID;
   header.m_z = z;
   header.m_offset_to_deferred_coverage = deferred_coverage_buffer_offset;
   header.pack_data(dst);
@@ -496,7 +482,6 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
       || current.m_composite_mode != m_prev_state.m_composite_mode
       || (render_type == PainterSurface::color_buffer_type &&
           (current.m_composite_group != m_prev_state.m_composite_group
-           || current.m_blend_group != m_prev_state.m_blend_group
            || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u)))
     {
       return_value = m_draw_command->draw_break(render_type,
@@ -549,7 +534,6 @@ PainterPacker(PainterPackedValuePool &pool,
               vecN<unsigned int, num_stats> &stats,
               reference_counted_ptr<PainterBackend> backend):
   m_backend(backend),
-  m_blend_shader(nullptr),
   m_composite_shader(nullptr),
   m_number_commands(0),
   m_clear_color_buffer(false),
@@ -627,7 +611,6 @@ compute_room_needed_for_packing(const PainterPackerData &draw_state)
     {
       R += compute_room_needed_for_packing(draw_state.m_brush);
       R += compute_room_needed_for_packing(draw_state.m_composite_shader_data);
-      R += compute_room_needed_for_packing(draw_state.m_blend_shader_data);
     }
   return R;
 }
@@ -754,7 +737,6 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
           draw_break_added = cmd.pack_header(m_render_type, m_header_size,
                                              deferred_coverage_buffer_offset,
                                              fetch_value(draw.m_brush).shader(),
-                                             m_blend_shader,
                                              m_composite_shader,
                                              m_composite_mode,
                                              shader.get(),
@@ -1013,15 +995,6 @@ composite_group(const PainterShaderGroup *md)
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(md);
   return d->m_composite_group;
-}
-
-uint32_t
-fastuidraw::PainterPacker::
-blend_group(const PainterShaderGroup *md)
-{
-  const PainterShaderGroupPrivate *d;
-  d = static_cast<const PainterShaderGroupPrivate*>(md);
-  return d->m_blend_group;
 }
 
 uint32_t

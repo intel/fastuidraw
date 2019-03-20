@@ -299,16 +299,6 @@ namespace fastuidraw
         composite_porter_duff_plus, /*!< Plus operator mode of Porter-Duff */
         composite_porter_duff_modulate, /*! < Modulate operator mode of Porter-Duff */
 
-        number_composite_mode,
-      };
-
-    /*!
-     * \brief
-     * Enumeration specifying W3C blending modes
-     */
-    enum blend_w3c_mode_t
-      {
-        blend_w3c_normal, /*!< W3C multiply mode: Src, i.e. no blending operation */
         blend_w3c_multiply, /*!< W3C multiply mode: Dest * Src */
         blend_w3c_screen, /*!< W3C screen mode: 1 - (1 - Dest) * (1 - Src) */
 
@@ -381,7 +371,7 @@ namespace fastuidraw
          */
         blend_w3c_luminosity,
 
-        number_blend_mode,
+        number_composite_mode,
       };
 
     /*!
@@ -540,14 +530,6 @@ namespace fastuidraw
     static
     c_string
     label(enum composite_mode_t v);
-
-    /*!
-     * Returns a \ref c_string for an enumerated value.
-     * \param v value to get the label-string of.
-     */
-    static
-    c_string
-    label(enum blend_w3c_mode_t v);
 
     /*!
      * Returns a \ref c_string for an enumerated value.

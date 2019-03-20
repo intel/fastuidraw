@@ -24,7 +24,6 @@
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/shader/painter_glyph_shader.hpp>
 #include <fastuidraw/painter/shader/painter_composite_shader_set.hpp>
-#include <fastuidraw/painter/shader/painter_blend_shader_set.hpp>
 #include <fastuidraw/painter/shader/painter_dashed_stroke_shader_set.hpp>
 
 namespace fastuidraw
@@ -140,20 +139,6 @@ namespace fastuidraw
      */
     PainterShaderSet&
     composite_shaders(const PainterCompositeShaderSet &sh);
-
-    /*!
-     * Blend shaders. If an element is a nullptr shader, then that
-     * blend mode is not supported.
-     */
-    const PainterBlendShaderSet&
-    blend_shaders(void) const;
-
-    /*!
-     * Set the value returned by blend_shaders(void) const.
-     * \param sh value to use
-     */
-    PainterShaderSet&
-    blend_shaders(const PainterBlendShaderSet &sh);
 
   private:
     void *m_d;

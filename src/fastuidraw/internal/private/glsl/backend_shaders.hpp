@@ -20,7 +20,6 @@
 
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -186,12 +185,6 @@ private:
 
   PainterFillShader
   create_fill_shader(void);
-
-  reference_counted_ptr<PainterBlendShader>
-  create_blend_shader(const std::string &framebuffer_fetch_src_file);
-
-  PainterBlendShaderSet
-  create_blend_shaders(void);
 
   bool m_has_auxiliary_coverage_buffer;
   reference_counted_ptr<const PainterDraw::Action> m_flush_immediate_coverage_buffer_between_draws;

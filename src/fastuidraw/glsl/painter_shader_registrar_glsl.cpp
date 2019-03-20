@@ -31,7 +31,6 @@
 #include <fastuidraw/painter/backend/painter_item_matrix.hpp>
 #include <fastuidraw/painter/backend/painter_clip_equations.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/glsl/unpack_source_generator.hpp>
@@ -93,7 +92,6 @@ namespace
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_composite_shader_use_switch(false),
-      m_blend_shader_use_switch(false),
       m_unpack_header_and_brush_in_frag_shader(false),
       m_data_store_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_tbo),
       m_data_blocks_per_store_buffer(-1),
@@ -133,7 +131,6 @@ namespace
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_composite_shader_use_switch;
-    bool m_blend_shader_use_switch;
     bool m_unpack_header_and_brush_in_frag_shader;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
     int m_data_blocks_per_store_buffer;
@@ -290,8 +287,6 @@ namespace
 
     fastuidraw::vecN<CompositeShaderGroup, fastuidraw::PainterCompositeShader::number_types> m_composite_shaders;
     unsigned int m_next_composite_shader_ID;
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterBlendShaderGLSL> > m_blend_shaders;
-    unsigned int m_next_blend_shader_ID;
     fastuidraw::glsl::ShaderSource m_constant_code;
     fastuidraw::glsl::ShaderSource m_vert_shader_utils;
     fastuidraw::glsl::ShaderSource m_frag_shader_utils;
@@ -305,8 +300,7 @@ namespace
 // PainterShaderRegistrarGLSLPrivate methods
 PainterShaderRegistrarGLSLPrivate::
 PainterShaderRegistrarGLSLPrivate(void):
-  m_next_composite_shader_ID(1),
-  m_next_blend_shader_ID(1)
+  m_next_composite_shader_ID(1)
 {
   /* add varyings needed by fastuidraw_painter_main
    */
@@ -361,8 +355,6 @@ ready_main_varyings(void)
     .add_uint_varying("fastuidraw_frag_shader_data_location")
     .add_uint_varying("fastuidraw_composite_shader")
     .add_uint_varying("fastuidraw_composite_shader_data_location")
-    .add_uint_varying("fastuidraw_blend_shader")
-    .add_uint_varying("fastuidraw_blend_shader_data_location")
     .add_uint_varying("fastuidraw_deferred_buffer_offset_packed")
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
@@ -651,12 +643,10 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str,
     .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::composite_shader_data_location_offset, ".composite_shader_data_location", UnpackSourceGenerator::uint_type)
-    .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::brush_shader_offset, ".brush_shader", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::z_offset, ".z", UnpackSourceGenerator::int_type)
     .set(PainterHeader::item_shader_offset, ".item_shader", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::composite_shader_offset, ".composite_shader", UnpackSourceGenerator::uint_type)
-    .set(PainterHeader::blend_shader_offset, ".blend_shader", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::offset_to_deferred_coverage_offset, ".deferred_buffer_offset_packed", UnpackSourceGenerator::uint_type)
     .stream_unpack_function(str, "fastuidraw_read_header", false);
 
@@ -1096,18 +1086,15 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
 
   stream_unpack_code(vert, render_type);
 
-  bool blending_supported(false);
   c_string shader_composite_macro;
   switch(params.compositing_type())
     {
     case PainterShaderRegistrarGLSL::compositing_framebuffer_fetch:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
-      blending_supported = true;
       break;
 
     case PainterShaderRegistrarGLSL::compositing_interlock:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_INTERLOCK";
-      blending_supported = true;
       break;
 
     case PainterShaderRegistrarGLSL::compositing_dual_src:
@@ -1214,12 +1201,6 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
       stream_uber_composite_shader(params.composite_shader_use_switch(), frag,
                                    make_c_array(m_composite_shaders[composite_type].m_shaders),
                                    composite_type);
-
-      if (blending_supported)
-        {
-          stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
-                                   make_c_array(m_blend_shaders));
-        }
     }
 }
 
@@ -1581,8 +1562,6 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, composite_shader_use_switch)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, bool, blend_shader_use_switch)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, unpack_header_and_brush_in_frag_shader)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, use_uvec2_for_bindless_handle)
@@ -1712,16 +1691,6 @@ compute_composite_shader_group(PainterShader::Tag tag,
   return 0u;
 }
 
-uint32_t
-fastuidraw::glsl::PainterShaderRegistrarGLSL::
-compute_blend_shader_group(PainterShader::Tag tag,
-                           const reference_counted_ptr<PainterBlendShader> &shader)
-{
-  FASTUIDRAWunused(shader);
-  FASTUIDRAWunused(tag);
-  return 0u;
-}
-
 fastuidraw::PainterShader::Tag
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
@@ -1815,39 +1784,6 @@ compute_composite_sub_shader_group(const reference_counted_ptr<PainterCompositeS
   return compute_composite_shader_group(tg, shader);
 }
 
-fastuidraw::PainterShader::Tag
-fastuidraw::glsl::PainterShaderRegistrarGLSL::
-absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
-{
-  PainterShaderRegistrarGLSLPrivate *d;
-  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-
-  reference_counted_ptr<glsl::PainterBlendShaderGLSL> h;
-  PainterShader::Tag return_value;
-
-  FASTUIDRAWassert(!shader->parent());
-  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
-  h = shader.static_cast_ptr<PainterBlendShaderGLSL>();
-
-  d->m_blend_shaders.push_back(h);
-
-  return_value.m_ID = d->m_next_blend_shader_ID;
-  return_value.m_group = 0;
-  d->m_next_blend_shader_ID += h->number_sub_shaders();
-  return_value.m_group = compute_blend_shader_group(return_value, shader);
-
-  return return_value;
-}
-
-uint32_t
-fastuidraw::glsl::PainterShaderRegistrarGLSL::
-compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader)
-{
-  PainterShader::Tag tg(shader->parent()->tag());
-  tg.m_ID += shader->sub_shader();
-  return compute_blend_shader_group(tg, shader);
-}
-
 unsigned int
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 registered_shader_count(void)
@@ -1856,8 +1792,7 @@ registered_shader_count(void)
   PainterShaderRegistrarGLSLPrivate *d;
 
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  return_value = d->m_blend_shaders.size()
-    + d->m_item_shaders.m_shaders.size()
+  return_value = d->m_item_shaders.m_shaders.size()
     + d->m_item_coverage_shaders.m_shaders.size();
   for (unsigned int i = 0; i < PainterCompositeShader::number_types; ++i)
     {

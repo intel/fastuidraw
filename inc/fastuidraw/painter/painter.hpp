@@ -65,7 +65,6 @@ namespace fastuidraw
    *  - drawing text
    *  - applying a brush (see \ref PainterBrush)
    *  - compositing (see \ref PainterEnums::composite_mode_t)
-   *  - blending (see \ref PainterEnums::blend_w3c_mode_t)
    *  - single 3x3 transformation
    *  - save and restore state
    *  - transparency layers
@@ -95,12 +94,9 @@ namespace fastuidraw
    *     where alpha is a coverage value
    *   # Modulate by the PainterBrush passing the item coordinates
    *     of the pixel to the \ref PainterBrush
-   *   # Apply blending (see PainterEnums::blend_w3c_mode_t and
-   *     Painter::blend_shader()) to the RGB value from the brush
-   *     against the current value in the framebuffer
    *   # Apply compositing (see PainterEnums::composite_mode_t and
-   *     Painter::composite_shader()) to the RGBA value after blending
-   *     against the current value in the framebuffer
+   *     Painter::composite_shader()) to the RGBA value against the
+   *     current value in the framebuffer
    *
    * Painter uses clip-planes and the depth buffer to perform clipping.
    * The depth-buffer clips by occluding elements. For example, the
@@ -286,32 +282,6 @@ namespace fastuidraw
     composite_shader(enum composite_mode_t m)
     {
       composite_shader(default_shaders().composite_shaders(), m);
-    }
-
-    /*!
-     * Returns the active blend shader
-     */
-    PainterBlendShader*
-    blend_shader(void) const;
-
-    /*!
-     * Sets the active blend shader.
-     * \param h blend shader to use for blending.
-     */
-    void
-    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
-
-    /*!
-     * Equivalent to
-     * \code
-     * blend_shader(default_shaders().blend_shaders().shader(m))
-     * \endcode
-     * \param m blend mode to use
-     */
-    void
-    blend_shader(enum blend_w3c_mode_t m)
-    {
-      blend_shader(default_shaders().blend_shaders().shader(m));
     }
 
     /*!
@@ -718,7 +688,6 @@ namespace fastuidraw
      * - curve flatness requirement (see curve_flatness(float))
      * - composite shader (see composite_shader())
      * - composite mode (see composite_mode())
-     * - blend shader (see blend_shader())
      * NOTE: it is an error (that is silently ignored) to end a
      * transparency layer (see begin_layer() and end_layer())
      * within a save()/restore() pair that was not started within
@@ -742,12 +711,12 @@ namespace fastuidraw
      * Begin a transparency layer. This marks first
      * rendering into an offscreen buffer and then
      * blitting the buffer. The buffer will be blitted
-     * with the composite_shader(), composite_mode()
-     * and blend_shader() at the time of the call to
-     * begin_layer(). All restore() commands called
-     * after a begin_layer() must match a save() from
-     * after a begin_layer(). It is acceptable to layer
-     * any number of begin_layer() calls as well.
+     * with the composite_shader(), and composite_mode()
+     * at the time of the call to begin_layer(). All
+     * restore() commands called* after a begin_layer()
+     * must match a save() from after a begin_layer().
+     * It is acceptable to layer any number of begin_layer()
+     * calls as well.
      * \param color_modulate color value by which to modulate
      *                       the layer when it is to be blitted
      */

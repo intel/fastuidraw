@@ -30,7 +30,6 @@ namespace
     fastuidraw::PainterDashedStrokeShaderSet m_dashed_stroke_shader;
     fastuidraw::PainterFillShader m_fill_shader;
     fastuidraw::PainterCompositeShaderSet m_composite_shaders;
-    fastuidraw::PainterBlendShaderSet m_blend_shaders;
   };
 }
 
@@ -74,6 +73,3 @@ setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
 
 setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
                  const fastuidraw::PainterCompositeShaderSet&, composite_shaders)
-
-setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
-                 const fastuidraw::PainterBlendShaderSet&, blend_shaders)

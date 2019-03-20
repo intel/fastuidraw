@@ -51,7 +51,6 @@ protected:
 
 private:
   typedef std::pair<enum Painter::composite_mode_t, std::string> named_composite_mode;
-  typedef std::pair<enum Painter::blend_w3c_mode_t, std::string> named_blend_mode;
 
   static
   void
@@ -117,9 +116,6 @@ private:
 
   unsigned int m_current_composite;
   std::vector<named_composite_mode> m_composite_labels;
-
-  unsigned int m_current_blend;
-  std::vector<named_blend_mode> m_blend_labels;
 
   int m_frame;
   uint64_t m_benchmark_time_us;
@@ -235,7 +231,6 @@ painter_cells(void):
                              *this),
   m_table(nullptr),
   m_current_composite(0),
-  m_current_blend(0),
   m_show_surface(0),
   m_last_shown_surface(0)
 {
@@ -515,13 +510,12 @@ derived_init(int w, int h)
   ADD_COMPOSITE_MODE(composite_porter_duff_xor);
 
 #define ADD_BLEND_MODE(X) do {                                          \
-    if (m_painter->default_shaders().blend_shaders().shader(Painter::X)) \
+    if (m_painter->default_shaders().composite_shaders().shader(Painter::X)) \
       {                                                                 \
-        m_blend_labels.push_back(named_blend_mode(Painter::X, #X)); \
+        m_composite_labels.push_back(named_composite_mode(Painter::X, #X)); \
       }                                                                 \
   } while(0)
 
-  ADD_BLEND_MODE(blend_w3c_normal);
   ADD_BLEND_MODE(blend_w3c_multiply);
   ADD_BLEND_MODE(blend_w3c_screen);
   ADD_BLEND_MODE(blend_w3c_overlay);
@@ -765,18 +759,9 @@ handle_event(const SDL_Event &ev)
           std::cout << "Draw Image = " << m_cell_shared_state.m_draw_image << "\n";
           break;
         case SDLK_b:
-          if (ev.key.keysym.mod & KMOD_CTRL)
-            {
-              cycle_value(m_current_blend, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT), m_blend_labels.size());
-              std::cout << "Rect Blend mode set to: " << m_blend_labels[m_current_blend].second << "\n";
-              m_cell_shared_state.m_rect_blend_mode = m_blend_labels[m_current_blend].first;
-            }
-          else
-            {
-              cycle_value(m_current_composite, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT), m_composite_labels.size());
-              std::cout << "Rect Composite mode set to: " << m_composite_labels[m_current_composite].second << "\n";
-              m_cell_shared_state.m_rect_composite_mode = m_composite_labels[m_current_composite].first;
-            }
+          cycle_value(m_current_composite, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT | KMOD_CTRL), m_composite_labels.size());
+          std::cout << "Rect Composite mode set to: " << m_composite_labels[m_current_composite].second << "\n";
+          m_cell_shared_state.m_rect_composite_mode = m_composite_labels[m_current_composite].first;
           break;
         case SDLK_y:
           m_cell_shared_state.m_draw_transparent = !m_cell_shared_state.m_draw_transparent;

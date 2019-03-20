@@ -26,7 +26,5 @@
   uint fastuidraw_frag_shader_data_location;
   uint fastuidraw_composite_shader;
   uint fastuidraw_composite_shader_data_location;
-  uint fastuidraw_blend_shader;
-  uint fastuidraw_blend_shader_data_location;
   uint fastuidraw_deferred_buffer_offset_packed;
 #endif

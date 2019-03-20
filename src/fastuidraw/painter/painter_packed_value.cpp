@@ -29,7 +29,6 @@ namespace
     fastuidraw::detail::PackedValuePool<fastuidraw::PainterItemMatrix>::Holder m_item_matrix_pool;
     fastuidraw::detail::PackedValuePool<fastuidraw::PainterItemShaderData>::Holder m_item_shader_data_pool;
     fastuidraw::detail::PackedValuePool<fastuidraw::PainterCompositeShaderData>::Holder m_composite_shader_data_pool;
-    fastuidraw::detail::PackedValuePool<fastuidraw::PainterBlendShaderData>::Holder m_blend_shader_data_pool;
   };
 }
 
@@ -180,16 +179,4 @@ create_packed_value(const PainterCompositeShaderData &value)
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_composite_shader_data_pool.allocate(value);
   return PainterPackedValue<PainterCompositeShaderData>(e);
-}
-
-fastuidraw::PainterPackedValue<fastuidraw::PainterBlendShaderData>
-fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterBlendShaderData &value)
-{
-  PainterPackedValuePoolPrivate *d;
-  detail::PackedValuePool<PainterBlendShaderData>::Element *e;
-
-  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_blend_shader_data_pool.allocate(value);
-  return PainterPackedValue<PainterBlendShaderData>(e);
 }

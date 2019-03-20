@@ -183,17 +183,7 @@ label(enum composite_mode_t v)
       [composite_porter_duff_xor] = "composite_porter_duff_xor",
       [composite_porter_duff_plus] = "composite_porter_duff_plus",
       [composite_porter_duff_modulate] = "composite_porter_duff_modulate",
-    };
-  return (v < number_composite_mode) ? labels[v] : "InvalidEnum";
-}
 
-fastuidraw::c_string
-fastuidraw::PainterEnums::
-label(enum blend_w3c_mode_t v)
-{
-  static const c_string labels[number_blend_mode] =
-    {
-      [blend_w3c_normal] = "blend_w3c_normal",
       [blend_w3c_multiply] = "blend_w3c_multiply",
       [blend_w3c_screen] = "blend_w3c_screen",
       [blend_w3c_overlay] = "blend_w3c_overlay",
@@ -210,5 +200,5 @@ label(enum blend_w3c_mode_t v)
       [blend_w3c_color] = "blend_w3c_color",
       [blend_w3c_luminosity] = "blend_w3c_luminosity",
     };
-  return (v < number_blend_mode) ? labels[v] : "InvalidEnum";
+  return (v < number_composite_mode) ? labels[v] : "InvalidEnum";
 }
