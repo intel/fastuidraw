@@ -9,7 +9,7 @@ FASTUIDRAW_DEPENDS_CFLAGS = $(shell pkg-config freetype2 --cflags)
 FASTUIDRAW_debug_CFLAGS =  $(FASTUIDRAW_DEPENDS_CFLAGS) $(FASTUIDRAW_debug_BASE_CFLAGS)
 FASTUIDRAW_release_CFLAGS = $(FASTUIDRAW_DEPENDS_CFLAGS) $(FASTUIDRAW_release_BASE_CFLAGS)
 
-FASTUIDRAW_BUILD_debug_FLAGS = -g
+FASTUIDRAW_BUILD_debug_FLAGS = -g -D_GLIBCXX_DEBUG
 FASTUIDRAW_BUILD_release_FLAGS = -O3 -fstrict-aliasing
 FASTUIDRAW_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
 FASTUIDRAW_BUILD_INCLUDES_CFLAGS = -Iinc -Isrc/fastuidraw/internal -Isrc/fastuidraw/internal/3rd_party
