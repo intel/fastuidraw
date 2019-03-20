@@ -49,13 +49,13 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Enumeration to specify indexes into a \ref c_array<float>
+     * Enumeration to specify indexes into a \ref c_array
      * on how much a path's geometry is inflated by stroking.
      */
     enum path_geometry_inflation_index_t
       {
         /*!
-         * Index into \ref c_array<float> to indicate how much
+         * Index into \ref c_array to indicate how much
          * the path geometry is inflated in pixels after its
          * inflation in in item coordinates and having the current
          * transformation matrix applied.
@@ -63,7 +63,7 @@ namespace fastuidraw
         pixel_space_distance = 0,
 
         /*!
-         * Index into \ref c_array<float> to indicate how much
+         * Index into \ref c_array to indicate how much
          * the path geometry is inflated in path cordinates
          * before the transformation matrix applied or the
          * inflation by \ref pixel_space_distance is applied
@@ -71,7 +71,7 @@ namespace fastuidraw
         item_space_distance,
 
         /*!
-         * Index into \ref c_array<float> to indicate how much
+         * Index into \ref c_array to indicate how much
          * the bounding box for taking miter-joins is inflated
          * in pixels after its inflation in in item coordinates
          * and having the current transformation matrix applied.
@@ -79,11 +79,11 @@ namespace fastuidraw
         pixel_space_distance_miter_joins,
 
         /*!
-         * Index into \ref c_array<float> to indicate how much
+         * Index into \ref c_array to indicate how much
          * the bounding box for taking miter-joins is inflated
          * in path cordinates before the transformation matrix
-         * applied or the inflation by \ref pixel_space_distance_joins
-         * is applied
+         * applied or the inflation by \ref
+         * pixel_space_distance_miter_joins is applied
          */
         item_space_distance_miter_joins,
 
@@ -119,7 +119,6 @@ namespace fastuidraw
      * by *out_pixel_space_distance
      * \param data PainterItemShaderData::DataBase object holding
      *             the data to be sent to the shader
-     * \param js join style
      * \param[out] out_values output with array indexed as according
      *                        to \ref path_geometry_inflation_index_t
      */
@@ -149,20 +148,11 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterStrokeShader holds shaders for stroking. Both
-   * \ref PainterEnums::shader_anti_alias_immediate_coverage and
-   * \ref PainterEnums::shader_anti_alias_simple are two pass
-   * solutions. For PainterEnums::shader_anti_alias_simple,
-   * the first pass draws the portions of the path that have
-   * 100% coverage and the 2nd pass draws those portions with
-   * less than 100% coverage; both of these passes rely on
-   * depth testing to prevent overdraw. For \ref
-   * PainterEnums::shader_anti_alias_immediate_coverage, the first
-   * pass draws to an offscreen coverage buffer the coverage
-   * values so that when a fragment is hit multiple times
-   * the largest coverage value is retained and the 2nd pass
-   * reads and clears the coverage values using the value
-   * from the coverage buffer for the coverage.
+   * A PainterStrokeShader holds shaders for stroking. It contains
+   * shaders to stroke a path under various anti-alias modes
+   * specified by \ref PainterEnums::shader_anti_alias_t along
+   * with information used by Painter to allow it to decide how
+   * to stroke paths.
    */
   class PainterStrokeShader
   {

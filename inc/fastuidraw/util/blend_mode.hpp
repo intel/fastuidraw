@@ -479,7 +479,7 @@ namespace fastuidraw
      */
     static
     c_string
-    label(enum equation_t);
+    label(enum equation_t v);
 
     /*!
      * Returns a \ref c_string for an enumerated value.
@@ -487,7 +487,7 @@ namespace fastuidraw
      */
     static
     c_string
-    label(enum func_t);
+    label(enum func_t v);
 
   private:
     enum

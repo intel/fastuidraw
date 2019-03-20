@@ -87,7 +87,6 @@ namespace fastuidraw
      * aa_fuzz_immediate_coverage_pass1()
      *   && aa_fuzz_immediate_coverage_pass2()
      * \endcode
-     * \param tp arc or linear stroking to query
      */
     bool
     aa_fuzz_shader_immediate_coverage_supported(void) const;
