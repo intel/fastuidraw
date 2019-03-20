@@ -1209,7 +1209,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, enum fill_rule_t fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_simple);
 
     /*!
      * Fill a path.
@@ -1223,7 +1223,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, enum fill_rule_t fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_simple);
 
     /*!
      * Fill a path using the default shader to draw the fill.
@@ -1235,7 +1235,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterData &draw, const Path &path, enum fill_rule_t fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_simple);
 
     /*!
      * Fill a path.
@@ -1249,7 +1249,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, const CustomFillRuleBase &fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_simple);
 
     /*!
      * Fill a path.
@@ -1263,7 +1263,7 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, const CustomFillRuleBase &fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_simple);
 
     /*!
      * Fill a path using the default shader to draw the fill.
@@ -1275,7 +1275,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_hq_adaptive);
+              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_simple);
 
     /*!
      * Fill a path via \ref ShaderFilledPath
