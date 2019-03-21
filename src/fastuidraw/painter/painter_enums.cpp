@@ -184,7 +184,6 @@ label(enum composite_mode_t v)
       [composite_porter_duff_plus] = "composite_porter_duff_plus",
       [composite_porter_duff_modulate] = "composite_porter_duff_modulate",
 
-      [blend_w3c_multiply] = "blend_w3c_multiply",
       [blend_w3c_screen] = "blend_w3c_screen",
       [blend_w3c_overlay] = "blend_w3c_overlay",
       [blend_w3c_darken] = "blend_w3c_darken",
@@ -195,6 +194,7 @@ label(enum composite_mode_t v)
       [blend_w3c_softlight] = "blend_w3c_softlight",
       [blend_w3c_difference] = "blend_w3c_difference",
       [blend_w3c_exclusion] = "blend_w3c_exclusion",
+      [blend_w3c_multiply] = "blend_w3c_multiply",
       [blend_w3c_hue] = "blend_w3c_hue",
       [blend_w3c_saturation] = "blend_w3c_saturation",
       [blend_w3c_color] = "blend_w3c_color",
