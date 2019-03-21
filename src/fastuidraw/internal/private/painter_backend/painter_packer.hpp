@@ -380,6 +380,10 @@ namespace fastuidraw
     BlendMode
     composite_mode(const PainterShaderGroup *md);
 
+    static
+    enum PainterCompositeShader::shader_type
+    composite_shader_type(const PainterShaderGroup *md);
+
   private:
     class per_draw_command;
     class painter_state_location

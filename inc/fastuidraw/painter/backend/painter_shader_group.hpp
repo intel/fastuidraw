@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <fastuidraw/util/blend_mode.hpp>
+#include <fastuidraw/painter/shader/painter_composite_shader.hpp>
 
 namespace fastuidraw
 {
@@ -61,6 +62,15 @@ namespace fastuidraw
      */
     BlendMode
     composite_mode(void) const;
+
+    /*!
+     * Returns the \ref PainterCompositeShader::shader_type
+     * of the active \ref PainterCompositeShader. If there is
+     * no active \ref PainterCompositeShader, returns
+     * \ref PainterCompositeShader::number_types.
+     */
+    enum PainterCompositeShader::shader_type
+    composite_shader_type(void) const;
 
   protected:
     /*!

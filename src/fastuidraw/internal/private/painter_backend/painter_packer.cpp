@@ -34,6 +34,7 @@ namespace
     uint32_t m_item_group;
     uint32_t m_brush;
     fastuidraw::BlendMode m_composite_mode;
+    enum fastuidraw::PainterCompositeShader::shader_type m_composite_shader_type;
   };
 
   template<typename T>
@@ -306,6 +307,7 @@ per_draw_command(const reference_counted_ptr<PainterDraw> &r,
   m_prev_state.m_brush = 0;
   m_prev_state.m_composite_group = 0;
   m_prev_state.m_composite_mode.set_as_invalid();
+  m_prev_state.m_composite_shader_type = fastuidraw::PainterCompositeShader::number_types;
 }
 
 fastuidraw::c_array<fastuidraw::generic_data>
@@ -442,11 +444,14 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
   PainterShader::Tag composite;
 
   FASTUIDRAWassert(item_shader);
+
+  current.m_composite_shader_type = PainterCompositeShader::number_types;
   if (render_type == PainterSurface::color_buffer_type)
     {
       if (composite_shader)
         {
           composite = composite_shader->tag();
+          current.m_composite_shader_type = composite_shader->type();
         }
     }
   else
@@ -482,6 +487,7 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
       || current.m_composite_mode != m_prev_state.m_composite_mode
       || (render_type == PainterSurface::color_buffer_type &&
           (current.m_composite_group != m_prev_state.m_composite_group
+           || current.m_composite_shader_type != m_prev_state.m_composite_shader_type
            || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u)))
     {
       return_value = m_draw_command->draw_break(render_type,
@@ -1022,4 +1028,13 @@ composite_mode(const PainterShaderGroup *md)
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(md);
   return d->m_composite_mode;
+}
+
+enum fastuidraw::PainterCompositeShader::shader_type
+fastuidraw::PainterPacker::
+composite_shader_type(const PainterShaderGroup *md)
+{
+  const PainterShaderGroupPrivate *d;
+  d = static_cast<const PainterShaderGroupPrivate*>(md);
+  return d->m_composite_shader_type;
 }

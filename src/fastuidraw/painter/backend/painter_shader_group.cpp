@@ -45,3 +45,10 @@ composite_mode(void) const
 {
   return PainterPacker::composite_mode(this);
 }
+
+enum fastuidraw::PainterCompositeShader::shader_type
+fastuidraw::PainterShaderGroup::
+composite_shader_type(void) const
+{
+  return PainterPacker::composite_shader_type(this);
+}
