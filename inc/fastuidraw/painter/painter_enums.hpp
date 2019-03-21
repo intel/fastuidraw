@@ -280,7 +280,7 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Enumeration specifying composite modes. The following function-formulas
+     * Enumeration specifying blend modes. The following function-formulas
      * are used in a number of the blend modes:
      * \code
      * UndoAlpha(C.rgba) = (0, 0, 0) if Ca = 0
@@ -329,7 +329,7 @@ namespace fastuidraw
      * }
      * \endcode
      */
-    enum composite_mode_t
+    enum blend_mode_t
       {
         /*!
          * Porter-Duff clear mode. Letting S be the value from the
@@ -337,21 +337,21 @@ namespace fastuidraw
          * replaces the value in the framebuffer with F where
          * F.rgba = (0, 0, 0, 0).
          */
-        composite_porter_duff_clear,
+        blend_porter_duff_clear,
 
         /*!
          * Porter-Duff src mode. Letting S be the value from the
          * fragment shader and D be the current value in the framebuffer,
          * replaces the value in the framebuffer with F where F = S.
          */
-        composite_porter_duff_src,
+        blend_porter_duff_src,
 
         /*!
          * Porter-Duff dst mode. Letting S be the value from the
          * fragment shader and D be the current value in the framebuffer,
          * replaces the value in the framebuffer with F = D.
          */
-        composite_porter_duff_dst,
+        blend_porter_duff_dst,
 
         /*!
          * Porter-Duff src-over mode. Letting S be the value from the
@@ -362,7 +362,7 @@ namespace fastuidraw
          * F.rgb = S.rgb + D.rgb * (1 - S.a)
          * \endcode
          */
-        composite_porter_duff_src_over,
+        blend_porter_duff_src_over,
 
         /*!
          * Porter-Duff dst-over mode. Letting S be the value from the
@@ -373,7 +373,7 @@ namespace fastuidraw
          * F.rgb = D.rgb + S.rgb * (1 - D.a)
          * \endcode
          */
-        composite_porter_duff_dst_over,
+        blend_porter_duff_dst_over,
 
         /*!
          * Porter-Duff src-in mode. Letting S be the value from the
@@ -384,7 +384,7 @@ namespace fastuidraw
          * F.rgb = S.rgb * D.a
          * \endcode
          */
-        composite_porter_duff_src_in,
+        blend_porter_duff_src_in,
 
         /*!
          * Porter-Duff dst-in mode. Letting S be the value from the
@@ -395,7 +395,7 @@ namespace fastuidraw
          * F.rgb = D.rgb * S.a
          * \endcode
          */
-        composite_porter_duff_dst_in,
+        blend_porter_duff_dst_in,
 
         /*!
          * Porter-Duff  mode. Letting S be the value from the
@@ -406,7 +406,7 @@ namespace fastuidraw
          * F.rgb =  S.rgb * (1 - D.a)
          * \endcode
          */
-        composite_porter_duff_src_out,
+        blend_porter_duff_src_out,
 
         /*!
          * Porter-Duff src-out mode. Letting S be the value from the
@@ -417,7 +417,7 @@ namespace fastuidraw
          * F.rgb = D.rgb * (1.0 - S.a)
          * \endcode
          */
-        composite_porter_duff_dst_out,
+        blend_porter_duff_dst_out,
 
         /*!
          * Porter-Duff src-atop mode. Letting S be the value from the
@@ -428,7 +428,7 @@ namespace fastuidraw
          * F.rgb = S.rgb * D.a + D.rgb * (1.0 - S.a)
          * \endcode
          */
-        composite_porter_duff_src_atop,
+        blend_porter_duff_src_atop,
 
         /*!
          * Porter-Duff dst-atop mode. Letting S be the value from the
@@ -439,7 +439,7 @@ namespace fastuidraw
          * F.rgb = D.rgb * S.a + S.rgb * (1 - D.a)
          * \endcode
          */
-        composite_porter_duff_dst_atop,
+        blend_porter_duff_dst_atop,
 
         /*!
          * Porter-Duff xor mode. Letting S be the value from the
@@ -450,7 +450,7 @@ namespace fastuidraw
          * F.rgb = S.rgb * (1 - D.a) + D.rgb * (1 - S.a)
          * \endcode
          */
-        composite_porter_duff_xor,
+        blend_porter_duff_xor,
 
         /*!
          * Plus blend mode. Letting S be the value from the
@@ -461,7 +461,7 @@ namespace fastuidraw
          * F.rgb = S.rgb + D.rgb
          * \endcode
          */
-        composite_porter_duff_plus,
+        blend_porter_duff_plus,
 
         /*!
          * Modulate blend mode. Letting S be the value from the
@@ -472,7 +472,7 @@ namespace fastuidraw
          * F.rgb = S.rgb * D.rgb
          * \endcode
          */
-        composite_porter_duff_modulate,
+        blend_porter_duff_modulate,
 
         /*!
          * Screen mode. Letting S be the value from the
@@ -711,7 +711,7 @@ namespace fastuidraw
          */
         blend_w3c_luminosity,
 
-        number_composite_mode,
+        number_blend_mode,
       };
 
     /*!
@@ -869,7 +869,7 @@ namespace fastuidraw
      */
     static
     c_string
-    label(enum composite_mode_t v);
+    label(enum blend_mode_t v);
 
     /*!
      * Returns a \ref c_string for an enumerated value.

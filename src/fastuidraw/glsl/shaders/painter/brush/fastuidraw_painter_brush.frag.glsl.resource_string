@@ -533,7 +533,7 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
        * value indicateing that the rgb components are pre-multiplied.
        *
        * TODO: it would be better if the PainterBrush emitted a pre-multiplied
-       * value; however the blending stage (not the compositing stage) needs
+       * value; however the blending stage (not the blending stage) needs
        * to work in non-premultiplied or does it really need to?
        */
       if (image_color.a != 0.0

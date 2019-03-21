@@ -64,7 +64,7 @@ namespace fastuidraw
    *  - filling
    *  - drawing text
    *  - applying a brush (see \ref PainterBrush)
-   *  - compositing (see \ref PainterEnums::composite_mode_t)
+   *  - blending (see \ref PainterEnums::blend_mode_t)
    *  - single 3x3 transformation
    *  - save and restore state
    *  - transparency layers
@@ -94,8 +94,8 @@ namespace fastuidraw
    *     where alpha is a coverage value
    *   # Modulate by the PainterBrush passing the item coordinates
    *     of the pixel to the \ref PainterBrush
-   *   # Apply compositing (see PainterEnums::composite_mode_t and
-   *     Painter::composite_shader()) to the RGBA value against the
+   *   # Apply blending (see PainterEnums::blend_mode_t and
+   *     Painter::blend_shader()) to the RGBA value against the
    *     current value in the framebuffer
    *
    * Painter uses clip-planes and the depth buffer to perform clipping.
@@ -233,55 +233,55 @@ namespace fastuidraw
     packed_value_pool(void);
 
     /*!
-     * Returns the active composite shader
+     * Returns the active blend shader
      */
-    PainterCompositeShader*
-    composite_shader(void) const;
+    PainterBlendShader*
+    blend_shader(void) const;
 
     /*!
      * Returns the active 3D API blend mode
      */
     BlendMode
-    composite_mode(void) const;
+    blend_mode(void) const;
 
     /*!
-     * Sets the composite shader.
-     * \param h composite shader to use for compositing.
+     * Sets the blend shader.
+     * \param h blend shader to use for blending.
      * \param blend_mode 3D API blend mode
      */
     void
-    composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h,
                      BlendMode blend_mode);
 
     /*!
      * Equivalent to
      * \code
-     * composite_shader(shader_set.shader(m),
-     *                  shader_set.composite_mode(m))
+     * blend_shader(shader_set.shader(m),
+     *                  shader_set.blend_mode(m))
      * \endcode
      * It is a crashing error if shader_set does not support
-     * the named composite mode.
-     * \param shader_set PainterCompositeShaderSet from which to take composite shader
-     * \param m Composite mode to use
+     * the named blend mode.
+     * \param shader_set PainterBlendShaderSet from which to take blend shader
+     * \param m Blend mode to use
      */
     void
-    composite_shader(const PainterCompositeShaderSet &shader_set,
-                     enum composite_mode_t m)
+    blend_shader(const PainterBlendShaderSet &shader_set,
+                     enum blend_mode_t m)
     {
-      composite_shader(shader_set.shader(m), shader_set.composite_mode(m));
+      blend_shader(shader_set.shader(m), shader_set.blend_mode(m));
     }
 
     /*!
      * Equivalent to
      * \code
-     * composite_shader(default_shaders().composite_shaders(), m)
+     * blend_shader(default_shaders().blend_shaders(), m)
      * \endcode
-     * \param m Composite mode to use
+     * \param m Blend mode to use
      */
     void
-    composite_shader(enum composite_mode_t m)
+    blend_shader(enum blend_mode_t m)
     {
-      composite_shader(default_shaders().composite_shaders(), m);
+      blend_shader(default_shaders().blend_shaders(), m);
     }
 
     /*!
@@ -686,8 +686,8 @@ namespace fastuidraw
      *   shear(), scale(), rotate())
      * - clip state (see clip_in_rect(), clip_out_path(), clip_in_path())
      * - curve flatness requirement (see curve_flatness(float))
-     * - composite shader (see composite_shader())
-     * - composite mode (see composite_mode())
+     * - blend shader (see blend_shader())
+     * - blend mode (see blend_mode())
      * NOTE: it is an error (that is silently ignored) to end a
      * transparency layer (see begin_layer() and end_layer())
      * within a save()/restore() pair that was not started within
@@ -711,7 +711,7 @@ namespace fastuidraw
      * Begin a transparency layer. This marks first
      * rendering into an offscreen buffer and then
      * blitting the buffer. The buffer will be blitted
-     * with the composite_shader(), and composite_mode()
+     * with the blend_shader(), and blend_mode()
      * at the time of the call to begin_layer(). All
      * restore() commands called* after a begin_layer()
      * must match a save() from after a begin_layer().

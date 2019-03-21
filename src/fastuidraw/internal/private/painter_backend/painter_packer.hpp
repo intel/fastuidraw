@@ -124,33 +124,33 @@ namespace fastuidraw
     ~PainterPacker();
 
     /*!
-     * Returns the active composite shader
+     * Returns the active blend shader
      */
-    PainterCompositeShader*
-    composite_shader(void) const
+    PainterBlendShader*
+    blend_shader(void) const
     {
-      return m_composite_shader;
+      return m_blend_shader;
     }
 
     /*!
      * Returns the active 3D API blending mode.
      */
     BlendMode
-    composite_mode(void) const
+    blend_mode(void) const
     {
-      return m_composite_mode;
+      return m_blend_mode;
     }
 
     /*!
-     * Sets the active composite shader.
-     * \param h composite shader to use for compositing.
+     * Sets the active blend shader.
+     * \param h blend shader to use for blending.
      * \param blend_mode 3D API blend mode.
      */
     void
-    composite_shader(PainterCompositeShader *h, BlendMode blend_mode)
+    blend_shader(PainterBlendShader *h, BlendMode blend_mode)
     {
-      m_composite_shader = h;
-      m_composite_mode = blend_mode;
+      m_blend_shader = h;
+      m_blend_mode = blend_mode;
     }
 
     /*!
@@ -366,7 +366,7 @@ namespace fastuidraw
      */
     static
     uint32_t
-    composite_group(const PainterShaderGroup *md);
+    blend_group(const PainterShaderGroup *md);
 
     static
     uint32_t
@@ -378,11 +378,11 @@ namespace fastuidraw
 
     static
     BlendMode
-    composite_mode(const PainterShaderGroup *md);
+    blend_mode(const PainterShaderGroup *md);
 
     static
-    enum PainterCompositeShader::shader_type
-    composite_shader_type(const PainterShaderGroup *md);
+    enum PainterBlendShader::shader_type
+    blend_shader_type(const PainterShaderGroup *md);
 
   private:
     class per_draw_command;
@@ -393,7 +393,6 @@ namespace fastuidraw
       uint32_t m_item_matrix_data_loc;
       uint32_t m_brush_shader_data_loc;
       uint32_t m_item_shader_data_loc;
-      uint32_t m_composite_shader_data_loc;
       uint32_t m_blend_shader_data_loc;
     };
 
@@ -431,8 +430,8 @@ namespace fastuidraw
     PainterData::value<PainterBrush> m_default_brush;
     unsigned int m_header_size;
 
-    PainterCompositeShader *m_composite_shader;
-    BlendMode m_composite_mode;
+    PainterBlendShader *m_blend_shader;
+    BlendMode m_blend_mode;
     painter_state_location m_painter_state_location;
     unsigned int m_number_commands;
 

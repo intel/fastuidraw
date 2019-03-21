@@ -252,17 +252,17 @@ namespace fastuidraw
         frag_shader_use_switch(bool v);
 
         /*!
-         * If true, use switch() statements in uber composite shader,
+         * If true, use switch() statements in uber blend shader,
          * if false use a chain of if-else. Default value is false.
          */
         bool
-        composite_shader_use_switch(void) const;
+        blend_shader_use_switch(void) const;
 
         /*!
-         * Set the value for composite_shader_use_switch(void) const
+         * Set the value for blend_shader_use_switch(void) const
          */
         ConfigurationGL&
-        composite_shader_use_switch(bool v);
+        blend_shader_use_switch(bool v);
 
         /*!
          * A PainterBackendGL has a set of pools for the buffer
@@ -375,7 +375,7 @@ namespace fastuidraw
         assign_binding_points(bool v);
 
         /*!
-         * If true, item and composite shaders are broken into
+         * If true, item and blend shaders are broken into
          * two classes: those that use discard and those that
          * do not. Each class is then realized as a seperate
          * GLSL program.
@@ -390,18 +390,18 @@ namespace fastuidraw
         separate_program_for_discard(bool v);
 
         /*!
-         * Returns how the painter will perform compositing.
+         * Returns how the painter will perform blending.
          */
-        enum compositing_type_t
-        compositing_type(void) const;
+        enum blending_type_t
+        blending_type(void) const;
 
         /*!
-         * Specify the return value to compositing_type() const.
-         * Default value is \ref compositing_dual_src
-         * \param tp composite shader type
+         * Specify the return value to blending_type() const.
+         * Default value is \ref blending_dual_src
+         * \param tp blend shader type
          */
         ConfigurationGL&
-        compositing_type(enum compositing_type_t tp);
+        blending_type(enum blending_type_t tp);
 
         /*!
          * If true, provide an image2D (of type r8) uniform to

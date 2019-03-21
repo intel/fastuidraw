@@ -231,7 +231,7 @@ public:
  * its purpose is to bind a fragment shader out to
  * a named location and index. Using a BindFragDataLocation
  * requires:
- * - for GLES: GLES3.0 (or higher) and the extension GL_EXT_composite_func_extended
+ * - for GLES: GLES3.0 (or higher) and the extension GL_EXT_blend_func_extended
  * - for GL: GL version 3.3 (or higher)
  */
 class BindFragDataLocation:public PreLinkAction
@@ -241,7 +241,7 @@ public:
    * Ctor.
    * \param pname name of attribute in GLSL code
    * \param plocation location for fragment shader output to occupy
-   * \param pindex index (used for dual source compositing) for
+   * \param pindex index (used for dual source blending) for
    *               fragment shader output to occupy
    */
   BindFragDataLocation(c_string pname, int plocation, int pindex = 0);
@@ -367,7 +367,7 @@ public:
    * \endcode
    * \param pname name of the attribute
    * \param plocation location for fragment shader output to occupy
-   * \param pindex index (used for dual source compositing) for
+   * \param pindex index (used for dual source blending) for
    *               fragment shader output to occupy
    */
   PreLinkActionArray&

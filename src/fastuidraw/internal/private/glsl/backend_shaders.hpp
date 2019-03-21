@@ -19,60 +19,60 @@
 #pragma once
 
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
-enum fastuidraw::PainterCompositeShader::shader_type
-shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value);
+enum fastuidraw::PainterBlendShader::shader_type
+shader_blend_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t in_value);
 
-class CompositeShaderSetCreator
+class BlendShaderSetCreator
 {
 public:
   explicit
-  CompositeShaderSetCreator(enum PainterCompositeShader::shader_type tp);
+  BlendShaderSetCreator(enum PainterBlendShader::shader_type tp);
 
-  PainterCompositeShaderSet
-  create_composite_shaders(void);
+  PainterBlendShaderSet
+  create_blend_shaders(void);
 
 private:
   void
-  add_composite_shader(PainterCompositeShaderSet &out,
-                       enum PainterEnums::composite_mode_t md,
+  add_blend_shader(PainterBlendShaderSet &out,
+                       enum PainterEnums::blend_mode_t md,
                        const BlendMode &single_md,
                        const std::string &dual_src_file,
                        const BlendMode &dual_md,
                        const std::string &framebuffer_fetch_src_file);
   void
-  add_composite_shader(PainterCompositeShaderSet &out,
-                       enum PainterEnums::composite_mode_t md,
+  add_blend_shader(PainterBlendShaderSet &out,
+                       enum PainterEnums::blend_mode_t md,
                        const std::string &dual_src_file,
                        const BlendMode &dual_md,
                        const std::string &framebuffer_fetch_src_file);
   void
-  add_composite_shader(PainterCompositeShaderSet &out,
-                       enum PainterEnums::composite_mode_t md,
+  add_blend_shader(PainterBlendShaderSet &out,
+                       enum PainterEnums::blend_mode_t md,
                        const std::string &framebuffer_fetch_src_file);
 
   void
-  add_single_src_composite_shader(PainterCompositeShaderSet &out,
-                                  enum PainterEnums::composite_mode_t md,
+  add_single_src_blend_shader(PainterBlendShaderSet &out,
+                                  enum PainterEnums::blend_mode_t md,
                                   const BlendMode &single_md);
 
   void
-  add_dual_src_composite_shader(PainterCompositeShaderSet &out,
-                                enum PainterEnums::composite_mode_t md,
+  add_dual_src_blend_shader(PainterBlendShaderSet &out,
+                                enum PainterEnums::blend_mode_t md,
                                 const std::string &dual_src_file,
                                 const BlendMode &dual_md);
 
   void
-  add_fbf_composite_shader(PainterCompositeShaderSet &out,
-                           enum PainterEnums::composite_mode_t md,
+  add_fbf_blend_shader(PainterBlendShaderSet &out,
+                           enum PainterEnums::blend_mode_t md,
                            const std::string &framebuffer_fetch_src_file);
 
-  enum PainterCompositeShader::shader_type m_type;
-  reference_counted_ptr<PainterCompositeShaderGLSL> m_single_src_composite_shader_code;
+  enum PainterBlendShader::shader_type m_type;
+  reference_counted_ptr<PainterBlendShaderGLSL> m_single_src_blend_shader_code;
 };
 
 class ShaderSetCreatorStrokingConstants
@@ -143,13 +143,13 @@ private:
 };
 
 class ShaderSetCreator:
-  private CompositeShaderSetCreator,
+  private BlendShaderSetCreator,
   private StrokeShaderCreator
 {
 public:
   explicit
   ShaderSetCreator(bool has_auxiliary_coverage_buffer,
-                   enum PainterCompositeShader::shader_type composite_tp,
+                   enum PainterBlendShader::shader_type blend_tp,
                    const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws);
 
   PainterShaderSet

@@ -91,23 +91,23 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t> v)
+             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_single_src:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src:
         str << "single_src";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_dual_src:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src:
         str << "dual_src";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
         str << "framebuffer_fetch";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock:
         str << "interlock";
         break;
 
@@ -366,9 +366,9 @@ sdl_painter_demo(const std::string &about_text,
                          "painter_use_uber_item_shader",
                          "If true, use an uber-shader for all item shaders",
                          *this),
-  m_uber_composite_use_switch(m_painter_params.composite_shader_use_switch(),
-                          "painter_uber_composite_use_switch",
-                          "If true, use a switch statement in uber composite shader dispatch",
+  m_uber_blend_use_switch(m_painter_params.blend_shader_use_switch(),
+                          "painter_uber_blend_use_switch",
+                          "If true, use a switch statement in uber blend shader dispatch",
                           *this),
   m_unpack_header_and_brush_in_frag_shader(m_painter_params.unpack_header_and_brush_in_frag_shader(),
                                            "painter_unpack_header_and_brush_in_frag_shader",
@@ -432,7 +432,7 @@ sdl_painter_demo(const std::string &about_text,
                        .add_entry_alias("false", fastuidraw::gl::PainterBackendGL::clipping_via_discard)
                        .add_entry("emulate_skip_color_write",
                                   fastuidraw::gl::PainterBackendGL::clipping_via_skip_color_write,
-                                  "Emulate by (virtually) skipping color writes, painter_composite_type "
+                                  "Emulate by (virtually) skipping color writes, painter_blend_type "
                                   "must be framebuffer_fetch"),
                        "painter_use_hw_clip_planes",
                        "",
@@ -469,34 +469,34 @@ sdl_painter_demo(const std::string &about_text,
   m_assign_binding_points(m_painter_params.assign_binding_points(),
                           "painter_assign_binding_points",
                           "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
-  m_composite_type(m_painter_params.compositing_type(),
-                   enumerated_string_type<compositing_type_t>()
+  m_blend_type(m_painter_params.blending_type(),
+                   enumerated_string_type<blending_type_t>()
                    .add_entry("framebuffer_fetch",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch,
-                              "use a framebuffer fetch (if available) to perform compositing, "
-                              "thus all compositing operations are part of uber-shader giving "
-                              "more flexibility for composite types (namely W3C support) and "
-                              "composite mode changes do not induce pipeline state changes")
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch,
+                              "use a framebuffer fetch (if available) to perform blending, "
+                              "thus all blending operations are part of uber-shader giving "
+                              "more flexibility for blend types (namely W3C support) and "
+                              "blend mode changes do not induce pipeline state changes")
                    .add_entry("interlock",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock,
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock,
                               "use image-load store together with interlock (if both available) "
-                              "to perform compositing, tus all compositing operations are part of "
-                              "uber-shader giving more flexibility for composite types (namely "
-                              "W3C support) and composite mode changes do not induce pipeline "
+                              "to perform blending, tus all blending operations are part of "
+                              "uber-shader giving more flexibility for blend types (namely "
+                              "W3C support) and blend mode changes do not induce pipeline "
                               "state changes")
                    .add_entry("dual_src",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_dual_src,
-                              "use a dual source compositing (if available) to perform compositing, "
-                              "which has far less flexibility for compositing than framebuffer-fetch "
-                              "but has far few pipeline states (there are 3 composite mode pipeline states "
-                              "and hald of the Porter-Duff composite modes are in one composite mode pipeline state")
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src,
+                              "use a dual source blending (if available) to perform blending, "
+                              "which has far less flexibility for blending than framebuffer-fetch "
+                              "but has far few pipeline states (there are 3 blend mode pipeline states "
+                              "and hald of the Porter-Duff blend modes are in one blend mode pipeline state")
                    .add_entry("single_src",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_single_src,
-                              "use single source compositing to perform compositing, "
-                              "which is even less flexible than dual_src compositing and "
-                              "every Porter-Duff composite mode is a different pipeline state"),
-                   "painter_composite_type",
-                   "specifies how the painter will perform compositing",
+                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src,
+                              "use single source blending to perform blending, "
+                              "which is even less flexible than dual_src blending and "
+                              "every Porter-Duff blend mode is a different pipeline state"),
+                   "painter_blend_type",
+                   "specifies how the painter will perform blending",
                    *this),
   m_painter_optimal(painter_optimal_rendering,
                     enumerated_string_type<enum painter_optimal_t>()
@@ -683,7 +683,7 @@ init_gl(int w, int h)
   APPLY_PARAM(clipping_type, m_use_hw_clip_planes);
   APPLY_PARAM(vert_shader_use_switch, m_uber_vert_use_switch);
   APPLY_PARAM(frag_shader_use_switch, m_uber_frag_use_switch);
-  APPLY_PARAM(composite_shader_use_switch, m_uber_composite_use_switch);
+  APPLY_PARAM(blend_shader_use_switch, m_uber_blend_use_switch);
   APPLY_PARAM(unpack_header_and_brush_in_frag_shader, m_unpack_header_and_brush_in_frag_shader);
   APPLY_PARAM(data_store_backing, m_data_store_backing);
   APPLY_PARAM(assign_layout_to_vertex_shader_inputs, m_assign_layout_to_vertex_shader_inputs);
@@ -691,7 +691,7 @@ init_gl(int w, int h)
   APPLY_PARAM(assign_binding_points, m_assign_binding_points);
   APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
   APPLY_PARAM(provide_immediate_coverage_image_buffer, m_provide_immediate_coverage_image_buffer);
-  APPLY_PARAM(compositing_type, m_composite_type);
+  APPLY_PARAM(blending_type, m_blend_type);
   APPLY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
 
 #undef APPLY_PARAM
@@ -788,7 +788,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(vert_shader_use_switch, m_uber_vert_use_switch);
       LAZY_PARAM_ENUM(frag_shader_use_switch, m_uber_frag_use_switch);
       LAZY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
-      LAZY_PARAM_ENUM(composite_shader_use_switch, m_uber_composite_use_switch);
+      LAZY_PARAM_ENUM(blend_shader_use_switch, m_uber_blend_use_switch);
       LAZY_PARAM_ENUM(unpack_header_and_brush_in_frag_shader, m_unpack_header_and_brush_in_frag_shader);
       LAZY_PARAM_ENUM(data_store_backing, m_data_store_backing);
       LAZY_PARAM_ENUM(assign_layout_to_vertex_shader_inputs, m_assign_layout_to_vertex_shader_inputs);
@@ -796,7 +796,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(assign_binding_points, m_assign_binding_points);
       LAZY_PARAM_ENUM(separate_program_for_discard, m_separate_program_for_discard);
       LAZY_PARAM_ENUM(provide_immediate_coverage_image_buffer, m_provide_immediate_coverage_image_buffer);
-      LAZY_PARAM_ENUM(compositing_type, m_composite_type);
+      LAZY_PARAM_ENUM(blending_type, m_blend_type);
       std::cout << std::setw(40) << "geometry_backing_store_type:"
                 << std::setw(8) << m_glyph_atlas->param_values().glyph_data_backing_store_type()
                 << "\n";

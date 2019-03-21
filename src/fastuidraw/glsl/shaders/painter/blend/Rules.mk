@@ -4,6 +4,12 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
+dir := $(d)/single_src
+include $(dir)/Rules.mk
+
+dir := $(d)/dual_src
+include $(dir)/Rules.mk
+
 dir := $(d)/framebuffer_fetch
 include $(dir)/Rules.mk
 

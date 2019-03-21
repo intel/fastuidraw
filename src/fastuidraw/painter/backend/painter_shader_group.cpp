@@ -20,9 +20,9 @@
 
 uint32_t
 fastuidraw::PainterShaderGroup::
-composite_group(void) const
+blend_group(void) const
 {
-  return PainterPacker::composite_group(this);
+  return PainterPacker::blend_group(this);
 }
 
 uint32_t
@@ -41,14 +41,14 @@ brush(void) const
 
 fastuidraw::BlendMode
 fastuidraw::PainterShaderGroup::
-composite_mode(void) const
+blend_mode(void) const
 {
-  return PainterPacker::composite_mode(this);
+  return PainterPacker::blend_mode(this);
 }
 
-enum fastuidraw::PainterCompositeShader::shader_type
+enum fastuidraw::PainterBlendShader::shader_type
 fastuidraw::PainterShaderGroup::
-composite_shader_type(void) const
+blend_shader_type(void) const
 {
-  return PainterPacker::composite_shader_type(this);
+  return PainterPacker::blend_shader_type(this);
 }

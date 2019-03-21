@@ -50,7 +50,7 @@ protected:
   handle_event(const SDL_Event &ev);
 
 private:
-  typedef std::pair<enum Painter::composite_mode_t, std::string> named_composite_mode;
+  typedef std::pair<enum Painter::blend_mode_t, std::string> named_blend_mode;
 
   static
   void
@@ -114,8 +114,8 @@ private:
   simple_time m_time, m_draw_timer;
   PainterPackedValue<PainterBrush> m_text_brush;
 
-  unsigned int m_current_composite;
-  std::vector<named_composite_mode> m_composite_labels;
+  unsigned int m_current_blend;
+  std::vector<named_blend_mode> m_blend_labels;
 
   int m_frame;
   uint64_t m_benchmark_time_us;
@@ -230,7 +230,7 @@ painter_cells(void):
                              "Initial value for anti-aliasing for stroking",
                              *this),
   m_table(nullptr),
-  m_current_composite(0),
+  m_current_blend(0),
   m_show_surface(0),
   m_last_shown_surface(0)
 {
@@ -245,7 +245,7 @@ painter_cells(void):
             << "\tr: toggle rotating individual cells\n"
             << "\tt: toggle draw cell text\n"
             << "\ti: toggle draw cell image\n"
-            << "\tb: cycle composite mode applied to image rect\n"
+            << "\tb: cycle blend mode applied to image rect\n"
             << "\tctrl-b: cycle blend mode applied to image rect\n"
             << "\ty: toggle drawing widgets as transparent or opaque\n"
             << "\tLeft Mouse Drag: pan\n"
@@ -494,25 +494,25 @@ derived_init(int w, int h)
     }
 
 #define ADD_COMPOSITE_MODE(X)                                           \
-  m_composite_labels.push_back(named_composite_mode(Painter::X, #X))
+  m_blend_labels.push_back(named_blend_mode(Painter::X, #X))
 
-  ADD_COMPOSITE_MODE(composite_porter_duff_src_over);
-  ADD_COMPOSITE_MODE(composite_porter_duff_clear);
-  ADD_COMPOSITE_MODE(composite_porter_duff_src);
-  ADD_COMPOSITE_MODE(composite_porter_duff_dst);
-  ADD_COMPOSITE_MODE(composite_porter_duff_dst_over);
-  ADD_COMPOSITE_MODE(composite_porter_duff_src_in);
-  ADD_COMPOSITE_MODE(composite_porter_duff_dst_in);
-  ADD_COMPOSITE_MODE(composite_porter_duff_src_out);
-  ADD_COMPOSITE_MODE(composite_porter_duff_dst_out);
-  ADD_COMPOSITE_MODE(composite_porter_duff_src_atop);
-  ADD_COMPOSITE_MODE(composite_porter_duff_dst_atop);
-  ADD_COMPOSITE_MODE(composite_porter_duff_xor);
+  ADD_COMPOSITE_MODE(blend_porter_duff_src_over);
+  ADD_COMPOSITE_MODE(blend_porter_duff_clear);
+  ADD_COMPOSITE_MODE(blend_porter_duff_src);
+  ADD_COMPOSITE_MODE(blend_porter_duff_dst);
+  ADD_COMPOSITE_MODE(blend_porter_duff_dst_over);
+  ADD_COMPOSITE_MODE(blend_porter_duff_src_in);
+  ADD_COMPOSITE_MODE(blend_porter_duff_dst_in);
+  ADD_COMPOSITE_MODE(blend_porter_duff_src_out);
+  ADD_COMPOSITE_MODE(blend_porter_duff_dst_out);
+  ADD_COMPOSITE_MODE(blend_porter_duff_src_atop);
+  ADD_COMPOSITE_MODE(blend_porter_duff_dst_atop);
+  ADD_COMPOSITE_MODE(blend_porter_duff_xor);
 
 #define ADD_BLEND_MODE(X) do {                                          \
-    if (m_painter->default_shaders().composite_shaders().shader(Painter::X)) \
+    if (m_painter->default_shaders().blend_shaders().shader(Painter::X)) \
       {                                                                 \
-        m_composite_labels.push_back(named_composite_mode(Painter::X, #X)); \
+        m_blend_labels.push_back(named_blend_mode(Painter::X, #X)); \
       }                                                                 \
   } while(0)
 
@@ -759,9 +759,9 @@ handle_event(const SDL_Event &ev)
           std::cout << "Draw Image = " << m_cell_shared_state.m_draw_image << "\n";
           break;
         case SDLK_b:
-          cycle_value(m_current_composite, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT | KMOD_CTRL), m_composite_labels.size());
-          std::cout << "Rect Composite mode set to: " << m_composite_labels[m_current_composite].second << "\n";
-          m_cell_shared_state.m_rect_composite_mode = m_composite_labels[m_current_composite].first;
+          cycle_value(m_current_blend, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT | KMOD_CTRL), m_blend_labels.size());
+          std::cout << "Rect Blend mode set to: " << m_blend_labels[m_current_blend].second << "\n";
+          m_cell_shared_state.m_rect_blend_mode = m_blend_labels[m_current_blend].first;
           break;
         case SDLK_y:
           m_cell_shared_state.m_draw_transparent = !m_cell_shared_state.m_draw_transparent;

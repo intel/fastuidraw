@@ -70,15 +70,15 @@ main(void)
     {
       fastuidraw_frag_shader = h.item_shader;
       fastuidraw_frag_shader_data_location = h.item_shader_data_location;
-      fastuidraw_composite_shader = h.composite_shader;
-      fastuidraw_composite_shader_data_location = h.composite_shader_data_location;
+      fastuidraw_blend_shader = h.blend_shader;
+      fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
       fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
     }
   #endif
 
   fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
   fastuidraw_vert_brush_processing(brush_p, h);
-  if (h.composite_shader == FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
+  if (h.blend_shader == FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
     {
       add_z = 0;
     }

@@ -75,8 +75,8 @@ PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
 
 uint32_t
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-compute_composite_shader_group(PainterShader::Tag tag,
-                           const reference_counted_ptr<PainterCompositeShader> &shader)
+compute_blend_shader_group(PainterShader::Tag tag,
+                           const reference_counted_ptr<PainterBlendShader> &shader)
 {
   FASTUIDRAWunused(shader);
   return m_params.break_on_shader_change() ?
@@ -262,7 +262,7 @@ configure_source_front_matter(void)
     .add_macro("fastuidraw_begin_interlock", begin_interlock_fcn)
     .add_macro("fastuidraw_end_interlock", end_interlock_fcn);
 
-  if (m_params.compositing_type() == compositing_interlock
+  if (m_params.blending_type() == blending_interlock
       || m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
     {
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
@@ -291,7 +291,7 @@ configure_source_front_matter(void)
           glsl_version = "320 es";
           m_front_matter_frag
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_composite_func_extended", ShaderSource::enable_extension)
+            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
             .specify_extension("GL_NV_image_formats", ShaderSource::enable_extension);
         }
       else
@@ -320,7 +320,7 @@ configure_source_front_matter(void)
 
           m_front_matter_frag
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_composite_func_extended", ShaderSource::enable_extension)
+            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
             .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
         }
@@ -338,7 +338,7 @@ configure_source_front_matter(void)
       require_ssbo = (m_uber_shader_builder_params.data_store_backing() == data_store_ssbo)
         || (glyphs->data_binding_point() == GL_SHADER_STORAGE_BUFFER);
 
-      require_image_load_store = (m_params.compositing_type() == compositing_interlock)
+      require_image_load_store = (m_params.blending_type() == blending_interlock)
         || (m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
         || require_ssbo;
 

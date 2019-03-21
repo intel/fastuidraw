@@ -93,20 +93,20 @@ namespace fastuidraw
       brush_shader_mask(uint32_t v);
 
       /*!
-       * Returns the PainterCompositeShader::shader_type the \ref
-       * PainterBackend accepts for \ref PainterCompositeShader
+       * Returns the PainterBlendShader::shader_type the \ref
+       * PainterBackend accepts for \ref PainterBlendShader
        * objects.
        */
-      enum PainterCompositeShader::shader_type
-      composite_type(void) const;
+      enum PainterBlendShader::shader_type
+      blend_type(void) const;
 
       /*!
-       * Specify the return value to composite_type() const.
-       * Default value is \ref PainterCompositeShader::dual_src.
-       * \param tp composite shader type
+       * Specify the return value to blend_type() const.
+       * Default value is \ref PainterBlendShader::dual_src.
+       * \param tp blend shader type
        */
       ConfigurationBase&
-      composite_type(enum PainterCompositeShader::shader_type tp);
+      blend_type(enum PainterBlendShader::shader_type tp);
 
       /*!
        * If true, indicates that the PainterBackend supports

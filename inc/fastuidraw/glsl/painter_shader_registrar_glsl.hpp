@@ -23,7 +23,7 @@
 #include <fastuidraw/painter/backend/painter_surface.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 
 namespace fastuidraw
 {
@@ -88,43 +88,43 @@ namespace fastuidraw
            * Clipping is performed by passing the distance
            * to each clip-plane and (virtually) skipping
            * the color write. This requires that the
-           * compositing mode is through framebuffer fetch,
-           * i.e. UberShaderParams::compositing_type() is \ref
-           * compositing_framebuffer_fetch or \ref compositing_interlock
+           * blending mode is through framebuffer fetch,
+           * i.e. UberShaderParams::blending_type() is \ref
+           * blending_framebuffer_fetch or \ref blending_interlock
            */
           clipping_via_skip_color_write,
         };
 
       /*!
        * \brief
-       * Enumeration to specify how to perform painter compositing.
+       * Enumeration to specify how to perform painter blending.
        */
-      enum compositing_type_t
+      enum blending_type_t
         {
           /*!
-           * Use single source compositing; only compositing is supported
+           * Use single source blending; only blending is supported
            * and blending is not supported.
            */
-          compositing_single_src,
+          blending_single_src,
 
           /*!
-           * Use dual soruce compositing; only compositing is supported
+           * Use dual soruce blending; only blending is supported
            * and blending is not supported.
            */
-          compositing_dual_src,
+          blending_dual_src,
 
           /*!
-           * Use framebuffer fetch compositing; both compositing and
+           * Use framebuffer fetch blending; both blending and
            * blending are supported.
            */
-          compositing_framebuffer_fetch,
+          blending_framebuffer_fetch,
 
           /*!
            * Have the color buffer realized as an image2D and use
-           * fragment shader interlock to get compositing order correct;
-           * compositing and blending are supported.
+           * fragment shader interlock to get blending order correct;
+           * blending and blending are supported.
            */
-          compositing_interlock,
+          blending_interlock,
         };
 
       /*!
@@ -306,26 +306,26 @@ namespace fastuidraw
         swap(UberShaderParams &obj);
 
         /*!
-         * Returns how the painter will perform compositing.
+         * Returns how the painter will perform blending.
          */
-        enum compositing_type_t
-        compositing_type(void) const;
+        enum blending_type_t
+        blending_type(void) const;
 
         /*!
-         * Specify the return value to compositing_type() const.
-         * Default value is \ref compositing_dual_src
-         * \param tp composite shader type
+         * Specify the return value to blending_type() const.
+         * Default value is \ref blending_dual_src
+         * \param tp blend shader type
          */
         UberShaderParams&
-        compositing_type(enum compositing_type_t tp);
+        blending_type(enum blending_type_t tp);
 
         /*!
          * Provided as a conveniance, returns the value of
-         * compositing_type(void) const as a \ref
-         * PainterCompositeShader::shader_type.
+         * blending_type(void) const as a \ref
+         * PainterBlendShader::shader_type.
          */
-        enum PainterCompositeShader::shader_type
-        composite_type(void) const;
+        enum PainterBlendShader::shader_type
+        blend_type(void) const;
 
         /*!
          * If true, indicates that the PainterRegistrar supports
@@ -443,17 +443,10 @@ namespace fastuidraw
 
         /*!
          * If true, use a switch() in the uber-fragment shader to
-         * dispatch to the PainterCompositeShader.
+         * dispatch to the PainterBlendShader.
          */
         bool
-        composite_shader_use_switch(void) const;
-
-        /*!
-         * Set the value returned by composite_shader_use_switch(void) const.
-         * Default value is false.
-         */
-        UberShaderParams&
-        composite_shader_use_switch(bool);
+        blend_shader_use_switch(void) const;
 
         /*!
          * Set the value returned by blend_shader_use_switch(void) const.
@@ -914,7 +907,7 @@ namespace fastuidraw
      * \brief
      * A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar
      * that assembles the shader source code of PainterItemShaderGLSL
-     * and PainterCompositeShaderGLSL into an uber-shader.
+     * and PainterBlendShaderGLSL into an uber-shader.
      */
     class PainterShaderRegistrarGLSL:
       public PainterShaderRegistrar,
@@ -955,7 +948,7 @@ namespace fastuidraw
        * GLSL preamble:
        *  - fastuidraw_begin_interlock() which is called before access
        *  - fastuidraw_end_interlock() which is called after access
-       * if UberShaderParams::compositing_type() is \ref compositing_interlock
+       * if UberShaderParams::blending_type() is \ref blending_interlock
        * or if UberShaderParams::provide_immediate_coverage_image_buffer() is \ref
        * immediate_coverage_buffer_interlock or \ref immediate_coverage_buffer_interlock_main_only.
        * \param backend_constants constant values that affect the created uber-shader.
@@ -1042,7 +1035,7 @@ namespace fastuidraw
                                      unsigned int shader_id);
 
       /*!
-       * Returns the total number of shaders (item and composite)
+       * Returns the total number of shaders (item and blend)
        * registered to this PainterShaderRegistrarGLSL; a derived class
        * should track this count value and use it to determine
        * when it needs to reconstruct its uber-shader. The mutex()
@@ -1119,8 +1112,8 @@ namespace fastuidraw
        */
       virtual
       uint32_t
-      compute_composite_shader_group(PainterShader::Tag tag,
-                                     const reference_counted_ptr<PainterCompositeShader> &shader);
+      compute_blend_shader_group(PainterShader::Tag tag,
+                                     const reference_counted_ptr<PainterBlendShader> &shader);
 
       virtual
       PainterShader::Tag
@@ -1140,11 +1133,11 @@ namespace fastuidraw
 
       virtual
       PainterShader::Tag
-      absorb_composite_shader(const reference_counted_ptr<PainterCompositeShader> &shader) final override;
+      absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader) final override;
 
       virtual
       uint32_t
-      compute_composite_sub_shader_group(const reference_counted_ptr<PainterCompositeShader> &shader) final override;
+      compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader) final override;
 
     private:
       void *m_d;

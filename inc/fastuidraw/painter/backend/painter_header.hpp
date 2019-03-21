@@ -41,7 +41,7 @@ namespace fastuidraw
     enum
       {
         /*!
-         * When \ref m_composite_shader is set to \ref drawing_occluder,
+         * When \ref m_blend_shader is set to \ref drawing_occluder,
          * it indicates that the item being drawing is an occluder,
          * and no blending is active.
          */
@@ -94,10 +94,10 @@ namespace fastuidraw
         item_matrix_location_offset, /*!< offset to \ref m_item_matrix_location */
         brush_shader_data_location_offset, /*!< offset to \ref m_brush_shader_data_location */
         item_shader_data_location_offset, /*!< offset to \ref m_item_shader_data_location */
-        composite_shader_data_location_offset, /*!< offset to \ref m_composite_shader_data_location */
+        blend_shader_data_location_offset, /*!< offset to \ref m_blend_shader_data_location */
         item_shader_offset, /*!< offset to \ref m_item_shader */
         brush_shader_offset, /*!< offset to \ref m_brush_shader */
-        composite_shader_offset, /*!< offset to \ref m_composite_shader */
+        blend_shader_offset, /*!< offset to \ref m_blend_shader */
         z_offset, /*!< offset to \ref m_z */
 
         /*!
@@ -155,13 +155,13 @@ namespace fastuidraw
     /*!
      * The location, in units of vecN<generic_data, 4> tuples, to the
      * location in the data store buffer (PainterDraw::m_store) for the
-     * composite shader data. I.e. the PainterCompositeShaderData value
+     * blend shader data. I.e. the PainterBlendShaderData value
      * is stored (packed) at the location
      * \code
-     * PainterDraw::m_store[m_composite_shader_data_location * 4]
+     * PainterDraw::m_store[m_blend_shader_data_location * 4]
      * \endcode
      */
-    uint32_t m_composite_shader_data_location;
+    uint32_t m_blend_shader_data_location;
 
     /*!
      * The ID of the item shader (i.e. PainterItemShader::ID()).
@@ -174,9 +174,9 @@ namespace fastuidraw
     uint32_t m_brush_shader;
 
     /*!
-     * The ID of the composite shader (i.e. PainterCompositeShader::ID()).
+     * The ID of the blend shader (i.e. PainterBlendShader::ID()).
      */
-    uint32_t m_composite_shader;
+    uint32_t m_blend_shader;
 
     /*!
      * The z-value to use for the item. The z-value is used

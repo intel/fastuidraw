@@ -76,18 +76,18 @@ public:
   draw_buffers(uint32_t tp);
 
   GLuint
-  fbo(enum PainterBackendGL::compositing_type_t compositing)
+  fbo(enum PainterBackendGL::blending_type_t blending)
   {
-    return fbo(fbo_bits(compositing));
+    return fbo(fbo_bits(blending));
   }
 
   GLuint
   fbo(uint32_t tp);
 
   c_array<const GLenum>
-  draw_buffers(enum PainterBackendGL::compositing_type_t compositing)
+  draw_buffers(enum PainterBackendGL::blending_type_t blending)
   {
-    return draw_buffers(fbo_bits(compositing));
+    return draw_buffers(fbo_bits(blending));
   }
 
   reference_counted_ptr<const Image>
@@ -108,7 +108,7 @@ private:
     };
 
   uint32_t
-  fbo_bits(enum PainterBackendGL::compositing_type_t compositing);
+  fbo_bits(enum PainterBackendGL::blending_type_t blending);
 
   GLuint
   buffer(enum buffer_t);

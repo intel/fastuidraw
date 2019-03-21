@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 #include <fastuidraw/util/blend_mode.hpp>
-#include <fastuidraw/painter/shader/painter_composite_shader.hpp>
+#include <fastuidraw/painter/shader/painter_blend_shader.hpp>
 
 namespace fastuidraw
 {
@@ -38,10 +38,10 @@ namespace fastuidraw
   public:
     /*!
      * The group (see PainterShader::group())
-     * of the active composite shader.
+     * of the active blend shader.
      */
     uint32_t
-    composite_group(void) const;
+    blend_group(void) const;
 
     /*!
      * The group (see PainterShader::group())
@@ -58,19 +58,19 @@ namespace fastuidraw
     brush(void) const;
 
     /*!
-     * The \ref BlendMode value for the active composite shader.
+     * The \ref BlendMode value for the active blend shader.
      */
     BlendMode
-    composite_mode(void) const;
+    blend_mode(void) const;
 
     /*!
-     * Returns the \ref PainterCompositeShader::shader_type
-     * of the active \ref PainterCompositeShader. If there is
-     * no active \ref PainterCompositeShader, returns
-     * \ref PainterCompositeShader::number_types.
+     * Returns the \ref PainterBlendShader::shader_type
+     * of the active \ref PainterBlendShader. If there is
+     * no active \ref PainterBlendShader, returns
+     * \ref PainterBlendShader::number_types.
      */
-    enum PainterCompositeShader::shader_type
-    composite_shader_type(void) const;
+    enum PainterBlendShader::shader_type
+    blend_shader_type(void) const;
 
   protected:
     /*!

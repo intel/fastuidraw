@@ -30,11 +30,11 @@ namespace
   class PainterShaderGroupValues
   {
   public:
-    uint32_t m_composite_group;
+    uint32_t m_blend_group;
     uint32_t m_item_group;
     uint32_t m_brush;
-    fastuidraw::BlendMode m_composite_mode;
-    enum fastuidraw::PainterCompositeShader::shader_type m_composite_shader_type;
+    fastuidraw::BlendMode m_blend_mode;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_shader_type;
   };
 
   template<typename T>
@@ -239,7 +239,7 @@ public:
               unsigned int header_size,
               fastuidraw::ivec2 deferred_coverage_buffer_offset,
               uint32_t brush_shader,
-              PainterCompositeShader *composite_shader,
+              PainterBlendShader *blend_shader,
               BlendMode mode,
               T *item_shader,
               int z,
@@ -305,9 +305,9 @@ per_draw_command(const reference_counted_ptr<PainterDraw> &r,
 {
   m_prev_state.m_item_group = 0;
   m_prev_state.m_brush = 0;
-  m_prev_state.m_composite_group = 0;
-  m_prev_state.m_composite_mode.set_as_invalid();
-  m_prev_state.m_composite_shader_type = fastuidraw::PainterCompositeShader::number_types;
+  m_prev_state.m_blend_group = 0;
+  m_prev_state.m_blend_mode.set_as_invalid();
+  m_prev_state.m_blend_shader_type = fastuidraw::PainterBlendShader::number_types;
 }
 
 fastuidraw::c_array<fastuidraw::generic_data>
@@ -401,7 +401,7 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
 
   if (render_type == PainterSurface::color_buffer_type)
     {
-      pack_state_data(render_type, p, state.m_composite_shader_data, out_data.m_composite_shader_data_loc);
+      pack_state_data(render_type, p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
       if (state.m_brush.has_data())
         {
           pack_state_data(render_type, p, state.m_brush, out_data.m_brush_shader_data_loc);
@@ -413,7 +413,7 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
     }
   else
     {
-      out_data.m_composite_shader_data_loc = 0u;
+      out_data.m_blend_shader_data_loc = 0u;
       out_data.m_brush_shader_data_loc = 0u;
     }
 }
@@ -425,8 +425,8 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
             unsigned int header_size,
             fastuidraw::ivec2 deferred_coverage_buffer_offset,
             uint32_t brush_shader,
-            PainterCompositeShader *composite_shader,
-            BlendMode composite_mode,
+            PainterBlendShader *blend_shader,
+            BlendMode blend_mode,
             T *item_shader,
             int z,
             const painter_state_location &loc,
@@ -441,25 +441,25 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
   dst = allocate_store(header_size);
 
   PainterShaderGroupPrivate current;
-  PainterShader::Tag composite;
+  PainterShader::Tag blend;
 
   FASTUIDRAWassert(item_shader);
 
-  current.m_composite_shader_type = PainterCompositeShader::number_types;
+  current.m_blend_shader_type = PainterBlendShader::number_types;
   if (render_type == PainterSurface::color_buffer_type)
     {
-      if (composite_shader)
+      if (blend_shader)
         {
-          composite = composite_shader->tag();
-          current.m_composite_shader_type = composite_shader->type();
+          blend = blend_shader->tag();
+          current.m_blend_shader_type = blend_shader->type();
         }
     }
   else
     {
       /* if rendering to a deferred buffer, leave the tags as 0
-       * and the composite mode is to be MAX.
+       * and the blend mode is to be MAX.
        */
-      composite_mode
+      blend_mode
         .blending_on(true)
         .equation(BlendMode::MAX)
         .func_src(BlendMode::ONE)
@@ -468,26 +468,26 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
 
   current.m_item_group = item_shader->group();
   current.m_brush = brush_shader;
-  current.m_composite_group = composite.m_group;
-  current.m_composite_mode = composite_mode;
+  current.m_blend_group = blend.m_group;
+  current.m_blend_mode = blend_mode;
 
   header.m_clip_equations_location = loc.m_clipping_data_loc;
   header.m_item_matrix_location = loc.m_item_matrix_data_loc;
   header.m_brush_shader_data_location = loc.m_brush_shader_data_loc;
   header.m_item_shader_data_location = loc.m_item_shader_data_loc;
-  header.m_composite_shader_data_location = loc.m_composite_shader_data_loc;
+  header.m_blend_shader_data_location = loc.m_blend_shader_data_loc;
   header.m_item_shader = item_shader->ID();
   header.m_brush_shader = current.m_brush;
-  header.m_composite_shader = composite.m_ID;
+  header.m_blend_shader = blend.m_ID;
   header.m_z = z;
   header.m_offset_to_deferred_coverage = deferred_coverage_buffer_offset;
   header.pack_data(dst);
 
   if (current.m_item_group != m_prev_state.m_item_group
-      || current.m_composite_mode != m_prev_state.m_composite_mode
+      || current.m_blend_mode != m_prev_state.m_blend_mode
       || (render_type == PainterSurface::color_buffer_type &&
-          (current.m_composite_group != m_prev_state.m_composite_group
-           || current.m_composite_shader_type != m_prev_state.m_composite_shader_type
+          (current.m_blend_group != m_prev_state.m_blend_group
+           || current.m_blend_shader_type != m_prev_state.m_blend_shader_type
            || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u)))
     {
       return_value = m_draw_command->draw_break(render_type,
@@ -540,7 +540,7 @@ PainterPacker(PainterPackedValuePool &pool,
               vecN<unsigned int, num_stats> &stats,
               reference_counted_ptr<PainterBackend> backend):
   m_backend(backend),
-  m_composite_shader(nullptr),
+  m_blend_shader(nullptr),
   m_number_commands(0),
   m_clear_color_buffer(false),
   m_stats(stats)
@@ -616,7 +616,7 @@ compute_room_needed_for_packing(const PainterPackerData &draw_state)
   if (m_render_type == PainterSurface::color_buffer_type && draw_state.m_brush.has_data())
     {
       R += compute_room_needed_for_packing(draw_state.m_brush);
-      R += compute_room_needed_for_packing(draw_state.m_composite_shader_data);
+      R += compute_room_needed_for_packing(draw_state.m_blend_shader_data);
     }
   return R;
 }
@@ -743,8 +743,8 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
           draw_break_added = cmd.pack_header(m_render_type, m_header_size,
                                              deferred_coverage_buffer_offset,
                                              fetch_value(draw.m_brush).shader(),
-                                             m_composite_shader,
-                                             m_composite_mode,
+                                             m_blend_shader,
+                                             m_blend_mode,
                                              shader.get(),
                                              z, m_painter_state_location,
                                              m_callback_list,
@@ -996,11 +996,11 @@ current_draw(void) { return m_accumulated_draws.size(); }
 //
 uint32_t
 fastuidraw::PainterPacker::
-composite_group(const PainterShaderGroup *md)
+blend_group(const PainterShaderGroup *md)
 {
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(md);
-  return d->m_composite_group;
+  return d->m_blend_group;
 }
 
 uint32_t
@@ -1023,18 +1023,18 @@ brush(const PainterShaderGroup *md)
 
 fastuidraw::BlendMode
 fastuidraw::PainterPacker::
-composite_mode(const PainterShaderGroup *md)
+blend_mode(const PainterShaderGroup *md)
 {
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(md);
-  return d->m_composite_mode;
+  return d->m_blend_mode;
 }
 
-enum fastuidraw::PainterCompositeShader::shader_type
+enum fastuidraw::PainterBlendShader::shader_type
 fastuidraw::PainterPacker::
-composite_shader_type(const PainterShaderGroup *md)
+blend_shader_type(const PainterShaderGroup *md)
 {
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(md);
-  return d->m_composite_shader_type;
+  return d->m_blend_shader_type;
 }

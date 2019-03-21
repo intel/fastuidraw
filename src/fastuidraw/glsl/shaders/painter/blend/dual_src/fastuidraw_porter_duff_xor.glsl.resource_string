@@ -1,0 +1,26 @@
+/*!
+ * \file fastuidraw_porter_duff_xor.glsl.resource_string
+ * \brief file fastuidraw_porter_duff_xor.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
+void
+fastuidraw_gl_compute_blend_factors(in uint sub_shader, in uint blend_shader_data_location,
+                                    in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
+{
+  out_src0 = in_src;
+  out_src1 = vec4(1.0 - in_src.a);
+}

@@ -65,12 +65,12 @@ namespace
   public:
     ConfigurationPrivate(void):
       m_brush_shader_mask(0),
-      m_composite_type(fastuidraw::PainterCompositeShader::dual_src),
+      m_blend_type(fastuidraw::PainterBlendShader::dual_src),
       m_supports_bindless_texturing(false)
     {}
 
     uint32_t m_brush_shader_mask;
-    enum fastuidraw::PainterCompositeShader::shader_type m_composite_type;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     bool m_supports_bindless_texturing;
   };
 }
@@ -139,7 +139,7 @@ setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  uint32_t, brush_shader_mask)
 setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
-                 enum fastuidraw::PainterCompositeShader::shader_type, composite_type)
+                 enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
                  bool, supports_bindless_texturing)

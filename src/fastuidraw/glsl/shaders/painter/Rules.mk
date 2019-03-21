@@ -11,9 +11,6 @@ include $(dir)/Rules.mk
 dir := $(d)/brush
 include $(dir)/Rules.mk
 
-dir := $(d)/composite
-include $(dir)/Rules.mk
-
 dir := $(d)/blend
 include $(dir)/Rules.mk
 

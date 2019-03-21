@@ -165,24 +165,24 @@ label(enum stroking_method_t v)
 
 fastuidraw::c_string
 fastuidraw::PainterEnums::
-label(enum composite_mode_t v)
+label(enum blend_mode_t v)
 {
-  static const c_string labels[number_composite_mode] =
+  static const c_string labels[number_blend_mode] =
     {
-      [composite_porter_duff_clear] = "composite_porter_duff_clear",
-      [composite_porter_duff_src] = "composite_porter_duff_src",
-      [composite_porter_duff_dst] = "composite_porter_duff_dst",
-      [composite_porter_duff_src_over] = "composite_porter_duff_src_over",
-      [composite_porter_duff_dst_over] = "composite_porter_duff_dst_over",
-      [composite_porter_duff_src_in] = "composite_porter_duff_src_in",
-      [composite_porter_duff_dst_in] = "composite_porter_duff_dst_in",
-      [composite_porter_duff_src_out] = "composite_porter_duff_src_out",
-      [composite_porter_duff_dst_out] = "composite_porter_duff_dst_out",
-      [composite_porter_duff_src_atop] = "composite_porter_duff_src_atop",
-      [composite_porter_duff_dst_atop] = "composite_porter_duff_dst_atop",
-      [composite_porter_duff_xor] = "composite_porter_duff_xor",
-      [composite_porter_duff_plus] = "composite_porter_duff_plus",
-      [composite_porter_duff_modulate] = "composite_porter_duff_modulate",
+      [blend_porter_duff_clear] = "blend_porter_duff_clear",
+      [blend_porter_duff_src] = "blend_porter_duff_src",
+      [blend_porter_duff_dst] = "blend_porter_duff_dst",
+      [blend_porter_duff_src_over] = "blend_porter_duff_src_over",
+      [blend_porter_duff_dst_over] = "blend_porter_duff_dst_over",
+      [blend_porter_duff_src_in] = "blend_porter_duff_src_in",
+      [blend_porter_duff_dst_in] = "blend_porter_duff_dst_in",
+      [blend_porter_duff_src_out] = "blend_porter_duff_src_out",
+      [blend_porter_duff_dst_out] = "blend_porter_duff_dst_out",
+      [blend_porter_duff_src_atop] = "blend_porter_duff_src_atop",
+      [blend_porter_duff_dst_atop] = "blend_porter_duff_dst_atop",
+      [blend_porter_duff_xor] = "blend_porter_duff_xor",
+      [blend_porter_duff_plus] = "blend_porter_duff_plus",
+      [blend_porter_duff_modulate] = "blend_porter_duff_modulate",
 
       [blend_w3c_screen] = "blend_w3c_screen",
       [blend_w3c_overlay] = "blend_w3c_overlay",
@@ -200,5 +200,5 @@ label(enum composite_mode_t v)
       [blend_w3c_color] = "blend_w3c_color",
       [blend_w3c_luminosity] = "blend_w3c_luminosity",
     };
-  return (v < number_composite_mode) ? labels[v] : "InvalidEnum";
+  return (v < number_blend_mode) ? labels[v] : "InvalidEnum";
 }

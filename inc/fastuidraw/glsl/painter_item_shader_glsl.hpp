@@ -334,7 +334,7 @@ namespace fastuidraw
      * \endcode
      *
      * which returns the color of the fragment for the item -before-
-     * the color modulation by the pen, brush or having compositing
+     * the color modulation by the pen, brush or having blending
      * applied. In addition, the color value returned is NOT
      * pre-multiplied by alpha either.
      *

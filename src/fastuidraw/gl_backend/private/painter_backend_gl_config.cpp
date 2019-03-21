@@ -166,67 +166,67 @@ compute_interlock_type(const ContextProperties &ctx)
   #endif
 }
 
-enum glsl::PainterShaderRegistrarGLSL::compositing_type_t
-compute_compositing_type(enum interlock_type_t interlock_value,
-                         enum glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value,
+enum glsl::PainterShaderRegistrarGLSL::blending_type_t
+compute_blending_type(enum interlock_type_t interlock_value,
+                         enum glsl::PainterShaderRegistrarGLSL::blending_type_t in_value,
                          const ContextProperties &ctx)
 {
   /*
-   * First fallback to compositing_framebuffer_fetch if interlock is
+   * First fallback to blending_framebuffer_fetch if interlock is
    * requested but not availabe.
    */
   if (interlock_value == no_interlock
-      && in_value == glsl::PainterShaderRegistrarGLSL::compositing_interlock)
+      && in_value == glsl::PainterShaderRegistrarGLSL::blending_interlock)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch;
+      in_value = glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch;
     }
 
-  bool have_dual_src_compositing, have_framebuffer_fetch;
+  bool have_dual_src_blending, have_framebuffer_fetch;
   if (ctx.is_es())
     {
-      have_dual_src_compositing = ctx.has_extension("GL_EXT_composite_func_extended");
+      have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
     }
   else
     {
-      have_dual_src_compositing = true;
+      have_dual_src_blending = true;
     }
   have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
-  if (in_value == glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch
+  if (in_value == glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch
       && !have_framebuffer_fetch)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::compositing_interlock;
+      in_value = glsl::PainterShaderRegistrarGLSL::blending_interlock;
     }
 
   /* we do the test again against interlock because framebuffer
    * fetch code may have fallen back to interlock, but now
-   * lacking interlock falls back to compositing_dual_src.
+   * lacking interlock falls back to blending_dual_src.
    */
   if (interlock_value == no_interlock
-      && in_value == glsl::PainterShaderRegistrarGLSL::compositing_interlock)
+      && in_value == glsl::PainterShaderRegistrarGLSL::blending_interlock)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::compositing_dual_src;
+      in_value = glsl::PainterShaderRegistrarGLSL::blending_dual_src;
     }
 
-  if (in_value == glsl::PainterShaderRegistrarGLSL::compositing_dual_src
-      && !have_dual_src_compositing)
+  if (in_value == glsl::PainterShaderRegistrarGLSL::blending_dual_src
+      && !have_dual_src_blending)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::compositing_single_src;
+      in_value = glsl::PainterShaderRegistrarGLSL::blending_single_src;
     }
 
   return in_value;
 }
 
 enum glsl::PainterShaderRegistrarGLSL::clipping_type_t
-compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::compositing_type_t compositing_type,
+compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::blending_type_t blending_type,
                       enum glsl::PainterShaderRegistrarGLSL::clipping_type_t in_value,
                       const ContextProperties &ctx,
                       bool allow_gl_clip_distance)
 {
   bool clip_distance_supported, skip_color_write_supported;
   skip_color_write_supported =
-    compositing_type == glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch
-    || compositing_type == glsl::PainterShaderRegistrarGLSL::compositing_interlock;
+    blending_type == glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch
+    || blending_type == glsl::PainterShaderRegistrarGLSL::blending_interlock;
 
   if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_discard)
     {

@@ -44,13 +44,13 @@ compute_provide_immediate_coverage_buffer(enum glsl::PainterShaderRegistrarGLSL:
 enum interlock_type_t
 compute_interlock_type(const ContextProperties &ctx);
 
-enum glsl::PainterShaderRegistrarGLSL::compositing_type_t
-compute_compositing_type(enum interlock_type_t interlock_value,
-                         enum glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value,
+enum glsl::PainterShaderRegistrarGLSL::blending_type_t
+compute_blending_type(enum interlock_type_t interlock_value,
+                         enum glsl::PainterShaderRegistrarGLSL::blending_type_t in_value,
                          const ContextProperties &ctx);
 
 enum glsl::PainterShaderRegistrarGLSL::clipping_type_t
-compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::compositing_type_t compositing_type,
+compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::blending_type_t blending_type,
                       enum glsl::PainterShaderRegistrarGLSL::clipping_type_t in_value,
                       const ContextProperties &ctx,
                       bool allow_gl_clip_distance = true);

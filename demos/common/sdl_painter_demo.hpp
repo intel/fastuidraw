@@ -105,7 +105,7 @@ private:
   typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t immediate_coverage_buffer_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t clipping_type_t;
-  typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t compositing_type_t;
+  typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t blending_type_t;
   enum glyph_backing_store_t
     {
       glyph_backing_store_texture_buffer,
@@ -156,7 +156,7 @@ private:
   command_line_argument_value<bool> m_uber_vert_use_switch;
   command_line_argument_value<bool> m_uber_frag_use_switch;
   command_line_argument_value<bool> m_use_uber_item_shader;
-  command_line_argument_value<bool> m_uber_composite_use_switch;
+  command_line_argument_value<bool> m_uber_blend_use_switch;
   command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
   command_line_argument_value<bool> m_separate_program_for_discard;
 
@@ -169,7 +169,7 @@ private:
   command_line_argument_value<bool> m_assign_layout_to_vertex_shader_inputs;
   command_line_argument_value<bool> m_assign_layout_to_varyings;
   command_line_argument_value<bool> m_assign_binding_points;
-  enumerated_command_line_argument_value<compositing_type_t> m_composite_type;
+  enumerated_command_line_argument_value<blending_type_t> m_blend_type;
   enumerated_command_line_argument_value<enum painter_optimal_t> m_painter_optimal;
 
   command_separator m_demo_options;
