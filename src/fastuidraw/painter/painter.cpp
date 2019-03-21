@@ -6596,7 +6596,7 @@ clip_in_rect(const Rect &rect)
       vec3 &eq(slightly_bigger.m_clip_equations[i]);
 
       f = t_abs(eq.x()) * d->m_one_pixel_width.x() + t_abs(eq.y()) * d->m_one_pixel_width.y();
-      eq.z() += f;
+      eq.z() += 0.5 * f;
     }
   d->m_clip_rect_state.clip_equations(slightly_bigger);
 
