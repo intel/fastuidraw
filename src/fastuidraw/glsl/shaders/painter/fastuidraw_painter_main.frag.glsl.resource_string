@@ -32,18 +32,8 @@
   bool
   fastuidraw_apply_clipping(void)
   {
-    /* hardware clipping is slightly different in output (on GEN atleast)
-       that using discard style clipping. The cause is because hardware
-       clipping changes what geometry is rasterized to the clip planes
-       where as discard style evaluates the value at a sample point
-       and the value is interpolated from the vertices. In exact arithematic
-       they are the same, but we do not have exact arithmatic. We fudge
-       the clip value by epsilon which is set to the width of half a
-       pixel (recall the clipping equations are already in clip coordinates).
-     */
-    float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
-    if (fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
-       || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon)
+    if (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
+       || fastuidraw_clip_plane2 < 0.0  || fastuidraw_clip_plane3 < 0.0)
       {
         FASTUIDRAW_DISCARD;
       }
@@ -58,9 +48,8 @@
   bool
   fastuidraw_apply_clipping(void)
   {
-    float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
-    return (fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
-            || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon);
+    return (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
+            || fastuidraw_clip_plane2 < 0.0  || fastuidraw_clip_plane3 < 0.0);
   }
 
 #else
