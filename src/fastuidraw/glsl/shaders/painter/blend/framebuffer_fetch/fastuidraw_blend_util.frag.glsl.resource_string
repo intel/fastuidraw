@@ -17,136 +17,35 @@
  */
 
 float
-fastuidraw_blend_w3c_screen(in float Cb, in float Cs)
-{
-  const float one = 1.0;
-  return one - (one - Cb) * (one - Cs);
-}
-
-float
-fastuidraw_blend_w3c_multiply(in float Cb, in float Cs)
-{
-  return Cb * Cs;
-}
-
-float
-fastuidraw_blend_w3c_hardlight(in float Cb, in float Cs)
-{
-  return (Cs <= 0.5) ?
-    fastuidraw_blend_w3c_multiply(Cb, 2.0 * Cs) :
-    fastuidraw_blend_w3c_screen(Cb, 2.0 * Cs - 1.0);
-}
-
-float
-fastuidraw_blend_w3c_overlay(in float Cb, in float Cs)
-{
-  return fastuidraw_blend_w3c_hardlight(Cs, Cb);
-}
-
-float
-fastuidraw_blend_w3c_color_dodge(in float Cb, in float Cs)
-{
-  /**
-  if (Cb <= 0.0)
-    {
-      return_value = 0.0;
-    }
-  else if (Cs >= 1.0)
-    {
-      return_value = 1.0;
-    }
-  else
-    {
-      return_value = min(1.0, Cb / (1.0 - Cs));
-    }
-  **/
-
-  return (Cb <= 0.0) ? 0.0 :
-    (Cs >= 1.0) ? 1.0 :
-    min(1.0, Cb / (1.0 - Cs));
-}
-
-float
-fastuidraw_blend_w3c_color_burn(in float Cb, in float Cs)
-{
-  /**
-  if(Cb >= 1.0)
-    {
-      return_value = 1.0;
-    }
-  else if(Cs <= 0.0)
-    {
-      return_value = 0.0;
-    }
-  else
-    {
-      return_value = 1.0 - min(1.0, (1.0 - Cb) / Cs);
-    }
-  **/
-
-  return (Cb >= 1.0) ? 1.0 :
-    (Cs <= 0.0) ? 0.0 :
-    1.0 - min(1.0, (1.0 - Cb) / Cs);
-}
-
-float
-fastuidraw_blend_w3c_softlight(in float Cb, in float Cs)
-{
-  float return_value;
-
-  if (Cs <= 0.5)
-    {
-      return_value = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);
-    }
-  else
-    {
-      float D;
-
-      if(Cb <= 0.25)
-        {
-          D = ((16.0 * Cb - 12.0) * Cb + 4.0) * Cb;
-        }
-      else
-        {
-          D = sqrt(Cb);
-        }
-
-      return_value = Cb + (2.0 * Cs - 1.0) * (D - Cb);
-    }
-
-  return return_value;
-}
-
-float
-fastuidraw_blend_w3c_min(in vec3 C)
+fastuidraw_compute_min(in vec3 C)
 {
   return min(C.r, min(C.g, C.b));
 }
 
 float
-fastuidraw_blend_w3c_max(in vec3 C)
+fastuidraw_compute_max(in vec3 C)
 {
   return max(C.r, max(C.g, C.b));
 }
 
 float
-fastuidraw_blend_w3c_lum(in vec3 C)
+fastuidraw_compute_luminosity(in vec3 C)
 {
   return dot(C, vec3(0.3, 0.59, 0.11));
 }
 
 float
-fastuidraw_blend_w3c_sat(in vec3 C)
+fastuidraw_compute_saturation(in vec3 C)
 {
-  return fastuidraw_blend_w3c_max(C) - fastuidraw_blend_w3c_min(C);
+  return fastuidraw_compute_max(C) - fastuidraw_compute_min(C);
 }
 
 vec3
-fastuidraw_blend_w3c_clipcolor(in vec3 C)
+fastuidraw_clipcolor(in vec3 C)
 {
-  float lumC = fastuidraw_blend_w3c_lum(C);
-  float minC = fastuidraw_blend_w3c_min(C);
-  float maxC = fastuidraw_blend_w3c_max(C);
+  float lumC = fastuidraw_compute_luminosity(C);
+  float minC = fastuidraw_compute_min(C);
+  float maxC = fastuidraw_compute_max(C);
   vec3 lumCv = vec3(lumC);
 
   if (minC < 0.0)
@@ -165,31 +64,152 @@ fastuidraw_blend_w3c_clipcolor(in vec3 C)
 }
 
 vec3
-fastuidraw_blend_w3c_set_lum(in vec3 cBase, in vec3 cLum)
+fastuidraw_set_luminosity(in vec3 C, in vec3 L)
 {
-  float lBase = fastuidraw_blend_w3c_lum(cBase);
-  float lLum = fastuidraw_blend_w3c_lum(cLum);
-  float lDiff = lLum - lBase;
-  return fastuidraw_blend_w3c_clipcolor(cBase + vec3(lDiff));
+  float Clum = fastuidraw_compute_luminosity(C);
+  float Llum = fastuidraw_compute_luminosity(L);
+  float delta = Llum - Clum;
+  return fastuidraw_clipcolor(C + vec3(delta));
 }
 
 vec3
-fastuidraw_blend_w3c_set_lum_sat(in vec3 cBase,
-                                 in vec3 cSat,
-                                 in vec3 cLum)
+fastuidraw_set_saturation_and_luminosity(in vec3 C, in vec3 S, in vec3 L)
 {
-  float minBase = fastuidraw_blend_w3c_min(cBase);
-  float sBase = fastuidraw_blend_w3c_sat(cBase);
-  float sSat = fastuidraw_blend_w3c_sat(cSat);
+  float Cmin = fastuidraw_compute_min(C);
+  float Csat = fastuidraw_compute_saturation(C);
+  float Ssat = fastuidraw_compute_saturation(S);
   vec3 color;
 
-  if (sBase > 0.0)
+  if (Csat > 0.0)
     {
-      color = (cBase - vec3(minBase)) * (sSat / sBase);
+      C = (C - Cmin) * Ssat / Csat;
     }
   else
     {
-      color = vec3(0.0);
+      C = vec3(0.0);
     }
-  return fastuidraw_blend_w3c_set_lum(color, cLum);
+  return fastuidraw_set_luminosity(C, L);
 }
+
+
+vec3
+fastuidraw_undo_alpha(in vec4 S)
+{
+  if (S.a != 0.0)
+    {
+      S.a = 1.0 / S.a;
+    }
+  return S.rgb * S.a;
+}
+
+float
+fastuidraw_overlay(in float S, in float D)
+{
+  return (D <= 0.5) ?
+    (2.0 * S * D) :
+    (1.0 - 2.0 * (1.0 - S) * (1.0 - D));
+}
+
+float
+fastuidraw_softlight(in float S, in float D)
+{
+  if (S <= 0.5)
+    {
+      return D - (1.0 - 2.0 * S) * D * (1.0 - D);
+    }
+  else if (D <= 0.25)
+    {
+      return D + (2.0 * S - 1.0) * D * ((16.0 * D - 12.0) * D + 3.0);
+    }
+  else
+    {
+      return D + (2.0 * S - 1.0) * (sqrt(D) - D);
+    }
+}
+
+float
+fastuidraw_hardlight(in float S, in float D)
+{
+  if (S <= 0.5)
+    {
+      return 2.0 * S * D;
+    }
+  else
+    {
+      return 1.0 - 2.0 * (1.0 - S) * (1.0 - D);
+    }
+}
+
+float
+fastuidraw_color_dodge(in float S, in float D)
+{
+  if (D <= 0.0)
+    {
+      return 0.0;
+    }
+  else if (S >= 1.0)
+    {
+      return 1.0;
+    }
+  else
+    {
+      return min(1.0, D / (1.0 - S));
+    }
+}
+
+float
+fastuidraw_color_burn(in float S, in float D)
+{
+  if (D >= 1.0)
+    {
+      return 1.0;
+    }
+  else if (S <= 0.0)
+    {
+      return 0.0;
+    }
+  else
+    {
+      return 1.0 - min(1.0, (1.0 - D) / S);
+    }
+}
+
+/* Naughty macro that assumes in_src, in_fb are defined. */
+#define FASTUIDRAW_PORTER_DUFF_MACRO(src_factor, dst_factor) \
+  ((src_factor) * in_src + (dst_factor) * in_fb)
+
+/* Macro that runs the expression on one channel of out_src */
+#define FASTUIDRAW_SEPERABLE_FBF_BLEND_ONE_CHANNEL_MACRO(channel, expression) \
+  S = Srgb.channel; D = Drgb.channel;                                   \
+  out_src.channel = (expression)
+
+/* Naughty macro that assumes in_src, in_fb are defined AND
+ * expression is a scalar expression in S and D (temporaries)
+ * with S representing "source" (i.e in_src with alpha undone)
+ * and D representing "destination" (i.e. in_fb with alpha undone).
+ */
+#define FASTUIDRAW_SEPERABLE_FBF_BLEND_MACRO(expression)                \
+  vec3 Srgb, Drgb;                                                      \
+  float S, D;                                                           \
+  Srgb = fastuidraw_undo_alpha(in_src);                                 \
+  Drgb = fastuidraw_undo_alpha(in_fb);                                  \
+  out_src.a = in_src.a + in_fb.a * (1.0 - in_src.a);                    \
+  FASTUIDRAW_SEPERABLE_FBF_BLEND_ONE_CHANNEL_MACRO(r, expression);      \
+  FASTUIDRAW_SEPERABLE_FBF_BLEND_ONE_CHANNEL_MACRO(g, expression);      \
+  FASTUIDRAW_SEPERABLE_FBF_BLEND_ONE_CHANNEL_MACRO(b, expression);      \
+  out_src.rgb *= in_src.a * in_fb.a;
+  out_src.rgb += Srgb * (1.0 - in_fb.a) + Drgb * (1.0 - in_src.a)
+
+/* Naughty macro that assumes in_src, in_fb are defined AND
+ * expression is a vec3 expression in S and D (temporaries)
+ * with S representing "source" (i.e in_src with alpha undone)
+ * and D representing "destination" (i.e. in_fb with alpha undone).
+ */
+#define FASTUIDRAW_NON_SEPERABLE_FBF_BLEND_MACRO(expression)            \
+  vec3 S, D;                                                            \
+  S = fastuidraw_undo_alpha(in_src);                                    \
+  D = fastuidraw_undo_alpha(in_fb);                                     \
+  out_src.a = in_src.a + in_fb.a * (1.0 - in_src.a);                    \
+  out_src.rgb = expression;                                             \
+  out_src.rgb *= in_src.a * in_fb.a;                                    \
+  out_src.rgb += S * (1.0 - in_fb.a) + D * (1.0 - in_src.a);
