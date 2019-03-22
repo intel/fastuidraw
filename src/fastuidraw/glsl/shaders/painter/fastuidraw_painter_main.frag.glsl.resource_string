@@ -150,19 +150,20 @@ main(void)
     }
   #endif
 
+  // The standard canvas pipeline emits pre-multiplied alpha surfaces
+  v.rgb *= v.a;
+
   #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
     {
-      v.rgb *= v.a;
       fastuidraw_run_blend_shader(fastuidraw_blend_shader,
-                                      fastuidraw_blend_shader_data_location,
-                                      v, fastuidraw_final_color0, fastuidraw_final_color1);
+                                  fastuidraw_blend_shader_data_location,
+                                  v, fastuidraw_final_color0, fastuidraw_final_color1);
     }
   #elif defined(FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND)
     {
-      v.rgb *= v.a;
       fastuidraw_run_blend_shader(fastuidraw_blend_shader,
-                                      fastuidraw_blend_shader_data_location,
-                                      v, fastuidraw_final_color);
+                                  fastuidraw_blend_shader_data_location,
+                                  v, fastuidraw_final_color);
     }
   #elif defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH)
     {
@@ -171,10 +172,9 @@ main(void)
       in_fb = fastuidraw_final_color;
       if (!discard_color_write)
         {
-          v.rgb *= v.a;
           fastuidraw_run_blend_shader(fastuidraw_blend_shader,
-                                          fastuidraw_blend_shader_data_location,
-                                          v, in_fb, out_fb);
+                                      fastuidraw_blend_shader_data_location,
+                                      v, in_fb, out_fb);
         }
       else
         {
@@ -196,11 +196,10 @@ main(void)
           vec4 in_fb, out_fb;
           ivec2 pos = ivec2(gl_FragCoord.xy);
 
-          v.rgb *= v.a;
           in_fb = imageLoad(fastuidraw_color_buffer, pos);
           fastuidraw_run_blend_shader(fastuidraw_blend_shader,
-                                          fastuidraw_blend_shader_data_location,
-                                          v, in_fb, out_fb);
+                                      fastuidraw_blend_shader_data_location,
+                                      v, in_fb, out_fb);
           imageStore(fastuidraw_color_buffer, pos, out_fb);
         }
       fastuidraw_end_interlock();
