@@ -41,9 +41,10 @@ namespace fastuidraw
     enum
       {
         /*!
-         * When \ref m_blend_shader is set to \ref drawing_occluder,
-         * it indicates that the item being drawing is an occluder,
-         * and no blending is active.
+         * When \ref m_blend_shader_data_location is set to
+         * \ref drawing_occluder, it indicates that the item
+         * being drawing is an occluder thus the color
+         * computation from the brush and item can be skipped.
          */
         drawing_occluder = ~0u
       };
@@ -160,6 +161,10 @@ namespace fastuidraw
      * \code
      * PainterDraw::m_store[m_blend_shader_data_location * 4]
      * \endcode
+     * NOTE: if \ref m_blend_shader_data_location is \ref
+     * drawing_occluder this means that the item being drawing
+     * is an occluder thus the color computation from the brush
+     * and item can be skipped.
      */
     uint32_t m_blend_shader_data_location;
 

@@ -173,7 +173,7 @@ namespace
       for(const fastuidraw::c_array<fastuidraw::generic_data> &d : m_dests)
         {
           d[fastuidraw::PainterHeader::z_offset].i = m_z_to_write;
-          d[fastuidraw::PainterHeader::blend_shader_offset].u = fastuidraw::PainterHeader::drawing_occluder;
+          d[fastuidraw::PainterHeader::blend_shader_data_location_offset].u = fastuidraw::PainterHeader::drawing_occluder;
         }
     }
 

@@ -78,7 +78,7 @@ main(void)
 
   fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
   fastuidraw_vert_brush_processing(brush_p, h);
-  if (h.blend_shader == FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
+  if (h.blend_shader_data_location == FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
     {
       add_z = 0;
     }

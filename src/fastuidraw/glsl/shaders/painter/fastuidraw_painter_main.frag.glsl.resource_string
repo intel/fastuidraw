@@ -127,7 +127,7 @@ main(void)
       fastuidraw_deferred_buffer_offset = ivec2(tmp) - ivec2(fastuidraw_deferred_offset_bias,
                                                              fastuidraw_deferred_offset_bias);
 
-      if (fastuidraw_blend_shader != FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
+      if (fastuidraw_blend_shader_data_location != FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
         {
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
           b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
