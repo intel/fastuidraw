@@ -64,7 +64,10 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
        * Image own the texture (if the SurfaceGL owned it).
        * The m_image is part of the SurfaceGLPrivate, so it
        * won't release the texture until the SurfaceGLPrivate
-       * dtor is called.
+       * dtor is called. Note that the image is exposed as
+       * Image::premultipied_rgba_format; this is because
+       * the GL/GLSL painter shader emits pre-multiplied
+       * RGBA values.
        */
       texture = buffer(buffer_color);
       m_image = ImageAtlasGL::TextureImage::create(atlas,
@@ -72,7 +75,8 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
                                                    m_dimensions.y(),
                                                    1,
                                                    texture,
-                                                   m_own_texture);
+                                                   m_own_texture,
+                                                   Image::premultipied_rgba_format);
       m_own_texture = false;
     }
 

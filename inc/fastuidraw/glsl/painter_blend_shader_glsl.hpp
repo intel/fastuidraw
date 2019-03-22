@@ -43,33 +43,35 @@ namespace fastuidraw
      *   \code
      *   void
      *   fastuidraw_gl_compute_blend_value(in uint sub_shader, in uint blend_shader_data_location,
-     *                                         in vec4 in_src, out vec4 out_src)
+     *                                     in vec4 in_src, out vec4 out_src)
      *   \endcode
-     *   where in_src is the pre-multiplied by alpha color value for the
-     *   fragment and out_src is the value for the fragment shader to emit.
+     *   where in_src is the output of the item fragment shader modulated by the
+     *   current brush with alpha applied to rgb and out_src is the value for the
+     *   fragment shader to emit.
      *
      * - PainterBlendShader::type() == PainterBlendShader::dual_src
      *   The shader code fragment must provide the function
      *   \code
      *   void
      *   fastuidraw_gl_compute_blend_factors(in uint sub_shader, in uint blend_shader_data_location,
-     *                                           in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
+     *                                       in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
      *   \endcode
-     *   where in_src is the pre-multiplied by alpha color value for the
-     *   fragment, out_src0 is the value for the fragment shader to emit
-     *   for GL_SRC_COLOR and out_src1 is the value for the fragment shader
-     *   to emit value for GL_SRC1_COLOR.
+     *   where in_src is the output of the item fragment shader modulated by the
+     *   current brush with alpha applied to rgb, out_src0 is the value for the
+     *   fragment shader to emit for GL_SRC_COLOR and out_src1 is the value for
+     *   the fragment shader to emit value for GL_SRC1_COLOR.
      *
      * - PainterBlendShader::type() == PainterBlendShader::framebuffer_fetch
      *   The shader code fragment must provide the function
      *   \code
      *   void
      *   fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
-     *                                                in vec4 in_src, in vec4 in_fb, out vec4 out_src)
+     *                                            in vec4 in_src, in vec4 in_fb, out vec4 out_src)
      *   \endcode
-     *   where in_src is the pre-multiplied by alpha color value for the
-     *   fragment, in_fb is the value of the framebuffer at the location
-     *   and out_src is the value for the fragment shader to emit.
+     *   where in_src is the output of the item fragment shader modulated by the
+     *   current brush with alpha applied to rgb, in_fb is the value of the
+     *   framebuffer at the location  and out_src is the value for the fragment
+     *   shader to emit.
      *
      * For each of the blend shader type:
      * - sub_shader corresponds to PainterBlendShader::sub_shader(),
@@ -90,7 +92,7 @@ namespace fastuidraw
        * \param num_sub_shaders the number of sub-shaders it supports
        */
       PainterBlendShaderGLSL(enum shader_type tp, const ShaderSource &src,
-                                 unsigned int num_sub_shaders = 1);
+                             unsigned int num_sub_shaders = 1);
 
       ~PainterBlendShaderGLSL(void);
 
