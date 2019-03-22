@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Adapted from: create_cpp_from_string_resource.sh of WRATH:
 #
@@ -18,7 +18,8 @@
 #
 set -e
 
-function show_usage {
+show_usage()
+{
     echo "Usage: $0 input_file output_name output_directory"
     echo "Creates a .cpp file named output_name.cpp in the directory output_directory"
     echo "which when added to a project adds a resource for fastuidraw::fetch_static_resource()"
@@ -50,9 +51,9 @@ fi
 # (same license as above)
 perl_magick_program='open(FILE, "$ARGV[0]") or die("Unable to open file"); @data = <FILE>; foreach $line (@data) { @ASCII = unpack("C*", $line); foreach (@ASCII) { print "$_,"; } }'
 
-echo -e "#include <fastuidraw/util/static_resource.hpp>\n" > "$source_file_name"
-echo -e "namespace { \n\tconst uint8_t values[]={ " >> "$source_file_name"
+echo "#include <fastuidraw/util/static_resource.hpp>" > "$source_file_name"
+echo "namespace {const uint8_t values[]={ " >> "$source_file_name"
 perl -e "$perl_magick_program" "$1" >> "$source_file_name" || exit 1
-echo -e " 0 };\n" >> "$source_file_name"
-echo -e " fastuidraw::static_resource R(\"$2\", fastuidraw::c_array<const uint8_t>(values, sizeof(values)));\n " >> "$source_file_name"
-echo -e "\n}\n" >> "$source_file_name"
+echo " 0 };" >> "$source_file_name"
+echo " fastuidraw::static_resource R(\"$2\", fastuidraw::c_array<const uint8_t>(values, sizeof(values))); " >> "$source_file_name"
+echo "}" >> "$source_file_name"
