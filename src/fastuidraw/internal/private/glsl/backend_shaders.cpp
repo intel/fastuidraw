@@ -37,7 +37,7 @@ BlendShaderSetCreator(enum PainterBlendShader::shader_type tp):
 {
   if (m_type == PainterBlendShader::single_src)
     {
-      m_single_src_blend_shader_code =
+      m_fall_through_shader =
         FASTUIDRAWnew PainterBlendShaderGLSL(PainterBlendShader::single_src,
                                              ShaderSource()
                                              .add_source("fastuidraw_fall_through.glsl.resource_string",
@@ -48,19 +48,19 @@ BlendShaderSetCreator(enum PainterBlendShader::shader_type tp):
 void
 BlendShaderSetCreator::
 add_single_src_blend_shader(PainterBlendShaderSet &out,
-                                enum PainterEnums::blend_mode_t md,
-                                const BlendMode &single_md)
+                            enum PainterEnums::blend_mode_t md,
+                            const BlendMode &single_md)
 {
   FASTUIDRAWassert(m_type == PainterBlendShader::single_src);
-  out.shader(md, single_md, m_single_src_blend_shader_code);
+  out.shader(md, single_md, m_fall_through_shader);
 }
 
 void
 BlendShaderSetCreator::
 add_dual_src_blend_shader(PainterBlendShaderSet &out,
-                              enum PainterEnums::blend_mode_t md,
-                              const std::string &dual_src_file,
-                              const BlendMode &dual_md)
+                          enum PainterEnums::blend_mode_t md,
+                          const std::string &dual_src_file,
+                          const BlendMode &dual_md)
 {
   FASTUIDRAWassert(m_type == PainterBlendShader::dual_src);
 
@@ -75,8 +75,8 @@ add_dual_src_blend_shader(PainterBlendShaderSet &out,
 void
 BlendShaderSetCreator::
 add_fbf_blend_shader(PainterBlendShaderSet &out,
-                         enum PainterEnums::blend_mode_t md,
-                         const std::string &framebuffer_fetch_src_file)
+                     enum PainterEnums::blend_mode_t md,
+                     const std::string &framebuffer_fetch_src_file)
 {
   FASTUIDRAWassert(m_type == PainterBlendShader::framebuffer_fetch);
 
@@ -91,11 +91,11 @@ add_fbf_blend_shader(PainterBlendShaderSet &out,
 void
 BlendShaderSetCreator::
 add_blend_shader(PainterBlendShaderSet &out,
-                     enum PainterEnums::blend_mode_t md,
-                     const BlendMode &single_md,
-                     const std::string &dual_src_file,
-                     const BlendMode &dual_md,
-                     const std::string &framebuffer_fetch_src_file)
+                 enum PainterEnums::blend_mode_t md,
+                 const BlendMode &single_md,
+                 const std::string &dual_src_file,
+                 const BlendMode &dual_md,
+                 const std::string &framebuffer_fetch_src_file)
 {
   switch(m_type)
     {
@@ -119,10 +119,10 @@ add_blend_shader(PainterBlendShaderSet &out,
 void
 BlendShaderSetCreator::
 add_blend_shader(PainterBlendShaderSet &out,
-                     enum PainterEnums::blend_mode_t md,
-                     const std::string &dual_src_file,
-                     const BlendMode &dual_md,
-                     const std::string &framebuffer_fetch_src_file)
+                 enum PainterEnums::blend_mode_t md,
+                 const std::string &dual_src_file,
+                 const BlendMode &dual_md,
+                 const std::string &framebuffer_fetch_src_file)
 {
   switch(m_type)
     {
@@ -145,8 +145,8 @@ add_blend_shader(PainterBlendShaderSet &out,
 void
 BlendShaderSetCreator::
 add_blend_shader(PainterBlendShaderSet &out,
-                     enum PainterEnums::blend_mode_t md,
-                     const std::string &framebuffer_fetch_src_file)
+                 enum PainterEnums::blend_mode_t md,
+                 const std::string &framebuffer_fetch_src_file)
 {
   switch(m_type)
     {
@@ -199,77 +199,85 @@ create_blend_shaders(void)
     .func_dst_alpha(BlendMode::SRC1_ALPHA);
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_src_over,
-                       BlendMode().func(BlendMode::ONE, BlendMode::ONE_MINUS_SRC_ALPHA),
-                       "fastuidraw_porter_duff_src_over.glsl.resource_string", one_src1,
-                       "fastuidraw_fbf_porter_duff_src_over.glsl.resource_string");
+                   BlendMode().func(BlendMode::ONE, BlendMode::ONE_MINUS_SRC_ALPHA),
+                   "fastuidraw_porter_duff_src_over.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_porter_duff_src_over.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_dst_over,
-                       BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE),
-                       "fastuidraw_porter_duff_dst_over.glsl.resource_string", one_minus_dst_alpha_src1,
-                       "fastuidraw_fbf_porter_duff_dst_over.glsl.resource_string");
+                   BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE),
+                   "fastuidraw_porter_duff_dst_over.glsl.resource_string", one_minus_dst_alpha_src1,
+                   "fastuidraw_fbf_porter_duff_dst_over.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_clear,
-                       BlendMode().func(BlendMode::ZERO, BlendMode::ZERO),
-                       "fastuidraw_porter_duff_clear.glsl.resource_string", one_src1,
-                       "fastuidraw_fbf_porter_duff_clear.glsl.resource_string");
+                   BlendMode().func(BlendMode::ZERO, BlendMode::ZERO),
+                   "fastuidraw_porter_duff_clear.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_porter_duff_clear.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_src,
-                       BlendMode().func(BlendMode::ONE, BlendMode::ZERO),
-                       "fastuidraw_porter_duff_src.glsl.resource_string", one_src1,
-                       "fastuidraw_fbf_porter_duff_src.glsl.resource_string");
+                   BlendMode().func(BlendMode::ONE, BlendMode::ZERO),
+                   "fastuidraw_porter_duff_src.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_porter_duff_src.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_dst,
-                       BlendMode().func(BlendMode::ZERO, BlendMode::ONE),
-                       "fastuidraw_porter_duff_dst.glsl.resource_string", one_src1,
-                       "fastuidraw_fbf_porter_duff_dst.glsl.resource_string");
+                   BlendMode().func(BlendMode::ZERO, BlendMode::ONE),
+                   "fastuidraw_porter_duff_dst.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_porter_duff_dst.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_src_in,
-                       BlendMode().func(BlendMode::DST_ALPHA, BlendMode::ZERO),
-                       "fastuidraw_porter_duff_src_in.glsl.resource_string", dst_alpha_src1,
-                       "fastuidraw_fbf_porter_duff_src_in.glsl.resource_string");
+                   BlendMode().func(BlendMode::DST_ALPHA, BlendMode::ZERO),
+                   "fastuidraw_porter_duff_src_in.glsl.resource_string", dst_alpha_src1,
+                   "fastuidraw_fbf_porter_duff_src_in.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_dst_in,
-                       BlendMode().func(BlendMode::ZERO, BlendMode::SRC_ALPHA),
-                       "fastuidraw_porter_duff_dst_in.glsl.resource_string", one_src1,
-                       "fastuidraw_fbf_porter_duff_dst_in.glsl.resource_string");
+                   BlendMode().func(BlendMode::ZERO, BlendMode::SRC_ALPHA),
+                   "fastuidraw_porter_duff_dst_in.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_porter_duff_dst_in.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_src_out,
-                       BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ZERO),
-                       "fastuidraw_porter_duff_src_out.glsl.resource_string", one_minus_dst_alpha_src1,
-                       "fastuidraw_fbf_porter_duff_src_out.glsl.resource_string");
+                   BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ZERO),
+                   "fastuidraw_porter_duff_src_out.glsl.resource_string", one_minus_dst_alpha_src1,
+                   "fastuidraw_fbf_porter_duff_src_out.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_dst_out,
-                       BlendMode().func(BlendMode::ZERO, BlendMode::ONE_MINUS_SRC_ALPHA),
-                       "fastuidraw_porter_duff_dst_out.glsl.resource_string", one_src1,
-                       "fastuidraw_fbf_porter_duff_dst_out.glsl.resource_string");
+                   BlendMode().func(BlendMode::ZERO, BlendMode::ONE_MINUS_SRC_ALPHA),
+                   "fastuidraw_porter_duff_dst_out.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_porter_duff_dst_out.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_src_atop,
-                       BlendMode().func(BlendMode::DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
-                       "fastuidraw_porter_duff_src_atop.glsl.resource_string", dst_alpha_src1,
-                       "fastuidraw_fbf_porter_duff_src_atop.glsl.resource_string");
+                   BlendMode().func(BlendMode::DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
+                   "fastuidraw_porter_duff_src_atop.glsl.resource_string", dst_alpha_src1,
+                   "fastuidraw_fbf_porter_duff_src_atop.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_dst_atop,
-                       BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::SRC_ALPHA),
-                       "fastuidraw_porter_duff_dst_atop.glsl.resource_string", one_minus_dst_alpha_src1,
-                       "fastuidraw_fbf_porter_duff_dst_atop.glsl.resource_string");
+                   BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::SRC_ALPHA),
+                   "fastuidraw_porter_duff_dst_atop.glsl.resource_string", one_minus_dst_alpha_src1,
+                   "fastuidraw_fbf_porter_duff_dst_atop.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_xor,
-                       BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
-                       "fastuidraw_porter_duff_xor.glsl.resource_string", one_minus_dst_alpha_src1,
-                       "fastuidraw_fbf_porter_duff_xor.glsl.resource_string");
+                   BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
+                   "fastuidraw_porter_duff_xor.glsl.resource_string", one_minus_dst_alpha_src1,
+                   "fastuidraw_fbf_porter_duff_xor.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_plus,
-                       BlendMode().func(BlendMode::ONE, BlendMode::ONE),
-                       "fastuidraw_porter_duff_plus.glsl.resource_string", one_src1,
-                       "fastuidraw_fbf_porter_duff_plus.glsl.resource_string");
+                   BlendMode().func(BlendMode::ONE, BlendMode::ONE),
+                   "fastuidraw_porter_duff_plus.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_porter_duff_plus.glsl.resource_string");
 
   add_blend_shader(shaders, PainterEnums::blend_porter_duff_modulate,
-                       BlendMode()
-                       .func_src_rgb(BlendMode::DST_COLOR)
-                       .func_src_alpha(BlendMode::DST_ALPHA)
-                       .func_dst(BlendMode::ZERO),
-                       "fastuidraw_porter_duff_modulate.glsl.resource_string", dst_alpha_src1,
-                       "fastuidraw_fbf_porter_duff_modulate.glsl.resource_string");
+                   BlendMode()
+                   .func_src_rgb(BlendMode::DST_COLOR)
+                   .func_src_alpha(BlendMode::DST_ALPHA)
+                   .func_dst(BlendMode::ZERO),
+                   "fastuidraw_porter_duff_modulate.glsl.resource_string", dst_alpha_src1,
+                   "fastuidraw_fbf_porter_duff_modulate.glsl.resource_string");
+
+  add_blend_shader(shaders, PainterEnums::blend_w3c_screen,
+                   BlendMode()
+                   .func_src(BlendMode::ONE)
+                   .func_dst_rgb(BlendMode::ONE_MINUS_SRC_COLOR)
+                   .func_dst_alpha(BlendMode::ONE_MINUS_SRC_ALPHA),
+                   "fastuidraw_w3c_screen.glsl.resource_string", one_src1,
+                   "fastuidraw_fbf_w3c_screen.glsl.resource_string");
 
   return shaders;
 }
@@ -891,8 +899,6 @@ add_w3c_blend_shaders(PainterBlendShader &return_value)
             create_blend_shader("fastuidraw_fbf_w3c_color_burn.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_hardlight,
             create_blend_shader("fastuidraw_fbf_w3c_hardlight.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_softlight,
-            create_blend_shader("fastuidraw_fbf_w3c_softlight.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_difference,
             create_blend_shader("fastuidraw_fbf_w3c_difference.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_exclusion,
