@@ -18,7 +18,7 @@
 
 void
 fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
-                                         in vec3 in_src, in vec3 in_fb, out vec3 out_src)
+                                         in vec4 in_src, in vec4 in_fb, out vec4 out_src)
 {
-  out_src = fastuidraw_blend_w3c_set_lum(in_fb, in_src);
+  FASTUIDRAW_NON_SEPERABLE_FBF_BLEND_MACRO(fastuidraw_set_luminosity(D, S));
 }

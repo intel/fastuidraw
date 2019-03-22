@@ -279,6 +279,51 @@ create_blend_shaders(void)
                    "fastuidraw_w3c_screen.glsl.resource_string", one_src1,
                    "fastuidraw_fbf_w3c_screen.glsl.resource_string");
 
+  if (m_type == PainterBlendShader::framebuffer_fetch)
+    {
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_softlight,
+                           "fastuidraw_fbf_w3c_softlight.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_overlay,
+                           "fastuidraw_fbf_w3c_overlay.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_darken,
+                           "fastuidraw_fbf_w3c_darken.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_lighten,
+                           "fastuidraw_fbf_w3c_lighten.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_color_dodge,
+                           "fastuidraw_fbf_w3c_color_dodge.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_color_burn,
+                           "fastuidraw_fbf_w3c_color_burn.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_hardlight,
+                           "fastuidraw_fbf_w3c_hardlight.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_difference,
+                           "fastuidraw_fbf_w3c_difference.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_exclusion,
+                           "fastuidraw_fbf_w3c_exclusion.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_multiply,
+                           "fastuidraw_fbf_w3c_multiply.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_hue,
+                           "fastuidraw_fbf_w3c_hue.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_saturation,
+                           "fastuidraw_fbf_w3c_saturation.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_color,
+                           "fastuidraw_fbf_w3c_color.glsl.resource_string");
+
+      add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_luminosity,
+                           "fastuidraw_fbf_w3c_luminosity.glsl.resource_string");
+    }
+
   return shaders;
 }
 
@@ -889,8 +934,6 @@ add_w3c_blend_shaders(PainterBlendShader &return_value)
             create_blend_shader("fastuidraw_fbf_w3c_screen.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_overlay,
             create_blend_shader("fastuidraw_fbf_w3c_overlay.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_darken,
-            create_blend_shader("fastuidraw_fbf_w3c_darken.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_lighten,
             create_blend_shader("fastuidraw_fbf_w3c_lighten.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_color_dodge,
