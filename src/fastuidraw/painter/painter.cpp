@@ -3487,7 +3487,6 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
         {
           output->m_normalized_device_coords_bounding_box.clear();
           anti_alias_quality = Painter::shader_anti_alias_deferred_coverage;
-          std::cout << "Selected: " << anti_alias_quality << "\n";
         }
     }
 
