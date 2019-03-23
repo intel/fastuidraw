@@ -24,10 +24,8 @@ struct fastuidraw_header
   uint brush_shader_data_location;
   uint item_shader_data_location;
   uint blend_shader_data_location;
-  uint blend_shader_data_location;
   uint brush_shader;
   uint item_shader;
-  uint blend_shader;
   uint blend_shader;
   int z;
   uint deferred_buffer_offset_packed;
