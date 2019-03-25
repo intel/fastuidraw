@@ -26,16 +26,6 @@ namespace fastuidraw { namespace gl { namespace detail {
 class SurfaceGLPrivate:noncopyable
 {
 public:
-  enum fbo_tp_bits
-    {
-      fbo_color_buffer_bit,
-      fbo_num_bits,
-
-      fbo_color_buffer = FASTUIDRAW_MASK(fbo_color_buffer_bit, 1),
-
-      number_fbo_t = FASTUIDRAW_MASK(0, fbo_num_bits) + 1
-    };
-
   enum immediate_coverage_buffer_fmt_t
     {
       immediate_coverage_buffer_fmt_u8,
@@ -73,22 +63,10 @@ public:
   }
 
   c_array<const GLenum>
-  draw_buffers(uint32_t tp);
+  draw_buffers(bool with_color_buffer);
 
   GLuint
-  fbo(enum PainterBackendGL::blending_type_t blending)
-  {
-    return fbo(fbo_bits(blending));
-  }
-
-  GLuint
-  fbo(uint32_t tp);
-
-  c_array<const GLenum>
-  draw_buffers(enum PainterBackendGL::blending_type_t blending)
-  {
-    return draw_buffers(fbo_bits(blending));
-  }
+  fbo(bool with_color_buffer);
 
   reference_counted_ptr<const Image>
   image(const reference_counted_ptr<ImageAtlas> &atlas);
@@ -107,19 +85,17 @@ private:
       number_buffer_t
     };
 
-  uint32_t
-  fbo_bits(enum PainterBackendGL::blending_type_t blending);
-
   GLuint
   buffer(enum buffer_t);
 
   vecN<GLuint, number_immediate_coverage_buffer_fmt_t> m_immediate_coverage_buffer;
   vecN<GLuint, number_buffer_t> m_buffers;
-  vecN<GLuint, number_fbo_t> m_fbo;
-  vecN<vecN<GLenum, 1>, number_fbo_t> m_draw_buffer_values;
-  vecN<c_array<const GLenum>, number_fbo_t> m_draw_buffers;
-  reference_counted_ptr<const Image> m_image;
 
+  vecN<GLuint, 2> m_fbo;
+  vecN<vecN<GLenum, 1>, 2> m_draw_buffer_values;
+  vecN<c_array<const GLenum>, 2> m_draw_buffers;
+
+  reference_counted_ptr<const Image> m_image;
   bool m_own_texture;
 };
 

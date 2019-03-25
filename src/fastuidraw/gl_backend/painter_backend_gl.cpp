@@ -31,6 +31,7 @@
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 #include <private/util_private.hpp>
+#include <private/util_private_ostream.hpp>
 #include "private/tex_buffer.hpp"
 #include "private/texture_gl.hpp"
 #include "private/painter_backend_gl_config.hpp"
@@ -94,6 +95,72 @@ namespace
     int m_color_interlock_image_buffer_binding;
   };
 
+  class PainterBackendGLPrivate;
+
+  class DrawState
+  {
+  public:
+    explicit
+    DrawState(void):
+      m_current_program(nullptr),
+      m_current_blend_mode(),
+      m_blend_type(fastuidraw::PainterBlendShader::number_types),
+      m_current_fbo(0)
+    {}
+
+    void
+    on_pre_draw(PainterBackendGLPrivate *pr);
+
+    void
+    current_program(fastuidraw::gl::Program *p)
+    {
+      m_current_program = p;
+    }
+
+    fastuidraw::gl::Program*
+    current_program(void) const
+    {
+      return m_current_program;
+    }
+
+    void
+    current_blend_mode(const fastuidraw::BlendMode *p)
+    {
+      m_current_blend_mode = p;
+    }
+
+    void
+    blend_type(enum fastuidraw::PainterBlendShader::shader_type v)
+    {
+      m_blend_type = v;
+    }
+
+    enum fastuidraw::PainterBlendShader::shader_type
+    blend_type(void) const
+    {
+      return m_blend_type;
+    }
+
+    void
+    restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
+                     PainterBackendGLPrivate *pr,
+                     fastuidraw::gpu_dirty_state flags);
+
+  private:
+    static
+    GLenum
+    convert_blend_op(enum fastuidraw::BlendMode::equation_t v);
+
+    static
+    GLenum
+    convert_blend_func(enum fastuidraw::BlendMode::func_t v);
+
+    fastuidraw::gl::Program *m_current_program;
+    const fastuidraw::BlendMode *m_current_blend_mode;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
+    GLuint m_current_fbo;
+  };
+
   class PainterBackendGLPrivate
   {
   public:
@@ -110,8 +177,12 @@ namespace
                                fastuidraw::PainterShaderSet &out_shaders);
 
     void
-    set_gl_state(fastuidraw::gpu_dirty_state v,
-                 bool clear_depth, bool clear_color);
+    clear_buffers_of_current_surface(bool clear_depth, bool clear_color);
+
+    GLuint
+    set_gl_state(GLuint last_fbo,
+                 enum fastuidraw::PainterBlendShader::shader_type blend_type,
+                 fastuidraw::gpu_dirty_state v);
 
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
 
@@ -119,11 +190,13 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> m_pool;
     fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
-    fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
     GLuint m_current_external_texture;
     GLuint m_current_coverage_buffer_texture;
     bool m_use_uber_shader;
     BindingPoints m_binding_points;
+    DrawState m_draw_state;
+    fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
+    fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms m_cached_item_programs;
 
     fastuidraw::gl::PainterBackendGL *m_p;
   };
@@ -214,38 +287,12 @@ namespace
     unsigned int m_texture_unit;
   };
 
-  class DrawState
-  {
-  public:
-    explicit
-    DrawState(fastuidraw::gl::Program *pr):
-      m_current_program(pr),
-      m_current_blend_mode(nullptr)
-    {}
-
-    void
-    restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
-                     PainterBackendGLPrivate *pr,
-                     fastuidraw::gpu_dirty_state flags) const;
-
-    fastuidraw::gl::Program *m_current_program;
-    const fastuidraw::BlendMode *m_current_blend_mode;
-
-  private:
-    static
-    GLenum
-    convert_blend_op(enum fastuidraw::BlendMode::equation_t v);
-
-    static
-    GLenum
-    convert_blend_func(enum fastuidraw::BlendMode::func_t v);
-  };
-
   class DrawEntry
   {
   public:
     DrawEntry(const fastuidraw::BlendMode &mode,
-              fastuidraw::gl::Program *new_program);
+              fastuidraw::gl::Program *new_program,
+              enum fastuidraw::PainterBlendShader::shader_type blend_type);
 
     DrawEntry(const fastuidraw::BlendMode &mode);
 
@@ -266,6 +313,7 @@ namespace
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
     fastuidraw::gl::Program *m_new_program;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
   };
 
   class DrawCommand:public fastuidraw::PainterDraw
@@ -350,7 +398,9 @@ namespace
       m_assign_layout_to_varyings(false),
       m_assign_binding_points(true),
       m_separate_program_for_discard(true),
-      m_blending_type(fastuidraw::gl::PainterBackendGL::blending_dual_src),
+      m_preferred_blend_type(fastuidraw::PainterBlendShader::dual_src),
+      m_fbf_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported),
+      m_support_dual_src_blend_shaders(true),
       m_provide_immediate_coverage_image_buffer(fastuidraw::gl::PainterBackendGL::no_immediate_coverage_buffer),
       m_use_uber_item_shader(true)
     {}
@@ -373,7 +423,9 @@ namespace
     bool m_assign_layout_to_varyings;
     bool m_assign_binding_points;
     bool m_separate_program_for_discard;
-    enum fastuidraw::gl::PainterBackendGL::blending_type_t m_blending_type;
+    enum fastuidraw::PainterBlendShader::shader_type m_preferred_blend_type;
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t m_fbf_blending_type;
+    bool m_support_dual_src_blend_shaders;
     enum fastuidraw::gl::PainterBackendGL::immediate_coverage_buffer_t m_provide_immediate_coverage_image_buffer;
     bool m_use_uber_item_shader;
 
@@ -386,20 +438,43 @@ namespace
 // DrawState methods
 void
 DrawState::
-restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
-                 PainterBackendGLPrivate *pr,
-                 fastuidraw::gpu_dirty_state flags) const
+on_pre_draw(PainterBackendGLPrivate *pr)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
 
+  /* We need to initialize what program and FBO are active */
+  if (pr->m_surface_gl->m_render_type == PainterSurface::color_buffer_type)
+    {
+      m_blend_type = pr->m_reg_gl->params().preferred_blend_type();
+      m_current_program = pr->m_cached_programs.program(m_blend_type, PainterBackendGL::program_without_discard).get();
+    }
+  else
+    {
+      m_current_program = pr->m_cached_programs.m_deferred_coverage_program.get();
+      m_blend_type = PainterBlendShader::number_types;
+    }
+
+  m_current_fbo = pr->set_gl_state(0u, m_blend_type, gpu_dirty_state::all);
+  m_current_program->use_program();
+  m_current_blend_mode = nullptr;
+}
+
+void
+DrawState::
+restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
+                 PainterBackendGLPrivate *pr,
+                 fastuidraw::gpu_dirty_state flags)
+{
+  using namespace fastuidraw;
+  using namespace fastuidraw::gl;
+
+  m_current_fbo = pr->set_gl_state(m_current_fbo, m_blend_type, flags);
   if (flags & gpu_dirty_state::shader)
     {
       FASTUIDRAWassert(m_current_program);
       m_current_program->use_program();
     }
-
-  pr->set_gl_state(flags, false, false);
 
   /* If necessary, restore the UBO or TBO assoicated to the data
    * store binding point.
@@ -519,10 +594,12 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 // DrawEntry methods
 DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode,
-          fastuidraw::gl::Program *new_program):
+          fastuidraw::gl::Program *new_program,
+          enum fastuidraw::PainterBlendShader::shader_type blend_type):
   m_set_blend(true),
   m_blend_mode(mode),
-  m_new_program(new_program)
+  m_new_program(new_program),
+  m_blend_type(blend_type)
 {
 }
 
@@ -530,15 +607,19 @@ DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode):
   m_set_blend(true),
   m_blend_mode(mode),
-  m_new_program(nullptr)
-{}
+  m_new_program(nullptr),
+  m_blend_type(fastuidraw::PainterBlendShader::number_types)
+{
+}
 
 DrawEntry::
 DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action):
   m_set_blend(false),
   m_action(action),
-  m_new_program(nullptr)
-{}
+  m_new_program(nullptr),
+  m_blend_type(fastuidraw::PainterBlendShader::number_types)
+{
+}
 
 void
 DrawEntry::
@@ -572,14 +653,20 @@ draw(PainterBackendGLPrivate *pr,
 
   if (m_set_blend)
     {
-      st.m_current_blend_mode = &m_blend_mode;
+      st.current_blend_mode(&m_blend_mode);
       flags |= gpu_dirty_state::blend_mode;
     }
 
-  if (m_new_program && st.m_current_program != m_new_program)
+  if (m_new_program && st.current_program() != m_new_program)
     {
-      st.m_current_program = m_new_program;
+      st.current_program(m_new_program);
       flags |= gpu_dirty_state::shader;
+    }
+
+  if (m_blend_type != PainterBlendShader::number_types && st.blend_type() != m_blend_type)
+    {
+      st.blend_type(m_blend_type);
+      flags |= gpu_dirty_state::blend_mode;
     }
 
   st.restore_gl_state(vao, pr, flags);
@@ -700,9 +787,13 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
   BlendMode old_mode, new_mode;
   uint32_t new_disc, old_disc;
   bool return_value(false);
+  enum PainterBlendShader::shader_type old_blend_type, new_blend_type;
 
   old_mode = old_shaders.blend_mode();
   new_mode = new_shaders.blend_mode();
+
+  old_blend_type = old_shaders.blend_shader_type();
+  new_blend_type = new_shaders.blend_shader_type();
 
   if (m_pr->m_use_uber_shader)
     {
@@ -715,24 +806,43 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
       new_disc = new_shaders.item_group();
     }
 
-  if (old_disc != new_disc)
+  if (old_disc != new_disc || old_blend_type != new_blend_type)
     {
       Program *new_program;
       if (m_pr->m_use_uber_shader)
         {
-          unsigned int pz;
-
-          // we should only change uber-shader on color-buffer rendering
-          FASTUIDRAWassert(render_type == PainterSurface::color_buffer_type);
-
-          pz = (new_disc != 0u) ?
-            PainterBackendGL::program_with_discard :
-            PainterBackendGL::program_without_discard;
-          new_program = m_pr->m_cached_programs[pz].get();
+          /* TODO:
+           *   Using reference_counted_ptr forces atomics to occur;
+           *   We can avoid the atomics for when uber-shader is used
+           *   since the PainerBackend has cached the shaders for us.
+           *   However, without ubder-shaders, the caching of all item
+           *   shaders seems dubious.
+           */
+          if (render_type == PainterSurface::color_buffer_type)
+            {
+              enum PainterBackendGL::program_type_t pz;
+              if (m_pr->m_reg_gl->params().separate_program_for_discard())
+                {
+                  pz = PainterBackendGL::program_all;
+                }
+              else
+                {
+                  pz = (new_disc != 0u) ?
+                    PainterBackendGL::program_with_discard :
+                    PainterBackendGL::program_without_discard;
+                }
+              new_program = m_pr->m_cached_programs.program(pz, new_blend_type).get();
+            }
+          else
+            {
+              new_program = m_pr->m_cached_programs.m_deferred_coverage_program.get();
+            }
         }
       else
         {
-          new_program = m_pr->m_reg_gl->program_of_item_shader(render_type, new_disc).get();
+          new_program =
+            m_pr->m_cached_item_programs.program_of_item_shader(m_pr->m_reg_gl, render_type,
+                                                                new_disc, new_blend_type).get();
         }
 
       if (!m_draws.empty())
@@ -740,7 +850,9 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
           add_entry(indices_written);
           return_value = true;
         }
-      m_draws.push_back(DrawEntry(fastuidraw::BlendMode(new_mode), new_program));
+
+      FASTUIDRAWassert(new_program);
+      m_draws.push_back(DrawEntry(fastuidraw::BlendMode(new_mode), new_program, new_blend_type));
       return return_value;
     }
   else if (old_mode != new_mode)
@@ -796,27 +908,9 @@ draw(void) const
       FASTUIDRAWassert(!"Bad value for m_vao.m_data_store_backing");
     }
 
-  /* draw() only gets called AFTER PainterBackend::on_pre_draw() is called.
-   * Thus the PainterBackendGL, m_pr, has m_surface_gl set correctly.
-   */
-  unsigned int choice;
-  if (m_pr->m_surface_gl->m_render_type == PainterSurface::color_buffer_type)
-    {
-      choice = m_pr->m_reg_gl->params().separate_program_for_discard() ?
-        PainterBackendGL::program_without_discard :
-        PainterBackendGL::program_all;
-    }
-  else
-    {
-      choice = PainterBackendGL::program_deferred_coverage_buffer;
-    }
-
-  DrawState st(m_pr->m_reg_gl->programs()[choice].get());
-  st.m_current_program->use_program();
-
   for(const DrawEntry &entry : m_draws)
     {
-      entry.draw(m_pr, m_vao, st);
+      entry.draw(m_pr, m_vao, m_pr->m_draw_state);
     }
   fastuidraw_glBindVertexArray(0);
 }
@@ -947,7 +1041,8 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     }
 
   out_params
-    .blending_type(params.blending_type())
+    .fbf_blending_type(params.fbf_blending_type())
+    .preferred_blend_type(params.preferred_blend_type())
     .supports_bindless_texturing(supports_bindless)
     .assign_layout_to_vertex_shader_inputs(params.assign_layout_to_vertex_shader_inputs())
     .assign_layout_to_varyings(params.assign_layout_to_varyings())
@@ -1000,7 +1095,35 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
 
 void
 PainterBackendGLPrivate::
-set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_buffer)
+clear_buffers_of_current_surface(bool clear_depth, bool clear_color_buffer)
+{
+  if (clear_depth || clear_color_buffer)
+    {
+      fastuidraw::c_array<const GLenum> draw_buffers;
+      GLuint fbo;
+
+      fbo = m_surface_gl->fbo(true);
+      draw_buffers = m_surface_gl->draw_buffers(true);
+      fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+      fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
+
+      if (clear_depth)
+        {
+          fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
+        }
+
+      if (clear_color_buffer)
+        {
+          fastuidraw_glClearBufferfv(GL_COLOR, 0, m_surface_gl->m_clear_color.c_ptr());
+        }
+    }
+}
+
+GLuint
+PainterBackendGLPrivate::
+set_gl_state(GLuint last_fbo,
+             enum fastuidraw::PainterBlendShader::shader_type blend_type,
+             fastuidraw::gpu_dirty_state v)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
@@ -1008,81 +1131,59 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   const PainterBackendGL::UberShaderParams &uber_params(m_reg_gl->uber_shader_builder_params());
   enum PainterBackendGL::immediate_coverage_buffer_t aux_type;
-  enum PainterBackendGL::blending_type_t blending_type;
+  enum PainterBackendGL::fbf_blending_type_t fbf_blending_type;
+  bool color_buffer_as_image;
   const PainterSurface::Viewport &vwp(m_surface_gl->m_viewport);
   ivec2 dimensions(m_surface_gl->m_dimensions);
   bool has_images;
+  GLuint fbo(0);
 
   if (m_surface_gl->m_render_type == PainterSurface::color_buffer_type)
     {
       aux_type = uber_params.provide_immediate_coverage_image_buffer();
-      blending_type = m_reg_gl->params().blending_type();
+      fbf_blending_type = m_reg_gl->params().fbf_blending_type();
+
+      FASTUIDRAWassert(blend_type != PainterBlendShader::number_types);
+      color_buffer_as_image =
+        (blend_type == PainterBlendShader::framebuffer_fetch
+         && fbf_blending_type == PainterBackendGL::fbf_blending_interlock);
+
       has_images = (aux_type != PainterBackendGL::no_immediate_coverage_buffer
-                    || blending_type == PainterBackendGL::blending_interlock);
+                    || color_buffer_as_image);
+
     }
   else
     {
       /* When rendering to a deferred coverage buffer, there is
-       * no immediate coverage buffer, no (real) blending
+       * no immediate coverage buffer, no (real) blending,
        * no depth buffer and no images.
        */
       aux_type = PainterBackendGL::no_immediate_coverage_buffer;
-      blending_type = PainterBackendGL::blending_single_src;
+      fbf_blending_type = PainterBackendGL::fbf_blending_not_supported;
       has_images = false;
-      clear_depth = false;
+      color_buffer_as_image = false;
     }
 
-  if (v & gpu_dirty_state::render_target)
+  fbo = m_surface_gl->fbo(!color_buffer_as_image);
+  if (fbo != last_fbo || (v & gpu_dirty_state::render_target) != 0)
     {
-      GLuint last_fbo(0), fbo(0);
       c_array<const GLenum> draw_buffers;
 
-      if (clear_depth || clear_color_buffer)
-        {
-          fbo = m_surface_gl->fbo(PainterBackendGL::blending_single_src);
-          draw_buffers = m_surface_gl->draw_buffers(PainterBackendGL::blending_single_src);
-
-          fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-          fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
-
-          if (clear_depth)
-            {
-              fastuidraw_glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
-            }
-
-          if (clear_color_buffer)
-            {
-              fastuidraw_glClearBufferfv(GL_COLOR, 0, m_surface_gl->m_clear_color.c_ptr());
-            }
-
-          last_fbo = fbo;
-        }
-
-      fbo = m_surface_gl->fbo(blending_type);
-      if (fbo != last_fbo)
-        {
-          draw_buffers = m_surface_gl->draw_buffers(blending_type);
-          fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-          fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
-        }
-
+      draw_buffers = m_surface_gl->draw_buffers(!color_buffer_as_image);
+      fastuidraw_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+      fastuidraw_glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
       v |= gpu_dirty_state::viewport_scissor;
-    }
-  else
-    {
-      FASTUIDRAWassert(!clear_color_buffer);
-      FASTUIDRAWassert(!clear_depth);
     }
 
   if ((v & gpu_dirty_state::images) != 0 && has_images)
     {
       if (aux_type != PainterBackendGL::no_immediate_coverage_buffer)
         {
-          detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_t tp;
+          gl::detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_t tp;
 
           tp = (aux_type == gl::PainterBackendGL::immediate_coverage_buffer_atomic) ?
-            detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u32 :
-            detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u8;
+            gl::detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u32 :
+            gl::detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u8;
 
           fastuidraw_glBindImageTexture(m_binding_points.m_immediate_coverage_image_buffer_binding,
                                         m_surface_gl->immediate_coverage_buffer(tp), //texture
@@ -1090,11 +1191,12 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
                                         GL_FALSE, //layered
                                         0, //layer
                                         GL_READ_WRITE, //access
-                                        detail::SurfaceGLPrivate::auxiliaryBufferInternalFmt(tp));
+                                        gl::detail::SurfaceGLPrivate::auxiliaryBufferInternalFmt(tp));
         }
 
-      if (blending_type == PainterBackendGL::blending_interlock)
+      if (color_buffer_as_image)
         {
+          /* should we issue a glMemoryBarrier? */
           fastuidraw_glBindImageTexture(m_binding_points.m_color_interlock_image_buffer_binding,
                                         m_surface_gl->color_buffer(), //texture
                                         0, //level
@@ -1249,6 +1351,8 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
                                       glyphs->data_backing(GlyphAtlasGL::backing_uint32_fmt));
         }
     }
+
+  return fbo;
 }
 
 ///////////////////////////////////////////////
@@ -1294,7 +1398,7 @@ blit_surface(const Viewport &src,
   GLint old_fbo;
 
   fastuidraw_glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_fbo);
-  fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, d->fbo(detail::SurfaceGLPrivate::fbo_color_buffer));
+  fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, d->fbo(true));
   fastuidraw_glBlitFramebuffer(src.m_origin.x(),
                                src.m_origin.y(),
                                src.m_origin.x() + src.m_dimensions.x(),
@@ -1438,13 +1542,13 @@ configure_from_context(bool choose_optimal_rendering_quality,
     compute_provide_immediate_coverage_buffer(immediate_coverage_buffer_interlock, ctx);
 
   /* Adjust blending type from GL context properties */
-  d->m_blending_type =
-    compute_blending_type(interlock_type, blending_framebuffer_fetch, ctx);
+  d->m_fbf_blending_type =
+    compute_fbf_blending_type(interlock_type, fbf_blending_framebuffer_fetch, ctx);
 
-  /* Adjust clipping type from GL context properties */
-  d->m_clipping_type = compute_clipping_type(d->m_blending_type,
-                                             d->m_clipping_type,
-                                             ctx);
+  d->m_preferred_blend_type = compute_preferred_blending_type(d->m_fbf_blending_type,
+                                                              PainterBlendShader::dual_src,
+                                                              d->m_support_dual_src_blend_shaders,
+                                                              ctx);
 
   /* pay attention to the context for m_data_store_backing.
    * Generally speaking, for caching UBO > SSBO > TBO,
@@ -1490,7 +1594,7 @@ configure_from_context(bool choose_optimal_rendering_quality,
     || gl_version.find("nouveau") != std::string::npos
     || gl_renderer.find("nouveau") != std::string::npos;
 
-  d->m_clipping_type = compute_clipping_type(d->m_blending_type,
+  d->m_clipping_type = compute_clipping_type(d->m_fbf_blending_type,
                                              d->m_clipping_type,
                                              ctx,
                                              !NVIDIA_detected);
@@ -1535,7 +1639,6 @@ adjust_for_context(const ContextProperties &ctx)
   ConfigurationGLPrivate *d;
   enum detail::tex_buffer_support_t tex_buffer_support;
   enum interlock_type_t interlock_type;
-  enum clipping_type_t clipping_type;
 
   d = static_cast<ConfigurationGLPrivate*>(m_d);
   interlock_type = compute_interlock_type(ctx);
@@ -1592,8 +1695,16 @@ adjust_for_context(const ContextProperties &ctx)
       break;
     }
 
-  clipping_type = compute_clipping_type(d->m_blending_type, d->m_clipping_type, ctx);
-  d->m_clipping_type= clipping_type;
+  interlock_type = compute_interlock_type(ctx);
+  d->m_provide_immediate_coverage_image_buffer =
+    compute_provide_immediate_coverage_buffer(d->m_provide_immediate_coverage_image_buffer, ctx);
+
+  d->m_fbf_blending_type = compute_fbf_blending_type(interlock_type, d->m_fbf_blending_type, ctx);
+  d->m_preferred_blend_type = compute_preferred_blending_type(d->m_fbf_blending_type,
+                                                              d->m_preferred_blend_type,
+                                                              d->m_support_dual_src_blend_shaders,
+                                                              ctx);
+  d->m_clipping_type = compute_clipping_type(d->m_fbf_blending_type, d->m_clipping_type, ctx);
 
   /* if have to use discard for clipping, then there is zero point to
    * separate the discarding and non-discarding item shaders.
@@ -1634,12 +1745,6 @@ adjust_for_context(const ContextProperties &ctx)
         }
     }
   #endif
-
-  interlock_type = compute_interlock_type(ctx);
-  d->m_provide_immediate_coverage_image_buffer =
-    compute_provide_immediate_coverage_buffer(d->m_provide_immediate_coverage_image_buffer, ctx);
-
-  d->m_blending_type = compute_blending_type(interlock_type, d->m_blending_type, ctx);
 
   /* if have to use discard for clipping, then there is zero point to
    * separate the discarding and non-discarding item shaders.
@@ -1722,14 +1827,16 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, separate_program_for_discard)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendGL::blending_type_t, blending_type)
+                 enum fastuidraw::PainterBlendShader::shader_type, preferred_blend_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendGL::immediate_coverage_buffer_t, provide_immediate_coverage_image_buffer)
+                 enum fastuidraw::gl::PainterBackendGL::fbf_blending_type_t, fbf_blending_type)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, support_dual_src_blend_shaders)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::gl::PainterBackendGL::immediate_coverage_buffer_t,
+                 provide_immediate_coverage_image_buffer)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_uber_item_shader)
-
-//////////////////////////////////////////////
-// fastuidraw::gl::PainterBackendGL::BindingPoints methods
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods
@@ -1781,7 +1888,6 @@ PainterBackendGL(const ConfigurationGL &config_gl,
                  config_gl.colorstop_atlas(),
                  FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl, uber_params),
                  ConfigurationBase()
-                 .blend_type(uber_params.blend_type())
                  .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
                  shaders)
 {
@@ -1799,7 +1905,6 @@ PainterBackendGL(const ConfigurationGL &config_gl,
                  config_gl.colorstop_atlas(),
                  p->painter_shader_registrar(),
                  ConfigurationBase()
-                 .blend_type(uber_params.blend_type())
                  .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
                  p->default_shaders())
 {
@@ -1819,11 +1924,21 @@ fastuidraw::gl::PainterBackendGL::
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
 fastuidraw::gl::PainterBackendGL::
-program(enum program_type_t tp)
+program(enum program_type_t tp,
+        enum PainterBlendShader::shader_type blend_type)
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return d->m_reg_gl->programs()[tp];
+  return d->m_reg_gl->programs().program(tp, blend_type);
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
+fastuidraw::gl::PainterBackendGL::
+program_deferred_coverage_buffer(void)
+{
+  PainterBackendGLPrivate *d;
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
+  return d->m_reg_gl->programs().m_deferred_coverage_program;
 }
 
 const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -1871,10 +1986,8 @@ on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
   d->m_uniform_ubo_ready = false;
   d->m_current_external_texture = 0;
   d->m_current_coverage_buffer_texture = 0;
-  d->set_gl_state(gpu_dirty_state::all, begin_new_target, clear_color_buffer);
-
-  //cache the GLSL programs for use.
-  d->m_cached_programs = d->m_reg_gl->programs();
+  d->m_draw_state.on_pre_draw(d);
+  d->clear_buffers_of_current_surface(begin_new_target, clear_color_buffer);
 }
 
 void
@@ -1930,7 +2043,7 @@ on_post_draw(void)
                                     0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
     }
 
-  if (params.blending_type() == blending_interlock)
+  if (params.fbf_blending_type() == fbf_blending_interlock)
     {
       fastuidraw_glBindImageTexture(d->m_binding_points.m_color_interlock_image_buffer_binding, 0,
                                     0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
@@ -2013,6 +2126,16 @@ create_surface(ivec2 dims,
   reference_counted_ptr<PainterSurface> S;
   S = FASTUIDRAWnew SurfaceGL(dims, render_type);
   return S;
+}
+
+void
+fastuidraw::gl::PainterBackendGL::
+on_painter_begin(void)
+{
+  PainterBackendGLPrivate *d;
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
+  d->m_cached_programs = d->m_reg_gl->programs();
+  d->m_cached_item_programs.reset();
 }
 
 #define binding_info_get(X)                             \

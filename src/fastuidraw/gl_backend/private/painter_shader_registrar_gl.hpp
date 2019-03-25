@@ -43,18 +43,68 @@ public:
     };
 
   typedef reference_counted_ptr<Program> program_ref;
-  typedef vecN<program_ref, program_count + 1> program_set;
+  typedef vecN<program_ref, PainterBackendGL::number_program_types> programs_per_blend;
+
+  class program_set
+  {
+  public:
+    const programs_per_blend&
+    programs(enum PainterBlendShader::shader_type blend_type) const
+    {
+      return m_item_programs[blend_type];
+    }
+
+    const program_ref&
+    program(enum PainterBackendGL::program_type_t tp,
+            enum PainterBlendShader::shader_type blend_type) const
+    {
+      return programs(blend_type)[tp];
+    }
+
+    const program_ref&
+    program(enum PainterBlendShader::shader_type blend_type,
+            enum PainterBackendGL::program_type_t tp) const
+    {
+      return programs(blend_type)[tp];
+    }
+
+    vecN<programs_per_blend, PainterBlendShader::number_types> m_item_programs;
+    program_ref m_deferred_coverage_program;
+  };
+
+  class CachedItemPrograms:fastuidraw::noncopyable
+  {
+  public:
+    void
+    reset(void)
+    {
+      for (auto &v : m_item_programs)
+        {
+          v.clear();
+        }
+    }
+
+    const program_ref&
+    program_of_item_shader(const reference_counted_ptr<PainterShaderRegistrarGL> &reg,
+                           enum PainterSurface::render_type_t render_type,
+                           unsigned int shader_group,
+                           enum PainterBlendShader::shader_type blend_type);
+
+  private:
+    vecN<std::vector<program_ref>, PainterBlendShader::number_types + 1> m_item_programs;
+  };
 
   explicit
   PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
                            const UberShaderParams &uber_params);
 
-  program_set
+  const program_set&
   programs(void);
 
   program_ref
   program_of_item_shader(enum PainterSurface::render_type_t render_type,
-                         unsigned int shader_group);
+                         unsigned int shader_group,
+                         enum PainterBlendShader::shader_type blend_type);
 
   const PainterBackendGL::ConfigurationGL&
   params(void) const
@@ -125,10 +175,22 @@ private:
   build_programs(void);
 
   program_ref
-  build_program(enum PainterBackendGL::program_type_t tp);
+  build_program(enum PainterBackendGL::program_type_t tp,
+                enum PainterBlendShader::shader_type blend_type);
 
   program_ref
-  build_program_of_item_shader(unsigned int shader, bool allow_discard);
+  build_deferred_coverage_program(void);
+
+  program_ref
+  build_program_of_item_shader(unsigned int shader, bool allow_discard,
+                               enum PainterBlendShader::shader_type blend_type);
+
+  static
+  program_ref*
+  resize_item_shader_vector_as_needed(enum PainterSurface::render_type_t prender_type,
+                                      unsigned int shader_group,
+                                      enum PainterBlendShader::shader_type blend_type,
+                                      vecN<std::vector<program_ref>, PainterBlendShader::number_types + 1> &elements);
 
   program_ref
   build_program_of_coverage_item_shader(unsigned int shader);
@@ -144,8 +206,9 @@ private:
   glsl::ShaderSource m_front_matter_vert;
   glsl::ShaderSource m_front_matter_frag;
   unsigned int m_number_shaders_in_program;
+  vecN<unsigned int, 3> m_number_blend_shaders_in_item_programs;
   program_set m_programs;
-  vecN<std::vector<program_ref>, 2> m_item_programs;
+  vecN<std::vector<program_ref>, PainterBlendShader::number_types + 1> m_item_programs;
 
   ContextProperties m_ctx_properties;
   enum tex_buffer_support_t m_tex_buffer_support;

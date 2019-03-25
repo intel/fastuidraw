@@ -43,8 +43,8 @@ namespace fastuidraw
     public:
       /*!
        * \brief
-       * Enumeration to specify which GLSL program
-       * to fetch from program(enum program_type_t).
+       * Enumeration to specify which \ref Program
+       * to fetch from the methods program().
        */
       enum program_type_t
         {
@@ -64,11 +64,6 @@ namespace fastuidraw
            * which do have discard
            */
           program_with_discard,
-
-          /*!
-           * Get the GLSL program that handles all item coverage shaders
-           */
-          program_deferred_coverage_buffer,
 
           /*!
            */
@@ -390,18 +385,52 @@ namespace fastuidraw
         separate_program_for_discard(bool v);
 
         /*!
-         * Returns how the painter will perform blending.
+         * Returns the preferred way to implement blend shaders, i.e.
+         * if a shader can be implemented with this blending type
+         * it will be.
          */
-        enum blending_type_t
-        blending_type(void) const;
+        enum PainterBlendShader::shader_type
+        preferred_blend_type(void) const;
 
         /*!
-         * Specify the return value to blending_type() const.
-         * Default value is \ref blending_dual_src
+         * Specify the return value to preferred_blend_type() const.
+         * Default value is \ref PainterBlendShader::dual_src
          * \param tp blend shader type
          */
         ConfigurationGL&
-        blending_type(enum blending_type_t tp);
+        preferred_blend_type(enum PainterBlendShader::shader_type tp);
+
+        /*!
+         * If true, will support blend shaders with \ref
+         * PainterBlendShader::type() with value \ref
+         * PainterBlendShader::daul_src.
+         */
+        bool
+        support_dual_src_blend_shaders(void) const;
+
+        /*!
+         * Specify the return value to support_dual_src_blend_shaders() const.
+         * Default value is true
+         */
+        ConfigurationGL&
+        support_dual_src_blend_shaders(bool v);
+
+        /*!
+         * Returns how the painter will perform blending. If the
+         * value is not \ref fbf_blending_not_supported, then will
+         * support blend shaders with \ref PainterBlendShader::type()
+         * with value \ref PainterBlendShader::framebuffer_fetch.
+         */
+        enum fbf_blending_type_t
+        fbf_blending_type(void) const;
+
+        /*!
+         * Specify the return value to fbf_blending_type() const.
+         * Default value is \ref fbf_blending_not_supported
+         * \param tp blend shader type
+         */
+        ConfigurationGL&
+        fbf_blending_type(enum fbf_blending_type_t tp);
 
         /*!
          * If true, provide an image2D (of type r8) uniform to
@@ -693,12 +722,24 @@ namespace fastuidraw
       create_surface(ivec2 dims,
                      enum PainterSurface::render_type_t render_type) override final;
 
+      virtual
+      void
+      on_painter_begin(void) override final;
+
       /*!
-       * Return the specified Program use to draw
-       * with this PainterBackendGL.
+       * Return the specified \ref Program use to draw with this
+       * \ref PainterBackendGL from a discard and blend-type.
        */
       reference_counted_ptr<Program>
-      program(enum program_type_t tp);
+      program(enum program_type_t discard_tp,
+              enum PainterBlendShader::shader_type blend_type);
+
+      /*!
+       * Returns the \ref Program used to draw to the deferred
+       * coverage buffer.
+       */
+      reference_counted_ptr<Program>
+      program_deferred_coverage_buffer(void);
 
       /*!
        * Returns the ConfigurationGL adapted from that passed

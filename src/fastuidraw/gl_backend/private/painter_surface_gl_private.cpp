@@ -171,8 +171,9 @@ buffer(enum buffer_t tp)
 
 GLuint
 fastuidraw::gl::detail::SurfaceGLPrivate::
-fbo(uint32_t tp)
+fbo(bool with_color_buffer)
 {
+  int tp(with_color_buffer);
   if (m_fbo[tp] == 0)
     {
       GLint old_fbo;
@@ -192,7 +193,7 @@ fbo(uint32_t tp)
                                             tex_target, buffer(buffer_depth), 0);
         }
 
-      if (tp & fbo_color_buffer)
+      if (with_color_buffer)
         {
           fastuidraw_glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                             tex_target, buffer(buffer_color), 0);
@@ -205,12 +206,13 @@ fbo(uint32_t tp)
 
 fastuidraw::c_array<const GLenum>
 fastuidraw::gl::detail::SurfaceGLPrivate::
-draw_buffers(uint32_t tp)
+draw_buffers(bool with_color_buffer)
 {
+  int tp(with_color_buffer);
   if (m_draw_buffers[tp].empty())
     {
       m_draw_buffers[tp] = c_array<const GLenum>(m_draw_buffer_values[tp]);
-      if (tp & fbo_color_buffer)
+      if (with_color_buffer)
         {
           m_draw_buffer_values[tp][0] = GL_COLOR_ATTACHMENT0;
         }
@@ -221,18 +223,4 @@ draw_buffers(uint32_t tp)
     }
 
   return m_draw_buffers[tp];
-}
-
-uint32_t
-fastuidraw::gl::detail::SurfaceGLPrivate::
-fbo_bits(enum PainterBackendGL::blending_type_t blending)
-{
-  uint32_t tp(0u);
-  if (blending != PainterBackendGL::blending_interlock
-      || m_render_type != PainterSurface::color_buffer_type)
-    {
-      tp |= fbo_color_buffer;
-    }
-
-  return tp;
 }

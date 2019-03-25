@@ -57,6 +57,24 @@ namespace
   };
 }
 
+//////////////////////////////////////////////////////////////
+// fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms methods
+const fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref&
+fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms::
+program_of_item_shader(const reference_counted_ptr<PainterShaderRegistrarGL> &reg,
+                       enum PainterSurface::render_type_t render_type,
+                       unsigned int shader_group,
+                       enum PainterBlendShader::shader_type blend_type)
+{
+  program_ref &dst(*resize_item_shader_vector_as_needed(render_type, shader_group,
+                                                        blend_type, m_item_programs));
+  if (!dst)
+    {
+      dst = reg->program_of_item_shader(render_type, shader_group, blend_type);
+    }
+  return dst;
+}
+
 //////////////////////////////////////
 // fastuidraw::gl::detail::PainterShaderRegistrarGL methods
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
@@ -65,7 +83,8 @@ PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
   fastuidraw::glsl::PainterShaderRegistrarGLSL(),
   m_params(P),
   m_uber_shader_builder_params(uber_params),
-  m_number_shaders_in_program(0)
+  m_number_shaders_in_program(0),
+  m_number_blend_shaders_in_item_programs(0)
 {
   configure_backend();
   m_backend_constants
@@ -77,17 +96,16 @@ bool
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
 blend_type_supported(enum PainterBlendShader::shader_type tp) const
 {
-  switch(m_uber_shader_builder_params.blending_type())
+  switch(tp)
     {
-    case blending_single_src:
-      return tp == PainterBlendShader::single_src;
+    case PainterBlendShader::single_src:
+      return true;
 
-    case blending_dual_src:
-      return tp == PainterBlendShader::dual_src;
+    case PainterBlendShader::dual_src:
+      return m_params.support_dual_src_blend_shaders();
 
-    case blending_framebuffer_fetch:
-    case blending_interlock:
-      return tp == PainterBlendShader::framebuffer_fetch;
+    case PainterBlendShader::framebuffer_fetch:
+      return m_params.fbf_blending_type() != fbf_blending_not_supported;
 
     default:
       FASTUIDRAWassert(!"Bad blending_type_t in UberShaderParams");
@@ -284,7 +302,7 @@ configure_source_front_matter(void)
     .add_macro("fastuidraw_begin_interlock", begin_interlock_fcn)
     .add_macro("fastuidraw_end_interlock", end_interlock_fcn);
 
-  if (m_params.blending_type() == blending_interlock
+  if (m_params.fbf_blending_type() == fbf_blending_interlock
       || m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
     {
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
@@ -360,7 +378,7 @@ configure_source_front_matter(void)
       require_ssbo = (m_uber_shader_builder_params.data_store_backing() == data_store_ssbo)
         || (glyphs->data_binding_point() == GL_SHADER_STORAGE_BUFFER);
 
-      require_image_load_store = (m_params.blending_type() == blending_interlock)
+      require_image_load_store = (m_params.fbf_blending_type() == fbf_blending_interlock)
         || (m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
         || require_ssbo;
 
@@ -478,7 +496,7 @@ configure_source_front_matter(void)
     }
 }
 
-fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set
+const fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set&
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
 programs(void)
 {
@@ -493,34 +511,64 @@ programs(void)
   return m_programs;
 }
 
-fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
+fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref*
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-program_of_item_shader(enum PainterSurface::render_type_t render_type,
-                       unsigned int shader_group)
+resize_item_shader_vector_as_needed(enum PainterSurface::render_type_t prender_type,
+                                    unsigned int shader_group,
+                                    enum PainterBlendShader::shader_type blend_type,
+                                    vecN<std::vector<program_ref>, PainterBlendShader::number_types + 1> &elements)
 {
-  unsigned int shader;
+  unsigned int shader, idx;
+
+  idx = (prender_type == PainterSurface::color_buffer_type) ?
+    blend_type :
+    PainterBlendShader::number_types;
 
   shader = shader_group & ~PainterShaderRegistrarGL::shader_group_discard_mask;
-  if (shader >= m_item_programs[render_type].size())
+  if (shader >= elements[idx].size())
     {
-      m_item_programs[render_type].resize(shader + 1);
+      elements[idx].resize(shader + 1);
     }
+  return &elements[idx][shader];
+}
 
-  if (!m_item_programs[render_type][shader])
+fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
+fastuidraw::gl::detail::PainterShaderRegistrarGL::
+program_of_item_shader(enum PainterSurface::render_type_t prender_type,
+                       unsigned int shader_group,
+                       enum PainterBlendShader::shader_type blend_type)
+{
+  Mutex::Guard m(mutex());
+  unsigned int shader;
+
+  if (prender_type == PainterSurface::color_buffer_type)
     {
-      if (render_type == PainterSurface::color_buffer_type)
+      unsigned int blend_shader_count(registered_blend_shader_count(blend_type));
+      if (blend_shader_count != m_number_blend_shaders_in_item_programs[blend_type])
         {
-          m_item_programs[render_type][shader] =
-            build_program_of_item_shader(shader,
-                                         shader_group & PainterShaderRegistrarGL::shader_group_discard_mask);
+          m_item_programs[blend_type].clear();
+          m_number_blend_shaders_in_item_programs[blend_type] = blend_shader_count;
+        }
+    }
+  program_ref &dst(*resize_item_shader_vector_as_needed(prender_type, shader_group,
+                                                        blend_type, m_item_programs));
+
+  shader = shader_group & ~PainterShaderRegistrarGL::shader_group_discard_mask;
+  if (!dst)
+    {
+      if (prender_type == PainterSurface::color_buffer_type)
+        {
+          dst = build_program_of_item_shader(shader,
+                                             shader_group & PainterShaderRegistrarGL::shader_group_discard_mask,
+                                             blend_type);
         }
       else
         {
-          m_item_programs[render_type][shader] = build_program_of_coverage_item_shader(shader);
+          dst = build_program_of_coverage_item_shader(shader);
         }
     }
 
-  return m_item_programs[render_type][shader];
+  return dst;
 }
 
 void
@@ -528,18 +576,22 @@ fastuidraw::gl::detail::PainterShaderRegistrarGL::
 build_programs(void)
 {
   using namespace fastuidraw::glsl;
-  for(unsigned int i = 0; i < PainterBackendGL::number_program_types; ++i)
+  for (unsigned int blend_tp = 0; blend_tp < PainterBlendShader::number_types; ++blend_tp)
     {
-      enum PainterBackendGL::program_type_t tp;
-      tp = static_cast<enum PainterBackendGL::program_type_t>(i);
-      m_programs[tp] = build_program(tp);
-      FASTUIDRAWassert(m_programs[tp]->link_success());
+      for (unsigned int discard_tp = 0; discard_tp < PainterBackendGL::number_program_types; ++discard_tp)
+        {
+          m_programs.m_item_programs[blend_tp][discard_tp] =
+            build_program(static_cast<enum PainterBackendGL::program_type_t>(discard_tp),
+                          static_cast<enum PainterBlendShader::shader_type>(blend_tp));
+        }
     }
+  m_programs.m_deferred_coverage_program = build_deferred_coverage_program();
 }
 
 fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-build_program_of_item_shader(unsigned int shader, bool allow_discard)
+build_program_of_item_shader(unsigned int shader, bool allow_discard,
+                             enum PainterBlendShader::shader_type blend_type)
 {
   using namespace fastuidraw::glsl;
 
@@ -567,7 +619,8 @@ build_program_of_item_shader(unsigned int shader, bool allow_discard)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
-  construct_item_shader(m_backend_constants, vert, frag,
+  construct_item_shader(blend_type,
+                        m_backend_constants, vert, frag,
                         m_uber_shader_builder_params,
                         shader, discard_macro);
 
@@ -608,7 +661,8 @@ build_program_of_coverage_item_shader(unsigned int shader)
 
 fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
+build_program(enum PainterBackendGL::program_type_t tp,
+              enum PainterBlendShader::shader_type blend_type)
 {
   using namespace fastuidraw::glsl;
 
@@ -616,8 +670,12 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
   program_ref return_value;
   c_string discard_macro;
 
-  if (tp == PainterBackendGL::program_without_discard
-      || tp == PainterBackendGL::program_deferred_coverage_buffer)
+  if (!blend_type_supported(blend_type))
+    {
+      return nullptr;
+    }
+
+  if (tp == PainterBackendGL::program_without_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
@@ -637,20 +695,41 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
+  DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
+  construct_item_uber_shader(blend_type, m_backend_constants, vert, frag,
+                             m_uber_shader_builder_params,
+                             &item_filter, discard_macro);
 
-  if (tp == PainterBackendGL::program_deferred_coverage_buffer)
-    {
-      construct_item_uber_coverage_shader(m_backend_constants, vert, frag,
-                                          m_uber_shader_builder_params,
-                                          nullptr);
-    }
-  else
-    {
-      DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
-      construct_item_uber_shader(m_backend_constants, vert, frag,
-                                 m_uber_shader_builder_params,
-                                 &item_filter, discard_macro);
-    }
+  return_value = FASTUIDRAWnew Program(vert, frag,
+                                       m_attribute_binder,
+                                       m_initializer);
+  return return_value;
+}
+
+fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
+fastuidraw::gl::detail::PainterShaderRegistrarGL::
+build_deferred_coverage_program(void)
+{
+  using namespace fastuidraw::glsl;
+
+  ShaderSource vert, frag;
+  program_ref return_value;
+
+  vert
+    .specify_version(m_front_matter_vert.version())
+    .specify_extensions(m_front_matter_vert)
+    .add_source(m_front_matter_vert);
+
+  frag
+    .specify_version(m_front_matter_frag.version())
+    .specify_extensions(m_front_matter_frag)
+    .add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS")
+    .add_source(m_front_matter_frag);
+
+
+  construct_item_uber_coverage_shader(m_backend_constants, vert, frag,
+                                      m_uber_shader_builder_params,
+                                      nullptr);
 
   return_value = FASTUIDRAWnew Program(vert, frag,
                                        m_attribute_binder,
