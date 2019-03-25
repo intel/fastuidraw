@@ -91,30 +91,50 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t> v)
+             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src:
-        str << "single_src";
-        break;
-
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src:
-        str << "dual_src";
-        break;
-
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_framebuffer_fetch:
         str << "framebuffer_fetch";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_interlock:
         str << "interlock";
+        break;
+
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported:
+        str << "fbf_blending_not_supported";
         break;
 
       default:
         str << "invalid value";
       }
 
+    return str;
+  }
+
+  std::ostream&
+  operator<<(std::ostream &str,
+             enum_wrapper<enum fastuidraw::PainterBlendShader::shader_type> v)
+  {
+    switch (v.m_v)
+      {
+      case fastuidraw::PainterBlendShader::single_src:
+        str << "single_src";
+        break;
+
+      case fastuidraw::PainterBlendShader::dual_src:
+        str << "dual_src";
+        break;
+
+      case fastuidraw::PainterBlendShader::framebuffer_fetch:
+        str << "framebuffer_fetch";
+        break;
+
+      default:
+        str << "invalid value";
+      }
     return str;
   }
 
@@ -469,35 +489,41 @@ sdl_painter_demo(const std::string &about_text,
   m_assign_binding_points(m_painter_params.assign_binding_points(),
                           "painter_assign_binding_points",
                           "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
-  m_blend_type(m_painter_params.blending_type(),
-                   enumerated_string_type<blending_type_t>()
-                   .add_entry("framebuffer_fetch",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch,
-                              "use a framebuffer fetch (if available) to perform blending, "
-                              "thus all blending operations are part of uber-shader giving "
-                              "more flexibility for blend types (namely W3C support) and "
-                              "blend mode changes do not induce pipeline state changes")
-                   .add_entry("interlock",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock,
-                              "use image-load store together with interlock (if both available) "
-                              "to perform blending, tus all blending operations are part of "
-                              "uber-shader giving more flexibility for blend types (namely "
-                              "W3C support) and blend mode changes do not induce pipeline "
-                              "state changes")
-                   .add_entry("dual_src",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src,
-                              "use a dual source blending (if available) to perform blending, "
-                              "which has far less flexibility for blending than framebuffer-fetch "
-                              "but has far few pipeline states (there are 3 blend mode pipeline states "
-                              "and hald of the Porter-Duff blend modes are in one blend mode pipeline state")
-                   .add_entry("single_src",
-                              fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src,
-                              "use single source blending to perform blending, "
-                              "which is even less flexible than dual_src blending and "
-                              "every Porter-Duff blend mode is a different pipeline state"),
-                   "painter_blend_type",
-                   "specifies how the painter will perform blending",
-                   *this),
+  m_support_dual_src_blend_shaders(m_painter_params.support_dual_src_blend_shaders(),
+                                   "painter_support_dual_src_blending",
+                                   "If true allow the painter to support dual src blend shaders", *this),
+  m_preferred_blend_type(m_painter_params.preferred_blend_type(),
+                         enumerated_string_type<shader_blend_type>()
+                         .add_entry("single_src",
+                                    fastuidraw::PainterBlendShader::single_src,
+                                    "Use single-source blending")
+                         .add_entry("dual_src",
+                                    fastuidraw::PainterBlendShader::dual_src,
+                                    "Use dual-source blending")
+                         .add_entry("framebuffer_fetch",
+                                    fastuidraw::PainterBlendShader::framebuffer_fetch,
+                                    "Use framebuffer-fetch or interlock, depending on the value of painter_fbf_blending_type"),
+                         "painter_preferred_blend_type",
+                         "Specifies how to implement all blend shader mode for all those except those "
+                         "that cannot be performed with 3D API blending",
+                         *this),
+  m_fbf_blending_type(m_painter_params.fbf_blending_type(),
+                      enumerated_string_type<fbf_blending_type_t>()
+                      .add_entry("framebuffer_fetch",
+                                 fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_framebuffer_fetch,
+                                 "use a framebuffer fetch (if available) to perform blending, "
+                                 "that cannot be performed with 3D API blending")
+                      .add_entry("interlock",
+                                 fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_interlock,
+                                 "use image-load store together with interlock (if both available) "
+                                 "to perform blending that cannot be performed with 3D API blending")
+                      .add_entry("none",
+                                 fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported,
+                                 "Do not support the blend shaders that cannot be performed with 3D API blending"),
+                      "painter_fbf_blending_type",
+                      "specifies if/how the painter will perform blending for those blend shaders "
+                      "that cannot be performed with 3D API blending",
+                      *this),
   m_painter_optimal(painter_optimal_rendering,
                     enumerated_string_type<enum painter_optimal_t>()
                     .add_entry("painter_no_optimal",
@@ -691,7 +717,9 @@ init_gl(int w, int h)
   APPLY_PARAM(assign_binding_points, m_assign_binding_points);
   APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
   APPLY_PARAM(provide_immediate_coverage_image_buffer, m_provide_immediate_coverage_image_buffer);
-  APPLY_PARAM(blending_type, m_blend_type);
+  APPLY_PARAM(preferred_blend_type, m_preferred_blend_type);
+  APPLY_PARAM(fbf_blending_type, m_fbf_blending_type);
+  APPLY_PARAM(support_dual_src_blend_shaders, m_support_dual_src_blend_shaders);
   APPLY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
 
 #undef APPLY_PARAM
@@ -796,7 +824,9 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(assign_binding_points, m_assign_binding_points);
       LAZY_PARAM_ENUM(separate_program_for_discard, m_separate_program_for_discard);
       LAZY_PARAM_ENUM(provide_immediate_coverage_image_buffer, m_provide_immediate_coverage_image_buffer);
-      LAZY_PARAM_ENUM(blending_type, m_blend_type);
+      LAZY_PARAM_ENUM(preferred_blend_type, m_preferred_blend_type);
+      LAZY_PARAM_ENUM(fbf_blending_type, m_fbf_blending_type);
+      LAZY_PARAM_ENUM(support_dual_src_blend_shaders, m_support_dual_src_blend_shaders);
       std::cout << std::setw(40) << "geometry_backing_store_type:"
                 << std::setw(8) << m_glyph_atlas->param_values().glyph_data_backing_store_type()
                 << "\n";

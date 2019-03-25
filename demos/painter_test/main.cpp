@@ -41,7 +41,7 @@ protected:
 
   void
   log_helper(const reference_counted_ptr<gl::Program> &pr,
-             const std::string &prefix, GLenum shader_type)
+             c_string prefix_1, c_string prefix_2, GLenum shader_type)
   {
     unsigned int cnt;
     c_string label;
@@ -57,13 +57,18 @@ protected:
 
     for(unsigned int i = 0; i < cnt; ++i)
       {
-        std::ostringstream name, name_log;
-        name << prefix << "." << i << "."
-             << shader_extension(shader_type) << ".glsl";
-        name_log << prefix << "." << i << "."
-                 << shader_extension(shader_type) << ".log";
+        std::ostringstream name, name_glsl, name_log;
 
-        std::ofstream file(name.str().c_str());
+        name << "painter." << prefix_1 << ".";
+        if (prefix_2)
+          {
+            name << prefix_2 << ".";
+          }
+        name << i << "." << shader_extension(shader_type);
+        name_glsl << name.str() << ".glsl";
+        name_log << name.str() << ".log";
+
+        std::ofstream file(name_glsl.str().c_str());
         file << pr->shader_src_code(shader_type, i);
         std::cout << "\tSource #" << i << ":" << name.str() << "\n";
 
@@ -75,23 +80,35 @@ protected:
 
   void
   log_program(const reference_counted_ptr<gl::Program> &pr,
-              const std::string &prefix)
+              c_string prefix_1, c_string prefix_2)
   {
-    {
-      std::ostringstream name;
-      name << prefix << ".program.log";
+    if (!pr)
+      {
+        return;
+      }
+    else
+      {
+        std::ostringstream name;
 
-      std::ofstream file(name.str().c_str());
-      file << pr->log();
+        name << "painter." << prefix_1;
+        if (prefix_2)
+          {
+            name << "." << prefix_2;
+          }
+        name << ".program.log";
 
-      std::cout << "\n\nProgram Log and contents written to " << name.str() << "\n";
-    }
+        std::ofstream file(name.str().c_str());
 
-    log_helper(pr, prefix, GL_VERTEX_SHADER);
-    log_helper(pr, prefix, GL_FRAGMENT_SHADER);
-    log_helper(pr, prefix, GL_GEOMETRY_SHADER);
-    log_helper(pr, prefix, GL_TESS_EVALUATION_SHADER);
-    log_helper(pr, prefix, GL_TESS_CONTROL_SHADER);
+        file << pr->log();
+        std::cout << "\n\nProgram Log and contents written to "
+                  << name.str() << "\n";
+      }
+
+    log_helper(pr, prefix_1, prefix_2, GL_VERTEX_SHADER);
+    log_helper(pr, prefix_1, prefix_2, GL_FRAGMENT_SHADER);
+    log_helper(pr, prefix_1, prefix_2, GL_GEOMETRY_SHADER);
+    log_helper(pr, prefix_1, prefix_2, GL_TESS_EVALUATION_SHADER);
+    log_helper(pr, prefix_1, prefix_2, GL_TESS_CONTROL_SHADER);
 
     if (pr->link_success())
       {
@@ -107,10 +124,31 @@ protected:
   void
   derived_init(int, int)
   {
-    log_program(m_backend->program(gl::PainterBackendGL::program_all), "painter.all");
-    log_program(m_backend->program(gl::PainterBackendGL::program_without_discard), "painter.without_discard");
-    log_program(m_backend->program(gl::PainterBackendGL::program_with_discard), "painter.with_discard");
-    log_program(m_backend->program(gl::PainterBackendGL::program_deferred_coverage_buffer), "painter.deferred_coverage_buffer");
+    fastuidraw::c_string program_labels[gl::PainterBackendGL::number_program_types] =
+      {
+        [gl::PainterBackendGL::program_all] = "program_all",
+        [gl::PainterBackendGL::program_without_discard] = "program_without_discard",
+        [gl::PainterBackendGL::program_with_discard] = "program_with_discard",
+      };
+
+    fastuidraw::c_string blend_labels[PainterBlendShader::number_types] =
+      {
+        [PainterBlendShader::single_src] = "single_src",
+        [PainterBlendShader::dual_src] = "single_src",
+        [PainterBlendShader::framebuffer_fetch] = "framebuffer_fetch",
+      };
+
+    for (int pr = 0; pr < gl::PainterBackendGL::number_program_types; ++pr)
+      {
+        for (int b = 0; b < PainterBlendShader::number_types; ++b)
+          {
+            reference_counted_ptr<gl::Program> program;
+            program = m_backend->program(static_cast<enum gl::PainterBackendGL::program_type_t>(pr),
+                                         static_cast<enum PainterBlendShader::shader_type>(b));
+            log_program(program, program_labels[pr], blend_labels[b]);
+          }
+      }
+    log_program(m_backend->program_deferred_coverage_buffer(), "deferred_coverage_buffer", nullptr);
 
     std::cout << "\nUseful command to see shader after pre-processor:\n"
               << "\tsed 's/#version/@version/g' file.glsl | sed 's/#extension/@extension/g'"
