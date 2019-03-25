@@ -4861,6 +4861,7 @@ begin(const reference_counted_ptr<PainterSurface> &surface,
   colorstop_atlas()->lock_resources();
   glyph_atlas()->lock_resources();
 
+  d->m_backend->on_painter_begin();
   d->m_viewport = surface->viewport();
   d->m_transparency_stack_entry_factory.begin(*surface);
   d->m_deferred_coverage_stack_entry_factory.begin(*surface);

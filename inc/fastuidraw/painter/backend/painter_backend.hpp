@@ -388,6 +388,15 @@ namespace fastuidraw
     void
     mark_as_free(void);
 
+    /*!
+     * To be optionally implemented by a derived class to
+     * perform any caching or other operations when \ref
+     * Painter has Painter::begin() called.
+     */
+    virtual
+    void
+    on_painter_begin(void) {}
+
   protected:
     /*!
      * To be accessed by a derived class in its ctor
