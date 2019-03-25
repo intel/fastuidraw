@@ -24,6 +24,7 @@
 #include <sstream>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 
 #include "bounding_box.hpp"
@@ -183,6 +184,34 @@ ostream&
 operator<<(ostream &str, const fastuidraw::RectT<T> &obj)
 {
   str << "[" << obj.m_min_point << " -- " << obj.m_max_point << "]";
+  return str;
+}
+
+inline
+std::ostream&
+operator<<(ostream &str, fastuidraw::BlendMode obj)
+{
+  if (obj.is_valid())
+    {
+      if (obj.blending_on())
+        {
+          str << "[equation_rgb = " << fastuidraw::BlendMode::label(obj.equation_rgb())
+              << ", equation_alpha = " << fastuidraw::BlendMode::label(obj.equation_alpha())
+              << ", func_src_rgb = " << fastuidraw::BlendMode::label(obj.func_src_rgb())
+              << ", func_src_alpha = " << fastuidraw::BlendMode::label(obj.func_src_alpha())
+              << ", func_dst_rgb = " << fastuidraw::BlendMode::label(obj.func_dst_rgb())
+              << ", func_dst_alpha = " << fastuidraw::BlendMode::label(obj.func_dst_alpha())
+              << "]";
+        }
+      else
+        {
+          str << "[BlendingOff]";
+        }
+    }
+  else
+    {
+      str << "InvalidBlendMode";
+    }
   return str;
 }
 }
