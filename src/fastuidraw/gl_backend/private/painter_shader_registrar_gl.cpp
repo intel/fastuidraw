@@ -73,6 +73,28 @@ PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
     .set_from_atlas(m_params.image_atlas().static_cast_ptr<ImageAtlas>());
 }
 
+bool
+fastuidraw::gl::detail::PainterShaderRegistrarGL::
+blend_type_supported(enum PainterBlendShader::shader_type tp) const
+{
+  switch(m_uber_shader_builder_params.blending_type())
+    {
+    case blending_single_src:
+      return tp == PainterBlendShader::single_src;
+
+    case blending_dual_src:
+      return tp == PainterBlendShader::dual_src;
+
+    case blending_framebuffer_fetch:
+    case blending_interlock:
+      return tp == PainterBlendShader::framebuffer_fetch;
+
+    default:
+      FASTUIDRAWassert(!"Bad blending_type_t in UberShaderParams");
+      return false;
+    }
+}
+
 uint32_t
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
 compute_blend_shader_group(PainterShader::Tag tag,

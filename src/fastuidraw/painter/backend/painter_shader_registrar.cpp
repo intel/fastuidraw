@@ -16,23 +16,35 @@
  *
  */
 
-
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
 #include <private/util_private.hpp>
+#include <algorithm>
+
+namespace
+{
+  class PainterShaderRegistrarPrivate
+  {
+  public:
+    PainterShaderRegistrarPrivate(void)
+    {}
+
+    fastuidraw::Mutex m_mutex;
+  };
+}
 
 ////////////////////////////////////
 // fastuidraw::PainterShaderRegistrar methods
 fastuidraw::PainterShaderRegistrar::
 PainterShaderRegistrar(void)
 {
-  m_d = FASTUIDRAWnew Mutex();
+  m_d = FASTUIDRAWnew PainterShaderRegistrarPrivate();
 }
 
 fastuidraw::PainterShaderRegistrar::
 ~PainterShaderRegistrar()
 {
-  Mutex *d;
-  d = static_cast<Mutex*>(m_d);
+  PainterShaderRegistrarPrivate *d;
+  d = static_cast<PainterShaderRegistrarPrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
@@ -40,9 +52,9 @@ fastuidraw::Mutex&
 fastuidraw::PainterShaderRegistrar::
 mutex(void)
 {
-  Mutex *d;
-  d = static_cast<Mutex*>(m_d);
-  return *d;
+  PainterShaderRegistrarPrivate *d;
+  d = static_cast<PainterShaderRegistrarPrivate*>(m_d);
+  return d->m_mutex;
 }
 
 void
@@ -116,11 +128,14 @@ void
 fastuidraw::PainterShaderRegistrar::
 register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
-  /* TODO: check shader->type() against what blend types the
-   * PainterShaderRegistrar will accept.
-   */
   if (!shader || shader->registered_to() == this)
     {
+      return;
+    }
+
+  if (!blend_type_supported(shader->type()))
+    {
+      FASTUIDRAWwarning(!"Attempted to register blend shader of unsupported type");
       return;
     }
 

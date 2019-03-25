@@ -99,9 +99,12 @@ public:
   }
 
 protected:
+  bool
+  blend_type_supported(enum PainterBlendShader::shader_type) const override;
+
   uint32_t
   compute_blend_shader_group(PainterShader::Tag tag,
-                                 const reference_counted_ptr<PainterBlendShader> &shader) override;
+                             const reference_counted_ptr<PainterBlendShader> &shader) override;
 
   uint32_t
   compute_item_shader_group(PainterShader::Tag tag,

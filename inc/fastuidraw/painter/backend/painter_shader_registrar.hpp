@@ -130,6 +130,18 @@ namespace fastuidraw
     mutex(void);
 
     /*!
+     * To be implemented by a derived class to return true
+     * if and only if a \ref PainterBlendShader objects
+     * with a given \ref PainterBlendShader::shader_type
+     * value for \ref PainterBlendShader::type() is supported.
+     * The return values must be unchanging for the lifetime
+     * of the \ref PainterShaderRegistrar object.
+     */
+    virtual
+    bool
+    blend_type_supported(enum PainterBlendShader::shader_type) const = 0;
+
+    /*!
      * To be implemented by a derived class to take into use
      * an item shader. Typically this means inserting the
      * the shader into a large uber shader. Returns

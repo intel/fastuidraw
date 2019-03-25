@@ -170,7 +170,7 @@ namespace fastuidraw
     register_shader(Tag tg, const PainterShaderRegistrar *p);
 
     /*!
-     * Called by PainterShaderRegistrar to set the group for a sub-shader.
+     * Called by PainterShaderRegistrar to set the group for a shader.
      */
     void
     set_group_of_sub_shader(uint32_t group);
