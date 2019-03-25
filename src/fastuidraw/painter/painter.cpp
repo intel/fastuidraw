@@ -1548,6 +1548,8 @@ namespace
     explicit
     PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend);
 
+    ~PainterPrivate();
+
     void
     concat(const fastuidraw::float3x3 &tr);
 
@@ -2783,6 +2785,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_curve_flatness(0.5f),
   m_backend(backend)
 {
+  m_backend->mark_as_used();
   // By calling PainterBackend::default_shaders(), we make the shaders
   // registered. By setting m_default_shaders to its return value,
   // and using that for the return value of Painter::default_shaders(),
@@ -2825,6 +2828,12 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
                 << fastuidraw::vec2(1.0f, 1.0f)
                 << fastuidraw::vec2(1.0f, 0.0f)
                 << fastuidraw::Path::contour_close();
+}
+
+PainterPrivate::
+~PainterPrivate()
+{
+  m_backend->mark_as_free();
 }
 
 void

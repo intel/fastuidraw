@@ -38,7 +38,8 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterBackend is an interface that defines the API-specific
-   * elements to implement Painter:
+   * elements to implement Painter. A fixed PainterBackend may only
+   * be used by a single Painter
    */
   class PainterBackend:public reference_counted<PainterBackend>::concurrent
   {
@@ -372,6 +373,20 @@ namespace fastuidraw
      */
     const PerformanceHints&
     hints(void) const;
+
+    /*!
+     * Called by \ref Painter to signal that this PainterBackend
+     * is in used by it.
+     */
+    void
+    mark_as_used(void);
+
+    /*!
+     * Called by \ref Painter to signal that this PainterBackend
+     * is no longer used by it.
+     */
+    void
+    mark_as_free(void);
 
   protected:
     /*!

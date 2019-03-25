@@ -48,7 +48,8 @@ namespace
       m_colorstop_atlas(colorstop_atlas),
       m_painter_shader_registrar(shader_registrar),
       m_config(config),
-      m_default_shaders(pdefault_shaders)
+      m_default_shaders(pdefault_shaders),
+      m_in_use(false)
     {}
 
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_glyph_atlas;
@@ -58,6 +59,7 @@ namespace
     fastuidraw::PainterBackend::ConfigurationBase m_config;
     fastuidraw::PainterBackend::PerformanceHints m_hints;
     fastuidraw::PainterShaderSet m_default_shaders;
+    bool m_in_use;
   };
 
   class ConfigurationPrivate
@@ -239,4 +241,24 @@ configuration_base(void) const
   PainterBackendPrivate *d;
   d = static_cast<PainterBackendPrivate*>(m_d);
   return d->m_config;
+}
+
+void
+fastuidraw::PainterBackend::
+mark_as_used(void)
+{
+  PainterBackendPrivate *d;
+  d = static_cast<PainterBackendPrivate*>(m_d);
+  FASTUIDRAWassert(!d->m_in_use);
+  d->m_in_use = true;
+}
+
+void
+fastuidraw::PainterBackend::
+mark_as_free(void)
+{
+  PainterBackendPrivate *d;
+  d = static_cast<PainterBackendPrivate*>(m_d);
+  FASTUIDRAWassert(d->m_in_use);
+  d->m_in_use = false;
 }
