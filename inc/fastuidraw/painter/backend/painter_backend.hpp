@@ -94,22 +94,6 @@ namespace fastuidraw
       brush_shader_mask(uint32_t v);
 
       /*!
-       * Returns the PainterBlendShader::shader_type the \ref
-       * PainterBackend accepts for \ref PainterBlendShader
-       * objects.
-       */
-      enum PainterBlendShader::shader_type
-      blend_type(void) const;
-
-      /*!
-       * Specify the return value to blend_type() const.
-       * Default value is \ref PainterBlendShader::dual_src.
-       * \param tp blend shader type
-       */
-      ConfigurationBase&
-      blend_type(enum PainterBlendShader::shader_type tp);
-
-      /*!
        * If true, indicates that the PainterBackend supports
        * bindless texturing. Default value is false.
        */

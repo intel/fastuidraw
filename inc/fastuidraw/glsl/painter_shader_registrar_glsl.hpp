@@ -97,34 +97,26 @@ namespace fastuidraw
 
       /*!
        * \brief
-       * Enumeration to specify how to perform painter blending.
+       * Enumeration to specify how to perform framebuffer-fetch blending
        */
-      enum blending_type_t
+      enum fbf_blending_type_t
         {
           /*!
-           * Use single source blending; only blending is supported
-           * and blending is not supported.
+           * Indicates that framebuffer-fetch blending is not supported.
            */
-          blending_single_src,
+          fbf_blending_not_supported,
 
           /*!
-           * Use dual soruce blending; only blending is supported
-           * and blending is not supported.
+           * Use framebuffer fetch (i.e. the out of the fragment shader
+           * is an inout).
            */
-          blending_dual_src,
-
-          /*!
-           * Use framebuffer fetch blending; both blending and
-           * blending are supported.
-           */
-          blending_framebuffer_fetch,
+          fbf_blending_framebuffer_fetch,
 
           /*!
            * Have the color buffer realized as an image2D and use
-           * fragment shader interlock to get blending order correct;
-           * blending and blending are supported.
+           * fragment shader interlock to get blending order correct.
            */
-          blending_interlock,
+          fbf_blending_interlock,
         };
 
       /*!
@@ -306,26 +298,34 @@ namespace fastuidraw
         swap(UberShaderParams &obj);
 
         /*!
-         * Returns how the painter will perform blending.
+         * Returns the preferred way to implement blend shaders, i.e.
+         * if a shader can be implemented with this blending type
+         * it will be.
          */
-        enum blending_type_t
-        blending_type(void) const;
+        enum PainterBlendShader::shader_type
+        preferred_blend_type(void) const;
 
         /*!
-         * Specify the return value to blending_type() const.
-         * Default value is \ref blending_dual_src
+         * Specify the return value to preferred_blend_type() const.
+         * Default value is \ref PainterBlendShader::dual_src
          * \param tp blend shader type
          */
         UberShaderParams&
-        blending_type(enum blending_type_t tp);
+        preferred_blend_type(enum PainterBlendShader::shader_type tp);
 
         /*!
-         * Provided as a conveniance, returns the value of
-         * blending_type(void) const as a \ref
-         * PainterBlendShader::shader_type.
+         * Returns how the painter will perform blending.
          */
-        enum PainterBlendShader::shader_type
-        blend_type(void) const;
+        enum fbf_blending_type_t
+        fbf_blending_type(void) const;
+
+        /*!
+         * Specify the return value to fbf_blending_type() const.
+         * Default value is \ref fbf_blending_not_supported
+         * \param tp blend shader type
+         */
+        UberShaderParams&
+        fbf_blending_type(enum fbf_blending_type_t tp);
 
         /*!
          * If true, indicates that the PainterRegistrar supports
@@ -965,7 +965,8 @@ namespace fastuidraw
        *                            instead of discard.
        */
       void
-      construct_item_uber_shader(const BackendConstants &backend_constants,
+      construct_item_uber_shader(enum PainterBlendShader::shader_type tp,
+                                 const BackendConstants &backend_constants,
                                  ShaderSource &out_vertex,
                                  ShaderSource &out_fragment,
                                  const UberShaderParams &construct_params,
@@ -998,6 +999,7 @@ namespace fastuidraw
        * ShaderSource values. The \ref Mutex mutex() is NOT locked during this call,
        * a caller should lock the mutex before calling it. This way a derived class
        * can use the same lock as used by the PainterShaderRegistrarGLSL.
+       * \param tp blend type of \ref PainterBlendShader objects to include in the uber-shader
        * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
@@ -1009,7 +1011,8 @@ namespace fastuidraw
        *                            instead of discard.
        */
       void
-      construct_item_shader(const BackendConstants &backend_constants,
+      construct_item_shader(enum PainterBlendShader::shader_type tp,
+                            const BackendConstants &backend_constants,
                             ShaderSource &out_vertex,
                             ShaderSource &out_fragment,
                             const UberShaderParams &construct_params,
@@ -1043,6 +1046,16 @@ namespace fastuidraw
        */
       unsigned int
       registered_shader_count(void);
+
+      /*!
+       * Returns the number of blend shaders registered to this
+       * PainterShaderRegistrarGLSL; a derived class
+       * should track this count value and use it to determine
+       * when it needs to reconstruct its shaders. The mutex()
+       * is NOT locked for the duration of the function.
+       */
+      unsigned int
+      registered_blend_shader_count(enum PainterBlendShader::shader_type tp);
 
       /*!
        * Fill a buffer to hold the values used by the uber-shader.

@@ -24,14 +24,12 @@
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
-enum fastuidraw::PainterBlendShader::shader_type
-shader_blend_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t in_value);
-
 class BlendShaderSetCreator
 {
 public:
   explicit
-  BlendShaderSetCreator(enum PainterBlendShader::shader_type tp);
+  BlendShaderSetCreator(enum PainterBlendShader::shader_type preferred_blending_type,
+                        enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type);
 
   PainterBlendShaderSet
   create_blend_shaders(void);
@@ -43,16 +41,6 @@ private:
                    const BlendMode &single_md,
                    const std::string &dual_src_file,
                    const BlendMode &dual_md,
-                   const std::string &framebuffer_fetch_src_file);
-  void
-  add_blend_shader(PainterBlendShaderSet &out,
-                   enum PainterEnums::blend_mode_t md,
-                   const std::string &dual_src_file,
-                   const BlendMode &dual_md,
-                   const std::string &framebuffer_fetch_src_file);
-  void
-  add_blend_shader(PainterBlendShaderSet &out,
-                   enum PainterEnums::blend_mode_t md,
                    const std::string &framebuffer_fetch_src_file);
 
   void
@@ -71,7 +59,8 @@ private:
                        enum PainterEnums::blend_mode_t md,
                        const std::string &framebuffer_fetch_src_file);
 
-  enum PainterBlendShader::shader_type m_type;
+  enum PainterBlendShader::shader_type m_preferred_type;
+  enum PainterShaderRegistrarGLSL::fbf_blending_type_t m_fbf_type;
   reference_counted_ptr<PainterBlendShaderGLSL> m_fall_through_shader;
 };
 
@@ -149,7 +138,8 @@ class ShaderSetCreator:
 public:
   explicit
   ShaderSetCreator(bool has_auxiliary_coverage_buffer,
-                   enum PainterBlendShader::shader_type blend_tp,
+                   enum PainterBlendShader::shader_type preferred_blending_type,
+                   enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type,
                    const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws);
 
   PainterShaderSet

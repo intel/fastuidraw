@@ -67,12 +67,10 @@ namespace
   public:
     ConfigurationPrivate(void):
       m_brush_shader_mask(0),
-      m_blend_type(fastuidraw::PainterBlendShader::dual_src),
       m_supports_bindless_texturing(false)
     {}
 
     uint32_t m_brush_shader_mask;
-    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     bool m_supports_bindless_texturing;
   };
 }
@@ -139,9 +137,6 @@ assign_swap_implement(fastuidraw::PainterBackend::ConfigurationBase)
 setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
                  uint32_t, brush_shader_mask)
-setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
-                 ConfigurationPrivate,
-                 enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
                  ConfigurationPrivate,
                  bool, supports_bindless_texturing)

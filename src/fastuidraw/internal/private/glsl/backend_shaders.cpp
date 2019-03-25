@@ -32,10 +32,12 @@ namespace fastuidraw { namespace glsl { namespace detail {
 /////////////////////////////////////
 // BlendShaderSetCreator methods
 BlendShaderSetCreator::
-BlendShaderSetCreator(enum PainterBlendShader::shader_type tp):
-  m_type(tp)
+BlendShaderSetCreator(enum PainterBlendShader::shader_type preferred_blending_type,
+                      enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type):
+  m_preferred_type(preferred_blending_type),
+  m_fbf_type(fbf_type)
 {
-  if (m_type == PainterBlendShader::single_src)
+  if (m_preferred_type == PainterBlendShader::single_src)
     {
       m_fall_through_shader =
         FASTUIDRAWnew PainterBlendShaderGLSL(PainterBlendShader::single_src,
@@ -51,7 +53,6 @@ add_single_src_blend_shader(PainterBlendShaderSet &out,
                             enum PainterEnums::blend_mode_t md,
                             const BlendMode &single_md)
 {
-  FASTUIDRAWassert(m_type == PainterBlendShader::single_src);
   out.shader(md, single_md, m_fall_through_shader);
 }
 
@@ -62,13 +63,11 @@ add_dual_src_blend_shader(PainterBlendShaderSet &out,
                           const std::string &dual_src_file,
                           const BlendMode &dual_md)
 {
-  FASTUIDRAWassert(m_type == PainterBlendShader::dual_src);
-
   reference_counted_ptr<PainterBlendShader> p;
   ShaderSource src;
 
   src.add_source(dual_src_file.c_str(), ShaderSource::from_resource);
-  p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type, src);
+  p = FASTUIDRAWnew PainterBlendShaderGLSL(PainterBlendShader::dual_src, src);
   out.shader(md, dual_md, p);
 }
 
@@ -78,13 +77,13 @@ add_fbf_blend_shader(PainterBlendShaderSet &out,
                      enum PainterEnums::blend_mode_t md,
                      const std::string &framebuffer_fetch_src_file)
 {
-  FASTUIDRAWassert(m_type == PainterBlendShader::framebuffer_fetch);
+  FASTUIDRAWassert(m_fbf_type != PainterShaderRegistrarGLSL::fbf_blending_not_supported);
 
   reference_counted_ptr<PainterBlendShader> p;
   ShaderSource src;
 
   src.add_source(framebuffer_fetch_src_file.c_str(), ShaderSource::from_resource);
-  p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type, src);
+  p = FASTUIDRAWnew PainterBlendShaderGLSL(PainterBlendShader::framebuffer_fetch, src);
   out.shader(md, BlendMode().blending_on(false), p);
 }
 
@@ -97,7 +96,7 @@ add_blend_shader(PainterBlendShaderSet &out,
                  const BlendMode &dual_md,
                  const std::string &framebuffer_fetch_src_file)
 {
-  switch(m_type)
+  switch(m_preferred_type)
     {
     case PainterBlendShader::single_src:
       add_single_src_blend_shader(out, md, single_md);
@@ -112,56 +111,7 @@ add_blend_shader(PainterBlendShaderSet &out,
       break;
 
     default:
-      FASTUIDRAWassert(!"Bad m_type");
-    }
-}
-
-void
-BlendShaderSetCreator::
-add_blend_shader(PainterBlendShaderSet &out,
-                 enum PainterEnums::blend_mode_t md,
-                 const std::string &dual_src_file,
-                 const BlendMode &dual_md,
-                 const std::string &framebuffer_fetch_src_file)
-{
-  switch(m_type)
-    {
-    case PainterBlendShader::single_src:
-      break;
-
-    case PainterBlendShader::dual_src:
-      add_dual_src_blend_shader(out, md, dual_src_file, dual_md);
-      break;
-
-    case PainterBlendShader::framebuffer_fetch:
-      add_fbf_blend_shader(out, md, framebuffer_fetch_src_file);
-      break;
-
-    default:
-      FASTUIDRAWassert(!"Bad m_type");
-    }
-}
-
-void
-BlendShaderSetCreator::
-add_blend_shader(PainterBlendShaderSet &out,
-                 enum PainterEnums::blend_mode_t md,
-                 const std::string &framebuffer_fetch_src_file)
-{
-  switch(m_type)
-    {
-    case PainterBlendShader::single_src:
-      break;
-
-    case PainterBlendShader::dual_src:
-      break;
-
-    case PainterBlendShader::framebuffer_fetch:
-      add_fbf_blend_shader(out, md, framebuffer_fetch_src_file);
-      break;
-
-    default:
-      FASTUIDRAWassert(!"Bad m_type");
+      FASTUIDRAWassert(!"Bad m_preferred_type");
     }
 }
 
@@ -279,7 +229,7 @@ create_blend_shaders(void)
                    "fastuidraw_w3c_screen.glsl.resource_string", one_src1,
                    "fastuidraw_fbf_w3c_screen.glsl.resource_string");
 
-  if (m_type == PainterBlendShader::framebuffer_fetch)
+  if (m_fbf_type != PainterShaderRegistrarGLSL::fbf_blending_not_supported)
     {
       add_fbf_blend_shader(shaders, PainterEnums::blend_w3c_softlight,
                            "fastuidraw_fbf_w3c_softlight.glsl.resource_string");
@@ -641,9 +591,10 @@ build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
 // ShaderSetCreator methods
 ShaderSetCreator::
 ShaderSetCreator(bool has_auxiliary_coverage_buffer,
-                 enum PainterBlendShader::shader_type blend_tp,
+                 enum PainterBlendShader::shader_type preferred_blending_type,
+                 enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type,
                  const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws):
-  BlendShaderSetCreator(blend_tp),
+  BlendShaderSetCreator(preferred_blending_type, fbf_type),
   StrokeShaderCreator(),
   m_has_auxiliary_coverage_buffer(has_auxiliary_coverage_buffer),
   m_flush_immediate_coverage_buffer_between_draws(flush_immediate_coverage_buffer_between_draws)
@@ -919,46 +870,6 @@ create_fill_shader(void)
   return fill_shader;
 }
 
-/*
-
-void
-ShaderSetCreator::
-add_w3c_blend_shaders(PainterBlendShader &return_value)
-{
-  return_value
-    .shader(PainterEnums::blend_w3c_normal,
-            create_blend_shader("fastuidraw_fbf_w3c_normal.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_multiply,
-            create_blend_shader("fastuidraw_fbf_w3c_multiply.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_screen,
-            create_blend_shader("fastuidraw_fbf_w3c_screen.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_overlay,
-            create_blend_shader("fastuidraw_fbf_w3c_overlay.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_lighten,
-            create_blend_shader("fastuidraw_fbf_w3c_lighten.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_color_dodge,
-            create_blend_shader("fastuidraw_fbf_w3c_color_dodge.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_color_burn,
-            create_blend_shader("fastuidraw_fbf_w3c_color_burn.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_hardlight,
-            create_blend_shader("fastuidraw_fbf_w3c_hardlight.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_difference,
-            create_blend_shader("fastuidraw_fbf_w3c_difference.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_exclusion,
-            create_blend_shader("fastuidraw_fbf_w3c_exclusion.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_hue,
-            create_blend_shader("fastuidraw_fbf_w3c_hue.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_saturation,
-            create_blend_shader("fastuidraw_fbf_w3c_saturation.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_color,
-            create_blend_shader("fastuidraw_fbf_w3c_color.glsl.resource_string"))
-    .shader(PainterEnums::blend_w3c_luminosity,
-            create_blend_shader("fastuidraw_fbf_w3c_luminosity.glsl.resource_string"));
-
-  return return_value;
-}
-*/
-
 PainterShaderSet
 ShaderSetCreator::
 create_shader_set(void)
@@ -976,26 +887,6 @@ create_shader_set(void)
     .fill_shader(create_fill_shader())
     .blend_shaders(create_blend_shaders());
   return return_value;
-}
-
-enum fastuidraw::PainterBlendShader::shader_type
-shader_blend_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t in_value)
-{
-  switch(in_value)
-    {
-    case PainterShaderRegistrarGLSL::blending_single_src:
-      return PainterBlendShader::single_src;
-
-    case PainterShaderRegistrarGLSL::blending_dual_src:
-      return PainterBlendShader::dual_src;
-
-    case PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
-    case PainterShaderRegistrarGLSL::blending_interlock:
-      return PainterBlendShader::framebuffer_fetch;
-    }
-
-  FASTUIDRAWassert(!"Bad blending_type_t value");
-  return PainterBlendShader::single_src;
 }
 
 }}}

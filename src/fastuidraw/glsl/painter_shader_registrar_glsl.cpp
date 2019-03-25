@@ -82,7 +82,8 @@ namespace
   {
   public:
     UberShaderParamsPrivate(void):
-      m_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src),
+      m_preferred_blend_type(fastuidraw::PainterBlendShader::dual_src),
+      m_fbf_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported),
       m_supports_bindless_texturing(false),
       m_clipping_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance),
       m_z_coordinate_convention(fastuidraw::glsl::PainterShaderRegistrarGLSL::z_minus_1_to_1),
@@ -121,7 +122,8 @@ namespace
     void
     recompute_binding_points(void);
 
-    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t m_blending_type;
+    enum fastuidraw::PainterBlendShader::shader_type m_preferred_blend_type;
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t m_fbf_blending_type;
     bool m_supports_bindless_texturing;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t m_clipping_type;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::z_coordinate_convention_t m_z_coordinate_convention;
@@ -227,7 +229,8 @@ namespace
 
     template<typename T>
     void
-    construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+    construct_shader(enum fastuidraw::PainterBlendShader::shader_type tp,
+                     enum fastuidraw::PainterSurface::render_type_t render_type,
                      const PerItemShaderRenderType<T> &shaders,
                      const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
                      fastuidraw::glsl::ShaderSource &out_vertex,
@@ -238,7 +241,8 @@ namespace
 
     template<typename T>
     void
-    construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+    construct_shader(enum fastuidraw::PainterBlendShader::shader_type tp,
+                     enum fastuidraw::PainterSurface::render_type_t render_type,
                      const PerItemShaderRenderType<T> &shaders,
                      const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
                      fastuidraw::glsl::ShaderSource &out_vertex,
@@ -249,7 +253,8 @@ namespace
 
     template<typename T>
     void
-    construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_type,
+    construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type tp,
+                            enum fastuidraw::PainterSurface::render_type_t render_type,
                             const PerItemShaderRenderType<T> &shaders,
                             const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &constants,
                             fastuidraw::glsl::ShaderSource &out_vertex,
@@ -754,7 +759,8 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterShaderRegistrarGLSL::Uber
 template<typename T>
 void
 PainterShaderRegistrarGLSLPrivate::
-construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_type,
+construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_type,
+                        enum fastuidraw::PainterSurface::render_type_t render_type,
                         const PerItemShaderRenderType<T> &shaders,
                         const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
                         fastuidraw::glsl::ShaderSource &vert,
@@ -771,12 +777,10 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
   std::string declare_varyings;
   AliasVaryingLocation main_varying_datum, brush_varying_datum;
   AliasVaryingLocation clip_varying_datum;
+  c_string shader_blend_macro(nullptr);
   std::string declare_vertex_shader_ins;
   std::string declare_uniforms;
   const varying_list *main_varyings;
-  enum PainterBlendShader::shader_type blend_type;
-
-  blend_type = params.blend_type();
 
   if (params.assign_layout_to_vertex_shader_inputs())
     {
@@ -873,30 +877,72 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
     {
       vert.add_macro("FASTUIDRAW_RENDER_TO_COLOR_BUFFER");
       frag.add_macro("FASTUIDRAW_RENDER_TO_COLOR_BUFFER");
+      switch(params.clipping_type())
+        {
+        case PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance:
+          vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
+          frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
+          break;
+
+        case PainterShaderRegistrarGLSL::clipping_via_discard:
+          vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
+          frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
+          break;
+
+        case PainterShaderRegistrarGLSL::clipping_via_skip_color_write:
+          if (blend_type == PainterBlendShader::framebuffer_fetch)
+            {
+              vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
+              frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
+            }
+          else
+            {
+              /* if the blend_type is not framebuffer_fetch, then skipping
+               * color write is not possible and so we need to fallback
+               * to discard
+               */
+              vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
+              frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
+            }
+          break;
+        }
+
+      switch(blend_type)
+        {
+        case PainterBlendShader::framebuffer_fetch:
+          if (params.fbf_blending_type() == PainterShaderRegistrarGLSL::fbf_blending_framebuffer_fetch)
+            {
+              shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
+            }
+          else
+            {
+              FASTUIDRAWassert(params.fbf_blending_type() == PainterShaderRegistrarGLSL::fbf_blending_interlock);
+              shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_INTERLOCK";
+            }
+          break;
+
+        case PainterBlendShader::dual_src:
+          shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND";
+          break;
+
+        case PainterBlendShader::single_src:
+          shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND";
+          break;
+
+        default:
+          shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_INVALID_BLEND";
+          FASTUIDRAWassert(!"Invalid blend_type");
+        }
     }
   else
     {
-      vert.add_macro("FASTUIDRAW_RENDER_TO_IMMEDIATE_COVERAGE_BUFFER");
-      frag.add_macro("FASTUIDRAW_RENDER_TO_IMMEDIATE_COVERAGE_BUFFER");
-    }
-
-  switch(params.clipping_type())
-    {
-    case PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance:
-      vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
-      frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
-      break;
-
-    case PainterShaderRegistrarGLSL::clipping_via_discard:
-      vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
-      frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
-      break;
-
-    case PainterShaderRegistrarGLSL::clipping_via_skip_color_write:
-      FASTUIDRAWassert(blend_type == PainterBlendShader::framebuffer_fetch);
-      vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
-      frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
-      break;
+      vert.add_macro("FASTUIDRAW_RENDER_TO_DEFERRED_COVERAGE_BUFFER");
+      frag.add_macro("FASTUIDRAW_RENDER_TO_DEFERRED_COVERAGE_BUFFER");
+      if (params.clipping_type() == PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance)
+        {
+          vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
+          frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
+        }
     }
 
   if (params.supports_bindless_texturing())
@@ -1005,7 +1051,6 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
       frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_INTERLOCK");
       frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
       break;
-      break;
 
     case PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only:
       frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_INTERLOCK_MAIN_ONLY");
@@ -1085,37 +1130,12 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
 
   stream_unpack_code(vert, render_type);
 
-  c_string shader_blend_macro;
-  switch(params.blending_type())
-    {
-    case PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
-      shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
-      break;
-
-    case PainterShaderRegistrarGLSL::blending_interlock:
-      shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_INTERLOCK";
-      break;
-
-    case PainterShaderRegistrarGLSL::blending_dual_src:
-      shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND";
-      break;
-
-    case PainterShaderRegistrarGLSL::blending_single_src:
-      shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND";
-      break;
-
-    default:
-      shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_INVALID_BLEND";
-      FASTUIDRAWassert(!"Invalid blend_type");
-    }
-
   add_backend_constants(backend, frag);
   frag
     .add_source(m_constant_code)
     .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
     .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
     .add_macro("FASTUIDRAW_DISCARD", discard_macro_value)
-    .add_macro(shader_blend_macro)
     .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", params.colorstop_atlas_binding())
     .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", params.image_atlas_color_tiles_linear_binding())
     .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", params.image_atlas_color_tiles_nearest_binding())
@@ -1138,6 +1158,7 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
 
   if (render_type == PainterSurface::color_buffer_type)
     {
+      frag.add_macro(shader_blend_macro);
       if (params.unpack_header_and_brush_in_frag_shader())
         {
           /* we need to declare the values named in m_brush_varyings */
@@ -1198,15 +1219,16 @@ construct_shader_common(enum fastuidraw::PainterSurface::render_type_t render_ty
   if (render_type == PainterSurface::color_buffer_type)
     {
       stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
-                                   make_c_array(m_blend_shaders[blend_type].m_shaders),
-                                   blend_type);
+                               make_c_array(m_blend_shaders[blend_type].m_shaders),
+                               blend_type);
     }
 }
 
 template<typename T>
 void
 PainterShaderRegistrarGLSLPrivate::
-construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
+                 enum fastuidraw::PainterSurface::render_type_t render_type,
                  const PerItemShaderRenderType<T> &shaders,
                  const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
                  fastuidraw::glsl::ShaderSource &vert,
@@ -1246,7 +1268,7 @@ construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
                                     shaders.m_number_float_varyings,
                                     &shader_varying_datum);
 
-  construct_shader_common(render_type, shaders, backend, vert, frag,
+  construct_shader_common(blend_type, render_type, shaders, backend, vert, frag,
                           uber_shader_varyings,
                           params, discard_macro_value);
 
@@ -1260,7 +1282,8 @@ construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
 template<typename T>
 void
 PainterShaderRegistrarGLSLPrivate::
-construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
+construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
+                 enum fastuidraw::PainterSurface::render_type_t render_type,
                  const PerItemShaderRenderType<T> &shaders,
                  const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants &backend,
                  fastuidraw::glsl::ShaderSource &vert,
@@ -1294,7 +1317,7 @@ construct_shader(enum fastuidraw::PainterSurface::render_type_t render_type,
   frag
     .add_macro("FASTUIDRAW_LOCAL(X)", "X");
 
-  construct_shader_common(render_type, shaders, backend, vert, frag,
+  construct_shader_common(blend_type, render_type, shaders, backend, vert, frag,
                           uber_shader_varyings,
                           params, discard_macro_value);
 
@@ -1422,6 +1445,8 @@ void
 UberShaderParamsPrivate::
 recompute_binding_points(void)
 {
+  using namespace fastuidraw::glsl;
+
   FASTUIDRAWassert(m_recompute_binding_points);
   m_recompute_binding_points = false;
 
@@ -1440,13 +1465,13 @@ recompute_binding_points(void)
   switch (m_data_store_backing)
     {
     default:
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_tbo:
+    case PainterShaderRegistrarGLSL::data_store_tbo:
       m_data_store_buffer_binding = m_num_texture_units++;
       break;
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_ubo:
+    case PainterShaderRegistrarGLSL::data_store_ubo:
       m_data_store_buffer_binding = m_num_ubo_units++;
       break;
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_ssbo:
+    case PainterShaderRegistrarGLSL::data_store_ssbo:
       m_data_store_buffer_binding = m_num_ssbo_units++;
       break;
     }
@@ -1454,12 +1479,12 @@ recompute_binding_points(void)
   switch (m_glyph_data_backing)
     {
     default:
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
+    case PainterShaderRegistrarGLSL::glyph_data_tbo:
+    case PainterShaderRegistrarGLSL::glyph_data_texture_array:
       m_glyph_atlas_store_binding = m_num_texture_units++;
       m_glyph_atlas_store_binding_fp16x2 = m_num_texture_units++;
       break;
-    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
+    case PainterShaderRegistrarGLSL::glyph_data_ssbo:
       m_glyph_atlas_store_binding = m_num_ssbo_units++;
       m_glyph_atlas_store_binding_fp16x2 = -1;
       break;
@@ -1474,24 +1499,27 @@ recompute_binding_points(void)
       m_uniforms_ubo_binding = -1;
     }
 
-  if (m_blending_type == fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock)
-    {
-      m_color_interlock_image_buffer_binding = m_num_image_units++;
-    }
-  else
-    {
-      m_color_interlock_image_buffer_binding = -1;
-    }
-
-  if (m_provide_immediate_coverage_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic
-      || m_provide_immediate_coverage_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only
-      || m_provide_immediate_coverage_image_buffer == fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock)
+  if (m_provide_immediate_coverage_image_buffer == PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic
+      || m_provide_immediate_coverage_image_buffer == PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only
+      || m_provide_immediate_coverage_image_buffer == PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock)
     {
       m_immediate_coverage_image_buffer_binding = m_num_image_units++;
     }
   else
     {
       m_immediate_coverage_image_buffer_binding = -1;
+    }
+
+  /* This must come last to make sure that the binding points
+   * of using or not using fbf-interlock match up.
+   */
+  if (m_fbf_blending_type == PainterShaderRegistrarGLSL::fbf_blending_interlock)
+    {
+      m_color_interlock_image_buffer_binding = m_num_image_units++;
+    }
+  else
+    {
+      m_color_interlock_image_buffer_binding = -1;
     }
 }
 
@@ -1520,19 +1548,13 @@ fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams::
   m_d = nullptr;
 }
 
-enum fastuidraw::PainterBlendShader::shader_type
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
-blend_type(void) const
-{
-  return detail::shader_blend_type(blending_type());
-}
-
 fastuidraw::PainterShaderSet
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
 default_shaders(bool has_auxiliary_coverage_buffer,
                 const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws) const
 {
-  detail::ShaderSetCreator S(has_auxiliary_coverage_buffer, blend_type(),
+  detail::ShaderSetCreator S(has_auxiliary_coverage_buffer,
+                             preferred_blend_type(), fbf_blending_type(),
                              flush_immediate_coverage_buffer_between_draws);
   return S.create_shader_set();
 }
@@ -1591,7 +1613,8 @@ get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, Ub
   uber_shader_params_set_implement_dirty(type, member)                  \
   get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, type, member)
 
-uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t, blending_type)
+uber_shader_params_setget_implement_dirty(enum fastuidraw::PainterBlendShader::shader_type, preferred_blend_type)
+uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t, fbf_blending_type)
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t, data_store_backing)
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t, glyph_data_backing)
 uber_shader_params_setget_implement_dirty(bool, use_ubo_for_uniforms)
@@ -1801,9 +1824,19 @@ registered_shader_count(void)
   return return_value;
 }
 
+unsigned int
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+registered_blend_shader_count(enum PainterBlendShader::shader_type tp)
+{
+  PainterShaderRegistrarGLSLPrivate *d;
+  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
+  return d->m_blend_shaders[tp].m_shaders.size();
+}
+
 void
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
-construct_item_uber_shader(const BackendConstants &backend_constants,
+construct_item_uber_shader(enum PainterBlendShader::shader_type tp,
+                           const BackendConstants &backend_constants,
                            ShaderSource &out_vertex,
                            ShaderSource &out_fragment,
                            const UberShaderParams &construct_params,
@@ -1812,7 +1845,7 @@ construct_item_uber_shader(const BackendConstants &backend_constants,
 {
   PainterShaderRegistrarGLSLPrivate *d;
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  d->construct_shader<PainterItemShaderGLSL>(PainterSurface::color_buffer_type,
+  d->construct_shader<PainterItemShaderGLSL>(tp, PainterSurface::color_buffer_type,
                                              d->m_item_shaders,
                                              backend_constants, out_vertex, out_fragment,
                                              construct_params, item_shader_filter,
@@ -1828,8 +1861,15 @@ construct_item_uber_coverage_shader(const BackendConstants &backend_constants,
                                     const ShaderFilter<PainterItemCoverageShaderGLSL> *item_shader_filter)
 {
   PainterShaderRegistrarGLSLPrivate *d;
+  enum PainterBlendShader::shader_type v;
+
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  d->construct_shader<PainterItemCoverageShaderGLSL>(PainterSurface::deferred_coverage_buffer_type,
+  /* the PainterBlendShader::shader_type value should be
+   * ignored when making coverage shaders, set it to a
+   * deliberately bad value.
+   */
+  v = static_cast<PainterBlendShader::shader_type>(-1);
+  d->construct_shader<PainterItemCoverageShaderGLSL>(v, PainterSurface::deferred_coverage_buffer_type,
                                                      d->m_item_coverage_shaders,
                                                      backend_constants, out_vertex, out_fragment,
                                                      construct_params, item_shader_filter,
@@ -1838,7 +1878,8 @@ construct_item_uber_coverage_shader(const BackendConstants &backend_constants,
 
 void
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
-construct_item_shader(const BackendConstants &backend_constants,
+construct_item_shader(enum PainterBlendShader::shader_type tp,
+                      const BackendConstants &backend_constants,
                       ShaderSource &out_vertex,
                       ShaderSource &out_fragment,
                       const UberShaderParams &construct_params,
@@ -1847,7 +1888,7 @@ construct_item_shader(const BackendConstants &backend_constants,
 {
   PainterShaderRegistrarGLSLPrivate *d;
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  d->construct_shader<PainterItemShaderGLSL>(PainterSurface::color_buffer_type,
+  d->construct_shader<PainterItemShaderGLSL>(tp, PainterSurface::color_buffer_type,
                                              d->m_item_shaders,
                                              backend_constants, out_vertex, out_fragment,
                                              construct_params, shader_id,
@@ -1863,8 +1904,15 @@ construct_item_coverage_shader(const BackendConstants &backend_constants,
                                unsigned int shader_id)
 {
   PainterShaderRegistrarGLSLPrivate *d;
+  enum PainterBlendShader::shader_type v;
+
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  d->construct_shader<PainterItemCoverageShaderGLSL>(PainterSurface::deferred_coverage_buffer_type,
+  /* the PainterBlendShader::shader_type value should be
+   * ignored when making coverage shaders, set it to a
+   * deliberately bad value.
+   */
+  v = static_cast<PainterBlendShader::shader_type>(-1);
+  d->construct_shader<PainterItemCoverageShaderGLSL>(v, PainterSurface::deferred_coverage_buffer_type,
                                                      d->m_item_coverage_shaders,
                                                      backend_constants, out_vertex, out_fragment,
                                                      construct_params, shader_id,
