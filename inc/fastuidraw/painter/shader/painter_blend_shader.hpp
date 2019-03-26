@@ -58,6 +58,10 @@ namespace fastuidraw
          */
         framebuffer_fetch,
 
+        /*!
+         * The number of different types of valid \ref shader_type
+         * values; also used to indicate an invalid value.
+         */
         number_types,
       };
 

@@ -403,7 +403,7 @@ namespace fastuidraw
         /*!
          * If true, will support blend shaders with \ref
          * PainterBlendShader::type() with value \ref
-         * PainterBlendShader::daul_src.
+         * PainterBlendShader::dual_src.
          */
         bool
         support_dual_src_blend_shaders(void) const;

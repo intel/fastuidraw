@@ -86,11 +86,12 @@ namespace fastuidraw
 
           /*!
            * Clipping is performed by passing the distance
-           * to each clip-plane and (virtually) skipping
-           * the color write. This requires that the
-           * blending mode is through framebuffer fetch,
-           * i.e. UberShaderParams::blending_type() is \ref
-           * blending_framebuffer_fetch or \ref blending_interlock
+           * to each clip-plane and (virtually) skipping the
+           * color write. This is active if the active \ref
+           * PainterBlendShader has PainterBlendShader::type()
+           * as \ref PainterBlendShader::framebuffer_fetch.
+           * For other blend-types, this is the same as \ref
+           * clipping_via_discard.
            */
           clipping_via_skip_color_write,
         };
@@ -948,9 +949,10 @@ namespace fastuidraw
        * GLSL preamble:
        *  - fastuidraw_begin_interlock() which is called before access
        *  - fastuidraw_end_interlock() which is called after access
-       * if UberShaderParams::blending_type() is \ref blending_interlock
+       * if UberShaderParams::ffb_blending_type() is \ref fbf_blending_interlock
        * or if UberShaderParams::provide_immediate_coverage_image_buffer() is \ref
        * immediate_coverage_buffer_interlock or \ref immediate_coverage_buffer_interlock_main_only.
+       * \param tp blend type of \ref PainterBlendShader objects to include in the uber-shader
        * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader

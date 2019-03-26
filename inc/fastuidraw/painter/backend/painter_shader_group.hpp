@@ -66,8 +66,8 @@ namespace fastuidraw
     /*!
      * Returns the \ref PainterBlendShader::shader_type
      * of the active \ref PainterBlendShader. If there is
-     * no active \ref PainterBlendShader, returns
-     * \ref PainterBlendShader::number_types.
+     * no active \ref PainterBlendShader, returns \ref
+     * PainterBlendShader::number_types .
      */
     enum PainterBlendShader::shader_type
     blend_shader_type(void) const;
