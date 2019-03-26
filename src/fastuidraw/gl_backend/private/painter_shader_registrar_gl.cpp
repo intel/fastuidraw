@@ -59,18 +59,36 @@ namespace
 
 //////////////////////////////////////////////////////////////
 // fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms methods
+void
+fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms::
+reset(void)
+{
+  Mutex::Guard m(m_reg->mutex());
+  for (unsigned int i = 0; i < PainterBlendShader::number_types; ++i)
+    {
+      enum PainterBlendShader::shader_type e;
+
+      e = static_cast<enum PainterBlendShader::shader_type>(i);
+      unsigned int cnt(m_reg->registered_blend_shader_count(e));
+      if (cnt != m_blend_shader_counts[e])
+        {
+          m_blend_shader_counts[e] = cnt;
+          m_item_programs[e].clear();
+        }
+    }
+}
+
 const fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref&
 fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms::
-program_of_item_shader(const reference_counted_ptr<PainterShaderRegistrarGL> &reg,
-                       enum PainterSurface::render_type_t render_type,
+program_of_item_shader(enum PainterSurface::render_type_t render_type,
                        unsigned int shader_group,
                        enum PainterBlendShader::shader_type blend_type)
 {
-  program_ref &dst(*resize_item_shader_vector_as_needed(render_type, shader_group,
-                                                        blend_type, m_item_programs));
+  program_ref &dst(*PainterShaderRegistrarGL::resize_item_shader_vector_as_needed(render_type, shader_group,
+                                                                                  blend_type, m_item_programs));
   if (!dst)
     {
-      dst = reg->program_of_item_shader(render_type, shader_group, blend_type);
+      dst = m_reg->program_of_item_shader(render_type, shader_group, blend_type);
     }
   return dst;
 }

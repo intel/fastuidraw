@@ -72,26 +72,28 @@ public:
     program_ref m_deferred_coverage_program;
   };
 
-  class CachedItemPrograms:fastuidraw::noncopyable
+  class CachedItemPrograms:
+    public reference_counted<CachedItemPrograms>::non_concurrent
   {
   public:
+    explicit
+    CachedItemPrograms(const reference_counted_ptr<PainterShaderRegistrarGL> &reg):
+      m_reg(reg),
+      m_blend_shader_counts(0)
+    {}
+
     void
-    reset(void)
-    {
-      for (auto &v : m_item_programs)
-        {
-          v.clear();
-        }
-    }
+    reset(void);
 
     const program_ref&
-    program_of_item_shader(const reference_counted_ptr<PainterShaderRegistrarGL> &reg,
-                           enum PainterSurface::render_type_t render_type,
+    program_of_item_shader(enum PainterSurface::render_type_t render_type,
                            unsigned int shader_group,
                            enum PainterBlendShader::shader_type blend_type);
 
   private:
-    vecN<std::vector<program_ref>, PainterBlendShader::number_types + 1> m_item_programs;
+    reference_counted_ptr<PainterShaderRegistrarGL> m_reg;
+    vecN<unsigned int, PainterBlendShader::number_types> m_blend_shader_counts;
+    vecN<std::vector<PainterShaderRegistrarGL::program_ref>, PainterBlendShader::number_types + 1> m_item_programs;
   };
 
   explicit

@@ -184,6 +184,12 @@ namespace
                  enum fastuidraw::PainterBlendShader::shader_type blend_type,
                  fastuidraw::gpu_dirty_state v);
 
+    bool
+    use_uber_shader(void)
+    {
+      return !m_cached_item_programs;
+    }
+
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
 
     GLuint m_nearest_filter_sampler;
@@ -192,11 +198,10 @@ namespace
     bool m_uniform_ubo_ready;
     GLuint m_current_external_texture;
     GLuint m_current_coverage_buffer_texture;
-    bool m_use_uber_shader;
     BindingPoints m_binding_points;
     DrawState m_draw_state;
     fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
-    fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms m_cached_item_programs;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms> m_cached_item_programs;
 
     fastuidraw::gl::PainterBackendGL *m_p;
   };
@@ -795,7 +800,7 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
   old_blend_type = old_shaders.blend_shader_type();
   new_blend_type = new_shaders.blend_shader_type();
 
-  if (m_pr->m_use_uber_shader)
+  if (m_pr->use_uber_shader())
     {
       old_disc = old_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
       new_disc = new_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
@@ -809,15 +814,8 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
   if (old_disc != new_disc || old_blend_type != new_blend_type)
     {
       Program *new_program;
-      if (m_pr->m_use_uber_shader)
+      if (m_pr->use_uber_shader())
         {
-          /* TODO:
-           *   Using reference_counted_ptr forces atomics to occur;
-           *   We can avoid the atomics for when uber-shader is used
-           *   since the PainerBackend has cached the shaders for us.
-           *   However, without ubder-shaders, the caching of all item
-           *   shaders seems dubious.
-           */
           if (render_type == PainterSurface::color_buffer_type)
             {
               enum PainterBackendGL::program_type_t pz;
@@ -841,8 +839,7 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
       else
         {
           new_program =
-            m_pr->m_cached_item_programs.program_of_item_shader(m_pr->m_reg_gl, render_type,
-                                                                new_disc, new_blend_type).get();
+            m_pr->m_cached_item_programs->program_of_item_shader(render_type, new_disc, new_blend_type).get();
         }
 
       if (!m_draws.empty())
@@ -995,7 +992,10 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_binding_points.m_coverage_buffer_texture_binding = m_reg_gl->uber_shader_builder_params().coverage_buffer_texture_binding();
   m_binding_points.m_uniforms_ubo_binding = m_reg_gl->uber_shader_builder_params().uniforms_ubo_binding();
 
-  m_use_uber_shader = m_reg_gl->params().use_uber_item_shader();
+  if (!m_reg_gl->params().use_uber_item_shader())
+    {
+      m_cached_item_programs = FASTUIDRAWnew PainterShaderRegistrarGL::CachedItemPrograms(m_reg_gl);
+    }
   m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(),
                                           m_reg_gl->tex_buffer_support(),
                                           m_binding_points.m_data_store_buffer_binding);
@@ -2135,7 +2135,10 @@ on_painter_begin(void)
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
   d->m_cached_programs = d->m_reg_gl->programs();
-  d->m_cached_item_programs.reset();
+  if (d->m_cached_item_programs)
+    {
+      d->m_cached_item_programs->reset();
+    }
 }
 
 #define binding_info_get(X)                             \
