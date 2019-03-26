@@ -617,6 +617,11 @@ build_program_of_item_shader(unsigned int shader, bool allow_discard,
   program_ref return_value;
   c_string discard_macro;
 
+  if (!blend_type_supported(blend_type))
+    {
+      return nullptr;
+    }
+
   if (!allow_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
