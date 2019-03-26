@@ -1622,14 +1622,16 @@ configure_from_context(bool choose_optimal_rendering_quality,
    * as NOT supported.
    */
   bool NVIDIA_detected;
-  std::string gl_version, gl_renderer;
+  std::string gl_version, gl_renderer, gl_vendor;
 
   gl_version = (const char*)fastuidraw_glGetString(GL_VERSION);
   gl_renderer = (const char*)fastuidraw_glGetString(GL_RENDERER);
+  gl_vendor = (const char*)fastuidraw_glGetString(GL_VENDOR);
   NVIDIA_detected = gl_version.find("NVIDIA") != std::string::npos
     || gl_renderer.find("GeForce") != std::string::npos
     || gl_version.find("nouveau") != std::string::npos
-    || gl_renderer.find("nouveau") != std::string::npos;
+    || gl_renderer.find("nouveau") != std::string::npos
+    || gl_vendor.find("nouveau") != std::string::npos;
 
   d->m_clipping_type = compute_clipping_type(d->m_fbf_blending_type,
                                              d->m_clipping_type,
