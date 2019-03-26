@@ -134,7 +134,7 @@ protected:
     fastuidraw::c_string blend_labels[PainterBlendShader::number_types] =
       {
         [PainterBlendShader::single_src] = "single_src",
-        [PainterBlendShader::dual_src] = "single_src",
+        [PainterBlendShader::dual_src] = "dual_src",
         [PainterBlendShader::framebuffer_fetch] = "framebuffer_fetch",
       };
 
