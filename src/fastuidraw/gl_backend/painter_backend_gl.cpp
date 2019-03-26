@@ -837,13 +837,13 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
               enum PainterBackendGL::program_type_t pz;
               if (m_pr->m_reg_gl->params().separate_program_for_discard())
                 {
-                  pz = PainterBackendGL::program_all;
-                }
-              else
-                {
                   pz = (new_disc != 0u) ?
                     PainterBackendGL::program_with_discard :
                     PainterBackendGL::program_without_discard;
+                }
+              else
+                {
+                  pz = PainterBackendGL::program_all;
                 }
               new_program = m_pr->m_cached_programs.program(pz, new_blend_type).get();
             }
