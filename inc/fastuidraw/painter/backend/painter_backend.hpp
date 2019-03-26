@@ -38,8 +38,37 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterBackend is an interface that defines the API-specific
-   * elements to implement Painter. A fixed PainterBackend may only
-   * be used by a single Painter
+   * elements to implement \ref Painter. A fixed PainterBackend may only
+   * be used by a single \ref Painter.
+
+   * A \ref Painter will use a \ref PainterBackend as follows within a
+   * Painter::begin() and Painter::end() pair.
+   * \code
+   * fastuidraw::PainterBackend &backend;
+   *
+   * backend.on_painter_begin();
+   * for (how many surfaces S needed to draw all)
+   *   {
+   *     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw> > draws;
+   *     for (how many PainterDraw objects needed to draw what is drawn in S)
+   *       {
+   *         fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw> p;
+   *
+   *         p = backend.map_draw();
+   *         // fill the buffers on p, potentially calling
+   *         // PainterDraw::draw_break() several times.
+   *         p.get()->unmap(attributes_written, indices_written, data_store_written);
+   *         draws.push_back(p);
+   *       }
+   *     backend.on_pre_draw(S, maybe_clear_color_buffer, maybe_begin_new_target);
+   *     for (p in draws)
+   *       {
+   *         p.get()->draw();
+   *       }
+   *     draws.clear();
+   *     backend.on_post_draw();
+   *   }
+   * \endcode
    */
   class PainterBackend:public reference_counted<PainterBackend>::concurrent
   {
