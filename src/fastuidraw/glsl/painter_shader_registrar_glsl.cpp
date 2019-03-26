@@ -1300,6 +1300,7 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
   UberShaderVaryings uber_shader_varyings;
   AliasVaryingLocation shader_varying_datum;
   std::ostringstream run_vert_shader, run_frag_shader;
+  const char *frag_return_type(nullptr);
 
   FASTUIDRAWassert(shader_id < shaders.m_shaders_keyed_by_id.size());
   FASTUIDRAWassert(shaders.m_shaders_keyed_by_id[shader_id]);
@@ -1323,6 +1324,7 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
 
   if (render_type == PainterSurface::color_buffer_type)
     {
+      frag_return_type = "vec4";
       run_vert_shader
         << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)\n"
         << "{\n"
@@ -1334,6 +1336,7 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
     }
   else
     {
+      frag_return_type = "float";
       run_vert_shader
         << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 clip_p)\n"
         << "{\n"
@@ -1350,7 +1353,7 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
 
   uber_shader_varyings.stream_alias_varyings(frag, shader->varyings(), true, shader_varying_datum);
   run_frag_shader
-    << "vec4 fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)\n"
+    << frag_return_type << " fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)\n"
     << "{\n"
     << "  return fastuidraw_gl_frag_main(uint(frag_shader) - uint(" << shader->ID() << "), frag_shader_data_location);\n"
     << "}\n"
