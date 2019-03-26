@@ -19,5 +19,5 @@ var searchData=
   ['drawing_5foccluder',['drawing_occluder',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a5ed39c64994e78e20a2256f0b9d5106fa3863bdd17369eb8e9ac726878a5dc246',1,'fastuidraw::PainterHeader']]],
   ['dst_5falpha',['DST_ALPHA',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859ad22ad86f76f80c2b5d1703426b882a5b',1,'fastuidraw::BlendMode']]],
   ['dst_5fcolor',['DST_COLOR',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859a62e48ea1b69101afcb20b08b855ea91b',1,'fastuidraw::BlendMode']]],
-  ['dual_5fsrc',['dual_src',['../d6/db0/classfastuidraw_1_1_painter_composite_shader.html#ac91222f873cec9a6b8ac06f126abec96ad3235b7426ebecada4ce77163b31afb9',1,'fastuidraw::PainterCompositeShader']]]
+  ['dual_5fsrc',['dual_src',['../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1ca558f0990ea51168fa3c24009dec405b4',1,'fastuidraw::PainterBlendShader']]]
 ];

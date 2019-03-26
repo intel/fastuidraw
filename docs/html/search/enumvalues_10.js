@@ -8,7 +8,7 @@ var searchData=
   ['shader_5fanti_5falias_5fnone',['shader_anti_alias_none',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa93cfd6235fe7ae9b1850f07112af4545',1,'fastuidraw::PainterEnums']]],
   ['sin_5fsign_5fbit',['sin_sign_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1a145d5f6483a68a41a1feeea514174835',1,'fastuidraw::StrokedPoint']]],
   ['sin_5fsign_5fmask',['sin_sign_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a4ac465cb114de585425162fb54a25288',1,'fastuidraw::StrokedPoint']]],
-  ['single_5fsrc',['single_src',['../d6/db0/classfastuidraw_1_1_painter_composite_shader.html#ac91222f873cec9a6b8ac06f126abec96a57793864cf55bd1542358c043cab1422',1,'fastuidraw::PainterCompositeShader']]],
+  ['single_5fsrc',['single_src',['../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1ca9afc42f0d827c08874a07c618d69fb12',1,'fastuidraw::PainterBlendShader']]],
   ['sjis',['sjis',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93abc9257e1473ad13f4d858b6306bc3f57',1,'fastuidraw::CharacterEncoding']]],
   ['spread_5fclamp',['spread_clamp',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a698a81d6a833ef1972e25846fadd1497a2f338cd0b7571d1ee6c5341914291214',1,'fastuidraw::PainterBrush']]],
   ['spread_5fmirror',['spread_mirror',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a698a81d6a833ef1972e25846fadd1497a3fb8930c51630d907ccff3d88f287dbe',1,'fastuidraw::PainterBrush']]],

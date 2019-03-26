@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. Both PainterEnums::shader_anti_alias_immediate_cove...">PainterStrokeShader</a> holds shaders for stroking. Both <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22">PainterEnums::shader_anti_alias_immediate_coverage</a> and PainterEnums::shader_anti_alias_simple are two pass solutions. For PainterEnums::shader_anti_alias_simple, the first pass draws the portions of the path that have 100% coverage and the 2nd pass draws those portions with less than 100% coverage; both of these passes rely on depth testing to prevent overdraw. For <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22">PainterEnums::shader_anti_alias_immediate_coverage</a>, the first pass draws to an offscreen coverage buffer the coverage values so that when a fragment is hit multiple times the largest coverage value is retained and the 2nd pass reads and clears the coverage values using the value from the coverage buffer for the coverage.  
+<p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It contains shaders to stroke a path under various ...">PainterStrokeShader</a> holds shaders for stroking. It contains shaders to stroke a path under various anti-alias modes specified by <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a> along with information used by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to allow it to decide how to stroke paths.  
  <a href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>&gt;</code></p>
@@ -131,9 +131,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad6522884a2e7e2750d83ecf4e4c77aef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. Both PainterEnums::shader_anti_alias_immediate_cove...">PainterStrokeShader</a> holds shaders for stroking. Both <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22">PainterEnums::shader_anti_alias_immediate_coverage</a> and PainterEnums::shader_anti_alias_simple are two pass solutions. For PainterEnums::shader_anti_alias_simple, the first pass draws the portions of the path that have 100% coverage and the 2nd pass draws those portions with less than 100% coverage; both of these passes rely on depth testing to prevent overdraw. For <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22">PainterEnums::shader_anti_alias_immediate_coverage</a>, the first pass draws to an offscreen coverage buffer the coverage values so that when a fragment is hit multiple times the largest coverage value is retained and the 2nd pass reads and clears the coverage values using the value from the coverage buffer for the coverage. </p>
+<div class="textblock"><p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It contains shaders to stroke a path under various ...">PainterStrokeShader</a> holds shaders for stroking. It contains shaders to stroke a path under various anti-alias modes specified by <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a> along with information used by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to allow it to decide how to stroke paths. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00167">167</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00157">157</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a1365ed3bc26b9cc326661a566e88883d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1365ed3bc26b9cc326661a566e88883d">&#9670;&nbsp;</a></span>shader_type_t</h2>
@@ -158,7 +158,7 @@ Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00173">173</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00163">163</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -568,7 +568,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html" title="A StrokingDataSelector is an interface to assist Painter to select correct LOD for rounded joins and ...">StrokingDataSelectorBase</a> associated to this <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. Both PainterEnums::shader_anti_alias_immediate_cove...">PainterStrokeShader</a>. </p>
+<p>Returns the <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html" title="A StrokingDataSelector is an interface to assist Painter to select correct LOD for rounded joins and ...">StrokingDataSelectorBase</a> associated to this <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It contains shaders to stroke a path under various ...">PainterStrokeShader</a>. </p>
 
 </div>
 </div>

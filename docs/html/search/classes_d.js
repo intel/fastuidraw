@@ -16,6 +16,6 @@ var searchData=
   ['strokedpoint',['StrokedPoint',['../d4/d1b/classfastuidraw_1_1_stroked_point.html',1,'fastuidraw']]],
   ['strokingdataselectorbase',['StrokingDataSelectorBase',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html',1,'fastuidraw']]],
   ['strokingstyle',['StrokingStyle',['../d6/d1e/classfastuidraw_1_1_stroking_style.html',1,'fastuidraw']]],
-  ['subset',['Subset',['../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html',1,'fastuidraw::StrokedPath::Subset'],['../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html',1,'fastuidraw::GlyphSequence::Subset'],['../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html',1,'fastuidraw::FilledPath::Subset']]],
+  ['subset',['Subset',['../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html',1,'fastuidraw::GlyphSequence::Subset'],['../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html',1,'fastuidraw::FilledPath::Subset'],['../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html',1,'fastuidraw::StrokedPath::Subset']]],
   ['surfacegl',['SurfaceGL',['../d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html',1,'fastuidraw::gl::PainterBackendGL']]]
 ];

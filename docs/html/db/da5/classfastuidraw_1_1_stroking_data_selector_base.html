@@ -136,15 +136,15 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Enumeration to specify indexes into a c_array&lt;float&gt; on how much a path's geometry is inflated by stroking. </p>
+<p>Enumeration to specify indexes into a <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> on how much a path's geometry is inflated by stroking. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc"></a>pixel_space_distance&#160;</td><td class="fielddoc"><p>Index into c_array&lt;float&gt; to indicate how much the path geometry is inflated in pixels after its inflation in in item coordinates and having the current transformation matrix applied. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc"></a>pixel_space_distance&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the path geometry is inflated in pixels after its inflation in in item coordinates and having the current transformation matrix applied. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25ae343509dc56afa17662427e2127417b8"></a>item_space_distance&#160;</td><td class="fielddoc"><p>Index into c_array&lt;float&gt; to indicate how much the path geometry is inflated in path cordinates before the transformation matrix applied or the inflation by <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc">pixel_space_distance</a> is applied </p>
+<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25ae343509dc56afa17662427e2127417b8"></a>item_space_distance&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the path geometry is inflated in path cordinates before the transformation matrix applied or the inflation by <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc">pixel_space_distance</a> is applied </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25a586c7ae0f733dedb2b4fd1ff902942d6"></a>pixel_space_distance_miter_joins&#160;</td><td class="fielddoc"><p>Index into c_array&lt;float&gt; to indicate how much the bounding box for taking miter-joins is inflated in pixels after its inflation in in item coordinates and having the current transformation matrix applied. </p>
+<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25a586c7ae0f733dedb2b4fd1ff902942d6"></a>pixel_space_distance_miter_joins&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the bounding box for taking miter-joins is inflated in pixels after its inflation in in item coordinates and having the current transformation matrix applied. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25a8a61434f8539ac35163bbfdd61743a87"></a>item_space_distance_miter_joins&#160;</td><td class="fielddoc"><p>Index into c_array&lt;float&gt; to indicate how much the bounding box for taking miter-joins is inflated in path cordinates before the transformation matrix applied or the inflation by pixel_space_distance_joins is applied </p>
+<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25a8a61434f8539ac35163bbfdd61743a87"></a>item_space_distance_miter_joins&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the bounding box for taking miter-joins is inflated in path cordinates before the transformation matrix applied or the inflation by <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25a586c7ae0f733dedb2b4fd1ff902942d6">pixel_space_distance_miter_joins</a> is applied </p>
 </td></tr>
 </table>
 
@@ -298,7 +298,6 @@ Additional Inherited Members</h2></td></tr>
 <p>To be implemented by a derived class to give by how much the stroking gives thickness to the stroked path. These values are geometrically added together. The intersection test performed is to first inflate the bounding boxes in local coordinates by the output out_item_space_distance, then to convert the box to clip-coordinates and then push each clip-equation by *out_pixel_space_distance </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">data</td><td>PainterItemShaderData::DataBase object holding the data to be sent to the shader </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">js</td><td>join style </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">out_values</td><td>output with array indexed as according to <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25">path_geometry_inflation_index_t</a> </td></tr>
   </table>
   </dd>

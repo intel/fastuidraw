@@ -50,7 +50,6 @@ var searchData=
   ['number_5fcap_5fstyles',['number_cap_styles',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa73e197c0acd6dc0fced1c0b53f7f0367',1,'fastuidraw::PainterEnums']]],
   ['number_5fcols',['number_cols',['../d9/d36/classfastuidraw_1_1matrix_nx_m.html#abb7e2b0e97a97a6dbd76eb993a1a74aba7534c519814ee6b0e8bc903dea11a5e5',1,'fastuidraw::matrixNxM']]],
   ['number_5fcommon_5fbits',['number_common_bits',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a0364105ff2b0bd42c5bc09085f6de579afae0f960882b5d30f8e00b3365d2aa89',1,'fastuidraw::ArcStrokedPoint::number_common_bits()'],['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a3db90bfdf62dcfab204e72c0317b664aa6f915c68ffb3e012edae327c7f4f86d3',1,'fastuidraw::StrokedPoint::number_common_bits()']]],
-  ['number_5fcomposite_5fmode',['number_composite_mode',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a227d3cf153cf652fa27a1649bfdbeb7aa53aec11721a42c586011cf58cc8bfc42',1,'fastuidraw::PainterEnums']]],
   ['number_5fcontours',['number_contours',['../df/dea/classfastuidraw_1_1_path.html#af5f27ee54a6dd4154254394c31a3c74c',1,'fastuidraw::Path::number_contours()'],['../da/df4/classfastuidraw_1_1_tessellated_path.html#a8b66fb90c6e91ca9bacc5356101840e2',1,'fastuidraw::TessellatedPath::number_contours()']]],
   ['number_5fedges',['number_edges',['../da/df4/classfastuidraw_1_1_tessellated_path.html#a568d3c018bd25e6a19afdbb6ce792db6',1,'fastuidraw::TessellatedPath']]],
   ['number_5ffill_5frule',['number_fill_rule',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69a738b2b2027ec0016e48513a6eb58b4fc',1,'fastuidraw::PainterEnums']]],
@@ -81,5 +80,6 @@ var searchData=
   ['number_5ftimes_5fcleared',['number_times_cleared',['../da/da8/classfastuidraw_1_1_glyph_atlas.html#a3791cfc1ac74fd5735ba584828b1cb92',1,'fastuidraw::GlyphAtlas']]],
   ['number_5ftransform_5ffeedback_5fbuffers',['number_transform_feedback_buffers',['../d0/d53/classfastuidraw_1_1gl_1_1_program.html#af63ff212ff94c968060be2d42ad3682a',1,'fastuidraw::gl::Program']]],
   ['number_5ftransform_5ffeedbacks',['number_transform_feedbacks',['../d0/d53/classfastuidraw_1_1gl_1_1_program.html#ab1318f638ad0f0a43b05bd479c7bfadc',1,'fastuidraw::gl::Program']]],
+  ['number_5ftypes',['number_types',['../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1ca03e51edaf40a1fb28176c918b74f422e',1,'fastuidraw::PainterBlendShader']]],
   ['number_5fvariables',['number_variables',['../da/d89/classfastuidraw_1_1gl_1_1_program_1_1block__info.html#a6c349d667b382ec56b6af9a815d9c6a2',1,'fastuidraw::gl::Program::block_info::number_variables()'],['../dd/d78/classfastuidraw_1_1gl_1_1_program_1_1atomic__buffer__info.html#a099b34002192d56f66b2a4bb878f3892',1,'fastuidraw::gl::Program::atomic_buffer_info::number_variables()']]]
 ];

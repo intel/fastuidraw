@@ -7,5 +7,5 @@ var searchData=
   ['bindfragdatalocation',['BindFragDataLocation',['../d0/d28/classfastuidraw_1_1gl_1_1_bind_frag_data_location.html',1,'fastuidraw::gl']]],
   ['blendmode',['BlendMode',['../da/d2e/classfastuidraw_1_1_blend_mode.html',1,'fastuidraw']]],
   ['block_5finfo',['block_info',['../da/d89/classfastuidraw_1_1gl_1_1_program_1_1block__info.html',1,'fastuidraw::gl::Program']]],
-  ['builder',['Builder',['../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html',1,'fastuidraw::ShaderFilledPath::Builder'],['../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html',1,'fastuidraw::StrokedCapsJoins::Builder']]]
+  ['builder',['Builder',['../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html',1,'fastuidraw::StrokedCapsJoins::Builder'],['../d8/d0a/classfastuidraw_1_1_shader_filled_path_1_1_builder.html',1,'fastuidraw::ShaderFilledPath::Builder']]]
 ];

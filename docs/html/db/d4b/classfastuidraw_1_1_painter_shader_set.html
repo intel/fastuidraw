@@ -70,7 +70,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html" title="A PainterShaderSet provides shaders for compositing and drawing each of the item types glyphs...">PainterShaderSet</a> provides shaders for compositing and drawing each of the item types glyphs, stroking paths and filling paths.  
+<p>A <a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html" title="A PainterShaderSet provides shaders for blending and drawing each of the item types glyphs...">PainterShaderSet</a> provides shaders for blending and drawing each of the item types glyphs, stroking paths and filling paths.  
  <a href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../df/d62/painter__shader__set_8hpp_source.html">painter_shader_set.hpp</a>&gt;</code></p>
@@ -85,10 +85,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab1c14f95a47c2ef8333c977febd0bd91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff349e61d61de113352acbee2eea89fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html">PainterShaderSet</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#aff349e61d61de113352acbee2eea89fa">blend_shaders</a> (const <a class="el" href="../../d0/d0a/classfastuidraw_1_1_painter_blend_shader_set.html">PainterBlendShaderSet</a> &amp;sh)</td></tr>
 <tr class="separator:aff349e61d61de113352acbee2eea89fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31d70f23a01420830b25221db9e96eb8"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/d37/classfastuidraw_1_1_painter_composite_shader_set.html">PainterCompositeShaderSet</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#a31d70f23a01420830b25221db9e96eb8">composite_shaders</a> (void) const</td></tr>
-<tr class="separator:a31d70f23a01420830b25221db9e96eb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3b540c818fcdb0d48d1b78637dc2ac2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html">PainterShaderSet</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#aa3b540c818fcdb0d48d1b78637dc2ac2">composite_shaders</a> (const <a class="el" href="../../da/d37/classfastuidraw_1_1_painter_composite_shader_set.html">PainterCompositeShaderSet</a> &amp;sh)</td></tr>
-<tr class="separator:aa3b540c818fcdb0d48d1b78637dc2ac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb609b647aba1d5b57834de65615450e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../dd/d61/classfastuidraw_1_1_painter_dashed_stroke_shader_set.html">PainterDashedStrokeShaderSet</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#abb609b647aba1d5b57834de65615450e">dashed_stroke_shader</a> (void) const</td></tr>
 <tr class="separator:abb609b647aba1d5b57834de65615450e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13ccba700290149ca940da740d437d1a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html">PainterShaderSet</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#a13ccba700290149ca940da740d437d1a">dashed_stroke_shader</a> (const <a class="el" href="../../dd/d61/classfastuidraw_1_1_painter_dashed_stroke_shader_set.html">PainterDashedStrokeShaderSet</a> &amp;sh)</td></tr>
@@ -111,9 +107,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a15ea1238997643ec38ea43336688a018"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html" title="A PainterShaderSet provides shaders for compositing and drawing each of the item types glyphs...">PainterShaderSet</a> provides shaders for compositing and drawing each of the item types glyphs, stroking paths and filling paths. </p>
+<div class="textblock"><p>A <a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html" title="A PainterShaderSet provides shaders for blending and drawing each of the item types glyphs...">PainterShaderSet</a> provides shaders for blending and drawing each of the item types glyphs, stroking paths and filling paths. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d62/painter__shader__set_8hpp_source.html#l00043">43</a> of file <a class="el" href="../../df/d62/painter__shader__set_8hpp_source.html">painter_shader_set.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d62/painter__shader__set_8hpp_source.html#l00042">42</a> of file <a class="el" href="../../df/d62/painter__shader__set_8hpp_source.html">painter_shader_set.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a72b3bdd5a088bd9539d804823ffe1419"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a72b3bdd5a088bd9539d804823ffe1419">&#9670;&nbsp;</a></span>PainterShaderSet() <span class="overload">[1/2]</span></h2>
@@ -194,49 +190,6 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Set the value returned by <a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#ab1c14f95a47c2ef8333c977febd0bd91">blend_shaders(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">sh</td><td>value to use </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a31d70f23a01420830b25221db9e96eb8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a31d70f23a01420830b25221db9e96eb8">&#9670;&nbsp;</a></span>composite_shaders() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="../../da/d37/classfastuidraw_1_1_painter_composite_shader_set.html">PainterCompositeShaderSet</a>&amp; fastuidraw::PainterShaderSet::composite_shaders </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Composite shaders. If an element is a nullptr shader, then that composite mode is not supported. </p>
-
-</div>
-</div>
-<a id="aa3b540c818fcdb0d48d1b78637dc2ac2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3b540c818fcdb0d48d1b78637dc2ac2">&#9670;&nbsp;</a></span>composite_shaders() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html">PainterShaderSet</a>&amp; fastuidraw::PainterShaderSet::composite_shaders </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../da/d37/classfastuidraw_1_1_painter_composite_shader_set.html">PainterCompositeShaderSet</a> &amp;&#160;</td>
-          <td class="paramname"><em>sh</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html#a31d70f23a01420830b25221db9e96eb8">composite_shaders(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sh</td><td>value to use </td></tr>
   </table>

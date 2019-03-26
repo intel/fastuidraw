@@ -72,7 +72,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a> is an implementation of PainterRegistrar that assembles the shader source code of <a class="el" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html" title="A PainterItemShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegistrarGLS...">PainterItemShaderGLSL</a> and <a class="el" href="../../da/d98/classfastuidraw_1_1glsl_1_1_painter_composite_shader_g_l_s_l.html" title="A PainterCompositeShaderGLSL is a PainterCompositeShader whose shader code fragment is via GLSL...">PainterCompositeShaderGLSL</a> into an uber-shader.  
+<p>A <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a> is an implementation of PainterRegistrar that assembles the shader source code of <a class="el" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html" title="A PainterItemShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegistrarGLS...">PainterItemShaderGLSL</a> and <a class="el" href="../../d8/dc7/classfastuidraw_1_1glsl_1_1_painter_blend_shader_g_l_s_l.html" title="A PainterBlendShaderGLSL is a PainterBlendShader whose shader code fragment is via GLSL...">PainterBlendShaderGLSL</a> into an uber-shader.  
  <a href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>&gt;</code></p>
@@ -98,14 +98,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a01f6cb491ea5ed15ffc3fc1852fdf663"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1726c43f5ee3f70cca985fecf79b4994"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a1726c43f5ee3f70cca985fecf79b4994">construct_item_coverage_shader</a> (const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;backend_constants, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_vertex, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_fragment, const <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;construct_params, unsigned int shader_id)</td></tr>
 <tr class="separator:a1726c43f5ee3f70cca985fecf79b4994"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba2f967473616b23688a12c841cf67df"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#aba2f967473616b23688a12c841cf67df">construct_item_shader</a> (const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;backend_constants, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_vertex, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_fragment, const <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;construct_params, unsigned int shader_id, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> discard_macro_value=&quot;discard&quot;)</td></tr>
-<tr class="separator:aba2f967473616b23688a12c841cf67df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82d52979b27b99ddae2b141f4b99e23e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a82d52979b27b99ddae2b141f4b99e23e">construct_item_shader</a> (enum <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1c">PainterBlendShader::shader_type</a> tp, const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;backend_constants, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_vertex, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_fragment, const <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;construct_params, unsigned int shader_id, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> discard_macro_value=&quot;discard&quot;)</td></tr>
+<tr class="separator:a82d52979b27b99ddae2b141f4b99e23e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a620a6d1227ad3e6b4578cfdc2702d0e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a620a6d1227ad3e6b4578cfdc2702d0e0">construct_item_uber_coverage_shader</a> (const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;backend_constants, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_vertex, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_fragment, const <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;construct_params, const <a class="el" href="../../de/d32/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_shader_filter.html">ShaderFilter</a>&lt; <a class="el" href="../../d5/dd9/classfastuidraw_1_1glsl_1_1_painter_item_coverage_shader_g_l_s_l.html">PainterItemCoverageShaderGLSL</a> &gt; *item_shader_filter=nullptr)</td></tr>
 <tr class="separator:a620a6d1227ad3e6b4578cfdc2702d0e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1aaaeec2284a25a5ce0de2f25a7ed1dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a1aaaeec2284a25a5ce0de2f25a7ed1dd">construct_item_uber_shader</a> (const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;backend_constants, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_vertex, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_fragment, const <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;construct_params, const <a class="el" href="../../de/d32/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_shader_filter.html">ShaderFilter</a>&lt; <a class="el" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html">PainterItemShaderGLSL</a> &gt; *item_shader_filter=nullptr, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> discard_macro_value=&quot;discard&quot;)</td></tr>
-<tr class="separator:a1aaaeec2284a25a5ce0de2f25a7ed1dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a894618c7a4c84a899390414b4ef2ef94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a894618c7a4c84a899390414b4ef2ef94">construct_item_uber_shader</a> (enum <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1c">PainterBlendShader::shader_type</a> tp, const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;backend_constants, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_vertex, <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;out_fragment, const <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;construct_params, const <a class="el" href="../../de/d32/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_shader_filter.html">ShaderFilter</a>&lt; <a class="el" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html">PainterItemShaderGLSL</a> &gt; *item_shader_filter=nullptr, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> discard_macro_value=&quot;discard&quot;)</td></tr>
+<tr class="separator:a894618c7a4c84a899390414b4ef2ef94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56a7aa9d7ebef2fe35bb24eadbf1708d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a56a7aa9d7ebef2fe35bb24eadbf1708d">fill_uniform_buffer</a> (const <a class="el" href="../../d2/d7d/classfastuidraw_1_1_painter_surface_1_1_viewport.html">PainterSurface::Viewport</a> &amp;vwp, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> &gt; p)</td></tr>
 <tr class="separator:a56a7aa9d7ebef2fe35bb24eadbf1708d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a231331d7befc9fba8fcf051b2d7b5079"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a231331d7befc9fba8fcf051b2d7b5079">registered_blend_shader_count</a> (enum <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1c">PainterBlendShader::shader_type</a> tp)</td></tr>
+<tr class="separator:a231331d7befc9fba8fcf051b2d7b5079"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7621b29687b28701d956942f5be20130"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a7621b29687b28701d956942f5be20130">registered_shader_count</a> (void)</td></tr>
 <tr class="separator:a7621b29687b28701d956942f5be20130"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfastuidraw_1_1_painter_shader_registrar')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html">fastuidraw::PainterShaderRegistrar</a></td></tr>
@@ -115,8 +117,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2e7fc8ab91da25f34127002638237f31 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b119c746e693012cccdfb7e0062011f inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a1b119c746e693012cccdfb7e0062011f">register_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html">PainterItemCoverageShader</a> &gt; &amp;shader)</td></tr>
 <tr class="separator:a1b119c746e693012cccdfb7e0062011f inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa896a4414bc17b23d1cd6ea21bd1c80b inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#aa896a4414bc17b23d1cd6ea21bd1c80b">register_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html">PainterCompositeShader</a> &gt; &amp;shader)</td></tr>
-<tr class="separator:aa896a4414bc17b23d1cd6ea21bd1c80b inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad0f613d2ec3a318ed6eb9852466aa58a inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#ad0f613d2ec3a318ed6eb9852466aa58a">register_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html">PainterBlendShader</a> &gt; &amp;shader)</td></tr>
 <tr class="separator:ad0f613d2ec3a318ed6eb9852466aa58a inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6afa339bde51fa8361e037cba704758 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#ae6afa339bde51fa8361e037cba704758">register_shader</a> (const <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;p)</td></tr>
@@ -127,8 +127,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a50360807f7ffa92be60435aa5029f868 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92e0ac495e7db7d3331e6473055a8b27 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a92e0ac495e7db7d3331e6473055a8b27">register_shader</a> (const <a class="el" href="../../d9/df2/classfastuidraw_1_1_painter_glyph_shader.html">PainterGlyphShader</a> &amp;p)</td></tr>
 <tr class="separator:a92e0ac495e7db7d3331e6473055a8b27 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0f94af3fe44cc100c0abc146cdcdbe5 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#ae0f94af3fe44cc100c0abc146cdcdbe5">register_shader</a> (const <a class="el" href="../../da/d37/classfastuidraw_1_1_painter_composite_shader_set.html">PainterCompositeShaderSet</a> &amp;p)</td></tr>
-<tr class="separator:ae0f94af3fe44cc100c0abc146cdcdbe5 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae97daf2146a026b11524f5884b724663 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#ae97daf2146a026b11524f5884b724663">register_shader</a> (const <a class="el" href="../../d0/d0a/classfastuidraw_1_1_painter_blend_shader_set.html">PainterBlendShaderSet</a> &amp;p)</td></tr>
 <tr class="separator:ae97daf2146a026b11524f5884b724663 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a80c6313f35638b81c0f91223b569f8 inherit pub_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a5a80c6313f35638b81c0f91223b569f8">register_shader</a> (const <a class="el" href="../../db/d4b/classfastuidraw_1_1_painter_shader_set.html">PainterShaderSet</a> &amp;p)</td></tr>
@@ -151,8 +149,6 @@ Static Public Member Functions</h2></td></tr>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:af9e888df3496020cdccfe098f80668d5"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#af9e888df3496020cdccfe098f80668d5">absorb_blend_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html">PainterBlendShader</a> &gt; &amp;shader) final override</td></tr>
 <tr class="separator:af9e888df3496020cdccfe098f80668d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0cdead24c3c801044b44a6cee27f2106"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a0cdead24c3c801044b44a6cee27f2106">absorb_composite_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html">PainterCompositeShader</a> &gt; &amp;shader) final override</td></tr>
-<tr class="separator:a0cdead24c3c801044b44a6cee27f2106"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a248bee8ca12fee6ebcb23cb2cd7e70b0"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a248bee8ca12fee6ebcb23cb2cd7e70b0">absorb_item_coverage_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html">PainterItemCoverageShader</a> &gt; &amp;shader) final override</td></tr>
 <tr class="separator:a248bee8ca12fee6ebcb23cb2cd7e70b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4502ef962c5f23c7c867593188973fe"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#af4502ef962c5f23c7c867593188973fe">absorb_item_shader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader) final override</td></tr>
@@ -161,10 +157,6 @@ Protected Member Functions</h2></td></tr>
 <tr class="separator:ad2899facc9017e807613b111866716f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0688bee515b8ef6d175fc609ed12068"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#ae0688bee515b8ef6d175fc609ed12068">compute_blend_sub_shader_group</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html">PainterBlendShader</a> &gt; &amp;shader) final override</td></tr>
 <tr class="separator:ae0688bee515b8ef6d175fc609ed12068"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab30d38f57b73f034d209bb0b9462dce8"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#ab30d38f57b73f034d209bb0b9462dce8">compute_composite_shader_group</a> (<a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a> tag, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html">PainterCompositeShader</a> &gt; &amp;shader)</td></tr>
-<tr class="separator:ab30d38f57b73f034d209bb0b9462dce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a918cc52509962ffd868f1f37b5277032"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a918cc52509962ffd868f1f37b5277032">compute_composite_sub_shader_group</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html">PainterCompositeShader</a> &gt; &amp;shader) final override</td></tr>
-<tr class="separator:a918cc52509962ffd868f1f37b5277032"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28460beca3270e61a2ff78f99e199263"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a28460beca3270e61a2ff78f99e199263">compute_item_coverage_shader_group</a> (<a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a> tag, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html">PainterItemCoverageShader</a> &gt; &amp;shader)</td></tr>
 <tr class="separator:a28460beca3270e61a2ff78f99e199263"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a373ae3bb46ce4166df2cf61a3d6b008f"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a373ae3bb46ce4166df2cf61a3d6b008f">compute_item_coverage_sub_shader_group</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html">PainterItemCoverageShader</a> &gt; &amp;shader) final override</td></tr>
@@ -174,6 +166,8 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a147e9cf2e5b87eeb3063c3bc175a4126"><td class="memItemLeft" align="right" valign="top">virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a147e9cf2e5b87eeb3063c3bc175a4126">compute_item_sub_shader_group</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader) final override</td></tr>
 <tr class="separator:a147e9cf2e5b87eeb3063c3bc175a4126"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_classfastuidraw_1_1_painter_shader_registrar"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classfastuidraw_1_1_painter_shader_registrar')"><img src="../../closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html">fastuidraw::PainterShaderRegistrar</a></td></tr>
+<tr class="memitem:a8f06c49f764374037c98c72afa7eca18 inherit pro_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a8f06c49f764374037c98c72afa7eca18">blend_type_supported</a> (enum <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1c">PainterBlendShader::shader_type</a>) const =0</td></tr>
+<tr class="separator:a8f06c49f764374037c98c72afa7eca18 inherit pro_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94a61d6aae78d9ea801cdad09aef1c73 inherit pro_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/d8a/classfastuidraw_1_1_mutex.html">Mutex</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex</a> (void)</td></tr>
 <tr class="separator:a94a61d6aae78d9ea801cdad09aef1c73 inherit pro_methods_classfastuidraw_1_1_painter_shader_registrar"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -190,19 +184,18 @@ Additional Inherited Members</h2></td></tr>
  }<tr class="memdesc:a691613fdc1593de185a59421611a202a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to specify how to access the backing store of a color stop atlas store in <a class="el" href="../../db/d62/classfastuidraw_1_1_color_stop_atlas.html#a41aa7af60c3184dea76a1d308bb29ae9">ColorStopAtlas::backing_store()</a>.  <a href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a691613fdc1593de185a59421611a202a">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:a691613fdc1593de185a59421611a202a inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a286879295d226fab3c7c1479fce99029 inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a286879295d226fab3c7c1479fce99029">compositing_type_t</a> { <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a286879295d226fab3c7c1479fce99029ad2d5a323dbefc1802cf5b11df5eb5986">compositing_single_src</a>, 
-<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a286879295d226fab3c7c1479fce99029a8f993f8afd167929bfa3b171b9c362c0">compositing_dual_src</a>, 
-<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a286879295d226fab3c7c1479fce99029a8674c68f5603464c1345668c0719ba8c">compositing_framebuffer_fetch</a>, 
-<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a286879295d226fab3c7c1479fce99029aafe355a4d62a78f3e794fbec99599164">compositing_interlock</a>
- }<tr class="memdesc:a286879295d226fab3c7c1479fce99029"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to specify how to perform painter compositing.  <a href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a286879295d226fab3c7c1479fce99029">More...</a><br /></td></tr>
-</td></tr>
-<tr class="separator:a286879295d226fab3c7c1479fce99029 inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59018867fbe1d5aca835496321f7c556 inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a59018867fbe1d5aca835496321f7c556">data_store_backing_t</a> { <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a59018867fbe1d5aca835496321f7c556ad02e20f216e14b65006aa9cfe845ff54">data_store_tbo</a>, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a59018867fbe1d5aca835496321f7c556aa1aa8f85fbdfd444075cf28fe3498674">data_store_ubo</a>, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a59018867fbe1d5aca835496321f7c556abfd02f697e2291fc864adfbe6636f602">data_store_ssbo</a>
  }<tr class="memdesc:a59018867fbe1d5aca835496321f7c556"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to specify how the data store filled by <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a> is realized.  <a href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a59018867fbe1d5aca835496321f7c556">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:a59018867fbe1d5aca835496321f7c556 inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65c736113a672ace8fba65d64d379f15 inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a65c736113a672ace8fba65d64d379f15">fbf_blending_type_t</a> { <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a65c736113a672ace8fba65d64d379f15ab6ee91e2ff39dfb1150d3adce316ff79">fbf_blending_not_supported</a>, 
+<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a65c736113a672ace8fba65d64d379f15a6eac5db82c5d4a3f27ad6b4133b31eda">fbf_blending_framebuffer_fetch</a>, 
+<a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a65c736113a672ace8fba65d64d379f15a8cda07f4cfd1b28419e9ff497710ec1b">fbf_blending_interlock</a>
+ }<tr class="memdesc:a65c736113a672ace8fba65d64d379f15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to specify how to perform framebuffer-fetch blending.  <a href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a65c736113a672ace8fba65d64d379f15">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:a65c736113a672ace8fba65d64d379f15 inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33e73f20400b909ed8dfde60a8bbee0e inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a33e73f20400b909ed8dfde60a8bbee0e">glyph_data_backing_t</a> { <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a33e73f20400b909ed8dfde60a8bbee0ea5d135df53df7bc10fda1d551c5ed2899">glyph_data_tbo</a>, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a33e73f20400b909ed8dfde60a8bbee0ea17bb220f26b285a81c7c11c7ac8a9603">glyph_data_texture_array</a>, 
 <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a33e73f20400b909ed8dfde60a8bbee0ea0f00deb3763be5bd93bec054ae6ff08f">glyph_data_ssbo</a>
@@ -229,9 +222,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:aa1c991c17b8c7f1412bddd5b03b0465d inherit pub_types_classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a> is an implementation of PainterRegistrar that assembles the shader source code of <a class="el" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html" title="A PainterItemShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegistrarGLS...">PainterItemShaderGLSL</a> and <a class="el" href="../../da/d98/classfastuidraw_1_1glsl_1_1_painter_composite_shader_g_l_s_l.html" title="A PainterCompositeShaderGLSL is a PainterCompositeShader whose shader code fragment is via GLSL...">PainterCompositeShaderGLSL</a> into an uber-shader. </p>
+<div class="textblock"><p>A <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a> is an implementation of PainterRegistrar that assembles the shader source code of <a class="el" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html" title="A PainterItemShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegistrarGLS...">PainterItemShaderGLSL</a> and <a class="el" href="../../d8/dc7/classfastuidraw_1_1glsl_1_1_painter_blend_shader_g_l_s_l.html" title="A PainterBlendShaderGLSL is a PainterBlendShader whose shader code fragment is via GLSL...">PainterBlendShaderGLSL</a> into an uber-shader. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00926">926</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html#l00913">913</a> of file <a class="el" href="../../d1/d0a/painter__shader__registrar__glsl_8hpp_source.html">painter_shader_registrar_glsl.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aca0e85b54511b22be01023485833e532"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aca0e85b54511b22be01023485833e532">&#9670;&nbsp;</a></span>PainterShaderRegistrarGLSL()</h2>
@@ -284,7 +277,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to take into use a composite shader. Typically this means inserting the the composite shader into a large uber shader. Returns the <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">PainterShader::Tag</a> to be used by the backend to identify the shader. An implementation will never be passed an object for which <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#a890ab00948591ac7e55d760c8f67a841">PainterShader::parent()</a> is non-nullptr. In addition, <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> will be locked on entry. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>To be implemented by a derived class to take into use a blend shader. Typically this means inserting the the blend shader into a large uber shader. Returns the <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">PainterShader::Tag</a> to be used by the backend to identify the shader. An implementation will never be passed an object for which <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#a890ab00948591ac7e55d760c8f67a841">PainterShader::parent()</a> is non-nullptr. In addition, <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> will be locked on entry. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">shader</td><td>shader whose Tag is to be computed </td></tr>
   </table>
@@ -292,40 +285,6 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 
 <p>Implements <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a6dfec37e278db6ef5eb97979413e8cde">fastuidraw::PainterShaderRegistrar</a>.</p>
-
-</div>
-</div>
-<a id="a0cdead24c3c801044b44a6cee27f2106"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0cdead24c3c801044b44a6cee27f2106">&#9670;&nbsp;</a></span>absorb_composite_shader()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a> fastuidraw::glsl::PainterShaderRegistrarGLSL::absorb_composite_shader </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html">PainterCompositeShader</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>shader</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">final</span><span class="mlabel">override</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>To be implemented by a derived class to take into use a composite shader. Typically this means inserting the the composite shader into a large uber shader. Returns the <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">PainterShader::Tag</a> to be used by the backend to identify the shader. An implementation will never be passed an object for which <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#a890ab00948591ac7e55d760c8f67a841">PainterShader::parent()</a> is non-nullptr. In addition, <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> will be locked on entry. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">shader</td><td>shader whose Tag is to be computed </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p>Implements <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#adcc1f421589fdf0e7d45fe2855f96458">fastuidraw::PainterShaderRegistrar</a>.</p>
 
 </div>
 </div>
@@ -478,7 +437,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be optionally implemented by a derived class to compute the shader group of a <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html" title="A PainterBlendShader represents a shader for performing blending operations. ">PainterBlendShader</a>. The passed shader may or may not be a sub-shader. The <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is locked for the duration of the function. Default implementation is to return 0. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>To be optionally implemented by a derived class to compute the shader group of a <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a>. The passed shader may or may not be a sub-shader. The <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is locked for the duration of the function. Default implementation is to return 0. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">tag</td><td>The value of <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aff6e7dcff4e55825ebd0621dae690075">PainterShader::tag()</a> that <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a> will assign to the shader. Do NOT access <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aff6e7dcff4e55825ebd0621dae690075">PainterShader::tag()</a>, <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterShader::ID()</a> or <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aa35c64ecee89e6c35b6f99ded7aa8138">PainterShader::group()</a> as they are not yet assgined. </td></tr>
     <tr><td class="paramname">shader</td><td>shader whose group is to be computed </td></tr>
@@ -519,83 +478,6 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 
 <p>Implements <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#ae16d66e7498611b4528cc7f7c3f8602d">fastuidraw::PainterShaderRegistrar</a>.</p>
-
-</div>
-</div>
-<a id="ab30d38f57b73f034d209bb0b9462dce8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab30d38f57b73f034d209bb0b9462dce8">&#9670;&nbsp;</a></span>compute_composite_shader_group()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual uint32_t fastuidraw::glsl::PainterShaderRegistrarGLSL::compute_composite_shader_group </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">PainterShader::Tag</a>&#160;</td>
-          <td class="paramname"><em>tag</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html">PainterCompositeShader</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>shader</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>To be optionally implemented by a derived class to compute the shader group of a <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)...">PainterItemShader</a>. The passed shader may or may not be a sub-shader. The <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is locked for the duration of the function. Default implementation is to return 0. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">tag</td><td>The value of <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aff6e7dcff4e55825ebd0621dae690075">PainterShader::tag()</a> that <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a> will assign to the shader. Do NOT access <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aff6e7dcff4e55825ebd0621dae690075">PainterShader::tag()</a>, <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterShader::ID()</a> or <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aa35c64ecee89e6c35b6f99ded7aa8138">PainterShader::group()</a> as they are not yet assgined. </td></tr>
-    <tr><td class="paramname">shader</td><td>shader whose group is to be computed </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a918cc52509962ffd868f1f37b5277032"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a918cc52509962ffd868f1f37b5277032">&#9670;&nbsp;</a></span>compute_composite_sub_shader_group()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual uint32_t fastuidraw::glsl::PainterShaderRegistrarGLSL::compute_composite_sub_shader_group </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html">PainterCompositeShader</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>shader</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">final</span><span class="mlabel">override</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>To be implemented by a derived class to compute the <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aa35c64ecee89e6c35b6f99ded7aa8138">PainterShader::group()</a> of a sub-shader. When called, the value of the shader's <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterShader::ID()</a> and <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#a8a106fba5460297556cdfda214151186">PainterShader::registered_to()</a> are already set correctly. In addition, the value of <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aa35c64ecee89e6c35b6f99ded7aa8138">PainterShader::group()</a> is initialized to the same value as that of the <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#a890ab00948591ac7e55d760c8f67a841">PainterCompositeShader::parent()</a>. In addition, <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> will be locked on entry. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">shader</td><td>shader whose group is to be computed </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p>Implements <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a315dba5b4422f1dddb4e8cf0c7487c6c">fastuidraw::PainterShaderRegistrar</a>.</p>
 
 </div>
 </div>
@@ -809,8 +691,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="aba2f967473616b23688a12c841cf67df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba2f967473616b23688a12c841cf67df">&#9670;&nbsp;</a></span>construct_item_shader()</h2>
+<a id="a82d52979b27b99ddae2b141f4b99e23e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82d52979b27b99ddae2b141f4b99e23e">&#9670;&nbsp;</a></span>construct_item_shader()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -818,6 +700,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::glsl::PainterShaderRegistrarGLSL::construct_item_shader </td>
           <td>(</td>
+          <td class="paramtype">enum <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1c">PainterBlendShader::shader_type</a>&#160;</td>
+          <td class="paramname"><em>tp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;&#160;</td>
           <td class="paramname"><em>backend_constants</em>, </td>
         </tr>
@@ -860,6 +748,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Add the vertex and fragment shaders of a specific item shader to given <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html" title="A ShaderSource represents the source code to a GLSL shader, specifying blocks of source code and macr...">ShaderSource</a> values. The <a class="el" href="../../de/d8a/classfastuidraw_1_1_mutex.html">Mutex</a> <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is NOT locked during this call, a caller should lock the mutex before calling it. This way a derived class can use the same lock as used by the <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">tp</td><td>blend type of <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html">PainterBlendShader</a> objects to include in the uber-shader </td></tr>
     <tr><td class="paramname">backend_constants</td><td>constant values that affect the created uber-shader. </td></tr>
     <tr><td class="paramname">out_vertex</td><td><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html" title="A ShaderSource represents the source code to a GLSL shader, specifying blocks of source code and macr...">ShaderSource</a> to which to add uber-vertex shader </td></tr>
     <tr><td class="paramname">out_fragment</td><td><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html" title="A ShaderSource represents the source code to a GLSL shader, specifying blocks of source code and macr...">ShaderSource</a> to which to add uber-fragment shader </td></tr>
@@ -928,8 +817,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a1aaaeec2284a25a5ce0de2f25a7ed1dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1aaaeec2284a25a5ce0de2f25a7ed1dd">&#9670;&nbsp;</a></span>construct_item_uber_shader()</h2>
+<a id="a894618c7a4c84a899390414b4ef2ef94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a894618c7a4c84a899390414b4ef2ef94">&#9670;&nbsp;</a></span>construct_item_uber_shader()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -937,6 +826,12 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::glsl::PainterShaderRegistrarGLSL::construct_item_uber_shader </td>
           <td>(</td>
+          <td class="paramtype">enum <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1c">PainterBlendShader::shader_type</a>&#160;</td>
+          <td class="paramname"><em>tp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const <a class="el" href="../../d7/d6e/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_backend_constants.html">BackendConstants</a> &amp;&#160;</td>
           <td class="paramname"><em>backend_constants</em>, </td>
         </tr>
@@ -979,8 +874,9 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Add the uber-vertex and fragment shaders to given <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html" title="A ShaderSource represents the source code to a GLSL shader, specifying blocks of source code and macr...">ShaderSource</a> values. The <a class="el" href="../../de/d8a/classfastuidraw_1_1_mutex.html">Mutex</a> <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is NOT locked during this call, a caller should lock the mutex before calling it. This way a derived class can use the same lock as used by the <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a>. A backend will need to define the the functions (or macros) in their GLSL preamble:</p><ul>
 <li>fastuidraw_begin_interlock() which is called before access</li>
-<li>fastuidraw_end_interlock() which is called after access if <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#afa29f08309e46ad329f73520753f8233">UberShaderParams::compositing_type()</a> is <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a286879295d226fab3c7c1479fce99029aafe355a4d62a78f3e794fbec99599164">compositing_interlock</a> or if <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#aff571d7d68f1fe360cbe7e8db7c5d2e2">UberShaderParams::provide_immediate_coverage_image_buffer()</a> is <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0a0f543b38d965662a6bf623430e445176">immediate_coverage_buffer_interlock</a> or <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0af4020de81f070da2a2bb4309bb89ba52">immediate_coverage_buffer_interlock_main_only</a>. <dl class="params"><dt>Parameters</dt><dd>
+<li>fastuidraw_end_interlock() which is called after access if UberShaderParams::ffb_blending_type() is <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a65c736113a672ace8fba65d64d379f15a8cda07f4cfd1b28419e9ff497710ec1b">fbf_blending_interlock</a> or if <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#aff571d7d68f1fe360cbe7e8db7c5d2e2">UberShaderParams::provide_immediate_coverage_image_buffer()</a> is <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0a0f543b38d965662a6bf623430e445176">immediate_coverage_buffer_interlock</a> or <a class="el" href="../../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#aabbad74d1977e2516284a6aa295cd1f0af4020de81f070da2a2bb4309bb89ba52">immediate_coverage_buffer_interlock_main_only</a>. <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">tp</td><td>blend type of <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html">PainterBlendShader</a> objects to include in the uber-shader </td></tr>
     <tr><td class="paramname">backend_constants</td><td>constant values that affect the created uber-shader. </td></tr>
     <tr><td class="paramname">out_vertex</td><td><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html" title="A ShaderSource represents the source code to a GLSL shader, specifying blocks of source code and macr...">ShaderSource</a> to which to add uber-vertex shader </td></tr>
     <tr><td class="paramname">out_fragment</td><td><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html" title="A ShaderSource represents the source code to a GLSL shader, specifying blocks of source code and macr...">ShaderSource</a> to which to add uber-fragment shader </td></tr>
@@ -1030,6 +926,25 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a231331d7befc9fba8fcf051b2d7b5079"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a231331d7befc9fba8fcf051b2d7b5079">&#9670;&nbsp;</a></span>registered_blend_shader_count()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int fastuidraw::glsl::PainterShaderRegistrarGLSL::registered_blend_shader_count </td>
+          <td>(</td>
+          <td class="paramtype">enum <a class="el" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1c">PainterBlendShader::shader_type</a>&#160;</td>
+          <td class="paramname"><em>tp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the number of blend shaders registered to this <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a>; a derived class should track this count value and use it to determine when it needs to reconstruct its shaders. The <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is NOT locked for the duration of the function. </p>
+
+</div>
+</div>
 <a id="a7621b29687b28701d956942f5be20130"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7621b29687b28701d956942f5be20130">&#9670;&nbsp;</a></span>registered_shader_count()</h2>
 
@@ -1045,7 +960,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the total number of shaders (item and composite) registered to this <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a>; a derived class should track this count value and use it to determine when it needs to reconstruct its uber-shader. The <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is NOT locked for the duration of the function. </p>
+<p>Returns the total number of shaders (item and blend) registered to this <a class="el" href="../../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html" title="A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar that assembles the shader sourc...">PainterShaderRegistrarGLSL</a>; a derived class should track this count value and use it to determine when it needs to reconstruct its uber-shader. The <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#a94a61d6aae78d9ea801cdad09aef1c73">mutex()</a> is NOT locked for the duration of the function. </p>
 
 </div>
 </div>

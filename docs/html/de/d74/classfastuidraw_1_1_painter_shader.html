@@ -72,7 +72,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> encapsulates how to draw or composite.  
+<p>A <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> encapsulates how to draw or blend.  
  <a href="../../de/d74/classfastuidraw_1_1_painter_shader.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html">painter_shader.hpp</a>&gt;</code></p>
@@ -82,22 +82,20 @@ Inheritance diagram for fastuidraw::PainterShader:</div>
 <div class="center"><img src="../../df/d6b/classfastuidraw_1_1_painter_shader__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_painter_shader_inherit__map" alt="Inheritance graph"/></div>
 <map name="fastuidraw_1_1_painter_shader_inherit__map" id="fastuidraw_1_1_painter_shader_inherit__map">
 <area shape="rect" id="node4" href="../../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html" title="A PainterBlendShader represents a shader for performing blending operations. " alt="" coords="698,5,862,47"/>
-<area shape="rect" id="node6" href="../../d6/db0/classfastuidraw_1_1_painter_composite_shader.html" title="A PainterCompositeShader represents a shader for performing compositing operations. " alt="" coords="683,71,877,112"/>
-<area shape="rect" id="node8" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html" title="A PainterItemCoverageShader represents a shader to draw an item to a coverage buffer (see PainterSurf..." alt="" coords="673,136,887,177"/>
-<area shape="rect" id="node10" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)..." alt="" coords="681,205,879,231"/>
-<area shape="rect" id="node2" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="216,104,405,145"/>
-<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,111,168,138"/>
+<area shape="rect" id="node6" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html" title="A PainterItemCoverageShader represents a shader to draw an item to a coverage buffer (see PainterSurf..." alt="" coords="673,71,887,112"/>
+<area shape="rect" id="node8" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html" title="A PainterItemShader represents a shader to draw an item (typically a vertex and fragment shader pair)..." alt="" coords="681,139,879,166"/>
+<area shape="rect" id="node2" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="216,71,405,112"/>
+<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,78,168,105"/>
 <area shape="rect" id="node5" href="../../d8/dc7/classfastuidraw_1_1glsl_1_1_painter_blend_shader_g_l_s_l.html" title="A PainterBlendShaderGLSL is a PainterBlendShader whose shader code fragment is via GLSL..." alt="" coords="945,5,1103,47"/>
-<area shape="rect" id="node7" href="../../da/d98/classfastuidraw_1_1glsl_1_1_painter_composite_shader_g_l_s_l.html" title="A PainterCompositeShaderGLSL is a PainterCompositeShader whose shader code fragment is via GLSL..." alt="" coords="945,71,1103,112"/>
-<area shape="rect" id="node9" href="../../d5/dd9/classfastuidraw_1_1glsl_1_1_painter_item_coverage_shader_g_l_s_l.html" title="A PainterItemCoverageShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegi..." alt="" coords="935,136,1113,177"/>
-<area shape="rect" id="node11" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html" title="A PainterItemShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegistrarGLS..." alt="" coords="945,201,1103,243"/>
+<area shape="rect" id="node7" href="../../d5/dd9/classfastuidraw_1_1glsl_1_1_painter_item_coverage_shader_g_l_s_l.html" title="A PainterItemCoverageShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegi..." alt="" coords="935,71,1113,112"/>
+<area shape="rect" id="node9" href="../../d0/d65/classfastuidraw_1_1glsl_1_1_painter_item_shader_g_l_s_l.html" title="A PainterItemShaderGLSL is a collection of GLSL source code fragments for a PainterShaderRegistrarGLS..." alt="" coords="945,136,1103,177"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html">Tag</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">Tag</a> is how a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> is described for and by a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>.  <a href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">Tag</a> is how a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> is described for and by a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>.  <a href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -139,8 +137,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a337fbbaa63cbc8cc7ad198df52d753da inherit pub_static_methods_classfastuidraw_1_1reference__counted__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> encapsulates how to draw or composite. </p>
-<p>The real meat of a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> is dependent on the backend. Typically it is a shader source code -fragment- that is placed into a large uber-shader. </p>
+<div class="textblock"><p>A <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> encapsulates how to draw or blend. </p>
+<p>The real meat of a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> is dependent on the backend. Typically it is a shader source code -fragment- that is placed into a large uber-shader. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html#l00039">39</a> of file <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html">painter_shader.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -167,7 +165,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Ctor for creating a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> which has multiple sub-shaders. The purpose of sub-shaders is for the case where multiple shaders almost same code and those code differences can be realized by examining a sub-shader ID. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Ctor for creating a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> which has multiple sub-shaders. The purpose of sub-shaders is for the case where multiple shaders almost same code and those code differences can be realized by examining a sub-shader ID. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">num_sub_shaders</td><td>number of sub-shaders </td></tr>
   </table>
@@ -201,10 +199,10 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Ctor to create a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> realized as a sub-shader of an existing <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a>. A sub-shader does not need to be registered to a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a> (if register_shader() is called on such a shader, the call is ignored). </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Ctor to create a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> realized as a sub-shader of an existing <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a>. A sub-shader does not need to be registered to a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a> (if register_shader() is called on such a shader, the call is ignored). </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">parent</td><td>parent <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> that has sub-shaders. </td></tr>
-    <tr><td class="paramname">sub_shader</td><td>which sub-shader of the parent <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> The parent <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> MUST already be registered to a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>. </td></tr>
+    <tr><td class="paramname">parent</td><td>parent <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> that has sub-shaders. </td></tr>
+    <tr><td class="paramname">sub_shader</td><td>which sub-shader of the parent <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> The parent <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> MUST already be registered to a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -265,7 +263,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the number of sub-shaders the <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> supports. </p>
+<p>Returns the number of sub-shaders the <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> supports. </p>
 
 </div>
 </div>
@@ -284,7 +282,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>If the <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> is a sub-shader returns the parent shader, otherwise returns nullptr. </p>
+<p>If the <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> is a sub-shader returns the parent shader, otherwise returns nullptr. </p>
 
 </div>
 </div>

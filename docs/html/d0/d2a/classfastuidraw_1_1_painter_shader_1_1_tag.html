@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">Tag</a> is how a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> is described for and by a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>.  
+<p>A <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">Tag</a> is how a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> is described for and by a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>.  
  <a href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html">painter_shader.hpp</a>&gt;</code></p>
@@ -89,7 +89,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a2b7d4d158417d37c5e377caf9b3541ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">Tag</a> is how a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> is described for and by a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>. </p>
+<div class="textblock"><p>A <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html" title="A Tag is how a PainterShader is described for and by a PainterShaderRegistrar. ">Tag</a> is how a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> is described for and by a <a class="el" href="../../d2/d52/classfastuidraw_1_1_painter_shader_registrar.html" title="A PainterShaderRegistrar is an interface that defines the assigning of PainterShader::ID() to a Paint...">PainterShaderRegistrar</a>. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html#l00048">48</a> of file <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html">painter_shader.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -134,7 +134,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The group of a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> is used to classify <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> objects into groups for the cases when draw call breaks are needed either to improve performance (to prevent divergent branching in shaders) or to insert API state changes. The value 0 is used to indicate "default" shader group. The nullptr shader belongs to group 0. </p>
+<p>The group of a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> is used to classify <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> objects into groups for the cases when draw call breaks are needed either to improve performance (to prevent divergent branching in shaders) or to insert API state changes. The value 0 is used to indicate "default" shader group. The nullptr shader belongs to group 0. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html#l00077">77</a> of file <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html">painter_shader.hpp</a>.</p>
 
@@ -151,7 +151,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The ID of a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or composite. ">PainterShader</a> is unique. Typically, <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html#a2b7d4d158417d37c5e377caf9b3541ce">m_ID</a> is used in a switch statement of an uber-shader. </p>
+<p>The ID of a <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. ">PainterShader</a> is unique. Typically, <a class="el" href="../../d0/d2a/classfastuidraw_1_1_painter_shader_1_1_tag.html#a2b7d4d158417d37c5e377caf9b3541ce">m_ID</a> is used in a switch statement of an uber-shader. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html#l00065">65</a> of file <a class="el" href="../../d3/d3f/painter__shader_8hpp_source.html">painter_shader.hpp</a>.</p>
 
