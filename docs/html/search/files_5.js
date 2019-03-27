@@ -7,6 +7,7 @@ var searchData=
   ['font_2ehpp',['font.hpp',['../df/d50/font_8hpp.html',1,'']]],
   ['font_5fdatabase_2ehpp',['font_database.hpp',['../da/da0/font__database_8hpp.html',1,'']]],
   ['font_5ffreetype_2ehpp',['font_freetype.hpp',['../d0/de0/font__freetype_8hpp.html',1,'']]],
+  ['font_5fmetrics_2ehpp',['font_metrics.hpp',['../d9/db7/font__metrics_8hpp.html',1,'']]],
   ['font_5fproperties_2ehpp',['font_properties.hpp',['../d0/d0b/font__properties_8hpp.html',1,'']]],
   ['freetype_5fface_2ehpp',['freetype_face.hpp',['../df/de5/freetype__face_8hpp.html',1,'']]],
   ['freetype_5flib_2ehpp',['freetype_lib.hpp',['../d2/dbd/freetype__lib_8hpp.html',1,'']]]

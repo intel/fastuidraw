@@ -8,6 +8,7 @@ var searchData=
   ['fontfreetype',['FontFreeType',['../da/d34/classfastuidraw_1_1_font_free_type.html',1,'fastuidraw']]],
   ['fontgeneratorbase',['FontGeneratorBase',['../d5/d62/classfastuidraw_1_1_font_database_1_1_font_generator_base.html',1,'fastuidraw::FontDatabase']]],
   ['fontgroup',['FontGroup',['../d1/da7/classfastuidraw_1_1_font_database_1_1_font_group.html',1,'fastuidraw::FontDatabase']]],
+  ['fontmetrics',['FontMetrics',['../da/dc3/classfastuidraw_1_1_font_metrics.html',1,'fastuidraw']]],
   ['fontproperties',['FontProperties',['../df/d1f/classfastuidraw_1_1_font_properties.html',1,'fastuidraw']]],
   ['freetypeface',['FreeTypeFace',['../d8/dd1/classfastuidraw_1_1_free_type_face.html',1,'fastuidraw']]],
   ['freetypelib',['FreeTypeLib',['../d1/d4b/classfastuidraw_1_1_free_type_lib.html',1,'fastuidraw']]]

@@ -87,11 +87,11 @@ Inheritance diagram for fastuidraw::FontBase:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ade6f7d9d426aa627655eb6a8b4d983a3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ade6f7d9d426aa627655eb6a8b4d983a3">FontBase</a> (const <a class="el" href="../../df/d1f/classfastuidraw_1_1_font_properties.html">FontProperties</a> &amp;pprops)</td></tr>
-<tr class="separator:ade6f7d9d426aa627655eb6a8b4d983a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bd03619e87bc1d29bf1b80dd547693a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a9bd03619e87bc1d29bf1b80dd547693a">FontBase</a> (const <a class="el" href="../../df/d1f/classfastuidraw_1_1_font_properties.html">FontProperties</a> &amp;pprops, const <a class="el" href="../../da/dc3/classfastuidraw_1_1_font_metrics.html">FontMetrics</a> &amp;pmetrics)</td></tr>
+<tr class="separator:a9bd03619e87bc1d29bf1b80dd547693a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8dcb3f2a6327ef4ecfeea9c2a7575fbe"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a8dcb3f2a6327ef4ecfeea9c2a7575fbe">can_create_rendering_data</a> (enum <a class="el" href="../../df/d67/group___text.html#ga6308023a8250ddf0776ab2bd52e0d02d">glyph_type</a> tp) const =0</td></tr>
 <tr class="separator:a8dcb3f2a6327ef4ecfeea9c2a7575fbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afaf3cd589fedb67b5c256282960a1d4b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#afaf3cd589fedb67b5c256282960a1d4b">compute_metrics</a> (uint32_t <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a47d0bd9968a32a169677812ead1fdafd">glyph_code</a>, <a class="el" href="../../dd/d04/classfastuidraw_1_1_glyph_metrics_value.html">GlyphMetricsValue</a> &amp;metrics) const =0</td></tr>
+<tr class="memitem:afaf3cd589fedb67b5c256282960a1d4b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#afaf3cd589fedb67b5c256282960a1d4b">compute_metrics</a> (uint32_t <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a47d0bd9968a32a169677812ead1fdafd">glyph_code</a>, <a class="el" href="../../dd/d04/classfastuidraw_1_1_glyph_metrics_value.html">GlyphMetricsValue</a> &amp;<a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a26f175284a07e7ff46710d8944d1aa1e">metrics</a>) const =0</td></tr>
 <tr class="separator:afaf3cd589fedb67b5c256282960a1d4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab37c24be469396e0e3550128bbfd9685"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../d1/d0a/classfastuidraw_1_1_glyph_render_data.html">GlyphRenderData</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab37c24be469396e0e3550128bbfd9685">compute_rendering_data</a> (<a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> render, <a class="el" href="../../d2/d4c/classfastuidraw_1_1_glyph_metrics.html">GlyphMetrics</a> glyph_metrics, <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;render_size) const =0</td></tr>
 <tr class="separator:ab37c24be469396e0e3550128bbfd9685"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -101,6 +101,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab1f5c378b3668b5aa42fe64986e058da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:accf7580750f2ef5dd2a4f8eba087b6ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#accf7580750f2ef5dd2a4f8eba087b6ba">glyph_codes</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const uint32_t &gt; in_character_codes, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; uint32_t &gt; out_glyph_codes) const</td></tr>
 <tr class="separator:accf7580750f2ef5dd2a4f8eba087b6ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26f175284a07e7ff46710d8944d1aa1e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/dc3/classfastuidraw_1_1_font_metrics.html">FontMetrics</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a26f175284a07e7ff46710d8944d1aa1e">metrics</a> (void) const</td></tr>
+<tr class="separator:a26f175284a07e7ff46710d8944d1aa1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4197e06c007b5c3fd46c2c252339b67"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab4197e06c007b5c3fd46c2c252339b67">number_glyphs</a> (void) const =0</td></tr>
 <tr class="separator:ab4197e06c007b5c3fd46c2c252339b67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04f5164fd27785ea40c0cfb835d06ec7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../df/d1f/classfastuidraw_1_1_font_properties.html">FontProperties</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a04f5164fd27785ea40c0cfb835d06ec7">properties</a> (void) const</td></tr>
@@ -122,34 +124,37 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html" title="FontBase provides an interface for a font to generate glyph rendering data. ">FontBase</a> provides an interface for a font to generate glyph rendering data. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d50/font_8hpp_source.html#l00045">45</a> of file <a class="el" href="../../df/d50/font_8hpp_source.html">font.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d50/font_8hpp_source.html#l00046">46</a> of file <a class="el" href="../../df/d50/font_8hpp_source.html">font.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ade6f7d9d426aa627655eb6a8b4d983a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ade6f7d9d426aa627655eb6a8b4d983a3">&#9670;&nbsp;</a></span>FontBase()</h2>
+<a id="a9bd03619e87bc1d29bf1b80dd547693a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9bd03619e87bc1d29bf1b80dd547693a">&#9670;&nbsp;</a></span>FontBase()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">fastuidraw::FontBase::FontBase </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../df/d1f/classfastuidraw_1_1_font_properties.html">FontProperties</a> &amp;&#160;</td>
-          <td class="paramname"><em>pprops</em></td><td>)</td>
+          <td class="paramname"><em>pprops</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="../../da/dc3/classfastuidraw_1_1_font_metrics.html">FontMetrics</a> &amp;&#160;</td>
+          <td class="paramname"><em>pmetrics</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Ctor. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pprops</td><td>font properties describing the font </td></tr>
+    <tr><td class="paramname">pmetrics</td><td>metrics common to all glyphs of the font </td></tr>
   </table>
   </dd>
 </dl>
@@ -181,6 +186,8 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>To be implemented by a derived class to indicate that it will return non-nullptr in <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab37c24be469396e0e3550128bbfd9685">compute_rendering_data()</a> when passed a <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html" title="Specifies how to render a glyph. ">GlyphRenderer</a> whose <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html#a7d4b248c587a8af99a3cd313a2624eb9">GlyphRenderer::m_type</a> is a specified value. </p>
+
+<p>Implemented in <a class="el" href="../../da/d34/classfastuidraw_1_1_font_free_type.html#a17ab7b47d9e063a85883012818b11f4b">fastuidraw::FontFreeType</a>.</p>
 
 </div>
 </div>
@@ -224,6 +231,8 @@ Additional Inherited Members</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+<p>Implemented in <a class="el" href="../../da/d34/classfastuidraw_1_1_font_free_type.html#a03083264e9213461f8f40bc91224a25a">fastuidraw::FontFreeType</a>.</p>
 
 </div>
 </div>
@@ -282,6 +291,8 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
+<p>Implemented in <a class="el" href="../../da/d34/classfastuidraw_1_1_font_free_type.html#a907be63cecd8ba9d04624b5b2c4b5c57">fastuidraw::FontFreeType</a>.</p>
+
 </div>
 </div>
 <a id="a47d0bd9968a32a169677812ead1fdafd"></a>
@@ -314,7 +325,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d50/font_8hpp_source.html#l00122">122</a> of file <a class="el" href="../../df/d50/font_8hpp_source.html">font.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d50/font_8hpp_source.html#l00130">130</a> of file <a class="el" href="../../df/d50/font_8hpp_source.html">font.hpp</a>.</p>
 
 </div>
 </div>
@@ -366,7 +377,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p>Implemented in <a class="el" href="../../da/d34/classfastuidraw_1_1_font_free_type.html#a6eea30b600134e4feadbfe9e0054727f">fastuidraw::FontFreeType</a>.</p>
+<p>Implemented in <a class="el" href="../../da/d34/classfastuidraw_1_1_font_free_type.html#aa8e223289ffd41257ab44beb44f06b3c">fastuidraw::FontFreeType</a>.</p>
 
 </div>
 </div>
@@ -411,7 +422,26 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d50/font_8hpp_source.html#l00109">109</a> of file <a class="el" href="../../df/d50/font_8hpp_source.html">font.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d50/font_8hpp_source.html#l00117">117</a> of file <a class="el" href="../../df/d50/font_8hpp_source.html">font.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a26f175284a07e7ff46710d8944d1aa1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26f175284a07e7ff46710d8944d1aa1e">&#9670;&nbsp;</a></span>metrics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../da/dc3/classfastuidraw_1_1_font_metrics.html">FontMetrics</a>&amp; fastuidraw::FontBase::metrics </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the metrics of the font. </p>
 
 </div>
 </div>
@@ -440,7 +470,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>To be implemented by a derived class to return the number of glyph codes the instance has. In particular the return value of <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a47d0bd9968a32a169677812ead1fdafd">glyph_code()</a> is always less than <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab4197e06c007b5c3fd46c2c252339b67">number_glyphs()</a> and the input to <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#afaf3cd589fedb67b5c256282960a1d4b">compute_metrics()</a> will also have value no more than <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab4197e06c007b5c3fd46c2c252339b67">number_glyphs()</a>. </p>
 
-<p>Implemented in <a class="el" href="../../da/d34/classfastuidraw_1_1_font_free_type.html#a6a5feb2fac5814cc551f72398d76aaba">fastuidraw::FontFreeType</a>.</p>
+<p>Implemented in <a class="el" href="../../da/d34/classfastuidraw_1_1_font_free_type.html#ad5d9fe690511cdcd8a3bd2867a360b6d">fastuidraw::FontFreeType</a>.</p>
 
 </div>
 </div>

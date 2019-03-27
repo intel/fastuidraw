@@ -71,21 +71,16 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It contains shaders to stroke a path under various ...">PainterStrokeShader</a> holds shaders for stroking. It contains shaders to stroke a path under various anti-alias modes specified by <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a> along with information used by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to allow it to decide how to stroke paths.  
+<p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It is to hold shaders for stroking paths linearly o...">PainterStrokeShader</a> holds shaders for stroking. It is to hold shaders for stroking paths linearly or via arcs with and without anti-aliasing along with meta-data to inform what shading is faster.  
  <a href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a1365ed3bc26b9cc326661a566e88883d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883d">shader_type_t</a> { <br />
-&#160;&#160;<a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da9bc77cacfd8767512bd0c0dbf7fa69d3">non_aa_shader</a>, 
-<a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da0dfeb1cb21b8430a163d9617cc2faa0e">aa_shader_immediate_coverage_pass1</a>, 
-<a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da58c1a061dfbd82502835da2ffa6cf3e1">aa_shader_immediate_coverage_pass2</a>, 
-<a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883dad722414b05c3a066e3688fb38beb486a">aa_shader_deferred_coverage</a>, 
-<br />
-&#160;&#160;<b>number_shader_types</b>
-<br />
+<tr class="memitem:a1365ed3bc26b9cc326661a566e88883d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883d">shader_type_t</a> { <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da9bc77cacfd8767512bd0c0dbf7fa69d3">non_aa_shader</a>, 
+<a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da5048bf534e6a9f513002f8380900ecc8">aa_shader</a>, 
+<b>number_shader_types</b>
  }</td></tr>
 <tr class="separator:a1365ed3bc26b9cc326661a566e88883d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -95,24 +90,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afcf547cbddbaceb36371842b8b86facd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a180e8649d28edc66729e8eabeca59d24"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a180e8649d28edc66729e8eabeca59d24">PainterStrokeShader</a> (const <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;obj)</td></tr>
 <tr class="separator:a180e8649d28edc66729e8eabeca59d24"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab19ff40e7184af61b591f46759cb7123"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#ab19ff40e7184af61b591f46759cb7123">aa_action_pass1</a> (void) const</td></tr>
-<tr class="separator:ab19ff40e7184af61b591f46759cb7123"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8888b3e8fa1871af7015c0f6f6f6c344"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a8888b3e8fa1871af7015c0f6f6f6c344">aa_action_pass1</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;a)</td></tr>
-<tr class="separator:a8888b3e8fa1871af7015c0f6f6f6c344"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a288d05c6ae9423d78e8ec75979f0e37f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a288d05c6ae9423d78e8ec75979f0e37f">aa_action_pass2</a> (void) const</td></tr>
-<tr class="separator:a288d05c6ae9423d78e8ec75979f0e37f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa453d72ed8d980309e29804308ef9d96"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#aa453d72ed8d980309e29804308ef9d96">aa_action_pass2</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;a)</td></tr>
-<tr class="separator:aa453d72ed8d980309e29804308ef9d96"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9644d211e633b21e5e3d6e2ef294608a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a9644d211e633b21e5e3d6e2ef294608a">aa_shader_immediate_coverage_supported</a> (enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a> tp) const</td></tr>
-<tr class="separator:a9644d211e633b21e5e3d6e2ef294608a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17892f12aec676e0e9455612b141b5f5"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a17892f12aec676e0e9455612b141b5f5">fastest_anti_aliased_stroking_method</a> (void) const</td></tr>
 <tr class="separator:a17892f12aec676e0e9455612b141b5f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80065cb160700f2abeeaf84bac494605"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a80065cb160700f2abeeaf84bac494605">fastest_anti_aliased_stroking_method</a> (enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a> v)</td></tr>
 <tr class="separator:a80065cb160700f2abeeaf84bac494605"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6761fcca20df9a75b961286716e704a5"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a6761fcca20df9a75b961286716e704a5">fastest_anti_aliasing</a> (enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a> tp) const</td></tr>
-<tr class="separator:a6761fcca20df9a75b961286716e704a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8054582c8bf853ef5e23ae9566adec2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#aa8054582c8bf853ef5e23ae9566adec2">fastest_anti_aliasing</a> (enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a> tp, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a> v)</td></tr>
-<tr class="separator:aa8054582c8bf853ef5e23ae9566adec2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01b57320692ea1d6c06fc6bfc8a9d042"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a01b57320692ea1d6c06fc6bfc8a9d042">fastest_non_anti_aliased_stroking_method</a> (void) const</td></tr>
 <tr class="separator:a01b57320692ea1d6c06fc6bfc8a9d042"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44821c01351a954aafa004fc68feb8d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a44821c01351a954aafa004fc68feb8d3">fastest_non_anti_aliased_stroking_method</a> (enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a> v)</td></tr>
@@ -131,9 +112,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad6522884a2e7e2750d83ecf4e4c77aef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It contains shaders to stroke a path under various ...">PainterStrokeShader</a> holds shaders for stroking. It contains shaders to stroke a path under various anti-alias modes specified by <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a> along with information used by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to allow it to decide how to stroke paths. </p>
+<div class="textblock"><p>A <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It is to hold shaders for stroking paths linearly o...">PainterStrokeShader</a> holds shaders for stroking. It is to hold shaders for stroking paths linearly or via arcs with and without anti-aliasing along with meta-data to inform what shading is faster. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00157">157</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00154">154</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a1365ed3bc26b9cc326661a566e88883d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1365ed3bc26b9cc326661a566e88883d">&#9670;&nbsp;</a></span>shader_type_t</h2>
@@ -150,15 +131,11 @@ Public Member Functions</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1365ed3bc26b9cc326661a566e88883da9bc77cacfd8767512bd0c0dbf7fa69d3"></a>non_aa_shader&#160;</td><td class="fielddoc"><p>Specify the shader for rendering a stroked path without anti-aliasing. The depth value emitted in the item's vertex shader should be z-value to guarantee that there is no overdraw, see <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#aef23d99d031692208e9271467523723d">StrokedPoint::depth()</a> and <a class="el" href="../../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#aa1decec23436fbf6a751edbcca72e216">ArcStrokedPoint::depth()</a>. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a1365ed3bc26b9cc326661a566e88883da0dfeb1cb21b8430a163d9617cc2faa0e"></a>aa_shader_immediate_coverage_pass1&#160;</td><td class="fielddoc"><p>Specify the shader for the 1st pass of anti-alias stroking for <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22">PainterEnums::shader_anti_alias_immediate_coverage</a> which draws to a the immediate coverage buffer the coverage of a fragment area by the stroked path. The item's vertex shader it to emit a depth value of 0. It is optional to support this shader type. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a1365ed3bc26b9cc326661a566e88883da58c1a061dfbd82502835da2ffa6cf3e1"></a>aa_shader_immediate_coverage_pass2&#160;</td><td class="fielddoc"><p>Specify the shader for the 2nd pass of anti-alias stroking for <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22">PainterEnums::shader_anti_alias_immediate_coverage</a> which draws emits the coverage value from the immediated coverage buffer and clears the value from the immediate coverage buffer as well. The item's vertex shader it to emit a depth value of 0. It is optional to support this shader type. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a1365ed3bc26b9cc326661a566e88883dad722414b05c3a066e3688fb38beb486a"></a>aa_shader_deferred_coverage&#160;</td><td class="fielddoc"><p>Specifies a two-pass shader where the first pass renders to the deferred coverage buffer (via <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html#a2a718fc86162342f487a0a19661fe3e6">PainterItemShader::coverage_shader()</a>) and the second pass reads from it. The depth value emitted in the item's vertex shader should be z-value to guarantee that there is no overdraw, see <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#aef23d99d031692208e9271467523723d">StrokedPoint::depth()</a> and <a class="el" href="../../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#aa1decec23436fbf6a751edbcca72e216">ArcStrokedPoint::depth()</a>. </p>
+<tr><td class="fieldname"><a id="a1365ed3bc26b9cc326661a566e88883da5048bf534e6a9f513002f8380900ecc8"></a>aa_shader&#160;</td><td class="fielddoc"><p>Specifies a two-pass shader where the first pass renders to the deferred coverage buffer (via <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html#a2a718fc86162342f487a0a19661fe3e6">PainterItemShader::coverage_shader()</a>) and the second pass reads from it. The depth value emitted in the item's vertex shader should be z-value to guarantee that there is no overdraw, see <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#aef23d99d031692208e9271467523723d">StrokedPoint::depth()</a> and <a class="el" href="../../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#aa1decec23436fbf6a751edbcca72e216">ArcStrokedPoint::depth()</a>. </p>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00163">163</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00160">160</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -202,116 +179,6 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ab19ff40e7184af61b591f46759cb7123"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab19ff40e7184af61b591f46759cb7123">&#9670;&nbsp;</a></span>aa_action_pass1() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt;&amp; fastuidraw::PainterStrokeShader::aa_action_pass1 </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the action to be called before the 1st high quality pass, a return value of nullptr indicates to not have an action (and thus no draw-call break). </p>
-
-</div>
-</div>
-<a id="a8888b3e8fa1871af7015c0f6f6f6c344"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8888b3e8fa1871af7015c0f6f6f6c344">&#9670;&nbsp;</a></span>aa_action_pass1() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a>&amp; fastuidraw::PainterStrokeShader::aa_action_pass1 </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>a</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#ab19ff40e7184af61b591f46759cb7123">aa_action_pass1(void) const</a>. Initial value is nullptr. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">a</td><td>value to use </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a288d05c6ae9423d78e8ec75979f0e37f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a288d05c6ae9423d78e8ec75979f0e37f">&#9670;&nbsp;</a></span>aa_action_pass2() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt;&amp; fastuidraw::PainterStrokeShader::aa_action_pass2 </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the action to be called before the 2nd high quality pass a return value of nullptr indicates to not have an action (and thus no draw-call break). </p>
-
-</div>
-</div>
-<a id="aa453d72ed8d980309e29804308ef9d96"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa453d72ed8d980309e29804308ef9d96">&#9670;&nbsp;</a></span>aa_action_pass2() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a>&amp; fastuidraw::PainterStrokeShader::aa_action_pass2 </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>a</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a288d05c6ae9423d78e8ec75979f0e37f">aa_action_pass2(void) const</a>. Initial value is nullptr. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">a</td><td>value to use </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a9644d211e633b21e5e3d6e2ef294608a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9644d211e633b21e5e3d6e2ef294608a">&#9670;&nbsp;</a></span>aa_shader_immediate_coverage_supported()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool fastuidraw::PainterStrokeShader::aa_shader_immediate_coverage_supported </td>
-          <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>tp</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Provided as a conveniance; equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a35ecbe59f2accb53df2a02bad988e64f">shader</a>(tp, <a class="code" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da0dfeb1cb21b8430a163d9617cc2faa0e">aa_shader_immediate_coverage_pass1</a>)</div><div class="line">  &amp;&amp; <a class="code" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a35ecbe59f2accb53df2a02bad988e64f">shader</a>(tp, <a class="code" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a1365ed3bc26b9cc326661a566e88883da58c1a061dfbd82502835da2ffa6cf3e1">aa_shader_immediate_coverage_pass2</a>)</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">tp</td><td>arc or linear stroking to query </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="a17892f12aec676e0e9455612b141b5f5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a17892f12aec676e0e9455612b141b5f5">&#9670;&nbsp;</a></span>fastest_anti_aliased_stroking_method() <span class="overload">[1/2]</span></h2>
 
@@ -348,65 +215,6 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set the value returned by <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a17892f12aec676e0e9455612b141b5f5">fastest_anti_aliased_stroking_method(void) const</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">v</td><td>value to use </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a6761fcca20df9a75b961286716e704a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6761fcca20df9a75b961286716e704a5">&#9670;&nbsp;</a></span>fastest_anti_aliasing() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a> fastuidraw::PainterStrokeShader::fastest_anti_aliasing </td>
-          <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>tp</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the fastest anti-aliasing mode for stroking with a given <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a> </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">tp</td><td>stroking method to query </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="aa8054582c8bf853ef5e23ae9566adec2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8054582c8bf853ef5e23ae9566adec2">&#9670;&nbsp;</a></span>fastest_anti_aliasing() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a>&amp; fastuidraw::PainterStrokeShader::fastest_anti_aliasing </td>
-          <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">PainterEnums::stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>tp</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46f">PainterEnums::shader_anti_alias_t</a>&#160;</td>
-          <td class="paramname"><em>v</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the value returned by fastest_stroking_method(enum PainterEnums::stroking_method_t) const. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">tp</td><td>stroking method to set </td></tr>
     <tr><td class="paramname">v</td><td>value to use </td></tr>
   </table>
   </dd>
@@ -568,7 +376,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html" title="A StrokingDataSelector is an interface to assist Painter to select correct LOD for rounded joins and ...">StrokingDataSelectorBase</a> associated to this <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It contains shaders to stroke a path under various ...">PainterStrokeShader</a>. </p>
+<p>Returns the <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html" title="A StrokingDataSelector is an interface to assist Painter to select correct LOD for rounded joins and ...">StrokingDataSelectorBase</a> associated to this <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html" title="A PainterStrokeShader holds shaders for stroking. It is to hold shaders for stroking paths linearly o...">PainterStrokeShader</a>. </p>
 
 </div>
 </div>

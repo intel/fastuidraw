@@ -1,11 +1,6 @@
 var searchData=
 [
   ['shader',['shader',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba2d4d935c8cae1d855420be8f70d644d4',1,'fastuidraw::gpu_dirty_state']]],
-  ['shader_5fanti_5falias_5fadaptive',['shader_anti_alias_adaptive',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fae48edf0d9b348c9664283be99c2692d8',1,'fastuidraw::PainterEnums']]],
-  ['shader_5fanti_5falias_5fdeferred_5fcoverage',['shader_anti_alias_deferred_coverage',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa22680f3c7ce73abc46e2e8c51260a6c5',1,'fastuidraw::PainterEnums']]],
-  ['shader_5fanti_5falias_5ffastest',['shader_anti_alias_fastest',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa311db4364b61d47b5d5042df4517cd79',1,'fastuidraw::PainterEnums']]],
-  ['shader_5fanti_5falias_5fimmediate_5fcoverage',['shader_anti_alias_immediate_coverage',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46faf4314532c44f1dd50686c06109ec9e22',1,'fastuidraw::PainterEnums']]],
-  ['shader_5fanti_5falias_5fnone',['shader_anti_alias_none',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a40bbd294f87afe574a6e8b79cc5ed46fa93cfd6235fe7ae9b1850f07112af4545',1,'fastuidraw::PainterEnums']]],
   ['sin_5fsign_5fbit',['sin_sign_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1a145d5f6483a68a41a1feeea514174835',1,'fastuidraw::StrokedPoint']]],
   ['sin_5fsign_5fmask',['sin_sign_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a4ac465cb114de585425162fb54a25288',1,'fastuidraw::StrokedPoint']]],
   ['single_5fsrc',['single_src',['../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1ca9afc42f0d827c08874a07c618d69fb12',1,'fastuidraw::PainterBlendShader']]],
