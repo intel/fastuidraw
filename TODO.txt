@@ -111,20 +111,3 @@ TODO.
 20. Add to Path interface ability to mark a contours caps as to NOT be anti-aliased. The
     purpose is for merging multiple paths into a single path for stroking (the big use
     case being stroking a rounded rect).
-
-21. We may wish to consider removing immediate-coverage-buffer -completely-. On Intel GEN,
-    having any immediate-coverage-buffer harms performance. On my SkullCanyon (which has a
-    Skylake GT4e) running painter-glyph-test-GL-release with the common options:
-         draw_glyph_set true
-         width 1920 height 1200 fullscreen true
-         painter_preferred_blend_type dual_src
-    gives:
-         provide_immediate_coverage_image_buffer no_immediate_coverage_buffer                  --> 4.5 FPS
-         provide_immediate_coverage_image_buffer immediate_coverage_buffer_atomic              --> 6.0 FPS
-         provide_immediate_coverage_image_buffer immediate_coverage_buffer_interlock_main_only --> 8.0 FPS
-         provide_immediate_coverage_image_buffer immediate_coverage_buffer_interlock           --> 6.0 FPS
-
-    which implies that the overhead of just having an image-load-store present that might
-    be read from or written to is 1.5 ms/frame. Also note, because Mesa decided to revert
-    support for GL_INTEL_fragment_shader_ordering, using immediate_coverage_buffer_interlock
-    is relying on Mesa not enforcing the rules present in GL_ARB_fragment_shader_interlock.
