@@ -1213,9 +1213,9 @@ draw_glyphs(float us)
         }
       if (glyph_atlas_size_kb > 0u)
         {
-          ostr << glyph_atlas_size_kb << ".";
+          ostr << std::setfill('0') << std::setw(3) << glyph_atlas_size_kb << ".";
         }
-      ostr << glyph_atlas_size_bytes << " Bytes";
+      ostr << std::setfill('0') << std::setw(3) << glyph_atlas_size_bytes << " Bytes";
 
       m_painter->restore();
       if (m_screen_orientation.value() == Painter::y_increases_upwards)
