@@ -53,7 +53,7 @@ namespace fastuidraw
      * \param pmetrics metrics common to all glyphs of the font
      */
     FontBase(const FontProperties &pprops,
-             const FontMetrics &metrics);
+             const FontMetrics &pmetrics);
 
     virtual
     ~FontBase();

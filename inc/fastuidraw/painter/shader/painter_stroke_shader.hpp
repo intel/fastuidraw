@@ -147,11 +147,9 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterStrokeShader holds shaders for stroking. It contains
-   * shaders to stroke a path under various anti-alias modes
-   * specified by \ref PainterEnums::shader_anti_alias_t along
-   * with information used by Painter to allow it to decide how
-   * to stroke paths.
+   * A PainterStrokeShader holds shaders for stroking. It is to hold
+   * shaders for stroking paths linearly or via arcs with and without
+   * anti-aliasing along with meta-data to inform what shading is faster.
    */
   class PainterStrokeShader
   {

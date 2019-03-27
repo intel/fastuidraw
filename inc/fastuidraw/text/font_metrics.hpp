@@ -63,7 +63,7 @@ namespace fastuidraw
     /*!
      * The recommended distance, in font units, between lines of text.
      * This is typically greater than the difference between \ref
-     * max_ascender() and \ref min_descender().
+     * ascender() and \ref descender().
      */
     float
     height(void) const;
