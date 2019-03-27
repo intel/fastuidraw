@@ -119,7 +119,7 @@ namespace
     {}
 
     void
-    on_pre_draw(PainterBackendGLPrivate *pr);
+    on_pre_draw(PainterBackendGLPrivate *pr, GLuint current_fbo);
 
     void
     current_program(fastuidraw::gl::Program *p)
@@ -186,7 +186,7 @@ namespace
                                fastuidraw::gl::PainterBackendGL::UberShaderParams &out_value,
                                fastuidraw::PainterShaderSet &out_shaders);
 
-    void
+    GLuint
     clear_buffers_of_current_surface(bool clear_depth, bool clear_color);
 
     RenderTargetState
@@ -451,7 +451,7 @@ namespace
 // DrawState methods
 void
 DrawState::
-on_pre_draw(PainterBackendGLPrivate *pr)
+on_pre_draw(PainterBackendGLPrivate *pr, GLuint current_fbo)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
@@ -473,7 +473,9 @@ on_pre_draw(PainterBackendGLPrivate *pr)
       m_blend_type = PainterBlendShader::number_types;
     }
 
-  m_current_render_target_state = pr->set_gl_state(RenderTargetState(), m_blend_type, gpu_dirty_state::all);
+  RenderTargetState R;
+  R.m_fbo = current_fbo;
+  m_current_render_target_state = pr->set_gl_state(R, m_blend_type, gpu_dirty_state::all);
   m_current_program->use_program();
   m_current_blend_mode = nullptr;
 }
@@ -1075,14 +1077,14 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
   out_shaders = out_params.default_shaders();
 }
 
-void
+GLuint
 PainterBackendGLPrivate::
 clear_buffers_of_current_surface(bool clear_depth, bool clear_color_buffer)
 {
+  GLuint fbo(0);
   if (clear_depth || clear_color_buffer)
     {
       fastuidraw::c_array<const GLenum> draw_buffers;
-      GLuint fbo;
 
       fbo = m_surface_gl->fbo(true);
       draw_buffers = m_surface_gl->draw_buffers(true);
@@ -1099,6 +1101,7 @@ clear_buffers_of_current_surface(bool clear_depth, bool clear_color_buffer)
           fastuidraw_glClearBufferfv(GL_COLOR, 0, m_surface_gl->m_clear_color.c_ptr());
         }
     }
+  return fbo;
 }
 
 RenderTargetState
@@ -1965,11 +1968,13 @@ on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
       fastuidraw_glSamplerParameteri(d->m_nearest_filter_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     }
 
+  GLuint fbo;
+
   d->m_uniform_ubo_ready = false;
   d->m_current_external_texture = 0;
   d->m_current_coverage_buffer_texture = 0;
-  d->clear_buffers_of_current_surface(begin_new_target, clear_color_buffer);
-  d->m_draw_state.on_pre_draw(d);
+  fbo = d->clear_buffers_of_current_surface(begin_new_target, clear_color_buffer);
+  d->m_draw_state.on_pre_draw(d, fbo);
 }
 
 void
