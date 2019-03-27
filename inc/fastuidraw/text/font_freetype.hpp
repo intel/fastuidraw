@@ -107,6 +107,30 @@ namespace fastuidraw
     FontProperties
     compute_font_properties_from_face(const reference_counted_ptr<FreeTypeFace> &in_face);
 
+    /*!
+     * Fill the field of a FontMetrics from the values of an FT_Face.
+     * Beware that the foundary name is not assigned!
+     */
+    static
+    void
+    compute_font_metrics_from_face(FT_Face in_face, FontMetrics &out_metrics);
+
+    /*!
+     * Return a FontMetrics from the values of an FT_Face.
+     * Beware that the foundary name is not assigned!
+     */
+    static
+    FontMetrics
+    compute_font_metrics_from_face(FT_Face in_face);
+
+    /*!
+     * Return a FontMetrics from the values of an FT_Face.
+     * Beware that the foundary name is not assigned!
+     */
+    static
+    FontMetrics
+    compute_font_metrics_from_face(const reference_counted_ptr<FreeTypeFace> &in_face);
+
     virtual
     void
     glyph_codes(enum CharacterEncoding::encoding_value_t encoding,

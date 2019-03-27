@@ -634,12 +634,18 @@ compute_rendering_data_rays(fastuidraw::GlyphMetrics glyph_metrics,
 
 ///////////////////////////////////////////////////
 // fastuidraw::FontFreeType methods
+
+/* ICK: it feels gross that a temporary face/faces is/are created
+ * to compute the FontMetrics and the FontProperties to pass
+ * to the base class FontBase.
+ */
+
 fastuidraw::FontFreeType::
 FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
              const FontProperties &props,
              const reference_counted_ptr<FreeTypeLib> &plib,
              unsigned int num_faces):
-  FontBase(props)
+  FontBase(props, compute_font_metrics_from_face(pface_generator->create_face(plib)))
 {
   m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib, num_faces);
 }
@@ -648,7 +654,8 @@ fastuidraw::FontFreeType::
 FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
              const reference_counted_ptr<FreeTypeLib> &plib,
              unsigned int num_faces):
-  FontBase(compute_font_properties_from_face(pface_generator->create_face(plib)))
+  FontBase(compute_font_properties_from_face(pface_generator->create_face(plib)),
+           compute_font_metrics_from_face(pface_generator->create_face(plib)))
 {
   m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib, num_faces);
 }
@@ -854,9 +861,45 @@ compute_font_properties_from_face(FT_Face in_face, FontProperties &out_propertie
 {
   if (in_face)
     {
-      out_properties.family(in_face->family_name);
-      out_properties.style(in_face->style_name);
-      out_properties.bold(in_face->style_flags & FT_STYLE_FLAG_BOLD);
-      out_properties.italic(in_face->style_flags & FT_STYLE_FLAG_ITALIC);
+      out_properties
+        .family(in_face->family_name)
+        .style(in_face->style_name)
+        .bold(in_face->style_flags & FT_STYLE_FLAG_BOLD)
+        .italic(in_face->style_flags & FT_STYLE_FLAG_ITALIC);
+    }
+}
+
+fastuidraw::FontMetrics
+fastuidraw::FontFreeType::
+compute_font_metrics_from_face(FT_Face in_face)
+{
+  FontMetrics return_value;
+  compute_font_metrics_from_face(in_face, return_value);
+  return return_value;
+}
+
+fastuidraw::FontMetrics
+fastuidraw::FontFreeType::
+compute_font_metrics_from_face(const reference_counted_ptr<FreeTypeFace> &in_face)
+{
+  FontMetrics return_value;
+  if (in_face && in_face->face())
+    {
+      compute_font_metrics_from_face(in_face->face(), return_value);
+    }
+  return return_value;
+}
+
+void
+fastuidraw::FontFreeType::
+compute_font_metrics_from_face(FT_Face in_face, FontMetrics &out_metrics)
+{
+  if (in_face)
+    {
+      out_metrics
+        .height(in_face->height)
+        .ascender(in_face->ascender)
+        .descender(in_face->descender)
+        .units_per_EM(in_face->units_per_EM);
     }
 }

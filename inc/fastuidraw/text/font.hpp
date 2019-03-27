@@ -25,6 +25,7 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/text/character_encoding.hpp>
 #include <fastuidraw/text/font_properties.hpp>
+#include <fastuidraw/text/font_metrics.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_metrics.hpp>
 #include <fastuidraw/text/glyph_metrics_value.hpp>
@@ -49,9 +50,10 @@ namespace fastuidraw
     /*!
      * Ctor.
      * \param pprops font properties describing the font
+     * \param pmetrics metrics common to all glyphs of the font
      */
-    explicit
-    FontBase(const FontProperties &pprops);
+    FontBase(const FontProperties &pprops,
+             const FontMetrics &metrics);
 
     virtual
     ~FontBase();
@@ -61,6 +63,12 @@ namespace fastuidraw
      */
     const FontProperties&
     properties(void) const;
+
+    /*!
+     * Returns the metrics of the font.
+     */
+    const FontMetrics&
+    metrics(void) const;
 
     /*!
      * Returns the unique ID of the \ref FontBase object.

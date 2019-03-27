@@ -64,8 +64,10 @@ namespace
   {
   public:
     explicit
-    FontBasePrivate(const fastuidraw::FontProperties &pprops):
-      m_properties(pprops)
+    FontBasePrivate(const fastuidraw::FontProperties &pprops,
+                    const fastuidraw::FontMetrics &metrics):
+      m_properties(pprops),
+      m_metrics(metrics)
     {
       std::lock_guard<std::mutex> m(GlyphGenerateParamValues::object().m_mutex);
       ++GlyphGenerateParamValues::object().m_number_fonts_alive;
@@ -80,6 +82,7 @@ namespace
 
     unsigned int m_unique_id;
     fastuidraw::FontProperties m_properties;
+    fastuidraw::FontMetrics m_metrics;
   };
 }
 
@@ -117,9 +120,10 @@ IMPLEMENT(float, banded_rays_average_number_curves_thresh)
 ///////////////////////////////////////////
 // fastuidraw::FontBase methods
 fastuidraw::FontBase::
-FontBase(const FontProperties &pprops)
+FontBase(const FontProperties &pprops,
+         const FontMetrics &pmetrics)
 {
-  m_d = FASTUIDRAWnew FontBasePrivate(pprops);
+  m_d = FASTUIDRAWnew FontBasePrivate(pprops, pmetrics);
 }
 
 fastuidraw::FontBase::
@@ -132,6 +136,9 @@ fastuidraw::FontBase::
 
 get_implement(fastuidraw::FontBase, FontBasePrivate,
 	      const fastuidraw::FontProperties&, properties)
+
+get_implement(fastuidraw::FontBase, FontBasePrivate,
+	      const fastuidraw::FontMetrics&, metrics)
 
 get_implement(fastuidraw::FontBase, FontBasePrivate,
 	      unsigned int, unique_id)
