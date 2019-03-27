@@ -103,7 +103,6 @@ protected:
 
 private:
   typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;
-  typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t immediate_coverage_buffer_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t clipping_type_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_blending_type_t;
   typedef enum fastuidraw::PainterBlendShader::shader_type shader_blend_type;
@@ -163,7 +162,6 @@ private:
 
   /* Painter params that can be overridden by properties of GL context */
   command_separator m_painter_options_affected_by_context;
-  enumerated_command_line_argument_value<immediate_coverage_buffer_t> m_provide_immediate_coverage_image_buffer;
   enumerated_command_line_argument_value<clipping_type_t> m_use_hw_clip_planes;
   command_line_argument_value<int> m_painter_data_blocks_per_buffer;
   enumerated_command_line_argument_value<data_store_backing_t> m_data_store_backing;
