@@ -36,7 +36,6 @@ namespace fastuidraw
   class FontProperties
   {
   public:
-
     /*!
      * Ctor. Initializes bold() as false,
      * italic() as false and all string values
