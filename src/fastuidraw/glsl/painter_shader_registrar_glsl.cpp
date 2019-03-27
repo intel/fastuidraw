@@ -32,12 +32,12 @@
 #include <fastuidraw/painter/backend/painter_clip_equations.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
-#include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/glsl/unpack_source_generator.hpp>
 
 #include <private/glsl/uber_shader_builder.hpp>
 #include <private/glsl/backend_shaders.hpp>
 #include <private/util_private.hpp>
+#include <private/glsl/shader_code.hpp>
 
 namespace
 {
@@ -1098,7 +1098,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     }
 
   vert
-    .add_source(code::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
+    .add_source(detail::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
     .add_source(m_vert_shader_utils)
     .add_source(vert_main_src, ShaderSource::from_resource);
 
@@ -1174,16 +1174,16 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     }
 
   frag
-    .add_source(code::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
-    .add_source(code::banded_rays_compute_coverage("fastuidraw_fetch_glyph_data",
-                                                   "fastuidraw_fetch_glyph_data_fp16x2"))
-    .add_source(code::restricted_rays_compute_coverage("fastuidraw_fetch_glyph_data",
-						       "fastuidraw_fetch_glyph_data_fp16x2"))
+    .add_source(detail::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
+    .add_source(detail::banded_rays_compute_coverage("fastuidraw_fetch_glyph_data",
+                                                     "fastuidraw_fetch_glyph_data_fp16x2"))
+    .add_source(detail::restricted_rays_compute_coverage("fastuidraw_fetch_glyph_data",
+                                                         "fastuidraw_fetch_glyph_data_fp16x2"))
     .add_source(m_frag_shader_utils)
-    .add_source(code::image_atlas_compute_coord("fastuidraw_compute_image_atlas_coord",
-                                                "fastuidraw_imageIndexAtlas",
-                                                backend.image_atlas_index_tile_size(),
-                                                backend.image_atlas_color_tile_size()))
+    .add_source(detail::image_atlas_compute_coord("fastuidraw_compute_image_atlas_coord",
+                                                  "fastuidraw_imageIndexAtlas",
+                                                  backend.image_atlas_index_tile_size(),
+                                                  backend.image_atlas_color_tile_size()))
     .add_source(frag_main_src, ShaderSource::from_resource);
 
   stream_unpack_code(frag, render_type);

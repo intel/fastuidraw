@@ -16,17 +16,16 @@
  *
  */
 
-#include <sstream>
-
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
-#include <fastuidraw/glsl/shader_code.hpp>
+
+#include <private/glsl/shader_code.hpp>
 
 /////////////////////////////////
 // fastuidraw::glsl::code methods
 fastuidraw::glsl::ShaderSource
-fastuidraw::glsl::code::
+fastuidraw::glsl::detail::
 image_atlas_compute_coord(c_string function_name,
                           c_string index_texture,
                           unsigned int index_tile_size,
@@ -49,7 +48,7 @@ image_atlas_compute_coord(c_string function_name,
 }
 
 fastuidraw::glsl::ShaderSource
-fastuidraw::glsl::code::
+fastuidraw::glsl::detail::
 compute_interval(c_string function_name,
                  c_string fetch_macro_function)
 {
@@ -66,7 +65,7 @@ compute_interval(c_string function_name,
 }
 
 fastuidraw::glsl::ShaderSource
-fastuidraw::glsl::code::
+fastuidraw::glsl::detail::
 restricted_rays_compute_coverage(c_string fetch_macro_function,
 				 c_string fetch_macro_function_fp16x2)
 {
@@ -112,7 +111,7 @@ restricted_rays_compute_coverage(c_string fetch_macro_function,
 
 
 fastuidraw::glsl::ShaderSource
-fastuidraw::glsl::code::
+fastuidraw::glsl::detail::
 banded_rays_compute_coverage(c_string fetch_macro_function,
                              c_string fetch_macro_function_fp16x2)
 {

@@ -24,15 +24,7 @@ namespace fastuidraw
 {
   namespace glsl
   {
-/*!\addtogroup GLSL
- * @{
- */
-    /*!
-     * \brief Namespace to encapsulate GLSL shader source
-     *        code used in rendering, part of the main
-     *        library libFastUIDraw
-     */
-    namespace code
+    namespace detail
     {
       /*!
        * Gives the shader source code for a function with
@@ -179,7 +171,6 @@ namespace fastuidraw
       banded_rays_compute_coverage(c_string fetch_macro_function,
                                    c_string fetch_macro_function_fp16x2);
     }
-/*! @} */
   }
 
 }
