@@ -31,29 +31,9 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   #else
     {
       float alpha = 1.0;
-      uint render_pass, dash_style;
+      uint dash_style;
 
-      #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
-        {
-          dash_style = sub_shader;
-          render_pass = fastuidraw_stroke_aa_pass1;
-        }
-      #else
-        {
-          render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                                fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                                sub_shader);
-
-          if (render_pass == fastuidraw_stroke_aa_pass2)
-            {
-              return vec4(1.0, 1.0, 1.0, fastuidraw_clear_immediate_coverage());
-            }
-
-          dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                               sub_shader);
-        }
-      #endif
+      dash_style = sub_shader;
 
       float r, d, q, qw, ql, qlw;
       float S, R;
@@ -119,8 +99,16 @@ fastuidraw_gl_frag_main(in uint sub_shader,
               skip_lookup =
                 (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_skip_dash_interval_lookup_mask) != 0u;
 
-              dont_anti_alias_dash_boundary = (render_pass == fastuidraw_stroke_non_aa)
-                || (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) != 0u;
+              #ifdef FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE
+                {
+                  dont_anti_alias_dash_boundary =
+                    (fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) != 0u;
+                }
+              #else
+                {
+                  dont_anti_alias_dash_boundary = true;
+                }
+              #endif
 
               if (dash_style == fastuidraw_stroke_dashed_flat_caps)
                 {
@@ -138,7 +126,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                                   skip_lookup, dont_anti_alias_dash_boundary);
                 }
 
-              if (render_pass == fastuidraw_stroke_non_aa)
+              #if !defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
                 {
                   if (alpha < 1.0 - 1.0 / 255.0)
                     {
@@ -149,17 +137,18 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                       alpha = 1.0;
                     }
                 }
+              #endif
             }
         }
 
       /* A negtive arc_radius indicates that it is a segment */
       if (fastuidraw_arc_stroking_arc_radius > -0.5)
         {
-          if (render_pass != fastuidraw_stroke_non_aa)
+          #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
             {
               alpha *= max(0.0, q / d);
             }
-          else
+          #else
             {
               if (q < 0.0)
                 {
@@ -167,31 +156,23 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                 }
               alpha = 1.0;
             }
+          #endif
         }
       else
         {
-          if (render_pass != fastuidraw_stroke_non_aa)
+          #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
             {
               float dd;
               q = 1.0;
               dd = max(ql, qlw);
               alpha *= ql / dd;
             }
-          else
+          #else
             {
               alpha = 1.0;
             }
+          #endif
         }
-
-      #if !defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
-        {
-          if (render_pass == fastuidraw_stroke_aa_pass1)
-            {
-              fastuidraw_max_immediate_coverage(alpha);
-              alpha = 0.0;
-            }
-        }
-      #endif
 
       #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
         {

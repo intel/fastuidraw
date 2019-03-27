@@ -67,30 +67,16 @@ private:
 class ShaderSetCreatorStrokingConstants
 {
 public:
-  enum render_pass_t
-    {
-      render_aa_pass1,
-      render_aa_pass2,
-      render_non_aa_pass,
-      number_render_passes
-    };
-
   ShaderSetCreatorStrokingConstants(void);
 
 protected:
-  uint32_t
-  compute_sub_shader(enum PainterEnums::cap_style stroke_dash_style,
-                     enum render_pass_t render_pass);
-
-  uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
-  uint32_t m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
   ShaderSource::MacroSet m_subshader_constants;
   ShaderSource::MacroSet m_stroke_constants;
   ShaderSource::MacroSet m_arc_stroke_constants;
 
-private:
-  void
-  create_macro_set(ShaderSource::MacroSet &dst) const;
+  static
+  uint32_t
+  sub_shader(enum PainterEnums::cap_style stroke_dash_style);
 };
 
 class StrokeShaderCreator:private ShaderSetCreatorStrokingConstants
@@ -99,13 +85,12 @@ public:
   StrokeShaderCreator(void);
 
   reference_counted_ptr<PainterItemShader>
-  create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
-                            enum PainterEnums::stroking_method_t tp,
-                            enum PainterStrokeShader::shader_type_t pass);
+  create_stroke_non_aa_item_shader(enum PainterEnums::cap_style stroke_dash_style,
+                                   enum PainterEnums::stroking_method_t tp);
 
   reference_counted_ptr<PainterItemShader>
-  create_stroke_item_shader_using_coverage(enum PainterEnums::cap_style stroke_dash_style,
-                                           enum PainterEnums::stroking_method_t tp);
+  create_stroke_aa_item_shader(enum PainterEnums::cap_style stroke_dash_style,
+                               enum PainterEnums::stroking_method_t tp);
 private:
   enum
     {
@@ -126,7 +111,7 @@ private:
   ShaderSource
   build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const;
 
-  vecN<reference_counted_ptr<PainterItemShaderGLSL>, 4> m_shaders;
+  vecN<reference_counted_ptr<PainterItemShaderGLSL>, 4> m_non_aa_shader;
   vecN<reference_counted_ptr<PainterItemCoverageShaderGLSL>, 2> m_coverage_shaders;
   vecN<reference_counted_ptr<PainterItemShaderGLSL>, 2> m_post_coverage_shaders;
 };
@@ -178,7 +163,6 @@ private:
 
   bool m_has_auxiliary_coverage_buffer;
   reference_counted_ptr<const PainterDraw::Action> m_flush_immediate_coverage_buffer_between_draws;
-  enum PainterEnums::shader_anti_alias_t m_fastest_anti_alias_mode;
 
   ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;

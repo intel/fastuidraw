@@ -19,7 +19,6 @@
 
 #pragma once
 
-
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_item_shader.hpp>
@@ -172,26 +171,6 @@ namespace fastuidraw
         non_aa_shader,
 
         /*!
-         * Specify the shader for the 1st pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_immediate_coverage which
-         * draws to a the immediate coverage buffer the coverage of a
-         * fragment area by the stroked path. The item's vertex shader
-         * it to emit a depth value of 0. It is optional to support
-         * this shader type.
-         */
-        aa_shader_immediate_coverage_pass1,
-
-        /*!
-         * Specify the shader for the 2nd pass of anti-alias stroking
-         * for \ref PainterEnums::shader_anti_alias_immediate_coverage which
-         * draws emits the coverage value from the immediated coverage
-         * buffer and clears the value from the immediate coverage buffer
-         * as well. The item's vertex shader it to emit a depth value of
-         * 0.  It is optional to support this shader type.
-         */
-        aa_shader_immediate_coverage_pass2,
-
-        /*!
          * Specifies a two-pass shader where the first pass renders to the
          * deferred coverage buffer (via PainterItemShader::coverage_shader())
          * and the second pass reads from it. The depth value emitted in the
@@ -199,7 +178,7 @@ namespace fastuidraw
          * there is no overdraw, see \ref StrokedPoint::depth() and \ref
          * ArcStrokedPoint::depth().
          */
-        aa_shader_deferred_coverage,
+        aa_shader,
 
         number_shader_types,
       };
@@ -263,23 +242,6 @@ namespace fastuidraw
     fastest_anti_aliased_stroking_method(enum PainterEnums::stroking_method_t v);
 
     /*!
-     * Returns the fastest anti-aliasing mode for stroking with a
-     * given \ref PainterEnums::stroking_method_t
-     * \param tp stroking method to query
-     */
-    enum PainterEnums::shader_anti_alias_t
-    fastest_anti_aliasing(enum PainterEnums::stroking_method_t tp) const;
-
-    /*!
-     * Set the value returned by fastest_stroking_method(enum PainterEnums::stroking_method_t) const.
-     * \param tp stroking method to set
-     * \param v value to use
-     */
-    PainterStrokeShader&
-    fastest_anti_aliasing(enum PainterEnums::stroking_method_t tp,
-                          enum PainterEnums::shader_anti_alias_t v);
-
-    /*!
      * Return the fastest stroking method to use when stroking
      * without anti-aliasing.
      */
@@ -292,49 +254,6 @@ namespace fastuidraw
      */
     PainterStrokeShader&
     fastest_non_anti_aliased_stroking_method(enum PainterEnums::stroking_method_t v);
-
-    /*!
-     * Provided as a conveniance; equivalent to
-     * \code
-     * shader(tp, aa_shader_immediate_coverage_pass1)
-     *   && shader(tp, aa_shader_immediate_coverage_pass2)
-     * \endcode
-     * \param tp arc or linear stroking to query
-     */
-    bool
-    aa_shader_immediate_coverage_supported(enum PainterEnums::stroking_method_t tp) const;
-
-    /*!
-     * Returns the action to be called before the 1st high quality
-     * pass, a return value of nullptr indicates to not have an action
-     * (and thus no draw-call break).
-     */
-    const reference_counted_ptr<const PainterDraw::Action>&
-    aa_action_pass1(void) const;
-
-    /*!
-     * Set the value returned by aa_action_pass1(void) const.
-     * Initial value is nullptr.
-     * \param a value to use
-     */
-    PainterStrokeShader&
-    aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
-
-    /*!
-     * Returns the action to be called before the 2nd high quality
-     * pass a return value of nullptr indicates to not have an action
-     * (and thus no draw-call break).
-     */
-    const reference_counted_ptr<const PainterDraw::Action>&
-    aa_action_pass2(void) const;
-
-    /*!
-     * Set the value returned by aa_action_pass2(void) const.
-     * Initial value is nullptr.
-     * \param a value to use
-     */
-    PainterStrokeShader&
-    aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
      * Returns the StrokingDataSelectorBase associated to this

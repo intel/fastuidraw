@@ -185,59 +185,6 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to specify the anti-aliasing quality
-     * to apply when performing path fills or strokes.
-     */
-    enum shader_anti_alias_t
-      {
-        /*!
-         * Do not apply any shader based anti-aliasing
-         * to the fill.
-         */
-        shader_anti_alias_none,
-
-        /*!
-         * Appliesanti-aliasing shading. The shader works
-         * in two passes: the first pass renders to the
-         * IMMEDIATE coverage buffer and the 2nd pass reads
-         * from it and uses that as the coverage value.
-         */
-        shader_anti_alias_immediate_coverage,
-
-        /*!
-         * Applies anti-aliasing shading. The shader works
-         * in two passes: the first pass renders to the
-         * DEFERRED coverage buffer and the 2nd pass reads
-         * from it and uses that as the coverage value.
-         */
-        shader_anti_alias_deferred_coverage,
-
-        /*!
-         * Represents to use either \ref shader_anti_alias_immediate_coverage
-         * or \ref shader_anti_alias_deferred_coverage decided from
-         * which modes are supported and the size of deferred coverage
-         * buffer needed.
-         */
-        shader_anti_alias_adaptive,
-
-        /* make the modes that indicate for Painter to choose
-         * to come after the modes that precisely specify a
-         * choice.
-         */
-
-        /*!
-         * Represents to use the fastest anti-alias mode
-         * (which is not shader_anti_alias_none).
-         */
-        shader_anti_alias_fastest,
-
-        /*!
-         * Number of shader-anti-alias enums present.
-         */
-        number_shader_anti_alias,
-      };
-
-    /*!
      * Enumeration to specify how to stroke
      */
     enum stroking_method_t
@@ -846,14 +793,6 @@ namespace fastuidraw
     static
     c_string
     label(enum immediate_coverage_support_t v);
-
-    /*!
-     * Returns a \ref c_string for an enumerated value.
-     * \param v value to get the label-string of.
-     */
-    static
-    c_string
-    label(enum shader_anti_alias_t v);
 
     /*!
      * Returns a \ref c_string for an enumerated value.

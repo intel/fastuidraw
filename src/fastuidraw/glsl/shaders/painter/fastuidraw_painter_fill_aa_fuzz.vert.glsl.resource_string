@@ -107,15 +107,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
     {
       out_brush_p = p;
-      #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
-        {
-          z_add = int(in_attrib0.w);
-        }
-      #else
-        {
-          z_add = 0;
-        }
-      #endif
+      z_add = int(in_attrib0.w);
     }
   #endif
 }

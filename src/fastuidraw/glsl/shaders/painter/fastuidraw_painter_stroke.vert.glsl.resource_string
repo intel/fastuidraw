@@ -34,7 +34,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   secondary_attrib = uintBitsToFloat(in_attrib1);
 
   bool stroke_width_pixels;
-  uint stroking_pass;
   const float anti_alias_thickness = 1.5;
 
   vec2 p;
@@ -46,31 +45,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_dashed_stroking_params_header dashed_stroke_params;
   fastuidraw_stroking_params stroke_params;
 
-  #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
-    {
-      dash_style = sub_shader;
-      #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
-        {
-          stroking_pass = fastuidraw_stroke_aa_pass2;
-        }
-      #else
-        {
-          stroking_pass = fastuidraw_stroke_aa_pass1;
-        }
-      #endif
-    }
-  #else
-    {
-      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                           fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                           sub_shader);
-
-      stroking_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                              fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                              sub_shader);
-    }
-  #endif
-
+  dash_style = sub_shader;
   if (dash_style != fastuidraw_stroke_not_dashed)
     {
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, dashed_stroke_params);
@@ -231,26 +206,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
     {
       out_brush_p = p;
-      #if defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
-        {
-          z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
-                                              fastuidraw_stroke_depth_num_bits,
-                                              point_packed_data));
-        }
-      #else
-        {
-          if (stroking_pass != fastuidraw_stroke_non_aa)
-            {
-              z_add = 0;
-            }
-          else
-            {
-              z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
-                                                  fastuidraw_stroke_depth_num_bits,
-                                                  point_packed_data));
-            }
-        }
-      #endif
+      z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
+                                          fastuidraw_stroke_depth_num_bits,
+                                          point_packed_data));
     }
   #endif
 

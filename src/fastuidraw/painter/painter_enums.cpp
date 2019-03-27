@@ -137,21 +137,6 @@ label(enum immediate_coverage_support_t v)
 
 fastuidraw::c_string
 fastuidraw::PainterEnums::
-label(enum shader_anti_alias_t v)
-{
-  static const c_string labels[number_shader_anti_alias] =
-    {
-      [shader_anti_alias_none] = "shader_anti_alias_none",
-      [shader_anti_alias_immediate_coverage] = "shader_anti_alias_immediate_coverage",
-      [shader_anti_alias_deferred_coverage] = "shader_anti_alias_deferred_coverage",
-      [shader_anti_alias_adaptive] = "shader_anti_alias_adaptive",
-      [shader_anti_alias_fastest] = "shader_anti_alias_fastest",
-    };
-  return (v < number_shader_anti_alias) ? labels[v] : "InvalidEnum";
-}
-
-fastuidraw::c_string
-fastuidraw::PainterEnums::
 label(enum stroking_method_t v)
 {
   static const c_string labels[number_stroking_methods] =

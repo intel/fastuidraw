@@ -1077,14 +1077,13 @@ namespace fastuidraw
      *                       and/or StrokedCapsJoins::rounded_caps() if rounded
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path stroke.
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                 const StrokedPath &path, float rounded_thresh,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+                bool apply_shader_anti_aliasing = true);
 
     /*!
      * Stroke a path.
@@ -1092,14 +1091,13 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path stroke.
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest,
+                bool apply_shader_anti_aliasing = true,
                 enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1107,14 +1105,13 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path stroke.
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
-                enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest,
+                bool apply_shader_anti_aliasing = true,
                 enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1126,14 +1123,13 @@ namespace fastuidraw
      *                       and/or StrokedCapsJoins::rounded_caps() if rounded
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path stroke.
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
                        const StrokedPath &path, float rounded_thresh,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+                       bool apply_shader_anti_aliasing = true);
 
     /*!
      * Stroke a path dashed.
@@ -1141,14 +1137,13 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path stroke.
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest,
+                       bool apply_shader_anti_aliasing = true,
                        enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1156,14 +1151,13 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path stroke.
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to select what \ref StrokedPath to use
      */
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
-                       enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest,
+                       bool apply_shader_anti_aliasing = true,
                        enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
@@ -1172,13 +1166,12 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param data attribute and index data with which to fill a path
      * \param fill_rule fill rule with which to fill the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill.
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, enum fill_rule_t fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a path.
@@ -1186,25 +1179,23 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path to fill
      * \param fill_rule fill rule with which to fill the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, enum fill_rule_t fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a path using the default shader to draw the fill.
      * \param draw data for how to draw
      * \param path path to fill
      * \param fill_rule fill rule with which to fill the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_path(const PainterData &draw, const Path &path, enum fill_rule_t fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a path.
@@ -1212,13 +1203,12 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param data attribute and index data with which to fill a path
      * \param fill_rule custom fill rule with which to fill the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, const CustomFillRuleBase &fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a path.
@@ -1226,25 +1216,23 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param path to fill
      * \param fill_rule custom fill rule with which to fill the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, const CustomFillRuleBase &fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a path using the default shader to draw the fill.
      * \param draw data for how to draw
      * \param path path to fill
      * \param fill_rule custom fill rule with which to fill the path
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a path via \ref ShaderFilledPath
@@ -1274,25 +1262,23 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
      *            are the edges of the polygon.
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
                         c_array<const vec2> pts,
-                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+                        bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a convex polygon using the default fill shader.
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
      *            are the edges of the polygon.
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
-                        enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+                        bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a convex quad using a custom shader.
@@ -1302,13 +1288,12 @@ namespace fastuidraw
      * \param p1 point after p0, shares an edge with p0
      * \param p2 point after p1, shares an edge with p1
      * \param p3 point after p2, shares an edge with p2
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_quad(const PainterFillShader &shader, const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a quad using the default fill shader.
@@ -1317,61 +1302,56 @@ namespace fastuidraw
      * \param p1 point after p0, shares an edge with p0
      * \param p2 point after p1, shares an edge with p1
      * \param p3 point after p2, shares an edge with p2
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_quad(const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a rect using a custom shader.
      * \param shader shader with which to draw the quad
      * \param draw data for how to draw
      * \param rect rectangle to fill
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_rect(const PainterFillShader &shader, const PainterData &draw,
               const Rect &rect,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a rect using the default fill shader.
      * \param draw data for how to draw
      * \param rect rectangle to fill
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_rect(const PainterData &draw, const Rect &rect,
-              enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+              bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a rounded rect using a fill shader
      * \param shader shader with which to draw the rounded rectangle
      * \param draw data for how to draw
      * \param R \ref RoundedRect to draw
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_rounded_rect(const PainterFillShader &shader, const PainterData &draw,
                       const RoundedRect &R,
-                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+                      bool apply_shader_anti_aliasing = true);
 
     /*!
      * Fill a rounded rect using the default fill shader
      * \param draw data for how to draw
      * \param R \ref RoundedRect to draw
-     * \param anti_alias_quality specifies the shader based anti-alias
-     *                           quality to apply to the path fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
     fill_rounded_rect(const PainterData &draw, const RoundedRect &R,
-                      enum shader_anti_alias_t anti_alias_quality = shader_anti_alias_fastest);
+                      bool apply_shader_anti_aliasing = true);
 
     /*!
      * Draw generic attribute data.

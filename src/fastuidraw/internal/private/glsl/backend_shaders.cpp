@@ -284,16 +284,11 @@ ShaderSetCreatorStrokingConstants(void)
 {
   using namespace fastuidraw;
 
-  m_stroke_render_pass_num_bits = number_bits_required(number_render_passes);
-  m_stroke_dash_style_num_bits = number_bits_required(PainterEnums::number_cap_styles);
-  FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_render_pass_num_bits) >= number_render_passes);
-  FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_dash_style_num_bits) >= PainterEnums::number_cap_styles);
-  FASTUIDRAWassert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits <= 32u);
-
-  m_stroke_dash_style_bit0 = 0;
-  m_stroke_render_pass_bit0 = m_stroke_dash_style_bit0 + m_stroke_dash_style_num_bits;
-
-  create_macro_set(m_subshader_constants);
+  m_subshader_constants
+    .add_macro("fastuidraw_stroke_dashed_flat_caps", sub_shader(PainterEnums::flat_caps))
+    .add_macro("fastuidraw_stroke_dashed_rounded_caps", sub_shader(PainterEnums::rounded_caps))
+    .add_macro("fastuidraw_stroke_dashed_square_caps", sub_shader(PainterEnums::square_caps))
+    .add_macro("fastuidraw_stroke_not_dashed", sub_shader(PainterEnums::number_cap_styles));
 
   m_stroke_constants
     /* offset types of StrokedPoint */
@@ -347,40 +342,16 @@ ShaderSetCreatorStrokingConstants(void)
     .add_macro("fastuidraw_arc_stroke_offset_type_num_bits", uint32_t(ArcStrokedPoint::offset_type_num_bits));
 }
 
-void
-ShaderSetCreatorStrokingConstants::
-create_macro_set(ShaderSource::MacroSet &dst) const
-{
-  dst
-    .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", uint32_t(m_stroke_render_pass_bit0))
-    .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", uint32_t(m_stroke_render_pass_num_bits))
-    .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", uint32_t(m_stroke_dash_style_bit0))
-    .add_macro("fastuidraw_stroke_sub_shader_dash_style_num_bits", uint32_t(m_stroke_dash_style_num_bits))
-    .add_macro("fastuidraw_stroke_dashed_flat_caps", uint32_t(PainterEnums::flat_caps))
-    .add_macro("fastuidraw_stroke_dashed_rounded_caps", uint32_t(PainterEnums::rounded_caps))
-    .add_macro("fastuidraw_stroke_dashed_square_caps", uint32_t(PainterEnums::square_caps))
-    .add_macro("fastuidraw_stroke_not_dashed", uint32_t(PainterEnums::number_cap_styles))
-    .add_macro("fastuidraw_stroke_aa_pass1", uint32_t(render_aa_pass1))
-    .add_macro("fastuidraw_stroke_aa_pass2", uint32_t(render_aa_pass2))
-    .add_macro("fastuidraw_stroke_non_aa", uint32_t(render_non_aa_pass));
-}
-
 uint32_t
 ShaderSetCreatorStrokingConstants::
-compute_sub_shader(enum PainterEnums::cap_style dash_style,
-                   enum render_pass_t render_pass)
+sub_shader(enum PainterEnums::cap_style stroke_dash_style)
 {
-  uint32_t return_value(0u);
-
-  return_value |= pack_bits(m_stroke_dash_style_bit0,
-                            m_stroke_dash_style_num_bits,
-                            dash_style);
-
-  return_value |= pack_bits(m_stroke_render_pass_bit0,
-                            m_stroke_render_pass_num_bits,
-                            render_pass);
-
-  return return_value;
+  /* We need to make that having no dashes is sub-shader = 0,
+   * this is why the value is not just the enumeration.
+   */
+  return (stroke_dash_style == PainterEnums::number_cap_styles) ?
+    0 :
+    stroke_dash_style + 1;
 }
 
 /////////////////////////////////
@@ -388,83 +359,64 @@ compute_sub_shader(enum PainterEnums::cap_style dash_style,
 StrokeShaderCreator::
 StrokeShaderCreator(void)
 {
-  unsigned int num_sub_shaders;
+  //for non-aa non-dashed linear stroking
+  m_non_aa_shader[0] = build_uber_stroke_shader(0u, 1u);
+  FASTUIDRAWassert(!m_non_aa_shader[0]->uses_discard());
 
-  /* TODO:
-   *   1. only the non-anti-aliased shader will ever issue discard.
-   *      It will only issue discard in arc-stroking or dashed
-   *      stroking.
-   *   2. Using (1), it might be better to make a seperate shader
-   *      for non-anti aliased shading.
-   */
-  num_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits);
+  //for non-aa dashed linear stroking
+  m_non_aa_shader[discard_shader] = build_uber_stroke_shader(discard_shader, PainterEnums::number_cap_styles + 1);
+  FASTUIDRAWassert(m_non_aa_shader[discard_shader]->uses_discard());
 
-  m_shaders[0] = build_uber_stroke_shader(0u, num_sub_shaders);
-  m_shaders[discard_shader] = build_uber_stroke_shader(discard_shader, num_sub_shaders);
-  FASTUIDRAWassert(!m_shaders[0]->uses_discard());
-  FASTUIDRAWassert(m_shaders[discard_shader]->uses_discard());
+  // for dashed and non-dashed arc-strokgin.
+  m_non_aa_shader[arc_shader | discard_shader] = build_uber_stroke_shader(arc_shader | discard_shader, PainterEnums::number_cap_styles + 1);
+  FASTUIDRAWassert(m_non_aa_shader[arc_shader | discard_shader]->uses_discard());
 
-  m_shaders[arc_shader] = build_uber_stroke_shader(arc_shader, num_sub_shaders);
-  m_shaders[arc_shader | discard_shader] = build_uber_stroke_shader(arc_shader | discard_shader, num_sub_shaders);
-  FASTUIDRAWassert(!m_shaders[arc_shader]->uses_discard());
-  FASTUIDRAWassert(m_shaders[arc_shader | discard_shader]->uses_discard());
-
+  // shaders that draw to coverae buffer
   m_coverage_shaders[0] = build_uber_stroke_coverage_shader(coverage_shader, PainterEnums::number_cap_styles + 1u);
   m_coverage_shaders[arc_shader] = build_uber_stroke_coverage_shader(coverage_shader | arc_shader, PainterEnums::number_cap_styles + 1u);
 
+  // shaders that draw to color buffer reading from coverage buffer
   m_post_coverage_shaders[0] = build_uber_stroke_shader(coverage_shader, PainterEnums::number_cap_styles + 1u);
   m_post_coverage_shaders[arc_shader] = build_uber_stroke_shader(coverage_shader | arc_shader, PainterEnums::number_cap_styles + 1u);
 }
 
 reference_counted_ptr<PainterItemShader>
 StrokeShaderCreator::
-create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
-                          enum PainterEnums::stroking_method_t tp,
-                          enum PainterStrokeShader::shader_type_t pass)
+create_stroke_non_aa_item_shader(enum PainterEnums::cap_style stroke_dash_style,
+                                 enum PainterEnums::stroking_method_t tp)
 {
-  reference_counted_ptr<PainterItemShader> shader, return_value;
-  uint32_t shader_choice(0u), sub_shader(0u);
-  enum render_pass_t render_pass;
+  reference_counted_ptr<PainterItemShader> return_value;
+  uint32_t shader_choice(0u), sub_shader_id(0u);
 
   if (tp == PainterEnums::stroking_method_arc)
     {
       shader_choice |= arc_shader;
+      shader_choice |= discard_shader;
     }
 
-  switch (pass)
-    {
-    default:
-      FASTUIDRAWassert(!"Bad pass value!!");
-      //fall through
-
-    case PainterStrokeShader::non_aa_shader:
-      render_pass = render_non_aa_pass;
-      break;
-
-    case PainterStrokeShader::aa_shader_immediate_coverage_pass1:
-      render_pass = render_aa_pass1;
-      break;
-
-    case PainterStrokeShader::aa_shader_immediate_coverage_pass2:
-      render_pass = render_aa_pass2;
-      break;
-    }
-
-  if (render_pass == render_non_aa_pass
-      && (tp == PainterEnums::stroking_method_arc || stroke_dash_style != fastuidraw::PainterEnums::number_cap_styles))
+  if (stroke_dash_style != PainterEnums::number_cap_styles)
     {
       shader_choice |= discard_shader;
     }
 
-  sub_shader = compute_sub_shader(stroke_dash_style, render_pass);
-  return_value = FASTUIDRAWnew PainterItemShader(m_shaders[shader_choice], sub_shader);
+  if (shader_choice == 0)
+    {
+      /* linear stroking without dashing */
+      return_value = m_non_aa_shader[0];
+    }
+  else
+    {
+      sub_shader_id = sub_shader(stroke_dash_style);
+      FASTUIDRAWassert(m_non_aa_shader[shader_choice]);
+      return_value = FASTUIDRAWnew PainterItemShader(m_non_aa_shader[shader_choice], sub_shader_id);
+    }
   return return_value;
 }
 
 reference_counted_ptr<PainterItemShader>
 StrokeShaderCreator::
-create_stroke_item_shader_using_coverage(enum PainterEnums::cap_style stroke_dash_style,
-                                         enum PainterEnums::stroking_method_t tp)
+create_stroke_aa_item_shader(enum PainterEnums::cap_style stroke_dash_style,
+                             enum PainterEnums::stroking_method_t tp)
 {
   reference_counted_ptr<PainterItemShader> return_value;
   reference_counted_ptr<PainterItemCoverageShader> cvg_shader;
@@ -475,8 +427,8 @@ create_stroke_item_shader_using_coverage(enum PainterEnums::cap_style stroke_das
       shader_choice |= arc_shader;
     }
 
-  cvg_shader = FASTUIDRAWnew PainterItemCoverageShader(m_coverage_shaders[shader_choice], stroke_dash_style);
-  return_value = FASTUIDRAWnew PainterItemShader(m_post_coverage_shaders[shader_choice], stroke_dash_style, cvg_shader);
+  cvg_shader = FASTUIDRAWnew PainterItemCoverageShader(m_coverage_shaders[shader_choice], sub_shader(stroke_dash_style));
+  return_value = FASTUIDRAWnew PainterItemShader(m_post_coverage_shaders[shader_choice], sub_shader(stroke_dash_style), cvg_shader);
   return return_value;
 }
 
@@ -599,19 +551,6 @@ ShaderSetCreator(bool has_auxiliary_coverage_buffer,
   m_has_auxiliary_coverage_buffer(has_auxiliary_coverage_buffer),
   m_flush_immediate_coverage_buffer_between_draws(flush_immediate_coverage_buffer_between_draws)
 {
-  if (!m_has_auxiliary_coverage_buffer)
-    {
-      m_fastest_anti_alias_mode = PainterEnums::shader_anti_alias_deferred_coverage;
-    }
-  else if (m_flush_immediate_coverage_buffer_between_draws)
-    {
-      m_fastest_anti_alias_mode = PainterEnums::shader_anti_alias_adaptive;
-    }
-  else
-    {
-      m_fastest_anti_alias_mode = PainterEnums::shader_anti_alias_immediate_coverage;
-    }
-
   m_fill_macros
     .add_macro("fastuidraw_aa_fuzz_type_on_path", uint32_t(FilledPath::Subset::aa_fuzz_type_on_path))
     .add_macro("fastuidraw_aa_fuzz_type_on_boundary", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary))
@@ -723,41 +662,31 @@ create_stroke_shader(enum PainterEnums::cap_style cap_style,
   PainterStrokeShader return_value;
 
   return_value
-    .stroking_data_selector(stroke_data_selector)
-    .aa_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
-    .aa_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
+    .stroking_data_selector(stroke_data_selector);
 
   for (unsigned int tp = 0; tp < PainterEnums::stroking_method_number_precise_choices; ++tp)
     {
       enum PainterEnums::stroking_method_t e_tp;
 
       e_tp = static_cast<enum PainterEnums::stroking_method_t>(tp);
-      for (unsigned int sh = 0; sh < PainterStrokeShader::number_shader_types; ++sh)
-        {
-          enum PainterStrokeShader::shader_type_t e_sh;
-          bool is_hq_pass;
+      return_value
+        .shader(e_tp, PainterStrokeShader::non_aa_shader, create_stroke_non_aa_item_shader(cap_style, e_tp))
+        .shader(e_tp, PainterStrokeShader::aa_shader, create_stroke_aa_item_shader(cap_style, e_tp));
+    }
 
-          e_sh = static_cast<enum PainterStrokeShader::shader_type_t>(sh);
-          is_hq_pass = (e_sh == PainterStrokeShader::aa_shader_immediate_coverage_pass1
-                        || e_sh == PainterStrokeShader::aa_shader_immediate_coverage_pass2);
-
-          if (e_sh == PainterStrokeShader::aa_shader_deferred_coverage)
-            {
-              return_value.shader(e_tp, e_sh,
-                                  create_stroke_item_shader_using_coverage(cap_style, e_tp));
-            }
-          else if (!is_hq_pass || m_has_auxiliary_coverage_buffer)
-            {
-              return_value.shader(e_tp, e_sh, create_stroke_item_shader(cap_style, e_tp, e_sh));
-            }
-        }
+  if (cap_style == PainterEnums::number_cap_styles)
+    {
+      return_value
+        .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_linear);
+    }
+  else
+    {
+      return_value
+        .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_arc);
     }
 
   return_value
-    .fastest_non_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
-    .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_arc)
-    .fastest_anti_aliasing(PainterEnums::stroking_method_linear, m_fastest_anti_alias_mode)
-    .fastest_anti_aliasing(PainterEnums::stroking_method_arc, m_fastest_anti_alias_mode);
+    .fastest_anti_aliased_stroking_method(PainterEnums::stroking_method_arc);
 
   return return_value;
 }
@@ -797,38 +726,6 @@ create_fill_shader(void)
                                                                 ShaderSource::from_resource),
                                                     varying_list());
 
-  uber_fuzz_shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                                         ShaderSource()
-                                                         .add_macros(m_fill_macros)
-                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
-                                                                     ShaderSource::from_resource)
-                                                         .remove_macros(m_fill_macros),
-                                                         ShaderSource()
-                                                         .add_macros(m_fill_macros)
-                                                         .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
-                                                                     ShaderSource::from_resource)
-                                                         .remove_macros(m_fill_macros),
-                                                         varying_list().add_float_varying("fastuidraw_aa_fuzz"),
-                                                         fill_aa_fuzz_number_passes);
-
-  fill_shader
-    .fastest_anti_alias_mode(m_fastest_anti_alias_mode)
-    .item_shader(item_shader);
-
-  if (m_has_auxiliary_coverage_buffer)
-    {
-      reference_counted_ptr<PainterItemShader> pass1, pass2;
-
-      pass1 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_pass1);
-      pass2 = FASTUIDRAWnew PainterItemShader(uber_fuzz_shader, fill_aa_fuzz_pass2);
-
-      fill_shader
-        .aa_fuzz_immediate_coverage_pass1(pass1)
-        .aa_fuzz_immediate_coverage_pass2(pass2)
-        .aa_fuzz_immediate_coverage_action_pass1(m_flush_immediate_coverage_buffer_between_draws)
-        .aa_fuzz_immediate_coverage_action_pass2(m_flush_immediate_coverage_buffer_between_draws);
-    }
-
   /* the aa-fuzz shader via deferred coverage is not a part of the uber-fuzz shader */
   aa_fuzz_deferred_coverage =
     FASTUIDRAWnew PainterItemCoverageShaderGLSL(ShaderSource()
@@ -865,7 +762,10 @@ create_fill_shader(void)
                                         varying_list().add_float_varying("fastuidraw_aa_fuzz"),
                                         aa_fuzz_deferred_coverage);
 
-  fill_shader.aa_fuzz_deferred_coverage(aa_fuzz_deferred);
+
+  fill_shader
+    .item_shader(item_shader)
+    .aa_fuzz_shader(aa_fuzz_deferred);
 
   return fill_shader;
 }

@@ -26,12 +26,7 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_item_shader;
-    enum fastuidraw::PainterEnums::shader_anti_alias_t m_fastest_anti_alias_mode;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_deferred_coverage;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_immediate_coverage_pass1;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_immediate_coverage_pass2;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_fuzz_immediate_coverage_action_pass1;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_fuzz_immediate_coverage_action_pass2;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_shader;
   };
 }
 
@@ -64,27 +59,4 @@ assign_swap_implement(fastuidraw::PainterFillShader)
 setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
 setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
-                 enum fastuidraw::PainterEnums::shader_anti_alias_t,
-                 fastest_anti_alias_mode);
-setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
-                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_deferred_coverage)
-setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
-                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_immediate_coverage_pass1)
-setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
-                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_immediate_coverage_pass2)
-setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
-                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
-                 aa_fuzz_immediate_coverage_action_pass1)
-setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
-                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
-                 aa_fuzz_immediate_coverage_action_pass2)
-
-bool
-fastuidraw::PainterFillShader::
-aa_fuzz_shader_immediate_coverage_supported(void) const
-{
-  PainterFillShaderPrivate *d;
-  d = static_cast<PainterFillShaderPrivate*>(m_d);
-  return d->m_aa_fuzz_immediate_coverage_pass1
-    && d->m_aa_fuzz_immediate_coverage_pass2;
-}
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)

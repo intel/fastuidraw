@@ -83,10 +83,8 @@ namespace fastuidraw
     register_shader(const PainterStrokeShader &p);
 
     /*!
-     * Provided as a conveniance, equivalent to
-     * \code
-     * register_shader(p.fill_shader());
-     * \endcode
+     * Provided as a conveniance, registers each of the
+     * shaders within a \ref PainterFillShader.
      * \param p PainterFillShader hold shaders to register
      */
     void
