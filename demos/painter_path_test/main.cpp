@@ -516,9 +516,9 @@ private:
 
   float m_miter_limit, m_stroke_width;
   unsigned int m_draw_fill;
-  enum Painter::shader_anti_alias_t m_aa_stroke_mode;
+  bool m_aa_stroke_mode;
   enum Painter::stroking_method_t m_stroking_mode;
-  enum Painter::shader_anti_alias_t m_aa_fill_mode;
+  bool m_aa_fill_mode;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
   unsigned int m_image_filter;
@@ -697,9 +697,9 @@ painter_stroke_test(void):
   m_miter_limit(5.0f),
   m_stroke_width(10.0f),
   m_draw_fill(draw_fill_path),
-  m_aa_stroke_mode(Painter::shader_anti_alias_adaptive),
+  m_aa_stroke_mode(true),
   m_stroking_mode(Painter::stroking_method_fastest),
-  m_aa_fill_mode(Painter::shader_anti_alias_adaptive),
+  m_aa_fill_mode(true),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_image_filter(image_nearest_filter),
@@ -1405,24 +1405,17 @@ handle_event(const SDL_Event &ev)
         case SDLK_u:
           if (m_draw_fill != dont_draw_fill_path)
             {
-              cycle_value(m_aa_fill_mode,
-                          ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                          Painter::number_shader_anti_alias);
+              m_aa_fill_mode = !m_aa_fill_mode;
               std::cout << "Filling anti-alias mode set to: "
-                        << Painter::label(m_aa_fill_mode)
-                        << "\n";
+                        << on_off(m_aa_fill_mode) << "\n";
             }
           break;
 
         case SDLK_a:
           if (m_stroke_width > 0.0f)
             {
-              cycle_value(m_aa_stroke_mode,
-                          ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                          Painter::number_shader_anti_alias);
-              std::cout << "Stroking anti-alias mode set to: "
-                        << Painter::label(m_aa_stroke_mode)
-                        << "\n";
+              m_aa_stroke_mode = !m_aa_stroke_mode;
+              std::cout << on_off(m_aa_stroke_mode) << "\n";
             }
           break;
 
@@ -1698,7 +1691,7 @@ draw_scene(bool drawing_wire_frame)
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
                              StrokingStyle()
                              .join_style(Painter::miter_clip_joins),
-                             Painter::shader_anti_alias_none);
+                             false);
       m_painter->restore();
       m_painter->clip_in_rect(Rect()
                               .min_point(clipping_xy())
@@ -2057,7 +2050,7 @@ draw_frame(void)
                              StrokingStyle()
                              .cap_style(Painter::flat_caps)
                              .join_style(Painter::no_joins),
-                             Painter::shader_anti_alias_none);
+                             false);
     }
 
   m_pixel_matrix = m_painter->transformation();
@@ -2110,8 +2103,8 @@ draw_frame(void)
 
       if (m_stroke_width > 0.0f)
         {
-          ostr << "\n\t[a]AA-Stroking mode:" << Painter::label(m_aa_stroke_mode)
-	       << "\n\t[v]Stroke by: " << Painter::label(m_stroking_mode)
+          ostr << "\n\t[a]AA-Stroking mode:" << on_off(m_aa_stroke_mode)
+	       << "\n\t[v]Stroke by: " << m_stroking_mode
                << "\n\tStroke Width: " << m_stroke_width;
           if (m_stroke_width_in_pixels)
             {
@@ -2158,7 +2151,7 @@ draw_frame(void)
             {
               if (m_fill_by_mode == fill_by_filled_path)
                 {
-                  ostr << "\n\t[u]AA-Filling mode: " << Painter::label(m_aa_fill_mode);
+                  ostr << "\n\t[u]AA-Filling mode: " << on_off(m_aa_fill_mode);
                 }
 
               ostr << "\n\t[f]Fill Mode: " << m_draw_fill_labels[m_draw_fill]

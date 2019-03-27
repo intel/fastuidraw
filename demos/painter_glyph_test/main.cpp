@@ -234,7 +234,7 @@ private:
   unsigned int m_glyph_texel_page;
 
   bool m_stroke_glyphs, m_fill_glyphs, m_draw_path_pts;
-  enum Painter::shader_anti_alias_t m_anti_alias_path_stroking, m_anti_alias_path_filling;
+  bool m_anti_alias_path_stroking, m_anti_alias_path_filling;
   enum Painter::stroking_method_t m_stroking_method;
   bool m_pixel_width_stroking;
   bool m_draw_stats, m_draw_restricted_rays_box_slack;
@@ -546,8 +546,8 @@ painter_glyph_test(void):
   m_stroke_glyphs(false),
   m_fill_glyphs(false),
   m_draw_path_pts(false),
-  m_anti_alias_path_stroking(Painter::shader_anti_alias_none),
-  m_anti_alias_path_filling(Painter::shader_anti_alias_none),
+  m_anti_alias_path_stroking(false),
+  m_anti_alias_path_filling(false),
   m_stroking_method(Painter::stroking_method_fastest),
   m_pixel_width_stroking(false),
   m_draw_stats(false),
@@ -1181,7 +1181,7 @@ draw_glyphs(float us)
       if (m_fill_glyphs)
         {
           ostr << "\nFilling Glyphs (anti-aliasing = "
-               << Painter::label(m_anti_alias_path_filling) << ")";
+               << on_off(m_anti_alias_path_filling) << ")";
         }
       else
         {
@@ -1191,9 +1191,9 @@ draw_glyphs(float us)
       if (m_stroke_glyphs)
         {
           ostr << "\nStroking Glyphs\n\tanti-aliasing = "
-               << Painter::label(m_anti_alias_path_stroking)
+               << on_off(m_anti_alias_path_stroking)
                << "\n\tstroking_method = "
-               << Painter::label(m_stroking_method)
+               << on_off(m_stroking_method)
                << "\n\tpixel_width_stroking = "
                << on_off(m_pixel_width_stroking);
         }
@@ -1468,13 +1468,9 @@ handle_event(const SDL_Event &ev)
         case SDLK_w:
           if (m_stroke_glyphs)
             {
-              int v(m_anti_alias_path_stroking);
-
-              cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
-                          Painter::number_shader_anti_alias);
-              m_anti_alias_path_stroking = static_cast<enum Painter::shader_anti_alias_t>(v);
+              m_anti_alias_path_stroking = !m_anti_alias_path_stroking;
               std::cout << "Anti-aliasing of path stroking set to "
-                        << Painter::label(m_anti_alias_path_stroking)
+                        << on_off(m_anti_alias_path_stroking)
                         << "\n";
             }
           break;
@@ -1546,13 +1542,9 @@ handle_event(const SDL_Event &ev)
         case SDLK_q:
           if (m_fill_glyphs)
             {
-              int v(m_anti_alias_path_filling);
-
-              cycle_value(v, ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT),
-                          Painter::number_shader_anti_alias);
-              m_anti_alias_path_filling = static_cast<enum Painter::shader_anti_alias_t>(v);
+              m_anti_alias_path_filling = !m_anti_alias_path_filling;
               std::cout << "Anti-aliasing of path fill set to "
-                        << Painter::label(m_anti_alias_path_filling)
+                        << on_off(m_anti_alias_path_filling)
                         << "\n";
             }
           break;

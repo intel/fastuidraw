@@ -21,7 +21,7 @@ public:
     m_rotating(false),
     m_stroke_width(10.0f),
     m_pause(false),
-    m_anti_alias_stroking(Painter::shader_anti_alias_fastest),
+    m_anti_alias_stroking(true),
     m_cells_drawn(0),
     m_draw_transparent(false),
     m_rect_blend_mode(Painter::blend_porter_duff_src_over)
@@ -34,7 +34,7 @@ public:
   float m_stroke_width;
   bool m_pause;
   bool m_draw_transparent;
-  Painter::shader_anti_alias_t m_anti_alias_stroking;
+  bool m_anti_alias_stroking;
 
   int m_cells_drawn;
   enum Painter::blend_mode_t m_rect_blend_mode;

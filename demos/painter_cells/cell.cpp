@@ -137,7 +137,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   painter->save();
   painter->fill_rect(PainterData(m_background_brush),
                      Rect().size(m_dimensions),
-                     Painter::shader_anti_alias_none);
+                     false);
 
   painter->translate(m_item_location);
   painter->rotate(m_item_rotation);
@@ -158,7 +158,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
       painter->blend_shader(m_shared_state->m_rect_blend_mode);
       painter->fill_rect(PainterData(m_image_brush),
                          Rect().size(wh),
-                         Painter::shader_anti_alias_none);
+                         false);
       painter->restore();
     }
 

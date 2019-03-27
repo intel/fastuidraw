@@ -130,7 +130,7 @@ private:
   unsigned int m_path1_clip_mode, m_path2_clip_mode;
   unsigned int m_combine_clip_mode, m_rounded_rect_mode;
   unsigned int m_active_transformer;
-  enum Painter::shader_anti_alias_t m_aa_mode;
+  bool m_aa_mode;
   vecN<Transformer, number_transformers> m_transformers;
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_transformers> m_transformer_labels;
@@ -160,7 +160,7 @@ painter_clip_test():
   m_combine_clip_mode(separate_clipping),
   m_rounded_rect_mode(no_clip),
   m_active_transformer(view_transformer),
-  m_aa_mode(Painter::shader_anti_alias_adaptive),
+  m_aa_mode(true),
   m_show_surface(0),
   m_last_shown_surface(0)
 {
@@ -246,12 +246,8 @@ handle_event(const SDL_Event &ev)
           std::cout << "Rounded rect mode set to: " << m_clip_labels[m_rounded_rect_mode] << "\n";
           break;
         case SDLK_u:
-          cycle_value(m_aa_mode,
-                      ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT),
-                      Painter::number_shader_anti_alias);
-          std::cout << "RoundedRect drawing anti-alias mode set to: "
-                    << Painter::label(m_aa_mode)
-                    << "\n";
+          m_aa_mode = !m_aa_mode;
+          std::cout << "RoundedRect drawing anti-alias mode set to: " << m_aa_mode << "\n";
           break;
 
         case SDLK_o:
