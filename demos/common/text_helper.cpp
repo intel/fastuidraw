@@ -371,13 +371,16 @@ create_formatted_textT(T &out_sequence,
   unsigned int loc(0);
   fastuidraw::vec2 pen(starting_place);
   std::string line, original_line;
-  float last_negative_tallest(0.0f);
   bool first_line(true);
+  float pen_y_advance, ratio;
 
   current_position = istr.tellg();
   istr.seekg(0, std::ios::end);
   end_position = istr.tellg();
   istr.seekg(current_position, std::ios::beg);
+
+  ratio = pixel_size / font->metrics().units_per_EM();
+  pen_y_advance = ratio * font->metrics().height();
 
   std::vector<fastuidraw::GlyphSource> glyph_sources;
   std::vector<fastuidraw::vec2> sub_p;
@@ -387,13 +390,9 @@ create_formatted_textT(T &out_sequence,
     {
       fastuidraw::c_array<uint32_t> sub_ch;
       fastuidraw::c_array<fastuidraw::range_type<float> > sub_extents;
-      float tallest, negative_tallest, offset;
       bool empty_line;
-      float pen_y_advance;
 
       empty_line = true;
-      tallest = 0.0f;
-      negative_tallest = 0.0f;
 
       original_line = line;
       preprocess_text(line);
@@ -409,57 +408,22 @@ create_formatted_textT(T &out_sequence,
           sub_p[i] = pen;
           if (glyph_sources[i].m_font)
             {
-              float ratio;
-
-              ratio = pixel_size / metrics[i].units_per_EM();
-
               empty_line = false;
               pen.x() += ratio * metrics[i].advance().x();
-
-              tallest = std::max(tallest, ratio * (metrics[i].horizontal_layout_offset().y() + metrics[i].size().y()));
-              negative_tallest = std::min(negative_tallest, ratio * metrics[i].horizontal_layout_offset().y());
             }
-        }
-
-      if (empty_line)
-        {
-          pen_y_advance = pixel_size + 1.0f;
-          offset = 0.0f;
-        }
-      else
-        {
-          if (orientation == fastuidraw::Painter::y_increases_downwards)
-            {
-              float v;
-
-              v = tallest - last_negative_tallest;
-              offset = (first_line) ? 0 : v;
-              pen_y_advance = (first_line) ? 0 : v;
-            }
-          else
-            {
-              pen_y_advance = tallest - negative_tallest;
-              offset = (first_line) ? 0 : -negative_tallest;
-            }
-        }
-
-      for(unsigned int i = 0; i < sub_p.size(); ++i)
-        {
-          sub_p[i].y() += offset;
         }
 
       if (orientation == fastuidraw::Painter::y_increases_downwards)
         {
-          pen.y() += pen_y_advance + 1.0f;
+          pen.y() += pen_y_advance;
         }
       else
         {
-          pen.y() -= pen_y_advance + 1.0f;
+          pen.y() -= pen_y_advance;
         }
 
       pen.x() = starting_place.x();
       loc += line.length();
-      last_negative_tallest = negative_tallest;
       first_line = false;
 
       out_sequence.add_glyphs(const_cast_c_array(glyph_sources),
