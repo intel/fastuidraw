@@ -44,5 +44,5 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       cvg = 1.0 - cvg;
     }
 
-  return vec4(1.0, 1.0, 1.0, cvg);
+  return vec4(cvg);
 }

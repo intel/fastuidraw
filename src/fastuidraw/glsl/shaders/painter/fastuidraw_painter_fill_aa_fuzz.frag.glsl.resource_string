@@ -25,7 +25,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 {
   #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER) && defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {
-      return vec4(1.0, 1.0, 1.0, fastuidraw_read_deferred_coverage_buffer);
+      return vec4(fastuidraw_read_deferred_coverage_buffer);
     }
   #elif defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {

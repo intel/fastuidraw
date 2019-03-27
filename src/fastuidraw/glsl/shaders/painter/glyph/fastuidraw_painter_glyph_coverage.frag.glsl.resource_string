@@ -52,5 +52,5 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   texel = mix(f0, f1, mixer.x);
   coverage = float(texel) / 255.0;
 
-  return vec4(1.0, 1.0, 1.0, coverage);
+  return vec4(coverage);
 }

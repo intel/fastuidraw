@@ -335,8 +335,8 @@ namespace fastuidraw
      *
      * which returns the color of the fragment for the item -before-
      * the color modulation by the pen, brush or having blending
-     * applied. In addition, the color value returned is NOT
-     * pre-multiplied by alpha either.
+     * applied. In addition, the color value returned MUST be
+     * pre-multiplied by alpha.
      *
      * Available to only the vertex shader are the following:
      *  - mat3 fastuidraw_item_matrix (the 3x3 matrix from item coordinate to clip coordinates)

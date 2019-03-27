@@ -120,12 +120,10 @@ main(void)
       if (fastuidraw_blend_shader_data_location != FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
         {
           /* The standard canvas pipeline emits pre-multiplied alpha surfaces;
-           * the output of fastuidraw_run_frag_shader is NOT pre-mutiplied
-           * but the brush is.
+           * the output of fastuidraw_run_frag_shader and the brush are also
+           * pre-multiplied by alpha.
            */
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
-          c.rgb *= c.a;
-
           b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
           v = b * c;
         }

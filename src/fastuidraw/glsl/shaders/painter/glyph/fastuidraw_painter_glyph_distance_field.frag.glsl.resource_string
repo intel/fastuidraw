@@ -53,5 +53,5 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   dist = 2.0 * texel - 1.0;
   coverage = fastuidraw_anisotropic_coverage(dist, dFdx(dist), dFdy(dist));
-  return vec4(1.0, 1.0, 1.0, coverage);
+  return vec4(coverage);
 }
