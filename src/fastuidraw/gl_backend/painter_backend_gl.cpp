@@ -2025,8 +2025,8 @@ on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
   d->m_uniform_ubo_ready = false;
   d->m_current_external_texture = 0;
   d->m_current_coverage_buffer_texture = 0;
-  d->m_draw_state.on_pre_draw(d);
   d->clear_buffers_of_current_surface(begin_new_target, clear_color_buffer);
+  d->m_draw_state.on_pre_draw(d);
 }
 
 void
