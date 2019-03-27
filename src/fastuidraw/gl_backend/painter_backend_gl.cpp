@@ -212,6 +212,7 @@ namespace
     DrawState m_draw_state;
     fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL::CachedItemPrograms> m_cached_item_programs;
+    fastuidraw::vecN<enum fastuidraw::gl::PainterBackendGL::program_type_t, 2> m_choose_uber_program;
 
     fastuidraw::gl::PainterBackendGL *m_p;
   };
@@ -462,9 +463,7 @@ on_pre_draw(PainterBackendGLPrivate *pr, GLuint current_fbo)
       enum PainterBackendGL::program_type_t pz;
 
       m_blend_type = pr->m_reg_gl->params().preferred_blend_type();
-      pz = (pr->m_reg_gl->params().separate_program_for_discard()) ?
-        PainterBackendGL::program_without_discard :
-        PainterBackendGL::program_all;
+      pz = pr->m_choose_uber_program[false];
       m_current_program = pr->m_cached_programs.program(m_blend_type, pz).get();
     }
   else
@@ -834,16 +833,7 @@ draw_break(enum fastuidraw::PainterSurface::render_type_t render_type,
           if (render_type == PainterSurface::color_buffer_type)
             {
               enum PainterBackendGL::program_type_t pz;
-              if (m_pr->m_reg_gl->params().separate_program_for_discard())
-                {
-                  pz = (new_disc != 0u) ?
-                    PainterBackendGL::program_with_discard :
-                    PainterBackendGL::program_without_discard;
-                }
-              else
-                {
-                  pz = PainterBackendGL::program_all;
-                }
+              pz = m_pr->m_choose_uber_program[new_disc != 0u];
               new_program = m_pr->m_cached_programs.program(pz, new_blend_type).get();
             }
           else
@@ -1010,6 +1000,17 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
     {
       m_cached_item_programs = FASTUIDRAWnew PainterShaderRegistrarGL::CachedItemPrograms(m_reg_gl);
     }
+
+  if (m_reg_gl->params().separate_program_for_discard())
+    {
+      m_choose_uber_program[false] = PainterBackendGL::program_without_discard;
+      m_choose_uber_program[true] = PainterBackendGL::program_with_discard;
+    }
+  else
+    {
+      m_choose_uber_program[false] = m_choose_uber_program[true] = PainterBackendGL::program_all;
+    }
+
   m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(),
                                           m_reg_gl->tex_buffer_support(),
                                           m_binding_points.m_data_store_buffer_binding);
