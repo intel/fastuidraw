@@ -119,7 +119,13 @@ main(void)
 
       if (fastuidraw_blend_shader_data_location != FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
         {
+          /* The standard canvas pipeline emits pre-multiplied alpha surfaces;
+           * the output of fastuidraw_run_frag_shader is NOT pre-mutiplied
+           * but the brush is.
+           */
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
+          c.rgb *= c.a;
+
           b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
           v = b * c;
         }
@@ -129,9 +135,6 @@ main(void)
           discard_color_write = true;
         }
     }
-
-  // The standard canvas pipeline emits pre-multiplied alpha surfaces
-  v.rgb *= v.a;
 
   #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
     {

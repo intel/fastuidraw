@@ -478,6 +478,10 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       return_value *= (good * fastuidraw_colorStopFetch(t, fastuidraw_brush_color_stop_y));
     }
 
+  /* apply alpha before doing image because image will multiply
+   * pre-multiplied alpha value
+   */
+  return_value.rgb *= return_value.a;
   if (fastuidraw_brush_shader_has_image(fastuidraw_brush_shader))
     {
       uint image_filter, image_type, mipmap_max_level;
@@ -531,15 +535,10 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
        * We get away with this for now because there are only two
        * image-formats: rgba and premultiplied_rgba with a non-zero
        * value indicateing that the rgb components are pre-multiplied.
-       *
-       * TODO: it would be better if the PainterBrush emitted a pre-multiplied
-       * value; however the blending stage (not the blending stage) needs
-       * to work in non-premultiplied or does it really need to?
        */
-      if (image_color.a != 0.0
-          && ((fastuidraw_brush_shader & fastuidraw_image_format_mask) != 0u))
+      if ((fastuidraw_brush_shader & fastuidraw_image_format_mask) == 0u)
 	{
-	  image_color.rgb /= image_color.a;
+	  image_color.rgb *= image_color.a;
 	}
 
       return_value *= image_color;
