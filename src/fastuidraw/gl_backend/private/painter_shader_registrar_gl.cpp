@@ -620,6 +620,13 @@ build_program_of_item_shader(unsigned int shader, bool allow_discard,
       return nullptr;
     }
 
+  if (m_params.clipping_type() != clipping_via_gl_clip_distance && !allow_discard)
+    {
+      allow_discard = !(blend_type == PainterBlendShader::framebuffer_fetch
+                        && m_params.fbf_blending_type() != PainterBackendGL::fbf_blending_not_supported
+                        && m_params.clipping_type() == clipping_via_skip_color_write);
+    }
+
   if (!allow_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
@@ -690,13 +697,21 @@ build_program(enum PainterBackendGL::program_type_t tp,
   ShaderSource vert, frag;
   program_ref return_value;
   c_string discard_macro;
+  bool allow_discard(tp != PainterBackendGL::program_without_discard);
 
   if (!blend_type_supported(blend_type))
     {
       return nullptr;
     }
 
-  if (tp == PainterBackendGL::program_without_discard)
+  if (m_params.clipping_type() != clipping_via_gl_clip_distance && !allow_discard)
+    {
+      allow_discard = !(blend_type == PainterBlendShader::framebuffer_fetch
+                        && m_params.fbf_blending_type() != PainterBackendGL::fbf_blending_not_supported
+                        && m_params.clipping_type() == clipping_via_skip_color_write);
+    }
+
+  if (!allow_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
