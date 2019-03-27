@@ -26,14 +26,6 @@ namespace fastuidraw { namespace gl { namespace detail {
 class SurfaceGLPrivate:noncopyable
 {
 public:
-  enum immediate_coverage_buffer_fmt_t
-    {
-      immediate_coverage_buffer_fmt_u8,
-      immediate_coverage_buffer_fmt_u32,
-
-      number_immediate_coverage_buffer_fmt_t
-    };
-
   explicit
   SurfaceGLPrivate(enum PainterSurface::render_type_t type,
                    GLuint texture, ivec2 dimensions);
@@ -43,18 +35,6 @@ public:
   static
   PainterBackendGL::SurfaceGL*
   surface_gl(const reference_counted_ptr<PainterSurface> &surface);
-
-  GLuint
-  immediate_coverage_buffer(enum immediate_coverage_buffer_fmt_t tp);
-
-  static
-  GLenum
-  auxiliaryBufferInternalFmt(enum immediate_coverage_buffer_fmt_t tp)
-  {
-    return tp == immediate_coverage_buffer_fmt_u8 ?
-      GL_R8 :
-      GL_R32UI;
-  }
 
   GLuint
   color_buffer(void)
@@ -88,9 +68,7 @@ private:
   GLuint
   buffer(enum buffer_t);
 
-  vecN<GLuint, number_immediate_coverage_buffer_fmt_t> m_immediate_coverage_buffer;
   vecN<GLuint, number_buffer_t> m_buffers;
-
   vecN<GLuint, 2> m_fbo;
   vecN<vecN<GLenum, 1>, 2> m_draw_buffer_values;
   vecN<c_array<const GLenum>, 2> m_draw_buffers;

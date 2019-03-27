@@ -91,7 +91,6 @@ namespace
     int m_external_texture_binding;
     int m_coverage_buffer_texture_binding;
     int m_uniforms_ubo_binding;
-    int m_immediate_coverage_image_buffer_binding;
     int m_color_interlock_image_buffer_binding;
   };
 
@@ -417,7 +416,6 @@ namespace
       m_preferred_blend_type(fastuidraw::PainterBlendShader::dual_src),
       m_fbf_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported),
       m_support_dual_src_blend_shaders(true),
-      m_provide_immediate_coverage_image_buffer(fastuidraw::gl::PainterBackendGL::no_immediate_coverage_buffer),
       m_use_uber_item_shader(true)
     {}
 
@@ -442,7 +440,6 @@ namespace
     enum fastuidraw::PainterBlendShader::shader_type m_preferred_blend_type;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t m_fbf_blending_type;
     bool m_support_dual_src_blend_shaders;
-    enum fastuidraw::gl::PainterBackendGL::immediate_coverage_buffer_t m_provide_immediate_coverage_image_buffer;
     bool m_use_uber_item_shader;
 
     std::string m_glsl_version_override;
@@ -1002,7 +999,6 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_binding_points.m_glyph_atlas_store_binding = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding();
   m_binding_points.m_glyph_atlas_store_binding_fp16 = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding_fp16x2();
   m_binding_points.m_data_store_buffer_binding = m_reg_gl->uber_shader_builder_params().data_store_buffer_binding();
-  m_binding_points.m_immediate_coverage_image_buffer_binding = m_reg_gl->uber_shader_builder_params().immediate_coverage_image_buffer_binding();
   m_binding_points.m_color_interlock_image_buffer_binding = m_reg_gl->uber_shader_builder_params().color_interlock_image_buffer_binding();
   m_binding_points.m_external_texture_binding = m_reg_gl->uber_shader_builder_params().external_texture_binding();
   m_binding_points.m_coverage_buffer_texture_binding = m_reg_gl->uber_shader_builder_params().coverage_buffer_texture_binding();
@@ -1037,7 +1033,6 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
 
-  enum PainterBackendGL::immediate_coverage_buffer_t aux_type;
   bool supports_bindless;
 
   supports_bindless = ctx.has_extension("GL_ARB_bindless_texture")
@@ -1075,38 +1070,9 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     .glyph_data_backing(params.glyph_atlas()->param_values().glyph_data_backing_store_type())
     .glyph_data_backing_log2_dims(params.glyph_atlas()->param_values().texture_2d_array_store_log2_dims())
     .colorstop_atlas_backing(colorstop_tp)
-    .provide_immediate_coverage_image_buffer(params.provide_immediate_coverage_image_buffer())
     .use_uvec2_for_bindless_handle(ctx.has_extension("GL_ARB_bindless_texture"));
 
-  reference_counted_ptr<const PainterDraw::Action> q;
-
-  aux_type = params.provide_immediate_coverage_image_buffer();
-  if (aux_type == PainterBackendGL::immediate_coverage_buffer_atomic)
-    {
-      bool use_by_region;
-
-      #ifdef FASTUIDRAW_GL_USE_GLES
-        {
-          use_by_region = true;
-        }
-      #else
-        {
-          use_by_region = ctx.version() >= ivec2(4, 5)
-            || ctx.has_extension("GL_ARB_ES3_1_compatibility");
-        }
-      #endif
-
-      if (use_by_region)
-        {
-          q = FASTUIDRAWnew ImageBarrierByRegion();
-        }
-      else
-        {
-          q = FASTUIDRAWnew ImageBarrier();
-        }
-    }
-
-  out_shaders = out_params.default_shaders(aux_type != PainterBackendGL::no_immediate_coverage_buffer, q);
+  out_shaders = out_params.default_shaders();
 }
 
 void
@@ -1145,8 +1111,6 @@ set_gl_state(RenderTargetState prev_state,
   using namespace fastuidraw::gl;
   using namespace fastuidraw::glsl;
 
-  const PainterBackendGL::UberShaderParams &uber_params(m_reg_gl->uber_shader_builder_params());
-  enum PainterBackendGL::immediate_coverage_buffer_t aux_type;
   enum PainterBackendGL::fbf_blending_type_t fbf_blending_type;
   const PainterSurface::Viewport &vwp(m_surface_gl->m_viewport);
   ivec2 dimensions(m_surface_gl->m_dimensions);
@@ -1155,7 +1119,6 @@ set_gl_state(RenderTargetState prev_state,
 
   if (m_surface_gl->m_render_type == PainterSurface::color_buffer_type)
     {
-      aux_type = uber_params.provide_immediate_coverage_image_buffer();
       fbf_blending_type = m_reg_gl->params().fbf_blending_type();
 
       FASTUIDRAWassert(blend_type != PainterBlendShader::number_types);
@@ -1163,17 +1126,11 @@ set_gl_state(RenderTargetState prev_state,
         (blend_type == PainterBlendShader::framebuffer_fetch
          && fbf_blending_type == PainterBackendGL::fbf_blending_interlock);
 
-      has_images = (aux_type != PainterBackendGL::no_immediate_coverage_buffer
-                    || return_value.m_color_buffer_as_image);
+      has_images = return_value.m_color_buffer_as_image;
 
     }
   else
     {
-      /* When rendering to a deferred coverage buffer, there is
-       * no immediate coverage buffer, no (real) blending,
-       * no depth buffer and no images.
-       */
-      aux_type = PainterBackendGL::no_immediate_coverage_buffer;
       fbf_blending_type = PainterBackendGL::fbf_blending_not_supported;
       has_images = false;
       return_value.m_color_buffer_as_image = false;
@@ -1213,29 +1170,24 @@ set_gl_state(RenderTargetState prev_state,
       v |= gpu_dirty_state::viewport_scissor;
     }
 
-  if ((v & gpu_dirty_state::images) != 0 && has_images)
+  if (fbf_blending_type == PainterBackendGL::fbf_blending_interlock
+      && ((v & gpu_dirty_state::images) != 0
+          || return_value.m_color_buffer_as_image != prev_state.m_color_buffer_as_image))
     {
-      if (aux_type != PainterBackendGL::no_immediate_coverage_buffer)
-        {
-          gl::detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_t tp;
-
-          tp = (aux_type == gl::PainterBackendGL::immediate_coverage_buffer_atomic) ?
-            gl::detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u32 :
-            gl::detail::SurfaceGLPrivate::immediate_coverage_buffer_fmt_u8;
-
-          fastuidraw_glBindImageTexture(m_binding_points.m_immediate_coverage_image_buffer_binding,
-                                        m_surface_gl->immediate_coverage_buffer(tp), //texture
-                                        0, //level
-                                        GL_FALSE, //layered
-                                        0, //layer
-                                        GL_READ_WRITE, //access
-                                        gl::detail::SurfaceGLPrivate::auxiliaryBufferInternalFmt(tp));
-        }
-
       if (return_value.m_color_buffer_as_image)
         {
           fastuidraw_glBindImageTexture(m_binding_points.m_color_interlock_image_buffer_binding,
                                         m_surface_gl->color_buffer(), //texture
+                                        0, //level
+                                        GL_FALSE, //layered
+                                        0, //layer
+                                        GL_READ_WRITE, //access
+                                        GL_RGBA8);
+        }
+      else
+        {
+          fastuidraw_glBindImageTexture(m_binding_points.m_color_interlock_image_buffer_binding,
+                                        0, //texture
                                         0, //level
                                         GL_FALSE, //layered
                                         0, //layer
@@ -1575,9 +1527,6 @@ configure_from_context(bool choose_optimal_rendering_quality,
    */
   d->m_separate_program_for_discard = true;
 
-  d->m_provide_immediate_coverage_image_buffer =
-    compute_provide_immediate_coverage_buffer(immediate_coverage_buffer_interlock, ctx);
-
   /* Adjust blending type from GL context properties */
   d->m_fbf_blending_type =
     compute_fbf_blending_type(interlock_type, fbf_blending_framebuffer_fetch, ctx);
@@ -1735,9 +1684,6 @@ adjust_for_context(const ContextProperties &ctx)
     }
 
   interlock_type = compute_interlock_type(ctx);
-  d->m_provide_immediate_coverage_image_buffer =
-    compute_provide_immediate_coverage_buffer(d->m_provide_immediate_coverage_image_buffer, ctx);
-
   d->m_fbf_blending_type = compute_fbf_blending_type(interlock_type, d->m_fbf_blending_type, ctx);
   d->m_preferred_blend_type = compute_preferred_blending_type(d->m_fbf_blending_type,
                                                               d->m_preferred_blend_type,
@@ -1871,9 +1817,6 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
                  enum fastuidraw::gl::PainterBackendGL::fbf_blending_type_t, fbf_blending_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, support_dual_src_blend_shaders)
-setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendGL::immediate_coverage_buffer_t,
-                 provide_immediate_coverage_image_buffer)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_uber_item_shader)
 
@@ -2042,7 +1985,6 @@ on_post_draw(void)
   fastuidraw_glUseProgram(0);
   fastuidraw_glBindVertexArray(0);
 
-  const UberShaderParams &uber_params(d->m_reg_gl->uber_shader_builder_params());
   const ConfigurationGL &params(d->m_reg_gl->params());
 
   fastuidraw_glActiveTexture(GL_TEXTURE0 + d->m_binding_points.m_image_atlas_color_tiles_nearest_binding);
@@ -2073,14 +2015,6 @@ on_post_draw(void)
 
   fastuidraw_glActiveTexture(GL_TEXTURE0 + d->m_binding_points.m_colorstop_atlas_binding);
   fastuidraw_glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
-
-  enum immediate_coverage_buffer_t aux_type;
-  aux_type = uber_params.provide_immediate_coverage_image_buffer();
-  if (aux_type != PainterBackendGL::no_immediate_coverage_buffer)
-    {
-      fastuidraw_glBindImageTexture(d->m_binding_points.m_immediate_coverage_image_buffer_binding, 0,
-                                    0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
-    }
 
   if (params.fbf_blending_type() == fbf_blending_interlock)
     {

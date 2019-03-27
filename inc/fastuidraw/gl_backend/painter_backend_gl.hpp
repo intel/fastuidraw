@@ -433,22 +433,6 @@ namespace fastuidraw
         fbf_blending_type(enum fbf_blending_type_t tp);
 
         /*!
-         * If true, provide an image2D (of type r8) uniform to
-         * which to write coverage value for multi-pass shaders
-         * (in particular shader based ant-aliased stroking).
-         * Default value is \ref no_immediate_coverage_buffer.
-         */
-        enum immediate_coverage_buffer_t
-        provide_immediate_coverage_image_buffer(void) const;
-
-        /*!
-         * Set the value returned by
-         * provide_immediate_coverage_image_buffer(void) const.
-         */
-        ConfigurationGL&
-        provide_immediate_coverage_image_buffer(enum immediate_coverage_buffer_t);
-
-        /*!
          * If a non-empty string, gives the GLSL version to be used
          * by the uber-shaders. This value is (string) maxed with
          * the computed GLSL version that is needed from the values

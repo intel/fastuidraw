@@ -542,21 +542,15 @@ build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
 //////////////////////////////////////////
 // ShaderSetCreator methods
 ShaderSetCreator::
-ShaderSetCreator(bool has_auxiliary_coverage_buffer,
-                 enum PainterBlendShader::shader_type preferred_blending_type,
-                 enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type,
-                 const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws):
+ShaderSetCreator(enum PainterBlendShader::shader_type preferred_blending_type,
+                 enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type):
   BlendShaderSetCreator(preferred_blending_type, fbf_type),
-  StrokeShaderCreator(),
-  m_has_auxiliary_coverage_buffer(has_auxiliary_coverage_buffer),
-  m_flush_immediate_coverage_buffer_between_draws(flush_immediate_coverage_buffer_between_draws)
+  StrokeShaderCreator()
 {
   m_fill_macros
     .add_macro("fastuidraw_aa_fuzz_type_on_path", uint32_t(FilledPath::Subset::aa_fuzz_type_on_path))
     .add_macro("fastuidraw_aa_fuzz_type_on_boundary", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary))
-    .add_macro("fastuidraw_aa_fuzz_type_on_boundary_miter", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary_miter))
-    .add_macro("fastuidraw_aa_fuzz_pass1", uint32_t(fill_aa_fuzz_pass1))
-    .add_macro("fastuidraw_aa_fuzz_pass2", uint32_t(fill_aa_fuzz_pass2));
+    .add_macro("fastuidraw_aa_fuzz_type_on_boundary_miter", uint32_t(FilledPath::Subset::aa_fuzz_type_on_boundary_miter));
 
   m_common_glyph_attribute_macros
     .add_macro_float("fastuidraw_restricted_rays_glyph_coord_value", GlyphRenderDataRestrictedRays::glyph_coord_value)

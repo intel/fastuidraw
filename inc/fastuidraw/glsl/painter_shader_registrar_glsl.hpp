@@ -184,54 +184,6 @@ namespace fastuidraw
         };
 
       /*!
-       * Enumeration to describe immediate auxiliary buffer support;
-       * An immediate auxiliary buffer is available only to \ref
-       * PainterItemShader shaders whose PainterItemShader::render_type()
-       * has value PainterItemShader::color_buffer_type(). The
-       * immediate auxiliary buffer is used for multi-pass algorithms
-       * where a first pass writes a coverage value and the second
-       * reads and clears the coverage value to do shader-based
-       * anti-aliasing.
-       */
-      enum immediate_coverage_buffer_t
-        {
-          /*!
-           * No auxiliary buffer is present
-           */
-          no_immediate_coverage_buffer,
-
-          /*!
-           * Auxiliary buffer is realized by atomic operations;
-           * To guarantee ordering between computing coverage
-           * and using coverage a backend must intert a memory
-           * barrier at the API level between such passed
-           * (for example in GL, glMemoryBarrier()).The buffer
-           * is realized as an "r32ui" image2D in the shader source.
-           */
-          immediate_coverage_buffer_atomic,
-
-          /*!
-           * Auxiliary buffer is present and ordering guarantees
-           * are implemented by an interlock that can be called
-           * in GLSL from any function and/or control flow. This
-           * allows for cover then draw methods to be performed
-           * WITHOUT any draw-breaks. The buffer is realized as
-           * an "r8" image2D in the shader source.
-           */
-          immediate_coverage_buffer_interlock,
-
-          /*!
-           * Auxiliary buffer is present and ordering guarantees
-           * are implemented by an interlock that can only be
-           * called in GLSL from main under NO conrol flow. This
-           * allows for cover then draw methods to be performed
-           * WITHOUT any draw-breaks. The buffer is realized as
-           * an "r8" image2D in the shader source.
-           */
-          immediate_coverage_buffer_interlock_main_only,
-        };
-
-      /*!
        * \brief
        * Enumeration to describe vertex shader input
        * slot layout.
@@ -571,26 +523,6 @@ namespace fastuidraw
         use_ubo_for_uniforms(bool);
 
         /*!
-         * If true, provide an image2D (of type r8) uniform to
-         * which to write coverage value for multi-pass shaders
-         * (in particular shader based ant-aliased stroking).
-         * Writing to the buffer should not be done, instead
-         * one should use the functions:
-         * - float fastuidraw_clear_immediate_coverage(void): clears the value to 0 and returns the old value
-         * - void fastuidraw_max_immediate_coverage(in float v): maxes the value with the passed value
-         */
-        enum immediate_coverage_buffer_t
-        provide_immediate_coverage_image_buffer(void) const;
-
-        /*!
-         * Set the value returned by
-         * provide_immediate_coverage_image_buffer(void) const.
-         * Default value is \ref no_immediate_coverage_buffer.
-         */
-        UberShaderParams&
-        provide_immediate_coverage_image_buffer(enum immediate_coverage_buffer_t);
-
-        /*!
          * If the PainterShaderRegistrarGLSL has bindless texturing enabled,
          * (see supports_bindless_texturing()) then have that the
          * handles to create sampler2D object is a uvec2. If false,
@@ -681,16 +613,6 @@ namespace fastuidraw
         coverage_buffer_texture_binding(void) const;
 
         /*!
-         * Returns the binding point for the image2D (r8)
-         * auxiliary image buffer derived from the current
-         * value of this UberShaderParams; A return value
-         * of -1 indicates that the auxiliary buffer does
-         * not use any binding
-         */
-        int
-        immediate_coverage_image_buffer_binding(void) const;
-
-        /*!
          * Specifies the binding point for the image2D (rgba8)
          * color buffer; derived from the current value only
          * active of this UberShaderParams; A return value of
@@ -746,8 +668,7 @@ namespace fastuidraw
          * of this UberShaderParams.
          */
         PainterShaderSet
-        default_shaders(bool has_auxiliary_coverage_buffer,
-                        const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws) const;
+        default_shaders(void) const;
 
       private:
         void *m_d;
@@ -949,9 +870,7 @@ namespace fastuidraw
        * GLSL preamble:
        *  - fastuidraw_begin_interlock() which is called before access
        *  - fastuidraw_end_interlock() which is called after access
-       * if UberShaderParams::ffb_blending_type() is \ref fbf_blending_interlock
-       * or if UberShaderParams::provide_immediate_coverage_image_buffer() is \ref
-       * immediate_coverage_buffer_interlock or \ref immediate_coverage_buffer_interlock_main_only.
+       * if UberShaderParams::ffb_blending_type() is \ref fbf_blending_interlock.
        * \param tp blend type of \ref PainterBlendShader objects to include in the uber-shader
        * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader

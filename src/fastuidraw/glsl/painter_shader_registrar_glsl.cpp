@@ -101,7 +101,6 @@ namespace
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
-      m_provide_immediate_coverage_image_buffer(fastuidraw::glsl::PainterShaderRegistrarGLSL::no_immediate_coverage_buffer),
       m_use_uvec2_for_bindless_handle(true),
 
       m_recompute_binding_points(true),
@@ -115,7 +114,6 @@ namespace
       m_external_texture_binding(-1),
       m_coverage_buffer_texture_binding(-1),
       m_uniforms_ubo_binding(-1),
-      m_immediate_coverage_image_buffer_binding(-1),
       m_color_interlock_image_buffer_binding(-1)
     {}
 
@@ -141,7 +139,6 @@ namespace
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
-    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t m_provide_immediate_coverage_image_buffer;
     bool m_use_uvec2_for_bindless_handle;
 
     bool m_recompute_binding_points;
@@ -155,7 +152,6 @@ namespace
     int m_external_texture_binding;
     int m_coverage_buffer_texture_binding;
     int m_uniforms_ubo_binding;
-    int m_immediate_coverage_image_buffer_binding;
     int m_color_interlock_image_buffer_binding;
 
     unsigned int m_num_texture_units;
@@ -1040,27 +1036,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
       break;
     }
 
-  switch(params.provide_immediate_coverage_image_buffer())
-    {
-    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic:
-      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_ATOMIC");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
-      break;
-
-    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock:
-      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_INTERLOCK");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
-      break;
-
-    case PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only:
-      frag.add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_INTERLOCK_MAIN_ONLY");
-      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_IMMEDIATE_COVERAGE_BUFFER");
-      break;
-
-    default:
-      break;
-    }
-
   add_backend_constants(backend, vert);
   vert
     .add_source(m_constant_code)
@@ -1073,7 +1048,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
-    .add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_BINDING", params.immediate_coverage_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
     .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
@@ -1143,7 +1117,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
-    .add_macro("FASTUIDRAW_PAINTER_IMMEDIATE_COVERAGE_BUFFER_BINDING", params.immediate_coverage_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
     .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
@@ -1174,7 +1147,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_globals.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_immediate_coverage_image_buffer.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource);
 
@@ -1502,17 +1474,6 @@ recompute_binding_points(void)
       m_uniforms_ubo_binding = -1;
     }
 
-  if (m_provide_immediate_coverage_image_buffer == PainterShaderRegistrarGLSL::immediate_coverage_buffer_atomic
-      || m_provide_immediate_coverage_image_buffer == PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock_main_only
-      || m_provide_immediate_coverage_image_buffer == PainterShaderRegistrarGLSL::immediate_coverage_buffer_interlock)
-    {
-      m_immediate_coverage_image_buffer_binding = m_num_image_units++;
-    }
-  else
-    {
-      m_immediate_coverage_image_buffer_binding = -1;
-    }
-
   /* This must come last to make sure that the binding points
    * of using or not using fbf-interlock match up.
    */
@@ -1553,12 +1514,9 @@ fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams::
 
 fastuidraw::PainterShaderSet
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
-default_shaders(bool has_auxiliary_coverage_buffer,
-                const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws) const
+default_shaders(void) const
 {
-  detail::ShaderSetCreator S(has_auxiliary_coverage_buffer,
-                             preferred_blend_type(), fbf_blending_type(),
-                             flush_immediate_coverage_buffer_between_draws);
+  detail::ShaderSetCreator S(preferred_blend_type(), fbf_blending_type());
   return S.create_shader_set();
 }
 
@@ -1621,7 +1579,6 @@ uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRe
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t, data_store_backing)
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t, glyph_data_backing)
 uber_shader_params_setget_implement_dirty(bool, use_ubo_for_uniforms)
-uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t, provide_immediate_coverage_image_buffer)
 
 #define uber_shader_params_get_dirty(member)                            \
   int                                                                   \
@@ -1647,7 +1604,6 @@ uber_shader_params_get_dirty(glyph_atlas_store_binding_fp16x2)
 uber_shader_params_get_dirty(data_store_buffer_binding)
 uber_shader_params_get_dirty(external_texture_binding)
 uber_shader_params_get_dirty(coverage_buffer_texture_binding)
-uber_shader_params_get_dirty(immediate_coverage_image_buffer_binding)
 uber_shader_params_get_dirty(color_interlock_image_buffer_binding)
 uber_shader_params_get_dirty(uniforms_ubo_binding)
 

@@ -28,7 +28,6 @@ SurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
   m_render_type(render_type),
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
   m_dimensions(dimensions),
-  m_immediate_coverage_buffer(0, 0),
   m_buffers(0),
   m_fbo(0),
   m_own_texture(texture == 0)
@@ -45,8 +44,6 @@ fastuidraw::gl::detail::SurfaceGLPrivate::
     {
       m_buffers[buffer_color] = 0;
     }
-  fastuidraw_glDeleteTextures(m_immediate_coverage_buffer.size(),
-                              m_immediate_coverage_buffer.c_ptr());
   fastuidraw_glDeleteFramebuffers(m_fbo.size(), m_fbo.c_ptr());
   fastuidraw_glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
 }
@@ -93,30 +90,6 @@ surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> &
   FASTUIDRAWassert(dynamic_cast<PainterBackendGL::SurfaceGL*>(surface.get()));
   q = static_cast<PainterBackendGL::SurfaceGL*>(surface.get());
   return q;
-}
-
-GLuint
-fastuidraw::gl::detail::SurfaceGLPrivate::
-immediate_coverage_buffer(enum immediate_coverage_buffer_fmt_t tp)
-{
-  FASTUIDRAWassert(m_render_type == PainterSurface::color_buffer_type);
-  if (!m_immediate_coverage_buffer[tp])
-    {
-      GLenum internalFormat;
-
-      internalFormat = auxiliaryBufferInternalFmt(tp);
-      fastuidraw_glGenTextures(1, &m_immediate_coverage_buffer[tp]);
-      FASTUIDRAWassert(m_immediate_coverage_buffer[tp] != 0u);
-
-      fastuidraw_glActiveTexture(GL_TEXTURE0);
-      fastuidraw_glBindTexture(GL_TEXTURE_2D, m_immediate_coverage_buffer[tp]);
-      tex_storage<GL_TEXTURE_2D>(true,
-                                 internalFormat,
-                                 m_dimensions);
-      clear_texture_2d(m_immediate_coverage_buffer[tp], 0, internalFormat);
-    }
-
-  return m_immediate_coverage_buffer[tp];
 }
 
 GLuint

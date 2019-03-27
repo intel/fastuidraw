@@ -37,10 +37,6 @@ enum interlock_type_t
 bool
 shader_storage_buffers_supported(const ContextProperties &ctx);
 
-enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t
-compute_provide_immediate_coverage_buffer(enum glsl::PainterShaderRegistrarGLSL::immediate_coverage_buffer_t in_value,
-                                 const ContextProperties &ctx);
-
 enum interlock_type_t
 compute_interlock_type(const ContextProperties &ctx);
 

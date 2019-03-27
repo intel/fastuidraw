@@ -155,36 +155,6 @@ namespace fastuidraw
       };
 
     /*!
-     * Enumeration to describe immediate coverage buffer
-     * support.
-     */
-    enum immediate_coverage_support_t
-      {
-        /*!
-         * Indicates that immediate coverage buffer is
-         * NOT supported.
-         */
-        immediate_coverage_no_support,
-
-        /*!
-         * Indicates that immediate coverage buffer is
-         * supported with performance impact (typically
-         * of the form of draw breaks between passes
-         * to issue a memory barrier command).
-         */
-        immediate_coverage_slow,
-
-        /*!
-         * Indicates that immediate coverage buffer is
-         * supported with no or minimal performance impact
-         * (i.e. no draw breaks).
-         */
-        immediate_coverage_fast,
-
-        number_immediate_coverage_support
-      };
-
-    /*!
      * Enumeration to specify how to stroke
      */
     enum stroking_method_t
@@ -785,14 +755,6 @@ namespace fastuidraw
     static
     c_string
     label(enum fill_rule_t v);
-
-    /*!
-     * Returns a \ref c_string for an enumerated value.
-     * \param v value to get the label-string of.
-     */
-    static
-    c_string
-    label(enum immediate_coverage_support_t v);
 
     /*!
      * Returns a \ref c_string for an enumerated value.

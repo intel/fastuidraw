@@ -122,23 +122,13 @@ class ShaderSetCreator:
 {
 public:
   explicit
-  ShaderSetCreator(bool has_auxiliary_coverage_buffer,
-                   enum PainterBlendShader::shader_type preferred_blending_type,
-                   enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type,
-                   const reference_counted_ptr<const PainterDraw::Action> &flush_immediate_coverage_buffer_between_draws);
+  ShaderSetCreator(enum PainterBlendShader::shader_type preferred_blending_type,
+                   enum PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_type);
 
   PainterShaderSet
   create_shader_set(void);
 
 private:
-  enum
-    {
-      fill_aa_fuzz_pass1,
-      fill_aa_fuzz_pass2,
-
-      fill_aa_fuzz_number_passes
-    };
-
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(c_string vert_src,
                            c_string frag_src,
@@ -160,9 +150,6 @@ private:
 
   PainterFillShader
   create_fill_shader(void);
-
-  bool m_has_auxiliary_coverage_buffer;
-  reference_counted_ptr<const PainterDraw::Action> m_flush_immediate_coverage_buffer_between_draws;
 
   ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;

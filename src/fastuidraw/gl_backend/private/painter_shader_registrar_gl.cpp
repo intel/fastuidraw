@@ -320,8 +320,7 @@ configure_source_front_matter(void)
     .add_macro("fastuidraw_begin_interlock", begin_interlock_fcn)
     .add_macro("fastuidraw_end_interlock", end_interlock_fcn);
 
-  if (m_params.fbf_blending_type() == fbf_blending_interlock
-      || m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
+  if (m_params.fbf_blending_type() == fbf_blending_interlock)
     {
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
        * The issue is that when early_fragment_tests are enabled, then the depth
@@ -397,7 +396,6 @@ configure_source_front_matter(void)
         || (glyphs->data_binding_point() == GL_SHADER_STORAGE_BUFFER);
 
       require_image_load_store = (m_params.fbf_blending_type() == fbf_blending_interlock)
-        || (m_uber_shader_builder_params.provide_immediate_coverage_image_buffer() != no_immediate_coverage_buffer)
         || require_ssbo;
 
       using_glsl42 = m_ctx_properties.version() >= ivec2(4, 2)

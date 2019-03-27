@@ -21,7 +21,6 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_painter_types.glsl.resource_string \
 	fastuidraw_painter_forward_declares.vert.glsl.resource_string \
 	fastuidraw_painter_uniforms.glsl.resource_string \
-	fastuidraw_painter_immediate_coverage_image_buffer.glsl.resource_string \
 	fastuidraw_painter_forward_declares.frag.glsl.resource_string \
 	fastuidraw_painter_globals.frag.glsl.resource_string \
 	fastuidraw_painter_main.frag.glsl.resource_string \
