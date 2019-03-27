@@ -1,8 +1,0 @@
-in float attrib_fake;
-uniform vec3 pos_size;
-
-void main(void)
-{
-  gl_Position = vec4(attrib_fake * pos_size.xy, 0.0, 1.0);
-  gl_PointSize = pos_size.z;
-}

@@ -7,9 +7,6 @@ d		:= $(dir)
 dir := $(d)/common
 include $(dir)/Rules.mk
 
-dir := $(d)/atlas_tests
-include $(dir)/Rules.mk
-
 dir := $(d)/painter_test
 include $(dir)/Rules.mk
 
