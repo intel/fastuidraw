@@ -111,26 +111,26 @@ namespace fastuidraw
     void
     glyph_codes(enum CharacterEncoding::encoding_value_t encoding,
                 c_array<const uint32_t> in_character_codes,
-                c_array<uint32_t> out_glyph_codes) const;
+                c_array<uint32_t> out_glyph_codes) const override final;
 
     virtual
     unsigned int
-    number_glyphs(void) const;
+    number_glyphs(void) const override final;
 
-  private:
     virtual
     bool
-    can_create_rendering_data(enum glyph_type tp) const;
+    can_create_rendering_data(enum glyph_type tp) const override final;
 
     virtual
     void
-    compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const;
+    compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const override final;
 
     virtual
     GlyphRenderData*
     compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
-			   Path &path, vec2 &render_size) const;
+			   Path &path, vec2 &render_size) const override final;
 
+  private:
     void *m_d;
   };
 /*! @} */
