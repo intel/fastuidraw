@@ -541,6 +541,7 @@ namespace
 
     void
     compute_chunks_take_all(ChunkSetPrivate &dst);
+
     void
     post_process(PostProcessVariables &variables,
                  const CreationValues &constants,
@@ -1414,16 +1415,12 @@ SubsetPrivate(CreationValues &out_values,
         {
           FASTUIDRAWassert(src->child(i) != nullptr);
           m_children[i] = FASTUIDRAWnew SubsetPrivate(out_values, join_ordering, cap_ordering, src->child(i));
-        }
-
-      for(const PerJoinData &J : src->joins())
-        {
-          m_join_positions.push_back(J.m_p);
-        }
-
-      for(const PerCapData &C : src->caps())
-        {
-          m_cap_positions.push_back(C.m_p);
+          std::copy(m_children[i]->m_join_positions.begin(),
+                    m_children[i]->m_join_positions.end(),
+                    std::back_inserter(m_join_positions));
+          std::copy(m_children[i]->m_cap_positions.begin(),
+                    m_children[i]->m_cap_positions.end(),
+                    std::back_inserter(m_cap_positions));
         }
     }
   else
