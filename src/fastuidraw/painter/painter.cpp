@@ -688,6 +688,11 @@ namespace
   class TransparencyStackEntry
   {
   public:
+    void
+    blit_rect(const fastuidraw::vec4 &color_modulate,
+              fastuidraw::vec2 viewport_dims,
+              fastuidraw::Painter *p);
+
     /* the state stack size when the TransparencyStackEntry
      * became active
      */
@@ -702,7 +707,6 @@ namespace
     /* the image to blit, together with what pixels of the image to blit */
     const fastuidraw::Image *m_image;
     fastuidraw::vec2 m_brush_translate;
-    fastuidraw::vec4 m_modulate_color;
 
     /* The translation is from the root surface of Painter::begin()
      * to the location within TransparencyBuffer::m_surface.
@@ -2309,6 +2313,36 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
   m_pixel_rect
     .min_point(m_bl)
     .max_point(m_tr);
+}
+
+///////////////////////////////////
+// TransparencyStackEntry methods
+void
+TransparencyStackEntry::
+blit_rect(const fastuidraw::vec4 &color_modulate,
+          fastuidraw::vec2 dims, fastuidraw::Painter *p)
+{
+  using namespace fastuidraw;
+  PainterBrush brush;
+
+  /* TODO: instead of doing a full-blown Painter::save(), we should
+   * instead just override the current transformation.
+   */
+  p->save();
+
+  p->transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
+  brush
+    .transformation_translate(m_brush_translate)
+    .color(color_modulate)
+    .image(m_image);
+
+  p->fill_rect(PainterData(&brush),
+               Rect()
+               .min_point(PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_min_point, dims))
+               .max_point(PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_max_point, dims)),
+               false);
+
+  p->restore();
 }
 
 ////////////////////////////////////////
@@ -5563,7 +5597,24 @@ begin_layer(const vec4 &color_modulate)
 
   clip_region_bounds(&clip_region_rect.m_min_point,
                      &clip_region_rect.m_max_point);
+
+  /* This save() is to save the current clipping state because it
+   * will get set to just clip the rect giving by clip_region_rect
+   */
   save();
+
+  /* get the TransparencyStackEntry that gives the PainterPacker and what to blit
+   * when the layer is done
+   */
+  R = d->m_transparency_stack_entry_factory.fetch(d->m_transparency_stack.size(), clip_region_rect, d);
+  R.m_state_stack_size = d->m_state_stack.size();
+
+  /* We *add* the command to the current packer() to blit the rect of R
+   * now. Recall that the PainterPacker used for the layer will have its
+   * commands executed before the current packer(), regardless in what
+   * order we add them.
+   */
+  R.blit_rect(color_modulate, d->m_viewport_dimensions, this);
 
   /* Set the clipping equations to the equations coming from clip_region_rect */
   d->m_clip_rect_state.m_clip_rect = clip_rect(clip_region_rect);
@@ -5574,14 +5625,6 @@ begin_layer(const vec4 &color_modulate)
 
   /* change m_clip_store so that the current value is just from clip_region_rect */
   d->m_clip_store.reset_current_to_rect(clip_region_rect);
-
-  /* get the TransparencyStackEntry that gives the PainterPacker and what to blit
-   * when the layer is done
-   */
-  R = d->m_transparency_stack_entry_factory.fetch(d->m_transparency_stack.size(),
-                                                  clip_region_rect, d);
-  R.m_state_stack_size = d->m_state_stack.size();
-  R.m_modulate_color = color_modulate;
 
   /* set the normalized translation of d->m_clip_rect_state */
   d->m_clip_rect_state.set_normalized_device_translate(R.m_normalized_translate);
@@ -5626,30 +5669,6 @@ end_layer(void)
    * of begin_layer(); this will restore the clipping and
    * blending state to what it was when the begin_layer()
    * was issued */
-  restore();
-
-  /* blit the rect, we do this by blitting the rect in simple pixel
-   * coordinates with the brush appropiately translated.
-   */
-  save();
-    {
-      vec2 dims;
-      PainterBrush brush;
-
-      dims = d->m_viewport_dimensions;
-      transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
-
-      brush
-        .transformation_translate(R.m_brush_translate)
-        .color(R.m_modulate_color)
-        .image(R.m_image);
-
-      fill_rect(PainterData(&brush),
-                Rect()
-                .min_point(PainterSurface::Viewport::compute_viewport_coordinates(R.m_normalized_rect.m_min_point, dims))
-                .max_point(PainterSurface::Viewport::compute_viewport_coordinates(R.m_normalized_rect.m_max_point, dims)),
-                false);
-    }
   restore();
 
   if (!d->m_deferred_coverage_stack.empty()
