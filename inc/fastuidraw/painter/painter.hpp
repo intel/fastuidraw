@@ -829,7 +829,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphSequence &glyph_sequence,
-		GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
@@ -843,7 +843,7 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
-		GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -861,7 +861,7 @@ namespace fastuidraw
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-		GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -878,7 +878,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-		GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -893,7 +893,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
-		GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -907,7 +907,7 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
-		GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer());
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
@@ -921,7 +921,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphSequence &glyph_sequence,
-		const GlyphRendererChooser &renderer_chooser);
+        const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
@@ -934,7 +934,7 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
-		const GlyphRendererChooser &renderer_chooser);
+        const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -951,7 +951,7 @@ namespace fastuidraw
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-		const GlyphRendererChooser &renderer_chooser);
+        const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -967,7 +967,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-		const GlyphRendererChooser &renderer_chooser);
+        const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -981,7 +981,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
-		const GlyphRendererChooser &renderer_chooser);
+        const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -994,7 +994,7 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
-		const GlyphRendererChooser &renderer_chooser);
+        const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Returns what value Painter currently uses for Path::tessellation(float) const

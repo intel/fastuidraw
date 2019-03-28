@@ -566,14 +566,14 @@ namespace fastuidraw
         int
         glyph_atlas_store_binding(void) const;
 
-	/*!
-	 * Returns the binding point for the \ref GlyphAtlas
-	 * to access each value as a vec2 fp16 value. A value
-	 * of -1 indicates that there is no special binding
-	 * point for such access.
-	 */
-	int
-	glyph_atlas_store_binding_fp16x2(void) const;
+        /*!
+         * Returns the binding point for the \ref GlyphAtlas
+         * to access each value as a vec2 fp16 value. A value
+         * of -1 indicates that there is no special binding
+         * point for such access.
+         */
+        int
+        glyph_atlas_store_binding_fp16x2(void) const;
 
         /*!
          * Returns the binding point of the data store buffer

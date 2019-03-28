@@ -287,10 +287,10 @@ namespace fastuidraw
          */
         image_type_bit0,
 
-	/*!
-	 * First bit to encode \ref Image::format_t
-	 */
-	image_format_bit0 = image_type_bit0 + image_type_num_bits,
+        /*!
+         * First bit to encode \ref Image::format_t
+         */
+        image_format_bit0 = image_type_bit0 + image_type_num_bits,
 
         /*!
          * Must be last enum, gives number of bits needed to hold shader bits
@@ -370,7 +370,7 @@ namespace fastuidraw
         /*!
          * mask generated from \ref image_format_bit0 and \ref image_format_num_bits
          */
-	image_format_mask = FASTUIDRAW_MASK(image_format_bit0, image_format_num_bits),
+        image_format_mask = FASTUIDRAW_MASK(image_format_bit0, image_format_num_bits),
       };
 
     /*!

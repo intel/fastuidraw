@@ -187,13 +187,13 @@ namespace gl
          * Specifies to view the data as an array
          * of uint32_t values (i.e. GL_R32UI).
          */
-	backing_uint32_fmt,
+        backing_uint32_fmt,
 
         /*!
          * Specifes to view the data as an array
          * of fp16-x2 values (i.e. GL_RG16F).
          */
-	backing_fp16x2_fmt,
+        backing_fp16x2_fmt,
       };
 
     /*!

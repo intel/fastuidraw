@@ -131,8 +131,8 @@ namespace fastuidraw
      */
     void
     added_glyph(unsigned int I,
-		GlyphMetrics *out_glyph_metrics,
-		vec2 *out_position) const;
+                GlyphMetrics *out_glyph_metrics,
+                vec2 *out_position) const;
 
     /*!
      * Return the \ref GlyphCache used by this GlyphRun

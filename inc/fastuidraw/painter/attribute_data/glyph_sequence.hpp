@@ -71,8 +71,8 @@ namespace fastuidraw
        */
       void
       attributes_and_indices(GlyphRenderer render,
-			     c_array<const PainterAttribute> *out_attributes,
-			     c_array<const PainterIndex> *out_indices);
+                 c_array<const PainterAttribute> *out_attributes,
+                 c_array<const PainterIndex> *out_indices);
 
       /*!
        * Returns an array of index values to pass to GlyphSequence::add_glyph()
@@ -182,8 +182,8 @@ namespace fastuidraw
      */
     void
     added_glyph(unsigned int I,
-		GlyphMetrics *out_glyph_metrics,
-		vec2 *out_position) const;
+                GlyphMetrics *out_glyph_metrics,
+                vec2 *out_position) const;
 
     /*!
      * Return the \ref GlyphCache used by this GlyphSequence
