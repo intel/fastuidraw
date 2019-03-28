@@ -2190,6 +2190,15 @@ select_subsets_no_culling(unsigned int max_attribute_cnt,
   return return_value;
 }
 
+fastuidraw::StrokedPath::Subset
+fastuidraw::StrokedPath::
+root_subset(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return Subset(d->m_root);
+}
+
 const fastuidraw::StrokedCapsJoins&
 fastuidraw::StrokedPath::
 caps_joins(void) const

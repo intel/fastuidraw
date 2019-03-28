@@ -142,6 +142,14 @@ public:
   subset(unsigned int I) const;
 
   /*!
+   * Returns the root-subset of the StrokedPath, this
+   * is the \ref Subset that includes the entire
+   * StrokedPath.
+   */
+  Subset
+  root_subset(void) const;
+
+  /*!
    * Given a set of clip equations in clip coordinates
    * and a tranformation from local coordiante to clip
    * coordinates, compute what Subset are not completely
