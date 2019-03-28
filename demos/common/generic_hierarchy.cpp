@@ -37,11 +37,11 @@ public:
   {
     if (bbox.intersects(m_bbox))
       {
-	return add_implement(bbox, reference);
+        return add_implement(bbox, reference);
       }
     else
       {
-	return this;
+        return this;
       }
   }
 

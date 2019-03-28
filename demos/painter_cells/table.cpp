@@ -164,7 +164,7 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
               params.m_text = m_params.m_texts[J % m_params.m_texts.size()];
               params.m_pixels_per_ms = random_value(m_params.m_min_speed, m_params.m_max_speed) / 1000.0f;
               params.m_degrees_per_s = (int)random_value(m_params.m_min_degrees_per_s, m_params.m_max_degrees_per_s);
-	      params.m_pixel_size = m_params.m_pixel_size;
+              params.m_pixel_size = m_params.m_pixel_size;
               params.m_size = m_cell_sz;
               params.m_table_pos = ivec2(x, y) + xy;
               if (m_params.m_draw_image_name)

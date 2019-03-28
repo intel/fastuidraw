@@ -282,38 +282,38 @@ sdl_painter_demo(const std::string &about_text,
 
   m_glyph_atlas_options("Glyph Atlas options", *this),
   m_glyph_atlas_size(m_glyph_atlas_params.number_floats(),
-		     "glyph_atlas_size", "size of glyph store in floats", *this),
+                     "glyph_atlas_size", "size of glyph store in floats", *this),
   m_glyph_atlas_delayed_upload(m_glyph_atlas_params.delayed(),
                                "glyph_atlas_delayed_upload",
                                "if true delay uploading of data to GL from glyph atlas until atlas flush",
                                *this),
   m_glyph_backing_store_type(glyph_backing_store_auto,
-			     enumerated_string_type<enum glyph_backing_store_t>()
-			     .add_entry("texture_buffer",
-					glyph_backing_store_texture_buffer,
-					"use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
-					"for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
-					"extension GL_EXT_texture_buffer")
-			     .add_entry("texture_array",
-					glyph_backing_store_texture_array,
-					"use a 2D texture array to store the glyph data, "
-					"GL and GLES have feature in core")
-			     .add_entry("storage_buffer",
-					glyph_backing_store_ssbo,
-					"use a shader storage buffer, feature is core starting in GLES 3.1 and available "
-					"in GL starting at version 4.2 or via the extension GL_ARB_shader_storage_buffer")
-			     .add_entry("auto",
-					glyph_backing_store_auto,
-					"query context and decide optimal value"),
-			     "geometry_backing_store_type",
-			     "Determines how the glyph store is backed.",
-			     *this),
+                             enumerated_string_type<enum glyph_backing_store_t>()
+                             .add_entry("texture_buffer",
+                                        glyph_backing_store_texture_buffer,
+                                        "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
+                                        "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
+                                        "extension GL_EXT_texture_buffer")
+                             .add_entry("texture_array",
+                                        glyph_backing_store_texture_array,
+                                        "use a 2D texture array to store the glyph data, "
+                                        "GL and GLES have feature in core")
+                             .add_entry("storage_buffer",
+                                        glyph_backing_store_ssbo,
+                                        "use a shader storage buffer, feature is core starting in GLES 3.1 and available "
+                                        "in GL starting at version 4.2 or via the extension GL_ARB_shader_storage_buffer")
+                             .add_entry("auto",
+                                        glyph_backing_store_auto,
+                                        "query context and decide optimal value"),
+                             "geometry_backing_store_type",
+                             "Determines how the glyph store is backed.",
+                             *this),
   m_glyph_backing_texture_log2_w(10, "glyph_backing_texture_log2_w",
-				 "If glyph_backing_store_type is set to texture_array, then "
-				 "this gives the log2 of the width of the texture array", *this),
+                                 "If glyph_backing_store_type is set to texture_array, then "
+                                 "this gives the log2 of the width of the texture array", *this),
   m_glyph_backing_texture_log2_h(10, "glyph_backing_texture_log2_h",
-				 "If glyph_backing_store_type is set to texture_array, then "
-				 "this gives the log2 of the height of the texture array", *this),
+                                 "If glyph_backing_store_type is set to texture_array, then "
+                                 "this gives the log2 of the height of the texture array", *this),
 
   m_colorstop_atlas_options("ColorStop Atlas options", *this),
   m_color_stop_atlas_width(m_colorstop_atlas_params.width(),
@@ -572,7 +572,7 @@ init_gl(int w, int h)
 
     case glyph_backing_store_texture_array:
       m_glyph_atlas_params.use_texture_2d_array_store(m_glyph_backing_texture_log2_w.value(),
-						      m_glyph_backing_texture_log2_h.value());
+                                                      m_glyph_backing_texture_log2_h.value());
       break;
 
     case glyph_backing_store_ssbo:
@@ -720,13 +720,13 @@ init_gl(int w, int h)
       std::cout << "\nPainterBackendGL configuration:\n";
 
       #define LAZY_PARAM(X, Y) do {                                     \
-        std::cout << std::setw(40) << Y.name() << ": " << std::setw(8)	\
+        std::cout << std::setw(40) << Y.name() << ": " << std::setw(8)  \
                   << m_backend->configuration_gl().X()                  \
                   << "  (requested " << m_painter_params.X() << ")\n";  \
       } while(0)
 
-      #define LAZY_PARAM_ENUM(X, Y) do {				\
-        std::cout << std::setw(40) << Y.name() <<": " << std::setw(8)	\
+      #define LAZY_PARAM_ENUM(X, Y) do {                                \
+        std::cout << std::setw(40) << Y.name() <<": " << std::setw(8)   \
                   << make_enum_wrapper(m_backend->configuration_gl().X()) \
                   << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
                   << ")\n";                                             \

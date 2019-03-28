@@ -44,8 +44,8 @@ Cell(PainterWidget *p, const CellParams &params):
   m_line_brush(params.m_line_brush),
   m_item_location(params.m_size * 0.5f),
   m_text(params.m_pixel_size,
-	 fastuidraw::Painter::y_increases_downwards,
-	 params.m_glyph_cache),
+         fastuidraw::Painter::y_increases_downwards,
+         params.m_glyph_cache),
   m_shared_state(params.m_state),
   m_timer_based_animation(params.m_timer_based_animation)
 {
@@ -165,7 +165,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   if (m_shared_state->m_draw_text)
     {
       painter->draw_glyphs(PainterData(m_text_brush), m_text,
-			   GlyphRenderer(m_shared_state->m_glyph_render));
+                           GlyphRenderer(m_shared_state->m_glyph_render));
     }
 
   painter->restore();

@@ -2106,7 +2106,7 @@ draw_frame(void)
       if (m_stroke_width > 0.0f)
         {
           ostr << "\n\t[a]AA-Stroking mode:" << on_off(m_aa_stroke_mode)
-	       << "\n\t[v]Stroke by: " << m_stroking_mode
+               << "\n\t[v]Stroke by: " << m_stroking_mode
                << "\n\tStroke Width: " << m_stroke_width;
           if (m_stroke_width_in_pixels)
             {

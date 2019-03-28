@@ -135,13 +135,13 @@ painter_cells(void):
   m_font(default_font(), "font", "File from which to take font", *this),
   m_pixel_size(24.0f, "font_pixel_size", "Render size for text rendering", *this),
   m_renderer(adaptive_rendering,
-	     enumerated_string_type<enum glyph_type>()
-	     .add_entry("distance_field", distance_field_glyph, "Distance field rendering")
-	     .add_entry("restricted_rays", restricted_rays_glyph, "Restricted Rays rendering")
-	     .add_entry("adaptive", adaptive_rendering, "Adaptive rendering"),
-	     "glyph_render",
-	     "Specifies how to render glyphs",
-	     *this),
+             enumerated_string_type<enum glyph_type>()
+             .add_entry("distance_field", distance_field_glyph, "Distance field rendering")
+             .add_entry("restricted_rays", restricted_rays_glyph, "Restricted Rays rendering")
+             .add_entry("adaptive", adaptive_rendering, "Adaptive rendering"),
+             "glyph_render",
+             "Specifies how to render glyphs",
+             *this),
   m_fps_pixel_size(24.0f, "fps_font_pixel_size", "Render size for text rendering of fps", *this),
   m_strings("add_string", "add a string to use by the cells", *this),
   m_files("add_string_file", "add a string to use by a cell, taken from file", *this),

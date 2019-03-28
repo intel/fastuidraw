@@ -572,7 +572,7 @@ painter_glyph_test(void):
             << "\tp: Toggle pixel width stroking\n"
             << "\tctrl-p: toggle showing points (blue), control pts(blue) and arc-center(green) of glyphs"
             << "\tz: reset zoom factor to 1.0\n"
-	    << "\ts: toggle stroking glyph path\n"
+            << "\ts: toggle stroking glyph path\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tl: draw Painter stats\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -933,7 +933,7 @@ draw_glyphs(float us)
   if (!m_fill_glyphs)
     {
       render = m_draw_shared.draw_glyphs(m_draws[m_current_drawer], m_painter,
-					 PainterData(&glyph_brush));
+                                         PainterData(&glyph_brush));
     }
   else
     {
@@ -950,10 +950,10 @@ draw_glyphs(float us)
 
       for(unsigned int i : glyphs_visible)
         {
-	  GlyphMetrics metrics;
-	  vec2 position;
+          GlyphMetrics metrics;
+          vec2 position;
 
-	  m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
+          m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
           if (metrics.valid())
             {
               m_painter->save();
@@ -1001,10 +1001,10 @@ draw_glyphs(float us)
       for(unsigned int i : glyphs_visible)
         {
           GlyphMetrics metrics;
-	  vec2 position;
+          vec2 position;
 
-	  m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
-	  if (metrics.valid())
+          m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
+          if (metrics.valid())
             {
               m_painter->save();
               m_painter->translate(position);
@@ -1042,13 +1042,13 @@ draw_glyphs(float us)
       for(unsigned int i : glyphs_visible)
         {
           GlyphMetrics metrics;
-	  vec2 position;
+          vec2 position;
           float inv_scale;
 
           inv_scale = 1.0f / m_zoomer.transformation().scale();
 
-	  m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
-	  if (metrics.valid())
+          m_draw_shared.glyph_sequence().added_glyph(i, &metrics, &position);
+          if (metrics.valid())
             {
               std::vector<vec2> pts, ctl_pts, arc_center_pts;
               std::string descr;
@@ -1250,9 +1250,9 @@ draw_glyphs(float us)
         {
           GlyphMetrics metrics;
           float ratio, ysign;
-	  vec2 glyph_position, glyph_coord;
+          vec2 glyph_position, glyph_coord;
 
-	  m_draw_shared.glyph_sequence().added_glyph(G, &metrics, &glyph_position);
+          m_draw_shared.glyph_sequence().added_glyph(G, &metrics, &glyph_position);
           ratio = m_render_pixel_size.value() / metrics.units_per_EM();
 
           ysign = (m_screen_orientation.value() == Painter::y_increases_upwards) ? 1.0f : -1.0f;
