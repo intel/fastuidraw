@@ -3571,6 +3571,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   const PainterShaderData::DataBase *raw_data;
   const StrokedCapsJoins &caps_joins(path.caps_joins());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
+  bool requires_coverage_buffer(false);
 
   raw_data = draw.m_item_shader_data.data().data_base();
 
@@ -3661,8 +3662,22 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             js, cp,
                             m_work_room.m_stroke.m_caps_joins_chunk_set);
 
+  if (m_work_room.m_stroke.m_caps_joins_chunk_set.join_chunks().empty())
+    {
+      join_data = nullptr;
+    }
 
-  if (apply_anti_aliasing)
+  if (m_work_room.m_stroke.m_caps_joins_chunk_set.cap_chunks().empty())
+    {
+      cap_data = nullptr;
+    }
+
+  requires_coverage_buffer =
+    (subset_count > 0 && (*stroke_shader(shader, edge_arc_shader, apply_anti_aliasing))->coverage_shader())
+    || (join_data && (*stroke_shader(shader, join_arc_shader, apply_anti_aliasing))->coverage_shader())
+    || (cap_data && (*stroke_shader(shader, cap_arc_shader, apply_anti_aliasing))->coverage_shader());
+
+  if (requires_coverage_buffer)
     {
       BoundingBox<float> coverage_buffer_bb;
       coverage_buffer_bb =
@@ -3682,7 +3697,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                   join_data, m_work_room.m_stroke.m_caps_joins_chunk_set.join_chunks(),
                   apply_anti_aliasing);
 
-  if (apply_anti_aliasing)
+  if (requires_coverage_buffer)
     {
       end_coverage_buffer();
     }
