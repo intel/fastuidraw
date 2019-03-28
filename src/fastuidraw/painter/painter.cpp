@@ -3414,17 +3414,23 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
    * seperately. For those that have anti-alias fuzz, allocate the
    * coverage buffer for their area and draw them.
    */
-  if (!data.m_normalized_device_coords_bounding_box.empty())
+  bool requires_coverage_buffer(shader.aa_fuzz_shader()->coverage_shader());
+
+  if (requires_coverage_buffer)
     {
       begin_coverage_buffer_normalized_rect(data.m_normalized_device_coords_bounding_box.as_rect(), true);
-      draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
-                             make_c_array(data.m_z_increments),
-                             data.m_total_increment_z,
-                             make_c_array(data.m_attrib_chunks),
-                             make_c_array(data.m_index_chunks),
-                             make_c_array(data.m_index_adjusts),
-                             make_c_array(data.m_start_zs),
-                             z);
+    }
+
+  draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
+                         make_c_array(data.m_z_increments),
+                         data.m_total_increment_z,
+                         make_c_array(data.m_attrib_chunks),
+                         make_c_array(data.m_index_chunks),
+                         make_c_array(data.m_index_adjusts),
+                         make_c_array(data.m_start_zs),
+                         z);
+  if (shader.aa_fuzz_shader()->coverage_shader())
+    {
       end_coverage_buffer();
     }
 }
