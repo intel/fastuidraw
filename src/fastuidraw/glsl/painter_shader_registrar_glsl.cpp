@@ -1068,6 +1068,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
   vert
     .add_source(detail::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
     .add_source(m_vert_shader_utils)
+    .add_source("fastuidraw_painter_clipping.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(vert_main_src, ShaderSource::from_resource);
 
   stream_unpack_code(vert, render_type);
@@ -1138,6 +1139,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
                                                   "fastuidraw_imageIndexAtlas",
                                                   backend.image_atlas_index_tile_size(),
                                                   backend.image_atlas_color_tile_size()))
+    .add_source("fastuidraw_painter_clipping.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source(frag_main_src, ShaderSource::from_resource);
 
   stream_unpack_code(frag, render_type);

@@ -18,6 +18,8 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_painter_globals.vert.glsl.resource_string \
 	fastuidraw_painter_main.vert.glsl.resource_string \
 	fastuidraw_painter_main_deferred_coverage.vert.glsl.resource_string \
+	fastuidraw_painter_clipping.vert.glsl.resource_string \
+	fastuidraw_painter_clipping.frag.glsl.resource_string \
 	fastuidraw_painter_types.glsl.resource_string \
 	fastuidraw_painter_forward_declares.vert.glsl.resource_string \
 	fastuidraw_painter_uniforms.glsl.resource_string \

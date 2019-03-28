@@ -1,0 +1,71 @@
+/*!
+ * \file fastuidraw_painter_clipping.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_clippin.frag.glsl.resource_string
+ *
+ * Copyright 2019 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+#if defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE) || (!defined(FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE) && defined(FASTUIDRAW_RENDER_TO_DEFERRED_COVERAGE_BUFFER))
+
+  bvec2 fastuidraw_clipping_value;
+
+  bool
+  fastuidraw_plane_within_one_pixel(in float v, in float vdx, in float vdy)
+  {
+    return v < -1.5 * max(abs(vdx), abs(vdy));
+  }
+
+  #define FASTUIDRAW_WITHIN_ONE_PIXEL(X) fastuidraw_plane_within_one_pixel(X, dFdx(X), dFdy(X))
+
+  void
+  fastuidraw_apply_clipping(void)
+  {
+    /* fastuidraw_clipping_value.x indicates if the fragment is really clipped */
+    fastuidraw_clipping_value.x = (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
+				   || fastuidraw_clip_plane2 < 0.0 || fastuidraw_clip_plane3 < 0.0);
+
+    /* .y indicates if the fragment is more than one pixel from the clipping plane */
+    fastuidraw_clipping_value.y = FASTUIDRAW_WITHIN_ONE_PIXEL(fastuidraw_clip_plane0)
+                                  || FASTUIDRAW_WITHIN_ONE_PIXEL(fastuidraw_clip_plane1)
+                                  || FASTUIDRAW_WITHIN_ONE_PIXEL(fastuidraw_clip_plane2)
+                                  || FASTUIDRAW_WITHIN_ONE_PIXEL(fastuidraw_clip_plane3);
+  }
+
+  #define FASTUIDRAW_RUN_ITEM_FRAG_SHADER (!fastuidraw_clipping_value.y)
+  #define FASTUIDRAW_DISCARD_COLOR_WRITE fastuidraw_clipping_value.x
+
+#elif defined(FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD)
+
+  void
+  fastuidraw_apply_clipping(void)
+  {
+    if (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
+       || fastuidraw_clip_plane2 < 0.0  || fastuidraw_clip_plane3 < 0.0)
+      {
+        FASTUIDRAW_DISCARD;
+      }
+  }
+
+  #define FASTUIDRAW_RUN_ITEM_FRAG_SHADER true
+  #define FASTUIDRAW_DISCARD_COLOR_WRITE false
+
+#else
+
+  void
+  fastuidraw_apply_clipping(void)
+  {
+  }
+  #define FASTUIDRAW_RUN_ITEM_FRAG_SHADER true
+  #define FASTUIDRAW_DISCARD_COLOR_WRITE false
+
+#endif

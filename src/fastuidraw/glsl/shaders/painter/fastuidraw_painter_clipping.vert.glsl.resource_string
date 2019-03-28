@@ -1,0 +1,38 @@
+/*!
+ * \file fastuidraw_painter_clipping.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_clippin.vert.glsl.resource_string
+ *
+ * Copyright 2019 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+#ifdef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
+  #define fastuidraw_clip0 gl_ClipDistance[0]
+  #define fastuidraw_clip1 gl_ClipDistance[1]
+  #define fastuidraw_clip2 gl_ClipDistance[2]
+  #define fastuidraw_clip3 gl_ClipDistance[3]
+#else
+  #define fastuidraw_clip0 fastuidraw_clip_plane0
+  #define fastuidraw_clip1 fastuidraw_clip_plane1
+  #define fastuidraw_clip2 fastuidraw_clip_plane2
+  #define fastuidraw_clip3 fastuidraw_clip_plane3
+#endif
+
+void
+fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c)
+{
+  fastuidraw_clip0 = dot(c.clip0, p);
+  fastuidraw_clip1 = dot(c.clip1, p);
+  fastuidraw_clip2 = dot(c.clip2, p);
+  fastuidraw_clip3 = dot(c.clip3, p);
+}

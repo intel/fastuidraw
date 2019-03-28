@@ -27,59 +27,24 @@
   layout(binding = FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING, rgba8) coherent restrict lowp uniform image2D fastuidraw_color_buffer;
 #endif
 
-#ifdef FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD
-
-  bool
-  fastuidraw_apply_clipping(void)
-  {
-    if (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
-       || fastuidraw_clip_plane2 < 0.0  || fastuidraw_clip_plane3 < 0.0)
-      {
-        FASTUIDRAW_DISCARD;
-      }
-    return false;
-  }
-
-#elif defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
+#if defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
   #if !defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH) && !defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
     #error "Using FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE without FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH or FASTUIDRAW_PAINTER_BLEND_INTERLOCK"
   #endif
-
-  bool
-  fastuidraw_apply_clipping(void)
-  {
-    return (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
-            || fastuidraw_clip_plane2 < 0.0  || fastuidraw_clip_plane3 < 0.0);
-  }
-
-#else
-
-  bool
-  fastuidraw_apply_clipping(void)
-  {
-    return false;
-  }
-
 #endif
-
 
 void
 main(void)
 {
   vec4 v = vec4(0.0);
   vec2 pbrush, pbrush_dx, pbrush_dy;
-  bool discard_color_write;
 
-  discard_color_write = fastuidraw_apply_clipping();
+  fastuidraw_apply_clipping();
   pbrush = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
   pbrush_dx = dFdx(pbrush);
   pbrush_dy = dFdy(pbrush);
 
-  #if defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
-  if (!discard_color_write
-      || dFdx(float(discard_color_write)) != 0.0
-      || dFdy(float(discard_color_write)) != 0.0)
-  #endif
+  if (FASTUIDRAW_RUN_ITEM_FRAG_SHADER)
     {
       /* unpack fastuidraw_deferred_buffer_offset_packed to
        * fastuidraw_deferred_buffer_offset
@@ -111,7 +76,11 @@ main(void)
       else
         {
           v = vec4(0.0);
-          discard_color_write = true;
+          #if defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
+	    {
+	      FASTUIDRAW_DISCARD_COLOR_WRITE = true;
+	    }
+	  #endif
         }
     }
 
@@ -132,7 +101,7 @@ main(void)
       vec4 in_fb, out_fb;
 
       in_fb = fastuidraw_final_color;
-      if (!discard_color_write)
+      if (!FASTUIDRAW_DISCARD_COLOR_WRITE)
         {
           fastuidraw_run_blend_shader(fastuidraw_blend_shader,
                                       fastuidraw_blend_shader_data_location,
@@ -147,7 +116,7 @@ main(void)
   #elif defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
     {
       fastuidraw_begin_interlock();
-      if (!discard_color_write)
+      if (!FASTUIDRAW_DISCARD_COLOR_WRITE)
         {
           vec4 in_fb, out_fb;
           ivec2 pos = ivec2(gl_FragCoord.xy);

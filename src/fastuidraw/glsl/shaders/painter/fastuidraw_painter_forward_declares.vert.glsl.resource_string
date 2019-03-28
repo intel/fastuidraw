@@ -51,6 +51,3 @@ fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 out_clip_p);
 // routines implemented in .glsl.resource_string files
 void
 fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_header h);
-
-void
-fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c);
