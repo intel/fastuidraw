@@ -1651,6 +1651,7 @@ void
 painter_stroke_test::
 draw_scene(bool drawing_wire_frame)
 {
+  m_painter->save();
   if (!m_draw_line_pen)
     {
       PainterBrush br;
@@ -1994,6 +1995,7 @@ draw_scene(bool drawing_wire_frame)
           m_painter->restore();
         }
     }
+  m_painter->restore();
 }
 
 void
