@@ -40,17 +40,6 @@ main(void)
   clipped = fastuidraw_apply_clipping();
   #endif
 
-  #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
-    {
-      fastuidraw_header h;
-
-      fastuidraw_read_header(fastuidraw_header_varying, h);
-
-      fastuidraw_frag_shader = h.item_shader;
-      fastuidraw_frag_shader_data_location = h.item_shader_data_location;
-    }
-  #endif
-
   #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
   if (!clipped || dFdx(float(clipped)) != 0.0 || dFdy(float(clipped)) != 0.0)
   #endif

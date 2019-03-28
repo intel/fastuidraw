@@ -62,19 +62,11 @@ main(void)
   fastuidraw_read_clipping(h.clipping_location, clipping);
   fastuidraw_read_item_matrix(h.item_matrix_location, fastuidraw_item_matrix, normalized_translate);
 
-  #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
-    {
-      fastuidraw_header_varying = fastuidraw_header_attribute;
-    }
-  #else
-    {
-      fastuidraw_frag_shader = h.item_shader;
-      fastuidraw_frag_shader_data_location = h.item_shader_data_location;
-      fastuidraw_blend_shader = h.blend_shader;
-      fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
-      fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
-    }
-  #endif
+  fastuidraw_frag_shader = h.item_shader;
+  fastuidraw_frag_shader_data_location = h.item_shader_data_location;
+  fastuidraw_blend_shader = h.blend_shader;
+  fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
+  fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
 
   fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
   fastuidraw_vert_brush_processing(brush_p, h);

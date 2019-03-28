@@ -409,21 +409,6 @@ namespace fastuidraw
         blend_shader_use_switch(bool);
 
         /*!
-         * If true, unpack the PainterBrush data in the fragment shader.
-         * If false, unpack the data in the vertex shader and forward
-         * the data to the fragment shader via flat varyings.
-         */
-        bool
-        unpack_header_and_brush_in_frag_shader(void) const;
-
-        /*!
-         * Set the value returned by unpack_header_and_brush_in_frag_shader(void) const.
-         * Default value is false.
-         */
-        UberShaderParams&
-        unpack_header_and_brush_in_frag_shader(bool);
-
-        /*!
          * Specify how to access the data in PainterDraw::m_store
          * from the GLSL shader.
          */

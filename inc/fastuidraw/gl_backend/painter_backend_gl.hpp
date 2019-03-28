@@ -313,21 +313,6 @@ namespace fastuidraw
         use_uber_item_shader(bool);
 
         /*!
-         * If true, unpacks the brush and fragment shader specific data
-         * from the data buffer at the fragment shader. If false, unpacks
-         * the data in the vertex shader and fowards the data as flats
-         * to the fragment shader.
-         */
-        bool
-        unpack_header_and_brush_in_frag_shader(void) const;
-
-        /*!
-         * Set the value for unpack_header_and_brush_in_frag_shader(void) const
-         */
-        ConfigurationGL&
-        unpack_header_and_brush_in_frag_shader(bool v);
-
-        /*!
          * If true, the vertex shader inputs should be qualified
          * with a layout(location=) specifier. Default value is
          * true.

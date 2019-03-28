@@ -359,11 +359,6 @@ sdl_painter_demo(const std::string &about_text,
                           "painter_uber_blend_use_switch",
                           "If true, use a switch statement in uber blend shader dispatch",
                           *this),
-  m_unpack_header_and_brush_in_frag_shader(m_painter_params.unpack_header_and_brush_in_frag_shader(),
-                                           "painter_unpack_header_and_brush_in_frag_shader",
-                                           "if true, unpack the brush and frag-shader specific data from "
-                                           "the header in the fragment shader instead of the vertex shader",
-                                           *this),
   m_separate_program_for_discard(m_painter_params.separate_program_for_discard(),
                                  "separate_program_for_discard",
                                  "if true, there are two GLSL programs active when drawing: "
@@ -642,7 +637,6 @@ init_gl(int w, int h)
   APPLY_PARAM(vert_shader_use_switch, m_uber_vert_use_switch);
   APPLY_PARAM(frag_shader_use_switch, m_uber_frag_use_switch);
   APPLY_PARAM(blend_shader_use_switch, m_uber_blend_use_switch);
-  APPLY_PARAM(unpack_header_and_brush_in_frag_shader, m_unpack_header_and_brush_in_frag_shader);
   APPLY_PARAM(data_store_backing, m_data_store_backing);
   APPLY_PARAM(assign_layout_to_vertex_shader_inputs, m_assign_layout_to_vertex_shader_inputs);
   APPLY_PARAM(assign_layout_to_varyings, m_assign_layout_to_varyings);
@@ -748,7 +742,6 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(frag_shader_use_switch, m_uber_frag_use_switch);
       LAZY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
       LAZY_PARAM_ENUM(blend_shader_use_switch, m_uber_blend_use_switch);
-      LAZY_PARAM_ENUM(unpack_header_and_brush_in_frag_shader, m_unpack_header_and_brush_in_frag_shader);
       LAZY_PARAM_ENUM(data_store_backing, m_data_store_backing);
       LAZY_PARAM_ENUM(assign_layout_to_vertex_shader_inputs, m_assign_layout_to_vertex_shader_inputs);
       LAZY_PARAM_ENUM(assign_layout_to_varyings, m_assign_layout_to_varyings);

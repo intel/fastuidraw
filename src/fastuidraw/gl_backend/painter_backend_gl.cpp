@@ -409,7 +409,6 @@ namespace
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_blend_shader_use_switch(false),
-      m_unpack_header_and_brush_in_frag_shader(false),
       m_assign_layout_to_vertex_shader_inputs(true),
       m_assign_layout_to_varyings(false),
       m_assign_binding_points(true),
@@ -433,7 +432,6 @@ namespace
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
-    bool m_unpack_header_and_brush_in_frag_shader;
     bool m_assign_layout_to_vertex_shader_inputs;
     bool m_assign_layout_to_varyings;
     bool m_assign_binding_points;
@@ -1067,7 +1065,6 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     .vert_shader_use_switch(params.vert_shader_use_switch())
     .frag_shader_use_switch(params.frag_shader_use_switch())
     .blend_shader_use_switch(params.blend_shader_use_switch())
-    .unpack_header_and_brush_in_frag_shader(params.unpack_header_and_brush_in_frag_shader())
     .data_store_backing(params.data_store_backing())
     .data_blocks_per_store_buffer(params.data_blocks_per_store_buffer())
     .glyph_data_backing(params.glyph_atlas()->param_values().glyph_data_backing_store_type())
@@ -1513,11 +1510,6 @@ configure_from_context(bool choose_optimal_rendering_quality,
   d->m_break_on_shader_change = false;
   d->m_clipping_type = clipping_via_gl_clip_distance;
 
-  /* unpacking oodles of data in frag-shader is way
-   * more expensive than having oddles of varyings.
-   */
-  d->m_unpack_header_and_brush_in_frag_shader = false;
-
   /* These do not impact performance, but they make
    * cleaner initialization.
    */
@@ -1803,8 +1795,6 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
                  bool, frag_shader_use_switch)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, blend_shader_use_switch)
-setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 bool, unpack_header_and_brush_in_frag_shader)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterBackendGL::data_store_backing_t, data_store_backing)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,

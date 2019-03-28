@@ -93,7 +93,6 @@ namespace
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_blend_shader_use_switch(false),
-      m_unpack_header_and_brush_in_frag_shader(false),
       m_data_store_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_tbo),
       m_data_blocks_per_store_buffer(-1),
       m_glyph_data_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
@@ -131,7 +130,6 @@ namespace
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
-    bool m_unpack_header_and_brush_in_frag_shader;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
     int m_data_blocks_per_store_buffer;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_glyph_data_backing;
@@ -212,7 +210,6 @@ namespace
     size_t m_number_uint_varyings;
     size_t m_number_int_varyings;
 
-    fastuidraw::glsl::varying_list m_main_varyings_header_only;
     fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
   };
 
@@ -345,11 +342,6 @@ ready_main_varyings(void)
 {
   using namespace fastuidraw;
 
-  m_item_shaders.m_main_varyings_header_only
-    .add_uint_varying("fastuidraw_header_varying")
-    .add_float_varying("fastuidraw_brush_p_x")
-    .add_float_varying("fastuidraw_brush_p_y");
-
   m_item_shaders.m_main_varyings_shaders_and_shader_datas
     .add_uint_varying("fastuidraw_frag_shader")
     .add_uint_varying("fastuidraw_frag_shader_data_location")
@@ -358,9 +350,6 @@ ready_main_varyings(void)
     .add_uint_varying("fastuidraw_deferred_buffer_offset_packed")
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
-
-  m_item_coverage_shaders.m_main_varyings_header_only
-    .add_uint_varying("fastuidraw_header_varying");
 
   m_item_coverage_shaders.m_main_varyings_shaders_and_shader_datas
     .add_uint_varying("fastuidraw_frag_shader")
@@ -834,29 +823,16 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
       uber_shader_varyings.add_varyings("clip", m_clip_varyings, &clip_varying_datum);
     }
 
-  if (params.unpack_header_and_brush_in_frag_shader())
+  main_varyings = &shaders.m_main_varyings_shaders_and_shader_datas;
+  if (render_type == PainterSurface::color_buffer_type)
     {
-      main_varyings = &shaders.m_main_varyings_header_only;
-    }
-  else
-    {
-      main_varyings = &shaders.m_main_varyings_shaders_and_shader_datas;
-      if (render_type == PainterSurface::color_buffer_type)
-        {
-          uber_shader_varyings.add_varyings("brush", m_brush_varyings, &brush_varying_datum);
-        }
+      uber_shader_varyings.add_varyings("brush", m_brush_varyings, &brush_varying_datum);
     }
 
   uber_shader_varyings.add_varyings("main", *main_varyings, &main_varying_datum);
 
   declare_uniforms = declare_shader_uniforms(params);
   declare_varyings = uber_shader_varyings.declare_varyings("fastuidraw_varying");
-
-  if (params.unpack_header_and_brush_in_frag_shader())
-    {
-      vert.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
-      frag.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
-    }
 
   if (params.z_coordinate_convention() == PainterShaderRegistrarGLSL::z_minus_1_to_1)
     {
@@ -1063,15 +1039,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
 
   if (render_type == PainterSurface::color_buffer_type)
     {
-      if (params.unpack_header_and_brush_in_frag_shader())
-        {
-          /* we need to declare the values named in m_brush_varyings */
-          stream_as_local_variables(vert, m_brush_varyings);
-        }
-      else
-        {
-          uber_shader_varyings.stream_alias_varyings(vert, m_brush_varyings, true, brush_varying_datum);
-        }
+      uber_shader_varyings.stream_alias_varyings(vert, m_brush_varyings, true, brush_varying_datum);
     }
 
   vert
@@ -1132,15 +1100,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
   if (render_type == PainterSurface::color_buffer_type)
     {
       frag.add_macro(shader_blend_macro);
-      if (params.unpack_header_and_brush_in_frag_shader())
-        {
-          /* we need to declare the values named in m_brush_varyings */
-          stream_as_local_variables(frag, m_brush_varyings);
-        }
-      else
-        {
-          uber_shader_varyings.stream_alias_varyings(frag, m_brush_varyings, true, brush_varying_datum);
-        }
+      uber_shader_varyings.stream_alias_varyings(frag, m_brush_varyings, true, brush_varying_datum);
     }
 
   frag
@@ -1158,12 +1118,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
         .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
         .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource);
 
-      if (params.unpack_header_and_brush_in_frag_shader())
-        {
-          frag
-            .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
-            .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource);
-        }
       frag
         .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
         .add_source("fastuidraw_painter_deferred_coverage_buffer.frag.glsl.resource_string", ShaderSource::from_resource);
@@ -1543,8 +1497,6 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, frag_shader_use_switch)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, blend_shader_use_switch)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, bool, unpack_header_and_brush_in_frag_shader)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, use_uvec2_for_bindless_handle)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,

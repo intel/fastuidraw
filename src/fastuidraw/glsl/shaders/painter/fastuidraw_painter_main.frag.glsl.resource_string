@@ -81,26 +81,6 @@ main(void)
       || dFdy(float(discard_color_write)) != 0.0)
   #endif
     {
-      vec4 b, c;
-
-      #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
-        {
-          fastuidraw_header h;
-
-          fastuidraw_read_header(fastuidraw_header_varying, h);
-
-          fastuidraw_frag_shader = h.item_shader;
-          fastuidraw_frag_shader_data_location = h.item_shader_data_location;
-          fastuidraw_blend_shader = h.blend_shader;
-          fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
-          fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
-
-          uint brush_data_loc;
-          brush_data_loc = h.brush_shader_data_location;
-          fastuidraw_painter_brush_unpack_values(h.brush_shader, brush_data_loc);
-        }
-      #endif
-
       /* unpack fastuidraw_deferred_buffer_offset_packed to
        * fastuidraw_deferred_buffer_offset
        */
@@ -123,6 +103,7 @@ main(void)
            * the output of fastuidraw_run_frag_shader and the brush are also
            * pre-multiplied by alpha.
            */
+          vec4 b, c;
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
           b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
           v = b * c;
