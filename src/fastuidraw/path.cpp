@@ -616,8 +616,8 @@ resume_tessellation_worker(const ArcTessellatorStateNode &node,
   if (recurse_level == 0
       || recurse_level < m_minimum_tessellation_recursion
       || (tess_params.m_max_distance > 0.0f
-	  && recurse_level <= tess_params.m_max_recursion
-	  && node.max_distance() > tess_params.m_max_distance))
+          && recurse_level <= tess_params.m_max_recursion
+          && node.max_distance() > tess_params.m_max_distance))
     {
       resume_tessellation_worker(node.splitL(m_h.get()), tess_params, dst);
       resume_tessellation_worker(node.splitR(m_h.get()), tess_params, dst);
@@ -883,7 +883,7 @@ distance_to_arc_raw(unsigned int depth, const ArcSegment &A) const
   else
     {
       return t_max(m_L->distance_to_arc_raw(depth - 1, A),
-		   m_R->distance_to_arc_raw(depth - 1, A));
+                   m_R->distance_to_arc_raw(depth - 1, A));
     }
 }
 

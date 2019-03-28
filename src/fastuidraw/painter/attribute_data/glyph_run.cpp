@@ -417,8 +417,8 @@ number_glyphs(void) const
 void
 fastuidraw::GlyphRun::
 added_glyph(unsigned int I,
-	    GlyphMetrics *out_glyph_metrics,
-	    vec2 *out_position) const
+            GlyphMetrics *out_glyph_metrics,
+            vec2 *out_position) const
 {
   GlyphRunPrivate *d;
   d = static_cast<GlyphRunPrivate*>(m_d);

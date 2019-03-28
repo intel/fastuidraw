@@ -23,8 +23,8 @@ namespace
   inline
   uint32_t
   read_texel(const fastuidraw::uvec2 &dims,
-	     fastuidraw::c_array<const uint8_t> texels,
-	     unsigned int x, unsigned int y)
+         fastuidraw::c_array<const uint8_t> texels,
+         unsigned int x, unsigned int y)
   {
     x = fastuidraw::t_min(x, dims.x() - 1u);
     y = fastuidraw::t_min(y, dims.y() - 1u);
@@ -35,8 +35,8 @@ namespace
 void
 fastuidraw::detail::
 pack_texels(const uvec2 &dims,
-	    c_array<const uint8_t> texels,
-	    std::vector<generic_data> *out_packed_texels)
+            c_array<const uint8_t> texels,
+            std::vector<generic_data> *out_packed_texels)
 {
   uvec2 wh(dims);
   if (wh.x() & 1u)
@@ -57,21 +57,21 @@ pack_texels(const uvec2 &dims,
   for (unsigned int y = 0, dst = 0; y < wh.y(); y += 2u)
     {
       for (unsigned int x = 0; x < wh.x(); x += 2u, ++dst)
-	{
-	  uint32_t v, p00, p01, p10, p11;
+        {
+          uint32_t v, p00, p01, p10, p11;
 
-	  p00 = read_texel(dims, texels, x + 0u, y + 0u);
-	  p10 = read_texel(dims, texels, x + 1u, y + 0u);
-	  p01 = read_texel(dims, texels, x + 0u, y + 1u);
-	  p11 = read_texel(dims, texels, x + 1u, y + 1u);
+          p00 = read_texel(dims, texels, x + 0u, y + 0u);
+          p10 = read_texel(dims, texels, x + 1u, y + 0u);
+          p01 = read_texel(dims, texels, x + 0u, y + 1u);
+          p11 = read_texel(dims, texels, x + 1u, y + 1u);
 
-	  v = pack_bits(0u, 8u, p00)
-	    | pack_bits(8u, 8u, p10)
-	    | pack_bits(16u, 8u, p01)
-	    | pack_bits(24u, 8u, p11);
+          v = pack_bits(0u, 8u, p00)
+            | pack_bits(8u, 8u, p10)
+            | pack_bits(16u, 8u, p01)
+            | pack_bits(24u, 8u, p11);
 
-	  FASTUIDRAWassert(dst < data.size());
-	  data[dst].u = v;
-	}
+          FASTUIDRAWassert(dst < data.size());
+          data[dst].u = v;
+        }
     }
 }

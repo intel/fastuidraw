@@ -135,10 +135,10 @@ fastuidraw::FontBase::
 }
 
 get_implement(fastuidraw::FontBase, FontBasePrivate,
-	      const fastuidraw::FontProperties&, properties)
+              const fastuidraw::FontProperties&, properties)
 
 get_implement(fastuidraw::FontBase, FontBasePrivate,
-	      const fastuidraw::FontMetrics&, metrics)
+              const fastuidraw::FontMetrics&, metrics)
 
 get_implement(fastuidraw::FontBase, FontBasePrivate,
-	      unsigned int, unique_id)
+              unsigned int, unique_id)

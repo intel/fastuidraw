@@ -32,7 +32,7 @@
   {
     /* fastuidraw_clipping_value.x indicates if the fragment is really clipped */
     fastuidraw_clipping_value.x = (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
-				   || fastuidraw_clip_plane2 < 0.0 || fastuidraw_clip_plane3 < 0.0);
+                                   || fastuidraw_clip_plane2 < 0.0 || fastuidraw_clip_plane3 < 0.0);
 
     /* .y indicates if the fragment is more than one pixel from the clipping plane */
     fastuidraw_clipping_value.y = FASTUIDRAW_WITHIN_ONE_PIXEL(fastuidraw_clip_plane0)

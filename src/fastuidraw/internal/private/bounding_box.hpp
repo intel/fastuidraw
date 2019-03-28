@@ -164,10 +164,10 @@ namespace fastuidraw
     {
       if (!b.m_empty)
         {
-	  bool r0, r1;
+          bool r0, r1;
           r0 = union_point(b.m_min_point);
           r1 = union_point(b.m_max_point);
-	  return r0 || r1;
+          return r0 || r1;
         }
       return false;
     }

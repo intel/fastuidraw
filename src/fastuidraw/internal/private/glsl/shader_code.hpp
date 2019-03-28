@@ -123,7 +123,7 @@ namespace fastuidraw
        */
       ShaderSource
       restricted_rays_compute_coverage(c_string fetch_macro_function,
-				       c_string fetch_macro_function_fp16x2);
+                                       c_string fetch_macro_function_fp16x2);
 
        /*!
        * Construct/returns a ShaderSource value that implements the function:

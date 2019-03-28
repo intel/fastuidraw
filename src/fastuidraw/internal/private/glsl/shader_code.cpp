@@ -67,7 +67,7 @@ compute_interval(c_string function_name,
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::detail::
 restricted_rays_compute_coverage(c_string fetch_macro_function,
-				 c_string fetch_macro_function_fp16x2)
+                                 c_string fetch_macro_function_fp16x2)
 {
   ShaderSource return_value;
   ShaderSource::MacroSet macros;

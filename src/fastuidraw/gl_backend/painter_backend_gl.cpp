@@ -1285,7 +1285,7 @@ set_gl_state(RenderTargetState prev_state,
           fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding, 0);
           fastuidraw_glBindTexture(glyphs->data_binding_point(), glyphs->data_backing(GlyphAtlasGL::backing_uint32_fmt));
 
-	  fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding_fp16);
+          fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding_fp16);
           fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding_fp16, 0);
           fastuidraw_glBindTexture(glyphs->data_binding_point(), glyphs->data_backing(GlyphAtlasGL::backing_fp16x2_fmt));
         }

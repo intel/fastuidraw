@@ -370,9 +370,9 @@ TessellatedPathPrivate(const fastuidraw::TessellatedPath &with_arcs,
           segs = with_arcs.edge_segment_data(C, E);
           for (const TessellatedPath::segment &S : segs)
             {
-	      float f;
+              float f;
               f = add_linearization_of_segment(thresh, S, &tmp);
-	      d = t_max(f, d);
+              d = t_max(f, d);
             }
           add_edge(builder, C, E, tmp, d);
         }

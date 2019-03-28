@@ -1700,7 +1700,7 @@ subdivide(unsigned int max_recursion, unsigned int split_thresh,
       thresh = t_sqrt(box_size.x() * box_size.y()) * 0.01f;
       m_delta = ivec2(128, 128);
       m_winding = m_curves.glyph_path().compute_winding_number(pt + vec2(m_delta) * factor,
-							       &best_dist);
+                                                               &best_dist);
       for (int i = 0; i < MAX_TRIES && best_dist < thresh; ++i)
         {
           ivec2 idelta;

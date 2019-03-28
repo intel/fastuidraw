@@ -444,7 +444,7 @@ namespace
     void //a negative value for singular_value_scaled indicates to recompute singular values
     item_matrix(const fastuidraw::float3x3 &v,
                 bool trick_transition, enum matrix_type_t M,
-		float singular_value_scaled = -1.0f);
+                float singular_value_scaled = -1.0f);
 
     const fastuidraw::PainterClipEquations&
     clip_equations(void) const
@@ -1947,8 +1947,8 @@ item_matrix_singular_values(void) const
 void
 ClipRectState::
 item_matrix(const fastuidraw::float3x3 &v,
-	    bool trick_transition, enum matrix_type_t M,
-	    float singular_value_scaled)
+            bool trick_transition, enum matrix_type_t M,
+            float singular_value_scaled)
 {
   FASTUIDRAWassert(!m_override_matrix_state);
 
@@ -1989,30 +1989,30 @@ matrix_type(void) const
   if (m_matrix_type == unclassified_matrix)
     {
       if (matrix_has_perspective(m_item_matrix.m_item_matrix))
-	{
-	  m_matrix_type = perspective_matrix;
-	}
+        {
+          m_matrix_type = perspective_matrix;
+        }
       else
-	{
-	  const fastuidraw::vec2 &svd(item_matrix_singular_values());
-	  float diff, sc;
-	  const float tol(1e-5), one_plus_tol(1.0f + tol), one_minus_tol(1.0f - tol);
+        {
+          const fastuidraw::vec2 &svd(item_matrix_singular_values());
+          float diff, sc;
+          const float tol(1e-5), one_plus_tol(1.0f + tol), one_minus_tol(1.0f - tol);
 
-	  diff = fastuidraw::t_abs(svd[0] - svd[1]);
-	  sc = fastuidraw::t_abs(svd[0] * m_item_matrix.m_item_matrix(2, 2));
-	  if (diff > tol)
-	    {
-	      m_matrix_type = shearing_matrix;
-	    }
-	  else if (sc > one_plus_tol || sc < one_minus_tol)
-	    {
-	      m_matrix_type = scaling_matrix;
-	    }
-	  else
-	    {
-	      m_matrix_type = non_scaling_matrix;
-	    }
-	}
+          diff = fastuidraw::t_abs(svd[0] - svd[1]);
+          sc = fastuidraw::t_abs(svd[0] * m_item_matrix.m_item_matrix(2, 2));
+          if (diff > tol)
+            {
+              m_matrix_type = shearing_matrix;
+            }
+          else if (sc > one_plus_tol || sc < one_minus_tol)
+            {
+              m_matrix_type = scaling_matrix;
+            }
+          else
+            {
+              m_matrix_type = non_scaling_matrix;
+            }
+        }
     }
   return m_matrix_type;
 }
@@ -3084,9 +3084,9 @@ compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::v
        * ignore q.
        */
       if (q.z() > tol_w)
-	{
-	  min_w = t_min(min_w, q.z());
-	}
+        {
+          min_w = t_min(min_w, q.z());
+        }
     }
 
   float v_norm;
@@ -5246,7 +5246,7 @@ fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
             const GlyphSequence &glyph_sequence,
-	    GlyphRenderer renderer)
+            GlyphRenderer renderer)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -5275,16 +5275,16 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
       unsigned int I(d->m_work_room.m_glyph.m_subsets[k]);
       GlyphSequence::Subset S(glyph_sequence.subset(I));
       S.attributes_and_indices(renderer,
-			       &d->m_work_room.m_glyph.m_attribs[k],
-			       &d->m_work_room.m_glyph.m_indices[k]);
+                   &d->m_work_room.m_glyph.m_attribs[k],
+                   &d->m_work_room.m_glyph.m_indices[k]);
     }
   d->draw_generic(shader.shader(renderer.m_type),
-		  draw,
-		  make_c_array(d->m_work_room.m_glyph.m_attribs),
-		  make_c_array(d->m_work_room.m_glyph.m_indices),
-		  c_array<const int>(),
-		  c_array<const unsigned int>(),
-		  d->m_current_z);
+                  draw,
+                  make_c_array(d->m_work_room.m_glyph.m_attribs),
+                  make_c_array(d->m_work_room.m_glyph.m_indices),
+                  c_array<const int>(),
+                  c_array<const unsigned int>(),
+                  d->m_current_z);
 
   return renderer;
 }
@@ -5292,7 +5292,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 draw_glyphs(const PainterData &draw, const GlyphSequence &data,
-	    GlyphRenderer render)
+            GlyphRenderer render)
 {
   return draw_glyphs(default_shaders().glyph_shader(), draw, data, render);
 }
@@ -5356,7 +5356,7 @@ fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
             const GlyphSequence &glyph_sequence,
-	    const GlyphRendererChooser &renderer_chooser)
+            const GlyphRendererChooser &renderer_chooser)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -5368,7 +5368,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 fastuidraw::GlyphRenderer
 fastuidraw::Painter::
 draw_glyphs(const PainterData &draw, const GlyphSequence &data,
-	    const GlyphRendererChooser &renderer_chooser)
+            const GlyphRendererChooser &renderer_chooser)
 {
   return draw_glyphs(default_shaders().glyph_shader(), draw, data, renderer_chooser);
 }

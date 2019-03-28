@@ -766,7 +766,7 @@ compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const
 fastuidraw::GlyphRenderData*
 fastuidraw::FontFreeType::
 compute_rendering_data(GlyphRenderer render, GlyphMetrics glyph_metrics,
-		       Path &path, vec2 &render_size) const
+                       Path &path, vec2 &render_size) const
 {
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);

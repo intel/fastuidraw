@@ -150,9 +150,9 @@ namespace
       FASTUIDRAWassert(dst.size() == src.size());
       for(unsigned int i = 0; i < dst.size(); ++i)
         {
-	  int adjust;
+          int adjust;
 
-	  adjust = (m_index_adjusts.empty()) ? 0 : m_index_adjusts[index_chunk];
+          adjust = (m_index_adjusts.empty()) ? 0 : m_index_adjusts[index_chunk];
           FASTUIDRAWassert(int(src[i]) + adjust >= 0);
           dst[i] = int(src[i] + index_offset_value) + adjust;
         }

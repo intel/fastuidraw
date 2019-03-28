@@ -77,10 +77,10 @@ main(void)
         {
           v = vec4(0.0);
           #if defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
-	    {
-	      FASTUIDRAW_DISCARD_COLOR_WRITE = true;
-	    }
-	  #endif
+            {
+              FASTUIDRAW_DISCARD_COLOR_WRITE = true;
+            }
+          #endif
         }
     }
 

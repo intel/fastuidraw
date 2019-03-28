@@ -31,17 +31,17 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   p = uintBitsToFloat(in_attrib0.xy);
   wh.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_RECT_WIDTH_BIT0,
-				 FASTUIDRAW_GLYPH_RECT_WIDTH_NUMBITS,
-				 in_attrib1.x);
+                                 FASTUIDRAW_GLYPH_RECT_WIDTH_NUMBITS,
+                                 in_attrib1.x);
   wh.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_RECT_HEIGHT_BIT0,
-				 FASTUIDRAW_GLYPH_RECT_HEIGHT_NUMBITS,
-				 in_attrib1.x);
+                                 FASTUIDRAW_GLYPH_RECT_HEIGHT_NUMBITS,
+                                 in_attrib1.x);
   xy.x = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_RECT_X_BIT0,
-				 FASTUIDRAW_GLYPH_RECT_X_NUMBITS,
-				 in_attrib1.x);
+                                 FASTUIDRAW_GLYPH_RECT_X_NUMBITS,
+                                 in_attrib1.x);
   xy.y = FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_RECT_Y_BIT0,
-				 FASTUIDRAW_GLYPH_RECT_Y_NUMBITS,
-				 in_attrib1.x);
+                                 FASTUIDRAW_GLYPH_RECT_Y_NUMBITS,
+                                 in_attrib1.x);
 
   fastuidraw_glyph_coord_x = float(xy.x);
   fastuidraw_glyph_coord_y = float(xy.y);

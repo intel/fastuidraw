@@ -32,8 +32,8 @@ namespace
   {
   public:
     StoreGL(unsigned int number,
-	    GLenum pbinding_point, const fastuidraw::ivec2 &log2_dims,
-	    bool binding_point_is_texture_unit):
+            GLenum pbinding_point, const fastuidraw::ivec2 &log2_dims,
+            bool binding_point_is_texture_unit):
       fastuidraw::GlyphAtlasBackingStoreBase(number, true),
       m_binding_point(pbinding_point),
       m_log2_dims(log2_dims),
@@ -252,10 +252,10 @@ flush(void)
       FASTUIDRAWassert(m_texture_fp16 != 0);
 
       fastuidraw::gl::detail::texture_view(fastuidraw::gl::detail::compute_texture_view_support(),
-					   m_texture_fp16, GL_TEXTURE_2D_ARRAY,
-					   m_backing_store.texture(), GL_RG16F,
-					   0, 1,
-					   0, m_backing_store.dims().z());
+                                           m_texture_fp16, GL_TEXTURE_2D_ARRAY,
+                                           m_backing_store.texture(), GL_RG16F,
+                                           0, 1,
+                                           0, m_backing_store.dims().z());
     }
 }
 
@@ -326,7 +326,7 @@ set_values(unsigned int location,
 StoreGL_TextureBuffer::
 StoreGL_TextureBuffer(unsigned int number, bool delayed):
   StoreGL(number, GL_TEXTURE_BUFFER,
-	  fastuidraw::ivec2(-1, -1), true),
+          fastuidraw::ivec2(-1, -1), true),
   m_backing_store(number * sizeof(float), delayed),
   m_texture(0),
   m_texture_fp16(0),
@@ -467,7 +467,7 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
       p = FASTUIDRAWnew StoreGL_Texture(P.texture_2d_array_store_log2_dims(),
-					number, delayed);
+                                        number, delayed);
       break;
 
     default:
