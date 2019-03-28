@@ -237,7 +237,7 @@ namespace
                    unsigned int max_index_cnt,
                    fastuidraw::c_array<unsigned int> dst);
 
-    void
+    bool //returns true if this is added to dst
     select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
                                 unsigned int max_attribute_cnt,
                                 unsigned int max_index_cnt,
@@ -289,7 +289,7 @@ namespace
     SubsetPrivate(int recursion_depth, SubPath *data,
                   std::vector<SubsetPrivate*> &out_values);
 
-    void
+    bool //returns true if this is added to dst
     select_subsets_implement(ScratchSpacePrivate &scratch,
                              fastuidraw::c_array<unsigned int> dst,
                              float item_space_additional_room,
@@ -1177,7 +1177,7 @@ select_subsets(ScratchSpacePrivate &scratch,
   return return_value;
 }
 
-void
+bool
 SubsetPrivate::
 select_subsets_implement(ScratchSpacePrivate &scratch,
                          fastuidraw::c_array<unsigned int> dst,
@@ -1190,7 +1190,7 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
 
   if (m_bounding_box.empty())
     {
-      return;
+      return false;
     }
 
   /* clip the bounding box of this StrokedPathSubset */
@@ -1205,27 +1205,60 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
   //completely clipped
   if (scratch.m_clipped_rect.empty())
     {
-      return;
+      return false;
     }
 
   //completely unclipped.
   if (unclipped || !have_children())
     {
-      select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
-      return;
+      return select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
     }
 
   FASTUIDRAWassert(m_children[0] != nullptr);
   FASTUIDRAWassert(m_children[1] != nullptr);
-  m_children[0]->select_subsets_implement(scratch, dst, item_space_additional_room,
-                                          max_attribute_cnt, max_index_cnt,
-                                          current);
-  m_children[1]->select_subsets_implement(scratch, dst, item_space_additional_room,
-                                          max_attribute_cnt, max_index_cnt,
-                                          current);
+
+  bool r0, r1;
+
+  r0 = m_children[0]->select_subsets_implement(scratch, dst, item_space_additional_room,
+                                               max_attribute_cnt, max_index_cnt,
+                                               current);
+  r1 = m_children[1]->select_subsets_implement(scratch, dst, item_space_additional_room,
+                                               max_attribute_cnt, max_index_cnt,
+                                               current);
+
+  if (r0 && r1)
+    {
+      /* the last two elements added are m_children[0] and m_children[1];
+       * remove them and add this instead (if possible).
+       */
+      FASTUIDRAWassert(current >= 2);
+      FASTUIDRAWassert(dst[current - 2] == m_children[0]->m_ID);
+      FASTUIDRAWassert(dst[current - 1] == m_children[1]->m_ID);
+
+      if (!m_sizes_ready)
+        {
+          ready_sizes_from_children();
+        }
+      FASTUIDRAWassert(m_sizes_ready);
+
+      if (m_num_attributes <= max_attribute_cnt
+          && m_num_indices <= max_index_cnt)
+        {
+          make_ready();
+          if (m_painter_data)
+            {
+              current -= 2;
+              dst[current] = m_ID;
+              ++current;
+              return true;
+            }
+        }
+    }
+
+  return false;
 }
 
-void
+bool
 SubsetPrivate::
 select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
                             unsigned int max_attribute_cnt,
@@ -1256,7 +1289,7 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
         {
           dst[current] = m_ID;
           ++current;
-          return;
+          return true;
         }
     }
 
@@ -1274,6 +1307,8 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
       FASTUIDRAWassert(m_sizes_ready);
       FASTUIDRAWassert(!"Childless StrokedPath::Subset has too many attributes or indices");
     }
+
+  return false;
 }
 
 ////////////////////////////////////////
