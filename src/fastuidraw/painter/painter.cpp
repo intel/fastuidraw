@@ -3517,6 +3517,11 @@ compute_bounding_box_of_miter_joins(fastuidraw::c_array<const fastuidraw::vec2> 
                                     float miter_pixels_additional_room,
                                     float miter_item_space_additional_room)
 {
+  /* TODO:
+   *   1. Take into account the direction of the joins.
+   *   2. Take into account the the maximum value the miter-length
+   *      the join can be.
+   */
   fastuidraw::BoundingBox<float> return_value;
   for (const fastuidraw::vec2 &p : join_positions)
     {
