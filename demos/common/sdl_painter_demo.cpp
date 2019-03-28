@@ -104,7 +104,7 @@ namespace
         break;
 
       case fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported:
-        str << "fbf_blending_not_supported";
+        str << "none";
         break;
 
       default:
