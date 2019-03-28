@@ -369,6 +369,13 @@ namespace
     }
   };
 
+  class ChunkSetPrivateSize
+  {
+  public:
+    unsigned int m_join_chunks, m_cap_chunks;
+    unsigned int m_join_positions, m_cap_positions;
+  };
+
   class ChunkSetPrivate:fastuidraw::noncopyable
   {
   public:
@@ -381,6 +388,31 @@ namespace
       m_cap_chunks.clear();
       m_join_positions.clear();
       m_cap_positions.clear();
+    }
+
+    ChunkSetPrivateSize
+    save_size(void)
+    {
+      ChunkSetPrivateSize R;
+      R.m_join_chunks = m_join_chunks.size();
+      R.m_cap_chunks = m_cap_chunks.size();
+      R.m_join_positions = m_join_positions.size();
+      R.m_cap_positions = m_cap_positions.size();
+      return R;
+    }
+
+    void
+    restore_size(ChunkSetPrivateSize R)
+    {
+      FASTUIDRAWassert(m_join_chunks.size() >= R.m_join_chunks);
+      FASTUIDRAWassert(m_cap_chunks.size() >= R.m_cap_chunks);
+      FASTUIDRAWassert(m_join_positions.size() >= R.m_join_positions);
+      FASTUIDRAWassert(m_cap_positions.size() >= R.m_cap_positions);
+
+      m_join_chunks.resize(R.m_join_chunks);
+      m_cap_chunks.resize(R.m_cap_chunks);
+      m_join_positions.resize(R.m_join_positions);
+      m_cap_positions.resize(R.m_cap_positions);
     }
 
     void
@@ -534,7 +566,7 @@ namespace
                   CapOrdering &cap_ordering,
                   const CullingHierarchy *src);
 
-    void
+    bool //returns true if all the elements of this are added to dst
     compute_chunks_implement(ScratchSpacePrivate &work_room,
                              float item_space_additional_room,
                              ChunkSetPrivate &dst);
@@ -1493,7 +1525,7 @@ compute_chunks_take_all(ChunkSetPrivate &dst)
   dst.add_cap_chunk(caps(), cap_positions());
 }
 
-void
+bool
 SubsetPrivate::
 compute_chunks_implement(ScratchSpacePrivate &scratch,
                          float item_space_additional_room,
@@ -1504,7 +1536,7 @@ compute_chunks_implement(ScratchSpacePrivate &scratch,
 
   if (m_bb.empty() || m_empty_subset)
     {
-      return;
+      return false;
     }
 
   /* clip the bounding box of this SubsetPrivate */
@@ -1519,21 +1551,34 @@ compute_chunks_implement(ScratchSpacePrivate &scratch,
   if (unclipped || !have_children())
     {
       compute_chunks_take_all(dst);
-      return;
+      return true;
     }
 
   //completely clipped
   if (scratch.m_clipped_rect.empty())
     {
-      return;
+      return false;
     }
 
   FASTUIDRAWassert(have_children());
 
   FASTUIDRAWassert(m_children[0] != nullptr);
   FASTUIDRAWassert(m_children[1] != nullptr);
-  m_children[0]->compute_chunks_implement(scratch, item_space_additional_room, dst);
-  m_children[1]->compute_chunks_implement(scratch, item_space_additional_room, dst);
+
+  bool r0, r1;
+  ChunkSetPrivateSize ch_sz(dst.save_size());
+
+  r0 = m_children[0]->compute_chunks_implement(scratch, item_space_additional_room, dst);
+  r1 = m_children[1]->compute_chunks_implement(scratch, item_space_additional_room, dst);
+  if (r0 && r1)
+    {
+      /* both children report that everything is taken, so we take this
+       * but remove the children which are added last.
+       */
+      dst.restore_size(ch_sz);
+      compute_chunks_take_all(dst);
+    }
+  return r0 && r1;
 }
 
 ////////////////////////////////////////////////
