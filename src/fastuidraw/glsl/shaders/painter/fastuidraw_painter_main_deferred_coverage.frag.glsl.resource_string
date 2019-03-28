@@ -20,11 +20,18 @@ layout(location = 0) out float fastuidraw_deferred_coverage;
 
 #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
 
-  bool
+  bvec2
   fastuidraw_apply_clipping(void)
   {
-    return (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
-       || fastuidraw_clip_plane2 < 0.0  || fastuidraw_clip_plane3 < 0.0);
+    bvec2 r;
+    /* r.x indicates if the fragment is really clipped */
+    r.x = (fastuidraw_clip_plane0 < 0.0 || fastuidraw_clip_plane1 < 0.0
+	   || fastuidraw_clip_plane2 < 0.0  || fastuidraw_clip_plane3 < 0.0);
+    /* r.y indicates if the fragment is more than one pixel from the clipping plane */
+    float tol = -2.0 * fastuidraw_viewport_recip_pixels_magnitude;
+    r.y = (fastuidraw_clip_plane0 < tol || fastuidraw_clip_plane1 < tol
+	   || fastuidraw_clip_plane2 < tol  || fastuidraw_clip_plane3 < tol);
+    return r;
   }
 
 #endif
@@ -36,12 +43,12 @@ main(void)
   float v = 0.0;
 
   #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
-  bool clipped;
+  bvec2 clipped;
   clipped = fastuidraw_apply_clipping();
   #endif
 
   #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
-  if (!clipped || dFdx(float(clipped)) != 0.0 || dFdy(float(clipped)) != 0.0)
+  if (!clipped.y)
   #endif
     {
       v = fastuidraw_run_frag_shader(fastuidraw_frag_shader,
@@ -49,7 +56,7 @@ main(void)
     }
 
   #ifndef FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE
-  if (clipped)
+  if (clipped.x)
     {
       v = 0.0;
     }
