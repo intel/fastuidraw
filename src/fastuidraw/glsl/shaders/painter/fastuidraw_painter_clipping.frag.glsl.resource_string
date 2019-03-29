@@ -57,7 +57,7 @@
   }
 
   #define FASTUIDRAW_RUN_ITEM_FRAG_SHADER true
-  #define FASTUIDRAW_DISCARD_COLOR_WRITE false
+  bool FASTUIDRAW_DISCARD_COLOR_WRITE = false;
 
 #else
 
@@ -66,6 +66,6 @@
   {
   }
   #define FASTUIDRAW_RUN_ITEM_FRAG_SHADER true
-  #define FASTUIDRAW_DISCARD_COLOR_WRITE false
+  bool FASTUIDRAW_DISCARD_COLOR_WRITE = false;
 
 #endif

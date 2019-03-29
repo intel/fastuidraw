@@ -1829,7 +1829,7 @@ construct_item_coverage_shader(const BackendConstants &backend_constants,
                                                      d->m_item_coverage_shaders,
                                                      backend_constants, out_vertex, out_fragment,
                                                      construct_params, shader_id,
-                                                     "fastuidraw_do_nothing()");
+                                                     "FASTUIDRAW_DISCARD_COLOR_WRITE=true");
 }
 
 uint32_t
