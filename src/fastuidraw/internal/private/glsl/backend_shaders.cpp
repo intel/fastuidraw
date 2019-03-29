@@ -441,23 +441,23 @@ build_uber_stroke_varyings(uint32_t flags) const
   if (flags & arc_shader)
     {
       return_value
-        .add_float_varying("fastuidraw_arc_stroking_relative_to_center_x")
-        .add_float_varying("fastuidraw_arc_stroking_relative_to_center_y")
-        .add_float_varying("fastuidraw_arc_stroking_arc_radius")
-        .add_float_varying("fastuidraw_arc_stroking_stroke_radius")
-        .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_start")
-        .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_end")
-        .add_float_varying("fastuidraw_arc_stroking_distance")
-        .add_uint_varying("fastuidraw_arc_stroking_dash_bits");
+        .add_float("fastuidraw_arc_stroking_relative_to_center_x")
+        .add_float("fastuidraw_arc_stroking_relative_to_center_y")
+        .add_float("fastuidraw_arc_stroking_arc_radius")
+        .add_float("fastuidraw_arc_stroking_stroke_radius")
+        .add_float("fastuidraw_arc_stroking_distance_sub_edge_start")
+        .add_float("fastuidraw_arc_stroking_distance_sub_edge_end")
+        .add_float("fastuidraw_arc_stroking_distance")
+        .add_uint("fastuidraw_arc_stroking_dash_bits");
     }
   else
     {
       return_value
-        .add_float_varying("fastuidraw_stroking_on_boundary")
-        .add_float_varying("fastuidraw_stroking_distance")
-        .add_float_varying("fastuidraw_stroking_distance_sub_edge_start")
-        .add_float_varying("fastuidraw_stroking_distance_sub_edge_end")
-        .add_uint_varying("fastuidraw_stroking_dash_bits");
+        .add_float("fastuidraw_stroking_on_boundary")
+        .add_float("fastuidraw_stroking_distance")
+        .add_float("fastuidraw_stroking_distance_sub_edge_start")
+        .add_float("fastuidraw_stroking_distance_sub_edge_end")
+        .add_uint("fastuidraw_stroking_dash_bits");
     }
 
   return return_value;
@@ -596,30 +596,30 @@ create_glyph_shader(void)
   varying_list banded_rays_varyings;
 
   distance_varyings
-    .add_float_varying("fastuidraw_glyph_coord_x")
-    .add_float_varying("fastuidraw_glyph_coord_y")
-    .add_float_varying("fastuidraw_glyph_width")
-    .add_float_varying("fastuidraw_glyph_height")
-    .add_uint_varying("fastuidraw_glyph_data_location");
+    .add_float("fastuidraw_glyph_coord_x")
+    .add_float("fastuidraw_glyph_coord_y")
+    .add_float("fastuidraw_glyph_width")
+    .add_float("fastuidraw_glyph_height")
+    .add_uint("fastuidraw_glyph_data_location");
 
   coverage_varyings
-    .add_float_varying("fastuidraw_glyph_coord_x")
-    .add_float_varying("fastuidraw_glyph_coord_y")
-    .add_float_varying("fastuidraw_glyph_width")
-    .add_float_varying("fastuidraw_glyph_height")
-    .add_uint_varying("fastuidraw_glyph_data_location");
+    .add_float("fastuidraw_glyph_coord_x")
+    .add_float("fastuidraw_glyph_coord_y")
+    .add_float("fastuidraw_glyph_width")
+    .add_float("fastuidraw_glyph_height")
+    .add_uint("fastuidraw_glyph_data_location");
 
   restricted_rays_varyings
-    .add_float_varying("fastuidraw_glyph_coord_x")
-    .add_float_varying("fastuidraw_glyph_coord_y")
-    .add_uint_varying("fastuidraw_glyph_data_location");
+    .add_float("fastuidraw_glyph_coord_x")
+    .add_float("fastuidraw_glyph_coord_y")
+    .add_uint("fastuidraw_glyph_data_location");
 
   banded_rays_varyings
-    .add_float_varying("fastuidraw_glyph_coord_x")
-    .add_float_varying("fastuidraw_glyph_coord_y")
-    .add_uint_varying("fastuidraw_glyph_data_num_vertical_bands")
-    .add_uint_varying("fastuidraw_glyph_data_num_horizontal_bands")
-    .add_uint_varying("fastuidraw_glyph_data_location");
+    .add_float("fastuidraw_glyph_coord_x")
+    .add_float("fastuidraw_glyph_coord_y")
+    .add_uint("fastuidraw_glyph_data_num_vertical_bands")
+    .add_uint("fastuidraw_glyph_data_num_horizontal_bands")
+    .add_uint("fastuidraw_glyph_data_location");
 
   return_value
     .shader(coverage_glyph,
@@ -736,7 +736,7 @@ create_fill_shader(void)
                                                             ShaderSource::from_resource)
                                                 .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
                                                 .remove_macros(m_fill_macros),
-                                                varying_list().add_float_varying("fastuidraw_aa_fuzz"));
+                                                varying_list().add_float("fastuidraw_aa_fuzz"));
   aa_fuzz_deferred =
     FASTUIDRAWnew PainterItemShaderGLSL(false,
                                         ShaderSource()
@@ -753,7 +753,7 @@ create_fill_shader(void)
                                                     ShaderSource::from_resource)
                                         .remove_macro("FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE")
                                         .remove_macros(m_fill_macros),
-                                        varying_list().add_float_varying("fastuidraw_aa_fuzz"),
+                                        varying_list().add_float("fastuidraw_aa_fuzz"),
                                         aa_fuzz_deferred_coverage);
 
 

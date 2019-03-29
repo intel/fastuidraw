@@ -218,7 +218,7 @@ ints(void) const
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-add_float_varying(c_string pname, enum interpolation_qualifier_t q)
+add_float(c_string pname, enum interpolation_qualifier_t q)
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
@@ -228,7 +228,7 @@ add_float_varying(c_string pname, enum interpolation_qualifier_t q)
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-add_uint_varying(c_string pname)
+add_uint(c_string pname)
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
@@ -238,7 +238,7 @@ add_uint_varying(c_string pname)
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-add_int_varying(c_string pname)
+add_int(c_string pname)
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);

@@ -343,23 +343,23 @@ ready_main_varyings(void)
   using namespace fastuidraw;
 
   m_item_shaders.m_main_varyings_shaders_and_shader_datas
-    .add_uint_varying("fastuidraw_frag_shader")
-    .add_uint_varying("fastuidraw_frag_shader_data_location")
-    .add_uint_varying("fastuidraw_blend_shader")
-    .add_uint_varying("fastuidraw_blend_shader_data_location")
-    .add_uint_varying("fastuidraw_deferred_buffer_offset_packed")
-    .add_float_varying("fastuidraw_brush_p_x")
-    .add_float_varying("fastuidraw_brush_p_y");
+    .add_uint("fastuidraw_frag_shader")
+    .add_uint("fastuidraw_frag_shader_data_location")
+    .add_uint("fastuidraw_blend_shader")
+    .add_uint("fastuidraw_blend_shader_data_location")
+    .add_uint("fastuidraw_deferred_buffer_offset_packed")
+    .add_float("fastuidraw_brush_p_x")
+    .add_float("fastuidraw_brush_p_y");
 
   m_item_coverage_shaders.m_main_varyings_shaders_and_shader_datas
-    .add_uint_varying("fastuidraw_frag_shader")
-    .add_uint_varying("fastuidraw_frag_shader_data_location");
+    .add_uint("fastuidraw_frag_shader")
+    .add_uint("fastuidraw_frag_shader_data_location");
 
   m_clip_varyings
-    .add_float_varying("fastuidraw_clip_plane0")
-    .add_float_varying("fastuidraw_clip_plane1")
-    .add_float_varying("fastuidraw_clip_plane2")
-    .add_float_varying("fastuidraw_clip_plane3");
+    .add_float("fastuidraw_clip_plane0")
+    .add_float("fastuidraw_clip_plane1")
+    .add_float("fastuidraw_clip_plane2")
+    .add_float("fastuidraw_clip_plane3");
 }
 
 void
@@ -372,17 +372,17 @@ ready_brush_varyings(void)
     /* specifies what features are active on the brush
      * through values on its bits.
      */
-    .add_uint_varying("fastuidraw_brush_shader")
+    .add_uint("fastuidraw_brush_shader")
 
     /* Repeat window paremters:
      * - fastuidraw_brush_repeat_window_xy (x,y) coordinate of repeat window
      * - fastuidraw_brush_repeat_window_wh dimensions of repeat window
      * (all in brush coordinate)
      */
-    .add_float_varying("fastuidraw_brush_repeat_window_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_repeat_window_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_repeat_window_w", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_repeat_window_h", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_repeat_window_x", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_repeat_window_y", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_repeat_window_w", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_repeat_window_h", varying_list::interpolation_flat)
 
     /* Gradient paremters (all in brush coordinates)
      * - fastuidraw_brush_gradient_p0 start point of gradient
@@ -390,12 +390,12 @@ ready_brush_varyings(void)
      * - fastuidraw_brush_gradient_r0 start radius (radial gradients only)
      * - fastuidraw_brush_gradient_r1 end radius (radial gradients only)
      */
-    .add_float_varying("fastuidraw_brush_gradient_p0_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_gradient_p0_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_gradient_p1_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_gradient_p1_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_gradient_r0", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_gradient_r1", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_gradient_p0_x", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_gradient_p0_y", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_gradient_p1_x", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_gradient_p1_y", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_gradient_r0", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_gradient_r1", varying_list::interpolation_flat)
 
     /* image parameters
      * - fastuidraw_brush_image_xy (x,y) texel coordinate in INDEX texture
@@ -407,14 +407,14 @@ ready_brush_varyings(void)
      * - fastuidraw_brush_image_factor ratio of master index tile size to
      *                                 dimension of image
      */
-    .add_float_varying("fastuidraw_brush_image_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_image_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_image_size_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_image_size_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_image_factor", varying_list::interpolation_flat)
-    .add_uint_varying("fastuidraw_brush_image_layer")
-    .add_uint_varying("fastuidraw_brush_image_slack")
-    .add_uint_varying("fastuidraw_brush_image_number_index_lookups")
+    .add_float("fastuidraw_brush_image_x", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_image_y", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_image_size_x", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_image_size_y", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_image_factor", varying_list::interpolation_flat)
+    .add_uint("fastuidraw_brush_image_layer")
+    .add_uint("fastuidraw_brush_image_slack")
+    .add_uint("fastuidraw_brush_image_number_index_lookups")
 
     /* ColorStop paremeters (only active if gradient active)
      * - fastuidraw_brush_color_stop_xy (x,y) texture coordinates of start of color stop
@@ -422,16 +422,16 @@ ready_brush_varyings(void)
      * - fastuidraw_brush_color_stop_length length of color stop sequence in normalized
      *                                     texture coordinates
      */
-    .add_float_varying("fastuidraw_brush_color_stop_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_color_stop_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_color_stop_length", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_color_stop_x", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_color_stop_y", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_color_stop_length", varying_list::interpolation_flat)
 
     /* Pen color (RGBA)
      */
-    .add_float_varying("fastuidraw_brush_color_x", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_color_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_color_z", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_color_w", varying_list::interpolation_flat);
+    .add_float("fastuidraw_brush_color_x", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_color_y", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_color_z", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_color_w", varying_list::interpolation_flat);
 }
 
 void

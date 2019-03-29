@@ -115,7 +115,7 @@ namespace fastuidraw
        * \endcode
        */
       varying_list&
-      add_float_varying(c_string pname, enum interpolation_qualifier_t q = interpolation_smooth);
+      add_float(c_string pname, enum interpolation_qualifier_t q = interpolation_smooth);
 
       /*!
        * Add an uint varying, equivalent to
@@ -124,7 +124,7 @@ namespace fastuidraw
        * \endcode
        */
       varying_list&
-      add_uint_varying(c_string pname);
+      add_uint(c_string pname);
 
       /*!
        * Add an int varying, equivalent to
@@ -133,7 +133,7 @@ namespace fastuidraw
        * \endcode
        */
       varying_list&
-      add_int_varying(c_string pname);
+      add_int(c_string pname);
 
     private:
       void *m_d;
