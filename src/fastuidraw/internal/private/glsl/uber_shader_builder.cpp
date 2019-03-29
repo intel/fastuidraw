@@ -90,6 +90,40 @@ namespace
     const fastuidraw::glsl::detail::AliasVaryingLocation &m_datum;
   };
 
+  template<typename T>
+  fastuidraw::c_string
+  item_shader_vert_name(const fastuidraw::reference_counted_ptr<const T> &)
+  {
+    return "fastuidraw_gl_vert_main";
+  }
+
+  template<typename T>
+  fastuidraw::c_string
+  item_shader_frag_name(const fastuidraw::reference_counted_ptr<const T> &)
+  {
+    return "fastuidraw_gl_frag_main";
+  }
+
+  fastuidraw::c_string
+  blend_shader_name(const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &shader)
+  {
+    switch(shader->type())
+      {
+      case fastuidraw::PainterBlendShader::single_src:
+        return "fastuidraw_gl_compute_blend_value";
+
+      case fastuidraw::PainterBlendShader::dual_src:
+        return "fastuidraw_gl_compute_blend_factors";
+
+      case fastuidraw::PainterBlendShader::framebuffer_fetch:
+        return "fastuidraw_gl_compute_post_blended_value";
+
+      default:
+        FASTUIDRAWassert(!"Bad PainterBlendShader::shader_type enum value");
+        return "unknown";
+      }
+  }
+
   void
   add_macro_requirement(fastuidraw::glsl::ShaderSource &dst,
                         bool should_be_defined,
@@ -128,6 +162,7 @@ namespace
     typedef fastuidraw::reference_counted_ptr<const T> ref_const_type;
     typedef fastuidraw::c_array<const ref_type> array_type;
     typedef const ShaderSource& (T::*get_src_type)(void) const;
+    typedef fastuidraw::c_string (*get_main_name_type)(const ref_const_type&);
 
     static
     void
@@ -139,7 +174,7 @@ namespace
     static
     void
     stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-                get_src_type get_src,
+                get_src_type get_src, get_main_name_type get_main_name,
                 pre_stream_type pre_stream,
                 post_stream_type post_stream,
                 const std::string &return_type,
@@ -151,14 +186,14 @@ namespace
     static
     void
     stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-                get_src_type get_src,
+                get_src_type get_src, get_main_name_type get_main_name,
                 const std::string &return_type,
                 const std::string &uber_func_with_args,
                 const std::string &shader_main,
                 const std::string &shader_args,
                 const std::string &shader_id)
     {
-      stream_uber(use_switch, dst, shaders, get_src,
+      stream_uber(use_switch, dst, shaders, get_src, get_main_name,
                   &stream_nothing, &stream_nothing,
                   return_type, uber_func_with_args,
                   shader_main, shader_args, shader_id);
@@ -172,16 +207,16 @@ namespace
     static
     void
     stream_shader(ShaderSource &dst, const std::string &prefix,
-                  get_src_type get_src,
+                  get_src_type get_src, get_main_name_type get_main_name,
                   const fastuidraw::reference_counted_ptr<const T> &shader,
                   const std::string &shader_main, int dependency_depth);
 
     static
     std::string
     stream_dependency(ShaderSource &dst, const std::string &prefix, int idx,
-                      get_src_type get_src,
+                      get_src_type get_src, get_main_name_type get_main_name,
                       const fastuidraw::reference_counted_ptr<const T> &shader,
-                      const std::string &shader_main, int dependency_depth);
+                      int dependency_depth);
   };
 
 }
@@ -248,7 +283,7 @@ template<typename T>
 void
 UberShaderStreamer<T>::
 stream_shader(ShaderSource &dst, const std::string &prefix,
-              get_src_type get_src,
+              get_src_type get_src, get_main_name_type get_main_name,
               const fastuidraw::reference_counted_ptr<const T> &sh,
               const std::string &shader_main, int dependency_depth)
 {
@@ -262,7 +297,7 @@ stream_shader(ShaderSource &dst, const std::string &prefix,
   for (unsigned int i = 0; i < deps.size(); ++i)
     {
       std::string realized_name;
-      realized_name = stream_dependency(dst, prefix, i, get_src, deps[i], shader_main, dependency_depth + 1);
+      realized_name = stream_dependency(dst, prefix, i, get_src, get_main_name, deps[i], dependency_depth + 1);
       dst.add_macro(dep_names[i], realized_name.c_str());
     }
 
@@ -280,9 +315,9 @@ template<typename T>
 std::string
 UberShaderStreamer<T>::
 stream_dependency(ShaderSource &dst, const std::string &in_prefix, int idx,
-                  get_src_type get_src,
+                  get_src_type get_src, get_main_name_type get_main_name,
                   const fastuidraw::reference_counted_ptr<const T> &shader,
-                  const std::string &shader_main, int dependency_depth)
+                  int dependency_depth)
 {
   std::ostringstream str;
   std::string nm;
@@ -291,7 +326,7 @@ stream_dependency(ShaderSource &dst, const std::string &in_prefix, int idx,
   nm = str.str();
   dst << "// stream-dependency #" << idx << "{depth = "
       << dependency_depth << "}: " << in_prefix << "\n";
-  stream_shader(dst, nm, get_src, shader, shader_main, dependency_depth);
+  stream_shader(dst, nm, get_src, get_main_name, shader, get_main_name(shader), dependency_depth);
 
   return nm;
 }
@@ -302,7 +337,7 @@ template<typename pre_stream_type,
 void
 UberShaderStreamer<T>::
 stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-            get_src_type get_src,
+            get_src_type get_src, get_main_name_type get_main_name,
             pre_stream_type pre_stream,
             post_stream_type post_stream,
             const std::string &return_type,
@@ -323,7 +358,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
       str << shader_main << sh->ID();
       pre_stream(dst, sh);
-      stream_shader(dst, str.str(), get_src, sh, shader_main, 0);
+      stream_shader(dst, str.str(), get_src, get_main_name, sh, shader_main, 0);
       post_stream(dst, sh);
     }
 
@@ -725,6 +760,7 @@ stream_uber_vert_shader(bool use_switch,
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                          &PainterItemShaderGLSL::vertex_src,
+                                                         item_shader_vert_name<PainterItemShaderGLSL>,
                                                          pre_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
                                                          post_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
                                                          "void",
@@ -744,6 +780,7 @@ stream_uber_frag_shader(bool use_switch,
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                          &PainterItemShaderGLSL::fragment_src,
+                                                         item_shader_frag_name<PainterItemShaderGLSL>,
                                                          pre_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
                                                          post_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
                                                          "vec4",
@@ -762,6 +799,7 @@ stream_uber_vert_shader(bool use_switch,
 {
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::vertex_src,
+                                                                 item_shader_vert_name<PainterItemCoverageShaderGLSL>,
                                                                  pre_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
                                                                  post_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
                                                                  "void",
@@ -781,6 +819,7 @@ stream_uber_frag_shader(bool use_switch,
 {
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::fragment_src,
+                                                                 item_shader_frag_name<PainterItemCoverageShaderGLSL>,
                                                                  pre_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
                                                                  post_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
                                                                  "float",
@@ -793,9 +832,9 @@ stream_uber_frag_shader(bool use_switch,
 
 void
 stream_uber_blend_shader(bool use_switch,
-                             ShaderSource &frag,
-                             c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
-                             enum PainterBlendShader::shader_type tp)
+                         ShaderSource &frag,
+                         c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
+                         enum PainterBlendShader::shader_type tp)
 {
   std::string sub_func_name, func_name, sub_func_args;
 
@@ -837,9 +876,10 @@ stream_uber_blend_shader(bool use_switch,
       break;
     }
   UberShaderStreamer<PainterBlendShaderGLSL>::stream_uber(use_switch, frag, shaders,
-                                                              &PainterBlendShaderGLSL::blend_src,
-                                                              "void", func_name,
-                                                              sub_func_name, sub_func_args, "blend_shader");
+                                                          &PainterBlendShaderGLSL::blend_src,
+                                                          blend_shader_name,
+                                                          "void", func_name,
+                                                          sub_func_name, sub_func_args, "blend_shader");
 }
 
 }}}
