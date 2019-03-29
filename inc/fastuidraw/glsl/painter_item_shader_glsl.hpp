@@ -219,16 +219,75 @@ namespace fastuidraw
     {
     public:
       /*!
+       * \brief
+       * If one wishes to make use of other \ref PainterItemCoverageShaderGLSL
+       * fastuidraw_gl_vert_main()/fastuidraw_gl_frag_main() of other shaders
+       * (for example to have a simple shader that adds on to a previous shader),
+       * a DependencyList provides the means to do so.
+       *
+       * Each such used shader is given a name by which the caller will use it.
+       * In addition, the caller has access to the varyings of the callee as well.
+       * Thus, the varyings of the caller are the varyings listed in its ctor
+       * together with the varyings of all the shaders listed in the DependencyList.
+       */
+      class DependencyList
+      {
+      public:
+        /*!
+         * Ctor.
+         */
+        DependencyList(void);
+
+        /*!
+         * Copy ctor.
+         * \param obj value from which to copy
+         */
+        DependencyList(const DependencyList &obj);
+
+        ~DependencyList();
+
+        /*!
+         * Assignment operator
+         * \param rhs value from which to copy
+         */
+        DependencyList&
+        operator=(const DependencyList &rhs);
+
+        /*!
+         * Swap operation
+         * \param obj object with which to swap
+         */
+        void
+        swap(DependencyList &obj);
+
+        /*!
+         * Add a shader to the DependencyList's list.
+         * \param name name by which to call the shader
+         * \param shader shader to add to this DependencyList
+         */
+        DependencyList&
+        add_shader(c_string name,
+                   const reference_counted_ptr<const PainterItemCoverageShaderGLSL> &shader);
+
+      private:
+        friend class PainterItemCoverageShaderGLSL;
+        void *m_d;
+      };
+
+      /*!
        * Ctor.
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
        * \param varyings list of varyings of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
+       * \param dependencies list of other \ref PainterItemCoverageShaderGLSL
+       *                     that are used directly.
        */
       PainterItemCoverageShaderGLSL(const ShaderSource &vertex_src,
                                     const ShaderSource &fragment_src,
                                     const varying_list &varyings,
-                                    unsigned int num_sub_shaders = 1);
+                                    unsigned int num_sub_shaders = 1,
+                                    const DependencyList &dependencies = DependencyList());
 
       ~PainterItemCoverageShaderGLSL();
 
@@ -251,10 +310,20 @@ namespace fastuidraw
       fragment_src(void) const;
 
       /*!
-       * Returns true if the fragment shader uses discard
+       * Return the list of shaders on which this shader is dependent.
        */
-      bool
-      uses_discard(void) const;
+      c_array<const reference_counted_ptr<const PainterItemCoverageShaderGLSL> >
+      dependency_list_shaders(void) const;
+
+      /*!
+       * Returns the names that each shader listed in \ref
+       * dependency_list_shaders() is referenced by, i.e.
+       * the i'th element of dependency_list_shaders() is
+       * referenced as the i'th element of \ref
+       * dependency_list_names().
+       */
+      c_array<const c_string>
+      dependency_list_names(void) const;
 
     private:
       void *m_d;
@@ -349,6 +418,62 @@ namespace fastuidraw
     {
     public:
       /*!
+       * \brief
+       * If one wishes to make use of other \ref PainterItemShaderGLSL
+       * fastuidraw_gl_vert_main()/fastuidraw_gl_frag_main() of other shaders
+       * (for example to have a simple shader that adds on to a previous shader),
+       * a DependencyList provides the means to do so.
+       *
+       * Each such used shader is given a name by which the caller will use it.
+       * In addition, the caller has access to the varyings of the callee as well.
+       * Thus, the varyings of the caller are the varyings listed in its ctor
+       * together with the varyings of all the shaders listed in the DependencyList.
+       */
+      class DependencyList
+      {
+      public:
+        /*!
+         * Ctor.
+         */
+        DependencyList(void);
+
+        /*!
+         * Copy ctor.
+         * \param obj value from which to copy
+         */
+        DependencyList(const DependencyList &obj);
+
+        ~DependencyList();
+
+        /*!
+         * Assignment operator
+         * \param rhs value from which to copy
+         */
+        DependencyList&
+        operator=(const DependencyList &rhs);
+
+        /*!
+         * Swap operation
+         * \param obj object with which to swap
+         */
+        void
+        swap(DependencyList &obj);
+
+        /*!
+         * Add a shader to the DependencyList's list.
+         * \param name name by which to call the shader
+         * \param shader shader to add to this DependencyList
+         */
+        DependencyList&
+        add_shader(c_string name,
+                   const reference_counted_ptr<const PainterItemShaderGLSL> &shader);
+
+      private:
+        friend class PainterItemShaderGLSL;
+        void *m_d;
+      };
+
+      /*!
        * Ctor.
        * \param puses_discard set to true if and only if the shader code
        *                      will use discard. Discard should be used
@@ -358,6 +483,8 @@ namespace fastuidraw
        * \param varyings list of varyings of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param cvg the coverage shader (if any) to be used by the item shader
+       * \param dependencies list of other \ref PainterItemShaderGLSL that are
+       *                     used directly.
        */
       PainterItemShaderGLSL(bool puses_discard,
                             const ShaderSource &vertex_src,
@@ -365,7 +492,8 @@ namespace fastuidraw
                             const varying_list &varyings,
                             unsigned int num_sub_shaders = 1,
                             const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg =
-                            reference_counted_ptr<PainterItemCoverageShaderGLSL>());
+                            reference_counted_ptr<PainterItemCoverageShaderGLSL>(),
+                            const DependencyList &dependencies = DependencyList());
 
       /*!
        * Ctor.
@@ -376,12 +504,15 @@ namespace fastuidraw
        * \param fragment_src GLSL source holding fragment shader routine
        * \param varyings list of varyings of the shader
        * \param cvg the coverage shader (if any) to be used by the item shader
+       * \param dependencies list of other \ref PainterItemShaderGLSL that are
+       *                     used directly.
        */
       PainterItemShaderGLSL(bool puses_discard,
                             const ShaderSource &vertex_src,
                             const ShaderSource &fragment_src,
                             const varying_list &varyings,
-                            const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg);
+                            const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg,
+                            const DependencyList &dependencies = DependencyList());
 
       ~PainterItemShaderGLSL();
 
@@ -408,6 +539,22 @@ namespace fastuidraw
        */
       bool
       uses_discard(void) const;
+
+      /*!
+       * Return the list of shaders on which this shader is dependent.
+       */
+      c_array<const reference_counted_ptr<const PainterItemShaderGLSL> >
+      dependency_list_shaders(void) const;
+
+      /*!
+       * Returns the names that each shader listed in \ref
+       * dependency_list_shaders() is referenced by, i.e.
+       * the i'th element of dependency_list_shaders() is
+       * referenced as the i'th element of \ref
+       * dependency_list_names().
+       */
+      c_array<const c_string>
+      dependency_list_names(void) const;
 
     private:
       void *m_d;

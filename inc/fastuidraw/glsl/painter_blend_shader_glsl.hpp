@@ -86,13 +86,72 @@ namespace fastuidraw
     {
     public:
       /*!
+       * \brief
+       * If one wishes to make use of other \ref PainterItemCoverageShaderGLSL
+       * fastuidraw_gl_vert_main()/fastuidraw_gl_frag_main() of other shaders
+       * (for example to have a simple shader that adds on to a previous shader),
+       * a DependencyList provides the means to do so.
+       *
+       * Each such used shader is given a name by which the caller will use it.
+       * In addition, the caller has access to the varyings of the callee as well.
+       * Thus, the varyings of the caller are the varyings listed in its ctor
+       * together with the varyings of all the shaders listed in the DependencyList.
+       */
+      class DependencyList
+      {
+      public:
+        /*!
+         * Ctor.
+         */
+        DependencyList(void);
+
+        /*!
+         * Copy ctor.
+         * \param obj value from which to copy
+         */
+        DependencyList(const DependencyList &obj);
+
+        ~DependencyList();
+
+        /*!
+         * Assignment operator
+         * \param rhs value from which to copy
+         */
+        DependencyList&
+        operator=(const DependencyList &rhs);
+
+        /*!
+         * Swap operation
+         * \param obj object with which to swap
+         */
+        void
+        swap(DependencyList &obj);
+
+        /*!
+         * Add a shader to the DependencyList's list.
+         * \param name name by which to call the shader
+         * \param shader shader to add to this DependencyList
+         */
+        DependencyList&
+        add_shader(c_string name,
+                   const reference_counted_ptr<const PainterBlendShaderGLSL> &shader);
+
+      private:
+        friend class PainterBlendShaderGLSL;
+        void *m_d;
+      };
+
+      /*!
        * Ctor.
        * \param tp blend shader type
        * \param src GLSL code fragment for blend shading
        * \param num_sub_shaders the number of sub-shaders it supports
+       * \param dependencies list of other \ref PainterItemCoverageShaderGLSL
+       *                     that are used directly.
        */
       PainterBlendShaderGLSL(enum shader_type tp, const ShaderSource &src,
-                             unsigned int num_sub_shaders = 1);
+                             unsigned int num_sub_shaders = 1,
+                             const DependencyList &dependencies = DependencyList());
 
       ~PainterBlendShaderGLSL(void);
 
@@ -101,6 +160,22 @@ namespace fastuidraw
        */
       const glsl::ShaderSource&
       blend_src(void) const;
+
+      /*!
+       * Return the list of shaders on which this shader is dependent.
+       */
+      c_array<const reference_counted_ptr<const PainterBlendShaderGLSL> >
+      dependency_list_shaders(void) const;
+
+      /*!
+       * Returns the names that each shader listed in \ref
+       * dependency_list_shaders() is referenced by, i.e.
+       * the i'th element of dependency_list_shaders() is
+       * referenced as the i'th element of \ref
+       * dependency_list_names().
+       */
+      c_array<const c_string>
+      dependency_list_names(void) const;
 
     private:
       void *m_d;
