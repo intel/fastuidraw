@@ -52,10 +52,20 @@ public:
                const varying_list &p,
                AliasVaryingLocation *datum)
   {
+    vecN<size_t, varying_list::interpolation_number_types> float_counts;
+
+    for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
+      {
+        enum varying_list::interpolation_qualifier_t tp;
+
+        tp = static_cast<enum varying_list::interpolation_qualifier_t>(i);
+        float_counts[i] = p.floats(tp).size();
+      }
+
     add_varyings(label,
                  p.uints().size(),
                  p.ints().size(),
-                 p.float_counts(),
+                 float_counts,
                  datum);
   }
 

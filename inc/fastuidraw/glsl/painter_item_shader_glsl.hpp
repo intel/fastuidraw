@@ -34,15 +34,16 @@ namespace fastuidraw
      * A varying_list lists all the in's of a frag shader (and
      * their names) or all the out's of vertex shader.
      *
-     * A varying for a \ref PainterItemShaderGLSL is a SCALAR. For
-     * a vertex and fragment shader pair, the name of the varying
-     * does NOT matter for the sending of a vertex shader out to a
-     * fragment shader in. Instead, the slot matters. The virtual
-     * slots for each varying type are seperate, i.e. slot 0 for
-     * uint is a different slot than slot 0 for int. In addition
-     * the interpolation type is part of the type for floats, thus
-     * slot 0 for flat float is a different slot than slot 0 for
-     * smooth float.
+     * A varying for a \ref PainterItemCoverageShaderGLSL, or
+     * \ref PainterItemShaderGLSL is a SCALAR. The varyings of
+     * shaders should -never- be declared in the shader code.
+     * Instead, each varying should be declared in the \ref
+     * varying_list object passed at their ctor. The GLSL module
+     * will share the varyings across different shaders within
+     * the uber-shader. Indeed, the number of varying the uber-shader
+     * has is not the sum of the varyings across all the shaders, but
+     * rather is the maximum number of varyings across the shaders
+     * present in the uber-shader.
      */
     class varying_list
     {
@@ -88,41 +89,24 @@ namespace fastuidraw
       swap(varying_list &obj);
 
       /*!
-       * Returns the names for the slots of the float
-       * varyings of the specified interpolation type.
+       * Returns the names of the float varyings of the
+       * specified interpolation type.
        * \param q interpolation type
        */
       c_array<const c_string>
       floats(enum interpolation_qualifier_t q) const;
 
       /*!
-       * Returns an array R, so that R[i] is
-       * floats(i).size().
-       */
-      c_array<const size_t>
-      float_counts(void) const;
-
-      /*!
-       * Returns the names for the slots of the uint varyings
+       * Returns the names of the uint varyings
        */
       c_array<const c_string>
       uints(void) const;
 
       /*!
-       * Returns the names for the slots of the int varyings
+       * Returns the names of the int varyings
        */
       c_array<const c_string>
       ints(void) const;
-
-      /*!
-       * Set a float of the named slot and qualifier to a name.
-       * \param pname name to use
-       * \param slot which float of the named qualifier
-       * \param q interpolation qualifier
-       */
-      varying_list&
-      set_float_varying(unsigned int slot, c_string pname,
-                        enum interpolation_qualifier_t q = interpolation_smooth);
 
       /*!
        * Add a float varying, equivalent to
@@ -134,14 +118,6 @@ namespace fastuidraw
       add_float_varying(c_string pname, enum interpolation_qualifier_t q = interpolation_smooth);
 
       /*!
-       * Set a uint of the named slot to a name.
-       * \param pname name to use
-       * \param slot which uint
-       */
-      varying_list&
-      set_uint_varying(unsigned int slot, c_string pname);
-
-      /*!
        * Add an uint varying, equivalent to
        * \code
        * set_uint_varying(uints().size(), pname)
@@ -149,14 +125,6 @@ namespace fastuidraw
        */
       varying_list&
       add_uint_varying(c_string pname);
-
-      /*!
-       * Set a int of the named slot to a name.
-       * \param pname name to use
-       * \param slot which uint
-       */
-      varying_list&
-      set_int_varying(unsigned int slot, c_string pname);
 
       /*!
        * Add an int varying, equivalent to

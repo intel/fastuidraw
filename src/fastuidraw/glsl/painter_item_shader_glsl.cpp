@@ -45,17 +45,13 @@ namespace
     string_array(void) const;
 
     void
-    implement_set(unsigned int slot, const std::string &pname);
-
-  private:
-
-    void
-    add_string(const std::string &str);
+    add_string(const std::string &pname);
 
     template<typename iterator>
     void
     add_strings(iterator begin, iterator end);
 
+  private:
     void
     clear(void);
 
@@ -74,7 +70,6 @@ namespace
     fastuidraw::vecN<StringArray, interpolation_number_types> m_floats;
     StringArray m_ints;
     StringArray m_uints;
-    fastuidraw::vecN<size_t, interpolation_number_types> m_float_counts;
   };
 
   class PainterShaderGLSLPrivateCommon
@@ -167,20 +162,6 @@ string_array(void) const
   return fastuidraw::make_c_array(m_strings_array);
 }
 
-void
-StringArray::
-implement_set(unsigned int slot, const std::string &pname)
-{
-  while(slot >= m_strings.size())
-    {
-      add_string("");
-    }
-
-  FASTUIDRAWassert(slot < m_strings.size());
-  *m_strings[slot] = pname;
-  m_strings_array[slot] = m_strings[slot]->c_str();
-}
-
 /////////////////////////////////////////////
 // fastuidraw::glsl::varying_list methods
 fastuidraw::glsl::varying_list::
@@ -217,15 +198,6 @@ floats(enum interpolation_qualifier_t q) const
   return d->m_floats[q].string_array();
 }
 
-fastuidraw::c_array<const size_t>
-fastuidraw::glsl::varying_list::
-float_counts(void) const
-{
-  VaryingListPrivate *d;
-  d = static_cast<VaryingListPrivate*>(m_d);
-  return c_array<const size_t>(&d->m_float_counts[0], d->m_float_counts.size());
-}
-
 fastuidraw::c_array<const fastuidraw::c_string>
 fastuidraw::glsl::varying_list::
 uints(void) const
@@ -246,30 +218,11 @@ ints(void) const
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-set_float_varying(unsigned int slot, c_string pname,
-                  enum interpolation_qualifier_t q)
-{
-  VaryingListPrivate *d;
-  d = static_cast<VaryingListPrivate*>(m_d);
-  d->m_floats[q].implement_set(slot, pname);
-  d->m_float_counts[q] = d->m_floats[q].string_array().size();
-  return *this;
-}
-
-fastuidraw::glsl::varying_list&
-fastuidraw::glsl::varying_list::
 add_float_varying(c_string pname, enum interpolation_qualifier_t q)
 {
-  return set_float_varying(floats(q).size(), pname, q);
-}
-
-fastuidraw::glsl::varying_list&
-fastuidraw::glsl::varying_list::
-set_uint_varying(unsigned int slot, c_string pname)
-{
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
-  d->m_uints.implement_set(slot, pname);
+  d->m_floats[q].add_string(pname);
   return *this;
 }
 
@@ -277,16 +230,9 @@ fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
 add_uint_varying(c_string pname)
 {
-  return set_uint_varying(uints().size(), pname);
-}
-
-fastuidraw::glsl::varying_list&
-fastuidraw::glsl::varying_list::
-set_int_varying(unsigned int slot, c_string pname)
-{
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
-  d->m_ints.implement_set(slot, pname);
+  d->m_uints.add_string(pname);
   return *this;
 }
 
@@ -294,7 +240,10 @@ fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
 add_int_varying(c_string pname)
 {
-  return set_int_varying(ints().size(), pname);
+  VaryingListPrivate *d;
+  d = static_cast<VaryingListPrivate*>(m_d);
+  d->m_ints.add_string(pname);
+  return *this;
 }
 
 /////////////////////////////////////////////
