@@ -606,7 +606,7 @@ build_programs(void)
 
 fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-build_program_of_item_shader(unsigned int shader, bool allow_discard,
+build_program_of_item_shader(unsigned int shader, bool shader_uses_discard,
                              enum PainterBlendShader::shader_type blend_type)
 {
   using namespace fastuidraw::glsl;
@@ -614,20 +614,21 @@ build_program_of_item_shader(unsigned int shader, bool allow_discard,
   ShaderSource vert, frag;
   program_ref return_value;
   c_string discard_macro;
+  bool glsl_discard_active(shader_uses_discard);
 
   if (!blend_type_supported(blend_type))
     {
       return nullptr;
     }
 
-  if (m_params.clipping_type() != clipping_via_gl_clip_distance && !allow_discard)
+  if (m_params.clipping_type() == clipping_via_discard
+      || (m_params.clipping_type() == clipping_via_skip_color_write
+          && blend_type != PainterBlendShader::framebuffer_fetch))
     {
-      allow_discard = !(blend_type == PainterBlendShader::framebuffer_fetch
-                        && m_params.fbf_blending_type() != PainterBackendGL::fbf_blending_not_supported
-                        && m_params.clipping_type() == clipping_via_skip_color_write);
+      glsl_discard_active = true;
     }
 
-  if (!allow_discard)
+  if (!glsl_discard_active)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
@@ -697,21 +698,21 @@ build_program(enum PainterBackendGL::program_type_t tp,
   ShaderSource vert, frag;
   program_ref return_value;
   c_string discard_macro;
-  bool allow_discard(tp != PainterBackendGL::program_without_discard);
+  bool glsl_discard_active(tp != PainterBackendGL::program_without_discard);
 
   if (!blend_type_supported(blend_type))
     {
       return nullptr;
     }
 
-  if (m_params.clipping_type() != clipping_via_gl_clip_distance && !allow_discard)
+  if (m_params.clipping_type() == clipping_via_discard
+      || (m_params.clipping_type() == clipping_via_skip_color_write
+          && blend_type != PainterBlendShader::framebuffer_fetch))
     {
-      allow_discard = !(blend_type == PainterBlendShader::framebuffer_fetch
-                        && m_params.fbf_blending_type() != PainterBackendGL::fbf_blending_not_supported
-                        && m_params.clipping_type() == clipping_via_skip_color_write);
+      glsl_discard_active = true;
     }
 
-  if (!allow_discard)
+  if (!glsl_discard_active)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
