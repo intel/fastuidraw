@@ -125,6 +125,7 @@ namespace
   public:
     typedef fastuidraw::glsl::ShaderSource ShaderSource;
     typedef fastuidraw::reference_counted_ptr<T> ref_type;
+    typedef fastuidraw::reference_counted_ptr<const T> ref_const_type;
     typedef fastuidraw::c_array<const ref_type> array_type;
     typedef const ShaderSource& (T::*get_src_type)(void) const;
 
@@ -167,6 +168,20 @@ namespace
     void
     stream_source(ShaderSource &dst, const std::string &prefix,
                   const ShaderSource &shader);
+
+    static
+    void
+    stream_shader(ShaderSource &dst, const std::string &prefix,
+                  get_src_type get_src,
+                  const fastuidraw::reference_counted_ptr<const T> &shader,
+                  const std::string &shader_main, int dependency_depth);
+
+    static
+    std::string
+    stream_dependency(ShaderSource &dst, const std::string &prefix, int idx,
+                      get_src_type get_src,
+                      const fastuidraw::reference_counted_ptr<const T> &shader,
+                      const std::string &shader_main, int dependency_depth);
   };
 
 }
@@ -174,7 +189,7 @@ namespace
 template<typename T>
 void
 UberShaderStreamer<T>::
-stream_source(ShaderSource &dst, const std::string &prefix,
+stream_source(ShaderSource &dst, const std::string &in_prefix,
               const ShaderSource &shader)
 {
   /* This terribly hack is because GLES specfication mandates
@@ -186,6 +201,7 @@ stream_source(ShaderSource &dst, const std::string &prefix,
   using namespace fastuidraw;
   std::string src, needle;
   std::string::size_type pos, last_pos;
+  std::string prefix(in_prefix + "_local_");
 
   needle = "FASTUIDRAW_LOCAL";
   src = shader.assembled_code(true);
@@ -229,6 +245,58 @@ stream_source(ShaderSource &dst, const std::string &prefix,
 }
 
 template<typename T>
+void
+UberShaderStreamer<T>::
+stream_shader(ShaderSource &dst, const std::string &prefix,
+              get_src_type get_src,
+              const fastuidraw::reference_counted_ptr<const T> &sh,
+              const std::string &shader_main, int dependency_depth)
+{
+  using namespace fastuidraw;
+
+  c_array<const reference_counted_ptr<const T> > deps(sh->dependency_list_shaders());
+  c_array<const c_string> dep_names(sh->dependency_list_names());
+
+  FASTUIDRAWassert(deps.size() == dep_names.size());
+  dst << "// Have " << deps.size() << " dependencies at depth " << dependency_depth << "\n";
+  for (unsigned int i = 0; i < deps.size(); ++i)
+    {
+      std::string realized_name;
+      realized_name = stream_dependency(dst, prefix, i, get_src, deps[i], shader_main, dependency_depth + 1);
+      dst.add_macro(dep_names[i], realized_name.c_str());
+    }
+
+  dst.add_macro(shader_main.c_str(), prefix.c_str());
+  stream_source(dst, prefix, (sh.get()->*get_src)());
+  dst.remove_macro(shader_main.c_str());
+
+  for (unsigned int i = 0; i < deps.size(); ++i)
+    {
+      dst.remove_macro(dep_names[i]);
+    }
+}
+
+template<typename T>
+std::string
+UberShaderStreamer<T>::
+stream_dependency(ShaderSource &dst, const std::string &in_prefix, int idx,
+                  get_src_type get_src,
+                  const fastuidraw::reference_counted_ptr<const T> &shader,
+                  const std::string &shader_main, int dependency_depth)
+{
+  std::ostringstream str;
+  std::string nm;
+
+  str << in_prefix << "_dep" << idx;
+  nm = str.str();
+  dst << "// stream-dependency #" << idx << "{depth = "
+      << dependency_depth << "}: " << in_prefix << "\n";
+  stream_shader(dst, nm, get_src, shader, shader_main, dependency_depth);
+
+  return nm;
+}
+
+template<typename T>
 template<typename pre_stream_type,
          typename post_stream_type>
 void
@@ -243,21 +311,19 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
             const std::string &shader_id)
 {
+  using namespace fastuidraw;
+
   /* first stream all of the item_shaders with predefined macros. */
   for(const auto &sh : shaders)
     {
-      std::ostringstream str, prefix;
+      std::ostringstream str;
 
       dst << "\n/////////////////////////////////////////\n"
           << "// Start Shader #" << sh->ID() << "\n";
 
       str << shader_main << sh->ID();
-      prefix << shader_main << "_local_" << sh->ID() << "_";
-
       pre_stream(dst, sh);
-      dst.add_macro(shader_main.c_str(), str.str().c_str());
-      stream_source(dst, prefix.str(), (sh.get()->*get_src)());
-      dst.remove_macro(shader_main.c_str());
+      stream_shader(dst, str.str(), get_src, sh, shader_main, 0);
       post_stream(dst, sh);
     }
 
