@@ -1,7 +1,6 @@
 var searchData=
 [
   ['characterencoding',['CharacterEncoding',['../d6/def/namespacefastuidraw_1_1_character_encoding.html',1,'fastuidraw']]],
-  ['egl_5fbinding',['egl_binding',['../d5/dac/namespacefastuidraw_1_1egl__binding.html',1,'fastuidraw']]],
   ['fastuidraw',['fastuidraw',['../d4/d4c/namespacefastuidraw.html',1,'']]],
   ['gl',['gl',['../d5/da7/namespacefastuidraw_1_1gl.html',1,'fastuidraw']]],
   ['gl_5fbinding',['gl_binding',['../d8/d4c/namespacefastuidraw_1_1gl__binding.html',1,'fastuidraw']]],

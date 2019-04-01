@@ -173,10 +173,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a53027d3b006f0cbf0f938bad8cf81d98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1ccd5e40168811d6dc23d1582e6f1fc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#ac1ccd5e40168811d6dc23d1582e6f1fc">uniforms_ubo_binding</a> (void) const</td></tr>
 <tr class="separator:ac1ccd5e40168811d6dc23d1582e6f1fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a661163c41279f7d8ac453fc689811b8f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a661163c41279f7d8ac453fc689811b8f">unpack_header_and_brush_in_frag_shader</a> (void) const</td></tr>
-<tr class="separator:a661163c41279f7d8ac453fc689811b8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c96bfd8dfd25de4df577420bacbc210"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a8c96bfd8dfd25de4df577420bacbc210">unpack_header_and_brush_in_frag_shader</a> (bool)</td></tr>
-<tr class="separator:a8c96bfd8dfd25de4df577420bacbc210"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a789bc7cf80fe84b6b7be3389a8ab862a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a789bc7cf80fe84b6b7be3389a8ab862a">use_ubo_for_uniforms</a> (void) const</td></tr>
 <tr class="separator:a789bc7cf80fe84b6b7be3389a8ab862a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67e1015763bf02a870b4538d16e8415c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a67e1015763bf02a870b4538d16e8415c">use_ubo_for_uniforms</a> (bool)</td></tr>
@@ -1137,44 +1133,6 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Returns the binding point of the UBO for uniforms derived from the current value of this <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html" title="An UberShaderParams specifies how to construct an uber-shader. Note that the usage of HW clip-planes ...">UberShaderParams</a>. A return value of -1 indicates that the uniforms does not use any binding points. </p>
-
-</div>
-</div>
-<a id="a661163c41279f7d8ac453fc689811b8f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a661163c41279f7d8ac453fc689811b8f">&#9670;&nbsp;</a></span>unpack_header_and_brush_in_frag_shader() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::unpack_header_and_brush_in_frag_shader </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>If true, unpack the <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. ">PainterBrush</a> data in the fragment shader. If false, unpack the data in the vertex shader and forward the data to the fragment shader via flat varyings. </p>
-
-</div>
-</div>
-<a id="a8c96bfd8dfd25de4df577420bacbc210"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c96bfd8dfd25de4df577420bacbc210">&#9670;&nbsp;</a></span>unpack_header_and_brush_in_frag_shader() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html">UberShaderParams</a>&amp; fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::unpack_header_and_brush_in_frag_shader </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the value returned by <a class="el" href="../../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a661163c41279f7d8ac453fc689811b8f">unpack_header_and_brush_in_frag_shader(void) const</a>. Default value is false. </p>
 
 </div>
 </div>

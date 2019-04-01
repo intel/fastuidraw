@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$d5/d7f/classfastuidraw_1_1opaque__reference__counted.html" title="Inherit from a member class of opaque_reference_counted in order to implement the PIMPL pattern for r..." alt="" coords="5,5,141,47"/>
+<area shape="rect" id="node1" href="$d9/d36/classfastuidraw_1_1matrix_nx_m.html" title="fastuidraw::matrixNxM\l\&lt; 3, 3, float \&gt;" alt="" coords="5,5,160,47"/>
+<area shape="rect" id="node2" href="$d7/d2a/classfastuidraw_1_1matrix3x3.html" title="fastuidraw::matrix3x3\l\&lt; float \&gt;" alt="" coords="208,5,355,47"/>
 </map>

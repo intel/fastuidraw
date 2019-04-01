@@ -84,6 +84,7 @@ var searchData=
   ['reverses_5forientation',['reverses_orientation',['../d7/d2a/classfastuidraw_1_1matrix3x3.html#afbbe8435b89b278197edb883ea40513f',1,'fastuidraw::matrix3x3']]],
   ['rgba_5fformat',['rgba_format',['../dc/dd5/classfastuidraw_1_1_image.html#a689a3d5fde110d49bbac1f1c31c1f535a8cc2856db82dbaa0de04be46351c5741',1,'fastuidraw::Image']]],
   ['root_5fgroup',['root_group',['../d4/d44/classfastuidraw_1_1_font_database.html#a91003fb449b45a7d3a491ea60b651585',1,'fastuidraw::FontDatabase']]],
+  ['root_5fsubset',['root_subset',['../d7/d83/classfastuidraw_1_1_stroked_path.html#a6261e203b8da008b64192668011016a4',1,'fastuidraw::StrokedPath']]],
   ['rotate',['rotate',['../da/de0/classfastuidraw_1_1_painter.html#ab98a2ea6aa3a1a228b8c94a1e049e3d9',1,'fastuidraw::Painter::rotate()'],['../d7/d2a/classfastuidraw_1_1matrix3x3.html#a1ddedc54e336a18c97f27c63b4a24be0',1,'fastuidraw::matrix3x3::rotate()']]],
   ['rotation_5forientation_5ft',['rotation_orientation_t',['../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854',1,'fastuidraw::PainterEnums']]],
   ['rounded_5fcaps',['rounded_caps',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa5c175ac2ce1367be331fca16da7cb3c7',1,'fastuidraw::PainterEnums::rounded_caps()'],['../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#ab23281a83c3c30f0d38a8990b6691cd5',1,'fastuidraw::StrokedCapsJoins::rounded_caps()']]],

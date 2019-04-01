@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$de/d73/classfastuidraw_1_1reference__counted__ptr.html" title="fastuidraw::reference\l_counted_ptr\&lt; const fastuidraw\l::ColorStopSequenceOnAtlas \&gt;" alt="" coords="5,5,211,61"/>
+<area shape="rect" id="node1" href="$d1/d17/classfastuidraw_1_1_rect_enums.html" title="fastuidraw::RectEnums" alt="" coords="5,5,164,32"/>
+<area shape="rect" id="node2" href="$d3/d44/classfastuidraw_1_1_rect_t.html" title="fastuidraw::RectT\&lt; T \&gt;" alt="" coords="212,5,371,32"/>
+<area shape="rect" id="node3" href="$d9/d72/classfastuidraw_1_1_rounded_rect.html" title="fastuidraw::RoundedRect" alt="" coords="419,5,589,32"/>
 </map>

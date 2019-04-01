@@ -74,9 +74,6 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:d5/dac/namespacefastuidraw_1_1egl__binding"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dac/namespacefastuidraw_1_1egl__binding.html">fastuidraw::egl_binding</a></td></tr>
-<tr class="memdesc:d5/dac/namespacefastuidraw_1_1egl__binding"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides interface for application to use EGL where function pointers are auto-resolved transparently and under debug provides error checking. Built as a seperate libNEGL. The header defines for each EGL function, eglFoo, the macro fastuidraw_eglFoo. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d8/d4c/namespacefastuidraw_1_1gl__binding"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d4c/namespacefastuidraw_1_1gl__binding.html">fastuidraw::gl_binding</a></td></tr>
 <tr class="memdesc:d8/d4c/namespacefastuidraw_1_1gl__binding"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides interface for application to use GL where function pointers are auto-resolved transparently and under debug provides error checking. Built as a part of a seperate library; for GL it is libNGL; for GLES it is NGLES. The header defines for each GL/GLES function, glFoo, the macro fastuidraw_glFoo. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -140,8 +137,6 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:gae1698ac6563a46860399cebc399484ae"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#gae1698ac6563a46860399cebc399484ae">FASTUIDRAW_EGL_MESSAGE</a>(X)&#160;&#160;&#160;egl_binding::message(X, __FILE__, __LINE__)</td></tr>
-<tr class="separator:gae1698ac6563a46860399cebc399484ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaafcfb5d6b9e75ff2b719f93d209c06d5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#gaafcfb5d6b9e75ff2b719f93d209c06d5">FASTUIDRAW_GL_MESSAGE</a>(X)&#160;&#160;&#160;gl_binding::message(X, __FILE__, __LINE__)</td></tr>
 <tr class="separator:gaafcfb5d6b9e75ff2b719f93d209c06d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -258,27 +253,6 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Collection of utility interfaces used by <a class="el" href="../../dc/d69/group___g_l_backend.html">GL Backend</a> that an application may wish to use as well. </p>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="gae1698ac6563a46860399cebc399484ae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae1698ac6563a46860399cebc399484ae">&#9670;&nbsp;</a></span>FASTUIDRAW_EGL_MESSAGE</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define FASTUIDRAW_EGL_MESSAGE</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">X</td><td>)</td>
-          <td>&#160;&#160;&#160;egl_binding::message(X, __FILE__, __LINE__)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Use this macro to emit a string to each of the egl_binding::CallbackEGL objects that are active. </p>
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d48/egl__binding_8hpp_source.html#l00187">187</a> of file <a class="el" href="../../d8/d48/egl__binding_8hpp_source.html">egl_binding.hpp</a>.</p>
-
-</div>
-</div>
 <a id="gaafcfb5d6b9e75ff2b719f93d209c06d5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaafcfb5d6b9e75ff2b719f93d209c06d5">&#9670;&nbsp;</a></span>FASTUIDRAW_GL_MESSAGE</h2>
 

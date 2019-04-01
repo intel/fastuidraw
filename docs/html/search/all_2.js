@@ -18,7 +18,6 @@ var searchData=
   ['call_5fdtor',['call_dtor',['../dd/d99/fastuidraw__memory__private_8hpp.html#ac3773749185be129e19479289533862e',1,'fastuidraw::memory']]],
   ['call_5funloadable_5ffunction',['call_unloadable_function',['../df/d9c/classfastuidraw_1_1_a_p_i_callback_set.html#a6ed8db1dd858cf273c5eee37ecc0c5c3',1,'fastuidraw::APICallbackSet']]],
   ['callback',['CallBack',['../dc/d3e/classfastuidraw_1_1_a_p_i_callback_set_1_1_call_back.html',1,'fastuidraw::APICallbackSet::CallBack'],['../dc/d3e/classfastuidraw_1_1_a_p_i_callback_set_1_1_call_back.html#a0a122fe4d106f2c6ddaef47e9b52eff7',1,'fastuidraw::APICallbackSet::CallBack::CallBack()']]],
-  ['callbackegl',['CallbackEGL',['../d1/ded/classfastuidraw_1_1egl__binding_1_1_callback_e_g_l.html',1,'fastuidraw::egl_binding']]],
   ['callbackgl',['CallbackGL',['../d9/ded/classfastuidraw_1_1gl__binding_1_1_callback_g_l.html',1,'fastuidraw::gl_binding']]],
   ['calloc_5fimplement',['calloc_implement',['../dd/d99/fastuidraw__memory__private_8hpp.html#a4063943408acd14e4cd13f86f421b91e',1,'fastuidraw::memory']]],
   ['can_5fcreate_5frendering_5fdata',['can_create_rendering_data',['../d6/dd4/classfastuidraw_1_1_font_base.html#a8dcb3f2a6327ef4ecfeea9c2a7575fbe',1,'fastuidraw::FontBase::can_create_rendering_data()'],['../da/d34/classfastuidraw_1_1_font_free_type.html#a17ab7b47d9e063a85883012818b11f4b',1,'fastuidraw::FontFreeType::can_create_rendering_data()']]],

@@ -104,6 +104,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af9fb36b07b2b3712e1be31aeaa700290"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada604ffb00c8c1c2a49b24f565c6a19f"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ada604ffb00c8c1c2a49b24f565c6a19f">number_subsets</a> (void) const</td></tr>
 <tr class="separator:ada604ffb00c8c1c2a49b24f565c6a19f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6261e203b8da008b64192668011016a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a6261e203b8da008b64192668011016a4">root_subset</a> (void) const</td></tr>
+<tr class="separator:a6261e203b8da008b64192668011016a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5cd669d22d069145b4633079ba41ed20"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a5cd669d22d069145b4633079ba41ed20">select_subsets</a> (<a class="el" href="../../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html">ScratchSpace</a> &amp;scratch_space, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a> &gt; clip_equations, const <a class="el" href="../../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3">float3x3</a> &amp;clip_matrix_local, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;one_pixel_width, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const float &gt; geometry_inflation, unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst) const</td></tr>
 <tr class="separator:a5cd669d22d069145b4633079ba41ed20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a486b1f37b3a9aeebd7c6abd2d0f0d637"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a486b1f37b3a9aeebd7c6abd2d0f0d637">select_subsets_no_culling</a> (unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst) const</td></tr>
@@ -214,6 +216,25 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Returns the number of <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> objects of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>. </p>
+
+</div>
+</div>
+<a id="a6261e203b8da008b64192668011016a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6261e203b8da008b64192668011016a4">&#9670;&nbsp;</a></span>root_subset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a> fastuidraw::StrokedPath::root_subset </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the root-subset of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>, this is the <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a> that includes the entire <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>. </p>
 
 </div>
 </div>

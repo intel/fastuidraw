@@ -46,6 +46,7 @@ var searchData=
   ['reverse_5frange',['reverse_range',['../de/df7/classfastuidraw_1_1c__array.html#ab15e1ef6c37b9515bf68ef76011f022d',1,'fastuidraw::c_array']]],
   ['reverses_5forientation',['reverses_orientation',['../d7/d2a/classfastuidraw_1_1matrix3x3.html#afbbe8435b89b278197edb883ea40513f',1,'fastuidraw::matrix3x3']]],
   ['root_5fgroup',['root_group',['../d4/d44/classfastuidraw_1_1_font_database.html#a91003fb449b45a7d3a491ea60b651585',1,'fastuidraw::FontDatabase']]],
+  ['root_5fsubset',['root_subset',['../d7/d83/classfastuidraw_1_1_stroked_path.html#a6261e203b8da008b64192668011016a4',1,'fastuidraw::StrokedPath']]],
   ['rotate',['rotate',['../da/de0/classfastuidraw_1_1_painter.html#ab98a2ea6aa3a1a228b8c94a1e049e3d9',1,'fastuidraw::Painter::rotate()'],['../d7/d2a/classfastuidraw_1_1matrix3x3.html#a1ddedc54e336a18c97f27c63b4a24be0',1,'fastuidraw::matrix3x3::rotate()']]],
   ['rounded_5fcaps',['rounded_caps',['../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#ab23281a83c3c30f0d38a8990b6691cd5',1,'fastuidraw::StrokedCapsJoins']]],
   ['rounded_5fjoins',['rounded_joins',['../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#aecdf102cd12419f45e537c33fc5441d3',1,'fastuidraw::StrokedCapsJoins']]],

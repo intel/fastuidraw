@@ -1,7 +1,6 @@
 var searchData=
 [
   ['characterencoding',['CharacterEncoding',['../d6/def/namespacefastuidraw_1_1_character_encoding.html',1,'fastuidraw']]],
-  ['egl_5fbinding',['egl_binding',['../d5/dac/namespacefastuidraw_1_1egl__binding.html',1,'fastuidraw']]],
   ['f',['f',['../d5/de6/unionfastuidraw_1_1generic__data.html#a7202d45537d2abf5b1e5e31f4e47afc5',1,'fastuidraw::generic_data']]],
   ['face',['face',['../d8/dd1/classfastuidraw_1_1_free_type_face.html#abd01307d4399b7cf547b115d9eca6c75',1,'fastuidraw::FreeTypeFace']]],
   ['face_5fforward',['face_forward',['../d1/d96/classfastuidraw_1_1vec_n.html#add8d8a9bf46fd5685e86e6f0204393cf',1,'fastuidraw::vecN']]],
@@ -12,7 +11,6 @@ var searchData=
   ['fastest_5fnon_5fanti_5faliased_5fstroking_5fmethod',['fastest_non_anti_aliased_stroking_method',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a01b57320692ea1d6c06fc6bfc8a9d042',1,'fastuidraw::PainterStrokeShader::fastest_non_anti_aliased_stroking_method(void) const'],['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a44821c01351a954aafa004fc68feb8d3',1,'fastuidraw::PainterStrokeShader::fastest_non_anti_aliased_stroking_method(enum PainterEnums::stroking_method_t v)']]],
   ['fastuidraw',['fastuidraw',['../d4/d4c/namespacefastuidraw.html',1,'']]],
   ['fastuidraw_5fcharacter_5fencoding_5fvalue',['FASTUIDRAW_CHARACTER_ENCODING_VALUE',['../df/d67/group___text.html#gab541a58c42ccd6e2b0baff18b866ae60',1,'character_encoding.hpp']]],
-  ['fastuidraw_5fegl_5fmessage',['FASTUIDRAW_EGL_MESSAGE',['../d5/de7/group___g_l_utility.html#gae1698ac6563a46860399cebc399484ae',1,'egl_binding.hpp']]],
   ['fastuidraw_5fgl_5fmessage',['FASTUIDRAW_GL_MESSAGE',['../d5/de7/group___g_l_utility.html#gaafcfb5d6b9e75ff2b719f93d209c06d5',1,'gl_binding.hpp']]],
   ['fastuidraw_5fmask',['FASTUIDRAW_MASK',['../da/d46/group___utility.html#gad6337003e2b7e264e6ec2376baee2846',1,'util.hpp']]],
   ['fastuidraw_5fmask_5fu64',['FASTUIDRAW_MASK_U64',['../da/d46/group___utility.html#gad86e1dc4862ab70e30ab8300717a5d31',1,'util.hpp']]],
@@ -71,7 +69,6 @@ var searchData=
   ['flat_5fcaps',['flat_caps',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa24e58db6553eb46347e5c71ace02b05f',1,'fastuidraw::PainterEnums']]],
   ['float2x2',['float2x2',['../da/d46/group___utility.html#gadd88b5eb6f9b1db5df50f86869c47a2e',1,'fastuidraw']]],
   ['float3x3',['float3x3',['../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3',1,'fastuidraw']]],
-  ['float_5fcounts',['float_counts',['../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a82bbf40b7eb671cce0edb545b0343149',1,'fastuidraw::glsl::varying_list']]],
   ['float_5forthogonal_5fprojection_5fparams',['float_orthogonal_projection_params',['../da/d46/group___utility.html#ga8c1284c0257a961399552a74f642091a',1,'fastuidraw']]],
   ['float_5fprojection_5fparams',['float_projection_params',['../da/d46/group___utility.html#gab19f94b20685869f70d71b2dbe8ec020',1,'fastuidraw']]],
   ['float_5ftype',['float_type',['../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988aa54c6d8dc801983ed0c6a246eea52c21',1,'fastuidraw::glsl::UnpackSourceGenerator']]],
