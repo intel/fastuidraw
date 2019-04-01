@@ -12,7 +12,7 @@ COMMON_DEMO_SOURCES := $(call filelist, generic_command_line.cpp \
 	sdl_benchmark.cpp sdl_demo.cpp sdl_painter_demo.cpp PanZoomTracker.cpp \
 	ImageLoader.cpp read_colorstops.cpp read_path.cpp text_helper.cpp \
 	PainterWidget.cpp cycle_value.cpp random.cpp read_dash_pattern.cpp \
-	egl_helper.cpp stream_holder.cpp path_util.cpp)
+	stream_holder.cpp path_util.cpp)
 
 
 # Begin standard footer

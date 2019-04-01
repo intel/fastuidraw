@@ -27,7 +27,11 @@ namespace fastuidraw
    * An APICallbackSet represents a collection of functors
    * to be called before and after each function call from
    * a collection of functions. This class is used by the
-   * fastuidraw::gl_binding and fastuidraw::egl_binding.
+   * fastuidraw::gl_binding and can be reused for other
+   * 3D API's (by definding a macro for each 3D API function
+   * that pre-calls to APICallbackSet::pre_call() and post-
+   * calls to APICallbackSet::post_call() around each 3D
+   * API function call.
    */
   class APICallbackSet:fastuidraw::noncopyable
   {

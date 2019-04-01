@@ -66,18 +66,6 @@ GLTYPE {GLTYE}|{GLPTR}
 CGLTYPE {const}{GLTYPE}
 CGLGLTYPE {CGLTYPE}|{GLTYPE}|GLDEBUGPROC|GLDEBUGPROCARB|GLVULKANPROCNV
 
-EGLPLATFORMTYPE EGLint|EGLNativeDisplayType|EGLNativePixmapType|EGLNativeWindowType
-EGLBASETYPE void|EGLBoolean|EGLDisplay|EGLConfig|EGLSurface|EGLContext|EGLenum|EGLClientBuffer|EGLSync|EGLAttrib|EGLTime|EGLImage
-EGLKHRTYPE EGLSyncKHR|EGLAttribKHR|EGLLabelKHR|EGLObjectKHR|EGLTimeKHR|EGLImageKHR|EGLStreamKHR|EGLuint64KHR|EGLNativeFileDescriptorKHR|char
-EGLANDTYPE EGLsizeiANDROID|EGLSetBlobFuncANDROID|EGLsizeiANDROID|EGLnsecsANDROID
-EGLEXTTYPE EGLDeviceEXT|EGLOutputLayerEXT|EGLOutputPortEXT|EGLSyncNV|EGLTimeNV|EGLuint64NV|struct{space}EGLClientPixmapHI|struct{space}AHardwareBuffer
-EGLTYP {EGLPLATFORMTYPE}|{EGLBASETYPE}|{EGLKHRTYPE}|{EGLANDTYPE}|{EGLEXTTYPE}
-
-EGLPTR {EGLTYP}{allSpace}*"*"
-EGLTYPE {EGLTYP}|{EGLPTR}
-CEGLTYPE {const}{EGLTYPE}
-CEGLEGLTYPE {EGLTYPE}|{CEGLTYPE}
-
 %%
 
 %{
@@ -94,20 +82,6 @@ GL_APICALL{space}+{CGLGLTYPE}{space}*+GL_APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"GL_APICALL", "GL_APIENTRY");
   openGL_function_info::openGL_functionList().push_back(ptr);
-}
-
-EGLAPI{space}+{CEGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
-  openGL_function_info *ptr;
-  ptr=new openGL_function_info(yytext,"EGLAPI", "EGLAPIENTRY", "egl");
-  /* disclude if function name is eglGetProcAddress */
-  if (ptr->function_name() != "eglGetProcAddress")
-    {
-      openGL_function_info::openGL_functionList().push_back(ptr);
-    }
-  else
-    {
-      delete ptr;
-    }
 }
 
 

@@ -75,23 +75,9 @@ $(eval fastuidraw-$(1).pc: fastuidraw.pc.in
 	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 	@sed -i 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(1)_BASE_CFLAGS)!g' $$@
-ifeq ($(BUILD_NEGL),1)
-NEGL-$(1).pc: n.pc.in fastuidraw-$(1).pc
-	@echo Generating $$@
-	@cp $$< $$@
-	@sed -i 's!@API@!EGL!g' $$@
-	@sed -i 's!n@OTHER_API@-@TYPE@!!g' $$@
-	@sed -i 's!n@OTHER_API@-@OTHER_TYPE@!!g' $$@
-	@sed -i 's!@TYPE@!$(1)!g' $$@
-	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
-	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
-	@sed -i 's!@N_ADDITIONAL_LIBS@!-lEGL!g' $$@
-INSTALL_PKG_FILES+=NEGL-$(1).pc
-pkg-config-files: NEGL-$(1).pc
-endif
-.PHONY:fastuidraw-$(1).pc NEGL-$(1).pc
-.SECONDARY: fastuidraw-$(1).pc NEGL-$(1).pc
-CLEAN_FILES+=fastuidraw-$(1).pc NEGL-$(1).pc
+.PHONY:fastuidraw-$(1).pc
+.SECONDARY: fastuidraw-$(1).pc
+CLEAN_FILES+=fastuidraw-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw-$(1).pc
 pkg-config-files: fastuidraw-$(1).pc
 $(call pkgconfrulesapi,$(1),GL,$(BUILD_GL))

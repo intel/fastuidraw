@@ -62,7 +62,6 @@ include make/Makefile.gl_backend.pre.mk
 include make/Makefile.sources.mk
 
 include make/Makefile.base.lib.mk
-include make/Makefile.egl.lib.mk
 include make/Makefile.gl_backend.lib.mk
 
 include make/Makefile.demo.sources.mk

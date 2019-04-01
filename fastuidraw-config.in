@@ -14,7 +14,6 @@ print_help() {
     echo "  --gles: use GLES API (includes flags to use NGL dispatch)"
     echo "  --ngl: add flags to use NGL dispatch"
     echo "  --ngles: add flags to use NGLES dispatch"
-    echo "  --negl: add flags to use NEGL dispatch"
     echo "  --prefix: print path to which fastuidraw was installed"
     echo "  --prefix=/some/path: specify the path to which fastuidraw was installed"
     echo "Notes: Never mix release and debug in a single executable, they are NOT ABI compatible"
@@ -44,7 +43,6 @@ add_gl=0
 add_gles=0
 add_ngl=0
 add_ngles=0
-add_negl=0
 
 printhelp=0
 location="@INSTALL_LOCATION@"
@@ -82,7 +80,6 @@ while test $# -gt 0; do
       --GL) add_gl=1 add_ngl=1 ;;
       --ngl) add_ngl=1 ;;
       --ngles) add_ngles=1 ;;
-      --negl) add_negl=1 ;;
       --static) static_linking=1 ;;
       --help) printhelp=1 ;;
       *)
@@ -132,11 +129,6 @@ if [ "$mode" = "release" ]; then
     cflags="$cflags @FASTUIDRAW_release_CFLAGS@"
 else
     cflags="$cflags @FASTUIDRAW_debug_CFLAGS@"
-fi
-
-if [ "$add_negl" = "1" ]; then
-    libs="$libs -lNEGL_$mode"
-    cflags="$cflags"
 fi
 
 if [ "$add_ngl" = "1" ]; then

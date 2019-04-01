@@ -112,7 +112,3 @@ libs-debug-static: libFastUIDraw_debug-static
 $(call librules,release)
 $(call librules,debug)
 all: libFastUIDraw
-
-ifeq ($(BUILD_NEGL),1)
-all: libNEGL
-endif
