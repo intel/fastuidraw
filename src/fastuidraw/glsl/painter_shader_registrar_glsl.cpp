@@ -33,11 +33,12 @@
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/unpack_source_generator.hpp>
+#include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
+#include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
 
 #include <private/glsl/uber_shader_builder.hpp>
 #include <private/glsl/backend_shaders.hpp>
 #include <private/util_private.hpp>
-#include <private/glsl/shader_code.hpp>
 
 namespace
 {
@@ -442,9 +443,9 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
   using namespace fastuidraw;
 
   src
-    .add_macro_u32("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
-    .add_macro_u32("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
-    .add_macro_u32("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
+    .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
+    .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
+    .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
 
     .add_macro_u32("fastuidraw_imageAtlasLinear_size_x", backend.image_atlas_color_store_width())
     .add_macro_u32("fastuidraw_imageAtlasLinear_size_y", backend.image_atlas_color_store_height())
@@ -491,12 +492,17 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   src
     .add_macro_u32("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
     .add_macro_u32("fastuidraw_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported))
+
+    ////////////////////////////////////
+    // constants for PainterHeader
     .add_macro_u32("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", PainterHeader::drawing_occluder)
     .add_macro_i32("fastuidraw_deferred_offset_bias", PainterHeader::offset_to_deferred_coverage_bias)
     .add_macro_u32("fastuidraw_deferred_offset_coord_num_bits", PainterHeader::offset_to_deferred_coverage_coord_num_bits)
     .add_macro_u32("fastuidraw_deferred_offset_x_bit0", PainterHeader::offset_to_deferred_coverage_x_coord_bit0)
     .add_macro_u32("fastuidraw_deferred_offset_y_bit0", PainterHeader::offset_to_deferred_coverage_y_coord_bit0)
 
+    //////////////////////////////////////////////////////////
+    // constants for PainterBrush
     .add_macro_u32("fastuidraw_brush_image_mask", PainterBrush::image_mask)
     .add_macro_u32("fastuidraw_brush_image_filter_bit0", PainterBrush::image_filter_bit0)
     .add_macro_u32("fastuidraw_brush_image_filter_num_bits", PainterBrush::image_filter_num_bits)
@@ -559,7 +565,46 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro_u32("fastuidraw_color_stop_x_bit0",     PainterBrush::gradient_color_stop_x_bit0)
     .add_macro_u32("fastuidraw_color_stop_x_num_bits", PainterBrush::gradient_color_stop_x_num_bits)
     .add_macro_u32("fastuidraw_color_stop_y_bit0",     PainterBrush::gradient_color_stop_y_bit0)
-    .add_macro_u32("fastuidraw_color_stop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits);
+    .add_macro_u32("fastuidraw_color_stop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits)
+
+    ////////////////////////////////////////
+    // constants for GlyphRenderDataRestrictedRays
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_node_bit", GlyphRenderDataRestrictedRays::hierarchy_is_node_bit)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_node_mask", FASTUIDRAW_MASK(GlyphRenderDataRestrictedRays::hierarchy_is_node_bit, 1u))
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_split_coord_bit", GlyphRenderDataRestrictedRays::hierarchy_splitting_coordinate_bit)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_child0_bit", GlyphRenderDataRestrictedRays::hierarchy_child0_offset_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_child1_bit", GlyphRenderDataRestrictedRays::hierarchy_child1_offset_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_child_num_bits", GlyphRenderDataRestrictedRays::hierarchy_child_offset_numbits)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_curve_list_bit0", GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_curve_list_num_bits", GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_numbits)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_curve_list_size_bit0", GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_hierarchy_curve_list_size_num_bits", GlyphRenderDataRestrictedRays::hierarchy_leaf_curve_list_size_numbits)
+    .add_macro_u32("fastuidraw_restricted_rays_winding_value_bias", GlyphRenderDataRestrictedRays::winding_bias)
+    .add_macro_u32("fastuidraw_restricted_rays_winding_value_bit0", GlyphRenderDataRestrictedRays::winding_value_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_winding_value_num_bits", GlyphRenderDataRestrictedRays::winding_value_numbits)
+    .add_macro_u32("fastuidraw_restricted_rays_position_delta_divide", GlyphRenderDataRestrictedRays::delta_div_factor)
+    .add_macro_u32("fastuidraw_restricted_rays_position_delta_x_bit0", GlyphRenderDataRestrictedRays::delta_x_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_position_delta_y_bit0", GlyphRenderDataRestrictedRays::delta_y_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_position_delta_num_bits", GlyphRenderDataRestrictedRays::delta_numbits)
+    .add_macro_u32("fastuidraw_restricted_rays_curve_entry_num_bits", GlyphRenderDataRestrictedRays::curve_numbits)
+    .add_macro_u32("fastuidraw_restricted_rays_curve_entry0_bit0", GlyphRenderDataRestrictedRays::curve_entry0_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_curve_entry1_bit0", GlyphRenderDataRestrictedRays::curve_entry1_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_curve_is_quadratic_bit", GlyphRenderDataRestrictedRays::curve_is_quadratic_bit)
+    .add_macro_u32("fastuidraw_restricted_rays_curve_is_quadratic_mask", FASTUIDRAW_MASK(GlyphRenderDataRestrictedRays::curve_is_quadratic_bit, 1u))
+    .add_macro_u32("fastuidraw_restricted_rays_curve_bit0", GlyphRenderDataRestrictedRays::curve_location_bit0)
+    .add_macro_u32("fastuidraw_restricted_rays_curve_num_bits", GlyphRenderDataRestrictedRays::curve_location_numbits)
+    .add_macro_float("fastuidraw_restricted_rays_glyph_coord_value", GlyphRenderDataRestrictedRays::glyph_coord_value)
+
+    ////////////////////////////////////////
+    // constants for GlyphRenderDataBandedRays
+    .add_macro_u32("fastuidraw_banded_rays_numcurves_numbits", GlyphRenderDataBandedRays::band_numcurves_numbits)
+    .add_macro_u32("fastuidraw_banded_rays_numcurves_bit0", GlyphRenderDataBandedRays::band_numcurves_bit0)
+    .add_macro_u32("fastuidraw_banded_rays_curveoffset_numbits", GlyphRenderDataBandedRays::band_curveoffset_numbits)
+    .add_macro_u32("fastuidraw_banded_rays_curveoffset_bit0", GlyphRenderDataBandedRays::band_curveoffset_bit0)
+    .add_macro_float("fastuidraw_banded_rays_glyph_coord", GlyphRenderDataBandedRays::glyph_coord_value)
+    .add_macro_float("fastuidraw_banded_rays_glyph_coord_half_recip", 0.5f / static_cast<float>(GlyphRenderDataBandedRays::glyph_coord_value))
+    .add_macro_float("fastuidraw_banded_rays_glyph_coord_doubled", 2 * GlyphRenderDataBandedRays::glyph_coord_value)
+    ;
 }
 
 void
@@ -1044,6 +1089,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
 
   vert
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
+    .add_source("fastuidraw_atlases.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_globals.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
@@ -1066,7 +1112,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     }
 
   vert
-    .add_source(detail::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
+    .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
     .add_source(m_vert_shader_utils)
     .add_source("fastuidraw_painter_clipping.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(vert_main_src, ShaderSource::from_resource);
@@ -1106,10 +1152,17 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
 
   frag
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
+    .add_source("fastuidraw_atlases.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_globals.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_banded_rays.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
+    .add_source(m_frag_shader_utils)
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_clipping.frag.glsl.resource_string", ShaderSource::from_resource);
 
   const char *frag_main_src;
   if (render_type == PainterSurface::color_buffer_type)
@@ -1129,17 +1182,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     }
 
   frag
-    .add_source(detail::compute_interval("fastuidraw_compute_interval", "fastuidraw_fetch_data"))
-    .add_source(detail::banded_rays_compute_coverage("fastuidraw_fetch_glyph_data",
-                                                     "fastuidraw_fetch_glyph_data_fp16x2"))
-    .add_source(detail::restricted_rays_compute_coverage("fastuidraw_fetch_glyph_data",
-                                                         "fastuidraw_fetch_glyph_data_fp16x2"))
-    .add_source(m_frag_shader_utils)
-    .add_source(detail::image_atlas_compute_coord("fastuidraw_compute_image_atlas_coord",
-                                                  "fastuidraw_imageIndexAtlas",
-                                                  backend.image_atlas_index_tile_size(),
-                                                  backend.image_atlas_color_tile_size()))
-    .add_source("fastuidraw_painter_clipping.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source(frag_main_src, ShaderSource::from_resource);
 
   stream_unpack_code(frag, render_type);

@@ -8,6 +8,7 @@ dir := $(d)/painter
 include $(dir)/Rules.mk
 
 FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
+	fastuidraw_atlases.glsl.resource_string \
 	fastuidraw_atlas_image_fetch.glsl.resource_string \
 	fastuidraw_compute_interval.glsl.resource_string \
 	fastuidraw_circular_interpolate.glsl.resource_string \

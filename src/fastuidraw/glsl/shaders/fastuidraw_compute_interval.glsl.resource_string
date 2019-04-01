@@ -22,11 +22,11 @@
  */
 
 float
-FASTUIDRAW_COMPUTE_INTERVAL_NAME(in uint intervals_location, in float total_distance,
-                                 in float first_interval_start, in float in_distance,
-                                 in uint number_intervals,
-                                 out int interval_ID,
-                                 out float interval_begin, out float interval_end)
+fastuidraw_compute_interval(in uint intervals_location, in float total_distance,
+                            in float first_interval_start, in float in_distance,
+                            in uint number_intervals,
+                            out int interval_ID,
+                            out float interval_begin, out float interval_end)
 {
   int loc;
   float d, lastd, ff, fd;
@@ -49,7 +49,7 @@ FASTUIDRAW_COMPUTE_INTERVAL_NAME(in uint intervals_location, in float total_dist
       uvec4 V;
       vec4 fV;
 
-      V = FASTUIDRAW_COMPUTE_INTERVAL_FETCH_DATA(loc + int(intervals_location)).xyzw;
+      V = fastuidraw_fetch_data(loc + int(intervals_location)).xyzw;
       fV = uintBitsToFloat(V);
 
       if (d < fV.x)

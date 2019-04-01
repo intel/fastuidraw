@@ -17,25 +17,43 @@
  */
 
 
-
-
 /*
-  Must have defined:
-   - FASTUIDRAW_INDEX_TILE_SIZE: size of index tiles
-   - FASTUIDRAW_COLOR_TILE_SIZE: size of color tiles
-
-   - FASTUIDRAW_INDEX_ATLAS: usampler2DArray sampler for the index atlas
-   - FASTUIDRAW_ATLAS_COMPUTE_COORD: name of the function
+ * Must have defined:
+ *  - FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE: size of index tiles (must be a power of 2)
+ *  - FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE: size of color tiles (must be a power of 2)
  */
 
+struct fastuidraw_compute_image_atlas_coord_type
+{
+  /* the color-tile ID within the layer */
+  uvec2 color_tile_id;
+
+  /* the offset within the tile */
+  vec2 offset_within_tile;
+
+  /* the most negative value allowed to go in texels
+   * before leaving the tile
+   */
+  vec2 min_delta_within_tile;
+
+  /* the most positive value allowed to go in texels
+   * before leaving the tile
+   */
+  vec2 max_delta_within_tile;
+
+  /* the unnormalized texel coordinate within the color-atlas */
+  vec2 unnormalized_texcoord_xy;
+
+  /* the layer within the color atlas */
+  uint layer;
+};
 
 void
-FASTUIDRAW_ATLAS_COMPUTE_COORD(in vec2 punnormalized_index_tex_coord,
-                               in uint pindex_layer,
-                               in uint pnum_levels,
-                               in uint slack,
-                               out vec2 return_value_unnormalized_texcoord_xy,
-                               out uint return_value_layer)
+fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
+                                     in uint pindex_layer,
+                                     in uint pnum_levels,
+                                     in uint slack,
+                                     out fastuidraw_compute_image_atlas_coord_type return_value)
 {
   uint index_layer = pindex_layer;
   vec2 unnormalized_index_tex_coord = punnormalized_index_tex_coord;
@@ -45,7 +63,7 @@ FASTUIDRAW_ATLAS_COMPUTE_COORD(in vec2 punnormalized_index_tex_coord,
 
 
   itexel_coordinate = ivec2(unnormalized_index_tex_coord);
-  tile_id = texelFetch(FASTUIDRAW_INDEX_ATLAS,
+  tile_id = texelFetch(fastuidraw_imageIndexAtlas,
                        ivec3(itexel_coordinate, index_layer),
                        0);
   index_layer = tile_id.z + 256u * tile_id.w;
@@ -56,12 +74,12 @@ FASTUIDRAW_ATLAS_COMPUTE_COORD(in vec2 punnormalized_index_tex_coord,
       vec2 texel_coordinate;
 
       unnormalized_index_tex_coord -= vec2(itexel_coordinate);
-      index_tile_offset = unnormalized_index_tex_coord * float(FASTUIDRAW_INDEX_TILE_SIZE);
+      index_tile_offset = unnormalized_index_tex_coord * float(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
       texel_coordinate = index_tile_offset
-        + vec2(tile_id.xy) * float(FASTUIDRAW_INDEX_TILE_SIZE);
+        + vec2(tile_id.xy) * float(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
 
       itexel_coordinate = ivec2(texel_coordinate);
-      tile_id = texelFetch(FASTUIDRAW_INDEX_ATLAS,
+      tile_id = texelFetch(fastuidraw_imageIndexAtlas,
                            ivec3(itexel_coordinate, index_layer),
                            0);
       index_layer = tile_id.z + 256u * tile_id.w;
@@ -69,21 +87,61 @@ FASTUIDRAW_ATLAS_COMPUTE_COORD(in vec2 punnormalized_index_tex_coord,
       unnormalized_index_tex_coord = texel_coordinate;
     }
 
-  /* at this point index_layer gives
-     the layer into colorAtlas and
-     tile_id gives which tile in
-     the color atlas
-  */
+  /* at this point index_layer gives the layer into colorAtlas
+   * and tile_id gives which tile in the color atlas
+   */
   vec2 tile_offset;
   uint subtile_image_size;
 
-  subtile_image_size = uint(FASTUIDRAW_COLOR_TILE_SIZE);
+  subtile_image_size = uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE);
   subtile_image_size -= 2u * slack;
   tile_offset = (unnormalized_index_tex_coord - vec2(itexel_coordinate)) * float(subtile_image_size);
 
-  return_value_unnormalized_texcoord_xy = tile_offset //offset into tile
+  return_value.color_tile_id = tile_id.xy;
+  return_value.offset_within_tile = tile_offset;
+  return_value.unnormalized_texcoord_xy = tile_offset //offset into tile
     + vec2(float(slack)) //slack added
-    + vec2(tile_id.xy) * float(FASTUIDRAW_COLOR_TILE_SIZE); //location of tile
+    + vec2(tile_id.xy) * float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE); //location of tile
 
-  return_value_layer = index_layer;
+  return_value.min_delta_within_tile =
+    -vec2(float(slack)) - tile_offset;
+
+  return_value.max_delta_within_tile =
+    vec2(float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE + slack - 1)) - tile_offset;
+
+  return_value.layer = index_layer;
+}
+
+void
+fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
+                                     in uint pindex_layer,
+                                     in uint pnum_levels,
+                                     in uint slack,
+                                     out vec2 return_value_unnormalized_texcoord_xy,
+                                     out uint return_value_layer)
+{
+  fastuidraw_compute_image_atlas_coord_type str;
+
+  fastuidraw_compute_image_atlas_coord(punnormalized_index_tex_coord,
+                                 pindex_layer,
+                                 pnum_levels,
+                                 slack,
+                                 str);
+  return_value_unnormalized_texcoord_xy = str.unnormalized_texcoord_xy;
+  return_value_layer = str.layer;
+}
+
+/* computes from an image-coordinate the range allowed to stay within
+ * the same tile
+ */
+void
+fastuidraw_compute_range_within_tile(in uint image_coord,
+                                     out uint min_within_tile,
+                                     out uint max_within_tile)
+{
+  uint tile_offset;
+
+  tile_offset = image_coord & (FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1);
+  min_within_tile = image_coord - tile_offset;
+  max_within_tile = image_coord + (FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1 - tile_offset);
 }

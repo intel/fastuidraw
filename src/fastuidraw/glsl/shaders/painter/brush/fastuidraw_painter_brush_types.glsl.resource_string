@@ -45,8 +45,8 @@ struct fastuidraw_brush_image_data
    * The formulat is given as:
    *  image_size_over_master_size = pow(IndexTileSize, number_index_lookups - 1) * C
    * where
-   *  C = FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE - 2 * slack
-   * and FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE is the color
+   *  C = FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 2 * slack
+   * and FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE is the color
    * tile size.
    */
   uint image_size_over_master_size;
@@ -99,12 +99,12 @@ struct fastuidraw_brush_image_data_raw
               p = image coordinates
               A = ( (TileSize - 2 * Slack) * pow(IndexTileSize, NumberIndexLookups - 1) )
 
-           TileSize is given by FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE
+           TileSize is given by FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE
            Slack comes from the shader_brush (it is packed into 2 bits)
            NumberIndexLookups is also packed into shader_brush (occupying 5 bits)
-           IndexTileSize is given by (1 << FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE),
+           IndexTileSize is given by (1 << FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE),
                          note that then pow(IndexTileSize, NumberIndexLevels - 1) is same as
-                         (1 << (FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * (NumberIndexLookups - 1) )
+                         (1 << (FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * (NumberIndexLookups - 1) )
    */
   uint image_size_xy;
 

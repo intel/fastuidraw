@@ -18,19 +18,19 @@
 
 /* must have the macro/function
  *
- *  FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(X)
+ *  fastuidraw_fetch_glyph_data(X)
  *
  * that returns a single 32-bit uint value at index X of
  * a large array of 32-bit uint values storing the data
  *
  * and optionally define the macro/function
  *
- *  FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2(X)
+ *  fastuidraw_fetch_glyph_data_fp16x2(X)
  *
  * the reads a single 32-bit uint value that is bit-casted
  * to a (fp16, fp16) pair realized as a vec2. For example
  * it can be defined as
- * unpackHalf2x16(FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(X))
+ * unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
  */
 
 struct fastuidraw_restricted_rays_transformation
@@ -138,7 +138,7 @@ fastuidaw_restricted_rays_compute_box(in vec2 p,
   box.max_point = vec2(fastuidraw_restricted_rays_glyph_coord_value, fastuidraw_restricted_rays_glyph_coord_value);
 
   offset = data_location;
-  v = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(offset);
+  v = fastuidraw_fetch_glyph_data(offset);
 
   while((v & fastuidraw_restricted_rays_hierarchy_node_mask) != 0u)
     {
@@ -169,7 +169,7 @@ fastuidaw_restricted_rays_compute_box(in vec2 p,
                                        fastuidraw_restricted_rays_hierarchy_child_num_bits,
                                        v);
       offset += data_location;
-      v = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(offset);
+      v = fastuidraw_fetch_glyph_data(offset);
     }
 
   box.size = box.max_point - box.min_point;
@@ -187,16 +187,16 @@ fastuidaw_restricted_rays_compute_box(in vec2 p,
 vec2
 fastuidraw_restricted_rays_unpack_point(in uint ptr)
 {
-  #if !defined(FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2)
+  #if !defined(fastuidraw_fetch_glyph_data_fp16x2)
     {
       uint pt_packed;
 
-      pt_packed = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(ptr);
+      pt_packed = fastuidraw_fetch_glyph_data(ptr);
       return unpackHalf2x16(pt_packed);
     }
   #else
     {
-      return FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA_FP16X2(ptr);
+      return fastuidraw_fetch_glyph_data_fp16x2(ptr);
     }
   #endif
 }
@@ -586,7 +586,7 @@ fastuidraw_restricted_rays_load_winding_reference(in uint location,
   vec2 position, delta;
 
   position = box.min_point;
-  texel = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(location);
+  texel = fastuidraw_fetch_glyph_data(location);
 
   biased_winding = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_winding_value_bit0,
                                            fastuidraw_restricted_rays_winding_value_num_bits, texel);
@@ -643,7 +643,7 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
     {
       uint cA, cB, curve_pair;
 
-      curve_pair = FASTUIDRAW_RESTRICTED_RAYS_FETCH_DATA(src);
+      curve_pair = fastuidraw_fetch_glyph_data(src);
       ++src;
 
       cA = FASTUIDRAW_EXTRACT_BITS(fastuidraw_restricted_rays_curve_entry0_bit0,

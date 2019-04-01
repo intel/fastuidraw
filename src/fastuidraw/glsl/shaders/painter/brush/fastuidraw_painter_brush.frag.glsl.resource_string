@@ -454,7 +454,7 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
                                             fastuidraw_brush_spread_type_num_bits,
                                             fastuidraw_brush_shader);
 
-      /* NOTE: there is a Mesa/i965 but where if we change the
+      /* NOTE: there is a Mesa/i965 bug where if we change the
        * order of this if/else chain to something different,
        * it might not correctly evaluate.
        */

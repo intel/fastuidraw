@@ -18,19 +18,19 @@
 
 /* must have the macro/function
  *
- *  FASTUIDRAW_BANDED_RAYS_FETCH_DATA(X)
+ *  fastuidraw_fetch_glyph_data(X)
  *
  * that returns a single 32-bit uint value at index X of
  * a large array of 32-bit uint values storing the data
  *
  * and optionally define the macro/function
  *
- *  FASTUIDRAW_BANDED_RAYS_FETCH_DATA_FP16X2(X)
+ *  fastuidraw_fetch_glyph_data_fp16x2(X)
  *
  * the reads a single 32-bit uint value that is bit-casted
  * to a (fp16, fp16) pair realized as a vec2. For example
  * it can be defined as
- * unpackHalf2x16(FASTUIDRAW_BANDED_RAYS_FETCH_DATA(X))
+ * unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
  */
 
 struct fastuidraw_banded_rays_band
@@ -49,7 +49,7 @@ fastuidraw_banded_rays_load_band(in uint loc, out fastuidraw_banded_rays_band ba
 {
   uint raw;
 
-  raw = FASTUIDRAW_BANDED_RAYS_FETCH_DATA(loc);
+  raw = fastuidraw_fetch_glyph_data(loc);
   band.num_curves = FASTUIDRAW_EXTRACT_BITS(fastuidraw_banded_rays_numcurves_bit0,
                                             fastuidraw_banded_rays_numcurves_numbits,
                                             raw);
@@ -61,15 +61,15 @@ fastuidraw_banded_rays_load_band(in uint loc, out fastuidraw_banded_rays_band ba
 vec2
 fastuidraw_banded_rays_load_point(in uint loc)
 {
-  #if !defined(FASTUIDRAW_BANDED_RAYS_FETCH_DATA_FP16X2)
+  #if !defined(fastuidraw_fetch_glyph_data_fp16x2)
     {
       uint raw;
-      raw = FASTUIDRAW_BANDED_RAYS_FETCH_DATA(loc);
+      raw = fastuidraw_fetch_glyph_data(loc);
       return unpackHalf2x16(raw);
     }
   #else
     {
-      return FASTUIDRAW_BANDED_RAYS_FETCH_DATA_FP16X2(loc);
+      return fastuidraw_fetch_glyph_data_fp16x2(loc);
     }
   #endif
 }

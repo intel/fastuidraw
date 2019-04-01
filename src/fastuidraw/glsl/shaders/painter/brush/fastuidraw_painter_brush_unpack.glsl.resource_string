@@ -65,7 +65,7 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
                                                  fastuidraw_image_number_index_lookup_num_bits,
                                                  raw.image_slack_number_lookups);
 
-  master_xyz.xy *= uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE);
+  master_xyz.xy *= uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
 
   if (number_index_lookups > uint(0))
     {
@@ -75,9 +75,9 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
           = pow(2, log2(SizeOfImageTile) * (NumberIndexLookUps - 1))
         Bit shifting gives us the pow(2, V)
        */
-      ww = uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (number_index_lookups - 1u);
+      ww = uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (number_index_lookups - 1u);
       index_pows = 1u << ww;
-      cooked.image_size_over_master_size = (uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE) - 2u * slack) * index_pows;
+      cooked.image_size_over_master_size = (uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) - 2u * slack) * index_pows;
     }
   else
     {
