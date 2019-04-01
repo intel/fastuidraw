@@ -48,6 +48,39 @@ struct fastuidraw_compute_image_atlas_coord_type
   uint layer;
 };
 
+uint
+fastuidraw_compute_image_size_divided_by_master_tile_size(in uint pnum_levels, in uint slack)
+{
+  if (pnum_levels >= 1)
+    {
+      /* Each level increases the size by a factor of FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE,
+       * thus the ratio is R where R is given by
+       *
+       *  R = C * pow(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE, pnum_levels - 1)
+       *
+       * where
+       *
+       *  C = (FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 2 * slack)
+       *
+       * Now,
+       *
+       *  R = C * pow(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE, pnum_levels - 1)
+       *    = C * pow(2, FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * (pnum_levels - 1))
+       *
+       * Using bitshift, we then have:
+       *
+       *  R = C * (1u << (FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * (pnum_levels - 1)))
+       */
+      uint ww = uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (pnum_levels - 1u);
+      uint index_pows = (1u << ww);
+      return (uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) - 2u * slack) * index_pows;
+    }
+  else
+    {
+      return 1u;
+    }
+}
+
 void
 fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
                                      in uint pindex_layer,

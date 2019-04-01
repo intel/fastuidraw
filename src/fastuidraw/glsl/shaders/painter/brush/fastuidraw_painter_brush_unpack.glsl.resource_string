@@ -67,23 +67,6 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
 
   master_xyz.xy *= uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
 
-  if (number_index_lookups > uint(0))
-    {
-      /*
-        The factor from master index tile to color tile is given by
-          pow(SizeOfImageTile, NumberIndexLookUps - 1)
-          = pow(2, log2(SizeOfImageTile) * (NumberIndexLookUps - 1))
-        Bit shifting gives us the pow(2, V)
-       */
-      ww = uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (number_index_lookups - 1u);
-      index_pows = 1u << ww;
-      cooked.image_size_over_master_size = (uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) - 2u * slack) * index_pows;
-    }
-  else
-    {
-      cooked.image_size_over_master_size = uint(1);
-    }
-
   cooked.slack = slack;
   cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
   cooked.number_index_lookups = number_index_lookups;
@@ -246,7 +229,7 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
     {
       vec2 T;
 
-      image_factor = 1.0 / float(image.image_size_over_master_size);
+      image_factor = 1.0 / float(fastuidraw_compute_image_size_divided_by_master_tile_size(image.number_index_lookups, image.slack));
       T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_factor;
       fastuidraw_brush_image_x = T.x;
       fastuidraw_brush_image_y = T.y;

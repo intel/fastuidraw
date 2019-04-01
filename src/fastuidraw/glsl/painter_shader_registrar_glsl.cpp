@@ -1093,7 +1093,8 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_globals.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource);
 
   const char *vert_main_src;
   if (render_type == PainterSurface::color_buffer_type)
