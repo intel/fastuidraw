@@ -39,9 +39,9 @@ namespace
 
   inline
   void
-  finalize_data(enum fastuidraw::PainterEnums::fill_rule_t f,
-                const fastuidraw::BoundingBox<float> &bbox,
-                fastuidraw::GlyphRenderDataRestrictedRays *data)
+  finalize_render_data(enum fastuidraw::PainterEnums::fill_rule_t f,
+                       const fastuidraw::BoundingBox<float> &bbox,
+                       fastuidraw::GlyphRenderDataRestrictedRays *data)
   {
     data->finalize(f, bbox.as_rect(),
                    4, //aim for 4 curves per box
@@ -55,19 +55,90 @@ namespace
 
   inline
   void
-  finalize_data(enum fastuidraw::PainterEnums::fill_rule_t f,
-                const fastuidraw::BoundingBox<float> &bbox,
-                fastuidraw::GlyphRenderDataBandedRays *data)
+  finalize_render_data(enum fastuidraw::PainterEnums::fill_rule_t f,
+                       const fastuidraw::BoundingBox<float> &bbox,
+                       fastuidraw::GlyphRenderDataBandedRays *data)
   {
     data->finalize(f, bbox.as_rect());
   }
 
 #endif
 
+  /* A BuilderPoint represents a line_to() or quadratic_to() command.
+   */
+  class BuilderCommand
+  {
+  public:
+    enum type_t
+      {
+        type_move_to,
+        type_line_to,
+        type_quadratic_to,
+      };
+
+    static
+    BuilderCommand
+    move_to(fastuidraw::vec2 p)
+    {
+      BuilderCommand R;
+      R.m_type = type_move_to;
+      R.m_pt = p;
+      return R;
+    }
+
+    static
+    BuilderCommand
+    line_to(fastuidraw::vec2 p)
+    {
+      BuilderCommand R;
+      R.m_type = type_line_to;
+      R.m_pt = p;
+      return R;
+    }
+
+    static
+    BuilderCommand
+    quadratic_to(fastuidraw::vec2 c, fastuidraw::vec2 p)
+    {
+      BuilderCommand R;
+      R.m_type = type_quadratic_to;
+      R.m_control = c;
+      R.m_pt = p;
+      return R;
+    }
+
+    const fastuidraw::vec2&
+    pt(void) const
+    {
+      return m_pt;
+    }
+
+    const fastuidraw::vec2&
+    control(void) const
+    {
+      FASTUIDRAWassert(m_type == type_quadratic_to);
+      return m_control;
+    }
+
+    enum type_t
+    type(void) const
+    {
+      return m_type;
+    }
+
+  private:
+    enum type_t m_type;
+    fastuidraw::vec2 m_control;
+    fastuidraw::vec2 m_pt;
+  };
+
   class BuilderPrivate
   {
   public:
-    RenderData m_data;
+    void
+    build_render_data(RenderData *dst, RenderData::query_info *dst_query) const;
+
+    std::vector<BuilderCommand> m_data;
     fastuidraw::BoundingBox<float> m_bbox;
   };
 
@@ -137,6 +208,36 @@ namespace
     fastuidraw::vecN<PerFillRule, fastuidraw::PainterEnums::number_fill_rule> m_per_fill_rule;
     unsigned int m_number_times_atlas_cleared;
   };
+}
+
+////////////////////////////
+// BuilderPrivate methods
+void
+BuilderPrivate::
+build_render_data(RenderData *dst, RenderData::query_info *dst_query) const
+{
+  for (const BuilderCommand &cmd : m_data)
+    {
+      switch(cmd.type())
+        {
+        case BuilderCommand::type_move_to:
+          dst->move_to(cmd.pt());
+          break;
+        case BuilderCommand::type_line_to:
+          dst->line_to(cmd.pt());
+          break;
+        case BuilderCommand::type_quadratic_to:
+          dst->quadratic_to(cmd.control(), cmd.pt());
+          break;
+        default:
+          FASTUIDRAWassert(!"Bad enum!");
+        }
+    }
+  /* the fill rule actually does not matter, since ShaderFilledPath
+   * constructs its own attribute data.
+   */
+  finalize_render_data(fastuidraw::PainterEnums::nonzero_fill_rule, m_bbox, dst);
+  dst->query(dst_query);
 }
 
 ////////////////////////////////
@@ -260,15 +361,10 @@ ShaderFilledPathPrivate(BuilderPrivate &B):
   m_allocation(-1),
   m_number_times_atlas_cleared(0)
 {
-  using namespace fastuidraw;
+  RenderData render_data;
+  B.build_render_data(&render_data, &m_query_data);
 
-  /* the fill rule actually does not matter, since ShaderFilledPath
-   * constructs its own attribute data.
-   */
-  finalize_data(PainterEnums::nonzero_fill_rule, B.m_bbox, &B.m_data);
-  B.m_data.query(&m_query_data);
-
-  /* Because B may go out of scope, we need to save the GPU data
+  /* Because B will go out of scope, we need to save the GPU data
    * to our own private array.
    */
   m_gpu_data.resize(m_query_data.m_gpu_data.size());
@@ -353,7 +449,7 @@ move_to(vec2 pt)
 {
   BuilderPrivate *d;
   d = static_cast<BuilderPrivate*>(m_d);
-  d->m_data.move_to(pt);
+  d->m_data.push_back(BuilderCommand::move_to(pt));
   d->m_bbox.union_point(pt);
 }
 
@@ -363,7 +459,7 @@ line_to(vec2 pt)
 {
   BuilderPrivate *d;
   d = static_cast<BuilderPrivate*>(m_d);
-  d->m_data.line_to(pt);
+  d->m_data.push_back(BuilderCommand::line_to(pt));
   d->m_bbox.union_point(pt);
 }
 
@@ -373,7 +469,7 @@ quadratic_to(vec2 ct, vec2 pt)
 {
   BuilderPrivate *d;
   d = static_cast<BuilderPrivate*>(m_d);
-  d->m_data.quadratic_to(ct, pt);
+  d->m_data.push_back(BuilderCommand::quadratic_to(ct, pt));
   d->m_bbox.union_point(pt);
   d->m_bbox.union_point(ct);
 }
