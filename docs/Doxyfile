@@ -868,7 +868,6 @@ RECURSIVE              = YES
 EXCLUDE                = ../inc/fastuidraw/gl_backend/ngl_gl.hpp \
                          ../inc/fastuidraw/gl_backend/ngl_gles3.hpp \
                          ../inc/fastuidraw/gl_backend/gluniform_implement.hpp \
-                         ../inc/fastuidraw/ngl_egl.hpp
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
