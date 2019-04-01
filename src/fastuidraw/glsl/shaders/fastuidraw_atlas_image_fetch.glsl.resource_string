@@ -81,33 +81,35 @@ fastuidraw_compute_image_size_divided_by_master_tile_size(in uint pnum_levels, i
     }
 }
 
+/* \param master_index_texel_coord unnormalized texel coordinate of within the master-index tile
+ * \param index_layer what layer from the index-atlas the master tile is located at
+ * \param num_levels number of index levels needed to reach the color-tile
+ * \param slack the amount of repeat data on the boundary of each color tile
+ */
 void
-fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
-                                     in uint pindex_layer,
-                                     in uint pnum_levels,
+fastuidraw_compute_image_atlas_coord(in vec2 master_index_texel_coord,
+                                     in uint index_layer,
+                                     in uint num_levels,
                                      in uint slack,
                                      out fastuidraw_compute_image_atlas_coord_type return_value)
 {
-  uint index_layer = pindex_layer;
-  vec2 unnormalized_index_tex_coord = punnormalized_index_tex_coord;
   uvec4 tile_id;
   vec2 color_atlas_texcoord_xy;
   ivec2 itexel_coordinate;
 
-
-  itexel_coordinate = ivec2(unnormalized_index_tex_coord);
+  itexel_coordinate = ivec2(master_index_texel_coord);
   tile_id = texelFetch(fastuidraw_imageIndexAtlas,
                        ivec3(itexel_coordinate, index_layer),
                        0);
   index_layer = tile_id.z + 256u * tile_id.w;
 
-  for(uint i = 1u; i < pnum_levels; ++i)
+  for(uint i = 1u; i < num_levels; ++i)
     {
       vec2 index_tile_offset;
       vec2 texel_coordinate;
 
-      unnormalized_index_tex_coord -= vec2(itexel_coordinate);
-      index_tile_offset = unnormalized_index_tex_coord * float(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
+      master_index_texel_coord -= vec2(itexel_coordinate);
+      index_tile_offset = master_index_texel_coord * float(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
       texel_coordinate = index_tile_offset
         + vec2(tile_id.xy) * float(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
 
@@ -117,7 +119,7 @@ fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
                            0);
       index_layer = tile_id.z + 256u * tile_id.w;
 
-      unnormalized_index_tex_coord = texel_coordinate;
+      master_index_texel_coord = texel_coordinate;
     }
 
   /* at this point index_layer gives the layer into colorAtlas
@@ -128,7 +130,7 @@ fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
 
   subtile_image_size = uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE);
   subtile_image_size -= 2u * slack;
-  tile_offset = (unnormalized_index_tex_coord - vec2(itexel_coordinate)) * float(subtile_image_size);
+  tile_offset = (master_index_texel_coord - vec2(itexel_coordinate)) * float(subtile_image_size);
 
   return_value.color_tile_id = tile_id.xy;
   return_value.offset_within_tile = tile_offset;
@@ -146,18 +148,18 @@ fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
 }
 
 void
-fastuidraw_compute_image_atlas_coord(in vec2 punnormalized_index_tex_coord,
-                                     in uint pindex_layer,
-                                     in uint pnum_levels,
+fastuidraw_compute_image_atlas_coord(in vec2 master_index_texel_coord,
+                                     in uint index_layer,
+                                     in uint num_levels,
                                      in uint slack,
                                      out vec2 return_value_unnormalized_texcoord_xy,
                                      out uint return_value_layer)
 {
   fastuidraw_compute_image_atlas_coord_type str;
 
-  fastuidraw_compute_image_atlas_coord(punnormalized_index_tex_coord,
-                                 pindex_layer,
-                                 pnum_levels,
+  fastuidraw_compute_image_atlas_coord(master_index_texel_coord,
+                                 index_layer,
+                                 num_levels,
                                  slack,
                                  str);
   return_value_unnormalized_texcoord_xy = str.unnormalized_texcoord_xy;
