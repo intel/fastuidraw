@@ -424,6 +424,7 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 
       if (image_type == uint(fastuidraw_image_type_on_atlas))
         {
+          lod = min(lod, float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_LOG2_SIZE - 1u));
           image_color = fastuidraw_image_of_atlas(q, image_filter, lod);
         }
       else if (image_type == uint(fastuidraw_image_type_bindless_texture2d))

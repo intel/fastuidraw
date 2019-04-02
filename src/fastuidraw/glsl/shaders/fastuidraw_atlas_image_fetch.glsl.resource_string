@@ -16,17 +16,6 @@
  *
  */
 
-/******************************************************************************
- * TODO:
- *   1. remove slack arguments from here, from Image, from PainterBrush
- *   2. change linear and cubic code to not worry about slack
- *        - big gain is that descision of within can be done much more easily
- *          in that we do not need to do index-tile walk to figure it out;
- *          we wil remove the fields min_delta_within_tile and max_delta_within_tile
- *   3. implement bi-cubic to work with no slack.
- *   4. make bilinear and bicubic also work with integer mipmap levels
- ******************************************************************************/
-
 /*
  * Must have defined:
  *  - FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE: size of index tiles (must be a power of 2)
@@ -276,17 +265,21 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
 {
   vec4 image_color;
   vec2 image_coordinate, min_tile_dist, max_tile_dist;
+  int lod_i;
+  float lod_factor, half_lod_factor;
 
-  /* TODO: the work to handle LOD non-zero correctly. */
-  lod = 0.0;
+  lod_i = int(lod);
+  lod = float(lod_i);
+  lod_factor = float(1 << lod_i);
+  half_lod_factor = 0.5 * lod_factor;
 
   image_coordinate = fastuidraw_compute_image_coordinate(master_tile_texel_coord, image_info);
   fastuidraw_image_atlas_compute_tile_range(image_coordinate, min_tile_dist, max_tile_dist);
 
-  if (max_tile_dist.x >= 0.5
-      && max_tile_dist.y >= 0.5
-      && min_tile_dist.x <= -0.5
-      && min_tile_dist.y <= -0.5)
+  if (max_tile_dist.x >= half_lod_factor
+      && max_tile_dist.y >= half_lod_factor
+      && min_tile_dist.x <= -half_lod_factor
+      && min_tile_dist.y <= -half_lod_factor)
     {
       fastuidraw_compute_image_atlas_coord_type atlas_location;
 
@@ -304,19 +297,20 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
        */
       ivec3 t00, t10, t01, t11;
       fastuidraw_compute_image_atlas_coord_type atlas_location_t00;
+      float inverse_lod_factor, next_pixel_delta;
 
-      /* Ick. We cannot assume the texel named by atlas_location is the
-       * bottom-left texel to use in bilinear filtering. It is the left side
-       * is the fractional part of the texel coordinate is <= 0.5 and
-       * same story as bottom-side. To avoid the drama of doing the right
-       * thing, we instead will do the atlas-computation over.
+      inverse_lod_factor = 1.0f / lod_factor;
+      next_pixel_delta = lod_factor * image_info.image_texel_size_on_master_index_tile;
+
+      /* we want the texel that is half a pixel to the left/down
+       * of the input location.
        */
-      master_tile_texel_coord -= vec2(0.5 * image_info.image_texel_size_on_master_index_tile);
+      master_tile_texel_coord -= vec2(0.5 * next_pixel_delta);
       fastuidraw_compute_image_atlas_coord(master_tile_texel_coord, index_layer,
                                            image_info.num_levels, atlas_location_t00);
 
-      t00 = ivec3(atlas_location_t00.unnormalized_texcoord_xy, atlas_location_t00.layer);
-      if (atlas_location_t00.max_delta_within_tile.x >= 1.0)
+      t00 = ivec3(atlas_location_t00.unnormalized_texcoord_xy * inverse_lod_factor, atlas_location_t00.layer);
+      if (atlas_location_t00.max_delta_within_tile.x >= lod_factor)
         {
           t10.yz = t00.yz;
           t10.x = t00.x + 1;
@@ -324,15 +318,15 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
       else
         {
           fastuidraw_compute_image_atlas_coord_type atlas_location_t10;
-          vec2 master_tile_texel_coord_nxt = master_tile_texel_coord + vec2(image_info.image_texel_size_on_master_index_tile, 0.0);
+          vec2 master_tile_texel_coord_nxt = master_tile_texel_coord + vec2(next_pixel_delta, 0.0);
 
           fastuidraw_compute_image_atlas_coord(master_tile_texel_coord_nxt, index_layer,
                                                image_info.num_levels, atlas_location_t10);
-          t10 = ivec3(atlas_location_t10.unnormalized_texcoord_xy,
+          t10 = ivec3(atlas_location_t10.unnormalized_texcoord_xy * inverse_lod_factor,
                       atlas_location_t10.layer);
         }
 
-      if (atlas_location_t00.max_delta_within_tile.y >= 1.0)
+      if (atlas_location_t00.max_delta_within_tile.y >= lod_factor)
         {
           t01.xz = t00.xz;
           t01.y = t00.y + 1;
@@ -343,15 +337,15 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
       else
         {
           fastuidraw_compute_image_atlas_coord_type atlas_location_t01;
-          vec2 master_tile_texel_coord_nxt = master_tile_texel_coord + vec2(0.0, image_info.image_texel_size_on_master_index_tile);
+          vec2 master_tile_texel_coord_nxt = master_tile_texel_coord + vec2(0.0, next_pixel_delta);
 
           fastuidraw_compute_image_atlas_coord(master_tile_texel_coord_nxt,
                                                index_layer, image_info.num_levels,
                                                atlas_location_t01);
-          t01 = ivec3(atlas_location_t01.unnormalized_texcoord_xy,
+          t01 = ivec3(atlas_location_t01.unnormalized_texcoord_xy * inverse_lod_factor,
                       atlas_location_t01.layer);
 
-          if (atlas_location_t00.max_delta_within_tile.x >= 1.0)
+          if (atlas_location_t00.max_delta_within_tile.x >= lod_factor)
             {
               t11.x = t01.x + 1;
               t11.yz = t01.yz;
@@ -359,27 +353,27 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
           else
             {
               fastuidraw_compute_image_atlas_coord_type atlas_location_t11;
-              vec2 master_tile_texel_coord_nxt = master_tile_texel_coord + vec2(image_info.image_texel_size_on_master_index_tile);
+              vec2 master_tile_texel_coord_nxt = master_tile_texel_coord + vec2(next_pixel_delta);
 
               fastuidraw_compute_image_atlas_coord(master_tile_texel_coord_nxt,
                                                    index_layer, image_info.num_levels,
                                                    atlas_location_t11);
-              t11 = ivec3(atlas_location_t11.unnormalized_texcoord_xy,
+              t11 = ivec3(atlas_location_t11.unnormalized_texcoord_xy * inverse_lod_factor,
                           atlas_location_t11.layer);
             }
         }
 
       vec4 c00, c10, c01, c11, c0, c1;
 
-      c00 = texelFetch(fastuidraw_imageAtlasLinear, t00, 0);
-      c01 = texelFetch(fastuidraw_imageAtlasLinear, t01, 0);
-      c10 = texelFetch(fastuidraw_imageAtlasLinear, t10, 0);
-      c11 = texelFetch(fastuidraw_imageAtlasLinear, t11, 0);
+      c00 = texelFetch(fastuidraw_imageAtlasLinear, t00, lod_i);
+      c01 = texelFetch(fastuidraw_imageAtlasLinear, t01, lod_i);
+      c10 = texelFetch(fastuidraw_imageAtlasLinear, t10, lod_i);
+      c11 = texelFetch(fastuidraw_imageAtlasLinear, t11, lod_i);
 
-      c0 = mix(c00, c01, fract(atlas_location_t00.unnormalized_texcoord_xy.y));
-      c1 = mix(c10, c11, fract(atlas_location_t00.unnormalized_texcoord_xy.y));
+      c0 = mix(c00, c01, fract(inverse_lod_factor * atlas_location_t00.unnormalized_texcoord_xy.y));
+      c1 = mix(c10, c11, fract(inverse_lod_factor * atlas_location_t00.unnormalized_texcoord_xy.y));
 
-      image_color = mix(c0, c1, fract(atlas_location_t00.unnormalized_texcoord_xy.x));
+      image_color = mix(c0, c1, fract(inverse_lod_factor * atlas_location_t00.unnormalized_texcoord_xy.x));
     }
   return image_color;
 }
