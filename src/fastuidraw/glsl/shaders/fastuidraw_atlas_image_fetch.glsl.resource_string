@@ -84,7 +84,7 @@ fastuidraw_compute_image_info(in uint num_levels,
                               out fastuidraw_image_info_type d)
 {
   d.num_levels = num_levels;
-  if (num_levels >= 1)
+  if (num_levels >= 1u)
     {/* Each level increases the size by a factor of FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE,
        * thus the ratio is R where R is given by
        *
@@ -240,7 +240,7 @@ fastuidraw_compute_image_atlas_coord(in vec2 master_tile_texel_coord,
   return_value.min_delta_within_tile = -tile_offset;
 
   return_value.max_delta_within_tile =
-    vec2(float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1)) - tile_offset;
+    vec2(float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1u)) - tile_offset;
 
   return_value.layer = index_layer;
 }
@@ -316,7 +316,7 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
                                            image_info.num_levels, atlas_location_t00);
 
       t00 = ivec3(atlas_location_t00.unnormalized_texcoord_xy, atlas_location_t00.layer);
-      if (atlas_location_t00.max_delta_within_tile.x >= 1)
+      if (atlas_location_t00.max_delta_within_tile.x >= 1.0)
         {
           t10.yz = t00.yz;
           t10.x = t00.x + 1;
@@ -332,7 +332,7 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
                       atlas_location_t10.layer);
         }
 
-      if (atlas_location_t00.max_delta_within_tile.y >= 1)
+      if (atlas_location_t00.max_delta_within_tile.y >= 1.0)
         {
           t01.xz = t00.xz;
           t01.y = t00.y + 1;
@@ -351,7 +351,7 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
           t01 = ivec3(atlas_location_t01.unnormalized_texcoord_xy,
                       atlas_location_t01.layer);
 
-          if (atlas_location_t00.max_delta_within_tile.x >= 1)
+          if (atlas_location_t00.max_delta_within_tile.x >= 1.0)
             {
               t11.x = t01.x + 1;
               t11.yz = t01.yz;
