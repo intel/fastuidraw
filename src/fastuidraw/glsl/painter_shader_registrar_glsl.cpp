@@ -313,6 +313,7 @@ PainterShaderRegistrarGLSLPrivate(void):
   add_enums(m_constant_code);
 
   m_vert_shader_utils
+    .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_unpack_unit_vector.glsl.resource_string", ShaderSource::from_resource)
@@ -321,15 +322,22 @@ PainterShaderRegistrarGLSLPrivate(void):
     .add_source("fastuidraw_align.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_stroke_util.constants.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_stroke_util.vert.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_external_texture.glsl.resource_string", ShaderSource::from_resource);
 
   m_frag_shader_utils
+    .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_banded_rays.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_stroke_util.constants.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_stroke_util.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_blend_util.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_external_texture.glsl.resource_string", ShaderSource::from_resource);
 }
 
 PainterShaderRegistrarGLSLPrivate::
@@ -1093,7 +1101,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_source("fastuidraw_painter_globals.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource);
+    .add_source(m_vert_shader_utils);
 
   const char *vert_main_src;
   if (render_type == PainterSurface::color_buffer_type)
@@ -1112,8 +1120,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     }
 
   vert
-    .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
-    .add_source(m_vert_shader_utils)
     .add_source("fastuidraw_painter_clipping.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(vert_main_src, ShaderSource::from_resource);
 
@@ -1157,11 +1163,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_banded_rays.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
     .add_source(m_frag_shader_utils)
-    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_clipping.frag.glsl.resource_string", ShaderSource::from_resource);
 
   const char *frag_main_src;
