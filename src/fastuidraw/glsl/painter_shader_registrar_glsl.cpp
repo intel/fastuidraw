@@ -445,6 +445,7 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
   src
     .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
     .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
+    .add_macro_float("FASTUIDRAW_IMAGE_ATLAS_INDEX_RECIP_TILE_SIZE", 1.0f / static_cast<float>(backend.image_atlas_index_tile_size()))
     .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
     .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_color_tile_size()))
     .add_macro_float("FASTUIDRAW_IMAGE_ATLAS_COLOR_RECIP_TILE_SIZE", 1.0f / static_cast<float>(backend.image_atlas_color_tile_size()))
