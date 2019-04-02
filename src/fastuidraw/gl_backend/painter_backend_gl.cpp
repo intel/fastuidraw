@@ -1956,7 +1956,7 @@ on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
       fastuidraw_glGenSamplers(1, &d->m_nearest_filter_sampler);
       FASTUIDRAWassert(d->m_nearest_filter_sampler != 0);
       fastuidraw_glSamplerParameteri(d->m_nearest_filter_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      fastuidraw_glSamplerParameteri(d->m_nearest_filter_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+      fastuidraw_glSamplerParameteri(d->m_nearest_filter_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
     }
 
   GLuint fbo;

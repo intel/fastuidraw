@@ -94,7 +94,7 @@ namespace
     }
 
   private:
-    typedef Texture<GL_RGBA8, GL_RGBA, GL_LINEAR, GL_NEAREST_MIPMAP_LINEAR>::type TextureGL;
+    typedef Texture<GL_RGBA8, GL_RGBA, GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
   };
 
