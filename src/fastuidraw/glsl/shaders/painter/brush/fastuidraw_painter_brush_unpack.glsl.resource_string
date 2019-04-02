@@ -199,8 +199,6 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
       repeat_window.wh = vec2(1.0, 1.0);
     }
 
-  float image_factor;
-
   fastuidraw_brush_repeat_window_x = repeat_window.xy.x;
   fastuidraw_brush_repeat_window_y = repeat_window.xy.y;
   fastuidraw_brush_repeat_window_w = repeat_window.wh.x;
@@ -218,13 +216,16 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
   if (image_type == uint(fastuidraw_image_type_on_atlas))
     {
       vec2 T;
+      fastuidraw_image_info_type image_info;
 
-      image_factor = 1.0 / float(fastuidraw_compute_image_size_divided_by_master_tile_size(image.number_index_lookups));
-      T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_factor;
+      fastuidraw_compute_image_info(image.number_index_lookups, image_info);
+
+      T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_info.image_texel_size_on_master_index_tile;
       fastuidraw_brush_image_x = T.x;
       fastuidraw_brush_image_y = T.y;
       fastuidraw_brush_image_layer = uint(image.master_index_tile_atlas_location_xyz.z);
-      fastuidraw_brush_image_factor = image_factor;
+      fastuidraw_brush_image_texel_size_on_master_index_tile = image_info.image_texel_size_on_master_index_tile;
+      fastuidraw_brush_recip_image_texel_size_on_master_index_tile = image_info.recip_image_texel_size_on_master_index_tile;
       fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
     }
   else

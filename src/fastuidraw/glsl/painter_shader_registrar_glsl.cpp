@@ -405,14 +405,15 @@ ready_brush_varyings(void)
      *                                texture of start of image
      * - fastuidraw_brush_image_size size of image (needed for when brush
      *                               coordinate goes beyond image size)
-     * - fastuidraw_brush_image_factor ratio of master index tile size to
+     * - fastuidraw_brush_image_texel_size_on_master_index_tile ratio of master index tile size to
      *                                 dimension of image
      */
     .add_float("fastuidraw_brush_image_x", varying_list::interpolation_flat)
     .add_float("fastuidraw_brush_image_y", varying_list::interpolation_flat)
     .add_float("fastuidraw_brush_image_size_x", varying_list::interpolation_flat)
     .add_float("fastuidraw_brush_image_size_y", varying_list::interpolation_flat)
-    .add_float("fastuidraw_brush_image_factor", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_image_texel_size_on_master_index_tile", varying_list::interpolation_flat)
+    .add_float("fastuidraw_brush_recip_image_texel_size_on_master_index_tile", varying_list::interpolation_flat)
     .add_uint("fastuidraw_brush_image_layer")
     .add_uint("fastuidraw_brush_image_number_index_lookups")
 

@@ -150,7 +150,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
    * we do this so that bilinear filtering by the sampler or
    * by hand match perfectly.
    */
-  image_xy = q * fastuidraw_brush_image_factor + vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
+  image_xy = q * fastuidraw_brush_image_texel_size_on_master_index_tile + vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
 
   /* lookup the texel coordinate in the large atlas from the index-tile
    * coordinate.
@@ -161,21 +161,21 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
     {
       image_color = fastuidraw_nearest_filter_atlas_image(image_xy, image_layer,
                                                           number_lookups,
-                                                          fastuidraw_brush_image_factor,
+                                                          fastuidraw_brush_image_texel_size_on_master_index_tile,
                                                           lod);
     }
   else if (image_filter == uint(fastuidraw_brush_image_filter_linear))
     {
       image_color = fastuidraw_linear_filter_atlas_image(image_xy, image_layer,
                                                          number_lookups,
-                                                         fastuidraw_brush_image_factor,
+                                                         fastuidraw_brush_image_texel_size_on_master_index_tile,
                                                          lod);
     }
   else
     {
       image_color = fastuidraw_cubic_filter_atlas_image(image_xy, image_layer,
                                                         number_lookups,
-                                                        fastuidraw_brush_image_factor,
+                                                        fastuidraw_brush_image_texel_size_on_master_index_tile,
                                                         lod);
     }
 

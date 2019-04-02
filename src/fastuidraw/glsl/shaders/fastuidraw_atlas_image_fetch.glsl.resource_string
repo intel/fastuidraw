@@ -79,12 +79,13 @@ struct fastuidraw_compute_image_atlas_coord_type
   uint layer;
 };
 
-float
-fastuidraw_compute_image_size_divided_by_master_tile_size(in uint num_levels)
+void
+fastuidraw_compute_image_info(in uint num_levels,
+                              out fastuidraw_image_info_type d)
 {
+  d.num_levels = num_levels;
   if (num_levels >= 1)
-    {
-      /* Each level increases the size by a factor of FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE,
+    {/* Each level increases the size by a factor of FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE,
        * thus the ratio is R where R is given by
        *
        *  R = C * pow(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE, num_levels - 1)
@@ -105,22 +106,7 @@ fastuidraw_compute_image_size_divided_by_master_tile_size(in uint num_levels)
       uint ww = uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (num_levels - 1u);
       float index_pows = float(1u << ww);
 
-      return float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) * index_pows;
-    }
-  else
-    {
-      return 1.0;
-    }
-}
-
-void
-fastuidraw_compute_image_info(in uint num_levels,
-                              out fastuidraw_image_info_type d)
-{
-  d.num_levels = num_levels;
-  if (num_levels >= 1)
-    {
-      d.recip_image_texel_size_on_master_index_tile = fastuidraw_compute_image_size_divided_by_master_tile_size(num_levels);
+      d.recip_image_texel_size_on_master_index_tile = float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) * index_pows;
       d.image_texel_size_on_master_index_tile = 1.0 / d.recip_image_texel_size_on_master_index_tile;
     }
   else
