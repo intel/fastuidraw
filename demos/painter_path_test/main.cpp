@@ -445,7 +445,6 @@ private:
   command_line_argument_value<bool> m_print_path;
   color_stop_arguments m_color_stop_args;
   command_line_argument_value<std::string> m_image_file;
-  command_line_argument_value<unsigned int> m_image_slack;
   command_line_argument_value<bool> m_use_atlas;
   command_line_argument_value<int> m_sub_image_x, m_sub_image_y;
   command_line_argument_value<int> m_sub_image_w, m_sub_image_h;
@@ -646,7 +645,6 @@ painter_stroke_test(void):
                *this),
   m_color_stop_args(*this),
   m_image_file("", "image", "if a valid file name, apply an image to drawing the fill", *this),
-  m_image_slack(0, "image_slack", "amount of slack on tiles when loading image", *this),
   m_use_atlas(true, "use_atlas",
               "If false, each image is realized as a texture; if "
               "GL_ARB_bindless_texture or GL_NV_bindless_texture "
@@ -695,7 +693,7 @@ painter_stroke_test(void):
   m_cap_style(Painter::square_caps),
   m_dash(0),
   m_miter_limit(5.0f),
-  m_stroke_width(10.0f),
+  m_stroke_width(0.0f),
   m_draw_fill(draw_fill_path),
   m_aa_stroke_mode(true),
   m_stroking_mode(Painter::stroking_method_fastest),
@@ -1294,16 +1292,6 @@ handle_event(const SDL_Event &ev)
                 {
                   cycle_value(m_image_filter, ev.key.keysym.mod & KMOD_SHIFT, number_image_filter_modes);
                   std::cout << "Image filter mode set to: " << m_image_filter_mode_labels[m_image_filter] << "\n";
-                  if (m_image_filter == image_linear_filter && m_image->slack() < 1)
-                    {
-                      std::cout << "\tWarning: image slack = " << m_image->slack()
-                                << " which insufficient to correctly apply linear filter (requires atleast 1)\n";
-                    }
-                  else if (m_image_filter == image_cubic_filter && m_image->slack() < 2)
-                    {
-                      std::cout << "\tWarning: image slack = " << m_image->slack()
-                                << " which insufficient to correctly apply cubic filter (requires atleast 2)\n";
-                    }
                 }
             }
           break;
@@ -2273,7 +2261,7 @@ derived_init(int w, int h)
             {
               m_image = Image::create(m_painter->image_atlas(),
                                       image_data.width(), image_data.height(),
-                                      image_data, m_image_slack.value());
+                                      image_data);
             }
           else
             {

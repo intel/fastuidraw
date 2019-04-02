@@ -99,7 +99,6 @@ pack_data(c_array<generic_data> dst) const
 
       FASTUIDRAWassert(m_data.m_image);
       uvec3 loc(m_data.m_image->master_index_tile());
-      uint32_t slack(m_data.m_image->slack());
       uint32_t lookups(m_data.m_image->number_index_lookups());
 
       sub_dest[image_size_xy_offset].u =
@@ -117,9 +116,7 @@ pack_data(c_array<generic_data> dst) const
             | pack_bits(image_atlas_location_y_bit0, image_atlas_location_y_num_bits, loc.y())
             | pack_bits(image_atlas_location_z_bit0, image_atlas_location_z_num_bits, loc.z());
 
-          sub_dest[image_slack_number_lookups_offset].u =
-            pack_bits(image_number_index_lookups_bit0, image_number_index_lookups_num_bits, lookups)
-            | pack_bits(image_slack_bit0, image_slack_num_bits, slack);
+          sub_dest[image_number_lookups_offset].u = lookups;
         }
       else
         {
@@ -292,34 +289,4 @@ reset(void)
   m_data.m_transformation_p = vec2(0.0f, 0.0f);
   m_data.m_transformation_matrix = float2x2();
   return *this;
-}
-
-enum fastuidraw::PainterBrush::image_filter
-fastuidraw::PainterBrush::
-filter_for_image(const reference_counted_ptr<const Image> &im,
-                 enum image_filter f)
-{
-  return im ?
-    static_cast<enum image_filter>(t_min(im->slack() + 1,
-                                         static_cast<unsigned int>(f))) :
-    image_filter_nearest;
-}
-
-bool
-fastuidraw::PainterBrush::
-filter_suitable_for_image(const reference_counted_ptr<const Image> &im,
-                          enum image_filter f)
-{
-  FASTUIDRAWassert(f >= image_filter_nearest);
-  FASTUIDRAWassert(f <= image_filter_cubic);
-  return im && im->slack() >= static_cast<unsigned int>(f) - 1;
-}
-
-int
-fastuidraw::PainterBrush::
-slack_requirement(enum image_filter f)
-{
-  FASTUIDRAWassert(f >= image_filter_nearest);
-  FASTUIDRAWassert(f <= image_filter_cubic);
-  return f - 1;
 }

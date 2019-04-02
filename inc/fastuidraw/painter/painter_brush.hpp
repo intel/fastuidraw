@@ -71,23 +71,17 @@ namespace fastuidraw
       {
         /*!
          * Indicates to use nearest filtering (i.e
-         * choose closest pixel). No requirement on
-         * Image::slack() when using this filtering
-         * option.
+         * choose closest pixel).
          */
         image_filter_nearest = 1,
 
         /*!
-         * Indicates to use bilinear filtering. Requires
-         * that Image::slack() is atleast 1, otherwise
-         * rendering results will be wrong.
+         * Indicates to use bilinear filtering.
          */
         image_filter_linear = 2,
 
         /*!
-         * Indicates to use bicubic filtering. Requires
-         * that Image::slack() is atleast 2, otherwise
-         * rendering results will be wrong.
+         * Indicates to use bicubic filtering.
          */
         image_filter_cubic = 3
       };
@@ -447,36 +441,6 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Encoding for bits to specify Image::number_index_lookups()
-     * and Image::number_index_lookups().
-     */
-    enum image_slack_number_lookups_encoding
-      {
-        /*!
-         * Number bits used to store the value of
-         * Image::slack().
-         */
-        image_slack_num_bits = 16,
-
-        /*!
-         * Number bits used to store the value of
-         * Image::number_index_lookups()
-         */
-        image_number_index_lookups_num_bits = 16,
-
-        /*!
-         * first bit used to store Image::number_index_lookups()
-         */
-        image_number_index_lookups_bit0 = 0,
-
-        /*!
-         * first bit used to store Image::slack()
-         */
-        image_slack_bit0 = image_number_index_lookups_bit0 + image_number_index_lookups_num_bits,
-      };
-
-    /*!
-     * \brief
      * Bit packing for size of the image, Image::dimensions()
      */
     enum image_size_encoding
@@ -540,25 +504,23 @@ namespace fastuidraw
         image_atlas_location_xyz_offset,
 
         /*!
-         * Alias for image_atlas_location_xyz_offset to be used
-         * when packing an image whose type is not Image::on_atlas.
+         * Offset to the high 32-bits of the handle value when the
+         * Image is of type Image::bindless_texture2d.
          */
         image_bindless_handle_hi_offset = image_atlas_location_xyz_offset,
 
         /*!
-         * Holds the amount of slack in the image (see Image::slack())
-         * and the number of index looks ups (Image::number_index_lookups())
-         * with bits packed as according to \ref image_slack_number_lookups_encoding.
-         * If the image is not of type Image::on_atlas, gives the low 32-bits
-         * of Image::handle().
+         * Holds the amount the number of index looks ups, see \ref
+         * Image::number_index_lookups(). If the image is not of type
+         * Image::on_atlas, gives the low 32-bits of Image::handle().
          */
-        image_slack_number_lookups_offset,
+        image_number_lookups_offset,
 
         /*!
-         * Alias for image_slack_number_lookups_offset to be used
-         * when packing an image whose type is not Image::on_atlas.
+         * Offset to the low 32-bits of the handle value when the
+         * Image is of type Image::bindless_texture2d.
          */
-        image_bindless_handle_low_offset = image_slack_number_lookups_offset,
+        image_bindless_handle_low_offset = image_number_lookups_offset,
 
         /*!
          * Number of elements packed for image support
@@ -1341,38 +1303,6 @@ namespace fastuidraw
     {
       return m_data.m_cs;
     }
-
-    /*!
-     * Returns true if and only if passed image can
-     * be rendered correctly with the specified filter.
-     * \param im handle to image
-     * \param f image filter to which to with which test if
-     *          im can be rendered
-     */
-    static
-    bool
-    filter_suitable_for_image(const reference_counted_ptr<const Image> &im,
-                              enum image_filter f);
-
-    /*!
-     * Given an image_filter, returns the highest quality filter
-     * less than or equal to it with which the image may be rendered.
-     * \param im image to which to query
-     * \param f upper bound image filter to return
-     */
-    static
-    enum image_filter
-    filter_for_image(const reference_counted_ptr<const Image> &im,
-                     enum image_filter f = image_filter_cubic);
-
-    /*!
-     * Returns the slack requirement for an image to
-     * be rendered correctly under a filter.
-     * \param f filter to query
-     */
-    static
-    int
-    slack_requirement(enum image_filter f);
 
   private:
 

@@ -201,12 +201,6 @@ main(int argc, char **argv)
             << std::setw(45) << "brush transformation_translation_data_size = " << PainterBrush::transformation_translation_data_size << "\n"
             << "\n"
 
-            << std::setw(45) << "brush image_slack_bit0 = " << PainterBrush::image_slack_bit0 << "\n"
-            << std::setw(45) << "brush image_slack_num_bits = " << PainterBrush::image_slack_num_bits << "\n"
-            << std::setw(45) << "brush image_number_index_lookups_bit0 = " << PainterBrush::image_number_index_lookups_bit0 << "\n"
-            << std::setw(45) << "brush image_number_index_lookups_num_bits = " << PainterBrush::image_number_index_lookups_num_bits << "\n"
-            << "\n"
-
             << std::setw(45) << "brush image_mask = " << bitset(PainterBrush::image_mask) << "\n"
             << std::setw(45) << "brush image_mipmap_mask = " << bitset(PainterBrush::image_mipmap_mask) << "\n"
             << std::setw(45) << "brush gradient_type_mask = " << bitset(PainterBrush::gradient_type_mask) << "\n"

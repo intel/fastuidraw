@@ -16,8 +16,6 @@
  *
  */
 
-
-
 struct fastuidraw_brush_image_data
 {
   // size of the (sub)image in texels
@@ -28,11 +26,6 @@ struct fastuidraw_brush_image_data
 
   //////////////////////////////////////////////////////////
   // only valid for images of type fastuidraw_image_on_atlas
-  //
-  /* slack in tiles, i.e. how many texel repeated
-   * on each size of tile to facilitate filtering
-   */
-  uint slack;
 
   /* location of mater index tile for the image */
   vec3 master_index_tile_atlas_location_xyz;
@@ -52,16 +45,13 @@ struct fastuidraw_brush_gradient
    */
   vec2 color_stop_sequence_xy;
 
-  /* just the length
-   */
+  /* just the length */
   float color_stop_sequence_length;
 
-  /* start and end of gradients packed as usual floats
-   */
+  /* start and end of gradients packed as usual floats */
   vec2 p0, p1;
 
-  /* radial gradient values
-   */
+  /* radial gradient values */
   float r0, r1;
 };
 
@@ -79,32 +69,28 @@ struct fastuidraw_brush_image_data_raw
   uint image_atlas_location_xyz;
 
   /* packed: Image::dimensions().xy() (or a sub-value for sub-imaging)
-
-     NOTE: The formula to go from image coordinates to
-           master index tile coordinates is given by:
-              i + p / A
-           where
-              i = Image::master_index_tile().xy()
-              p = image coordinates
-              A = ( (TileSize - 2 * Slack) * pow(IndexTileSize, NumberIndexLookups - 1) )
-
-           TileSize is given by FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE
-           Slack comes from the shader_brush (it is packed into 2 bits)
-           NumberIndexLookups is also packed into shader_brush (occupying 5 bits)
-           IndexTileSize is given by (1 << FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE),
-                         note that then pow(IndexTileSize, NumberIndexLevels - 1) is same as
-                         (1 << (FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * (NumberIndexLookups - 1) )
+   *
+   * NOTE: The formula to go from image coordinates to
+   *       master index tile coordinates is given by:
+   *          i + p / A
+   *       where
+   *          i = Image::master_index_tile().xy()
+   *          p = image coordinates
+   *          A = TileSize * pow(IndexTileSize, NumberIndexLookups - 1)
+   *
+   *       TileSize is given by FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE
+   *       NumberIndexLookups is also packed into shader_brush (occupying 5 bits)
+   *       IndexTileSize is given by (1 << FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE),
+   *                     note that then pow(IndexTileSize, NumberIndexLevels - 1) is same as
+   *                     (1 << (FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * (NumberIndexLookups - 1) )
    */
   uint image_size_xy;
 
-  /*
-    offset of start rectangle for sub-image.
-   */
+  /* offset of start rectangle for sub-image. */
   uint image_start_xy;
 
-  /* image slack and number of index lookups needed
-   */
-  uint image_slack_number_lookups;
+  /* image and number of index lookups needed */
+  uint image_number_lookups;
 };
 
 struct fastuidraw_brush_gradient_raw

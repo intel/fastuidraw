@@ -178,36 +178,6 @@ class ImageSourceBase;
 
     /*!
      * To be implemented by a derived class to fill index data into the
-     * backing store. The index data passed references into a
-     * AtlasColorBackingStore.
-     * \param x horizontal position
-     * \param y vertical position
-     * \param l layer position
-     * \param w width of data
-     * \param h height of data
-     * \param data list of tiles as returned by ImageAtlas::add_color_tile()
-     * \param slack amount of pixels duplicated on each boundary, in particular
-     *              the actual color data "starts" slack pixels into the color
-     *              tile and "ends" slack pixels before. The purpose of the
-     *              slack is to allow to sample outside of the tile, for example
-     *              to do bilinear filtering (requires slack of 1) or cubic
-     *              filtering (require slack of 2). The slack value is to be
-     *              used by an implementation to help compute the actaul texel
-     *              values to store in the underlying texture.
-     * \param c AtlasColorBackingStoreBase into which to index
-     * \param color_tile_size size of tiles on C
-     */
-    virtual
-    void
-    set_data(int x, int y, int l,
-             int w, int h,
-             c_array<const ivec3> data,
-             int slack,
-             const AtlasColorBackingStoreBase *c,
-             int color_tile_size) = 0;
-
-    /*!
-     * To be implemented by a derived class to fill index data into the
      * backing store. The index data passed references back into this
      * AtlasIndexBackingStore.
      * \param x horizontal position
@@ -402,15 +372,9 @@ class ImageSourceBase;
     /*!
      * Adds an index tile that indexes into color data
      * \param data array of tiles as returned by add_color_tile()
-     * \param slack amount of pixels duplicated on each boundary, in particular
-     *              the actual color data "starts" slack pixels into the color
-     *              tile and "ends" slack pixels before. The purpose of the
-     *              slack is to allow to sample outside of the tile, for example
-     *              to do bilinear filtering (requires slack of 1) or cubic
-     *              filtering (require slack of 2).
      */
     ivec3
-    add_index_tile(c_array<const ivec3> data, int slack);
+    add_index_tile(c_array<const ivec3> data);
 
     /*!
      * Adds an index tile that indexes into the index data. This is needed

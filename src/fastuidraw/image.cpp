@@ -343,8 +343,7 @@ namespace
   public:
     ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
                  int w, int h,
-                 const fastuidraw::ImageSourceBase &image_data,
-                 unsigned int pslack);
+                 const fastuidraw::ImageSourceBase &image_data);
 
     ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
                  int w, int h, unsigned int m, fastuidraw::Image::type_t t, uint64_t handle,
@@ -356,7 +355,6 @@ namespace
       m_number_levels(m),
       m_type(t),
       m_format(fmt),
-      m_slack(0x0FFFFFFF), //use a large value that won't overflow easily
       m_num_color_tiles(-1, -1),
       m_master_index_tile(-1, -1, -1),
       m_master_index_tile_dims(-1.0f, -1.0f),
@@ -376,7 +374,7 @@ namespace
     template<typename T>
     fastuidraw::ivec2
     create_index_layer(fastuidraw::c_array<const T> src_tiles,
-                       fastuidraw::ivec2 src_dims, int slack,
+                       fastuidraw::ivec2 src_dims,
                        std::list<std::vector<fastuidraw::ivec3> > &destination);
 
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_atlas;
@@ -388,7 +386,6 @@ namespace
     enum fastuidraw::Image::format_t m_format;
 
     /* Data for when the image has type on_atlas */
-    unsigned int m_slack;
     fastuidraw::ivec2 m_num_color_tiles;
     std::map<fastuidraw::u8vec4, fastuidraw::ivec3> m_repeated_tiles;
     std::vector<per_color_tile> m_color_tiles;
@@ -408,14 +405,12 @@ namespace
 ImagePrivate::
 ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
              int w, int h,
-             const fastuidraw::ImageSourceBase &image_data,
-             unsigned int pslack):
+             const fastuidraw::ImageSourceBase &image_data):
   m_atlas(patlas),
   m_dimensions(w, h),
   m_number_levels(image_data.number_levels()),
   m_type(fastuidraw::Image::on_atlas),
   m_format(image_data.format()),
-  m_slack(pslack),
   m_bindless_handle(-1)
 {
   FASTUIDRAWassert(m_dimensions.x() > 0);
@@ -464,17 +459,17 @@ create_color_tiles(const fastuidraw::ImageSourceBase &image_data)
   int color_tile_size;
 
   color_tile_size = m_atlas->color_tile_size();
-  tile_interior_size = color_tile_size - 2 * m_slack;
+  tile_interior_size = color_tile_size;
   m_num_color_tiles = divide_up(m_dimensions, tile_interior_size);
   m_master_index_tile_dims = fastuidraw::vec2(m_dimensions) / static_cast<float>(tile_interior_size);
   m_dimensions_index_divisor = static_cast<float>(tile_interior_size);
 
   unsigned int savings(0);
-  for(int ty = 0, source_y = -m_slack;
+  for(int ty = 0, source_y = 0;
       ty < m_num_color_tiles.y();
       ++ty, source_y += tile_interior_size)
     {
-      for(int tx = 0, source_x = -m_slack;
+      for(int tx = 0, source_x = 0;
           tx < m_num_color_tiles.x();
           ++tx, source_x += tile_interior_size)
         {
@@ -525,7 +520,7 @@ template<typename T>
 fastuidraw::ivec2
 ImagePrivate::
 create_index_layer(fastuidraw::c_array<const T> src_tiles,
-                   fastuidraw::ivec2 src_dims, int slack,
+                   fastuidraw::ivec2 src_dims,
                    std::list<std::vector<fastuidraw::ivec3> > &destination)
 {
   int index_tile_size;
@@ -548,15 +543,7 @@ create_index_layer(fastuidraw::c_array<const T> src_tiles,
           copy_sub_data<fastuidraw::ivec3, T>(tile_data, index_tile_size, index_tile_size,
                                               src_tiles, source_x, source_y,
                                               src_dims);
-          if (slack == -1)
-            {
-              new_tile = m_atlas->add_index_tile_index_data(tile_data);
-            }
-          else
-            {
-              new_tile = m_atlas->add_index_tile(tile_data, slack);
-            }
-
+          new_tile = m_atlas->add_index_tile(tile_data);
           destination.back().push_back(new_tile);
         }
     }
@@ -573,16 +560,12 @@ create_index_tiles(void)
 
   findex_tile_size = static_cast<float>(m_atlas->index_tile_size());
   num_index_tiles = create_index_layer<per_color_tile>(fastuidraw::make_c_array(m_color_tiles),
-                                                       m_num_color_tiles,
-                                                       m_slack,
-                                                       m_index_tiles);
+                                                       m_num_color_tiles, m_index_tiles);
 
   for(level = 2; num_index_tiles.x() > 1 || num_index_tiles.y() > 1; ++level)
     {
       num_index_tiles = create_index_layer<fastuidraw::ivec3>(fastuidraw::make_c_array(m_index_tiles.back()),
-                                                             num_index_tiles,
-                                                             -1, //indicates from index tile
-                                                             m_index_tiles);
+                                                              num_index_tiles, m_index_tiles);
       m_dimensions_index_divisor *= findex_tile_size;
       m_master_index_tile_dims /= findex_tile_size;
     }
@@ -1022,7 +1005,7 @@ number_free_index_tiles(void) const
 
 fastuidraw::ivec3
 fastuidraw::ImageAtlas::
-add_index_tile(fastuidraw::c_array<const fastuidraw::ivec3> data, int slack)
+add_index_tile(fastuidraw::c_array<const fastuidraw::ivec3> data)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
@@ -1037,30 +1020,6 @@ add_index_tile(fastuidraw::c_array<const fastuidraw::ivec3> data, int slack)
    *   non-tiny images. A single index tile would hold 4 such tiles
    *   and we could also recurse such.
    */
-  return_value = d->m_index_tiles.allocate_tile();
-  d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
-                             return_value.y() * d->m_index_tiles.tile_size(),
-                             return_value.z(),
-                             d->m_index_tiles.tile_size(),
-                             d->m_index_tiles.tile_size(),
-                             data,
-                             slack,
-                             d->m_color_store.get(),
-                             d->m_color_tiles.tile_size());
-
-  return return_value;
-}
-
-fastuidraw::ivec3
-fastuidraw::ImageAtlas::
-add_index_tile_index_data(fastuidraw::c_array<const fastuidraw::ivec3> data)
-{
-  ImageAtlasPrivate *d;
-  d = static_cast<ImageAtlasPrivate*>(m_d);
-
-  ivec3 return_value;
-  std::lock_guard<std::mutex> M(d->m_mutex);
-
   return_value = d->m_index_tiles.allocate_tile();
   d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
                              return_value.y() * d->m_index_tiles.tile_size(),
@@ -1235,7 +1194,7 @@ queue_resource_release_action(const reference_counted_ptr<ResourceReleaseAction>
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
 create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-       c_array<const u8vec4> image_data, enum format_t fmt, unsigned int pslack)
+       c_array<const u8vec4> image_data, enum format_t fmt)
 {
   if (w <= 0 || h <= 0)
     {
@@ -1243,13 +1202,13 @@ create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
     }
 
   c_array<const c_array<const u8vec4> > data(&image_data, 1);
-  return create(atlas, w, h, ImageSourceCArray(uvec2(w, h), data, fmt), pslack);
+  return create(atlas, w, h, ImageSourceCArray(uvec2(w, h), data, fmt));
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
 create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-       const ImageSourceBase &image_data, unsigned int pslack)
+       const ImageSourceBase &image_data)
 {
   int tile_interior_size;
   int color_tile_size;
@@ -1262,7 +1221,7 @@ create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
     }
 
   color_tile_size = atlas->color_tile_size();
-  tile_interior_size = color_tile_size - 2 * pslack;
+  tile_interior_size = color_tile_size;
 
   if (tile_interior_size <= 0)
     {
@@ -1288,7 +1247,7 @@ create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
         }
     }
 
-  return FASTUIDRAWnew Image(atlas, w, h, image_data, pslack);
+  return FASTUIDRAWnew Image(atlas, w, h, image_data);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
@@ -1317,10 +1276,9 @@ Image(const reference_counted_ptr<ImageAtlas> &patlas,
 fastuidraw::Image::
 Image(const reference_counted_ptr<ImageAtlas> &patlas,
       int w, int h,
-      const ImageSourceBase &image_data,
-      unsigned int pslack)
+      const ImageSourceBase &image_data)
 {
-  m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, image_data, pslack);
+  m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, image_data);
 }
 
 fastuidraw::Image::
@@ -1358,15 +1316,6 @@ number_mipmap_levels(void) const
   ImagePrivate *d;
   d = static_cast<ImagePrivate*>(m_d);
   return d->m_number_levels;
-}
-
-unsigned int
-fastuidraw::Image::
-slack(void) const
-{
-  ImagePrivate *d;
-  d = static_cast<ImagePrivate*>(m_d);
-  return d->m_slack;
 }
 
 fastuidraw::ivec3

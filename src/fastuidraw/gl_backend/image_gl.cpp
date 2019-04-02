@@ -113,15 +113,6 @@ namespace
     void
     set_data(int x, int y, int l,
              int w, int h,
-             fastuidraw::c_array<const fastuidraw::ivec3> data,
-             int slack,
-             const fastuidraw::AtlasColorBackingStoreBase *C,
-             int pcolor_tile_size);
-
-    virtual
-    void
-    set_data(int x, int y, int l,
-             int w, int h,
              fastuidraw::c_array<const fastuidraw::ivec3> data);
 
     virtual
@@ -382,21 +373,6 @@ IndexBackingStoreGL(int log2_tile_size,
                                         true),
   m_backing_store(dimensions(), delayed)
 {}
-
-void
-IndexBackingStoreGL::
-set_data(int x, int y, int l,
-         int w, int h,
-         fastuidraw::c_array<const fastuidraw::ivec3> data,
-         int slack,
-         const fastuidraw::AtlasColorBackingStoreBase *C,
-         int pcolor_tile_size)
-{
-  (void)slack;
-  (void)C;
-  (void)pcolor_tile_size;
-  set_data(x, y, l, w, h, data);
-}
 
 void
 IndexBackingStoreGL::

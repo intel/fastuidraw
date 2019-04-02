@@ -95,14 +95,11 @@ class ImageSourceBase;
      * \param w width of the image
      * \param h height of the image
      * \param image_data image data to which to initialize the image
-     * \param pslack number of pixels allowed to sample outside of color tile
-     *               for the image. A value of one allows for bilinear
-     *               filtering and a value of two allows for cubic filtering.
      */
     static
     reference_counted_ptr<Image>
     create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-           const ImageSourceBase &image_data, unsigned int pslack);
+           const ImageSourceBase &image_data);
 
     /*!
      * Construct an \ref Image backed by an \ref ImageAtlas. If there is
@@ -112,15 +109,11 @@ class ImageSourceBase;
      * \param h height of the image
      * \param image_data image data to which to initialize the image
      * \param fmt the format of the image data
-     * \param pslack number of pixels allowed to sample outside of color tile
-     *               for the image. A value of one allows for bilinear
-     *               filtering and a value of two allows for cubic filtering
      */
     static
     reference_counted_ptr<Image>
     create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-           c_array<const u8vec4> image_data, enum format_t fmt,
-           unsigned int pslack);
+           c_array<const u8vec4> image_data, enum format_t fmt);
 
     /*!
      * Create an \ref Image backed by a bindless texture.
@@ -164,15 +157,6 @@ class ImageSourceBase;
      */
     unsigned int
     number_mipmap_levels(void) const;
-
-    /*!
-     * Returns the slack of the image, i.e. how many texels ouside
-     * of the image's sub-tiles from which one may sample.
-     *
-     * Only applies when type() returns \ref on_atlas.
-     */
-    unsigned int
-    slack(void) const;
 
     /*!
      * Returns the "head" index tile as returned by
@@ -256,7 +240,7 @@ class ImageSourceBase;
 
   private:
     Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-          const ImageSourceBase &image_data, unsigned int pslack);
+          const ImageSourceBase &image_data);
 
     void *m_d;
   };

@@ -414,7 +414,6 @@ ready_brush_varyings(void)
     .add_float("fastuidraw_brush_image_size_y", varying_list::interpolation_flat)
     .add_float("fastuidraw_brush_image_factor", varying_list::interpolation_flat)
     .add_uint("fastuidraw_brush_image_layer")
-    .add_uint("fastuidraw_brush_image_slack")
     .add_uint("fastuidraw_brush_image_number_index_lookups")
 
     /* ColorStop paremeters (only active if gradient active)
@@ -550,10 +549,6 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
 
     .add_macro_u32("fastuidraw_brush_transformation_translation_mask", PainterBrush::transformation_translation_mask)
     .add_macro_u32("fastuidraw_brush_transformation_matrix_mask", PainterBrush::transformation_matrix_mask)
-    .add_macro_u32("fastuidraw_image_number_index_lookup_bit0", PainterBrush::image_number_index_lookups_bit0)
-    .add_macro_u32("fastuidraw_image_number_index_lookup_num_bits", PainterBrush::image_number_index_lookups_num_bits)
-    .add_macro_u32("fastuidraw_image_slack_bit0", PainterBrush::image_slack_bit0)
-    .add_macro_u32("fastuidraw_image_slack_num_bits", PainterBrush::image_slack_num_bits)
     .add_macro_u32("fastuidraw_image_master_index_x_bit0",     PainterBrush::image_atlas_location_x_bit0)
     .add_macro_u32("fastuidraw_image_master_index_x_num_bits", PainterBrush::image_atlas_location_x_num_bits)
     .add_macro_u32("fastuidraw_image_master_index_y_bit0",     PainterBrush::image_atlas_location_y_bit0)
@@ -649,7 +644,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str,
         .set(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz", UnpackSourceGenerator::uint_type)
         .set(PainterBrush::image_size_xy_offset, ".image_size_xy", UnpackSourceGenerator::uint_type)
         .set(PainterBrush::image_start_xy_offset, ".image_start_xy", UnpackSourceGenerator::uint_type)
-        .set(PainterBrush::image_slack_number_lookups_offset, ".image_slack_number_lookups", UnpackSourceGenerator::uint_type)
+        .set(PainterBrush::image_number_lookups_offset, ".image_number_lookups", UnpackSourceGenerator::uint_type)
         .stream_unpack_function(str, "fastuidraw_read_brush_image_raw_data");
 
       UnpackSourceGenerator("fastuidraw_brush_gradient_raw")

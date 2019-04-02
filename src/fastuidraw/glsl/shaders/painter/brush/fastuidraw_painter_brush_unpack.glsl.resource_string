@@ -43,7 +43,7 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
                                        inout fastuidraw_brush_image_data cooked)
 {
   uvec3 master_xyz;
-  uint index_pows, slack, number_index_lookups, ww;
+  uint index_pows, number_index_lookups, ww;
 
   master_xyz.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_master_index_x_bit0,
                                          fastuidraw_image_master_index_x_num_bits,
@@ -57,19 +57,9 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
                                          fastuidraw_image_master_index_z_num_bits,
                                          raw.image_atlas_location_xyz);
 
-  slack = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_slack_bit0,
-                                  fastuidraw_image_slack_num_bits,
-                                  raw.image_slack_number_lookups);
-
-  number_index_lookups = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_number_index_lookup_bit0,
-                                                 fastuidraw_image_number_index_lookup_num_bits,
-                                                 raw.image_slack_number_lookups);
-
   master_xyz.xy *= uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
-
-  cooked.slack = slack;
   cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
-  cooked.number_index_lookups = number_index_lookups;
+  cooked.number_index_lookups = raw.image_number_lookups;
 }
 
 void
@@ -77,7 +67,7 @@ fastuidraw_process_image_data_bindless(in fastuidraw_brush_image_data_raw raw,
                                        inout fastuidraw_brush_image_data cooked)
 {
   cooked.bindless_handle_hi = raw.image_atlas_location_xyz;
-  cooked.bindless_handle_low = raw.image_slack_number_lookups;
+  cooked.bindless_handle_low = raw.image_number_lookups;
 }
 
 void
@@ -229,13 +219,12 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
     {
       vec2 T;
 
-      image_factor = 1.0 / float(fastuidraw_compute_image_size_divided_by_master_tile_size(image.number_index_lookups, image.slack));
+      image_factor = 1.0 / float(fastuidraw_compute_image_size_divided_by_master_tile_size(image.number_index_lookups));
       T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_factor;
       fastuidraw_brush_image_x = T.x;
       fastuidraw_brush_image_y = T.y;
       fastuidraw_brush_image_layer = uint(image.master_index_tile_atlas_location_xyz.z);
       fastuidraw_brush_image_factor = image_factor;
-      fastuidraw_brush_image_slack = image.slack;
       fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
     }
   else

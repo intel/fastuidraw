@@ -323,12 +323,9 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
 
       if (m_use_atlas.value())
         {
-          int slack(0);
-
-          slack = PainterBrush::slack_requirement(m_image_filter.value());
           im = Image::create(m_painter->image_atlas(),
                              image_data.width(), image_data.height(),
-                             image_data, slack);
+                             image_data);
         }
       else
         {
@@ -342,8 +339,7 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
       switch (im->type())
         {
         case Image::on_atlas:
-          std::cout << " on atlas with slack = " << im->slack()
-                    << ", number_mipmap_levels = "
+          std::cout << " on atlas with number_mipmap_levels = "
                     << im->number_mipmap_levels();
           break;
         case Image::bindless_texture2d:

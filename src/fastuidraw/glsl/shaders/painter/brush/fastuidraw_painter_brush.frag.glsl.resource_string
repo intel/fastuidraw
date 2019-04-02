@@ -140,10 +140,9 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
 {
   vec2 index_coord, image_xy;
   uint image_layer;
-  uint slack, number_lookups;
+  uint number_lookups;
   vec4 image_color;
 
-  slack = fastuidraw_brush_image_slack;
   number_lookups = fastuidraw_brush_image_number_index_lookups;
 
   /* convert from image coordinates to index-tile coordinates;
@@ -161,21 +160,21 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
   if (image_filter == uint(fastuidraw_brush_image_filter_nearest))
     {
       image_color = fastuidraw_nearest_filter_atlas_image(image_xy, image_layer,
-                                                          number_lookups, slack,
+                                                          number_lookups,
                                                           fastuidraw_brush_image_factor,
                                                           lod);
     }
   else if (image_filter == uint(fastuidraw_brush_image_filter_linear))
     {
       image_color = fastuidraw_linear_filter_atlas_image(image_xy, image_layer,
-                                                         number_lookups, slack,
+                                                         number_lookups,
                                                          fastuidraw_brush_image_factor,
                                                          lod);
     }
   else
     {
       image_color = fastuidraw_cubic_filter_atlas_image(image_xy, image_layer,
-                                                        number_lookups, slack,
+                                                        number_lookups,
                                                         fastuidraw_brush_image_factor,
                                                         lod);
     }

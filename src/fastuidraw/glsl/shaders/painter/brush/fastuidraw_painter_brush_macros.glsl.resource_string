@@ -23,7 +23,7 @@
 #define fastuidraw_brush_shader_has_transformation_matrix(shader) ((shader & uint(fastuidraw_brush_transformation_matrix_mask)) != 0u)
 #define fastuidraw_brush_shader_has_transformation_translation(shader) ((shader & uint(fastuidraw_brush_transformation_translation_mask)) != 0u)
 
-#define fastuidraw_brush_image_bindless_low_handle fastuidraw_brush_image_slack
+#define fastuidraw_brush_image_bindless_low_handle fastuidraw_brush_image_layer
 #define fastuidraw_brush_image_bindless_high_handle fastuidraw_brush_image_number_index_lookups
 
 #define fastuidraw_brush_gradient_sweep_point_x fastuidraw_brush_gradient_p0_x
