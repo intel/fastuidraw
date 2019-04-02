@@ -81,6 +81,43 @@ fastuidraw_image_atlas_compute_tile_range(in float image_coordinate,
   tile_max_dist = image_slack + float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) - 1.0 - tile_coord;
 }
 
+/* \param image_coordinate texel coordinate within a fastuidraw::Image;
+ *                         an image coordinate within a partial image
+ *                         is not useful.
+ * \param image_slack the value of fastuidraw::Image::slack() of the image
+ * \param[out] tile_min_dist signed distance, in image texels, to min-side of tile
+ * \param[out] tile_max_dist signed distance, in image texels, to max-side of tile
+ */
+void
+fastuidraw_image_atlas_compute_tile_range(in vec2 image_coordinate,
+                                          in uint uimage_slack,
+                                          out vec2 tile_min_dist,
+                                          out vec2 tile_max_dist)
+{
+  fastuidraw_image_atlas_compute_tile_range(image_coordinate.x, uimage_slack, tile_min_dist.x, tile_max_dist.x);
+  fastuidraw_image_atlas_compute_tile_range(image_coordinate.y, uimage_slack, tile_min_dist.y, tile_max_dist.y);
+}
+
+/* \param image_coordinate texel coordinate within a fastuidraw::Image;
+ *                         an image coordinate within a partial image
+ *                         is not useful.
+ * \param[out] tile_min_dist signed distance, in image texels, to min-side of tile
+ * \param[out] tile_max_dist signed distance, in image texels, to max-side of tile
+ */
+void
+fastuidraw_image_atlas_compute_tile_range(in float image_coordinate,
+                                          out float tile_min_dist,
+                                          out float tile_max_dist)
+{
+  float tile_coord;
+
+  tile_coord = image_coordinate
+    - float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) * floor(image_coordinate * FASTUIDRAW_IMAGE_ATLAS_COLOR_RECIP_TILE_SIZE);
+
+  tile_min_dist = -tile_coord;
+  tile_max_dist = float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE) - 1.0 - tile_coord;
+}
+
 /* \param image_coord texel coordinate within a fastuidraw::Image;
  *                    an image coordinate within a partial image
  *                    is not useful.
@@ -88,15 +125,12 @@ fastuidraw_image_atlas_compute_tile_range(in float image_coordinate,
  * \param[out] tile_max_dist signed distance, in image texels, to max-side of tile
  */
 void
-fastuidraw_image_atlas_compute_tile_range(in uint image_coord,
-                                          out uint tile_min_dist,
-                                          out uint tile_max_dist)
+fastuidraw_image_atlas_compute_tile_range(in vec2 image_coord,
+                                          out vec2 tile_min_dist,
+                                          out vec2 tile_max_dist)
 {
-  uint tile_coord;
-
-  tile_coord = image_coord & (FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1);
-  tile_min_dist = -tile_coord;
-  tile_min_dist = FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1 - tile_coord;
+  fastuidraw_image_atlas_compute_tile_range(image_coord.x, tile_min_dist.x, tile_max_dist.x);
+  fastuidraw_image_atlas_compute_tile_range(image_coord.y, tile_min_dist.y, tile_max_dist.y);
 }
 
 uint
@@ -254,6 +288,7 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
                                      in float lod)
 {
   vec4 image_color;
+  vec2 min_tile_dist, max_tile_dist;
   fastuidraw_compute_image_atlas_coord_type vanilla_atlas_location;
 
   /* TODO: the work to handle LOD non-zero correctly. */

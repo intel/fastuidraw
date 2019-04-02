@@ -135,32 +135,6 @@ compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
   return t;
 }
 
-void
-fastuidraw_brush_compute_image_atlas_coord(in vec2 image_shader_coord,
-                                           in uint index_layer,
-                                           in uint num_lookups,
-                                           in uint slack,
-                                           out fastuidraw_compute_image_atlas_coord_type v)
-{
-  /* this seams silly, but there is a reason.
-   * On Mesa/i965 (as of Oct 23, 2015) without this wrapper,
-   * the GLSL compiler produces an incorrect shader that
-   * fails for the case where num_lookups is one.
-   * However, making the case of 1 explicit makes this
-   * thing work.
-   */
-  if (num_lookups == 1u)
-    {
-      fastuidraw_compute_image_atlas_coord(image_shader_coord, index_layer,
-                                           1u, slack, v);
-    }
-  else
-    {
-      fastuidraw_compute_image_atlas_coord(image_shader_coord, index_layer,
-                                           num_lookups, slack, v);
-    }
-}
-
 vec4
 fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
 {
