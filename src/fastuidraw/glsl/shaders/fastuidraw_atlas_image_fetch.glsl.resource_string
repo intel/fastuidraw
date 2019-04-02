@@ -410,56 +410,96 @@ fastuidraw_image_cubic_weights(float x)
  *                       master_tile_texel_coord, index_layer, num_levels, slack
  */
 vec4
-fastuidraw_cubic_filter_atlas_image(in vec2 master_tile_texel_coord,
+fastuidraw_cubic_filter_atlas_image(in vec2 in_master_tile_texel_coord,
                                     in uint index_layer,
                                     in fastuidraw_image_info_type image_info,
                                     in float lod)
 {
   vec4 image_color;
-  fastuidraw_compute_image_atlas_coord_type atlas_location;
+  vec2 master_tile_texel_coord;
+  vec2 image_coordinate, fract_image_coordinate;
+  vec2 min_tile_dist, max_tile_dist, linear_weight;
+  vec4 x_weights, y_weights, weight_sums, recip_weight_sums;
+  vec4 t00, t10, t01, t11;
 
   /* TODO: the work to handle LOD non-zero correctly. */
   lod = 0.0;
 
-  fastuidraw_compute_image_atlas_coord(master_tile_texel_coord, index_layer,
-                                       image_info.num_levels, atlas_location);
+  /* slide the input coordinate by 0.5 image texels to the left/bottom */
+  master_tile_texel_coord = in_master_tile_texel_coord - 0.5 * vec2(image_info.image_texel_size_on_master_index_tile);
 
-  /* Cubic filtering by realizing cubic-filtering as repeated
-   * bilinear filtering, see GPU Gems 2, Chapter 20.
-   * Code inspired by StackOverflow (http://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl)
-   * and from Shiny Pixels (http://vec3.ca/bicubic-filtering-in-fewer-taps/)
-   */
-  vec2 fract_texel_coord, linear_weight, texel_coord;
-  vec4 x_weights, y_weights;
-  vec4 corner_coords, weight_sums, texture_coords;
-  vec4 t00, t10, t01, t11;
+  image_coordinate = fastuidraw_compute_image_coordinate(master_tile_texel_coord, image_info);
+  fastuidraw_image_atlas_compute_tile_range(image_coordinate, min_tile_dist, max_tile_dist);
 
-  /* TODO: handle if we need to walk outside of the tile */
+  fract_image_coordinate = fract(image_coordinate);
+  image_coordinate -= fract_image_coordinate;
 
-  texel_coord = atlas_location.unnormalized_texcoord_xy - vec2(0.5, 0.5);
-  fract_texel_coord = fract(texel_coord);
-  texel_coord -= fract_texel_coord;
-
-  x_weights = fastuidraw_image_cubic_weights(fract_texel_coord.x);
-  y_weights = fastuidraw_image_cubic_weights(fract_texel_coord.y);
-
-  corner_coords = vec4(texel_coord.x - 0.5, texel_coord.x + 1.5,
-                       texel_coord.y - 0.5, texel_coord.y + 1.5);
+  x_weights = fastuidraw_image_cubic_weights(fract_image_coordinate.x);
+  y_weights = fastuidraw_image_cubic_weights(fract_image_coordinate.y);
   weight_sums = vec4(x_weights.x + x_weights.y, x_weights.z + x_weights.w,
                      y_weights.x + y_weights.y, y_weights.z + y_weights.w);
-
-  texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
-  texture_coords *= fastuidraw_imageAtlasLinear_size_reciprocal.xyxy;
-
-  t00 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xz, atlas_location.layer), 0.0);
-  t10 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yz, atlas_location.layer), 0.0);
-  t01 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xw, atlas_location.layer), 0.0);
-  t11 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yw, atlas_location.layer), 0.0);
+  recip_weight_sums = vec4(1.0) / weight_sums;
 
   linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
   linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);
 
-  return mix(mix(t00, t10, linear_weight.x),
-             mix(t01, t11, linear_weight.x),
-             linear_weight.y);
+  if (min_tile_dist.x <= -1.5
+      && min_tile_dist.y <= -1.5
+      && max_tile_dist.x >= 2.5
+      && max_tile_dist.y >= 2.5)
+    {
+      fastuidraw_compute_image_atlas_coord_type atlas_location;
+      fastuidraw_compute_image_atlas_coord(master_tile_texel_coord, index_layer,
+                                           image_info.num_levels, atlas_location);
+
+      /* Cubic filtering by realizing cubic-filtering as repeated
+       * bilinear filtering, see GPU Gems 2, Chapter 20.
+       * Code inspired by StackOverflow (http://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl)
+       * and from Shiny Pixels (http://vec3.ca/bicubic-filtering-in-fewer-taps/)
+       */
+      vec2 texel_coord;
+      vec4 corner_coords, texture_coords;
+
+      texel_coord = atlas_location.unnormalized_texcoord_xy;
+      texel_coord -= fract_image_coordinate;
+
+      corner_coords = texel_coord.xxyy;
+      corner_coords.xz -= vec2(0.5);
+      corner_coords.yw += vec2(1.5);
+
+      texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) * recip_weight_sums;
+      texture_coords *= fastuidraw_imageAtlasLinear_size_reciprocal.xyxy;
+
+      t00 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xz, atlas_location.layer), lod);
+      t10 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yz, atlas_location.layer), lod);
+      t01 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xw, atlas_location.layer), lod);
+      t11 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yw, atlas_location.layer), lod);
+    }
+  else
+    {
+      vec2 master_texel_coord;
+      vec4 corner_coords, offset_coords, master_coords;
+
+      master_texel_coord = master_tile_texel_coord;
+      master_texel_coord -= fract_image_coordinate * vec2(image_info.image_texel_size_on_master_index_tile);
+
+      corner_coords = master_texel_coord.xxyy;
+      corner_coords.xz -= vec2(0.5 * image_info.image_texel_size_on_master_index_tile);
+      corner_coords.yw += vec2(1.5 * image_info.image_texel_size_on_master_index_tile);
+
+      offset_coords = vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) * recip_weight_sums;
+      offset_coords *= image_info.image_texel_size_on_master_index_tile;
+
+      master_coords = corner_coords + offset_coords;
+      t00 = fastuidraw_linear_filter_atlas_image(master_coords.xz, index_layer, image_info, lod);
+      t10 = fastuidraw_linear_filter_atlas_image(master_coords.yz, index_layer, image_info, lod);
+      t01 = fastuidraw_linear_filter_atlas_image(master_coords.xw, index_layer, image_info, lod);
+      t11 = fastuidraw_linear_filter_atlas_image(master_coords.yw, index_layer, image_info, lod);
+    }
+
+  image_color = mix(mix(t00, t10, linear_weight.x),
+                    mix(t01, t11, linear_weight.x),
+                    linear_weight.y);
+
+  return image_color;
 }
