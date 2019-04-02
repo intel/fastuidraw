@@ -1,0 +1,96 @@
+/*!
+ * \file fastuidraw_texture_fetch.glsl.resource_string
+ * \brief file fastuidraw_texture_fetch.glsl.resource_string
+ *
+ * Copyright 2019 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
+vec4
+fastuidraw_cubic_weights(float x)
+{
+    float x_squared = x * x;
+    float x_cubed = x_squared * x;
+    float one_minus_x = 1.0 - x;
+    float one_minus_x_squared = one_minus_x * one_minus_x;
+    float one_minus_x_cubed = one_minus_x_squared  * one_minus_x;
+    vec4 w;
+
+    w.x = one_minus_x_cubed;
+    w.y = 3.0 * x_cubed - 6.0 * x_squared + 4.0;
+    w.z = 3.0 * one_minus_x_cubed - 6.0 * one_minus_x_squared + 4.0;
+    w.w = x_cubed;
+    return w / 6.0;
+}
+
+vec4
+fastuidraw_nearest_filter_texture(in sampler2D surface, in vec2 texel_coord, in float lod)
+{
+  vec2 adjusted;
+  int L;
+
+  L = int(ceil(lod));
+  adjusted = texel_coord / float(1 << L);
+  return texelFetch(surface, ivec2(adjusted), L);
+}
+
+vec4
+fastuidraw_linear_filter_texture(in sampler2D surface, in vec2 texel_coord, in float lod)
+{
+  vec2 recip_sz = 1.0 / vec2(textureSize(surface, 0));
+  return textureLod(surface, texel_coord * recip_sz, lod);
+}
+
+vec4
+fastuidraw_cubic_filter_texture(in sampler2D surface, in vec2 texel_coord)
+{
+  vec2 recip_sz = 1.0 / vec2(textureSize(surface, 0));
+  vec2 fract_texel_coord, linear_weight;
+  vec4 x_weights, y_weights;
+  vec4 corner_coords, weight_sums, texture_coords;
+  vec4 t00, t10, t01, t11;
+
+  /* Cubic filtering by realizing cubic-filtering as repeated
+   * bilinear filtering, see GPU Gems 2, Chapter 20.
+   * Code inspired by StackOverflow (http://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl)
+   * and from Shiny Pixels (http://vec3.ca/bicubic-filtering-in-fewer-taps/)
+   */
+  texel_coord -= vec2(0.5, 0.5);
+  fract_texel_coord = fract(texel_coord);
+  texel_coord -= fract_texel_coord;
+
+  x_weights = fastuidraw_cubic_weights(fract_texel_coord.x);
+  y_weights = fastuidraw_cubic_weights(fract_texel_coord.y);
+
+  corner_coords = texel_coord.xxyy;
+  corner_coords.xz -= vec2(0.5);
+  corner_coords.yw += vec2(1.5);
+  weight_sums = vec4(x_weights.x + x_weights.y, x_weights.z + x_weights.w,
+                     y_weights.x + y_weights.y, y_weights.z + y_weights.w);
+
+  texture_coords = corner_coords + vec4(x_weights.yw, y_weights.yw) / weight_sums;
+  texture_coords *= recip_sz.xyxy;
+
+  t00 = textureLod(surface, texture_coords.xz, 0.0);
+  t10 = textureLod(surface, texture_coords.yz, 0.0);
+  t01 = textureLod(surface, texture_coords.xw, 0.0);
+  t11 = textureLod(surface, texture_coords.yw, 0.0);
+
+  linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
+  linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);
+
+  return mix(mix(t00, t10, linear_weight.x),
+             mix(t01, t11, linear_weight.x),
+             linear_weight.y);
+}

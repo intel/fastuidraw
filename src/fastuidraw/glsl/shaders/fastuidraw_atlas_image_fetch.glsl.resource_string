@@ -379,23 +379,6 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
   return image_color;
 }
 
-vec4
-fastuidraw_image_cubic_weights(float x)
-{
-    float x_squared = x * x;
-    float x_cubed = x_squared * x;
-    float one_minus_x = 1.0 - x;
-    float one_minus_x_squared = one_minus_x * one_minus_x;
-    float one_minus_x_cubed = one_minus_x_squared  * one_minus_x;
-    vec4 w;
-
-    w.x = one_minus_x_cubed;
-    w.y = 3.0 * x_cubed - 6.0 * x_squared + 4.0;
-    w.z = 3.0 * one_minus_x_cubed - 6.0 * one_minus_x_squared + 4.0;
-    w.w = x_cubed;
-    return w / 6.0;
-}
-
 /* \param master_tile_texel_coord unnormalized texel coordinate of within the master-index tile
  * \param index_layer what layer from the index-atlas the master tile is located at
  * \param num_levels number of index levels needed to reach the color-tile
@@ -425,8 +408,8 @@ fastuidraw_cubic_filter_atlas_image(in vec2 in_master_tile_texel_coord,
   fract_image_coordinate = fract(image_coordinate);
   image_coordinate -= fract_image_coordinate;
 
-  x_weights = fastuidraw_image_cubic_weights(fract_image_coordinate.x);
-  y_weights = fastuidraw_image_cubic_weights(fract_image_coordinate.y);
+  x_weights = fastuidraw_cubic_weights(fract_image_coordinate.x);
+  y_weights = fastuidraw_cubic_weights(fract_image_coordinate.y);
   weight_sums = vec4(x_weights.x + x_weights.y, x_weights.z + x_weights.w,
                      y_weights.x + y_weights.y, y_weights.z + y_weights.w);
   recip_weight_sums = vec4(1.0) / weight_sums;

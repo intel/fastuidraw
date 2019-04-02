@@ -239,8 +239,8 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
       fract_texel_coord = fract(texel_coord);
       texel_coord -= fract_texel_coord;
 
-      x_weights = fastuidraw_image_cubic_weights(fract_texel_coord.x);
-      y_weights = fastuidraw_image_cubic_weights(fract_texel_coord.y);
+      x_weights = fastuidraw_cubic_weights(fract_texel_coord.x);
+      y_weights = fastuidraw_cubic_weights(fract_texel_coord.y);
 
       corner_coords = vec4(texel_coord.x - 0.5, texel_coord.x + 1.5,
                            texel_coord.y - 0.5, texel_coord.y + 1.5);
