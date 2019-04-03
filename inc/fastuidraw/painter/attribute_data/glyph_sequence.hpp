@@ -43,7 +43,8 @@ namespace fastuidraw
    * maintains a hierarchy so that Painter can quickly cull glyphs that
    * are not visible. The methods of GlyphSequence are re-entrant but not
    * thread safe, i.e. if an application uses the same GlyphSequence from
-   * multiple threads it needs to explicitely lock the sequence when using it.
+   * multiple threads it needs to explicitely handle locking itself when
+   * using it.
    */
   class GlyphSequence:fastuidraw::noncopyable
   {
@@ -61,7 +62,8 @@ namespace fastuidraw
       /*!
        * Given a \ref GlyphRenderer, returns \ref PainterAttribute
        * and \ref PainterIndex data for specified \ref GlyphRenderer
-       * value. The data is constructed lazily on demand.
+       * value. The attribute data and index is realized via \ref
+       * Glyph::pack_glyph(). The data is constructed lazily on demand.
        * \param render GlyphRenderer how to render the glyphs of this
        *               \ref Subset
        * \param out_attributes location to which to write the array
@@ -71,8 +73,8 @@ namespace fastuidraw
        */
       void
       attributes_and_indices(GlyphRenderer render,
-                 c_array<const PainterAttribute> *out_attributes,
-                 c_array<const PainterIndex> *out_indices);
+                             c_array<const PainterAttribute> *out_attributes,
+                             c_array<const PainterIndex> *out_indices);
 
       /*!
        * Returns an array of index values to pass to GlyphSequence::add_glyph()
@@ -170,7 +172,7 @@ namespace fastuidraw
     number_glyphs(void) const;
 
     /*!
-     * Returns the \ref GlyphSource and position value for
+     * Returns the \ref GlyphMetrics and position value for
      * the i'th glyph added via add_glyph() or add_glyphs().
      * \param I index to select which glyph, must be that
      *          0 <= I < number_glyphs()
@@ -215,15 +217,15 @@ namespace fastuidraw
 
     /*!
      * Returns the total number of \ref Subset objects of this
-     * \ref GlyphSequence. This value can change when add_glyph() or
-     * add_glyphs() is called.
+     * \ref GlyphSequence. This value can change when add_glyph()
+     * or add_glyphs() is called.
      */
     unsigned int
     number_subsets(void) const;
 
     /*!
-     * Fetch a \ref Subset of this \ref GlyphSequence.
-     * The returned object may no longer be valid if add_glyph()
+     * Fetch a \ref Subset of this \ref GlyphSequence. The
+     * returned object may no longer be valid if add_glyph()
      * or add_glyphs() is called. In addition, any returned
      * object is no longer valid if the owning \ref GlyphSequence
      * goes out of scope.

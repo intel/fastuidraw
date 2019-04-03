@@ -43,7 +43,11 @@ namespace fastuidraw
    * to perform culling. However, it does provide an interface to select
    * continuous subsets of the glyphs for the purporse of rendering.
    * In addition, since it does not carry a hierarchy for culling, it
-   * is also a lighter wieght object than \ref GlyphSequence.
+   * is also a lighter weight object than \ref GlyphSequence. Like \ref
+   * GlyphSequence, the methods of \ref GlyphRun are re-entrant but not
+   * thread safe, i.e. if an application uses the same \ref GlyphRun from
+   * multiple threads it needs to explicitely handle locking itself when
+   * using it.
    */
   class GlyphRun:fastuidraw::noncopyable
   {
@@ -168,6 +172,8 @@ namespace fastuidraw
      * a specified \ref GlyphRenderer. The returned object
      * is valid in value until this GlyphRun is destroyed or
      * one of add_glyph(), add_glyphs(), subsequence() is called.
+     * The \ref PainterAttributeWriter will provide indices and
+     * attributes as packed by \ref Glyph::pack_glyph().
      * \param renderer how to render the glyphs
      * \param begin index to select which is the first glyph
      * \param count number of glyphs to take starting at begin
@@ -181,6 +187,8 @@ namespace fastuidraw
      * for a specified \ref GlyphRenderer. The returned object
      * is valid in value until this GlyphRun is destroyed or
      * one of add_glyph(), add_glyphs(), subsequence() is called.
+     * The \ref PainterAttributeWriter will provide indices and
+     * attributes as packed by \ref Glyph::pack_glyph().
      * \param renderer how to render the glyphs
      * \param begin index to select which is the first glyph
      */
@@ -193,6 +201,8 @@ namespace fastuidraw
      * a specified \ref GlyphRenderer. The returned object
      * is valid in value until this GlyphRun is destroyed or
      * one of add_glyph(), add_glyphs(), subsequence() is called.
+     * The \ref PainterAttributeWriter will provide indices and
+     * attributes as packed by \ref Glyph::pack_glyph().
      * \param renderer how to render the glyphs
      */
     const PainterAttributeWriter&

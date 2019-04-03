@@ -52,8 +52,8 @@ public:
     {
       /*!
        * The point is for an edge of the path, point signifies the start
-       * of a sub-edge (quad) of drawing an edge. The meanings of \ref
-       * m_pre_offset and \ref m_auxiliary_offset are:
+       * or end of a sub-edge (quad) of drawing an edge. The meanings of
+       * \ref m_pre_offset and \ref m_auxiliary_offset are:
        *  - \ref m_pre_offset the normal vector to the edge in which
        *                      move the point by when stroking
        *  - \ref m_auxiliary_offset when added to \ref m_position, gives
@@ -68,8 +68,8 @@ public:
        * meanings of the members \ref m_pre_offset and \ref
        * m_auxiliary_offset are:
        *  - \ref m_pre_offset the normal vector to the edge in which move
-       *                      the point by when stroking; this vector can
-       *                      be (0, 0).
+       *                      the point by the stroking width when stroking;
+       *                      this vector can be (0, 0).
        *  - \ref m_auxiliary_offset unused (set to (0, 0))
        */
       offset_shared_with_edge,
@@ -105,9 +105,9 @@ public:
        * Point type for miter-clip join point whose position depends on the
        * stroking radius and the miter-limit. The meanings of \ref m_pre_offset
        * and \ref m_auxiliary_offset are:
-       * - \ref m_pre_offset gives the unit normal vector of teh edge going
+       * - \ref m_pre_offset gives the unit normal vector of the edge going
        *                     into the join
-       * - \ref m_auxiliary_offset gives the unit normal vector of teh edge
+       * - \ref m_auxiliary_offset gives the unit normal vector of the edge
        *                           leaving the join
        */
       offset_miter_clip_join,
@@ -116,9 +116,9 @@ public:
        * Point type for miter-bevel join point whose position depends on the
        * stroking radius and the miter-limit. The meanings of \ref m_pre_offset
        * and \ref m_auxiliary_offset are:
-       * - \ref m_pre_offset gives the unit normal vector of teh edge going
+       * - \ref m_pre_offset gives the unit normal vector of the edge going
        *                     into the join
-       * - \ref m_auxiliary_offset gives the unit normal vector of teh edge
+       * - \ref m_auxiliary_offset gives the unit normal vector of the edge
        *                           leaving the join
        */
       offset_miter_bevel_join,
@@ -127,9 +127,9 @@ public:
        * Point type for miter join whose position position depends on the
        * stroking radius and the miter-limit. The meanings of \ref m_pre_offset
        * and \ref m_auxiliary_offset are:
-       * - \ref m_pre_offset gives the unit normal vector of teh edge going
+       * - \ref m_pre_offset gives the unit normal vector of the edge going
        *                     into the join
-       * - \ref m_auxiliary_offset gives the unit normal vector of teh edge
+       * - \ref m_auxiliary_offset gives the unit normal vector of the edge
        *                           leaving the join
        */
       offset_miter_join,
@@ -493,14 +493,10 @@ public:
   }
 
   /*!
-   * Has value 0 or 1. If the value is 0, then
-   * the point is on the path. If the value has
-   * absolute value 1, then indicates a point that
-   * is on the boundary of the stroked path. The triangles
-   * produced from stroking are so that when
-   * on_boundary() is interpolated across the triangle
-   * the center of stroking the value is 0 and the
-   * value has value 1 on the boundary.
+   * Has value 0 or 1. If the value is 0, then the
+   * point is on the path. If the value has value 1,
+   * then indicates a point that is on the boundary
+   * of the stroked path.
    */
   int
   on_boundary(void) const
