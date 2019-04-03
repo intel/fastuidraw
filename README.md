@@ -26,34 +26,25 @@ The documentation is available online [here](https://intel.github.io/fastuidraw/
 
 GL requirements
 =====================
-  The GL backend requires GL version 3.3. For optimal rendering quality, either
-  GL_ARB_shader_image_load_store or GL_EXT_shader_framebuffer_fetch is recommended.
-  The extension GL_ARB_shader_image_load_store is core in GL 4.2. For optimal
-  performance with optimal rendering quality, GL_EXT_shader_framebuffer_fetch or
+  The GL backend requires GL version 3.3. To support the blend modes beyond
+  those of Porter-Duff blend modes either GL_EXT_shader_framebuffer_fetch or
   GL_ARB_shader_image_load_store with one of GL_INTEL_fragment_shader_ordering,
-  GL_ARB_fragment_shader_interlock or GL_NV_fragment_shader_interlock is strongly
-  recommended. Lastly, to support the non-separable blending operations,
-  GL_EXT_shader_framebuffer_fetch or GL_ARB_shader_image_load_store with one of
-  GL_INTEL_fragment_shader_ordering, GL_ARB_fragment_shader_interlock or
-  GL_NV_fragment_shader_interlock is required. The PorterDuff composition modes
-  do not require any extensions though.
+  GL_ARB_fragment_shader_interlock or GL_NV_fragment_shader_interlock is
+  required.
 
   The GLES backend requires GLES version 3.0. If the GLES version is 3.0 or 3.1,
   it is strongly recommended that one of the extension GL_OES_texture_buffer or
   GL_EXT_texture_buffer is present. For GLES 3.0, 3.1 and 3.2, it is strongly
   recommended for performance to have GL_APPLE_clip_distance or GL_EXT_clip_cull_distance.
-  For optimal rendering quality, one of GLES 3.1 or GL_EXT_shader_framebuffer_fetch
-  is recommended. For optimal performance with optimal rendering quality,
+  To support the blend modes beyond those of Porter-Duff blend modes either
   GL_EXT_shader_framebuffer_fetch or GLES 3.1 with GL_NV_fragment_shader_interlock
-  is strongly recommended. Lastly, to support the non-separable blending operations,
-  GL_EXT_shader_framebuffer_fetch or GLES 3.1 with GL_NV_fragment_shader_interlock
-  is required. The PorterDuff composition modes do not require any extensions though,
+  is required. The Porter-Duff composition modes do not require any extensions though,
   but the extension GL_EXT_blend_func_extended will improve performance.
 
-  Intel GPU's starting in IvyBridge have the extensions support for optimal rendering
-  with optimal performance in both GL and GLES for recent enough versions of Mesa.
-  For MS-Windows, the Intel drivers for Intel GPU's also have support for optimal
-  rendering with optimal performance.
+  Intel GPU's starting in IvyBridge have the extensions support for optimal
+  performance with all blend modes in both GL and GLES for recent enough versions
+  of Mesa. For MS-Windows, the Intel drivers for Intel GPU's also have support
+  for optimal performance with all blend modes.
 
 Building requirements
 =====================
