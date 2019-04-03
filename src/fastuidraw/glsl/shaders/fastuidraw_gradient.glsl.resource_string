@@ -1,0 +1,154 @@
+/*!
+ * \file fastuidraw_gradient.glsl.resource_string
+ * \brief file fastuidraw_gradient.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+struct fastuidraw_linear_gradient
+{
+  /* The start and end points of the linear gradient */
+  vec2 p0, p1;
+};
+
+struct fastuidraw_radial_gradient
+{
+  /* The centers of the start and end circles */
+  vec2 p0, p1;
+
+  /* the radii of the start and end circles */
+  float r0, r1;
+};
+
+struct fastuidraw_sweep_gradient
+{
+  /* center of circle defining the sweep */
+  vec2 p;
+
+  /* the start angle of the sweep, i.e. at what angle
+   * the interpolate would be zero. The value must
+   * be in the range [-PI, PI]. The interpolate increases
+   * by 0.5/PI for each radian, i.e. it increases by 1
+   * for completing a single revolution
+   */
+  float sweep_angle;
+
+  /* the repeat factor of the sweep is by what factor
+   * to multiply the interpolate. A negative value
+   * indicates to sweep clockwise (assuming y increases
+   * upwards) where as a positive value indicates to
+   * sweep counter-clockwise.
+   */
+  float signed_factor;
+};
+
+float
+fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_linear_gradient g)
+{
+  vec2 v, d;
+
+  v = g.p1 - g.p0;
+  d = p - g.p0;
+  return dot(v, d) / dot(v, v);
+}
+
+float
+fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_sweep_gradient g)
+{
+  vec2 d;
+  float t, angle;
+  const float two_pi = 6.28318530718;
+  const float recip_two_pi = 1.0 / 6.28318530718;
+
+  d = p - g.p;
+  angle = atan(d.y, d.x);
+
+  /* Guarantee that angle is greater than the value of
+   * g.sweep_angle so that the sweep goes from 0 to 2 * PI
+   */
+  if (angle < g.sweep_angle)
+    {
+      angle += two_pi;
+    }
+
+  /* normalize to [0, 1] from [0, 2 PI] */
+  t = (angle - g.sweep_angle) * recip_two_pi;
+
+  /* reverse if signed factor is negative */
+  if (g.signed_factor < 0.0)
+    {
+      t = 1.0 - t;
+    }
+
+  /* apply magnitude of signed factor */
+  t *= abs(g.signed_factor);
+
+  return t;
+}
+
+/* \param[output] good 1.0 if the point is within the extended code defined
+ *                     by the circles of the passed radial gradient, 0.0 otherwise
+ */
+float
+fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_radial_gradient g, out float good)
+{
+  vec2 q, delta_p;
+  float t, delta_r, a, b, c, desc, t0, t1, recip_two_a;
+
+  q = p - g.p0;
+  delta_p = g.p1 - g.p0;
+  delta_r = g.r1 - g.r0;
+
+  c = dot(q, q) - g.r0 * g.r0;
+  b = 2.0 * (dot(q, delta_p) - g.r0 * delta_r);
+  a = dot(delta_p, delta_p) - delta_r * delta_r;
+
+  desc = b * b - 4.0 * a * c;
+  if (desc < 0.0)
+    {
+      good = 0.0;
+      t = 0.0;
+    }
+  else
+    {
+      good = 1.0;
+
+      desc = sqrt(abs(desc));
+      recip_two_a = 0.5 / a;
+      t0 = (-b + desc) * recip_two_a;
+      t1 = (-b - desc) * recip_two_a;
+
+      /* if both t0 and t1 are in range, then take the max
+       * if both t0 and t1 are not in range, then take max
+       * if only one of t0 and t1 are in range take that one.
+       */
+
+      /* G.x is 1 exactly when t0 is in range
+       * G.y is 1 exactly when t1 is in range
+       */
+      vec2 G;
+      G = step(0.0, vec2(t0, t1)) * step(vec2(t0, t1), vec2(1.0, 1.0));
+
+      if (G.x == G.y)
+        {
+          t = max(t0, t1);
+        }
+      else
+        {
+          t = dot(G, vec2(t0, t1));
+        }
+    }
+
+  return t;
+}

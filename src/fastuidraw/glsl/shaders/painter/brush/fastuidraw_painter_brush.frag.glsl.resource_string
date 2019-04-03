@@ -47,89 +47,35 @@ compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
   t = 1.0;
   if (gradient_type == fastuidraw_brush_radial_gradient_type)
     {
-      vec2 q, delta_p;
-      float delta_r, a, b, c, desc, t0, t1, recip_two_a;
+      fastuidraw_radial_gradient g;
 
-      q = p - vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
-      delta_p.x = fastuidraw_brush_gradient_p1_x - fastuidraw_brush_gradient_p0_x;
-      delta_p.y = fastuidraw_brush_gradient_p1_y - fastuidraw_brush_gradient_p0_y;
-      delta_r = fastuidraw_brush_gradient_r1 - fastuidraw_brush_gradient_r0;
+      g.p0 = vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
+      g.p1 = vec2(fastuidraw_brush_gradient_p1_x, fastuidraw_brush_gradient_p1_y);
+      g.r0 = fastuidraw_brush_gradient_r0;
+      g.r1 = fastuidraw_brush_gradient_r1;
 
-      c = dot(q, q) - fastuidraw_brush_gradient_r0 * fastuidraw_brush_gradient_r0;
-      b = 2.0 * (dot(q, delta_p) - fastuidraw_brush_gradient_r0 * delta_r);
-      a = dot(delta_p, delta_p) - delta_r * delta_r;
-
-      desc = b * b - 4.0 * a * c;
-      if (desc < 0.0)
-        {
-          good = 0.0;
-          t = 0.0;
-        }
-      else
-        {
-          good = 1.0;
-
-          desc = sqrt(abs(desc));
-          recip_two_a = 0.5 / a;
-          t0 = (-b + desc) * recip_two_a;
-          t1 = (-b - desc) * recip_two_a;
-
-          /* if both t0 and t1 are in range, then take the max
-           * if both t0 and t1 are not in range, then take max
-           * if only one of t0 and t1 are in range take that one.
-           */
-
-          /* G.x is 1 exactly when t0 is in range
-           * G.y is 1 exactly when t1 is in range
-           */
-          vec2 G;
-          G = step(0.0, vec2(t0, t1)) * step(vec2(t0, t1), vec2(1.0, 1.0));
-
-          if (G.x == G.y)
-            {
-              t = max(t0, t1);
-            }
-          else
-            {
-              t = dot(G, vec2(t0, t1));
-            }
-        }
+      t = fastuidraw_compute_interpolate(p, g, good);
     }
   else if (gradient_type == fastuidraw_brush_linear_gradient_type)
     {
-      vec2 v, d;
+      fastuidraw_linear_gradient g;
+
+      g.p0 = vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
+      g.p1 = vec2(fastuidraw_brush_gradient_p1_x, fastuidraw_brush_gradient_p1_y);
+
       good = 1.0;
-      v.x = fastuidraw_brush_gradient_p1_x - fastuidraw_brush_gradient_p0_x;
-      v.y = fastuidraw_brush_gradient_p1_y - fastuidraw_brush_gradient_p0_y;
-      d.x = p.x - fastuidraw_brush_gradient_p0_x;
-      d.y = p.y - fastuidraw_brush_gradient_p0_y;
-      t = dot(v, d) / dot(v, v);
+      t = fastuidraw_compute_interpolate(p, g);
     }
   else if (gradient_type == fastuidraw_brush_sweep_gradient_type)
     {
-      vec2 d;
-      float angle;
-      const float two_pi = 6.28318530718;
-      const float recip_two_pi = 1.0 / 6.28318530718;
+      fastuidraw_sweep_gradient g;
+
+      g.p = vec2(fastuidraw_brush_gradient_sweep_point_x, fastuidraw_brush_gradient_sweep_point_y);
+      g.sweep_angle = fastuidraw_brush_gradient_sweep_angle;
+      g.signed_factor = fastuidraw_brush_gradient_sweep_sign_factor;
 
       good = 1.0;
-      d.x = p.x - fastuidraw_brush_gradient_sweep_point_x;
-      d.y = p.y - fastuidraw_brush_gradient_sweep_point_y;
-      angle = atan(d.y, d.x);
-      /* Guarantee that angle is greater than the value of
-       * fastuidraw_brush_gradient_sweep_angle so that the
-       * sweep goes from 0 to 2 * PI
-       */
-      if (angle < fastuidraw_brush_gradient_sweep_angle)
-        {
-          angle += two_pi;
-        }
-      t = (angle - fastuidraw_brush_gradient_sweep_angle) * recip_two_pi;
-      if (fastuidraw_brush_gradient_sweep_sign_factor < 0.0)
-        {
-          t = 1.0 - t;
-        }
-      t *= abs(fastuidraw_brush_gradient_sweep_sign_factor);
+      t = fastuidraw_compute_interpolate(p, g);
     }
 
   return t;
