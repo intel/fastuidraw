@@ -215,16 +215,17 @@ fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 sub_image(const reference_counted_ptr<const Image> &im,
           uvec2 xy, uvec2 wh, enum image_filter f,
-          unsigned int max_mipmap_level)
+          enum mipmap_t mipmap_filtering)
 {
   uint32_t filter_bits, type_bits, mip_bits, fmt_bits;
 
   filter_bits = (im) ? uint32_t(f) : uint32_t(0);
   type_bits = (im) ? uint32_t(im->type()) : uint32_t(0);
   fmt_bits = (im) ? uint32_t(im->format()) : uint32_t(0);
-  mip_bits = (im) ?
-    uint32_t(t_min(max_mipmap_level, im->number_mipmap_levels())):
+  mip_bits = (im && mipmap_filtering == apply_mipmapping) ?
+    uint32_t(im->number_mipmap_levels()):
     uint32_t(0);
+  mip_bits = (mip_bits != 0u && f != image_filter_nearest) ? mip_bits - 1u : mip_bits;
   mip_bits = t_min(mip_bits, FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_mipmap_num_bits));
 
   m_data.m_image = im;
@@ -249,14 +250,14 @@ sub_image(const reference_counted_ptr<const Image> &im,
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 image(const reference_counted_ptr<const Image> &im, enum image_filter f,
-      unsigned int max_mipmap_level)
+      enum mipmap_t mipmap_filtering)
 {
   uvec2 sz(0, 0);
   if (im)
     {
       sz = uvec2(im->dimensions());
     }
-  return sub_image(im, uvec2(0,0), sz, f, max_mipmap_level);
+  return sub_image(im, uvec2(0,0), sz, f, mipmap_filtering);
 }
 
 uint32_t

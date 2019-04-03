@@ -183,6 +183,22 @@ namespace fastuidraw
       };
 
     /*!
+     * enumeration to specify mipmapping on an image
+     */
+    enum mipmap_t
+      {
+        /*!
+         * Indicates to apply mipmap filtering
+         */
+        apply_mipmapping,
+
+        /*!
+         * Indicates to not apply mipmap filtering
+         */
+        dont_apply_mipmapping
+      };
+
+    /*!
      * \brief
      * Enumeration describing the roles of the bits for
      * PainterBrush::shader().
@@ -745,12 +761,12 @@ namespace fastuidraw
      *           then sets brush to not have an image.
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
-     * \param max_mipmap_level max mipmap level to use with image
+     * \param mipmap specifies mipmap filtering to apply
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im,
           enum image_filter f = image_filter_nearest,
-          unsigned int max_mipmap_level = 0);
+          enum mipmap_t mipmap_filtering = apply_mipmapping);
 
     /*!
      * Set the brush to source from a sub-rectangle of an image
@@ -759,12 +775,12 @@ namespace fastuidraw
      * \param wh width and height of sub-rectangle of image to use
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
-     * \param max_mipmap_level max mipmap level to use with image
+     * \param mipmap_filtering specifies mipmap filtering to apply
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
               enum image_filter f = image_filter_nearest,
-              unsigned int max_mipmap_level = 0);
+              enum mipmap_t mipmap_filtering = apply_mipmapping);
 
     /*!
      * Sets the brush to not have an image.
