@@ -361,7 +361,8 @@ namespace
       m_number_index_lookups(0),
       m_dimensions_index_divisor(-1.0f),
       m_bindless_handle(handle)
-    {}
+    {
+    }
 
     ~ImagePrivate();
 
@@ -413,12 +414,21 @@ ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &pa
   m_format(image_data.format()),
   m_bindless_handle(-1)
 {
+  using namespace fastuidraw;
+
   FASTUIDRAWassert(m_dimensions.x() > 0);
   FASTUIDRAWassert(m_dimensions.y() > 0);
   FASTUIDRAWassert(m_atlas);
 
   create_color_tiles(image_data);
   create_index_tiles();
+
+  /* Mipmap filtering cannot go beyond the tile size or the
+   * size of the image.
+   */
+  int max_levels;
+  max_levels = uint32_log2(t_min(m_atlas->color_tile_size(), t_min(w, h)));
+  m_number_levels = t_min(max_levels, m_number_levels);
 }
 
 ImagePrivate::
