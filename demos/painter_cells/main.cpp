@@ -80,7 +80,7 @@ private:
   command_line_list<std::string> m_files;
   command_line_list<std::string> m_images;
   enumerated_command_line_argument_value<enum PainterBrush::image_filter> m_image_filter;
-  command_line_argument_value<unsigned int> m_image_mipmap_level;
+  command_line_argument_value<bool> m_image_use_mipmaps;
   command_line_argument_value<bool> m_use_atlas;
   command_line_argument_value<bool> m_draw_image_name;
   command_line_argument_value<int> m_num_background_colors;
@@ -154,11 +154,7 @@ painter_cells(void):
                  "image_filter",
                  "Specifies how to filter the images applied to the rects",
                  *this),
-  m_image_mipmap_level(0, "image_mipmap_levels",
-                       "Maximum level of mipmap filtering applied "
-                       "(when use_atlas is true, this is clamped to "
-                       "log2_color_tile_size)",
-                       *this),
+  m_image_use_mipmaps(true, "image_mipmap", "If true, apply mipmapp filtering to images", *this),
   m_use_atlas(true, "use_atlas",
               "If false, each image is realized as a texture; if "
               "GL_ARB_bindless_texture or GL_NV_bindless_texture "
@@ -405,7 +401,9 @@ derived_init(int w, int h)
             m_table_params.m_images.end(),
             compare_named_images);
   m_table_params.m_image_filter = m_image_filter.value();
-  m_table_params.m_image_mipmap_level = m_image_mipmap_level.value();
+  m_table_params.m_image_mipmapping = m_image_use_mipmaps.value() ?
+    PainterBrush::apply_mipmapping:
+    PainterBrush::dont_apply_mipmapping;
 
   generate_random_colors(m_num_background_colors.value(), m_table_params.m_background_colors,
                          m_background_colors_opaque.value());

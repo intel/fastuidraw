@@ -37,7 +37,7 @@ public:
   std::vector<std::string> m_texts;
   std::vector<named_image> m_images;
   enum PainterBrush::image_filter m_image_filter;
-  unsigned int m_image_mipmap_level;
+  enum PainterBrush::mipmap_t m_image_mipmapping;
   vec2 m_min_speed, m_max_speed;
   float m_min_degrees_per_s, m_max_degrees_per_s;
   CellSharedState *m_cell_state;
