@@ -38,9 +38,11 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterBackend is an interface that defines the API-specific
-   * elements to implement \ref Painter. A fixed PainterBackend may only
-   * be used by a single \ref Painter.
-
+   * elements to implement \ref Painter. A fixed PainterBackend will
+   * only be used by a single \ref Painter because a \ref Painter
+   * does NOT use the backend it is passed, instead it creates a
+   * backend for its own private use via \ref create_shared().
+   *
    * A \ref Painter will use a \ref PainterBackend as follows within a
    * Painter::begin() and Painter::end() pair.
    * \code

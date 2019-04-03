@@ -1405,7 +1405,7 @@ namespace
     typedef ConstItemShaderRef *ConstItemShaderRefPtr;
 
     explicit
-    PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend);
+    PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> &backend);
 
     ~PainterPrivate();
 
@@ -2662,7 +2662,7 @@ end(void)
 //////////////////////////////////
 // PainterPrivate methods
 PainterPrivate::
-PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
+PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> &backend):
   m_viewport_dimensions(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(0.5f),
@@ -4466,9 +4466,9 @@ compute_glyph_renderer(float pixel_size,
 //////////////////////////////////
 // fastuidraw::Painter methods
 fastuidraw::Painter::
-Painter(reference_counted_ptr<PainterBackend> backend)
+Painter(const reference_counted_ptr<PainterBackend> &backend)
 {
-  m_d = FASTUIDRAWnew PainterPrivate(backend);
+  m_d = FASTUIDRAWnew PainterPrivate(backend->create_shared());
 }
 
 fastuidraw::Painter::
