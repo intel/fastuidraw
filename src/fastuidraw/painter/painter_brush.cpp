@@ -223,7 +223,7 @@ sub_image(const reference_counted_ptr<const Image> &im,
   type_bits = (im) ? uint32_t(im->type()) : uint32_t(0);
   fmt_bits = (im) ? uint32_t(im->format()) : uint32_t(0);
   mip_bits = (im && mipmap_filtering == apply_mipmapping) ?
-    uint32_t(im->number_mipmap_levels()):
+    uint32_t(t_max(im->number_mipmap_levels(), 1u) - 1u):
     uint32_t(0);
   mip_bits = (mip_bits != 0u && f != image_filter_nearest) ? mip_bits - 1u : mip_bits;
   mip_bits = t_min(mip_bits, FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_mipmap_num_bits));
