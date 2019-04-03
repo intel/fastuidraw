@@ -16,6 +16,7 @@ var searchData=
   ['adobe_5fstandard',['adobe_standard',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93a3af55a236a76bb9633469dbb0cccb25a',1,'fastuidraw::CharacterEncoding']]],
   ['all',['all',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba55b86f9d519d0b86ec87bd4cf4394b1a',1,'fastuidraw::gpu_dirty_state']]],
   ['apple_5froman',['apple_roman',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93ac240a928893116d1143fa5a7c6b3e048',1,'fastuidraw::CharacterEncoding']]],
+  ['apply_5fmipmapping',['apply_mipmapping',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a31832ce12401832875bb07af583d730fa6e52ab17e53460294a47d7ad04f7225f',1,'fastuidraw::PainterBrush']]],
   ['arc_5fsegment',['arc_segment',['../da/df4/classfastuidraw_1_1_tessellated_path.html#a7e80892f4d3808c47222960ef8baedeaad808cdae4c7c9ec10aa695ce192cc02a',1,'fastuidraw::TessellatedPath']]],
   ['array_5fsize',['array_size',['../d1/d96/classfastuidraw_1_1vec_n.html#a699b54da05214d40bc115eac6c15f027a28ece2cf680310288bdd503d91001876',1,'fastuidraw::vecN']]],
   ['attribute0_5fslot',['attribute0_slot',['../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a089b989bafff551140e9613c54252abca0b73fd717d7125f872694238aa5805fe',1,'fastuidraw::glsl::PainterShaderRegistrarGLSLTypes']]],

@@ -145,6 +145,7 @@ var menudata={children:[
 {text:"h",url:"functions_enum.html#index_h"},
 {text:"i",url:"functions_enum.html#index_i"},
 {text:"j",url:"functions_enum.html#index_j"},
+{text:"m",url:"functions_enum.html#index_m"},
 {text:"o",url:"functions_enum.html#index_o"},
 {text:"p",url:"functions_enum.html#index_p"},
 {text:"q",url:"functions_enum.html#index_q"},
