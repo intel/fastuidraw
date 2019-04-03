@@ -17,8 +17,8 @@
  */
 
 float
-fastuidraw_apply_spread(in float t, in float range,
-                        in uint spread_type)
+fastuidraw_brush_apply_spread(in float t, in float range,
+                              in uint spread_type)
 {
   if (spread_type == fastuidraw_brush_spread_mirror)
     {
@@ -40,7 +40,7 @@ fastuidraw_apply_spread(in float t, in float range,
 }
 
 float
-compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
+fastuidraw_brush_compute_interpolate(in vec2 p, in uint gradient_type, out float good)
 {
   float t;
 
@@ -82,7 +82,7 @@ compute_gradient_interpolate(in vec2 p, in uint gradient_type, out float good)
 }
 
 vec4
-fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
+fastuidraw_brush_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
 {
   vec2 image_xy;
   fastuidraw_image_info_type image_info;
@@ -119,7 +119,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
 }
 
 vec4
-fastuidraw_image_of_texture(in sampler2D surface, in vec2 texel_coord, in uint image_filter, in float lod)
+fastuidraw_brush_image_of_texture(in sampler2D surface, in vec2 texel_coord, in uint image_filter, in float lod)
 {
   vec4 image_color;
 
@@ -141,15 +141,15 @@ fastuidraw_image_of_texture(in sampler2D surface, in vec2 texel_coord, in uint i
 }
 
 vec4
-fastuidraw_image_of_external_texture(in vec2 texel_coord, in uint image_filter, in float lod)
+fastuidraw_brush_image_of_external_texture(in vec2 texel_coord, in uint image_filter, in float lod)
 {
-  return fastuidraw_image_of_texture(fastuidraw_external_texture, texel_coord, image_filter, lod);
+  return fastuidraw_brush_image_of_texture(fastuidraw_external_texture, texel_coord, image_filter, lod);
 }
 
 #if defined(FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE)
 
 vec4
-fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float lod)
+fastuidraw_brush_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float lod)
 {
   #if defined(FASTUIDRAW_BINDLESS_HANDLE_UVEC2)
     uvec2 handle;
@@ -168,7 +168,7 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
 #else
 
 vec4
-fastuidraw_image_of_bindless(in vec2 p, in uint image_filter, in float lod)
+fastuidraw_brush_image_of_bindless(in vec2 p, in uint image_filter, in float lod)
 {
   return vec4(1.0, 1.0, 1.0, 1.0);
 }
@@ -176,7 +176,7 @@ fastuidraw_image_of_bindless(in vec2 p, in uint image_filter, in float lod)
 #endif
 
 vec4
-fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
+fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 {
   uint gradient_type;
   vec4 return_value = vec4(fastuidraw_brush_color_x,
@@ -204,8 +204,8 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
                                          fastuidraw_brush_shader);
 
       p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
-      p.x = fastuidraw_apply_spread(p.x, fastuidraw_brush_repeat_window_w, x_spread);
-      p.y = fastuidraw_apply_spread(p.y, fastuidraw_brush_repeat_window_h, y_spread);
+      p.x = fastuidraw_brush_apply_spread(p.x, fastuidraw_brush_repeat_window_w, x_spread);
+      p.y = fastuidraw_brush_apply_spread(p.y, fastuidraw_brush_repeat_window_h, y_spread);
       p += vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
     }
 
@@ -218,7 +218,7 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       float t, good;
       uint spread_type;
 
-      t = compute_gradient_interpolate(p, gradient_type, good);
+      t = fastuidraw_brush_compute_interpolate(p, gradient_type, good);
       spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_spread_type_bit0,
                                             fastuidraw_brush_spread_type_num_bits,
                                             fastuidraw_brush_shader);
@@ -289,15 +289,15 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 
       if (image_type == uint(fastuidraw_image_type_on_atlas))
         {
-          image_color = fastuidraw_image_of_atlas(q, image_filter, lod);
+          image_color = fastuidraw_brush_image_of_atlas(q, image_filter, lod);
         }
       else if (image_type == uint(fastuidraw_image_type_bindless_texture2d))
         {
-          image_color = fastuidraw_image_of_bindless(q, image_filter, lod);
+          image_color = fastuidraw_brush_image_of_bindless(q, image_filter, lod);
         }
       else
         {
-          image_color = fastuidraw_image_of_external_texture(q, image_filter, lod);
+          image_color = fastuidraw_brush_image_of_external_texture(q, image_filter, lod);
         }
 
       /* BEWARE: we are just testing if the format bits are non-zero;

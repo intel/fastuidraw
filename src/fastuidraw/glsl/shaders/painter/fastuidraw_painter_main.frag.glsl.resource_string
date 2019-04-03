@@ -70,7 +70,7 @@ main(void)
            */
           vec4 b, c;
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
-          b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
+          b = fastuidraw_brush_compute_color(pbrush, pbrush_dx, pbrush_dy);
           v = b * c;
         }
       else
