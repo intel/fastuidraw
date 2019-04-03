@@ -22,19 +22,19 @@ fastuidraw_apply_spread(in float t, in float range,
 {
   if (spread_type == fastuidraw_brush_spread_mirror)
     {
-      t = clamp(abs(t), 0.0, range);
+      t = fastuidraw_compute_mirror_spread(t, range);
     }
   else if (spread_type == fastuidraw_brush_spread_repeat)
     {
-      t = mod(t, range);
+      t = fastuidraw_compute_repeat_spread(t, range);
     }
   else if (spread_type == fastuidraw_brush_spread_mirror_repeat)
     {
-      t = range - abs(mod(t, 2.0 * range) - range);
+      t = fastuidraw_compute_mirror_repeat_spread(t, range);
     }
   else
     {
-      t = clamp(t, 0.0, range);
+      t = fastuidraw_compute_clamp_spread(t, range);
     }
   return t;
 }
@@ -283,19 +283,19 @@ fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
        */
       if (spread_type == fastuidraw_brush_spread_mirror)
         {
-          t = clamp(abs(t), 0.0, 1.0);
+          t = fastuidraw_compute_mirror_spread(t);
         }
       else if (spread_type == fastuidraw_brush_spread_repeat)
         {
-          t = fract(t);
+          t = fastuidraw_compute_repeat_spread(t);
         }
       else if (spread_type == fastuidraw_brush_spread_mirror_repeat)
         {
-          t = 1.0 - abs(mod(t, 2.0) - 1.0);
+          t = fastuidraw_compute_mirror_repeat_spread(t);
         }
       else
         {
-          t = clamp(t, 0.0, 1.0);
+          t = fastuidraw_compute_clamp_spread(t);
         }
       t = fastuidraw_brush_color_stop_x + t * fastuidraw_brush_color_stop_length;
       return_value *= (good * fastuidraw_colorStopFetch(t, fastuidraw_brush_color_stop_y));

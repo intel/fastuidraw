@@ -313,6 +313,7 @@ PainterShaderRegistrarGLSLPrivate(void):
   add_enums(m_constant_code);
 
   m_vert_shader_utils
+    .add_source("fastuidraw_spread.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
@@ -328,6 +329,7 @@ PainterShaderRegistrarGLSLPrivate(void):
     .add_source("fastuidraw_painter_external_texture.glsl.resource_string", ShaderSource::from_resource);
 
   m_frag_shader_utils
+    .add_source("fastuidraw_spread.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_banded_rays.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_restricted_rays.glsl.resource_string", ShaderSource::from_resource)
