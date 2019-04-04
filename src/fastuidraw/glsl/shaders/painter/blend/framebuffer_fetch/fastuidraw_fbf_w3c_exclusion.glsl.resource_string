@@ -20,5 +20,5 @@ void
 fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
                                          in vec4 in_src, in vec4 in_fb, out vec4 out_src)
 {
-  FASTUIDRAW_SEPERABLE_FBF_BLEND_MACRO(S + D - 2 * S * D);
+  FASTUIDRAW_SEPERABLE_FBF_BLEND_MACRO(S + D - 2.0 * S * D);
 }
