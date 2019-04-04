@@ -30,6 +30,62 @@ shader_extension(GLenum shader_type)
     }
 }
 
+c_string
+label_sampler_type(GLenum type)
+{
+#define EASY(X) case X: return #X
+
+#ifndef FASTUIDRAW_GL_USE_GLES
+#define SUFFIX_1D(X)                             \
+  EASY(X##1D_ARRAY);                             \
+  EASY(X##1D);                                   \
+  EASY(X##2D_RECT);
+#else
+#define SUFFIX_1D(X)  ;
+#endif
+
+#define SUFFIX_MS(X)                             \
+  EASY(X##2D_MULTISAMPLE);                       \
+  EASY(X##2D_MULTISAMPLE_ARRAY);
+
+#define SUFFIX(X)                                \
+  SUFFIX_1D(X);                                  \
+  EASY(X##2D);                                   \
+  EASY(X##3D);                                   \
+  EASY(X##CUBE);                                 \
+  EASY(X##2D_ARRAY);                             \
+  EASY(X##BUFFER);
+
+#define PREFIX(X)                                      \
+  SUFFIX(GL_##X##_);                                   \
+  SUFFIX(GL_INT_##X##_);                               \
+  SUFFIX(GL_UNSIGNED_INT_##X##_);                      \
+
+#define PREFIX_MS(X)                                      \
+  SUFFIX_MS(GL_##X##_);                                   \
+  SUFFIX_MS(GL_INT_##X##_);                               \
+  SUFFIX_MS(GL_UNSIGNED_INT_##X##_);                      \
+
+  switch(type)
+    {
+      PREFIX(SAMPLER);
+      PREFIX_MS(SAMPLER);
+      PREFIX(IMAGE);
+#ifndef FASTUIDRAW_GL_USE_GLES
+      PREFIX_MS(IMAGE);
+#endif
+    }
+
+  return nullptr;
+
+#undef PREFIX_MS
+#undef SUFFIX_MS
+#undef PREFIX
+#undef SUFFIX
+#undef SUFFIX_1D
+#undef EASY
+}
+
 class painter_test:public sdl_painter_demo
 {
 public:
@@ -100,6 +156,31 @@ protected:
         std::ofstream file(name.str().c_str());
 
         file << pr->log();
+
+        /* query the program for the values of all texture types */
+        if (pr->link_success())
+          {
+            pr->use_program();
+            gl::Program::block_info default_block(pr->default_uniform_block());
+            for (unsigned int v = 0, endv = default_block.number_variables(); v < endv; ++v)
+              {
+                gl::Program::shader_variable_info sh(default_block.variable(v));
+                const char *sampler_type;
+
+                sampler_type = label_sampler_type(sh.glsl_type());
+                if (sampler_type)
+                  {
+                    file << sh.name() << " of type " << sampler_type << "\n";
+                    for (unsigned c = 0, endc = sh.count(); c < endc; ++c)
+                      {
+                        GLint value;
+                        fastuidraw_glGetUniformiv(pr->name(), sh.location(c), &value);
+                        file << "\t[" << c << "] bound at " << value << " binding point\n";
+                      }
+                  }
+              }
+          }
+
         std::cout << "\n\nProgram Log and contents written to "
                   << name.str() << "\n";
       }
