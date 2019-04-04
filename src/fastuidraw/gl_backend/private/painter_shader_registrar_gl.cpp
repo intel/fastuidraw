@@ -242,8 +242,6 @@ configure_source_front_matter(void)
                                  m_uber_shader_builder_params.image_atlas_color_tiles_nearest_binding())
         .add_sampler_initializer("fastuidraw_imageIndexAtlas",
                                  m_uber_shader_builder_params.image_atlas_index_tiles_binding())
-        .add_sampler_initializer("fastuidraw_glyphDataStore",
-                                 m_uber_shader_builder_params.glyph_atlas_store_binding())
         .add_sampler_initializer("fastuidraw_colorStopAtlas",
                                  m_uber_shader_builder_params.colorstop_atlas_binding())
         .add_sampler_initializer("fastuidraw_external_texture",
@@ -273,9 +271,36 @@ configure_source_front_matter(void)
 
         case data_store_ssbo:
           {
+            #ifndef FASTUIRAW_GL_USE_GLES
+              {
+                m_initializer
+                  .add(FASTUIDRAWnew ShaderStorageBlockInitializer("fastuidraw_painterStore_ssbo",
+                                                                   m_uber_shader_builder_params.data_store_buffer_binding()));
+              }
+            #endif
+          }
+          break;
+        }
+
+      switch(m_uber_shader_builder_params.glyph_data_backing())
+        {
+        case glyph_data_tbo:
+        case glyph_data_texture_array:
+          {
             m_initializer
-              .add_uniform_block_binding("fastuidraw_painterStore_ssbo",
-                                         m_uber_shader_builder_params.data_store_buffer_binding());
+              .add_sampler_initializer("fastuidraw_glyphDataStore",
+                                       m_uber_shader_builder_params.glyph_atlas_store_binding());
+          }
+          break;
+        case glyph_data_ssbo:
+          {
+            #ifndef FASTUIRAW_GL_USE_GLES
+              {
+                m_initializer
+                  .add(FASTUIDRAWnew ShaderStorageBlockInitializer("fastuidraw_glyphDataStore",
+                                                                   m_uber_shader_builder_params.glyph_atlas_store_binding()));
+              }
+            #endif
           }
           break;
         }
