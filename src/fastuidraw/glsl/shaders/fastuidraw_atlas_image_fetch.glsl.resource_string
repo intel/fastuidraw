@@ -20,6 +20,7 @@
  * Must have defined:
  *  - FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE: size of index tiles (must be a power of 2)
  *  - FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE: size of color tiles (must be a power of 2)
+ *  - FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE: log2 of the size of index tiles
  */
 
 /* Structure that describes the relationship between the
@@ -267,20 +268,27 @@ fastuidraw_linear_filter_atlas_image(in vec2 master_tile_texel_coord,
   vec4 image_color;
   vec2 image_coordinate, min_tile_dist, max_tile_dist;
   int lod_i;
-  float lod_factor, half_lod_factor;
+  float lod_factor, slack_requirement;
 
   lod_i = int(lod);
   lod = float(lod_i);
   lod_factor = float(1 << lod_i);
-  half_lod_factor = 0.5 * lod_factor;
+
+  /* In exact artithmatic the texel image coordinate
+   * needs to be half a texel away from the boundary
+   * in each dimension to let the sampler perform the
+   * bilinear filtering. Because of round-off error
+   * we will play it safe and require an entire texel.
+   */
+  slack_requirement = lod_factor;
 
   image_coordinate = fastuidraw_compute_image_coordinate(master_tile_texel_coord, image_info);
   fastuidraw_image_atlas_compute_tile_range(image_coordinate, min_tile_dist, max_tile_dist);
 
-  if (max_tile_dist.x >= half_lod_factor
-      && max_tile_dist.y >= half_lod_factor
-      && min_tile_dist.x <= -half_lod_factor
-      && min_tile_dist.y <= -half_lod_factor)
+  if (max_tile_dist.x >= slack_requirement
+      && max_tile_dist.y >= slack_requirement
+      && min_tile_dist.x <= -slack_requirement
+      && min_tile_dist.y <= -slack_requirement)
     {
       fastuidraw_compute_image_atlas_coord_type atlas_location;
 
