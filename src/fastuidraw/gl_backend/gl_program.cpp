@@ -3458,26 +3458,45 @@ perform_initialization(Program *pr, bool program_bound) const
   d = static_cast<std::string*>(m_d);
   FASTUIDRAWassert(d != nullptr);
 
-  int loc;
-  loc = pr->uniform_location(d->c_str());
-  if (loc == -1)
-    {
-      loc = fastuidraw_glGetUniformLocation(pr->name(), d->c_str());
-      if (loc != -1)
-        {
-          std::cerr << "gl_program::uniform_location failed to find uniform, \""
-                    << *d << "\"but glGetUniformLocation succeeded\n";
-        }
-    }
+  Program::shader_variable_info S;
+  unsigned int array_index(0);
 
-  if (loc != -1)
+  S = pr->default_uniform_block().variable(d->c_str(), &array_index);
+  if (S)
     {
-      init_uniform(pr->name(), loc, program_bound);
+      init_uniform(pr->name(), S, array_index, program_bound);
     }
   else
     {
-      std::cerr << "Failed to find uniform \"" << *d
-                << "\" in program " << pr->name()
-                << " for initialization\n";
+      #ifdef FASTUIDRAW_DEBUG
+        {
+          std::cerr << "Failed to find uniform \"" << *d
+                    << "\" in program " << pr->name()
+                    << " for initialization\n";
+        }
+      #endif
+    }
+}
+
+/////////////////////////////////////
+// SamplerInitializer methods
+void
+fastuidraw::gl::SamplerInitializer::
+init_uniform(GLuint program, Program::shader_variable_info info,
+             unsigned int array_index, bool program_bound) const
+{
+  /* NOTE: the type needs to be an int for v so that glProgramUniformi
+   * or glUniformi are called and NOT glProgramUniformui or glUniformui.
+   */
+  for (int endc = info.count(), v = m_value, a = array_index; a < endc; ++a, ++v)
+    {
+      if (program_bound)
+      {
+        Uniform(info.location(a), v);
+      }
+    else
+      {
+        ProgramUniform(program, info.location(a), v);
+      }
     }
 }

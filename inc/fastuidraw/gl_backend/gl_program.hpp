@@ -444,218 +444,6 @@ public:
 
 /*!
  * \brief
- * A UniformInitalizerBase is a base class for
- * initializing a uniform, the actual GL call to
- * set the uniform value is to be implemented by
- * a derived class in init_uniform().
- */
-class UniformInitalizerBase:public ProgramInitializer
-{
-public:
-  /*!
-   * Ctor.
-   * \param uniform_name name of uniform to initialize
-   */
-  UniformInitalizerBase(c_string uniform_name);
-
-  ~UniformInitalizerBase();
-
-  virtual
-  void
-  perform_initialization(Program *pr, bool program_bound) const;
-
-protected:
-
-  /*!
-   * To be implemented by a derived class to make the GL call
-   * to initialize a uniform in a GLSL shader.
-   * \param program GL program
-   * \param location location of uniform
-   * \param program_bound true if and only if the program named
-   *                      by program is bound (via glUseProgram).
-   *                      If the program is not bound, then one
-   *                      SHOULD not bind the program and instead
-   *                      use the GL API points to set values of
-   *                      the uniform(s) that do not rely on having
-   *                      the program bound. One can also safely assume
-   *                      that those API points are supported in
-   *                      the case it is not bound (in particular
-   *                      the function family ProgramUniform() can
-   *                      be safely used).
-   */
-  virtual
-  void
-  init_uniform(GLuint program, GLint location, bool program_bound) const = 0;
-
-private:
-  void *m_d;
-};
-
-/*!
- * \brief
- * Initialize a uniform via the templated
- * overloaded function fastuidraw::gl::Uniform().
- */
-template<typename T>
-class UniformInitializer:public UniformInitalizerBase
-{
-public:
-  /*!
-   * Ctor.
-   * \param uniform_name name of uniform in GLSL to initialize
-   * \param value value with which to set the uniform
-   */
-  UniformInitializer(c_string uniform_name, const T &value):
-    UniformInitalizerBase(uniform_name),
-    m_value(value)
-  {}
-
-protected:
-
-  virtual
-  void
-  init_uniform(GLuint program, GLint location, bool program_bound) const
-  {
-    if (program_bound)
-      {
-        Uniform(location, m_value);
-      }
-    else
-      {
-        ProgramUniform(program, location, m_value);
-      }
-  }
-
-private:
-  T m_value;
-};
-
-/*!
- * \brief
- * Specialization for type c_array<const T> for \ref UniformInitializer
- * so that data behind the c_array is copied
- */
-template<typename T>
-class UniformInitializer<c_array<const T> >:public UniformInitalizerBase
-{
-public:
-  /*!
-   * Ctor.
-   * \param uniform_name name of uniform in GLSL to initialize
-   * \param value value with which to set the uniform
-   */
-  UniformInitializer(c_string uniform_name, const c_array<const T> &value):
-    UniformInitalizerBase(uniform_name),
-    m_data(nullptr)
-  {
-    if (!value.empty())
-      {
-        m_data = FASTUIDRAWmalloc(sizeof(T) * value.size());
-        for (unsigned int i = 0; i < value.size(); ++i)
-          {
-            new (&m_data[i]) T(value[i]);
-          }
-        m_value = c_array<const T>(m_data, value.size());
-      }
-  }
-
-  ~UniformInitializer()
-  {
-    if (m_data != nullptr)
-      {
-        for (unsigned int i = 0; i < m_value.size(); ++i)
-          {
-            m_data[i].~T();
-          }
-        FASTUIDRAWfree(m_data);
-      }
-  }
-
-protected:
-
-  virtual
-  void
-  init_uniform(GLuint program, GLint location, bool program_bound) const
-  {
-    if (program_bound)
-      {
-        Uniform(location, m_value);
-      }
-    else
-      {
-        ProgramUniform(program, location, m_value);
-      }
-  }
-
-private:
-  T *m_data;
-  c_array<const T> m_value;
-};
-
-/*!
- * \brief
- * Conveniance typedef to initialize samplers.
- */
-typedef UniformInitializer<int> SamplerInitializer;
-
-/*!
- * \brief
- * A UniformBlockInitializer is used to initalize the binding point
- * used by a bindable uniform (aka Uniform buffer object, see the
- * GL spec on glGetUniformBlockIndex and glUniformBlockBinding.
- */
-class UniformBlockInitializer:public ProgramInitializer
-{
-public:
-  /*!
-   * Ctor.
-   * \param name name of uniform block in GLSL to initialize
-   * \param binding_point_index value with which to set the uniform
-   */
-  UniformBlockInitializer(c_string name, int binding_point_index);
-
-  ~UniformBlockInitializer();
-
-  virtual
-  void
-  perform_initialization(Program *pr, bool program_bound) const;
-
-private:
-  void *m_d;
-};
-
-#ifndef FASTUIDRAW_GL_USE_GLES
-/*!
- * \brief
- * A ShaderStorageBlockInitializer is used to initalize the binding point
- * used by a shader storage block (see the GL spec on
- * glShaderStorageBlockBinding). Initializer is not supported
- * in OpenGL ES.
- */
-class ShaderStorageBlockInitializer:public ProgramInitializer
-{
-public:
-  /*!
-   * Ctor.
-   * \param name name of shader storage block in GLSL to initialize
-   * \param binding_point_index value with which to set the uniform
-   */
-  ShaderStorageBlockInitializer(c_string name, int binding_point_index);
-
-  ~ShaderStorageBlockInitializer();
-
-  virtual
-  void
-  perform_initialization(Program *pr, bool program_bound) const;
-
-private:
-  void *m_d;
-};
-
-#endif
-
-/*!
- * \brief
  * Conveniance class to hold an array of handles
  * of ProgramInitializer objects
  */
@@ -704,10 +492,7 @@ public:
    */
   template<typename T>
   ProgramInitializerArray&
-  add_uniform_initializer(c_string uniform_name, const T &value)
-  {
-    return add(FASTUIDRAWnew UniformInitializer<T>(uniform_name, value));
-  }
+  add_uniform_initializer(c_string uniform_name, const T &value);
 
   /*!
    * Provided as a conveniance, creates a SamplerInitializer
@@ -719,10 +504,7 @@ public:
    *              unit.
    */
   ProgramInitializerArray&
-  add_sampler_initializer(c_string uniform_name, int value)
-  {
-    return add(FASTUIDRAWnew SamplerInitializer(uniform_name, value));
-  }
+  add_sampler_initializer(c_string uniform_name, int value);
 
   /*!
    * Provided as a conveniance, creates a UniformBlockInitializer
@@ -733,10 +515,7 @@ public:
    *              pass to glBindBufferBase or glBindBufferRange.
    */
   ProgramInitializerArray&
-  add_uniform_block_binding(c_string uniform_name, int value)
-  {
-    return add(FASTUIDRAWnew UniformBlockInitializer(uniform_name, value));
-  }
+  add_uniform_block_binding(c_string uniform_name, int value);
 
   /*!
    * For each objected added via add(), call
@@ -1665,6 +1444,279 @@ public:
 private:
   void *m_d;
 };
+
+/*!
+ * \brief
+ * A UniformInitalizerBase is a base class for
+ * initializing a uniform, the actual GL call to
+ * set the uniform value is to be implemented by
+ * a derived class in init_uniform().
+ */
+class UniformInitalizerBase:public ProgramInitializer
+{
+public:
+  /*!
+   * Ctor.
+   * \param uniform_name name of uniform to initialize
+   */
+  UniformInitalizerBase(c_string uniform_name);
+
+  ~UniformInitalizerBase();
+
+  virtual
+  void
+  perform_initialization(Program *pr, bool program_bound) const;
+
+protected:
+
+  /*!
+   * To be implemented by a derived class to make the GL call
+   * to initialize a uniform in a GLSL shader.
+   * \param program GL program
+   * \param info information on uniform (name, type, location, etc)
+   * \param array_index index into GLSL uniform if it is an array
+   * \param program_bound true if and only if the program named
+   *                      by program is bound (via glUseProgram).
+   *                      If the program is not bound, then one
+   *                      SHOULD not bind the program and instead
+   *                      use the GL API points to set values of
+   *                      the uniform(s) that do not rely on having
+   *                      the program bound. One can also safely assume
+   *                      that those API points are supported in
+   *                      the case it is not bound (in particular
+   *                      the function family ProgramUniform() can
+   *                      be safely used).
+   */
+  virtual
+  void
+  init_uniform(GLuint program, Program::shader_variable_info info,
+               unsigned int array_index, bool program_bound) const = 0;
+
+private:
+  void *m_d;
+};
+
+/*!
+ * \brief
+ * Initialize a uniform via the templated
+ * overloaded function fastuidraw::gl::Uniform().
+ */
+template<typename T>
+class UniformInitializer:public UniformInitalizerBase
+{
+public:
+  /*!
+   * Ctor.
+   * \param uniform_name name of uniform in GLSL to initialize
+   * \param value value with which to set the uniform
+   */
+  UniformInitializer(c_string uniform_name, const T &value):
+    UniformInitalizerBase(uniform_name),
+    m_value(value)
+  {}
+
+protected:
+
+  virtual
+  void
+  init_uniform(GLuint program, Program::shader_variable_info info,
+               unsigned int array_index, bool program_bound) const
+  {
+    if (program_bound)
+      {
+        Uniform(info.location(array_index), m_value);
+      }
+    else
+      {
+        ProgramUniform(program, info.location(array_index), m_value);
+      }
+  }
+
+private:
+  T m_value;
+};
+
+/*!
+ * \brief
+ * Specialization for type c_array<const T> for \ref UniformInitializer
+ * so that data behind the c_array is copied
+ */
+template<typename T>
+class UniformInitializer<c_array<const T> >:public UniformInitalizerBase
+{
+public:
+  /*!
+   * Ctor.
+   * \param uniform_name name of uniform in GLSL to initialize
+   * \param value value with which to set the uniform
+   */
+  UniformInitializer(c_string uniform_name, const c_array<const T> &value):
+    UniformInitalizerBase(uniform_name),
+    m_data(nullptr)
+  {
+    if (!value.empty())
+      {
+        m_data = FASTUIDRAWmalloc(sizeof(T) * value.size());
+        for (unsigned int i = 0; i < value.size(); ++i)
+          {
+            new (&m_data[i]) T(value[i]);
+          }
+        m_value = c_array<const T>(m_data, value.size());
+      }
+  }
+
+  ~UniformInitializer()
+  {
+    if (m_data != nullptr)
+      {
+        for (unsigned int i = 0; i < m_value.size(); ++i)
+          {
+            m_data[i].~T();
+          }
+        FASTUIDRAWfree(m_data);
+      }
+  }
+
+protected:
+
+  virtual
+  void
+  init_uniform(GLuint program, Program::shader_variable_info info,
+               unsigned int array_index, bool program_bound) const
+  {
+    if (program_bound)
+      {
+        Uniform(info.location(array_index), m_value);
+      }
+    else
+      {
+        ProgramUniform(program, info.location(array_index), m_value);
+      }
+  }
+
+private:
+  T *m_data;
+  c_array<const T> m_value;
+};
+
+/*!
+ * \brief
+ * Class to intialize the binding points of samplers.
+ * If the uniform is an array, the first element will
+ * be given the specified binding point and successive
+ * elements in the array will be given successive
+ * binding points.
+ */
+class SamplerInitializer:public UniformInitalizerBase
+{
+public:
+  /*!
+   * Ctor.
+   * \param uniform_name name of uniform sampler2D in GLSL to
+   *                     initialize
+   * \param value binding point to initialize the uniform to;
+   *              If the uniform is an array, the first element
+   *              will be given the specified binding point and
+   *              successive elements in the array will be given
+   *              successive binding points.
+   */
+  SamplerInitializer(c_string uniform_name, int binding_point):
+    UniformInitalizerBase(uniform_name),
+    m_value(binding_point)
+  {}
+
+protected:
+
+  virtual
+  void
+  init_uniform(GLuint program, Program::shader_variable_info info,
+               unsigned int array_index, bool program_bound) const;
+
+private:
+  int m_value;
+};
+
+/*!
+ * \brief
+ * A UniformBlockInitializer is used to initalize the binding point
+ * used by a bindable uniform (aka Uniform buffer object, see the
+ * GL spec on glGetUniformBlockIndex and glUniformBlockBinding.
+ */
+class UniformBlockInitializer:public ProgramInitializer
+{
+public:
+  /*!
+   * Ctor.
+   * \param name name of uniform block in GLSL to initialize
+   * \param binding_point_index value with which to set the uniform
+   */
+  UniformBlockInitializer(c_string name, int binding_point_index);
+
+  ~UniformBlockInitializer();
+
+  virtual
+  void
+  perform_initialization(Program *pr, bool program_bound) const;
+
+private:
+  void *m_d;
+};
+
+//////////////////////////////////////////////////
+// inlined methods that need above classes defined
+template<typename T>
+ProgramInitializerArray&
+ProgramInitializerArray::
+add_uniform_initializer(c_string uniform_name, const T &value)
+{
+  return add(FASTUIDRAWnew UniformInitializer<T>(uniform_name, value));
+}
+
+inline
+ProgramInitializerArray&
+ProgramInitializerArray::
+add_sampler_initializer(c_string uniform_name, int value)
+{
+  return add(FASTUIDRAWnew SamplerInitializer(uniform_name, value));
+}
+
+inline
+ProgramInitializerArray&
+ProgramInitializerArray::
+add_uniform_block_binding(c_string uniform_name, int value)
+{
+  return add(FASTUIDRAWnew UniformBlockInitializer(uniform_name, value));
+}
+
+#ifndef FASTUIDRAW_GL_USE_GLES
+/*!
+ * \brief
+ * A ShaderStorageBlockInitializer is used to initalize the binding point
+ * used by a shader storage block (see the GL spec on
+ * glShaderStorageBlockBinding). Initializer is not supported
+ * in OpenGL ES.
+ */
+class ShaderStorageBlockInitializer:public ProgramInitializer
+{
+public:
+  /*!
+   * Ctor.
+   * \param name name of shader storage block in GLSL to initialize
+   * \param binding_point_index value with which to set the uniform
+   */
+  ShaderStorageBlockInitializer(c_string name, int binding_point_index);
+
+  ~ShaderStorageBlockInitializer();
+
+  virtual
+  void
+  perform_initialization(Program *pr, bool program_bound) const;
+
+private:
+  void *m_d;
+};
+
+#endif
 /*! @} */
 
 
