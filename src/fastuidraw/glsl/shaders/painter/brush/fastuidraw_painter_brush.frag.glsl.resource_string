@@ -162,7 +162,7 @@ fastuidraw_brush_image_of_bindless(in vec2 texel_coord, in uint image_filter, in
   #endif
 
   sampler2D im = sampler2D(handle);
-  return fastuidraw_image_of_texture(im, texel_coord, image_filter, lod);
+  return fastuidraw_brush_image_of_texture(im, texel_coord, image_filter, lod);
 }
 
 #else
