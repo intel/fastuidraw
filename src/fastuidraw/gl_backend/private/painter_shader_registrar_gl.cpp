@@ -271,7 +271,7 @@ configure_source_front_matter(void)
 
         case data_store_ssbo:
           {
-            #ifndef FASTUIRAW_GL_USE_GLES
+            #ifndef FASTUIDRAW_GL_USE_GLES
               {
                 m_initializer
                   .add(FASTUIDRAWnew ShaderStorageBlockInitializer("fastuidraw_painterStore_ssbo",
@@ -294,7 +294,7 @@ configure_source_front_matter(void)
           break;
         case glyph_data_ssbo:
           {
-            #ifndef FASTUIRAW_GL_USE_GLES
+            #ifndef FASTUIDRAW_GL_USE_GLES
               {
                 m_initializer
                   .add(FASTUIDRAWnew ShaderStorageBlockInitializer("fastuidraw_glyphDataStore",
