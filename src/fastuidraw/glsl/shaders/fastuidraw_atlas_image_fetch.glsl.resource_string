@@ -46,17 +46,6 @@ struct fastuidraw_image_info_type
  */
 struct fastuidraw_compute_image_atlas_coord_type
 {
-  /* the color-tile ID within the layer */
-  uvec2 color_tile_id;
-
-  /* the offset within the tile */
-  vec2 offset_within_tile;
-
-  /* the most negative value allowed to go in texels
-   * before leaving the tile
-   */
-  vec2 min_delta_within_tile;
-
   /* the most positive value allowed to go in texels
    * before leaving the tile
    */
@@ -222,12 +211,8 @@ fastuidraw_compute_image_atlas_coord(in vec2 master_tile_texel_coord,
   subtile_image_size = uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE);
   tile_offset = (master_tile_texel_coord - vec2(itexel_coordinate)) * float(subtile_image_size);
 
-  return_value.color_tile_id = tile_id.xy;
-  return_value.offset_within_tile = tile_offset;
   return_value.unnormalized_texcoord_xy = tile_offset //offset into tile
     + vec2(tile_id.xy) * float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE); //location of tile
-
-  return_value.min_delta_within_tile = -tile_offset;
 
   return_value.max_delta_within_tile =
     vec2(float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1u)) - tile_offset;
