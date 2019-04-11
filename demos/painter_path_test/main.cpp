@@ -148,7 +148,7 @@ everything_filled(int)
 
 #ifndef FASTUIDRAW_GL_USE_GLES
 
-class EnableWireFrameAction:public PainterDraw::Action
+class EnableWireFrameAction:public PainterDrawBreakAction
 {
 public:
   explicit
@@ -158,7 +158,7 @@ public:
 
   virtual
   fastuidraw::gpu_dirty_state
-  execute(PainterDraw::APIBase *) const
+  execute(PainterBackend*) const
   {
     if (m_lines)
       {
@@ -2199,11 +2199,11 @@ draw_frame(void)
     }
   else
     {
-      const gl::PainterBackendGL::SurfaceGL *S;
+      const gl::SurfaceGL *S;
       PainterSurface::Viewport src, dest;
 
       src = m_surface->viewport();
-      S = dynamic_cast<const gl::PainterBackendGL::SurfaceGL*>(surfaces[m_show_surface - 1]);
+      S = dynamic_cast<const gl::SurfaceGL*>(surfaces[m_show_surface - 1]);
 
       dest.m_origin = src.m_origin;
       dest.m_dimensions = ivec2(src.m_dimensions.x(), src.m_dimensions.y() / 2);
