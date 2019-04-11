@@ -165,6 +165,38 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
+register_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader)
+{
+  if (!shader || shader->registered_to() == this)
+    {
+      return;
+    }
+  FASTUIDRAWassert(shader->registered_to() == nullptr);
+  if (shader->registered_to() == nullptr)
+    {
+      if (shader->parent())
+        {
+          register_shader(shader->parent().static_cast_ptr<PainterCustomBrushShader>());
+
+          /* activate the guard AFTER calling register_shader(),
+           * otherwise we would attempt to double-lock the mutex
+           */
+          Mutex::Guard m(mutex());
+          shader->set_group_of_sub_shader(compute_custom_brush_sub_shader_group(shader));
+        }
+      else
+        {
+          Mutex::Guard m(mutex());
+          PainterShader::Tag tag;
+
+          tag = absorb_custom_brush_shader(shader);
+          shader->register_shader(tag, this);
+        }
+    }
+}
+
+void
+fastuidraw::PainterShaderRegistrar::
 register_shader(const PainterGlyphShader &shader)
 {
   for(unsigned int i = 0, endi = shader.shader_count(); i < endi; ++i)

@@ -22,6 +22,7 @@
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
+#include <fastuidraw/painter/painter_custom_brush_shader_data.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/backend/painter_item_matrix.hpp>
 #include <fastuidraw/painter/backend/painter_clip_equations.hpp>
@@ -257,6 +258,14 @@ namespace fastuidraw
      */
     PainterPackedValue<PainterBlendShaderData>
     create_packed_value(const PainterBlendShaderData &value);
+
+    /*!
+     * Create and return a PainterPackedValue<PainterCustomBrushShaderData>
+     * object for the value of a PainterCustomBrushShaderData object.
+     * \param value data to pack into returned PainterPackedValue
+     */
+    PainterPackedValue<PainterCustomBrushShaderData>
+    create_packed_value(const PainterCustomBrushShaderData &value);
 
   private:
     void *m_d;

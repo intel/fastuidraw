@@ -1,8 +1,8 @@
 /*!
- * \file painter_shader_data.hpp
- * \brief file painter_shader_data.hpp
+ * \file painter_custom_brush_shader_data.hpp
+ * \brief file painter_custom_brush_shader_data.hpp
  *
- * Copyright 2016 by Intel.
+ * Copyright 2019 by Intel.
  *
  * Contact: kevin.rogovin@intel.com
  *
@@ -21,6 +21,7 @@
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/util.hpp>
+#include <fastuidraw/image.hpp>
 
 namespace fastuidraw
 {
@@ -30,24 +31,23 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * Common base class to \ref PainterItemShaderData,
-   * and \ref PainterBlendShaderData to hold shader
-   * data for custom shaders.
+   * Base class to hold custom data for custom brush shaders.
    *
    * Derived classes CANNOT add any data or virtual functions.
-   * The class PainterShaderData is essentially a wrapper over
-   * a PainterShaderData::DataBase object that handles holding
-   * data and copying itself (for the purpose of copying
-   * PainterShaderData objects).
+   * The class PainterCustomBrushShaderData is essentially a
+   * wrapper over a PainterCustomBrushShaderData::DataBase
+   * object that handles holding data and copying itself (for
+   * the purpose of copying PainterCustomBrushShaderData
+   * objects).
    */
-  class PainterShaderData
+  class PainterCustomBrushShaderData
   {
   public:
     /*!
      * \brief
      * Class that holds the actual data and packs the data.
      *
-     * A class derived from PainterShaderData should set the
+     * A class derived from PainterCustomBrushShaderData should set the
      * field \ref m_data to point to an object derived from
      * DataBase for the purpose of holding and packing data.
      */
@@ -68,6 +68,20 @@ namespace fastuidraw
 
       /*!
        * To be implemented by a derived class to return
+       * a \ref c_array of references to \ref Image
+       * objects whose Image::type() value is \ref
+       * Image::context_texture2d. The i'th entry in
+       * the returned array will be bound to the i'th
+       * external texture slot of the backend via the
+       * \ref PainterDrawBreakAction objected returned
+       * by \ref PainterBackend::bind_image().
+       */
+      virtual
+      c_array<const reference_counted_ptr<const Image> >
+      bind_images(void) const = 0;
+
+      /*!
+       * To be implemented by a derived class to return
        * the length of the data needed to encode the data.
        */
       virtual
@@ -84,31 +98,43 @@ namespace fastuidraw
     };
 
     /*!
-     * Ctor. A derived class from PainterShaderData
+     * Ctor. A derived class from PainterCustomBrushShaderData
      * should set \ref m_data.
      */
-    PainterShaderData(void);
+    PainterCustomBrushShaderData(void);
 
     /*!
      * Copy ctor, calls DataBase::copy() to
      * copy the data behind \ref m_data.
      */
-    PainterShaderData(const PainterShaderData &obj);
+    PainterCustomBrushShaderData(const PainterCustomBrushShaderData &obj);
 
-    ~PainterShaderData();
+    ~PainterCustomBrushShaderData();
 
     /*!
      * Assignment operator
      */
-    PainterShaderData&
-    operator=(const PainterShaderData &rhs);
+    PainterCustomBrushShaderData&
+    operator=(const PainterCustomBrushShaderData &rhs);
 
     /*!
      * Swap operation
      * \param obj object with which to swap
      */
     void
-    swap(PainterShaderData &obj);
+    swap(PainterCustomBrushShaderData &obj);
+
+    /*!
+     * Return a \ref c_array of references to \ref
+     * Image objects whose Image::type() value is
+     * \ref Image::context_texture2d. The i'th entry
+     * in the returned array will be bound to the i'th
+     * external texture slot of the backend via the
+     * \ref PainterDrawBreakAction objected returned
+     * by \ref PainterBackend::bind_image().
+     */
+    c_array<const reference_counted_ptr<const Image> >
+    bind_images(void) const;
 
     /*!
      * Returns the length of the data needed to encode the data.
@@ -126,7 +152,7 @@ namespace fastuidraw
 
     /*!
      * Returns a pointer to the underlying object holding
-     * the data of the PainterShaderData.
+     * the data of the PainterCustomBrushShaderData.
      */
     const DataBase*
     data_base(void) const
@@ -136,8 +162,8 @@ namespace fastuidraw
 
   protected:
     /*!
-     * Initialized as nullptr by the ctor PainterShaderData(void).
-     * A derived class of PainterShaderData should assign \ref
+     * Initialized as nullptr by the ctor PainterCustomBrushShaderData(void).
+     * A derived class of PainterCustomBrushShaderData should assign \ref
      * m_data to point to an object derived from DataBase.
      * That object is the object that is to determine the
      * size of data to pack and how to pack the data into
@@ -145,20 +171,6 @@ namespace fastuidraw
      */
     DataBase *m_data;
   };
-
-  /*!
-   * \brief
-   * PainterItemShaderData holds custom data for item shaders
-   */
-  class PainterItemShaderData:public PainterShaderData
-  {};
-
-  /*!
-   * \brief
-   * PainterBlendShaderData holds custom data for blend shaders
-   */
-  class PainterBlendShaderData:public PainterShaderData
-  {};
 
 /*! @} */
 

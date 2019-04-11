@@ -1,0 +1,138 @@
+/*!
+ * \file fastuidraw_painter_brush.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_brush.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
+void
+fastuidraw_fixed_function_brush_vert_processing(in fastuidraw_header h, in vec2 in_p)
+{
+  uint shader, data_ptr, image_type, gradient_type;
+  fastuidraw_brush_image_data image;
+  fastuidraw_brush_gradient gradient;
+  fastuidraw_brush_repeat_window repeat_window;
+  vec4 color;
+  vec2 p;
+  float color_stop_recip;
+
+  p = in_p;
+  shader = h.brush_shader;
+  data_ptr = h.brush_shader_data_location;
+
+  /* Directly unpack brush data into brush varyings */
+  data_ptr = fastuidraw_read_color(data_ptr, color);
+  fastuidraw_brush_color_x = color.x;
+  fastuidraw_brush_color_y = color.y;
+  fastuidraw_brush_color_z = color.z;
+  fastuidraw_brush_color_w = color.w;
+
+  if ((shader & uint(fastuidraw_brush_image_mask)) != 0u)
+    {
+      image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
+                                           fastuidraw_brush_image_filter_num_bits,
+                                           shader);
+      data_ptr = fastuidraw_read_brush_image_data(data_ptr, image_type, image);
+    }
+
+  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
+                                          fastuidraw_brush_gradient_type_num_bits,
+                                          shader);
+  if (gradient_type == fastuidraw_brush_radial_gradient_type)
+    {
+      data_ptr = fastuidraw_read_brush_radial_gradient_data(data_ptr, gradient);
+    }
+  else if (gradient_type == fastuidraw_brush_linear_gradient_type
+           || gradient_type == fastuidraw_brush_sweep_gradient_type)
+    {
+      data_ptr = fastuidraw_read_brush_linear_or_sweep_gradient_data(data_ptr, gradient);
+    }
+  else
+    {
+      gradient.p0 = gradient.p1 = vec2(0.0, 0.0);
+      gradient.r0 = gradient.r1 = 0.0;
+      gradient.color_stop_sequence_length = 1.0;
+      gradient.color_stop_sequence_xy = vec2(0.0, 0.0);
+    }
+
+  if ((shader & uint(fastuidraw_brush_repeat_window_mask)) != 0u)
+    {
+      data_ptr = fastuidraw_read_brush_repeat_window(data_ptr, repeat_window);
+    }
+  else
+    {
+      repeat_window.xy = vec2(0.0, 0.0);
+      repeat_window.wh = vec2(1.0, 1.0);
+    }
+
+  fastuidraw_brush_repeat_window_x = repeat_window.xy.x;
+  fastuidraw_brush_repeat_window_y = repeat_window.xy.y;
+  fastuidraw_brush_repeat_window_w = repeat_window.wh.x;
+  fastuidraw_brush_repeat_window_h = repeat_window.wh.y;
+
+  fastuidraw_brush_gradient_p0_x = gradient.p0.x;
+  fastuidraw_brush_gradient_p0_y = gradient.p0.y;
+  fastuidraw_brush_gradient_p1_x = gradient.p1.x;
+  fastuidraw_brush_gradient_p1_y = gradient.p1.y;
+  fastuidraw_brush_gradient_r0 = gradient.r0;
+  fastuidraw_brush_gradient_r1 = gradient.r1;
+
+  fastuidraw_brush_image_size_x = float(image.image_size.x);
+  fastuidraw_brush_image_size_y = float(image.image_size.y);
+  if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
+    {
+      vec2 T;
+      fastuidraw_image_info_type image_info;
+
+      fastuidraw_compute_image_info(image.number_index_lookups, image_info);
+
+      T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_info.image_texel_size_on_master_index_tile;
+      fastuidraw_brush_image_x = T.x;
+      fastuidraw_brush_image_y = T.y;
+      fastuidraw_brush_image_layer = uint(image.master_index_tile_atlas_location_xyz.z);
+      fastuidraw_brush_image_texel_size_on_master_index_tile = image_info.image_texel_size_on_master_index_tile;
+      fastuidraw_brush_recip_image_texel_size_on_master_index_tile = image_info.recip_image_texel_size_on_master_index_tile;
+      fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
+    }
+  else
+    {
+      fastuidraw_brush_image_x = float(image.image_start.x);
+      fastuidraw_brush_image_y = float(image.image_start.y);
+      fastuidraw_brush_image_bindless_low_handle = image.bindless_handle_low;
+      fastuidraw_brush_image_bindless_high_handle = image.bindless_handle_hi;
+    }
+
+  color_stop_recip = fastuidraw_colorStopAtlas_size_reciprocal;
+  fastuidraw_brush_color_stop_length = color_stop_recip * gradient.color_stop_sequence_length;
+  fastuidraw_brush_color_stop_x = color_stop_recip * gradient.color_stop_sequence_xy.x;
+  fastuidraw_brush_color_stop_y = gradient.color_stop_sequence_xy.y;
+
+  if ((shader & uint(fastuidraw_brush_transformation_matrix_mask)) != 0u)
+    {
+      mat2 m;
+      data_ptr = fastuidraw_read_brush_transformation_matrix(data_ptr, m);
+      p = m * p;
+    }
+
+  if ((shader & uint(fastuidraw_brush_transformation_translation_mask)) != 0u)
+    {
+      vec2 q;
+      data_ptr = fastuidraw_read_brush_transformation_translation(data_ptr, q);
+      p += q;
+    }
+
+  fastuidraw_brush_p_x = p.x;
+  fastuidraw_brush_p_y = p.y;
+}

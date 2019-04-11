@@ -109,22 +109,6 @@ namespace fastuidraw
       swap(ConfigurationBase &obj);
 
       /*!
-       * Bits that are up in brush_shader_mask(void) that change
-       * in PainterBrush::shader() trigger a call to
-       * PainterDraw::draw_break().
-       */
-      uint32_t
-      brush_shader_mask(void) const;
-
-      /*!
-       * Specify the value returned by brush_shader_mask(void) const,
-       * default value is 0
-       * \param v value
-       */
-      ConfigurationBase&
-      brush_shader_mask(uint32_t v);
-
-      /*!
        * If true, indicates that the PainterBackend supports
        * bindless texturing. Default value is false.
        */
@@ -330,13 +314,15 @@ namespace fastuidraw
     /*!
      * Called to return an action to bind an Image whose backing
      * store requires API binding.
+     * \param slot which of the external image slots to bind the image to
      * \param im Image backed by a gfx API surface that in order to be used,
      *           must be bound. In patricular im's Image::type() value
      *           is Image::context_texture2d
      */
     virtual
-    reference_counted_ptr<PainterDraw::Action>
-    bind_image(const reference_counted_ptr<const Image> &im) = 0;
+    reference_counted_ptr<PainterDrawBreakAction>
+    bind_image(unsigned int slot,
+               const reference_counted_ptr<const Image> &im) = 0;
 
     /*!
      * Called to return an action to bind a \ref PainterSurface
@@ -345,7 +331,7 @@ namespace fastuidraw
      *                    coverage buffer from which to read
      */
     virtual
-    reference_counted_ptr<PainterDraw::Action>
+    reference_counted_ptr<PainterDrawBreakAction>
     bind_coverage_surface(const reference_counted_ptr<PainterSurface> &cvg_surface) = 0;
 
     /*!
@@ -404,13 +390,14 @@ namespace fastuidraw
     mark_as_free(void);
 
     /*!
-     * To be optionally implemented by a derived class to
-     * perform any caching or other operations when \ref
-     * Painter has Painter::begin() called.
+     * To be implemented by a derived class to perform any caching
+     * or other operations when \ref Painter has Painter::begin()
+     * and to return the number of external texture slots the
+     * PainterBackend supports.
      */
     virtual
-    void
-    on_painter_begin(void) {}
+    unsigned int
+    on_painter_begin(void) = 0;
 
   protected:
     /*!

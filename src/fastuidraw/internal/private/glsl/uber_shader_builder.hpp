@@ -25,6 +25,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_custom_brush_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -165,6 +166,18 @@ stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemCoverageShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
                         const AliasVaryingLocation &datum);
+
+void
+stream_uber_brush_vert_shader(bool use_switch, ShaderSource &vert,
+                              c_array<const reference_counted_ptr<PainterCustomBrushShaderGLSL> > brush_shaders,
+                              const UberShaderVaryings &declare_varyings,
+                              const AliasVaryingLocation &datum);
+
+void
+stream_uber_brush_frag_shader(bool use_switch, ShaderSource &frag,
+                              c_array<const reference_counted_ptr<PainterCustomBrushShaderGLSL> > brush_shaders,
+                              const UberShaderVaryings &declare_varyings,
+                              const AliasVaryingLocation &datum);
 
 void
 stream_uber_blend_shader(bool use_switch, ShaderSource &frag,

@@ -15,10 +15,12 @@ include $(dir)/Rules.mk
 
 FASTUIDRAW_SOURCES += $(call filelist, fill_rule.cpp \
 	painter_packed_value.cpp \
-	painter_brush.cpp painter_stroke_params.cpp \
+	painter_brush.cpp \
+	painter_stroke_params.cpp \
 	painter_dashed_stroke_params.cpp \
 	painter.cpp painter_enums.cpp \
 	painter_shader_data.cpp \
+	painter_custom_brush_shader_data.cpp \
 	shader_filled_path.cpp)
 
 # Begin standard footer

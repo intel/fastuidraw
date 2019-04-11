@@ -1485,7 +1485,7 @@ namespace fastuidraw
      * \param action action to execute within a draw-stream.
      */
     void
-    queue_action(const reference_counted_ptr<const PainterDraw::Action> &action);
+    queue_action(const reference_counted_ptr<const PainterDrawBreakAction> &action);
 
     /*!
      * Returns a stat on how much data the Packer has

@@ -27,6 +27,7 @@
 #include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 #include <fastuidraw/painter/backend/painter_shader_group.hpp>
 #include <fastuidraw/painter/backend/painter_surface.hpp>
+#include <fastuidraw/painter/backend/painter_draw_break_action.hpp>
 
 namespace fastuidraw
 {
@@ -90,43 +91,6 @@ namespace fastuidraw
     private:
       friend class PainterDraw;
       void *m_d;
-    };
-
-    /*!
-     * An \ref APIBase is a common base class that is used to pass
-     * graphics API specific data/environment. For example, for
-     * API's such as Vulkan or Metal it can be used to pass around
-     * the command buffer to which a backend for those API's is
-     * adding commands.
-     */
-    class APIBase
-    {
-    public:
-      virtual
-      ~APIBase()
-      {}
-    };
-
-    /*!\brief
-     * An \ref Action represents an action to be executed
-     * between two indices to be fed the the GPU; an Action
-     * will imply an draw break in the underlying 3D API.
-     */
-    class Action:public reference_counted<Action>::concurrent
-    {
-    public:
-      /*!
-       * To be implemented by a derived class to execute
-       * the action and to return what portions of the
-       * GPU state are made dirty by the action.
-       * \param api_base APIBase object active when the Action
-       *                 is called, some backends may make this
-       *                 value nullptr (for example the GL/GLES
-       *                 backends have this as nullptr).
-       */
-      virtual
-      gpu_dirty_state
-      execute(APIBase *api_base) const = 0;
     };
 
     /*!
@@ -199,7 +163,7 @@ namespace fastuidraw
      */
     virtual
     bool
-    draw_break(const reference_counted_ptr<const Action> &action,
+    draw_break(const reference_counted_ptr<const PainterDrawBreakAction> &action,
                unsigned int indices_written) = 0;
 
     /*!

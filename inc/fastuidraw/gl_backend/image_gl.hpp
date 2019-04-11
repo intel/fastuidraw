@@ -279,7 +279,7 @@ namespace gl
        * index and draw buffers that are sent to the GL/GLES
        * API at Painter::end(), thus if one wants to modify
        * the texture within a Painter::begin() / Painter::end()
-       * pair, one must modify it from a PainterDraw::Action
+       * pair, one must modify it from a PainterDrawBreakAction
        * so that the texture is consumed by the gfx API
        * before it is modified.
        */

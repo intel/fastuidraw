@@ -46,7 +46,16 @@ namespace fastuidraw
          * being drawing is an occluder thus the color
          * computation from the brush and item can be skipped.
          */
-        drawing_occluder = ~0u
+        drawing_occluder = ~0u,
+
+        /*!
+         * Bit mask (with only the leading bit up). If the value
+         * of \ref m_brush_shader bitwise anded with this value
+         * is non-zero, it indicates that the brush is realized
+         * by a PainterBrush. If the bitwise and value is zero,
+         * then it is realized by a \ref PainterCustomBrushShader.
+         */
+        fixed_function_brush_shader = (1u << 31u),
       };
 
     /*!
@@ -174,7 +183,11 @@ namespace fastuidraw
     uint32_t m_item_shader;
 
     /*!
-     * The brush shader, i.e. the value of PainterBrush::shader().
+     * The brush shader. If the leading bit is up, the brush
+     * is realized by a \ref PainterBrush and the value is from
+     * \ref PainterBrush::shader(). If the leading bit is down,
+     * then it indicates a custom brush implemented via a \ref
+     * PainterCustomBrushShader.
      */
     uint32_t m_brush_shader;
 

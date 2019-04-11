@@ -18,11 +18,13 @@
 
 #pragma once
 
+#include <fastuidraw/painter/backend/painter_backend.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
+#include <fastuidraw/gl_backend/painter_surface_gl.hpp>
 
 namespace fastuidraw
 {
@@ -219,6 +221,20 @@ namespace fastuidraw
          */
         ConfigurationGL&
         clipping_type(enum clipping_type_t);
+
+        /*!
+         * Returns the number of external textures (realized as
+         * sampler2D uniforms) the uber-shader is to have.
+         */
+        unsigned int
+        number_external_textures(void) const;
+
+        /*!
+         * Set the value returned by number_external_textures(void) const.
+         * Default value is 8.
+         */
+        ConfigurationGL&
+        number_external_textures(unsigned int);
 
         /*!
          * If true, use switch() statements in uber vertex shader,
@@ -477,116 +493,6 @@ namespace fastuidraw
       };
 
       /*!
-       * A SurfaceGL is the implementatin of \ref PainterSurface
-       * for the GL backend. A SurfaceGL must only be used with at most
-       * one GL context (even GL contexts in the same share group cannot
-       * shader SurfaceGL objects).
-       */
-      class SurfaceGL:public PainterSurface
-      {
-      public:
-        /*!
-         * Ctor. Creates and uses a backing color texture.
-         * The viewport() is initialized to be exactly the
-         * entire backing store.
-         * \param dims the width and height of the SurfaceGL
-         * \param render_type the render type of the surface (i.e.
-         *                    is it a color buffer or deferred
-         *                    coverage buffer)
-         */
-        explicit
-        SurfaceGL(ivec2 dims,
-                  enum render_type_t render_type = color_buffer_type);
-
-        /*!
-         * Ctor. Use the passed GL texture to which to render
-         * content; the gl_texture must have as its texture
-         * target GL_TEXTURE_2D and must already have its
-         * backing store allocated (i.e. glTexImage or
-         * glTexStorage has been called on the texture). The
-         * texture object's ownership is NOT passed to the
-         * SurfaceGL, the caller is still responible to delete
-         * the texture (with GL) and the texture must not be
-         * deleted (or have its backing store changed via
-         * glTexImage) until the SurfaceGL is deleted. The
-         * viewport() is initialized to be exactly the entire
-         * backing store.
-         * \param dims width and height of the GL texture
-         * \param gl_texture GL name of texture
-         * \param render_type the render type of the surface (i.e.
-         *                    is it a color buffer or deferred
-         *                    coverage buffer)
-         */
-        explicit
-        SurfaceGL(ivec2 dims, GLuint gl_texture,
-                  enum render_type_t render_type = color_buffer_type);
-
-        ~SurfaceGL();
-
-        /*!
-         * Returns the GL name of the texture backing
-         * the color buffer of the SurfaceGL.
-         */
-        GLuint
-        texture(void) const;
-
-        /*!
-         * Blit the SurfaceGL color buffer to the FBO
-         * currently bound to GL_DRAW_FRAMEBUFFER.
-         * \param src source from this SurfaceGL to which to bit
-         * \param dst destination in FBO to which to blit
-         * \param filter GL filter to apply to blit operation
-         */
-        void
-        blit_surface(const Viewport &src,
-                     const Viewport &dst,
-                     GLenum filter = GL_NEAREST) const;
-
-        /*!
-         * Provided as a convenience, equivalent to
-         * \code
-         * PainterBackend::Viewport vw(0, 0, dimensions().x(), dimensions.y());
-         * blit_surface(vw, vw, filter);
-         * \endcode
-         * \param filter GL filter to apply to blit operation
-         */
-        void
-        blit_surface(GLenum filter = GL_NEAREST) const;
-
-        virtual
-        reference_counted_ptr<const Image>
-        image(const reference_counted_ptr<ImageAtlas> &atlas) const override final;
-
-        virtual
-        const Viewport&
-        viewport(void) const override final;
-
-        virtual
-        void
-        viewport(const Viewport &vwp) override final;
-
-        virtual
-        const vec4&
-        clear_color(void) const override final;
-
-        virtual
-        void
-        clear_color(const vec4&) override final;
-
-        virtual
-        ivec2
-        dimensions(void) const override final;
-
-        virtual
-        enum render_type_t
-        render_type(void) const override final;
-
-      private:
-        friend class PainterBackendGL;
-        void *m_d;
-      };
-
-      /*!
        * Ctor. Create a PainterBackendGL configured via a ConfigurationGL
        * value. The configuration of the created PainterBackendGL will be
        * adjusted according to the functionaliy of the currentl current GL
@@ -675,11 +581,12 @@ namespace fastuidraw
       on_post_draw(void) override final;
 
       virtual
-      reference_counted_ptr<PainterDraw::Action>
-      bind_image(const reference_counted_ptr<const Image> &im) override final;
+      reference_counted_ptr<PainterDrawBreakAction>
+      bind_image(unsigned int slot,
+                 const reference_counted_ptr<const Image> &im) override final;
 
       virtual
-      reference_counted_ptr<PainterDraw::Action>
+      reference_counted_ptr<PainterDrawBreakAction>
       bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface) override final;
 
       virtual
@@ -692,7 +599,7 @@ namespace fastuidraw
                      enum PainterSurface::render_type_t render_type) override final;
 
       virtual
-      void
+      unsigned int
       on_painter_begin(void) override final;
 
       /*!

@@ -8,9 +8,6 @@ d		:= $(dir)
 dir := $(d)/glyph
 include $(dir)/Rules.mk
 
-dir := $(d)/brush
-include $(dir)/Rules.mk
-
 dir := $(d)/blend
 include $(dir)/Rules.mk
 
@@ -39,7 +36,9 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_painter_fill.vert.glsl.resource_string \
 	fastuidraw_painter_fill.frag.glsl.resource_string \
 	fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string \
-	fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string)
+	fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string \
+	fastuidraw_painter_brush.vert.glsl.resource_string \
+	fastuidraw_painter_brush.frag.glsl.resource_string)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

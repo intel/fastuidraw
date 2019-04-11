@@ -49,24 +49,24 @@
 
 namespace
 {
-  class ImageBarrier:public fastuidraw::PainterDraw::Action
+  class ImageBarrier:public fastuidraw::PainterDrawBreakAction
   {
   public:
     virtual
     fastuidraw::gpu_dirty_state
-    execute(fastuidraw::PainterDraw::APIBase*) const
+    execute(fastuidraw::PainterBackend*) const
     {
       fastuidraw_glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       return fastuidraw::gpu_dirty_state();
     }
   };
 
-  class ImageBarrierByRegion:public fastuidraw::PainterDraw::Action
+  class ImageBarrierByRegion:public fastuidraw::PainterDrawBreakAction
   {
   public:
     virtual
     fastuidraw::gpu_dirty_state
-    execute(fastuidraw::PainterDraw::APIBase*) const
+    execute(fastuidraw::PainterBackend*) const
     {
       fastuidraw_glMemoryBarrierByRegion(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       return fastuidraw::gpu_dirty_state();
@@ -206,7 +206,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> m_pool;
     fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
-    GLuint m_current_external_texture;
+    std::vector<GLuint> m_current_external_texture;
     GLuint m_current_coverage_buffer_texture;
     BindingPoints m_binding_points;
     DrawState m_draw_state;
@@ -217,15 +217,17 @@ namespace
     fastuidraw::gl::PainterBackendGL *m_p;
   };
 
-  class TextureImageBindAction:public fastuidraw::PainterDraw::Action
+  class TextureImageBindAction:public fastuidraw::PainterDrawBreakAction
   {
   public:
     typedef fastuidraw::gl::ImageAtlasGL::TextureImage TextureImage;
 
-    TextureImageBindAction(const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &im,
+    TextureImageBindAction(unsigned int slot,
+                           const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &im,
                            PainterBackendGLPrivate *p):
       m_p(p),
-      m_texture_unit(p->m_binding_points.m_external_texture_binding)
+      m_slot(slot),
+      m_texture_unit(slot + p->m_binding_points.m_external_texture_binding)
     {
       FASTUIDRAWassert(im);
       FASTUIDRAWassert(im.dynamic_cast_ptr<const TextureImage>());
@@ -234,7 +236,7 @@ namespace
 
     virtual
     fastuidraw::gpu_dirty_state
-    execute(fastuidraw::PainterDraw::APIBase*) const
+    execute(fastuidraw::PainterBackend*) const
     {
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_texture_unit);
       fastuidraw_glBindTexture(GL_TEXTURE_2D, m_image->texture());
@@ -244,7 +246,7 @@ namespace
        * the knowledge of what is the external texture
        * so that it an correctly restore its state.
        */
-      m_p->m_current_external_texture = m_image->texture();
+      m_p->m_current_external_texture[m_slot] = m_image->texture();
 
       /* we do not regard changing the texture unit
        * as changing the GPU texture state because the
@@ -257,10 +259,10 @@ namespace
   private:
     fastuidraw::reference_counted_ptr<const TextureImage> m_image;
     PainterBackendGLPrivate *m_p;
-    unsigned int m_texture_unit;
+    unsigned int m_slot, m_texture_unit;
   };
 
-  class CoverageTextureBindAction:public fastuidraw::PainterDraw::Action
+  class CoverageTextureBindAction:public fastuidraw::PainterDrawBreakAction
   {
   public:
     typedef fastuidraw::gl::ImageAtlasGL::TextureImage TextureImage;
@@ -277,7 +279,7 @@ namespace
 
     virtual
     fastuidraw::gpu_dirty_state
-    execute(fastuidraw::PainterDraw::APIBase*) const
+    execute(fastuidraw::PainterBackend*) const
     {
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_texture_unit);
       fastuidraw_glBindTexture(GL_TEXTURE_2D, m_image->texture());
@@ -312,19 +314,20 @@ namespace
 
     DrawEntry(const fastuidraw::BlendMode &mode);
 
-    DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action);
+    DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawBreakAction> &action);
 
     void
     add_entry(GLsizei count, const void *offset);
 
     void
-    draw(PainterBackendGLPrivate *pr, const fastuidraw::gl::detail::painter_vao &vao,
-         DrawState &st) const;
+    draw(PainterBackendGLPrivate *pr,
+         const fastuidraw::gl::detail::painter_vao &vao,
+         DrawState *st) const;
 
   private:
     bool m_set_blend;
     fastuidraw::BlendMode m_blend_mode;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_action;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawBreakAction> m_action;
 
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
@@ -355,7 +358,7 @@ namespace
 
     virtual
     bool
-    draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
+    draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawBreakAction> &action,
                unsigned int indices_written);
 
     virtual
@@ -403,6 +406,7 @@ namespace
       m_number_pools(3),
       m_break_on_shader_change(false),
       m_clipping_type(fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance),
+      m_number_external_textures(8),
       /* on Mesa/i965 using switch statement gives much slower
        * performance than using if/else chain.
        */
@@ -429,6 +433,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
     enum fastuidraw::gl::PainterBackendGL::clipping_type_t m_clipping_type;
+    unsigned int m_number_external_textures;
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
@@ -630,7 +635,7 @@ DrawEntry(const fastuidraw::BlendMode &mode):
 }
 
 DrawEntry::
-DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action):
+DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawBreakAction> &action):
   m_set_blend(false),
   m_action(action),
   m_new_program(nullptr),
@@ -650,7 +655,7 @@ void
 DrawEntry::
 draw(PainterBackendGLPrivate *pr,
      const fastuidraw::gl::detail::painter_vao &vao,
-     DrawState &st) const
+     DrawState *st) const
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
@@ -664,29 +669,29 @@ draw(PainterBackendGLPrivate *pr,
        * and rebind it after the action.
        */
       fastuidraw_glBindVertexArray(0);
-      flags |= m_action->execute(nullptr);
+      flags |= m_action->execute(pr->m_p);
       fastuidraw_glBindVertexArray(vao.m_vao);
     }
 
   if (m_set_blend)
     {
-      st.current_blend_mode(&m_blend_mode);
+      st->current_blend_mode(&m_blend_mode);
       flags |= gpu_dirty_state::blend_mode;
     }
 
-  if (m_new_program && st.current_program() != m_new_program)
+  if (m_new_program && st->current_program() != m_new_program)
     {
-      st.current_program(m_new_program);
+      st->current_program(m_new_program);
       flags |= gpu_dirty_state::shader;
     }
 
-  if (m_blend_type != PainterBlendShader::number_types && st.blend_type() != m_blend_type)
+  if (m_blend_type != PainterBlendShader::number_types && st->blend_type() != m_blend_type)
     {
-      st.blend_type(m_blend_type);
+      st->blend_type(m_blend_type);
       flags |= gpu_dirty_state::blend_mode;
     }
 
-  st.restore_gl_state(vao, pr, flags);
+  st->restore_gl_state(vao, pr, flags);
 
   if (m_counts.empty())
     {
@@ -774,7 +779,7 @@ DrawCommand(const fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::pain
 
 bool
 DrawCommand::
-draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
+draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawBreakAction> &action,
            unsigned int indices_written)
 {
   bool return_value(false);
@@ -910,7 +915,7 @@ draw(void) const
 
   for(const DrawEntry &entry : m_draws)
     {
-      entry.draw(m_pr, m_vao, m_pr->m_draw_state);
+      entry.draw(m_pr, m_vao, &m_pr->m_draw_state);
     }
   fastuidraw_glBindVertexArray(0);
 }
@@ -1009,6 +1014,8 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
       m_choose_uber_program[false] = m_choose_uber_program[true] = PainterBackendGL::program_all;
     }
 
+  unsigned int num_ext(m_reg_gl->uber_shader_builder_params().number_external_textures());
+  m_current_external_texture.resize(num_ext, 0u);
   m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(),
                                           m_reg_gl->tex_buffer_support(),
                                           m_binding_points.m_data_store_buffer_binding);
@@ -1064,6 +1071,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     .z_coordinate_convention(PainterBackendGL::z_minus_1_to_1)
     .vert_shader_use_switch(params.vert_shader_use_switch())
     .frag_shader_use_switch(params.frag_shader_use_switch())
+    .number_external_textures(params.number_external_textures())
     .blend_shader_use_switch(params.blend_shader_use_switch())
     .data_store_backing(params.data_store_backing())
     .data_blocks_per_store_buffer(params.data_blocks_per_store_buffer())
@@ -1294,13 +1302,18 @@ set_gl_state(RenderTargetState prev_state,
       fastuidraw_glBindSampler(m_binding_points.m_colorstop_atlas_binding, 0);
       fastuidraw_glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
 
-      fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_external_texture_binding);
-      fastuidraw_glBindTexture(GL_TEXTURE_2D, m_current_external_texture);
-      fastuidraw_glBindSampler(m_binding_points.m_external_texture_binding, 0);
+      for (unsigned int i = 0, endi = m_current_external_texture.size(); i < endi; ++i)
+        {
+          fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_external_texture_binding + i);
+          fastuidraw_glBindTexture(GL_TEXTURE_2D, m_current_external_texture[i]);
+          fastuidraw_glBindSampler(m_binding_points.m_external_texture_binding + i, 0);
+        }
 
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_coverage_buffer_texture_binding);
       fastuidraw_glBindTexture(GL_TEXTURE_2D, m_current_coverage_buffer_texture);
       fastuidraw_glBindSampler(m_binding_points.m_coverage_buffer_texture_binding, 0);
+
+      /* QUESTION: should we restore the bindings of all of the externals? */
     }
 
   if (v & gpu_dirty_state::constant_buffers)
@@ -1346,21 +1359,21 @@ set_gl_state(RenderTargetState prev_state,
 }
 
 ///////////////////////////////////////////////
-// fastuidraw::gl::PainterBackendGL::SurfaceGL methods
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+// fastuidraw::gl::SurfaceGL methods
+fastuidraw::gl::SurfaceGL::
 SurfaceGL(ivec2 dims, enum PainterSurface::render_type_t render_type)
 {
   m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, 0u, dims);
 }
 
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 SurfaceGL(ivec2 dims, GLuint color_buffer_texture,
           enum PainterSurface::render_type_t render_type)
 {
   m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, color_buffer_texture, dims);
 }
 
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 ~SurfaceGL()
 {
   detail::SurfaceGLPrivate *d;
@@ -1369,7 +1382,7 @@ fastuidraw::gl::PainterBackendGL::SurfaceGL::
 }
 
 GLuint
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 texture(void) const
 {
   detail::SurfaceGLPrivate *d;
@@ -1378,7 +1391,7 @@ texture(void) const
 }
 
 void
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 blit_surface(const Viewport &src,
              const Viewport &dst,
              GLenum filter) const
@@ -1402,7 +1415,7 @@ blit_surface(const Viewport &src,
 }
 
 void
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 blit_surface(GLenum filter) const
 {
   ivec2 dims(dimensions());
@@ -1411,7 +1424,7 @@ blit_surface(GLenum filter) const
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::Image>
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 image(const reference_counted_ptr<ImageAtlas> &atlas) const
 {
   detail::SurfaceGLPrivate *d;
@@ -1420,7 +1433,7 @@ image(const reference_counted_ptr<ImageAtlas> &atlas) const
 }
 
 void
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 viewport(const Viewport &vwp)
 {
   detail::SurfaceGLPrivate *d;
@@ -1429,7 +1442,7 @@ viewport(const Viewport &vwp)
 }
 
 void
-fastuidraw::gl::PainterBackendGL::SurfaceGL::
+fastuidraw::gl::SurfaceGL::
 clear_color(const vec4 &c)
 {
   detail::SurfaceGLPrivate *d;
@@ -1437,16 +1450,16 @@ clear_color(const vec4 &c)
   d->m_clear_color = c;
 }
 
-get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
+get_implement(fastuidraw::gl::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               fastuidraw::ivec2, dimensions)
-get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
+get_implement(fastuidraw::gl::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               const fastuidraw::PainterSurface::Viewport&, viewport)
-get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
+get_implement(fastuidraw::gl::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               const fastuidraw::vec4&, clear_color)
-get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL,
+get_implement(fastuidraw::gl::SurfaceGL,
               fastuidraw::gl::detail::SurfaceGLPrivate,
               enum fastuidraw::PainterSurface::render_type_t, render_type)
 
@@ -1623,6 +1636,7 @@ adjust_for_context(const ContextProperties &ctx)
   ConfigurationGLPrivate *d;
   enum detail::tex_buffer_support_t tex_buffer_support;
   enum interlock_type_t interlock_type;
+  unsigned int num_textures_used(0);
 
   d = static_cast<ConfigurationGLPrivate*>(m_d);
   interlock_type = compute_interlock_type(ctx);
@@ -1653,6 +1667,7 @@ adjust_for_context(const ContextProperties &ctx)
         max_texture_buffer_size = context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
         d->m_data_blocks_per_store_buffer = t_min(max_texture_buffer_size,
                                                   d->m_data_blocks_per_store_buffer);
+        ++num_textures_used;
       }
       break;
 
@@ -1735,6 +1750,33 @@ adjust_for_context(const ContextProperties &ctx)
       d->m_separate_program_for_discard = false;
     }
 
+  /* Increment number textures used for:
+   *   - colorStopAtlas
+   *   - imageAtlasLinear
+   *   - imageAtlasNearest
+   *   - imageAtlasIndex
+   *   - deferredCoverageBuffer
+   *   - glyphAtlas
+   *   - glyphAtlasFP16x2
+   */
+  num_textures_used += 7;
+
+  /* adjust m_number_external_textures taking
+   * into account the number of used texture
+   * slots against how many the GL implementation
+   * supports.
+   */
+  unsigned int num_slots_left(context_get<GLint>(GL_MAX_TEXTURE_IMAGE_UNITS));
+
+  // t_max() prevent unsigned underflow
+  num_slots_left = t_max(num_textures_used, num_slots_left) - num_textures_used;
+  d->m_number_external_textures = t_min(d->m_number_external_textures, num_slots_left);
+
+  /* Don't use up all the remaining texture units, max-out at 16
+   * external textures
+   */
+  d->m_number_external_textures = t_min(d->m_number_external_textures, 16u);
+
   return *this;
 }
 
@@ -1789,6 +1831,8 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
                  const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterBackendGL::clipping_type_t, clipping_type)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 unsigned int, number_external_textures)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, vert_shader_use_switch)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
@@ -1962,7 +2006,7 @@ on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
   GLuint fbo;
 
   d->m_uniform_ubo_ready = false;
-  d->m_current_external_texture = 0;
+  std::fill(d->m_current_external_texture.begin(), d->m_current_external_texture.end(), 0);
   d->m_current_coverage_buffer_texture = 0;
   fbo = d->clear_buffers_of_current_surface(begin_new_target, clear_color_buffer);
   d->m_draw_state.on_pre_draw(d, fbo);
@@ -2048,9 +2092,10 @@ on_post_draw(void)
   d->m_pool->next_pool();
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::Action>
+fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawBreakAction>
 fastuidraw::gl::PainterBackendGL::
-bind_image(const reference_counted_ptr<const Image> &im)
+bind_image(unsigned int slot,
+           const reference_counted_ptr<const Image> &im)
 {
   PainterBackendGLPrivate *d;
 
@@ -2059,10 +2104,10 @@ bind_image(const reference_counted_ptr<const Image> &im)
    * to the image and retrieve the action instead.
    */
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return FASTUIDRAWnew TextureImageBindAction(im, d);
+  return FASTUIDRAWnew TextureImageBindAction(slot, im, d);
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::Action>
+fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawBreakAction>
 fastuidraw::gl::PainterBackendGL::
 bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface)
 {
@@ -2097,7 +2142,7 @@ create_surface(ivec2 dims,
   return S;
 }
 
-void
+unsigned int
 fastuidraw::gl::PainterBackendGL::
 on_painter_begin(void)
 {
@@ -2108,6 +2153,7 @@ on_painter_begin(void)
     {
       d->m_cached_item_programs->reset();
     }
+  return d->m_current_external_texture.size();
 }
 
 #define binding_info_get(X)                             \

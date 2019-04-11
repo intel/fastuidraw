@@ -81,14 +81,14 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
   return m_image;
 }
 
-fastuidraw::gl::PainterBackendGL::SurfaceGL*
+fastuidraw::gl::SurfaceGL*
 fastuidraw::gl::detail::SurfaceGLPrivate::
 surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> &surface)
 {
-  PainterBackendGL::SurfaceGL *q;
+  SurfaceGL *q;
 
-  FASTUIDRAWassert(dynamic_cast<PainterBackendGL::SurfaceGL*>(surface.get()));
-  q = static_cast<PainterBackendGL::SurfaceGL*>(surface.get());
+  FASTUIDRAWassert(dynamic_cast<SurfaceGL*>(surface.get()));
+  q = static_cast<SurfaceGL*>(surface.get());
   return q;
 }
 

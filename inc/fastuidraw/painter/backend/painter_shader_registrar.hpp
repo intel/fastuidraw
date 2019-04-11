@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
+#include <fastuidraw/painter/shader/painter_custom_brush_shader.hpp>
 #include <fastuidraw/util/mutex.hpp>
 
 namespace fastuidraw
@@ -72,6 +73,15 @@ namespace fastuidraw
      */
     void
     register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
+
+    /*!
+     * Registers a blend shader for use; registring a shader more than
+     * once to the SAME PainterShaderRegistrar has no effect. However,
+     * registering a shader to multiple PainterShaderRegistrar objects
+     * is an error.
+     */
+    void
+    register_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader);
 
     /*!
      * Provided as a conveniance, equivalent to registering
@@ -222,6 +232,34 @@ namespace fastuidraw
     virtual
     uint32_t
     compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader) = 0;
+
+    /*!
+     * To be implemented by a derived class to take into use
+     * a blend shader. Typically this means inserting the
+     * the blend shader into a large uber shader. Returns
+     * the PainterShader::Tag to be used by the backend
+     * to identify the shader. An implementation will never
+     * be passed an object for which PainterShader::parent()
+     * is non-nullptr. In addition, mutex() will be locked on
+     * entry.
+     * \param shader shader whose Tag is to be computed
+     */
+    virtual
+    PainterShader::Tag
+    absorb_custom_brush_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader) = 0;
+
+    /*!
+     * To be implemented by a derived class to compute the PainterShader::group()
+     * of a sub-shader. When called, the value of the shader's PainterShader::ID()
+     * and PainterShader::registered_to() are already set correctly. In addition,
+     * the value of PainterShader::group() is initialized to the same value as
+     * that of the PainterBlendShader::parent(). In addition, mutex() will be
+     * locked on entry.
+     * \param shader shader whose group is to be computed
+     */
+    virtual
+    uint32_t
+    compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterCustomBrushShader> &shader) = 0;
 
   private:
     void *m_d;

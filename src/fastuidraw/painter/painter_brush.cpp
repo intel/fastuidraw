@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <fastuidraw/painter/painter_brush.hpp>
+#include <fastuidraw/painter/backend/painter_header.hpp>
 
 ////////////////////////////////////
 // fastuidraw::PainterBrush methods
@@ -276,7 +277,7 @@ shader(void) const
        */
       return_value = 0;
     }
-  return return_value;
+  return return_value | PainterHeader::fixed_function_brush_shader;
 }
 
 fastuidraw::PainterBrush&

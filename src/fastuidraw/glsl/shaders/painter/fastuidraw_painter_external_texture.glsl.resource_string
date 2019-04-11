@@ -19,17 +19,35 @@
 vec4
 fastuidraw_nearest_filter_external_texture(in vec2 texel_coord, in float lod)
 {
-  return fastuidraw_nearest_filter_texture(fastuidraw_external_texture, texel_coord, lod);
+  return fastuidraw_nearest_filter_texture(fastuidraw_external_texture[0], texel_coord, lod);
 }
 
 vec4
 fastuidraw_linear_filter_external_texture(in vec2 texel_coord, in float lod)
 {
-  return fastuidraw_linear_filter_texture(fastuidraw_external_texture, texel_coord, lod);
+  return fastuidraw_linear_filter_texture(fastuidraw_external_texture[0], texel_coord, lod);
 }
 
 vec4
 fastuidraw_cubic_filter_external_texture(in vec2 texel_coord)
 {
-  return fastuidraw_cubic_filter_texture(fastuidraw_external_texture, texel_coord);
+  return fastuidraw_cubic_filter_texture(fastuidraw_external_texture[0], texel_coord);
+}
+
+vec4
+fastuidraw_nearest_filter_external_texture(in int which, in vec2 texel_coord, in float lod)
+{
+  return fastuidraw_nearest_filter_texture(fastuidraw_external_texture[which], texel_coord, lod);
+}
+
+vec4
+fastuidraw_linear_filter_external_texture(in int which, in vec2 texel_coord, in float lod)
+{
+  return fastuidraw_linear_filter_texture(fastuidraw_external_texture[which], texel_coord, lod);
+}
+
+vec4
+fastuidraw_cubic_filter_external_texture(in int which, in vec2 texel_coord)
+{
+  return fastuidraw_cubic_filter_texture(fastuidraw_external_texture[which], texel_coord);
 }

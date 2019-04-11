@@ -51,11 +51,11 @@ namespace fastuidraw
     item_group(void) const;
 
     /*!
-     * The shading ID as returned by PainterBrush::shader()
-     * of the active brush.
+     * The group (see PainterShader::group())
+     * of the active brush shader.
      */
     uint32_t
-    brush(void) const;
+    brush_group(void) const;
 
     /*!
      * The \ref BlendMode value for the active blend shader.

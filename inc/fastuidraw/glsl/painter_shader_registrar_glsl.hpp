@@ -525,6 +525,20 @@ namespace fastuidraw
         use_uvec2_for_bindless_handle(bool);
 
         /*!
+         * Returns the number of external textures (realized as
+         * sampler2D uniforms) the uber-shader is to have.
+         */
+        unsigned int
+        number_external_textures(void) const;
+
+        /*!
+         * Set the value returned by number_external_textures(void) const.
+         * Default value is 1.
+         */
+        UberShaderParams&
+        number_external_textures(unsigned int);
+
+        /*!
          * Returns the binding point for ColorStopAtlas::backing_store()
          * derived from the current value of this UberShaderParams.
          * The data type for the uniform is decided from the value
@@ -583,11 +597,24 @@ namespace fastuidraw
         data_store_buffer_binding(void) const;
 
         /*!
-         * Returns the binding point of an external texture
+         * Returns the binding point of the first external texture
+         * in their binding points; subsequence external textures
+         * immediately follow the 1st.
          * derived from the current value of this UberShaderParams.
          */
         int
         external_texture_binding(void) const;
+
+        /*!
+         * Returns the binding point of the named external texture
+         * derived from the current value of this UberShaderParams.
+         */
+        int
+        external_texture_binding(unsigned int v) const
+        {
+          FASTUIDRAWassert(v < number_external_textures());
+          return external_texture_binding() + v;
+        }
 
         /*!
          * Returns the binding point of the deferred coverage
@@ -1002,7 +1029,7 @@ namespace fastuidraw
 
       /*!
        * To be optionally implemented by a derived class to
-       * compute the shader group of a PainterItemShader.
+       * compute the shader group of a PainterItemCoverageShader.
        * The passed shader may or may not be a sub-shader.
        * The mutex() is locked for the duration of the function.
        * Default implementation is to return 0.
@@ -1019,7 +1046,7 @@ namespace fastuidraw
 
       /*!
        * To be optionally implemented by a derived class to
-       * compute the shader group of a PainterItemShader.
+       * compute the shader group of a PainterBlendShader.
        * The passed shader may or may not be a sub-shader.
        * The mutex() is locked for the duration of the function.
        * Default implementation is to return 0.
@@ -1032,7 +1059,24 @@ namespace fastuidraw
       virtual
       uint32_t
       compute_blend_shader_group(PainterShader::Tag tag,
-                                     const reference_counted_ptr<PainterBlendShader> &shader);
+                                 const reference_counted_ptr<PainterBlendShader> &shader);
+
+      /*!
+       * To be optionally implemented by a derived class to
+       * compute the shader group of a PainterCustomBrushShader.
+       * The passed shader may or may not be a sub-shader.
+       * The mutex() is locked for the duration of the function.
+       * Default implementation is to return 0.
+       * \param tag The value of PainterShader::tag() that PainterShaderRegistrarGLSL
+       *            will assign to the shader. Do NOT access PainterShader::tag(),
+       *            PainterShader::ID() or PainterShader::group() as they are
+       *            not yet assgined.
+       * \param shader shader whose group is to be computed
+       */
+      virtual
+      uint32_t
+      compute_custom_brush_shader_group(PainterShader::Tag tag,
+                                        const reference_counted_ptr<PainterCustomBrushShader> &shader);
 
       virtual
       PainterShader::Tag
@@ -1057,6 +1101,14 @@ namespace fastuidraw
       virtual
       uint32_t
       compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader) final override;
+
+      virtual
+      PainterShader::Tag
+      absorb_custom_brush_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader) final override;
+
+      virtual
+      uint32_t
+      compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterCustomBrushShader> &shader) final override;
 
     private:
       void *m_d;

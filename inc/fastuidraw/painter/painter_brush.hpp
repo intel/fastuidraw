@@ -1283,8 +1283,8 @@ namespace fastuidraw
     }
 
     /*!
-     * Returns the value of the handle to the
-     * Image that the brush is set to use.
+     * Returns a reference to the Image that the brush is set
+     * to use; if there is no such image, returns nullptr.
      */
     const reference_counted_ptr<const Image>&
     image(void) const
@@ -1293,9 +1293,9 @@ namespace fastuidraw
     }
 
     /*!
-     * Returns the value of the handle to the
-     * Image that the brush is set to use together
-     * with the sub-image of the image used.
+     * Returns a pointer to the Image that the brush is
+     * set to use together with the sub-image of the image
+     * used.
      * \param start location to which to write the min-corner
      *              of the image that is used
      * \param size location to which to write the size of

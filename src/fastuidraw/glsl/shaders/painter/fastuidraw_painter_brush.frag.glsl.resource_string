@@ -143,7 +143,7 @@ fastuidraw_brush_image_of_texture(in sampler2D surface, in vec2 texel_coord, in 
 vec4
 fastuidraw_brush_image_of_external_texture(in vec2 texel_coord, in uint image_filter, in float lod)
 {
-  return fastuidraw_brush_image_of_texture(fastuidraw_external_texture, texel_coord, image_filter, lod);
+  return fastuidraw_brush_image_of_texture(fastuidraw_external_texture[0], texel_coord, image_filter, lod);
 }
 
 #if defined(FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE)
@@ -176,13 +176,19 @@ fastuidraw_brush_image_of_bindless(in vec2 p, in uint image_filter, in float lod
 #endif
 
 vec4
-fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
+fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
+                                              in uint brush_shader_data_location)
 {
+  vec2 p, dpdx, dpdy;
   uint gradient_type;
   vec4 return_value = vec4(fastuidraw_brush_color_x,
                            fastuidraw_brush_color_y,
                            fastuidraw_brush_color_z,
                            fastuidraw_brush_color_w);
+
+  p = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
+  dpdx = dFdx(p);
+  dpdy = dFdy(p);
 
   /* TODO:
    *  have bits in x and y to specify the repeat modes
@@ -191,17 +197,17 @@ fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
    *    - repeat
    *    - mirror-repeat
    */
-  if (fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
+  if ((brush_shader & uint(fastuidraw_brush_repeat_window_mask)) != 0u)
     {
       uint x_spread, y_spread;
 
       x_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_repeat_window_x_spread_type_bit0,
                                          fastuidraw_brush_gradient_type_num_bits,
-                                         fastuidraw_brush_shader);
+                                         brush_shader);
 
       y_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_repeat_window_y_spread_type_bit0,
                                          fastuidraw_brush_gradient_type_num_bits,
-                                         fastuidraw_brush_shader);
+                                         brush_shader);
 
       p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
       p.x = fastuidraw_brush_apply_spread(p.x, fastuidraw_brush_repeat_window_w, x_spread);
@@ -211,7 +217,7 @@ fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 
   gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
                                           fastuidraw_brush_gradient_type_num_bits,
-                                          fastuidraw_brush_shader);
+                                          brush_shader);
 
   if (gradient_type != fastuidraw_brush_no_gradient_type)
     {
@@ -221,7 +227,7 @@ fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
       t = fastuidraw_brush_compute_interpolate(p, gradient_type, good);
       spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_spread_type_bit0,
                                             fastuidraw_brush_spread_type_num_bits,
-                                            fastuidraw_brush_shader);
+                                            brush_shader);
 
       /* NOTE: there is a Mesa/i965 bug where if we change the
        * order of this if/else chain to something different,
@@ -251,7 +257,7 @@ fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
    * pre-multiplied alpha value
    */
   return_value.rgb *= return_value.a;
-  if (fastuidraw_brush_shader_has_image(fastuidraw_brush_shader))
+  if ((brush_shader & uint(fastuidraw_brush_image_mask)) != 0u)
     {
       uint image_filter, image_type, mipmap_max_level;
       vec2 q;
@@ -263,17 +269,17 @@ fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
        */
       q.x = clamp(p.x, 0.0, float(fastuidraw_brush_image_size_x) - 1.0);
       q.y = clamp(p.y, 0.0, float(fastuidraw_brush_image_size_y) - 1.0);
-      image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_type_bit0,
+      image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
                                            fastuidraw_brush_image_filter_num_bits,
-                                           fastuidraw_brush_shader);
+                                           brush_shader);
 
       image_filter = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_filter_bit0,
                                              fastuidraw_brush_image_filter_num_bits,
-                                             fastuidraw_brush_shader);
+                                             brush_shader);
 
-      mipmap_max_level = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_mipmap_bit0,
-                                                 fastuidraw_image_mipmap_num_bits,
-                                                 fastuidraw_brush_shader);
+      mipmap_max_level = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_mipmap_bit0,
+                                                 fastuidraw_brush_image_mipmap_num_bits,
+                                                 brush_shader);
 
       if (mipmap_max_level > 0u)
         {
@@ -287,11 +293,11 @@ fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
           lod = 0.0;
         }
 
-      if (image_type == uint(fastuidraw_image_type_on_atlas))
+      if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
         {
           image_color = fastuidraw_brush_image_of_atlas(q, image_filter, lod);
         }
-      else if (image_type == uint(fastuidraw_image_type_bindless_texture2d))
+      else if (image_type == uint(fastuidraw_brush_image_type_bindless_texture2d))
         {
           image_color = fastuidraw_brush_image_of_bindless(q, image_filter, lod);
         }
@@ -305,7 +311,7 @@ fastuidraw_brush_compute_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
        * image-formats: rgba and premultiplied_rgba with a non-zero
        * value indicateing that the rgb components are pre-multiplied.
        */
-      if ((fastuidraw_brush_shader & fastuidraw_image_format_mask) == 0u)
+      if ((brush_shader & fastuidraw_brush_image_format_mask) == 0u)
         {
           image_color.rgb *= image_color.a;
         }

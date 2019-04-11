@@ -37,13 +37,8 @@ void
 main(void)
 {
   vec4 v = vec4(0.0);
-  vec2 pbrush, pbrush_dx, pbrush_dy;
 
   fastuidraw_apply_clipping();
-  pbrush = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
-  pbrush_dx = dFdx(pbrush);
-  pbrush_dy = dFdy(pbrush);
-
   if (FASTUIDRAW_RUN_ITEM_FRAG_SHADER)
     {
       /* unpack fastuidraw_deferred_buffer_offset_packed to
@@ -70,7 +65,14 @@ main(void)
            */
           vec4 b, c;
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
-          b = fastuidraw_brush_compute_color(pbrush, pbrush_dx, pbrush_dy);
+          if ((fastuidraw_brush_shader & FASTUIDRAW_FIXED_FUNCTION_BRUSH) != 0u)
+            {
+              b = fastuidraw_fixed_function_brush_compute_color(fastuidraw_brush_shader, fastuidraw_brush_shader_data_location);
+            }
+          else
+            {
+              b = fastuidraw_run_custom_brush_frag_shader(fastuidraw_brush_shader, fastuidraw_brush_shader_data_location);
+            }
           v = b * c;
         }
       else

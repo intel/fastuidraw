@@ -16,9 +16,6 @@
  *
  */
 
-
-/////////////////////////////////////////////////////
-// machine generated header from C++ sources
 uint
 fastuidraw_read_stroking_params(in uint location, out fastuidraw_stroking_params p);
 
@@ -40,14 +37,15 @@ void
 fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z,
                            out vec2 brush_p, out vec3 out_clip_p);
 
+void
+fastuidraw_run_custom_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p);
+
+void
+fastuidraw_fixed_function_brush_vert_processing(in fastuidraw_header h, in vec2 brush_p);
+
 #else
 
 void
 fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 out_clip_p);
 
 #endif
-
-///////////////////////////////////////////////////////////////////////
-// routines implemented in .glsl.resource_string files
-void
-fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_header h);

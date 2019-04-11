@@ -48,10 +48,18 @@ namespace
                                      fastuidraw::PainterData &out_value)
   {
     using namespace fastuidraw;
-    if (in_value.m_brush.data().shader() & (PainterBrush::image_mask | PainterBrush::gradient_type_mask))
+    if (in_value.m_brush.custom_shader_brush())
+      {
+        /* TODO: something is needed in PainterCustomShaderBrush interface
+         * to apply shearing to PainterCustomShaderBrushData
+         */
+        return false;
+      }
+
+    if (in_value.m_brush.fixed_function_brush().data().shader() & (PainterBrush::image_mask | PainterBrush::gradient_type_mask))
       {
         out_value = PainterData(in_value);
-        tmp_brush = in_value.m_brush.data();
+        tmp_brush = in_value.m_brush.fixed_function_brush().data();
 
         /* apply the same transformation to the brush
          * as we apply to the Painter.
@@ -1725,6 +1733,7 @@ namespace
     DeferredCoverageBufferStackEntryFactory m_deferred_coverage_stack_entry_factory;
     std::vector<DeferredCoverageBufferStackEntry> m_deferred_coverage_stack;
     std::vector<const fastuidraw::PainterSurface*> m_active_surfaces;
+    unsigned int m_number_external_textures;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterPackedValuePool m_pool;
@@ -2452,7 +2461,7 @@ fetch(unsigned int transparency_depth,
       rect = TB->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
       return_value.m_image = TB->m_image.get();
       return_value.m_packer = TB->m_packer.get();
-      return_value.m_packer->begin(TB->m_surface, true);
+      return_value.m_packer->begin(d->m_number_external_textures, TB->m_surface, true);
     }
 
   FASTUIDRAWassert(return_value.m_image);
@@ -2631,7 +2640,7 @@ fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
 
       rect = TB->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
       return_packer = TB->m_packer.get();
-      return_packer->begin(TB->m_surface, true);
+      return_packer->begin(d->m_number_external_textures, TB->m_surface, true);
       d->m_active_surfaces.push_back(TB->m_surface.get());
     }
 
@@ -2666,6 +2675,7 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_viewport_dimensions(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(0.5f),
+  m_number_external_textures(0),
   m_backend(backend)
 {
   m_backend->mark_as_used();
@@ -4511,11 +4521,11 @@ begin(const reference_counted_ptr<PainterSurface> &surface,
   colorstop_atlas()->lock_resources();
   glyph_atlas()->lock_resources();
 
-  d->m_backend->on_painter_begin();
+  d->m_number_external_textures = d->m_backend->on_painter_begin();
   d->m_viewport = surface->viewport();
   d->m_transparency_stack_entry_factory.begin(*surface);
   d->m_deferred_coverage_stack_entry_factory.begin(*surface);
-  d->m_root_packer->begin(surface, clear_color_buffer);
+  d->m_root_packer->begin(d->m_number_external_textures, surface, clear_color_buffer);
   d->m_active_surfaces.clear();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->m_stats[Painter::num_render_targets] = 1;
@@ -4701,7 +4711,7 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
 
       d->m_root_packer->end();
       d->m_current_z = 1;
-      d->m_root_packer->begin(new_surface, true);
+      d->m_root_packer->begin(d->m_number_external_textures, new_surface, true);
       d->m_deferred_coverage_stack_entry_factory.begin(*new_surface);
       d->m_transparency_stack_entry_factory.begin(*new_surface);
 
@@ -4875,7 +4885,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
 
 void
 fastuidraw::Painter::
-queue_action(const reference_counted_ptr<const PainterDraw::Action> &action)
+queue_action(const reference_counted_ptr<const PainterDrawBreakAction> &action)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);

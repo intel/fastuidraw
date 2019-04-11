@@ -170,16 +170,17 @@ namespace fastuidraw
     remove_callback(const reference_counted_ptr<DataCallBack> &callback);
 
     /*!
-     * Indicate to start drawing. Commands are buffered and not
-     * set to the backend until end() or flush() is called.
-     * All draw commands must be between a begin() / end() pair.
-     * \param surface the \ref PainterSurface to which
-     *                 to render content
-     * \param clear_color_buffer if true, clear the color buffer
-     *                           on the viewport of the surface.
+     * Indicate to start drawing. Commands are buffered and not set to
+     * the backend until end() or flush() is called. All draw commands
+     * must be between a begin() / end() pair.
+     * \param num_external_textures number of external textures the PainterBackend supports
+     * \param surface the \ref PainterSurface to which to render content
+     * \param clear_color_buffer if true, clear the color buffer on the viewport
+     *                           of the surface.
      */
     void
-    begin(const reference_counted_ptr<PainterSurface> &surface,
+    begin(unsigned int num_external_textures,
+          const reference_counted_ptr<PainterSurface> &surface,
           bool clear_color_buffer);
 
     /*!
@@ -209,7 +210,7 @@ namespace fastuidraw
      * \param action action to execute on draw break
      */
     void
-    draw_break(const reference_counted_ptr<const PainterDraw::Action> &action);
+    draw_break(const reference_counted_ptr<const PainterDrawBreakAction> &action);
 
     /*!
      * To be called whenever the coverage surface read source changes.
@@ -374,7 +375,7 @@ namespace fastuidraw
 
     static
     uint32_t
-    brush(const PainterShaderGroup *md);
+    brush_group(const PainterShaderGroup *md);
 
     static
     BlendMode
@@ -435,12 +436,12 @@ namespace fastuidraw
     painter_state_location m_painter_state_location;
     unsigned int m_number_commands;
 
+    std::vector<const Image*> m_binded_images;
     reference_counted_ptr<PainterSurface> m_surface;
     enum PainterSurface::render_type_t m_render_type;
     bool m_clear_color_buffer;
     bool m_begin_new_target;
     std::vector<per_draw_command> m_accumulated_draws;
-    reference_counted_ptr<const Image> m_last_binded_image;
     reference_counted_ptr<PainterSurface> m_last_binded_cvg_image;
 
     Workroom m_work_room;

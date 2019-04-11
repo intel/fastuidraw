@@ -34,9 +34,9 @@ item_group(void) const
 
 uint32_t
 fastuidraw::PainterShaderGroup::
-brush(void) const
+brush_group(void) const
 {
-  return PainterPacker::brush(this);
+  return PainterPacker::brush_group(this);
 }
 
 fastuidraw::BlendMode

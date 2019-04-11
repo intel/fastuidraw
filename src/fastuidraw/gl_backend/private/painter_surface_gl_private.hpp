@@ -33,7 +33,7 @@ public:
   ~SurfaceGLPrivate();
 
   static
-  PainterBackendGL::SurfaceGL*
+  SurfaceGL*
   surface_gl(const reference_counted_ptr<PainterSurface> &surface);
 
   GLuint

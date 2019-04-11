@@ -21,6 +21,7 @@
 
 #include <fastuidraw/painter/shader/painter_item_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
+#include <fastuidraw/glsl/varying_list.hpp>
 
 namespace fastuidraw
 {
@@ -29,116 +30,6 @@ namespace fastuidraw
 /*!\addtogroup GLSL
  * @{
  */
-    /*!
-     * \brief
-     * A varying_list lists all the in's of a frag shader (and
-     * their names) or all the out's of vertex shader.
-     *
-     * A varying for a \ref PainterItemCoverageShaderGLSL, or
-     * \ref PainterItemShaderGLSL is a SCALAR. The varyings of
-     * shaders should -never- be declared in the shader code.
-     * Instead, each varying should be declared in the \ref
-     * varying_list object passed at their ctor. The GLSL module
-     * will share the varyings across different shaders within
-     * the uber-shader. Indeed, the number of varying the uber-shader
-     * has is not the sum of the varyings across all the shaders, but
-     * rather is the maximum number of varyings across the shaders
-     * present in the uber-shader.
-     */
-    class varying_list
-    {
-    public:
-      /*!
-       * \brief
-       * Enumeration to define the interpolation of a varying
-       */
-      enum interpolation_qualifier_t
-        {
-          interpolation_smooth, /*!< corresponds to "smooth" in GLSL */
-          interpolation_flat, /*!< corresponds to "flat" in GLSL */
-          interpolation_noperspective, /*!< corresponds to "noperspective" in GLSL */
-
-          interpolation_number_types,
-        };
-
-      /*!
-       * Ctor.
-       */
-      varying_list(void);
-
-      /*!
-       * Copy ctor.
-       * \param rhs value from which to copy
-       */
-      varying_list(const varying_list &rhs);
-
-      ~varying_list();
-
-      /*!
-       * Assignment operator.
-       * \param rhs value from which to copy
-       */
-      varying_list&
-      operator=(const varying_list &rhs);
-
-      /*!
-       * Swap operation
-       * \param obj object with which to swap
-       */
-      void
-      swap(varying_list &obj);
-
-      /*!
-       * Returns the names of the float varyings of the
-       * specified interpolation type.
-       * \param q interpolation type
-       */
-      c_array<const c_string>
-      floats(enum interpolation_qualifier_t q) const;
-
-      /*!
-       * Returns the names of the uint varyings
-       */
-      c_array<const c_string>
-      uints(void) const;
-
-      /*!
-       * Returns the names of the int varyings
-       */
-      c_array<const c_string>
-      ints(void) const;
-
-      /*!
-       * Add a float varying, equivalent to
-       * \code
-       * set_float_varying(floats(q).size(), pname, q)
-       * \endcode
-       */
-      varying_list&
-      add_float(c_string pname, enum interpolation_qualifier_t q = interpolation_smooth);
-
-      /*!
-       * Add an uint varying, equivalent to
-       * \code
-       * set_uint_varying(uints().size(), pname)
-       * \endcode
-       */
-      varying_list&
-      add_uint(c_string pname);
-
-      /*!
-       * Add an int varying, equivalent to
-       * \code
-       * set_int_varying(ints().size(), pname)
-       * \endcode
-       */
-      varying_list&
-      add_int(c_string pname);
-
-    private:
-      void *m_d;
-    };
-
     /*!
      * \brief
      * A PainterItemCoverageShaderGLSL is a collection of GLSL source code
@@ -155,13 +46,13 @@ namespace fastuidraw
      *                           out vec3 clip_p)
      * \endcode
      * where
-     *  - sub_shader corresponds to PainterItemShader::sub_shader()
+     *  - sub_shader corresponds to PainterItemCoverageShader::sub_shader()
      *  - attrib0 corresponds to PainterAttribute::m_attrib0,
      *  - attrib1 corresponds to PainterAttribute::m_attrib1,
      *  - attrib2 corresponds to PainterAttribute::m_attrib2 and
      *  - shader_data_offset is what block in the data store for
-     *    the data packed by PainterItemShaderData::pack_data()
-     *    of the PainterItemShaderData in the \ref Painter call;
+     *    the data packed by PainterItemCoverageShaderData::pack_data()
+     *    of the PainterItemCoverageShaderData in the \ref Painter call;
      *    use the macro fastuidraw_fetch_data() to read the data.
      *
      * The output clip_p is to hold the clip-coordinate of the vertex.

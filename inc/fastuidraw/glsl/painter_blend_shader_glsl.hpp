@@ -87,8 +87,9 @@ namespace fastuidraw
     public:
       /*!
        * \brief
-       * If one wishes to make use of other \ref PainterItemCoverageShaderGLSL
-       * fastuidraw_gl_vert_main()/fastuidraw_gl_frag_main() of other shaders
+       * If one wishes to make use of other \ref PainterBlendShaderGLSL
+       * fastuidraw_gl_compute_blend_value(), fastuidraw_gl_compute_blend_factors()
+       * or fastuidraw_gl_compute_post_blended_value() routines of other shaders
        * (for example to have a simple shader that adds on to a previous shader),
        * a DependencyList provides the means to do so.
        *
@@ -146,7 +147,7 @@ namespace fastuidraw
        * \param tp blend shader type
        * \param src GLSL code fragment for blend shading
        * \param num_sub_shaders the number of sub-shaders it supports
-       * \param dependencies list of other \ref PainterItemCoverageShaderGLSL
+       * \param dependencies list of other \ref PainterBlendShaderGLSL
        *                     that are used directly.
        */
       PainterBlendShaderGLSL(enum shader_type tp, const ShaderSource &src,
