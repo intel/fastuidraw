@@ -86,11 +86,15 @@ fastuidraw_brush_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
 {
   vec2 image_xy;
   fastuidraw_image_info_type image_info;
+  fastuidraw_image_master_tile_range_type range;
   vec4 image_color;
 
   image_info.num_levels = fastuidraw_brush_image_number_index_lookups;
   image_info.image_texel_size_on_master_index_tile = fastuidraw_brush_image_texel_size_on_master_index_tile;
   image_info.recip_image_texel_size_on_master_index_tile = fastuidraw_brush_recip_image_texel_size_on_master_index_tile;
+
+  range.min_slack = -q * fastuidraw_brush_image_texel_size_on_master_index_tile;
+  range.max_slack = vec2(fastuidraw_brush_image_size_x, fastuidraw_brush_image_size_y) - q;
 
   /* convert from image coordinates to index-tile coordinates */
   image_xy = q * fastuidraw_brush_image_texel_size_on_master_index_tile + vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
@@ -107,12 +111,12 @@ fastuidraw_brush_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
     {
       lod = round(lod);
       image_color = fastuidraw_linear_filter_atlas_image(image_xy, fastuidraw_brush_image_layer,
-                                                         image_info, lod);
+                                                         image_info, range, lod);
     }
   else
     {
       image_color = fastuidraw_cubic_filter_atlas_image(image_xy, fastuidraw_brush_image_layer,
-                                                        image_info);
+                                                        image_info, range);
     }
 
   return image_color;
