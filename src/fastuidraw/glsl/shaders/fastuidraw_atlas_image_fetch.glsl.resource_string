@@ -63,6 +63,15 @@ struct fastuidraw_compute_image_atlas_coord_type
   uint layer;
 };
 
+/* Structure to make fastuidraw_compute_image_atlas_coord_helper() less ugly */
+struct fastuidraw_compute_image_atlas_coord_helper_type
+{
+  vec2 master_tile_texel_coord;
+  uint index_layer;
+  ivec2 itexel_coordinate;
+  uvec4 tile_id;
+};
+
 void
 fastuidraw_compute_image_info(in uint num_levels,
                               out fastuidraw_image_info_type d)
@@ -192,6 +201,62 @@ fastuidraw_compute_image_atlas_coord_helper(inout vec2 master_tile_texel_coord,
   master_tile_texel_coord = texel_coordinate;
 }
 
+void
+fastuidraw_compute_image_atlas_coord_helper_init(in vec2 master_tile_texel_coord,
+                                                 in uint index_layer,
+                                                 out fastuidraw_compute_image_atlas_coord_helper_type v)
+{
+  v.master_tile_texel_coord = master_tile_texel_coord;
+  v.index_layer = index_layer;
+  v.itexel_coordinate = ivec2(master_tile_texel_coord);
+  v.tile_id = texelFetch(fastuidraw_imageIndexAtlas,
+                         ivec3(v.itexel_coordinate, v.index_layer),
+                         0);
+  v.index_layer = v.tile_id.z + 256u * v.tile_id.w;
+}
+
+void
+fastuidraw_compute_image_atlas_coord_helper_iterate(inout fastuidraw_compute_image_atlas_coord_helper_type v)
+{
+  vec2 index_tile_offset;
+  vec2 texel_coordinate;
+
+  v.master_tile_texel_coord -= vec2(v.itexel_coordinate);
+  index_tile_offset = v.master_tile_texel_coord * float(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
+  texel_coordinate = index_tile_offset
+    + vec2(v.tile_id.xy) * float(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
+
+  v.itexel_coordinate = ivec2(texel_coordinate);
+  v.tile_id = texelFetch(fastuidraw_imageIndexAtlas,
+                         ivec3(v.itexel_coordinate, v.index_layer),
+                         0);
+  v.index_layer = v.tile_id.z + 256u * v.tile_id.w;
+  v.master_tile_texel_coord = texel_coordinate;
+}
+
+void
+fastuidraw_compute_image_atlas_coord_helper_fini(in fastuidraw_compute_image_atlas_coord_helper_type v,
+                                                 out fastuidraw_compute_image_atlas_coord_type return_value)
+{
+
+  /* at this point index_layer gives the layer into colorAtlas
+   * and tile_id gives which tile in the color atlas
+   */
+  vec2 tile_offset;
+  uint subtile_image_size;
+
+  subtile_image_size = uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE);
+  tile_offset = (v.master_tile_texel_coord - vec2(v.itexel_coordinate)) * float(subtile_image_size);
+
+  return_value.unnormalized_texcoord_xy = tile_offset //offset into tile
+    + vec2(v.tile_id.xy) * float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE); //location of tile
+
+  return_value.max_delta_within_tile =
+    vec2(float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1u)) - tile_offset;
+
+  return_value.layer = v.index_layer;
+}
+
 /* \param master_tile_texel_coord unnormalized texel coordinate of within the master-index tile
  * \param index_layer what layer from the index-atlas the master tile is located at
  * \param num_levels number of index levels needed to reach the color-tile
@@ -202,37 +267,14 @@ fastuidraw_compute_image_atlas_coord(in vec2 master_tile_texel_coord,
                                      in uint num_levels,
                                      out fastuidraw_compute_image_atlas_coord_type return_value)
 {
-  uvec4 tile_id;
-  ivec2 itexel_coordinate;
+  fastuidraw_compute_image_atlas_coord_helper_type v;
 
-  itexel_coordinate = ivec2(master_tile_texel_coord);
-  tile_id = texelFetch(fastuidraw_imageIndexAtlas,
-                       ivec3(itexel_coordinate, index_layer),
-                       0);
-  index_layer = tile_id.z + 256u * tile_id.w;
-
+  fastuidraw_compute_image_atlas_coord_helper_init(master_tile_texel_coord, index_layer, v);
   for(uint i = 1u; i < num_levels; ++i)
     {
-      fastuidraw_compute_image_atlas_coord_helper(master_tile_texel_coord, index_layer,
-                                                  itexel_coordinate, tile_id);
+      fastuidraw_compute_image_atlas_coord_helper_iterate(v);
     }
-
-  /* at this point index_layer gives the layer into colorAtlas
-   * and tile_id gives which tile in the color atlas
-   */
-  vec2 tile_offset;
-  uint subtile_image_size;
-
-  subtile_image_size = uint(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE);
-  tile_offset = (master_tile_texel_coord - vec2(itexel_coordinate)) * float(subtile_image_size);
-
-  return_value.unnormalized_texcoord_xy = tile_offset //offset into tile
-    + vec2(tile_id.xy) * float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE); //location of tile
-
-  return_value.max_delta_within_tile =
-    vec2(float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE - 1u)) - tile_offset;
-
-  return_value.layer = index_layer;
+  fastuidraw_compute_image_atlas_coord_helper_fini(v, return_value);
 }
 
 vec4
