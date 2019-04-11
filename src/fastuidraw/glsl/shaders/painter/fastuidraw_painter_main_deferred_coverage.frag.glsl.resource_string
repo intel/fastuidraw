@@ -25,7 +25,9 @@ main(void)
 
   fastuidraw_apply_clipping();
 
+  #ifdef FASTUIDRAW_RUN_ITEM_FRAG_SHADER
   if (FASTUIDRAW_RUN_ITEM_FRAG_SHADER)
+  #endif
     {
       v = fastuidraw_run_frag_shader(fastuidraw_frag_shader,
                                      fastuidraw_frag_shader_data_location);

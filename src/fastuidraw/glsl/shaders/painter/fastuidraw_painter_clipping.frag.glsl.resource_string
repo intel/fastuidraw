@@ -56,7 +56,6 @@
       }
   }
 
-  #define FASTUIDRAW_RUN_ITEM_FRAG_SHADER true
   bool FASTUIDRAW_DISCARD_COLOR_WRITE = false;
 
 #else
@@ -65,7 +64,7 @@
   fastuidraw_apply_clipping(void)
   {
   }
-  #define FASTUIDRAW_RUN_ITEM_FRAG_SHADER true
+
   bool FASTUIDRAW_DISCARD_COLOR_WRITE = false;
 
 #endif
