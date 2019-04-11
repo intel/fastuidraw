@@ -1,0 +1,13 @@
+vec4
+fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
+{
+  #ifdef RED_GREEN
+    {
+      return vec4(fract(brush_p_x), fract(brush_p_y), 0.0, 1.0);
+    }
+  #else
+    {
+      return vec4(0.0, fract(brush_p_x), fract(brush_p_y), 1.0);
+    }
+  #endif
+}
