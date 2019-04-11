@@ -335,8 +335,11 @@ pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
     }
   else
     {
-      static T v;
-      pack_state_data_from_value(v, location);
+      /* if there is no data on the value<T>, then we set the data
+       * as "nullptr" in the GLSL code which is reprsented with an
+       * offset of 0.
+       */
+      location = 0u;
     }
 }
 
@@ -583,8 +586,7 @@ compute_room_needed_for_packing(const PainterData::value<T> &obj)
     }
   else
     {
-      static T v;
-      return v.data_size();
+      return 0;
     }
 }
 
