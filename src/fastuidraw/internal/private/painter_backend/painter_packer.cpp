@@ -172,8 +172,8 @@ namespace
 class fastuidraw::PainterPacker::per_draw_command
 {
 public:
-  per_draw_command(const reference_counted_ptr<PainterDraw> &r,
-                   const PainterBackend::ConfigurationBase &config);
+  explicit
+  per_draw_command(const reference_counted_ptr<PainterDraw> &r);
 
   unsigned int
   attribute_room(void) const
@@ -276,8 +276,7 @@ private:
 //////////////////////////////////////////
 // fastuidraw::PainterPacker::per_draw_command methods
 fastuidraw::PainterPacker::per_draw_command::
-per_draw_command(const reference_counted_ptr<PainterDraw> &r,
-                 const PainterBackend::ConfigurationBase &config):
+per_draw_command(const reference_counted_ptr<PainterDraw> &r):
   m_draw_command(r),
   m_attributes_written(0),
   m_indices_written(0),
@@ -562,7 +561,7 @@ start_new_command(void)
   reference_counted_ptr<PainterDraw> r;
   r = m_backend->map_draw();
   ++m_number_commands;
-  m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration_base()));
+  m_accumulated_draws.push_back(per_draw_command(r));
 }
 
 template<typename T>
