@@ -431,8 +431,6 @@ fastuidraw_atlas_image_gather(in int lod_i,
         }
     }
 
-  vec4 c00, c10, c01, c11;
-
   output_value.c00 = texelFetch(fastuidraw_imageAtlasLinear, t00, lod_i);
   output_value.c01 = texelFetch(fastuidraw_imageAtlasLinear, t01, lod_i);
   output_value.c10 = texelFetch(fastuidraw_imageAtlasLinear, t10, lod_i);
