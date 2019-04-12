@@ -1361,13 +1361,15 @@ set_gl_state(RenderTargetState prev_state,
 ///////////////////////////////////////////////
 // fastuidraw::gl::SurfaceGL methods
 fastuidraw::gl::SurfaceGL::
-SurfaceGL(ivec2 dims, enum PainterSurface::render_type_t render_type)
+SurfaceGL(ivec2 dims, const PainterBackendGL &backend,
+          enum PainterSurface::render_type_t render_type)
 {
   m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, 0u, dims);
 }
 
 fastuidraw::gl::SurfaceGL::
 SurfaceGL(ivec2 dims, GLuint color_buffer_texture,
+          const PainterBackendGL &backend,
           enum PainterSurface::render_type_t render_type)
 {
   m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, color_buffer_texture, dims);
@@ -2138,7 +2140,7 @@ create_surface(ivec2 dims,
                enum PainterSurface::render_type_t render_type)
 {
   reference_counted_ptr<PainterSurface> S;
-  S = FASTUIDRAWnew SurfaceGL(dims, render_type);
+  S = FASTUIDRAWnew SurfaceGL(dims, *this, render_type);
   return S;
 }
 

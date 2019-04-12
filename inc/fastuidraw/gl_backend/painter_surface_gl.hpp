@@ -47,12 +47,14 @@ namespace fastuidraw
        * The viewport() is initialized to be exactly the
        * entire backing store.
        * \param dims the width and height of the SurfaceGL
+       * \param backend the PainterBackendGL that can use the object
        * \param render_type the render type of the surface (i.e.
        *                    is it a color buffer or deferred
        *                    coverage buffer)
        */
       explicit
       SurfaceGL(ivec2 dims,
+                const PainterBackendGL &backend,
                 enum render_type_t render_type = color_buffer_type);
 
       /*!
@@ -70,12 +72,14 @@ namespace fastuidraw
        * backing store.
        * \param dims width and height of the GL texture
        * \param gl_texture GL name of texture
+       * \param backend the PainterBackendGL that can use the object
        * \param render_type the render type of the surface (i.e.
        *                    is it a color buffer or deferred
        *                    coverage buffer)
        */
       explicit
       SurfaceGL(ivec2 dims, GLuint gl_texture,
+                const PainterBackendGL &backend,
                 enum render_type_t render_type = color_buffer_type);
 
       ~SurfaceGL();
