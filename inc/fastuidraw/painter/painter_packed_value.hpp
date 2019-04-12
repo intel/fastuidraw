@@ -26,6 +26,7 @@
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/backend/painter_item_matrix.hpp>
 #include <fastuidraw/painter/backend/painter_clip_equations.hpp>
+#include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
 
 namespace fastuidraw
 {
@@ -266,6 +267,14 @@ namespace fastuidraw
      */
     PainterPackedValue<PainterCustomBrushShaderData>
     create_packed_value(const PainterCustomBrushShaderData &value);
+
+    /*!
+     * Create and return a PainterPackedValue<PainterBrushAdjust>
+     * object for the value of a PainterBrushAdjust object.
+     * \param value data to pack into returned PainterPackedValue
+     */
+    PainterPackedValue<PainterBrushAdjust>
+    create_packed_value(const PainterBrushAdjust &value);
 
   private:
     void *m_d;

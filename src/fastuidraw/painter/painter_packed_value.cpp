@@ -30,6 +30,7 @@ namespace
     fastuidraw::detail::PackedValuePool<fastuidraw::PainterItemShaderData>::Holder m_item_shader_data_pool;
     fastuidraw::detail::PackedValuePool<fastuidraw::PainterBlendShaderData>::Holder m_blend_shader_data_pool;
     fastuidraw::detail::PackedValuePool<fastuidraw::PainterCustomBrushShaderData>::Holder m_custom_brush_shader_data_pool;
+    fastuidraw::detail::PackedValuePool<fastuidraw::PainterBrushAdjust>::Holder m_brush_adjust_data_pool;
   };
 }
 
@@ -192,4 +193,16 @@ create_packed_value(const PainterCustomBrushShaderData &value)
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_custom_brush_shader_data_pool.allocate(value);
   return PainterPackedValue<PainterCustomBrushShaderData>(e);
+}
+
+fastuidraw::PainterPackedValue<fastuidraw::PainterBrushAdjust>
+fastuidraw::PainterPackedValuePool::
+create_packed_value(const PainterBrushAdjust &value)
+{
+  PainterPackedValuePoolPrivate *d;
+  detail::PackedValuePool<PainterBrushAdjust>::Element *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
+  e = d->m_brush_adjust_data_pool.allocate(value);
+  return PainterPackedValue<PainterBrushAdjust>(e);
 }
