@@ -1226,6 +1226,51 @@ namespace
     out_data->m_index_range.m_end = dst_idx.size();
   }
 
+  /* to prevent t-junctions when rects overlap, but do
+   * not share corners, a RectWithSidePoints has
+   * those additional points of neighbor rects (up to 2).
+   */
+  class RectWithSidePoints:public fastuidraw::Rect
+  {
+  public:
+    template<bool reverse_ordering>
+    class Side
+    {
+    public:
+      Side(void):
+        m_count(0)
+      {}
+
+      void
+      insert(float f)
+      {
+        m_values[m_count++] = f;
+        FASTUIDRAWassert(m_count <= 2);
+        if (m_count == 2 && (m_values[0] < m_values[1]) == reverse_ordering)
+          {
+            std::swap(m_values[0], m_values[1]);
+          }
+      }
+
+      unsigned int
+      size(void) const { return m_count; }
+
+      float
+      operator[](unsigned int i) const
+      {
+        FASTUIDRAWassert(i < m_count);
+        return m_values[i];
+      }
+
+    private:
+      unsigned int m_count;
+      fastuidraw::vecN<float, 2> m_values;
+    };
+
+    Side<false> m_min_y, m_max_x;
+    Side<true> m_max_y, m_min_x;
+  };
+
   class ClipperWorkRoom:fastuidraw::noncopyable
   {
   public:
@@ -1575,6 +1620,46 @@ namespace
       pts[2] = vec2(rect.m_max_point.x(), rect.m_max_point.y());
       pts[3] = vec2(rect.m_max_point.x(), rect.m_min_point.y());
       return fill_convex_polygon(shader, draw, pts, apply_anti_aliasing, z);
+    }
+
+    void
+    fill_rect_with_side_points(const fastuidraw::PainterFillShader &shader,
+                               const fastuidraw::PainterData &draw,
+                               const RectWithSidePoints &rect,
+                               bool apply_anti_aliasing,
+                               int z)
+    {
+      using namespace fastuidraw;
+      vecN<vec2, 12> pts;
+      unsigned int c(0);
+
+      pts[c++] = rect.point(Rect::minx_miny_corner);
+      for (unsigned int i = 0; i < rect.m_min_y.size(); ++i)
+        {
+          pts[c++] = vec2(rect.m_min_y[i], rect.m_min_point.y());
+        }
+
+      pts[c++] = rect.point(Rect::maxx_miny_corner);
+      for(unsigned int i = 0; i < rect.m_max_x.size(); ++i)
+        {
+          pts[c++] = vec2(rect.m_max_point.x(), rect.m_max_x[i]);
+        }
+
+      pts[c++] = rect.point(Rect::maxx_maxy_corner);
+      for (unsigned int i = 0; i < rect.m_max_y.size(); ++i)
+        {
+          pts[c++] = vec2(rect.m_max_y[i], rect.m_max_point.y());
+        }
+
+      pts[c++] = rect.point(Rect::minx_maxy_corner);
+      for(unsigned int i = 0; i < rect.m_min_x.size(); ++i)
+        {
+          pts[c++] = vec2(rect.m_min_point.x(), rect.m_min_x[i]);
+        }
+
+      fill_convex_polygon(shader, draw,
+                          c_array<const vec2>(pts).sub_array(0, c),
+                          apply_anti_aliasing, z);
     }
 
     void
@@ -3979,7 +4064,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
   ClipRectState m(m_clip_rect_state);
   RoundedRectTransformations rect_transforms(R, &m_pool);
   int total_incr_z(0);
-  Rect interior_rect, r_min, r_max, r_min_extra, r_max_extra;
+  RectWithSidePoints interior_rect, r_min, r_max, r_min_extra, r_max_extra;
   float wedge_miny, wedge_maxy;
   vecN<PackedAntiAliasEdgeData, 4> per_line;
 
@@ -3993,11 +4078,15 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
                            R.m_min_point.y());
   r_min.m_max_point = vec2(R.m_max_point.x() - R.m_corner_radii[Rect::maxx_miny_corner].x(),
                            R.m_min_point.y() + wedge_miny);
+  interior_rect.m_min_y.insert(r_min.min_x());
+  interior_rect.m_min_y.insert(r_min.max_x());
 
   r_max.m_min_point = vec2(R.m_min_point.x() + R.m_corner_radii[Rect::minx_maxy_corner].x(),
                            R.m_max_point.y() - wedge_maxy);
   r_max.m_max_point = vec2(R.m_max_point.x() - R.m_corner_radii[Rect::maxx_maxy_corner].x(),
                            R.m_max_point.y());
+  interior_rect.m_max_y.insert(r_max.min_x());
+  interior_rect.m_max_y.insert(r_max.max_x());
 
   if (apply_anti_aliasing)
     {
@@ -4058,10 +4147,6 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       m_current_brush_adjust = nullptr;
     }
 
-  fill_rect(shader, draw, interior_rect, false, m_current_z + total_incr_z);
-  fill_rect(shader, draw, r_min, false, m_current_z + total_incr_z);
-  fill_rect(shader, draw, r_max, false, m_current_z + total_incr_z);
-
   if (R.m_corner_radii[Rect::minx_miny_corner].y() > R.m_corner_radii[Rect::maxx_miny_corner].y())
     {
       Rect r;
@@ -4071,6 +4156,8 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       r.m_max_point.x() = R.m_max_point.x();
       r.m_max_point.y() = r_min.m_max_point.y();
       fill_rect(shader, draw, r, false, m_current_z + total_incr_z);
+
+      r_min.m_max_x.insert(r.min_y());
     }
   else if (R.m_corner_radii[Rect::minx_miny_corner].y() < R.m_corner_radii[Rect::maxx_miny_corner].y())
     {
@@ -4081,6 +4168,8 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       r.m_max_point.x() = R.m_min_point.x() + R.m_corner_radii[Rect::minx_miny_corner].x();
       r.m_max_point.y() = r_min.m_max_point.y();
       fill_rect(shader, draw, r, false, m_current_z + total_incr_z);
+
+      r_min.m_min_x.insert(r.min_y());
     }
 
   if (R.m_corner_radii[Rect::minx_maxy_corner].y() > R.m_corner_radii[Rect::maxx_maxy_corner].y())
@@ -4092,6 +4181,8 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       r.m_max_point.x() = R.m_max_point.x();
       r.m_max_point.y() = R.m_max_point.y() - R.m_corner_radii[Rect::maxx_maxy_corner].y();
       fill_rect(shader, draw, r, false, m_current_z + total_incr_z);
+
+      r_max.m_min_x.insert(r.max_y());
     }
   else if (R.m_corner_radii[Rect::minx_maxy_corner].y() < R.m_corner_radii[Rect::maxx_maxy_corner].y())
     {
@@ -4102,7 +4193,13 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       r.m_max_point.x() = R.m_min_point.x() + R.m_corner_radii[Rect::minx_maxy_corner].x();
       r.m_max_point.y() = R.m_max_point.y() - R.m_corner_radii[Rect::minx_maxy_corner].y();
       fill_rect(shader, draw, r, false, m_current_z + total_incr_z);
+
+      r_max.m_max_x.insert(r.max_y());
     }
+
+  fill_rect_with_side_points(shader, draw, interior_rect, false, m_current_z + total_incr_z);
+  fill_rect_with_side_points(shader, draw, r_min, false, m_current_z + total_incr_z);
+  fill_rect_with_side_points(shader, draw, r_max, false, m_current_z + total_incr_z);
 
   for (int i = 0; i < 4; ++i)
     {
