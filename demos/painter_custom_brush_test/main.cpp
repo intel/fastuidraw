@@ -227,8 +227,10 @@ draw_frame(void)
         .width(0.25f * dims.x())
         .height(0.35f * dims.y());
 
-      data.set(m_brush_shader[m_current_brush].get(),
-               &custom_brush_data);
+      PainterCustomBrush br(m_brush_shader[m_current_brush].get(),
+                            &custom_brush_data);
+
+      data.set(br);
     }
 
   m_painter->fill_rect(data,
