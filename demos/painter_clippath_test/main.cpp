@@ -117,6 +117,7 @@ private:
 
   command_line_argument_value<std::string> m_path1_file;
   command_line_argument_value<std::string> m_path2_file;
+  command_line_argument_value<std::string> m_image_file;
   command_line_argument_value<float> m_rect_width;
   command_line_argument_value<float> m_rect_height;
   rounded_corner_radii m_rect_minx_miny_radii;
@@ -126,6 +127,7 @@ private:
 
   Path m_path1, m_path2;
   RoundedRect m_rect;
+  reference_counted_ptr<const Image> m_image;
 
   unsigned int m_path1_clip_mode, m_path2_clip_mode;
   unsigned int m_combine_clip_mode, m_rounded_rect_mode;
@@ -149,6 +151,7 @@ painter_clip_test():
               "if non-empty read the geometry of the path1 from the specified file, "
               "otherwise use a default path",
                *this),
+  m_image_file("", "image", "if a valid file name, apply an image to drawing the rounded rect", *this),
   m_rect_width(100.0f, "rect_width", "Rounded rectangle width", *this),
   m_rect_height(50.0f, "rect_height", "Rounded rectangle height", *this),
   m_rect_minx_miny_radii("minx-miny", *this),
@@ -375,6 +378,20 @@ derived_init(int, int)
 {
   make_paths();
 
+  if (!m_image_file.value().empty())
+    {
+      ImageLoader image_data(m_image_file.value());
+      m_image = Image::create(m_painter->image_atlas(),
+                              image_data.width(), image_data.height(),
+                              image_data);
+      if (m_image)
+        {
+          std::cout << "Loaded image \"" << m_image_file.value()
+                    << "\", dimensions = " << m_image->dimensions()
+                    << "\n";
+        }
+    }
+
   m_rect.m_min_point = vec2(0.0f, 0.0f);
   m_rect.m_max_point = vec2(m_rect_width.value(), m_rect_height.value());
   m_rect.m_corner_radii[Rect::minx_miny_corner] = m_rect_minx_miny_radii.value();
@@ -471,7 +488,15 @@ draw_frame(void)
     case no_clip:
       {
         PainterBrush brush;
-        brush.color(vec4(1.0f, 1.0f, 0.0f, 1.0f));
+
+        if (m_image)
+          {
+            brush.image(m_image);
+          }
+        else
+          {
+            brush.color(vec4(1.0f, 1.0f, 0.0f, 1.0f));
+          }
         m_painter->fill_rounded_rect(m_painter->default_shaders().fill_shader(),
                                      PainterData(&brush), m_rect, m_aa_mode);
       }
