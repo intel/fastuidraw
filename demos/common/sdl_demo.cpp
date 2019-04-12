@@ -241,6 +241,8 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   #endif
 
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
+  m_num_warm_up_frames(10, "num_warm_up_frames",
+		       "Number of warm-up frames to ignore in timing the average framerate", *this),
   m_reverse_event_y(false),
   m_window(nullptr),
   m_ctx(nullptr)
@@ -567,7 +569,7 @@ main(int argc, char **argv)
   num_frames = 0;
   while(m_run_demo)
     {
-      if (num_frames == 0)
+      if (num_frames == m_num_warm_up_frames.value())
         {
           render_time.restart();
         }
@@ -595,10 +597,12 @@ main(int argc, char **argv)
         }
     }
 
-  if (m_show_framerate.value())
+  if (m_show_framerate.value() && num_frames > m_num_warm_up_frames.value())
     {
       int32_t ms;
       float msf, numf;
+
+      num_frames -= m_num_warm_up_frames.value();
 
       ms = render_time.elapsed();
       numf = static_cast<float>(std::max(1u, num_frames));

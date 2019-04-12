@@ -154,6 +154,7 @@ private:
   command_line_argument_value<bool> m_gl_core_profile;
   command_line_argument_value<bool> m_try_to_get_latest_gl_version;
 #endif
+  command_line_argument_value<unsigned int> m_num_warm_up_frames;
   command_line_argument_value<bool> m_show_framerate;
 
   fastuidraw::reference_counted_ptr<fastuidraw::gl_binding::CallbackGL> m_gl_logger;
