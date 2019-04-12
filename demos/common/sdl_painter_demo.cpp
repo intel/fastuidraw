@@ -365,7 +365,12 @@ sdl_painter_demo(const std::string &about_text,
                                  "one for those item shaders that have discard and one for "
                                  "those that do not",
                                  *this),
-
+  m_allow_bindless_texture_from_surface(m_painter_params.allow_bindless_texture_from_surface(),
+                                        "allow_bindless_texture_from_surface",
+                                        "if both this is true and the GL/GLES driver supports "
+                                        "bindless texturing, the the textures of the surfaces "
+                                        "rendered to will be textured with bindless texturing",
+                                        *this),
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
                                         *this),
@@ -642,6 +647,7 @@ init_gl(int w, int h)
   APPLY_PARAM(assign_layout_to_varyings, m_assign_layout_to_varyings);
   APPLY_PARAM(assign_binding_points, m_assign_binding_points);
   APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
+  APPLY_PARAM(allow_bindless_texture_from_surface, m_allow_bindless_texture_from_surface);
   APPLY_PARAM(preferred_blend_type, m_preferred_blend_type);
   APPLY_PARAM(fbf_blending_type, m_fbf_blending_type);
   APPLY_PARAM(support_dual_src_blend_shaders, m_support_dual_src_blend_shaders);
@@ -747,6 +753,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(assign_layout_to_varyings, m_assign_layout_to_varyings);
       LAZY_PARAM_ENUM(assign_binding_points, m_assign_binding_points);
       LAZY_PARAM_ENUM(separate_program_for_discard, m_separate_program_for_discard);
+      LAZY_PARAM_ENUM(allow_bindless_texture_from_surface, m_allow_bindless_texture_from_surface);
       LAZY_PARAM_ENUM(preferred_blend_type, m_preferred_blend_type);
       LAZY_PARAM_ENUM(fbf_blending_type, m_fbf_blending_type);
       LAZY_PARAM_ENUM(support_dual_src_blend_shaders, m_support_dual_src_blend_shaders);

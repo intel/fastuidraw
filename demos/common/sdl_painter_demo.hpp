@@ -158,6 +158,7 @@ private:
   command_line_argument_value<bool> m_use_uber_item_shader;
   command_line_argument_value<bool> m_uber_blend_use_switch;
   command_line_argument_value<bool> m_separate_program_for_discard;
+  command_line_argument_value<bool> m_allow_bindless_texture_from_surface;
 
   /* Painter params that can be overridden by properties of GL context */
   command_separator m_painter_options_affected_by_context;
