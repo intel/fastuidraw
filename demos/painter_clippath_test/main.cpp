@@ -30,6 +30,38 @@ public:
   command_line_argument_value<float> m_x, m_y;
 };
 
+#ifndef FASTUIDRAW_GL_USE_GLES
+
+class EnableWireFrameAction:public PainterDrawBreakAction
+{
+public:
+  explicit
+  EnableWireFrameAction(bool b):
+    m_lines(b)
+  {}
+
+  virtual
+  fastuidraw::gpu_dirty_state
+  execute(PainterBackend*) const
+  {
+    if (m_lines)
+      {
+        fastuidraw_glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        fastuidraw_glLineWidth(4.0);
+      }
+    else
+      {
+        fastuidraw_glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      }
+    return 0u;
+  }
+
+private:
+  bool m_lines;
+};
+
+#endif
+
 class painter_clip_test:public sdl_painter_demo
 {
 public:
@@ -133,6 +165,7 @@ private:
   unsigned int m_combine_clip_mode, m_rounded_rect_mode;
   unsigned int m_active_transformer;
   bool m_aa_mode;
+  bool m_show_wire_frame;
   vecN<Transformer, number_transformers> m_transformers;
   vecN<std::string, number_clip_modes> m_clip_labels;
   vecN<std::string, number_transformers> m_transformer_labels;
@@ -164,6 +197,7 @@ painter_clip_test():
   m_rounded_rect_mode(no_clip),
   m_active_transformer(view_transformer),
   m_aa_mode(true),
+  m_show_wire_frame(false),
   m_show_surface(0),
   m_last_shown_surface(0)
 {
@@ -178,6 +212,12 @@ painter_clip_test():
             << "\t7: y-shear (hold ctrl to decrease)\n"
             << "\t0: Rotate left\n"
             << "\t9: Rotate right\n";
+
+  #ifndef FASTUIDRAW_GL_USE_GLES
+    {
+      std::cout << "\tspace: toggle wire frame on rounded rect\n";
+    }
+  #endif
 
   m_clip_labels[clip_in] = "clip_in";
   m_clip_labels[clip_out] = "clip_out";
@@ -252,7 +292,6 @@ handle_event(const SDL_Event &ev)
           m_aa_mode = !m_aa_mode;
           std::cout << "RoundedRect drawing anti-alias mode set to: " << m_aa_mode << "\n";
           break;
-
         case SDLK_o:
           if (ev.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT))
             {
@@ -265,6 +304,9 @@ handle_event(const SDL_Event &ev)
             {
               ++m_show_surface;
             }
+          break;
+        case SDLK_SPACE:
+          m_show_wire_frame = !m_show_wire_frame;
           break;
         }
       break;
@@ -499,6 +541,21 @@ draw_frame(void)
           }
         m_painter->fill_rounded_rect(m_painter->default_shaders().fill_shader(),
                                      PainterData(&brush), m_rect, m_aa_mode);
+
+        #ifndef FASTUIDRAW_GL_USE_GLES
+          {
+            if (m_show_wire_frame)
+              {
+                PainterBrush red;
+
+                red.color(1.0f, 0.0f, 0.0f, 0.25f);
+                m_painter->queue_action(FASTUIDRAWnew EnableWireFrameAction(true));
+                m_painter->fill_rounded_rect(m_painter->default_shaders().fill_shader(),
+                                             PainterData(&red), m_rect, false);
+                m_painter->queue_action(FASTUIDRAWnew EnableWireFrameAction(false));
+              }
+          }
+        #endif
       }
       break;
 
