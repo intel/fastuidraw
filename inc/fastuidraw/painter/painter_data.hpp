@@ -117,6 +117,49 @@ namespace fastuidraw
 
     /*!
      * \brief
+     * A CustomBrush is just a conveniance to wrap a
+     * pointer to a \ref PainterCustomBrushShader
+     * together with a \ref value<PainterCustomBrushShaderData>.
+     */
+    class CustomBrush
+    {
+    public:
+      /*!
+       * Ctor.
+       * \param sh value with which to initialize \ref m_shader
+       * \param d value with which to initialize \ref m_data
+       */
+      CustomBrush(const PainterCustomBrushShader *sh,
+                  const value<PainterCustomBrushShaderData> &d
+                  = value<PainterCustomBrushShaderData>()):
+        m_shader(sh),
+        m_data(d)
+      {}
+
+      /*!
+       * Ctor.
+       * \param sh value with which to initialize \ref m_shader
+       * \param d value with which to initialize \ref m_data
+       */
+      CustomBrush(const value<PainterCustomBrushShaderData> &d,
+                  const PainterCustomBrushShader *sh):
+        m_shader(sh),
+        m_data(d)
+      {}
+
+      /*!
+       * What \ref PainterCustomBrushShader is used
+       */
+      const PainterCustomBrushShader *m_shader;
+
+      /*!
+       * What, if any, data for \ref m_shader to use.
+       */
+      value<PainterCustomBrushShaderData> m_data;
+    };
+
+    /*!
+     * \brief
      * A brush_value stores the brush applied; it stores either
      * a \ref value for a \ref PainterBrush or a \ref value
      * for a \ref PainterCustomBrushShaderData together with
@@ -164,10 +207,9 @@ namespace fastuidraw
        * Ctor to set the brush_value to source from a
        * custom brush.
        */
-      brush_value(const PainterCustomBrushShader *shader,
-                  const value<PainterCustomBrushShaderData> &v)
+      brush_value(const CustomBrush &br)
       {
-        set(shader, v);
+        set(br);
       }
 
       /*!
@@ -186,13 +228,12 @@ namespace fastuidraw
        * Set to source from a custom brush shader
        */
       void
-      set(const PainterCustomBrushShader *shader,
-          const value<PainterCustomBrushShaderData> &v = value<PainterCustomBrushShaderData>())
+      set(const CustomBrush &br)
       {
-        FASTUIDRAWassert(shader);
+        FASTUIDRAWassert(br.m_shader);
         m_fixed_function_brush = value<PainterBrush>();
-        m_custom_brush_shader = shader;
-        m_custom_brush_shader_data = v;
+        m_custom_brush_shader = br.m_shader;
+        m_custom_brush_shader_data = br.m_data;
       }
 
       /*
@@ -443,10 +484,9 @@ namespace fastuidraw
      * Sets \ref m_brush
      */
     PainterData&
-    set(const PainterCustomBrushShader *shader,
-        const value<PainterCustomBrushShaderData> &v)
+    set(const CustomBrush &value)
     {
-      m_brush.set(shader, v);
+      m_brush.set(value);
       return *this;
     }
 
@@ -485,6 +525,11 @@ namespace fastuidraw
       m_blend_shader_data.make_packed(pool);
     }
   };
+
+  /*!
+   * Conveniance typedef
+   */
+  typedef PainterData::CustomBrush PainterCustomBrush;
 
 /*! @} */
 }
