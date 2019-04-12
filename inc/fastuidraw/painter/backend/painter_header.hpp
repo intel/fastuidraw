@@ -116,6 +116,11 @@ namespace fastuidraw
          */
         offset_to_deferred_coverage_offset,
 
+        /*!
+         * Offset to \ref m_brush_adjust_location
+         */
+        brush_adjust_location_offset,
+
         header_size /*!< size of header */
       };
 
@@ -209,6 +214,19 @@ namespace fastuidraw
      * values.
      */
     ivec2 m_offset_to_deferred_coverage;
+
+    /*!
+     * If non-zero, indicates that the brush position is to be
+     * adjusted in vertex shading before being fed the the brush
+     * shading. When non-zero, is an offset, in units of \ref
+     * vecN<generic_data, 4> tuples, to the location in the data
+     * store buffer (PainterDraw::m_store) for the value encoded
+     * by a \ref PainterBrushAdjust packed at the location
+     * \code
+     * PainterDraw::m_store[m_clip_equations_location * 4]
+     * \endcode
+     */
+    uint32_t m_brush_adjust_location;
 
     /*!
      * Pack the values of this PainterHeader
