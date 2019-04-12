@@ -217,13 +217,17 @@ namespace gl
        *                            by the caller AFTER the TextureImage is
        *                            deleted.
        * \param fmt format of the RGBA of the texture
+       * \param allow_bindless if both this is true and the GL/GLES implementation
+       *                       supports bindless texturing, return an object whose
+       *                       \ref type() returns \ref bindless_texture2d.
        */
       static
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m, GLuint texture,
              bool object_owns_texture,
-             enum format_t fmt = rgba_format);
+             enum format_t fmt = rgba_format,
+             bool allow_bindless = true);
       /*!
        * Create a GL texture and use it to back a TextureImage; the
        * created TextureImage will own the GL texture.
@@ -234,6 +238,9 @@ namespace gl
        * \param tex_magnification magnification filter to get the texture
        * \param tex_minification minification filter to get the texture
        * \param fmt format of the RGBA of the texture
+       * \param allow_bindless if both this is true and the GL/GLES implementation
+       *                       supports bindless texturing, return an object whose
+       *                       \ref type() returns \ref bindless_texture2d.
        */
       static
       reference_counted_ptr<TextureImage>
@@ -241,7 +248,8 @@ namespace gl
              int w, int h, unsigned int m,
              GLenum tex_magnification,
              GLenum tex_minification,
-             enum format_t fmt = rgba_format);
+             enum format_t fmt = rgba_format,
+             bool allow_bindless = true);
       /*!
        * Create a GL texture with no mipmapping and use it to back
        * a TextureImage; the created TextureImage will own the GL
@@ -260,9 +268,10 @@ namespace gl
       reference_counted_ptr<TextureImage>
       create(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, GLenum filter,
-             enum format_t fmt = rgba_format)
+             enum format_t fmt = rgba_format,
+             bool allow_bindless = true)
       {
-        return create(patlas, w, h, 1, filter, filter, fmt);
+        return create(patlas, w, h, 1, filter, filter, fmt, allow_bindless);
       }
 
       ~TextureImage();

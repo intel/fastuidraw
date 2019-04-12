@@ -539,14 +539,14 @@ fastuidraw::gl::ImageAtlasGL::TextureImage::
 create(const reference_counted_ptr<ImageAtlas> &patlas,
        int w, int h, unsigned int m, GLuint texture,
        bool object_owns_texture,
-       enum format_t fmt)
+       enum format_t fmt, bool allow_bindless)
 {
   if (w <= 0 || h <= 0 || m <= 0 || texture == 0)
     {
       return nullptr;
     }
 
-  if (detail::bindless().not_supported())
+  if (!allow_bindless || detail::bindless().not_supported())
     {
       return FASTUIDRAWnew TextureImage(patlas, w, h, m, object_owns_texture, texture, fmt);
     }
@@ -566,7 +566,7 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
        int w, int h, unsigned int m,
        GLenum tex_magnification,
        GLenum tex_minification,
-       enum format_t fmt)
+       enum format_t fmt, bool allow_bindless)
 {
   GLuint tex(0);
   static detail::UseTexStorage use_tex_storage;
@@ -579,7 +579,7 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex_minification);
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
 
-  return create(patlas, w, h, m, tex, true, fmt);
+  return create(patlas, w, h, m, tex, true, fmt, allow_bindless);
 }
 
 fastuidraw::gl::ImageAtlasGL::TextureImage::
