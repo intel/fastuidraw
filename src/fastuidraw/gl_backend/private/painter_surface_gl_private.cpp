@@ -24,13 +24,15 @@
 //SurfaceGLPrivate methods
 fastuidraw::gl::detail::SurfaceGLPrivate::
 SurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
-                 GLuint texture, ivec2 dimensions):
+                 GLuint texture, ivec2 dimensions,
+                 bool allow_bindless):
   m_render_type(render_type),
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
   m_dimensions(dimensions),
   m_buffers(0),
   m_fbo(0),
-  m_own_texture(texture == 0)
+  m_own_texture(texture == 0),
+  m_allow_bindless(allow_bindless)
 {
   m_buffers[buffer_color] = texture;
   m_viewport.m_dimensions = m_dimensions;
@@ -73,7 +75,8 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
                                                    1,
                                                    texture,
                                                    m_own_texture,
-                                                   Image::premultipied_rgba_format);
+                                                   Image::premultipied_rgba_format,
+                                                   m_allow_bindless);
       m_own_texture = false;
     }
 
@@ -125,7 +128,7 @@ buffer(enum buffer_t tp)
       detail::tex_storage<GL_TEXTURE_2D>(true, internalFormat, m_dimensions);
       /* This is more than just good sanitation; For Intel GPU
        * drivers on MS-Windows, if we dont't to clear a texture
-       * and derive a bindless handle aftwerwards, clears on
+       * and derive a bindless handle afterwards, clears on
        * the surface will result in incorrect reads. The cause
        * is likely that an auxiliary (hidden) surface is attached
        * AFTER a clear is issued on the surface. If we don't do

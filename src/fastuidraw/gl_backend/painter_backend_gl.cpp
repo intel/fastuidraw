@@ -419,6 +419,7 @@ namespace
       m_separate_program_for_discard(true),
       m_preferred_blend_type(fastuidraw::PainterBlendShader::dual_src),
       m_fbf_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported),
+      m_allow_bindless_texture_from_surface(true),
       m_support_dual_src_blend_shaders(true),
       m_use_uber_item_shader(true)
     {}
@@ -443,6 +444,7 @@ namespace
     bool m_separate_program_for_discard;
     enum fastuidraw::PainterBlendShader::shader_type m_preferred_blend_type;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t m_fbf_blending_type;
+    bool m_allow_bindless_texture_from_surface;
     bool m_support_dual_src_blend_shaders;
     bool m_use_uber_item_shader;
 
@@ -1364,7 +1366,8 @@ fastuidraw::gl::SurfaceGL::
 SurfaceGL(ivec2 dims, const PainterBackendGL &backend,
           enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, 0u, dims);
+  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, 0u, dims,
+                                               backend.configuration_gl().allow_bindless_texture_from_surface());
 }
 
 fastuidraw::gl::SurfaceGL::
@@ -1372,7 +1375,8 @@ SurfaceGL(ivec2 dims, GLuint color_buffer_texture,
           const PainterBackendGL &backend,
           enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, color_buffer_texture, dims);
+  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, color_buffer_texture, dims,
+                                               backend.configuration_gl().allow_bindless_texture_from_surface());
 }
 
 fastuidraw::gl::SurfaceGL::
@@ -1855,6 +1859,8 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
                  enum fastuidraw::PainterBlendShader::shader_type, preferred_blend_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterBackendGL::fbf_blending_type_t, fbf_blending_type)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, allow_bindless_texture_from_surface)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, support_dual_src_blend_shaders)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,

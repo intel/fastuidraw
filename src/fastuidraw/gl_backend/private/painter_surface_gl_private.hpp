@@ -28,7 +28,8 @@ class SurfaceGLPrivate:noncopyable
 public:
   explicit
   SurfaceGLPrivate(enum PainterSurface::render_type_t type,
-                   GLuint texture, ivec2 dimensions);
+                   GLuint texture, ivec2 dimensions,
+                   bool allow_bindless);
 
   ~SurfaceGLPrivate();
 
@@ -74,7 +75,7 @@ private:
   vecN<c_array<const GLenum>, 2> m_draw_buffers;
 
   reference_counted_ptr<const Image> m_image;
-  bool m_own_texture;
+  bool m_own_texture, m_allow_bindless;
 };
 
 }}}

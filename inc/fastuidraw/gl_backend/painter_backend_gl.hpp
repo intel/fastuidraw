@@ -434,6 +434,30 @@ namespace fastuidraw
         fbf_blending_type(enum fbf_blending_type_t tp);
 
         /*!
+         * If true, SurfaceGL objects whose \ref
+         * Surface::image() routine will return a \ref
+         * TextureImage whose \ref Image::type() is \ref
+         * is \ref Image::bindless_texture2d if the GL/GLES
+         * implementation support bindless texturing;
+         * otherwise Surface::image() will always return
+         * \ref TextureImage objects of \ref Image::type()
+         * \ref Image::context_texture2d. A number of
+         * buggy hardware drivers do not correctly sample
+         * from bindless textures if the texture was
+         * renderered to.
+         */
+        bool
+        allow_bindless_texture_from_surface(void) const;
+
+        /*!
+         * Specify the return value to \ref
+         * allow_bindless_texture_from_surface() const.
+         * Default value is true.
+         */
+        ConfigurationGL&
+        allow_bindless_texture_from_surface(bool);
+
+        /*!
          * If a non-empty string, gives the GLSL version to be used
          * by the uber-shaders. This value is (string) maxed with
          * the computed GLSL version that is needed from the values
