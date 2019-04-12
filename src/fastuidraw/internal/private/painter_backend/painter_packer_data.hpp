@@ -19,6 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_data.hpp>
+#include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
 
 namespace fastuidraw
 {
@@ -59,6 +60,11 @@ namespace fastuidraw
      * value for the transformation matrix.
      */
     value<PainterItemMatrix> m_matrix;
+
+    /*!
+     * value for the brush adjust
+     */
+    value<PainterBrushAdjust> m_brush_adjust;
   };
 
 /*! @} */

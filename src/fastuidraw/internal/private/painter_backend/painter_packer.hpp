@@ -395,6 +395,7 @@ namespace fastuidraw
       uint32_t m_brush_shader_data_loc;
       uint32_t m_item_shader_data_loc;
       uint32_t m_blend_shader_data_loc;
+      uint32_t m_brush_adjust_data_loc;
     };
 
     class Workroom

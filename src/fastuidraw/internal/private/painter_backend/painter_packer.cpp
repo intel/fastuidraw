@@ -385,6 +385,7 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
   if (render_type == PainterSurface::color_buffer_type)
     {
       pack_state_data(render_type, p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
+      pack_state_data(render_type, p, state.m_brush_adjust, out_data.m_brush_adjust_data_loc);
       if (state.m_brush.custom_shader_brush())
         {
           pack_state_data(render_type, p, state.m_brush.custom_brush_shader_data(), out_data.m_brush_shader_data_loc);
@@ -402,6 +403,7 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
     {
       out_data.m_blend_shader_data_loc = 0u;
       out_data.m_brush_shader_data_loc = 0u;
+      out_data.m_brush_adjust_data_loc = 0u;
     }
 }
 
@@ -463,6 +465,7 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
   header.m_brush_shader_data_location = loc.m_brush_shader_data_loc;
   header.m_item_shader_data_location = loc.m_item_shader_data_loc;
   header.m_blend_shader_data_location = loc.m_blend_shader_data_loc;
+  header.m_brush_adjust_location = loc.m_brush_adjust_data_loc;
   header.m_item_shader = item_shader->ID();
   header.m_brush_shader = brush_shader;
   header.m_blend_shader = blend.m_ID;
