@@ -48,6 +48,13 @@ main(void)
   fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
 
   fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
+  if (h.brush_adjust_location != 0u)
+    {
+      fastuidraw_brush_adjust_data adjust;
+      fastuidraw_read_brush_adjust(h.brush_adjust_location, adjust);
+      brush_p = adjust.shear * brush_p + adjust.translate;
+    }
+
   fastuidraw_brush_shader_data_location = h.brush_shader_data_location;
   fastuidraw_brush_shader = h.brush_shader;
   if ((h.brush_shader & FASTUIDRAW_FIXED_FUNCTION_BRUSH) != 0u)

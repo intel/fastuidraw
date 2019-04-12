@@ -30,6 +30,7 @@
 #include <fastuidraw/painter/backend/painter_header.hpp>
 #include <fastuidraw/painter/backend/painter_item_matrix.hpp>
 #include <fastuidraw/painter/backend/painter_clip_equations.hpp>
+#include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_custom_brush_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
@@ -738,6 +739,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str,
     .set(PainterHeader::item_shader_offset, ".item_shader", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::blend_shader_offset, ".blend_shader", UnpackSourceGenerator::uint_type)
     .set(PainterHeader::offset_to_deferred_coverage_offset, ".deferred_buffer_offset_packed", UnpackSourceGenerator::uint_type)
+    .set(PainterHeader::brush_adjust_location_offset, ".brush_adjust_location", UnpackSourceGenerator::uint_type)
     .stream_unpack_function(str, "fastuidraw_read_header", false);
 
   UnpackSourceGenerator("fastuidraw_clipping_data")
@@ -754,6 +756,13 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str,
     .set(PainterClipEquations::clip3_coeff_y, ".clip3.y")
     .set(PainterClipEquations::clip3_coeff_w, ".clip3.z")
     .stream_unpack_function(str, "fastuidraw_read_clipping", false);
+
+  UnpackSourceGenerator("fastuidraw_brush_adjust_data")
+    .set(PainterBrushAdjust::shear_x_offset, ".shear.x")
+    .set(PainterBrushAdjust::shear_y_offset, ".shear.y")
+    .set(PainterBrushAdjust::translation_x_offset, ".translate.x")
+    .set(PainterBrushAdjust::translation_y_offset, ".translate.y")
+    .stream_unpack_function(str, "fastuidraw_read_brush_adjust", false);
 
   /* Matrics in GLSL are [column][row], that is why we use the
    * matrix_colX_rowY_offset enums

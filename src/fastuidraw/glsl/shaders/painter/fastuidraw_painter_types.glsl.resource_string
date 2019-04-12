@@ -29,6 +29,7 @@ struct fastuidraw_header
   uint blend_shader;
   int z;
   uint deferred_buffer_offset_packed;
+  uint brush_adjust_location;
 };
 
 struct fastuidraw_clipping_data
@@ -51,4 +52,9 @@ struct fastuidraw_dashed_stroking_params_header
   float first_interval_start;
   float first_interval_start_on_looping;
   uint number_intervals;
+};
+
+struct fastuidraw_brush_adjust_data
+{
+  vec2 shear, translate;
 };

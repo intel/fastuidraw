@@ -31,6 +31,9 @@ fastuidraw_read_clipping(in uint clipping_location, out fastuidraw_clipping_data
 void
 fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m, out vec2 t);
 
+void
+fastuidraw_read_brush_adjust(in uint painter_adjust_location, out fastuidraw_brush_adjust_data p);
+
 #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER)
 
 void
