@@ -29,6 +29,7 @@ namespace
     brush(const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &image) override
     {
       m_brush.image(image);
+      return fastuidraw::PainterData::brush_value(&m_brush);
     }
 
     fastuidraw::PainterBrush m_brush;
@@ -59,7 +60,7 @@ fastuidraw::PainterEffectColorModulate::
 color(const vec4 &color)
 {
   ModulatePass *q;
-  c_array<reference_counted_ptr<PainterEffectPass> > p(passes());
+  c_array<const reference_counted_ptr<PainterEffectPass> > p(passes());
 
   FASTUIDRAWassert(p[0].dynamic_cast_ptr<ModulatePass>());
   q = static_cast<ModulatePass*>(p[0].get());
@@ -71,7 +72,7 @@ fastuidraw::PainterEffectColorModulate::
 color(void) const
 {
   ModulatePass *q;
-  c_array<reference_counted_ptr<PainterEffectPass> > p(passes());
+  c_array<const reference_counted_ptr<PainterEffectPass> > p(passes());
 
   FASTUIDRAWassert(p[0].dynamic_cast_ptr<ModulatePass>());
   q = static_cast<ModulatePass*>(p[0].get());

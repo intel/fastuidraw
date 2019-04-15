@@ -85,7 +85,7 @@ namespace fastuidraw
     /*!
      * Returns the passes of this \ref PainterEffect
      */
-    c_array<reference_counted_ptr<PainterEffectPass> >
+    c_array<const reference_counted_ptr<PainterEffectPass> >
     passes(void) const;
 
     /*!

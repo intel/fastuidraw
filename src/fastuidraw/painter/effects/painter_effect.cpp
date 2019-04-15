@@ -54,7 +54,7 @@ add_pass(const reference_counted_ptr<PainterEffectPass> &effect)
   d->m_passes.push_back(effect);
 }
 
-fastuidraw::c_array<fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass> >
+fastuidraw::c_array<const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass> >
 fastuidraw::PainterEffect::
 passes(void) const
 {
