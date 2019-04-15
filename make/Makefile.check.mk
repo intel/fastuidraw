@@ -63,19 +63,19 @@ endif
 endif
 
 ###################################################
-## Check for demo requirements: SDL2 and fontconfig
-CHECK_SDL_CFLAGS_CODE := $(shell pkg-config sdl2 --cflags 1> /dev/null 2> /dev/null; echo $$?)
+## Check for demo requirements: SDL2_image and fontconfig
+CHECK_SDL_CFLAGS_CODE := $(shell pkg-config SDL2_image --cflags 1> /dev/null 2> /dev/null; echo $$?)
 ifeq ($(CHECK_SDL_CFLAGS_CODE), 0)
-CHECK_SDL_CFLAGS := "Found cflags for SDL2: $(shell pkg-config sdl2 --cflags)"
+CHECK_SDL_CFLAGS := "Found cflags for SDL2_image: $(shell pkg-config SDL2_image --cflags)"
 else
-CHECK_SDL_CFLAGS := "Cannot build demos: Unable to find SDL2 cflags from pkg-config sdl2: $(shell pkg-config sdl2 --cflags 2>$1)"
+CHECK_SDL_CFLAGS := "Cannot build demos: Unable to find SDL2_image cflags from pkg-config SDL2_image: $(shell pkg-config SDL2_image --cflags 2>$1)"
 endif
 
-CHECK_SDL_LIBS_CODE := $(shell pkg-config sdl2 --libs 1> /dev/null 2> /dev/null; echo $$?)
+CHECK_SDL_LIBS_CODE := $(shell pkg-config SDL2_image --libs 1> /dev/null 2> /dev/null; echo $$?)
 ifeq ($(CHECK_SDL_LIBS_CODE), 0)
-CHECK_SDL_LIBS := "Found libs for SDL2: $(shell pkg-config sdl2 --libs)"
+CHECK_SDL_LIBS := "Found libs for SDL2_image: $(shell pkg-config SDL2_image --libs)"
 else
-CHECK_SDL_LIBS := "Cannot build demos: Unable to find SDL2 libs from pkg-config sdl2: $(shell pkg-config sdl2 --libs 2>$1)"
+CHECK_SDL_LIBS := "Cannot build demos: Unable to find SDL2_image libs from pkg-config SDL2_image: $(shell pkg-config SDL2_image --libs 2>$1)"
 endif
 
 ifeq ($(DEMOS_HAVE_FONT_CONFIG),1)
