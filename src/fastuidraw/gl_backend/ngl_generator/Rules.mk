@@ -12,7 +12,7 @@ NGL_EXTRACTOR := $(NGL_BUILD)/extractor
 ngl_generator = $(NGL_FILTER) $(NGL_FILTER)
 
 NGL_EXTRACTOR_LDFLAGS :=
-NGL_LL := flex
+NGL_LL := $(LEX)
 
 $(NGL_FILTER): $(call filelist, filter.cpp)
 	mkdir -p $(dir $@)

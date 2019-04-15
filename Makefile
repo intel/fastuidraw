@@ -12,6 +12,9 @@
 CXX ?= g++
 CC ?= gcc
 
+# Lex choice
+LEX ?= flex
+
 # if demos will use font-config, only affects demos and not libs
 DEMOS_HAVE_FONT_CONFIG ?= 1
 
@@ -20,6 +23,11 @@ TARGETLIST := all
 
 #Init ENVIRONMENTALDESCRIPTIONS
 ENVIRONMENTALDESCRIPTIONS :=
+
+# detail about compiler and lex choices
+ENVIRONMENTALDESCRIPTIONS += "CXX: choice of C++ compiler (default g++)"
+ENVIRONMENTALDESCRIPTIONS += "CC: choice of C++ compiler (default gcc)"
+ENVIRONMENTALDESCRIPTIONS += "LEX: choice of lex tool (default flex)"
 
 #install location
 INSTALL_LOCATION ?= /usr/local
@@ -47,6 +55,7 @@ targets:
 	@echo "=============================="
 	@printf "%s\n" $(ENVIRONMENTALDESCRIPTIONS)
 	@echo
+	@echo "Issue make check to see if prerequisites are met for building"
 .PHONY: targets
 
 all:
@@ -70,4 +79,5 @@ include make/Makefile.demo.rules.mk
 include make/Makefile.docs.mk
 include make/Makefile.install.mk
 
+include make/Makefile.check.mk
 include make/Makefile.clean.mk
