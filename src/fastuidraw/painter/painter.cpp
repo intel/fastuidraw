@@ -24,6 +24,7 @@
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/painter/backend/painter_header.hpp>
+#include <fastuidraw/painter/effects/painter_effect_color_modulate.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include <private/util_private.hpp>
@@ -630,11 +631,11 @@ namespace
     fastuidraw::RectT<int> m_pixel_rect;
   };
 
-  class TransparencyBuffer:
-    public fastuidraw::reference_counted<TransparencyBuffer>::non_concurrent
+  class EffectsBuffer:
+    public fastuidraw::reference_counted<EffectsBuffer>::non_concurrent
   {
   public:
-    TransparencyBuffer(const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> &packer,
+    EffectsBuffer(const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> &packer,
                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> &surface,
                        const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &image,
                        fastuidraw::ivec2 useable_size):
@@ -647,10 +648,10 @@ namespace
     /* the PainterPacker used */
     fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_packer;
 
-    /* the depth of transparency buffer */
+    /* the depth of effects buffer */
     unsigned int m_depth;
 
-    /* the surface used by the TransparencyBuffer */
+    /* the surface used by the EffectsBuffer */
     fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> m_surface;
 
     /* the surface realized as an image */
@@ -660,23 +661,18 @@ namespace
     fastuidraw::detail::RectAtlas m_rect_atlas;
   };
 
-  class TransparencyStackEntry
+  class EffectsLayer
   {
   public:
     void
-    blit_rect(const fastuidraw::vec4 &color_modulate,
+    blit_rect(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass> &fx_pass,
               fastuidraw::vec2 viewport_dims,
               fastuidraw::Painter *p);
 
-    /* the state stack size when the TransparencyStackEntry
-     * became active
-     */
-    unsigned int m_state_stack_size;
-
-    /* The region of the transparency in normalized coords */
+    /* The region of the effects in normalized coords */
     fastuidraw::Rect m_normalized_rect;
 
-    /* The region of the transparency region in pixel coords */
+    /* The region of the effects region in pixel coords */
     fastuidraw::RectT<int> m_pixel_rect;
 
     /* the image to blit, together with what pixels of the image to blit */
@@ -684,13 +680,13 @@ namespace
     fastuidraw::vec2 m_brush_translate;
 
     /* The translation is from the root surface of Painter::begin()
-     * to the location within TransparencyBuffer::m_surface.
+     * to the location within EffectsBuffer::m_surface.
      */
     fastuidraw::PainterPacker *m_packer;
     fastuidraw::vec2 m_normalized_translate;
 
     /* The bottom left hand corner of the rect within
-     * TransparencyBuffer::m_surface
+     * EffectsBuffer::m_surface
      */
     fastuidraw::ivec2 m_bottom_left_corner_in_surface;
 
@@ -700,10 +696,10 @@ namespace
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_identity_matrix;
   };
 
-  class TransparencyStackEntryFactory
+  class EffectsLayerFactory
   {
   public:
-    TransparencyStackEntryFactory(void):
+    EffectsLayerFactory(void):
       m_current_backing_size(0, 0),
       m_current_backing_useable_size(0, 0)
     {}
@@ -715,10 +711,10 @@ namespace
     void
     begin(fastuidraw::PainterSurface &surface);
 
-    /* creates a TransparencyStackEntry value using the
+    /* creates a EffectsLayer value using the
      * available pools.
      */
-    TransparencyStackEntry
+    EffectsLayer
     fetch(unsigned int depth,
           const fastuidraw::Rect &normalized_rect,
           PainterPrivate *d);
@@ -731,11 +727,11 @@ namespace
     end(void);
 
   private:
-    typedef std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > PerActiveDepth;
+    typedef std::vector<fastuidraw::reference_counted_ptr<EffectsBuffer> > PerActiveDepth;
 
-    fastuidraw::PainterSurface::Viewport m_transparency_buffer_viewport;
+    fastuidraw::PainterSurface::Viewport m_effects_buffer_viewport;
     fastuidraw::ivec2 m_current_backing_size, m_current_backing_useable_size;
-    std::vector<fastuidraw::reference_counted_ptr<TransparencyBuffer> > m_unused_buffers;
+    std::vector<fastuidraw::reference_counted_ptr<EffectsBuffer> > m_unused_buffers;
     std::vector<PerActiveDepth> m_per_active_depth;
   };
 
@@ -823,12 +819,12 @@ namespace
      * device coordinates to the deferred coverage
      * surface normalized device coordinates; this
      * value does not change regardless if the
-     * transparency layer changes because the vertex
+     * effects layer changes because the vertex
      * uber-shader for a Painter operates in root
      * surface normalized device coordinates until
      * just the end when it adjusts the value to
      * the surface; since the coverage buffer surfce
-     * stays the same regardless if the transparency
+     * stays the same regardless if the effects
      * layer changes, this value is a constant.
      */
     fastuidraw::vec2 m_normalized_translate;
@@ -855,7 +851,7 @@ namespace
     fastuidraw::ivec2 m_bottom_left_corner_in_surface;
 
     /* computed from the current state of PainterPacker, updated
-     * whenever the transparency stack changes
+     * whenever the effects stack changes
      */
     fastuidraw::ivec2 m_coverage_buffer_offset;
   };
@@ -1389,6 +1385,13 @@ namespace
     ComputeClipIntersectRectWorkRoom m_compute_clip_intersect_rect;
   };
 
+  class EffectsStackEntry
+  {
+  public:
+    unsigned int m_effects_layer_stack_size;
+    unsigned int m_state_stack_size;
+  };
+
   class PainterPrivate
   {
   public:
@@ -1715,9 +1718,9 @@ namespace
     fastuidraw::PainterPacker*
     packer(void)
     {
-      return m_transparency_stack.empty() ?
+      return m_effects_layer_stack.empty() ?
         m_root_packer.get() :
-        m_transparency_stack.back().m_packer;
+        m_effects_layer_stack.back().m_packer;
     }
 
     fastuidraw::PainterPacker*
@@ -1731,9 +1734,9 @@ namespace
     const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
     identity_matrix(void)
     {
-      return m_transparency_stack.empty() ?
+      return m_effects_layer_stack.empty() ?
         m_root_identity_matrix :
-        m_transparency_stack.back().m_identity_matrix;
+        m_effects_layer_stack.back().m_identity_matrix;
     }
 
     fastuidraw::GlyphRenderer
@@ -1752,13 +1755,15 @@ namespace
     ClipRectState m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
-    TransparencyStackEntryFactory m_transparency_stack_entry_factory;
-    std::vector<TransparencyStackEntry> m_transparency_stack;
+    EffectsLayerFactory m_effects_layer_factory;
+    std::vector<EffectsLayer> m_effects_layer_stack;
+    std::vector<EffectsStackEntry> m_effects_stack;
     DeferredCoverageBufferStackEntryFactory m_deferred_coverage_stack_entry_factory;
     std::vector<DeferredCoverageBufferStackEntry> m_deferred_coverage_stack;
     std::vector<const fastuidraw::PainterSurface*> m_active_surfaces;
     unsigned int m_number_external_textures;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectColorModulate> m_color_modulate_fx;
     fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterPackedValuePool m_pool;
     fastuidraw::PainterPackedValue<fastuidraw::PainterBrush> m_reset_brush, m_black_brush;
@@ -2350,14 +2355,13 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
 }
 
 ///////////////////////////////////
-// TransparencyStackEntry methods
+// EffectsLayer methods
 void
-TransparencyStackEntry::
-blit_rect(const fastuidraw::vec4 &color_modulate,
+EffectsLayer::
+blit_rect(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass> &fx_pass,
           fastuidraw::vec2 dims, fastuidraw::Painter *p)
 {
   using namespace fastuidraw;
-  PainterBrush brush;
 
   /* TODO: instead of doing a full-blown Painter::save(), we should
    * instead just override the current transformation.
@@ -2365,24 +2369,21 @@ blit_rect(const fastuidraw::vec4 &color_modulate,
   p->save();
 
   p->transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
-  brush
-    .transformation_translate(m_brush_translate)
-    .color(color_modulate)
-    .image(m_image);
+  p->translate(-m_brush_translate);
 
-  p->fill_rect(PainterData(&brush),
+  p->fill_rect(PainterData(fx_pass->brush(m_image)),
                Rect()
-               .min_point(PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_min_point, dims))
-               .max_point(PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_max_point, dims)),
+               .min_point(m_brush_translate + PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_min_point, dims))
+               .max_point(m_brush_translate + PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_max_point, dims)),
                false);
 
   p->restore();
 }
 
 ////////////////////////////////////////
-// TransparencyStackEntryFactory methods
+// EffectsLayerFactory methods
 void
-TransparencyStackEntryFactory::
+EffectsLayerFactory::
 begin(fastuidraw::PainterSurface &surface)
 {
   bool clear_buffers;
@@ -2393,8 +2394,8 @@ begin(fastuidraw::PainterSurface &surface)
    * cannot scale them. Thus set our viewport to the same size
    * as the passed viewport but the origin at (0, 0).
    */
-  m_transparency_buffer_viewport.m_origin = fastuidraw::ivec2(0, 0);
-  m_transparency_buffer_viewport.m_dimensions = vwp.m_dimensions;
+  m_effects_buffer_viewport.m_origin = fastuidraw::ivec2(0, 0);
+  m_effects_buffer_viewport.m_dimensions = vwp.m_dimensions;
 
   /* We can only use the portions of the backing store
    * that is within m_ransparency_buffer_viewport.
@@ -2426,37 +2427,37 @@ begin(fastuidraw::PainterSurface &surface)
     }
 }
 
-TransparencyStackEntry
-TransparencyStackEntryFactory::
-fetch(unsigned int transparency_depth,
+EffectsLayer
+EffectsLayerFactory::
+fetch(unsigned int effects_depth,
       const fastuidraw::Rect &normalized_rect,
       PainterPrivate *d)
 {
   using namespace fastuidraw;
 
-  TransparencyStackEntry return_value;
+  EffectsLayer return_value;
   BufferRect buffer_rect(normalized_rect, m_current_backing_useable_size, d);
   ivec2 rect(-1, -1);
 
-  if (transparency_depth >= m_per_active_depth.size())
+  if (effects_depth >= m_per_active_depth.size())
     {
-      m_per_active_depth.resize(transparency_depth + 1);
+      m_per_active_depth.resize(effects_depth + 1);
     }
 
-  for (unsigned int i = 0, endi = m_per_active_depth[transparency_depth].size();
+  for (unsigned int i = 0, endi = m_per_active_depth[effects_depth].size();
        (rect.x() < 0 || rect.y() < 0) && i < endi; ++i)
     {
-      rect = m_per_active_depth[transparency_depth][i]->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
+      rect = m_per_active_depth[effects_depth][i]->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
       if (rect.x() >= 0 && rect.y() >= 0)
         {
-          return_value.m_image = m_per_active_depth[transparency_depth][i]->m_image.get();
-          return_value.m_packer = m_per_active_depth[transparency_depth][i]->m_packer.get();
+          return_value.m_image = m_per_active_depth[effects_depth][i]->m_image.get();
+          return_value.m_packer = m_per_active_depth[effects_depth][i]->m_packer.get();
         }
     }
 
   if (rect.x() < 0 || rect.y() < 0)
     {
-      reference_counted_ptr<TransparencyBuffer> TB;
+      reference_counted_ptr<EffectsBuffer> TB;
 
       if (m_unused_buffers.empty())
         {
@@ -2469,7 +2470,7 @@ fetch(unsigned int transparency_depth,
                                                  PainterSurface::color_buffer_type);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
           image = surface->image(d->m_backend->image_atlas());
-          TB = FASTUIDRAWnew TransparencyBuffer(packer, surface, image, m_current_backing_useable_size);
+          TB = FASTUIDRAWnew EffectsBuffer(packer, surface, image, m_current_backing_useable_size);
         }
       else
         {
@@ -2478,9 +2479,9 @@ fetch(unsigned int transparency_depth,
         }
 
       ++d->m_stats[Painter::num_render_targets];
-      TB->m_depth = transparency_depth;
-      TB->m_surface->viewport(m_transparency_buffer_viewport);
-      m_per_active_depth[transparency_depth].push_back(TB);
+      TB->m_depth = effects_depth;
+      TB->m_surface->viewport(m_effects_buffer_viewport);
+      m_per_active_depth[effects_depth].push_back(TB);
       d->m_active_surfaces.push_back(TB->m_surface.get());
 
       rect = TB->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
@@ -2504,17 +2505,17 @@ fetch(unsigned int transparency_depth,
    * where R is rect in normalized device coordinates.
    */
   vec2 Rndc;
-  Rndc = m_transparency_buffer_viewport.compute_normalized_device_coords(vec2(rect));
+  Rndc = m_effects_buffer_viewport.compute_normalized_device_coords(vec2(rect));
   return_value.m_normalized_translate = Rndc - return_value.m_normalized_rect.m_min_point;
 
   /* the drawing of the fill_rect in end_layer() draws normalized_rect
-   * scaled by m_transparency_buffer_viewport.m_dimensions. We need to
+   * scaled by m_effects_buffer_viewport.m_dimensions. We need to
    * have that
    *   return_value.m_brush_translate + S = rect
    * where S is normalized_rect in -pixel- coordinates
    */
   vec2 Spc;
-  Spc = m_transparency_buffer_viewport.compute_pixel_coordinates(return_value.m_normalized_rect.m_min_point);
+  Spc = m_effects_buffer_viewport.compute_pixel_coordinates(return_value.m_normalized_rect.m_min_point);
   return_value.m_brush_translate = vec2(rect) - Spc ;
 
   PainterItemMatrix M;
@@ -2525,7 +2526,7 @@ fetch(unsigned int transparency_depth,
 }
 
 void
-TransparencyStackEntryFactory::
+EffectsLayerFactory::
 end(void)
 {
   /* issue end() in reverse depth order */
@@ -2556,19 +2557,19 @@ update_coverage_buffer_offset(const PainterPrivate *d)
    *    == m_coverage_buffer_viewport.m_origin + rect
    *
    * where T is
-   *   if d->m_transparency_stack.empty()  --> T = (0, 0)
-   *   if !d->m_transparency_stack.empty() --> T = m_bottom_left_corner_in_surface - m_pixel_rect.min_point()
+   *   if d->m_effects_layer_stack.empty()  --> T = (0, 0)
+   *   if !d->m_effects_layer_stack.empty() --> T = m_bottom_left_corner_in_surface - m_pixel_rect.min_point()
    */
   ivec2 T, color_surface_viewport_origin;
-  if (d->m_transparency_stack.empty())
+  if (d->m_effects_layer_stack.empty())
     {
       T = ivec2(0, 0);
       color_surface_viewport_origin = d->m_viewport.m_origin;
     }
   else
     {
-      T = d->m_transparency_stack.back().m_bottom_left_corner_in_surface
-        - d->m_transparency_stack.back().m_pixel_rect.m_min_point;
+      T = d->m_effects_layer_stack.back().m_bottom_left_corner_in_surface
+        - d->m_effects_layer_stack.back().m_pixel_rect.m_min_point;
       color_surface_viewport_origin = ivec2(0, 0);
     }
 
@@ -2711,6 +2712,7 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   // we skip the check in PainterBackend::default_shaders() to register
   // the shaders as well.
   m_default_shaders = m_backend->default_shaders();
+  m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
   m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
   m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
@@ -4586,7 +4588,7 @@ begin(const reference_counted_ptr<PainterSurface> &surface,
 
   d->m_number_external_textures = d->m_backend->on_painter_begin();
   d->m_viewport = surface->viewport();
-  d->m_transparency_stack_entry_factory.begin(*surface);
+  d->m_effects_layer_factory.begin(*surface);
   d->m_deferred_coverage_stack_entry_factory.begin(*surface);
   d->m_root_packer->begin(d->m_number_external_textures, surface, clear_color_buffer);
   d->m_active_surfaces.clear();
@@ -4643,8 +4645,8 @@ end(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  /* pop the transparency stack until it is empty */
-  while (!d->m_transparency_stack.empty())
+  /* pop the effects stack until it is empty */
+  while (!d->m_effects_layer_stack.empty())
     {
       end_layer();
     }
@@ -4668,14 +4670,14 @@ end(void)
 
   /* issue the PainterPacker::end() to send the commands to the GPU;
    * we issue the end()'s in the order:
-   *   1. m_deferred_coverage_stack_entry_factory because a transparency
+   *   1. m_deferred_coverage_stack_entry_factory because a effects
    *      color buffer might use a deferred coverage buffer to render
-   *   2. m_transparency_stack_entry_factory (in reverse depth order)
+   *   2. m_effects_layer_factory (in reverse depth order)
    *      so that layer renders are ready for root
    *   3. m_root_packer last.
    */
   d->m_deferred_coverage_stack_entry_factory.end();
-  d->m_transparency_stack_entry_factory.end();
+  d->m_effects_layer_factory.end();
   d->m_root_packer->end();
 
   /* unlock resources after the commands are sent to the GPU */
@@ -4706,7 +4708,7 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
       return routine_fail;
     }
 
-  if (!d->m_transparency_stack.empty())
+  if (!d->m_effects_layer_stack.empty())
     {
       return routine_fail;
     }
@@ -4741,12 +4743,12 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
 
   /* issue the PainterPacker::end() to send the commands to the GPU */
   d->m_deferred_coverage_stack_entry_factory.end();
-  d->m_transparency_stack_entry_factory.end();
+  d->m_effects_layer_factory.end();
 
   /* clear the list of active surfaces */
   d->m_active_surfaces.clear();
 
-  /* start the transparency_stack_entry up again */
+  /* start the effects_stack_entry up again */
   if (new_surface == surface())
     {
       bool clear_z;
@@ -4754,7 +4756,7 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
 
       clear_z = (d->m_current_z > clear_depth_thresh);
       d->m_root_packer->flush(clear_z);
-      d->m_transparency_stack_entry_factory.begin(*new_surface);
+      d->m_effects_layer_factory.begin(*new_surface);
       d->m_deferred_coverage_stack_entry_factory.begin(*new_surface);
       if (clear_z)
         {
@@ -4776,7 +4778,7 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
       d->m_current_z = 1;
       d->m_root_packer->begin(d->m_number_external_textures, new_surface, true);
       d->m_deferred_coverage_stack_entry_factory.begin(*new_surface);
-      d->m_transparency_stack_entry_factory.begin(*new_surface);
+      d->m_effects_layer_factory.begin(*new_surface);
 
       /* blit the old surface to the surface */
       save();
@@ -5689,7 +5691,16 @@ fastuidraw::Painter::
 begin_layer(const vec4 &color_modulate)
 {
   PainterPrivate *d;
-  TransparencyStackEntry R;
+  d = static_cast<PainterPrivate*>(m_d);
+  d->m_color_modulate_fx->color(color_modulate);
+  begin_layer(d->m_color_modulate_fx);
+}
+
+void
+fastuidraw::Painter::
+begin_layer(const reference_counted_ptr<PainterEffect> &effect)
+{
+  PainterPrivate *d;
   Rect clip_region_rect;
 
   d = static_cast<PainterPrivate*>(m_d);
@@ -5702,39 +5713,69 @@ begin_layer(const vec4 &color_modulate)
    */
   save();
 
-  /* get the TransparencyStackEntry that gives the PainterPacker and what to blit
-   * when the layer is done
-   */
-  R = d->m_transparency_stack_entry_factory.fetch(d->m_transparency_stack.size(), clip_region_rect, d);
-  R.m_state_stack_size = d->m_state_stack.size();
+  EffectsStackEntry fx_entry;
 
-  /* We *add* the command to the current packer() to blit the rect of R
-   * now. Recall that the PainterPacker used for the layer will have its
-   * commands executed before the current packer(), regardless in what
-   * order we add them.
-   */
-  R.blit_rect(color_modulate, d->m_viewport_dimensions, this);
+  fx_entry.m_effects_layer_stack_size = d->m_effects_layer_stack.size();
+  fx_entry.m_state_stack_size = d->m_state_stack.size();;
+  d->m_effects_stack.push_back(fx_entry);
 
-  /* Set the clipping equations to the equations coming from clip_region_rect */
-  d->m_clip_rect_state.m_clip_rect = clip_rect(clip_region_rect);
-  d->m_clip_rect_state.set_clip_equations_to_clip_rect(ClipRectState::rect_in_normalized_device_coordinates);
+  c_array<const reference_counted_ptr<PainterEffectPass> > passes(effect->passes());
+  fastuidraw::PainterBlendShader* old_blend(d->packer()->blend_shader());
+  fastuidraw::PainterBlendShader* copy_blend(d->m_default_shaders.blend_shaders().shader(blend_porter_duff_src).get());
+  BlendMode old_blend_mode(d->packer()->blend_mode());
+  BlendMode copy_blend_mode(d->m_default_shaders.blend_shaders().blend_mode(blend_porter_duff_src));
 
-  /* update d->m_clip_rect_state.m_clip_rect to local coordinates */
-  d->m_clip_rect_state.update_rect_to_transformation();
-
-  /* change m_clip_store so that the current value is just from clip_region_rect */
-  d->m_clip_store.reset_current_to_rect(clip_region_rect);
-
-  /* set the normalized translation of d->m_clip_rect_state */
-  d->m_clip_rect_state.set_normalized_device_translate(R.m_normalized_translate);
-
-  d->m_transparency_stack.push_back(R);
-  ++d->m_stats[num_layers];
-
-  if (!d->m_deferred_coverage_stack.empty()
-      && d->m_deferred_coverage_stack.back().packer())
+  for (auto ibegin = passes.rbegin(), iend = passes.rend(), i = ibegin;
+       i != iend; ++i)
     {
-      d->m_deferred_coverage_stack.back().update_coverage_buffer_offset(d);
+      /* get the EffectsLayer that gives the PainterPacker and what to blit
+       * when the layer is done
+       */
+      EffectsLayer R;
+
+      R = d->m_effects_layer_factory.fetch(d->m_effects_layer_stack.size(), clip_region_rect, d);
+
+      /* Set the blend mode to copy for those rects that fed to the next
+       * effect; the last blit has the blend mode set to what it was before.
+       */
+      if (i != ibegin)
+        {
+          d->packer()->blend_shader(copy_blend, copy_blend_mode);
+        }
+      else
+        {
+          d->packer()->blend_shader(old_blend, old_blend_mode);
+        }
+
+      /* We *add* the command to the current packer() to blit the rect of R
+       * now. Recall that the PainterPacker used for the layer will have its
+       * commands executed before the current packer(), regardless in what
+       * order we add them.
+       */
+      R.blit_rect(*i, d->m_viewport_dimensions, this);
+
+      /* after issuing the blit command, then add R to m_effects_layer_stack */
+      d->m_effects_layer_stack.push_back(R);
+      ++d->m_stats[num_layers];
+
+      /* Set the clipping equations to the equations coming from clip_region_rect */
+      d->m_clip_rect_state.m_clip_rect = clip_rect(clip_region_rect);
+      d->m_clip_rect_state.set_clip_equations_to_clip_rect(ClipRectState::rect_in_normalized_device_coordinates);
+
+      /* update d->m_clip_rect_state.m_clip_rect to local coordinates */
+      d->m_clip_rect_state.update_rect_to_transformation();
+
+      /* change m_clip_store so that the current value is just from clip_region_rect */
+      d->m_clip_store.reset_current_to_rect(clip_region_rect);
+
+      /* set the normalized translation of d->m_clip_rect_state */
+      d->m_clip_rect_state.set_normalized_device_translate(d->m_effects_layer_stack.back().m_normalized_translate);
+
+      if (!d->m_deferred_coverage_stack.empty()
+          && d->m_deferred_coverage_stack.back().packer())
+        {
+          d->m_deferred_coverage_stack.back().update_coverage_buffer_offset(d);
+        }
     }
 
   /* Set the packer's blend shader, mode and blend shader to
@@ -5754,8 +5795,7 @@ end_layer(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  TransparencyStackEntry R(d->m_transparency_stack.back());
-  d->m_transparency_stack.pop_back();
+  EffectsStackEntry R(d->m_effects_stack.back());
 
   /* restore any saves() done within the layer. */
   FASTUIDRAWassert(R.m_state_stack_size == d->m_state_stack.size());
@@ -5763,6 +5803,7 @@ end_layer(void)
     {
       restore();
     }
+  d->m_effects_layer_stack.resize(R.m_effects_layer_stack_size);
 
   /* issue the restore that matches with the save() at the start
    * of begin_layer(); this will restore the clipping and
@@ -6362,7 +6403,7 @@ blend_mode(void) const
 void
 fastuidraw::Painter::
 blend_shader(const reference_counted_ptr<PainterBlendShader> &h,
-                 BlendMode mode)
+             BlendMode mode)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);

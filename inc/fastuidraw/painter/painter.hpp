@@ -46,6 +46,7 @@
 #include <fastuidraw/painter/attribute_data/filled_path.hpp>
 
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
+#include <fastuidraw/painter/effects/painter_effect.hpp>
 
 #include <fastuidraw/painter/backend/painter_backend.hpp>
 
@@ -255,13 +256,12 @@ namespace fastuidraw
      */
     void
     blend_shader(const reference_counted_ptr<PainterBlendShader> &h,
-                     BlendMode blend_mode);
+                 BlendMode blend_mode);
 
     /*!
      * Equivalent to
      * \code
-     * blend_shader(shader_set.shader(m),
-     *                  shader_set.blend_mode(m))
+     * blend_shader(shader_set.shader(m), shader_set.blend_mode(m))
      * \endcode
      * It is a crashing error if shader_set does not support
      * the named blend mode.
@@ -270,7 +270,7 @@ namespace fastuidraw
      */
     void
     blend_shader(const PainterBlendShaderSet &shader_set,
-                     enum blend_mode_t m)
+                 enum blend_mode_t m)
     {
       blend_shader(shader_set.shader(m), shader_set.blend_mode(m));
     }
@@ -712,12 +712,26 @@ namespace fastuidraw
     restore(void);
 
     /*!
+     * Begin an FX layer. This marks first rendering into an
+     * offscreen buffer and then blitting the buffer with the
+     * passed FX applied. The buffer will be blitted with the
+     * blend_shader(), and blend_mode() at the time of the call
+     * to begin_layer(). All restore() commands called after a
+     * begin_layer() must match a save() from after a begin_layer().
+     * It is acceptable to layer any number of begin_layer() calls
+     * as well.
+     * \param effect FX to apply
+     */
+    void
+    begin_layer(const reference_counted_ptr<PainterEffect> &effect);
+
+    /*!
      * Begin a transparency layer. This marks first
      * rendering into an offscreen buffer and then
      * blitting the buffer. The buffer will be blitted
      * with the blend_shader(), and blend_mode()
      * at the time of the call to begin_layer(). All
-     * restore() commands called* after a begin_layer()
+     * restore() commands called after a begin_layer()
      * must match a save() from after a begin_layer().
      * It is acceptable to layer any number of begin_layer()
      * calls as well.
