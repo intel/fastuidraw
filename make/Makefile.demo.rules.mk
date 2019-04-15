@@ -1,8 +1,8 @@
 DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(COMMON_DEMO_RESOURCE_STRINGS))
 CLEAN_FILES += $(DEMO_COMMON_RESOURCE_STRING_SRCS)
 
-DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image
-DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
+DEMO_COMMON_LIBS := $(shell pkg-config sdl2 --libs) -lSDL2_image
+DEMO_COMMON_CFLAGS = $(shell pkg-config sdl2 --cflags) -Idemos/common
 
 
 ifeq ($(MINGW_BUILD),1)
