@@ -102,8 +102,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ae4b703e1df01239fb8a99b12b30886bf"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d6c/classfastuidraw_1_1gl_1_1_uniform_initializer_3_01c__array_3_01const_01_t_01_4_01_4.html#ae4b703e1df01239fb8a99b12b30886bf">init_uniform</a> (GLuint program, GLint location, bool program_bound) const</td></tr>
-<tr class="separator:ae4b703e1df01239fb8a99b12b30886bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33fac74f715a4d74261ee76adb8956c8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d6c/classfastuidraw_1_1gl_1_1_uniform_initializer_3_01c__array_3_01const_01_t_01_4_01_4.html#a33fac74f715a4d74261ee76adb8956c8">init_uniform</a> (GLuint program, <a class="el" href="../../d5/de8/classfastuidraw_1_1gl_1_1_program_1_1shader__variable__info.html">Program::shader_variable_info</a> info, unsigned int array_index, bool program_bound) const</td></tr>
+<tr class="separator:a33fac74f715a4d74261ee76adb8956c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -119,7 +119,7 @@ class fastuidraw::gl::UniformInitializer&lt; c_array&lt; const T &gt; &gt;</h3>
 
 <p>Specialization for type <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array&lt;const T&gt;</a> for <a class="el" href="../../d1/d5c/classfastuidraw_1_1gl_1_1_uniform_initializer.html">UniformInitializer</a> so that data behind the <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html" title="A c_array is a wrapper over a C pointer with a size parameter to facilitate bounds checking and provi...">c_array</a> is copied. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l00539">539</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l01545">1545</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac4d794555a022a5442e405f3e7bfbd50"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac4d794555a022a5442e405f3e7bfbd50">&#9670;&nbsp;</a></span>UniformInitializer()</h2>
@@ -164,13 +164,13 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l00547">547</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l01553">1553</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ae4b703e1df01239fb8a99b12b30886bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae4b703e1df01239fb8a99b12b30886bf">&#9670;&nbsp;</a></span>init_uniform()</h2>
+<a id="a33fac74f715a4d74261ee76adb8956c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33fac74f715a4d74261ee76adb8956c8">&#9670;&nbsp;</a></span>init_uniform()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -189,8 +189,14 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">GLint&#160;</td>
-          <td class="paramname"><em>location</em>, </td>
+          <td class="paramtype"><a class="el" href="../../d5/de8/classfastuidraw_1_1gl_1_1_program_1_1shader__variable__info.html">Program::shader_variable_info</a>&#160;</td>
+          <td class="paramname"><em>info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>array_index</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -213,15 +219,16 @@ template&lt;typename T &gt; </div>
 <p>To be implemented by a derived class to make the GL call to initialize a uniform in a GLSL shader. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">program</td><td>GL program </td></tr>
-    <tr><td class="paramname">location</td><td>location of uniform </td></tr>
+    <tr><td class="paramname">info</td><td>information on uniform (name, type, location, etc) </td></tr>
+    <tr><td class="paramname">array_index</td><td>index into GLSL uniform if it is an array </td></tr>
     <tr><td class="paramname">program_bound</td><td>true if and only if the program named by program is bound (via glUseProgram). If the program is not bound, then one SHOULD not bind the program and instead use the GL API points to set values of the uniform(s) that do not rely on having the program bound. One can also safely assume that those API points are supported in the case it is not bound (in particular the function family <a class="el" href="../../d5/de7/group___g_l_utility.html#ga7203382d426d197c42996c9b0ae78893" title="Template version for setting array of uniforms,. ">ProgramUniform()</a> can be safely used). </td></tr>
   </table>
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html#a7ddb951e32c1e26e01352f8b7dfebf1c">fastuidraw::gl::UniformInitalizerBase</a>.</p>
+<p>Implements <a class="el" href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html#a81a8d4b3e844629a42046f3053d4afa4">fastuidraw::gl::UniformInitalizerBase</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l00578">578</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l01584">1584</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
 
 </div>
 </div>

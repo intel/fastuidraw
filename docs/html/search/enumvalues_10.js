@@ -1,6 +1,8 @@
 var searchData=
 [
   ['shader',['shader',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba2d4d935c8cae1d855420be8f70d644d4',1,'fastuidraw::gpu_dirty_state']]],
+  ['shear_5fx_5foffset',['shear_x_offset',['../dd/dbe/classfastuidraw_1_1_painter_brush_adjust.html#a51b80e2e1afab7677a89eba8269a1586ae3bb264d82d819df73c91b0dabd6a912',1,'fastuidraw::PainterBrushAdjust']]],
+  ['shear_5fy_5foffset',['shear_y_offset',['../dd/dbe/classfastuidraw_1_1_painter_brush_adjust.html#a51b80e2e1afab7677a89eba8269a1586a6cc1c37cf9d2df2f3c9f748a5b87a692',1,'fastuidraw::PainterBrushAdjust']]],
   ['sin_5fsign_5fbit',['sin_sign_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#afba0000ee5b19ceabd90c6bc8f1a9df1a145d5f6483a68a41a1feeea514174835',1,'fastuidraw::StrokedPoint']]],
   ['sin_5fsign_5fmask',['sin_sign_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a4ac465cb114de585425162fb54a25288',1,'fastuidraw::StrokedPoint']]],
   ['single_5fsrc',['single_src',['../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1ca9afc42f0d827c08874a07c618d69fb12',1,'fastuidraw::PainterBlendShader']]],

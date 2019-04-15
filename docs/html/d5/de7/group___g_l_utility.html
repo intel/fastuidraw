@@ -62,7 +62,6 @@ $(function() {
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">GL Utility</div>  </div>
@@ -113,6 +112,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/da5/classfastuidraw_1_1gl_1_1_program_separable.html">fastuidraw::gl::ProgramSeparable</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d2/da5/classfastuidraw_1_1gl_1_1_program_separable.html" title="A ProgramSeparable inherits from PreLinkAction, its purpose is to set a GLSL program as separable...">ProgramSeparable</a> inherits from <a class="el" href="../../da/d20/classfastuidraw_1_1gl_1_1_pre_link_action.html">PreLinkAction</a>, its purpose is to set a GLSL program as separable, so that it can be used by a GLSL pipeline. Using a <a class="el" href="../../d2/da5/classfastuidraw_1_1gl_1_1_program_separable.html" title="A ProgramSeparable inherits from PreLinkAction, its purpose is to set a GLSL program as separable...">ProgramSeparable</a> requires:  <a href="../../d2/da5/classfastuidraw_1_1gl_1_1_program_separable.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d8f/classfastuidraw_1_1gl_1_1_sampler_initializer.html">fastuidraw::gl::SamplerInitializer</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class to intialize the binding points of samplers. If the uniform is an array, the first element will be given the specified binding point and successive elements in the array will be given successive binding points.  <a href="../../db/d8f/classfastuidraw_1_1gl_1_1_sampler_initializer.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d88/classfastuidraw_1_1gl_1_1_shader.html">fastuidraw::gl::Shader</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple <a class="el" href="../../d6/d88/classfastuidraw_1_1gl_1_1_shader.html" title="Simple Shader utility class providing a simple interface to build GL shader objects using a glsl::Sha...">Shader</a> utility class providing a simple interface to build GL shader objects using a glsl::ShaderSouce as its source code.  <a href="../../d6/d88/classfastuidraw_1_1gl_1_1_shader.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -126,7 +128,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../dc/d52/classfastuidraw_1_1gl_1_1_uniform_block_initializer.html" title="A UniformBlockInitializer is used to initalize the binding point used by a bindable uniform (aka Unif...">UniformBlockInitializer</a> is used to initalize the binding point used by a bindable uniform (aka Uniform buffer object, see the GL spec on glGetUniformBlockIndex and glUniformBlockBinding.  <a href="../../dc/d52/classfastuidraw_1_1gl_1_1_uniform_block_initializer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html">fastuidraw::gl::UniformInitalizerBase</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html" title="A UniformInitalizerBase is a base class for initializing a uniform, the actual GL call to set the uni...">UniformInitalizerBase</a> is a base class for initializing a uniform, the actual GL call to set the uniform value is to be implemented by a derived class in <a class="el" href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html#a7ddb951e32c1e26e01352f8b7dfebf1c">init_uniform()</a>.  <a href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html" title="A UniformInitalizerBase is a base class for initializing a uniform, the actual GL call to set the uni...">UniformInitalizerBase</a> is a base class for initializing a uniform, the actual GL call to set the uniform value is to be implemented by a derived class in <a class="el" href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html#a81a8d4b3e844629a42046f3053d4afa4">init_uniform()</a>.  <a href="../../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d5c/classfastuidraw_1_1gl_1_1_uniform_initializer.html">fastuidraw::gl::UniformInitializer&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a uniform via the templated overloaded function <a class="el" href="../../d5/de7/group___g_l_utility.html#ga7495bd4d0f06aa3c1c6e001d9ea0aee6" title="Template version for setting array of uniforms. ">fastuidraw::gl::Uniform()</a>.  <a href="../../d1/d5c/classfastuidraw_1_1gl_1_1_uniform_initializer.html#details">More...</a><br /></td></tr>
@@ -140,15 +142,15 @@ Macros</h2></td></tr>
 <tr class="memitem:gaafcfb5d6b9e75ff2b719f93d209c06d5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#gaafcfb5d6b9e75ff2b719f93d209c06d5">FASTUIDRAW_GL_MESSAGE</a>(X)&#160;&#160;&#160;gl_binding::message(X, __FILE__, __LINE__)</td></tr>
 <tr class="separator:gaafcfb5d6b9e75ff2b719f93d209c06d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:gade83f8589b4a3d76d7db724ab5b67575"><td class="memItemLeft" align="right" valign="top"><a id="gade83f8589b4a3d76d7db724ab5b67575"></a>
-typedef <a class="el" href="../../d1/d5c/classfastuidraw_1_1gl_1_1_uniform_initializer.html">UniformInitializer</a>&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#gade83f8589b4a3d76d7db724ab5b67575">fastuidraw::gl::SamplerInitializer</a></td></tr>
-<tr class="memdesc:gade83f8589b4a3d76d7db724ab5b67575"><td class="mdescLeft">&#160;</td><td class="mdescRight">Conveniance typedef to initialize samplers. <br /></td></tr>
-<tr class="separator:gade83f8589b4a3d76d7db724ab5b67575"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ga83cda2db16d9644a0b787912b4214426"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html">ProgramInitializerArray</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#ga83cda2db16d9644a0b787912b4214426">fastuidraw::gl::ProgramInitializerArray::add_sampler_initializer</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> uniform_name, int value)</td></tr>
+<tr class="separator:ga83cda2db16d9644a0b787912b4214426"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1ae164dfc8d31593d7dc97780dd8fb86"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html">ProgramInitializerArray</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#ga1ae164dfc8d31593d7dc97780dd8fb86">fastuidraw::gl::ProgramInitializerArray::add_uniform_block_binding</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> uniform_name, int value)</td></tr>
+<tr class="separator:ga1ae164dfc8d31593d7dc97780dd8fb86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaff0f2778ada15ec2e91c1425c6e9e41f"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:gaff0f2778ada15ec2e91c1425c6e9e41f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html">ProgramInitializerArray</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#gaff0f2778ada15ec2e91c1425c6e9e41f">fastuidraw::gl::ProgramInitializerArray::add_uniform_initializer</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> uniform_name, const T &amp;value)</td></tr>
+<tr class="separator:gaff0f2778ada15ec2e91c1425c6e9e41f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4efdd3f0e1ef7e4508dc514e90b7ee7c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#ga4efdd3f0e1ef7e4508dc514e90b7ee7c">fastuidraw::gl::context_get</a> (GLenum v, GLint *ptr)</td></tr>
 <tr class="separator:ga4efdd3f0e1ef7e4508dc514e90b7ee7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga153e38f35a9086607a12c842672a3dc0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/group___g_l_utility.html#ga153e38f35a9086607a12c842672a3dc0">fastuidraw::gl::context_get</a> (GLenum v, GLboolean *ptr)</td></tr>
@@ -275,6 +277,135 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="ga83cda2db16d9644a0b787912b4214426"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga83cda2db16d9644a0b787912b4214426">&#9670;&nbsp;</a></span>add_sampler_initializer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html">ProgramInitializerArray</a> &amp; fastuidraw::gl::ProgramInitializerArray::add_sampler_initializer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>uniform_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, creates a <a class="el" href="../../db/d8f/classfastuidraw_1_1gl_1_1_sampler_initializer.html" title="Class to intialize the binding points of samplers. If the uniform is an array, the first element will...">SamplerInitializer</a> object and adds that via <a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html#a20bfdf7650d2542390dc751b5ac3cb0c">add()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">uniform_name</td><td>name of uniform in GLSL to initialize </td></tr>
+    <tr><td class="paramname">value</td><td>value with which to set the uniform, in this case specifies the texture unit as follows: a value of n means to use GL_TEXTUREn texture unit. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l01678">1678</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ga1ae164dfc8d31593d7dc97780dd8fb86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1ae164dfc8d31593d7dc97780dd8fb86">&#9670;&nbsp;</a></span>add_uniform_block_binding()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html">ProgramInitializerArray</a> &amp; fastuidraw::gl::ProgramInitializerArray::add_uniform_block_binding </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>uniform_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, creates a <a class="el" href="../../dc/d52/classfastuidraw_1_1gl_1_1_uniform_block_initializer.html" title="A UniformBlockInitializer is used to initalize the binding point used by a bindable uniform (aka Unif...">UniformBlockInitializer</a> object and adds that via <a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html#a20bfdf7650d2542390dc751b5ac3cb0c">add()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">uniform_name</td><td>name of uniform in GLSL to initialize </td></tr>
+    <tr><td class="paramname">value</td><td>value with which to set the uniform, in this case specifies the binding point index to pass to glBindBufferBase or glBindBufferRange. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l01686">1686</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
+
+</div>
+</div>
+<a id="gaff0f2778ada15ec2e91c1425c6e9e41f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaff0f2778ada15ec2e91c1425c6e9e41f">&#9670;&nbsp;</a></span>add_uniform_initializer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html">ProgramInitializerArray</a> &amp; fastuidraw::gl::ProgramInitializerArray::add_uniform_initializer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>uniform_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, creates a <a class="el" href="../../d1/d5c/classfastuidraw_1_1gl_1_1_uniform_initializer.html" title="Initialize a uniform via the templated overloaded function fastuidraw::gl::Uniform(). ">UniformInitializer</a> object and adds that via <a class="el" href="../../d4/d17/classfastuidraw_1_1gl_1_1_program_initializer_array.html#a20bfdf7650d2542390dc751b5ac3cb0c">add()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">uniform_name</td><td>name of uniform in GLSL to initialize </td></tr>
+    <tr><td class="paramname">value</td><td>value with which to set the uniform </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html#l01670">1670</a> of file <a class="el" href="../../d2/dcd/gl__program_8hpp_source.html">gl_program.hpp</a>.</p>
+
+</div>
+</div>
 <a id="ga4efdd3f0e1ef7e4508dc514e90b7ee7c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga4efdd3f0e1ef7e4508dc514e90b7ee7c">&#9670;&nbsp;</a></span>context_get() <span class="overload">[1/6]</span></h2>
 

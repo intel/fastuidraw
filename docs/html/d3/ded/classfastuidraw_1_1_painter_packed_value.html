@@ -118,7 +118,7 @@ class fastuidraw::PainterPackedValue&lt; T &gt;</h3>
 <p>A <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a> represents a handle to an object that stores packed state data and tracks if that underlying data is already is already copied to <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>. </p>
 <p>If already on a store, then rather than copying the data again, the data is reused. The object behind the handle is NOT thread safe. In addition the underlying reference count is not either. Hence any access (even dtor, copy ctor and equality operator) on a fixed object cannot be done from multiple threads simutaneously. A fixed <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a> can be used by different <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> objects, subject to that the access is done from same thread. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00034">34</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00036">36</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aaec4e8186b83b8252439e7d1099ccbff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaec4e8186b83b8252439e7d1099ccbff">&#9670;&nbsp;</a></span>PainterPackedValue()</h2>
@@ -147,7 +147,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 <p>Ctor, initializes handle to nullptr, i.e. no underlying value object. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00094">94</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00096">96</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -179,7 +179,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 <p>Pointer to opaque data of <a class="el" href="../../db/d27/classfastuidraw_1_1_painter_packed_value_base.html" title="(Private) base class used for PainterPackedValue ">PainterPackedValueBase</a>, used internally by fastuidraw. Do not touch! </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00185">185</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00187">187</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -210,7 +210,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 <p>Used to allow using object as a boolean without accidentally converting to a boolean (since it returns a pointer to a function). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00142">142</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00144">144</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -246,7 +246,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00164">164</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00166">166</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -282,7 +282,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00175">175</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00177">177</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -318,7 +318,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00153">153</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00155">155</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -348,7 +348,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 <p>Resets the object to not refer to anything. Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#aaec4e8186b83b8252439e7d1099ccbff">PainterPackedValue</a> tmp;</div><div class="line"><a class="code" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#ab55425be36490f5feedb288d3091924e">swap</a>(tmp);</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00116">116</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00118">118</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -384,7 +384,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00102">102</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00104">104</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -415,7 +415,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 <p>Returns the value to which the handle points. If the handle is not-valid, then FASTUIDRAWasserts. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00127">127</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00129">129</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>

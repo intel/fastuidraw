@@ -1,7 +1,7 @@
 var searchData=
 [
   ['has_5farcs',['has_arcs',['../d7/d83/classfastuidraw_1_1_stroked_path.html#af9fb36b07b2b3712e1be31aeaa700290',1,'fastuidraw::StrokedPath::has_arcs()'],['../da/df4/classfastuidraw_1_1_tessellated_path.html#a5bb273f95acbd7e851093c90d97ab04e',1,'fastuidraw::TessellatedPath::has_arcs()']]],
-  ['has_5fdata',['has_data',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html#a9f40234fd50504fd2fe986794bf72e31',1,'fastuidraw::PainterData::value']]],
+  ['has_5fdata',['has_data',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html#a9f40234fd50504fd2fe986794bf72e31',1,'fastuidraw::PainterData::value::has_data()'],['../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a2de865b5d3b23edde6d1d6e89f2a6a94',1,'fastuidraw::PainterData::brush_value::has_data()']]],
   ['has_5fextension',['has_extension',['../da/d0c/classfastuidraw_1_1gl_1_1_context_properties.html#aa5ce315a4c10deeee65ce04474807a82',1,'fastuidraw::gl::ContextProperties']]],
   ['header_5fattrib_5fslot',['header_attrib_slot',['../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a089b989bafff551140e9613c54252abca6a9c60454d039642a821bc7cfb5043bb',1,'fastuidraw::glsl::PainterShaderRegistrarGLSLTypes']]],
   ['header_5fsize',['header_size',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a1a4bfefdd6d9fc878b9ac0522093e14b',1,'fastuidraw::PainterHeader']]],

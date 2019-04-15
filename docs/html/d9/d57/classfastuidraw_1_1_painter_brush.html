@@ -1358,7 +1358,7 @@ Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">im</td><td>handle to image to use. If handle is invalid, then sets brush to not have an image. </td></tr>
     <tr><td class="paramname">f</td><td>filter to apply to image, only has effect if im is non-nullptr </td></tr>
-    <tr><td class="paramname">mipmap</td><td>specifies mipmap filtering to apply </td></tr>
+    <tr><td class="paramname">mipmap_filtering</td><td>specifies if to apply mipmap filtering </td></tr>
   </table>
   </dd>
 </dl>
@@ -1388,7 +1388,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns the value of the handle to the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> that the brush is set to use. </p>
+<p>Returns a reference to the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> that the brush is set to use; if there is no such image, returns nullptr. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html#l01290">1290</a> of file <a class="el" href="../../d5/dc7/painter__brush_8hpp_source.html">painter_brush.hpp</a>.</p>
 
@@ -1427,7 +1427,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns the value of the handle to the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> that the brush is set to use together with the sub-image of the image used. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Returns a pointer to the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> that the brush is set to use together with the sub-image of the image used. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">start</td><td>location to which to write the min-corner of the image that is used </td></tr>
     <tr><td class="paramname">size</td><td>location to which to write the size of the portion of the image used. </td></tr>
@@ -2108,7 +2108,7 @@ Public Member Functions</h2></td></tr>
     <tr><td class="paramname">xy</td><td>top-left corner of sub-rectangle of image to use </td></tr>
     <tr><td class="paramname">wh</td><td>width and height of sub-rectangle of image to use </td></tr>
     <tr><td class="paramname">f</td><td>filter to apply to image, only has effect if im is non-nullptr </td></tr>
-    <tr><td class="paramname">mipmap_filtering</td><td>specifies mipmap filtering to apply </td></tr>
+    <tr><td class="paramname">mipmap_filtering</td><td>specifies if to apply mipmap filtering </td></tr>
   </table>
   </dd>
 </dl>

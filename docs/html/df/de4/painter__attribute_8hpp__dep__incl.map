@@ -20,11 +20,11 @@
 <area shape="rect" id="node16" href="$dd/df6/painter__glyph__shader_8hpp.html" title="file painter_glyph_shader.hpp " alt="" coords="1672,703,1861,773"/>
 <area shape="rect" id="node17" href="$df/d62/painter__shader__set_8hpp.html" title="file painter_shader_set.hpp " alt="" coords="1668,821,1865,892"/>
 <area shape="rect" id="node18" href="$da/d96/painter__shader__registrar_8hpp.html" title="file painter_shader_registrar.hpp " alt="" coords="1681,940,1852,1011"/>
-<area shape="rect" id="node19" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="1672,1177,1861,1248"/>
-<area shape="rect" id="node22" href="$da/df1/painter__backend_8hpp.html" title="file painter_backend.hpp " alt="" coords="1620,1059,1791,1129"/>
-<area shape="rect" id="node20" href="$d3/d4b/glyph__atlas__gl_8hpp.html" title="file glyph_atlas_gl.hpp " alt="" coords="1594,1296,1798,1352"/>
-<area shape="rect" id="node21" href="$d8/d96/painter__backend__gl_8hpp.html" title="file painter_backend_gl.hpp " alt="" coords="1649,1400,1882,1456"/>
-<area shape="rect" id="node27" href="$d6/d8d/painter__fill__shader_8hpp.html" title="file painter_fill_shader.hpp " alt="" coords="1731,584,1901,655"/>
+<area shape="rect" id="node19" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="1611,1177,1800,1248"/>
+<area shape="rect" id="node22" href="$da/df1/painter__backend_8hpp.html" title="file painter_backend.hpp " alt="" coords="1743,1059,1913,1129"/>
+<area shape="rect" id="node20" href="$d3/d4b/glyph__atlas__gl_8hpp.html" title="file glyph_atlas_gl.hpp " alt="" coords="1603,1296,1807,1352"/>
+<area shape="rect" id="node21" href="$d8/d96/painter__backend__gl_8hpp.html" title="file painter_backend_gl.hpp " alt="" coords="1589,1400,1822,1456"/>
+<area shape="rect" id="node27" href="$d6/d8d/painter__fill__shader_8hpp.html" title="file painter_fill_shader.hpp " alt="" coords="1761,584,1932,655"/>
 <area shape="rect" id="node28" href="$d1/d91/painter__stroke__shader_8hpp.html" title="file painter_stroke_shader.hpp " alt="" coords="1481,584,1676,655"/>
 <area shape="rect" id="node29" href="$d6/db8/painter__stroke__params_8hpp.html" title="file painter_stroke_params.hpp " alt="" coords="1197,710,1424,766"/>
 <area shape="rect" id="node31" href="$d2/ddb/painter__dashed__stroke__shader__set_8hpp.html" title="file painter_dashed_stroke_shader_set.hpp " alt="" coords="1448,703,1648,773"/>

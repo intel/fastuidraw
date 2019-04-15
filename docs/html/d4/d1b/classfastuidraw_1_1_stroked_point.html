@@ -210,13 +210,13 @@ Public Attributes</h2></td></tr>
 
 <p>Enumeration for specifing the point type which in turn determines the meaning of the fields <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a>. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299a731700aaba2afdf27098abc1671e382c"></a>offset_sub_edge&#160;</td><td class="fielddoc"><p>The point is for an edge of the path, point signifies the start of a sub-edge (quad) of drawing an edge. The meanings of <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299a731700aaba2afdf27098abc1671e382c"></a>offset_sub_edge&#160;</td><td class="fielddoc"><p>The point is for an edge of the path, point signifies the start or end of a sub-edge (quad) of drawing an edge. The meanings of <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
 <li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> the normal vector to the edge in which move the point by when stroking</li>
 <li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> when added to <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a053c7fe06d478575bb5487b8cef85d6d">m_position</a>, gives the position of the point on the other side of the edge. </li>
 </ul>
 </td></tr>
 <tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299a625a9146aa4d49a15f4ca18349f8caa4"></a>offset_shared_with_edge&#160;</td><td class="fielddoc"><p>The point is at a position that has the same value as point on an edge but the point itself is part of a cap or join. The meanings of the members <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> the normal vector to the edge in which move the point by when stroking; this vector can be (0, 0).</li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> the normal vector to the edge in which move the point by the stroking width when stroking; this vector can be (0, 0).</li>
 <li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> unused (set to (0, 0)) </li>
 </ul>
 </td></tr>
@@ -226,18 +226,18 @@ Public Attributes</h2></td></tr>
 </ul>
 </td></tr>
 <tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299aeea36389c3e54208da6b94f2f97edef9"></a>offset_miter_clip_join&#160;</td><td class="fielddoc"><p>Point type for miter-clip join point whose position depends on the stroking radius and the miter-limit. The meanings of <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> gives the unit normal vector of teh edge going into the join</li>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> gives the unit normal vector of teh edge leaving the join </li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> gives the unit normal vector of the edge going into the join</li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> gives the unit normal vector of the edge leaving the join </li>
 </ul>
 </td></tr>
 <tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299a1e0fa02f83d7cf3a69c8981361e52437"></a>offset_miter_bevel_join&#160;</td><td class="fielddoc"><p>Point type for miter-bevel join point whose position depends on the stroking radius and the miter-limit. The meanings of <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> gives the unit normal vector of teh edge going into the join</li>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> gives the unit normal vector of teh edge leaving the join </li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> gives the unit normal vector of the edge going into the join</li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> gives the unit normal vector of the edge leaving the join </li>
 </ul>
 </td></tr>
 <tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299a44960be6e20923f4929263d579f49445"></a>offset_miter_join&#160;</td><td class="fielddoc"><p>Point type for miter join whose position position depends on the stroking radius and the miter-limit. The meanings of <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> gives the unit normal vector of teh edge going into the join</li>
-<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> gives the unit normal vector of teh edge leaving the join </li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> gives the unit normal vector of the edge going into the join</li>
+<li><a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> gives the unit normal vector of the edge leaving the join </li>
 </ul>
 </td></tr>
 <tr><td class="fieldname"><a id="a6eaca992387f5dd0df1052fdefe75299a91f3ec8f9b441656b829dbfc1c23f157"></a>offset_rounded_cap&#160;</td><td class="fielddoc"><p>The point is for a boundary point of a rounded cap of the path. The meanings of <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a0435bca5fae628257a50026533c90374">m_pre_offset</a> and <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#a9e6108144da56b762a6d74b08ff30d20">m_auxiliary_offset</a> are:</p><ul>
@@ -601,9 +601,9 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Has value 0 or 1. If the value is 0, then the point is on the path. If the value has absolute value 1, then indicates a point that is on the boundary of the stroked path. The triangles produced from stroking are so that when <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html#ad97ad3b6def878b808b1194ac2c9342e">on_boundary()</a> is interpolated across the triangle the center of stroking the value is 0 and the value has value 1 on the boundary. </p>
+<p>Has value 0 or 1. If the value is 0, then the point is on the path. If the value has value 1, then indicates a point that is on the boundary of the stroked path. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../de/de7/stroked__point_8hpp_source.html#l00506">506</a> of file <a class="el" href="../../de/de7/stroked__point_8hpp_source.html">stroked_point.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../de/de7/stroked__point_8hpp_source.html#l00502">502</a> of file <a class="el" href="../../de/de7/stroked__point_8hpp_source.html">stroked_point.hpp</a>.</p>
 
 </div>
 </div>

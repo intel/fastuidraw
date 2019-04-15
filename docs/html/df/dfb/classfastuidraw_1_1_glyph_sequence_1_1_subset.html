@@ -93,7 +93,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> represents a subset of the glyphs of a <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a> for the purpose of culling when rendering. Different <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> values from the same <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a> are guaranteed to have disjoint glyphs. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html#l00058">58</a> of file <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html">glyph_sequence.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html#l00059">59</a> of file <a class="el" href="../../de/d3b/glyph__sequence_8hpp_source.html">glyph_sequence.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a6fbe70fc908c64bec5834a25da34315d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6fbe70fc908c64bec5834a25da34315d">&#9670;&nbsp;</a></span>attributes_and_indices()</h2>
@@ -126,7 +126,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>GlyphSequence</b></t
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Given a <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>, returns <a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a> and <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> data for specified <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value. The data is constructed lazily on demand. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Given a <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>, returns <a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a> and <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> data for specified <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value. The attribute data and index is realized via <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#a2fd8e5373defaf589775e2a357a664bd">Glyph::pack_glyph()</a>. The data is constructed lazily on demand. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">render</td><td><a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html" title="Specifies how to render a glyph. ">GlyphRenderer</a> how to render the glyphs of this <a class="el" href="../../df/dfb/classfastuidraw_1_1_glyph_sequence_1_1_subset.html">Subset</a> </td></tr>
     <tr><td class="paramname">out_attributes</td><td>location to which to write the array of the attributes to render the glyphs </td></tr>

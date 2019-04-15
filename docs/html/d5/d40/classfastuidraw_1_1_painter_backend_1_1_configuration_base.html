@@ -81,10 +81,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9f6f91dc9e27178de1709d537f899c3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3c924099d6d1ae707b3e8e36c971554"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#ac3c924099d6d1ae707b3e8e36c971554">ConfigurationBase</a> (const <a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html">ConfigurationBase</a> &amp;obj)</td></tr>
 <tr class="separator:ac3c924099d6d1ae707b3e8e36c971554"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36985d65bb614030330181d4d2cf4468"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#a36985d65bb614030330181d4d2cf4468">brush_shader_mask</a> (void) const</td></tr>
-<tr class="separator:a36985d65bb614030330181d4d2cf4468"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6254e8553880105593ed0753f3ea72b5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html">ConfigurationBase</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#a6254e8553880105593ed0753f3ea72b5">brush_shader_mask</a> (uint32_t v)</td></tr>
-<tr class="separator:a6254e8553880105593ed0753f3ea72b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a906b05fb21882b984a59e02e26afe1aa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html">ConfigurationBase</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#a906b05fb21882b984a59e02e26afe1aa">operator=</a> (const <a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html">ConfigurationBase</a> &amp;obj)</td></tr>
 <tr class="separator:a906b05fb21882b984a59e02e26afe1aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a061672de43ebae9860c4bb920ae5e11f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#a061672de43ebae9860c4bb920ae5e11f">supports_bindless_texturing</a> (void) const</td></tr>
@@ -97,7 +93,7 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html" title="A ConfigurationBase holds how data should be set to a PainterBackend. ">ConfigurationBase</a> holds how data should be set to a <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00081">81</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00083">83</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9f6f91dc9e27178de1709d537f899c3a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9f6f91dc9e27178de1709d537f899c3a">&#9670;&nbsp;</a></span>ConfigurationBase() <span class="overload">[1/2]</span></h2>
@@ -138,49 +134,6 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a36985d65bb614030330181d4d2cf4468"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36985d65bb614030330181d4d2cf4468">&#9670;&nbsp;</a></span>brush_shader_mask() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t fastuidraw::PainterBackend::ConfigurationBase::brush_shader_mask </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Bits that are up in brush_shader_mask(void) that change in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#ad15da6522cf9c6f2fde904cc12e5370d">PainterBrush::shader()</a> trigger a call to <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa159ceb59896c69d5aa787f4f5f7d13a">PainterDraw::draw_break()</a>. </p>
-
-</div>
-</div>
-<a id="a6254e8553880105593ed0753f3ea72b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6254e8553880105593ed0753f3ea72b5">&#9670;&nbsp;</a></span>brush_shader_mask() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html">ConfigurationBase</a>&amp; fastuidraw::PainterBackend::ConfigurationBase::brush_shader_mask </td>
-          <td>(</td>
-          <td class="paramtype">uint32_t&#160;</td>
-          <td class="paramname"><em>v</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Specify the value returned by <a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#a36985d65bb614030330181d4d2cf4468">brush_shader_mask(void) const</a>, default value is 0 </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">v</td><td>value </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="a906b05fb21882b984a59e02e26afe1aa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a906b05fb21882b984a59e02e26afe1aa">&#9670;&nbsp;</a></span>operator=()</h2>
 

@@ -128,7 +128,7 @@ $(function() {
 : <a class="el" href="d7/d38/classfastuidraw_1_1_glyph_cache.html#abedc1e01d8fe925c4d39f6903d57d648">fastuidraw::GlyphCache</a>
 </li>
 <li>clear_color()
-: <a class="el" href="d4/d73/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_surface_g_l.html#aeef3fcac81e7f29026aa3081b86f973b">fastuidraw::gl::PainterBackendGL::SurfaceGL</a>
+: <a class="el" href="d9/dca/classfastuidraw_1_1gl_1_1_surface_g_l.html#a0cdd5fb9ea04f6f2debf560558322b6c">fastuidraw::gl::SurfaceGL</a>
 , <a class="el" href="d5/d60/classfastuidraw_1_1_painter_surface.html#a7faefd57636f4c98b13ed6aab6744cab">fastuidraw::PainterSurface</a>
 </li>
 <li>clear_control_points()
@@ -385,14 +385,21 @@ $(function() {
 <li>compute_clip_equations()
 : <a class="el" href="d2/d7d/classfastuidraw_1_1_painter_surface_1_1_viewport.html#afd8e054bf998dbb2798f099a0bfac5cd">fastuidraw::PainterSurface::Viewport</a>
 </li>
+<li>compute_custom_brush_shader_group()
+: <a class="el" href="d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a380474ab594e926d36d5734f9d2945ac">fastuidraw::glsl::PainterShaderRegistrarGLSL</a>
+</li>
+<li>compute_custom_brush_sub_shader_group()
+: <a class="el" href="d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a86f2404c7e58425793ccc4454895cf8c">fastuidraw::glsl::PainterShaderRegistrarGLSL</a>
+, <a class="el" href="d2/d52/classfastuidraw_1_1_painter_shader_registrar.html#ab4572dca97c6073ae4279c421f4238fa">fastuidraw::PainterShaderRegistrar</a>
+</li>
 <li>compute_font_metrics_from_face()
 : <a class="el" href="da/d34/classfastuidraw_1_1_font_free_type.html#a529633ebafa7873202e4c926f50eff0c">fastuidraw::FontFreeType</a>
 </li>
 <li>compute_font_properties_from_face()
-: <a class="el" href="da/d34/classfastuidraw_1_1_font_free_type.html#aa044f0ceccdcf0de98e996088396c37f">fastuidraw::FontFreeType</a>
+: <a class="el" href="da/d34/classfastuidraw_1_1_font_free_type.html#af4ae6c4cb7787aa8ac793041d4d84080">fastuidraw::FontFreeType</a>
 </li>
 <li>compute_glyph_renderer()
-: <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#aa80c4fb3d8007d8367dedcdc676581f3">fastuidraw::Painter</a>
+: <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#aaa7816910d0a26da91df6ba36bcd5295">fastuidraw::Painter</a>
 </li>
 <li>compute_item_coverage_shader_group()
 : <a class="el" href="d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a28460beca3270e61a2ff78f99e199263">fastuidraw::glsl::PainterShaderRegistrarGLSL</a>
@@ -419,7 +426,7 @@ $(function() {
 : <a class="el" href="d2/d7d/classfastuidraw_1_1_painter_surface_1_1_viewport.html#a4f92babb922f59743653299d168e8c70">fastuidraw::PainterSurface::Viewport</a>
 </li>
 <li>compute_normalized_device_coords_from_viewport_coords()
-: <a class="el" href="d2/d7d/classfastuidraw_1_1_painter_surface_1_1_viewport.html#acbf1d4dae3fa6e5302657bff036d8b10">fastuidraw::PainterSurface::Viewport</a>
+: <a class="el" href="d2/d7d/classfastuidraw_1_1_painter_surface_1_1_viewport.html#ae094fa9ff60864a11432dbc2afba8589">fastuidraw::PainterSurface::Viewport</a>
 </li>
 <li>compute_path_thresh()
 : <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a92faa8a6e157b896d868025d3ad634a8">fastuidraw::Painter</a>
@@ -458,7 +465,7 @@ $(function() {
 : <a class="el" href="dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a0250b855d41de4843576f81e04762334">fastuidraw::gl::PainterBackendGL</a>
 </li>
 <li>ConfigurationBase()
-: <a class="el" href="d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#ac3c924099d6d1ae707b3e8e36c971554">fastuidraw::PainterBackend::ConfigurationBase</a>
+: <a class="el" href="d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html#a9f6f91dc9e27178de1709d537f899c3a">fastuidraw::PainterBackend::ConfigurationBase</a>
 </li>
 <li>ConfigurationGL()
 : <a class="el" href="dc/db3/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_configuration_g_l.html#aa824d93dc020b3e83bdc5a9ed577b77a">fastuidraw::gl::PainterBackendGL::ConfigurationGL</a>
@@ -534,13 +541,14 @@ $(function() {
 : <a class="el" href="da/df4/classfastuidraw_1_1_tessellated_path.html#acc57113ee9b4d6875302109d058cc55d">fastuidraw::TessellatedPath</a>
 </li>
 <li>contour_start()
-: <a class="el" href="d0/df3/classfastuidraw_1_1_path_1_1contour__start.html#a74029a2e3ffdb5a23d34c56669ffc9b6">fastuidraw::Path::contour_start</a>
+: <a class="el" href="d0/df3/classfastuidraw_1_1_path_1_1contour__start.html#a52b8d42dd653f7c6aa5c47c2e3da7534">fastuidraw::Path::contour_start</a>
 </li>
 <li>control_point()
-: <a class="el" href="df/d77/classfastuidraw_1_1_path_1_1control__point.html#aed7f86229bb2cd5904807331e751f780">fastuidraw::Path::control_point</a>
+: <a class="el" href="df/d77/classfastuidraw_1_1_path_1_1control__point.html#ad0ac25fa3f404956aec79e7b5cc0f3e0">fastuidraw::Path::control_point</a>
 </li>
 <li>copy()
-: <a class="el" href="d2/d3f/classfastuidraw_1_1_painter_shader_data_1_1_data_base.html#a095d7c727aacfcd215c4f4dc54165ae3">fastuidraw::PainterShaderData::DataBase</a>
+: <a class="el" href="d3/d46/classfastuidraw_1_1_painter_custom_brush_shader_data_1_1_data_base.html#afc70ec408eb1434740fcf0920bcbd906">fastuidraw::PainterCustomBrushShaderData::DataBase</a>
+, <a class="el" href="d2/d3f/classfastuidraw_1_1_painter_shader_data_1_1_data_base.html#a095d7c727aacfcd215c4f4dc54165ae3">fastuidraw::PainterShaderData::DataBase</a>
 </li>
 <li>corner_masks
 : <a class="el" href="d7/dff/classfastuidraw_1_1_glyph_attribute.html#aefa55e4f9b59be6e4d7298dcc3579aa5">fastuidraw::GlyphAttribute</a>
@@ -569,9 +577,9 @@ $(function() {
 : <a class="el" href="db/d83/classfastuidraw_1_1_painter_item_shader.html#a2a718fc86162342f487a0a19661fe3e6">fastuidraw::PainterItemShader</a>
 </li>
 <li>create()
-: <a class="el" href="d7/d40/classfastuidraw_1_1gl_1_1_image_atlas_g_l_1_1_texture_image.html#a79e4436635765a1a28e812c2003c9aa2">fastuidraw::gl::ImageAtlasGL::TextureImage</a>
+: <a class="el" href="d7/d40/classfastuidraw_1_1gl_1_1_image_atlas_g_l_1_1_texture_image.html#a6b3a2f7bed0a6b864e876b6e7b6ea464">fastuidraw::gl::ImageAtlasGL::TextureImage</a>
 , <a class="el" href="dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a970bdbb0fc5e498f7e4beef42940e367">fastuidraw::gl::PainterBackendGL</a>
-, <a class="el" href="dc/dd5/classfastuidraw_1_1_image.html#ac223fb4653b055dc9e485f260294d458">fastuidraw::Image</a>
+, <a class="el" href="dc/dd5/classfastuidraw_1_1_image.html#a91693d938161d94c6161b89d37ad647c">fastuidraw::Image</a>
 </li>
 <li>create_bindless()
 : <a class="el" href="dc/dd5/classfastuidraw_1_1_image.html#a81b694c43a5d73fd6856a881799f88ca">fastuidraw::Image</a>
@@ -597,7 +605,7 @@ $(function() {
 : <a class="el" href="dc/db3/classfastuidraw_1_1gl_1_1_painter_backend_g_l_1_1_configuration_g_l.html#aab9f05fe57275afefee4199840bfdf6f">fastuidraw::gl::PainterBackendGL::ConfigurationGL</a>
 </li>
 <li>create_packed_value()
-: <a class="el" href="d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html#a0dfed9f94669255dc9f48ad07052ba0f">fastuidraw::PainterPackedValuePool</a>
+: <a class="el" href="d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html#ae464614f84dafb365858e765713b7710">fastuidraw::PainterPackedValuePool</a>
 </li>
 <li>create_shared()
 : <a class="el" href="dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a856ba07d53796fb369018e9a9f78befd">fastuidraw::gl::PainterBackendGL</a>
@@ -617,7 +625,7 @@ $(function() {
 : <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a7a89115efb16c45b6c134dabb8a8cbaaa134218ccea45792b302a864bf3325fe0">fastuidraw::GlyphRenderDataRestrictedRays</a>
 </li>
 <li>curve_flatness()
-: <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#ae50dfb64424da8958c2903d2ac06b08d">fastuidraw::Painter</a>
+: <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#a74bb44b50b1d2afbcee62ec5502a93f6">fastuidraw::Painter</a>
 </li>
 <li>curve_is_quadratic_bit
 : <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a7a89115efb16c45b6c134dabb8a8cbaaa347b8b2c7763f29c94e2323b08c4a7a3">fastuidraw::GlyphRenderDataRestrictedRays</a>
@@ -634,11 +642,20 @@ $(function() {
 <li>curve_numbits
 : <a class="el" href="df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a7a89115efb16c45b6c134dabb8a8cbaaa61d5a61b5c46d569fb0daebd137e0d0e">fastuidraw::GlyphRenderDataRestrictedRays</a>
 </li>
+<li>custom_brush_shader_data()
+: <a class="el" href="d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#ad67399e3d521f46c69900406db4084ca">fastuidraw::PainterData::brush_value</a>
+</li>
+<li>custom_shader_brush()
+: <a class="el" href="d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#afa2ed606e357c9847a48f1ca91a37460">fastuidraw::PainterData::brush_value</a>
+</li>
 <li>custom_to()
 : <a class="el" href="df/dea/classfastuidraw_1_1_path.html#a8093c2654d44dbb24d6016e88b5cad81">fastuidraw::Path</a>
 </li>
+<li>CustomBrush()
+: <a class="el" href="df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html#aa9f547a38f3215900fc974b48ded9157">fastuidraw::PainterData::CustomBrush</a>
+</li>
 <li>CustomFillRuleFunction()
-: <a class="el" href="d8/d6e/classfastuidraw_1_1_custom_fill_rule_function.html#a11cdbc2cfa0d99d33eafa7b18d61130b">fastuidraw::CustomFillRuleFunction</a>
+: <a class="el" href="d8/d6e/classfastuidraw_1_1_custom_fill_rule_function.html#acecf0d459b9b746021f5f4eb68bd58f6">fastuidraw::CustomFillRuleFunction</a>
 </li>
 </ul>
 </div><!-- contents -->

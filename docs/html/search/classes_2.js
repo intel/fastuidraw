@@ -26,6 +26,7 @@ var searchData=
   ['contour_5fclose_5farc',['contour_close_arc',['../d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html',1,'fastuidraw::Path']]],
   ['contour_5fstart',['contour_start',['../d0/df3/classfastuidraw_1_1_path_1_1contour__start.html',1,'fastuidraw::Path']]],
   ['control_5fpoint',['control_point',['../df/d77/classfastuidraw_1_1_path_1_1control__point.html',1,'fastuidraw::Path']]],
+  ['custombrush',['CustomBrush',['../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html',1,'fastuidraw::PainterData']]],
   ['customfillrulebase',['CustomFillRuleBase',['../d8/d47/classfastuidraw_1_1_custom_fill_rule_base.html',1,'fastuidraw']]],
   ['customfillrulefunction',['CustomFillRuleFunction',['../d8/d6e/classfastuidraw_1_1_custom_fill_rule_function.html',1,'fastuidraw']]]
 ];

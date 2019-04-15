@@ -19,5 +19,7 @@ var searchData=
   ['transformation_5ftranslation_5fpacking',['transformation_translation_packing',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ad43d8259a30ec0c421eb4a9c26ca3cd6ac51178f447bd3cf1a2a45ef47e51d10d',1,'fastuidraw::PainterBrush']]],
   ['transformation_5ftranslation_5fx_5foffset',['transformation_translation_x_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a937aed8cf415855019dd4bd0ce2a7498a5aab4b211409c92927390651cdd9f174',1,'fastuidraw::PainterBrush']]],
   ['transformation_5ftranslation_5fy_5foffset',['transformation_translation_y_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a937aed8cf415855019dd4bd0ce2a7498acefb82451655ead8387bab1009a4c049',1,'fastuidraw::PainterBrush']]],
+  ['translation_5fx_5foffset',['translation_x_offset',['../dd/dbe/classfastuidraw_1_1_painter_brush_adjust.html#a51b80e2e1afab7677a89eba8269a1586a239de0c83f83001ff61cd1107c29562b',1,'fastuidraw::PainterBrushAdjust']]],
+  ['translation_5fy_5foffset',['translation_y_offset',['../dd/dbe/classfastuidraw_1_1_painter_brush_adjust.html#a51b80e2e1afab7677a89eba8269a1586a566503766d2488f1a390b37bfbf7d8a7',1,'fastuidraw::PainterBrushAdjust']]],
   ['type',['type',['../db/dfd/structfastuidraw_1_1gl_1_1opengl__trait.html#a986fcd6bed890370c19bdf74bf32233aab31560b845d33817bedcb9d4b7ae05f3',1,'fastuidraw::gl::opengl_trait']]]
 ];

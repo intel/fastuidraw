@@ -72,7 +72,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> is an interface that defines the API-specific elements to implement <a class="el" href="../../d3/d46/group___painter.html">Painter</a>. A fixed <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> may only be used by a single <a class="el" href="../../d3/d46/group___painter.html">Painter</a>.  
+<p>A <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> is an interface that defines the API-specific elements to implement <a class="el" href="../../d3/d46/group___painter.html">Painter</a>. A fixed <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> will only be used by a single <a class="el" href="../../d3/d46/group___painter.html">Painter</a> because a <a class="el" href="../../d3/d46/group___painter.html">Painter</a> does NOT use the backend it is passed, instead it creates a backend for its own private use via <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#ab40fa0315fe887024cd09e1903b74dd2">create_shared()</a>.  
  <a href="../../de/da0/classfastuidraw_1_1_painter_backend.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>&gt;</code></p>
@@ -102,10 +102,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6c768175f2715cef7e4bb0b9f4346052"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abee8587b3f5ce3accf2605d2264707c2"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#abee8587b3f5ce3accf2605d2264707c2">attribs_per_mapping</a> (void) const =0</td></tr>
 <tr class="separator:abee8587b3f5ce3accf2605d2264707c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e76f651b10e5559d0afebfe73c562c4"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a1e76f651b10e5559d0afebfe73c562c4">bind_coverage_surface</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html">PainterSurface</a> &gt; &amp;cvg_surface)=0</td></tr>
-<tr class="separator:a1e76f651b10e5559d0afebfe73c562c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fe5a7fb832ce39ff5a1bfdc33e530b7"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a8fe5a7fb832ce39ff5a1bfdc33e530b7">bind_image</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;im)=0</td></tr>
-<tr class="separator:a8fe5a7fb832ce39ff5a1bfdc33e530b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7b93d7bb2fa0ddd416d5a778fb8884a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d2/d15/classfastuidraw_1_1_painter_draw_break_action.html">PainterDrawBreakAction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#af7b93d7bb2fa0ddd416d5a778fb8884a">bind_coverage_surface</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html">PainterSurface</a> &gt; &amp;cvg_surface)=0</td></tr>
+<tr class="separator:af7b93d7bb2fa0ddd416d5a778fb8884a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19b439eebc7af4d1d320922bf2470094"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d2/d15/classfastuidraw_1_1_painter_draw_break_action.html">PainterDrawBreakAction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a19b439eebc7af4d1d320922bf2470094">bind_image</a> (unsigned int slot, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;im)=0</td></tr>
+<tr class="separator:a19b439eebc7af4d1d320922bf2470094"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa87f58e9d8afa827515b7effd533edd7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d62/classfastuidraw_1_1_color_stop_atlas.html">ColorStopAtlas</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#aa87f58e9d8afa827515b7effd533edd7">colorstop_atlas</a> (void)</td></tr>
 <tr class="separator:aa87f58e9d8afa827515b7effd533edd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a175ec91af943250f282a67c5741556a8"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d5/d40/classfastuidraw_1_1_painter_backend_1_1_configuration_base.html">ConfigurationBase</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a175ec91af943250f282a67c5741556a8">configuration_base</a> (void) const</td></tr>
@@ -130,8 +130,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a38d8d45fde8b4c7b934cd9b852ad6586"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43427f75f376b28b553752ab88e04546"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a43427f75f376b28b553752ab88e04546">mark_as_used</a> (void)</td></tr>
 <tr class="separator:a43427f75f376b28b553752ab88e04546"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68af7de49d60580cc5341b124edd3cf1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a68af7de49d60580cc5341b124edd3cf1">on_painter_begin</a> (void)</td></tr>
-<tr class="separator:a68af7de49d60580cc5341b124edd3cf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa546139c872245fcaa537204413cc7f0"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#aa546139c872245fcaa537204413cc7f0">on_painter_begin</a> (void)=0</td></tr>
+<tr class="separator:aa546139c872245fcaa537204413cc7f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34966e768ed38348f0fdcb2cb4db61dc"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a34966e768ed38348f0fdcb2cb4db61dc">on_post_draw</a> (void)=0</td></tr>
 <tr class="separator:a34966e768ed38348f0fdcb2cb4db61dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a316f367c24b5eab8504ea8542a7c9599"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a316f367c24b5eab8504ea8542a7c9599">on_pre_draw</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html">PainterSurface</a> &gt; &amp;surface, bool clear_color_buffer, bool begin_new_target)=0</td></tr>
@@ -156,9 +156,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a337fbbaa63cbc8cc7ad198df52d753da inherit pub_static_methods_classfastuidraw_1_1reference__counted__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> is an interface that defines the API-specific elements to implement <a class="el" href="../../d3/d46/group___painter.html">Painter</a>. A fixed <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> may only be used by a single <a class="el" href="../../d3/d46/group___painter.html">Painter</a>. </p>
-<p>A <a class="el" href="../../d3/d46/group___painter.html">Painter</a> will use a <a class="el" href="../../d5/dfa/group___painter_backend.html">Painter Backend</a> as follows within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a52aa170f6c6f07964f907d7afead7398">Painter::begin()</a> and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a36fdc36656a738b260c48dd72b6e23c4">Painter::end()</a> pair. </p><div class="fragment"><div class="line"><a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html">fastuidraw::PainterBackend</a> &amp;backend;</div><div class="line"></div><div class="line">backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a68af7de49d60580cc5341b124edd3cf1">on_painter_begin</a>();</div><div class="line"><span class="keywordflow">for</span> (how many surfaces S needed to draw all)</div><div class="line">  {</div><div class="line">    std::vector&lt;fastuidraw::reference_counted_ptr&lt;fastuidraw::PainterDraw&gt; &gt; draws;</div><div class="line">    <span class="keywordflow">for</span> (how many PainterDraw objects needed to draw what is drawn in S)</div><div class="line">      {</div><div class="line">        <a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">fastuidraw::reference_counted_ptr&lt;fastuidraw::PainterDraw&gt;</a> p;</div><div class="line"></div><div class="line">        p = backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a98ef553ef3583575de09eb75271adb14">map_draw</a>();</div><div class="line">        <span class="comment">// fill the buffers on p, potentially calling</span></div><div class="line">        <span class="comment">// PainterDraw::draw_break() several times.</span></div><div class="line">        p.<a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html#a42563f20865e693424bcd151ad78a03e">get</a>()-&gt;<a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a5317755759bdfde8c8428a6d3f535421">unmap</a>(attributes_written, indices_written, data_store_written);</div><div class="line">        draws.push_back(p);</div><div class="line">      }</div><div class="line">    backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a316f367c24b5eab8504ea8542a7c9599">on_pre_draw</a>(S, maybe_clear_color_buffer, maybe_begin_new_target);</div><div class="line">    <span class="keywordflow">for</span> (p in draws)</div><div class="line">      {</div><div class="line">        p.<a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html#a42563f20865e693424bcd151ad78a03e">get</a>()-&gt;<a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#af69fda40bfed00c10aac158927e96583">draw</a>();</div><div class="line">      }</div><div class="line">    draws.clear();</div><div class="line">    backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a34966e768ed38348f0fdcb2cb4db61dc">on_post_draw</a>();</div><div class="line">  }</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00073">73</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+<div class="textblock"><p>A <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> is an interface that defines the API-specific elements to implement <a class="el" href="../../d3/d46/group___painter.html">Painter</a>. A fixed <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> will only be used by a single <a class="el" href="../../d3/d46/group___painter.html">Painter</a> because a <a class="el" href="../../d3/d46/group___painter.html">Painter</a> does NOT use the backend it is passed, instead it creates a backend for its own private use via <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#ab40fa0315fe887024cd09e1903b74dd2">create_shared()</a>. </p>
+<p>A <a class="el" href="../../d3/d46/group___painter.html">Painter</a> will use a <a class="el" href="../../d5/dfa/group___painter_backend.html">Painter Backend</a> as follows within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a52aa170f6c6f07964f907d7afead7398">Painter::begin()</a> and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a36fdc36656a738b260c48dd72b6e23c4">Painter::end()</a> pair. </p><div class="fragment"><div class="line"><a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html">fastuidraw::PainterBackend</a> &amp;backend;</div><div class="line"></div><div class="line">backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#aa546139c872245fcaa537204413cc7f0">on_painter_begin</a>();</div><div class="line"><span class="keywordflow">for</span> (how many surfaces S needed to draw all)</div><div class="line">  {</div><div class="line">    std::vector&lt;fastuidraw::reference_counted_ptr&lt;fastuidraw::PainterDraw&gt; &gt; draws;</div><div class="line">    <span class="keywordflow">for</span> (how many PainterDraw objects needed to draw what is drawn in S)</div><div class="line">      {</div><div class="line">        <a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">fastuidraw::reference_counted_ptr&lt;fastuidraw::PainterDraw&gt;</a> p;</div><div class="line"></div><div class="line">        p = backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a98ef553ef3583575de09eb75271adb14">map_draw</a>();</div><div class="line">        <span class="comment">// fill the buffers on p, potentially calling</span></div><div class="line">        <span class="comment">// PainterDraw::draw_break() several times.</span></div><div class="line">        p.<a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html#a42563f20865e693424bcd151ad78a03e">get</a>()-&gt;<a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a5317755759bdfde8c8428a6d3f535421">unmap</a>(attributes_written, indices_written, data_store_written);</div><div class="line">        draws.push_back(p);</div><div class="line">      }</div><div class="line">    backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a316f367c24b5eab8504ea8542a7c9599">on_pre_draw</a>(S, maybe_clear_color_buffer, maybe_begin_new_target);</div><div class="line">    <span class="keywordflow">for</span> (p in draws)</div><div class="line">      {</div><div class="line">        p.<a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html#a42563f20865e693424bcd151ad78a03e">get</a>()-&gt;<a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#af69fda40bfed00c10aac158927e96583">draw</a>();</div><div class="line">      }</div><div class="line">    draws.clear();</div><div class="line">    backend.<a class="code" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a34966e768ed38348f0fdcb2cb4db61dc">on_post_draw</a>();</div><div class="line">  }</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00075">75</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a6c768175f2715cef7e4bb0b9f4346052"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6c768175f2715cef7e4bb0b9f4346052">&#9670;&nbsp;</a></span>PainterBackend()</h2>
@@ -253,8 +253,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a1e76f651b10e5559d0afebfe73c562c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1e76f651b10e5559d0afebfe73c562c4">&#9670;&nbsp;</a></span>bind_coverage_surface()</h2>
+<a id="af7b93d7bb2fa0ddd416d5a778fb8884a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7b93d7bb2fa0ddd416d5a778fb8884a">&#9670;&nbsp;</a></span>bind_coverage_surface()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -263,7 +263,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt; fastuidraw::PainterBackend::bind_coverage_surface </td>
+          <td class="memname">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../d2/d15/classfastuidraw_1_1_painter_draw_break_action.html">PainterDrawBreakAction</a>&gt; fastuidraw::PainterBackend::bind_coverage_surface </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html">PainterSurface</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>cvg_surface</em></td><td>)</td>
@@ -283,12 +283,12 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p>Implemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a53229979bb3ffaeee252f817b38c441e">fastuidraw::gl::PainterBackendGL</a>.</p>
+<p>Implemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a901a8c510822ca0690e7c3cbb674808f">fastuidraw::gl::PainterBackendGL</a>.</p>
 
 </div>
 </div>
-<a id="a8fe5a7fb832ce39ff5a1bfdc33e530b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8fe5a7fb832ce39ff5a1bfdc33e530b7">&#9670;&nbsp;</a></span>bind_image()</h2>
+<a id="a19b439eebc7af4d1d320922bf2470094"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19b439eebc7af4d1d320922bf2470094">&#9670;&nbsp;</a></span>bind_image()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -297,11 +297,21 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../db/d63/classfastuidraw_1_1_painter_draw_1_1_action.html">PainterDraw::Action</a>&gt; fastuidraw::PainterBackend::bind_image </td>
+          <td class="memname">virtual <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;<a class="el" href="../../d2/d15/classfastuidraw_1_1_painter_draw_break_action.html">PainterDrawBreakAction</a>&gt; fastuidraw::PainterBackend::bind_image </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>im</em></td><td>)</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>slot</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>im</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -312,12 +322,13 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Called to return an action to bind an <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> whose backing store requires API binding. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">slot</td><td>which of the external image slots to bind the image to </td></tr>
     <tr><td class="paramname">im</td><td><a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ...">Image</a> backed by a gfx API surface that in order to be used, must be bound. In patricular im's <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#a3498cdb6c1a44951a1ba5def0e8dcc24">Image::type()</a> value is <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#aadc9d23baef018704949d6e42f3c4079a23db8baa72337d14b6c8960dde7bad66">Image::context_texture2d</a> </td></tr>
   </table>
   </dd>
 </dl>
 
-<p>Implemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a51cd67c9d1b2b83828e3e0f39eb3922c">fastuidraw::gl::PainterBackendGL</a>.</p>
+<p>Implemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a3659a3bc79cec23e57d375b5d6a7530f">fastuidraw::gl::PainterBackendGL</a>.</p>
 
 </div>
 </div>
@@ -605,8 +616,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a68af7de49d60580cc5341b124edd3cf1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68af7de49d60580cc5341b124edd3cf1">&#9670;&nbsp;</a></span>on_painter_begin()</h2>
+<a id="aa546139c872245fcaa537204413cc7f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa546139c872245fcaa537204413cc7f0">&#9670;&nbsp;</a></span>on_painter_begin()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -615,7 +626,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void fastuidraw::PainterBackend::on_painter_begin </td>
+          <td class="memname">virtual unsigned int fastuidraw::PainterBackend::on_painter_begin </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -624,15 +635,13 @@ Additional Inherited Members</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be optionally implemented by a derived class to perform any caching or other operations when <a class="el" href="../../d3/d46/group___painter.html">Painter</a> has <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a52aa170f6c6f07964f907d7afead7398">Painter::begin()</a> called. </p>
+<p>To be implemented by a derived class to perform any caching or other operations when <a class="el" href="../../d3/d46/group___painter.html">Painter</a> has <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a52aa170f6c6f07964f907d7afead7398">Painter::begin()</a> and to return the number of external texture slots the <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> supports. </p>
 
-<p>Reimplemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#a071de4461a92bf7fbb948f4585b3afeb">fastuidraw::gl::PainterBackendGL</a>.</p>
-
-<p class="definition">Definition at line <a class="el" href="../../da/df1/painter__backend_8hpp_source.html#l00411">411</a> of file <a class="el" href="../../da/df1/painter__backend_8hpp_source.html">painter_backend.hpp</a>.</p>
+<p>Implemented in <a class="el" href="../../dc/da8/classfastuidraw_1_1gl_1_1_painter_backend_g_l.html#ac6e171f34fd2222c3e5818d7e36083a5">fastuidraw::gl::PainterBackendGL</a>.</p>
 
 </div>
 </div>

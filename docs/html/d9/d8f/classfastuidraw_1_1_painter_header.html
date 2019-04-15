@@ -80,7 +80,8 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a5ed39c64994e78e20a2256f0b9d5106f"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a5ed39c64994e78e20a2256f0b9d5106fa3863bdd17369eb8e9ac726878a5dc246">drawing_occluder</a> = ~0u
+<tr class="memitem:a5ed39c64994e78e20a2256f0b9d5106f"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a5ed39c64994e78e20a2256f0b9d5106fa3863bdd17369eb8e9ac726878a5dc246">drawing_occluder</a> = ~0u, 
+<a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a5ed39c64994e78e20a2256f0b9d5106fa70adee1e3d2bd0a8477bf58ac82576a1">fixed_function_brush_shader</a> = (1u &lt;&lt; 31u)
  }</td></tr>
 <tr class="separator:a5ed39c64994e78e20a2256f0b9d5106f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c2e68f9932001a1a9a66a0908448f63"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63">offset_t</a> { <br />
@@ -96,6 +97,7 @@ Public Types</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63afa696e0967b384c455ac5cd8edc25385">z_offset</a>, 
 <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a71aeb74f72f84f0f6d9b8b29795c2424">offset_to_deferred_coverage_offset</a>, 
+<a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a72ef87c9612a0e8061bed78c1c30c745">brush_adjust_location_offset</a>, 
 <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a1a4bfefdd6d9fc878b9ac0522093e14b">header_size</a>
 <br />
  }<tr class="memdesc:a2c2e68f9932001a1a9a66a0908448f63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations specifying how the contents of a <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html" title="A PainterHeader represents the values of the header for the shaders to read to draw data...">PainterHeader</a> are packed into a data store buffer (<a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>).  <a href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63">More...</a><br /></td></tr>
@@ -125,6 +127,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a0aa19890526778d2afe14a77aa2cf59b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7ed7e718c96e0f2ce76e344c3ee3a7d"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#ab7ed7e718c96e0f2ce76e344c3ee3a7d">m_blend_shader_data_location</a></td></tr>
 <tr class="separator:ab7ed7e718c96e0f2ce76e344c3ee3a7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a741a63bf66073db6b3a2da3833513139"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a741a63bf66073db6b3a2da3833513139">m_brush_adjust_location</a></td></tr>
+<tr class="separator:a741a63bf66073db6b3a2da3833513139"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4cdcf9aebaa5cd9d44291c6282347e7e"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a4cdcf9aebaa5cd9d44291c6282347e7e">m_brush_shader</a></td></tr>
 <tr class="separator:a4cdcf9aebaa5cd9d44291c6282347e7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a513bd5096a865d3fa0cde1023a974ca8"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a513bd5096a865d3fa0cde1023a974ca8">m_brush_shader_data_location</a></td></tr>
@@ -160,6 +164,8 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a5ed39c64994e78e20a2256f0b9d5106fa3863bdd17369eb8e9ac726878a5dc246"></a>drawing_occluder&#160;</td><td class="fielddoc"><p>When <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#ab7ed7e718c96e0f2ce76e344c3ee3a7d">m_blend_shader_data_location</a> is set to <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a5ed39c64994e78e20a2256f0b9d5106fa3863bdd17369eb8e9ac726878a5dc246">drawing_occluder</a>, it indicates that the item being drawing is an occluder thus the color computation from the brush and item can be skipped. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5ed39c64994e78e20a2256f0b9d5106fa70adee1e3d2bd0a8477bf58ac82576a1"></a>fixed_function_brush_shader&#160;</td><td class="fielddoc"><p>Bit mask (with only the leading bit up). If the value of <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a4cdcf9aebaa5cd9d44291c6282347e7e">m_brush_shader</a> bitwise anded with this value is non-zero, it indicates that the brush is realized by a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. ">PainterBrush</a>. If the bitwise and value is zero, then it is realized by a <a class="el" href="../../d9/d1f/classfastuidraw_1_1_painter_custom_brush_shader.html">PainterCustomBrushShader</a>. </p>
 </td></tr>
 </table>
 
@@ -201,11 +207,13 @@ Public Attributes</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="a2c2e68f9932001a1a9a66a0908448f63a71aeb74f72f84f0f6d9b8b29795c2424"></a>offset_to_deferred_coverage_offset&#160;</td><td class="fielddoc"><p>offset to <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a0ab9239b1b4f2197cd842df04295b449">m_offset_to_deferred_coverage</a>, packed as according to <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#aa79f6e712c24dee5b1c875d30252d57b">offset_to_deferred_coverage_packing</a> </p>
 </td></tr>
+<tr><td class="fieldname"><a id="a2c2e68f9932001a1a9a66a0908448f63a72ef87c9612a0e8061bed78c1c30c745"></a>brush_adjust_location_offset&#160;</td><td class="fielddoc"><p>Offset to <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a741a63bf66073db6b3a2da3833513139">m_brush_adjust_location</a> </p>
+</td></tr>
 <tr><td class="fieldname"><a id="a2c2e68f9932001a1a9a66a0908448f63a1a4bfefdd6d9fc878b9ac0522093e14b"></a>header_size&#160;</td><td class="fielddoc"><p>size of header </p>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00092">92</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00101">101</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -233,7 +241,7 @@ Public Attributes</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00058">58</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00067">67</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -263,7 +271,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the length of the data needed to encode the data. Data is padded to be multiple of 4. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00213">213</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00244">244</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -305,7 +313,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The ID of the blend shader (i.e. <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterBlendShader::ID()</a>). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00184">184</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00202">202</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -322,7 +330,23 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The location, in units of vecN&lt;generic_data, 4&gt; tuples, to the location in the data store buffer (<a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>) for the blend shader data. I.e. the <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html" title="PainterBlendShaderData holds custom data for blend shaders. ">PainterBlendShaderData</a> value is stored (packed) at the location </p><div class="fragment"><div class="line"><a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>[<a class="code" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#ab7ed7e718c96e0f2ce76e344c3ee3a7d">m_blend_shader_data_location</a> * 4]</div></div><!-- fragment --><p> NOTE: if <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#ab7ed7e718c96e0f2ce76e344c3ee3a7d">m_blend_shader_data_location</a> is <a class="el" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a5ed39c64994e78e20a2256f0b9d5106fa3863bdd17369eb8e9ac726878a5dc246">drawing_occluder</a> this means that the item being drawing is an occluder thus the color computation from the brush and item can be skipped. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00169">169</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00183">183</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a741a63bf66073db6b3a2da3833513139"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a741a63bf66073db6b3a2da3833513139">&#9670;&nbsp;</a></span>m_brush_adjust_location</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t fastuidraw::PainterHeader::m_brush_adjust_location</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>If non-zero, indicates that the brush position is to be adjusted in vertex shading before being fed the the brush shading. When non-zero, is an offset, in units of vecN&lt;generic_data, 4&gt; tuples, to the location in the data store buffer (<a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>) for the value encoded by a <a class="el" href="../../dd/dbe/classfastuidraw_1_1_painter_brush_adjust.html">PainterBrushAdjust</a> packed at the location </p><div class="fragment"><div class="line"><a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>[<a class="code" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2cc6e57357daafb59179b2f60232e15a">m_clip_equations_location</a> * 4]</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00229">229</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -337,9 +361,9 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The brush shader, i.e. the value of <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#ad15da6522cf9c6f2fde904cc12e5370d">PainterBrush::shader()</a>. </p>
+<p>The brush shader. If the leading bit is up, the brush is realized by a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> and the value is from <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#ad15da6522cf9c6f2fde904cc12e5370d">PainterBrush::shader()</a>. If the leading bit is down, then it indicates a custom brush implemented via a <a class="el" href="../../d9/d1f/classfastuidraw_1_1_painter_custom_brush_shader.html">PainterCustomBrushShader</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00179">179</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00197">197</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -355,7 +379,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>The location, in units of vecN&lt;generic_data, 4&gt; tuples, to the location in the data store buffer (<a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>) for the brush shader data. I.e. the data for a brush is stored (packed) at the location </p><div class="fragment"><div class="line"><a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>[<a class="code" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a513bd5096a865d3fa0cde1023a974ca8">m_brush_shader_data_location</a> * 4]</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00143">143</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00157">157</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -371,7 +395,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>The offset, in units of vecN&lt;generic_data, 4&gt; tuples, to the location in the data store buffer (<a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>) for the clip equations. I.e. the <a class="el" href="../../da/d19/classfastuidraw_1_1_painter_clip_equations.html" title="A PainterClipEquations stores the clip equation for Painter. ">PainterClipEquations</a> value is stored (packed) at the location</p><div class="fragment"><div class="line"><a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>[<a class="code" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#a2cc6e57357daafb59179b2f60232e15a">m_clip_equations_location</a> * 4]</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00121">121</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00135">135</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -387,7 +411,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>The location, in units of vecN&lt;generic_data, 4&gt; tuples, to the location in the data store buffer (<a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>) for the item matrix. I.e. the <a class="el" href="../../d6/daa/classfastuidraw_1_1_painter_item_matrix.html" title="A PainterItemMatrix holds the value for the transformation from item coordinates to the coordinates i...">PainterItemMatrix</a> value is stored (packed) at the location </p><div class="fragment"><div class="line"><a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>[<a class="code" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#ab0c9d484df7c0ae16b946048822f9b5c">m_item_matrix_location</a> * 4]</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00132">132</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00146">146</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -404,7 +428,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The ID of the item shader (i.e. <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterItemShader::ID()</a>). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00174">174</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00188">188</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -420,7 +444,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>The location, in units of vecN&lt;generic_data, 4&gt; tuples, to the location in the data store buffer (<a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>) for the item shader data. I.e. the <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html" title="PainterItemShaderData holds custom data for item shaders. ">PainterItemShaderData</a> value is stored (packed) at the location </p><div class="fragment"><div class="line"><a class="code" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#aa9377969a38194be0a1d3fc0ede8d3eb">PainterDraw::m_store</a>[<a class="code" href="../../d9/d8f/classfastuidraw_1_1_painter_header.html#adcfd6b8d09a29e00257de34b87c1dfbe">m_item_shader_data_location</a> * 4]</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00154">154</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00168">168</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -437,7 +461,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Offset in pixels from where to read the deferred coverage values. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00198">198</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00216">216</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
@@ -454,7 +478,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The z-value to use for the item. The z-value is used by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to implement clipping and to prevent overdraw. This is the value by which to increment the z-value of the output of an item's vertex shader </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00192">192</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html#l00210">210</a> of file <a class="el" href="../../d1/dc5/painter__header_8hpp_source.html">painter_header.hpp</a>.</p>
 
 </div>
 </div>
