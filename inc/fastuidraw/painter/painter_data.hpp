@@ -119,7 +119,7 @@ namespace fastuidraw
      * \brief
      * A CustomBrush is just a conveniance to wrap a
      * pointer to a \ref PainterCustomBrushShader
-     * together with a \ref value<PainterCustomBrushShaderData>.
+     * together with a value<PainterCustomBrushShaderData>.
      */
     class CustomBrush
     {
@@ -236,7 +236,7 @@ namespace fastuidraw
         m_custom_brush_shader_data = br.m_data;
       }
 
-      /*
+      /*!
        * Returns the value<PainterBrush> value, asserts if the
        * brush_value is set to brush using a custom shader brush.
        */
@@ -247,7 +247,7 @@ namespace fastuidraw
         return m_fixed_function_brush;
       }
 
-      /*
+      /*!
        * Returns the value<PainterCustomBrushShaderData> value,
        * asserts if the brush_value is not set to brush using a
        * custom shader brush.
@@ -300,6 +300,10 @@ namespace fastuidraw
       }
 
       /*!
+       * Provided as a conveniance, returns the PainterBrush::shader()
+       * if backed by a \ref PainterBrush, otherwise returns
+       * \ref PainterCustomBrushShader::ID() if backed by a custom
+       * brush.
        */
       uint32_t
       shader(void) const
@@ -309,6 +313,12 @@ namespace fastuidraw
           fixed_function_shader();
       }
 
+      /*!
+       * Provided as a conveniance, returns 0 if backed by a
+       * \ref PainterBrush, otherwise returns the value of
+       * PainterCustomBrushShader::group() if backed by a custom
+       * brush.
+       */
       uint32_t
       shader_group(void) const
       {
@@ -317,6 +327,13 @@ namespace fastuidraw
           0u;
       }
 
+      /*!
+       * Provided as a conveniance, returns an array holding
+       * the reference to \ref PainterBrush::image() if backed
+       * by a \ref PainterBrush, otherwise returns the value of
+       * PainterCustomBrushShaderData::bind_images() if backed
+       * by a custom brush.
+       */
       c_array<const reference_counted_ptr<const Image> >
       bind_images(void) const
       {

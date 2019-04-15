@@ -154,9 +154,9 @@ namespace fastuidraw
 
     /*!
      * Called to execute an action (and thus also cause a draw-call break).
-     * Implementations are to assume that \ref Action reference is non-null.
-     * Implementations are to return true if the draw_break triggers an extra
-     * draw call.
+     * Implementations are to assume that \ref PainterDrawBreakAction reference
+     * is non-null. Implementations are to return true if the draw_break triggers
+     * a break in the draw call.
      * \param action action to execute
      * \param indices_written total number of indices written to \ref m_indices
      *                        -before- the break

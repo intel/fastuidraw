@@ -38,7 +38,7 @@ namespace fastuidraw
      *
      * A varying is ALWAYS a SCALAR. The varyings of shaders should
      * -never- be declared in the shader code. Instead, each varying
-     * should be declared in the \ref* varying_list object passed to
+     * should be declared in the \ref varying_list object passed to
      * the shader object's ctor. The \ref GLSL module will share the
      * varyings across different shaders within the uber-shader.
      * Indeed, the number of varying the uber-shader has is not the

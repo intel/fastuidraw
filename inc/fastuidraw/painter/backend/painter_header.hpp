@@ -218,7 +218,7 @@ namespace fastuidraw
     /*!
      * If non-zero, indicates that the brush position is to be
      * adjusted in vertex shading before being fed the the brush
-     * shading. When non-zero, is an offset, in units of \ref
+     * shading. When non-zero, is an offset, in units of
      * vecN<generic_data, 4> tuples, to the location in the data
      * store buffer (PainterDraw::m_store) for the value encoded
      * by a \ref PainterBrushAdjust packed at the location

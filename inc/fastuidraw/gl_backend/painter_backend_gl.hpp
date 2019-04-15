@@ -434,16 +434,16 @@ namespace fastuidraw
         fbf_blending_type(enum fbf_blending_type_t tp);
 
         /*!
-         * If true, SurfaceGL objects whose \ref
-         * Surface::image() routine will return a \ref
-         * TextureImage whose \ref Image::type() is \ref
+         * If true, \ref SurfaceGL objects whose \ref
+         * PainterSurface::image() routine will return a \ref
+         * ImageAtlasGL::TextureImage whose \ref Image::type()
          * is \ref Image::bindless_texture2d if the GL/GLES
-         * implementation support bindless texturing;
-         * otherwise Surface::image() will always return
-         * \ref TextureImage objects of \ref Image::type()
-         * \ref Image::context_texture2d. A number of
-         * buggy hardware drivers do not correctly sample
-         * from bindless textures if the texture was
+         * implementation support bindless texturing; otherwise
+         * PainterSurfaceSurface::image() will always return
+         * \ref ImageAtlasGL::TextureImage objects of \ref
+         * Image::type() \ref Image::context_texture2d. A
+         * number of buggy hardware drivers do not correctly
+         * sample from bindless textures if the texture was
          * renderered to.
          */
         bool

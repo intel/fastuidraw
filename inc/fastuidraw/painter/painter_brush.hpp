@@ -761,7 +761,7 @@ namespace fastuidraw
      *           then sets brush to not have an image.
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
-     * \param mipmap specifies mipmap filtering to apply
+     * \param mipmap_filtering specifies if to apply mipmap filtering
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im,
@@ -775,7 +775,7 @@ namespace fastuidraw
      * \param wh width and height of sub-rectangle of image to use
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
-     * \param mipmap_filtering specifies mipmap filtering to apply
+     * \param mipmap_filtering specifies if to apply mipmap filtering
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,

@@ -263,6 +263,9 @@ namespace gl
        * \param filter magnification and minification filter to give
        *               the texture
        * \param fmt format of the RGBA of the texture
+       * \param allow_bindless if both this is true and the GL/GLES implementation
+       *                       supports bindless texturing, return an object whose
+       *                       \ref type() returns \ref bindless_texture2d.
        */
       static
       reference_counted_ptr<TextureImage>

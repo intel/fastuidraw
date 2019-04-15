@@ -38,7 +38,7 @@ namespace fastuidraw
    * i.e. the transformation is given by
    * \code
    * out_value = m_shear * in_value + m_translate
-   * \endocde
+   * \endcode
    */
   class PainterBrushAdjust
   {
@@ -95,6 +95,6 @@ namespace fastuidraw
      */
     vec2 m_translate;
   };
-/*! @} */
 
-} //namespace
+/*! @} */
+}

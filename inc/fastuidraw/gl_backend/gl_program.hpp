@@ -1614,11 +1614,11 @@ public:
    * Ctor.
    * \param uniform_name name of uniform sampler2D in GLSL to
    *                     initialize
-   * \param value binding point to initialize the uniform to;
-   *              If the uniform is an array, the first element
-   *              will be given the specified binding point and
-   *              successive elements in the array will be given
-   *              successive binding points.
+   * \param binding_point binding point to initialize the uniform to;
+   *                      If the uniform is an array, the first element
+   *                      will be given the specified binding point and
+   *                      successive elements in the array will be given
+   *                      successive binding points.
    */
   SamplerInitializer(c_string uniform_name, int binding_point):
     UniformInitalizerBase(uniform_name),
