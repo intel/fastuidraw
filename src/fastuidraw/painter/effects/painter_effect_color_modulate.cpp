@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/painter_effect_color_modulate.hpp>
+#include <fastuidraw/painter/effects/painter_effect_color_modulate.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 
 namespace

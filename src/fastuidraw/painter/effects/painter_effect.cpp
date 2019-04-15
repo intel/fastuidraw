@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/painter_effect.hpp>
+#include <fastuidraw/painter/effects/painter_effect.hpp>
 #include <private/util_private.hpp>
 #include <vector>
 

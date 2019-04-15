@@ -13,11 +13,12 @@ include $(dir)/Rules.mk
 dir := $(d)/shader
 include $(dir)/Rules.mk
 
+dir := $(d)/effects
+include $(dir)/Rules.mk
+
 FASTUIDRAW_SOURCES += $(call filelist, fill_rule.cpp \
 	painter_packed_value.cpp \
 	painter_brush.cpp \
-	painter_effect.cpp \
-	painter_effect_color_modulate.cpp \
 	painter_stroke_params.cpp \
 	painter_dashed_stroke_params.cpp \
 	painter.cpp painter_enums.cpp \

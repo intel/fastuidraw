@@ -19,7 +19,7 @@
 #pragma once
 
 #include <fastuidraw/util/vecN.hpp>
-#include <fastuidraw/painter/painter_effect.hpp>
+#include <fastuidraw/painter/effects/painter_effect.hpp>
 
 namespace fastuidraw
 {
