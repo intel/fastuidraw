@@ -204,7 +204,7 @@ namespace
 
     GLuint m_nearest_filter_sampler;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> m_pool;
-    fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
+    fastuidraw::gl::detail::PainterSurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
     std::vector<GLuint> m_current_external_texture;
     GLuint m_current_coverage_buffer_texture;
@@ -1361,49 +1361,49 @@ set_gl_state(RenderTargetState prev_state,
 }
 
 ///////////////////////////////////////////////
-// fastuidraw::gl::SurfaceGL methods
-fastuidraw::gl::SurfaceGL::
-SurfaceGL(ivec2 dims, const PainterBackendGL &backend,
+// fastuidraw::gl::PainterSurfaceGL methods
+fastuidraw::gl::PainterSurfaceGL::
+PainterSurfaceGL(ivec2 dims, const PainterBackendGL &backend,
           enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, 0u, dims,
+  m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(render_type, 0u, dims,
                                                backend.configuration_gl().allow_bindless_texture_from_surface());
 }
 
-fastuidraw::gl::SurfaceGL::
-SurfaceGL(ivec2 dims, GLuint color_buffer_texture,
+fastuidraw::gl::PainterSurfaceGL::
+PainterSurfaceGL(ivec2 dims, GLuint color_buffer_texture,
           const PainterBackendGL &backend,
           enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::SurfaceGLPrivate(render_type, color_buffer_texture, dims,
+  m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(render_type, color_buffer_texture, dims,
                                                backend.configuration_gl().allow_bindless_texture_from_surface());
 }
 
-fastuidraw::gl::SurfaceGL::
-~SurfaceGL()
+fastuidraw::gl::PainterSurfaceGL::
+~PainterSurfaceGL()
 {
-  detail::SurfaceGLPrivate *d;
-  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  detail::PainterSurfaceGLPrivate *d;
+  d = static_cast<detail::PainterSurfaceGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
 GLuint
-fastuidraw::gl::SurfaceGL::
+fastuidraw::gl::PainterSurfaceGL::
 texture(void) const
 {
-  detail::SurfaceGLPrivate *d;
-  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  detail::PainterSurfaceGLPrivate *d;
+  d = static_cast<detail::PainterSurfaceGLPrivate*>(m_d);
   return d->color_buffer();
 }
 
 void
-fastuidraw::gl::SurfaceGL::
+fastuidraw::gl::PainterSurfaceGL::
 blit_surface(const Viewport &src,
              const Viewport &dst,
              GLenum filter) const
 {
-  detail::SurfaceGLPrivate *d;
-  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  detail::PainterSurfaceGLPrivate *d;
+  d = static_cast<detail::PainterSurfaceGLPrivate*>(m_d);
   GLint old_fbo;
 
   fastuidraw_glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_fbo);
@@ -1421,7 +1421,7 @@ blit_surface(const Viewport &src,
 }
 
 void
-fastuidraw::gl::SurfaceGL::
+fastuidraw::gl::PainterSurfaceGL::
 blit_surface(GLenum filter) const
 {
   ivec2 dims(dimensions());
@@ -1430,43 +1430,43 @@ blit_surface(GLenum filter) const
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::Image>
-fastuidraw::gl::SurfaceGL::
+fastuidraw::gl::PainterSurfaceGL::
 image(const reference_counted_ptr<ImageAtlas> &atlas) const
 {
-  detail::SurfaceGLPrivate *d;
-  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  detail::PainterSurfaceGLPrivate *d;
+  d = static_cast<detail::PainterSurfaceGLPrivate*>(m_d);
   return d->image(atlas);
 }
 
 void
-fastuidraw::gl::SurfaceGL::
+fastuidraw::gl::PainterSurfaceGL::
 viewport(const Viewport &vwp)
 {
-  detail::SurfaceGLPrivate *d;
-  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  detail::PainterSurfaceGLPrivate *d;
+  d = static_cast<detail::PainterSurfaceGLPrivate*>(m_d);
   d->m_viewport = vwp;
 }
 
 void
-fastuidraw::gl::SurfaceGL::
+fastuidraw::gl::PainterSurfaceGL::
 clear_color(const vec4 &c)
 {
-  detail::SurfaceGLPrivate *d;
-  d = static_cast<detail::SurfaceGLPrivate*>(m_d);
+  detail::PainterSurfaceGLPrivate *d;
+  d = static_cast<detail::PainterSurfaceGLPrivate*>(m_d);
   d->m_clear_color = c;
 }
 
-get_implement(fastuidraw::gl::SurfaceGL,
-              fastuidraw::gl::detail::SurfaceGLPrivate,
+get_implement(fastuidraw::gl::PainterSurfaceGL,
+              fastuidraw::gl::detail::PainterSurfaceGLPrivate,
               fastuidraw::ivec2, dimensions)
-get_implement(fastuidraw::gl::SurfaceGL,
-              fastuidraw::gl::detail::SurfaceGLPrivate,
+get_implement(fastuidraw::gl::PainterSurfaceGL,
+              fastuidraw::gl::detail::PainterSurfaceGLPrivate,
               const fastuidraw::PainterSurface::Viewport&, viewport)
-get_implement(fastuidraw::gl::SurfaceGL,
-              fastuidraw::gl::detail::SurfaceGLPrivate,
+get_implement(fastuidraw::gl::PainterSurfaceGL,
+              fastuidraw::gl::detail::PainterSurfaceGLPrivate,
               const fastuidraw::vec4&, clear_color)
-get_implement(fastuidraw::gl::SurfaceGL,
-              fastuidraw::gl::detail::SurfaceGLPrivate,
+get_implement(fastuidraw::gl::PainterSurfaceGL,
+              fastuidraw::gl::detail::PainterSurfaceGLPrivate,
               enum fastuidraw::PainterSurface::render_type_t, render_type)
 
 ///////////////////////////////////////////////
@@ -2001,7 +2001,7 @@ on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
   PainterBackendGLPrivate *d;
 
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  d->m_surface_gl = static_cast<detail::SurfaceGLPrivate*>(detail::SurfaceGLPrivate::surface_gl(surface)->m_d);
+  d->m_surface_gl = static_cast<detail::PainterSurfaceGLPrivate*>(detail::PainterSurfaceGLPrivate::surface_gl(surface)->m_d);
 
   if (d->m_nearest_filter_sampler == 0)
     {
@@ -2146,7 +2146,7 @@ create_surface(ivec2 dims,
                enum PainterSurface::render_type_t render_type)
 {
   reference_counted_ptr<PainterSurface> S;
-  S = FASTUIDRAWnew SurfaceGL(dims, *this, render_type);
+  S = FASTUIDRAWnew PainterSurfaceGL(dims, *this, render_type);
   return S;
 }
 

@@ -516,22 +516,22 @@ namespace fastuidraw {
    - fastuidraw::PainterBackend (the GL backend class is given by fastuidraw::gl::PainterBackendGL)
    - fastuidraw::PainterBlendShader (the GL backend class is given by fastuidraw::glsl::PainterBlendShaderGLSL)
    - fastuidraw::PainterItemShader (the GL backend class is given by fastuidraw::glsl::PainterItemShaderGLSL)
-   - fastuidraw::PainterSurface (the GL backend class is given by fastuidraw::gl::PainterBackendGL::SurfaceGL)
+   - fastuidraw::PainterSurface (the GL backend class is given by fastuidraw::gl::PainterBackendGL::PainterSurfaceGL)
 
   To create a GL backend, one does:
   \code
 
   
 
-  //create a fastuidraw::gl::PainterBackendGL::SurfaceGL; the argument
+  //create a fastuidraw::gl::PainterBackendGL::PainterSurfaceGL; the argument
   //to its ctor determines its properties. Of important note is that
-  //a SurfaceGL can use as its backing store a GL texture passed FROM
+  //a PainterSurfaceGL can use as its backing store a GL texture passed FROM
   //the caller.
-  fastuidraw::reference_counted_ptr<fastuidraw::PainterSurfaceGL> surface;
+  fastuidraw::reference_counted_ptr<fastuidraw::PainterPainterSurfaceGL> surface;
 
-  fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
+  fastuidraw::gl::PainterBackendGL::PainterSurfaceGL::Properties props;
   props.dimensions(ivec2(resolution_width, resolution_height));
-  surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(props);
+  surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::PainterSurfaceGL(props);
 
   //Create a GL backend for Painter, see the methods of PainterBackendGL on
   //how to control how the backend is configured.
@@ -566,16 +566,16 @@ namespace fastuidraw {
     //.
   painter->end(); //finish painting, contents of surface ready
 
-  //one /needs to get the contents of the SurfaceGL, there
+  //one /needs to get the contents of the PainterSurfaceGL, there
   //are two ways: via blit_surface() or by using the texture
-  //of the SurfaceGL
-  fastuidraw::gl::PainterBackendGL::SurfaceGL *surface_gl;
+  //of the PainterSurfaceGL
+  fastuidraw::gl::PainterBackendGL::PainterSurfaceGL *surface_gl;
   surface_gl = surface.get(); //Only using pointer instead of handle so that doxygen links to functions correctly.
 
   //blitting is done by
   surface_gl->blit_surface();
 
-  //or one can get the texture of the SurfaceGL
+  //or one can get the texture of the PainterSurfaceGL
   //directly and use that in one's own GL commands
   GLuint gl_texture;
   gl_texture = surface_gl->texture();

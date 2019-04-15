@@ -34,28 +34,28 @@ namespace fastuidraw
  */
 
     /*!
-     * A SurfaceGL is the implementatin of \ref PainterSurface
-     * for the GL backend. A SurfaceGL must only be used with at most
+     * A PainterSurfaceGL is the implementatin of \ref PainterSurface
+     * for the GL backend. A PainterSurfaceGL must only be used with at most
      * one GL context (even GL contexts in the same share group cannot
-     * shader SurfaceGL objects).
+     * shader PainterSurfaceGL objects).
      */
-    class SurfaceGL:public PainterSurface
+    class PainterSurfaceGL:public PainterSurface
     {
     public:
       /*!
        * Ctor. Creates and uses a backing color texture.
        * The viewport() is initialized to be exactly the
        * entire backing store.
-       * \param dims the width and height of the SurfaceGL
+       * \param dims the width and height of the PainterSurfaceGL
        * \param backend the PainterBackendGL that can use the object
        * \param render_type the render type of the surface (i.e.
        *                    is it a color buffer or deferred
        *                    coverage buffer)
        */
       explicit
-      SurfaceGL(ivec2 dims,
-                const PainterBackendGL &backend,
-                enum render_type_t render_type = color_buffer_type);
+      PainterSurfaceGL(ivec2 dims,
+                       const PainterBackendGL &backend,
+                       enum render_type_t render_type = color_buffer_type);
 
       /*!
        * Ctor. Use the passed GL texture to which to render
@@ -64,10 +64,10 @@ namespace fastuidraw
        * backing store allocated (i.e. glTexImage or
        * glTexStorage has been called on the texture). The
        * texture object's ownership is NOT passed to the
-       * SurfaceGL, the caller is still responible to delete
+       * PainterSurfaceGL, the caller is still responible to delete
        * the texture (with GL) and the texture must not be
        * deleted (or have its backing store changed via
-       * glTexImage) until the SurfaceGL is deleted. The
+       * glTexImage) until the PainterSurfaceGL is deleted. The
        * viewport() is initialized to be exactly the entire
        * backing store.
        * \param dims width and height of the GL texture
@@ -78,23 +78,23 @@ namespace fastuidraw
        *                    coverage buffer)
        */
       explicit
-      SurfaceGL(ivec2 dims, GLuint gl_texture,
-                const PainterBackendGL &backend,
-                enum render_type_t render_type = color_buffer_type);
+      PainterSurfaceGL(ivec2 dims, GLuint gl_texture,
+                       const PainterBackendGL &backend,
+                       enum render_type_t render_type = color_buffer_type);
 
-      ~SurfaceGL();
+      ~PainterSurfaceGL();
 
       /*!
        * Returns the GL name of the texture backing
-       * the color buffer of the SurfaceGL.
+       * the color buffer of the PainterSurfaceGL.
        */
       GLuint
       texture(void) const;
 
       /*!
-       * Blit the SurfaceGL color buffer to the FBO
+       * Blit the PainterSurfaceGL color buffer to the FBO
        * currently bound to GL_DRAW_FRAMEBUFFER.
-       * \param src source from this SurfaceGL to which to bit
+       * \param src source from this PainterSurfaceGL to which to bit
        * \param dst destination in FBO to which to blit
        * \param filter GL filter to apply to blit operation
        */

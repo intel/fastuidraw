@@ -434,7 +434,7 @@ namespace fastuidraw
         fbf_blending_type(enum fbf_blending_type_t tp);
 
         /*!
-         * If true, \ref SurfaceGL objects whose \ref
+         * If true, \ref PainterSurfaceGL objects whose \ref
          * PainterSurface::image() routine will return a \ref
          * ImageAtlasGL::TextureImage whose \ref Image::type()
          * is \ref Image::bindless_texture2d if the GL/GLES

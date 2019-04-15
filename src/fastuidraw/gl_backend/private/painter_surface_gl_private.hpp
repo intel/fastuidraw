@@ -23,18 +23,18 @@
 
 namespace fastuidraw { namespace gl { namespace detail {
 
-class SurfaceGLPrivate:noncopyable
+class PainterSurfaceGLPrivate:noncopyable
 {
 public:
   explicit
-  SurfaceGLPrivate(enum PainterSurface::render_type_t type,
+  PainterSurfaceGLPrivate(enum PainterSurface::render_type_t type,
                    GLuint texture, ivec2 dimensions,
                    bool allow_bindless);
 
-  ~SurfaceGLPrivate();
+  ~PainterSurfaceGLPrivate();
 
   static
-  SurfaceGL*
+  PainterSurfaceGL*
   surface_gl(const reference_counted_ptr<PainterSurface> &surface);
 
   GLuint

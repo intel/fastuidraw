@@ -796,7 +796,7 @@ on_resize(int w, int h)
     {
       fastuidraw::PainterSurface::Viewport vwp(0, 0, w, h);
 
-      m_surface = FASTUIDRAWnew fastuidraw::gl::SurfaceGL(fastuidraw::ivec2(w, h), *m_backend);
+      m_surface = FASTUIDRAWnew fastuidraw::gl::PainterSurfaceGL(fastuidraw::ivec2(w, h), *m_backend);
       m_surface->viewport(vwp);
     }
 }

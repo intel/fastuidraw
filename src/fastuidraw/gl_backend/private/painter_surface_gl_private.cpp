@@ -21,9 +21,9 @@
 #include "texture_gl.hpp"
 
 /////////////////////////////
-//SurfaceGLPrivate methods
-fastuidraw::gl::detail::SurfaceGLPrivate::
-SurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
+//PainterSurfaceGLPrivate methods
+fastuidraw::gl::detail::PainterSurfaceGLPrivate::
+PainterSurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
                  GLuint texture, ivec2 dimensions,
                  bool allow_bindless):
   m_render_type(render_type),
@@ -39,8 +39,8 @@ SurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
   m_viewport.m_origin = fastuidraw::ivec2(0, 0);
 }
 
-fastuidraw::gl::detail::SurfaceGLPrivate::
-~SurfaceGLPrivate()
+fastuidraw::gl::detail::PainterSurfaceGLPrivate::
+~PainterSurfaceGLPrivate()
 {
   if (!m_own_texture)
     {
@@ -51,7 +51,7 @@ fastuidraw::gl::detail::SurfaceGLPrivate::
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::Image>
-fastuidraw::gl::detail::SurfaceGLPrivate::
+fastuidraw::gl::detail::PainterSurfaceGLPrivate::
 image(const reference_counted_ptr<ImageAtlas> &atlas)
 {
   if (!m_image)
@@ -60,9 +60,9 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
 
       /* there is a risk that the image will go out of scope
        * after the Surface. To combat this, we let the created
-       * Image own the texture (if the SurfaceGL owned it).
-       * The m_image is part of the SurfaceGLPrivate, so it
-       * won't release the texture until the SurfaceGLPrivate
+       * Image own the texture (if the PainterSurfaceGL owned it).
+       * The m_image is part of the PainterSurfaceGLPrivate, so it
+       * won't release the texture until the PainterSurfaceGLPrivate
        * dtor is called. Note that the image is exposed as
        * Image::premultipied_rgba_format; this is because
        * the GL/GLSL painter shader emits pre-multiplied
@@ -84,19 +84,19 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
   return m_image;
 }
 
-fastuidraw::gl::SurfaceGL*
-fastuidraw::gl::detail::SurfaceGLPrivate::
+fastuidraw::gl::PainterSurfaceGL*
+fastuidraw::gl::detail::PainterSurfaceGLPrivate::
 surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface> &surface)
 {
-  SurfaceGL *q;
+  PainterSurfaceGL *q;
 
-  FASTUIDRAWassert(dynamic_cast<SurfaceGL*>(surface.get()));
-  q = static_cast<SurfaceGL*>(surface.get());
+  FASTUIDRAWassert(dynamic_cast<PainterSurfaceGL*>(surface.get()));
+  q = static_cast<PainterSurfaceGL*>(surface.get());
   return q;
 }
 
 GLuint
-fastuidraw::gl::detail::SurfaceGLPrivate::
+fastuidraw::gl::detail::PainterSurfaceGLPrivate::
 buffer(enum buffer_t tp)
 {
   if (m_buffers[tp] == 0)
@@ -146,7 +146,7 @@ buffer(enum buffer_t tp)
 }
 
 GLuint
-fastuidraw::gl::detail::SurfaceGLPrivate::
+fastuidraw::gl::detail::PainterSurfaceGLPrivate::
 fbo(bool with_color_buffer)
 {
   int tp(with_color_buffer);
@@ -181,7 +181,7 @@ fbo(bool with_color_buffer)
 }
 
 fastuidraw::c_array<const GLenum>
-fastuidraw::gl::detail::SurfaceGLPrivate::
+fastuidraw::gl::detail::PainterSurfaceGLPrivate::
 draw_buffers(bool with_color_buffer)
 {
   int tp(with_color_buffer);
