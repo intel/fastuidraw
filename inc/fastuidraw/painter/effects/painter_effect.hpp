@@ -21,6 +21,7 @@
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
 
@@ -54,10 +55,14 @@ namespace fastuidraw
      * or the next all to brush(). The passed image is
      * guaranteed to have Image::type() as value \ref
      * Image::bindless_texture2d or \ref Image::context_texture2d.
+     * \param image the image to which the effect is applied
+     * \param brush_rect the brush coordinates of the rect
+     *                   drawn
      */
     virtual
     PainterData::brush_value
-    brush(const reference_counted_ptr<const Image> &image) = 0;
+    brush(const reference_counted_ptr<const Image> &image,
+	  const Rect &brush_rect) = 0;
   };
 
   /*!

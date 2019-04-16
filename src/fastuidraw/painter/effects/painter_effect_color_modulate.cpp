@@ -26,9 +26,13 @@ namespace
   public:
     virtual
     fastuidraw::PainterData::brush_value
-    brush(const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &image) override
+    brush(const fastuidraw::reference_counted_ptr<const fastuidraw::Image> &image,
+	  const fastuidraw::Rect &brush_rect) override
     {
-      m_brush.image(image);
+      FASTUIDRAWunused(brush_rect);
+      m_brush.image(image,
+		    fastuidraw::PainterBrush::image_filter_nearest,
+		    fastuidraw::PainterBrush::dont_apply_mipmapping);
       return fastuidraw::PainterData::brush_value(&m_brush);
     }
 

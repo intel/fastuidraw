@@ -688,7 +688,7 @@ namespace
     /* The bottom left hand corner of the rect within
      * EffectsBuffer::m_surface
      */
-    fastuidraw::ivec2 m_bottom_left_corner_in_surface;
+    fastuidraw::ivec2 m_min_corner_in_surface;
 
     /* identity matrix state; this is needed because PainterItemMatrix
      * also stores the normalized translation.
@@ -757,19 +757,19 @@ namespace
   {
   public:
     DeferredCoverageBufferStackEntry(fastuidraw::PainterPacker *p_packer,
-                                     fastuidraw::ivec2 p_bottom_left_corner_in_surface,
+                                     fastuidraw::ivec2 p_min_corner_in_surface,
                                      const BufferRect &buffer_rect,
                                      const fastuidraw::PainterSurface::Viewport &vwp,
                                      const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &p_clip_eq_state):
       m_packer(p_packer),
-      m_normalized_translate(buffer_rect.compute_normalized_translate(p_bottom_left_corner_in_surface, vwp)),
-      m_root_surface_bottom_left_corner(buffer_rect.m_bl),
+      m_normalized_translate(buffer_rect.compute_normalized_translate(p_min_corner_in_surface, vwp)),
+      m_root_surface_min_corner(buffer_rect.m_bl),
       m_clip_eq_state(p_clip_eq_state),
-      m_bottom_left_corner_in_surface(p_bottom_left_corner_in_surface)
+      m_min_corner_in_surface(p_min_corner_in_surface)
     {
       FASTUIDRAWassert(m_packer);
-      FASTUIDRAWassert(m_bottom_left_corner_in_surface.x() >= 0);
-      FASTUIDRAWassert(m_bottom_left_corner_in_surface.y() >= 0);
+      FASTUIDRAWassert(m_min_corner_in_surface.x() >= 0);
+      FASTUIDRAWassert(m_min_corner_in_surface.y() >= 0);
     }
 
     /* represents that coverage buffer takes no pixel area and
@@ -789,9 +789,9 @@ namespace
     }
 
     fastuidraw::ivec2
-    bottom_left_corner_in_surface(void) const
+    min_corner_in_surface(void) const
     {
-      return m_bottom_left_corner_in_surface;
+      return m_min_corner_in_surface;
     }
 
     fastuidraw::ivec2
@@ -832,7 +832,7 @@ namespace
     /* the location within the root surface of
      * the bottom left corner.
      */
-    fastuidraw::ivec2 m_root_surface_bottom_left_corner;
+    fastuidraw::ivec2 m_root_surface_min_corner;
 
     /* the clip-equation state guarantees that the
      * drawing is clipped to within the region
@@ -848,7 +848,7 @@ namespace
     /* The bottom left hand corner of the rect within
      * DeferredCoverageBuffer::m_surface
      */
-    fastuidraw::ivec2 m_bottom_left_corner_in_surface;
+    fastuidraw::ivec2 m_min_corner_in_surface;
 
     /* computed from the current state of PainterPacker, updated
      * whenever the effects stack changes
@@ -2362,6 +2362,11 @@ blit_rect(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass>
           fastuidraw::vec2 dims, fastuidraw::Painter *p)
 {
   using namespace fastuidraw;
+  Rect brush_rect;
+
+  brush_rect
+    .min_point(m_brush_translate + PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_min_point, dims))
+    .max_point(m_brush_translate + PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_max_point, dims));
 
   /* TODO: instead of doing a full-blown Painter::save(), we should
    * instead just override the current transformation.
@@ -2371,10 +2376,8 @@ blit_rect(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass>
   p->transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
   p->translate(-m_brush_translate);
 
-  p->fill_rect(PainterData(fx_pass->brush(m_image)),
-               Rect()
-               .min_point(m_brush_translate + PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_min_point, dims))
-               .max_point(m_brush_translate + PainterSurface::Viewport::compute_viewport_coordinates(m_normalized_rect.m_max_point, dims)),
+  p->fill_rect(PainterData(fx_pass->brush(m_image, brush_rect)),
+               brush_rect,
                false);
 
   p->restore();
@@ -2498,7 +2501,7 @@ fetch(unsigned int effects_depth,
   return_value.m_pixel_rect
     .min_point(buffer_rect.m_bl)
     .max_point(buffer_rect.m_tr);
-  return_value.m_bottom_left_corner_in_surface = rect;
+  return_value.m_min_corner_in_surface = rect;
 
   /* we need to have that:
    *   return_value.m_normalized_translate + normalized_rect = R
@@ -2558,7 +2561,7 @@ update_coverage_buffer_offset(const PainterPrivate *d)
    *
    * where T is
    *   if d->m_effects_layer_stack.empty()  --> T = (0, 0)
-   *   if !d->m_effects_layer_stack.empty() --> T = m_bottom_left_corner_in_surface - m_pixel_rect.min_point()
+   *   if !d->m_effects_layer_stack.empty() --> T = m_min_corner_in_surface - m_pixel_rect.min_point()
    */
   ivec2 T, color_surface_viewport_origin;
   if (d->m_effects_layer_stack.empty())
@@ -2568,15 +2571,15 @@ update_coverage_buffer_offset(const PainterPrivate *d)
     }
   else
     {
-      T = d->m_effects_layer_stack.back().m_bottom_left_corner_in_surface
+      T = d->m_effects_layer_stack.back().m_min_corner_in_surface
         - d->m_effects_layer_stack.back().m_pixel_rect.m_min_point;
       color_surface_viewport_origin = ivec2(0, 0);
     }
 
   m_coverage_buffer_offset =
     d->m_deferred_coverage_stack_entry_factory.coverage_buffer_viewport().m_origin
-    - m_root_surface_bottom_left_corner
-    + m_bottom_left_corner_in_surface - color_surface_viewport_origin - T;
+    - m_root_surface_min_corner
+    + m_min_corner_in_surface - color_surface_viewport_origin - T;
 }
 
 ////////////////////////////////////////////////
