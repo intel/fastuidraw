@@ -376,20 +376,6 @@ namespace fastuidraw
     hints(void) const;
 
     /*!
-     * Called by \ref Painter to signal that this PainterBackend
-     * is in used by it.
-     */
-    void
-    mark_as_used(void);
-
-    /*!
-     * Called by \ref Painter to signal that this PainterBackend
-     * is no longer used by it.
-     */
-    void
-    mark_as_free(void);
-
-    /*!
      * To be implemented by a derived class to perform any caching
      * or other operations when \ref Painter has Painter::begin()
      * and to return the number of external texture slots the

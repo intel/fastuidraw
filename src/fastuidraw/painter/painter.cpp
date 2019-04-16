@@ -2708,7 +2708,6 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_backend(backend),
   m_current_brush_adjust(nullptr)
 {
-  m_backend->mark_as_used();
   // By calling PainterBackend::default_shaders(), we make the shaders
   // registered. By setting m_default_shaders to its return value,
   // and using that for the return value of Painter::default_shaders(),
@@ -2757,7 +2756,6 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
 PainterPrivate::
 ~PainterPrivate()
 {
-  m_backend->mark_as_free();
 }
 
 void
