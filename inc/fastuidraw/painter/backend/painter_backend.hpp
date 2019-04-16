@@ -272,16 +272,6 @@ namespace fastuidraw
     configuration_base(void) const;
 
     /*!
-     * To be implemented by a derived class to create another
-     * PainterBackend object which uses the same atlases,
-     * has the -exact- same \ref PainterShaderRegistrar and
-     * is configured exactly the same way.
-     */
-    virtual
-    reference_counted_ptr<PainterBackend>
-    create_shared(void) = 0;
-
-    /*!
      * Called just before calling PainterDraw::draw() on a sequence
      * of PainterDraw objects who have had their PainterDraw::unmap()
      * routine called. An implementation will  will clear the depth
@@ -341,22 +331,6 @@ namespace fastuidraw
     virtual
     reference_counted_ptr<PainterDraw>
     map_draw(void) = 0;
-
-    /*!
-     * To be implemented by a derived class to create a
-     * Surface with its own backing that is useable by
-     * both the creating \ref PainterBackend and any \ref
-     * PainterBackend returned by create_shared().
-     * \param dims the dimensions of the backing store of
-     *             the returned Surface
-     * \param render_type the render type of the surface (i.e.
-     *                    is it a color buffer or deferred
-     *                    coverage buffer).
-     */
-    virtual
-    reference_counted_ptr<PainterSurface>
-    create_surface(ivec2 dims,
-                   enum PainterSurface::render_type_t render_type) = 0;
 
     /*!
      * Returns the PainterShaderSet for the backend.

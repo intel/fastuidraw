@@ -41,6 +41,10 @@ namespace fastuidraw
   class PainterBackendFactory:public reference_counted<PainterBackendFactory>::concurrent
   {
   public:
+    virtual
+    ~PainterBackendFactory()
+    {}
+
     /*!
      * To be implemented by a derived class to create a
      * \ref PainterBackend object. All \ref PainterBackend
@@ -55,6 +59,22 @@ namespace fastuidraw
     virtual
     reference_counted_ptr<PainterBackend>
     create_backend(void) const = 0;
+
+    /*!
+     * To be implemented by a derived class to create a
+     * Surface with its own backing that is useable by
+     * any \ref PainterBackend object that this \ref
+     * PainterBackendFactory returns in create_backend()
+     * \param dims the dimensions of the backing store of
+     *             the returned Surface
+     * \param render_type the render type of the surface (i.e.
+     *                    is it a color buffer or deferred
+     *                    coverage buffer).
+     */
+    virtual
+    reference_counted_ptr<PainterSurface>
+    create_surface(ivec2 dims,
+                   enum PainterSurface::render_type_t render_type) = 0;
   };
 /*! @} */
 

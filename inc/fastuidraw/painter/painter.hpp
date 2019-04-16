@@ -48,7 +48,7 @@
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
 #include <fastuidraw/painter/effects/painter_effect.hpp>
 
-#include <fastuidraw/painter/backend/painter_backend.hpp>
+#include <fastuidraw/painter/backend/painter_backend_factory.hpp>
 
 namespace fastuidraw
 {
@@ -186,13 +186,13 @@ namespace fastuidraw
 
     /*!
      * Ctor.
-     * \param backend \ref PainterBackend object from which (via
-     *                \ref PainterBackend::create_shared()) the
+     * \param backend \ref PainterBackendFactory object from which via
+     *                \ref PainterBackendFactory::create_backend(), the
      *                created \ref Painter object will use for its
      *                entire lifetime.
      */
     explicit
-    Painter(const reference_counted_ptr<PainterBackend> &backend);
+    Painter(const reference_counted_ptr<PainterBackendFactory> &backend);
 
     ~Painter(void);
 

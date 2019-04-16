@@ -39,11 +39,11 @@ public:
 
   enum
     {
-      program_count = PainterBackendGL::number_program_types
+      program_count = PainterBackendFactoryGL::number_program_types
     };
 
   typedef reference_counted_ptr<Program> program_ref;
-  typedef vecN<program_ref, PainterBackendGL::number_program_types> programs_per_blend;
+  typedef vecN<program_ref, PainterBackendFactoryGL::number_program_types> programs_per_blend;
 
   class program_set
   {
@@ -55,7 +55,7 @@ public:
     }
 
     const program_ref&
-    program(enum PainterBackendGL::program_type_t tp,
+    program(enum PainterBackendFactoryGL::program_type_t tp,
             enum PainterBlendShader::shader_type blend_type) const
     {
       return programs(blend_type)[tp];
@@ -63,7 +63,7 @@ public:
 
     const program_ref&
     program(enum PainterBlendShader::shader_type blend_type,
-            enum PainterBackendGL::program_type_t tp) const
+            enum PainterBackendFactoryGL::program_type_t tp) const
     {
       return programs(blend_type)[tp];
     }
@@ -97,7 +97,7 @@ public:
   };
 
   explicit
-  PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
+  PainterShaderRegistrarGL(const PainterBackendFactoryGL::ConfigurationGL &P,
                            const UberShaderParams &uber_params);
 
   const program_set&
@@ -108,7 +108,7 @@ public:
                          unsigned int shader_group,
                          enum PainterBlendShader::shader_type blend_type);
 
-  const PainterBackendGL::ConfigurationGL&
+  const PainterBackendFactoryGL::ConfigurationGL&
   params(void) const
   {
     return m_params;
@@ -177,7 +177,7 @@ private:
   build_programs(void);
 
   program_ref
-  build_program(enum PainterBackendGL::program_type_t tp,
+  build_program(enum PainterBackendFactoryGL::program_type_t tp,
                 enum PainterBlendShader::shader_type blend_type);
 
   program_ref
@@ -197,7 +197,7 @@ private:
   program_ref
   build_program_of_coverage_item_shader(unsigned int shader);
 
-  PainterBackendGL::ConfigurationGL m_params;
+  PainterBackendFactoryGL::ConfigurationGL m_params;
   UberShaderParams m_uber_shader_builder_params;
   enum interlock_type_t m_interlock_type;
   BackendConstants m_backend_constants;

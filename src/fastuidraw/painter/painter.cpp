@@ -1400,7 +1400,7 @@ namespace
     typedef ConstItemShaderRef *ConstItemShaderRefPtr;
 
     explicit
-    PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> &backend);
+    PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackendFactory> &backend_factory);
 
     ~PainterPrivate();
 
@@ -1762,6 +1762,7 @@ namespace
     std::vector<DeferredCoverageBufferStackEntry> m_deferred_coverage_stack;
     std::vector<const fastuidraw::PainterSurface*> m_active_surfaces;
     unsigned int m_number_external_textures;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackendFactory> m_backend_factory;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectColorModulate> m_color_modulate_fx;
     fastuidraw::PainterShaderSet m_default_shaders;
@@ -2469,8 +2470,8 @@ fetch(unsigned int effects_depth,
           reference_counted_ptr<const Image> image;
 
           packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
-          surface = d->m_backend->create_surface(m_current_backing_size,
-                                                 PainterSurface::color_buffer_type);
+          surface = d->m_backend_factory->create_surface(m_current_backing_size,
+                                                         PainterSurface::color_buffer_type);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
           image = surface->image(d->m_backend->image_atlas());
           TB = FASTUIDRAWnew EffectsBuffer(packer, surface, image, m_current_backing_useable_size);
@@ -2652,8 +2653,8 @@ fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
           reference_counted_ptr<PainterSurface> surface;
 
           packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
-          surface = d->m_backend->create_surface(m_current_backing_size,
-                                                 PainterSurface::deferred_coverage_buffer_type);
+          surface = d->m_backend_factory->create_surface(m_current_backing_size,
+                                                         PainterSurface::deferred_coverage_buffer_type);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
           TB = FASTUIDRAWnew DeferredCoverageBuffer(packer, surface, m_current_backing_useable_size);
         }
@@ -2700,12 +2701,13 @@ end(void)
 //////////////////////////////////
 // PainterPrivate methods
 PainterPrivate::
-PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> &backend):
+PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackendFactory> &backend_factory):
   m_viewport_dimensions(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(0.5f),
   m_number_external_textures(0),
-  m_backend(backend),
+  m_backend_factory(backend_factory),
+  m_backend(backend_factory->create_backend()),
   m_current_brush_adjust(nullptr)
 {
   // By calling PainterBackend::default_shaders(), we make the shaders
@@ -2722,8 +2724,8 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_root_identity_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
   m_draw_data_added_count = 0;
-  m_max_attribs_per_block = backend->attribs_per_mapping();
-  m_max_indices_per_block = backend->indices_per_mapping();
+  m_max_attribs_per_block = m_backend->attribs_per_mapping();
+  m_max_indices_per_block = m_backend->indices_per_mapping();
 
   /* Create a path representing a corner of rounded rectangle.
    * This path will be used/resued to clip against rounded
@@ -4542,9 +4544,9 @@ compute_glyph_renderer(float pixel_size,
 //////////////////////////////////
 // fastuidraw::Painter methods
 fastuidraw::Painter::
-Painter(const reference_counted_ptr<PainterBackend> &backend)
+Painter(const reference_counted_ptr<PainterBackendFactory> &backend)
 {
-  m_d = FASTUIDRAWnew PainterPrivate(backend->create_shared());
+  m_d = FASTUIDRAWnew PainterPrivate(backend);
 }
 
 fastuidraw::Painter::
