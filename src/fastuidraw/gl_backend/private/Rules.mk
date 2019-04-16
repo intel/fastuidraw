@@ -10,6 +10,7 @@ FASTUIDRAW_PRIVATE_GL_SOURCES += $(call filelist, \
 	painter_backend_gl_config.cpp \
 	painter_shader_registrar_gl.cpp \
 	painter_surface_gl_private.cpp \
+	painter_backend_gl.cpp \
 	painter_vao_pool.cpp)
 
 

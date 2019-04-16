@@ -23,7 +23,6 @@
 #include <vector>
 #include <iostream>
 
-#include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
@@ -32,13 +31,14 @@
 
 #include <private/util_private.hpp>
 #include <private/util_private_ostream.hpp>
-#include "private/tex_buffer.hpp"
-#include "private/texture_gl.hpp"
-#include "private/painter_backend_gl_config.hpp"
-#include "private/painter_vao_pool.hpp"
-#include "private/painter_shader_registrar_gl.hpp"
-#include "private/painter_surface_gl_private.hpp"
-#include "private/binding_points.hpp"
+#include "painter_backend_gl.hpp"
+#include "tex_buffer.hpp"
+#include "texture_gl.hpp"
+#include "painter_backend_gl_config.hpp"
+#include "painter_vao_pool.hpp"
+#include "painter_shader_registrar_gl.hpp"
+#include "painter_surface_gl_private.hpp"
+#include "binding_points.hpp"
 
 #ifdef FASTUIDRAW_GL_USE_GLES
 #define GL_SRC1_COLOR GL_SRC1_COLOR_EXT

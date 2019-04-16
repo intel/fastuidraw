@@ -28,6 +28,7 @@
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 #include <private/util_private.hpp>
+#include "private/painter_backend_gl.hpp"
 #include "private/painter_backend_gl_config.hpp"
 #include "private/painter_surface_gl_private.hpp"
 #include "private/painter_shader_registrar_gl.hpp"
