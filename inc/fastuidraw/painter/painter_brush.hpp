@@ -771,7 +771,7 @@ namespace fastuidraw
     /*!
      * Set the brush to source from a sub-rectangle of an image
      * \param im handle to image to use
-     * \param xy top-left corner of sub-rectangle of image to use
+     * \param xy min-corner of sub-rectangle of image to use
      * \param wh width and height of sub-rectangle of image to use
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
