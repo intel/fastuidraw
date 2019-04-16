@@ -5703,6 +5703,13 @@ void
 fastuidraw::Painter::
 begin_layer(const reference_counted_ptr<PainterEffect> &effect)
 {
+  begin_layer(effect->passes());
+}
+
+void
+fastuidraw::Painter::
+begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
+{
   PainterPrivate *d;
   Rect clip_region_rect;
 
@@ -5722,7 +5729,6 @@ begin_layer(const reference_counted_ptr<PainterEffect> &effect)
   fx_entry.m_state_stack_size = d->m_state_stack.size();;
   d->m_effects_stack.push_back(fx_entry);
 
-  c_array<const reference_counted_ptr<PainterEffectPass> > passes(effect->passes());
   fastuidraw::PainterBlendShader* old_blend(d->packer()->blend_shader());
   fastuidraw::PainterBlendShader* copy_blend(d->m_default_shaders.blend_shaders().shader(blend_porter_duff_src).get());
   BlendMode old_blend_mode(d->packer()->blend_mode());
