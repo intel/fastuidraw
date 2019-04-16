@@ -41,19 +41,19 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::gl::PainterBackendGL::data_store_backing_t> v)
+             enum_wrapper<enum fastuidraw::gl::PainterBackendFactoryGL::data_store_backing_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::gl::PainterBackendGL::data_store_tbo:
+      case fastuidraw::gl::PainterBackendFactoryGL::data_store_tbo:
         str << "tbo";
         break;
 
-      case fastuidraw::gl::PainterBackendGL::data_store_ubo:
+      case fastuidraw::gl::PainterBackendFactoryGL::data_store_ubo:
         str << "ubo";
         break;
 
-      case fastuidraw::gl::PainterBackendGL::data_store_ssbo:
+      case fastuidraw::gl::PainterBackendFactoryGL::data_store_ssbo:
         str << "ssbo";
         break;
 
@@ -66,19 +66,19 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::gl::PainterBackendGL::clipping_type_t> v)
+             enum_wrapper<enum fastuidraw::gl::PainterBackendFactoryGL::clipping_type_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance:
+      case fastuidraw::gl::PainterBackendFactoryGL::clipping_via_gl_clip_distance:
         str << "on";
         break;
 
-      case fastuidraw::gl::PainterBackendGL::clipping_via_discard:
+      case fastuidraw::gl::PainterBackendFactoryGL::clipping_via_discard:
         str << "off";
         break;
 
-      case fastuidraw::gl::PainterBackendGL::clipping_via_skip_color_write:
+      case fastuidraw::gl::PainterBackendFactoryGL::clipping_via_skip_color_write:
         str << "emulate_skip_color_write";
         break;
 
@@ -376,14 +376,14 @@ sdl_painter_demo(const std::string &about_text,
                                         *this),
   m_use_hw_clip_planes(m_painter_params.clipping_type(),
                        enumerated_string_type<clipping_type_t>()
-                       .add_entry("on", fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance,
+                       .add_entry("on", fastuidraw::gl::PainterBackendFactoryGL::clipping_via_gl_clip_distance,
                                   "Use HW clip planes via gl_ClipDistance for clipping")
-                       .add_entry_alias("true", fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance)
-                       .add_entry("off", fastuidraw::gl::PainterBackendGL::clipping_via_discard,
+                       .add_entry_alias("true", fastuidraw::gl::PainterBackendFactoryGL::clipping_via_gl_clip_distance)
+                       .add_entry("off", fastuidraw::gl::PainterBackendFactoryGL::clipping_via_discard,
                                   "Use discard in fragment shader for clipping")
-                       .add_entry_alias("false", fastuidraw::gl::PainterBackendGL::clipping_via_discard)
+                       .add_entry_alias("false", fastuidraw::gl::PainterBackendFactoryGL::clipping_via_discard)
                        .add_entry("emulate_skip_color_write",
-                                  fastuidraw::gl::PainterBackendGL::clipping_via_skip_color_write,
+                                  fastuidraw::gl::PainterBackendFactoryGL::clipping_via_skip_color_write,
                                   "Emulate by (virtually) skipping color writes, painter_blend_type "
                                   "must be framebuffer_fetch"),
                        "painter_use_hw_clip_planes",
@@ -396,16 +396,16 @@ sdl_painter_demo(const std::string &about_text,
   m_data_store_backing(m_painter_params.data_store_backing(),
                        enumerated_string_type<data_store_backing_t>()
                        .add_entry("tbo",
-                                  fastuidraw::gl::PainterBackendGL::data_store_tbo,
+                                  fastuidraw::gl::PainterBackendFactoryGL::data_store_tbo,
                                   "use a texture buffer (if available) to back the data store. "
                                   "A texture buffer can have a very large maximum size")
                        .add_entry("ubo",
-                                  fastuidraw::gl::PainterBackendGL::data_store_ubo,
+                                  fastuidraw::gl::PainterBackendFactoryGL::data_store_ubo,
                                   "use a uniform buffer object to back the data store. "
                                   "A uniform buffer object's maximum size is much smaller than that "
                                   "of a texture buffer object usually")
                        .add_entry("ssbo",
-                                  fastuidraw::gl::PainterBackendGL::data_store_ssbo,
+                                  fastuidraw::gl::PainterBackendFactoryGL::data_store_ssbo,
                                   "use a shader storage buffer object to back the data store. "
                                   "A shader storage buffer can have a very large maximum size"),
                        "painter_data_store_backing_type",
@@ -675,7 +675,20 @@ init_gl(int w, int h)
       m_painter_params.glsl_version_override(version);
     }
 
-  m_backend = fastuidraw::gl::PainterBackendGL::create(m_painter_params);
+  m_backend = fastuidraw::gl::PainterBackendFactoryGL::create(m_painter_params);
+
+  fastuidraw::GlyphGenerateParams::distance_field_max_distance(m_distance_field_max_distance.value());
+  fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
+  fastuidraw::GlyphGenerateParams::restricted_rays_max_recursion(m_restricted_rays_max_recursion.value());
+  fastuidraw::GlyphGenerateParams::restricted_rays_split_thresh(m_restricted_rays_split_thresh.value());
+  fastuidraw::GlyphGenerateParams::restricted_rays_minimum_render_size(m_restricted_rays_expected_min_render_size.value());
+  fastuidraw::GlyphGenerateParams::banded_rays_max_recursion(m_banded_rays_max_recursion.value());
+  fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh(m_banded_rays_average_number_curves_thresh.value());
+
+  m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
+  m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
+  m_font_database = FASTUIDRAWnew fastuidraw::FontDatabase();
+  m_ft_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
 
   if (m_pixel_counter_stack.value() >= 0)
     {
@@ -700,26 +713,12 @@ init_gl(int w, int h)
         "\treal_main();\n"
         "}\n";
 
-      R = m_backend->painter_shader_registrar().static_cast_ptr<fastuidraw::glsl::PainterShaderRegistrarGLSL>();
+      R = m_painter->painter_shader_registrar().static_cast_ptr<fastuidraw::glsl::PainterShaderRegistrarGLSL>();
       R->add_fragment_shader_util(fastuidraw::glsl::ShaderSource()
                                   .add_macro("PIXEL_COUNTER_BINDING", m_pixel_counter_buffer_binding_index)
                                   .add_source(code, fastuidraw::glsl::ShaderSource::from_string)
                                   .add_macro("main", "real_main"));
     }
-
-
-  fastuidraw::GlyphGenerateParams::distance_field_max_distance(m_distance_field_max_distance.value());
-  fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
-  fastuidraw::GlyphGenerateParams::restricted_rays_max_recursion(m_restricted_rays_max_recursion.value());
-  fastuidraw::GlyphGenerateParams::restricted_rays_split_thresh(m_restricted_rays_split_thresh.value());
-  fastuidraw::GlyphGenerateParams::restricted_rays_minimum_render_size(m_restricted_rays_expected_min_render_size.value());
-  fastuidraw::GlyphGenerateParams::banded_rays_max_recursion(m_banded_rays_max_recursion.value());
-  fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh(m_banded_rays_average_number_curves_thresh.value());
-
-  m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
-  m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
-  m_font_database = FASTUIDRAWnew fastuidraw::FontDatabase();
-  m_ft_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
 
   if (m_print_painter_config.value())
     {
