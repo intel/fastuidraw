@@ -84,10 +84,7 @@ namespace fastuidraw
     private:
       friend class PainterBackendFactoryGL;
 
-      PainterBackendGL(const PainterBackendFactoryGL::ConfigurationGL &config_gl,
-                       const UberShaderParams &uber_params,
-                       const PainterShaderSet &shaders,
-                       reference_counted_ptr<PainterShaderRegistrar> shader_registar);
+      PainterBackendGL(const fastuidraw::gl::PainterBackendFactoryGL *f);
 
       void *m_d;
     };

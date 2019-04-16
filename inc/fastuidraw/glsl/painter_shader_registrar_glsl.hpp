@@ -19,7 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
-#include <fastuidraw/painter/backend/painter_backend.hpp>
+#include <fastuidraw/painter/backend/painter_backend_factory.hpp>
 #include <fastuidraw/painter/backend/painter_surface.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
@@ -689,17 +689,18 @@ namespace fastuidraw
       /*!
        * A BackendConstants stores constants coming from a backend
        * implementation that change the GLSL uber-shaders made by
-       *  PainterShaderRegisterGLSL::construct_shader().
+       * PainterShaderRegisterGLSL::construct_shader().
        */
       class BackendConstants
       {
       public:
         /*!
          * Ctor.
-         * \param p if non-null, set all values from the passed PainterBackend object,
+         * \param p if non-null, set all values from the passed \ref
+         *                       PainterBackendFactory object,
          *                       otherwise set all values as 0.
          */
-        BackendConstants(PainterBackend *p = nullptr);
+        BackendConstants(PainterBackendFactory *p = nullptr);
 
         /*!
          * Copy ctor.
@@ -789,10 +790,10 @@ namespace fastuidraw
 
         /*!
          * Set all values of this BackendConstant by taking values
-         * from a PainterBackend.
+         * from a \ref PainterBackendFactory.
          */
         BackendConstants&
-        set_from_backend(PainterBackend *p);
+        set_from_backend(PainterBackendFactory *p);
 
         /*!
          * Set all values of this BackendConstant by taking values

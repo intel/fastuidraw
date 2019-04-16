@@ -1764,6 +1764,7 @@ namespace
     unsigned int m_number_external_textures;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackendFactory> m_backend_factory;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
+    fastuidraw::PainterBackendFactory::PerformanceHints m_hints;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectColorModulate> m_color_modulate_fx;
     fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterPackedValuePool m_pool;
@@ -2473,7 +2474,7 @@ fetch(unsigned int effects_depth,
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::color_buffer_type);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
-          image = surface->image(d->m_backend->image_atlas());
+          image = surface->image(d->m_backend_factory->image_atlas());
           TB = FASTUIDRAWnew EffectsBuffer(packer, surface, image, m_current_backing_useable_size);
         }
       else
@@ -2708,6 +2709,7 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_number_external_textures(0),
   m_backend_factory(backend_factory),
   m_backend(backend_factory->create_backend()),
+  m_hints(backend_factory->hints()),
   m_current_brush_adjust(nullptr)
 {
   // By calling PainterBackend::default_shaders(), we make the shaders
@@ -2715,7 +2717,7 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   // and using that for the return value of Painter::default_shaders(),
   // we skip the check in PainterBackend::default_shaders() to register
   // the shaders as well.
-  m_default_shaders = m_backend->default_shaders();
+  m_default_shaders = m_backend_factory->default_shaders();
   m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
   m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
@@ -4384,7 +4386,7 @@ fill_convex_polygon(bool allow_sw_clipping,
       return 0;
     }
 
-  if (allow_sw_clipping && !packer()->hints().clipping_via_hw_clip_planes())
+  if (allow_sw_clipping && !m_hints.clipping_via_hw_clip_planes())
     {
       m_clip_rect_state.clip_polygon(pts, m_work_room.m_polygon.m_pts,
                                      m_work_room.m_clipper.m_vec2s[0]);
@@ -4755,7 +4757,7 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
   if (new_surface == surface())
     {
       bool clear_z;
-      const int clear_depth_thresh(d->packer()->hints().max_z());
+      const int clear_depth_thresh(d->m_hints.max_z());
 
       clear_z = (d->m_current_z > clear_depth_thresh);
       d->m_root_packer->flush(clear_z);
@@ -4774,7 +4776,7 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
       reference_counted_ptr<PainterSurface> old_surface(surface());
       reference_counted_ptr<const Image> image;
 
-      image = surface()->image(d->m_backend->image_atlas());
+      image = surface()->image(d->m_backend_factory->image_atlas());
       new_surface->viewport(d->m_viewport);
 
       d->m_root_packer->end();
@@ -6361,7 +6363,7 @@ glyph_atlas(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_backend->glyph_atlas();
+  return d->m_backend_factory->glyph_atlas();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
@@ -6370,7 +6372,7 @@ image_atlas(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_backend->image_atlas();
+  return d->m_backend_factory->image_atlas();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
@@ -6379,7 +6381,7 @@ colorstop_atlas(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_backend->colorstop_atlas();
+  return d->m_backend_factory->colorstop_atlas();
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>
@@ -6388,7 +6390,7 @@ painter_shader_registrar(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_backend->painter_shader_registrar();
+  return d->m_backend_factory->painter_shader_registrar();
 }
 
 fastuidraw::PainterBlendShader*

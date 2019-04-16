@@ -155,7 +155,8 @@ namespace
   {
   public:
     explicit
-    PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p);
+    PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendFactoryGL *f,
+                            fastuidraw::gl::PainterBackendGL *p);
 
     ~PainterBackendGLPrivate();
 
@@ -174,6 +175,9 @@ namespace
     }
 
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
 
     GLuint m_nearest_filter_sampler;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::painter_vao_pool> m_pool;
@@ -886,7 +890,8 @@ add_entry(unsigned int indices_written)
 ///////////////////////////////////
 // PainterBackendGLPrivate methods
 PainterBackendGLPrivate::
-PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
+PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendFactoryGL *f,
+                        fastuidraw::gl::PainterBackendGL *p):
   m_nearest_filter_sampler(0),
   m_surface_gl(nullptr),
   m_p(p)
@@ -895,10 +900,19 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
 
-  reference_counted_ptr<PainterShaderRegistrar> reg_base(m_p->painter_shader_registrar());
+  reference_counted_ptr<PainterShaderRegistrar> reg_base(f->painter_shader_registrar());
 
   FASTUIDRAWassert(reg_base.dynamic_cast_ptr<PainterShaderRegistrarGL>());
   m_reg_gl = reg_base.static_cast_ptr<PainterShaderRegistrarGL>();
+
+  FASTUIDRAWassert(f->glyph_atlas().dynamic_cast_ptr<GlyphAtlasGL>());
+  m_glyph_atlas = f->glyph_atlas().static_cast_ptr<GlyphAtlasGL>();
+
+  FASTUIDRAWassert(f->image_atlas().dynamic_cast_ptr<ImageAtlasGL>());
+  m_image_atlas = f->image_atlas().static_cast_ptr<ImageAtlasGL>();
+
+  FASTUIDRAWassert(f->colorstop_atlas().dynamic_cast_ptr<ColorStopAtlasGL>());
+  m_colorstop_atlas = f->colorstop_atlas().static_cast_ptr<ColorStopAtlasGL>();
 
   m_binding_points.m_num_ubo_units = m_reg_gl->uber_shader_builder_params().num_ubo_units();
   m_binding_points.m_num_ssbo_units = m_reg_gl->uber_shader_builder_params().num_ssbo_units();
@@ -1126,46 +1140,34 @@ set_gl_state(RenderTargetState prev_state,
         }
     }
 
-  GlyphAtlasGL *glyphs;
-  FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
-  glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
-
   if (v & gpu_dirty_state::textures)
     {
-      ImageAtlasGL *image;
-      FASTUIDRAWassert(dynamic_cast<ImageAtlasGL*>(m_p->image_atlas().get()));
-      image = static_cast<ImageAtlasGL*>(m_p->image_atlas().get());
-
-      ColorStopAtlasGL *color;
-      FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(m_p->colorstop_atlas().get()));
-      color = static_cast<ColorStopAtlasGL*>(m_p->colorstop_atlas().get());
-
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_image_atlas_color_tiles_nearest_binding);
       fastuidraw_glBindSampler(m_binding_points.m_image_atlas_color_tiles_nearest_binding, m_nearest_filter_sampler);
-      fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
+      fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, m_image_atlas->color_texture());
 
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_image_atlas_color_tiles_linear_binding);
       fastuidraw_glBindSampler(m_binding_points.m_image_atlas_color_tiles_linear_binding, 0);
-      fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
+      fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, m_image_atlas->color_texture());
 
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_image_atlas_index_tiles_binding);
       fastuidraw_glBindSampler(m_binding_points.m_image_atlas_index_tiles_binding, 0);
-      fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, image->index_texture());
+      fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, m_image_atlas->index_texture());
 
-      if (glyphs->data_binding_point_is_texture_unit())
+      if (m_glyph_atlas->data_binding_point_is_texture_unit())
         {
           fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding);
           fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding, 0);
-          fastuidraw_glBindTexture(glyphs->data_binding_point(), glyphs->data_backing(GlyphAtlasGL::backing_uint32_fmt));
+          fastuidraw_glBindTexture(m_glyph_atlas->data_binding_point(), m_glyph_atlas->data_backing(GlyphAtlasGL::backing_uint32_fmt));
 
           fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding_fp16);
           fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding_fp16, 0);
-          fastuidraw_glBindTexture(glyphs->data_binding_point(), glyphs->data_backing(GlyphAtlasGL::backing_fp16x2_fmt));
+          fastuidraw_glBindTexture(m_glyph_atlas->data_binding_point(), m_glyph_atlas->data_backing(GlyphAtlasGL::backing_fp16x2_fmt));
         }
 
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_colorstop_atlas_binding);
       fastuidraw_glBindSampler(m_binding_points.m_colorstop_atlas_binding, 0);
-      fastuidraw_glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
+      fastuidraw_glBindTexture(ColorStopAtlasGL::texture_bind_target(), m_colorstop_atlas->texture());
 
       for (unsigned int i = 0, endi = m_current_external_texture.size(); i < endi; ++i)
         {
@@ -1212,11 +1214,11 @@ set_gl_state(RenderTargetState prev_state,
 
   if (v & gpu_dirty_state::storage_buffers)
     {
-      if (!glyphs->data_binding_point_is_texture_unit())
+      if (!m_glyph_atlas->data_binding_point_is_texture_unit())
         {
           fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
                                       m_binding_points.m_glyph_atlas_store_binding,
-                                      glyphs->data_backing(GlyphAtlasGL::backing_uint32_fmt));
+                                      m_glyph_atlas->data_backing(GlyphAtlasGL::backing_uint32_fmt));
         }
     }
 
@@ -1227,21 +1229,11 @@ set_gl_state(RenderTargetState prev_state,
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods
 fastuidraw::gl::PainterBackendGL::
-PainterBackendGL(const PainterBackendFactoryGL::ConfigurationGL &config_gl,
-                 const UberShaderParams &uber_params,
-                 const PainterShaderSet &shaders,
-                 reference_counted_ptr<PainterShaderRegistrar> shader_registar):
-  PainterBackend(config_gl.glyph_atlas(),
-                 config_gl.image_atlas(),
-                 config_gl.colorstop_atlas(),
-                 shader_registar,
-                 ConfigurationBase()
-                 .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
-                 shaders)
+PainterBackendGL(const fastuidraw::gl::PainterBackendFactoryGL *f):
+  PainterBackend()
 {
   PainterBackendGLPrivate *d;
-  m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(this);
-  d->m_reg_gl->set_hints(set_hints());
+  m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(f, this);
 }
 
 fastuidraw::gl::PainterBackendGL::
@@ -1324,14 +1316,10 @@ on_post_draw(void)
   fastuidraw_glActiveTexture(GL_TEXTURE0 + d->m_binding_points.m_image_atlas_index_tiles_binding);
   fastuidraw_glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-  GlyphAtlasGL *glyphs;
-  FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get()));
-  glyphs = static_cast<GlyphAtlasGL*>(glyph_atlas().get());
-
-  if (glyphs->data_binding_point_is_texture_unit())
+  if (d->m_glyph_atlas->data_binding_point_is_texture_unit())
     {
       fastuidraw_glActiveTexture(GL_TEXTURE0 + d->m_binding_points.m_glyph_atlas_store_binding);
-      fastuidraw_glBindTexture(glyphs->data_binding_point(), 0);
+      fastuidraw_glBindTexture(d->m_glyph_atlas->data_binding_point(), 0);
     }
   else
     {
@@ -1406,7 +1394,7 @@ bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface)
    * instead.
    */
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return FASTUIDRAWnew CoverageTextureBindAction(surface->image(image_atlas()), d);
+  return FASTUIDRAWnew CoverageTextureBindAction(surface->image(d->m_image_atlas), d);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw>

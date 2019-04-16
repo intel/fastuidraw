@@ -338,16 +338,6 @@ namespace fastuidraw
                  const PainterAttributeWriter &src);
 
     /*!
-     * Returns the PainterBackend::PerformanceHints of the underlying
-     * PainterBackend of this PainterPacker.
-     */
-    const PainterBackend::PerformanceHints&
-    hints(void)
-    {
-      return m_backend->hints();
-    }
-
-    /*!
      * Returns the current accumulated draw the PainterPacker is on
      */
     unsigned int

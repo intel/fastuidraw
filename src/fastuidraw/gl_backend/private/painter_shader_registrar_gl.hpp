@@ -139,7 +139,7 @@ public:
   }
 
   void
-  set_hints(PainterBackend::PerformanceHints &hints)
+  set_hints(PainterBackendFactory::PerformanceHints &hints)
   {
     /* should this instead be clipping_type() != clipping_via_discard ?
      * On one hand, letting the GPU do the virtual no-write incurs no CPU load,

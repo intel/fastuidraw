@@ -95,12 +95,9 @@ namespace
   class PainterBackendFactoryGLPrivate
   {
   public:
-    PainterBackendFactoryGLPrivate(const fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL &config_gl,
-                                   const fastuidraw::gl::PainterBackendFactoryGL::UberShaderParams &uber_params,
-                                   const fastuidraw::PainterShaderSet &default_shaders):
-      m_default_shaders(default_shaders)
+    PainterBackendFactoryGLPrivate(fastuidraw::gl::PainterBackendFactoryGL *p)
     {
-      m_reg_gl = FASTUIDRAWnew fastuidraw::gl::detail::PainterShaderRegistrarGL(config_gl, uber_params);
+      m_reg_gl = p->painter_shader_registrar().static_cast_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL>();
 
       m_binding_points.m_num_ubo_units = m_reg_gl->uber_shader_builder_params().num_ubo_units();
       m_binding_points.m_num_ssbo_units = m_reg_gl->uber_shader_builder_params().num_ssbo_units();
@@ -129,7 +126,6 @@ namespace
 
     fastuidraw::gl::detail::BindingPoints m_binding_points;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
-    fastuidraw::PainterShaderSet m_default_shaders;
   };
 }
 
@@ -730,9 +726,18 @@ create(bool optimal_rendering_quality,
 fastuidraw::gl::PainterBackendFactoryGL::
 PainterBackendFactoryGL(const ConfigurationGL &config_gl,
                         const UberShaderParams &uber_params,
-                        const PainterShaderSet &shaders)
+                        const PainterShaderSet &shaders):
+  PainterBackendFactory(config_gl.glyph_atlas(),
+                        config_gl.image_atlas(),
+                        config_gl.colorstop_atlas(),
+                        FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl, uber_params),
+                        ConfigurationBase()
+                        .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
+                        shaders)
 {
-  m_d = FASTUIDRAWnew PainterBackendFactoryGLPrivate(config_gl, uber_params, shaders);
+  PainterBackendFactoryGLPrivate *d;
+  m_d = d = FASTUIDRAWnew PainterBackendFactoryGLPrivate(this);
+  d->m_reg_gl->set_hints(set_hints());
 }
 
 fastuidraw::gl::PainterBackendFactoryGL::
@@ -777,10 +782,7 @@ create_backend(void) const
 {
   PainterBackendFactoryGLPrivate *d;
   d = static_cast<PainterBackendFactoryGLPrivate*>(m_d);
-  return FASTUIDRAWnew PainterBackendGL(d->m_reg_gl->params(),
-                                        d->m_reg_gl->uber_shader_builder_params(),
-                                        d->m_default_shaders,
-                                        d->m_reg_gl);
+  return FASTUIDRAWnew PainterBackendGL(this);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface>
