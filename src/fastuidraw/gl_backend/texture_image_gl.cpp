@@ -165,22 +165,36 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
        GLenum tex_magnification, GLenum tex_minification,
        bool allow_bindless)
 {
-  reference_counted_ptr<TextureImage> return_value;
+  static detail::UseTexStorage use_tex_storage;
+  GLuint tex(0);
   int m(image_data.number_levels()), w(pw), h(ph);
 
   if (w <= 0 || h <= 0 || m <= 0)
     {
+      FASTUIDRAWassert(false);
       return nullptr;
     }
 
   std::vector<fastuidraw::u8vec4> data_storage(w * h);
   fastuidraw::c_array<fastuidraw::u8vec4> data(make_c_array(data_storage));
 
-  return_value = create(patlas, w, h, m,
-                        tex_magnification, tex_minification,
-                        image_data.format(), allow_bindless);
+  /* SIGHS. We first upload the texture data then allow for the potential
+   * creation of the bindless handle. We do this because some GL drivers
+   * do not correctly handle updating texture contents after generating
+   * the bindless handle for it. The likely cause is that uploading texel
+   * data triggers the GL implementation to an attach auxiliary surface
+   * to the texture but the information for the bindless handle does not
+   * get that auxiliary attachment.
+   */
+  fastuidraw_glGenTextures(1, &tex);
+  FASTUIDRAWassert(tex != 0u);
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, tex);
+  detail::tex_storage<GL_TEXTURE_2D>(use_tex_storage, GL_RGBA8, ivec2(w, h), m);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex_magnification);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex_minification);
+  fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
 
-  fastuidraw_glBindTexture(GL_TEXTURE_2D, return_value->texture());
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, tex);
   for (int l = 0; l < m && w > 0 && h > 0; ++l, w /= 2, h /= 2)
     {
       image_data.fetch_texels(l,
@@ -198,7 +212,7 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
     }
   fastuidraw_glBindTexture(GL_TEXTURE_2D, 0);
 
-  return return_value;
+  return create(patlas, pw, ph, m, tex, true, image_data.format(), allow_bindless);
 }
 
 fastuidraw::gl::TextureImage::
