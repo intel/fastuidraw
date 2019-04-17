@@ -124,7 +124,7 @@ private:
 
   fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
   fastuidraw::gl::ColorStopAtlasGL::params m_colorstop_atlas_params;
-  fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
+  fastuidraw::gl::PainterEngineGL::ImageAtlasParams m_image_atlas_params;
   fastuidraw::gl::PainterEngineGL::ConfigurationGL m_painter_params;
 
   /* Image atlas parameters */

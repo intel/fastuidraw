@@ -28,6 +28,7 @@
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 #include <private/util_private.hpp>
+#include "private/image_gl.hpp"
 #include "private/painter_backend_gl.hpp"
 #include "private/painter_backend_gl_config.hpp"
 #include "private/painter_surface_gl_private.hpp"
@@ -36,6 +37,26 @@
 
 namespace
 {
+  class ImageAtlasGLParamsPrivate
+  {
+  public:
+    ImageAtlasGLParamsPrivate(void):
+      m_log2_color_tile_size(5),
+      m_log2_num_color_tiles_per_row_per_col(8),
+      m_num_color_layers(1),
+      m_log2_index_tile_size(2),
+      m_log2_num_index_tiles_per_row_per_col(6),
+      m_num_index_layers(4)
+    {}
+
+    int m_log2_color_tile_size;
+    int m_log2_num_color_tiles_per_row_per_col;
+    int m_num_color_layers;
+    int m_log2_index_tile_size;
+    int m_log2_num_index_tiles_per_row_per_col;
+    int m_num_index_layers;
+  };
+
   class ConfigurationGLPrivate
   {
   public:
@@ -87,11 +108,11 @@ namespace
     bool m_use_uber_item_shader;
 
     std::string m_glsl_version_override;
-    fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
+    fastuidraw::gl::PainterEngineGL::ImageAtlasParams m_image_atlas_params;
     fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
     fastuidraw::gl::ColorStopAtlasGL::params m_colorstop_atlas_params;
 
-    fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
   };
@@ -299,6 +320,62 @@ get_implement(fastuidraw::gl::PainterSurfaceGL,
 get_implement(fastuidraw::gl::PainterSurfaceGL,
               fastuidraw::gl::detail::PainterSurfaceGLPrivate,
               enum fastuidraw::PainterSurface::render_type_t, render_type)
+
+//////////////////////////////////////////////
+// fastuidraw::gl::PainterEngineGL::ImageAtlasParams methods
+fastuidraw::gl::PainterEngineGL::ImageAtlasParams::
+ImageAtlasParams(void)
+{
+  m_d = FASTUIDRAWnew ImageAtlasGLParamsPrivate();
+}
+
+fastuidraw::gl::PainterEngineGL::ImageAtlasParams::
+ImageAtlasParams(const ImageAtlasParams &obj)
+{
+  ImageAtlasGLParamsPrivate *d;
+  d = static_cast<ImageAtlasGLParamsPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew ImageAtlasGLParamsPrivate(*d);
+}
+
+fastuidraw::gl::PainterEngineGL::ImageAtlasParams::
+~ImageAtlasParams()
+{
+  ImageAtlasGLParamsPrivate *d;
+  d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = nullptr;
+}
+
+fastuidraw::gl::PainterEngineGL::ImageAtlasParams&
+fastuidraw::gl::PainterEngineGL::ImageAtlasParams::
+optimal_color_sizes(int log2_color_tile_size)
+{
+  int m, log2m, c;
+  m = context_get<GLint>(GL_MAX_TEXTURE_SIZE);
+  log2m = uint32_log2(m);
+  c = std::min(8, std::max(1, log2m - log2_color_tile_size));
+  return log2_num_color_tiles_per_row_per_col(c);
+}
+
+assign_swap_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams)
+setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_color_tile_size)
+setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_num_color_tiles_per_row_per_col)
+setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
+                 ImageAtlasGLParamsPrivate,
+                 int, num_color_layers)
+setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_index_tile_size)
+setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_num_index_tiles_per_row_per_col)
+setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
+                 ImageAtlasGLParamsPrivate,
+                 int, num_index_layers)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterEngineGL::ConfigurationGL methods
@@ -643,7 +720,7 @@ adjust_for_context(const ContextProperties &ctx)
 
 fastuidraw::gl::PainterEngineGL::ConfigurationGL&
 fastuidraw::gl::PainterEngineGL::ConfigurationGL::
-image_atlas_params(const ImageAtlasGL::params &params)
+image_atlas_params(const ImageAtlasParams &params)
 {
   ConfigurationGLPrivate *d;
   d = static_cast<ConfigurationGLPrivate*>(m_d);
@@ -677,7 +754,7 @@ glyph_atlas_params(const GlyphAtlasGL::params &params)
   return *this;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&
+const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
 fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 image_atlas(void) const
 {
@@ -763,7 +840,7 @@ setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, Configuration
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_uber_item_shader)
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
-              const fastuidraw::gl::ImageAtlasGL::params&, image_atlas_params)
+              const fastuidraw::gl::PainterEngineGL::ImageAtlasParams&, image_atlas_params)
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
               const fastuidraw::gl::ColorStopAtlasGL::params&, colorstop_atlas_params)
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,

@@ -21,7 +21,6 @@
 #include <fastuidraw/painter/backend/painter_engine.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/texture_image_gl.hpp>
-#include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
@@ -74,6 +73,130 @@ namespace fastuidraw
 
       /*!
        * \brief
+       * Class to hold the construction parameters for creating
+       * the GL-backend \ref ImageAtlas for a \ref PainterEngineGL.
+       */
+      class ImageAtlasParams
+      {
+      public:
+        /*!
+         * Ctor.
+         */
+        ImageAtlasParams(void);
+
+        /*!
+         * Copy ctor.
+         * \param obj value from which to copy
+         */
+        ImageAtlasParams(const ImageAtlasParams &obj);
+
+        ~ImageAtlasParams();
+
+        /*!
+         * Assignment operator.
+         * \param obj value from which to copy
+         */
+        ImageAtlasParams&
+        operator=(const ImageAtlasParams &obj);
+
+        /*!
+         * Swap operation
+         * \param obj object with which to swap
+         */
+        void
+        swap(ImageAtlasParams &obj);
+
+        /*!
+         * The log2 of the width and height of the color tile
+         * size, initial value is 5
+         */
+        int
+        log2_color_tile_size(void) const;
+
+        /*!
+         * Set the value for log2_color_tile_size(void) const
+         */
+        ImageAtlasParams&
+        log2_color_tile_size(int v);
+
+        /*!
+         * The log2 of the number of color tiles across and
+         * down per layer, initial value is 8. Effective
+         * value is clamped to 8.
+         */
+        int
+        log2_num_color_tiles_per_row_per_col(void) const;
+
+        /*!
+         * Set the value for log2_num_color_tiles_per_row_per_col(void) const
+         */
+        ImageAtlasParams&
+        log2_num_color_tiles_per_row_per_col(int v);
+
+        /*!
+         * Sets log2_color_tile_size() and log2_num_color_tiles_per_row_per_col()
+         * to a size that is optimal for the GL implementation given a value
+         * for log2_color_tile_size().
+         */
+        ImageAtlasParams&
+        optimal_color_sizes(int log2_color_tile_size);
+
+        /*!
+         * The initial number of color layers, initial value is 1
+         */
+        int
+        num_color_layers(void) const;
+
+        /*!
+         * Set the value for num_color_layers(void) const
+         */
+        ImageAtlasParams&
+        num_color_layers(int v);
+
+        /*!
+         * The log2 of the width and height of the index tile
+         * size, initial value is 2
+         */
+        int
+        log2_index_tile_size(void) const;
+
+        /*!
+         * Set the value for log2_index_tile_size(void) const
+         */
+        ImageAtlasParams&
+        log2_index_tile_size(int v);
+
+        /*!
+         * The log2 of the number of index tiles across and
+         * down per layer, initial value is 6
+         */
+        int
+        log2_num_index_tiles_per_row_per_col(void) const;
+
+        /*!
+         * Set the value for log2_num_index_tiles_per_row_per_col(void) const
+         */
+        ImageAtlasParams&
+        log2_num_index_tiles_per_row_per_col(int v);
+
+        /*!
+         * The initial number of index layers, initial value is 4
+         */
+        int
+        num_index_layers(void) const;
+
+        /*!
+         * Set the value for num_index_layers(void) const
+         */
+        ImageAtlasParams&
+        num_index_layers(int v);
+
+      private:
+        void *m_d;
+      };
+
+      /*!
+       * \brief
        * A ConfigurationGL gives parameters how to contruct
        * a PainterEngineGL.
        */
@@ -111,14 +234,14 @@ namespace fastuidraw
          * Return the parameters for creating the value returned
          * by image_atlas();
          */
-        const ImageAtlasGL::params&
+        const ImageAtlasParams&
         image_atlas_params(void) const;
 
         /*!
          * Set the value for image_atlas_params(void) const
          */
         ConfigurationGL&
-        image_atlas_params(const ImageAtlasGL::params&);
+        image_atlas_params(const ImageAtlasParams&);
 
         /*!
          * Return the parameters for creating the value returned
@@ -149,7 +272,7 @@ namespace fastuidraw
         /*!
          * The ImageAtlasGL to be used by the painter
          */
-        const reference_counted_ptr<ImageAtlasGL>&
+        const reference_counted_ptr<ImageAtlas>&
         image_atlas(void) const;
 
         /*!

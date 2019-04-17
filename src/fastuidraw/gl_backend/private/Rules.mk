@@ -6,6 +6,7 @@ d		:= $(dir)
 
 FASTUIDRAW_PRIVATE_GL_SOURCES += $(call filelist, \
 	tex_buffer.cpp texture_gl.cpp \
+	image_gl.cpp \
 	texture_view.cpp bindless.cpp \
 	painter_backend_gl_config.cpp \
 	painter_shader_registrar_gl.cpp \

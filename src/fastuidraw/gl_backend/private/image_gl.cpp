@@ -20,10 +20,11 @@
 #include <vector>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
-#include <fastuidraw/gl_backend/image_gl.hpp>
-#include "private/texture_gl.hpp"
-#include "private/bindless.hpp"
 #include <private/util_private.hpp>
+
+#include "texture_gl.hpp"
+#include "bindless.hpp"
+#include "image_gl.hpp"
 
 namespace
 {
@@ -166,36 +167,6 @@ namespace
      */
     typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST, GL_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
-  };
-
-  class ImageAtlasGLParamsPrivate
-  {
-  public:
-    ImageAtlasGLParamsPrivate(void):
-      m_log2_color_tile_size(5),
-      m_log2_num_color_tiles_per_row_per_col(8),
-      m_num_color_layers(1),
-      m_log2_index_tile_size(2),
-      m_log2_num_index_tiles_per_row_per_col(6),
-      m_num_index_layers(4)
-    {}
-
-    int m_log2_color_tile_size;
-    int m_log2_num_color_tiles_per_row_per_col;
-    int m_num_color_layers;
-    int m_log2_index_tile_size;
-    int m_log2_num_index_tiles_per_row_per_col;
-    int m_num_index_layers;
-  };
-
-  class ImageAtlasGLPrivate
-  {
-  public:
-    ImageAtlasGLPrivate(const fastuidraw::gl::ImageAtlasGL::params &P):
-      m_params(P)
-    {}
-
-    fastuidraw::gl::ImageAtlasGL::params m_params;
   };
 
 } //namespace
@@ -341,65 +312,9 @@ store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num
 }
 
 //////////////////////////////////////////////
-// fastuidraw::gl::ImageAtlasGL::params methods
-fastuidraw::gl::ImageAtlasGL::params::
-params(void)
-{
-  m_d = FASTUIDRAWnew ImageAtlasGLParamsPrivate();
-}
-
-fastuidraw::gl::ImageAtlasGL::params::
-params(const params &obj)
-{
-  ImageAtlasGLParamsPrivate *d;
-  d = static_cast<ImageAtlasGLParamsPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew ImageAtlasGLParamsPrivate(*d);
-}
-
-fastuidraw::gl::ImageAtlasGL::params::
-~params()
-{
-  ImageAtlasGLParamsPrivate *d;
-  d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-fastuidraw::gl::ImageAtlasGL::params&
-fastuidraw::gl::ImageAtlasGL::params::
-optimal_color_sizes(int log2_color_tile_size)
-{
-  int m, log2m, c;
-  m = context_get<GLint>(GL_MAX_TEXTURE_SIZE);
-  log2m = uint32_log2(m);
-  c = std::min(8, std::max(1, log2m - log2_color_tile_size));
-  return log2_num_color_tiles_per_row_per_col(c);
-}
-
-assign_swap_implement(fastuidraw::gl::ImageAtlasGL::params)
-setget_implement(fastuidraw::gl::ImageAtlasGL::params,
-                 ImageAtlasGLParamsPrivate,
-                 int, log2_color_tile_size)
-setget_implement(fastuidraw::gl::ImageAtlasGL::params,
-                 ImageAtlasGLParamsPrivate,
-                 int, log2_num_color_tiles_per_row_per_col)
-setget_implement(fastuidraw::gl::ImageAtlasGL::params,
-                 ImageAtlasGLParamsPrivate,
-                 int, num_color_layers)
-setget_implement(fastuidraw::gl::ImageAtlasGL::params,
-                 ImageAtlasGLParamsPrivate,
-                 int, log2_index_tile_size)
-setget_implement(fastuidraw::gl::ImageAtlasGL::params,
-                 ImageAtlasGLParamsPrivate,
-                 int, log2_num_index_tiles_per_row_per_col)
-setget_implement(fastuidraw::gl::ImageAtlasGL::params,
-                 ImageAtlasGLParamsPrivate,
-                 int, num_index_layers)
-
-//////////////////////////////////////////////
 // fastuidraw::gl::ImageAtlasGL methods
 fastuidraw::gl::ImageAtlasGL::
-ImageAtlasGL(const params &P):
+ImageAtlasGL(const PainterEngineGL::ImageAtlasParams &P):
   fastuidraw::ImageAtlas(1 << P.log2_color_tile_size(), //color tile size
                         1 << P.log2_index_tile_size(), //index tile size
                         ColorBackingStoreGL::create(P.log2_color_tile_size(), P.log2_num_color_tiles_per_row_per_col(),
@@ -408,25 +323,11 @@ ImageAtlasGL(const params &P):
                                                     P.log2_num_index_tiles_per_row_per_col(),
                                                     P.num_index_layers()))
 {
-  m_d = FASTUIDRAWnew ImageAtlasGLPrivate(P);
 }
 
 fastuidraw::gl::ImageAtlasGL::
 ~ImageAtlasGL()
 {
-  ImageAtlasGLPrivate *d;
-  d = static_cast<ImageAtlasGLPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-const fastuidraw::gl::ImageAtlasGL::params&
-fastuidraw::gl::ImageAtlasGL::
-param_values(void) const
-{
-  ImageAtlasGLPrivate *d;
-  d = static_cast<ImageAtlasGLPrivate*>(m_d);
-  return d->m_params;
 }
 
 GLuint
