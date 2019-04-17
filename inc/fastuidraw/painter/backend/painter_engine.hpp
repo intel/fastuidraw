@@ -232,7 +232,7 @@ namespace fastuidraw
     /*!
      * Returns a handle to the \ref ColorStopAtlas of this
      * PainterEngine. All color stops used by all brushes
-     * of each \ref interBackend made from this \ref
+     * of each \ref PainterBackend made from this \ref
      * PainterEngine must live on colorstop_atlas().
      */
     const reference_counted_ptr<ColorStopAtlas>&
@@ -269,7 +269,7 @@ namespace fastuidraw
      *  - \ref PainterShaderRegistrar (see \ref painter_shader_registrar())
      *  - \ref GlyphAtlas (see \ref glyph_atlas())
      *  - \ref ImageAtlas (see \ref image_atlas())
-     *  - \ref ColorStopAtlas (see \ref :colorstop_atlas())
+     *  - \ref ColorStopAtlas (see \ref colorstop_atlas())
      * but are otherwise independent of each other.
      */
     virtual

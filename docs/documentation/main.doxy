@@ -314,16 +314,11 @@ namespace fastuidraw {
     //  # y_increases_upwards   --> y = 0 is at bottom of the window and increases up the window
     enum fastuidraw::PainterEnums::screen_orientation myOrientation(PainterEnums::y_increases_downwards);
 
-    //use GL backend atlas
-    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> myGlyphAtlas;
-    myGlyphAtlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(fastuidraw::gl::GlyphAtlasGL::params());
-
-    //setup glyph cache and glyph selector; the glyph selector
-    //is a VERY simple class to enable finding glyphs from fonts
-    //and falling back to other fonts when a glyph cannot be found
+    // get myGlyphCache from PainterEngine::glyph_cache()
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> myGlyphCache;
+
+    // a GlyphSelector is a -very- simple class to select glyphs from fonts
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> myGlyphSelector;
-    myGlyphCache = FASTUIDRAWnew fastuidraw::GlyphCache(myGlyphAtlas);
     myGlyphSelector = FASTUIDRAWnew fastuidraw::GlyphSelector();
 
     //create a generator object that the font uses to load the font data,
@@ -404,7 +399,7 @@ namespace fastuidraw {
   \code
 
   ///////////////////////////////////////////////////////
-  // startup code, create data that is repeatedly used //
+  // startup code, created data that is repeatedly used //
   ///////////////////////////////////////////////////////
 
   // choose an orientation convention
@@ -450,6 +445,9 @@ namespace fastuidraw {
   // copy the glyph choices and positions into your GlyphSequence object that you keep.
   myGlyphSequence.add_glyphs(fastuidraw::c_array<const fastuidraw::GlyphSource>(glyphs, number_glyphs),
                              fastuidraw::c_array<const fastuidraw::vec2>(glyph_positions, number_glyphs));
+
+  // get myImageAtlas from PainterEngine::image_atlas()
+  fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> myImageAtlas;
 
   // create and save an image
   fastuidraw::reference_counted_ptr<fastuidraw::Image> myImage;
@@ -513,7 +511,7 @@ namespace fastuidraw {
    - fastuidraw::ImageAtlas (the GL backend class is given by fastuidraw::gl::ImageAtlasGL)
    - fastuidraw::ColorStopAtlas (the GL backend class is given by fastuidraw::gl::ColorStopAtlasGL)
    - fastuidraw::GlyphAtlas (the GL backend class is given by fastuidraw::gl::GlyphAtlasGL)
-   - fastuidraw::PainterBackend (the GL backend class is given by fastuidraw::gl::PainterBackendGL)
+   - fastuidraw::PainterEngine (the GL backend class is given by fastuidraw::gl::PainterEngineGL)
    - fastuidraw::PainterBlendShader (the GL backend class is given by fastuidraw::glsl::PainterBlendShaderGLSL)
    - fastuidraw::PainterItemShader (the GL backend class is given by fastuidraw::glsl::PainterItemShaderGLSL)
    - fastuidraw::PainterSurface (the GL backend class is given by fastuidraw::gl::PainterBackendGL::PainterSurfaceGL)
@@ -533,28 +531,22 @@ namespace fastuidraw {
   props.dimensions(ivec2(resolution_width, resolution_height));
   surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::PainterSurfaceGL(props);
 
-  //Create a GL backend for Painter, see the methods of PainterBackendGL on
-  //how to control how the backend is configured.
-  fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> painterBackend;
-  painterBackend = fastuidraw::gl::PainterBackendGL::create();
+  //Create a GL engine for Painter, see the methods of PainterEngineGL on
+  //how to control how the backend is configured. A PainterEngine is a
+  //heavy object and an application should have only one such object alive.
+  //In addition, images, glyphs and color-stops only live within a single
+  //PainterEngine object as well.
+  fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine> painterEngine;
+  painterEngine = fastuidraw::gl::PainterEngineGL::create();
 
-  //NOTES:
-  // 1. atlases can be used by multiple PainterBackendGL simutaneously
-  // 2. the member class params of each of the atlas types and PainterBackendGL
-  //    have additional properties one can set.
-  // 3. A PainterBackendGL is a very -heavy- object. Hence, these objects
-  //    should reused during an applications lifetime.
-  // 4. If a program needs multiple PainterBackendGL objects, use the
-  //    method fastuidraw::gl::PainterBackendGL::create_shared()
-  //    to create a PainterBackendGL that shares the \ref fastuidraw::gl::Program
-  //    object with the creator but has its own private buffer pools and state.
-
+  //An application can have multiple fastuidraw::Painter objects (all created
+  //from the same fastuidraw::PainterEngine) alive. However, fastuidraw::Painter
+  //objects are HEAVY (because they implement various pools) and should only be
+  //created at startup. A single fastuidraw::Painter objects CANNOT be used from
+  //multiple threads simutaneously.
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> painter;
-  painter = FASTUIDRAWnew fastuidraw::Painter(painterBackend)
+  painter = FASTUIDRAWnew fastuidraw::Painter(painterEngine)
 
-  //NOTES:
-  // 3. it is fine to reuse a fastuidraw::Painter object or to create new ones,
-  //    however, a single painter can not be used concurrently from multiple threads
   \endcode
 
   Using the GL backend is just:
