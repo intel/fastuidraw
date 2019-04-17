@@ -19,7 +19,7 @@
 #pragma once
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
-#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 #include <fastuidraw/gl_backend/painter_surface_gl.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {

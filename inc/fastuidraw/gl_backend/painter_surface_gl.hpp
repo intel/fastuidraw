@@ -26,7 +26,7 @@ namespace fastuidraw
   namespace gl
   {
     ///@cond
-    class PainterBackendFactoryGL;
+    class PainterEngineGL;
     ///@endcond
 
 /*!\addtogroup GLBackend
@@ -47,7 +47,7 @@ namespace fastuidraw
        * The viewport() is initialized to be exactly the
        * entire backing store.
        * \param dims the width and height of the PainterSurfaceGL
-       * \param backend the PainterBackendFactoryGL that produces
+       * \param backend the PainterEngineGL that produces
        *                \ref PainterBackend objects can use the
        *                created \ref PainterSurfaceGL
        * \param render_type the render type of the surface (i.e.
@@ -56,7 +56,7 @@ namespace fastuidraw
        */
       explicit
       PainterSurfaceGL(ivec2 dims,
-                       const PainterBackendFactoryGL &backend,
+                       const PainterEngineGL &backend,
                        enum render_type_t render_type = color_buffer_type);
 
       /*!
@@ -74,7 +74,7 @@ namespace fastuidraw
        * backing store.
        * \param dims width and height of the GL texture
        * \param gl_texture GL name of texture
-       * \param backend the PainterBackendFactoryGL that produces
+       * \param backend the PainterEngineGL that produces
        *                \ref PainterBackend objects can use the
        *                created \ref PainterSurfaceGL
        * \param render_type the render type of the surface (i.e.
@@ -83,7 +83,7 @@ namespace fastuidraw
        */
       explicit
       PainterSurfaceGL(ivec2 dims, GLuint gl_texture,
-                       const PainterBackendFactoryGL &backend,
+                       const PainterEngineGL &backend,
                        enum render_type_t render_type = color_buffer_type);
 
       ~PainterSurfaceGL();

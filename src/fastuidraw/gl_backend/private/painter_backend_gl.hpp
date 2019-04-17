@@ -29,7 +29,7 @@
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/painter_surface_gl.hpp>
-#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
 #include "tex_buffer.hpp"
 #include "texture_gl.hpp"
@@ -50,7 +50,7 @@ namespace fastuidraw
         public PainterBackend
       {
       public:
-        PainterBackendGL(const fastuidraw::gl::PainterBackendFactoryGL *f);
+        PainterBackendGL(const fastuidraw::gl::PainterEngineGL *f);
 
         ~PainterBackendGL();
 
@@ -136,7 +136,7 @@ namespace fastuidraw
         DrawState *m_draw_state;
         PainterShaderRegistrarGL::program_set m_cached_programs;
         reference_counted_ptr<PainterShaderRegistrarGL::CachedItemPrograms> m_cached_item_programs;
-        fastuidraw::vecN<enum PainterBackendFactoryGL::program_type_t, 2> m_choose_uber_program;
+        fastuidraw::vecN<enum PainterEngineGL::program_type_t, 2> m_choose_uber_program;
       };
     } //namespace detail
   } //namespace gl

@@ -1,6 +1,6 @@
 /*!
- * \file painter_backend_factory_gl.cpp
- * \brief file painter_backend_factory_gl.cpp
+ * \file painter_engine_gl.cpp
+ * \brief file painter_engine_gl.cpp
  *
  * Copyright 2019 by Intel.
  *
@@ -23,7 +23,7 @@
 #include <vector>
 #include <iostream>
 
-#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
@@ -43,10 +43,10 @@ namespace
       m_attributes_per_buffer(512 * 512),
       m_indices_per_buffer((m_attributes_per_buffer * 6) / 4),
       m_data_blocks_per_store_buffer(1024 * 64),
-      m_data_store_backing(fastuidraw::gl::PainterBackendFactoryGL::data_store_tbo),
+      m_data_store_backing(fastuidraw::gl::PainterEngineGL::data_store_tbo),
       m_number_pools(3),
       m_break_on_shader_change(false),
-      m_clipping_type(fastuidraw::gl::PainterBackendFactoryGL::clipping_via_gl_clip_distance),
+      m_clipping_type(fastuidraw::gl::PainterEngineGL::clipping_via_gl_clip_distance),
       m_number_external_textures(8),
       /* on Mesa/i965 using switch statement gives much slower
        * performance than using if/else chain.
@@ -68,13 +68,13 @@ namespace
     unsigned int m_attributes_per_buffer;
     unsigned int m_indices_per_buffer;
     unsigned int m_data_blocks_per_store_buffer;
-    enum fastuidraw::gl::PainterBackendFactoryGL::data_store_backing_t m_data_store_backing;
+    enum fastuidraw::gl::PainterEngineGL::data_store_backing_t m_data_store_backing;
     unsigned int m_number_pools;
     bool m_break_on_shader_change;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
-    enum fastuidraw::gl::PainterBackendFactoryGL::clipping_type_t m_clipping_type;
+    enum fastuidraw::gl::PainterEngineGL::clipping_type_t m_clipping_type;
     unsigned int m_number_external_textures;
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
@@ -92,10 +92,10 @@ namespace
     std::string m_glsl_version_override;
   };
 
-  class PainterBackendFactoryGLPrivate
+  class PainterEngineGLPrivate
   {
   public:
-    PainterBackendFactoryGLPrivate(fastuidraw::gl::PainterBackendFactoryGL *p)
+    PainterEngineGLPrivate(fastuidraw::gl::PainterEngineGL *p)
     {
       m_reg_gl = p->painter_shader_registrar().static_cast_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL>();
 
@@ -119,9 +119,9 @@ namespace
 
     static
     void
-    compute_uber_shader_params(const fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL &P,
+    compute_uber_shader_params(const fastuidraw::gl::PainterEngineGL::ConfigurationGL &P,
                                const fastuidraw::gl::ContextProperties &ctx,
-                               fastuidraw::gl::PainterBackendFactoryGL::UberShaderParams &out_value,
+                               fastuidraw::gl::PainterEngineGL::UberShaderParams &out_value,
                                fastuidraw::PainterShaderSet &out_shaders);
 
     fastuidraw::gl::detail::BindingPoints m_binding_points;
@@ -130,12 +130,12 @@ namespace
 }
 
 //////////////////////////////////////////
-// PainterBackendFactoryGLPrivate methods
+// PainterEngineGLPrivate methods
 void
-PainterBackendFactoryGLPrivate::
-compute_uber_shader_params(const fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL &params,
+PainterEngineGLPrivate::
+compute_uber_shader_params(const fastuidraw::gl::PainterEngineGL::ConfigurationGL &params,
                            const fastuidraw::gl::ContextProperties &ctx,
-                           fastuidraw::gl::PainterBackendFactoryGL::UberShaderParams &out_params,
+                           fastuidraw::gl::PainterEngineGL::UberShaderParams &out_params,
                            fastuidraw::PainterShaderSet &out_shaders)
 {
   using namespace fastuidraw;
@@ -150,14 +150,14 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendFactoryGL::Config
   ColorStopAtlasGL *color;
   FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(params.colorstop_atlas().get()));
   color = static_cast<ColorStopAtlasGL*>(params.colorstop_atlas().get());
-  enum PainterBackendFactoryGL::colorstop_backing_t colorstop_tp;
+  enum PainterEngineGL::colorstop_backing_t colorstop_tp;
   if (color->texture_bind_target() == GL_TEXTURE_2D_ARRAY)
     {
-      colorstop_tp = PainterBackendFactoryGL::colorstop_texture_2d_array;
+      colorstop_tp = PainterEngineGL::colorstop_texture_2d_array;
     }
   else
     {
-      colorstop_tp = PainterBackendFactoryGL::colorstop_texture_1d_array;
+      colorstop_tp = PainterEngineGL::colorstop_texture_1d_array;
     }
 
   out_params
@@ -169,7 +169,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendFactoryGL::Config
     .assign_binding_points(params.assign_binding_points())
     .use_ubo_for_uniforms(true)
     .clipping_type(params.clipping_type())
-    .z_coordinate_convention(PainterBackendFactoryGL::z_minus_1_to_1)
+    .z_coordinate_convention(PainterEngineGL::z_minus_1_to_1)
     .vert_shader_use_switch(params.vert_shader_use_switch())
     .frag_shader_use_switch(params.frag_shader_use_switch())
     .number_external_textures(params.number_external_textures())
@@ -187,7 +187,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendFactoryGL::Config
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterSurfaceGL methods
 fastuidraw::gl::PainterSurfaceGL::
-PainterSurfaceGL(ivec2 dims, const PainterBackendFactoryGL &backend,
+PainterSurfaceGL(ivec2 dims, const PainterEngineGL &backend,
                  enum PainterSurface::render_type_t render_type)
 {
   m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(render_type, 0u, dims,
@@ -196,7 +196,7 @@ PainterSurfaceGL(ivec2 dims, const PainterBackendFactoryGL &backend,
 
 fastuidraw::gl::PainterSurfaceGL::
 PainterSurfaceGL(ivec2 dims, GLuint color_buffer_texture,
-                 const PainterBackendFactoryGL &backend,
+                 const PainterEngineGL &backend,
                  enum PainterSurface::render_type_t render_type)
 {
   m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(render_type, color_buffer_texture, dims,
@@ -297,14 +297,14 @@ get_implement(fastuidraw::gl::PainterSurfaceGL,
               enum fastuidraw::PainterSurface::render_type_t, render_type)
 
 ///////////////////////////////////////////////
-// fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL methods
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+// fastuidraw::gl::PainterEngineGL::ConfigurationGL methods
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 ConfigurationGL(void)
 {
   m_d = FASTUIDRAWnew ConfigurationGLPrivate();
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 ConfigurationGL(const ConfigurationGL &obj)
 {
   ConfigurationGLPrivate *d;
@@ -312,7 +312,7 @@ ConfigurationGL(const ConfigurationGL &obj)
   m_d = FASTUIDRAWnew ConfigurationGLPrivate(*d);
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 ~ConfigurationGL()
 {
   ConfigurationGLPrivate *d;
@@ -322,7 +322,7 @@ fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
 }
 
 fastuidraw::c_string
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 glsl_version_override(void) const
 {
   ConfigurationGLPrivate *d;
@@ -330,8 +330,8 @@ glsl_version_override(void) const
   return d->m_glsl_version_override.c_str();
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL&
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+fastuidraw::gl::PainterEngineGL::ConfigurationGL&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 glsl_version_override(c_string v)
 {
   ConfigurationGLPrivate *d;
@@ -340,8 +340,8 @@ glsl_version_override(c_string v)
   return *this;
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL&
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+fastuidraw::gl::PainterEngineGL::ConfigurationGL&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 configure_from_context(bool choose_optimal_rendering_quality,
                        const ContextProperties &ctx)
 {
@@ -460,8 +460,8 @@ configure_from_context(bool choose_optimal_rendering_quality,
   return *this;
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL&
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+fastuidraw::gl::PainterEngineGL::ConfigurationGL&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 adjust_for_context(const ContextProperties &ctx)
 {
   using namespace fastuidraw::gl::detail;
@@ -578,7 +578,7 @@ adjust_for_context(const ContextProperties &ctx)
   /* if have to use discard for clipping, then there is zero point to
    * separate the discarding and non-discarding item shaders.
    */
-  if (d->m_clipping_type == PainterBackendFactoryGL::clipping_via_discard)
+  if (d->m_clipping_type == PainterEngineGL::clipping_via_discard)
     {
       d->m_separate_program_for_discard = false;
     }
@@ -613,8 +613,8 @@ adjust_for_context(const ContextProperties &ctx)
   return *this;
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL&
-fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL::
+fastuidraw::gl::PainterEngineGL::ConfigurationGL&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 create_missing_atlases(const ContextProperties &ctx)
 {
   ConfigurationGLPrivate *d;
@@ -644,59 +644,59 @@ create_missing_atlases(const ContextProperties &ctx)
   return *this;
 }
 
-assign_swap_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL)
+assign_swap_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL)
 
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, attributes_per_buffer)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, indices_per_buffer)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, data_blocks_per_store_buffer)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, number_pools)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, break_on_shader_change)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&, image_atlas)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&, colorstop_atlas)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendFactoryGL::clipping_type_t, clipping_type)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::gl::PainterEngineGL::clipping_type_t, clipping_type)
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, number_external_textures)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, vert_shader_use_switch)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, frag_shader_use_switch)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, blend_shader_use_switch)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendFactoryGL::data_store_backing_t, data_store_backing)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::gl::PainterEngineGL::data_store_backing_t, data_store_backing)
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, assign_layout_to_vertex_shader_inputs)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, assign_layout_to_varyings)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, assign_binding_points)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, separate_program_for_discard)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::PainterBlendShader::shader_type, preferred_blend_type)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendFactoryGL::fbf_blending_type_t, fbf_blending_type)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::gl::PainterEngineGL::fbf_blending_type_t, fbf_blending_type)
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, allow_bindless_texture_from_surface)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, support_dual_src_blend_shaders)
-setget_implement(fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL, ConfigurationGLPrivate,
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_uber_item_shader)
 
 ///////////////////////////////////////////////////
-// fastuidraw::gl::PainterBackendFactoryGL methods
-fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendFactoryGL>
-fastuidraw::gl::PainterBackendFactoryGL::
+// fastuidraw::gl::PainterEngineGL methods
+fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterEngineGL>
+fastuidraw::gl::PainterEngineGL::
 create(ConfigurationGL config_gl, const ContextProperties &ctx)
 {
   UberShaderParams uber_params;
@@ -707,12 +707,12 @@ create(ConfigurationGL config_gl, const ContextProperties &ctx)
     .adjust_for_context(ctx)
     .create_missing_atlases(ctx);
 
-  PainterBackendFactoryGLPrivate::compute_uber_shader_params(config_gl, ctx, uber_params, shaders);
-  return FASTUIDRAWnew PainterBackendFactoryGL(config_gl, uber_params, shaders);
+  PainterEngineGLPrivate::compute_uber_shader_params(config_gl, ctx, uber_params, shaders);
+  return FASTUIDRAWnew PainterEngineGL(config_gl, uber_params, shaders);
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendFactoryGL>
-fastuidraw::gl::PainterBackendFactoryGL::
+fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterEngineGL>
+fastuidraw::gl::PainterEngineGL::
 create(bool optimal_rendering_quality,
        const ContextProperties &ctx)
 {
@@ -723,11 +723,11 @@ create(bool optimal_rendering_quality,
   return create(config_gl, ctx);
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::
-PainterBackendFactoryGL(const ConfigurationGL &config_gl,
+fastuidraw::gl::PainterEngineGL::
+PainterEngineGL(const ConfigurationGL &config_gl,
                         const UberShaderParams &uber_params,
                         const PainterShaderSet &shaders):
-  PainterBackendFactory(config_gl.glyph_atlas(),
+  PainterEngine(config_gl.glyph_atlas(),
                         config_gl.image_atlas(),
                         config_gl.colorstop_atlas(),
                         FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl, uber_params),
@@ -735,56 +735,56 @@ PainterBackendFactoryGL(const ConfigurationGL &config_gl,
                         .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
                         shaders)
 {
-  PainterBackendFactoryGLPrivate *d;
-  m_d = d = FASTUIDRAWnew PainterBackendFactoryGLPrivate(this);
+  PainterEngineGLPrivate *d;
+  m_d = d = FASTUIDRAWnew PainterEngineGLPrivate(this);
   d->m_reg_gl->set_hints(set_hints());
 }
 
-fastuidraw::gl::PainterBackendFactoryGL::
-~PainterBackendFactoryGL()
+fastuidraw::gl::PainterEngineGL::
+~PainterEngineGL()
 {
-  PainterBackendFactoryGLPrivate *d;
-  d = static_cast<PainterBackendFactoryGLPrivate*>(m_d);
+  PainterEngineGLPrivate *d;
+  d = static_cast<PainterEngineGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
-fastuidraw::gl::PainterBackendFactoryGL::
+fastuidraw::gl::PainterEngineGL::
 program(enum program_type_t tp,
         enum PainterBlendShader::shader_type blend_type)
 {
-  PainterBackendFactoryGLPrivate *d;
-  d = static_cast<PainterBackendFactoryGLPrivate*>(m_d);
+  PainterEngineGLPrivate *d;
+  d = static_cast<PainterEngineGLPrivate*>(m_d);
   return d->m_reg_gl->programs().program(tp, blend_type);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
-fastuidraw::gl::PainterBackendFactoryGL::
+fastuidraw::gl::PainterEngineGL::
 program_deferred_coverage_buffer(void)
 {
-  PainterBackendFactoryGLPrivate *d;
-  d = static_cast<PainterBackendFactoryGLPrivate*>(m_d);
+  PainterEngineGLPrivate *d;
+  d = static_cast<PainterEngineGLPrivate*>(m_d);
   return d->m_reg_gl->programs().m_deferred_coverage_program;
 }
 
-const fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL&
-fastuidraw::gl::PainterBackendFactoryGL::
+const fastuidraw::gl::PainterEngineGL::ConfigurationGL&
+fastuidraw::gl::PainterEngineGL::
 configuration_gl(void) const
 {
-  PainterBackendFactoryGLPrivate *d;
-  d = static_cast<PainterBackendFactoryGLPrivate*>(m_d);
+  PainterEngineGLPrivate *d;
+  d = static_cast<PainterEngineGLPrivate*>(m_d);
   return d->m_reg_gl->params();
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend>
-fastuidraw::gl::PainterBackendFactoryGL::
+fastuidraw::gl::PainterEngineGL::
 create_backend(void) const
 {
   return FASTUIDRAWnew detail::PainterBackendGL(this);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface>
-fastuidraw::gl::PainterBackendFactoryGL::
+fastuidraw::gl::PainterEngineGL::
 create_surface(ivec2 dims,
                enum PainterSurface::render_type_t render_type)
 {
@@ -795,11 +795,11 @@ create_surface(ivec2 dims,
 
 #define binding_info_get(X)                                     \
   unsigned int                                                  \
-  fastuidraw::gl::PainterBackendFactoryGL::                     \
+  fastuidraw::gl::PainterEngineGL::                     \
   X(void) const                                                 \
   {                                                             \
-    PainterBackendFactoryGLPrivate *d;                          \
-    d = static_cast<PainterBackendFactoryGLPrivate*>(m_d);      \
+    PainterEngineGLPrivate *d;                          \
+    d = static_cast<PainterEngineGLPrivate*>(m_d);      \
     return d->m_binding_points.m_##X;                           \
   }
 

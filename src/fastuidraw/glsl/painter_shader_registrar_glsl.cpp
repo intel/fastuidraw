@@ -1423,7 +1423,7 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
 //////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants methods
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
-BackendConstants(PainterBackendFactory *p)
+BackendConstants(PainterEngine *p)
 {
   m_d = FASTUIDRAWnew BackendConstantsPrivate();
   set_from_backend(p);
@@ -1448,7 +1448,7 @@ fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
 
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants&
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
-set_from_backend(PainterBackendFactory *p)
+set_from_backend(PainterEngine *p)
 {
   if (p)
     {

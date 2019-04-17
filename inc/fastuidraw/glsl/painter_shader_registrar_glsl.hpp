@@ -19,7 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
-#include <fastuidraw/painter/backend/painter_backend_factory.hpp>
+#include <fastuidraw/painter/backend/painter_engine.hpp>
 #include <fastuidraw/painter/backend/painter_surface.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
@@ -697,10 +697,10 @@ namespace fastuidraw
         /*!
          * Ctor.
          * \param p if non-null, set all values from the passed \ref
-         *                       PainterBackendFactory object,
+         *                       PainterEngine object,
          *                       otherwise set all values as 0.
          */
-        BackendConstants(PainterBackendFactory *p = nullptr);
+        BackendConstants(PainterEngine *p = nullptr);
 
         /*!
          * Copy ctor.
@@ -790,10 +790,10 @@ namespace fastuidraw
 
         /*!
          * Set all values of this BackendConstant by taking values
-         * from a \ref PainterBackendFactory.
+         * from a \ref PainterEngine.
          */
         BackendConstants&
-        set_from_backend(PainterBackendFactory *p);
+        set_from_backend(PainterEngine *p);
 
         /*!
          * Set all values of this BackendConstant by taking values

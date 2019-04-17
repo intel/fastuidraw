@@ -21,7 +21,7 @@
 #include <vector>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
-#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
 #include "tex_buffer.hpp"
 #include "painter_backend_gl_config.hpp"
@@ -39,11 +39,11 @@ public:
 
   enum
     {
-      program_count = PainterBackendFactoryGL::number_program_types
+      program_count = PainterEngineGL::number_program_types
     };
 
   typedef reference_counted_ptr<Program> program_ref;
-  typedef vecN<program_ref, PainterBackendFactoryGL::number_program_types> programs_per_blend;
+  typedef vecN<program_ref, PainterEngineGL::number_program_types> programs_per_blend;
 
   class program_set
   {
@@ -55,7 +55,7 @@ public:
     }
 
     const program_ref&
-    program(enum PainterBackendFactoryGL::program_type_t tp,
+    program(enum PainterEngineGL::program_type_t tp,
             enum PainterBlendShader::shader_type blend_type) const
     {
       return programs(blend_type)[tp];
@@ -63,7 +63,7 @@ public:
 
     const program_ref&
     program(enum PainterBlendShader::shader_type blend_type,
-            enum PainterBackendFactoryGL::program_type_t tp) const
+            enum PainterEngineGL::program_type_t tp) const
     {
       return programs(blend_type)[tp];
     }
@@ -97,7 +97,7 @@ public:
   };
 
   explicit
-  PainterShaderRegistrarGL(const PainterBackendFactoryGL::ConfigurationGL &P,
+  PainterShaderRegistrarGL(const PainterEngineGL::ConfigurationGL &P,
                            const UberShaderParams &uber_params);
 
   const program_set&
@@ -108,7 +108,7 @@ public:
                          unsigned int shader_group,
                          enum PainterBlendShader::shader_type blend_type);
 
-  const PainterBackendFactoryGL::ConfigurationGL&
+  const PainterEngineGL::ConfigurationGL&
   params(void) const
   {
     return m_params;
@@ -139,7 +139,7 @@ public:
   }
 
   void
-  set_hints(PainterBackendFactory::PerformanceHints &hints)
+  set_hints(PainterEngine::PerformanceHints &hints)
   {
     /* should this instead be clipping_type() != clipping_via_discard ?
      * On one hand, letting the GPU do the virtual no-write incurs no CPU load,
@@ -177,7 +177,7 @@ private:
   build_programs(void);
 
   program_ref
-  build_program(enum PainterBackendFactoryGL::program_type_t tp,
+  build_program(enum PainterEngineGL::program_type_t tp,
                 enum PainterBlendShader::shader_type blend_type);
 
   program_ref
@@ -197,7 +197,7 @@ private:
   program_ref
   build_program_of_coverage_item_shader(unsigned int shader);
 
-  PainterBackendFactoryGL::ConfigurationGL m_params;
+  PainterEngineGL::ConfigurationGL m_params;
   UberShaderParams m_uber_shader_builder_params;
   enum interlock_type_t m_interlock_type;
   BackendConstants m_backend_constants;

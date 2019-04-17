@@ -1,6 +1,6 @@
 /*!
- * \file painter_backend_factory_gl.hpp
- * \brief file painter_backend_factory_gl.hpp
+ * \file painter_engine_gl.hpp
+ * \brief file painter_engine_gl.hpp
  *
  * Copyright 2019 by Intel.
  *
@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/painter/backend/painter_backend_factory.hpp>
+#include <fastuidraw/painter/backend/painter_engine.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
@@ -34,12 +34,12 @@ namespace fastuidraw
  */
     /*!
      * \brief
-     * A PainterBackendFactoryGL implements \ref PainterBackendFactory
+     * A PainterEngineGL implements \ref PainterEngine
      * using the GL (or GLES) API.
      */
-    class PainterBackendFactoryGL:
+    class PainterEngineGL:
       public glsl::PainterShaderRegistrarGLSLTypes,
-      public PainterBackendFactory
+      public PainterEngine
     {
     public:
       /*!
@@ -74,7 +74,7 @@ namespace fastuidraw
       /*!
        * \brief
        * A ConfigurationGL gives parameters how to contruct
-       * a PainterBackendFactoryGL.
+       * a PainterEngineGL.
        */
       class ConfigurationGL
       {
@@ -513,30 +513,30 @@ namespace fastuidraw
         void *m_d;
       };
 
-      ~PainterBackendFactoryGL();
+      ~PainterEngineGL();
 
       /*!
-       * Ctor. Create a PainterBackendFactoryGL configured via a ConfigurationGL
-       * value. The configuration of the created PainterBackendFactoryGL will be
+       * Ctor. Create a PainterEngineGL configured via a ConfigurationGL
+       * value. The configuration of the created PainterEngineGL will be
        * adjusted according to the functionaliy of the currentl current GL
        * context. In addition, the current GL context or a GL context of
-       * its share group must be current when the PainterBackendFactoryGL is used.
+       * its share group must be current when the PainterEngineGL is used.
        *
        * \param config_gl ConfigurationGL providing configuration parameters
        * \param ctx Optional argument to pass to avoid re-querying
        *            the current GL context for extension and version
        */
       static
-      reference_counted_ptr<PainterBackendFactoryGL>
+      reference_counted_ptr<PainterEngineGL>
       create(ConfigurationGL config_gl,
              const ContextProperties &ctx = ContextProperties());
 
       /*!
-       * Ctor. Create a PainterBackendFactoryGL and the atlases to be used by it.
-       * The atlases and PainterBackendFactoryGL will be configured optimally as
+       * Ctor. Create a PainterEngineGL and the atlases to be used by it.
+       * The atlases and PainterEngineGL will be configured optimally as
        * according to the current GL context. In addition, the current GL
        * context or a GL context of its share group must be current when
-       * the PainterBackendFactoryGL is used.
+       * the PainterEngineGL is used.
        * \param optimal_rendering_quality if true, select parameters
        *                                  that give optimal rendering
        *                                  quality (at potential sacrifice
@@ -548,7 +548,7 @@ namespace fastuidraw
        *            the current GL context for extension and version
        */
       static
-      reference_counted_ptr<PainterBackendFactoryGL>
+      reference_counted_ptr<PainterEngineGL>
       create(bool optimal_rendering_quality,
              const ContextProperties &ctx = ContextProperties());
 
@@ -613,7 +613,7 @@ namespace fastuidraw
                      enum PainterSurface::render_type_t render_type) override final;
 
     private:
-      PainterBackendFactoryGL(const ConfigurationGL &config_gl,
+      PainterEngineGL(const ConfigurationGL &config_gl,
                               const UberShaderParams &uber_params,
                               const PainterShaderSet &shaders);
 

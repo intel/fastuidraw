@@ -22,20 +22,20 @@
 namespace
 {
   bool
-  use_shader_helper(enum fastuidraw::gl::PainterBackendFactoryGL::program_type_t tp,
+  use_shader_helper(enum fastuidraw::gl::PainterEngineGL::program_type_t tp,
                     bool uses_discard)
   {
-    return tp == fastuidraw::gl::PainterBackendFactoryGL::program_all
-      || (tp == fastuidraw::gl::PainterBackendFactoryGL::program_without_discard && !uses_discard)
-      || (tp == fastuidraw::gl::PainterBackendFactoryGL::program_with_discard && uses_discard);
+    return tp == fastuidraw::gl::PainterEngineGL::program_all
+      || (tp == fastuidraw::gl::PainterEngineGL::program_without_discard && !uses_discard)
+      || (tp == fastuidraw::gl::PainterEngineGL::program_with_discard && uses_discard);
   }
 
-  class DiscardItemShaderFilter:public fastuidraw::gl::PainterBackendFactoryGL::ShaderFilter<fastuidraw::glsl::PainterItemShaderGLSL>
+  class DiscardItemShaderFilter:public fastuidraw::gl::PainterEngineGL::ShaderFilter<fastuidraw::glsl::PainterItemShaderGLSL>
   {
   public:
     explicit
-    DiscardItemShaderFilter(enum fastuidraw::gl::PainterBackendFactoryGL::program_type_t tp,
-                            enum fastuidraw::gl::PainterBackendFactoryGL::clipping_type_t cp):
+    DiscardItemShaderFilter(enum fastuidraw::gl::PainterEngineGL::program_type_t tp,
+                            enum fastuidraw::gl::PainterEngineGL::clipping_type_t cp):
       m_tp(tp),
       m_cp(cp)
     {}
@@ -46,14 +46,14 @@ namespace
       using namespace fastuidraw::gl;
 
       bool uses_discard;
-      uses_discard = (m_cp == PainterBackendFactoryGL::clipping_via_discard)
+      uses_discard = (m_cp == PainterEngineGL::clipping_via_discard)
         || shader->uses_discard();
       return use_shader_helper(m_tp, uses_discard);
     }
 
   private:
-    enum fastuidraw::gl::PainterBackendFactoryGL::program_type_t m_tp;
-    enum fastuidraw::gl::PainterBackendFactoryGL::clipping_type_t m_cp;
+    enum fastuidraw::gl::PainterEngineGL::program_type_t m_tp;
+    enum fastuidraw::gl::PainterEngineGL::clipping_type_t m_cp;
   };
 }
 
@@ -96,8 +96,8 @@ program_of_item_shader(enum PainterSurface::render_type_t render_type,
 //////////////////////////////////////
 // fastuidraw::gl::detail::PainterShaderRegistrarGL methods
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-PainterShaderRegistrarGL(const PainterBackendFactoryGL::ConfigurationGL &P,
-                         const PainterBackendFactoryGL::UberShaderParams &uber_params):
+PainterShaderRegistrarGL(const PainterEngineGL::ConfigurationGL &P,
+                         const PainterEngineGL::UberShaderParams &uber_params):
   fastuidraw::glsl::PainterShaderRegistrarGLSL(),
   m_params(P),
   m_uber_shader_builder_params(uber_params),
@@ -619,10 +619,10 @@ build_programs(void)
   using namespace fastuidraw::glsl;
   for (unsigned int blend_tp = 0; blend_tp < PainterBlendShader::number_types; ++blend_tp)
     {
-      for (unsigned int discard_tp = 0; discard_tp < PainterBackendFactoryGL::number_program_types; ++discard_tp)
+      for (unsigned int discard_tp = 0; discard_tp < PainterEngineGL::number_program_types; ++discard_tp)
         {
           m_programs.m_item_programs[blend_tp][discard_tp] =
-            build_program(static_cast<enum PainterBackendFactoryGL::program_type_t>(discard_tp),
+            build_program(static_cast<enum PainterEngineGL::program_type_t>(discard_tp),
                           static_cast<enum PainterBlendShader::shader_type>(blend_tp));
         }
     }
@@ -715,7 +715,7 @@ build_program_of_coverage_item_shader(unsigned int shader)
 
 fastuidraw::gl::detail::PainterShaderRegistrarGL::program_ref
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
-build_program(enum PainterBackendFactoryGL::program_type_t tp,
+build_program(enum PainterEngineGL::program_type_t tp,
               enum PainterBlendShader::shader_type blend_type)
 {
   using namespace fastuidraw::glsl;
@@ -723,7 +723,7 @@ build_program(enum PainterBackendFactoryGL::program_type_t tp,
   ShaderSource vert, frag;
   program_ref return_value;
   c_string discard_macro;
-  bool glsl_discard_active(tp != PainterBackendFactoryGL::program_without_discard);
+  bool glsl_discard_active(tp != PainterEngineGL::program_without_discard);
 
   if (!blend_type_supported(blend_type))
     {

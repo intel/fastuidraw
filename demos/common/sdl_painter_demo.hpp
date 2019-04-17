@@ -3,7 +3,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/painter/painter.hpp>
-#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 #include <fastuidraw/gl_backend/painter_surface_gl.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 
@@ -96,14 +96,14 @@ protected:
   fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterSurfaceGL> m_surface;
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendFactoryGL> m_backend;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterEngineGL> m_backend;
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> m_painter;
   fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_glyph_cache;
   fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> m_font_database;
   fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_ft_lib;
 
 private:
-  typedef enum fastuidraw::gl::PainterBackendFactoryGL::data_store_backing_t data_store_backing_t;
+  typedef enum fastuidraw::gl::PainterEngineGL::data_store_backing_t data_store_backing_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t clipping_type_t;
   typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t fbf_blending_type_t;
   typedef enum fastuidraw::PainterBlendShader::shader_type shader_blend_type;
@@ -125,7 +125,7 @@ private:
   fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
   fastuidraw::gl::ColorStopAtlasGL::params m_colorstop_atlas_params;
   fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
-  fastuidraw::gl::PainterBackendFactoryGL::ConfigurationGL m_painter_params;
+  fastuidraw::gl::PainterEngineGL::ConfigurationGL m_painter_params;
 
   /* Image atlas parameters */
   command_separator m_image_atlas_options;

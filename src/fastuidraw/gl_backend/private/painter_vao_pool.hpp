@@ -25,7 +25,7 @@
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
-#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
 #include "tex_buffer.hpp"
 
@@ -55,7 +55,7 @@ class painter_vao_pool:public reference_counted<painter_vao_pool>::non_concurren
 {
 public:
   explicit
-  painter_vao_pool(const PainterBackendFactoryGL::ConfigurationGL &params,
+  painter_vao_pool(const PainterEngineGL::ConfigurationGL &params,
                    enum tex_buffer_support_t tex_buffer_support,
                    unsigned int data_store_binding);
 

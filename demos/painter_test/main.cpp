@@ -205,11 +205,11 @@ protected:
   void
   derived_init(int, int)
   {
-    fastuidraw::c_string program_labels[gl::PainterBackendFactoryGL::number_program_types] =
+    fastuidraw::c_string program_labels[gl::PainterEngineGL::number_program_types] =
       {
-        [gl::PainterBackendFactoryGL::program_all] = "program_all",
-        [gl::PainterBackendFactoryGL::program_without_discard] = "program_without_discard",
-        [gl::PainterBackendFactoryGL::program_with_discard] = "program_with_discard",
+        [gl::PainterEngineGL::program_all] = "program_all",
+        [gl::PainterEngineGL::program_without_discard] = "program_without_discard",
+        [gl::PainterEngineGL::program_with_discard] = "program_with_discard",
       };
 
     fastuidraw::c_string blend_labels[PainterBlendShader::number_types] =
@@ -219,12 +219,12 @@ protected:
         [PainterBlendShader::framebuffer_fetch] = "framebuffer_fetch",
       };
 
-    for (int pr = 0; pr < gl::PainterBackendFactoryGL::number_program_types; ++pr)
+    for (int pr = 0; pr < gl::PainterEngineGL::number_program_types; ++pr)
       {
         for (int b = 0; b < PainterBlendShader::number_types; ++b)
           {
             reference_counted_ptr<gl::Program> program;
-            program = m_backend->program(static_cast<enum gl::PainterBackendFactoryGL::program_type_t>(pr),
+            program = m_backend->program(static_cast<enum gl::PainterEngineGL::program_type_t>(pr),
                                          static_cast<enum PainterBlendShader::shader_type>(b));
             log_program(program, program_labels[pr], blend_labels[b]);
           }

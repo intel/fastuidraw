@@ -1,6 +1,6 @@
 /*!
- * \file painter_backend_factory.cpp
- * \brief file painter_backend_factory.cpp
+ * \file painter_engine.cpp
+ * \brief file painter_engine.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/backend/painter_backend_factory.hpp>
+#include <fastuidraw/painter/backend/painter_engine.hpp>
 #include <private/util_private.hpp>
 
 namespace
@@ -33,14 +33,14 @@ namespace
     int m_max_z;
   };
 
-  class PainterBackendFactoryPrivate
+  class PainterEnginePrivate
   {
   public:
-    PainterBackendFactoryPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> glyph_atlas,
+    PainterEnginePrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> glyph_atlas,
                                  fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> image_atlas,
                                  fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> colorstop_atlas,
                                  fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar> shader_registrar,
-                                 const fastuidraw::PainterBackendFactory::ConfigurationBase &config,
+                                 const fastuidraw::PainterEngine::ConfigurationBase &config,
                                  const fastuidraw::PainterShaderSet &pdefault_shaders):
       m_glyph_atlas(glyph_atlas),
       m_image_atlas(image_atlas),
@@ -54,8 +54,8 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_colorstop_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar> m_painter_shader_registrar;
-    fastuidraw::PainterBackendFactory::ConfigurationBase m_config;
-    fastuidraw::PainterBackendFactory::PerformanceHints m_hints;
+    fastuidraw::PainterEngine::ConfigurationBase m_config;
+    fastuidraw::PainterEngine::PerformanceHints m_hints;
     fastuidraw::PainterShaderSet m_default_shaders;
   };
 
@@ -71,14 +71,14 @@ namespace
 }
 
 //////////////////////////////////////////////////
-// fastuidraw::PainterBackendFactory::PerformanceHints methods
-fastuidraw::PainterBackendFactory::PerformanceHints::
+// fastuidraw::PainterEngine::PerformanceHints methods
+fastuidraw::PainterEngine::PerformanceHints::
 PerformanceHints(void)
 {
   m_d = FASTUIDRAWnew PerformanceHintsPrivate();
 }
 
-fastuidraw::PainterBackendFactory::PerformanceHints::
+fastuidraw::PainterEngine::PerformanceHints::
 PerformanceHints(const PerformanceHints &obj)
 {
   PerformanceHintsPrivate *d;
@@ -86,7 +86,7 @@ PerformanceHints(const PerformanceHints &obj)
   m_d = FASTUIDRAWnew PerformanceHintsPrivate(*d);
 }
 
-fastuidraw::PainterBackendFactory::PerformanceHints::
+fastuidraw::PainterEngine::PerformanceHints::
 ~PerformanceHints(void)
 {
   PerformanceHintsPrivate *d;
@@ -95,23 +95,23 @@ fastuidraw::PainterBackendFactory::PerformanceHints::
   m_d = nullptr;
 }
 
-assign_swap_implement(fastuidraw::PainterBackendFactory::PerformanceHints)
-setget_implement(fastuidraw::PainterBackendFactory::PerformanceHints,
+assign_swap_implement(fastuidraw::PainterEngine::PerformanceHints)
+setget_implement(fastuidraw::PainterEngine::PerformanceHints,
                  PerformanceHintsPrivate,
                  bool, clipping_via_hw_clip_planes)
-setget_implement(fastuidraw::PainterBackendFactory::PerformanceHints,
+setget_implement(fastuidraw::PainterEngine::PerformanceHints,
                  PerformanceHintsPrivate,
                  int, max_z)
 
 ///////////////////////////////////////////////////
-// fastuidraw::PainterBackendFactory::ConfigurationBase methods
-fastuidraw::PainterBackendFactory::ConfigurationBase::
+// fastuidraw::PainterEngine::ConfigurationBase methods
+fastuidraw::PainterEngine::ConfigurationBase::
 ConfigurationBase(void)
 {
   m_d = FASTUIDRAWnew ConfigurationPrivate();
 }
 
-fastuidraw::PainterBackendFactory::ConfigurationBase::
+fastuidraw::PainterEngine::ConfigurationBase::
 ConfigurationBase(const ConfigurationBase &obj)
 {
   ConfigurationPrivate *d;
@@ -119,7 +119,7 @@ ConfigurationBase(const ConfigurationBase &obj)
   m_d = FASTUIDRAWnew ConfigurationPrivate(*d);
 }
 
-fastuidraw::PainterBackendFactory::ConfigurationBase::
+fastuidraw::PainterEngine::ConfigurationBase::
 ~ConfigurationBase()
 {
   ConfigurationPrivate *d;
@@ -128,104 +128,104 @@ fastuidraw::PainterBackendFactory::ConfigurationBase::
   m_d = nullptr;
 }
 
-assign_swap_implement(fastuidraw::PainterBackendFactory::ConfigurationBase)
-setget_implement(fastuidraw::PainterBackendFactory::ConfigurationBase,
+assign_swap_implement(fastuidraw::PainterEngine::ConfigurationBase)
+setget_implement(fastuidraw::PainterEngine::ConfigurationBase,
                  ConfigurationPrivate,
                  bool, supports_bindless_texturing)
 
 ////////////////////////////////////
-// fastuidraw::PainterBackendFactory methods
-fastuidraw::PainterBackendFactory::
-PainterBackendFactory(reference_counted_ptr<GlyphAtlas> glyph_atlas,
+// fastuidraw::PainterEngine methods
+fastuidraw::PainterEngine::
+PainterEngine(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                reference_counted_ptr<ImageAtlas> image_atlas,
                reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
                reference_counted_ptr<PainterShaderRegistrar> shader_registrar,
                const ConfigurationBase &config,
                const PainterShaderSet &pdefault_shaders)
 {
-  PainterBackendFactoryPrivate *d;
-  m_d = d = FASTUIDRAWnew PainterBackendFactoryPrivate(glyph_atlas, image_atlas, colorstop_atlas,
+  PainterEnginePrivate *d;
+  m_d = d = FASTUIDRAWnew PainterEnginePrivate(glyph_atlas, image_atlas, colorstop_atlas,
                                             shader_registrar, config, pdefault_shaders);
   d->m_painter_shader_registrar->register_shader(d->m_default_shaders);
 }
 
-fastuidraw::PainterBackendFactory::
-~PainterBackendFactory()
+fastuidraw::PainterEngine::
+~PainterEngine()
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
 }
 
-fastuidraw::PainterBackendFactory::PerformanceHints&
-fastuidraw::PainterBackendFactory::
+fastuidraw::PainterEngine::PerformanceHints&
+fastuidraw::PainterEngine::
 set_hints(void)
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_hints;
 }
 
-const fastuidraw::PainterBackendFactory::PerformanceHints&
-fastuidraw::PainterBackendFactory::
+const fastuidraw::PainterEngine::PerformanceHints&
+fastuidraw::PainterEngine::
 hints(void) const
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_hints;
 }
 
 const fastuidraw::PainterShaderSet&
-fastuidraw::PainterBackendFactory::
+fastuidraw::PainterEngine::
 default_shaders(void) const
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_default_shaders;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
-fastuidraw::PainterBackendFactory::
+fastuidraw::PainterEngine::
 glyph_atlas(void) const
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_glyph_atlas;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
-fastuidraw::PainterBackendFactory::
+fastuidraw::PainterEngine::
 image_atlas(void) const
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_image_atlas;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
-fastuidraw::PainterBackendFactory::
+fastuidraw::PainterEngine::
 colorstop_atlas(void) const
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_colorstop_atlas;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>&
-fastuidraw::PainterBackendFactory::
+fastuidraw::PainterEngine::
 painter_shader_registrar(void) const
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_painter_shader_registrar;
 }
 
-const fastuidraw::PainterBackendFactory::ConfigurationBase&
-fastuidraw::PainterBackendFactory::
+const fastuidraw::PainterEngine::ConfigurationBase&
+fastuidraw::PainterEngine::
 configuration_base(void) const
 {
-  PainterBackendFactoryPrivate *d;
-  d = static_cast<PainterBackendFactoryPrivate*>(m_d);
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_config;
 }

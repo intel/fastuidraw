@@ -1400,7 +1400,7 @@ namespace
     typedef ConstItemShaderRef *ConstItemShaderRefPtr;
 
     explicit
-    PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackendFactory> &backend_factory);
+    PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine> &backend_factory);
 
     ~PainterPrivate();
 
@@ -1762,9 +1762,9 @@ namespace
     std::vector<DeferredCoverageBufferStackEntry> m_deferred_coverage_stack;
     std::vector<const fastuidraw::PainterSurface*> m_active_surfaces;
     unsigned int m_number_external_textures;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackendFactory> m_backend_factory;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine> m_backend_factory;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
-    fastuidraw::PainterBackendFactory::PerformanceHints m_hints;
+    fastuidraw::PainterEngine::PerformanceHints m_hints;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectColorModulate> m_color_modulate_fx;
     fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterPackedValuePool m_pool;
@@ -2702,7 +2702,7 @@ end(void)
 //////////////////////////////////
 // PainterPrivate methods
 PainterPrivate::
-PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackendFactory> &backend_factory):
+PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine> &backend_factory):
   m_viewport_dimensions(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(0.5f),
@@ -4546,7 +4546,7 @@ compute_glyph_renderer(float pixel_size,
 //////////////////////////////////
 // fastuidraw::Painter methods
 fastuidraw::Painter::
-Painter(const reference_counted_ptr<PainterBackendFactory> &backend)
+Painter(const reference_counted_ptr<PainterEngine> &backend)
 {
   m_d = FASTUIDRAWnew PainterPrivate(backend);
 }

@@ -1,6 +1,6 @@
 /*!
- * \file painter_backend_factory.hpp
- * \brief file painter_backend_factory.hpp
+ * \file painter_engine.hpp
+ * \brief file painter_engine.hpp
  *
  * Copyright 2019 by Intel.
  *
@@ -34,17 +34,17 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A \ref PainterBackendFactory provides an interface to create
+   * A \ref PainterEngine provides an interface to create
    * \ref PainterBackend derived objects.
    */
-  class PainterBackendFactory:public reference_counted<PainterBackendFactory>::concurrent
+  class PainterEngine:public reference_counted<PainterEngine>::concurrent
   {
   public:
     /*!
      * \brief
      * A ConfigurationBase holds properties common to all \ref PainterBackend
-     * objects returned by \ref PainterBackendFactory::create_backend() from
-     * a fixed PainterBackendFactory
+     * objects returned by \ref PainterEngine::create_backend() from
+     * a fixed PainterEngine
      */
     class ConfigurationBase
     {
@@ -95,8 +95,8 @@ namespace fastuidraw
     /*!
      * \brief
      * PerformanceHints provides miscellaneous data about \ref PainterBackend
-     * objects returned by \ref PainterBackendFactory::create_backend() from
-     * a fixed PainterBackendFactory
+     * objects returned by \ref PainterEngine::create_backend() from
+     * a fixed PainterEngine
      */
     class PerformanceHints
     {
@@ -165,24 +165,24 @@ namespace fastuidraw
      * Ctor.
      * \param glyph_atlas GlyphAtlas for glyphs drawn by each \ref PainterBackend
      *                    returned by \ref create_backend() of the created
-     *                    \ref PainterBackendFactory
+     *                    \ref PainterEngine
      * \param image_atlas ImageAtlas for images drawn by each \ref PainterBackend
      *                    returned by \ref create_backend() of the created
-     *                    \ref PainterBackendFactory
+     *                    \ref PainterEngine
      * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by
      *                        each \ref PainterBackend returned by \ref create_backend()
-     *                        of the created PainterBackendFactory
+     *                        of the created PainterEngine
      * \param shader_registrar PainterShaderRegistrar used by each \ref PainterBackend
      *                         returned by \ref create_backend() of the created
-     *                         \ref PainterBackendFactory
+     *                         \ref PainterEngine
      * \param config \ref ConfigurationBase for each \ref PainterBackend returned by
-     *               \ref create_backend() of the created \ref PainterBackendFactory
+     *               \ref create_backend() of the created \ref PainterEngine
      * \param pdefault_shaders default shaders for each \ref PainterBackend returned
      *                         by \ref create_backend() of the created \ref
-     *                         PainterBackendFactory; shaders are registered at
-     *                         construction of the created \ref PainterBackendFactory
+     *                         PainterEngine; shaders are registered at
+     *                         construction of the created \ref PainterEngine
      */
-    PainterBackendFactory(reference_counted_ptr<GlyphAtlas> glyph_atlas,
+    PainterEngine(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                           reference_counted_ptr<ImageAtlas> image_atlas,
                           reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
                           reference_counted_ptr<PainterShaderRegistrar> shader_registrar,
@@ -190,7 +190,7 @@ namespace fastuidraw
                           const PainterShaderSet &pdefault_shaders);
 
     virtual
-    ~PainterBackendFactory();
+    ~PainterEngine();
 
     /*!
      * Returns the PainterShaderSet for the backend.
@@ -253,7 +253,7 @@ namespace fastuidraw
      * To be implemented by a derived class to create a
      * \ref PainterBackend object. All \ref PainterBackend
      * objects created by create_backend() from the same
-     * \ref PainterBackendFactory share the same
+     * \ref PainterEngine share the same
      *  - \ref PainterShaderRegistrar (see \ref painter_shader_registrar())
      *  - \ref GlyphAtlas (see \ref glyph_atlas())
      *  - \ref ImageAtlas (see \ref image_atlas())
@@ -268,7 +268,7 @@ namespace fastuidraw
      * To be implemented by a derived class to create a
      * Surface with its own backing that is useable by
      * any \ref PainterBackend object that this \ref
-     * PainterBackendFactory returns in create_backend()
+     * PainterEngine returns in create_backend()
      * \param dims the dimensions of the backing store of
      *             the returned Surface
      * \param render_type the render type of the surface (i.e.
