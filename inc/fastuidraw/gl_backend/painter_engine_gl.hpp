@@ -20,6 +20,7 @@
 
 #include <fastuidraw/painter/backend/painter_engine.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
+#include <fastuidraw/gl_backend/texture_image_gl.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>

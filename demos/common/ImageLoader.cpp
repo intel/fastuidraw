@@ -16,6 +16,7 @@
 #include <iostream>
 #include <cstring>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
+#include <fastuidraw/gl_backend/texture_image_gl.hpp>
 #include "ImageLoader.hpp"
 
 namespace
