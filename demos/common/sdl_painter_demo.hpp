@@ -92,9 +92,9 @@ protected:
               draw, orientation);
   }
 
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_glyph_atlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_colorstop_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterSurfaceGL> m_surface;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterEngineGL> m_backend;
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> m_painter;

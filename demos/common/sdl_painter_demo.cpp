@@ -563,7 +563,6 @@ init_gl(int w, int h)
     .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.value())
     .num_index_layers(m_num_index_layers.value())
     .delayed(m_image_atlas_delayed_upload.value());
-  m_image_atlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(m_image_atlas_params);
 
   m_glyph_atlas_params
     .number_floats(m_glyph_atlas_size.value())
@@ -590,20 +589,20 @@ init_gl(int w, int h)
         {
         case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
           {
-            std::cout << "Glyph  Store: auto selected texture buffer\n";
+            std::cout << "Glyph Store: auto selected texture buffer\n";
           }
           break;
 
         case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
           {
-            std::cout << "Glyph  Store: auto selected storage buffer\n";
+            std::cout << "Glyph Store: auto selected storage buffer\n";
           }
           break;
 
         case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
           {
             fastuidraw::ivec2 log2_dims(m_glyph_atlas_params.texture_2d_array_store_log2_dims());
-            std::cout << "Glyph  Store: auto selected texture with dimensions: (2^"
+            std::cout << "Glyph Store: auto selected texture with dimensions: (2^"
                       << log2_dims.x() << ", 2^" << log2_dims.y() << ") = "
                       << fastuidraw::ivec2(1 << log2_dims.x(), 1 << log2_dims.y())
                       << "\n";
@@ -611,7 +610,6 @@ init_gl(int w, int h)
           break;
         }
     }
-  m_glyph_atlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(m_glyph_atlas_params);
 
   m_colorstop_atlas_params
     .width(m_color_stop_atlas_width.value())
@@ -625,7 +623,6 @@ init_gl(int w, int h)
                 << m_colorstop_atlas_params.width() << "\n";
     }
 
-  m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
   if (m_painter_optimal.value() != painter_no_optimal)
     {
       m_painter_params.configure_from_context(m_painter_optimal.value() == painter_optimal_rendering);
@@ -656,9 +653,9 @@ init_gl(int w, int h)
 #undef APPLY_PARAM
 
   m_painter_params
-    .image_atlas(m_image_atlas)
-    .glyph_atlas(m_glyph_atlas)
-    .colorstop_atlas(m_colorstop_atlas);
+    .image_atlas_params(m_image_atlas_params)
+    .glyph_atlas_params(m_glyph_atlas_params)
+    .colorstop_atlas_params(m_colorstop_atlas_params);
 
   if (m_pixel_counter_stack.value() >= 0)
     {
@@ -676,6 +673,9 @@ init_gl(int w, int h)
     }
 
   m_backend = fastuidraw::gl::PainterEngineGL::create(m_painter_params);
+  m_image_atlas = m_backend->image_atlas();
+  m_glyph_atlas = m_backend->glyph_atlas();
+  m_colorstop_atlas = m_backend->colorstop_atlas();
 
   fastuidraw::GlyphGenerateParams::distance_field_max_distance(m_distance_field_max_distance.value());
   fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
@@ -757,7 +757,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(fbf_blending_type, m_fbf_blending_type);
       LAZY_PARAM_ENUM(support_dual_src_blend_shaders, m_support_dual_src_blend_shaders);
       std::cout << std::setw(40) << "geometry_backing_store_type:"
-                << std::setw(8) << m_glyph_atlas->param_values().glyph_data_backing_store_type()
+                << std::setw(8) << m_painter_params.glyph_atlas_params().glyph_data_backing_store_type()
                 << "\n";
 
       #undef LAZY_PARAM
