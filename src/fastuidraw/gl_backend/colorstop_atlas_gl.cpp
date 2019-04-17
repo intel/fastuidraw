@@ -30,7 +30,7 @@ namespace
   class BackingStore:public fastuidraw::ColorStopBackingStore
   {
   public:
-    BackingStore(int w, int l, bool delayed);
+    BackingStore(int w, int l);
     ~BackingStore();
 
     virtual
@@ -57,10 +57,10 @@ namespace
 
     static
     fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore>
-    create(int w, int l, bool delayed)
+    create(int w, int l)
     {
       BackingStore *p;
-      p = FASTUIDRAWnew BackingStore(w, l, delayed);
+      p = FASTUIDRAWnew BackingStore(w, l);
       return fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore>(p);
     }
 
@@ -117,13 +117,11 @@ namespace
   public:
     ColorStopAtlasGLParamsPrivate(void):
       m_width(1024),
-      m_num_layers(32),
-      m_delayed(false)
+      m_num_layers(32)
     {}
 
     int m_width;
     int m_num_layers;
-    bool m_delayed;
   };
 
   class ColorStopAtlasGLPrivate
@@ -141,9 +139,9 @@ namespace
 //////////////////////////
 // BackingStore methods
 BackingStore::
-BackingStore(int w, int l, bool delayed):
+BackingStore(int w, int l):
   fastuidraw::ColorStopBackingStore(w, l, true),
-  m_backing_store(dimensions_for_store(w, l), delayed)
+  m_backing_store(dimensions_for_store(w, l), true)
 {
 }
 
@@ -209,9 +207,6 @@ setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
 setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
                  ColorStopAtlasGLParamsPrivate,
                  int, num_layers)
-setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
-                 ColorStopAtlasGLParamsPrivate,
-                 bool, delayed)
 
 fastuidraw::gl::ColorStopAtlasGL::params&
 fastuidraw::gl::ColorStopAtlasGL::params::
@@ -224,7 +219,7 @@ optimal_width(void)
 // fastuidraw::gl::ColorStopAtlasGL methods
 fastuidraw::gl::ColorStopAtlasGL::
 ColorStopAtlasGL(const params &P):
-  fastuidraw::ColorStopAtlas(BackingStore::create(P.width(), P.num_layers(), P.delayed()))
+  fastuidraw::ColorStopAtlas(BackingStore::create(P.width(), P.num_layers()))
 {
   m_d = FASTUIDRAWnew ColorStopAtlasGLPrivate(P);
 }

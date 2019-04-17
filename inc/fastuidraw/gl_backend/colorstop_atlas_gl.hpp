@@ -37,14 +37,10 @@ namespace gl
    *
    * A ColorStopAtlasGL uses a GL texture for the underlying
    * store. In GL, the texture type is GL_TEXTURE_1D_ARRAY,
-   * in GLES it is GL_TEXTURE_2D_ARRAY (because GLES does not support
-   * 1D texture).
+   * in GLES it is GL_TEXTURE_2D_ARRAY (because GLES does not
+   * support 1D texture).
    *
    * The method flush() must be called with a GL context current.
-   * If the ColorStopAtlasGL was constructed as delayed,
-   * then the loading of data to the GL textures is delayed until
-   * flush, otherwise it is done immediately and then must be done
-   * with a GL context current.
    */
   class ColorStopAtlasGL:public ColorStopAtlas
   {
@@ -117,20 +113,6 @@ namespace gl
       params&
       optimal_width(void);
 
-      /*!
-       * if true, upload of texture data is delayed until
-       * ColorStopAtlasGL::flush() is called, initial
-       * value is false.
-       */
-      bool
-      delayed(void) const;
-
-      /*!
-       * Set the value for delayed(void) const
-       */
-      params&
-      delayed(bool v);
-
     private:
       void *m_d;
     };
@@ -145,8 +127,9 @@ namespace gl
     ~ColorStopAtlasGL();
 
     /*!
-     * Returns the underlying GL texture ID of the
-     * texture of the backing store.
+     * Returns the GL texture ID of the backing texture.
+     * A GL context must be current (and that GL context
+     * is the context to which the texture will belong).
      */
     GLuint
     texture(void) const;

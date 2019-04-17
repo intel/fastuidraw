@@ -319,10 +319,6 @@ sdl_painter_demo(const std::string &about_text,
                             "colorstop_atlas_layers",
                             "number of layers for the color stop atlas",
                             *this),
-  m_color_stop_atlas_delayed_upload(m_colorstop_atlas_params.delayed(),
-                                    "color_stop_atlas_delayed_upload",
-                                    "if true delay uploading of data to GL from color stop atlas until atlas flush",
-                                    *this),
 
   m_painter_options("PainterBackendGL Options", *this),
   m_painter_attributes_per_buffer(m_painter_params.attributes_per_buffer(),
@@ -608,8 +604,7 @@ init_gl(int w, int h)
 
   m_colorstop_atlas_params
     .width(m_color_stop_atlas_width.value())
-    .num_layers(m_color_stop_atlas_layers.value())
-    .delayed(m_color_stop_atlas_delayed_upload.value());
+    .num_layers(m_color_stop_atlas_layers.value());
 
   if (!m_color_stop_atlas_width.set_by_command_line())
     {
