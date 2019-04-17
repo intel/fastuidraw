@@ -107,16 +107,49 @@ namespace fastuidraw
         swap(ConfigurationGL &obj);
 
         /*!
+         * Return the parameters for creating the value returned
+         * by image_atlas();
+         */
+        const ImageAtlasGL::params&
+        image_atlas_params(void) const;
+
+        /*!
+         * Set the value for image_atlas_params(void) const
+         */
+        ConfigurationGL&
+        image_atlas_params(const ImageAtlasGL::params&);
+
+        /*!
+         * Return the parameters for creating the value returned
+         * by glyph_atlas();
+         */
+        const GlyphAtlasGL::params&
+        glyph_atlas_params(void) const;
+
+        /*!
+         * Set the value for glyph_atlas_params(void) const
+         */
+        ConfigurationGL&
+        glyph_atlas_params(const GlyphAtlasGL::params&);
+
+        /*!
+         * Return the parameters for creating the value returned
+         * by _atlas();
+         */
+        const ColorStopAtlasGL::params&
+        colorstop_atlas_params(void) const;
+
+        /*!
+         * Set the value for _atlas_params(void) const
+         */
+        ConfigurationGL&
+        colorstop_atlas_params(const ColorStopAtlasGL::params&);
+
+        /*!
          * The ImageAtlasGL to be used by the painter
          */
         const reference_counted_ptr<ImageAtlasGL>&
         image_atlas(void) const;
-
-        /*!
-         * Set the value returned by image_atlas(void) const.
-         */
-        ConfigurationGL&
-        image_atlas(const reference_counted_ptr<ImageAtlasGL> &v);
 
         /*!
          * The ColorStopAtlasGL to be used by the painter
@@ -125,22 +158,10 @@ namespace fastuidraw
         colorstop_atlas(void) const;
 
         /*!
-         * Set the value returned by colorstop_atlas(void) const.
-         */
-        ConfigurationGL&
-        colorstop_atlas(const reference_counted_ptr<ColorStopAtlasGL> &v);
-
-        /*!
          * The GlyphAtlasGL to be used by the painter
          */
         const reference_counted_ptr<GlyphAtlasGL>&
         glyph_atlas(void) const;
-
-        /*!
-         * Set the value returned by glyph_atlas(void) const.
-         */
-        ConfigurationGL&
-        glyph_atlas(const reference_counted_ptr<GlyphAtlasGL> &v);
 
         /*!
          * Specifies the maximum number of attributes
@@ -497,17 +518,6 @@ namespace fastuidraw
          */
         ConfigurationGL&
         adjust_for_context(const ContextProperties &ctx = ContextProperties());
-
-        /*!
-         * For each of glyph_atlas(), colorstop_atlast() and
-         * image_atlast(), if it is a null value, then an atlas will
-         * be created using optimal and/or default values to replace
-         * the null atlases values.
-         * \param ctx Optional argument to pass to avoid re-querying
-         *            the current GL context for extension and version
-         */
-        ConfigurationGL&
-        create_missing_atlases(const ContextProperties &ctx = ContextProperties());
 
       private:
         void *m_d;

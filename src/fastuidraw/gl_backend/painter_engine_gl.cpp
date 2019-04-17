@@ -71,9 +71,6 @@ namespace
     enum fastuidraw::gl::PainterEngineGL::data_store_backing_t m_data_store_backing;
     unsigned int m_number_pools;
     bool m_break_on_shader_change;
-    fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
-    fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
-    fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
     enum fastuidraw::gl::PainterEngineGL::clipping_type_t m_clipping_type;
     unsigned int m_number_external_textures;
     bool m_vert_shader_use_switch;
@@ -90,6 +87,13 @@ namespace
     bool m_use_uber_item_shader;
 
     std::string m_glsl_version_override;
+    fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
+    fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
+    fastuidraw::gl::ColorStopAtlasGL::params m_colorstop_atlas_params;
+
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
   };
 
   class PainterEngineGLPrivate
@@ -475,18 +479,42 @@ adjust_for_context(const ContextProperties &ctx)
   interlock_type = compute_interlock_type(ctx);
   tex_buffer_support = detail::compute_tex_buffer_support(ctx);
 
-  if (d->m_data_store_backing == data_store_tbo
-     && tex_buffer_support == detail::tex_buffer_not_supported)
+  if (tex_buffer_support == detail::tex_buffer_not_supported)
     {
       // TBO's not supported, fall back to using SSBO's.
-      d->m_data_store_backing = data_store_ssbo;
+      if (d->m_data_store_backing == data_store_tbo)
+        {
+          d->m_data_store_backing = data_store_ssbo;
+        }
+
+      if (d->m_glyph_atlas_params.glyph_data_backing_store_type() == glyph_data_tbo)
+        {
+          d->m_glyph_atlas_params.use_storage_buffer_store();
+        }
     }
 
-  if (d->m_data_store_backing == data_store_ssbo
-      && !shader_storage_buffers_supported(ctx))
+  if (!shader_storage_buffers_supported(ctx))
     {
-      // SSBO's not supported, fall back to using UBO's.
-      d->m_data_store_backing = data_store_ubo;
+      if (d->m_data_store_backing == data_store_ssbo)
+        {
+          // SSBO's not supported, fall back to using TBO's then fallback to UBO's
+          d->m_data_store_backing = (tex_buffer_support != detail::tex_buffer_not_supported) ?
+            data_store_tbo:
+            data_store_ubo;
+        }
+
+      if (d->m_glyph_atlas_params.glyph_data_backing_store_type() == glyph_data_ssbo)
+        {
+          // SSBO's not supported, fall back to using TBO's then fallback to texture (ICK)
+          if (tex_buffer_support != detail::tex_buffer_not_supported)
+            {
+              d->m_glyph_atlas_params.use_texture_buffer_store();
+            }
+          else
+            {
+              d->m_glyph_atlas_params.use_texture_2d_array_store();
+            }
+        }
     }
 
   /* Query GL what is good size for data store buffer. Size is dependent
@@ -615,33 +643,81 @@ adjust_for_context(const ContextProperties &ctx)
 
 fastuidraw::gl::PainterEngineGL::ConfigurationGL&
 fastuidraw::gl::PainterEngineGL::ConfigurationGL::
-create_missing_atlases(const ContextProperties &ctx)
+image_atlas_params(const ImageAtlasGL::params &params)
 {
   ConfigurationGLPrivate *d;
   d = static_cast<ConfigurationGLPrivate*>(m_d);
 
-  FASTUIDRAWunused(ctx);
+  d->m_image_atlas_params = params;
+  d->m_image_atlas = nullptr;
+  return *this;
+}
+
+fastuidraw::gl::PainterEngineGL::ConfigurationGL&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
+colorstop_atlas_params(const ColorStopAtlasGL::params &params)
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+
+  d->m_colorstop_atlas_params = params;
+  d->m_colorstop_atlas = nullptr;
+  return *this;
+}
+
+fastuidraw::gl::PainterEngineGL::ConfigurationGL&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
+glyph_atlas_params(const GlyphAtlasGL::params &params)
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+
+  d->m_glyph_atlas_params = params;
+  d->m_glyph_atlas = nullptr;
+  return *this;
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
+image_atlas(void) const
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+
   if (!d->m_image_atlas)
     {
-      ImageAtlasGL::params params;
-      d->m_image_atlas = FASTUIDRAWnew ImageAtlasGL(params);
+      d->m_image_atlas = FASTUIDRAWnew ImageAtlasGL(d->m_image_atlas_params);
     }
+  return d->m_image_atlas;
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
+glyph_atlas(void) const
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
 
   if (!d->m_glyph_atlas)
     {
-      GlyphAtlasGL::params params;
-      params.use_optimal_store_backing();
-      d->m_glyph_atlas = FASTUIDRAWnew GlyphAtlasGL(params);
+      d->m_glyph_atlas = FASTUIDRAWnew GlyphAtlasGL(d->m_glyph_atlas_params);
     }
+  return d->m_glyph_atlas;
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&
+fastuidraw::gl::PainterEngineGL::ConfigurationGL::
+colorstop_atlas(void) const
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
 
   if (!d->m_colorstop_atlas)
     {
-      ColorStopAtlasGL::params params;
-      params.optimal_width();
-      d->m_colorstop_atlas = FASTUIDRAWnew ColorStopAtlasGL(params);
+      d->m_colorstop_atlas = FASTUIDRAWnew ColorStopAtlasGL(d->m_colorstop_atlas_params);
     }
 
-  return *this;
+  return d->m_colorstop_atlas;
 }
 
 assign_swap_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL)
@@ -656,12 +732,6 @@ setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, Configuration
                  unsigned int, number_pools)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, break_on_shader_change)
-setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
-                 const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&, image_atlas)
-setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
-                 const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&, colorstop_atlas)
-setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
-                 const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterEngineGL::clipping_type_t, clipping_type)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
@@ -692,6 +762,12 @@ setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, Configuration
                  bool, support_dual_src_blend_shaders)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_uber_item_shader)
+get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+              const fastuidraw::gl::ImageAtlasGL::params&, image_atlas_params)
+get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+              const fastuidraw::gl::ColorStopAtlasGL::params&, colorstop_atlas_params)
+get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+              const fastuidraw::gl::GlyphAtlasGL::params&, glyph_atlas_params)
 
 ///////////////////////////////////////////////////
 // fastuidraw::gl::PainterEngineGL methods
@@ -703,9 +779,7 @@ create(ConfigurationGL config_gl, const ContextProperties &ctx)
   PainterShaderSet shaders;
   reference_counted_ptr<glsl::PainterShaderRegistrarGLSL> reg;
 
-  config_gl
-    .adjust_for_context(ctx)
-    .create_missing_atlases(ctx);
+  config_gl.adjust_for_context(ctx);
 
   PainterEngineGLPrivate::compute_uber_shader_params(config_gl, ctx, uber_params, shaders);
   return FASTUIDRAWnew PainterEngineGL(config_gl, uber_params, shaders);
