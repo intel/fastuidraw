@@ -69,7 +69,7 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
        * RGBA values.
        */
       texture = buffer(buffer_color);
-      m_image = ImageAtlasGL::TextureImage::create(atlas,
+      m_image = TextureImage::create(atlas,
                                                    m_dimensions.x(),
                                                    m_dimensions.y(),
                                                    1,

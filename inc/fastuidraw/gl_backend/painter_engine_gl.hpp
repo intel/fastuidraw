@@ -454,11 +454,11 @@ namespace fastuidraw
         /*!
          * If true, \ref PainterSurfaceGL objects whose \ref
          * PainterSurface::image() routine will return a \ref
-         * ImageAtlasGL::TextureImage whose \ref Image::type()
+         * TextureImage whose \ref Image::type()
          * is \ref Image::bindless_texture2d if the GL/GLES
          * implementation support bindless texturing; otherwise
          * PainterSurfaceSurface::image() will always return
-         * \ref ImageAtlasGL::TextureImage objects of \ref
+         * \ref TextureImage objects of \ref
          * Image::type() \ref Image::context_texture2d. A
          * number of buggy hardware drivers do not correctly
          * sample from bindless textures if the texture was

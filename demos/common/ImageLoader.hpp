@@ -79,7 +79,7 @@ public:
   {}
 };
 
-fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
+fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
 create_texture_image(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
                      int w, int h, unsigned int m,
                      const fastuidraw::ImageSourceBase &image,

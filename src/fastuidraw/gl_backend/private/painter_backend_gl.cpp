@@ -85,7 +85,7 @@ public:
   execute(fastuidraw::PainterBackend*) const override final;
 
 private:
-  reference_counted_ptr<const ImageAtlasGL::TextureImage> m_image;
+  reference_counted_ptr<const TextureImage> m_image;
   PainterBackendGL *m_p;
   unsigned int m_slot, m_texture_unit;
 };
@@ -102,7 +102,7 @@ public:
   execute(fastuidraw::PainterBackend*) const override final;
 
 private:
-  reference_counted_ptr<const ImageAtlasGL::TextureImage> m_image;
+  reference_counted_ptr<const TextureImage> m_image;
   PainterBackendGL *m_p;
   unsigned int m_texture_unit;
 };
@@ -603,8 +603,8 @@ TextureImageBindAction(unsigned int slot,
   m_texture_unit(slot + p->m_binding_points.m_external_texture_binding)
 {
   FASTUIDRAWassert(im);
-  FASTUIDRAWassert(im.dynamic_cast_ptr<const ImageAtlasGL::TextureImage>());
-  m_image = im.static_cast_ptr<const ImageAtlasGL::TextureImage>();
+  FASTUIDRAWassert(im.dynamic_cast_ptr<const TextureImage>());
+  m_image = im.static_cast_ptr<const TextureImage>();
 }
 
 fastuidraw::gpu_dirty_state
@@ -638,8 +638,8 @@ CoverageTextureBindAction(const fastuidraw::reference_counted_ptr<const fastuidr
   m_texture_unit(p->m_binding_points.m_coverage_buffer_texture_binding)
 {
   FASTUIDRAWassert(im);
-  FASTUIDRAWassert(im.dynamic_cast_ptr<const ImageAtlasGL::TextureImage>());
-  m_image = im.static_cast_ptr<const ImageAtlasGL::TextureImage>();
+  FASTUIDRAWassert(im.dynamic_cast_ptr<const TextureImage>());
+  m_image = im.static_cast_ptr<const TextureImage>();
 }
 
 fastuidraw::gpu_dirty_state

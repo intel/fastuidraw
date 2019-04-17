@@ -527,9 +527,9 @@ index_texture(void) const
 }
 
 //////////////////////////////////////////////////////
-// fastuidraw::gl::ImageAtlasGL::TextureImage methods
-fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
-fastuidraw::gl::ImageAtlasGL::TextureImage::
+// fastuidraw::gl::TextureImage methods
+fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
+fastuidraw::gl::TextureImage::
 create(const reference_counted_ptr<ImageAtlas> &patlas,
        int w, int h, unsigned int m, GLuint texture,
        bool object_owns_texture,
@@ -554,8 +554,8 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
     }
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL::TextureImage>
-fastuidraw::gl::ImageAtlasGL::TextureImage::
+fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
+fastuidraw::gl::TextureImage::
 create(const reference_counted_ptr<ImageAtlas> &patlas,
        int w, int h, unsigned int m,
        GLenum tex_magnification,
@@ -576,7 +576,7 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
   return create(patlas, w, h, m, tex, true, fmt, allow_bindless);
 }
 
-fastuidraw::gl::ImageAtlasGL::TextureImage::
+fastuidraw::gl::TextureImage::
 TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m,
              bool object_owns_texture, GLuint texture,
@@ -587,7 +587,7 @@ TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
   m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
 }
 
-fastuidraw::gl::ImageAtlasGL::TextureImage::
+fastuidraw::gl::TextureImage::
 TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
              int w, int h, unsigned int m,
              bool object_owns_texture, GLuint texture, GLuint64 handle,
@@ -598,7 +598,7 @@ TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
   m_d = FASTUIDRAWnew TextureImagePrivate(texture, object_owns_texture);
 }
 
-fastuidraw::gl::ImageAtlasGL::TextureImage::
+fastuidraw::gl::TextureImage::
 ~TextureImage()
 {
   TextureImagePrivate *d;
@@ -607,7 +607,7 @@ fastuidraw::gl::ImageAtlasGL::TextureImage::
 }
 
 GLuint
-fastuidraw::gl::ImageAtlasGL::TextureImage::
+fastuidraw::gl::TextureImage::
 texture(void) const
 {
   TextureImagePrivate *d;
