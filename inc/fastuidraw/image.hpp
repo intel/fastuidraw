@@ -18,13 +18,17 @@
 
 #pragma once
 
-#include <fastuidraw/image_atlas.hpp>
+#include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/c_array.hpp>
 
 namespace fastuidraw
 {
 
 ///@cond
 class ImageSourceBase;
+class ImageAtlas;
 ///@endcond
 
 /*!\addtogroup Imaging
@@ -89,53 +93,29 @@ class ImageSourceBase;
       };
 
     /*!
-     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
-     * insufficient room on the atlas, returns a nullptr handle.
-     * \param atlas ImageAtlas atlas onto which to place the image.
-     * \param w width of the image
-     * \param h height of the image
-     * \param image_data image data to which to initialize the image
+     * Class representing an action to execute when a bindless
+     * image is deleted. The action is guaranteed to be executed
+     * AFTER the 3D API is no longer using the resources that
+     * back the image.
      */
-    static
-    reference_counted_ptr<Image>
-    create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-           const ImageSourceBase &image_data);
+    class ResourceReleaseAction:
+      public reference_counted<ResourceReleaseAction>::concurrent
+    {
+    public:
+      virtual
+      ~ResourceReleaseAction()
+      {}
 
-    /*!
-     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
-     * insufficient room on the atlas, returns a nullptr handle
-     * \param atlas ImageAtlas atlas onto which to place the image
-     * \param w width of the image
-     * \param h height of the image
-     * \param image_data image data to which to initialize the image
-     * \param fmt the format of the image data
-     */
-    static
-    reference_counted_ptr<Image>
-    create(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-           c_array<const u8vec4> image_data, enum format_t fmt);
+      /*!
+       * To be implemented by a derived class to perform resource
+       * release actions.
+       */
+      virtual
+      void
+      action(void) = 0;
+    };
 
-    /*!
-     * Create an \ref Image backed by a bindless texture.
-     * \param atlas ImageAtlas atlas onto which to place the image
-     * \param w width of the image
-     * \param h height of the image
-     * \param m number of mipmap levels of the image
-     * \param type the type of the bindless texture, must NOT have value
-     *             \ref on_atlas.
-     * \param handle the bindless handle value used by the Gfx API in
-     *               shaders to reference the texture.
-     * \param fmt the format of the image
-     * \param action action to call to release backing resources of
-     *               the created Image.
-     */
-    static
-    reference_counted_ptr<Image>
-    create_bindless(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-                    unsigned int m, enum type_t type, uint64_t handle, enum format_t fmt,
-                    const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action =
-                    reference_counted_ptr<ImageAtlas::ResourceReleaseAction>());
-
+    virtual
     ~Image();
 
     /*!
@@ -211,7 +191,6 @@ class ImageSourceBase;
   protected:
     /*!
      * Protected ctor for creating an Image backed by a bindless texture;
-     * Applications should not use this directly and instead use create_bindless().
      * Backends should use this ctor for Image deried classes that do
      * cleanup (for example releasing the handle and/or deleting the texture).
      * \param atlas ImageAtlas atlas onto which to place the image.
@@ -229,10 +208,12 @@ class ImageSourceBase;
     Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
           unsigned int m, enum type_t type, uint64_t handle,
           enum format_t fmt,
-          const reference_counted_ptr<ImageAtlas::ResourceReleaseAction> &action =
-          reference_counted_ptr<ImageAtlas::ResourceReleaseAction>());
+          const reference_counted_ptr<ResourceReleaseAction> &action =
+          reference_counted_ptr<ResourceReleaseAction>());
 
   private:
+    friend class ImageAtlas;
+
     Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
           const ImageSourceBase &image_data);
 

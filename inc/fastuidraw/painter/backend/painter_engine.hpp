@@ -23,7 +23,7 @@
 #include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
-#include <fastuidraw/image.hpp>
+#include <fastuidraw/image_atlas.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/backend/painter_backend.hpp>
 

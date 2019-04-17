@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/image.hpp>
+#include <fastuidraw/image_atlas.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw

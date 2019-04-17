@@ -24,15 +24,10 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/image.hpp>
 
 namespace fastuidraw
 {
-
-///@cond
-class Image;
-class ImageSourceBase;
-///@endcond
-
 /*!\addtogroup PainterBackend
  * @{
  */
@@ -258,42 +253,30 @@ class ImageSourceBase;
     public reference_counted<ImageAtlas>::concurrent
   {
   public:
-    /*!
-     * Class representing an action to execute when a bindless
-     * image is deleted. The action is gauranteed to be executed
-     * AFTER the 3D API is no longer using the resources that
-     * back the image.
-     */
-    class ResourceReleaseAction:
-      public reference_counted<ResourceReleaseAction>::concurrent
-    {
-    public:
-      /*!
-       * To be implemented by a derived class to perform resource
-       * release actions.
-       */
-      virtual
-      void
-      action(void) = 0;
-    };
-
-    /*!
-     * Ctor.
-     * \param pcolor_tile_size size of each color tile
-     * \param pindex_tile_size size of each index tile
-     * \param pcolor_store color data backing store for atlas, the width and
-     *                     height of the backing store must be divisible by
-     *                     pcolor_tile_size.
-     * \param pindex_store index backing store for atlas, the width and
-     *                     height of the backing store must be divisible by
-     *                     pindex_tile_size.
-     */
-    ImageAtlas(int pcolor_tile_size, int pindex_tile_size,
-               reference_counted_ptr<AtlasColorBackingStoreBase> pcolor_store,
-               reference_counted_ptr<AtlasIndexBackingStoreBase> pindex_store);
-
     virtual
     ~ImageAtlas();
+
+    /*!
+     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
+     * insufficient room on the atlas, returns a nullptr handle.
+     * \param w width of the image
+     * \param h height of the image
+     * \param image_data image data to which to initialize the image
+     */
+    reference_counted_ptr<Image>
+    create(int w, int h, const ImageSourceBase &image_data);
+
+    /*!
+     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
+     * insufficient room on the atlas, returns a nullptr handle
+     * \param w width of the image
+     * \param h height of the image
+     * \param image_data image data to which to initialize the image
+     * \param fmt the format of the image data
+     */
+    reference_counted_ptr<Image>
+    create(int w, int h, c_array<const u8vec4> image_data,
+           enum Image::format_t fmt);
 
     /*!
      * Returns the size (in texels) used for the index tiles.
@@ -443,7 +426,23 @@ class ImageSourceBase;
      * not locked down, see lock_resources() and unlock_resources().
      */
     void
-    queue_resource_release_action(const reference_counted_ptr<ResourceReleaseAction> &action);
+    queue_resource_release_action(const reference_counted_ptr<Image::ResourceReleaseAction> &action);
+
+  protected:
+    /*!
+     * Ctor.
+     * \param pcolor_tile_size size of each color tile
+     * \param pindex_tile_size size of each index tile
+     * \param pcolor_store color data backing store for atlas, the width and
+     *                     height of the backing store must be divisible by
+     *                     pcolor_tile_size.
+     * \param pindex_store index backing store for atlas, the width and
+     *                     height of the backing store must be divisible by
+     *                     pindex_tile_size.
+     */
+    ImageAtlas(int pcolor_tile_size, int pindex_tile_size,
+               reference_counted_ptr<AtlasColorBackingStoreBase> pcolor_store,
+               reference_counted_ptr<AtlasIndexBackingStoreBase> pindex_store);
 
   private:
     void *m_d;

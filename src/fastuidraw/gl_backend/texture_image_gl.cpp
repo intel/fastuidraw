@@ -37,7 +37,7 @@ namespace
     bool m_owns_texture;
   };
 
-  class ReleaseTexture:public fastuidraw::ImageAtlas::ResourceReleaseAction
+  class ReleaseTexture:public fastuidraw::Image::ResourceReleaseAction
   {
   public:
     void
