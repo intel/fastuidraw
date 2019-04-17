@@ -36,7 +36,6 @@
 
 namespace
 {
-
   class ConfigurationGLPrivate
   {
   public:
@@ -781,9 +780,7 @@ fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend>
 fastuidraw::gl::PainterBackendFactoryGL::
 create_backend(void) const
 {
-  PainterBackendFactoryGLPrivate *d;
-  d = static_cast<PainterBackendFactoryGLPrivate*>(m_d);
-  return FASTUIDRAWnew PainterBackendGL(this);
+  return FASTUIDRAWnew detail::PainterBackendGL(this);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface>

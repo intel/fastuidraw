@@ -19,7 +19,8 @@
 #pragma once
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
-#include "painter_backend_gl.hpp"
+#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
+#include <fastuidraw/gl_backend/painter_surface_gl.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 
@@ -28,8 +29,8 @@ class PainterSurfaceGLPrivate:noncopyable
 public:
   explicit
   PainterSurfaceGLPrivate(enum PainterSurface::render_type_t type,
-                   GLuint texture, ivec2 dimensions,
-                   bool allow_bindless);
+                          GLuint texture, ivec2 dimensions,
+                          bool allow_bindless);
 
   ~PainterSurfaceGLPrivate();
 

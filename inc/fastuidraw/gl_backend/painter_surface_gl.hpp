@@ -118,6 +118,16 @@ namespace fastuidraw
       void
       blit_surface(GLenum filter = GL_NEAREST) const;
 
+      /*!
+       * Used internally by the GL backend; do not touch
+       * the data behind the void pointer.
+       */
+      void*
+      opaque_data(void) const
+      {
+        return m_d;
+      }
+
       virtual
       reference_counted_ptr<const Image>
       image(const reference_counted_ptr<ImageAtlas> &atlas) const override final;
@@ -147,7 +157,6 @@ namespace fastuidraw
       render_type(void) const override final;
 
     private:
-      friend class PainterBackendGL;
       void *m_d;
     };
 /*! @} */

@@ -21,9 +21,9 @@
 #include <vector>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
 
 #include "tex_buffer.hpp"
-#include "painter_backend_gl.hpp"
 #include "painter_backend_gl_config.hpp"
 
 namespace fastuidraw { namespace gl { namespace detail {

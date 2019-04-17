@@ -19,14 +19,14 @@
 #pragma once
 
 #include <vector>
+#include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
-#include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
+#include <fastuidraw/gl_backend/painter_backend_factory_gl.hpp>
 
-#include "painter_backend_gl.hpp"
 #include "tex_buffer.hpp"
 
 namespace fastuidraw { namespace gl { namespace detail {
