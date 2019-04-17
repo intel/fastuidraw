@@ -61,7 +61,7 @@ namespace
   {
   public:
     explicit
-    StoreGL_StorageBuffer(unsigned int number, bool delayed);
+    StoreGL_StorageBuffer(unsigned int number);
 
     virtual
     void
@@ -92,7 +92,7 @@ namespace
   {
   public:
     explicit
-    StoreGL_TextureBuffer(unsigned int number, bool delayed);
+    StoreGL_TextureBuffer(unsigned int number);
 
     ~StoreGL_TextureBuffer();
 
@@ -127,7 +127,7 @@ namespace
   {
   public:
     explicit
-    StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number, bool delayed);
+    StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number);
 
     ~StoreGL_Texture();
 
@@ -173,13 +173,11 @@ namespace
   public:
     GlyphAtlasGLParamsPrivate(void):
       m_number_floats(1024 * 1024),
-      m_delayed(false),
       m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
       m_log2_dims_store(-1, -1)
     {}
 
     unsigned int m_number_floats;
-    bool m_delayed;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_type;
     fastuidraw::ivec2 m_log2_dims_store;
   };
@@ -199,11 +197,11 @@ namespace
 ///////////////////////////////////////////////
 // StoreGL_Texture methods
 StoreGL_Texture::
-StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels, bool delayed):
+StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels):
   StoreGL(number_texels, GL_TEXTURE_2D_ARRAY, log2_wh, true),
   m_layer_dims(1 << log2_wh.x(), 1 << log2_wh.y()),
   m_texels_per_layer(m_layer_dims.x() * m_layer_dims.y()),
-  m_backing_store(texture_size(m_layer_dims, number_texels), delayed),
+  m_backing_store(texture_size(m_layer_dims, number_texels), true),
   m_texture_fp16(0)
 {
 }
@@ -327,10 +325,10 @@ set_values(unsigned int location,
 ///////////////////////////////////////////////
 // StoreGL_TextureBuffer methods
 StoreGL_TextureBuffer::
-StoreGL_TextureBuffer(unsigned int number, bool delayed):
+StoreGL_TextureBuffer(unsigned int number):
   StoreGL(number, GL_TEXTURE_BUFFER,
           fastuidraw::ivec2(-1, -1), true),
-  m_backing_store(number * sizeof(float), delayed),
+  m_backing_store(number * sizeof(float), true),
   m_texture(0),
   m_texture_fp16(0),
   m_tbo_dirty(true)
@@ -408,10 +406,10 @@ gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const
 ///////////////////////////////////////////////
 // StoreGL_StorageBuffer methods
 StoreGL_StorageBuffer::
-StoreGL_StorageBuffer(unsigned int number, bool delayed):
+StoreGL_StorageBuffer(unsigned int number):
   StoreGL(number, GL_SHADER_STORAGE_BUFFER,
                   fastuidraw::ivec2(-1, -1), false),
-  m_backing_store(number * sizeof(float), delayed)
+  m_backing_store(number * sizeof(float), true)
 {
 }
 
@@ -453,24 +451,22 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 {
   unsigned int number;
   StoreGL *p(nullptr);
-  bool delayed;
 
   number = P.number_floats();
-  delayed = P.delayed();
 
   switch(P.glyph_data_backing_store_type())
     {
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
-      p = FASTUIDRAWnew StoreGL_TextureBuffer(number, delayed);
+      p = FASTUIDRAWnew StoreGL_TextureBuffer(number);
       break;
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
-      p = FASTUIDRAWnew StoreGL_StorageBuffer(number, delayed);
+      p = FASTUIDRAWnew StoreGL_StorageBuffer(number);
       break;
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
       p = FASTUIDRAWnew StoreGL_Texture(P.texture_2d_array_store_log2_dims(),
-                                        number, delayed);
+                                        number);
       break;
 
     default:
@@ -613,9 +609,6 @@ use_optimal_store_backing(void)
 setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
                  GlyphAtlasGLParamsPrivate,
                  unsigned int, number_floats);
-setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
-                 GlyphAtlasGLParamsPrivate,
-                 bool, delayed);
 
 //////////////////////////////////////////////////////////////////
 // fastuidraw::gl::GlyphAtlasGL methods

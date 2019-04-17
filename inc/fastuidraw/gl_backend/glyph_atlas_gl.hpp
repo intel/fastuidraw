@@ -40,10 +40,6 @@ namespace gl
    * GlyphAtlasBackingStoreBase.
    *
    * The method flush() must be called with a GL context current.
-   * If the GlyphAtlasGL was constructed delayed, then the loading
-   * of data to the GL texture and buffer object are delayed until
-   * flush() is called, otherwise it is done immediately and then
-   * must be done with a GL context current.
    */
   class GlyphAtlasGL:public GlyphAtlas
   {
@@ -95,22 +91,6 @@ namespace gl
        */
       params&
       number_floats(unsigned int v);
-
-      /*!
-       * if true, creation of GL objects and uploading of data
-       * to GL objects is performed when flush() is called.
-       * If false, creation of GL objects is at construction
-       * and upload of data to GL is done immediately,
-       * initial value is false.
-       */
-      bool
-      delayed(void) const;
-
-      /*!
-       * Set the value for delayed(void) const
-       */
-      params&
-      delayed(bool v);
 
       /*!
        * Returns what kind of GL object is used to back
@@ -226,12 +206,11 @@ namespace gl
 
     /*!
      * Returns the GL object ID of the GlyphAtlasBackingStoreBase
-     * derived object used by this GlyphAtlasGL. If the
-     * GlyphAtlasGL was constructed as delayed, then the first time
+     * derived object used by this GlyphAtlasGL. The first time
      * data_texture() is called, a GL context must be current (and that
-     * GL context is the context to which the texture will belong).
-     * If backed by a texture, returns the name of a texture. If backed
-     * by a buffer returns the name of a GL buffer object.
+     * GL context is the context to which the texture or buffer will
+     * belong). If backed by a texture, returns the name of a texture.
+     * If backed by a buffer returns the name of a GL buffer object.
      */
     GLuint
     data_backing(enum backing_fmt_t fmt) const;

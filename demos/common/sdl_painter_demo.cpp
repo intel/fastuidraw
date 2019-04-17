@@ -279,10 +279,6 @@ sdl_painter_demo(const std::string &about_text,
   m_glyph_atlas_options("Glyph Atlas options", *this),
   m_glyph_atlas_size(m_glyph_atlas_params.number_floats(),
                      "glyph_atlas_size", "size of glyph store in floats", *this),
-  m_glyph_atlas_delayed_upload(m_glyph_atlas_params.delayed(),
-                               "glyph_atlas_delayed_upload",
-                               "if true delay uploading of data to GL from glyph atlas until atlas flush",
-                               *this),
   m_glyph_backing_store_type(glyph_backing_store_auto,
                              enumerated_string_type<enum glyph_backing_store_t>()
                              .add_entry("texture_buffer",
@@ -556,8 +552,7 @@ init_gl(int w, int h)
     .num_index_layers(m_num_index_layers.value());
 
   m_glyph_atlas_params
-    .number_floats(m_glyph_atlas_size.value())
-    .delayed(m_glyph_atlas_delayed_upload.value());
+    .number_floats(m_glyph_atlas_size.value());
 
   switch(m_glyph_backing_store_type.value())
     {
