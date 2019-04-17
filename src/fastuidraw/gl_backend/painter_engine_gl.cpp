@@ -560,9 +560,6 @@ fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&
 fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
 use_optimal_store_backing(void)
 {
-  GlyphAtlasParamsPrivate *d;
-  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
-
   if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= GlyphAtlasParamsPrivate::required_max_size)
     {
       use_storage_buffer_store();
