@@ -107,7 +107,9 @@ namespace fastuidraw
 
         /*!
          * The log2 of the width and height of the color tile
-         * size, initial value is 5
+         * size, initial value is 5. A negative value indicates
+         * to NOT use an atlas to hold images (and thus rely
+         * on bindless texturing or binding textures).
          */
         int
         log2_color_tile_size(void) const;
@@ -121,7 +123,9 @@ namespace fastuidraw
         /*!
          * The log2 of the number of color tiles across and
          * down per layer, initial value is 8. Effective
-         * value is clamped to 8.
+         * value is clamped to 8. A negative value indicates
+         * to NOT use an atlas to hold images (and thus rely
+         * on bindless texturing or binding textures).
          */
         int
         log2_num_color_tiles_per_row_per_col(void) const;
@@ -154,7 +158,9 @@ namespace fastuidraw
 
         /*!
          * The log2 of the width and height of the index tile
-         * size, initial value is 2
+         * size, initial value is 2. A negative value indicates
+         * to NOT use an atlas to hold images (and thus rely
+         * on bindless texturing or binding textures).
          */
         int
         log2_index_tile_size(void) const;

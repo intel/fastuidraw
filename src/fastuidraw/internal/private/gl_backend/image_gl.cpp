@@ -41,6 +41,30 @@ namespace
                                               mag_filter, min_filter> type;
   };
 
+  unsigned int
+  compute_color_tile_size(const fastuidraw::gl::PainterEngineGL::ImageAtlasParams &P)
+  {
+    bool no_atlas;
+
+    no_atlas = P.log2_color_tile_size() < 0
+      || P.log2_index_tile_size() < 0
+      || P.log2_num_color_tiles_per_row_per_col() < 0;
+
+    return no_atlas ? 0 : (1 << P.log2_color_tile_size());
+  }
+
+  unsigned int
+  compute_index_tile_size(const fastuidraw::gl::PainterEngineGL::ImageAtlasParams &P)
+  {
+    bool no_atlas;
+
+    no_atlas = P.log2_color_tile_size() < 0
+      || P.log2_index_tile_size() < 0
+      || P.log2_num_color_tiles_per_row_per_col() < 0;
+
+    return no_atlas ? 0 : (1 << P.log2_index_tile_size());
+  }
+
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
   {
   public:
@@ -77,6 +101,11 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>
     create(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers)
     {
+      if (log2_tile_size < 0 || log2_num_tiles_per_row_per_col < 0)
+        {
+          return nullptr;
+        }
+
       ColorBackingStoreGL *p;
       p = FASTUIDRAWnew ColorBackingStoreGL(log2_tile_size, log2_num_tiles_per_row_per_col, num_layers);
       return fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>(p);
@@ -138,6 +167,11 @@ namespace
            int log2_num_index_tiles_per_row_per_col,
            int num_layers)
     {
+      if (log2_tile_size < 0 || log2_num_index_tiles_per_row_per_col < 0)
+        {
+          return nullptr;
+        }
+
       IndexBackingStoreGL *p;
       p = FASTUIDRAWnew IndexBackingStoreGL(log2_tile_size,
                                            log2_num_index_tiles_per_row_per_col,
@@ -315,13 +349,14 @@ store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num
 // fastuidraw::gl::detail::ImageAtlasGL methods
 fastuidraw::gl::detail::ImageAtlasGL::
 ImageAtlasGL(const PainterEngineGL::ImageAtlasParams &P):
-  fastuidraw::ImageAtlas(1 << P.log2_color_tile_size(), //color tile size
-                        1 << P.log2_index_tile_size(), //index tile size
-                        ColorBackingStoreGL::create(P.log2_color_tile_size(), P.log2_num_color_tiles_per_row_per_col(),
-                                                    P.num_color_layers()),
-                        IndexBackingStoreGL::create(P.log2_index_tile_size(),
-                                                    P.log2_num_index_tiles_per_row_per_col(),
-                                                    P.num_index_layers()))
+  fastuidraw::ImageAtlas(compute_color_tile_size(P),
+                         compute_index_tile_size(P),
+                         ColorBackingStoreGL::create(P.log2_color_tile_size(),
+                                                     P.log2_num_color_tiles_per_row_per_col(),
+                                                     P.num_color_layers()),
+                         IndexBackingStoreGL::create(P.log2_index_tile_size(),
+                                                     P.log2_num_index_tiles_per_row_per_col(),
+                                                     P.num_index_layers()))
 {
 }
 
@@ -336,9 +371,9 @@ color_texture(void) const
 {
   flush();
   const ColorBackingStoreGL *p;
-  FASTUIDRAWassert(dynamic_cast<const ColorBackingStoreGL*>(color_store().get()));
+  FASTUIDRAWassert(!color_store() || dynamic_cast<const ColorBackingStoreGL*>(color_store().get()));
   p = static_cast<const ColorBackingStoreGL*>(color_store().get());
-  return p->texture();
+  return (p) ? p->texture() : 0u;
 }
 
 GLuint
@@ -347,9 +382,9 @@ index_texture(void) const
 {
   flush();
   const IndexBackingStoreGL *p;
-  FASTUIDRAWassert(dynamic_cast<const IndexBackingStoreGL*>(index_store().get()));
+  FASTUIDRAWassert(!index_store() || dynamic_cast<const IndexBackingStoreGL*>(index_store().get()));
   p = static_cast<const IndexBackingStoreGL*>(index_store().get());
-  return p->texture();
+  return (p) ? p->texture() : 0u;
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>

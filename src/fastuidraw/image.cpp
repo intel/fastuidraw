@@ -294,19 +294,28 @@ namespace
     unsigned int m_lock_resources_counter;
   };
 
+  template<typename T>
+  fastuidraw::ivec3
+  dimensions_of_store(const fastuidraw::reference_counted_ptr<T> &store)
+  {
+    return (store) ?
+      store->dimensions() :
+      fastuidraw::ivec3(0, 0, 0);
+  }
+
   class ImageAtlasPrivate
   {
   public:
     ImageAtlasPrivate(int pcolor_tile_size, int pindex_tile_size,
-                      fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> pcolor_store,
-                      fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase> pindex_store):
+                      const fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> &pcolor_store,
+                      const fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase> &pindex_store):
       m_color_store(pcolor_store),
       m_color_store_constant(m_color_store),
-      m_color_tiles(pcolor_tile_size, pcolor_store->dimensions()),
+      m_color_tiles(pcolor_tile_size, dimensions_of_store(pcolor_store)),
       m_index_store(pindex_store),
       m_index_store_constant(m_index_store),
-      m_index_tiles(pindex_tile_size, pindex_store->dimensions()),
-      m_resizeable(m_color_store->resizeable() && m_index_store->resizeable())
+      m_index_tiles(pindex_tile_size, dimensions_of_store(pindex_store)),
+      m_resizeable(m_color_store && m_color_store->resizeable() && m_index_store && m_index_store->resizeable())
     {}
 
     std::mutex m_mutex;
@@ -592,9 +601,9 @@ tile_allocator::
 tile_allocator(int tile_size, fastuidraw::ivec3 store_dimensions):
   m_tile_size(tile_size),
   m_next_tile(0, 0, 0),
-  m_num_tiles(store_dimensions.x() / m_tile_size,
-              store_dimensions.y() / m_tile_size,
-              store_dimensions.z()),
+  m_num_tiles(tile_size > 0 ? store_dimensions.x() / m_tile_size : 0,
+              tile_size > 0 ? store_dimensions.y() / m_tile_size : 0,
+              tile_size > 0 ? store_dimensions.z() : 0),
   m_tile_count(0),
   m_lock_resources_counter(0)
 #ifdef FASTUIDRAW_DEBUG
@@ -602,8 +611,8 @@ tile_allocator(int tile_size, fastuidraw::ivec3 store_dimensions):
   m_tile_allocated(m_num_tiles.x(), m_num_tiles.y(), m_num_tiles.z())
 #endif
 {
-  FASTUIDRAWassert(store_dimensions.x() % m_tile_size == 0);
-  FASTUIDRAWassert(store_dimensions.y() % m_tile_size == 0);
+  FASTUIDRAWassert(m_tile_size == 0 || store_dimensions.x() % m_tile_size == 0);
+  FASTUIDRAWassert(m_tile_size == 0 || store_dimensions.y() % m_tile_size == 0);
 }
 
 tile_allocator::
@@ -1024,20 +1033,16 @@ add_index_tile(fastuidraw::c_array<const fastuidraw::ivec3> data)
   ivec3 return_value;
   std::lock_guard<std::mutex> M(d->m_mutex);
 
-  /* TODO:
-   *   have the idea of sub-index tiles (which are squares)but size is
-   *   in each dimension, half of m_index_tiles.tile_size().
-   *   The motivation is to reduce the overhead of small but
-   *   non-tiny images. A single index tile would hold 4 such tiles
-   *   and we could also recurse such.
-   */
   return_value = d->m_index_tiles.allocate_tile();
-  d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
-                             return_value.y() * d->m_index_tiles.tile_size(),
-                             return_value.z(),
-                             d->m_index_tiles.tile_size(),
-                             d->m_index_tiles.tile_size(),
-                             data);
+  if (return_value != ivec3(-1, -1, -1))
+    {
+      d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
+                                 return_value.y() * d->m_index_tiles.tile_size(),
+                                 return_value.z(),
+                                 d->m_index_tiles.tile_size(),
+                                 d->m_index_tiles.tile_size(),
+                                 data);
+    }
 
   return return_value;
 }
@@ -1075,14 +1080,17 @@ add_color_tile(u8vec4 color_data)
   int sz;
 
   return_value = d->m_color_tiles.allocate_tile();
-  dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
-  dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
-  sz = d->m_color_tiles.tile_size();
-
-  for (int level = 0; sz > 0; ++level, sz /= 2, dst_xy /= 2)
+  if (return_value != ivec3(-1, -1, -1))
     {
-      d->m_color_store->set_data(level, dst_xy, return_value.z(),
-                                 sz, color_data);
+      dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
+      dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
+      sz = d->m_color_tiles.tile_size();
+
+      for (int level = 0; sz > 0; ++level, sz /= 2, dst_xy /= 2)
+        {
+          d->m_color_store->set_data(level, dst_xy, return_value.z(),
+                                     sz, color_data);
+        }
     }
 
   return return_value;
@@ -1100,20 +1108,23 @@ add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data)
   int sz, level, end_level;
 
   return_value = d->m_color_tiles.allocate_tile();
-  dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
-  dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
-  sz = d->m_color_tiles.tile_size();
-  end_level = image_data.number_levels();
-
-  for (level = 0; level < end_level && sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2)
+  if (return_value != ivec3(-1, -1, -1))
     {
-      d->m_color_store->set_data(level, dst_xy, return_value.z(), src_xy, sz, image_data);
-    }
+      dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
+      dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
+      sz = d->m_color_tiles.tile_size();
+      end_level = image_data.number_levels();
 
-  for (; sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2, sz /= 2)
-    {
-      d->m_color_store->set_data(level, dst_xy, return_value.z(), sz,
-                                 u8vec4(255u, 255u, 0u, 255u));
+      for (level = 0; level < end_level && sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2)
+        {
+          d->m_color_store->set_data(level, dst_xy, return_value.z(), src_xy, sz, image_data);
+        }
+
+      for (; sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2, sz /= 2)
+        {
+          d->m_color_store->set_data(level, dst_xy, return_value.z(), sz,
+                                     u8vec4(255u, 255u, 0u, 255u));
+        }
     }
 
   return return_value;
@@ -1136,8 +1147,16 @@ flush(void) const
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
   std::lock_guard<std::mutex> M(d->m_mutex);
-  d->m_index_store->flush();
-  d->m_color_store->flush();
+
+  if (d->m_index_store)
+    {
+      d->m_index_store->flush();
+    }
+
+  if (d->m_color_store)
+    {
+      d->m_color_store->flush();
+    }
 }
 
 const fastuidraw::reference_counted_ptr<const fastuidraw::AtlasColorBackingStoreBase>&
@@ -1207,8 +1226,10 @@ create_image_on_atlas(int w, int h, const ImageSourceBase &image_data)
   int tile_interior_size;
   ivec2 num_color_tiles;
   int index_tiles;
+  ImageAtlasPrivate *d;
 
-  if (w <= 0 || h <= 0)
+  d = static_cast<ImageAtlasPrivate*>(m_d);
+  if (w <= 0 || h <= 0 || !d->m_color_store || !d->m_index_store)
     {
       return reference_counted_ptr<Image>();
     }

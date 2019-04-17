@@ -1466,10 +1466,10 @@ set_from_atlas(const reference_counted_ptr<ImageAtlas> &p)
     {
       BackendConstantsPrivate *d;
       d = static_cast<BackendConstantsPrivate*>(m_d);
-      d->m_image_atlas_color_store_width = p->color_store()->dimensions().x();
-      d->m_image_atlas_color_store_height = p->color_store()->dimensions().y();
-      d->m_image_atlas_index_tile_size = p->index_tile_size();
-      d->m_image_atlas_color_tile_size = p->color_tile_size();
+      d->m_image_atlas_color_store_width = p->color_store() ? p->color_store()->dimensions().x() : 1;
+      d->m_image_atlas_color_store_height = p->color_store() ? p->color_store()->dimensions().y() : 1;
+      d->m_image_atlas_index_tile_size = p->index_tile_size() > 0 ? p->index_tile_size() : 1;
+      d->m_image_atlas_color_tile_size = p->color_tile_size() > 0 ? p->color_tile_size() : 1;
     }
   return *this;
 }
