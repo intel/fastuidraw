@@ -319,9 +319,9 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
 
       if (m_use_atlas.value())
         {
-          im = Image::create(m_painter->image_atlas(),
-                             image_data.width(), image_data.height(),
-                             image_data);
+          im = m_painter->image_atlas()->create(image_data.width(),
+                                                image_data.height(),
+                                                image_data);
         }
       else
         {

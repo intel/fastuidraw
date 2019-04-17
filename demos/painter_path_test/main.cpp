@@ -2260,9 +2260,9 @@ derived_init(int w, int h)
         {
           if (m_use_atlas.value())
             {
-              m_image = Image::create(m_painter->image_atlas(),
-                                      image_data.width(), image_data.height(),
-                                      image_data);
+              m_image = m_painter->image_atlas()->create(image_data.width(),
+                                                         image_data.height(),
+                                                         image_data);
             }
           else
             {

@@ -423,9 +423,9 @@ derived_init(int, int)
   if (!m_image_file.value().empty())
     {
       ImageLoader image_data(m_image_file.value());
-      m_image = Image::create(m_painter->image_atlas(),
-                              image_data.width(), image_data.height(),
-                              image_data);
+      m_image = m_painter->image_atlas()->create(image_data.width(),
+                                                 image_data.height(),
+                                                 image_data);
       if (m_image)
         {
           std::cout << "Loaded image \"" << m_image_file.value()
