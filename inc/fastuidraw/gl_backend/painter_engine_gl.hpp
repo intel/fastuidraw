@@ -22,7 +22,6 @@
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/texture_image_gl.hpp>
-#include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 namespace fastuidraw
@@ -269,6 +268,131 @@ namespace fastuidraw
 
       /*!
        * \brief
+       * Class to hold the construction parameters for creating
+       * a GL-backend \ref GlyphAtlas for a \ref PainterEngineGL.
+       */
+      class GlyphAtlasParams
+      {
+      public:
+        /*!
+         * Ctor.
+         */
+        GlyphAtlasParams(void);
+
+        /*!
+         * Copy ctor.
+         * \param obj value from which to copy
+         */
+        GlyphAtlasParams(const GlyphAtlasParams &obj);
+
+        ~GlyphAtlasParams();
+
+        /*!
+         * Assignment operator.
+         * \param obj value from which to copy
+         */
+        GlyphAtlasParams&
+        operator=(const GlyphAtlasParams &obj);
+
+        /*!
+         * Swap operation
+         * \param obj object with which to swap
+         */
+        void
+        swap(GlyphAtlasParams &obj);
+
+        /*!
+         * Number floats that can be held in the data
+         * backing store, initial value is 1024 * 1024
+         */
+        unsigned int
+        number_floats(void) const;
+
+        /*!
+         * Set the value for number_floats(void) const
+         */
+        GlyphAtlasParams&
+        number_floats(unsigned int v);
+
+        /*!
+         * Returns what kind of GL object is used to back
+         * the glyph data. Default value is
+         * \ref glsl::PainterShaderRegistrarGLSL::glyph_data_tbo.
+         */
+        enum glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t
+        glyph_data_backing_store_type(void) const;
+
+        /*!
+         * Set glyph_data_backing_store() to \ref
+         * glsl::PainterShaderRegistrarGLSL::glyph_data_tbo,
+         * i.e. for the glyph data to be stored
+         * on a GL texture buffer object.
+         */
+        GlyphAtlasParams&
+        use_texture_buffer_store(void);
+
+        /*!
+         * Set glyph_data_backing_store() to \ref
+         * glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo,
+         * i.e. for the glyph data to be stored
+         * on a GL texture buffer object.
+         */
+        GlyphAtlasParams&
+        use_storage_buffer_store(void);
+
+        /*!
+         * Set glyph_data_backing_store() to \ref
+         * glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array,
+         * i.e. to use a 2D texture array to store the
+         * glyph data. The depth of the
+         * array is set implicitely by the size given by
+         * GlyphAtlasBackingStoreBase::size().
+         * NOTE: if either parameter is made negative, the
+         * call is ignored.
+         * \param log2_width Log2 of the width of the 2D texture array
+         * \param log2_height Log2 of the height of the 2D texture array
+         */
+        GlyphAtlasParams&
+        use_texture_2d_array_store(int log2_width, int log2_height);
+
+        /*!
+         * Set glyph_data_backing_store() to \ref
+         * glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array,
+         * i.e. to use a 2D texture array to store the
+         * glyph data. The depth of the
+         * array is set implicitely by the size given by
+         * GlyphAtlasBackingStoreBase::size(). The width and height
+         * of the texture will be selected from examining the context
+         * properties.
+         */
+        GlyphAtlasParams&
+        use_texture_2d_array_store(void);
+
+        /*!
+         * If glyph_data_backing_store() returns \ref
+         * glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array,
+         * returns the values
+         * set in use_texture_2d_array_store(), otherwise
+         * returns a value where both components are -1.
+         */
+        ivec2
+        texture_2d_array_store_log2_dims(void) const;
+
+        /*!
+         * Query the GL context to decide what is the optimal settings
+         * to back the GlyphAtlasBackingStoreBase returned by
+         * GlyphAtlas::store(). A GL context must be current
+         * so that GL capabilities may be queried.
+         */
+        GlyphAtlasParams&
+        use_optimal_store_backing(void);
+
+      private:
+        void *m_d;
+      };
+
+      /*!
+       * \brief
        * A ConfigurationGL gives parameters how to contruct
        * a PainterEngineGL.
        */
@@ -319,14 +443,14 @@ namespace fastuidraw
          * Return the parameters for creating the value returned
          * by glyph_atlas();
          */
-        const GlyphAtlasGL::params&
+        const GlyphAtlasParams&
         glyph_atlas_params(void) const;
 
         /*!
          * Set the value for glyph_atlas_params(void) const
          */
         ConfigurationGL&
-        glyph_atlas_params(const GlyphAtlasGL::params&);
+        glyph_atlas_params(const GlyphAtlasParams&);
 
         /*!
          * Return the parameters for creating the value returned
@@ -356,7 +480,7 @@ namespace fastuidraw
         /*!
          * The GlyphAtlasGL to be used by the painter
          */
-        const reference_counted_ptr<GlyphAtlasGL>&
+        const reference_counted_ptr<GlyphAtlas>&
         glyph_atlas(void) const;
 
         /*!

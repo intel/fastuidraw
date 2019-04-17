@@ -29,6 +29,8 @@
 
 #include <private/util_private.hpp>
 #include "private/image_gl.hpp"
+#include "private/glyph_atlas_gl.hpp"
+#include "private/colorstop_atlas_gl.hpp"
 #include "private/painter_backend_gl.hpp"
 #include "private/painter_backend_gl_config.hpp"
 #include "private/painter_surface_gl_private.hpp"
@@ -67,6 +69,23 @@ namespace
 
     int m_width;
     int m_num_layers;
+  };
+
+  class GlyphAtlasParamsPrivate
+  {
+  public:
+    /* Required maximal size of 64MB */
+    enum { required_max_size = (64u << 20u) };
+
+    GlyphAtlasParamsPrivate(void):
+      m_number_floats(1024 * 1024),
+      m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
+      m_log2_dims_store(-1, -1)
+    {}
+
+    unsigned int m_number_floats;
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_type;
+    fastuidraw::ivec2 m_log2_dims_store;
   };
 
   class ConfigurationGLPrivate
@@ -121,12 +140,12 @@ namespace
 
     std::string m_glsl_version_override;
     fastuidraw::gl::PainterEngineGL::ImageAtlasParams m_image_atlas_params;
-    fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
+    fastuidraw::gl::PainterEngineGL::GlyphAtlasParams m_glyph_atlas_params;
     fastuidraw::gl::PainterEngineGL::ColorStopAtlasParams m_colorstop_atlas_params;
 
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_colorstop_atlas;
-    fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_glyph_atlas;
   };
 
   class PainterEngineGLPrivate
@@ -213,8 +232,8 @@ compute_uber_shader_params(const fastuidraw::gl::PainterEngineGL::ConfigurationG
     .blend_shader_use_switch(params.blend_shader_use_switch())
     .data_store_backing(params.data_store_backing())
     .data_blocks_per_store_buffer(params.data_blocks_per_store_buffer())
-    .glyph_data_backing(params.glyph_atlas()->param_values().glyph_data_backing_store_type())
-    .glyph_data_backing_log2_dims(params.glyph_atlas()->param_values().texture_2d_array_store_log2_dims())
+    .glyph_data_backing(params.glyph_atlas_params().glyph_data_backing_store_type())
+    .glyph_data_backing_log2_dims(params.glyph_atlas_params().texture_2d_array_store_log2_dims())
     .colorstop_atlas_backing(colorstop_tp)
     .use_uvec2_for_bindless_handle(ctx.has_extension("GL_ARB_bindless_texture"));
 
@@ -389,8 +408,6 @@ setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
                  ImageAtlasParamsPrivate,
                  int, num_index_layers)
 
-
-
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterEngineGL::ColorStopAtlasParams methods
 fastuidraw::gl::PainterEngineGL::ColorStopAtlasParams::
@@ -430,6 +447,141 @@ optimal_width(void)
 {
   return width(fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_SIZE));
 }
+
+//////////////////////////////////////////////////////
+// fastuidraw::gl::PainterEngineGL::GlyphAtlasParams methods
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+GlyphAtlasParams(void)
+{
+  m_d = FASTUIDRAWnew GlyphAtlasParamsPrivate();
+}
+
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+GlyphAtlasParams(const GlyphAtlasParams &obj)
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew GlyphAtlasParamsPrivate(*d);
+}
+
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+~GlyphAtlasParams()
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = nullptr;
+}
+
+assign_swap_implement(fastuidraw::gl::PainterEngineGL::GlyphAtlasParams);
+
+enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+glyph_data_backing_store_type(void) const
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
+  return d->m_type;
+}
+
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+use_texture_buffer_store(void)
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
+  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_tbo;
+  d->m_log2_dims_store = ivec2(-1, -1);
+  return *this;
+}
+
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+use_storage_buffer_store(void)
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
+  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo;
+  d->m_log2_dims_store = ivec2(-1, -1);
+  return *this;
+}
+
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+use_texture_2d_array_store(int log2_width, int log2_height)
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
+  if (log2_width >= 0 && log2_height >= 0)
+    {
+      d->m_log2_dims_store = ivec2(log2_width, log2_height);
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array;
+    }
+  return *this;
+}
+
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+use_texture_2d_array_store(void)
+{
+  uint32_t max_layers(0), max_wh(0), width;
+  uint32_t required_area_per_layer, required_height;
+  max_layers = context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+  max_wh = context_get<int>(GL_MAX_TEXTURE_SIZE);
+
+  /* Our selection of size is as follows:
+   *  First maximize width (to a power of 2)
+   *  Second maximize depth
+   *  Last resort, increase height
+   * so that we can store required_size texels.
+   */
+  width = 1u << uint32_log2(max_wh);
+  required_area_per_layer = GlyphAtlasParamsPrivate::required_max_size / max_layers;
+  required_height = t_min(max_wh, required_area_per_layer / width);
+  if (required_height * width < required_area_per_layer)
+    {
+      ++required_height;
+    }
+
+  return use_texture_2d_array_store(uint32_log2(width),
+                                    uint32_log2(t_max(1u, required_height)));
+}
+
+fastuidraw::ivec2
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+texture_2d_array_store_log2_dims(void) const
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
+  return d->m_log2_dims_store;
+}
+
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&
+fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
+use_optimal_store_backing(void)
+{
+  GlyphAtlasParamsPrivate *d;
+  d = static_cast<GlyphAtlasParamsPrivate*>(m_d);
+
+  if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= GlyphAtlasParamsPrivate::required_max_size)
+    {
+      use_storage_buffer_store();
+    }
+  else if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
+           && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= GlyphAtlasParamsPrivate::required_max_size)
+    {
+      use_texture_buffer_store();
+    }
+  else
+    {
+      use_texture_2d_array_store();
+    }
+  return *this;
+}
+
+setget_implement(fastuidraw::gl::PainterEngineGL::GlyphAtlasParams,
+                 GlyphAtlasParamsPrivate,
+                 unsigned int, number_floats);
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterEngineGL::ConfigurationGL methods
@@ -798,7 +950,7 @@ colorstop_atlas_params(const ColorStopAtlasParams &params)
 
 fastuidraw::gl::PainterEngineGL::ConfigurationGL&
 fastuidraw::gl::PainterEngineGL::ConfigurationGL::
-glyph_atlas_params(const GlyphAtlasGL::params &params)
+glyph_atlas_params(const GlyphAtlasParams &params)
 {
   ConfigurationGLPrivate *d;
   d = static_cast<ConfigurationGLPrivate*>(m_d);
@@ -822,7 +974,7 @@ image_atlas(void) const
   return d->m_image_atlas;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&
+const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
 fastuidraw::gl::PainterEngineGL::ConfigurationGL::
 glyph_atlas(void) const
 {
@@ -831,7 +983,7 @@ glyph_atlas(void) const
 
   if (!d->m_glyph_atlas)
     {
-      d->m_glyph_atlas = FASTUIDRAWnew GlyphAtlasGL(d->m_glyph_atlas_params);
+      d->m_glyph_atlas = FASTUIDRAWnew detail::GlyphAtlasGL(d->m_glyph_atlas_params);
     }
   return d->m_glyph_atlas;
 }
@@ -898,7 +1050,7 @@ get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLP
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
               const fastuidraw::gl::PainterEngineGL::ColorStopAtlasParams&, colorstop_atlas_params)
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
-              const fastuidraw::gl::GlyphAtlasGL::params&, glyph_atlas_params)
+              const fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&, glyph_atlas_params)
 
 ///////////////////////////////////////////////////
 // fastuidraw::gl::PainterEngineGL methods

@@ -17,20 +17,18 @@
  */
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
-#include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
-#include "private/texture_gl.hpp"
-#include "private/buffer_object_gl.hpp"
-#include "private/tex_buffer.hpp"
-#include "private/texture_view.hpp"
 #include <private/util_private.hpp>
+#include "texture_gl.hpp"
+#include "buffer_object_gl.hpp"
+#include "tex_buffer.hpp"
+#include "texture_view.hpp"
+#include "glyph_atlas_gl.hpp"
 
 namespace
 {
-  /* Required maximal size of 64MB */
-  const int32_t required_max_size = (64u << 20u);
-
   class StoreGL:public fastuidraw::GlyphAtlasBackingStoreBase
   {
   public:
@@ -46,11 +44,11 @@ namespace
 
     virtual
     GLuint
-    gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const = 0;
+    gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const = 0;
 
     static
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase>
-    create(const fastuidraw::gl::GlyphAtlasGL::params &P);
+    create(const fastuidraw::gl::PainterEngineGL::GlyphAtlasParams &P);
 
     GLenum m_binding_point;
     fastuidraw::ivec2 m_log2_dims;
@@ -74,7 +72,7 @@ namespace
 
     virtual
     GLuint
-    gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const;
+    gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const;
 
   protected:
 
@@ -107,7 +105,7 @@ namespace
 
     virtual
     GLuint
-    gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const;
+    gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const;
 
   protected:
 
@@ -142,7 +140,7 @@ namespace
 
     virtual
     GLuint
-    gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const;
+    gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const;
 
   protected:
 
@@ -166,31 +164,6 @@ namespace
     int m_texels_per_layer;
     TextureGL m_backing_store;
     mutable GLuint m_texture_fp16;
-  };
-
-  class GlyphAtlasGLParamsPrivate
-  {
-  public:
-    GlyphAtlasGLParamsPrivate(void):
-      m_number_floats(1024 * 1024),
-      m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
-      m_log2_dims_store(-1, -1)
-    {}
-
-    unsigned int m_number_floats;
-    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_type;
-    fastuidraw::ivec2 m_log2_dims_store;
-  };
-
-  class GlyphAtlasGLPrivate
-  {
-  public:
-    explicit
-    GlyphAtlasGLPrivate(const fastuidraw::gl::GlyphAtlasGL::params &P):
-      m_params(P)
-    {}
-
-    fastuidraw::gl::GlyphAtlasGL::params m_params;
   };
 }
 
@@ -262,9 +235,9 @@ flush(void)
 
 GLuint
 StoreGL_Texture::
-gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const
+gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const
 {
-  return (fmt == fastuidraw::gl::GlyphAtlasGL::backing_uint32_fmt) ?
+  return (fmt == fastuidraw::gl::detail::GlyphAtlasGL::backing_uint32_fmt) ?
     m_backing_store.texture() :
     m_texture_fp16;
 }
@@ -372,7 +345,7 @@ resize_implement(unsigned int new_size)
 
 GLuint
 StoreGL_TextureBuffer::
-gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const
+gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const
 {
   if (m_texture == 0)
     {
@@ -398,7 +371,7 @@ gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t fmt) const
       m_tbo_dirty = false;
     }
 
-  return (fmt == fastuidraw::gl::GlyphAtlasGL::backing_uint32_fmt) ?
+  return (fmt == fastuidraw::gl::detail::GlyphAtlasGL::backing_uint32_fmt) ?
     m_texture :
     m_texture_fp16;
 }
@@ -438,7 +411,7 @@ resize_implement(unsigned int new_size)
 
 GLuint
 StoreGL_StorageBuffer::
-gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t) const
+gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t) const
 {
   return m_backing_store.buffer();
 }
@@ -447,7 +420,7 @@ gl_backing(enum fastuidraw::gl::GlyphAtlasGL::backing_fmt_t) const
 // StoreGL methods
 fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase>
 StoreGL::
-create(const fastuidraw::gl::GlyphAtlasGL::params &P)
+create(const fastuidraw::gl::PainterEngineGL::GlyphAtlasParams &P)
 {
   unsigned int number;
   StoreGL *p(nullptr);
@@ -475,170 +448,21 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
   return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasBackingStoreBase>(p);
 }
 
-//////////////////////////////////////////////////////
-// fastuidraw::gl::GlyphAtlasGL::params methods
-fastuidraw::gl::GlyphAtlasGL::params::
-params(void)
-{
-  m_d = FASTUIDRAWnew GlyphAtlasGLParamsPrivate();
-}
-
-fastuidraw::gl::GlyphAtlasGL::params::
-params(const params &obj)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew GlyphAtlasGLParamsPrivate(*d);
-}
-
-fastuidraw::gl::GlyphAtlasGL::params::
-~params()
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-assign_swap_implement(fastuidraw::gl::GlyphAtlasGL::params);
-
-enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t
-fastuidraw::gl::GlyphAtlasGL::params::
-glyph_data_backing_store_type(void) const
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  return d->m_type;
-}
-
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-use_texture_buffer_store(void)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_tbo;
-  d->m_log2_dims_store = ivec2(-1, -1);
-  return *this;
-}
-
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-use_storage_buffer_store(void)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo;
-  d->m_log2_dims_store = ivec2(-1, -1);
-  return *this;
-}
-
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-use_texture_2d_array_store(int log2_width, int log2_height)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  if (log2_width >= 0 && log2_height >= 0)
-    {
-      d->m_log2_dims_store = ivec2(log2_width, log2_height);
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array;
-    }
-  return *this;
-}
-
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-use_texture_2d_array_store(void)
-{
-  uint32_t max_layers(0), max_wh(0), width;
-  uint32_t required_area_per_layer, required_height;
-  max_layers = context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-  max_wh = context_get<int>(GL_MAX_TEXTURE_SIZE);
-
-  /* Our selection of size is as follows:
-   *  First maximize width (to a power of 2)
-   *  Second maximize depth
-   *  Last resort, increase height
-   * so that we can store required_size texels.
-   */
-  width = 1u << uint32_log2(max_wh);
-  required_area_per_layer = required_max_size / max_layers;
-  required_height = t_min(max_wh, required_area_per_layer / width);
-  if (required_height * width < required_area_per_layer)
-    {
-      ++required_height;
-    }
-
-  return use_texture_2d_array_store(uint32_log2(width),
-                                    uint32_log2(t_max(1u, required_height)));
-}
-
-fastuidraw::ivec2
-fastuidraw::gl::GlyphAtlasGL::params::
-texture_2d_array_store_log2_dims(void) const
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  return d->m_log2_dims_store;
-}
-
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-use_optimal_store_backing(void)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-
-  if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= required_max_size)
-    {
-      use_storage_buffer_store();
-    }
-  else if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
-           && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
-    {
-      use_texture_buffer_store();
-    }
-  else
-    {
-      use_texture_2d_array_store();
-    }
-  return *this;
-}
-
-setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
-                 GlyphAtlasGLParamsPrivate,
-                 unsigned int, number_floats);
-
 //////////////////////////////////////////////////////////////////
-// fastuidraw::gl::GlyphAtlasGL methods
-fastuidraw::gl::GlyphAtlasGL::
-GlyphAtlasGL(const params &P):
+// fastuidraw::gl::detail::GlyphAtlasGL methods
+fastuidraw::gl::detail::GlyphAtlasGL::
+GlyphAtlasGL(const PainterEngineGL::GlyphAtlasParams &P):
   GlyphAtlas(StoreGL::create(P))
 {
-  m_d = FASTUIDRAWnew GlyphAtlasGLPrivate(P);
 }
 
-fastuidraw::gl::GlyphAtlasGL::
+fastuidraw::gl::detail::GlyphAtlasGL::
 ~GlyphAtlasGL()
 {
-  GlyphAtlasGLPrivate *d;
-  d = static_cast<GlyphAtlasGLPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-const fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::
-param_values(void) const
-{
-  GlyphAtlasGLPrivate *d;
-  d = static_cast<GlyphAtlasGLPrivate*>(m_d);
-  return d->m_params;
 }
 
 GLenum
-fastuidraw::gl::GlyphAtlasGL::
+fastuidraw::gl::detail::GlyphAtlasGL::
 data_binding_point(void) const
 {
   const StoreGL *p;
@@ -648,7 +472,7 @@ data_binding_point(void) const
 }
 
 GLuint
-fastuidraw::gl::GlyphAtlasGL::
+fastuidraw::gl::detail::GlyphAtlasGL::
 data_backing(enum backing_fmt_t fmt) const
 {
   flush();
@@ -659,7 +483,7 @@ data_backing(enum backing_fmt_t fmt) const
 }
 
 bool
-fastuidraw::gl::GlyphAtlasGL::
+fastuidraw::gl::detail::GlyphAtlasGL::
 data_binding_point_is_texture_unit(void) const
 {
   const StoreGL *p;
@@ -669,7 +493,7 @@ data_binding_point_is_texture_unit(void) const
 }
 
 fastuidraw::ivec2
-fastuidraw::gl::GlyphAtlasGL::
+fastuidraw::gl::detail::GlyphAtlasGL::
 data_texture_as_2d_array_log2_dims(void) const
 {
   const StoreGL *p;

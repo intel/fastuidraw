@@ -18,6 +18,7 @@
 
 #include <sstream>
 #include "painter_shader_registrar_gl.hpp"
+#include "glyph_atlas_gl.hpp"
 
 namespace
 {
@@ -414,11 +415,10 @@ configure_source_front_matter(void)
   #else
     {
       bool using_glsl42, using_glsl43;
-      GlyphAtlasGL *glyphs(m_params.glyph_atlas().get());
       bool require_ssbo, require_image_load_store;
 
       require_ssbo = (m_uber_shader_builder_params.data_store_backing() == data_store_ssbo)
-        || (glyphs->data_binding_point() == GL_SHADER_STORAGE_BUFFER);
+        || (m_params.glyph_atlas_params().glyph_data_backing_store_type() == glyph_data_ssbo);
 
       require_image_load_store = (m_params.fbf_blending_type() == fbf_blending_interlock)
         || require_ssbo;
