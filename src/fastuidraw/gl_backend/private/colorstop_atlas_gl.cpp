@@ -20,10 +20,10 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
-#include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 
-#include "private/texture_gl.hpp"
 #include <private/util_private.hpp>
+#include "texture_gl.hpp"
+#include "colorstop_atlas_gl.hpp"
 
 namespace
 {
@@ -111,29 +111,6 @@ namespace
 
     TextureGL m_backing_store;
   };
-
-  class ColorStopAtlasGLParamsPrivate
-  {
-  public:
-    ColorStopAtlasGLParamsPrivate(void):
-      m_width(1024),
-      m_num_layers(32)
-    {}
-
-    int m_width;
-    int m_num_layers;
-  };
-
-  class ColorStopAtlasGLPrivate
-  {
-  public:
-    explicit
-    ColorStopAtlasGLPrivate(const fastuidraw::gl::ColorStopAtlasGL::params &P):
-      m_params(P)
-    {}
-
-    fastuidraw::gl::ColorStopAtlasGL::params m_params;
-  };
 }
 
 //////////////////////////
@@ -175,75 +152,21 @@ set_data(int x, int l,
   m_backing_store.set_data_c_array(V, pdata);
 }
 
-///////////////////////////////////////////////
-// fastuidraw::gl::ColorStopAtlasGL::params methods
-fastuidraw::gl::ColorStopAtlasGL::params::
-params(void)
-{
-  m_d = FASTUIDRAWnew ColorStopAtlasGLParamsPrivate();
-}
-
-fastuidraw::gl::ColorStopAtlasGL::params::
-params(const params &obj)
-{
-  ColorStopAtlasGLParamsPrivate *d;
-  d = static_cast<ColorStopAtlasGLParamsPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew ColorStopAtlasGLParamsPrivate(*d);
-}
-
-fastuidraw::gl::ColorStopAtlasGL::params::
-~params()
-{
-  ColorStopAtlasGLParamsPrivate *d;
-  d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-assign_swap_implement(fastuidraw::gl::ColorStopAtlasGL::params)
-setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
-                 ColorStopAtlasGLParamsPrivate,
-                 int, width)
-setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
-                 ColorStopAtlasGLParamsPrivate,
-                 int, num_layers)
-
-fastuidraw::gl::ColorStopAtlasGL::params&
-fastuidraw::gl::ColorStopAtlasGL::params::
-optimal_width(void)
-{
-  return width(fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_SIZE));
-}
-
 //////////////////////////////////////////////////////
-// fastuidraw::gl::ColorStopAtlasGL methods
-fastuidraw::gl::ColorStopAtlasGL::
-ColorStopAtlasGL(const params &P):
+// fastuidraw::gl::detail::ColorStopAtlasGL methods
+fastuidraw::gl::detail::ColorStopAtlasGL::
+ColorStopAtlasGL(const PainterEngineGL::ColorStopAtlasParams &P):
   fastuidraw::ColorStopAtlas(BackingStore::create(P.width(), P.num_layers()))
 {
-  m_d = FASTUIDRAWnew ColorStopAtlasGLPrivate(P);
 }
 
-fastuidraw::gl::ColorStopAtlasGL::
+fastuidraw::gl::detail::ColorStopAtlasGL::
 ~ColorStopAtlasGL()
 {
-  ColorStopAtlasGLPrivate *d;
-  d = static_cast<ColorStopAtlasGLPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-const fastuidraw::gl::ColorStopAtlasGL::params&
-fastuidraw::gl::ColorStopAtlasGL::
-param_values(void)
-{
-  ColorStopAtlasGLPrivate *d;
-  d = static_cast<ColorStopAtlasGLPrivate*>(m_d);
-  return d->m_params;
 }
 
 GLuint
-fastuidraw::gl::ColorStopAtlasGL::
+fastuidraw::gl::detail::ColorStopAtlasGL::
 texture(void) const
 {
   flush();
@@ -254,7 +177,7 @@ texture(void) const
 }
 
 GLenum
-fastuidraw::gl::ColorStopAtlasGL::
+fastuidraw::gl::detail::ColorStopAtlasGL::
 texture_bind_target(void)
 {
   #ifdef FASTUIDRAW_GL_USE_GLES

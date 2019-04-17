@@ -20,9 +20,9 @@
 
 #include <fastuidraw/painter/backend/painter_engine.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
+#include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/texture_image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
-#include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 namespace fastuidraw
@@ -197,6 +197,78 @@ namespace fastuidraw
 
       /*!
        * \brief
+       * Class to hold the construction parameters for creating
+       * a GL-backend \ref ColorStopAtlas for a \ref PainterEngineGL.
+       */
+      class ColorStopAtlasParams
+      {
+      public:
+        /*!
+         * Ctor.
+         */
+        ColorStopAtlasParams(void);
+
+        /*!
+         * Copy ctor.
+         * \param obj value from which to copy
+         */
+        ColorStopAtlasParams(const ColorStopAtlasParams &obj);
+
+        ~ColorStopAtlasParams();
+
+        /*!
+         * Assignment operator.
+         * \param rhs value from which to copy
+         */
+        ColorStopAtlasParams&
+        operator=(const ColorStopAtlasParams &rhs);
+
+        /*!
+         * Swap operation
+         * \param obj object with which to swap
+         */
+        void
+        swap(ColorStopAtlasParams &obj);
+
+        /*!
+         * width of underlying 1D-texture array, initial
+         * value is 1024
+         */
+        int
+        width(void) const;
+
+        /*!
+         * Set the value for width(void) const
+         */
+        ColorStopAtlasParams&
+        width(int v);
+
+        /*!
+         * number of layers of underling 1D texture, initial
+         * value is 32
+         */
+        int
+        num_layers(void) const;
+
+        /*!
+         * Set the value for num_layers(void) const
+         */
+        ColorStopAtlasParams&
+        num_layers(int v);
+
+        /*!
+         * Query the current GL context and set the value for
+         * width() const to GL_MAX_TEXTURE_SIZE.
+         */
+        ColorStopAtlasParams&
+        optimal_width(void);
+
+      private:
+        void *m_d;
+      };
+
+      /*!
+       * \brief
        * A ConfigurationGL gives parameters how to contruct
        * a PainterEngineGL.
        */
@@ -260,14 +332,14 @@ namespace fastuidraw
          * Return the parameters for creating the value returned
          * by _atlas();
          */
-        const ColorStopAtlasGL::params&
+        const ColorStopAtlasParams&
         colorstop_atlas_params(void) const;
 
         /*!
          * Set the value for _atlas_params(void) const
          */
         ConfigurationGL&
-        colorstop_atlas_params(const ColorStopAtlasGL::params&);
+        colorstop_atlas_params(const ColorStopAtlasParams&);
 
         /*!
          * The ImageAtlasGL to be used by the painter
@@ -278,7 +350,7 @@ namespace fastuidraw
         /*!
          * The ColorStopAtlasGL to be used by the painter
          */
-        const reference_counted_ptr<ColorStopAtlasGL>&
+        const reference_counted_ptr<ColorStopAtlas>&
         colorstop_atlas(void) const;
 
         /*!

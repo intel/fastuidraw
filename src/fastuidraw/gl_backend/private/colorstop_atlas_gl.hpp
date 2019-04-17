@@ -21,14 +21,14 @@
 
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
 namespace fastuidraw
 {
 namespace gl
 {
-/*!\addtogroup GLBackend
- * @{
- */
+namespace detail
+{
 
   /*!
    * \brief
@@ -46,83 +46,11 @@ namespace gl
   {
   public:
     /*!
-     * \brief
-     * Class to hold the construction parameters for creating
-     * a ColorStopAtlasGL.
-     */
-    class params
-    {
-    public:
-      /*!
-       * Ctor.
-       */
-      params(void);
-
-      /*!
-       * Copy ctor.
-       * \param obj value from which to copy
-       */
-      params(const params &obj);
-
-      ~params();
-
-      /*!
-       * Assignment operator.
-       * \param rhs value from which to copy
-       */
-      params&
-      operator=(const params &rhs);
-
-      /*!
-       * Swap operation
-       * \param obj object with which to swap
-       */
-      void
-      swap(params &obj);
-
-      /*!
-       * width of underlying 1D-texture array, initial
-       * value is 1024
-       */
-      int
-      width(void) const;
-
-      /*!
-       * Set the value for width(void) const
-       */
-      params&
-      width(int v);
-
-      /*!
-       * number of layers of underling 1D texture, initial
-       * value is 32
-       */
-      int
-      num_layers(void) const;
-
-      /*!
-       * Set the value for num_layers(void) const
-       */
-      params&
-      num_layers(int v);
-
-      /*!
-       * Query the current GL context and set the value for
-       * width() const to GL_MAX_TEXTURE_SIZE.
-       */
-      params&
-      optimal_width(void);
-
-    private:
-      void *m_d;
-    };
-
-    /*!
      * Ctor.
      * \param P parameters of construction.
      */
     explicit
-    ColorStopAtlasGL(const params &P);
+    ColorStopAtlasGL(const PainterEngineGL::ColorStopAtlasParams &P);
 
     ~ColorStopAtlasGL();
 
@@ -135,13 +63,6 @@ namespace gl
     texture(void) const;
 
     /*!
-     * Returns the params value used to construct
-     * the ColorStopAtlasGL.
-     */
-    const params&
-    param_values(void);
-
-    /*!
      * Returns the texture bind target of the underlying texture;
      * for GLES this is GL_TEXTURE_2D_ARRAY, for GL this is
      * GL_TEXTURE_1D_ARRAY
@@ -149,12 +70,8 @@ namespace gl
     static
     GLenum
     texture_bind_target(void);
-
-  private:
-    void *m_d;
   };
-/*! @} */
 
-}
-
-}
+} //namespace detail
+} //namespace gl
+} //namespace fastuidraw
