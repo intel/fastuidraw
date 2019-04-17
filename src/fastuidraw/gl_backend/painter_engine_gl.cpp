@@ -763,7 +763,7 @@ image_atlas(void) const
 
   if (!d->m_image_atlas)
     {
-      d->m_image_atlas = FASTUIDRAWnew ImageAtlasGL(d->m_image_atlas_params);
+      d->m_image_atlas = FASTUIDRAWnew detail::ImageAtlasGL(d->m_image_atlas_params);
     }
   return d->m_image_atlas;
 }

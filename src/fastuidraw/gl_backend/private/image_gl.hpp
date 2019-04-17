@@ -28,9 +28,8 @@ namespace fastuidraw
 {
 namespace gl
 {
-/*!\addtogroup GLBackend
- * @{
- */
+namespace detail
+{
 
   /*!
    * \brief
@@ -77,5 +76,6 @@ namespace gl
   };
 /*! @} */
 
+} //namespace detail
 } //namespace gl
 } //namespace fastuidraw

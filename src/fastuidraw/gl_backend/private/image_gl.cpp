@@ -312,8 +312,8 @@ store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num
 }
 
 //////////////////////////////////////////////
-// fastuidraw::gl::ImageAtlasGL methods
-fastuidraw::gl::ImageAtlasGL::
+// fastuidraw::gl::detail::ImageAtlasGL methods
+fastuidraw::gl::detail::ImageAtlasGL::
 ImageAtlasGL(const PainterEngineGL::ImageAtlasParams &P):
   fastuidraw::ImageAtlas(1 << P.log2_color_tile_size(), //color tile size
                         1 << P.log2_index_tile_size(), //index tile size
@@ -325,13 +325,13 @@ ImageAtlasGL(const PainterEngineGL::ImageAtlasParams &P):
 {
 }
 
-fastuidraw::gl::ImageAtlasGL::
+fastuidraw::gl::detail::ImageAtlasGL::
 ~ImageAtlasGL()
 {
 }
 
 GLuint
-fastuidraw::gl::ImageAtlasGL::
+fastuidraw::gl::detail::ImageAtlasGL::
 color_texture(void) const
 {
   flush();
@@ -342,7 +342,7 @@ color_texture(void) const
 }
 
 GLuint
-fastuidraw::gl::ImageAtlasGL::
+fastuidraw::gl::detail::ImageAtlasGL::
 index_texture(void) const
 {
   flush();
