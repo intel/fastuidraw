@@ -154,7 +154,7 @@ painter_cells(void):
                  "image_filter",
                  "Specifies how to filter the images applied to the rects",
                  *this),
-  m_image_use_mipmaps(true, "image_mipmap", "If true, apply mipmapp filtering to images", *this),
+  m_image_use_mipmaps(false, "image_mipmap", "If true, apply mipmapp filtering to images", *this),
   m_use_atlas(true, "use_atlas",
               "If false, each image is realized as a texture; if "
               "GL_ARB_bindless_texture or GL_NV_bindless_texture "
