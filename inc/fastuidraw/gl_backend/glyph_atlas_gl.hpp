@@ -151,8 +151,20 @@ namespace gl
        * \param log2_height Log2 of the height of the 2D texture array
        */
       params&
-      use_texture_2d_array_store(int log2_width,
-                                          int log2_height = 0);
+      use_texture_2d_array_store(int log2_width, int log2_height);
+
+      /*!
+       * Set glyph_data_backing_store() to \ref
+       * glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array,
+       * i.e. to use a 2D texture array to store the
+       * glyph data. The depth of the
+       * array is set implicitely by the size given by
+       * GlyphAtlasBackingStoreBase::size(). The width and height
+       * of the texture will be selected from examining the context
+       * properties.
+       */
+      params&
+      use_texture_2d_array_store(void);
 
       /*!
        * If glyph_data_backing_store() returns \ref

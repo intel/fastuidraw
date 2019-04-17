@@ -28,6 +28,9 @@
 
 namespace
 {
+  /* Required maximal size of 64MB */
+  const int32_t required_max_size = (64u << 20u);
+
   class StoreGL:public fastuidraw::GlyphAtlasBackingStoreBase
   {
   public:
@@ -548,6 +551,33 @@ use_texture_2d_array_store(int log2_width, int log2_height)
   return *this;
 }
 
+fastuidraw::gl::GlyphAtlasGL::params&
+fastuidraw::gl::GlyphAtlasGL::params::
+use_texture_2d_array_store(void)
+{
+  uint32_t max_layers(0), max_wh(0), width;
+  uint32_t required_area_per_layer, required_height;
+  max_layers = context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+  max_wh = context_get<int>(GL_MAX_TEXTURE_SIZE);
+
+  /* Our selection of size is as follows:
+   *  First maximize width (to a power of 2)
+   *  Second maximize depth
+   *  Last resort, increase height
+   * so that we can store required_size texels.
+   */
+  width = 1u << uint32_log2(max_wh);
+  required_area_per_layer = required_max_size / max_layers;
+  required_height = t_min(max_wh, required_area_per_layer / width);
+  if (required_height * width < required_area_per_layer)
+    {
+      ++required_height;
+    }
+
+  return use_texture_2d_array_store(uint32_log2(width),
+                                    uint32_log2(t_max(1u, required_height)));
+}
+
 fastuidraw::ivec2
 fastuidraw::gl::GlyphAtlasGL::params::
 texture_2d_array_store_log2_dims(void) const
@@ -564,45 +594,18 @@ use_optimal_store_backing(void)
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
 
-  /* Required maximal size of 64MB */
-  const int32_t required_max_size(64u << 20u);
-
   if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= required_max_size)
     {
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo;
-      d->m_log2_dims_store = ivec2(-1, -1);
+      use_storage_buffer_store();
     }
   else if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
            && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
     {
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_tbo;
-      d->m_log2_dims_store = ivec2(-1, -1);
+      use_texture_buffer_store();
     }
   else
     {
-      uint32_t max_layers(0), max_wh(0), width;
-      uint32_t required_area_per_layer, required_height;
-      max_layers = context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-      max_wh = context_get<int>(GL_MAX_TEXTURE_SIZE);
-
-      /* Our selection of size is as follows:
-       *  First maximize width (to a power of 2)
-       *  Second maximize depth
-       *  Last resort, increase height
-       * so that we can store required_size texels.
-       */
-      width = 1u << uint32_log2(max_wh);
-      required_area_per_layer = required_max_size / max_layers;
-      required_height = t_min(max_wh, required_area_per_layer / width);
-      if (required_height * width < required_area_per_layer)
-        {
-          ++required_height;
-        }
-
-      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array;
-      d->m_log2_dims_store.x() = uint32_log2(width);
-      d->m_log2_dims_store.y() = (required_height <= 1) ?
-        0 : uint32_log2(required_height);
+      use_texture_2d_array_store();
     }
   return *this;
 }
