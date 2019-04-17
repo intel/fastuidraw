@@ -29,6 +29,8 @@
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
+#include <private/gl_backend/scratch_renderer.hpp>
+
 namespace fastuidraw { namespace gl { namespace detail {
 
 GLenum
@@ -711,6 +713,7 @@ enum texture_type_t
   {
       decimal_color_texture_type,
       integer_color_texture_type,
+      unsigned_integer_color_texture_type,
       depth_texture_type,
       depth_stencil_texture_type,
   };
@@ -727,21 +730,35 @@ compute_texture_type_from_internal_format(GLenum internal_format)
                               type_from_internal_format(internal_format));
 }
 
+/* \param texture GL name of texture
+ * \param level mipmap level to clear
+ * \param render_scratch if non-null, render a little junk to the texture
+ *                       to encourage an implementation to attach
+ *                       auxiliary surfaces for those buggy GL
+ *                       implementations that forget to attach
+ *                       auxiliary surfaces to a texture's bindless
+ *                       description if it attached the auxliary
+ *                       surface after the bindless handle was made.
+ */
 void
-clear_texture_2d(GLuint texture, GLint level, enum texture_type_t);
+clear_texture_2d(GLuint texture, GLint level, enum texture_type_t,
+                 ScratchRenderer *render_scratch = nullptr);
 
 inline
 void
 clear_texture_2d(GLuint texture, GLint level,
-                 GLenum external_format, GLenum external_type)
+                 GLenum external_format, GLenum external_type,
+                 ScratchRenderer *render_scratch = nullptr)
 {
-  clear_texture_2d(texture, level, compute_texture_type(external_format, external_type));
+  clear_texture_2d(texture, level, compute_texture_type(external_format, external_type), render_scratch);
 }
+
 inline
 void
-clear_texture_2d(GLuint texture, GLint level, GLenum internal_format)
+clear_texture_2d(GLuint texture, GLint level, GLenum internal_format,
+                 ScratchRenderer *render_scratch = nullptr)
 {
-  clear_texture_2d(texture, level, compute_texture_type_from_internal_format(internal_format));
+  clear_texture_2d(texture, level, compute_texture_type_from_internal_format(internal_format), render_scratch);
 }
 
 

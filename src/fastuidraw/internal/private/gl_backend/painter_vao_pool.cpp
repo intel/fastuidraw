@@ -129,17 +129,17 @@ create_vao(painter_vao &return_value)
 
   fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute0_slot);
   v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
-                                         offsetof(PainterAttribute, m_attrib0));
+                                 offsetof(PainterAttribute, m_attrib0));
   VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute0_slot, v);
 
   fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute1_slot);
   v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
-                                         offsetof(PainterAttribute, m_attrib1));
+                                 offsetof(PainterAttribute, m_attrib1));
   VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute1_slot, v);
 
   fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute2_slot);
   v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
-                                         offsetof(PainterAttribute, m_attrib2));
+                                 offsetof(PainterAttribute, m_attrib2));
   VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute2_slot, v);
 
   fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, return_value.m_header_bo);

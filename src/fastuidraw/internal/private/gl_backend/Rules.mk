@@ -13,7 +13,8 @@ FASTUIDRAW_PRIVATE_GL_SOURCES += $(call filelist, \
 	painter_surface_gl_private.cpp \
 	glyph_atlas_gl.cpp \
 	painter_backend_gl.cpp \
-	painter_vao_pool.cpp)
+	painter_vao_pool.cpp \
+	scratch_renderer.cpp)
 
 
 # Begin standard footer

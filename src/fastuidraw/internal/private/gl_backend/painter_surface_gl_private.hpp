@@ -21,6 +21,7 @@
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 #include <fastuidraw/gl_backend/painter_surface_gl.hpp>
+#include <private/gl_backend/scratch_renderer.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 
@@ -28,7 +29,8 @@ class PainterSurfaceGLPrivate:noncopyable
 {
 public:
   explicit
-  PainterSurfaceGLPrivate(enum PainterSurface::render_type_t type,
+  PainterSurfaceGLPrivate(reference_counted_ptr<ScratchRenderer> scratch_renderer,
+                          enum PainterSurface::render_type_t type,
                           GLuint texture, ivec2 dimensions,
                           bool allow_bindless);
 
@@ -74,7 +76,7 @@ private:
   vecN<GLuint, 2> m_fbo;
   vecN<vecN<GLenum, 1>, 2> m_draw_buffer_values;
   vecN<c_array<const GLenum>, 2> m_draw_buffers;
-
+  reference_counted_ptr<ScratchRenderer> m_scratch_renderer;
   reference_counted_ptr<const Image> m_image;
   bool m_own_texture, m_allow_bindless;
 };

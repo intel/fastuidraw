@@ -23,7 +23,8 @@
 /////////////////////////////
 //PainterSurfaceGLPrivate methods
 fastuidraw::gl::detail::PainterSurfaceGLPrivate::
-PainterSurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
+PainterSurfaceGLPrivate(reference_counted_ptr<ScratchRenderer> scratch_renderer,
+                        enum PainterSurface::render_type_t render_type,
                         GLuint texture, ivec2 dimensions,
                         bool allow_bindless):
   m_render_type(render_type),
@@ -31,6 +32,7 @@ PainterSurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
   m_dimensions(dimensions),
   m_buffers(0),
   m_fbo(0),
+  m_scratch_renderer(scratch_renderer),
   m_own_texture(texture == 0),
   m_allow_bindless(allow_bindless)
 {
@@ -126,7 +128,7 @@ buffer(enum buffer_t tp)
 
       detail::tex_storage<GL_TEXTURE_2D>(true, internalFormat, m_dimensions);
       /* This is more than just good sanitation; For Intel GPU
-       * drivers on MS-Windows, if we dont't to clear a texture
+       * drivers on MS-Windows, if we don't to clear a texture
        * and derive a bindless handle afterwards, clears on
        * the surface will result in incorrect reads. The cause
        * is likely that an auxiliary (hidden) surface is attached
@@ -135,7 +137,7 @@ buffer(enum buffer_t tp)
        * will not have the auxiliary attached to it resulting in that
        * reads of the surface via bindless will produce garbage.
        */
-      clear_texture_2d(m_buffers[tp], 0, internalFormat);
+      clear_texture_2d(m_buffers[tp], 0, internalFormat, m_scratch_renderer.get());
       fastuidraw_glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       fastuidraw_glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       fastuidraw_glBindTexture(tex_target, old_tex);
@@ -153,8 +155,23 @@ fbo(bool with_color_buffer)
     {
       GLint old_fbo;
       GLenum tex_target;
+      GLuint depth_buffer(0u), color_buffer(0u);
 
       tex_target = GL_TEXTURE_2D;
+
+      /* We get the names of the buffers *NOW* because
+       * the creation of a buffer might change that currently
+       * bound FBO.
+       */
+      if (m_render_type == PainterSurface::color_buffer_type)
+        {
+          depth_buffer = buffer(buffer_depth);
+        }
+
+      if (with_color_buffer)
+        {
+          color_buffer = buffer(buffer_color);
+        }
 
       fastuidraw_glGenFramebuffers(1, &m_fbo[tp]);
       FASTUIDRAWassert(m_fbo[tp] != 0);
@@ -165,13 +182,13 @@ fbo(bool with_color_buffer)
       if (m_render_type == PainterSurface::color_buffer_type)
         {
           fastuidraw_glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-                                            tex_target, buffer(buffer_depth), 0);
+                                            tex_target, depth_buffer, 0);
         }
 
       if (with_color_buffer)
         {
           fastuidraw_glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                            tex_target, buffer(buffer_color), 0);
+                                            tex_target, color_buffer, 0);
         }
 
       fastuidraw_glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);

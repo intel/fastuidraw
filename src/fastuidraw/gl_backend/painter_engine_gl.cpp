@@ -183,6 +183,20 @@ namespace
     fastuidraw::gl::detail::BindingPoints m_binding_points;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
   };
+
+  const fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::ScratchRenderer>&
+  fetch_scratch_renderer(const fastuidraw::gl::PainterEngineGL &engine)
+  {
+    using namespace fastuidraw;
+    using namespace fastuidraw::gl;
+    using namespace fastuidraw::gl::detail;
+
+    reference_counted_ptr<PainterShaderRegistrar> reg;
+
+    reg = engine.painter_shader_registrar();
+    FASTUIDRAWassert(reg.dynamic_cast_ptr<PainterShaderRegistrarGL>());
+    return reg.static_cast_ptr<PainterShaderRegistrarGL>()->scratch_renderer();
+  }
 }
 
 //////////////////////////////////////////
@@ -246,7 +260,8 @@ fastuidraw::gl::PainterSurfaceGL::
 PainterSurfaceGL(ivec2 dims, const PainterEngineGL &backend,
                  enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(render_type, 0u, dims,
+  m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(fetch_scratch_renderer(backend),
+                                                      render_type, 0u, dims,
                                                       backend.configuration_gl().allow_bindless_texture_from_surface());
 }
 
@@ -255,7 +270,8 @@ PainterSurfaceGL(ivec2 dims, GLuint color_buffer_texture,
                  const PainterEngineGL &backend,
                  enum PainterSurface::render_type_t render_type)
 {
-  m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(render_type, color_buffer_texture, dims,
+  m_d = FASTUIDRAWnew detail::PainterSurfaceGLPrivate(fetch_scratch_renderer(backend),
+                                                      render_type, color_buffer_texture, dims,
                                                       backend.configuration_gl().allow_bindless_texture_from_surface());
 }
 

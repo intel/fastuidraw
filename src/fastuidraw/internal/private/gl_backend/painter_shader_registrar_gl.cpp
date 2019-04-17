@@ -109,6 +109,7 @@ PainterShaderRegistrarGL(const PainterEngineGL::ConfigurationGL &P,
   m_backend_constants
     .set_from_atlas(m_params.colorstop_atlas().static_cast_ptr<ColorStopAtlas>())
     .set_from_atlas(m_params.image_atlas().static_cast_ptr<ImageAtlas>());
+  m_scratch_renderer = FASTUIDRAWnew ScratchRenderer();
 }
 
 bool

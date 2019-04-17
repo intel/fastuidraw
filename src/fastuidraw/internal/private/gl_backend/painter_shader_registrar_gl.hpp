@@ -25,6 +25,7 @@
 
 #include <private/gl_backend/tex_buffer.hpp>
 #include <private/gl_backend/painter_backend_gl_config.hpp>
+#include <private/gl_backend/scratch_renderer.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 
@@ -150,6 +151,12 @@ public:
     hints.clipping_via_hw_clip_planes(m_params.clipping_type() == clipping_via_gl_clip_distance);
   }
 
+  const reference_counted_ptr<ScratchRenderer>&
+  scratch_renderer(void)
+  {
+    return m_scratch_renderer;
+  }
+
 protected:
   bool
   blend_type_supported(enum PainterBlendShader::shader_type) const override;
@@ -201,6 +208,8 @@ private:
   UberShaderParams m_uber_shader_builder_params;
   enum interlock_type_t m_interlock_type;
   BackendConstants m_backend_constants;
+
+  reference_counted_ptr<ScratchRenderer> m_scratch_renderer;
 
   std::string m_gles_clip_plane_extension;
   PreLinkActionArray m_attribute_binder;

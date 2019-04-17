@@ -42,10 +42,10 @@ namespace
 
   void
   set_color_attachment(GLenum fbo,
-               GLenum texTarget,
-               GLuint texName,
-               GLint layer,
-               GLint level)
+                       GLenum texTarget,
+                       GLuint texName,
+                       GLint layer,
+                       GLint level)
   {
     if (texture_is_layered(texTarget))
       {
@@ -69,7 +69,6 @@ namespace
           }
       }
   }
-
 }
 
 GLenum
@@ -373,13 +372,16 @@ compute_texture_type(GLenum format, GLenum type)
      case GL_RGB_INTEGER:
      case GL_RGBA_INTEGER:
      case GL_RG_INTEGER:
-       return integer_color_texture_type;
+       return (type == GL_UNSIGNED_INT) ?
+         unsigned_integer_color_texture_type :
+         integer_color_texture_type;
     }
 }
 
 void
 fastuidraw::gl::detail::
-clear_texture_2d(GLuint texture, GLint level, enum texture_type_t type)
+clear_texture_2d(GLuint texture, GLint level, enum texture_type_t type,
+                 ScratchRenderer *render_scratch)
 {
   GLuint fbo(0), old_fbo;
   GLenum attach_pt;
@@ -397,6 +399,7 @@ clear_texture_2d(GLuint texture, GLint level, enum texture_type_t type)
       return;
     case decimal_color_texture_type:
     case integer_color_texture_type:
+    case unsigned_integer_color_texture_type:
       attach_pt = GL_COLOR_ATTACHMENT0;
       break;
     case depth_stencil_texture_type:
@@ -408,6 +411,28 @@ clear_texture_2d(GLuint texture, GLint level, enum texture_type_t type)
     }
 
   fastuidraw_glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attach_pt, GL_TEXTURE_2D, texture, level);
+  if (render_scratch)
+    {
+      enum ScratchRenderer::render_type_t tp;
+      switch(type)
+        {
+        case decimal_color_texture_type:
+        case depth_stencil_texture_type:
+        case depth_texture_type:
+          tp = ScratchRenderer::float_render;
+          break;
+
+        case unsigned_integer_color_texture_type:
+          tp = ScratchRenderer::uint_render;
+          break;
+
+        case integer_color_texture_type:
+          tp = ScratchRenderer::int_render;
+          break;
+        }
+      render_scratch->draw(tp);
+    }
+
   switch (type)
     {
     case depth_stencil_texture_type:
@@ -422,6 +447,7 @@ clear_texture_2d(GLuint texture, GLint level, enum texture_type_t type)
       fastuidraw_glClearBufferfv(GL_COLOR, 0, vec4(0.0f, 0.0f, 0.0f, 0.0f).c_ptr());
       break;
 
+    case unsigned_integer_color_texture_type:
     case integer_color_texture_type:
       fastuidraw_glClearBufferiv(GL_COLOR, 0, ivec4(0, 0, 0, 0).c_ptr());
       break;
