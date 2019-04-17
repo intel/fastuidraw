@@ -34,9 +34,9 @@
 
 #include <iterator>
 #include <set>
-#include "int_path.hpp"
-#include "bezier_util.hpp"
-#include "util_private_ostream.hpp"
+#include <private/int_path.hpp>
+#include <private/bezier_util.hpp>
+#include <private/util_private_ostream.hpp>
 
 namespace
 {

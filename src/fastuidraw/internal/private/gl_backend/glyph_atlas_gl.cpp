@@ -21,11 +21,11 @@
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
 #include <private/util_private.hpp>
-#include "texture_gl.hpp"
-#include "buffer_object_gl.hpp"
-#include "tex_buffer.hpp"
-#include "texture_view.hpp"
-#include "glyph_atlas_gl.hpp"
+#include <private/gl_backend/texture_gl.hpp>
+#include <private/gl_backend/buffer_object_gl.hpp>
+#include <private/gl_backend/tex_buffer.hpp>
+#include <private/gl_backend/texture_view.hpp>
+#include <private/gl_backend/glyph_atlas_gl.hpp>
 
 namespace
 {

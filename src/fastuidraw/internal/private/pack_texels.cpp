@@ -16,7 +16,7 @@
  *
  */
 
-#include "pack_texels.hpp"
+#include <private/pack_texels.hpp>
 
 namespace
 {

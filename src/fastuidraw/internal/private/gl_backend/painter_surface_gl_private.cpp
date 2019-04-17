@@ -16,16 +16,16 @@
  *
  */
 
-#include "painter_surface_gl_private.hpp"
-#include "tex_buffer.hpp"
-#include "texture_gl.hpp"
+#include <private/gl_backend/painter_surface_gl_private.hpp>
+#include <private/gl_backend/tex_buffer.hpp>
+#include <private/gl_backend/texture_gl.hpp>
 
 /////////////////////////////
 //PainterSurfaceGLPrivate methods
 fastuidraw::gl::detail::PainterSurfaceGLPrivate::
 PainterSurfaceGLPrivate(enum PainterSurface::render_type_t render_type,
-                 GLuint texture, ivec2 dimensions,
-                 bool allow_bindless):
+                        GLuint texture, ivec2 dimensions,
+                        bool allow_bindless):
   m_render_type(render_type),
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
   m_dimensions(dimensions),

@@ -22,9 +22,9 @@
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <private/util_private.hpp>
 
-#include "texture_gl.hpp"
-#include "bindless.hpp"
-#include "image_gl.hpp"
+#include <private/gl_backend/texture_gl.hpp>
+#include <private/gl_backend/bindless.hpp>
+#include <private/gl_backend/image_gl.hpp>
 
 namespace
 {

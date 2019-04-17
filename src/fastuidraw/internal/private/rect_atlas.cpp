@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <ciso646>
 
-#include "rect_atlas.hpp"
+#include <private/rect_atlas.hpp>
 
 
 namespace

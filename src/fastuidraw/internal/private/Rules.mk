@@ -10,6 +10,9 @@ include $(dir)/Rules.mk
 dir := $(d)/painter_backend
 include $(dir)/Rules.mk
 
+dir := $(d)/gl_backend
+include $(dir)/Rules.mk
+
 FASTUIDRAW_PRIVATE_SOURCES += $(call filelist, \
 	interval_allocator.cpp \
 	path_util_private.cpp \

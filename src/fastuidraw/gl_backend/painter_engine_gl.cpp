@@ -28,14 +28,14 @@
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 #include <private/util_private.hpp>
-#include "private/image_gl.hpp"
-#include "private/glyph_atlas_gl.hpp"
-#include "private/colorstop_atlas_gl.hpp"
-#include "private/painter_backend_gl.hpp"
-#include "private/painter_backend_gl_config.hpp"
-#include "private/painter_surface_gl_private.hpp"
-#include "private/painter_shader_registrar_gl.hpp"
-#include "private/binding_points.hpp"
+#include <private/gl_backend/image_gl.hpp>
+#include <private/gl_backend/glyph_atlas_gl.hpp>
+#include <private/gl_backend/colorstop_atlas_gl.hpp>
+#include <private/gl_backend/painter_backend_gl.hpp>
+#include <private/gl_backend/painter_backend_gl_config.hpp>
+#include <private/gl_backend/painter_surface_gl_private.hpp>
+#include <private/gl_backend/painter_shader_registrar_gl.hpp>
+#include <private/gl_backend/binding_points.hpp>
 
 namespace
 {

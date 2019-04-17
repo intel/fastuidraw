@@ -27,7 +27,7 @@
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
-#include "tex_buffer.hpp"
+#include <private/gl_backend/tex_buffer.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 

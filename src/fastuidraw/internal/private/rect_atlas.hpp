@@ -28,8 +28,8 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 
-#include "util_private.hpp"
-#include "simple_pool.hpp"
+#include <private/util_private.hpp>
+#include <private/simple_pool.hpp>
 
 
 namespace fastuidraw {

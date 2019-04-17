@@ -16,8 +16,8 @@
  *
  */
 
-#include "clip.hpp"
-#include "util_private.hpp"
+#include <private/clip.hpp>
+#include <private/util_private.hpp>
 
 namespace
 {

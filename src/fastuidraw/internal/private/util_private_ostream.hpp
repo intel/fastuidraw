@@ -27,7 +27,7 @@
 #include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 
-#include "bounding_box.hpp"
+#include <private/bounding_box.hpp>
 
 namespace fastuidraw { namespace detail {
 

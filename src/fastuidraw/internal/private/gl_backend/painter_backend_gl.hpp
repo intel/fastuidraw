@@ -28,16 +28,16 @@
 #include <fastuidraw/gl_backend/painter_surface_gl.hpp>
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
-#include "tex_buffer.hpp"
-#include "texture_gl.hpp"
-#include "painter_backend_gl_config.hpp"
-#include "painter_vao_pool.hpp"
-#include "painter_shader_registrar_gl.hpp"
-#include "painter_surface_gl_private.hpp"
-#include "binding_points.hpp"
-#include "image_gl.hpp"
-#include "colorstop_atlas_gl.hpp"
-#include "glyph_atlas_gl.hpp"
+#include <private/gl_backend/tex_buffer.hpp>
+#include <private/gl_backend/texture_gl.hpp>
+#include <private/gl_backend/painter_backend_gl_config.hpp>
+#include <private/gl_backend/painter_vao_pool.hpp>
+#include <private/gl_backend/painter_shader_registrar_gl.hpp>
+#include <private/gl_backend/painter_surface_gl_private.hpp>
+#include <private/gl_backend/binding_points.hpp>
+#include <private/gl_backend/image_gl.hpp>
+#include <private/gl_backend/colorstop_atlas_gl.hpp>
+#include <private/gl_backend/glyph_atlas_gl.hpp>
 
 namespace fastuidraw
 {

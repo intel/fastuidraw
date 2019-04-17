@@ -17,8 +17,8 @@
  */
 
 #include <sstream>
-#include "painter_shader_registrar_gl.hpp"
-#include "glyph_atlas_gl.hpp"
+#include <private/gl_backend/painter_shader_registrar_gl.hpp>
+#include <private/gl_backend/glyph_atlas_gl.hpp>
 
 namespace
 {

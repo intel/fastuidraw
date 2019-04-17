@@ -22,8 +22,8 @@
 #include <fastuidraw/gl_backend/gl_get.hpp>
 
 #include <private/util_private.hpp>
-#include "texture_gl.hpp"
-#include "colorstop_atlas_gl.hpp"
+#include <private/gl_backend/texture_gl.hpp>
+#include <private/gl_backend/colorstop_atlas_gl.hpp>
 
 namespace
 {

@@ -19,8 +19,8 @@
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/texture_image_gl.hpp>
-#include "private/texture_gl.hpp"
-#include "private/bindless.hpp"
+#include <private/gl_backend/texture_gl.hpp>
+#include <private/gl_backend/bindless.hpp>
 #include <private/util_private.hpp>
 
 namespace

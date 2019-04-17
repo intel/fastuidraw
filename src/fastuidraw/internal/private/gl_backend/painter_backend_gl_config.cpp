@@ -16,7 +16,7 @@
  *
  */
 
-#include "painter_backend_gl_config.hpp"
+#include <private/gl_backend/painter_backend_gl_config.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 

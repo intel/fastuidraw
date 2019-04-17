@@ -19,7 +19,7 @@
 #include <cmath>
 #include <complex>
 #include <fastuidraw/util/math.hpp>
-#include "path_util_private.hpp"
+#include <private/path_util_private.hpp>
 
 unsigned int
 fastuidraw::detail::

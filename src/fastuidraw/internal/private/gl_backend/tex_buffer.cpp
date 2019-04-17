@@ -18,7 +18,7 @@
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
-#include "tex_buffer.hpp"
+#include <private/gl_backend/tex_buffer.hpp>
 
 enum fastuidraw::gl::detail::tex_buffer_support_t
 fastuidraw::gl::detail::

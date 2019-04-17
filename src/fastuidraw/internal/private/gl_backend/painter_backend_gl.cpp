@@ -25,7 +25,7 @@
 
 #include <private/util_private.hpp>
 #include <private/util_private_ostream.hpp>
-#include "painter_backend_gl.hpp"
+#include <private/gl_backend/painter_backend_gl.hpp>
 
 #ifdef FASTUIDRAW_GL_USE_GLES
 #define GL_SRC1_COLOR GL_SRC1_COLOR_EXT

@@ -18,7 +18,7 @@
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
-#include "bindless.hpp"
+#include <private/gl_backend/bindless.hpp>
 
 fastuidraw::gl::detail::Bindless::
 Bindless(void)

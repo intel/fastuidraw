@@ -19,7 +19,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
-#include "texture_view.hpp"
+#include <private/gl_backend/texture_view.hpp>
 
 enum fastuidraw::gl::detail::texture_view_support_t
 fastuidraw::gl::detail::

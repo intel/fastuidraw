@@ -20,7 +20,7 @@
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/math.hpp>
-#include "interval_allocator.hpp"
+#include <private/interval_allocator.hpp>
 
 fastuidraw::interval_allocator::
 interval_allocator(int size)

@@ -17,7 +17,7 @@
  */
 
 #include <fastuidraw/gl_backend/gl_binding.hpp>
-#include "painter_vao_pool.hpp"
+#include <private/gl_backend/painter_vao_pool.hpp>
 
 ///////////////////////////////////////////
 // fastuidraw::gl::detail::painter_vao_pool methods

@@ -23,8 +23,8 @@
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
-#include "tex_buffer.hpp"
-#include "painter_backend_gl_config.hpp"
+#include <private/gl_backend/tex_buffer.hpp>
+#include <private/gl_backend/painter_backend_gl_config.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 

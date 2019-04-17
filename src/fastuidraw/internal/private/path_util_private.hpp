@@ -23,8 +23,8 @@
 #include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
-#include "bounding_box.hpp"
-#include "util_private.hpp"
+#include <private/bounding_box.hpp>
+#include <private/util_private.hpp>
 
 namespace fastuidraw
 {

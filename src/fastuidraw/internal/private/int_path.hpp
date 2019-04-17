@@ -29,9 +29,9 @@
 #include <fastuidraw/painter/fill_rule.hpp>
 #include <fastuidraw/text/glyph_render_data_texels.hpp>
 
-#include "array2d.hpp"
-#include "bounding_box.hpp"
-#include "util_private.hpp"
+#include <private/array2d.hpp>
+#include <private/bounding_box.hpp>
+#include <private/util_private.hpp>
 
 namespace fastuidraw
 {

@@ -22,7 +22,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <vector>
 
-#include "util_private_ostream.hpp"
+#include <private/util_private_ostream.hpp>
 #include <iostream>
 #include <typeinfo>
 

@@ -41,7 +41,7 @@
 #include <fastuidraw/painter/backend/painter_backend.hpp>
 #include <fastuidraw/painter/backend/painter_header.hpp>
 
-#include "painter_packer_data.hpp"
+#include <private/painter_backend/painter_packer_data.hpp>
 
 namespace fastuidraw
 {

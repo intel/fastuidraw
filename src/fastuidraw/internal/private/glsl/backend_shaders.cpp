@@ -25,7 +25,7 @@
 #include <fastuidraw/text/glyph_attribute.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
-#include "backend_shaders.hpp"
+#include <private/glsl/backend_shaders.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
 

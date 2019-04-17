@@ -16,7 +16,7 @@
  *
  */
 
-#include "util_private_math.hpp"
+#include <private/util_private_math.hpp>
 
 fastuidraw::vecN<float, 2>
 fastuidraw::detail::
