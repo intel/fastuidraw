@@ -321,15 +321,14 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
         {
           im = m_painter->image_atlas()->create(image_data.width(),
                                                 image_data.height(),
-                                                image_data);
+                                                image_data,
+                                                Image::on_atlas);
         }
       else
         {
-          im = create_texture_image(m_painter->image_atlas(),
-                                    image_data.width(),
-                                    image_data.height(),
-                                    image_data.number_levels(),
-                                    image_data);
+          im = m_painter->image_atlas()->create_non_atlas(image_data.width(),
+                                                          image_data.height(),
+                                                          image_data);
         }
 
       switch (im->type())

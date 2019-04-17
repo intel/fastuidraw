@@ -153,15 +153,14 @@ derived_init(int w, int h)
             {
               m_image = m_painter->image_atlas()->create(image_data.width(),
                                                          image_data.height(),
-                                                         image_data);
+                                                         image_data,
+                                                         Image::on_atlas);
             }
           else
             {
-              m_image = create_texture_image(m_painter->image_atlas(),
-                                             image_data.width(),
-                                             image_data.height(),
-                                             image_data.number_levels(),
-                                             image_data);
+              m_image = m_painter->image_atlas()->create_non_atlas(image_data.width(),
+                                                                   image_data.height(),
+                                                                   image_data);
             }
         }
     }

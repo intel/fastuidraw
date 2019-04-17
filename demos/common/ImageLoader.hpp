@@ -78,11 +78,3 @@ public:
     fastuidraw::ImageSourceCArray(dimensions(), data(), fastuidraw::Image::rgba_format)
   {}
 };
-
-fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
-create_texture_image(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
-                     int w, int h, unsigned int m,
-                     const fastuidraw::ImageSourceBase &image,
-                     GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR,
-                     GLenum mag_filter = GL_LINEAR,
-                     bool object_owns_texture = true);
