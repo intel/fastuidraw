@@ -1,5 +1,0 @@
-<map id="fastuidraw::gl::ImageAtlasGL::TextureImage" name="fastuidraw::gl::ImageAtlasGL::TextureImage">
-<area shape="rect" id="node2" href="$dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ..." alt="" coords="29,169,156,196"/>
-<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="21,80,164,121"/>
-<area shape="rect" id="node4" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="11,5,174,32"/>
-</map>

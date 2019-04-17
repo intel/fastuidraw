@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['backing_5ffp16x2_5ffmt',['backing_fp16x2_fmt',['../d8/de5/classfastuidraw_1_1gl_1_1_glyph_atlas_g_l.html#a06e82ff36aac8f586daa63b8cf71b7e3aedfd5451cdd125d5c9d6a5c8a3599a9d',1,'fastuidraw::gl::GlyphAtlasGL']]],
-  ['backing_5fuint32_5ffmt',['backing_uint32_fmt',['../d8/de5/classfastuidraw_1_1gl_1_1_glyph_atlas_g_l.html#a06e82ff36aac8f586daa63b8cf71b7e3af3a6f7a2993e67e9238a0475c713798d',1,'fastuidraw::gl::GlyphAtlasGL']]],
   ['band_5fcurveoffset_5fbit0',['band_curveoffset_bit0',['../da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#a5d51430c1462ba62e77826a98a742fe5a45354e730a6bf4a9cb416b3607bdec2a',1,'fastuidraw::GlyphRenderDataBandedRays']]],
   ['band_5fnumcurves_5fbit0',['band_numcurves_bit0',['../da/d23/classfastuidraw_1_1_glyph_render_data_banded_rays.html#a5d51430c1462ba62e77826a98a742fe5a2dbc4821ef62fd426b18d28c5fc7ecfd',1,'fastuidraw::GlyphRenderDataBandedRays']]],
   ['banded_5frays_5fglyph',['banded_rays_glyph',['../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02da9f347b12dffba9406e93769ffcdb2599',1,'fastuidraw']]],

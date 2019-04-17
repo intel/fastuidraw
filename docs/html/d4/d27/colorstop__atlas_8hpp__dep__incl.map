@@ -1,11 +1,12 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/colorstop_atlas.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/colorstop_atlas.hpp">
-<area shape="rect" id="node2" href="$d2/d97/colorstop__atlas__gl_8hpp.html" title="file colorstop_atlas_gl.hpp " alt="" coords="5,235,232,291"/>
-<area shape="rect" id="node4" href="$da/df1/painter__backend_8hpp.html" title="file painter_backend.hpp " alt="" coords="408,109,579,180"/>
-<area shape="rect" id="node7" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="591,451,761,507"/>
-<area shape="rect" id="node8" href="$d5/dc7/painter__brush_8hpp.html" title="file painter_brush.hpp " alt="" coords="689,117,861,173"/>
-<area shape="rect" id="node3" href="$d8/d96/painter__backend__gl_8hpp.html" title="file painter_backend_gl.hpp " alt="" coords="178,451,411,507"/>
-<area shape="rect" id="node5" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="365,228,555,299"/>
-<area shape="rect" id="node6" href="$d3/d4b/glyph__atlas__gl_8hpp.html" title="file glyph_atlas_gl.hpp " alt="" coords="358,347,562,403"/>
-<area shape="rect" id="node9" href="$d2/d54/painter__packed__value_8hpp.html" title="file painter_packed_value.hpp " alt="" coords="739,235,959,291"/>
-<area shape="rect" id="node10" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="751,347,921,403"/>
+<area shape="rect" id="node2" href="$da/df1/painter__backend_8hpp.html" title="file painter_backend.hpp " alt="" coords="114,109,285,180"/>
+<area shape="rect" id="node3" href="$de/d65/painter__engine_8hpp.html" title="file painter_engine.hpp " alt="" coords="114,228,285,299"/>
+<area shape="rect" id="node6" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="323,591,494,647"/>
+<area shape="rect" id="node7" href="$d5/dc7/painter__brush_8hpp.html" title="file painter_brush.hpp " alt="" coords="411,117,583,173"/>
+<area shape="rect" id="node4" href="$d3/d61/painter__engine__gl_8hpp.html" title="file painter_engine_gl.hpp " alt="" coords="5,473,228,529"/>
+<area shape="rect" id="node5" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="95,347,285,417"/>
+<area shape="rect" id="node8" href="$d2/d54/painter__packed__value_8hpp.html" title="file painter_packed_value.hpp " alt="" coords="461,235,681,291"/>
+<area shape="rect" id="node9" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="486,354,657,410"/>
+<area shape="rect" id="node10" href="$dc/d5d/painter__effect_8hpp.html" title="file painter_effect.hpp " alt="" coords="511,465,682,536"/>
+<area shape="rect" id="node11" href="$d6/da9/painter__effect__color__modulate_8hpp.html" title="file painter_effect_color_modulate.hpp " alt="" coords="519,584,701,655"/>
 </map>

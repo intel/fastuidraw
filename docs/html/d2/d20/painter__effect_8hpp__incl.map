@@ -1,0 +1,28 @@
+<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/effects/painter_effect.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/effects/painter_effect.hpp">
+<area shape="rect" id="node2" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="371,615,532,656"/>
+<area shape="rect" id="node12" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="1241,622,1416,649"/>
+<area shape="rect" id="node18" href="$d0/db4/rect_8hpp_source.html" title="fastuidraw/util/rect.hpp" alt="" coords="2062,622,2217,649"/>
+<area shape="rect" id="node19" href="$d3/d42/image_8hpp.html" title="file image.hpp " alt="" coords="710,429,857,455"/>
+<area shape="rect" id="node21" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="879,124,1005,165"/>
+<area shape="rect" id="node3" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="883,801,1033,827"/>
+<area shape="rect" id="node6" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="20,704,187,745"/>
+<area shape="rect" id="node10" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="211,704,372,745"/>
+<area shape="rect" id="node11" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="396,704,579,745"/>
+<area shape="rect" id="node8" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="89,793,256,835"/>
+<area shape="rect" id="node14" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="1542,711,1705,738"/>
+<area shape="rect" id="node15" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="1847,801,2008,827"/>
+<area shape="rect" id="node20" href="$d8/d02/image__atlas_8hpp.html" title="file image_atlas.hpp " alt="" coords="867,525,1049,552"/>
+<area shape="rect" id="node22" href="$d2/d54/painter__packed__value_8hpp.html" title="file painter_packed_value.hpp " alt="" coords="993,221,1171,262"/>
+<area shape="rect" id="node33" href="$d5/d4e/painter__custom__brush__shader_8hpp.html" title="file painter_custom_brush_shader.hpp " alt="" coords="336,213,495,269"/>
+<area shape="rect" id="node23" href="$d9/ddd/painter__shader__data_8hpp.html" title="file painter_shader_data.hpp " alt="" coords="625,518,793,559"/>
+<area shape="rect" id="node24" href="$db/d20/painter__custom__brush__shader__data_8hpp.html" title="file painter_custom_brush_shader_data.hpp " alt="" coords="841,317,995,373"/>
+<area shape="rect" id="node25" href="$d5/dc7/painter__brush_8hpp.html" title="file painter_brush.hpp " alt="" coords="1156,325,1285,366"/>
+<area shape="rect" id="node30" href="$d4/d79/painter__item__matrix_8hpp.html" title="file painter_item_matrix.hpp " alt="" coords="1868,511,2019,567"/>
+<area shape="rect" id="node31" href="$d6/d06/painter__clip__equations_8hpp.html" title="file painter_clip_equations.hpp " alt="" coords="1364,511,1509,567"/>
+<area shape="rect" id="node32" href="$d5/d73/painter__brush__adjust_8hpp.html" title="file painter_brush_adjust.hpp " alt="" coords="1635,511,1793,567"/>
+<area shape="rect" id="node26" href="$df/dce/matrix_8hpp.html" title="file matrix.hpp " alt="" coords="1687,622,1855,649"/>
+<area shape="rect" id="node27" href="$d3/d30/colorstop__atlas_8hpp.html" title="file colorstop_atlas.hpp " alt="" coords="939,421,1078,463"/>
+<area shape="rect" id="node29" href="$d5/d08/painter__enums_8hpp.html" title="file painter_enums.hpp " alt="" coords="1153,421,1289,463"/>
+<area shape="rect" id="node28" href="$d6/dd7/colorstop_8hpp.html" title="file colorstop.hpp " alt="" coords="1073,525,1237,552"/>
+<area shape="rect" id="node34" href="$d3/d3f/painter__shader_8hpp.html" title="file painter_shader.hpp " alt="" coords="295,325,474,366"/>
+</map>

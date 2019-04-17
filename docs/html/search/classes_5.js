@@ -7,7 +7,7 @@ var searchData=
   ['glyph',['Glyph',['../d7/df2/classfastuidraw_1_1_glyph.html',1,'fastuidraw']]],
   ['glyphatlas',['GlyphAtlas',['../da/da8/classfastuidraw_1_1_glyph_atlas.html',1,'fastuidraw']]],
   ['glyphatlasbackingstorebase',['GlyphAtlasBackingStoreBase',['../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html',1,'fastuidraw']]],
-  ['glyphatlasgl',['GlyphAtlasGL',['../d8/de5/classfastuidraw_1_1gl_1_1_glyph_atlas_g_l.html',1,'fastuidraw::gl']]],
+  ['glyphatlasparams',['GlyphAtlasParams',['../dc/d0d/classfastuidraw_1_1gl_1_1_painter_engine_g_l_1_1_glyph_atlas_params.html',1,'fastuidraw::gl::PainterEngineGL']]],
   ['glyphatlasproxy',['GlyphAtlasProxy',['../d2/d61/classfastuidraw_1_1_glyph_atlas_proxy.html',1,'fastuidraw']]],
   ['glyphattribute',['GlyphAttribute',['../d7/dff/classfastuidraw_1_1_glyph_attribute.html',1,'fastuidraw']]],
   ['glyphcache',['GlyphCache',['../d7/d38/classfastuidraw_1_1_glyph_cache.html',1,'fastuidraw']]],

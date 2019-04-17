@@ -8,7 +8,6 @@ var searchData=
   ['gluniform_2ehpp',['gluniform.hpp',['../d6/da5/gluniform_8hpp.html',1,'']]],
   ['glyph_2ehpp',['glyph.hpp',['../d9/d71/glyph_8hpp.html',1,'']]],
   ['glyph_5fatlas_2ehpp',['glyph_atlas.hpp',['../de/d47/glyph__atlas_8hpp.html',1,'']]],
-  ['glyph_5fatlas_5fgl_2ehpp',['glyph_atlas_gl.hpp',['../d3/d4b/glyph__atlas__gl_8hpp.html',1,'']]],
   ['glyph_5fatlas_5fproxy_2ehpp',['glyph_atlas_proxy.hpp',['../db/d0d/glyph__atlas__proxy_8hpp.html',1,'']]],
   ['glyph_5fattribute_2ehpp',['glyph_attribute.hpp',['../db/d1d/glyph__attribute_8hpp.html',1,'']]],
   ['glyph_5fcache_2ehpp',['glyph_cache.hpp',['../dc/d40/glyph__cache_8hpp.html',1,'']]],

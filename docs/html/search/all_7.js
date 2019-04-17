@@ -16,7 +16,7 @@ var searchData=
   ['hierarchy_5fleaf_5fcurve_5flist_5fsize_5fnumbits',['hierarchy_leaf_curve_list_size_numbits',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784afbc883c796f468da01c6503796fea7aa',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['hierarchy_5fpacking_5ft',['hierarchy_packing_t',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['hierarchy_5fsplitting_5fcoordinate_5fbit',['hierarchy_splitting_coordinate_bit',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784a2884a9e9ab4a944e6705aa589c872d88',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
-  ['hints',['hints',['../de/da0/classfastuidraw_1_1_painter_backend.html#ada6f7aef96b5129ab392e22a4aa8060c',1,'fastuidraw::PainterBackend']]],
+  ['hints',['hints',['../da/d11/classfastuidraw_1_1_painter_engine.html#a096b804e2d292e07f8f23b45aac8d213',1,'fastuidraw::PainterEngine']]],
   ['horizontal_5flayout_5foffset',['horizontal_layout_offset',['../d2/d4c/classfastuidraw_1_1_glyph_metrics.html#a41440a4b94656333cd7570e0080800fc',1,'fastuidraw::GlyphMetrics::horizontal_layout_offset()'],['../dd/d04/classfastuidraw_1_1_glyph_metrics_value.html#a5e763e6c5077e7aef4234347c11b836f',1,'fastuidraw::GlyphMetricsValue::horizontal_layout_offset()']]],
   ['hw_5fclip',['hw_clip',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba0eb313ac00ef1ba10002b574e465c5b5',1,'fastuidraw::gpu_dirty_state']]]
 ];

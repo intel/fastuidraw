@@ -4,10 +4,10 @@
 <area shape="rect" id="node3" href="$da/df1/painter__backend_8hpp.html" title="file painter_backend.hpp " alt="" coords="5,821,176,892"/>
 <area shape="rect" id="node8" href="$d6/d8d/painter__fill__shader_8hpp.html" title="file painter_fill_shader.hpp " alt="" coords="73,347,244,417"/>
 <area shape="rect" id="node11" href="$d1/d91/painter__stroke__shader_8hpp.html" title="file painter_stroke_shader.hpp " alt="" coords="268,347,463,417"/>
-<area shape="rect" id="node4" href="$d8/d96/painter__backend__gl_8hpp.html" title="file painter_backend_gl.hpp " alt="" coords="97,1163,330,1219"/>
-<area shape="rect" id="node5" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="119,940,308,1011"/>
-<area shape="rect" id="node7" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="335,947,505,1003"/>
-<area shape="rect" id="node6" href="$d3/d4b/glyph__atlas__gl_8hpp.html" title="file glyph_atlas_gl.hpp " alt="" coords="111,1059,315,1115"/>
+<area shape="rect" id="node4" href="$de/d65/painter__engine_8hpp.html" title="file painter_engine.hpp " alt="" coords="5,940,176,1011"/>
+<area shape="rect" id="node5" href="$d3/d61/painter__engine__gl_8hpp.html" title="file painter_engine_gl.hpp " alt="" coords="35,1177,258,1233"/>
+<area shape="rect" id="node6" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="119,1059,308,1129"/>
+<area shape="rect" id="node7" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="335,1066,505,1122"/>
 <area shape="rect" id="node9" href="$df/d62/painter__shader__set_8hpp.html" title="file painter_shader_set.hpp " alt="" coords="111,584,308,655"/>
 <area shape="rect" id="node10" href="$da/d96/painter__shader__registrar_8hpp.html" title="file painter_shader_registrar.hpp " alt="" coords="124,703,295,773"/>
 <area shape="rect" id="node12" href="$d6/db8/painter__stroke__params_8hpp.html" title="file painter_stroke_params.hpp " alt="" coords="471,473,697,529"/>
