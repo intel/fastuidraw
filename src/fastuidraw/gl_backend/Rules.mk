@@ -14,7 +14,7 @@ dir := $(d)/shaders
 include $(dir)/Rules.mk
 
 FASTUIDRAW_GL_SOURCES += $(call filelist, gl_get.cpp \
-	opengl_trait.cpp gluniform_implement.cpp \
+	gluniform_implement.cpp \
 	gl_program.cpp gl_context_properties.cpp \
 	texture_image_gl.cpp \
 	painter_engine_gl.cpp)

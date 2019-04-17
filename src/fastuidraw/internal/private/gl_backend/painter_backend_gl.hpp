@@ -22,7 +22,6 @@
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
-#include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include <fastuidraw/gl_backend/painter_surface_gl.hpp>
@@ -38,6 +37,7 @@
 #include <private/gl_backend/image_gl.hpp>
 #include <private/gl_backend/colorstop_atlas_gl.hpp>
 #include <private/gl_backend/glyph_atlas_gl.hpp>
+#include <private/gl_backend/opengl_trait.hpp>
 
 namespace fastuidraw
 {

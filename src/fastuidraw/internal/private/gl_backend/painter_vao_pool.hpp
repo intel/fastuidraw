@@ -24,10 +24,10 @@
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
-#include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 
 #include <private/gl_backend/tex_buffer.hpp>
+#include <private/gl_backend/opengl_trait.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 
