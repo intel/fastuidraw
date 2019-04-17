@@ -133,7 +133,6 @@ private:
   command_line_argument_value<int> m_num_color_layers;
   command_line_argument_value<int> m_log2_index_tile_size, m_log2_num_index_tiles_per_row_per_col;
   command_line_argument_value<int> m_num_index_layers;
-  command_line_argument_value<bool> m_image_atlas_delayed_upload;
 
   /* Glyph atlas parameters */
   command_separator m_glyph_atlas_options;

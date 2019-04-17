@@ -45,7 +45,7 @@ namespace
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
   {
   public:
-    ColorBackingStoreGL(int log2_tile_size, int log2_num_tiles_per_row_per_col, int number_layers, bool delayed);
+    ColorBackingStoreGL(int log2_tile_size, int log2_num_tiles_per_row_per_col, int number_layers);
     ~ColorBackingStoreGL() {}
 
     virtual
@@ -76,10 +76,10 @@ namespace
 
     static
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>
-    create(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers, bool delayed)
+    create(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers)
     {
       ColorBackingStoreGL *p;
-      p = FASTUIDRAWnew ColorBackingStoreGL(log2_tile_size, log2_num_tiles_per_row_per_col, num_layers, delayed);
+      p = FASTUIDRAWnew ColorBackingStoreGL(log2_tile_size, log2_num_tiles_per_row_per_col, num_layers);
       return fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>(p);
     }
 
@@ -103,8 +103,7 @@ namespace
   public:
     IndexBackingStoreGL(int log2_tile_size,
                         int log2_num_index_tiles_per_row_per_col,
-                        int num_layers,
-                        bool delayed);
+                        int num_layers);
 
     ~IndexBackingStoreGL()
     {}
@@ -138,12 +137,12 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase>
     create(int log2_tile_size,
            int log2_num_index_tiles_per_row_per_col,
-           int num_layers, bool delayed)
+           int num_layers)
     {
       IndexBackingStoreGL *p;
       p = FASTUIDRAWnew IndexBackingStoreGL(log2_tile_size,
                                            log2_num_index_tiles_per_row_per_col,
-                                           num_layers, delayed);
+                                           num_layers);
       return fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase>(p);
     }
 
@@ -253,8 +252,7 @@ namespace
       m_num_color_layers(1),
       m_log2_index_tile_size(2),
       m_log2_num_index_tiles_per_row_per_col(6),
-      m_num_index_layers(4),
-      m_delayed(false)
+      m_num_index_layers(4)
     {}
 
     int m_log2_color_tile_size;
@@ -263,7 +261,6 @@ namespace
     int m_log2_index_tile_size;
     int m_log2_num_index_tiles_per_row_per_col;
     int m_num_index_layers;
-    bool m_delayed;
   };
 
   class ImageAtlasGLPrivate
@@ -283,11 +280,10 @@ namespace
 ColorBackingStoreGL::
 ColorBackingStoreGL(int log2_tile_size,
                     int log2_num_tiles_per_row_per_col,
-                    int number_layers,
-                    bool delayed):
+                    int number_layers):
   fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
                                          true),
-  m_backing_store(dimensions(), delayed, log2_tile_size)
+  m_backing_store(dimensions(), true, log2_tile_size)
 {}
 
 void
@@ -367,11 +363,12 @@ store_size(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layer
 IndexBackingStoreGL::
 IndexBackingStoreGL(int log2_tile_size,
                     int log2_num_index_tiles_per_row_per_col,
-                    int num_layers,
-                    bool delayed):
-  fastuidraw::AtlasIndexBackingStoreBase(store_size(log2_tile_size, log2_num_index_tiles_per_row_per_col, num_layers),
-                                        true),
-  m_backing_store(dimensions(), delayed)
+                    int num_layers):
+  fastuidraw::AtlasIndexBackingStoreBase(store_size(log2_tile_size,
+                                                    log2_num_index_tiles_per_row_per_col,
+                                                    num_layers),
+                                         true),
+  m_backing_store(dimensions(), true)
 {}
 
 void
@@ -473,9 +470,6 @@ setget_implement(fastuidraw::gl::ImageAtlasGL::params,
 setget_implement(fastuidraw::gl::ImageAtlasGL::params,
                  ImageAtlasGLParamsPrivate,
                  int, num_index_layers)
-setget_implement(fastuidraw::gl::ImageAtlasGL::params,
-                 ImageAtlasGLParamsPrivate,
-                 bool, delayed)
 
 //////////////////////////////////////////////
 // fastuidraw::gl::ImageAtlasGL methods
@@ -484,10 +478,10 @@ ImageAtlasGL(const params &P):
   fastuidraw::ImageAtlas(1 << P.log2_color_tile_size(), //color tile size
                         1 << P.log2_index_tile_size(), //index tile size
                         ColorBackingStoreGL::create(P.log2_color_tile_size(), P.log2_num_color_tiles_per_row_per_col(),
-                                                    P.num_color_layers(), P.delayed()),
+                                                    P.num_color_layers()),
                         IndexBackingStoreGL::create(P.log2_index_tile_size(),
                                                     P.log2_num_index_tiles_per_row_per_col(),
-                                                    P.num_index_layers(), P.delayed()))
+                                                    P.num_index_layers()))
 {
   m_d = FASTUIDRAWnew ImageAtlasGLPrivate(P);
 }

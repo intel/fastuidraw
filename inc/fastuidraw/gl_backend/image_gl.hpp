@@ -42,10 +42,6 @@ namespace gl
    * deletes the backing color and index stores.
    *
    * The method flush() must be called with a GL context current.
-   * If the ImageAtlasGL was constructed as delayed,
-   * then the loading of data to the GL textures is delayed until
-   * flush(), otherwise it is done immediately and then must be done
-   * with a GL context current.
    */
   class ImageAtlasGL:public ImageAtlas
   {
@@ -169,22 +165,6 @@ namespace gl
        */
       params&
       num_index_layers(int v);
-
-      /*!
-       * if true, creation of GL objects and uploading of data
-       * to GL objects is performed when flush() is called.
-       * If false, creation of GL objects is at construction
-       * and upload of data to GL is done immediately, initial
-       * value is false.
-       */
-      bool
-      delayed(void) const;
-
-      /*!
-       * Set the value for delayed(void) const
-       */
-      params&
-      delayed(bool v);
 
     private:
       void *m_d;
@@ -322,20 +302,18 @@ namespace gl
 
     /*!
      * Returns the GL texture ID of the AtlasColorBackingStoreBase
-     * derived object used by this ImageAtlasGL. If the
-     * ImageAtlasGL was constructed as delayed, then the first time
-     * color_texture() is called, a GL context must be current (and
-     * that GL context is the context to which the texture will belong).
+     * derived object used by this ImageAtlasGL. A GL context must
+     * be current (and that GL context is the context to which the
+     * texture will belong).
      */
     GLuint
     color_texture(void) const;
 
     /*!
      * Returns the GL texture ID of the AtlasIndexBackingStoreBase
-     * derived object used by this ImageAtlasGL. If the
-     * ImageAtlasGL was constructed as delayed, then the first time
-     * index_texture() is called, a GL context must be current (and
-     * that GL context is the context to which the texture will belong).
+     * derived object used by this ImageAtlasGL. A GL context must be
+     * current (and that GL context is the context to which the texture
+     * will belong).
      */
     GLuint
     index_texture(void) const;

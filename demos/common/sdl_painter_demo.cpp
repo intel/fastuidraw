@@ -275,10 +275,6 @@ sdl_painter_demo(const std::string &about_text,
                      "then the total number of index tiles available "
                      "is given as num_index_layers*pow(2, 2*log2_num_index_tiles_per_row_per_col)",
                      *this),
-  m_image_atlas_delayed_upload(m_image_atlas_params.delayed(),
-                               "image_atlas_delayed_upload",
-                               "if true delay uploading of data to GL from image atlas until atlas flush",
-                               *this),
 
   m_glyph_atlas_options("Glyph Atlas options", *this),
   m_glyph_atlas_size(m_glyph_atlas_params.number_floats(),
@@ -561,8 +557,7 @@ init_gl(int w, int h)
     .num_color_layers(m_num_color_layers.value())
     .log2_index_tile_size(m_log2_index_tile_size.value())
     .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.value())
-    .num_index_layers(m_num_index_layers.value())
-    .delayed(m_image_atlas_delayed_upload.value());
+    .num_index_layers(m_num_index_layers.value());
 
   m_glyph_atlas_params
     .number_floats(m_glyph_atlas_size.value())
