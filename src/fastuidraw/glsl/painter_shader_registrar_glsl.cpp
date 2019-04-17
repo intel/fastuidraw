@@ -496,21 +496,32 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
 {
   using namespace fastuidraw;
 
+  if (backend.image_atlas_index_tile_size() == 0
+      || backend.image_atlas_color_tile_size() == 0
+      || backend.image_atlas_color_store_width() == 0
+      || backend.image_atlas_color_store_height() == 0)
+    {
+      src.add_macro("FASTUIDRAW_IMAGE_ATLAS_DISABLED");
+    }
+  else
+    {
+      src
+        .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
+        .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
+        .add_macro_float("FASTUIDRAW_IMAGE_ATLAS_INDEX_RECIP_TILE_SIZE", 1.0f / static_cast<float>(backend.image_atlas_index_tile_size()))
+        .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
+        .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_color_tile_size()))
+        .add_macro_float("FASTUIDRAW_IMAGE_ATLAS_COLOR_RECIP_TILE_SIZE", 1.0f / static_cast<float>(backend.image_atlas_color_tile_size()))
+        .add_macro_u32("fastuidraw_imageAtlasLinear_size_x", backend.image_atlas_color_store_width())
+        .add_macro_u32("fastuidraw_imageAtlasLinear_size_y", backend.image_atlas_color_store_height())
+        .add_macro("fastuidraw_imageAtlasLinear_size", "ivec2(fastuidraw_imageAtlasLinear_size_x, fastuidraw_imageAtlasLinear_size_y)")
+        .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_x", "(1.0 / float(fastuidraw_imageAtlasLinear_size_x) )")
+        .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_y", "(1.0 / float(fastuidraw_imageAtlasLinear_size_y) )")
+        .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal",
+                   "vec2(fastuidraw_imageAtlasLinear_size_reciprocal_x, fastuidraw_imageAtlasLinear_size_reciprocal_y)");
+    }
+
   src
-    .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE", backend.image_atlas_index_tile_size())
-    .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_index_tile_size()))
-    .add_macro_float("FASTUIDRAW_IMAGE_ATLAS_INDEX_RECIP_TILE_SIZE", 1.0f / static_cast<float>(backend.image_atlas_index_tile_size()))
-    .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE", backend.image_atlas_color_tile_size())
-    .add_macro_u32("FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_LOG2_SIZE", uint32_log2(backend.image_atlas_color_tile_size()))
-    .add_macro_float("FASTUIDRAW_IMAGE_ATLAS_COLOR_RECIP_TILE_SIZE", 1.0f / static_cast<float>(backend.image_atlas_color_tile_size()))
-
-    .add_macro_u32("fastuidraw_imageAtlasLinear_size_x", backend.image_atlas_color_store_width())
-    .add_macro_u32("fastuidraw_imageAtlasLinear_size_y", backend.image_atlas_color_store_height())
-    .add_macro("fastuidraw_imageAtlasLinear_size", "ivec2(fastuidraw_imageAtlasLinear_size_x, fastuidraw_imageAtlasLinear_size_y)")
-    .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_x", "(1.0 / float(fastuidraw_imageAtlasLinear_size_x) )")
-    .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_y", "(1.0 / float(fastuidraw_imageAtlasLinear_size_y) )")
-    .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal", "vec2(fastuidraw_imageAtlasLinear_size_reciprocal_x, fastuidraw_imageAtlasLinear_size_reciprocal_y)")
-
     .add_macro_u32("fastuidraw_colorStopAtlas_size", backend.colorstop_atlas_store_width())
     .add_macro("fastuidraw_colorStopAtlas_size_reciprocal", "(1.0 / float(fastuidraw_colorStopAtlas_size) )")
 
@@ -1466,10 +1477,10 @@ set_from_atlas(const reference_counted_ptr<ImageAtlas> &p)
     {
       BackendConstantsPrivate *d;
       d = static_cast<BackendConstantsPrivate*>(m_d);
-      d->m_image_atlas_color_store_width = p->color_store() ? p->color_store()->dimensions().x() : 1;
-      d->m_image_atlas_color_store_height = p->color_store() ? p->color_store()->dimensions().y() : 1;
-      d->m_image_atlas_index_tile_size = p->index_tile_size() > 0 ? p->index_tile_size() : 1;
-      d->m_image_atlas_color_tile_size = p->color_tile_size() > 0 ? p->color_tile_size() : 1;
+      d->m_image_atlas_color_store_width = p->color_store() ? p->color_store()->dimensions().x() : 0;
+      d->m_image_atlas_color_store_height = p->color_store() ? p->color_store()->dimensions().y() : 0;
+      d->m_image_atlas_index_tile_size = p->index_tile_size() > 0 ? p->index_tile_size() : 0;
+      d->m_image_atlas_color_tile_size = p->color_tile_size() > 0 ? p->color_tile_size() : 0;
     }
   return *this;
 }

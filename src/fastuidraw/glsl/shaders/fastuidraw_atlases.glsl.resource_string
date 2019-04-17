@@ -34,9 +34,11 @@
 
 //////////////////////////////////////////////////
 // Image Atlas
-FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_LINEAR_BINDING) uniform sampler2DArray fastuidraw_imageAtlasLinear;
-FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_NEAREST_BINDING) uniform sampler2DArray fastuidraw_imageAtlasNearest;
-FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray fastuidraw_imageIndexAtlas;
+#ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_LINEAR_BINDING) uniform sampler2DArray fastuidraw_imageAtlasLinear;
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_NEAREST_BINDING) uniform sampler2DArray fastuidraw_imageAtlasNearest;
+  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray fastuidraw_imageIndexAtlas;
+#endif
 //////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////

@@ -166,6 +166,8 @@ fastuidraw_process_image_data_common(in fastuidraw_brush_image_data_raw raw,
                                                  raw.image_start_xy);
 }
 
+#ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
+
 void
 fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
                                        inout fastuidraw_brush_image_data cooked)
@@ -189,6 +191,8 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
   cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
   cooked.number_index_lookups = raw.image_number_lookups;
 }
+
+#endif
 
 void
 fastuidraw_process_image_data_bindless(in fastuidraw_brush_image_data_raw raw,
@@ -232,11 +236,13 @@ fastuidraw_read_brush_image_data(in uint location, in uint image_type,
   return_value = fastuidraw_read_brush_image_raw_data(location, raw);
 
   fastuidraw_process_image_data_common(raw, image);
+  #ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
   if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
     {
       fastuidraw_process_image_data_on_atlas(raw, image);
     }
   else
+  #endif
     {
       fastuidraw_process_image_data_bindless(raw, image);
     }

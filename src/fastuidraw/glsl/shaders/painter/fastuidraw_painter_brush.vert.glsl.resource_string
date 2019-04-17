@@ -91,6 +91,7 @@ fastuidraw_fixed_function_brush_vert_processing(in fastuidraw_header h, in vec2 
 
   fastuidraw_brush_image_size_x = float(image.image_size.x);
   fastuidraw_brush_image_size_y = float(image.image_size.y);
+  #ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
   if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
     {
       vec2 T;
@@ -107,6 +108,7 @@ fastuidraw_fixed_function_brush_vert_processing(in fastuidraw_header h, in vec2 
       fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
     }
   else
+  #endif
     {
       fastuidraw_brush_image_x = float(image.image_start.x);
       fastuidraw_brush_image_y = float(image.image_start.y);

@@ -16,6 +16,8 @@
  *
  */
 
+#ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
+
 /*
  * Must have defined:
  *
@@ -665,3 +667,5 @@ fastuidraw_cubic_filter_atlas_image(in vec2 image_coordinate,
 
   return image_color;
 }
+
+#endif

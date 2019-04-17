@@ -81,6 +81,8 @@ fastuidraw_brush_compute_interpolate(in vec2 p, in uint gradient_type, out float
   return t;
 }
 
+#ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
+
 vec4
 fastuidraw_brush_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
 {
@@ -115,6 +117,16 @@ fastuidraw_brush_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
 
   return image_color;
 }
+
+#else
+
+vec4
+fastuidraw_brush_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
+{
+  return vec4(1.0, 1.0, 1.0, 1.0);
+}
+
+#endif
 
 vec4
 fastuidraw_brush_image_of_texture(in sampler2D surface, in vec2 texel_coord, in uint image_filter, in float lod)
