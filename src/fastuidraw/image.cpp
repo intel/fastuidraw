@@ -1199,22 +1199,10 @@ queue_resource_release_action(const reference_counted_ptr<Image::ResourceRelease
       d->m_delete_actions.add_action(action);
     }
 }
-fastuidraw::reference_counted_ptr<fastuidraw::Image>
-fastuidraw::ImageAtlas::
-create(int w, int h, c_array<const u8vec4> image_data, enum Image::format_t fmt)
-{
-  if (w <= 0 || h <= 0)
-    {
-      return reference_counted_ptr<Image>();
-    }
-
-  c_array<const c_array<const u8vec4> > data(&image_data, 1);
-  return create(w, h, ImageSourceCArray(uvec2(w, h), data, fmt));
-}
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::ImageAtlas::
-create(int w, int h, const ImageSourceBase &image_data)
+create_image_on_atlas(int w, int h, const ImageSourceBase &image_data)
 {
   int tile_interior_size;
   ivec2 num_color_tiles;
@@ -1251,6 +1239,50 @@ create(int w, int h, const ImageSourceBase &image_data)
     }
 
   return FASTUIDRAWnew Image(this, w, h, image_data);
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::ImageAtlas::
+create_non_atlas(int w, int h, const ImageSourceBase &image_data)
+{
+  reference_counted_ptr<Image> return_value;
+
+  return_value = create_image_bindless(w, h, image_data);
+  if (!return_value)
+    {
+      return_value = create_image_context_texture2d(w, h, image_data);
+    }
+  return return_value;
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::ImageAtlas::
+create(int w, int h, const ImageSourceBase &image_data,
+       enum Image::type_t type)
+{
+  reference_counted_ptr<Image> return_value;
+
+  if (type == Image::bindless_texture2d)
+    {
+      return_value = create_image_bindless(w, h, image_data);
+      if (return_value)
+        {
+          return return_value;
+        }
+      type = Image::on_atlas;
+    }
+
+  if (type == Image::on_atlas)
+    {
+      return_value = create_image_on_atlas(w, h, image_data);
+      if (return_value)
+        {
+          return return_value;
+        }
+    }
+
+  return_value = create_image_context_texture2d(w, h, image_data);
+  return return_value;
 }
 
 //////////////////////////////////////

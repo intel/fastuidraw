@@ -16,9 +16,12 @@
  *
  */
 
+#include <vector>
+
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/texture_image_gl.hpp>
+
 #include <private/gl_backend/texture_gl.hpp>
 #include <private/gl_backend/bindless.hpp>
 #include <private/util_private.hpp>
@@ -99,8 +102,6 @@ namespace
   };
 }
 
-
-
 //////////////////////////////////////////////////////
 // fastuidraw::gl::TextureImage methods
 fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
@@ -140,6 +141,11 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
   GLuint tex(0);
   static detail::UseTexStorage use_tex_storage;
 
+  if (w <= 0 || h <= 0 || m <= 0)
+    {
+      return nullptr;
+    }
+
   fastuidraw_glGenTextures(1, &tex);
   FASTUIDRAWassert(tex != 0u);
   fastuidraw_glBindTexture(GL_TEXTURE_2D, tex);
@@ -147,8 +153,52 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex_magnification);
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex_minification);
   fastuidraw_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, 0);
 
   return create(patlas, w, h, m, tex, true, fmt, allow_bindless);
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
+fastuidraw::gl::TextureImage::
+create(const reference_counted_ptr<ImageAtlas> &patlas,
+       int pw, int ph, const ImageSourceBase &image_data,
+       GLenum tex_magnification, GLenum tex_minification,
+       bool allow_bindless)
+{
+  reference_counted_ptr<TextureImage> return_value;
+  int m(image_data.number_levels()), w(pw), h(ph);
+
+  if (w <= 0 || h <= 0 || m <= 0)
+    {
+      return nullptr;
+    }
+
+  std::vector<fastuidraw::u8vec4> data_storage(w * h);
+  fastuidraw::c_array<fastuidraw::u8vec4> data(make_c_array(data_storage));
+
+  return_value = create(patlas, w, h, m,
+                        tex_magnification, tex_minification,
+                        image_data.format(), allow_bindless);
+
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, return_value->texture());
+  for (int l = 0; l < m && w > 0 && h > 0; ++l, w /= 2, h /= 2)
+    {
+      image_data.fetch_texels(l,
+                              fastuidraw::ivec2(0, 0),
+                              fastuidraw::t_max(w, 1),
+                              fastuidraw::t_max(h, 1),
+                              data);
+
+      fastuidraw_glTexSubImage2D(GL_TEXTURE_2D, l,
+                                 0, 0,
+                                 fastuidraw::t_max(w, 1),
+                                 fastuidraw::t_max(h, 1),
+                                 GL_RGBA, GL_UNSIGNED_BYTE,
+                                 data.c_ptr());
+    }
+  fastuidraw_glBindTexture(GL_TEXTURE_2D, 0);
+
+  return return_value;
 }
 
 fastuidraw::gl::TextureImage::

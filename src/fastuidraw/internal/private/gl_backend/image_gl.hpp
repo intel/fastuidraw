@@ -73,6 +73,15 @@ namespace detail
      */
     GLuint
     index_texture(void) const;
+
+  private:
+    virtual
+    reference_counted_ptr<Image>
+    create_image_bindless(int w, int h, const ImageSourceBase &image_data);
+
+    virtual
+    reference_counted_ptr<Image>
+    create_image_context_texture2d(int w, int h, const ImageSourceBase &image_data);
   };
 /*! @} */
 

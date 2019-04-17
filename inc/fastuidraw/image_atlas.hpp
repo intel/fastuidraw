@@ -257,26 +257,31 @@ namespace fastuidraw
     ~ImageAtlas();
 
     /*!
-     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
-     * insufficient room on the atlas, returns a nullptr handle.
+     * Construct an \ref Image.
      * \param w width of the image
      * \param h height of the image
      * \param image_data image data to which to initialize the image
+     * \param type the *preferred* value for Image::type() for the
+     *             returned \ref Image: \ref Image::bindless_texture2d
+     *             will fallback to \ref Image::on_atlas and \ref
+     *             Image::on_atlas will fallback to \ref
+     *             Image::context_texture2d
      */
     reference_counted_ptr<Image>
-    create(int w, int h, const ImageSourceBase &image_data);
+    create(int w, int h, const ImageSourceBase &image_data,
+           enum Image::type_t type);
 
     /*!
-     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
-     * insufficient room on the atlas, returns a nullptr handle
+     * Construct an \ref Image whose \ref Image::type() is NOT
+     * \ref Image::on_atlas. Will first try to construct an \ref
+     * Image whose \ref Image::type() is \ref Image::bindless_texture2d
+     * and if that failes will instead construct an \ref Image
+     * whose \ref Image::type() is \ref Image::context_texture2d
      * \param w width of the image
      * \param h height of the image
-     * \param image_data image data to which to initialize the image
-     * \param fmt the format of the image data
      */
     reference_counted_ptr<Image>
-    create(int w, int h, c_array<const u8vec4> image_data,
-           enum Image::format_t fmt);
+    create_non_atlas(int w, int h, const ImageSourceBase &image_data);
 
     /*!
      * Returns the size (in texels) used for the index tiles.
@@ -431,8 +436,10 @@ namespace fastuidraw
   protected:
     /*!
      * Ctor.
-     * \param pcolor_tile_size size of each color tile
-     * \param pindex_tile_size size of each index tile
+     * \param pcolor_tile_size size of each color tile, a value of 0 indicates
+     *                         that atlased Images are not allowed.
+     * \param pindex_tile_size size of each index tile, a value of 0 indicates
+     *                         that atlased Images are not allowed.
      * \param pcolor_store color data backing store for atlas, the width and
      *                     height of the backing store must be divisible by
      *                     pcolor_tile_size.
@@ -445,6 +452,40 @@ namespace fastuidraw
                reference_counted_ptr<AtlasIndexBackingStoreBase> pindex_store);
 
   private:
+    /*!
+     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
+     * insufficient room on the atlas, returns a nullptr handle.
+     * \param w width of the image
+     * \param h height of the image
+     * \param image_data image data to which to initialize the image
+     */
+    reference_counted_ptr<Image>
+    create_image_on_atlas(int w, int h, const ImageSourceBase &image_data);
+
+    /*!
+     * To be implemented by a derived class to create an Image whose
+     * Image::type() is \ref Image::bindless_texture2d. If a bindless
+     * API is not supported by the 3D API, then shall return nullptr.
+     * \param w width of the image
+     * \param h height of the image
+     * \param image_data image data to which to initialize the image
+     */
+    virtual
+    reference_counted_ptr<Image>
+    create_image_bindless(int w, int h, const ImageSourceBase &image_data) = 0;
+
+    /*!
+     * To be implemented by a derived class to create an Image whose
+     * Image::type() is \ref Image::context_texture2d. This method cannot
+     * ever fail.
+     * \param w width of the image
+     * \param h height of the image
+     * \param image_data image data to which to initialize the image
+     */
+    virtual
+    reference_counted_ptr<Image>
+    create_image_context_texture2d(int w, int h, const ImageSourceBase &image_data) = 0;
+
     void *m_d;
   };
 

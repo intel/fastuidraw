@@ -92,18 +92,14 @@ namespace gl
            GLenum tex_minification,
            enum format_t fmt = rgba_format,
            bool allow_bindless = true);
+
     /*!
-     * Create a GL texture with no mipmapping and use it to back
-     * a TextureImage; the created TextureImage will own the GL
-     * texture. Equivalent to
-     * \code
-     * create(patlas, w, h, 1, filter, filter, fmt);
-     * \endcode
+     * Create a GL texture and use it to back a TextureImage; the
+     * created TextureImage will own the GL texture.
      * \param patlas the ImageAtlas that the created image is part of
-     * \param w width of the texture
-     * \param h height of the texture
-     * \param filter magnification and minification filter to give
-     *               the texture
+     * \param image_data image data to which to initialize the image
+     * \param tex_magnification magnification filter to get the texture
+     * \param tex_minification minification filter to get the texture
      * \param fmt format of the RGBA of the texture
      * \param allow_bindless if both this is true and the GL/GLES implementation
      *                       supports bindless texturing, return an object whose
@@ -112,12 +108,10 @@ namespace gl
     static
     reference_counted_ptr<TextureImage>
     create(const reference_counted_ptr<ImageAtlas> &patlas,
-           int w, int h, GLenum filter,
-           enum format_t fmt = rgba_format,
-           bool allow_bindless = true)
-    {
-      return create(patlas, w, h, 1, filter, filter, fmt, allow_bindless);
-    }
+           int w, int h, const ImageSourceBase &image_data,
+           GLenum tex_magnification,
+           GLenum tex_minification,
+           bool allow_bindless = true);
 
     ~TextureImage();
 

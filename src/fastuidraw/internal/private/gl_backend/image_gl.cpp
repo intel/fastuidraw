@@ -351,3 +351,35 @@ index_texture(void) const
   p = static_cast<const IndexBackingStoreGL*>(index_store().get());
   return p->texture();
 }
+
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::gl::detail::ImageAtlasGL::
+create_image_bindless(int w, int h, const ImageSourceBase &image_data)
+{
+  if (detail::bindless().not_supported())
+    {
+      return nullptr;
+    }
+
+  reference_counted_ptr<TextureImage> return_value;
+
+  return_value = TextureImage::create(this, w, h, image_data,
+                                      GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST);
+  FASTUIDRAWassert(return_value->type() == Image::bindless_texture2d);
+
+  return return_value;
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::gl::detail::ImageAtlasGL::
+create_image_context_texture2d(int w, int h, const ImageSourceBase &image_data)
+{
+  reference_counted_ptr<TextureImage> return_value;
+
+  return_value = TextureImage::create(this, w, h, image_data,
+                                      GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST,
+                                      false);
+  FASTUIDRAWassert(return_value->type() == Image::context_texture2d);
+
+  return return_value;
+}
