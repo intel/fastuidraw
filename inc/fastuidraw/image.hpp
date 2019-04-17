@@ -189,12 +189,6 @@ class ImageSourceBase;
     dimensions_index_divisor(void) const;
 
     /*!
-     * Returns the ImageAtlas on which this Image resides.
-     */
-    const reference_counted_ptr<ImageAtlas>&
-    atlas(void) const;
-
-    /*!
      * Returns the bindless handle for the Image.
      *
      * Only applies when type() does NOT return \ref on_atlas.

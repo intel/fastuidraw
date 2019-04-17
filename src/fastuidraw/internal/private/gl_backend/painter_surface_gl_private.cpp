@@ -70,17 +70,16 @@ image(const reference_counted_ptr<ImageAtlas> &atlas)
        */
       texture = buffer(buffer_color);
       m_image = TextureImage::create(atlas,
-                                                   m_dimensions.x(),
-                                                   m_dimensions.y(),
-                                                   1,
-                                                   texture,
-                                                   m_own_texture,
-                                                   Image::premultipied_rgba_format,
-                                                   m_allow_bindless);
+                                     m_dimensions.x(),
+                                     m_dimensions.y(),
+                                     1,
+                                     texture,
+                                     m_own_texture,
+                                     Image::premultipied_rgba_format,
+                                     m_allow_bindless);
       m_own_texture = false;
     }
 
-  FASTUIDRAWassert(m_image->atlas() == atlas);
   return m_image;
 }
 

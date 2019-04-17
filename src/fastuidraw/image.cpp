@@ -1373,15 +1373,6 @@ bindless_handle(void) const
   return d->m_bindless_handle;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
-fastuidraw::Image::
-atlas(void) const
-{
-  ImagePrivate *d;
-  d = static_cast<ImagePrivate*>(m_d);
-  return d->m_atlas;
-}
-
 enum fastuidraw::Image::format_t
 fastuidraw::Image::
 format(void) const
