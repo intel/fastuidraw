@@ -22,6 +22,7 @@
 #include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
+#include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/backend/painter_backend.hpp>
@@ -211,34 +212,45 @@ namespace fastuidraw
     hints(void) const;
 
     /*!
-     * Returns a handle to the GlyphAtlas of this
-     * PainterBackend. All glyphs used by this
-     * PainterBackend must live on glyph_atlas().
+     * Returns a handle to the \ref GlyphAtlas of this
+     * PainterEngine. All glyphs used by each \ref
+     * PainterBackend made from this \ref PainterEngine
+     * must live on glyph_atlas().
      */
     const reference_counted_ptr<GlyphAtlas>&
     glyph_atlas(void) const;
 
     /*!
-     * Returns a handle to the ImageAtlas of this
-     * PainterBackend. All images used by all brushes
-     * of this PainterBackend must live on image_atlas().
+     * Returns a handle to the \ref ImageAtlas of this
+     * PainterEngine. All images used by each \ref
+     * PainterBackend made from this \ref PainterEngine
+     * must live on image_atlas().
      */
     const reference_counted_ptr<ImageAtlas>&
     image_atlas(void) const;
 
     /*!
-     * Returns a handle to the ColorStopAtlas of this
-     * PainterBackend. All color stops used by all brushes
-     * of this PainterBackend must live on colorstop_atlas().
+     * Returns a handle to the \ref ColorStopAtlas of this
+     * PainterEngine. All color stops used by all brushes
+     * of each \ref interBackend made from this \ref
+     * PainterEngine must live on colorstop_atlas().
      */
     const reference_counted_ptr<ColorStopAtlas>&
     colorstop_atlas(void) const;
 
     /*!
-     * Returns the PainterShaderRegistrar of this PainterBackend.
+     * Returns a handle to the \ref GlyphCache made
+     * from glyph_atlas().
+     */
+    const reference_counted_ptr<GlyphCache>&
+    glyph_cache(void) const;
+
+    /*!
+     * Returns the PainterShaderRegistrar of this PainterEngine.
      * Use this return value to add custom shaders. NOTE: shaders
-     * added within a thread are not useable within that thread
-     * until the next call to begin().
+     * added within a thread are not useable by a \ref PainterBackend
+     * made from this \ref PainterEngine within that thread
+     * until the next call to its PainterBackend::begin().
      */
     const reference_counted_ptr<PainterShaderRegistrar>&
     painter_shader_registrar(void) const;

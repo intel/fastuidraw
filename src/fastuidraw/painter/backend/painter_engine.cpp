@@ -48,11 +48,14 @@ namespace
       m_painter_shader_registrar(shader_registrar),
       m_config(config),
       m_default_shaders(pdefault_shaders)
-    {}
+    {
+      m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_glyph_atlas);
+    }
 
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_glyph_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_colorstop_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_glyph_cache;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar> m_painter_shader_registrar;
     fastuidraw::PainterEngine::ConfigurationBase m_config;
     fastuidraw::PainterEngine::PerformanceHints m_hints;
@@ -145,7 +148,7 @@ PainterEngine(reference_counted_ptr<GlyphAtlas> glyph_atlas,
 {
   PainterEnginePrivate *d;
   m_d = d = FASTUIDRAWnew PainterEnginePrivate(glyph_atlas, image_atlas, colorstop_atlas,
-                                            shader_registrar, config, pdefault_shaders);
+                                               shader_registrar, config, pdefault_shaders);
   d->m_painter_shader_registrar->register_shader(d->m_default_shaders);
 }
 
@@ -192,6 +195,15 @@ glyph_atlas(void) const
   PainterEnginePrivate *d;
   d = static_cast<PainterEnginePrivate*>(m_d);
   return d->m_glyph_atlas;
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>&
+fastuidraw::PainterEngine::
+glyph_cache(void) const
+{
+  PainterEnginePrivate *d;
+  d = static_cast<PainterEnginePrivate*>(m_d);
+  return d->m_glyph_cache;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&

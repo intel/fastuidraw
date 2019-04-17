@@ -676,6 +676,7 @@ init_gl(int w, int h)
   m_image_atlas = m_backend->image_atlas();
   m_glyph_atlas = m_backend->glyph_atlas();
   m_colorstop_atlas = m_backend->colorstop_atlas();
+  m_glyph_cache = m_backend->glyph_cache();
 
   fastuidraw::GlyphGenerateParams::distance_field_max_distance(m_distance_field_max_distance.value());
   fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
@@ -686,7 +687,6 @@ init_gl(int w, int h)
   fastuidraw::GlyphGenerateParams::banded_rays_average_number_curves_thresh(m_banded_rays_average_number_curves_thresh.value());
 
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
-  m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
   m_font_database = FASTUIDRAWnew fastuidraw::FontDatabase();
   m_ft_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
 
