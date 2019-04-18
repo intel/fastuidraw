@@ -1,0 +1,3 @@
+<map id="fastuidraw::ImageSourceCArray" name="fastuidraw::ImageSourceCArray">
+<area shape="rect" id="node2" href="$classfastuidraw_1_1_image_source_base.html" title="ImageSourceBase defines the inteface for copying texel data from a source (CPU memory, a file, etc) to an AtlasColorBackingStoreBase derived object. " alt="" coords="11,5,208,32"/>
+</map>

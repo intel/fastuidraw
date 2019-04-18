@@ -1,0 +1,5 @@
+<map id="fastuidraw::gl::ShaderStorageBlockInitializer" name="fastuidraw::gl::ShaderStorageBlockInitializer">
+<area shape="rect" id="node2" href="$classfastuidraw_1_1gl_1_1_program_initializer.html" title="A ProgramInitializer is a functor object called the first time a Program is bound (i..." alt="" coords="5,184,215,211"/>
+<area shape="rect" id="node3" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="41,80,179,136"/>
+<area shape="rect" id="node4" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="29,5,191,32"/>
+</map>

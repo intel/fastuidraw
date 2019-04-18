@@ -1,6 +1,0 @@
-<map id="fastuidraw::PainterShaderData" name="fastuidraw::PainterShaderData">
-<area shape="rect" id="node2" href="$d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html" title="PainterBlendShaderData holds custom data for blend shaders. " alt="" coords="5,80,169,121"/>
-<area shape="rect" id="node3" href="$dc/d84/classfastuidraw_1_1_painter_item_shader_data.html" title="PainterItemShaderData holds custom data for item shaders. " alt="" coords="194,87,421,114"/>
-<area shape="rect" id="node4" href="$d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html" title="Class to specify dashed stroking parameters, data is packed as according to PainterDashedStrokeParams..." alt="" coords="121,169,297,211"/>
-<area shape="rect" id="node5" href="$df/df5/classfastuidraw_1_1_painter_stroke_params.html" title="Class to specify stroking parameters, data is packed as according to PainterStrokeParams::stroke_data..." alt="" coords="321,169,491,211"/>
-</map>

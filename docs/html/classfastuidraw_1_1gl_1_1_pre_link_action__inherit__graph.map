@@ -1,0 +1,8 @@
+<map id="fastuidraw::gl::PreLinkAction" name="fastuidraw::gl::PreLinkAction">
+<area shape="rect" id="node4" href="$classfastuidraw_1_1gl_1_1_bind_attribute.html" title="A BindAttribute inherits from PreLinkAction, it&#39;s purpose is to bind named attributes to named locati..." alt="" coords="705,5,888,32"/>
+<area shape="rect" id="node5" href="$classfastuidraw_1_1gl_1_1_bind_frag_data_location.html" title="A BindFragDataLocation inherits from PreLinkAction, its purpose is to bind a fragment shader out to a..." alt="" coords="717,57,877,98"/>
+<area shape="rect" id="node6" href="$classfastuidraw_1_1gl_1_1_program_separable.html" title="A ProgramSeparable inherits from PreLinkAction, its purpose is to set a GLSL program as separable..." alt="" coords="689,123,904,149"/>
+<area shape="rect" id="node7" href="$classfastuidraw_1_1gl_1_1_transform_feedback_varying.html" title="A TransformFeedbackVarying encapsulates a call to glTransformFeedbackVarying. Note that if there are ..." alt="" coords="713,174,880,215"/>
+<area shape="rect" id="node2" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="216,86,404,127"/>
+<area shape="rect" id="node3" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,93,168,120"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="fastuidraw::gl::ProgramInitializer" name="fastuidraw::gl::ProgramInitializer">
+<area shape="rect" id="node4" href="$classfastuidraw_1_1gl_1_1_shader_storage_block_initializer.html" title="A ShaderStorageBlockInitializer is used to initalize the binding point used by a shader storage block..." alt="" coords="678,5,873,47"/>
+<area shape="rect" id="node5" href="$classfastuidraw_1_1gl_1_1_uniform_block_initializer.html" title="A UniformBlockInitializer is used to initalize the binding point used by a bindable uniform (aka Unif..." alt="" coords="682,71,869,112"/>
+<area shape="rect" id="node6" href="$classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html" title="A UniformInitalizerBase is a base class for initializing a uniform, the actual GL call to set the uni..." alt="" coords="659,137,892,163"/>
+<area shape="rect" id="node2" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="216,63,353,119"/>
+<area shape="rect" id="node3" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,78,168,105"/>
+<area shape="rect" id="node7" href="$classfastuidraw_1_1gl_1_1_sampler_initializer.html" title="Class to intialize the binding points of samplers. If the uniform is an array, the first element will..." alt="" coords="955,86,1163,113"/>
+<area shape="rect" id="node8" href="$classfastuidraw_1_1gl_1_1_uniform_initializer.html" title="Initialize a uniform via the templated overloaded function fastuidraw::gl::Uniform(). " alt="" coords="940,137,1179,163"/>
+<area shape="rect" id="node9" href="$classfastuidraw_1_1gl_1_1_uniform_initializer_3_01c__array_3_01const_01_t_01_4_01_4.html" title="Specialization for type c_array&lt;const T&gt; for UniformInitializer so that data behind the c_array is co..." alt="" coords="956,188,1163,229"/>
+</map>
