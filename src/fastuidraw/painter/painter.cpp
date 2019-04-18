@@ -5333,7 +5333,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 
   if (!renderer.valid())
     {
-      renderer = d->compute_glyph_renderer(glyph_sequence.pixel_size(),
+      renderer = d->compute_glyph_renderer(glyph_sequence.format_size(),
                                            d->m_default_glyph_renderer_chooser);
     }
 
@@ -5389,7 +5389,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 
   if (!renderer.valid())
     {
-      renderer = d->compute_glyph_renderer(glyph_run.pixel_size(),
+      renderer = d->compute_glyph_renderer(glyph_run.format_size(),
                                            d->m_default_glyph_renderer_chooser);
     }
 
@@ -5442,7 +5442,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
   d = static_cast<PainterPrivate*>(m_d);
 
   return draw_glyphs(shader, draw, glyph_sequence,
-                     d->compute_glyph_renderer(glyph_sequence.pixel_size(), renderer_chooser));
+                     d->compute_glyph_renderer(glyph_sequence.format_size(), renderer_chooser));
 }
 
 fastuidraw::GlyphRenderer
@@ -5464,7 +5464,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
   d = static_cast<PainterPrivate*>(m_d);
 
   return draw_glyphs(shader, draw, glyph_run, begin, count,
-                     d->compute_glyph_renderer(glyph_run.pixel_size(), renderer_chooser));
+                     d->compute_glyph_renderer(glyph_run.format_size(), renderer_chooser));
 }
 
 fastuidraw::GlyphRenderer

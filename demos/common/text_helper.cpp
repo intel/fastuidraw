@@ -338,7 +338,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
                       const fastuidraw::vec2 &shift_by)
 {
   fastuidraw::vec2 pen(shift_by);
-  float pixel_size(out_sequence.pixel_size());
+  float format_size(out_sequence.format_size());
   enum fastuidraw::Painter::screen_orientation orientation(out_sequence.orientation());
   fastuidraw::GlyphMetrics layout;
   float ratio;
@@ -350,7 +350,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
         {
           out_sequence.add_glyph(fastuidraw::GlyphSource(glyph_code, font), pen);
 
-          ratio = pixel_size / layout.units_per_EM();
+          ratio = format_size / layout.units_per_EM();
           pen.x() += ratio * layout.advance().x();
         }
     }
@@ -366,7 +366,7 @@ create_formatted_textT(T &out_sequence,
                        const fastuidraw::vec2 &starting_place)
 {
   std::streampos current_position, end_position;
-  float pixel_size(out_sequence.pixel_size());
+  float format_size(out_sequence.format_size());
   enum fastuidraw::Painter::screen_orientation orientation(out_sequence.orientation());
   unsigned int loc(0);
   fastuidraw::vec2 pen(starting_place);
@@ -379,7 +379,7 @@ create_formatted_textT(T &out_sequence,
   end_position = istr.tellg();
   istr.seekg(current_position, std::ios::beg);
 
-  ratio = pixel_size / font->metrics().units_per_EM();
+  ratio = format_size / font->metrics().units_per_EM();
   pen_y_advance = ratio * font->metrics().height();
 
   std::vector<fastuidraw::GlyphSource> glyph_sources;

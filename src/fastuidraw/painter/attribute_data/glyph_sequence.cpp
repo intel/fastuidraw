@@ -58,7 +58,7 @@ namespace
     void
     set_values(fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                fastuidraw::c_array<const fastuidraw::vec2> positions,
-               float render_pixel_size,
+               float render_format_size,
                enum fastuidraw::PainterEnums::screen_orientation orientation,
                enum fastuidraw::PainterEnums::glyph_layout_type layout);
 
@@ -216,11 +216,11 @@ namespace
   {
   public:
     explicit
-    GlyphSequencePrivate(float pixel_size,
+    GlyphSequencePrivate(float format_size,
                          enum fastuidraw::PainterEnums::screen_orientation orientation,
                          const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache,
                          enum fastuidraw::PainterEnums::glyph_layout_type layout):
-      m_pixel_size(pixel_size),
+      m_format_size(format_size),
       m_orientation(orientation),
       m_layout(layout),
       m_cache(cache),
@@ -238,9 +238,9 @@ namespace
     }
 
     float
-    pixel_size(void) const
+    format_size(void) const
     {
-      return m_pixel_size;
+      return m_format_size;
     }
 
     enum fastuidraw::PainterEnums::screen_orientation
@@ -320,7 +320,7 @@ namespace
     void
     make_subsets_ready(void);
 
-    float m_pixel_size;
+    float m_format_size;
     enum fastuidraw::PainterEnums::screen_orientation m_orientation;
     enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
@@ -337,7 +337,7 @@ void
 GlyphAttributesIndices::
 set_values(fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
            fastuidraw::c_array<const fastuidraw::vec2> positions,
-           float render_pixel_size,
+           float render_format_size,
            enum fastuidraw::PainterEnums::screen_orientation orientation,
            enum fastuidraw::PainterEnums::glyph_layout_type layout)
 {
@@ -369,7 +369,7 @@ set_values(fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
         {
           float scale;
 
-          scale = render_pixel_size / G.metrics().units_per_EM();
+          scale = render_format_size / G.metrics().units_per_EM();
           G.pack_glyph(attr, make_c_array(m_attribs),
                        idx, make_c_array(m_indices),
                        positions[g], scale,
@@ -794,7 +794,7 @@ attributes_indices(fastuidraw::GlyphRenderer R)
 
   dst.set_values(tmp_glyphs,
                  tmp_positions,
-                 m_owner->pixel_size(),
+                 m_owner->format_size(),
                  m_owner->orientation(),
                  m_owner->layout());
 
@@ -835,7 +835,7 @@ add_glyphs(fastuidraw::c_array<const fastuidraw::GlyphSource> sources,
           float scale;
           fastuidraw::vec2 p_bl, p_tr, lo, glyph_size;
 
-          scale = m_pixel_size / M.units_per_EM();
+          scale = m_format_size / M.units_per_EM();
           glyph_size = scale * M.size();
           lo = (m_layout == fastuidraw::PainterEnums::glyph_layout_horizontal) ?
             M.horizontal_layout_offset() :
@@ -958,12 +958,12 @@ fastuidraw::GlyphSequence::ScratchSpace::
 ////////////////////////////////////////
 // fastuidraw::GlyphSequence methods
 fastuidraw::GlyphSequence::
-GlyphSequence(float pixel_size,
+GlyphSequence(float format_size,
               enum PainterEnums::screen_orientation orientation,
               const reference_counted_ptr<GlyphCache> &cache,
               enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew GlyphSequencePrivate(pixel_size, orientation, cache, layout);
+  m_d = FASTUIDRAWnew GlyphSequencePrivate(format_size, orientation, cache, layout);
 }
 
 fastuidraw::GlyphSequence::
@@ -976,11 +976,11 @@ fastuidraw::GlyphSequence::
 
 float
 fastuidraw::GlyphSequence::
-pixel_size(void) const
+format_size(void) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
-  return d->pixel_size();
+  return d->format_size();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>&

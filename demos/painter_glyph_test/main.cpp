@@ -108,14 +108,14 @@ public:
        float line_length,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<FontDatabase> &selector,
-       float pixel_size_formatting,
+       float format_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
   void
   init(const std::vector<uint32_t> &glyph_codes,
        const reference_counted_ptr<const FontBase> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
-       float pixel_size_formatting,
+       float format_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
   void
@@ -123,7 +123,7 @@ public:
        const reference_counted_ptr<const FontBase> &font,
        const reference_counted_ptr<GlyphCache> &glyph_cache,
        const reference_counted_ptr<FontDatabase> &selector,
-       float pixel_size_formatting,
+       float format_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
   void
@@ -217,7 +217,7 @@ private:
   command_line_argument_value<bool> m_use_file;
   command_line_argument_value<bool> m_draw_glyph_set;
   command_line_argument_value<int> m_realize_glyphs_thread_count;
-  command_line_argument_value<float> m_render_pixel_size;
+  command_line_argument_value<float> m_render_format_size;
   command_line_argument_value<float> m_bg_red, m_bg_green, m_bg_blue;
   command_line_argument_value<float> m_fg_red, m_fg_green, m_fg_blue;
   command_line_argument_value<float> m_change_stroke_width_rate;
@@ -272,7 +272,7 @@ make_hierarchy(void)
 {
   enum Painter::screen_orientation orientation(m_glyph_sequence->orientation());
   GlyphCache *glyph_cache(m_glyph_sequence->glyph_cache().get());
-  float pixel_size(m_glyph_sequence->pixel_size());
+  float format_size(m_glyph_sequence->format_size());
   GlyphMetrics metrics;
   vec2 p;
   BoundingBox<float> bbox;
@@ -292,7 +292,7 @@ make_hierarchy(void)
           min_bb = metrics.horizontal_layout_offset();
           max_bb = min_bb + metrics.size();
 
-          ratio = pixel_size / metrics.units_per_EM();
+          ratio = format_size / metrics.units_per_EM();
           min_bb *= ratio;
           max_bb *= ratio;
 
@@ -322,7 +322,7 @@ init(const reference_counted_ptr<const FontBase> &pfont,
      float line_length,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<FontDatabase> &font_database,
-     float pixel_size_formatting,
+     float format_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
   float scale_factor, offset;
@@ -338,12 +338,12 @@ init(const reference_counted_ptr<const FontBase> &pfont,
 
   font = pfont.dynamic_cast_ptr<const FontFreeType>();
   face = font->face_generator()->create_face();
-  scale_factor = pixel_size_formatting / static_cast<float>(face->face()->units_per_EM);
+  scale_factor = format_size_formatting / static_cast<float>(face->face()->units_per_EM);
   y_advance_sign = (screen_orientation == Painter::y_increases_downwards) ? 1.0f : -1.0f;
   offset = scale_factor * static_cast<float>(face->face()->height);
   num_glyphs = font->number_glyphs();
 
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(format_size_formatting,
                                                  screen_orientation, glyph_cache);
 
   std::cout << "Formatting glyphs ..." << std::flush;
@@ -415,13 +415,13 @@ GlyphDrawsShared::
 init(const std::vector<uint32_t> &glyph_codes,
      const reference_counted_ptr<const FontBase> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
-     float pixel_size_formatting,
+     float format_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
   simple_time timer;
 
   std::cout << "Formatting glyphs ..." << std::flush;
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(format_size_formatting,
                                                  screen_orientation, glyph_cache);
   create_formatted_text(*m_glyph_sequence, glyph_codes, font.get());
 
@@ -434,10 +434,10 @@ init(std::istream &istr,
      const reference_counted_ptr<const FontBase> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<FontDatabase> &font_database,
-     float pixel_size_formatting,
+     float format_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
-  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(pixel_size_formatting,
+  m_glyph_sequence = FASTUIDRAWnew GlyphSequence(format_size_formatting,
                                                  screen_orientation, glyph_cache);
   if (istr)
     {
@@ -511,7 +511,7 @@ painter_glyph_test(void):
                                 "If draw_glyph_set is true, gives the number of threads to use "
                                 "to create the glyph data",
                                 *this),
-  m_render_pixel_size(24.0f, "render_pixel_size", "pixel size at which to display glyphs", *this),
+  m_render_format_size(24.0f, "render_format_size", "format size at which to display glyphs", *this),
   m_bg_red(0.0f, "bg_red", "Background Red", *this),
   m_bg_green(0.0f, "bg_green", "Background Green", *this),
   m_bg_blue(0.0f, "bg_blue", "Background Blue", *this),
@@ -703,11 +703,11 @@ derived_init(int w, int h)
       m_zoomer.m_zoom_direction = PanZoomTracker::zoom_direction_negative_y;
       m_zoomer.m_scale_event.y() = -1.0f;
       m_zoomer.m_translate_event.y() = static_cast<float>(h);
-      m_zoomer.transformation(ScaleTranslate<float>(vec2(0.0f, h - m_render_pixel_size.value())));
+      m_zoomer.transformation(ScaleTranslate<float>(vec2(0.0f, h - m_render_format_size.value())));
     }
   else
     {
-      m_zoomer.transformation(ScaleTranslate<float>(vec2(0.0f, m_render_pixel_size.value())));
+      m_zoomer.transformation(ScaleTranslate<float>(vec2(0.0f, m_render_format_size.value())));
     }
 }
 
@@ -768,14 +768,14 @@ ready_glyph_data(int w, int h)
         }
       m_draw_shared.init(m_font, w,
                          m_glyph_cache, m_font_database,
-                         m_render_pixel_size.value(),
+                         m_render_format_size.value(),
                          m_screen_orientation.value());
     }
   else if (!explicit_glyph_codes.empty())
     {
       m_draw_shared.init(explicit_glyph_codes,
                          m_font, m_glyph_cache,
-                         m_render_pixel_size.value(),
+                         m_render_format_size.value(),
                          m_screen_orientation.value());
     }
   else if (m_use_file.value())
@@ -783,7 +783,7 @@ ready_glyph_data(int w, int h)
       std::ifstream istr(m_text.value().c_str(), std::ios::binary);
       m_draw_shared.init(istr, m_font,
                          m_glyph_cache, m_font_database,
-                         m_render_pixel_size.value(),
+                         m_render_format_size.value(),
                          m_screen_orientation.value());
     }
   else
@@ -791,7 +791,7 @@ ready_glyph_data(int w, int h)
       std::istringstream istr(m_text.value());
       m_draw_shared.init(istr, m_font,
                          m_glyph_cache, m_font_database,
-                         m_render_pixel_size.value(),
+                         m_render_format_size.value(),
                          m_screen_orientation.value());
     }
   m_draw_shared.post_finalize();
@@ -817,7 +817,7 @@ ready_glyph_data(int w, int h)
 
   float sz;
   sz = GlyphGenerateParams::restricted_rays_minimum_render_size();
-  m_restricted_rays_box_slack = m_render_pixel_size.value() / sz;
+  m_restricted_rays_box_slack = m_render_format_size.value() / sz;
 }
 
 vec2
@@ -937,7 +937,7 @@ draw_glyphs(float us)
     }
   else
     {
-      render = m_painter->compute_glyph_renderer(m_draw_shared.glyph_sequence().pixel_size());
+      render = m_painter->compute_glyph_renderer(m_draw_shared.glyph_sequence().format_size());
     }
 
   if (m_fill_glyphs)
@@ -961,7 +961,7 @@ draw_glyphs(float us)
 
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
-              sc = m_render_pixel_size.value() / metrics.units_per_EM();
+              sc = m_render_format_size.value() / metrics.units_per_EM();
 
               /* when drawing with y-coordinate increasing downwards
                * which is the opposite coordinate system as the glyph's
@@ -1011,7 +1011,7 @@ draw_glyphs(float us)
 
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
-              sc = m_render_pixel_size.value() / metrics.units_per_EM();
+              sc = m_render_format_size.value() / metrics.units_per_EM();
 
               /* when drawing with y-coordinate increasing downwards
                * which is the opposite coordinate system as the glyph's
@@ -1068,7 +1068,7 @@ draw_glyphs(float us)
               //make the scale of the path match how we scaled the text.
               float sc, ysign;
               Rect rect;
-              sc = m_render_pixel_size.value() / metrics.units_per_EM();
+              sc = m_render_format_size.value() / metrics.units_per_EM();
 
 
               /* when drawing with y-coordinate increasing downwards
@@ -1253,7 +1253,7 @@ draw_glyphs(float us)
           vec2 glyph_position, glyph_coord;
 
           m_draw_shared.glyph_sequence().added_glyph(G, &metrics, &glyph_position);
-          ratio = m_render_pixel_size.value() / metrics.units_per_EM();
+          ratio = m_render_format_size.value() / metrics.units_per_EM();
 
           ysign = (m_screen_orientation.value() == Painter::y_increases_upwards) ? 1.0f : -1.0f;
           glyph_coord = (p - glyph_position) / vec2(ratio, ratio * ysign);

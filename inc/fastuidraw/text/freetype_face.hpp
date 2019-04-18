@@ -79,7 +79,7 @@ namespace fastuidraw
        */
       enum return_code
       check_creation(reference_counted_ptr<FreeTypeLib> lib
-                  = reference_counted_ptr<FreeTypeLib>()) const;
+                     = reference_counted_ptr<FreeTypeLib>()) const;
 
     protected:
       /*!
@@ -127,10 +127,10 @@ namespace fastuidraw
     {
     public:
       /*!
-       *        Ctor.
-       *        \param src holder of data; modifying the data after creating
-       *                   a GeneratorMemory that uses it is undefined and
-       *                   crashing behavior.
+       * Ctor.
+       * \param src holder of data; modifying the data after creating
+       *            a GeneratorMemory that uses it is undefined and
+       *            crashing behavior.
        * \param face_index face index of data
        */
       GeneratorMemory(const reference_counted_ptr<const DataBufferBase> &src,
@@ -138,7 +138,7 @@ namespace fastuidraw
 
       /*!
        * Ctor. Provided as a convenience, a DataBuffer object is created
-       *        from the named file and used as the memory source.
+       * from the named file and used as the memory source.
        * \param filename name of file from which to source the created
        *                 FT_Face objects
        * \param face_index face index of file

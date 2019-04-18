@@ -90,11 +90,11 @@ namespace
   {
   public:
     explicit
-    GlyphRunPrivate(float pixel_size,
+    GlyphRunPrivate(float format_size,
                     enum fastuidraw::PainterEnums::screen_orientation orientation,
                     const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache,
                     enum fastuidraw::PainterEnums::glyph_layout_type layout):
-      m_pixel_size(pixel_size),
+      m_format_size(format_size),
       m_orientation(orientation),
       m_layout(layout),
       m_cache(cache),
@@ -145,7 +145,7 @@ namespace
     const PerGlyphRender*
     fetch_render_data(const fastuidraw::GlyphRenderer &renderer);
 
-    float m_pixel_size;
+    float m_format_size;
     enum fastuidraw::PainterEnums::screen_orientation m_orientation;
     enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
@@ -278,7 +278,7 @@ add_glyphs(const fastuidraw::FontBase *font,
       L.m_position = positions[i];
       if (dst_glyphs[i].valid())
         {
-          L.m_scale = m_pixel_size / dst_glyphs[i].units_per_EM();
+          L.m_scale = m_format_size / dst_glyphs[i].units_per_EM();
         }
       else
         {
@@ -319,12 +319,12 @@ fetch_render_data(const fastuidraw::GlyphRenderer &renderer)
 ////////////////////////////////
 // fastuidraw::GlyphRun methods
 fastuidraw::GlyphRun::
-GlyphRun(float pixel_size,
-              enum PainterEnums::screen_orientation orientation,
-              const reference_counted_ptr<GlyphCache> &cache,
-              enum PainterEnums::glyph_layout_type layout)
+GlyphRun(float format_size,
+         enum PainterEnums::screen_orientation orientation,
+         const reference_counted_ptr<GlyphCache> &cache,
+         enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew GlyphRunPrivate(pixel_size, orientation, cache, layout);
+  m_d = FASTUIDRAWnew GlyphRunPrivate(format_size, orientation, cache, layout);
 }
 
 fastuidraw::GlyphRun::
@@ -337,11 +337,11 @@ fastuidraw::GlyphRun::
 
 float
 fastuidraw::GlyphRun::
-pixel_size(void) const
+format_size(void) const
 {
   GlyphRunPrivate *d;
   d = static_cast<GlyphRunPrivate*>(m_d);
-  return d->m_pixel_size;
+  return d->m_format_size;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>&

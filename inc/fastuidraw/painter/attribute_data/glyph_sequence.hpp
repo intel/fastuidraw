@@ -124,7 +124,7 @@ namespace fastuidraw
 
     /*!
      * Ctor.
-     * \param pixel_size pixel size at which glyphs added via
+     * \param format_size format size at which glyphs added via
      *                   add_glyphs() or add_glyph() are formatted
      * \param orientation screen orientation at which glyphs added by
      *                    add_glyphs() or add_glyph() are formatted
@@ -134,7 +134,7 @@ namespace fastuidraw
      *               or vertically
      */
     explicit
-    GlyphSequence(float pixel_size,
+    GlyphSequence(float format_size,
                   enum PainterEnums::screen_orientation orientation,
                   const reference_counted_ptr<GlyphCache> &cache,
                   enum PainterEnums::glyph_layout_type layout
@@ -195,11 +195,11 @@ namespace fastuidraw
     glyph_cache(void) const;
 
     /*!
-     * Pixel size with which glyph sequences added by
+     * Format size with which glyph sequences added by
      * add_glyphs() and add_glyph() are formatted.
      */
     float
-    pixel_size(void) const;
+    format_size(void) const;
 
     /*!
      * Orientation with which glyph sequences added by
