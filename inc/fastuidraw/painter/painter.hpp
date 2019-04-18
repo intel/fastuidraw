@@ -861,7 +861,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphSequence &glyph_sequence,
-                GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
@@ -875,7 +875,7 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
-                GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -893,7 +893,7 @@ namespace fastuidraw
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-                GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -910,7 +910,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-                GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -925,7 +925,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
-                GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -939,7 +939,7 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
-                GlyphRenderer renderer = GlyphRenderer());
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
