@@ -31,7 +31,9 @@ public:
   example_text(void):
     m_translate(0.0f, 0.0f),
     m_scale(1.0f)
-  {}
+  {
+    std::cout << "Arrow keys to scroll, PageUp/PageDown to change zoom level\n";
+  }
 
   ~example_text();
 
