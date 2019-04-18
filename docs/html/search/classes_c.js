@@ -14,6 +14,6 @@ var searchData=
   ['reference_5fcounted_5fptr_3c_20const_20fastuidraw_3a_3aimage_20_3e',['reference_counted_ptr&lt; const fastuidraw::Image &gt;',['../de/d73/classfastuidraw_1_1reference__counted__ptr.html',1,'fastuidraw']]],
   ['reference_5fcounted_5fptr_3c_20fastuidraw_3a_3apainteritemcoverageshader_20_3e',['reference_counted_ptr&lt; fastuidraw::PainterItemCoverageShader &gt;',['../de/d73/classfastuidraw_1_1reference__counted__ptr.html',1,'fastuidraw']]],
   ['refiner',['Refiner',['../d1/d80/classfastuidraw_1_1_tessellated_path_1_1_refiner.html',1,'fastuidraw::TessellatedPath']]],
-  ['resourcereleaseaction',['ResourceReleaseAction',['../d6/db4/classfastuidraw_1_1_image_atlas_1_1_resource_release_action.html',1,'fastuidraw::ImageAtlas']]],
+  ['resourcereleaseaction',['ResourceReleaseAction',['../d5/d90/classfastuidraw_1_1_image_1_1_resource_release_action.html',1,'fastuidraw::Image']]],
   ['roundedrect',['RoundedRect',['../d9/d72/classfastuidraw_1_1_rounded_rect.html',1,'fastuidraw']]]
 ];

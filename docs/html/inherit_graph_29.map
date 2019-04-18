@@ -1,3 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$d5/de8/classfastuidraw_1_1gl_1_1_program_1_1shader__variable__info.html" title="A shader_variable_info holds the type, size and name of a uniform or an attribute of a GL program..." alt="" coords="5,5,163,47"/>
+<area shape="rect" id="node1" href="$d6/d35/classfastuidraw_1_1glsl_1_1_painter_blend_shader_g_l_s_l_1_1_dependency_list.html" title="If one wishes to make use of other PainterBlendShaderGLSL fastuidraw_gl_compute_blend_value(), fastuidraw_gl_compute_blend_factors() or fastuidraw_gl_compute_post_blended_value() routines of other shaders (for example to have a simple shader that adds on to a previous shader), a DependencyList provides the means to do so. " alt="" coords="5,5,236,47"/>
 </map>

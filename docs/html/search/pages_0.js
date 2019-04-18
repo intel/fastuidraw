@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['fastuidraw',['FastUIDraw',['../index.html',1,'']]]
+  ['details',['Details',['../d7/db7/_details_page.html',1,'']]]
 ];

@@ -28,7 +28,6 @@ var searchData=
   ['src_5funiform_5fblock',['src_uniform_block',['../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a89ffc63665401e7ad046ed3fbdeb5fcda09e6f0ab9b626bff686a98bf2ceff23c',1,'fastuidraw::gl::Program']]],
   ['starts_5fnew_5fedge',['starts_new_edge',['../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072',1,'fastuidraw::PathEnums']]],
   ['storage_5fbuffers',['storage_buffers',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba3dff9ed7301c1502c47d4f516530c297',1,'fastuidraw::gpu_dirty_state']]],
-  ['stride',['stride',['../db/dfd/structfastuidraw_1_1gl_1_1opengl__trait.html#a0ef2d9974a878957a83dbf9c4b0bdbdbadbc61f7f1eb5b84ded85ed1764695a35',1,'fastuidraw::gl::opengl_trait']]],
   ['stroke_5fdash_5foffset_5foffset',['stroke_dash_offset_offset',['../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3aa392c4ef03dba915e0dcf10b8d30a441',1,'fastuidraw::PainterDashedStrokeParams']]],
   ['stroke_5fdata_5fsize',['stroke_data_size',['../df/df5/classfastuidraw_1_1_painter_stroke_params.html#a5644196f8f0409751b564b8c5adf563ba45f9f83622ec21805c6c4becb0f2b1aa',1,'fastuidraw::PainterStrokeParams']]],
   ['stroke_5ffirst_5finterval_5fstart_5foffset',['stroke_first_interval_start_offset',['../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3ae18170c1a215f1e71efa20aa078da352',1,'fastuidraw::PainterDashedStrokeParams']]],

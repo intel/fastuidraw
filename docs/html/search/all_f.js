@@ -7,5 +7,5 @@ var searchData=
   ['query_5fstats',['query_stats',['../da/de0/classfastuidraw_1_1_painter.html#a46823221212852aa522552bd560a7e83',1,'fastuidraw::Painter']]],
   ['query_5fstats_5ft',['query_stats_t',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a6c116b1e4d7c761ee6f8a42c180af15d',1,'fastuidraw::PainterEnums']]],
   ['queue_5faction',['queue_action',['../da/de0/classfastuidraw_1_1_painter.html#a6f6b49e429d2d523a2be51f720e6ff37',1,'fastuidraw::Painter']]],
-  ['queue_5fresource_5frelease_5faction',['queue_resource_release_action',['../d7/d13/classfastuidraw_1_1_image_atlas.html#acf7f30ae435f56b9795f12eb4e64f81d',1,'fastuidraw::ImageAtlas']]]
+  ['queue_5fresource_5frelease_5faction',['queue_resource_release_action',['../d7/d13/classfastuidraw_1_1_image_atlas.html#a467c139290686262c42700b9080a6c1c',1,'fastuidraw::ImageAtlas']]]
 ];

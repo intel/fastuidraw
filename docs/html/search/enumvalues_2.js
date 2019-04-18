@@ -34,7 +34,6 @@ var searchData=
   ['constant_5fcolor',['CONSTANT_COLOR',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859a6a11b157ddfb4bc8d26122bd849d59a1',1,'fastuidraw::BlendMode']]],
   ['context_5ftexture2d',['context_texture2d',['../dc/dd5/classfastuidraw_1_1_image.html#aadc9d23baef018704949d6e42f3c4079a23db8baa72337d14b6c8960dde7bad66',1,'fastuidraw::Image']]],
   ['continues_5fedge',['continues_edge',['../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda886976145669bc97f48bce3b296952b3',1,'fastuidraw::PathEnums']]],
-  ['count',['count',['../db/dfd/structfastuidraw_1_1gl_1_1opengl__trait.html#a8f2a2ddd4d8ffdfaab79428b229a8fa0ada387d80852c1c0fbe207a0981acc83a',1,'fastuidraw::gl::opengl_trait']]],
   ['counter_5fclockwise',['counter_clockwise',['../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854ad4c88deede0ccdf0204fd7ec6256e307',1,'fastuidraw::PainterEnums']]],
   ['coverage_5fglyph',['coverage_glyph',['../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02da8e239dc3e5dd0b9619a51a8b0ab7016a',1,'fastuidraw']]],
   ['curve_5fentry0_5fbit0',['curve_entry0_bit0',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a7a89115efb16c45b6c134dabb8a8cbaaa042c61d99ae9cbb9e71f421f13a3002b',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],

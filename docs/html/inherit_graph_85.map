@@ -1,3 +1,8 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$d9/d8f/classfastuidraw_1_1_painter_header.html" title="A PainterHeader represents the values of the header for the shaders to read to draw data..." alt="" coords="5,5,179,32"/>
+<area shape="rect" id="node1" href="$db/d27/classfastuidraw_1_1_painter_packed_value_base.html" title="(Private) base class used for PainterPackedValue " alt="" coords="5,152,180,193"/>
+<area shape="rect" id="node2" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha..." alt="" coords="252,5,427,47"/>
+<area shape="rect" id="node3" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterBlend\lShaderData \&gt;" alt="" coords="235,71,444,127"/>
+<area shape="rect" id="node4" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterBrush \&gt;" alt="" coords="228,152,451,193"/>
+<area shape="rect" id="node5" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterCustom\lBrushShaderData \&gt;" alt="" coords="228,218,451,274"/>
+<area shape="rect" id="node6" href="$d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="fastuidraw::PainterPacked\lValue\&lt; fastuidraw::PainterItem\lShaderData \&gt;" alt="" coords="238,298,441,354"/>
 </map>

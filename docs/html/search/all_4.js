@@ -21,6 +21,8 @@ var searchData=
   ['equation_5falpha',['equation_alpha',['../da/d2e/classfastuidraw_1_1_blend_mode.html#ada67f090c3fcc1d23e008ec8ee30e58d',1,'fastuidraw::BlendMode::equation_alpha(enum equation_t v)'],['../da/d2e/classfastuidraw_1_1_blend_mode.html#af032ece47f01dac9f78c050f9e0cdbfc',1,'fastuidraw::BlendMode::equation_alpha(void) const']]],
   ['equation_5frgb',['equation_rgb',['../da/d2e/classfastuidraw_1_1_blend_mode.html#ac7b661813e518bf477c967dfc563447d',1,'fastuidraw::BlendMode::equation_rgb(enum equation_t v)'],['../da/d2e/classfastuidraw_1_1_blend_mode.html#a4e8600cecb161127dfb7bee4e87750bb',1,'fastuidraw::BlendMode::equation_rgb(void) const']]],
   ['equation_5ft',['equation_t',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a73b66e27681b83563258b0f2334c2355',1,'fastuidraw::BlendMode']]],
+  ['example_20framework',['Example FrameWork',['../d4/da1/ex_framework.html',1,'']]],
+  ['example_20initialization',['Example Initialization',['../de/d50/ex_initialization.html',1,'']]],
   ['exact_5fmatch',['exact_match',['../d4/d44/classfastuidraw_1_1_font_database.html#a3d5871ab9a1c68af602df123872525e3a9d933af5c8377e58653631cf6212c3ad',1,'fastuidraw::FontDatabase']]],
   ['execute',['execute',['../d2/d15/classfastuidraw_1_1_painter_draw_break_action.html#a7d658b55f7ab36bd0e6034876067bf45',1,'fastuidraw::PainterDrawBreakAction']]],
   ['execute_5factions',['execute_actions',['../d7/df3/classfastuidraw_1_1gl_1_1_pre_link_action_array.html#aac5da65e3a4fe7ef8f70c3a485e15cbd',1,'fastuidraw::gl::PreLinkActionArray']]],

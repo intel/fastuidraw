@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$d6/d25/classfastuidraw_1_1_glyph_source.html" title="fastuidraw::GlyphSource" alt="" coords="5,5,171,32"/>
+<area shape="rect" id="node1" href="$df/d0f/classfastuidraw_1_1_image_source_base.html" title="ImageSourceBase defines the inteface for copying texel data from a source (CPU memory, a file, etc) to an AtlasColorBackingStoreBase derived object. " alt="" coords="5,5,203,32"/>
+<area shape="rect" id="node2" href="$d4/d1c/classfastuidraw_1_1_image_source_c_array.html" title="An implementation of ImageSourceBase where the data is backed by a c_array&lt;const u8vec4&gt; data..." alt="" coords="251,5,459,32"/>
 </map>

@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$d9/d36/classfastuidraw_1_1matrix_nx_m.html" title="fastuidraw::matrixNxM\l\&lt; 2, 2, float \&gt;" alt="" coords="5,5,160,47"/>
+<area shape="rect" id="node1" href="$d9/d36/classfastuidraw_1_1matrix_nx_m.html" title="fastuidraw::matrixNxM\l\&lt; 3, 3, T \&gt;" alt="" coords="5,5,160,47"/>
+<area shape="rect" id="node2" href="$d7/d2a/classfastuidraw_1_1matrix3x3.html" title="A representation of a 3x3 matrix, that in addition to the NxN matrix functionality provides function ..." alt="" coords="208,13,387,39"/>
 </map>
