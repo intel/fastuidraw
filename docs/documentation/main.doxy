@@ -287,6 +287,7 @@ namespace fastuidraw {
 
   \page ex_framework Example FrameWork
   \brief Framework used by examples to bring up a window and GL context via SDL2.
+
   The example framework's sole purpose is to impement via SDL2,
   the boiler plate code to:
     - Create a window
