@@ -45,7 +45,7 @@ derived_init(int argc, char **argv)
 {
   /* Recall that example_framework has created the window
    * GL context and made the GL conrext current by the time
-   * it calls derived init. Now is the time we can perform
+   * it calls derived_init(). Now is the time we can perform
    * initialization for FastUIDraw
    */
   FASTUIDRAWunused(argc);

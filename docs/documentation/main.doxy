@@ -278,7 +278,49 @@ namespace fastuidraw {
      -# All Porter-Duff blend modes
      -# Ability for application to have custom blending types via shaders
 
-  \section Concepts
+  \section Details Details
+  For further details see \ref DetailsPage
+
+  \section Examples
+  - See \ref ex_framework for the example framework to get started with the examples
+  - See \ref ex_initialization for the how to create a \ref fastuidraw::Painter
+
+  \page ex_framework Example FrameWork
+  \brief Framework used by examples to bring up a window and GL context via SDL2.
+  The example framework's sole purpose is to impement via SDL2,
+  the boiler plate code to:
+    - Create a window
+    - Create a GL context and make it current
+    - Provide an interface to handle events
+    - Provide an interface to draw a frame
+    - at dtor, destroy GL context and window
+
+  FastUIDraw is not tied to a particular windowing system at all. FastUIDraw
+  can work with other frameworks (for example Qt) that handle window creation
+  and event handling.
+
+  The interface is defined by:
+  \snippet example_framework.hpp ExampleFramework
+
+  The implementation is given by:
+  \snippet example_framework.cpp ExampleFramework
+
+  \page ex_initialization Example Initialization
+  \brief Example code that shows how to create a Painter and to use the GL backend
+
+  The Example Initialization builds from \ref ex_framework to demonstrate
+  how to initialize FastUIDraw's GL (or GLES) backend and to create a
+  fastuidraw::Painter object.
+
+  The interface is defined by:
+  \snippet initialization.hpp ExampleInitialization
+
+  The implementation is given by:
+  \snippet initialization.cpp ExampleInitialization
+
+  \page DetailsPage Details
+  \brief Theory and Concept in FastUIDraw
+  \section Concepts Concepts
   FastUIDraw strongly distinguishes between "what" to draw and "how" to draw.
   The "what" to draw is embodied by attribute and index data. This data is
   expected to be reused and, for the fastuidraw::Painter interface, is embodied
@@ -314,39 +356,4 @@ namespace fastuidraw {
   to apply gradients (linear, radial), repeat windowing, transformation of
   brush image, pen color and image (complete with repeating and filtering the
   image).
-
-  \section Example
-  - See \ref ex_framework for the example framework to get started with the examples
-  - See \ref ex_initialization for the how to create a \ref fastuidraw::Painter
-
-  \page ex_framework Example FrameWork
-  The example fraomework's sole purpose is to impement via SDL2,
-  the boiler plate code to:
-    - Create a window
-    - Create a GL context and make it current
-    - Provide an interface to handle events
-    - Provide an interface to draw a frame
-    - at dtor, destroy GL context and window
-
-  FastUIDraw is not tied to a particular windowing system at all. FastUIDraw
-  can work with other frameworks (for example Qt) that handle window creation
-  and event handling.
-
-  The interface is defined by:
-  \snippet example_framework.hpp ExampleFramework
-
-  The implementation is given by:
-  \snippet example_framework.cpp ExampleFramework
-
-  \page ex_initialization Example Initialization
-  
-  The Example Initialization builds from \ref ex_framework to demonstrate
-  how to initialize FastUIDraw's GL (or GLES) backend and to create a
-  fastuidraw::Painter object.
-
-  The interface is defined by:
-  \snippet initialization.hpp ExampleInitialization
-
-  The implementation is given by:
-  \snippet initialization.cpp ExampleInitialization
 */
