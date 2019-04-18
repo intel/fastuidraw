@@ -4,14 +4,8 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-dir := $(d)/common
-include $(dir)/Rules.mk
-
-dir := $(d)/text
-include $(dir)/Rules.mk
-
-dir := $(d)/brush
-include $(dir)/Rules.mk
+DEMOS += example_brush
+example_brush_SOURCES := $(call filelist, example_brush.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

@@ -47,3 +47,14 @@
   The implementation is given by:
   \snippet example_text.cpp ExampleText
 */
+
+/*!
+  \page ex_brush Example Brush
+  \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render gradients
+
+  The Example Brush builds from \ref ex_initialization to demonstrate
+  how to use \ref fastuidraw::PainterBrush to render gradients
+
+  The implementation is given by:
+  \snippet example_brush.cpp ExampleBrush
+*/
