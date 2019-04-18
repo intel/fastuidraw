@@ -42,8 +42,8 @@ namespace fastuidraw {
  *    to set the function which will be used to fetch GL function pointers.
  *  - If an application wishes, it can include <fastuidraw/gl_backend/ngl_header.hpp>.
  *    The header will add the GL function-macros and an application can
- *    issue EGL calls without needing to fetch the GL functions via
- *    fastuidraw_glFoo where glFoo is the EL funcion to all. Under release
+ *    issue GL calls without needing to fetch the GL functions via
+ *    fastuidraw_glFoo where glFoo is the GL funcion to all. Under release,
  *    the macros are defined to function pointers that automatically set
  *    themselves up correcty. For debug, the macros preceed and postceed each
  *    GL function call with error checking call backs so an application writer
@@ -58,7 +58,7 @@ namespace fastuidraw {
  * to specify how to fetch GL function pointers (see
  * fastuidraw::gl_binding::get_proc_function()) and additional
  * functionality of where to write/store GL error messages. An application
- * can also use this functionality by including <fastuidraw/ngl_gl.hpp>.
+ * can also use this functionality by including <fastuidraw/gl_backend/ngl_header.hpp>.
  * The header will create a macro fastuidraw_glFoo for each GL function
  * glFoo. If FASTUIDRAW_DEBUG is defined, each GL call will be preceded
  * by a callback and postceeded by another call back. The preceed callback
@@ -69,49 +69,14 @@ namespace fastuidraw {
  * regardless if the error-string is non-empty, CallbackGL::post_call() of
  * each active CallbackGL is called.
  *
- * To fetch the function pointer of a GL function,
- * use the macro <B>FASTUIDRAWglfunctionPointer</B> together
- * with <B>FASTUIDRAWglfunctionExists</B>. The macro
- * <B>FASTUIDRAWglfunctionPointer</B> will NEVER return
- * a nullptr pointer. For the cases where the GL implementation
- * does not have that function, the function pointer
- * returned will then point to a do-nothing function.
- * To check if a GL implementation has a given function
- * use the macro-function <B>FASTUIDRAWglfunctionExists</B>
- * which returns non-zero if the GL implementation has
- * the function. Some example code:
- *
- * \code
- * //get a function pointer for a GL function
- * //which takes no arguments and returns nothing.
- * void (*functionPointer)(void) = nullptr;
- * if (FASTUIDRAWglfunctionExists(glSomething)
- *   {
- *     functionPointer = FASTUIDRAWglfunctionPointer(glSomeFunction);
- *   }
- * else
- *   {
- *     //FASTUIDRAWglfunctionPointer(glSomeFunction) is NOT nullptr,
- *     //rather it maps to a no-op function.
- *     //in this example we leave the value of
- *     //functionPointer as nullptr to indicate the function
- *     //is not supported by the GL implementation.
- *   }
- * \endcode
- *
- * Calling a GL function through a function pointer
- * will bypass the GL error checking ad callbacks though.
- * One issue with using FASTUIDRAWglfunctionExists is that a
- * number of GL implementations will return a function pointer,
- * even if the implementation does not support it. As always,
- * when fetching function pointers, one should check the GL
- * version and GL extension string(s) to know if the GL
- * implementation supports that function.
- *
  * The gl_binding system requires that an application provides
  * a function which the binding system uses to fetch function
  * pointers for the GL API, this is set via
  * gl_binding::get_proc_function().
+ *
+ * Lastly, before using a GL (or GLES) function, an application should
+ * check the GL implementation supports the named function by examining
+ * the GL version and/or extensions itself before using the function.
  */
 namespace gl_binding {
 
