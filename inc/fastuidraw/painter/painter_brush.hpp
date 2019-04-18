@@ -874,7 +874,8 @@ namespace fastuidraw
      * \param cs color stops for gradient. If handle is invalid,
      *           then sets brush to not have a gradient.
      * \param p position of gradient
-     * \param theta start angle of the sweep gradient
+     * \param theta start angle of the sweep gradient, this value
+     *              should be in the range [-PI, PI]
      * \param F the repeat factor applied to the interpolate, the
      *          sign of F is used to determine the sign of the
      *          sweep gradient.
@@ -906,7 +907,8 @@ namespace fastuidraw
      * \param cs color stops for gradient. If handle is invalid,
      *           then sets brush to not have a gradient.
      * \param p position of gradient
-     * \param theta angle of the sweep gradient
+     * \param theta angle of the sweep gradient, this value
+     *              should be in the range [-PI, PI]
      * \param F the repeat factor applied to the interpolate,
      *          a negative reverses the orientation of the sweep.
      * \param orientation orientation of the screen
@@ -939,7 +941,8 @@ namespace fastuidraw
      * \param cs color stops for gradient. If handle is invalid,
      *           then sets brush to not have a gradient.
      * \param p position of gradient
-     * \param theta angle of the sweep gradient
+     * \param theta angle of the sweep gradient, this value
+     *              should be in the range [-PI, PI]
      * \param orientation orientation of the screen
      * \param rotation_orientation orientation of the sweep
      * \param spread specifies the gradient spread type
