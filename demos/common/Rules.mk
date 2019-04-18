@@ -7,7 +7,7 @@ d		:= $(dir)
 dir := $(d)/shaders
 include $(dir)/Rules.mk
 
-COMMON_DEMO_SOURCES := $(call filelist, generic_command_line.cpp \
+COMMON_DEMO_SOURCES += $(call filelist, generic_command_line.cpp \
 	colorstop_command_line.cpp generic_hierarchy.cpp \
 	sdl_demo.cpp sdl_painter_demo.cpp PanZoomTracker.cpp \
 	ImageLoader.cpp read_colorstops.cpp read_path.cpp text_helper.cpp \
