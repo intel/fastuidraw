@@ -1,0 +1,49 @@
+/*!
+  \page ex_framework Example FrameWork
+  \brief Framework used by examples to bring up a window and GL context via SDL2.
+
+  The example framework's sole purpose is to impement via SDL2,
+  the boiler plate code to:
+    - Create a window
+    - Create a GL context and make it current
+    - Provide an interface to handle events
+    - Provide an interface to draw a frame
+    - at dtor, destroy GL context and window
+
+  FastUIDraw is not tied to a particular windowing system at all. FastUIDraw
+  can work with other frameworks (for example Qt) that handle window creation
+  and event handling.
+
+  The interface is defined by:
+  \snippet example_framework.hpp ExampleFramework
+
+  The implementation is given by:
+  \snippet example_framework.cpp ExampleFramework
+*/
+
+/*!
+  \page ex_initialization Example Initialization
+  \brief Example code that shows how to create a Painter and to use the GL backend
+
+  The Example Initialization builds from \ref ex_framework to demonstrate
+  how to initialize FastUIDraw's GL (or GLES) backend and to create a
+  fastuidraw::Painter object.
+
+  The interface is defined by:
+  \snippet initialization.hpp ExampleInitialization
+
+  The implementation is given by:
+  \snippet initialization.cpp ExampleInitialization
+ */
+
+/*!
+  \page ex_text Example Text
+  \brief Simple example showing how to use \ref fastuidraw::GlyphSequence to render text
+
+  The Example Text builds from \ref ex_initialization to demonstrate
+  how to construct and use \ref fastuidraw::GlyphSequence to render
+  text with \ref fastuidraw::Painter.
+
+  The implementation is given by:
+  \snippet example_text.cpp ExampleText
+*/

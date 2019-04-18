@@ -1,0 +1,40 @@
+/*!
+  \page DetailsPage Details
+  \brief Theory and Concept in FastUIDraw
+  \section Concepts Concepts
+  FastUIDraw strongly distinguishes between "what" to draw and "how" to draw.
+  The "what" to draw is embodied by attribute and index data. This data is
+  expected to be reused and, for the fastuidraw::Painter interface, is embodied
+  by the fastuidraw::PainterAttributeData. The "how" to draw is small amounts
+  of data that includes transformation state, brush state and so on. For the class
+  fastuidraw::Painter, the "how" to draw is embodied by fastuidraw::PainterData.
+  The expectation is "how" to draw can be changed without incurring significant
+  CPU load.
+
+  \section CustomDrawing Custom Drawing
+  In addition to drawing glyph sequences, rectangles, filling and stroking paths,
+  FastUIDraw provides an interface to applications to create attribute and data as it sees fit.
+  For drawing of an item there are three kinds of data used to draw an item.
+  -# Attribute data which is value per vertex emitted. Attribute data is realized by
+     fastuidraw::PainterAttribute values.
+  -# Index data is indices into an array of fastuidraw::PainterAttribute to specify what
+     triangles to draw. Indices are realized as fastuidraw::PainterIndex values.
+  -# Reused data is data that is common to all vertices and pixels of an item or even
+     multiple items. This data is realized by fastuidraw::generic_data. This data
+     is realized as part of fastuidraw::PainterData::m_item_shader_data.
+
+  To draw custom data, use the function fastuidraw::Painter::draw_generic().
+  The object fastuidraw::PainterItemShader encapsulates how to process vertices and
+  fragments for the draw. A custom shader is tied to the backend.
+  However, these classes are only the interface for fastuidraw::Painter.
+  The actual shading code is tied to the GPU API one is using. For GL (and GLES)
+  backend, the shader class is the class fastuidraw::glsl::PainterItemShaderGLSL.
+  In that class, one writes GLSL code. WARNING: if one write incorrect GLSL code,
+  the uber-shader will fail to compile and all painting is then disabled!
+
+  All pixels are passed through the brush of fastuidraw::Painter,
+  embodied by fastuidraw::PainterBrush. That brush class contains the abiltiy
+  to apply gradients (linear, radial), repeat windowing, transformation of
+  brush image, pen color and image (complete with repeating and filtering the
+  image).
+ */
