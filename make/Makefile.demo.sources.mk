@@ -30,5 +30,7 @@
 # sp		:= $(basename $(sp))
 # # End standard footer
 
+COMMON_DEMO_SOURCES :=
+
 dir := demos
 include $(dir)/Rules.mk
