@@ -257,12 +257,12 @@ namespace fastuidraw
     ~ImageAtlas();
 
     /*!
-     * Construct an \ref Image.
+     * Construct an \ref Image
      * \param w width of the image
      * \param h height of the image
      * \param image_data image data to which to initialize the image
-     * \param type the *preferred* value for Image::type() for the
-     *             returned \ref Image: \ref Image::bindless_texture2d
+     * \param type the preferred value for Image::type() for the
+     *             returned \ref Image \ref Image::bindless_texture2d
      *             will fallback to \ref Image::on_atlas and \ref
      *             Image::on_atlas will fallback to \ref
      *             Image::context_texture2d
@@ -279,6 +279,7 @@ namespace fastuidraw
      * whose \ref Image::type() is \ref Image::context_texture2d
      * \param w width of the image
      * \param h height of the image
+     * \param image_data image data to which to initialize the image
      */
     reference_counted_ptr<Image>
     create_non_atlas(int w, int h, const ImageSourceBase &image_data);
