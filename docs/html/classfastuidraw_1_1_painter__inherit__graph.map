@@ -1,5 +1,0 @@
-<map id="fastuidraw::Painter" name="fastuidraw::Painter">
-<area shape="rect" id="node2" href="$classfastuidraw_1_1_painter_enums.html" title="Class to encapsulate enumerations used in Painter interface, part of the main library libFastUIDraw..." alt="" coords="5,87,177,114"/>
-<area shape="rect" id="node3" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="201,80,349,121"/>
-<area shape="rect" id="node4" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="194,5,357,32"/>
-</map>

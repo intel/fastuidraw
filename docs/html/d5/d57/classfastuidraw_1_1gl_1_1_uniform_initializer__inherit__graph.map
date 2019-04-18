@@ -1,0 +1,6 @@
+<map id="fastuidraw::gl::UniformInitializer&lt; T &gt;" name="fastuidraw::gl::UniformInitializer&lt; T &gt;">
+<area shape="rect" id="node2" href="$d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html" title="A UniformInitalizerBase is a base class for initializing a uniform, the actual GL call to set the uni..." alt="" coords="8,259,241,285"/>
+<area shape="rect" id="node3" href="$db/d56/classfastuidraw_1_1gl_1_1_program_initializer.html" title="A ProgramInitializer is a functor object called the first time a Program is bound (i..." alt="" coords="20,184,229,211"/>
+<area shape="rect" id="node4" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="56,80,193,136"/>
+<area shape="rect" id="node5" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="43,5,206,32"/>
+</map>

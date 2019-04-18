@@ -1,0 +1,5 @@
+<map id="fastuidraw::PainterEffectColorModulate" name="fastuidraw::PainterEffectColorModulate">
+<area shape="rect" id="node2" href="$d3/dee/classfastuidraw_1_1_painter_effect.html" title="A PainterEffect represents the interface to define and effect to apply to image data. At its core, it is made up of a sequence of passes. A derived class is expected to expand on PainterEffect to allow to specify properties of an effect (for example blur properties for a blur effect) and to reimplment copy(). " alt="" coords="13,169,180,196"/>
+<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,188,121"/>
+<area shape="rect" id="node4" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="15,5,178,32"/>
+</map>

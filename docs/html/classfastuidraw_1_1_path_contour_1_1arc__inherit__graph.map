@@ -1,5 +1,0 @@
-<map id="fastuidraw::PathContour::arc" name="fastuidraw::PathContour::arc">
-<area shape="rect" id="node2" href="$classfastuidraw_1_1_path_contour_1_1interpolator__base.html" title="Base class to describe how to interpolate from one point of a PathContour to the next, i.e. describes the shape of an edge. " alt="" coords="19,184,181,225"/>
-<area shape="rect" id="node3" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="31,80,169,136"/>
-<area shape="rect" id="node4" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="19,5,181,32"/>
-</map>

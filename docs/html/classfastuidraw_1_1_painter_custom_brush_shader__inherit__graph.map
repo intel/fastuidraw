@@ -1,6 +1,0 @@
-<map id="fastuidraw::PainterCustomBrushShader" name="fastuidraw::PainterCustomBrushShader">
-<area shape="rect" id="node5" href="$classfastuidraw_1_1glsl_1_1_painter_custom_brush_shader_g_l_s_l.html" title="A PainterCustomBrushShaderGLSL is a PainterCustomBrushShader whose shader code fragment is via GLSL..." alt="" coords="12,333,188,375"/>
-<area shape="rect" id="node2" href="$classfastuidraw_1_1_painter_shader.html" title="A PainterShader encapsulates how to draw or blend. " alt="" coords="14,169,186,196"/>
-<area shape="rect" id="node3" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,195,121"/>
-<area shape="rect" id="node4" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="19,5,181,32"/>
-</map>

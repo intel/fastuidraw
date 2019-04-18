@@ -1,6 +1,0 @@
-<map id="fastuidraw::PathContour::interpolator_generic" name="fastuidraw::PathContour::interpolator_generic">
-<area shape="rect" id="node5" href="$classfastuidraw_1_1_path_contour_1_1bezier.html" title="Derived class of interpolator_base to indicate a Bezier curve. Supports Bezier curves of any degree..." alt="" coords="5,363,168,404"/>
-<area shape="rect" id="node2" href="$classfastuidraw_1_1_path_contour_1_1interpolator__base.html" title="Base class to describe how to interpolate from one point of a PathContour to the next, i.e. describes the shape of an edge. " alt="" coords="5,184,168,225"/>
-<area shape="rect" id="node3" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="18,80,155,136"/>
-<area shape="rect" id="node4" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,5,168,32"/>
-</map>

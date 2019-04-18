@@ -1,6 +1,0 @@
-<map id="fastuidraw::GlyphRenderData" name="fastuidraw::GlyphRenderData">
-<area shape="rect" id="node3" href="$classfastuidraw_1_1_glyph_render_data_banded_rays.html" title="fastuidraw::GlyphRenderData\lBandedRays" alt="" coords="459,5,653,47"/>
-<area shape="rect" id="node4" href="$classfastuidraw_1_1_glyph_render_data_restricted_rays.html" title="fastuidraw::GlyphRenderData\lRestrictedRays" alt="" coords="459,71,653,112"/>
-<area shape="rect" id="node5" href="$classfastuidraw_1_1_glyph_render_data_texels.html" title="A GlyphRenderDataTexels holds texel data for rendering a glyph. Such texel data can be for both dista..." alt="" coords="459,136,653,177"/>
-<area shape="rect" id="node2" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,78,168,105"/>
-</map>

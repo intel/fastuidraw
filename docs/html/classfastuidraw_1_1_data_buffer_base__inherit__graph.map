@@ -1,5 +1,0 @@
-<map id="fastuidraw::DataBufferBase" name="fastuidraw::DataBufferBase">
-<area shape="rect" id="node4" href="$classfastuidraw_1_1_data_buffer.html" title="DataBuffer is an implementation of DataBufferBase where the data is directly backed by memory..." alt="" coords="29,244,182,271"/>
-<area shape="rect" id="node2" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,205,121"/>
-<area shape="rect" id="node3" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="24,5,187,32"/>
-</map>

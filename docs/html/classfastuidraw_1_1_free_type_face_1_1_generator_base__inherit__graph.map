@@ -1,6 +1,0 @@
-<map id="fastuidraw::FreeTypeFace::GeneratorBase" name="fastuidraw::FreeTypeFace::GeneratorBase">
-<area shape="rect" id="node4" href="$classfastuidraw_1_1_free_type_face_1_1_generator_file.html" title="Implementation of GeneratorBase to create a FreeTypeFace from a face index / file pair via lib FreeTy..." alt="" coords="5,259,180,300"/>
-<area shape="rect" id="node5" href="$classfastuidraw_1_1_free_type_face_1_1_generator_memory.html" title="Implementation of GeneratorBase to create a FreeTypeFace from a face index / file pair via lib FreeTy..." alt="" coords="204,259,379,300"/>
-<area shape="rect" id="node2" href="$classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="94,80,289,121"/>
-<area shape="rect" id="node3" href="$classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="110,5,273,32"/>
-</map>
