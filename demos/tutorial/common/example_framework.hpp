@@ -42,8 +42,9 @@ public:
 
   /* End the event loop of the demo */
   void
-  end_demo(void)
+  end_demo(int return_code = 0)
   {
+    m_return_code = return_code;
     m_run_demo = false;
   }
 
@@ -81,6 +82,7 @@ private:
   init_sdl(void);
 
   bool m_run_demo;
+  int m_return_code;
   SDL_Window *m_window;
   SDL_GLContext m_ctx;
 };

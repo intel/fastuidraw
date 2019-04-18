@@ -133,9 +133,17 @@ handle_event(const SDL_Event &ev)
 {
   switch (ev.type)
     {
-      case SDL_QUIT:
+    case SDL_QUIT:
         end_demo();
         break;
+    case SDL_KEYUP:
+      switch (ev.key.keysym.sym)
+        {
+        case SDLK_ESCAPE:
+          end_demo();
+          break;
+        }
+      break;
     }
 }
 
@@ -151,8 +159,9 @@ main(int argc, char **argv)
       return -1;
     }
 
+  m_return_code = 0;
   derived_init(argc, argv);
-  while(m_run_demo)
+  while (m_run_demo)
     {
       draw_frame();
       SDL_GL_SwapWindow(m_window);
@@ -167,7 +176,7 @@ main(int argc, char **argv)
         }
     }
 
-  return 0;
+  return m_return_code;
 }
 
 //! [ExampleFramework]

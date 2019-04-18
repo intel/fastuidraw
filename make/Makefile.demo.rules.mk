@@ -2,7 +2,7 @@ DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resource
 CLEAN_FILES += $(DEMO_COMMON_RESOURCE_STRING_SRCS)
 
 DEMO_COMMON_LIBS := $(shell pkg-config SDL2_image --libs)
-DEMO_COMMON_CFLAGS = $(shell pkg-config SDL2_image --cflags) -Idemos/common
+DEMO_COMMON_CFLAGS = $(shell pkg-config SDL2_image --cflags) -Idemos/common -Idemos/tutorial/common
 
 
 ifeq ($(MINGW_BUILD),1)

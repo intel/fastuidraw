@@ -43,7 +43,6 @@ protected:
   void
   handle_event(const SDL_Event &ev) override;
 
-private:
   /* A PainterEngine represents how a Painter will issue commands to
    * a 3D API
    */
