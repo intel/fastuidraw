@@ -53,7 +53,7 @@ public:
   fbo(bool with_color_buffer);
 
   reference_counted_ptr<const Image>
-  image(const reference_counted_ptr<ImageAtlas> &atlas);
+  image(ImageAtlas &atlas);
 
   enum PainterSurface::render_type_t m_render_type;
   PainterSurface::Viewport m_viewport;

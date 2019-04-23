@@ -130,7 +130,7 @@ namespace fastuidraw
 
       virtual
       reference_counted_ptr<const Image>
-      image(const reference_counted_ptr<ImageAtlas> &atlas) const override final;
+      image(ImageAtlas &atlas) const override final;
 
       virtual
       const Viewport&

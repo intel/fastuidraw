@@ -827,19 +827,19 @@ PainterBackendGL(const fastuidraw::gl::PainterEngineGL *f):
   m_nearest_filter_sampler(0),
   m_surface_gl(nullptr)
 {
-  reference_counted_ptr<PainterShaderRegistrar> reg_base(f->painter_shader_registrar());
+  reference_counted_ptr<PainterShaderRegistrar> reg_base(&f->painter_shader_registrar());
 
   FASTUIDRAWassert(reg_base.dynamic_cast_ptr<PainterShaderRegistrarGL>());
   m_reg_gl = reg_base.static_cast_ptr<PainterShaderRegistrarGL>();
 
-  FASTUIDRAWassert(f->glyph_atlas().dynamic_cast_ptr<GlyphAtlasGL>());
-  m_glyph_atlas = f->glyph_atlas().static_cast_ptr<GlyphAtlasGL>();
+  FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(&f->glyph_atlas()));
+  m_glyph_atlas = static_cast<GlyphAtlasGL*>(&f->glyph_atlas());
 
-  FASTUIDRAWassert(f->image_atlas().dynamic_cast_ptr<ImageAtlasGL>());
-  m_image_atlas = f->image_atlas().static_cast_ptr<ImageAtlasGL>();
+  FASTUIDRAWassert(dynamic_cast<ImageAtlasGL*>(&f->image_atlas()));
+  m_image_atlas = static_cast<ImageAtlasGL*>(&f->image_atlas());
 
-  FASTUIDRAWassert(f->colorstop_atlas().dynamic_cast_ptr<ColorStopAtlasGL>());
-  m_colorstop_atlas = f->colorstop_atlas().static_cast_ptr<ColorStopAtlasGL>();
+  FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(&f->colorstop_atlas()));
+  m_colorstop_atlas = static_cast<ColorStopAtlasGL*>(&f->colorstop_atlas());
 
   m_binding_points.m_num_ubo_units = m_reg_gl->uber_shader_builder_params().num_ubo_units();
   m_binding_points.m_num_ssbo_units = m_reg_gl->uber_shader_builder_params().num_ssbo_units();
@@ -1279,7 +1279,7 @@ bind_coverage_surface(const reference_counted_ptr<PainterSurface> &surface)
    * attach it to the image and retrieve the action
    * instead.
    */
-  return FASTUIDRAWnew CoverageTextureBindAction(surface->image(m_image_atlas), this);
+  return FASTUIDRAWnew CoverageTextureBindAction(surface->image(*m_image_atlas), this);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw>

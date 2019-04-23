@@ -4587,9 +4587,9 @@ begin(const reference_counted_ptr<PainterSurface> &surface,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  image_atlas()->lock_resources();
-  colorstop_atlas()->lock_resources();
-  glyph_atlas()->lock_resources();
+  image_atlas().lock_resources();
+  colorstop_atlas().lock_resources();
+  glyph_atlas().lock_resources();
 
   d->m_number_external_textures = d->m_backend->on_painter_begin();
   d->m_viewport = surface->viewport();
@@ -4686,9 +4686,9 @@ end(void)
   d->m_root_packer->end();
 
   /* unlock resources after the commands are sent to the GPU */
-  image_atlas()->unlock_resources();
-  colorstop_atlas()->unlock_resources();
-  glyph_atlas()->unlock_resources();
+  image_atlas().unlock_resources();
+  colorstop_atlas().unlock_resources();
+  glyph_atlas().unlock_resources();
 
   return make_c_array(d->m_active_surfaces);
 }
@@ -6357,7 +6357,7 @@ clip_in_rect(const Rect &rect)
   d->packer()->blend_shader(old_blend, old_blend_mode);
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
+fastuidraw::GlyphAtlas&
 fastuidraw::Painter::
 glyph_atlas(void) const
 {
@@ -6366,7 +6366,7 @@ glyph_atlas(void) const
   return d->m_backend_factory->glyph_atlas();
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
+fastuidraw::ImageAtlas&
 fastuidraw::Painter::
 image_atlas(void) const
 {
@@ -6375,7 +6375,7 @@ image_atlas(void) const
   return d->m_backend_factory->image_atlas();
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
+fastuidraw::ColorStopAtlas&
 fastuidraw::Painter::
 colorstop_atlas(void) const
 {
@@ -6384,7 +6384,16 @@ colorstop_atlas(void) const
   return d->m_backend_factory->colorstop_atlas();
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>
+fastuidraw::GlyphCache&
+fastuidraw::Painter::
+glyph_cache(void) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_backend_factory->glyph_cache();
+}
+
+fastuidraw::PainterShaderRegistrar&
 fastuidraw::Painter::
 painter_shader_registrar(void) const
 {

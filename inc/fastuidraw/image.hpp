@@ -205,16 +205,15 @@ class ImageAtlas;
      * \param action action to call to release backing resources of
      *               the created Image.
      */
-    Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
-          unsigned int m, enum type_t type, uint64_t handle,
-          enum format_t fmt,
+    Image(ImageAtlas &atlas, int w, int h, unsigned int m,
+          enum type_t type, uint64_t handle, enum format_t fmt,
           const reference_counted_ptr<ResourceReleaseAction> &action =
           reference_counted_ptr<ResourceReleaseAction>());
 
   private:
     friend class ImageAtlas;
 
-    Image(const reference_counted_ptr<ImageAtlas> &atlas, int w, int h,
+    Image(ImageAtlas &atlas, int w, int h,
           const ImageSourceBase &image_data);
 
     void *m_d;

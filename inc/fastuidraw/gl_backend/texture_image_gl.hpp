@@ -64,9 +64,8 @@ namespace gl
      */
     static
     reference_counted_ptr<TextureImage>
-    create(const reference_counted_ptr<ImageAtlas> &patlas,
-           int w, int h, unsigned int m, GLuint texture,
-           bool object_owns_texture,
+    create(ImageAtlas &patlas, int w, int h, unsigned int m,
+           GLuint texture, bool object_owns_texture,
            enum format_t fmt = rgba_format,
            bool allow_bindless = true);
 
@@ -86,10 +85,8 @@ namespace gl
      */
     static
     reference_counted_ptr<TextureImage>
-    create(const reference_counted_ptr<ImageAtlas> &patlas,
-           int w, int h, unsigned int m,
-           GLenum tex_magnification,
-           GLenum tex_minification,
+    create(ImageAtlas &patlas, int w, int h, unsigned int m,
+           GLenum tex_magnification, GLenum tex_minification,
            enum format_t fmt = rgba_format,
            bool allow_bindless = true);
 
@@ -108,10 +105,9 @@ namespace gl
      */
     static
     reference_counted_ptr<TextureImage>
-    create(const reference_counted_ptr<ImageAtlas> &patlas,
-           int w, int h, const ImageSourceBase &image_data,
-           GLenum tex_magnification,
-           GLenum tex_minification,
+    create(ImageAtlas &patlas, int w, int h,
+           const ImageSourceBase &image_data,
+           GLenum tex_magnification, GLenum tex_minification,
            bool allow_bindless = true);
 
     ~TextureImage();
@@ -136,12 +132,10 @@ namespace gl
     texture(void) const;
 
   private:
-    TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
-                 int w, int h, unsigned int m,
+    TextureImage(ImageAtlas &patlas, int w, int h, unsigned int m,
                  bool object_owns_texture, GLuint texture,
                  enum format_t fmt);
-    TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
-                 int w, int h, unsigned int m,
+    TextureImage(ImageAtlas &patlas, int w, int h, unsigned int m,
                  bool object_owns_texture, GLuint texture, GLuint64 handle,
                  enum format_t fmt);
 

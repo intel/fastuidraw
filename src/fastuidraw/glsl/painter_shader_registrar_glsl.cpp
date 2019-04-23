@@ -1471,30 +1471,30 @@ set_from_backend(PainterEngine *p)
 
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants&
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
-set_from_atlas(const reference_counted_ptr<ImageAtlas> &p)
+set_from_atlas(ImageAtlas &p)
 {
-  if (p)
-    {
-      BackendConstantsPrivate *d;
-      d = static_cast<BackendConstantsPrivate*>(m_d);
-      d->m_image_atlas_color_store_width = p->color_store() ? p->color_store()->dimensions().x() : 0;
-      d->m_image_atlas_color_store_height = p->color_store() ? p->color_store()->dimensions().y() : 0;
-      d->m_image_atlas_index_tile_size = p->index_tile_size() > 0 ? p->index_tile_size() : 0;
-      d->m_image_atlas_color_tile_size = p->color_tile_size() > 0 ? p->color_tile_size() : 0;
-    }
+  BackendConstantsPrivate *d;
+  d = static_cast<BackendConstantsPrivate*>(m_d);
+
+  FASTUIDRAWassert(&p);
+  d->m_image_atlas_color_store_width = p.color_store() ? p.color_store()->dimensions().x() : 0;
+  d->m_image_atlas_color_store_height = p.color_store() ? p.color_store()->dimensions().y() : 0;
+  d->m_image_atlas_index_tile_size = p.index_tile_size() > 0 ? p.index_tile_size() : 0;
+  d->m_image_atlas_color_tile_size = p.color_tile_size() > 0 ? p.color_tile_size() : 0;
+
   return *this;
 }
 
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants&
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
-set_from_atlas(const reference_counted_ptr<ColorStopAtlas> &p)
+set_from_atlas(ColorStopAtlas &p)
 {
-  if (p)
-    {
-      BackendConstantsPrivate *d;
-      d = static_cast<BackendConstantsPrivate*>(m_d);
-      d->m_colorstop_atlas_store_width = p->backing_store()->dimensions().x();
-    }
+  BackendConstantsPrivate *d;
+  d = static_cast<BackendConstantsPrivate*>(m_d);
+
+  FASTUIDRAWassert(&p);
+  d->m_colorstop_atlas_store_width = p.backing_store()->dimensions().x();
+
   return *this;
 }
 

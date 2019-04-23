@@ -398,7 +398,7 @@ create_image_bindless(int w, int h, const ImageSourceBase &image_data)
 
   reference_counted_ptr<TextureImage> return_value;
 
-  return_value = TextureImage::create(this, w, h, image_data,
+  return_value = TextureImage::create(*this, w, h, image_data,
                                       GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST);
   FASTUIDRAWassert(return_value->type() == Image::bindless_texture2d);
 
@@ -411,7 +411,7 @@ create_image_context_texture2d(int w, int h, const ImageSourceBase &image_data)
 {
   reference_counted_ptr<TextureImage> return_value;
 
-  return_value = TextureImage::create(this, w, h, image_data,
+  return_value = TextureImage::create(*this, w, h, image_data,
                                       GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST,
                                       false);
   FASTUIDRAWassert(return_value->type() == Image::context_texture2d);

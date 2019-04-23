@@ -444,14 +444,13 @@ backing_store(void) const
 // fastuidraw::ColorStopSequenceOnAtlas methods
 fastuidraw::ColorStopSequenceOnAtlas::
 ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
-                         reference_counted_ptr<ColorStopAtlas> atlas,
-                         int pwidth)
+                         ColorStopAtlas &atlas, int pwidth)
 {
   ColorStopSequenceOnAtlasPrivate *d;
   d = FASTUIDRAWnew ColorStopSequenceOnAtlasPrivate();
   m_d = d;
 
-  d->m_atlas = atlas;
+  d->m_atlas = &atlas;
   d->m_width = pwidth;
 
   c_array<const ColorStop> color_stops(pcolor_stops.values());

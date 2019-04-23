@@ -263,7 +263,7 @@ namespace fastuidraw
      *               ColorStopAtlas::max_width().
      */
     ColorStopSequenceOnAtlas(const ColorStopSequence &color_stops,
-                             reference_counted_ptr<ColorStopAtlas> atlas,
+                             ColorStopAtlas& atlas,
                              int pwidth);
 
     ~ColorStopSequenceOnAtlas();

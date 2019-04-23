@@ -153,7 +153,8 @@ namespace
   public:
     PainterEngineGLPrivate(fastuidraw::gl::PainterEngineGL *p)
     {
-      m_reg_gl = p->painter_shader_registrar().static_cast_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL>();
+      FASTUIDRAWassert(dynamic_cast<fastuidraw::gl::detail::PainterShaderRegistrarGL*>(&p->painter_shader_registrar()));
+      m_reg_gl = static_cast<fastuidraw::gl::detail::PainterShaderRegistrarGL*>(&p->painter_shader_registrar());
 
       m_binding_points.m_num_ubo_units = m_reg_gl->uber_shader_builder_params().num_ubo_units();
       m_binding_points.m_num_ssbo_units = m_reg_gl->uber_shader_builder_params().num_ssbo_units();
@@ -191,11 +192,11 @@ namespace
     using namespace fastuidraw::gl;
     using namespace fastuidraw::gl::detail;
 
-    reference_counted_ptr<PainterShaderRegistrar> reg;
+    PainterShaderRegistrar* reg;
 
-    reg = engine.painter_shader_registrar();
-    FASTUIDRAWassert(reg.dynamic_cast_ptr<PainterShaderRegistrarGL>());
-    return reg.static_cast_ptr<PainterShaderRegistrarGL>()->scratch_renderer();
+    reg = &engine.painter_shader_registrar();
+    FASTUIDRAWassert(dynamic_cast<PainterShaderRegistrarGL*>(reg));
+    return static_cast<PainterShaderRegistrarGL*>(reg)->scratch_renderer();
   }
 }
 
@@ -327,7 +328,7 @@ blit_surface(GLenum filter) const
 
 fastuidraw::reference_counted_ptr<const fastuidraw::Image>
 fastuidraw::gl::PainterSurfaceGL::
-image(const reference_counted_ptr<ImageAtlas> &atlas) const
+image(ImageAtlas &atlas) const
 {
   detail::PainterSurfaceGLPrivate *d;
   d = static_cast<detail::PainterSurfaceGLPrivate*>(m_d);

@@ -960,10 +960,10 @@ fastuidraw::GlyphSequence::ScratchSpace::
 fastuidraw::GlyphSequence::
 GlyphSequence(float format_size,
               enum PainterEnums::screen_orientation orientation,
-              const reference_counted_ptr<GlyphCache> &cache,
+              GlyphCache &cache,
               enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew GlyphSequencePrivate(format_size, orientation, cache, layout);
+  m_d = FASTUIDRAWnew GlyphSequencePrivate(format_size, orientation, &cache, layout);
 }
 
 fastuidraw::GlyphSequence::
@@ -983,13 +983,13 @@ format_size(void) const
   return d->format_size();
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>&
+fastuidraw::GlyphCache&
 fastuidraw::GlyphSequence::
 glyph_cache(void) const
 {
   GlyphSequencePrivate *d;
   d = static_cast<GlyphSequencePrivate*>(m_d);
-  return d->cache();
+  return *d->cache();
 }
 
 enum fastuidraw::PainterEnums::screen_orientation

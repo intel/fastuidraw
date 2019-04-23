@@ -800,14 +800,14 @@ namespace fastuidraw
          * from a PainterBackend.
          */
         BackendConstants&
-        set_from_atlas(const reference_counted_ptr<ImageAtlas> &p);
+        set_from_atlas(ImageAtlas &p);
 
         /*!
          * Set all values of this BackendConstant by taking values
          * from a PainterBackend.
          */
         BackendConstants&
-        set_from_atlas(const reference_counted_ptr<ColorStopAtlas> &p);
+        set_from_atlas(ColorStopAtlas &p);
 
       private:
         void *m_d;

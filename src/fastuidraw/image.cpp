@@ -351,15 +351,14 @@ namespace
   class ImagePrivate
   {
   public:
-    ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
-                 int w, int h,
+    ImagePrivate(fastuidraw::ImageAtlas &patlas, int w, int h,
                  const fastuidraw::ImageSourceBase &image_data);
 
-    ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
-                 int w, int h, unsigned int m, fastuidraw::Image::type_t t, uint64_t handle,
+    ImagePrivate(fastuidraw::ImageAtlas &patlas, int w, int h,
+                 unsigned int m, fastuidraw::Image::type_t t, uint64_t handle,
                  enum fastuidraw::Image::format_t fmt,
                  const fastuidraw::reference_counted_ptr<fastuidraw::Image::ResourceReleaseAction> &action):
-      m_atlas(patlas),
+      m_atlas(&patlas),
       m_action(action),
       m_dimensions(w, h),
       m_number_levels(m),
@@ -414,10 +413,9 @@ namespace
 /////////////////////////////////////////////
 //ImagePrivate methods
 ImagePrivate::
-ImagePrivate(const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> &patlas,
-             int w, int h,
+ImagePrivate(fastuidraw::ImageAtlas &patlas, int w, int h,
              const fastuidraw::ImageSourceBase &image_data):
-  m_atlas(patlas),
+  m_atlas(&patlas),
   m_dimensions(w, h),
   m_number_levels(image_data.number_levels()),
   m_type(fastuidraw::Image::on_atlas),
@@ -1259,7 +1257,7 @@ create_image_on_atlas(int w, int h, const ImageSourceBase &image_data)
         }
     }
 
-  return FASTUIDRAWnew Image(this, w, h, image_data);
+  return FASTUIDRAWnew Image(*this, w, h, image_data);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
@@ -1309,17 +1307,15 @@ create(int w, int h, const ImageSourceBase &image_data,
 //////////////////////////////////////
 // fastuidraw::Image methods
 fastuidraw::Image::
-Image(const reference_counted_ptr<ImageAtlas> &patlas,
-      int w, int h, unsigned int m, enum type_t type, uint64_t handle,
-      enum format_t fmt,
+Image(ImageAtlas &patlas, int w, int h, unsigned int m,
+      enum type_t type, uint64_t handle, enum format_t fmt,
       const reference_counted_ptr<Image::ResourceReleaseAction> &action)
 {
   m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, m, type, handle, fmt, action);
 }
 
 fastuidraw::Image::
-Image(const reference_counted_ptr<ImageAtlas> &patlas,
-      int w, int h,
+Image(ImageAtlas &patlas, int w, int h,
       const ImageSourceBase &image_data)
 {
   m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, image_data);

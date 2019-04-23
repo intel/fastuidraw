@@ -197,28 +197,35 @@ namespace fastuidraw
     ~Painter(void);
 
     /*!
-     * Returns a handle to the GlyphAtlas of this
-     * Painter. All glyphs used by this
+     * Returns a reference to the \ref GlyphAtlas of
+     * this \ref Painter. All glyphs used by this \ref
      * Painter must live on glyph_atlas().
      */
-    const reference_counted_ptr<GlyphAtlas>&
+    GlyphAtlas&
     glyph_atlas(void) const;
 
     /*!
-     * Returns a handle to the ImageAtlas of this
-     * Painter. All images used by all brushes of
-     * this Painter must live on image_atlas().
+     * Returns a reference to the \ref ImageAtlas of of
+     * this \ref Painter. All images used by this \ref
+     * Painter must live on image_atlas().
      */
-    const reference_counted_ptr<ImageAtlas>&
+    ImageAtlas&
     image_atlas(void) const;
 
     /*!
-     * Returns a handle to the ColorStopAtlas of this
-     * Painter. All color stops used by all brushes
-     * of this Painter must live on colorstop_atlas().
+     * Returns a reference to the ColorStopAtlas of this
+     * \ref Painter. All color stops used by all brushes
+     * of this \ref Painter must live on colorstop_atlas().
      */
-    const reference_counted_ptr<ColorStopAtlas>&
+    ColorStopAtlas&
     colorstop_atlas(void) const;
+
+    /*!
+     * Returns a handle to the \ref GlyphCache made
+     * from glyph_atlas().
+     */
+    GlyphCache&
+    glyph_cache(void) const;
 
     /*!
      * Returns the PainterShaderRegistrar of the PainterBackend
@@ -227,7 +234,7 @@ namespace fastuidraw
      * not useable within that thread until the next call to
      * begin().
      */
-    reference_counted_ptr<PainterShaderRegistrar>
+    PainterShaderRegistrar&
     painter_shader_registrar(void) const;
 
     /*!

@@ -37,11 +37,11 @@ namespace
   {
   public:
     PainterEnginePrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> glyph_atlas,
-                                 fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> image_atlas,
-                                 fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> colorstop_atlas,
-                                 fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar> shader_registrar,
-                                 const fastuidraw::PainterEngine::ConfigurationBase &config,
-                                 const fastuidraw::PainterShaderSet &pdefault_shaders):
+                         fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> image_atlas,
+                         fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> colorstop_atlas,
+                         fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar> shader_registrar,
+                         const fastuidraw::PainterEngine::ConfigurationBase &config,
+                         const fastuidraw::PainterShaderSet &pdefault_shaders):
       m_glyph_atlas(glyph_atlas),
       m_image_atlas(image_atlas),
       m_colorstop_atlas(colorstop_atlas),
@@ -188,49 +188,49 @@ default_shaders(void) const
   return d->m_default_shaders;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
+fastuidraw::GlyphAtlas&
 fastuidraw::PainterEngine::
 glyph_atlas(void) const
 {
   PainterEnginePrivate *d;
   d = static_cast<PainterEnginePrivate*>(m_d);
-  return d->m_glyph_atlas;
+  return *d->m_glyph_atlas;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache>&
+fastuidraw::GlyphCache&
 fastuidraw::PainterEngine::
 glyph_cache(void) const
 {
   PainterEnginePrivate *d;
   d = static_cast<PainterEnginePrivate*>(m_d);
-  return d->m_glyph_cache;
+  return *d->m_glyph_cache;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
+fastuidraw::ImageAtlas&
 fastuidraw::PainterEngine::
 image_atlas(void) const
 {
   PainterEnginePrivate *d;
   d = static_cast<PainterEnginePrivate*>(m_d);
-  return d->m_image_atlas;
+  return *d->m_image_atlas;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
+fastuidraw::ColorStopAtlas&
 fastuidraw::PainterEngine::
 colorstop_atlas(void) const
 {
   PainterEnginePrivate *d;
   d = static_cast<PainterEnginePrivate*>(m_d);
-  return d->m_colorstop_atlas;
+  return *d->m_colorstop_atlas;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>&
+fastuidraw::PainterShaderRegistrar&
 fastuidraw::PainterEngine::
 painter_shader_registrar(void) const
 {
   PainterEnginePrivate *d;
   d = static_cast<PainterEnginePrivate*>(m_d);
-  return d->m_painter_shader_registrar;
+  return *d->m_painter_shader_registrar;
 }
 
 const fastuidraw::PainterEngine::ConfigurationBase&

@@ -54,7 +54,7 @@ fastuidraw::gl::detail::PainterSurfaceGLPrivate::
 
 fastuidraw::reference_counted_ptr<const fastuidraw::Image>
 fastuidraw::gl::detail::PainterSurfaceGLPrivate::
-image(const reference_counted_ptr<ImageAtlas> &atlas)
+image(ImageAtlas &atlas)
 {
   if (!m_image)
     {

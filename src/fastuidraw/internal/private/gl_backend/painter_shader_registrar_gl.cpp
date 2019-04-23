@@ -107,8 +107,8 @@ PainterShaderRegistrarGL(const PainterEngineGL::ConfigurationGL &P,
 {
   configure_backend();
   m_backend_constants
-    .set_from_atlas(m_params.colorstop_atlas().static_cast_ptr<ColorStopAtlas>())
-    .set_from_atlas(m_params.image_atlas().static_cast_ptr<ImageAtlas>());
+    .set_from_atlas(*m_params.colorstop_atlas())
+    .set_from_atlas(*m_params.image_atlas());
   m_scratch_renderer = FASTUIDRAWnew ScratchRenderer();
 }
 

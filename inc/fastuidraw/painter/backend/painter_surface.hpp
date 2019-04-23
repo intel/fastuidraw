@@ -267,7 +267,7 @@ namespace fastuidraw
      */
     virtual
     reference_counted_ptr<const Image>
-    image(const reference_counted_ptr<ImageAtlas> &atlas) const = 0;
+    image(ImageAtlas &atlas) const = 0;
 
     /*!
      * To be implemented by a derived class to return

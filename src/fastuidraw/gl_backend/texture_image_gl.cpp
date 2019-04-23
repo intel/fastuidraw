@@ -106,9 +106,8 @@ namespace
 // fastuidraw::gl::TextureImage methods
 fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
 fastuidraw::gl::TextureImage::
-create(const reference_counted_ptr<ImageAtlas> &patlas,
-       int w, int h, unsigned int m, GLuint texture,
-       bool object_owns_texture,
+create(ImageAtlas &patlas, int w, int h, unsigned int m,
+       GLuint texture, bool object_owns_texture,
        enum format_t fmt, bool allow_bindless)
 {
   if (w <= 0 || h <= 0 || m <= 0 || texture == 0)
@@ -132,10 +131,8 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
 fastuidraw::gl::TextureImage::
-create(const reference_counted_ptr<ImageAtlas> &patlas,
-       int w, int h, unsigned int m,
-       GLenum tex_magnification,
-       GLenum tex_minification,
+create(ImageAtlas &patlas, int w, int h, unsigned int m,
+       GLenum tex_magnification, GLenum tex_minification,
        enum format_t fmt, bool allow_bindless)
 {
   GLuint tex(0);
@@ -160,8 +157,8 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::TextureImage>
 fastuidraw::gl::TextureImage::
-create(const reference_counted_ptr<ImageAtlas> &patlas,
-       int pw, int ph, const ImageSourceBase &image_data,
+create(ImageAtlas &patlas, int pw, int ph,
+       const ImageSourceBase &image_data,
        GLenum tex_magnification, GLenum tex_minification,
        bool allow_bindless)
 {
@@ -216,8 +213,7 @@ create(const reference_counted_ptr<ImageAtlas> &patlas,
 }
 
 fastuidraw::gl::TextureImage::
-TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
-             int w, int h, unsigned int m,
+TextureImage(ImageAtlas &patlas, int w, int h, unsigned int m,
              bool object_owns_texture, GLuint texture,
              enum format_t fmt):
   Image(patlas, w, h, m, fastuidraw::Image::context_texture2d, -1, fmt,
@@ -227,8 +223,7 @@ TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
 }
 
 fastuidraw::gl::TextureImage::
-TextureImage(const reference_counted_ptr<ImageAtlas> &patlas,
-             int w, int h, unsigned int m,
+TextureImage(ImageAtlas &patlas, int w, int h, unsigned int m,
              bool object_owns_texture, GLuint texture, GLuint64 handle,
              enum format_t fmt):
   Image(patlas, w, h, m, fastuidraw::Image::bindless_texture2d, handle, fmt,

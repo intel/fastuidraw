@@ -125,7 +125,7 @@ public:
    * \param out_indices location to which to write indices
    */
   void
-  render_data(const reference_counted_ptr<GlyphAtlas> &glyph_atlas,
+  render_data(GlyphAtlas &glyph_atlas,
               enum PainterEnums::fill_rule_t fill_rule,
               c_array<const PainterAttribute> *out_attribs,
               c_array<const PainterIndex> *out_indices) const;

@@ -66,7 +66,7 @@ namespace fastuidraw
     explicit
     GlyphRun(float format_size,
              enum PainterEnums::screen_orientation orientation,
-             const reference_counted_ptr<GlyphCache> &cache,
+             GlyphCache &cache,
              enum PainterEnums::glyph_layout_type layout
              = PainterEnums::glyph_layout_horizontal);
 
@@ -142,7 +142,7 @@ namespace fastuidraw
      * Return the \ref GlyphCache used by this GlyphRun
      * to fetch \ref Glyph values.
      */
-    const reference_counted_ptr<GlyphCache>&
+    GlyphCache&
     glyph_cache(void) const;
 
     /*!
