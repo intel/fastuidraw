@@ -204,7 +204,7 @@ draw_frame(void)
    */
   fastuidraw::PainterBrush brush;
   brush.color(1.0f, 1.0f, 1.0f, 1.0f);
-  m_painter->draw_glyphs(&brush, m_glyph_sequence);
+  m_painter->draw_glyphs(brush, m_glyph_sequence);
 
   m_painter->end();
 

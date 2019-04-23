@@ -192,7 +192,7 @@ draw_frame(void)
 
     }
 
-  m_painter->fill_rect(&brush,
+  m_painter->fill_rect(brush,
                        fastuidraw::Rect()
                        .min_point(0.0f, 0.0f)
                        .max_point(window_dims));
