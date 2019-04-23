@@ -95,7 +95,7 @@ public:
   string m_function_prefix, m_LoadingFunctionName;
   string m_ErrorLoadingFunctionName;
   std::string m_pre_gl_call_name, m_post_gl_call_name;
-  string m_laodAllFunctionsName, m_argumentName;
+  string m_loadAllFunctionsName, m_argumentName;
   string m_genericCallBackType, m_kglLoggingStream;
   string m_kglLoggingStreamNameOnly;
   string m_macro_prefix, m_namespace, m_CallUnloadableFunction;
@@ -149,7 +149,7 @@ SetFunctionPrefix(const string &pre)
   GlobalElements::get().m_post_gl_call_name=GlobalElements::get().m_function_prefix+"post_call";
   GlobalElements::get().m_pre_gl_call_name=GlobalElements::get().m_function_prefix+"pre_call";
   GlobalElements::get().m_ErrorLoadingFunctionName=GlobalElements::get().m_function_prefix+"on_load_function_error";
-  GlobalElements::get().m_laodAllFunctionsName=GlobalElements::get().m_function_prefix+"load_all_functions";
+  GlobalElements::get().m_loadAllFunctionsName=GlobalElements::get().m_function_prefix+"load_all_functions";
   GlobalElements::get().m_kglLoggingStreamNameOnly=GlobalElements::get().m_function_prefix+"LogStream";
   GlobalElements::get().m_CallUnloadableFunction=GlobalElements::get().m_function_prefix+"call_unloadable_function";
   GlobalElements::get().m_kglLoggingStream=GlobalElements::get().m_kglLoggingStreamNameOnly+"()";
@@ -186,7 +186,7 @@ function_post_gl_call(void) { return GlobalElements::get().m_post_gl_call_name; 
 
 const string&
 openGL_function_info::
-function_load_all() { return GlobalElements::get().m_laodAllFunctionsName; }
+function_load_all() { return GlobalElements::get().m_loadAllFunctionsName; }
 
 const string&
 openGL_function_info::
