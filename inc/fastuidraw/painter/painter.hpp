@@ -1154,6 +1154,32 @@ namespace fastuidraw
                 enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * stroke_path(PainterData(&brush, &stroking_params), path,
+     *             stroke_style, apply_shader_anti_aliasing,
+     *             stroking_method);
+     * \endcode
+     * \param brush brush to apply to stroking
+     * \param stroking_params stroking parameters to apply to stroking
+     * \param path Path to stroke
+     * \param stroke_style how to stroke the path
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
+     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     */
+    void
+    stroke_path(const PainterBrush &brush,
+                const PainterStrokeParams &stroking_params,
+                const Path &path, const StrokingStyle &stroke_style = StrokingStyle(),
+                bool apply_shader_anti_aliasing = true,
+                enum stroking_method_t stroking_method = stroking_method_fastest)
+    {
+      stroke_path(PainterData(&brush, &stroking_params), path,
+                  stroke_style, apply_shader_anti_aliasing,
+                  stroking_method);
+    }
+
+    /*!
      * Stroke a path dashed.
      * \param shader shader with which to draw
      * \param draw data for how to draw
@@ -1200,6 +1226,32 @@ namespace fastuidraw
                        enum stroking_method_t stroking_method = stroking_method_fastest);
 
     /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * stroke_dashed_path(PainterData(&brush, &stroking_params), path,
+     *                    stroke_style, apply_shader_anti_aliasing,
+     *                    stroking_method);
+     * \endcode
+     * \param brush brush to apply to stroking
+     * \param stroking_params stroking parameters to apply to stroking
+     * \param path Path to stroke
+     * \param stroke_style how to stroke the path
+     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
+     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     */
+    void
+    stroke_dashed_path(const PainterBrush &brush,
+                       const PainterDashedStrokeParams &stroking_params,
+                       const Path &path, const StrokingStyle &stroke_style = StrokingStyle(),
+                       bool apply_shader_anti_aliasing = true,
+                       enum stroking_method_t stroking_method = stroking_method_fastest)
+    {
+      stroke_dashed_path(PainterData(&brush, &stroking_params), path,
+                         stroke_style, apply_shader_anti_aliasing,
+                         stroking_method);
+    }
+
+    /*!
      * Fill a path.
      * \param shader shader with which to fill the attribute data
      * \param draw data for how to draw
@@ -1223,17 +1275,6 @@ namespace fastuidraw
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, enum fill_rule_t fill_rule,
-              bool apply_shader_anti_aliasing = true);
-
-    /*!
-     * Fill a path using the default shader to draw the fill.
-     * \param draw data for how to draw
-     * \param path path to fill
-     * \param fill_rule fill rule with which to fill the path
-     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
-     */
-    void
-    fill_path(const PainterData &draw, const Path &path, enum fill_rule_t fill_rule,
               bool apply_shader_anti_aliasing = true);
 
     /*!
@@ -1263,17 +1304,6 @@ namespace fastuidraw
               bool apply_shader_anti_aliasing = true);
 
     /*!
-     * Fill a path using the default shader to draw the fill.
-     * \param draw data for how to draw
-     * \param path path to fill
-     * \param fill_rule custom fill rule with which to fill the path
-     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
-     */
-    void
-    fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-              bool apply_shader_anti_aliasing = true);
-
-    /*!
      * Fill a path via \ref ShaderFilledPath
      * \param shader shader with which to draw the \ref ShaderFilledPath
      * \param draw data for how to draw
@@ -1285,6 +1315,28 @@ namespace fastuidraw
               const ShaderFilledPath &path, enum fill_rule_t fill_rule);
 
     /*!
+     * Fill a path using the default shader to draw the fill.
+     * \param draw data for how to draw
+     * \param path path to fill
+     * \param fill_rule fill rule with which to fill the path
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
+     */
+    void
+    fill_path(const PainterData &draw, const Path &path, enum fill_rule_t fill_rule,
+              bool apply_shader_anti_aliasing = true);
+
+    /*!
+     * Fill a path using the default shader to draw the fill.
+     * \param draw data for how to draw
+     * \param path path to fill
+     * \param fill_rule custom fill rule with which to fill the path
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
+     */
+    void
+    fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
+              bool apply_shader_anti_aliasing = true);
+
+    /*!
      * Fill a path via \ref ShaderFilledPath using the default shader
      * to draw the fill.
      * \param draw data for how to draw
@@ -1294,6 +1346,41 @@ namespace fastuidraw
     void
     fill_path(const PainterData &draw, const ShaderFilledPath &path,
               enum fill_rule_t fill_rule);
+
+    /*!
+     * Fill a path using the default shader to draw the fill.
+     * Provided as a conveniance, equivalent to
+     * \code
+     * fill_path(PainterData(&brush), path, fill_rule, apply_shader_anti_aliasing);
+     * \endcode
+     * \param brush \ref PainterBrush to apply to fill
+     * \param path path to fill
+     * \param fill_rule fill rule with which to fill the path
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
+     */
+    void
+    fill_path(const PainterBrush &brush, const Path &path, enum fill_rule_t fill_rule,
+              bool apply_shader_anti_aliasing = true)
+    {
+      fill_path(PainterData(&brush), path, fill_rule, apply_shader_anti_aliasing);
+    }
+
+    /*!
+     * Fill a path using the default shader to draw the fill.
+     * \code
+     * fill_path(PainterData(&brush), path, fill_rule, apply_shader_anti_aliasing);
+     * \endcode
+     * \param brush \ref PainterBrush to apply to fill
+     * \param path path to fill
+     * \param fill_rule custom fill rule with which to fill the path
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
+     */
+    void
+    fill_path(const PainterBrush &brush, const Path &path, const CustomFillRuleBase &fill_rule,
+              bool apply_shader_anti_aliasing = true)
+    {
+      fill_path(PainterData(&brush), path, fill_rule, apply_shader_anti_aliasing);
+    }
 
     /*!
      * Fill a convex polygon using a custom shader.
@@ -1320,33 +1407,21 @@ namespace fastuidraw
                         bool apply_shader_anti_aliasing = true);
 
     /*!
-     * Fill a convex quad using a custom shader.
-     * \param shader shader with which to draw the quad
-     * \param draw data for how to draw
-     * \param p0 first point of quad, shares an edge with p3
-     * \param p1 point after p0, shares an edge with p0
-     * \param p2 point after p1, shares an edge with p1
-     * \param p3 point after p2, shares an edge with p2
+     * Fill a convex polygon using the default fill shader.
+     * \code
+     * fill_convex_polygon(PainterData(&brush), pts, apply_shader_anti_aliasing);
+     * \endcode
+     * \param brush \ref PainterBrush to apply to fill
+     * \param path path to fill
+     * \param fill_rule custom fill rule with which to fill the path
      * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
-    fill_quad(const PainterFillShader &shader, const PainterData &draw,
-              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              bool apply_shader_anti_aliasing = true);
-
-    /*!
-     * Fill a quad using the default fill shader.
-     * \param draw data for how to draw
-     * \param p0 first point of quad, shares an edge with p3
-     * \param p1 point after p0, shares an edge with p0
-     * \param p2 point after p1, shares an edge with p1
-     * \param p3 point after p2, shares an edge with p2
-     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
-     */
-    void
-    fill_quad(const PainterData &draw,
-              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              bool apply_shader_anti_aliasing = true);
+    fill_convex_polygon(const PainterBrush &brush, c_array<const vec2> pts,
+                        bool apply_shader_anti_aliasing = true)
+    {
+      fill_convex_polygon(PainterData(&brush), pts, apply_shader_anti_aliasing);
+    }
 
     /*!
      * Fill a rect using a custom shader.
@@ -1371,6 +1446,22 @@ namespace fastuidraw
               bool apply_shader_anti_aliasing = true);
 
     /*!
+     * Fill a rect using the default fill shader.
+     * \code
+     * fill_convex_polygon(PainterData(&brush), rect, apply_shader_anti_aliasing);
+     * \endcode
+     * \param brush \ref PainterBrush to apply to fill
+     * \param rect rectangle to fill
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
+     */
+    void
+    fill_rect(const PainterBrush &brush, const Rect &rect,
+              bool apply_shader_anti_aliasing = true)
+    {
+      fill_rect(PainterData(&brush), rect, apply_shader_anti_aliasing);
+    }
+
+    /*!
      * Fill a rounded rect using a fill shader
      * \param shader shader with which to draw the rounded rectangle
      * \param draw data for how to draw
@@ -1391,6 +1482,21 @@ namespace fastuidraw
     void
     fill_rounded_rect(const PainterData &draw, const RoundedRect &R,
                       bool apply_shader_anti_aliasing = true);
+
+    /*!
+     * Fill a rounded rect using the default fill shader
+     * \code
+     * fill_rounded_rect(PainterData(&brush), R, apply_shader_anti_aliasing);
+     * \endcode
+     * \param R \ref RoundedRect to draw
+     * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
+     */
+    void
+    fill_rounded_rect(const PainterBrush &brush, const RoundedRect &R,
+                      bool apply_shader_anti_aliasing = true)
+    {
+      fill_rounded_rect(PainterData(&brush), R, apply_shader_anti_aliasing);
+    }
 
     /*!
      * Draw generic attribute data.

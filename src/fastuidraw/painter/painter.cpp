@@ -4983,30 +4983,6 @@ fill_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
 
 void
 fastuidraw::Painter::
-fill_quad(const PainterFillShader &shader, const PainterData &draw,
-          const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-          bool apply_shader_anti_aliasing)
-{
-  vecN<vec2, 4> pts;
-  pts[0] = p0;
-  pts[1] = p1;
-  pts[2] = p2;
-  pts[3] = p3;
-  fill_convex_polygon(shader, draw, pts, apply_shader_anti_aliasing);
-}
-
-void
-fastuidraw::Painter::
-fill_quad(const PainterData &draw,
-          const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-          bool apply_shader_anti_aliasing)
-{
-  fill_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3,
-            apply_shader_anti_aliasing);
-}
-
-void
-fastuidraw::Painter::
 fill_rect(const PainterFillShader &shader,
           const PainterData &draw, const Rect &rect,
           bool apply_shader_anti_aliasing)
@@ -5015,8 +4991,8 @@ fill_rect(const PainterFillShader &shader,
 
   /* TODO: the code for fill_convex_polygon() if it does
    * anti-aliasing with deferred coverage buffer will
-   * use an area of the side of the rect instead of
-   * four smaller areas for the sides of the rect.
+   * use an area of the entire rect instead of four
+   * smaller areas for the sides of the rect.
    */
   pts[0] = vec2(rect.m_min_point.x(), rect.m_min_point.y());
   pts[1] = vec2(rect.m_min_point.x(), rect.m_max_point.y());
