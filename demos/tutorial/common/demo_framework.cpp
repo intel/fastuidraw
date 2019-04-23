@@ -1,6 +1,6 @@
 /*!
- * \file example_framework.cpp
- * \brief file example_framework.cpp
+ * \file demo_framework.cpp
+ * \brief file demo_framework.cpp
  *
  * Copyright 2019 by Intel.
  *
@@ -18,23 +18,30 @@
 //! [ExampleFramework]
 
 #include <iostream>
-#include "example_framework.hpp"
+#include "demo_framework.hpp"
 
 ////////////////////////////
-//example_framework  methods
-example_framework::
-example_framework(void):
+//DemoRunner methods
+DemoRunner::
+DemoRunner(void):
   m_window(nullptr),
   m_ctx(nullptr),
-  m_run_demo(true)
+  m_run_demo(true),
+  m_return_code(0),
+  m_demo(nullptr)
 {
 }
 
-example_framework::
-~example_framework()
+DemoRunner::
+~DemoRunner()
 {
   if (m_window)
     {
+      if (m_demo)
+        {
+          FASTUIDRAWdelete(m_demo);
+        }
+
       if (m_ctx)
         {
           SDL_GL_MakeCurrent(m_window, nullptr);
@@ -50,7 +57,7 @@ example_framework::
 }
 
 enum fastuidraw::return_code
-example_framework::
+DemoRunner::
 init_sdl(void)
 {
   /* With SDL:
@@ -116,19 +123,8 @@ init_sdl(void)
   return fastuidraw::routine_success;
 }
 
-fastuidraw::ivec2
-example_framework::
-window_dimensions(void)
-{
-  fastuidraw::ivec2 return_value;
-
-  FASTUIDRAWassert(m_window);
-  SDL_GetWindowSize(m_window, &return_value.x(), &return_value.y());
-  return return_value;
-}
-
 void
-example_framework::
+DemoRunner::
 handle_event(const SDL_Event &ev)
 {
   switch (ev.type)
@@ -145,25 +141,18 @@ handle_event(const SDL_Event &ev)
         }
       break;
     }
+
+  m_demo->handle_event(ev);
 }
 
-int
-example_framework::
-main(int argc, char **argv)
+void
+DemoRunner::
+event_loop(void)
 {
-  enum fastuidraw::return_code R;
-
-  R = init_sdl();
-  if (R == fastuidraw::routine_fail)
-    {
-      return -1;
-    }
-
-  m_return_code = 0;
-  derived_init(argc, argv);
+  FASTUIDRAWassert(m_demo != nullptr);
   while (m_run_demo)
     {
-      draw_frame();
+      m_demo->draw_frame();
       SDL_GL_SwapWindow(m_window);
 
       if (m_run_demo)
@@ -175,8 +164,39 @@ main(int argc, char **argv)
             }
         }
     }
+}
 
-  return m_return_code;
+////////////////////////////////////
+// Demo methods
+Demo::
+Demo(DemoRunner *runner, int argc, char **argv):
+  m_demo_runner(runner)
+{
+  FASTUIDRAWunused(argc);
+  FASTUIDRAWunused(argv);
+  m_demo_runner->m_demo = this;
+}
+
+fastuidraw::ivec2
+Demo::
+window_dimensions(void)
+{
+  fastuidraw::ivec2 return_value;
+
+  FASTUIDRAWassert(m_demo_runner);
+  FASTUIDRAWassert(m_demo_runner->m_demo == this);
+  FASTUIDRAWassert(m_demo_runner->m_window);
+  SDL_GetWindowSize(m_demo_runner->m_window, &return_value.x(), &return_value.y());
+  return return_value;
+}
+
+void
+Demo::
+end_demo(int return_code)
+{
+  FASTUIDRAWassert(m_demo_runner);
+  FASTUIDRAWassert(m_demo_runner->m_demo == this);
+  m_demo_runner->end_demo(return_code);
 }
 
 //! [ExampleFramework]

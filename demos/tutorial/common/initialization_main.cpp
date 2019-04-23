@@ -3,6 +3,6 @@
 int
 main(int argc, char **argv)
 {
-  initialization demo;
-  return demo.main(argc, argv);
+  DemoRunner demo_runner;
+  return demo_runner.main<Initialization>(argc, argv);
 }

@@ -25,26 +25,16 @@
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include "initialization.hpp"
 
-class example_text:public initialization
+class ExampleText:public Initialization
 {
 public:
-  example_text(void):
-    m_translate(0.0f, 0.0f),
-    m_scale(1.0f)
-  {
-    std::cout << "Arrow keys to scroll, PageUp/PageDown to change zoom level\n";
-  }
+  ExampleText(DemoRunner *runner, int argc, char **argv);
 
-  ~example_text();
+  ~ExampleText();
 
-protected:
   virtual
   void
   draw_frame(void) override;
-
-  virtual
-  void
-  derived_init(int argc, char **argv) override;
 
   virtual
   void
@@ -52,21 +42,29 @@ protected:
 
 private:
   fastuidraw::reference_counted_ptr<fastuidraw::FontBase> m_font;
-  fastuidraw::GlyphSequence *m_glyph_sequence;
+  fastuidraw::GlyphSequence m_glyph_sequence;
   fastuidraw::vec2 m_translate;
   float m_scale;
 };
 
-void
-example_text::
-derived_init(int argc, char **argv)
-{
-  /* call the base-clas derived_init() to create the
-   * fastuidraw::Painter, fastuidraw::PainterEngineGL
-   * and fastuidraw::PainterSurface objects
+ExampleText::
+ExampleText(DemoRunner *runner, int argc, char **argv):
+  Initialization(runner, argc, argv),
+  /* The ctor to fastuidraw::GlyphSequence specifies how the text
+   * fed to the fastuidraw::GlyphSequence is formatted. The first
+   * argument is the format size which essentially says the size
+   * at which the glyphs are drawn in -local- coordinates. The
+   * second argument is the convention for screen orientation that
+   * is passed to fastuidraw::Painter::begin(). The last is the
+   * needed fastuidraw::GlyphCache used by the fastuidraw::Painter
+   * that will be drawing the fastuidraw::GlyphSequence
    */
-  initialization::derived_init(argc, argv);
-
+  m_glyph_sequence(32.0f,
+                   fastuidraw::PainterEnums::y_increases_downwards,
+                   m_painter_engine_gl->glyph_cache()),
+  m_translate(0.0f, 0.0f),
+  m_scale(1.0f)
+{
   /* First we need a font object from which to grab glyphs.
    * The class fastuidraw::FreeTypeFace::GeneratorBase
    * provides an interface to read fonts from memory or
@@ -115,19 +113,6 @@ derived_init(int argc, char **argv)
       text_src = &default_text;
     }
 
-  /* The ctor to fastuidraw::GlyphSequence requires knowing the
-   * GlyphCache which we fetch from intialize::m_painter_engine_gl.
-   * The class fastuidraw::GlyphSequence does not have a reference
-   * count, so we need to create the object dynamically and use
-   * a regular pointer to it. The value of format_size is the size
-   * at which one will format the glyphs added to the
-   * fastuidraw::GlyphSequence
-   */
-  int format_size(32.0f);
-  m_glyph_sequence = FASTUIDRAWnew fastuidraw::GlyphSequence(format_size,
-                                                             fastuidraw::PainterEnums::y_increases_downwards,
-                                                             m_painter_engine_gl->glyph_cache());
-
   /* now add some glyphs to the fastuidraw::GlyphSequence.
    * A real application would use HarfBuzz or another library
    * to layout and shape the text nicely. Below we use simple
@@ -141,7 +126,7 @@ derived_init(int argc, char **argv)
    * one can convert from font coordinates to formatting
    * coordinates using fastuidraw::GlyphMetrics::units_per_EM()
    */
-  float ratio(m_glyph_sequence->format_size() / m_font->metrics().units_per_EM());
+  float ratio(m_glyph_sequence.format_size() / m_font->metrics().units_per_EM());
   fastuidraw::vec2 pen(0.0f, 0.0f);
   char ch;
 
@@ -151,7 +136,6 @@ derived_init(int argc, char **argv)
    * y-coordinte by the height of the font.
    */
   pen.y() += ratio * m_font->metrics().height();
-
 
   /* The below is a terribly naive text formatter (but good enough for demos).
    * It assumes 8-bit text file and it fetches a single glyph at a time
@@ -182,24 +166,26 @@ derived_init(int argc, char **argv)
            * metrics instead of one at a time because each call to
            * GlyphCache::fetch_glyph_metrics() locks and unlocks a mutex.
            * The function GlyphCache::fetch_glyph_metrics() has an override
-           * taking array of glyph-code values.
+           * taking an array of glyph-code values.
            */
-          glyph_metrics = m_glyph_sequence->glyph_cache()->fetch_glyph_metrics(m_font.get(), glyph_code);
+          glyph_metrics = m_glyph_sequence.glyph_cache().fetch_glyph_metrics(m_font.get(), glyph_code);
 
           /* Check that the glyph_metrics value is valid, and if so, add the
            * glyph to m_glyph_sequence and advance the pen
            */
           if (glyph_metrics.valid())
             {
-              m_glyph_sequence->add_glyph(fastuidraw::GlyphSource(m_font.get(), glyph_code), pen);
+              m_glyph_sequence.add_glyph(fastuidraw::GlyphSource(m_font.get(), glyph_code), pen);
               pen.x() += ratio * glyph_metrics.advance().x();
             }
         }
     }
+
+  std::cout << "Arrow keys to scroll, PageUp/PageDown to change zoom level\n";
 }
 
 void
-example_text::
+ExampleText::
 draw_frame(void)
 {
   fastuidraw::vec2 window_dims(window_dimensions());
@@ -218,7 +204,7 @@ draw_frame(void)
    */
   fastuidraw::PainterBrush brush;
   brush.color(1.0f, 1.0f, 1.0f, 1.0f);
-  m_painter->draw_glyphs(&brush, *m_glyph_sequence);
+  m_painter->draw_glyphs(&brush, m_glyph_sequence);
 
   m_painter->end();
 
@@ -228,7 +214,7 @@ draw_frame(void)
 }
 
 void
-example_text::
+ExampleText::
 handle_event(const SDL_Event &ev)
 {
   switch (ev.type)
@@ -268,17 +254,12 @@ handle_event(const SDL_Event &ev)
         }
       break;
     }
-  initialization::handle_event(ev);
+  Initialization::handle_event(ev);
 }
 
-example_text::
-~example_text()
+ExampleText::
+~ExampleText()
 {
-  /* Because we created m_glyph_sequence is NOT a reference counted
-   * object that we created with FASTUIDRAWnew, we need to delete it
-   * ourselves with FASTUIDRAWdelete().
-   */
-  FASTUIDRAWdelete(m_glyph_sequence);
 }
 
 int
@@ -290,8 +271,8 @@ main(int argc, char **argv)
       return -1;
     }
 
-  example_text demo;
-  return demo.main(argc, argv);
+  DemoRunner demo;
+  return demo.main<ExampleText>(argc, argv);
 }
 
 //! [ExampleText]

@@ -1,6 +1,6 @@
 /*!
- * \file initialization.hpp
- * \brief file initialization.hpp
+ * \file initialization.cpp
+ * \brief file initialization.cpp
  *
  * Copyright 2019 by Intel.
  *
@@ -15,34 +15,31 @@
  * \author Kevin Rogovin <kevin.rogovin@intel.com>
  */
 
-#pragma once
-
 //! [ExampleInitialization]
 
 #include <fastuidraw/painter/painter.hpp>
+#include <fastuidraw/gl_backend/gl_binding.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
 #include <fastuidraw/gl_backend/painter_surface_gl.hpp>
-#include "example_framework.hpp"
 
-class initialization:public example_framework
+#include "demo_framework.hpp"
+
+class Initialization:public Demo
 {
 public:
-  initialization(void);
-  ~initialization();
+  Initialization(DemoRunner *runner, int argc, char **argv);
+  ~Initialization();
 
-protected:
   virtual
   void
   draw_frame(void) override;
 
   virtual
   void
-  derived_init(int argc, char **argv) override;
-
-  virtual
-  void
   handle_event(const SDL_Event &ev) override;
 
+protected:
   /* A PainterEngine represents how a Painter will issue commands to
    * a 3D API
    */

@@ -21,26 +21,17 @@
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include "initialization.hpp"
 
-class example_brush:public initialization
+class ExampleBrush:public Initialization
 {
 public:
-  example_brush(void):
-    m_gradient_type(linear_gradient)
-  {
-    std::cout << "Press UP/DOWN arrow keys to change gradient\n";
-  }
+  ExampleBrush(DemoRunner *runner, int argc, char **argv);
 
-  ~example_brush()
+  ~ExampleBrush()
   {}
 
-protected:
   virtual
   void
   draw_frame(void) override;
-
-  virtual
-  void
-  derived_init(int argc, char **argv) override;
 
   virtual
   void
@@ -49,7 +40,6 @@ protected:
 private:
   enum gradient_type
     {
-      no_gradient,
       linear_gradient,
       radial_gradient,
       sweep_gradient,
@@ -61,15 +51,12 @@ private:
   fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> m_color_stops;
 };
 
-void
-example_brush::
-derived_init(int argc, char **argv)
+ExampleBrush::
+ExampleBrush(DemoRunner *runner, int argc, char **argv):
+  Initialization(runner, argc, argv),
+  m_gradient_type(linear_gradient)
 {
-  /* call the base-clas derived_init() to create the
-   * fastuidraw::Painter, fastuidraw::PainterEngineGL
-   * and fastuidraw::PainterSurface objects
-   */
-  initialization::derived_init(argc, argv);
+  std::cout << "Press any key to change gradient\n";
 
   /* Create the color stop sequence object that the fastuidraw::PainterBrush
    * will consume fro drawing gradients. The object fastuidraw::ColorStopSequence
@@ -99,30 +86,21 @@ derived_init(int argc, char **argv)
 }
 
 void
-example_brush::
+ExampleBrush::
 handle_event(const SDL_Event &ev)
 {
   switch (ev.type)
     {
     case SDL_KEYDOWN:
-      switch (ev.key.keysym.sym)
-        {
-        case SDLK_UP:
-          ++m_gradient_type;
-          break;
-
-        case SDLK_DOWN:
-          --m_gradient_type;
-          break;
-        }
+      ++m_gradient_type;
       break;
     }
   m_gradient_type = m_gradient_type % number_gradient_types;
-  initialization::handle_event(ev);
+  Initialization::handle_event(ev);
 }
 
 void
-example_brush::
+ExampleBrush::
 draw_frame(void)
 {
   fastuidraw::vec2 window_dims(window_dimensions());
@@ -229,8 +207,8 @@ draw_frame(void)
 int
 main(int argc, char **argv)
 {
-  example_brush demo;
-  return demo.main(argc, argv);
+  DemoRunner demo_runner;
+  return demo_runner.main<ExampleBrush>(argc, argv);
 }
 
 //! [ExampleBrush]

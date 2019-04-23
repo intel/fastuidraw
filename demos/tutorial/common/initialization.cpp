@@ -17,8 +17,6 @@
 
 //! [ExampleInitialization]
 
-#include <fastuidraw/gl_backend/gl_binding.hpp>
-#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include "initialization.hpp"
 
 static
@@ -28,29 +26,10 @@ get_proc(fastuidraw::c_string proc_name)
   return SDL_GL_GetProcAddress(proc_name);
 }
 
-initialization::
-initialization(void)
+Initialization::
+Initialization(DemoRunner *runner, int argc, char **argv):
+  Demo(runner, argc, argv)
 {
-  /* The ctor is empty because we need a GL context current before
-   * we can create the fastuidraw::PainterEngine which is needed to
-   * create the fastuidraw::Painter. Recall that the example_framework
-   * class has not yet created the GL context (or window even) until
-   * later
-   */
-}
-
-void
-initialization::
-derived_init(int argc, char **argv)
-{
-  /* Recall that example_framework has created the window
-   * GL context and made the GL conrext current by the time
-   * it calls derived_init(). Now is the time we can perform
-   * initialization for FastUIDraw
-   */
-  FASTUIDRAWunused(argc);
-  FASTUIDRAWunused(argv);
-
   /* The GL (or GLES) backend need a way to fetch the GL (or GLES)
    * function pointers. It is the applications responsibility to
    * provide to FastUIDraw a function to fetch the GL (or GLES)
@@ -106,7 +85,7 @@ derived_init(int argc, char **argv)
 }
 
 void
-initialization::
+Initialization::
 handle_event(const SDL_Event &ev)
 {
   switch (ev.type)
@@ -123,20 +102,16 @@ handle_event(const SDL_Event &ev)
           m_surface_gl = FASTUIDRAWnew fastuidraw::gl::PainterSurfaceGL(new_dims, *m_painter_engine_gl);
         }
       break;
-
-    default:
-      example_framework::handle_event(ev);
     }
 }
 
 void
-initialization::
+Initialization::
 draw_frame(void)
 {
   /* We first need to set the viewport for surface when we start to draw */
   fastuidraw::vec2 window_dims(window_dimensions());
   fastuidraw::PainterSurface::Viewport vwp(0, 0, window_dims.x(), window_dims.y());
-
   m_surface_gl->viewport(vwp);
 
   /* fastuidraw::Painter builds commands to send to the underlying 3D API.
@@ -185,10 +160,10 @@ draw_frame(void)
   m_surface_gl->blit_surface(GL_NEAREST);
 }
 
-initialization::
-~initialization()
+Initialization::
+~Initialization()
 {
-  /* Recall that example_framework does not destroy the window
+  /* Recall that demo_framework does not destroy the window
    * or GL context untils its dtor. Hence, the GL context is
    * current at our dtor. When the reference counted pointers
    * have their dtors' called, they will decrement the reference

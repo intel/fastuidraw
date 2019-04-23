@@ -15,15 +15,15 @@
   and event handling.
 
   The interface is defined by:
-  \snippet example_framework.hpp ExampleFramework
+  \snippet demo_framework.hpp ExampleFramework
 
   The implementation is given by:
-  \snippet example_framework.cpp ExampleFramework
+  \snippet demo_framework.cpp ExampleFramework
 */
 
 /*!
   \page ex_initialization Example Initialization
-  \brief Example code that shows how to create a Painter and to use the GL backend
+  \brief Example code that shows how to create a Painter and to use the GL backend.
 
   The Example Initialization builds from \ref ex_framework to demonstrate
   how to initialize FastUIDraw's GL (or GLES) backend and to create a
@@ -38,7 +38,7 @@
 
 /*!
   \page ex_text Example Text
-  \brief Simple example showing how to use \ref fastuidraw::GlyphSequence to render text
+  \brief Simple example showing how to use \ref fastuidraw::GlyphSequence to render text.
 
   The Example Text builds from \ref ex_initialization to demonstrate
   how to construct and use \ref fastuidraw::GlyphSequence to render
@@ -50,10 +50,10 @@
 
 /*!
   \page ex_brush Example Brush
-  \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render gradients
+  \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render gradients.
 
   The Example Brush builds from \ref ex_initialization to demonstrate
-  how to use \ref fastuidraw::PainterBrush to render gradients
+  how to use \ref fastuidraw::PainterBrush to render gradients.
 
   The implementation is given by:
   \snippet example_brush.cpp ExampleBrush

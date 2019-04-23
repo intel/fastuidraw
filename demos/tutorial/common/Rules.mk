@@ -4,7 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-COMMON_DEMO_SOURCES += $(call filelist, example_framework.cpp initialization.cpp)
+COMMON_DEMO_SOURCES += $(call filelist, demo_framework.cpp initialization.cpp)
 
 DEMOS += example_initialization
 example_initialization_SOURCES := $(call filelist, initialization_main.cpp)
