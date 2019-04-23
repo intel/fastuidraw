@@ -69,25 +69,31 @@ class ImageAtlas;
     enum type_t
       {
         /*!
-         * Indicates that the Image is on an ImageAtlas
+         * Indicates that the Image is on an ImageAtlas.
+         * Such images will not introcude draw-breaks, but
+         * are more complicated to sample from.
          */
         on_atlas,
 
         /*!
          * Indicates that the Image is backed by a gfx API
-         * texture via a bindless interface.
+         * texture via a bindless interface. Such images
+         * do not introduce draw-breaks and are simple
+         * from. The only draw back, is that not all 3D
+         * API implementations support bindless texruing
+         * (for example the GL/GLES backends require that
+         * the GL/GLES implementation support an extension.
          */
         bindless_texture2d,
 
         /*!
          * Indicates to source the Image data from a currently
-         * bound texture of the 3D API context. Using images
-         * of these types should be avoided at all costs since
-         * whenever one uses Image objects of these types
-         * the 3D API state needs to change which induces a
-         * stage change and draw break, harming performance.
-         * The creation of these image types is to be handled
-         * by the backend implementation.
+         * bound texture of the 3D API context. These image are
+         * simple to sample from but introduce draw breaks. Using
+         * images of these types should be avoided at all costs
+         * since whenever one uses Image objects of these types
+         * the 3D API state needs to change which induces a stage
+         * change and draw break, harming performance.
          */
         context_texture2d,
       };

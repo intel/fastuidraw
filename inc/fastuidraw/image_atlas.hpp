@@ -269,7 +269,7 @@ namespace fastuidraw
      */
     reference_counted_ptr<Image>
     create(int w, int h, const ImageSourceBase &image_data,
-           enum Image::type_t type);
+           enum Image::type_t type = Image::bindless_texture2d);
 
     /*!
      * Construct an \ref Image whose \ref Image::type() is NOT
