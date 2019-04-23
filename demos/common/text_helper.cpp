@@ -287,7 +287,7 @@ generate(unsigned int num_threads,
          fastuidraw::GlyphRenderer r,
          fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
          std::vector<fastuidraw::Glyph> &dst,
-         fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
+         fastuidraw::GlyphCache &glyph_cache,
          std::vector<int> &cnts)
 {
   GlyphSetGenerator generator(r, f, dst);
@@ -313,18 +313,15 @@ generate(unsigned int num_threads,
         }
     }
 
-  if (glyph_cache)
+  for(fastuidraw::Glyph glyph : dst)
     {
-      for(fastuidraw::Glyph glyph : dst)
+      if (glyph.valid())
         {
-          if (glyph.valid())
-            {
-              enum fastuidraw::return_code R;
+          enum fastuidraw::return_code R;
 
-              R = glyph_cache->add_glyph(glyph, false);
-              FASTUIDRAWassert(R == fastuidraw::routine_success);
-              FASTUIDRAWunused(R);
-            }
+          R = glyph_cache.add_glyph(glyph, false);
+          FASTUIDRAWassert(R == fastuidraw::routine_success);
+          FASTUIDRAWunused(R);
         }
     }
 }
@@ -345,7 +342,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 
   for(uint32_t glyph_code : glyph_codes)
     {
-      layout = out_sequence.glyph_cache()->fetch_glyph_metrics(font, glyph_code);
+      layout = out_sequence.glyph_cache().fetch_glyph_metrics(font, glyph_code);
       if (layout.valid())
         {
           out_sequence.add_glyph(fastuidraw::GlyphSource(glyph_code, font), pen);
@@ -402,7 +399,7 @@ create_formatted_textT(T &out_sequence,
       metrics.resize(line.length());
 
       font_database->create_glyph_sequence(font, line.begin(), line.end(), glyph_sources.begin());
-      out_sequence.glyph_cache()->fetch_glyph_metrics(cast_c_array(glyph_sources), cast_c_array(metrics));
+      out_sequence.glyph_cache().fetch_glyph_metrics(cast_c_array(glyph_sources), cast_c_array(metrics));
       for(unsigned int i = 0, endi = glyph_sources.size(); i < endi; ++i)
         {
           sub_p[i] = pen;

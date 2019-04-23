@@ -92,13 +92,9 @@ protected:
               draw, orientation);
   }
 
-  fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
-  fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_glyph_atlas;
-  fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_colorstop_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterSurfaceGL> m_surface;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterEngineGL> m_backend;
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> m_painter;
-  fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_glyph_cache;
   fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> m_font_database;
   fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_ft_lib;
 

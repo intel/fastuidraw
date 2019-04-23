@@ -319,16 +319,16 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
 
       if (m_use_atlas.value())
         {
-          im = m_painter->image_atlas()->create(image_data.width(),
-                                                image_data.height(),
-                                                image_data,
-                                                Image::on_atlas);
+          im = m_painter->image_atlas().create(image_data.width(),
+                                               image_data.height(),
+                                               image_data,
+                                               Image::on_atlas);
         }
       else
         {
-          im = m_painter->image_atlas()->create_non_atlas(image_data.width(),
-                                                          image_data.height(),
-                                                          image_data);
+          im = m_painter->image_atlas().create_non_atlas(image_data.width(),
+                                                         image_data.height(),
+                                                         image_data);
         }
 
       switch (im->type())
@@ -366,7 +366,7 @@ derived_init(int w, int h)
   reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font.value().c_str(), 0);
   m_table_params.m_font_database = m_font_database;
-  m_table_params.m_glyph_cache = m_glyph_cache;
+  m_table_params.m_glyph_cache = &m_painter->glyph_cache();
   if (gen->check_creation() == routine_success)
     {
       m_table_params.m_font = FASTUIDRAWnew FontFreeType(gen, m_ft_lib);

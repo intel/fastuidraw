@@ -36,7 +36,7 @@ public:
            fastuidraw::GlyphRenderer r,
            fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
            std::vector<fastuidraw::Glyph> &dst,
-           fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
+           fastuidraw::GlyphCache &glyph_cache,
            std::vector<int> &cnts);
 
 private:

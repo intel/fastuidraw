@@ -105,8 +105,7 @@ public:
 
   void
   init(const reference_counted_ptr<const FontBase> &font,
-       float line_length,
-       const reference_counted_ptr<GlyphCache> &glyph_cache,
+       float line_length, GlyphCache &glyph_cache,
        const reference_counted_ptr<FontDatabase> &selector,
        float format_size_formatting,
        enum Painter::screen_orientation screen_orientation);
@@ -114,14 +113,13 @@ public:
   void
   init(const std::vector<uint32_t> &glyph_codes,
        const reference_counted_ptr<const FontBase> &font,
-       const reference_counted_ptr<GlyphCache> &glyph_cache,
-       float format_size_formatting,
+       GlyphCache &glyph_cache, float format_size_formatting,
        enum Painter::screen_orientation screen_orientation);
 
   void
   init(std::istream &istr,
        const reference_counted_ptr<const FontBase> &font,
-       const reference_counted_ptr<GlyphCache> &glyph_cache,
+       GlyphCache &glyph_cache,
        const reference_counted_ptr<FontDatabase> &selector,
        float format_size_formatting,
        enum Painter::screen_orientation screen_orientation);
@@ -271,7 +269,6 @@ GlyphDrawsShared::
 make_hierarchy(void)
 {
   enum Painter::screen_orientation orientation(m_glyph_sequence->orientation());
-  GlyphCache *glyph_cache(m_glyph_sequence->glyph_cache().get());
   float format_size(m_glyph_sequence->format_size());
   GlyphMetrics metrics;
   vec2 p;
@@ -320,7 +317,7 @@ void
 GlyphDrawsShared::
 init(const reference_counted_ptr<const FontBase> &pfont,
      float line_length,
-     const reference_counted_ptr<GlyphCache> &glyph_cache,
+     GlyphCache &glyph_cache,
      const reference_counted_ptr<FontDatabase> &font_database,
      float format_size_formatting,
      enum Painter::screen_orientation screen_orientation)
@@ -350,7 +347,7 @@ init(const reference_counted_ptr<const FontBase> &pfont,
   metrics.resize(num_glyphs);
   for(unsigned int i = 0; i < num_glyphs; ++i)
     {
-      metrics[i] = glyph_cache->fetch_glyph_metrics(font.get(), i);
+      metrics[i] = glyph_cache.fetch_glyph_metrics(font.get(), i);
     }
 
   vec2 pen(0.0f, 0.0f);
@@ -414,7 +411,7 @@ void
 GlyphDrawsShared::
 init(const std::vector<uint32_t> &glyph_codes,
      const reference_counted_ptr<const FontBase> &font,
-     const reference_counted_ptr<GlyphCache> &glyph_cache,
+     GlyphCache &glyph_cache,
      float format_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
@@ -432,7 +429,7 @@ void
 GlyphDrawsShared::
 init(std::istream &istr,
      const reference_counted_ptr<const FontBase> &font,
-     const reference_counted_ptr<GlyphCache> &glyph_cache,
+     GlyphCache &glyph_cache,
      const reference_counted_ptr<FontDatabase> &font_database,
      float format_size_formatting,
      enum Painter::screen_orientation screen_orientation)
@@ -721,7 +718,7 @@ realize_all_glyphs(GlyphRenderer renderer)
   std::vector<Glyph> glyphs;
 
   std::cout << "Generating " << renderer << " glyphs ..." << std::flush;
-  GlyphSetGenerator::generate(num_threads, renderer, m_font, glyphs, m_glyph_cache, cnts);
+  GlyphSetGenerator::generate(num_threads, renderer, m_font, glyphs, m_painter->glyph_cache(), cnts);
   std::cout << "took " << timer.restart()
             << " ms to generate " << glyphs.size()
             << " glyphs of type " << renderer << "\n";
@@ -730,7 +727,7 @@ realize_all_glyphs(GlyphRenderer renderer)
       std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
     }
 
-  unsigned int pre_num_elements(m_glyph_atlas->data_allocated());
+  unsigned int pre_num_elements(m_painter->glyph_atlas().data_allocated());
 
   std::cout << "Uploading to atlas ..." << std::flush;
   for (auto &g : glyphs)
@@ -739,7 +736,7 @@ realize_all_glyphs(GlyphRenderer renderer)
     }
   std::cout << "took " << timer.restart() << " ms\n";
 
-  unsigned int num_elements(m_glyph_atlas->data_allocated());
+  unsigned int num_elements(m_painter->glyph_atlas().data_allocated());
   unsigned int num_used(num_elements - pre_num_elements);
 
   std::cout << "Used additional " << PrintBytes(num_used * sizeof(generic_data))
@@ -767,14 +764,14 @@ ready_glyph_data(int w, int h)
           realize_all_glyphs(m_draws[i]);
         }
       m_draw_shared.init(m_font, w,
-                         m_glyph_cache, m_font_database,
+                         m_painter->glyph_cache(), m_font_database,
                          m_render_format_size.value(),
                          m_screen_orientation.value());
     }
   else if (!explicit_glyph_codes.empty())
     {
       m_draw_shared.init(explicit_glyph_codes,
-                         m_font, m_glyph_cache,
+                         m_font, m_painter->glyph_cache(),
                          m_render_format_size.value(),
                          m_screen_orientation.value());
     }
@@ -782,7 +779,7 @@ ready_glyph_data(int w, int h)
     {
       std::ifstream istr(m_text.value().c_str(), std::ios::binary);
       m_draw_shared.init(istr, m_font,
-                         m_glyph_cache, m_font_database,
+                         m_painter->glyph_cache(), m_font_database,
                          m_render_format_size.value(),
                          m_screen_orientation.value());
     }
@@ -790,7 +787,7 @@ ready_glyph_data(int w, int h)
     {
       std::istringstream istr(m_text.value());
       m_draw_shared.init(istr, m_font,
-                         m_glyph_cache, m_font_database,
+                         m_painter->glyph_cache(), m_font_database,
                          m_render_format_size.value(),
                          m_screen_orientation.value());
     }
@@ -799,14 +796,14 @@ ready_glyph_data(int w, int h)
   for (unsigned int i = 0; i < draw_glyph_auto; ++i)
     {
       simple_time timer;
-      unsigned int pre_num_elements(m_glyph_atlas->data_allocated());
+      unsigned int pre_num_elements(m_painter->glyph_atlas().data_allocated());
 
       std::cout << "Generating, realizing and uploading to atlas glyphs of type " << m_draws[i] << "...";
       m_draw_shared.realize_glyphs(m_draws[i]);
 
       if (!m_draw_glyph_set.value())
         {
-          unsigned int num_elements(m_glyph_atlas->data_allocated());
+          unsigned int num_elements(m_painter->glyph_atlas().data_allocated());
           unsigned int num_used(num_elements - pre_num_elements);
           std::cout << "Used " << PrintBytes(num_used * sizeof(generic_data))
                     << " glyph data, total used = "
@@ -853,7 +850,7 @@ stroke_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
   Glyph G;
 
   FASTUIDRAWassert(R.valid());
-  G = m_glyph_cache->fetch_glyph(R, M.font().get(), M.glyph_code());
+  G = m_painter->glyph_cache().fetch_glyph(R, M.font().get(), M.glyph_code());
   m_painter->stroke_path(d, G.path(),
                          StrokingStyle()
                          .join_style(static_cast<enum Painter::join_style>(m_join_style)),
@@ -867,7 +864,7 @@ fill_glyph(const PainterData &d, GlyphMetrics M, GlyphRenderer R)
   Glyph G;
 
   FASTUIDRAWassert(R.valid());
-  G = m_glyph_cache->fetch_glyph(R, M.font().get(), M.glyph_code());
+  G = m_painter->glyph_cache().fetch_glyph(R, M.font().get(), M.glyph_code());
   m_painter->fill_path(d, G.path(),
                        Painter::nonzero_fill_rule,
                        m_anti_alias_path_filling);
@@ -1057,7 +1054,7 @@ draw_glyphs(float us)
               vec2 sz_bb, r;
               float rad;
 
-              G = m_glyph_cache->fetch_glyph(render, metrics.font().get(), metrics.glyph_code());
+              G = m_painter->glyph_cache().fetch_glyph(render, metrics.font().get(), metrics.glyph_code());
               extract_path_info(G.path(), &pts, &ctl_pts, &arc_center_pts, &descr);
               G.path().approximate_bounding_box(&R);
               sz_bb = R.size();
@@ -1135,7 +1132,7 @@ draw_glyphs(float us)
       std::ostringstream ostr;
       uint32_t glyph_atlas_size_bytes, glyph_atlas_size_kb(0u), glyph_atlas_size_mb(0u);
 
-      glyph_atlas_size_bytes = 4u * m_glyph_atlas->data_allocated();
+      glyph_atlas_size_bytes = 4u * m_painter->glyph_atlas().data_allocated();
       if (glyph_atlas_size_bytes > 1000u)
         {
           glyph_atlas_size_kb = glyph_atlas_size_bytes / 1000u;
@@ -1269,7 +1266,7 @@ draw_glyphs(float us)
               Glyph glyph;
               c_array<const GlyphRenderCostInfo> render_costs;
 
-              glyph = m_glyph_cache->fetch_glyph(render, metrics.font().get(), metrics.glyph_code());
+              glyph = m_painter->glyph_cache().fetch_glyph(render, metrics.font().get(), metrics.glyph_code());
               render_costs = glyph.render_cost();
               ostr << render;
 
@@ -1432,7 +1429,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_c:
           std::cout << "Clear Cache\n";
-          m_glyph_cache->clear_atlas();
+          m_painter->glyph_cache().clear_atlas();
           break;
 
         case SDLK_z:

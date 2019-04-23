@@ -423,10 +423,10 @@ derived_init(int, int)
   if (!m_image_file.value().empty())
     {
       ImageLoader image_data(m_image_file.value());
-      m_image = m_painter->image_atlas()->create(image_data.width(),
-                                                 image_data.height(),
-                                                 image_data,
-                                                 Image::bindless_texture2d);
+      m_image = m_painter->image_atlas().create(image_data.width(),
+                                                image_data.height(),
+                                                image_data,
+                                                Image::bindless_texture2d);
       if (m_image)
         {
           std::cout << "Loaded image \"" << m_image_file.value()

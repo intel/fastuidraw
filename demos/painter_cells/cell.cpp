@@ -45,7 +45,7 @@ Cell(PainterWidget *p, const CellParams &params):
   m_item_location(params.m_size * 0.5f),
   m_text(params.m_pixel_size,
          fastuidraw::Painter::y_increases_downwards,
-         params.m_glyph_cache),
+         *params.m_glyph_cache),
   m_shared_state(params.m_state),
   m_timer_based_animation(params.m_timer_based_animation)
 {

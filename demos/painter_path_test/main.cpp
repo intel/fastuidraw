@@ -1460,7 +1460,7 @@ construct_paths(int w, int h)
       Glyph g;
 
       glyph_code = m_font->glyph_code(character_code);
-      g = m_glyph_cache->fetch_glyph(renderer, m_font.get(), glyph_code);
+      g = m_painter->glyph_cache().fetch_glyph(renderer, m_font.get(), glyph_code);
       if (g.valid() && g.path().number_contours() > 0)
         {
           std::ostringstream str;
@@ -2260,16 +2260,16 @@ derived_init(int w, int h)
         {
           if (m_use_atlas.value())
             {
-              m_image = m_painter->image_atlas()->create(image_data.width(),
-                                                         image_data.height(),
-                                                         image_data,
-                                                         Image::on_atlas);
+              m_image = m_painter->image_atlas().create(image_data.width(),
+                                                        image_data.height(),
+                                                        image_data,
+                                                        Image::on_atlas);
             }
           else
             {
-              m_image = m_painter->image_atlas()->create_non_atlas(image_data.width(),
-                                                                   image_data.height(),
-                                                                   image_data);
+              m_image = m_painter->image_atlas().create_non_atlas(image_data.width(),
+                                                                  image_data.height(),
+                                                                  image_data);
             }
         }
     }

@@ -667,10 +667,6 @@ init_gl(int w, int h)
     }
 
   m_backend = fastuidraw::gl::PainterEngineGL::create(m_painter_params);
-  m_image_atlas = m_backend->image_atlas();
-  m_glyph_atlas = m_backend->glyph_atlas();
-  m_colorstop_atlas = m_backend->colorstop_atlas();
-  m_glyph_cache = m_backend->glyph_cache();
 
   fastuidraw::GlyphGenerateParams::distance_field_max_distance(m_distance_field_max_distance.value());
   fastuidraw::GlyphGenerateParams::distance_field_pixel_size(m_distance_field_pixel_size.value());
@@ -707,7 +703,7 @@ init_gl(int w, int h)
         "\treal_main();\n"
         "}\n";
 
-      R = m_painter->painter_shader_registrar().static_cast_ptr<fastuidraw::glsl::PainterShaderRegistrarGLSL>();
+      R = static_cast<fastuidraw::glsl::PainterShaderRegistrarGLSL*>(&m_painter->painter_shader_registrar());
       R->add_fragment_shader_util(fastuidraw::glsl::ShaderSource()
                                   .add_macro("PIXEL_COUNTER_BINDING", m_pixel_counter_buffer_binding_index)
                                   .add_source(code, fastuidraw::glsl::ShaderSource::from_string)
@@ -803,7 +799,7 @@ draw_text(const std::string &text, float pixel_size,
           enum fastuidraw::Painter::screen_orientation orientation)
 {
   std::istringstream str(text);
-  fastuidraw::GlyphRun run(pixel_size, orientation, m_glyph_cache);
+  fastuidraw::GlyphRun run(pixel_size, orientation, m_painter->glyph_cache());
 
   create_formatted_text(run, str, font, m_font_database);
   m_painter->draw_glyphs(draw, run, 0, run.number_glyphs(), renderer);

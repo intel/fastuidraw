@@ -151,16 +151,16 @@ derived_init(int w, int h)
         {
           if (m_use_atlas.value())
             {
-              m_image = m_painter->image_atlas()->create(image_data.width(),
-                                                         image_data.height(),
-                                                         image_data,
-                                                         Image::on_atlas);
+              m_image = m_painter->image_atlas().create(image_data.width(),
+                                                        image_data.height(),
+                                                        image_data,
+                                                        Image::on_atlas);
             }
           else
             {
-              m_image = m_painter->image_atlas()->create_non_atlas(image_data.width(),
-                                                                   image_data.height(),
-                                                                   image_data);
+              m_image = m_painter->image_atlas().create_non_atlas(image_data.width(),
+                                                                  image_data.height(),
+                                                                  image_data);
             }
         }
     }
@@ -190,7 +190,7 @@ derived_init(int w, int h)
         .remove_macro(macros[i]);
 
       m_brush_shader[i] = FASTUIDRAWnew glsl::PainterCustomBrushShaderGLSL(1, vert_src, frag_src, varyings);
-      m_painter->painter_shader_registrar()->register_shader(m_brush_shader[i]);
+      m_painter->painter_shader_registrar().register_shader(m_brush_shader[i]);
     }
 }
 
