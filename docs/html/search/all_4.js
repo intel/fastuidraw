@@ -24,6 +24,7 @@ var searchData=
   ['example_20brush',['Example Brush',['../d7/d4d/ex_brush.html',1,'']]],
   ['example_20framework',['Example FrameWork',['../d4/da1/ex_framework.html',1,'']]],
   ['example_20initialization',['Example Initialization',['../de/d50/ex_initialization.html',1,'']]],
+  ['example_20path',['Example Path',['../da/d5c/ex_path.html',1,'']]],
   ['example_20text',['Example Text',['../d1/df9/ex_text.html',1,'']]],
   ['exact_5fmatch',['exact_match',['../d4/d44/classfastuidraw_1_1_font_database.html#a3d5871ab9a1c68af602df123872525e3a9d933af5c8377e58653631cf6212c3ad',1,'fastuidraw::FontDatabase']]],
   ['execute',['execute',['../d2/d15/classfastuidraw_1_1_painter_draw_break_action.html#a7d658b55f7ab36bd0e6034876067bf45',1,'fastuidraw::PainterDrawBreakAction']]],
