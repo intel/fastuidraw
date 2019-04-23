@@ -37,6 +37,25 @@ namespace fastuidraw
   {
   public:
     /*!
+     * This enumeration describes the meaning of the
+     * attributes.
+     */
+    enum attribute_values_t
+      {
+        /*!
+         * Dimensions of the glyph as packed by
+         * \ref GlyphAttribute::rect_glyph_layout
+         */
+        glyph_size_xy,
+
+        /*!
+         * Location of the texel data within the
+         * \ref GlyphAtlas
+         */
+        glyph_texel_data_offset,
+      };
+
+    /*!
      * Ctor, initialized the resolution as (0,0).
      */
     GlyphRenderDataTexels(void);
