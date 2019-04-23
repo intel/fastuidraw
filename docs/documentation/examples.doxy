@@ -37,6 +37,17 @@
  */
 
 /*!
+  \page ex_brush Example Brush
+  \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render gradients.
+
+  The Example Brush builds from \ref ex_initialization to demonstrate
+  how to use \ref fastuidraw::PainterBrush to render gradients.
+
+  The implementation is given by:
+  \snippet example_brush.cpp ExampleBrush
+*/
+
+/*!
   \page ex_text Example Text
   \brief Simple example showing how to use \ref fastuidraw::GlyphSequence to render text.
 
@@ -49,12 +60,13 @@
 */
 
 /*!
-  \page ex_brush Example Brush
-  \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render gradients.
+  \page ex_path Example Path
+  \brief Simple example showing how to use \ref fastuidraw::Path to stroke and fill paths.
 
-  The Example Brush builds from \ref ex_initialization to demonstrate
-  how to use \ref fastuidraw::PainterBrush to render gradients.
+  The Example Path builds from \ref ex_initialization to demonstrate
+  how to construct and use \ref fastuidraw::Path to stroke and fills
+  paths with \ref fastuidraw::Painter.
 
   The implementation is given by:
-  \snippet example_brush.cpp ExampleBrush
+  \snippet example_path.cpp ExamplePath
 */

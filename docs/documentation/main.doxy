@@ -282,8 +282,9 @@ namespace fastuidraw {
   For further details see \ref DetailsPage
 
   \section Examples
-  - See \ref ex_framework for the example framework to get started with the examples
-  - See \ref ex_initialization for the how to create a \ref fastuidraw::Painter
-  - See \ref ex_text for an example of using \ref fastuidraw::GlyphSequence to draw text with \ref fastuidraw::Painter
-  - See \ref ex_brush for an example of using \ref fastuidraw::PainterBrush to render gradients
+  - See \ref ex_framework for the example framework to get started with the examples.
+  - See \ref ex_initialization for the how to create a \ref fastuidraw::Painter.
+  - See \ref ex_text for an example of using \ref fastuidraw::GlyphSequence to draw text with \ref fastuidraw::Painter.
+  - See \ref ex_brush for an example of using \ref fastuidraw::PainterBrush to render gradients.
+  - See \ref ex_path for an example of using \ref fastuidraw::Path to stroke and fill paths.
 */
