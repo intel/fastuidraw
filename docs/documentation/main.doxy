@@ -42,6 +42,37 @@ glsl::PainterBackendGLSL which provides shader assembly and default
 shaders via GLSL shaders. Part of the main library libFastUIDraw.
 @}
 
+\defgroup GLSLVertFragCode GLSL Vertex Fragment Code
+@{
+\brief
+This group documents the GLSL functions fastuidraw makes available
+to GLSL code fragments for both vertex and fragment shading for
+custom shading as embodied by the classes \ref
+fastuidraw::glsl::PainterItemShaderGLSL, \ref
+fastuidraw::glsl::PainterBlendShaderGLSL and \ref
+fastuidraw::glsl::PainterCustomBrushShaderGLSL.
+@}
+
+\defgroup GLSLVertCode GLSL Vertex Code
+@{
+\brief
+This group documents the GLSL functions fastuidraw makes available
+to GLSL code fragments for only vertex shading for custom shading
+as embodied by the classes \ref fastuidraw::glsl::PainterItemShaderGLSL,
+\ref fastuidraw::glsl::PainterBlendShaderGLSL and \ref
+fastuidraw::glsl::PainterCustomBrushShaderGLSL.
+@}
+
+\defgroup GLSLFragCode GLSL Fragment Code
+@{
+\brief
+This group documents the GLSL functions fastuidraw makes available
+to GLSL code fragments for only fragment shader for custom shading
+as embodied by the classes \ref fastuidraw::glsl::PainterItemShaderGLSL,
+\ref fastuidraw::glsl::PainterBlendShaderGLSL and \ref
+fastuidraw::glsl::PainterCustomBrushShaderGLSL.
+@}
+
 \defgroup Painter Painter
 @{
 \brief
@@ -114,7 +145,7 @@ namespace fastuidraw {
   @{
  */
   /*!
-    \brief Namesapce to encapsulate shader building to GLSL
+    \brief Namespace to encapsulate shader building to GLSL
            shaders, part of the main library libFastUIDraw.
    */
   namespace glsl

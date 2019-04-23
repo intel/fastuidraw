@@ -5,6 +5,6 @@ clean-all: clean
 	rm -fr $(SUPER_CLEAN_FILES)
 
 clean-docs:
-	rm -fr docs/doxy/html
+	rm -fr docs/doxy/
 
 TARGETLIST+=clean clean-docs clean-all
