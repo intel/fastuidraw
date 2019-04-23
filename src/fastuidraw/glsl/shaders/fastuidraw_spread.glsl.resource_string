@@ -16,86 +16,91 @@
  *
  */
 
-/* compure mirror spread pattern on [0, 1] */
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+/*! \brief compute mirror spread pattern on [0, 1] */
 float
 fastuidraw_compute_mirror_spread(float t)
 {
   return clamp(abs(t), 0.0, 1.0);
 }
 
-/* compure repeat spread pattern on [0, 1] */
+/*! \brief compute repeat spread pattern on [0, 1] */
 float
 fastuidraw_compute_repeat_spread(float t)
 {
   return fract(t);
 }
 
-/* compure mirror-repeat spread pattern on [0, 1] */
+/*! \brief compute mirror-repeat spread pattern on [0, 1] */
 float
 fastuidraw_compute_mirror_repeat_spread(float t)
 {
   return 1.0 - abs(mod(t, 2.0) - 1.0);
 }
 
-/* compure clamp spread pattern on [0, 1] */
+/*! \brief compute clamp spread pattern on [0, 1] */
 float
 fastuidraw_compute_clamp_spread(float t)
 {
   return clamp(t, 0.0, 1.0);
 }
 
-/* compure mirror spread pattern on [0, range] */
+/*! \brief compute mirror spread pattern on [0, range] */
 float
 fastuidraw_compute_mirror_spread(float t, float range)
 {
   return clamp(abs(t), 0.0, range);
 }
 
-/* compure repeat spread pattern on [0, range] */
+/*! \brief compute repeat spread pattern on [0, range] */
 float
 fastuidraw_compute_repeat_spread(float t, float range)
 {
   return mod(t, range);
 }
 
-/* compure mirror-repeat spread pattern on [0, range] */
+/*! \brief compute mirror-repeat spread pattern on [0, range] */
 float
 fastuidraw_compute_mirror_repeat_spread(float t, float range)
 {
   return range - abs(mod(t, 2.0 * range) - range);
 }
 
-/* compure clamp spread pattern on [0, range] */
+/*! \brief compute clamp spread pattern on [0, range] */
 float
 fastuidraw_compute_clamp_spread(float t, float range)
 {
   return clamp(t, 0.0, range);
 }
 
-/* compure mirror spread pattern on [begin_range, end_range] */
+/*! \brief compute mirror spread pattern on [begin_range, end_range] */
 float
 fastuidraw_compute_mirror_spread(float t, float begin_range, float end_range)
 {
   return begin_range + fastuidraw_compute_mirror_spread(t - begin_range, end_range - begin_range);
 }
 
-/* compure repeat spread pattern on [begin_range, end_range] */
+/*! \brief compute repeat spread pattern on [begin_range, end_range] */
 float
 fastuidraw_compute_repeat_spread(float t, float begin_range, float end_range)
 {
   return begin_range + fastuidraw_compute_repeat_spread(t - begin_range, end_range - begin_range);
 }
 
-/* compure mirror-repeat spread pattern on [begin_range, end_range] */
+/*! \brief compute mirror-repeat spread pattern on [begin_range, end_range] */
 float
 fastuidraw_compute_mirror_repeat_spread(float t, float begin_range, float end_range)
 {
   return begin_range + fastuidraw_compute_mirror_repeat_spread(t - begin_range, end_range - begin_range);
 }
 
-/* compure clamp spread pattern on [begin_range, end_range] */
+/*! \brief compute clamp spread pattern on [begin_range, end_range] */
 float
 fastuidraw_compute_clamp_spread(float t, float begin_range, float end_range)
 {
   return clamp(t, begin_range, end_range);
 }
+/*! @} */

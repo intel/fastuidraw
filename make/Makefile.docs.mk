@@ -1,5 +1,6 @@
 glsl_vert_frag_sources = \
-	src/fastuidraw/glsl/shaders/fastuidraw_atlas_image_fetch.glsl.resource_string
+	src/fastuidraw/glsl/shaders/fastuidraw_atlas_image_fetch.glsl.resource_string \
+	src/fastuidraw/glsl/shaders/fastuidraw_spread.glsl.resource_string
 
 glsl_vert_frag_processed_sources = $(patsubst %.glsl.resource_string, docs/doxy/glsl/vert_frag/%.glsl.hpp, $(glsl_vert_frag_sources))
 
