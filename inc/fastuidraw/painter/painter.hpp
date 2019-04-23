@@ -872,7 +872,6 @@ namespace fastuidraw
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
-     * and the data of the passed \ref GlyphSequence.
      * \param draw data for how to draw
      * \param glyph_sequence \ref GlyphSequence providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
@@ -885,68 +884,23 @@ namespace fastuidraw
                 GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
 
     /*!
-     * Draw glyphs from a \ref GlyphRun.
-     * \param shader \ref PainterGlyphShader to draw the glyphs
-     * \param draw data for how to draw
-     * \param glyph_run \ref GlyphRun providing glyphs
-     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will use default_glyph_renderer_chooser()
-     *                 to choose the renderer
-     * \param begin first character of GlyphRun to draw
-     * \param count number of characters, startng at begin, of the GlyphRun to draw
-     * \return Returns what \ref GlyphRenderer value used
-     */
-    GlyphRenderer
-    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
-                const GlyphRun &glyph_run,
-                unsigned int begin, unsigned int count,
-                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
-
-    /*!
-     * Draw glyphs from a \ref GlyphRun.
-     * and the data of the passed \ref GlyphRun.
-     * \param draw data for how to draw
-     * \param glyph_run \ref GlyphRun providing glyphs
-     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will use default_glyph_renderer_chooser()
-     *                 to choose the renderer
-     * \param begin first character of GlyphRun to draw
-     * \param count number of characters, startng at begin, of the GlyphRun to draw
-     * \return Returns what \ref GlyphRenderer value used
-     */
-    GlyphRenderer
-    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
-                unsigned int begin, unsigned int count,
-                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
-
-    /*!
-     * Draw all glyphs from a \ref GlyphRun.
-     * \param shader \ref PainterGlyphShader to draw the glyphs
-     * \param draw data for how to draw
-     * \param glyph_run \ref GlyphRun providing glyphs
+     * Draw glyphs from a \ref GlyphSequence.
+     * \code
+     * draw_glyphs(PainterData(&brush), glyph_sequence, renderer);
+     * \endcode
+     * \param brush brush to apply to stroking
+     * \param glyph_sequence \ref GlyphSequence providing glyphs
      * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
      *                 then the Painter will use default_glyph_renderer_chooser()
      *                 to choose the renderer
      * \return Returns what \ref GlyphRenderer value used
      */
     GlyphRenderer
-    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
-                const GlyphRun &glyph_run,
-                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
-
-    /*!
-     * Draw all glyphs from a \ref GlyphRun.
-     * and the data of the passed \ref GlyphRun.
-     * \param draw data for how to draw
-     * \param glyph_run \ref GlyphRun providing glyphs
-     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
-     *                 then the Painter will use default_glyph_renderer_chooser()
-     *                 to choose the renderer
-     * \return Returns what \ref GlyphRenderer value used
-     */
-    GlyphRenderer
-    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
-                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
+    draw_glyphs(const PainterBrush &brush, const GlyphSequence &glyph_sequence,
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph))
+    {
+      return draw_glyphs(PainterData(&brush), glyph_sequence, renderer);
+    }
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
@@ -960,7 +914,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphSequence &glyph_sequence,
-        const GlyphRendererChooser &renderer_chooser);
+                const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw glyphs from a \ref GlyphSequence.
@@ -973,7 +927,131 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphSequence &glyph_sequence,
-        const GlyphRendererChooser &renderer_chooser);
+                const GlyphRendererChooser &renderer_chooser);
+
+    /*!
+     * Draw glyphs from a \ref GlyphSequence.
+     * \code
+     * draw_glyphs(PainterData(&brush), glyph_sequence, renderer_chooser);
+     * \endcode
+     * \param brush brush to apply to text
+     * \param glyph_sequence \ref GlyphSequence providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterBrush &brush, const GlyphSequence &glyph_sequence,
+                const GlyphRendererChooser &renderer_chooser)
+    {
+      return draw_glyphs(PainterData(&brush), glyph_sequence, renderer_chooser);
+    }
+
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
+
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * and the data of the passed \ref GlyphRun.
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
+
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * and the data of the passed \ref GlyphRun.
+     * \code
+     * draw_glyphs(PainterData(&brush), glyph_run, begin, count, renderer);
+     * \endcode
+     * \param brush brush to apply to text
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterBrush &brush, const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph))
+    {
+      return draw_glyphs(PainterData(&brush), glyph_run, begin, count, renderer);
+    }
+
+    /*!
+     * Draw all glyphs from a \ref GlyphRun.
+     * \param shader \ref PainterGlyphShader to draw the glyphs
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const GlyphRun &glyph_run,
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
+
+    /*!
+     * Draw all glyphs from a \ref GlyphRun.
+     * and the data of the passed \ref GlyphRun.
+     * \param draw data for how to draw
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph));
+
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * \code
+     * draw_glyphs(PainterData(&brush), glyph_run, renderer);
+     * \endcode
+     * \param brush brush to apply to text
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer how to render the glyphs. If GlyphRenderer::valid() is false,
+     *                 then the Painter will use default_glyph_renderer_chooser()
+     *                 to choose the renderer
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterBrush &brush, const GlyphRun &glyph_run,
+                GlyphRenderer renderer = GlyphRenderer(banded_rays_glyph))
+    {
+      return draw_glyphs(PainterData(&brush), glyph_run, renderer);
+    }
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -990,7 +1068,7 @@ namespace fastuidraw
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-        const GlyphRendererChooser &renderer_chooser);
+                const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw glyphs from a \ref GlyphRun.
@@ -1006,7 +1084,27 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
                 unsigned int begin, unsigned int count,
-        const GlyphRendererChooser &renderer_chooser);
+                const GlyphRendererChooser &renderer_chooser);
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * \code
+     * draw_glyphs(PainterData(&brush), glyph_run, begin, count, renderer_chooser);
+     * \endcode
+     * \param brush brush to apply to text
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param begin first character of GlyphRun to draw
+     * \param count number of characters, startng at begin, of the GlyphRun to draw
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterBrush &brush, const GlyphRun &glyph_run,
+                unsigned int begin, unsigned int count,
+                const GlyphRendererChooser &renderer_chooser)
+    {
+      return draw_glyphs(PainterData(&brush), glyph_run, begin, count, renderer_chooser);
+    }
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -1020,7 +1118,7 @@ namespace fastuidraw
     GlyphRenderer
     draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                 const GlyphRun &glyph_run,
-        const GlyphRendererChooser &renderer_chooser);
+                const GlyphRendererChooser &renderer_chooser);
 
     /*!
      * Draw all glyphs from a \ref GlyphRun.
@@ -1033,7 +1131,25 @@ namespace fastuidraw
      */
     GlyphRenderer
     draw_glyphs(const PainterData &draw, const GlyphRun &glyph_run,
-        const GlyphRendererChooser &renderer_chooser);
+                const GlyphRendererChooser &renderer_chooser);
+
+    /*!
+     * Draw glyphs from a \ref GlyphRun.
+     * \code
+     * draw_glyphs(PainterData(&brush), glyph_run, renderer);
+     * \endcode
+     * \param brush brush to apply to text
+     * \param glyph_run \ref GlyphRun providing glyphs
+     * \param renderer_chooser \ref GlyphRendererChooser to use to choose how
+     *                         to render the glyphs.
+     * \return Returns what \ref GlyphRenderer value used
+     */
+    GlyphRenderer
+    draw_glyphs(const PainterBrush &brush, const GlyphRun &glyph_run,
+                const GlyphRendererChooser &renderer_chooser)
+    {
+      return draw_glyphs(PainterData(&brush), glyph_run, renderer_chooser);
+    }
 
     /*!
      * Returns what value Painter currently uses for Path::tessellation(float) const
@@ -1412,8 +1528,8 @@ namespace fastuidraw
      * fill_convex_polygon(PainterData(&brush), pts, apply_shader_anti_aliasing);
      * \endcode
      * \param brush \ref PainterBrush to apply to fill
-     * \param path path to fill
-     * \param fill_rule custom fill rule with which to fill the path
+     * \param pts points of the polygon so that neighboring points (modulo pts.size())
+     *            are the edges of the polygon.
      * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
     void
@@ -1425,7 +1541,7 @@ namespace fastuidraw
 
     /*!
      * Fill a rect using a custom shader.
-     * \param shader shader with which to draw the quad
+     * \param shader shader with which to draw the rect
      * \param draw data for how to draw
      * \param rect rectangle to fill
      * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
@@ -1488,6 +1604,7 @@ namespace fastuidraw
      * \code
      * fill_rounded_rect(PainterData(&brush), R, apply_shader_anti_aliasing);
      * \endcode
+     * \param brush brush to apply to filling
      * \param R \ref RoundedRect to draw
      * \param apply_shader_anti_aliasing if true, fill with shader based anti-aliasing
      */
