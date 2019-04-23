@@ -16,27 +16,54 @@
  *
  */
 
+
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+/*!
+ * \brief
+ * Structure to describe a linear gradient.
+ */
 struct fastuidraw_linear_gradient
 {
-  /* The start and end points of the linear gradient */
-  vec2 p0, p1;
+  /*! The start point of the linear gardient */
+  vec2 p0;
+
+  /*! The end point of the linear gardient */
+  vec2 p1;
 };
 
+/*!
+ * \brief
+ * Structure to describe a radial gradient.
+ */
 struct fastuidraw_radial_gradient
 {
-  /* The centers of the start and end circles */
-  vec2 p0, p1;
+  /*! The center point of the start circle of the radial gardient */
+  vec2 p0;
 
-  /* the radii of the start and end circles */
-  float r0, r1;
+  /*! the radius of the start circle of the radial gardient */
+  float r0;
+
+  /*! The center point of the end circle of the radial gardient */
+  vec2 p1;
+
+  /*! the radius of the end circle of the radial gardient */
+  float r1;
 };
 
+/*!
+ * \brief
+ * Structure to describe a sweep gradient.
+ */
 struct fastuidraw_sweep_gradient
 {
-  /* center of circle defining the sweep */
+  /*! center of circle defining the sweep */
   vec2 p;
 
-  /* the start angle of the sweep, i.e. at what angle
+  /*!
+   * the start angle of the sweep, i.e. at what angle
    * the interpolate would be zero. The value must
    * be in the range [-PI, PI]. The interpolate increases
    * by 0.5/PI for each radian, i.e. it increases by 1
@@ -44,7 +71,8 @@ struct fastuidraw_sweep_gradient
    */
   float sweep_angle;
 
-  /* the repeat factor of the sweep is by what factor
+  /*!
+   * the repeat factor of the sweep is by what factor
    * to multiply the interpolate. A negative value
    * indicates to sweep clockwise (assuming y increases
    * upwards) where as a positive value indicates to
@@ -53,6 +81,11 @@ struct fastuidraw_sweep_gradient
   float signed_factor;
 };
 
+/*!
+ * Compute the interpolate of a point along a linear gradient.
+ * \param p position
+ * \param g linear gradient
+ */
 float
 fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_linear_gradient g)
 {
@@ -63,6 +96,11 @@ fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_linear_gradient g)
   return dot(v, d) / dot(v, v);
 }
 
+/*!
+ * Compute the interpolate of a point along a sweep gradient.
+ * \param p position
+ * \param g sweep gradient
+ */
 float
 fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_sweep_gradient g)
 {
@@ -97,7 +135,11 @@ fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_sweep_gradient g)
   return t;
 }
 
-/* \param[output] good 1.0 if the point is within the extended code defined
+/*!
+ * Compute the interpolate of a point along a radial gradient.
+ * \param p position
+ * \param g radial gradient
+ * \param[output] good 1.0 if the point is within the extended cone defined
  *                     by the circles of the passed radial gradient, 0.0 otherwise
  */
 float
@@ -152,3 +194,4 @@ fastuidraw_compute_interpolate(in vec2 p, in fastuidraw_radial_gradient g, out f
 
   return t;
 }
+/*! @} */

@@ -17,6 +17,17 @@
  */
 
 
+
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+/*!
+ * \brief computes anisotropic coverage from a coverage value and its screen-space derivatives
+ * \param d coverage value
+ * \param dx derivative in x-direction of coverage value
+ * \param dy derivative in y-direction of coverage value
+ */
 float
 fastuidraw_anisotropic_coverage(float d, float dx, float dy)
 {
@@ -24,3 +35,4 @@ fastuidraw_anisotropic_coverage(float d, float dx, float dy)
   mag_sq = (dx * dx + dy * dy);
   return clamp(0.5 + d * inversesqrt(mag_sq), 0.0, 1.0);
 }
+/*! @} */

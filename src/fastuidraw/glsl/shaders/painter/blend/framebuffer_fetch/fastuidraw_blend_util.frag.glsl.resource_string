@@ -1,6 +1,6 @@
 /*!
- * \file fastuidraw_blend_util.glsl.resource_string
- * \brief file fastuidraw_blend_util.glsl.resource_string
+ * \file fastuidraw_blend_util.frag.glsl.resource_string
+ * \brief file fastuidraw_blend_util.frag.glsl.resource_string
  *
  * Copyright 2018 by Intel.
  *
@@ -16,30 +16,43 @@
  *
  */
 
+/*!\addtogroup GLSLFragCode
+ * @{
+ */
+
+/*! \brief Compute the minimum color channel value */
 float
 fastuidraw_compute_min(in vec3 C)
 {
   return min(C.r, min(C.g, C.b));
 }
 
+/*! \brief Compute the maximum color channel value */
 float
 fastuidraw_compute_max(in vec3 C)
 {
   return max(C.r, max(C.g, C.b));
 }
 
+/*! \brief compute the luminosity of an RGB value */
 float
 fastuidraw_compute_luminosity(in vec3 C)
 {
   return dot(C, vec3(0.3, 0.59, 0.11));
 }
 
+/*! \brief compute the saturation of an RGB value */
 float
 fastuidraw_compute_saturation(in vec3 C)
 {
   return fastuidraw_compute_max(C) - fastuidraw_compute_min(C);
 }
 
+/*!
+ * \brief
+ * clip an RGB value so that its luminosity is within the range
+ * \ref fastuidraw_compute_min() and fastuidraw_compute_max().
+ */
 vec3
 fastuidraw_clipcolor(in vec3 C)
 {
@@ -63,6 +76,13 @@ fastuidraw_clipcolor(in vec3 C)
   return C;
 }
 
+/*!
+ * Return an RGB color value generate from taking
+ * the chroma of one color value and the luminosity
+ * of another
+ * \param C color value from which to take the chroma value
+ * \param L color value from which to take the luminosity value
+ */
 vec3
 fastuidraw_set_luminosity(in vec3 C, in vec3 L)
 {
@@ -72,6 +92,14 @@ fastuidraw_set_luminosity(in vec3 C, in vec3 L)
   return fastuidraw_clipcolor(C + vec3(delta));
 }
 
+/*!
+ * Return an RGB color value generate from taking
+ * the chroma of one color value and the luminosity
+ * and saturation of other color values
+ * \param C color value from which to take the chroma value
+ * \param S color value from which to take the saturation value
+ * \param L color value from which to take the luminosity value
+ */
 vec3
 fastuidraw_set_saturation_and_luminosity(in vec3 C, in vec3 S, in vec3 L)
 {
@@ -91,7 +119,7 @@ fastuidraw_set_saturation_and_luminosity(in vec3 C, in vec3 S, in vec3 L)
   return fastuidraw_set_luminosity(C, L);
 }
 
-
+/*! \brief Undo pre-multiply by alpha on the RGB channels of a color value */
 vec3
 fastuidraw_undo_alpha(in vec4 S)
 {
@@ -102,6 +130,12 @@ fastuidraw_undo_alpha(in vec4 S)
   return S.rgb * S.a;
 }
 
+/*!
+ * \brief
+ * perform overlay blending on a single color channel
+ * \param S Source input value
+ * \param D Destination input value
+ */
 float
 fastuidraw_overlay(in float S, in float D)
 {
@@ -110,6 +144,12 @@ fastuidraw_overlay(in float S, in float D)
     (1.0 - 2.0 * (1.0 - S) * (1.0 - D));
 }
 
+/*!
+ * \brief
+ * perform softlight blending on a single color channel
+ * \param S Source input value
+ * \param D Destination input value
+ */
 float
 fastuidraw_softlight(in float S, in float D)
 {
@@ -127,6 +167,12 @@ fastuidraw_softlight(in float S, in float D)
     }
 }
 
+/*!
+ * \brief
+ * perform hardlight blending on a single color channel
+ * \param S Source input value
+ * \param D Destination input value
+ */
 float
 fastuidraw_hardlight(in float S, in float D)
 {
@@ -140,6 +186,12 @@ fastuidraw_hardlight(in float S, in float D)
     }
 }
 
+/*!
+ * \brief
+ * perform color dodge blending on a single color channel
+ * \param S Source input value
+ * \param D Destination input value
+ */
 float
 fastuidraw_color_dodge(in float S, in float D)
 {
@@ -157,6 +209,12 @@ fastuidraw_color_dodge(in float S, in float D)
     }
 }
 
+/*!
+ * \brief
+ * perform color burn blending on a single color channel
+ * \param S Source input value
+ * \param D Destination input value
+ */
 float
 fastuidraw_color_burn(in float S, in float D)
 {
@@ -173,6 +231,8 @@ fastuidraw_color_burn(in float S, in float D)
       return 1.0 - min(1.0, (1.0 - D) / S);
     }
 }
+
+///@cond
 
 /* Naughty macro that assumes in_src, in_fb are defined. */
 #define FASTUIDRAW_PORTER_DUFF_MACRO(src_factor, dst_factor) \
@@ -213,3 +273,7 @@ fastuidraw_color_burn(in float S, in float D)
   out_src.rgb = expression;                                             \
   out_src.rgb *= in_src.a * in_fb.a;                                    \
   out_src.rgb += S * (1.0 - in_fb.a) + D * (1.0 - in_src.a);
+
+///@endcond
+
+/*! @} */

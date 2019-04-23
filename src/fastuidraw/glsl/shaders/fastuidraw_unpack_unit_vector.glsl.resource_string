@@ -16,7 +16,15 @@
  *
  */
 
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
 
+/*!
+ * \brief unpack a unit vector
+ * \param x x-coordinate value of unit vector
+ * \param b if b is non-zero, indicates that y-coordinate is negative
+ */
 vec2
 fastuidraw_unpack_unit_vector(float x, uint b)
 {
@@ -29,3 +37,4 @@ fastuidraw_unpack_unit_vector(float x, uint b)
     }
   return return_value;
 }
+/*! @} */

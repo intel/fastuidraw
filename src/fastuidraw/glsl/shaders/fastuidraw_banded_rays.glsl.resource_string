@@ -16,6 +16,12 @@
  *
  */
 
+/*!\addtogroup GLSLFragCode
+ * @{
+ */
+
+///@cond
+
 /* must have the macro/function
  *
  *  fastuidraw_fetch_glyph_data(X)
@@ -185,7 +191,20 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
     }
   coverage = abs(coverage);
 }
+///@endcond
 
+/*!
+ * Compute the coverage of a fragment within a \ref fastuidraw::GlyphRenderDataBandedRays glyph.
+ * \param glyph_data_location location of the glyph data (see \ref
+ *                            fastuidraw::GlyphRenderDataBandedRays::glyph_offset)
+ * \param glyph_coord the coordinate of the fragment in glyph coordinates
+ * \param glyph_coord_fwidth the value of fwidth(glyph_coord)
+ * \param num_vertical_bands the number of vertical bands of the glyph, see \ref
+ *                           fastuidraw::GlyphRenderDataBandedRays::glyph_num_vertical_bands
+ * \param num_horizontal_bands the number of horizontal bands of the glyph, see \ref
+ *                             fastuidraw::GlyphRenderDataBandedRays::glyph_num_horizontal_bands
+ * \param use_odd_even_rule if true, use the odd-even fill rule, otherwise use the non-zero fill rule.
+ */
 float
 fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
                                         in vec2 glyph_coord,
@@ -301,3 +320,4 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
 
   return cvg;
 }
+/*! @} */

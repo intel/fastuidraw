@@ -16,6 +16,12 @@
  *
  */
 
+/*!\addtogroup GLSLFragCode
+ * @{
+ */
+
+///@cond
+
 /* must have the macro/function
  *
  *  fastuidraw_fetch_glyph_data(X)
@@ -728,3 +734,21 @@ fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
                                                      num_curves, nv);
 }
 #endif
+///@endcond
+
+/*!
+ * Compute the coverage of a fragment within a \ref fastuidraw::GlyphRenderDataRestrictedRays glyph.
+ * \param glyph_data_location location of the glyph data (see \ref
+ *                            fastuidraw::GlyphRenderDataRestrictedRays::glyph_offset)
+ * \param glyph_coord the coordinate of the fragment in glyph coordinates
+ * \param glyph_coord_dx the value of dFdx(glyph_coord)
+ * \param glyph_coord_dy the value of dFdy(glyph_coord)
+ * \param use_odd_even_rule if true, use the odd-even fill rule, otherwise use the non-zero fill rule.
+ */
+float
+fastuidraw_restricted_rays_compute_coverage(in uint glyph_data_location,
+                                            in vec2 glyph_coord,
+                                            in vec2 glyph_coord_dx,
+                                            in vec2 glyph_coord_dy,
+                                            in bool use_odd_even_rule);
+/*! @} */

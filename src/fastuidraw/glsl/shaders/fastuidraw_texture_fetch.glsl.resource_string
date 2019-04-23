@@ -17,6 +17,12 @@
  */
 
 
+
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+///@cond
 vec4
 fastuidraw_cubic_weights(float x)
 {
@@ -33,7 +39,15 @@ fastuidraw_cubic_weights(float x)
     w.w = x_cubed;
     return w / 6.0;
 }
+///@endcond
 
+/*!
+ * \brief Peform nearest filtering on a sampler2D
+ * \param surface the surface from which to sample
+ * \param texel_coord the texel coordinate (not texture coordinate), i.e.
+ *                    the coordinate in pixels from which to sample
+ * \param lod the level of detail (ala textureLod() of glsl)
+ */
 vec4
 fastuidraw_nearest_filter_texture(in sampler2D surface, in vec2 texel_coord, in float lod)
 {
@@ -45,6 +59,13 @@ fastuidraw_nearest_filter_texture(in sampler2D surface, in vec2 texel_coord, in 
   return texelFetch(surface, ivec2(adjusted), L);
 }
 
+/*!
+ * \brief Peform linear filtering on a sampler2D
+ * \param surface the surface from which to sample
+ * \param texel_coord the texel coordinate (not texture coordinate), i.e.
+ *                    the coordinate in pixels from which to sample
+ * \param lod the level of detail (ala textureLod() of glsl)
+ */
 vec4
 fastuidraw_linear_filter_texture(in sampler2D surface, in vec2 texel_coord, in float lod)
 {
@@ -52,6 +73,12 @@ fastuidraw_linear_filter_texture(in sampler2D surface, in vec2 texel_coord, in f
   return textureLod(surface, texel_coord * recip_sz, lod);
 }
 
+/*!
+ * \brief Peform cubic filtering on a sampler2D
+ * \param surface the surface from which to sample
+ * \param texel_coord the texel coordinate (not texture coordinate), i.e.
+ *                    the coordinate in pixels from which to sample
+ */
 vec4
 fastuidraw_cubic_filter_texture(in sampler2D surface, in vec2 texel_coord)
 {
@@ -94,3 +121,4 @@ fastuidraw_cubic_filter_texture(in sampler2D surface, in vec2 texel_coord)
              mix(t01, t11, linear_weight.x),
              linear_weight.y);
 }
+/*! @} */

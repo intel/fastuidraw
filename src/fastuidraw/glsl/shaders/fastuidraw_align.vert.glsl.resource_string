@@ -17,9 +17,14 @@
  */
 
 
+/*!\addtogroup GLSLVertCode
+ * @{
+ */
+
+///@cond
 void
 fastuidraw_align_compute_Q_adjoint_Q(in vec3 pclip_p,
-                                                 out mat2 Q, out mat2 adjQ)
+                                     out mat2 Q, out mat2 adjQ)
 {
   vec3 clip;
   clip = vec3(fastuidraw_viewport_pixels, 1.0) * pclip_p;
@@ -33,7 +38,20 @@ fastuidraw_align_compute_Q_adjoint_Q(in vec3 pclip_p,
   Q = mat2(c0, c1);
   adjQ = mat2( Q[1][1], -Q[0][1], -Q[1][0], Q[0][0]);
 }
+///@endcond
 
+/*!
+ * Given a normal vector in local coordinate and a position
+ * in -clip- coordinates, return the vector N in local coordinates
+ * so that N transformed to screen coordiantes is perpindicular
+ * to the vector T transformed to screen coordinate where T
+ * is the vector perpindicular to the input normal vector.
+ * The magnitude of N is not necessarily the same as the magnitude
+ * of the input vector n, only the nature of its direction is
+ * guarnateed.
+ * \param clip_p position in CLIP coordinates
+ * \param n normal vector in LOCAL coordinates
+ */
 vec2
 fastuidraw_align_normal_to_screen(in vec3 clip_p, in vec2 n)
 {
@@ -48,11 +66,12 @@ fastuidraw_align_normal_to_screen(in vec3 clip_p, in vec2 n)
   n_screen = vec2(t_screen.y, -t_screen.x);
 
   /* NOTE!
-       We do NOT divide by the det of Q, this is because
-       we only care about the -direction- of return
-       value, not the magnitude, thus the adjoint is
-       good enough [and it avoids us needing to deal
-       with a the case if the determinant is 0].
+   *   We do NOT divide by the det of Q, this is because
+   *   we only care about the -direction- of return
+   *   value, not the magnitude, thus the adjoint is
+   *   good enough [and it avoids us needing to deal
+   *   with a the case if the determinant is 0].
    */
   return adjQ * (fastuidraw_viewport_recip_pixels * n_screen);
 }
+/*! @} */

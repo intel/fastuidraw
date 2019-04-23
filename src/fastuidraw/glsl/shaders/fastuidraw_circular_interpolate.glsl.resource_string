@@ -16,19 +16,30 @@
  *
  */
 
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
 
+/*!
+ * \brief compute interpolation along a circle.
+ * \param v0 starting point on circle, must have unit length
+ * \param v1 end point on circle, must have unit length
+ * \param d the cosine of the angle (in radians) between v0 and v1, i.e. the value of dot(v0, v1).
+ * \param interpolate value in range [0, 1] providing the interpolate of the interpolation
+ */
 vec2
 fastuidraw_circular_interpolate(in vec2 v0, in vec2 v1, in float d, in float interpolate)
 {
   float angle, c, s;
   angle = acos(d);
   /* we multiple by the cross of v0 and v1
-     to make sure we are interpolating from v0
-     to v1 because acos always gives a positive
-     angle
+   * to make sure we are interpolating from v0
+   * to v1 because acos always gives a positive
+   * angle
    */
   c = cos(angle * interpolate);
   s = sin(angle * interpolate) * sign(v0.x * v1.y - v1.x * v0.y);
   return vec2(c * v0.x - s * v0.y,
               s * v0.x + c * v0.y);
 }
+/*! @} */

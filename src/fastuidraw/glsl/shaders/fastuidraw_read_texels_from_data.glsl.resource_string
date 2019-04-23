@@ -16,6 +16,18 @@
  *
  */
 
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+/*!
+ * \brief
+ * Read 8-bit texel data from 32-bit linear data as packed into a \ref
+ * fastuidraw::GlyphAtlas by \ref fastuidraw::GlyphRenderDataTexels
+ * \param coord texel coordinate to read
+ * \param dims dimension of texel data (i.e. \ref fastuidraw::GlyphRenderDataTexels::resolution())
+ * \param location location into \ref fastuidraw::GlyphAtlas of the data
+ */
 uint
 fastuidraw_read_texel_from_data(in ivec2 coord, in uvec2 dims, in uint location)
 {
@@ -48,3 +60,4 @@ fastuidraw_read_texel_from_data(in ivec2 coord, in uvec2 dims, in uint location)
   bit0y = ((y & 1u) != 0u) ? 16u : 0u;
   return FASTUIDRAW_EXTRACT_BITS(bit0x + bit0y, 8u, block);
 }
+/*! @} */
