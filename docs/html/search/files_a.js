@@ -28,6 +28,7 @@ var searchData=
   ['painter_5ffill_5fshader_2ehpp',['painter_fill_shader.hpp',['../d6/d8d/painter__fill__shader_8hpp.html',1,'']]],
   ['painter_5fglyph_5fshader_2ehpp',['painter_glyph_shader.hpp',['../dd/df6/painter__glyph__shader_8hpp.html',1,'']]],
   ['painter_5fheader_2ehpp',['painter_header.hpp',['../d1/dc5/painter__header_8hpp.html',1,'']]],
+  ['painter_5fitem_5fcoverage_5fshader_2ehpp',['painter_item_coverage_shader.hpp',['../dd/dc6/painter__item__coverage__shader_8hpp.html',1,'']]],
   ['painter_5fitem_5fmatrix_2ehpp',['painter_item_matrix.hpp',['../d4/d79/painter__item__matrix_8hpp.html',1,'']]],
   ['painter_5fitem_5fshader_2ehpp',['painter_item_shader.hpp',['../da/d27/painter__item__shader_8hpp.html',1,'']]],
   ['painter_5fitem_5fshader_5fglsl_2ehpp',['painter_item_shader_glsl.hpp',['../d2/d54/painter__item__shader__glsl_8hpp.html',1,'']]],
