@@ -34,7 +34,22 @@ namespace fastuidraw
     /*!
      * \brief
      * A PainterEngineGL implements \ref PainterEngine
-     * using the GL (or GLES) API.
+     * using the GL (or GLES) API. The \ref PainterShaderRegistrar
+     * object returned by \ref painter_shader_registrar()
+     * derives from \ref glsl::PainterShaderRegistrarGLSL.
+     * In addition, when adding custom shaders, the shader
+     * types need to be derived from the shader types of the
+     * \ref GLSL module, i.e.
+     * - Item shaders must be realized as \ref glsl::PainterItemShaderGLSL
+     *   objects or objects derived from \ref glsl::PainterItemShaderGLSL
+     * - Item coverage shaders must be realized as \ref
+     *   glsl::PainterItemCoverageShaderGLSL objects or objects derived from
+     *   \ref glsl::PainterItemCoverageShaderGLSL
+     * - Blend shaders must be realized as \ref glsl::PainterBlendShaderGLSL
+     *   objects or objects derived from \ref glsl::PainterBlendShaderGLSL
+     * - Custom brush shaders must be realized as \ref
+     *   glsl::PainterCustomBrushShaderGLSL objects or objects derived from
+     *   \ref glsl::PainterCustomBrushShaderGLSL
      */
     class PainterEngineGL:
       public glsl::PainterShaderRegistrarGLSLTypes,

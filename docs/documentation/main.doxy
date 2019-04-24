@@ -38,8 +38,13 @@ and color gradients.
 @{
 \brief
 Utility module to assist in creating GLSL shaders and also provides
-glsl::PainterBackendGLSL which provides shader assembly and default
-shaders via GLSL shaders. Part of the main library libFastUIDraw.
+\ref fastuidraw::glsl::PainterShaderRegistrarGLSL which provides
+shader assembly and default shaders via GLSL shaders. The GL backend
+via the class \ref fastuidraw::gl::PainterEngineGL builds off of
+\ref fastuidraw::glsl::PainterShaderRegistrarGLSL in that its
+\ref fastuidraw::PainterEngine::painter_shader_registrar() method
+returns an object derived from \ref fastuidraw::glsl::PainterShaderRegistrarGLSL.
+Part of the main library libFastUIDraw.
 @}
 
 \defgroup GLSLVertFragCode GLSL Vertex Fragment Code
