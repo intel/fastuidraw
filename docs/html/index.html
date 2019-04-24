@@ -70,9 +70,9 @@ Purpose</h1>
 <h1><a class="anchor" id="Concepts"></a>
 Concepts</h1>
 <p>FastUIDraw strongly seperates what to draw from how to draw. The what to draw is essentially immutable attribute data to fed to shaders. Examples of attribute data are <a class="el" href="d7/d83/classfastuidraw_1_1_stroked_path.html">fastuidraw::StrokedPath</a>, <a class="el" href="d7/d9a/classfastuidraw_1_1_filled_path.html">fastuidraw::FilledPath</a>, <a class="el" href="df/d7e/classfastuidraw_1_1_glyph_run.html">fastuidraw::GlyphRun</a> and <a class="el" href="d3/da9/classfastuidraw_1_1_glyph_sequence.html">fastuidraw::GlyphSequence</a>. The how to draw is represented by a small amount of data interpreted by a shader to change how to draw. Examples of such are <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html">fastuidraw::PainterBrush</a>, <a class="el" href="df/df5/classfastuidraw_1_1_painter_stroke_params.html">fastuidraw::PainterStrokeParams</a> and <a class="el" href="d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">fastuidraw::PainterDashedStrokeParams</a>. Changing the "how" to draw is a cheap operation allowing for greater dynamic scenes with greater detail wherer the load of rendering is carried by the GPU. For futher details on the "what" to draw, see <a class="el" href="d1/dd6/group___painter_attribute.html">Painter Attribute</a>. For futher details on "how" to draw, see <a class="el" href="d9/d90/group___painter_shaders.html">Painter Shaders</a>.</p>
-<p>FastUIDraw implement the following vertex-pipeline</p><ul>
+<p>FastUIDraw implements the following vertex-pipeline</p><ul>
 <li>the local item xy-coordinates and brush coordinates from the item shader (see <a class="el" href="db/d83/classfastuidraw_1_1_painter_item_shader.html">fastuidraw::PainterItemShader</a>)</li>
-<li>those values are multipled by the current 3x3 transformation matrix (see <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#aa74d2d4e4b380f9959f61853703b3136">fastuidraw::Painter::transformation</a>) to convert from local item coordinates to clip-coordinates</li>
+<li>the local item xy-coordinates are multipled by the current 3x3 transformation matrix (see <a class="el" href="da/de0/classfastuidraw_1_1_painter.html#aa74d2d4e4b380f9959f61853703b3136">fastuidraw::Painter::transformation</a>) to convert from local item coordinates to clip-coordinates</li>
 </ul>
 <p>FastUIDraw implements the following pixel-pipeline</p><ul>
 <li>computation of RGBA from the item shader (see <a class="el" href="db/d83/classfastuidraw_1_1_painter_item_shader.html">fastuidraw::PainterItemShader</a>)</li>
@@ -85,9 +85,10 @@ Examples</h1>
 <li>See <a class="el" href="d4/da1/ex_framework.html">Example FrameWork</a> for the example framework to get started with the examples.</li>
 <li>See <a class="el" href="de/d50/ex_initialization.html">Example Initialization</a> for the how to create a <a class="el" href="da/de0/classfastuidraw_1_1_painter.html">fastuidraw::Painter</a>.</li>
 <li>See <a class="el" href="d1/df9/ex_text.html">Example Text</a> for an example of using <a class="el" href="d3/da9/classfastuidraw_1_1_glyph_sequence.html">fastuidraw::GlyphSequence</a> to draw text with <a class="el" href="da/de0/classfastuidraw_1_1_painter.html">fastuidraw::Painter</a>.</li>
-<li>See <a class="el" href="d7/d4d/ex_brush.html">Example Brush</a> for an example of using <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html">fastuidraw::PainterBrush</a> to render gradients.</li>
+<li>See <a class="el" href="d3/d2c/ex_gradient.html">Example Gradient</a> for an example of using <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html">fastuidraw::PainterBrush</a> to render gradients.</li>
 <li>See <a class="el" href="d8/dcc/ex_image.html">Example Image</a> for an example of using <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html">fastuidraw::PainterBrush</a> to render an image.</li>
-<li>See <a class="el" href="da/d5c/ex_path.html">Example Path</a> for an example of using <a class="el" href="df/dea/classfastuidraw_1_1_path.html">fastuidraw::Path</a> to stroke and fill paths. </li>
+<li>See <a class="el" href="da/d5c/ex_path.html">Example Path</a> for an example of using <a class="el" href="df/dea/classfastuidraw_1_1_path.html">fastuidraw::Path</a> to stroke and fill paths.</li>
+<li>See <a class="el" href="df/d12/ex_path2.html">Example Path 2</a> for creating a <a class="el" href="df/dea/classfastuidraw_1_1_path.html">fastuidraw::Path</a> with the operator&lt;&lt; overloads and filling it with a custom fill rule. </li>
 </ul>
 </div></div><!-- contents -->
 <!-- start footer part -->

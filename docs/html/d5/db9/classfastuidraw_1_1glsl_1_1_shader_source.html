@@ -134,8 +134,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa15d80c32fe1e9b18fe2992687033f16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d0a06f72f89b8fa8cb3b05a438671be"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a4d0a06f72f89b8fa8cb3b05a438671be">assembled_code</a> (bool code_only=false) const</td></tr>
 <tr class="separator:a4d0a06f72f89b8fa8cb3b05a438671be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f549f5094d78ffa9882c698375435f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a3f549f5094d78ffa9882c698375435f6">disable_pre_added_source</a> (void)</td></tr>
-<tr class="separator:a3f549f5094d78ffa9882c698375435f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71171cb455a3222b4145daa8faea8246"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a71171cb455a3222b4145daa8faea8246">operator=</a> (const <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;obj)</td></tr>
 <tr class="separator:a71171cb455a3222b4145daa8faea8246"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a89a188d959dc65fd69cef2c23367e65d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a89a188d959dc65fd69cef2c23367e65d">remove_macro</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> macro_name, enum <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#ab269bc99ee7b280690ceec1dbf4f84b0">add_location_t</a> loc=<a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#ab269bc99ee7b280690ceec1dbf4f84b0a28684f9173bd97fb530dbc3aa431fa02">push_back</a>)</td></tr>
@@ -712,34 +710,6 @@ template&lt;typename T &gt; </div>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a3f549f5094d78ffa9882c698375435f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3f549f5094d78ffa9882c698375435f6">&#9670;&nbsp;</a></span>disable_pre_added_source()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a>&amp; fastuidraw::glsl::ShaderSource::disable_pre_added_source </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set to disable adding pre-added FastUIDraw macros and functions to GLSL source code. The pre-added functions are:</p><ul>
-<li>uint fastuidraw_mask(uint num_bits) : returns a uint where the last num_bits bits are up</li>
-<li>uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) : extracts a value from the named bits of a uint</li>
-<li>void fastuidraw_do_nothing(void) : function that has empty body (i.e. does nothing).</li>
-</ul>
-<p>The added macros are:</p>
-<ul>
-<li><a class="el" href="../../da/d46/group___utility.html#gad6337003e2b7e264e6ec2376baee2846">FASTUIDRAW_MASK(bit0, num_bits)</a> : wrapper over fastuidraw_mask that casts arguments into uint's</li>
-<li>FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) : wrapper over fastuidraw_extract_bits that casts arguments into uint's </li>
-</ul>
 
 </div>
 </div>

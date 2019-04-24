@@ -98,6 +98,8 @@ Macros</h2></td></tr>
 <tr class="separator:ga5bcc712342bbfe688e9778d21952c0da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga17a6e8fc4b3fc8aef81d0bfd48a6a0d8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#ga17a6e8fc4b3fc8aef81d0bfd48a6a0d8">fastuidraw_colorStopFetch</a>(x,  L)</td></tr>
 <tr class="separator:ga17a6e8fc4b3fc8aef81d0bfd48a6a0d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga48146976a5139dd7513a4c252ee698d9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#ga48146976a5139dd7513a4c252ee698d9">FASTUIDRAW_EXTRACT_BITS</a>(bit0,  num_bits,  src)&#160;&#160;&#160;<a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#gacad742ad5e4d2042b556a2158a80560d">fastuidraw_extract_bits</a>(uint(bit0), uint(num_bits), uint(src))</td></tr>
+<tr class="separator:ga48146976a5139dd7513a4c252ee698d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2bde0bc5fc3a63831dd86b33162a1758"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#ga2bde0bc5fc3a63831dd86b33162a1758">fastuidraw_fetch_data</a>(X)</td></tr>
 <tr class="separator:ga2bde0bc5fc3a63831dd86b33162a1758"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab36c4681c54c0f6c42cb0d866ea94144"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#gab36c4681c54c0f6c42cb0d866ea94144">fastuidraw_fetch_glyph_data</a>(X)</td></tr>
@@ -202,6 +204,10 @@ float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../
 <tr class="memitem:ga5ba82dfc36f10c73048fda0756f50f33"><td class="memItemLeft" align="right" valign="top">vec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#ga5ba82dfc36f10c73048fda0756f50f33">fastuidraw_cubic_filter_texture</a> (in sampler2D surface, in vec2 texel_coord)</td></tr>
 <tr class="memdesc:ga5ba82dfc36f10c73048fda0756f50f33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Peform cubic filtering on a sampler2D.  <a href="#ga5ba82dfc36f10c73048fda0756f50f33">More...</a><br /></td></tr>
 <tr class="separator:ga5ba82dfc36f10c73048fda0756f50f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga133b951d31e65f1b743c158edad13068"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#ga133b951d31e65f1b743c158edad13068">fastuidraw_do_nothing</a> (void)</td></tr>
+<tr class="separator:ga133b951d31e65f1b743c158edad13068"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacad742ad5e4d2042b556a2158a80560d"><td class="memItemLeft" align="right" valign="top">uint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#gacad742ad5e4d2042b556a2158a80560d">fastuidraw_extract_bits</a> (uint bit0, uint num_bits, uint src)</td></tr>
+<tr class="separator:gacad742ad5e4d2042b556a2158a80560d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga03c241704079a1b3f7cd1dfe134414a9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#ga03c241704079a1b3f7cd1dfe134414a9">fastuidraw_image_atlas_compute_tile_range</a> (in float root_image_coordinate, out float tile_min_dist, out float tile_max_dist)</td></tr>
 <tr class="separator:ga03c241704079a1b3f7cd1dfe134414a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac24de73de98cceebc921ebc2587fadae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#gac24de73de98cceebc921ebc2587fadae">fastuidraw_image_atlas_compute_tile_range</a> (in vec2 root_image_coord, out vec2 tile_min_dist, out vec2 tile_max_dist)</td></tr>
@@ -329,6 +335,50 @@ Variables</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d6a/fastuidraw__atlases_8glsl_8hpp_source.html#l00034">34</a> of file <a class="el" href="../../d1/d6a/fastuidraw__atlases_8glsl_8hpp_source.html">fastuidraw_atlases.glsl.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ga48146976a5139dd7513a4c252ee698d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga48146976a5139dd7513a4c252ee698d9">&#9670;&nbsp;</a></span>FASTUIDRAW_EXTRACT_BITS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define FASTUIDRAW_EXTRACT_BITS</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">bit0, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">num_bits, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">src&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#gacad742ad5e4d2042b556a2158a80560d">fastuidraw_extract_bits</a>(uint(bit0), uint(num_bits), uint(src))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Macro that wraps <a class="el" href="../../dd/dbb/group___g_l_s_l_vert_frag_code.html#gacad742ad5e4d2042b556a2158a80560d">fastuidraw_extract_bits()</a> so that each argument is casted into a uint. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bit0</td><td>starting bit from which to unpack </td></tr>
+    <tr><td class="paramname">num_bits</td><td>number bits to unpack </td></tr>
+    <tr><td class="paramname">src</td><td>value from which to unpack </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/d43/fastuidraw__bit__utils_8glsl_8hpp_source.html#l00043">43</a> of file <a class="el" href="../../dc/d43/fastuidraw__bit__utils_8glsl_8hpp_source.html">fastuidraw_bit_utils.glsl.hpp</a>.</p>
 
 </div>
 </div>
@@ -1046,6 +1096,71 @@ Variables</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="../../df/de5/fastuidraw__texture__fetch_8glsl_8hpp_source.html#l00083">83</a> of file <a class="el" href="../../df/de5/fastuidraw__texture__fetch_8glsl_8hpp_source.html">fastuidraw_texture_fetch.glsl.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ga133b951d31e65f1b743c158edad13068"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga133b951d31e65f1b743c158edad13068">&#9670;&nbsp;</a></span>fastuidraw_do_nothing()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw_do_nothing </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Function that does nothing (i.e. utterly empty implementation contents). </p>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/d43/fastuidraw__bit__utils_8glsl_8hpp_source.html#l00051">51</a> of file <a class="el" href="../../dc/d43/fastuidraw__bit__utils_8glsl_8hpp_source.html">fastuidraw_bit_utils.glsl.hpp</a>.</p>
+
+</div>
+</div>
+<a id="gacad742ad5e4d2042b556a2158a80560d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacad742ad5e4d2042b556a2158a80560d">&#9670;&nbsp;</a></span>fastuidraw_extract_bits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint fastuidraw_extract_bits </td>
+          <td>(</td>
+          <td class="paramtype">uint&#160;</td>
+          <td class="paramname"><em>bit0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint&#160;</td>
+          <td class="paramname"><em>num_bits</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint&#160;</td>
+          <td class="paramname"><em>src</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Utility function to extract bits from an uint value </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bit0</td><td>starting bit from which to unpack </td></tr>
+    <tr><td class="paramname">num_bits</td><td>number bits to unpack </td></tr>
+    <tr><td class="paramname">src</td><td>value from which to unpack </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/d43/fastuidraw__bit__utils_8glsl_8hpp_source.html#l00030">30</a> of file <a class="el" href="../../dc/d43/fastuidraw__bit__utils_8glsl_8hpp_source.html">fastuidraw_bit_utils.glsl.hpp</a>.</p>
 
 </div>
 </div>
