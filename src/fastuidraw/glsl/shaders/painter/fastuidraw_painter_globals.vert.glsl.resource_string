@@ -16,7 +16,15 @@
  *
  */
 
-/* make the transformation matrix available to
- * vertex shader by making it global here.
+/*!\addtogroup GLSLVertCode
+ * @{
+ */
+
+/*!
+ * Gives the 3x3 transformation matrix from local item
+ * coordiantes to clip-coordinates as
+ * clip_coordinates.xyz = fastuidraw_item_matrix * vec3(item_coordinates.xy, 1.0)
  */
 mat3 fastuidraw_item_matrix;
+
+/*! @} */

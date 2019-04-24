@@ -65,6 +65,3 @@ fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,
                                      in uint slack,
                                      out vec2 image_atlas_coord,
                                      out uint image_atlas_layer);
-
-uint
-fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);

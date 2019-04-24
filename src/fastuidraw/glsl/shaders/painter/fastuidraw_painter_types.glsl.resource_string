@@ -16,7 +16,7 @@
  *
  */
 
-
+///@cond
 struct fastuidraw_header
 {
   uint clipping_location;
@@ -37,24 +37,110 @@ struct fastuidraw_clipping_data
   vec3 clip0, clip1, clip2, clip3;
 };
 
-struct fastuidraw_stroking_params
-{
-  float radius;
-  float miter_limit;
-};
-
-struct fastuidraw_dashed_stroking_params_header
-{
-  float radius;
-  float miter_limit;
-  float dash_offset;
-  float total_length;
-  float first_interval_start;
-  float first_interval_start_on_looping;
-  uint number_intervals;
-};
-
 struct fastuidraw_brush_adjust_data
 {
   vec2 shear, translate;
 };
+///@endcond
+
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+/*!
+ * The realization of \ref fastuidraw::PainterStrokeParams.
+ * Use \ref fastuidraw_read_stroking_params() to unpack from
+ * the data store buffer.
+ */
+struct fastuidraw_stroking_params
+{
+  /*!
+   * The RADIUS of stroking (which is half the stroking width),
+   * i.e. the value of \ref fastuidraw::PainterStrokeParams::radius().
+   */
+  float radius;
+
+  /*!
+   * The miter-limit when stroking miter-joins, i.e. the value
+   * of \ref fastuidraw::PainterStrokeParams::miter_limit().
+   */
+  float miter_limit;
+};
+
+/*!
+ * The realization of \ref fastuidraw::PainterDashedStrokeParams.
+ * Use \ref fastuidraw_read_dashed_stroking_params_header() to unpack
+ * from the data store buffer. The dashed interval values follow
+ * after the header padded to 128-bit boundary in the data store buffer.
+ */
+struct fastuidraw_dashed_stroking_params_header
+{
+  /*!
+   * The RADIUS of stroking (which is half the stroking width),
+   * i.e. the value of \ref fastuidraw::PainterDashedStrokeParams::radius().
+   */
+  float radius;
+
+  /*!
+   * The miter-limit when stroking miter-joins, i.e. the value
+   * of \ref fastuidraw::PainterDashedStrokeParams::miter_limit().
+   */
+  float miter_limit;
+
+  /*!
+   * The dash offset, i.e. the value of \ref
+   * fastuidraw::PainterDashedStrokeParams::dash_offset()
+   */
+  float dash_offset;
+
+  /*!
+   * The length of the dash pattern, where each element of
+   * the dash pattern occupies 64-bits (thus the number of
+   * uvec4's to read with \ref fastuidraw_fetch_data is half
+   * this value.
+   */
+  float total_length;
+
+  /*!
+   * The length along the path where the first draw interval
+   * of the dash pattern occurs.
+   */
+  float first_interval_start;
+
+  /*!
+   * The length along the path where the first draw interval
+   * of the dash pattern occurs after looping over the dash
+   * pattern.
+   */
+  float first_interval_start_on_looping;
+
+  /*!
+   * The number of intervals in the dash-pattern. Recall that
+   * the dash pattern. Each element of the dash-pattern is
+   * two floating point values: a length along the path
+   * how much to draw and a length along the path how much
+   * to skip. The values are packed tightly, i.e. each
+   * uvec4 read gives two (draw, space) pairs when bit-casted
+   * to a vec4.
+   */
+  uint number_intervals;
+};
+
+/*!
+ * Unpack the values of \ref fastuidraw_stroking_params from the data
+ * store buffer.
+ * \param location offset (in units of uvec4's) into data store buffer
+ * \param[out] p unpack value destination
+ */
+uint
+fastuidraw_read_stroking_params(in uint location, out fastuidraw_stroking_params p);
+
+/*!
+ * Unpack the values of \ref fastuidraw_dashed_stroking_params_header
+ * from the data store buffer.
+ * \param location offset (in units of uvec4's) into data store buffer
+ * \param[out] p unpack value destination
+ */
+uint
+fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);
+/*! @} */

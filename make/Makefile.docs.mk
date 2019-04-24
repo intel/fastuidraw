@@ -13,6 +13,8 @@ glsl_sources = \
 	src/fastuidraw/glsl/shaders/painter/fastuidraw_painter_context_texture.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/fastuidraw_atlases.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/painter/fastuidraw_painter_uniforms.glsl.resource_string \
+	src/fastuidraw/glsl/shaders/painter/fastuidraw_painter_globals.vert.glsl.resource_string \
+	src/fastuidraw/glsl/shaders/painter/fastuidraw_painter_types.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/painter/blend/framebuffer_fetch/fastuidraw_blend_util.frag.glsl.resource_string
 
 # TODO:
