@@ -42,7 +42,7 @@ namespace fastuidraw
      *   The shader code fragment must provide the function
      *   \code
      *   void
-     *   fastuidraw_gl_compute_blend_value(in uint sub_shader, in uint blend_shader_data_location,
+     *   fastuidraw_gl_compute_blend_value(in uint sub_shader, in uint shader_data_offset,
      *                                     in vec4 in_src, out vec4 out_src)
      *   \endcode
      *   where in_src is the output of the item fragment shader modulated by the
@@ -53,7 +53,7 @@ namespace fastuidraw
      *   The shader code fragment must provide the function
      *   \code
      *   void
-     *   fastuidraw_gl_compute_blend_factors(in uint sub_shader, in uint blend_shader_data_location,
+     *   fastuidraw_gl_compute_blend_factors(in uint sub_shader, in uint shader_data_offset,
      *                                       in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
      *   \endcode
      *   where in_src is the output of the item fragment shader modulated by the
@@ -65,7 +65,7 @@ namespace fastuidraw
      *   The shader code fragment must provide the function
      *   \code
      *   void
-     *   fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
+     *   fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint shader_data_offset,
      *                                            in vec4 in_src, in vec4 in_fb, out vec4 out_src)
      *   \endcode
      *   where in_src is the output of the item fragment shader modulated by the
@@ -75,12 +75,25 @@ namespace fastuidraw
      *
      * For each of the blend shader type:
      * - sub_shader corresponds to PainterBlendShader::sub_shader(),
-     * - the  same globals available to a fragment shader in \ref
-     *   PainterItemShaderGLSL are also avalailable to the blend shader and
      * - blend_shader_data_location is the block from which to fetch the
-     *   data packed into the data store by PainterBlendShaderData::pack_data();
-     *   use the macro fastuidraw_fetch_data() (see the description of PainterItemShaderGLSL)
-     *   to fetch the data.
+     *   data packed into the data store by PainterBlendShaderData::pack_data().
+     * - The GLSL elements in the modules \ref GLSLVertFragCode and
+     *   \ref GLSLFragCode are available for use
+     *
+     * The value of the argument of shader_data_offset is which 128-bit block
+     * into the data store (PainterDraw::m_store) of the custom shader data
+     * to be read with the GLSL macro \ref fastuidraw_fetch_data.
+     *
+     * Also, if one defines macros in any of the passed ShaderSource objects,
+     * those macros MUST be undefined at the end. In addition, if one
+     * has local helper functions, to avoid global name collision, those
+     * function names should be wrapped in the macro FASTUIDRAW_LOCAL()
+     * to make sure that the function is given a unique global name within
+     * the uber-shader.
+     *
+     * Lastly, one can use the class \ref UnpackSourceGenerator to generate
+     * shader code to unpack values from the data in the data store buffer.
+     * That machine generated code uses the macro fastuidraw_fetch_data().
      */
     class PainterBlendShaderGLSL:public PainterBlendShader
     {

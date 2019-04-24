@@ -68,32 +68,17 @@ namespace fastuidraw
      * from the fragment for the item.
      *
      * Available to only the vertex shader are the following:
-     *  - mat3 fastuidraw_item_matrix (the 3x3 matrix from item coordinate to clip coordinates)
+     *  - the GLSL elements in the module \ref GLSLVertCode
+     *
+     * Available to only the fragment shader are the following:
+     *  - the GLSL elements in the module \ref GLSLFragCode
      *
      * Available to both the vertex and fragment shader are the following:
-     *  - sampler2DArray fastuidraw_imageAtlasLinear the color texels (AtlasColorBackingStoreBase) for images unfiltered
-     *  - sampler2DArray fastuidraw_imageAtlasLinearFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
-     *  - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
-     *  - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer
-     *    (PainterDraw::m_store), return as uvec4. To get floating point data use, the GLSL
-     *    built-in function uintBitsToFloat().
-     *  - the macro fastuidraw_fetch_glyph_data(B) to read the B'th value from the glyph data
-     *    (GlyphAtlasBackingStoreBase), return as uint. To get floating point data, use the GLSL
-     *    built-in function uintBitsToFloat().
-     *  - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
-     *  - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
-     *  - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels
-     *  - vec2 fastuidraw_viewport_recip_pixels_magnitude euclidean length of fastuidraw_viewport_recip_pixels
+     *  - the GLSL elements in the module \ref GLSLVertFragCode
      *
-     * For both stages, the value of the argument of shader_data_offset is which block into the data
-     * store (PainterDraw::m_store) of the custom shader data. Do
-     * \code
-     * fastuidraw_fetch_data(shader_data_offset)
-     * \endcode
-     * to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data()
-     *
-     * Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
-     * and just cast int() to get the value as an integer.
+     * For both stages, the value of the argument of shader_data_offset is
+     * which 128-bit block into the data store (PainterDraw::m_store) of the
+     * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
      *
      * Also, if one defines macros in any of the passed ShaderSource objects,
      * those macros MUST be undefined at the end. In addition, if one
@@ -267,32 +252,17 @@ namespace fastuidraw
      * pre-multiplied by alpha.
      *
      * Available to only the vertex shader are the following:
-     *  - mat3 fastuidraw_item_matrix (the 3x3 matrix from item coordinate to clip coordinates)
+     *  - the GLSL elements in the module \ref GLSLVertCode
+     *
+     * Available to only the fragment shader are the following:
+     *  - the GLSL elements in the module \ref GLSLFragCode
      *
      * Available to both the vertex and fragment shader are the following:
-     *  - sampler2DArray fastuidraw_imageAtlasLinear the color texels (AtlasColorBackingStoreBase) for images unfiltered
-     *  - sampler2DArray fastuidraw_imageAtlasLinearFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
-     *  - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
-     *  - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer
-     *    (PainterDraw::m_store), return as uvec4. To get floating point data use, the GLSL
-     *    built-in function uintBitsToFloat().
-     *  - the macro fastuidraw_fetch_glyph_data(B) to read the B'th value from the glyph data
-     *    (GlyphAtlasBackingStoreBase), return as uint. To get floating point data, use the GLSL
-     *    built-in function uintBitsToFloat().
-     *  - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
-     *  - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
-     *  - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels
-     *  - vec2 fastuidraw_viewport_recip_pixels_magnitude euclidean length of fastuidraw_viewport_recip_pixels
+     *  - the GLSL elements in the module \ref GLSLVertFragCode
      *
-     * For both stages, the value of the argument of shader_data_offset is which block into the data
-     * store (PainterDraw::m_store) of the custom shader data. Do
-     * \code
-     * fastuidraw_fetch_data(shader_data_offset)
-     * \endcode
-     * to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data()
-     *
-     * Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
-     * and just cast int() to get the value as an integer.
+     * For both stages, the value of the argument of shader_data_offset is
+     * which 128-bit block into the data store (PainterDraw::m_store) of the
+     * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
      *
      * Also, if one defines macros in any of the passed ShaderSource objects,
      * those macros MUST be undefined at the end. In addition, if one

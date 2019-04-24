@@ -41,8 +41,9 @@
 
   /*!
    * \def fastuidraw_fetch_data(X)
-   * Use this macro to fetch a single 128-bit value from the data store buffer
-   * realized as a uvec4.
+   * Use this macro to fetch a single 128-bit value from the data
+   * store bufferrealized as a uvec4. To get floating point data,
+   * use the GLSL built-in function uintBitsToFloat().
    * \param X offset into data store buffer
    */
   #define fastuidraw_fetch_data(X)

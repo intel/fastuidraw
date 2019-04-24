@@ -59,12 +59,29 @@ namespace fastuidraw
      * which returns the color value, pre-multiplied by alpha, by which
      * to modulate the outgoing fragment color.
      *
-     * The same globals that available to the vertex shaders of \ref
-     * PainterItemShaderGLSL vertex shaders are also available to
-     * the vertex shader of a PainterCustomBrushShaderGLSL. In addition,
-     * the same globals that available to the fragment shaders of \ref
-     * PainterItemShaderGLSL fragment shaders are also available to
-     * the fragment shader of a PainterCustomBrushShaderGLSL.
+     * Available to only the vertex shader are the following:
+     *  - the GLSL elements in the module \ref GLSLVertCode
+     *
+     * Available to only the fragment shader are the following:
+     *  - the GLSL elements in the module \ref GLSLFragCode
+     *
+     * Available to both the vertex and fragment shader are the following:
+     *  - the GLSL elements in the module \ref GLSLVertFragCode
+     *
+     * For both stages, the value of the argument of shader_data_offset is
+     * which 128-bit block into the data store (PainterDraw::m_store) of the
+     * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
+     *
+     * Also, if one defines macros in any of the passed ShaderSource objects,
+     * those macros MUST be undefined at the end. In addition, if one
+     * has local helper functions, to avoid global name collision, those
+     * function names should be wrapped in the macro FASTUIDRAW_LOCAL()
+     * to make sure that the function is given a unique global name within
+     * the uber-shader.
+     *
+     * Lastly, one can use the class \ref UnpackSourceGenerator to generate
+     * shader code to unpack values from the data in the data store buffer.
+     * That machine generated code uses the macro fastuidraw_fetch_data().
      */
     class PainterCustomBrushShaderGLSL:public PainterCustomBrushShader
     {
