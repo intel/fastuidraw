@@ -51,6 +51,28 @@
 */
 
 /*!
+  \page ex_image Example Image
+  \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render an image.
+
+  The Example Image builds from \ref ex_initialization to demonstrate
+  how to use \ref fastuidraw::PainterBrush to render an image.
+
+  A fastuidraw::Image requires a pixel data specified by a class derived from
+  \ref fastuidraw::ImageSourceBase to be realized. In this example we also
+  implement an example of \ref fastuidraw::ImageSourceBase that relies on SDL2_image
+  to load the image data.
+
+  The implementation of drawing an is given by:
+  \snippet example_image.cpp ExampleImage
+
+  The interface for loading an image is given by:
+  \snippet image_loader.hpp ExampleImage
+
+  The implementation for loading an image is given by:
+  \snippet image_loader.cpp ExampleImage
+*/
+
+/*!
   \page ex_text Example Text
   \brief Simple example showing how to use \ref fastuidraw::GlyphSequence to render text.
 
