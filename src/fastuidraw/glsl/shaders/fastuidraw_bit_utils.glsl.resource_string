@@ -1,0 +1,54 @@
+/*!
+ * \file fastuidraw_bit_utils.glsl.resource_string
+ * \brief file fastuidraw_bit_utils.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+/*!
+ * Utility function to extract bits from an uint value
+ * \param bit0 starting bit from which to unpack
+ * \param num_bits number bits to unpack
+ * \param src value from which to unpack
+ */
+uint
+fastuidraw_extract_bits(uint bit0, uint num_bits, uint src)
+{
+  return (src << (32u - bit0 - num_bits)) >> (32u - num_bits);
+}
+
+/*!
+ * \def FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src)
+ * Macro that wraps \ref fastuidraw_extract_bits() so that
+ * each argument is casted into a uint.
+ * \param bit0 starting bit from which to unpack
+ * \param num_bits number bits to unpack
+ * \param src value from which to unpack
+ */
+#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) \
+  fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src))
+
+/*!
+ * Function that does nothing (i.e. utterly empty implementation
+ * contents).
+ */
+void
+fastuidraw_do_nothing(void)
+{}
+
+/*! @} */

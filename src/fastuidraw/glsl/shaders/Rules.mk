@@ -8,6 +8,7 @@ dir := $(d)/painter
 include $(dir)/Rules.mk
 
 FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
+	fastuidraw_bit_utils.glsl.resource_string \
 	fastuidraw_atlases.glsl.resource_string \
 	fastuidraw_atlas_image_fetch.glsl.resource_string \
 	fastuidraw_spread.glsl.resource_string \

@@ -1,4 +1,5 @@
 glsl_sources = \
+	src/fastuidraw/glsl/shaders/fastuidraw_bit_utils.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/fastuidraw_atlas_image_fetch.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/fastuidraw_spread.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/fastuidraw_anisotropic.frag.glsl.resource_string \

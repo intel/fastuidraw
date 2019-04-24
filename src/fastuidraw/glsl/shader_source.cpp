@@ -53,7 +53,6 @@ namespace
     std::list<source_code_t> m_values;
     std::map<std::string, extension_enable_t> m_extensions;
     std::string m_version;
-    bool m_disable_pre_added_source;
 
     std::string m_assembled_code;
     std::string m_assembled_code_base;
@@ -156,8 +155,7 @@ namespace
 // SourcePrivate methods
 SourcePrivate::
 SourcePrivate(void):
-  m_dirty(false),
-  m_disable_pre_added_source(false)
+  m_dirty(false)
 {
 }
 
@@ -599,17 +597,6 @@ specify_extensions(const ShaderSource &obj)
   return *this;
 }
 
-fastuidraw::glsl::ShaderSource&
-fastuidraw::glsl::ShaderSource::
-disable_pre_added_source(void)
-{
-  SourcePrivate *d;
-  d = static_cast<SourcePrivate*>(m_d);
-  d->m_dirty = d->m_dirty || !d->m_disable_pre_added_source;
-  d->m_disable_pre_added_source = true;
-  return *this;
-}
-
 fastuidraw::c_string
 fastuidraw::glsl::ShaderSource::
 assembled_code(bool code_only) const
@@ -639,13 +626,6 @@ assembled_code(bool code_only) const
           output_glsl_source_code << "#define FASTUIDRAW_DEBUG\n";
         }
       #endif
-
-      if (!d->m_disable_pre_added_source)
-        {
-          output_glsl_source_code << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src << (32u - bit0 - num_bits)) >> (32u - num_bits); }\n"
-                                  << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n"
-                                  << "void fastuidraw_do_nothing(void) {}\n";
-        }
 
       for(const SourcePrivate::source_code_t &src : d->m_values)
         {

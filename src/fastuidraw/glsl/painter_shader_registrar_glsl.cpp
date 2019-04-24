@@ -335,6 +335,7 @@ PainterShaderRegistrarGLSLPrivate(void):
   ready_constants();
 
   m_vert_shader_utils
+    .add_source("fastuidraw_bit_utils.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_spread.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_gradient.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
@@ -350,6 +351,7 @@ PainterShaderRegistrarGLSLPrivate(void):
     .add_source("fastuidraw_painter_context_texture.glsl.resource_string", ShaderSource::from_resource);
 
   m_frag_shader_utils
+    .add_source("fastuidraw_bit_utils.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_spread.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_gradient.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_compute_interval.glsl.resource_string", ShaderSource::from_resource)
