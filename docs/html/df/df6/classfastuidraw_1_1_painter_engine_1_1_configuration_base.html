@@ -81,6 +81,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a74ac19690eb698712d463c0d67a4d2a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e2b26e0d1b4ac4b03fa03db041d727a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html#a4e2b26e0d1b4ac4b03fa03db041d727a">ConfigurationBase</a> (const <a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html">ConfigurationBase</a> &amp;obj)</td></tr>
 <tr class="separator:a4e2b26e0d1b4ac4b03fa03db041d727a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1719ac5105b8309752cd9eeba4bfce20"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html#a1719ac5105b8309752cd9eeba4bfce20">number_context_textures</a> (void) const</td></tr>
+<tr class="separator:a1719ac5105b8309752cd9eeba4bfce20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab28cca7eefd7a11899fe4f6e691335ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html">ConfigurationBase</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html#ab28cca7eefd7a11899fe4f6e691335ba">number_context_textures</a> (unsigned int)</td></tr>
+<tr class="separator:ab28cca7eefd7a11899fe4f6e691335ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3cf33d003cadc6d07029275e0b8d1d63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html">ConfigurationBase</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html#a3cf33d003cadc6d07029275e0b8d1d63">operator=</a> (const <a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html">ConfigurationBase</a> &amp;obj)</td></tr>
 <tr class="separator:a3cf33d003cadc6d07029275e0b8d1d63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbc4037e382bc8f5a50630e6e258adb3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html#afbc4037e382bc8f5a50630e6e258adb3">supports_bindless_texturing</a> (void) const</td></tr>
@@ -134,6 +138,44 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a1719ac5105b8309752cd9eeba4bfce20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1719ac5105b8309752cd9eeba4bfce20">&#9670;&nbsp;</a></span>number_context_textures() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int fastuidraw::PainterEngine::ConfigurationBase::number_context_textures </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the maximum number of simutaneously bound <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> object whose <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#a3498cdb6c1a44951a1ba5def0e8dcc24">Image::type()</a> has the value <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#aadc9d23baef018704949d6e42f3c4079a23db8baa72337d14b6c8960dde7bad66">Image::context_texture2d</a>. </p>
+
+</div>
+</div>
+<a id="ab28cca7eefd7a11899fe4f6e691335ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab28cca7eefd7a11899fe4f6e691335ba">&#9670;&nbsp;</a></span>number_context_textures() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html">ConfigurationBase</a>&amp; fastuidraw::PainterEngine::ConfigurationBase::number_context_textures </td>
+          <td>(</td>
+          <td class="paramtype">unsigned&#160;</td>
+          <td class="paramname"><em>int</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Specify the return value to <a class="el" href="../../df/df6/classfastuidraw_1_1_painter_engine_1_1_configuration_base.html#a1719ac5105b8309752cd9eeba4bfce20">number_context_textures() const</a>. Default value is false. </p>
+
+</div>
+</div>
 <a id="a3cf33d003cadc6d07029275e0b8d1d63"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3cf33d003cadc6d07029275e0b8d1d63">&#9670;&nbsp;</a></span>operator=()</h2>
 

@@ -31,6 +31,5 @@ var searchData=
   ['execute_5factions',['execute_actions',['../d7/df3/classfastuidraw_1_1gl_1_1_pre_link_action_array.html#aac5da65e3a4fe7ef8f70c3a485e15cbd',1,'fastuidraw::gl::PreLinkActionArray']]],
   ['extend_5fbit',['extend_bit',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#acc7e7a166894967cf32a9c0b6d343f2bae9265c2c58d2454581dd8299410fa11e',1,'fastuidraw::ArcStrokedPoint']]],
   ['extend_5fmask',['extend_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0ae9b72f37a5da44c2998c481b089b42fa',1,'fastuidraw::ArcStrokedPoint']]],
-  ['extension_5fenable_5ft',['extension_enable_t',['../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a0b68f170619adbbbd947720518beda23',1,'fastuidraw::glsl::ShaderSource']]],
-  ['external_5ftexture_5fbinding',['external_texture_binding',['../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a3fb45538071a0e4e9ca158c94ed46433',1,'fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::external_texture_binding(void) const'],['../d5/dc7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types_1_1_uber_shader_params.html#a93345b60ee7f9654a2829c7103f71449',1,'fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::external_texture_binding(unsigned int v) const']]]
+  ['extension_5fenable_5ft',['extension_enable_t',['../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a0b68f170619adbbbd947720518beda23',1,'fastuidraw::glsl::ShaderSource']]]
 ];

@@ -28,7 +28,7 @@ var searchData=
   ['on_5fatlas',['on_atlas',['../dc/dd5/classfastuidraw_1_1_image.html#aadc9d23baef018704949d6e42f3c4079a1eec5675c950ffe62b56b9b30e2b7644',1,'fastuidraw::Image']]],
   ['on_5fboundary',['on_boundary',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#ad97ad3b6def878b808b1194ac2c9342e',1,'fastuidraw::StrokedPoint']]],
   ['on_5fcall_5funloadable_5ffunction',['on_call_unloadable_function',['../dc/d3e/classfastuidraw_1_1_a_p_i_callback_set_1_1_call_back.html#aed620c926582dae7a66108e7c9842081',1,'fastuidraw::APICallbackSet::CallBack']]],
-  ['on_5fpainter_5fbegin',['on_painter_begin',['../de/da0/classfastuidraw_1_1_painter_backend.html#aa546139c872245fcaa537204413cc7f0',1,'fastuidraw::PainterBackend']]],
+  ['on_5fpainter_5fbegin',['on_painter_begin',['../de/da0/classfastuidraw_1_1_painter_backend.html#aac4441dd7e02ba980b5acbab515a8283',1,'fastuidraw::PainterBackend']]],
   ['on_5fpost_5fdraw',['on_post_draw',['../de/da0/classfastuidraw_1_1_painter_backend.html#a34966e768ed38348f0fdcb2cb4db61dc',1,'fastuidraw::PainterBackend']]],
   ['on_5fpre_5fdraw',['on_pre_draw',['../de/da0/classfastuidraw_1_1_painter_backend.html#a316f367c24b5eab8504ea8542a7c9599',1,'fastuidraw::PainterBackend']]],
   ['one',['ONE',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859ad4ffd63d1c07f93c2ac57de8e59f1320',1,'fastuidraw::BlendMode']]],

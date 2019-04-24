@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['non_5fconcurrent',['non_concurrent',['../d5/d7f/classfastuidraw_1_1opaque__reference__counted.html#a066bc6a0aba90cd7129383277fa957e3',1,'fastuidraw::opaque_reference_counted']]]
+  ['i',['i',['../d5/de6/unionfastuidraw_1_1generic__data.html#a3a06459fc9b0a6bfe01c0ddfb79c1e62',1,'fastuidraw::generic_data']]],
+  ['image_5fsize',['image_size',['../d6/d4c/structfastuidraw__image__extended__info__type.html#a88c5e1bdd315d4882d1bab70c893d47d',1,'fastuidraw_image_extended_info_type']]],
+  ['image_5ftexel_5fsize_5fon_5fmaster_5findex_5ftile',['image_texel_size_on_master_index_tile',['../d0/d3f/structfastuidraw__image__info__type.html#a79487dbb878f67e87dfc53c558de7ce6',1,'fastuidraw_image_info_type']]]
 ];

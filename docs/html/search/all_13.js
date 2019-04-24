@@ -48,6 +48,7 @@ var searchData=
   ['unmap',['unmap',['../d4/d67/classfastuidraw_1_1_painter_draw.html#a5317755759bdfde8c8428a6d3f535421',1,'fastuidraw::PainterDraw']]],
   ['unmap_5fimplement',['unmap_implement',['../d4/d67/classfastuidraw_1_1_painter_draw.html#a05182b30e9bb61623efe8cb70aa8a905',1,'fastuidraw::PainterDraw']]],
   ['unmapped',['unmapped',['../d4/d67/classfastuidraw_1_1_painter_draw.html#a7b644bcd9058b8cdc63557957d0374eb',1,'fastuidraw::PainterDraw']]],
+  ['unnormalized_5ftexcoord_5fxy',['unnormalized_texcoord_xy',['../d9/dce/structfastuidraw__compute__image__atlas__coord__type.html#a866103d62b910eca801a216652f917e5',1,'fastuidraw_compute_image_atlas_coord_type']]],
   ['unpack_5fbits',['unpack_bits',['../d4/d4c/namespacefastuidraw.html#a51e07e0185f31717e01d007ee2b876e8',1,'fastuidraw']]],
   ['unpack_5ffloat',['unpack_float',['../d4/d4c/namespacefastuidraw.html#aa95e4716aa46a8113123b40b0476eccd',1,'fastuidraw']]],
   ['unpack_5fpoint',['unpack_point',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a6a0667beb257a519797685731e208352',1,'fastuidraw::ArcStrokedPoint::unpack_point()'],['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a75f4881f15f23dfbb046355d4cab9815',1,'fastuidraw::StrokedPoint::unpack_point()']]],
