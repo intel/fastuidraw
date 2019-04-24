@@ -96,7 +96,7 @@ namespace
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
       m_use_uvec2_for_bindless_handle(true),
-      m_number_external_textures(1),
+      m_number_context_textures(1),
 
       m_recompute_binding_points(true),
       m_colorstop_atlas_binding(-1),
@@ -106,7 +106,7 @@ namespace
       m_glyph_atlas_store_binding(-1),
       m_glyph_atlas_store_binding_fp16x2(-1),
       m_data_store_buffer_binding(-1),
-      m_external_texture_binding(-1),
+      m_context_texture_binding(-1),
       m_coverage_buffer_texture_binding(-1),
       m_uniforms_ubo_binding(-1),
       m_color_interlock_image_buffer_binding(-1)
@@ -134,7 +134,7 @@ namespace
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
     bool m_use_uvec2_for_bindless_handle;
-    unsigned int m_number_external_textures;
+    unsigned int m_number_context_textures;
 
     bool m_recompute_binding_points;
     int m_colorstop_atlas_binding;
@@ -144,7 +144,7 @@ namespace
     int m_glyph_atlas_store_binding;
     int m_glyph_atlas_store_binding_fp16x2;
     int m_data_store_buffer_binding;
-    int m_external_texture_binding;
+    int m_context_texture_binding;
     int m_coverage_buffer_texture_binding;
     int m_uniforms_ubo_binding;
     int m_color_interlock_image_buffer_binding;
@@ -347,7 +347,7 @@ PainterShaderRegistrarGLSLPrivate(void):
     .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_texture_fetch.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_external_texture.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_painter_context_texture.glsl.resource_string", ShaderSource::from_resource);
 
   m_frag_shader_utils
     .add_source("fastuidraw_spread.glsl.resource_string", ShaderSource::from_resource)
@@ -365,7 +365,7 @@ PainterShaderRegistrarGLSLPrivate(void):
     .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_texture_fetch.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_external_texture.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_painter_context_texture.glsl.resource_string", ShaderSource::from_resource);
 }
 
 PainterShaderRegistrarGLSLPrivate::
@@ -1146,8 +1146,8 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
-    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
-    .add_macro("FASTUIDRAW_PAINTER_NUMBER_EXTERNAL_TEXTURES", params.number_external_textures())
+    .add_macro("FASTUIDRAW_PAINTER_CONTEXT_TEXTURE_BINDING", params.context_texture_binding())
+    .add_macro("FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES", params.number_context_textures())
     .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
@@ -1206,8 +1206,8 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
-    .add_macro("FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING", params.external_texture_binding())
-    .add_macro("FASTUIDRAW_PAINTER_NUMBER_EXTERNAL_TEXTURES", params.number_external_textures())
+    .add_macro("FASTUIDRAW_PAINTER_CONTEXT_TEXTURE_BINDING", params.context_texture_binding())
+    .add_macro("FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES", params.number_context_textures())
     .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
@@ -1569,8 +1569,8 @@ recompute_binding_points(void)
   /* this comes last to make sure that the texture bindings
    * of the external textures are last.
    */
-  m_external_texture_binding = m_num_texture_units;
-  m_num_texture_units += m_number_external_textures;
+  m_context_texture_binding = m_num_texture_units;
+  m_num_texture_units += m_number_context_textures;
 
   /* This must come last to make sure that the binding points
    * of using or not using fbf-interlock match up.
@@ -1677,7 +1677,7 @@ uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRe
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t, data_store_backing)
 uber_shader_params_setget_implement_dirty(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t, glyph_data_backing)
 uber_shader_params_setget_implement_dirty(bool, use_ubo_for_uniforms)
-uber_shader_params_setget_implement_dirty(unsigned int, number_external_textures)
+uber_shader_params_setget_implement_dirty(unsigned int, number_context_textures)
 
 #define uber_shader_params_get_dirty(member)                            \
   int                                                                   \
@@ -1701,7 +1701,7 @@ uber_shader_params_get_dirty(image_atlas_index_tiles_binding)
 uber_shader_params_get_dirty(glyph_atlas_store_binding)
 uber_shader_params_get_dirty(glyph_atlas_store_binding_fp16x2)
 uber_shader_params_get_dirty(data_store_buffer_binding)
-uber_shader_params_get_dirty(external_texture_binding)
+uber_shader_params_get_dirty(context_texture_binding)
 uber_shader_params_get_dirty(coverage_buffer_texture_binding)
 uber_shader_params_get_dirty(color_interlock_image_buffer_binding)
 uber_shader_params_get_dirty(uniforms_ubo_binding)

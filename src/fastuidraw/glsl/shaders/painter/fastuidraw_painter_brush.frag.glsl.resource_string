@@ -151,9 +151,9 @@ fastuidraw_brush_image_of_texture(in sampler2D surface, in vec2 texel_coord, in 
 }
 
 vec4
-fastuidraw_brush_image_of_external_texture(in vec2 texel_coord, in uint image_filter, in float lod)
+fastuidraw_brush_image_of_context_texture(in vec2 texel_coord, in uint image_filter, in float lod)
 {
-  return fastuidraw_brush_image_of_texture(fastuidraw_external_texture[0], texel_coord, image_filter, lod);
+  return fastuidraw_brush_image_of_texture(fastuidraw_context_texture[0], texel_coord, image_filter, lod);
 }
 
 #if defined(FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE)
@@ -313,7 +313,7 @@ fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
         }
       else
         {
-          image_color = fastuidraw_brush_image_of_external_texture(q, image_filter, lod);
+          image_color = fastuidraw_brush_image_of_context_texture(q, image_filter, lod);
         }
 
       /* BEWARE: we are just testing if the format bits are non-zero;

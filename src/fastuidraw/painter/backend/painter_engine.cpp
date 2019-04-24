@@ -66,10 +66,12 @@ namespace
   {
   public:
     ConfigurationPrivate(void):
-      m_supports_bindless_texturing(false)
+      m_supports_bindless_texturing(false),
+      m_number_context_textures(8)
     {}
 
     bool m_supports_bindless_texturing;
+    unsigned int m_number_context_textures;
   };
 }
 
@@ -135,6 +137,9 @@ assign_swap_implement(fastuidraw::PainterEngine::ConfigurationBase)
 setget_implement(fastuidraw::PainterEngine::ConfigurationBase,
                  ConfigurationPrivate,
                  bool, supports_bindless_texturing)
+setget_implement(fastuidraw::PainterEngine::ConfigurationBase,
+                 ConfigurationPrivate,
+                 unsigned int, number_context_textures)
 
 ////////////////////////////////////
 // fastuidraw::PainterEngine methods

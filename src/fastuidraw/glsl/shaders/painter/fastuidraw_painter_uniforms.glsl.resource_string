@@ -16,6 +16,41 @@
  *
  */
 
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+#ifdef GLSL_DOXYGEN
+
+  /*!
+   * \def FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES
+   * The maximum number of simutaneous bound textures that the shader
+   * supports, i.e. the value of \ref
+   * fastuidraw::PainterEngine::ConfigurationBase::number_context_textures().
+   */
+  #define FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES
+
+  /*!
+   * The array of \ref fastuidraw::Image objects whose \ref fastuidraw::Image::type()
+   * has value \ref fastuidraw::Image::context_texture2d that are currently bound.
+   * For \ref fastuidraw::PainterBrush if it has such an image, it is always bound
+   * to fastuidraw_context_texture[0] and for \ref fastuidraw::PainterCustomBrushShaderData,
+   * the i'th index into \ref fastuidraw::PainterCustomBrushShaderData is bound to
+   * fastuidraw_context_texture[i]
+   */
+  uniform sampler2D fastuidraw_context_texture[FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES];
+
+  /*!
+   * \def fastuidraw_fetch_data(X)
+   * Use this macro to fetch a single 128-bit value from the data store buffer
+   * realized as a uvec4.
+   * \param X offset into data store buffer
+   */
+  #define fastuidraw_fetch_data(X)
+#endif
+/*! @} */
+
+///@cond
+
 ///////////////////////////////////////
 // Painter Data Store
 #ifdef FASTUIDRAW_PAINTER_USE_DATA_TBO
@@ -41,4 +76,6 @@
 
 #endif
 
-FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_EXTERNAL_TEXTURE_BINDING) uniform sampler2D fastuidraw_external_texture[FASTUIDRAW_PAINTER_NUMBER_EXTERNAL_TEXTURES];
+FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_CONTEXT_TEXTURE_BINDING) uniform sampler2D fastuidraw_context_texture[FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES];
+
+///@endcond

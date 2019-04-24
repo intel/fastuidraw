@@ -573,14 +573,14 @@ namespace fastuidraw
          * sampler2D uniforms) the uber-shader is to have.
          */
         unsigned int
-        number_external_textures(void) const;
+        number_context_textures(void) const;
 
         /*!
-         * Set the value returned by number_external_textures(void) const.
+         * Set the value returned by number_context_textures(void) const.
          * Default value is 8.
          */
         ConfigurationGL&
-        number_external_textures(unsigned int);
+        number_context_textures(unsigned int);
 
         /*!
          * If true, use switch() statements in uber vertex shader,

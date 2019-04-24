@@ -39,6 +39,7 @@
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
 #include <fastuidraw/painter/backend/painter_draw.hpp>
 #include <fastuidraw/painter/backend/painter_backend.hpp>
+#include <fastuidraw/painter/backend/painter_engine.hpp>
 #include <fastuidraw/painter/backend/painter_header.hpp>
 
 #include <private/painter_backend/painter_packer_data.hpp>
@@ -113,12 +114,15 @@ namespace fastuidraw
      * \param pool pool with which to make a default brush; this brush
      *             is used when draw_generic() is called and the passed
      *             PainterData object lacks a brush value
+     * \param stats location to which to update stat values
      * \param backend handle to PainterBackend for the constructed PainterPacker
+     * \param config configuration from PainterEngine
      */
     explicit
     PainterPacker(PainterPackedValuePool &pool,
                   vecN<unsigned int, num_stats> &stats,
-                  reference_counted_ptr<PainterBackend> backend);
+                  reference_counted_ptr<PainterBackend> backend,
+                  const PainterEngine::ConfigurationBase &config);
 
     virtual
     ~PainterPacker();
@@ -173,14 +177,12 @@ namespace fastuidraw
      * Indicate to start drawing. Commands are buffered and not set to
      * the backend until end() or flush() is called. All draw commands
      * must be between a begin() / end() pair.
-     * \param num_external_textures number of external textures the PainterBackend supports
      * \param surface the \ref PainterSurface to which to render content
      * \param clear_color_buffer if true, clear the color buffer on the viewport
      *                           of the surface.
      */
     void
-    begin(unsigned int num_external_textures,
-          const reference_counted_ptr<PainterSurface> &surface,
+    begin(const reference_counted_ptr<PainterSurface> &surface,
           bool clear_color_buffer);
 
     /*!

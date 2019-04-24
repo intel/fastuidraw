@@ -158,12 +158,10 @@ namespace fastuidraw
 
     /*!
      * To be implemented by a derived class to perform any caching
-     * or other operations when \ref Painter has Painter::begin()
-     * and to return the number of external texture slots the
-     * PainterBackend supports.
+     * or other operations when \ref Painter has Painter::begin().
      */
     virtual
-    unsigned int
+    void
     on_painter_begin(void) = 0;
   };
 /*! @} */

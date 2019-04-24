@@ -246,8 +246,8 @@ configure_source_front_matter(void)
                                  m_uber_shader_builder_params.image_atlas_index_tiles_binding())
         .add_sampler_initializer("fastuidraw_colorStopAtlas",
                                  m_uber_shader_builder_params.colorstop_atlas_binding())
-        .add_sampler_initializer("fastuidraw_external_texture",
-                                 m_uber_shader_builder_params.external_texture_binding())
+        .add_sampler_initializer("fastuidraw_context_texture",
+                                 m_uber_shader_builder_params.context_texture_binding())
         .add_sampler_initializer("fastuidraw_deferred_coverage_buffer",
                                  m_uber_shader_builder_params.coverage_buffer_texture_binding())
         .add_uniform_block_binding("fastuidraw_uniform_block",

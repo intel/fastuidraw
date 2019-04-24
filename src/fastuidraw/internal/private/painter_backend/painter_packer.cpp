@@ -527,7 +527,8 @@ active(void) const
 fastuidraw::PainterPacker::
 PainterPacker(PainterPackedValuePool &pool,
               vecN<unsigned int, num_stats> &stats,
-              reference_counted_ptr<PainterBackend> backend):
+              reference_counted_ptr<PainterBackend> backend,
+              const PainterEngine::ConfigurationBase &config):
   m_backend(backend),
   m_blend_shader(nullptr),
   m_number_commands(0),
@@ -536,6 +537,7 @@ PainterPacker(PainterPackedValuePool &pool,
 {
   m_header_size = PainterHeader::data_size();
   m_default_brush.make_packed(pool);
+  m_binded_images.resize(config.number_context_textures());
 }
 
 fastuidraw::PainterPacker::
@@ -837,14 +839,12 @@ remove_callback(const reference_counted_ptr<DataCallBack> &callback)
 
 void
 fastuidraw::PainterPacker::
-begin(unsigned int num_external_textures,
-      const reference_counted_ptr<PainterSurface> &surface,
+begin(const reference_counted_ptr<PainterSurface> &surface,
       bool clear_color_buffer)
 {
   FASTUIDRAWassert(m_accumulated_draws.empty());
   FASTUIDRAWassert(surface);
 
-  m_binded_images.resize(num_external_textures);
   std::fill(m_binded_images.begin(), m_binded_images.end(), nullptr);
   m_surface = surface;
   m_render_type = m_surface->render_type();
@@ -903,7 +903,6 @@ end(void)
   flush_implement();
   m_backend->on_post_draw();
   m_surface.clear();
-  m_binded_images.clear();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterSurface>&

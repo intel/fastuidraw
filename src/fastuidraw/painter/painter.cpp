@@ -1761,7 +1761,6 @@ namespace
     DeferredCoverageBufferStackEntryFactory m_deferred_coverage_stack_entry_factory;
     std::vector<DeferredCoverageBufferStackEntry> m_deferred_coverage_stack;
     std::vector<const fastuidraw::PainterSurface*> m_active_surfaces;
-    unsigned int m_number_external_textures;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine> m_backend_factory;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterEngine::PerformanceHints m_hints;
@@ -2470,7 +2469,8 @@ fetch(unsigned int effects_depth,
           reference_counted_ptr<PainterSurface> surface;
           reference_counted_ptr<const Image> image;
 
-          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
+          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend,
+                                               d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::color_buffer_type);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -2492,7 +2492,7 @@ fetch(unsigned int effects_depth,
       rect = TB->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
       return_value.m_image = TB->m_image.get();
       return_value.m_packer = TB->m_packer.get();
-      return_value.m_packer->begin(d->m_number_external_textures, TB->m_surface, true);
+      return_value.m_packer->begin(TB->m_surface, true);
     }
 
   FASTUIDRAWassert(return_value.m_image);
@@ -2653,7 +2653,8 @@ fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
           reference_counted_ptr<PainterPacker> packer;
           reference_counted_ptr<PainterSurface> surface;
 
-          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend);
+          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend,
+                                               d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::deferred_coverage_buffer_type);
           surface->clear_color(vec4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -2671,7 +2672,7 @@ fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
 
       rect = TB->m_rect_atlas.add_rectangle(buffer_rect.m_dims);
       return_packer = TB->m_packer.get();
-      return_packer->begin(d->m_number_external_textures, TB->m_surface, true);
+      return_packer->begin(TB->m_surface, true);
       d->m_active_surfaces.push_back(TB->m_surface.get());
     }
 
@@ -2706,7 +2707,6 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine
   m_viewport_dimensions(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(0.5f),
-  m_number_external_textures(0),
   m_backend_factory(backend_factory),
   m_backend(backend_factory->create_backend()),
   m_hints(backend_factory->hints()),
@@ -2719,7 +2719,8 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine
   // the shaders as well.
   m_default_shaders = m_backend_factory->default_shaders();
   m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
-  m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend);
+  m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend,
+                                                          m_backend_factory->configuration_base());
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
   m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));
@@ -4591,11 +4592,11 @@ begin(const reference_counted_ptr<PainterSurface> &surface,
   colorstop_atlas().lock_resources();
   glyph_atlas().lock_resources();
 
-  d->m_number_external_textures = d->m_backend->on_painter_begin();
+  d->m_backend->on_painter_begin();
   d->m_viewport = surface->viewport();
   d->m_effects_layer_factory.begin(*surface);
   d->m_deferred_coverage_stack_entry_factory.begin(*surface);
-  d->m_root_packer->begin(d->m_number_external_textures, surface, clear_color_buffer);
+  d->m_root_packer->begin(surface, clear_color_buffer);
   d->m_active_surfaces.clear();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->m_stats[Painter::num_render_targets] = 1;
@@ -4781,7 +4782,7 @@ flush(const reference_counted_ptr<PainterSurface> &new_surface)
 
       d->m_root_packer->end();
       d->m_current_z = 1;
-      d->m_root_packer->begin(d->m_number_external_textures, new_surface, true);
+      d->m_root_packer->begin(new_surface, true);
       d->m_deferred_coverage_stack_entry_factory.begin(*new_surface);
       d->m_effects_layer_factory.begin(*new_surface);
 

@@ -600,7 +600,7 @@ TextureImageBindAction(unsigned int slot,
                        PainterBackendGL *p):
   m_p(p),
   m_slot(slot),
-  m_texture_unit(slot + p->m_binding_points.m_external_texture_binding)
+  m_texture_unit(slot + p->m_binding_points.m_context_texture_binding)
 {
   FASTUIDRAWassert(im);
   FASTUIDRAWassert(im.dynamic_cast_ptr<const TextureImage>());
@@ -619,7 +619,7 @@ execute(fastuidraw::PainterBackend*) const
    * the knowledge of what is the external texture
    * so that it an correctly restore its state.
    */
-  m_p->m_current_external_texture[m_slot] = m_image->texture();
+  m_p->m_current_context_texture[m_slot] = m_image->texture();
 
   /* we do not regard changing the texture unit
    * as changing the GPU texture state because the
@@ -854,7 +854,7 @@ PainterBackendGL(const fastuidraw::gl::PainterEngineGL *f):
   m_binding_points.m_glyph_atlas_store_binding_fp16 = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding_fp16x2();
   m_binding_points.m_data_store_buffer_binding = m_reg_gl->uber_shader_builder_params().data_store_buffer_binding();
   m_binding_points.m_color_interlock_image_buffer_binding = m_reg_gl->uber_shader_builder_params().color_interlock_image_buffer_binding();
-  m_binding_points.m_external_texture_binding = m_reg_gl->uber_shader_builder_params().external_texture_binding();
+  m_binding_points.m_context_texture_binding = m_reg_gl->uber_shader_builder_params().context_texture_binding();
   m_binding_points.m_coverage_buffer_texture_binding = m_reg_gl->uber_shader_builder_params().coverage_buffer_texture_binding();
   m_binding_points.m_uniforms_ubo_binding = m_reg_gl->uber_shader_builder_params().uniforms_ubo_binding();
 
@@ -873,8 +873,8 @@ PainterBackendGL(const fastuidraw::gl::PainterEngineGL *f):
       m_choose_uber_program[false] = m_choose_uber_program[true] = PainterEngineGL::program_all;
     }
 
-  unsigned int num_ext(m_reg_gl->uber_shader_builder_params().number_external_textures());
-  m_current_external_texture.resize(num_ext, 0u);
+  unsigned int num_ext(m_reg_gl->uber_shader_builder_params().number_context_textures());
+  m_current_context_texture.resize(num_ext, 0u);
   m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(),
                                           m_reg_gl->tex_buffer_support(),
                                           m_binding_points.m_data_store_buffer_binding);
@@ -1090,11 +1090,11 @@ set_gl_state(RenderTargetState prev_state,
       fastuidraw_glBindSampler(m_binding_points.m_colorstop_atlas_binding, 0);
       fastuidraw_glBindTexture(ColorStopAtlasGL::texture_bind_target(), m_colorstop_atlas->texture());
 
-      for (unsigned int i = 0, endi = m_current_external_texture.size(); i < endi; ++i)
+      for (unsigned int i = 0, endi = m_current_context_texture.size(); i < endi; ++i)
         {
-          fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_external_texture_binding + i);
-          fastuidraw_glBindTexture(GL_TEXTURE_2D, m_current_external_texture[i]);
-          fastuidraw_glBindSampler(m_binding_points.m_external_texture_binding + i, 0);
+          fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_context_texture_binding + i);
+          fastuidraw_glBindTexture(GL_TEXTURE_2D, m_current_context_texture[i]);
+          fastuidraw_glBindSampler(m_binding_points.m_context_texture_binding + i, 0);
         }
 
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_coverage_buffer_texture_binding);
@@ -1179,7 +1179,7 @@ on_pre_draw(const reference_counted_ptr<PainterSurface> &surface,
   GLuint fbo;
 
   m_uniform_ubo_ready = false;
-  std::fill(m_current_external_texture.begin(), m_current_external_texture.end(), 0);
+  std::fill(m_current_context_texture.begin(), m_current_context_texture.end(), 0);
   m_current_coverage_buffer_texture = 0;
   fbo = clear_buffers_of_current_surface(begin_new_target, clear_color_buffer);
   m_draw_state->on_pre_draw(this, fbo);
@@ -1289,7 +1289,7 @@ map_draw(void)
   return FASTUIDRAWnew DrawCommand(m_pool, m_reg_gl->params(), this);
 }
 
-unsigned int
+void
 fastuidraw::gl::detail::PainterBackendGL::
 on_painter_begin(void)
 {
@@ -1298,5 +1298,4 @@ on_painter_begin(void)
     {
       m_cached_item_programs->reset();
     }
-  return m_current_external_texture.size();
 }

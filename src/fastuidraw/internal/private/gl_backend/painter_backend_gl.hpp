@@ -85,7 +85,7 @@ namespace fastuidraw
         map_draw(void) override final;
 
         virtual
-        unsigned int
+        void
         on_painter_begin(void) override final;
 
         GLuint
@@ -130,7 +130,7 @@ namespace fastuidraw
         reference_counted_ptr<painter_vao_pool> m_pool;
         PainterSurfaceGLPrivate *m_surface_gl;
         bool m_uniform_ubo_ready;
-        std::vector<GLuint> m_current_external_texture;
+        std::vector<GLuint> m_current_context_texture;
         GLuint m_current_coverage_buffer_texture;
         BindingPoints m_binding_points;
         DrawState *m_draw_state;

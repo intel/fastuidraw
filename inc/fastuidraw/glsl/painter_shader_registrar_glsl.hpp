@@ -529,14 +529,14 @@ namespace fastuidraw
          * sampler2D uniforms) the uber-shader is to have.
          */
         unsigned int
-        number_external_textures(void) const;
+        number_context_textures(void) const;
 
         /*!
-         * Set the value returned by number_external_textures(void) const.
+         * Set the value returned by number_context_textures(void) const.
          * Default value is 1.
          */
         UberShaderParams&
-        number_external_textures(unsigned int);
+        number_context_textures(unsigned int);
 
         /*!
          * Returns the binding point for ColorStopAtlas::backing_store()
@@ -603,17 +603,17 @@ namespace fastuidraw
          * derived from the current value of this UberShaderParams.
          */
         int
-        external_texture_binding(void) const;
+        context_texture_binding(void) const;
 
         /*!
          * Returns the binding point of the named external texture
          * derived from the current value of this UberShaderParams.
          */
         int
-        external_texture_binding(unsigned int v) const
+        context_texture_binding(unsigned int v) const
         {
-          FASTUIDRAWassert(v < number_external_textures());
-          return external_texture_binding() + v;
+          FASTUIDRAWassert(v < number_context_textures());
+          return context_texture_binding() + v;
         }
 
         /*!

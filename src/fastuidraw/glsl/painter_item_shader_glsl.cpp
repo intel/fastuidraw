@@ -63,16 +63,16 @@ namespace
     public PainterShaderGLSLPrivateCommon<fastuidraw::glsl::PainterCustomBrushShaderGLSL>
   {
   public:
-    PainterCustomBrushShaderGLSLPrivate(unsigned num_external_textures,
+    PainterCustomBrushShaderGLSLPrivate(unsigned num_context_textures,
                                         const fastuidraw::glsl::ShaderSource &vertex_src,
                                         const fastuidraw::glsl::ShaderSource &fragment_src,
                                         const fastuidraw::glsl::varying_list &varyings,
                                         const DependencyListPrivate &dependencies):
       PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, varyings, dependencies),
-      m_number_external_textures(num_external_textures)
+      m_number_context_textures(num_context_textures)
     {}
 
-    unsigned int m_number_external_textures;
+    unsigned int m_number_context_textures;
   };
 
   class PainterItemShaderGLSLPrivate:
@@ -342,7 +342,7 @@ add_shader(c_string name,
 ///////////////////////////////////////////////
 // fastuidraw::glsl::PainterCustomBrushShaderGLSL methods
 fastuidraw::glsl::PainterCustomBrushShaderGLSL::
-PainterCustomBrushShaderGLSL(unsigned num_external_textures,
+PainterCustomBrushShaderGLSL(unsigned num_context_textures,
                              const ShaderSource &v_src,
                              const ShaderSource &f_src,
                              const varying_list &varyings,
@@ -352,7 +352,7 @@ PainterCustomBrushShaderGLSL(unsigned num_external_textures,
 {
   PainterCustomBrushShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterCustomBrushShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterCustomBrushShaderGLSLPrivate(num_external_textures, v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterCustomBrushShaderGLSLPrivate(num_context_textures, v_src, f_src, varyings, *d);
 }
 
 fastuidraw::glsl::PainterCustomBrushShaderGLSL::
@@ -384,7 +384,7 @@ dependency_list_names(void) const
 
 get_implement(fastuidraw::glsl::PainterCustomBrushShaderGLSL,
               PainterCustomBrushShaderGLSLPrivate,
-              unsigned int, number_external_textures)
+              unsigned int, number_context_textures)
 
 get_implement(fastuidraw::glsl::PainterCustomBrushShaderGLSL,
               PainterCustomBrushShaderGLSLPrivate,

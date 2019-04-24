@@ -99,7 +99,7 @@ namespace
       m_number_pools(3),
       m_break_on_shader_change(false),
       m_clipping_type(fastuidraw::gl::PainterEngineGL::clipping_via_gl_clip_distance),
-      m_number_external_textures(8),
+      m_number_context_textures(8),
       /* on Mesa/i965 using switch statement gives much slower
        * performance than using if/else chain.
        */
@@ -124,7 +124,7 @@ namespace
     unsigned int m_number_pools;
     bool m_break_on_shader_change;
     enum fastuidraw::gl::PainterEngineGL::clipping_type_t m_clipping_type;
-    unsigned int m_number_external_textures;
+    unsigned int m_number_context_textures;
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
@@ -169,7 +169,7 @@ namespace
       m_binding_points.m_glyph_atlas_store_binding_fp16 = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding_fp16x2();
       m_binding_points.m_data_store_buffer_binding = m_reg_gl->uber_shader_builder_params().data_store_buffer_binding();
       m_binding_points.m_color_interlock_image_buffer_binding = m_reg_gl->uber_shader_builder_params().color_interlock_image_buffer_binding();
-      m_binding_points.m_external_texture_binding = m_reg_gl->uber_shader_builder_params().external_texture_binding();
+      m_binding_points.m_context_texture_binding = m_reg_gl->uber_shader_builder_params().context_texture_binding();
       m_binding_points.m_coverage_buffer_texture_binding = m_reg_gl->uber_shader_builder_params().coverage_buffer_texture_binding();
       m_binding_points.m_uniforms_ubo_binding = m_reg_gl->uber_shader_builder_params().uniforms_ubo_binding();
     }
@@ -243,7 +243,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterEngineGL::ConfigurationG
     .z_coordinate_convention(PainterEngineGL::z_minus_1_to_1)
     .vert_shader_use_switch(params.vert_shader_use_switch())
     .frag_shader_use_switch(params.frag_shader_use_switch())
-    .number_external_textures(params.number_external_textures())
+    .number_context_textures(params.number_context_textures())
     .blend_shader_use_switch(params.blend_shader_use_switch())
     .data_store_backing(params.data_store_backing())
     .data_blocks_per_store_buffer(params.data_blocks_per_store_buffer())
@@ -919,7 +919,7 @@ adjust_for_context(const ContextProperties &ctx)
    */
   num_textures_used += 7;
 
-  /* adjust m_number_external_textures taking
+  /* adjust m_number_context_textures taking
    * into account the number of used texture
    * slots against how many the GL implementation
    * supports.
@@ -928,12 +928,12 @@ adjust_for_context(const ContextProperties &ctx)
 
   // t_max() prevent unsigned underflow
   num_slots_left = t_max(num_textures_used, num_slots_left) - num_textures_used;
-  d->m_number_external_textures = t_min(d->m_number_external_textures, num_slots_left);
+  d->m_number_context_textures = t_min(d->m_number_context_textures, num_slots_left);
 
   /* Don't use up all the remaining texture units, max-out at 16
    * external textures
    */
-  d->m_number_external_textures = t_min(d->m_number_external_textures, 16u);
+  d->m_number_context_textures = t_min(d->m_number_context_textures, 16u);
 
   return *this;
 }
@@ -1032,7 +1032,7 @@ setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, Configuration
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterEngineGL::clipping_type_t, clipping_type)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
-                 unsigned int, number_external_textures)
+                 unsigned int, number_context_textures)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, vert_shader_use_switch)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
@@ -1096,15 +1096,16 @@ create(bool optimal_rendering_quality,
 
 fastuidraw::gl::PainterEngineGL::
 PainterEngineGL(const ConfigurationGL &config_gl,
-                        const UberShaderParams &uber_params,
-                        const PainterShaderSet &shaders):
+                const UberShaderParams &uber_params,
+                const PainterShaderSet &shaders):
   PainterEngine(config_gl.glyph_atlas(),
-                        config_gl.image_atlas(),
-                        config_gl.colorstop_atlas(),
-                        FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl, uber_params),
-                        ConfigurationBase()
-                        .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
-                        shaders)
+                config_gl.image_atlas(),
+                config_gl.colorstop_atlas(),
+                FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl, uber_params),
+                ConfigurationBase()
+                .number_context_textures(config_gl.number_context_textures())
+                .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
+                shaders)
 {
   PainterEngineGLPrivate *d;
   m_d = d = FASTUIDRAWnew PainterEngineGLPrivate(this);

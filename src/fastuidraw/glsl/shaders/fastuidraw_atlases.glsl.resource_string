@@ -16,6 +16,65 @@
  *
  */
 
+/*!\addtogroup GLSLVertFragCode
+ * @{
+ */
+
+#ifdef GLSL_DOXYGEN
+  /*!
+   * \def fastuidraw_colorStopFetch(x, L)
+   * Use this macro to read a color value from the colorstop atlas
+   * (see \ref fastuidraw::ColorStopAtlas). Recall that colorstops
+   * are stored as part of a GL_TEXTURE_1D_ARRAY or GL_TEXTURE_2D_ARRAY
+   * and that the interpolation of the color is to be handled by the
+   * the sampler.
+   * \param x texture coordinate (i.e. normalized to [0, 1]) to read from the atlas
+   * \param L which layer to read from the atlas
+   */
+  #define fastuidraw_colorStopFetch(x, L)
+
+  /*!
+   * The sampler2Darray that backs the color tiles  of the image
+   * atlas (\ref fastuidraw::ImageAtlas) whose magnification filtering
+   * is set to GL_LINEAR and whose minification filtering is set to
+   * GL_LINEAR_MIPMAP_NEAREST.
+   */
+  uniform sampler2DArray fastuidraw_imageAtlasLinear;
+
+  /*!
+   * The sampler2Darray that backs the color tiles of the image
+   * atlas (\ref fastuidraw::ImageAtlas) whose magnification and
+   * minification filtering are set to GL_NEAREST.
+   */
+  uniform sampler2DArray fastuidraw_imageAtlasNearest;
+
+  /*!
+   * The usampler2DArray that backes index tiles of the image
+   * atlas (\ref fastuidraw::ImageAtlas).
+   */
+  uniform usampler2DArray fastuidraw_imageIndexAtlas;
+
+  /*!
+   * \def fastuidraw_fetch_glyph_data(X)
+   * Use this macro to read a single 32-bit value from the glyph atlas
+   * (\ref fastuidraw::GlyphAtlas).
+   * \param X offset into the glyph atlas to read
+   */
+  #define fastuidraw_fetch_glyph_data(X)
+
+  /*!
+   * \def fastuidraw_fetch_glyph_data_fp16x2(X)
+   * Use this macro to read a single 32-bit value  from the glyph atlas
+   * (\ref fastuidraw::GlyphAtlas) interpreted as a vec2 of 16-bit floats.
+   * \param X offset into the glyph atlas to read
+   */
+  #define fastuidraw_fetch_glyph_data_fp16x2(X)
+
+#endif
+/*! @} */
+
+///@cond
+
 //////////////////////////////////////////////
 // Color Stop Atlas
 #ifdef FASTUIDRAW_PAINTER_COLORSTOP_ATLAS_2D_ARRAY
@@ -83,3 +142,6 @@
 
 #endif
 ////////////////////////////////////////////////////
+
+
+///@endcond

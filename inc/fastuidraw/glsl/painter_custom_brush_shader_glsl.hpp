@@ -127,7 +127,7 @@ namespace fastuidraw
 
       /*!
        * Ctor.
-       * \param number_external_textures number of external textures the shader uses
+       * \param number_context_textures number of external textures the shader uses
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
        * \param varyings list of varyings of the shader
@@ -135,7 +135,7 @@ namespace fastuidraw
        * \param dependencies list of other \ref PainterCustomBrushShaderGLSL
        *                     that are used directly.
        */
-      PainterCustomBrushShaderGLSL(unsigned int number_external_textures,
+      PainterCustomBrushShaderGLSL(unsigned int number_context_textures,
                                    const ShaderSource &vertex_src,
                                    const ShaderSource &fragment_src,
                                    const varying_list &varyings,
@@ -148,7 +148,7 @@ namespace fastuidraw
        * Number of external textures the custum brush uses.
        */
       unsigned int
-      number_external_textures(void) const;
+      number_context_textures(void) const;
 
       /*!
        * Returns the varying of the shader

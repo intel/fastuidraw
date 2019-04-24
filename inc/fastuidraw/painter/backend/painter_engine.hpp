@@ -89,6 +89,21 @@ namespace fastuidraw
       ConfigurationBase&
       supports_bindless_texturing(bool);
 
+      /*!
+       * Returns the maximum number of simutaneously bound
+       * \ref Image object whose \ref Image::type() has the
+       * value \ref Image::context_texture2d.
+       */
+      unsigned int
+      number_context_textures(void) const;
+
+      /*!
+       * Specify the return value to number_context_textures() const.
+       * Default value is false.
+       */
+      ConfigurationBase&
+      number_context_textures(unsigned int);
+
     private:
       void *m_d;
     };
