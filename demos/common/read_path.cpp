@@ -50,7 +50,8 @@ namespace
 
 
 void
-read_path(fastuidraw::Path &path, const std::string &source)
+read_path(fastuidraw::Path &path, const std::string &source,
+          std::string *dst_cpp_code)
 {
   std::string filtered(source);
 
@@ -65,6 +66,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
   enum add_mode_t mode(add_no_mode);
   fastuidraw::vec2 current_value;
   int current_slot(0);
+  std::ostringstream cpp_code;
 
   /*
     this is so hideous.
@@ -152,6 +154,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
 
   /* now walk the list of outlines.
    */
+  bool draw_space(false);
   for(std::list<outline>::const_iterator iter = data.begin(), end = data.end();
       iter != end; ++iter)
     {
@@ -160,6 +163,17 @@ read_path(fastuidraw::Path &path, const std::string &source)
       if (!current_outline.empty())
         {
           path << fastuidraw::Path::contour_start(current_outline[0].m_pt);
+          if (!draw_space)
+            {
+              draw_space = true;
+              cpp_code << "path";
+            }
+          else
+            {
+              cpp_code << "    ";
+            }
+          cpp_code << " << fastuidraw::Path::contour_start(fastuidraw::vec2"
+                   << current_outline[0].m_pt << ")\n";
           for(unsigned int i = 0; i + 1 < current_outline.size(); ++i)
             {
               const edge &current_edge(current_outline[i]);
@@ -170,12 +184,18 @@ read_path(fastuidraw::Path &path, const std::string &source)
                   for(unsigned int c = 0; c < current_edge.m_control_pts.size(); ++c)
                     {
                       path << fastuidraw::Path::control_point(current_edge.m_control_pts[c]);
+                      cpp_code << "     << fastuidraw::Path::control_point(fastuidraw::vec2"
+                               << current_edge.m_control_pts[c] << ")\n";
                     }
                   path << next_edge.m_pt;
+                  cpp_code << "     << fastuidraw::vec2" << next_edge.m_pt << "\n";
                 }
               else
                 {
                   path << fastuidraw::Path::arc_degrees(current_edge.m_angle, next_edge.m_pt);
+                  cpp_code << "     << fastuidraw::Path::arc_degrees("
+                           << current_edge.m_angle << ", fastuidraw::vec2"
+                           << next_edge.m_pt << ")\n";
                 }
             }
 
@@ -185,11 +205,14 @@ read_path(fastuidraw::Path &path, const std::string &source)
               for(unsigned int c = 0; c < current_edge.m_control_pts.size(); ++c)
                 {
                   path << fastuidraw::Path::control_point(current_edge.m_control_pts[c]);
+                  cpp_code << "     << fastuidraw::Path::control_point(fastuidraw::vec2"
+                           << current_edge.m_control_pts[c] << ")\n";
                 }
 
               if (current_outline.m_is_closed)
                 {
                   path << fastuidraw::Path::contour_close();
+                  cpp_code << "     << fastuidraw::Path::contour_close()\n";
                 }
             }
           else
@@ -197,9 +220,16 @@ read_path(fastuidraw::Path &path, const std::string &source)
               if (current_outline.m_is_closed)
                 {
                   path << fastuidraw::Path::contour_close_arc_degrees(current_edge.m_angle);
+                  cpp_code << "     << fastuidraw::Path::contour_close_arc_degrees("
+                           << current_edge.m_angle << ")\n";
                 }
             }
         }
     }
 
+  cpp_code << "     ;\n";
+  if (dst_cpp_code)
+    {
+      *dst_cpp_code = cpp_code.str();
+    }
 }
