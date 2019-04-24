@@ -34,6 +34,9 @@
 
   The implementation is given by:
   \snippet initialization.cpp ExampleInitialization
+
+  An example make file using pkg-config to build this example is given by:
+  \verbinclude Makefile
  */
 
 /*!
