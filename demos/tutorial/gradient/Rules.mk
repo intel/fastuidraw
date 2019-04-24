@@ -4,8 +4,8 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-DEMOS += example_brush
-example_brush_SOURCES := $(call filelist, example_brush.cpp)
+DEMOS += example_gradient
+example_gradient_SOURCES := $(call filelist, example_gradient.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

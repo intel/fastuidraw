@@ -1,6 +1,6 @@
 /*!
- * \file example_brush.cpp
- * \brief file example_brush.cpp
+ * \file example_gradient.cpp
+ * \brief file example_gradient.cpp
  *
  * Copyright 2019 by Intel.
  *
@@ -15,18 +15,18 @@
  * \author Kevin Rogovin <kevin.rogovin@intel.com>
  */
 
-//! [ExampleBrush]
+//! [ExampleGradient]
 
 #include <iostream>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include "initialization.hpp"
 
-class ExampleBrush:public Initialization
+class ExampleGradient:public Initialization
 {
 public:
-  ExampleBrush(DemoRunner *runner, int argc, char **argv);
+  ExampleGradient(DemoRunner *runner, int argc, char **argv);
 
-  ~ExampleBrush()
+  ~ExampleGradient()
   {}
 
   virtual
@@ -51,8 +51,8 @@ private:
   fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> m_color_stops;
 };
 
-ExampleBrush::
-ExampleBrush(DemoRunner *runner, int argc, char **argv):
+ExampleGradient::
+ExampleGradient(DemoRunner *runner, int argc, char **argv):
   Initialization(runner, argc, argv),
   m_gradient_type(linear_gradient)
 {
@@ -86,7 +86,7 @@ ExampleBrush(DemoRunner *runner, int argc, char **argv):
 }
 
 void
-ExampleBrush::
+ExampleGradient::
 handle_event(const SDL_Event &ev)
 {
   switch (ev.type)
@@ -100,7 +100,7 @@ handle_event(const SDL_Event &ev)
 }
 
 void
-ExampleBrush::
+ExampleGradient::
 draw_frame(void)
 {
   fastuidraw::vec2 window_dims(window_dimensions());
@@ -208,7 +208,7 @@ int
 main(int argc, char **argv)
 {
   DemoRunner demo_runner;
-  return demo_runner.main<ExampleBrush>(argc, argv);
+  return demo_runner.main<ExampleGradient>(argc, argv);
 }
 
-//! [ExampleBrush]
+//! [ExampleGradient]

@@ -13,7 +13,7 @@ include $(dir)/Rules.mk
 dir := $(d)/text
 include $(dir)/Rules.mk
 
-dir := $(d)/brush
+dir := $(d)/gradient
 include $(dir)/Rules.mk
 
 dir := $(d)/image
