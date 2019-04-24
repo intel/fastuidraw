@@ -333,11 +333,11 @@ namespace fastuidraw {
   GPU. For futher details on the "what" to draw, see \ref PainterAttribute.
   For futher details on "how" to draw, see \ref PainterShaders.
 
-  FastUIDraw implement the following vertex-pipeline
+  FastUIDraw implements the following vertex-pipeline
   - the local item xy-coordinates and brush coordinates from the item shader
     (see \ref fastuidraw::PainterItemShader)
-  - those values are multipled by the current 3x3 transformation matrix
-    (see \ref fastuidraw::Painter::transformation) to convert from local
+  - the local item xy-coordinates are multipled by the current 3x3 transformation
+    matrix (see \ref fastuidraw::Painter::transformation) to convert from local
     item coordinates to clip-coordinates
 
   FastUIDraw implements the following pixel-pipeline
