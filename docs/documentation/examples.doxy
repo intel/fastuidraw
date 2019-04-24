@@ -95,3 +95,17 @@
   The implementation is given by:
   \snippet example_path.cpp ExamplePath
 */
+
+/*!
+  \page ex_path2 Example Path 2
+  \brief
+  Simple example showing how to operator<< overloads to construct a complicated path
+  and to fill it with a custom fill rule.
+
+  The Example Path 2 builds from \ref ex_initialization to demonstrate
+  how to construct a \ref fastuidraw::Path using operator<< overloads
+  and to fill it with a custom fill rule.
+
+  The implementation is given by:
+  \snippet example_path2.cpp ExamplePath2
+*/

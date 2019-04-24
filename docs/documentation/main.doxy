@@ -352,4 +352,5 @@ namespace fastuidraw {
   - See \ref ex_gradient for an example of using \ref fastuidraw::PainterBrush to render gradients.
   - See \ref ex_image for an example of using \ref fastuidraw::PainterBrush to render an image.
   - See \ref ex_path for an example of using \ref fastuidraw::Path to stroke and fill paths.
+  - See \ref ex_path2 for creating a \ref fastuidraw::Path with the operator<< overloads and filling it with a custom fill rule.
 */
