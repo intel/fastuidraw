@@ -10,8 +10,7 @@ addition, Fast UI Draw has, with the GL backend, very few pipeline states.
 Indeed an API trace of an application using Fast UI Draw will see only a
 handful of draw calls per frame, even under high Canvas state trashing,
 and high clip state changes. Indeed, for the GL backend, only one Canvas
-state change invokes a pipeline state change: changing the Porter-Duff blend
-mode.
+state change invokes a pipeline state change: changing the blend mode.
 
 In addition, Fast UI Draw gives an application the ability to make their
 own shaders for custom drawing.

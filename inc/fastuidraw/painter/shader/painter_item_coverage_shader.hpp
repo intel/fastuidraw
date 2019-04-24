@@ -1,6 +1,6 @@
 /*!
- * \file painter_item_shader.hpp
- * \brief file painter_item_shader.hpp
+ * \file painter_item_coverage_shader.hpp
+ * \brief file painter_item_coverage_shader.hpp
  *
  * Copyright 2016 by Intel.
  *
