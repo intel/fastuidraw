@@ -50,11 +50,6 @@ namespace fastuidraw
     unsigned int
     number_segments_for_tessellation(float arc_angle, float distance_thresh);
 
-    void
-    bouding_box_union_arc(const vec2 &center, float radius,
-                          float start_angle, float end_angle,
-                          BoundingBox<float> *dst);
-
     inline
     uint32_t
     stroked_point_pack_bits(int on_boundary,

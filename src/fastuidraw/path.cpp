@@ -1137,10 +1137,33 @@ arc(const reference_counted_ptr<const interpolator_base> &start,
   d->m_start_angle = start_center.atan();
   d->m_angle_speed = angle_coeff_dir * angle;
 
-  detail::bouding_box_union_arc(d->m_center, d->m_radius,
-                                d->m_start_angle,
-                                d->m_start_angle + d->m_angle_speed,
-                                &d->m_bb);
+  d->m_bb.union_point(start_pt());
+  d->m_bb.union_point(end_pt());
+
+  /* check for the extreme points of a circle in [-PI, PI]
+   * which are at -PI, -PI / 2, 0, PI / 2, PI
+   */
+  float sa, ea;
+  const fastuidraw::vec3 criticals[] =
+    {
+      fastuidraw::vec3(-1.0f, +0.0f, -FASTUIDRAW_PI),
+      fastuidraw::vec3(+0.0f, -1.0f, -0.5f * FASTUIDRAW_PI),
+      fastuidraw::vec3(+1.0f, +0.0f, 0.0f),
+      fastuidraw::vec3(+0.0f, +1.0f, 0.5f * FASTUIDRAW_PI),
+      fastuidraw::vec3(-1.0f, +0.0f, FASTUIDRAW_PI),
+    };
+
+  sa = fastuidraw::t_min(d->m_start_angle, d->m_angle_speed + d->m_start_angle);
+  ea = fastuidraw::t_max(d->m_start_angle, d->m_angle_speed + d->m_start_angle);
+  for (unsigned int i = 0; i < 5; ++i)
+    {
+      if (sa <= criticals[i].z() && criticals[i].z() <= ea)
+        {
+          vec2 p;
+          p = d->m_center + d->m_radius * fastuidraw::vec2(criticals[i].x(), criticals[i].y());
+          d->m_bb.union_point(p);
+        }
+    }
 }
 
 fastuidraw::PathContour::arc::
