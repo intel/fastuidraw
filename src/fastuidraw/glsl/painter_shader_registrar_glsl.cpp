@@ -344,8 +344,6 @@ PainterShaderRegistrarGLSLPrivate(void):
     .add_source("fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string",
                 ShaderSource::from_resource)
     .add_source("fastuidraw_align.vert.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_stroke_util.constants.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_stroke_util.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_texture_fetch.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
@@ -363,8 +361,6 @@ PainterShaderRegistrarGLSLPrivate(void):
     .remove_macros(m_restricted_rays_macros)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_stroke_util.constants.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_stroke_util.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_blend_util.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_texture_fetch.glsl.resource_string", ShaderSource::from_resource)

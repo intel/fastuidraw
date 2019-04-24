@@ -47,7 +47,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                 }
               else
                 {
-                  alpha = fastuidraw_stroke_compute_dash_coverage(dash_style == fastuidraw_stroke_dashed_rounded_caps,
+                  alpha = FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(dash_style == fastuidraw_stroke_dashed_rounded_caps,
                                                                   dash_style == fastuidraw_stroke_dashed_square_caps,
                                                                   shader_data_offset,
                                                                   fastuidraw_stroking_distance,

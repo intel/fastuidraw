@@ -112,12 +112,12 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
               if (dash_style == fastuidraw_stroke_dashed_flat_caps)
                 {
-                  alpha = fastuidraw_stroke_compute_dash_coverage(shader_data_offset, dist, distw,
+                  alpha = FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(shader_data_offset, dist, distw,
                                                                   skip_lookup, dont_anti_alias_dash_boundary);
                 }
               else
                 {
-                  alpha = fastuidraw_stroke_compute_dash_coverage(dash_style == fastuidraw_stroke_dashed_rounded_caps,
+                  alpha = FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(dash_style == fastuidraw_stroke_dashed_rounded_caps,
                                                                   dash_style == fastuidraw_stroke_dashed_square_caps,
                                                                   shader_data_offset,
                                                                   dist, distw, bd, bdw,

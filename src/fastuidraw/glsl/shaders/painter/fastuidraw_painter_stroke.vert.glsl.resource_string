@@ -79,11 +79,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   if (dash_style != fastuidraw_stroke_not_dashed)
     {
-      fastuidraw_dashed_struct_base base;
+      FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) base;
       float stroke_distance;
 
       stroke_distance = distance_from_contour_start + dashed_stroke_params.dash_offset;
-      fastuidraw_dashed_helper_vert_base(stroke_distance, shader_data_offset, dashed_stroke_params, base);
+      FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(stroke_distance, shader_data_offset, dashed_stroke_params, base);
 
       if (offset_type == fastuidraw_stroke_offset_sub_edge)
         {
@@ -101,11 +101,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             }
           else
             {
-              fastuidraw_dashed_struct_edge_extend extend_edge;
+              FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_edge_extend) extend_edge;
               float delta_mag;
 
               delta_mag = length(auxiliary_offset);
-              fastuidraw_dashed_helper_vert_extend_edge(shader_data_offset,
+              FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_extend_edge)(shader_data_offset,
                                                         dashed_stroke_params, stroke_radius,
                                                         (point_packed_data & fastuidraw_stroke_end_sub_edge_mask) != 0u,
                                                         delta_mag,

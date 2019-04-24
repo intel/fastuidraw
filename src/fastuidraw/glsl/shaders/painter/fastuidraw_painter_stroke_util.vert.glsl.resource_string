@@ -17,7 +17,7 @@
  */
 
 
-struct fastuidraw_dashed_struct_base
+struct FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base)
 {
   float d; //distance at current vertex
   float s; //negative if current vertex in skip dash interval, positive if in draw dash interval
@@ -26,7 +26,7 @@ struct fastuidraw_dashed_struct_base
   uint dash_pattern_at;
 };
 
-struct fastuidraw_dashed_struct_edge_extend
+struct FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_edge_extend)
 {
   bool is_end_of_edge;  //true if and only if current vertex is at the end of the edge
   float edge_length; //length of edge
@@ -45,17 +45,11 @@ struct fastuidraw_dashed_struct_edge_extend
   bool collapse;
 };
 
-#define fastuidraw_dashed_stroking_edge_start 0
-#define fastuidraw_dashed_stroking_edge_end   1
-
-/*
- * Returns false if the entire is within a skip interval.
- */
 void
-fastuidraw_dashed_helper_vert_base(in float d,
-                                   in uint shader_data_offset,
-                                   in fastuidraw_dashed_stroking_params_header stroke_params,
-                                   out fastuidraw_dashed_struct_base out_data)
+FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(in float d,
+                                                    in uint shader_data_offset,
+                                                    in fastuidraw_dashed_stroking_params_header stroke_params,
+                                                    out FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) out_data)
 {
   out_data.d = d;
   out_data.dash_pattern_at = shader_data_offset + fastuidraw_stroke_dashed_stroking_params_header_num_blocks;
@@ -69,14 +63,14 @@ fastuidraw_dashed_helper_vert_base(in float d,
 }
 
 void
-fastuidraw_dashed_helper_vert_extend_edge(in uint shader_data_offset,
-                                          in fastuidraw_dashed_stroking_params_header stroke_params,
-                                          in float stroke_radius,
-                                          in bool is_edge_end,
-                                          in float edge_length,
-                                          in bool has_caps,
-                                          in fastuidraw_dashed_struct_base base,
-                                          out fastuidraw_dashed_struct_edge_extend extend_edge)
+FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_extend_edge)(in uint shader_data_offset,
+                                                           in fastuidraw_dashed_stroking_params_header stroke_params,
+                                                           in float stroke_radius,
+                                                           in bool is_edge_end,
+                                                           in float edge_length,
+                                                           in bool has_caps,
+                                                           in FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) base,
+                                                           out FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_edge_extend) extend_edge)
 {
   extend_edge.is_end_of_edge = is_edge_end;
   extend_edge.edge_length = edge_length;

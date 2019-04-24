@@ -71,6 +71,7 @@ public:
 
 protected:
   ShaderSource::MacroSet m_subshader_constants;
+  ShaderSource::MacroSet m_common_stroke_constants;
   ShaderSource::MacroSet m_stroke_constants;
   ShaderSource::MacroSet m_arc_stroke_constants;
 
