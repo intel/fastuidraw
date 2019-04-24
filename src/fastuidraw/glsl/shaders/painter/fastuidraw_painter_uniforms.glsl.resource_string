@@ -40,6 +40,35 @@
   uniform sampler2D fastuidraw_context_texture[FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES];
 
   /*!
+   * \def FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE
+   * If this macro is defined, then bindless texturing is supported.
+   * Bindless texturing allows one to create sampler object handles
+   * from 64-bit uint data. See \ref FASTUIDRAW_BINDLESS_HANDLE_UVEC2
+   * and \ref FASTUIDRAW_BINDLESS_HANDLE_128U for how the GLSL
+   * implementation realizes the 64-bit handle values.
+   */
+  #define FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE
+
+  /*!
+   * \def FASTUIDRAW_BINDLESS_HANDLE_UVEC2
+   * If this macro is defined, then bindless texturing is supported
+   * (see \ref FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE) and the 64-bit
+   * handle from which to construct sampler handles is realized as
+   * a uvec2 where the low 32-bits are in the .x component and the
+   * high 32-bits are in the .y component.
+   */
+  #define FASTUIDRAW_BINDLESS_HANDLE_UVEC2
+
+  /*!
+   * \def FASTUIDRAW_BINDLESS_HANDLE_128U
+   * If this macro is defined, then bindless texturing is supported
+   * (see \ref FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE) and the 64-bit
+   * handle from which to construct sampler handles is realized as
+   * a uint64_t.
+   */
+  #define FASTUIDRAW_BINDLESS_HANDLE_128U
+
+  /*!
    * \def fastuidraw_fetch_data(X)
    * Use this macro to fetch a single 128-bit value from the data
    * store bufferrealized as a uvec4. To get floating point data,

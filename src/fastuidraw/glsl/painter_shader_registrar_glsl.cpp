@@ -1042,12 +1042,16 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     {
       vert.add_macro("FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE");
       frag.add_macro("FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE");
-    }
-
-  if (params.use_uvec2_for_bindless_handle())
-    {
-      vert.add_macro("FASTUIDRAW_BINDLESS_HANDLE_UVEC2");
-      frag.add_macro("FASTUIDRAW_BINDLESS_HANDLE_UVEC2");
+      if (params.use_uvec2_for_bindless_handle())
+        {
+          vert.add_macro("FASTUIDRAW_BINDLESS_HANDLE_UVEC2");
+          frag.add_macro("FASTUIDRAW_BINDLESS_HANDLE_UVEC2");
+        }
+      else
+        {
+          vert.add_macro("FASTUIDRAW_BINDLESS_HANDLE_128U");
+          frag.add_macro("FASTUIDRAW_BINDLESS_HANDLE_128U");
+        }
     }
 
   switch(params.colorstop_atlas_backing())
