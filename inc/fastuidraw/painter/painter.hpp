@@ -91,11 +91,11 @@ namespace fastuidraw
    * is the top right hand corner of the viewport.
    *
    * The pixel pipeline of Painter is
-   *   # Compute RGBA value from item shader (typically this is (0, 0, 0, alpha)
+   *   - Compute RGBA value from item shader (typically this is (0, 0, 0, alpha)
    *     where alpha is a coverage value
-   *   # Modulate by the PainterBrush passing the item coordinates
+   *   - Modulate by the PainterBrush passing the item coordinates
    *     of the pixel to the \ref PainterBrush
-   *   # Apply blending (see PainterEnums::blend_mode_t and
+   *   - Apply blending (see PainterEnums::blend_mode_t and
    *     Painter::blend_shader()) to the RGBA value against the
    *     current value in the framebuffer
    *
