@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
-#include <fastuidraw/painter/shader/painter_custom_brush_shader.hpp>
+#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 #include <fastuidraw/util/mutex.hpp>
 
 namespace fastuidraw
@@ -81,7 +81,7 @@ namespace fastuidraw
      * is an error.
      */
     void
-    register_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader);
+    register_shader(const reference_counted_ptr<PainterBrushShader> &shader);
 
     /*!
      * Provided as a conveniance, equivalent to registering
@@ -246,7 +246,7 @@ namespace fastuidraw
      */
     virtual
     PainterShader::Tag
-    absorb_custom_brush_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader) = 0;
+    absorb_custom_brush_shader(const reference_counted_ptr<PainterBrushShader> &shader) = 0;
 
     /*!
      * To be implemented by a derived class to compute the PainterShader::group()
@@ -259,7 +259,7 @@ namespace fastuidraw
      */
     virtual
     uint32_t
-    compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterCustomBrushShader> &shader) = 0;
+    compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterBrushShader> &shader) = 0;
 
   private:
     void *m_d;

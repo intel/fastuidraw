@@ -165,7 +165,7 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
-register_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader)
+register_shader(const reference_counted_ptr<PainterBrushShader> &shader)
 {
   if (!shader || shader->registered_to() == this)
     {
@@ -176,7 +176,7 @@ register_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader)
     {
       if (shader->parent())
         {
-          register_shader(shader->parent().static_cast_ptr<PainterCustomBrushShader>());
+          register_shader(shader->parent().static_cast_ptr<PainterBrushShader>());
 
           /* activate the guard AFTER calling register_shader(),
            * otherwise we would attempt to double-lock the mutex

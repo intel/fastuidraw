@@ -53,7 +53,7 @@ namespace fastuidraw
          * of \ref m_brush_shader bitwise anded with this value
          * is non-zero, it indicates that the brush is realized
          * by a PainterBrush. If the bitwise and value is zero,
-         * then it is realized by a \ref PainterCustomBrushShader.
+         * then it is realized by a \ref PainterBrushShader.
          */
         fixed_function_brush_shader = (1u << 31u),
       };
@@ -192,7 +192,7 @@ namespace fastuidraw
      * is realized by a \ref PainterBrush and the value is from
      * \ref PainterBrush::shader(). If the leading bit is down,
      * then it indicates a custom brush implemented via a \ref
-     * PainterCustomBrushShader.
+     * PainterBrushShader.
      */
     uint32_t m_brush_shader;
 

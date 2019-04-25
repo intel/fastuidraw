@@ -99,7 +99,7 @@ namespace
 
     void
     operator()(fastuidraw::glsl::ShaderSource &dst,
-               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterCustomBrushShaderGLSL> &sh)
+               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh)
     {
       unsigned int cnt(sh->number_context_textures());
       dst << "#define fastuidraw_external_brush_texture_first " << m_count
@@ -121,7 +121,7 @@ namespace
   public:
     void
     operator()(fastuidraw::glsl::ShaderSource &dst,
-               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterCustomBrushShaderGLSL> &sh)
+               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh)
     {
       unsigned int cnt(sh->number_context_textures());
 
@@ -1006,15 +1006,15 @@ stream_uber_blend_shader(bool use_switch,
 void
 stream_uber_brush_vert_shader(bool use_switch,
                               ShaderSource &vert,
-                              c_array<const reference_counted_ptr<PainterCustomBrushShaderGLSL> > brush_shaders,
+                              c_array<const reference_counted_ptr<PainterBrushShaderGLSL> > brush_shaders,
                               const UberShaderVaryings &declare_varyings,
                               const AliasVaryingLocation &datum)
 {
-  UberShaderStreamer<PainterCustomBrushShaderGLSL>::stream_uber(use_switch, vert, brush_shaders,
-                                                                &PainterCustomBrushShaderGLSL::vertex_src,
-                                                                item_shader_vert_name<PainterCustomBrushShaderGLSL>,
-                                                                pre_stream_varyings<PainterCustomBrushShaderGLSL>(declare_varyings, datum),
-                                                                post_stream_varyings<PainterCustomBrushShaderGLSL>(declare_varyings, datum),
+  UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, vert, brush_shaders,
+                                                                &PainterBrushShaderGLSL::vertex_src,
+                                                                item_shader_vert_name<PainterBrushShaderGLSL>,
+                                                                pre_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
+                                                                post_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
                                                                 pre_stream_src_brush(), post_stream_src_brush(),
                                                                 "void",
                                                                 "fastuidraw_run_custom_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
@@ -1026,15 +1026,15 @@ stream_uber_brush_vert_shader(bool use_switch,
 void
 stream_uber_brush_frag_shader(bool use_switch,
                               ShaderSource &frag,
-                              c_array<const reference_counted_ptr<PainterCustomBrushShaderGLSL> > brush_shaders,
+                              c_array<const reference_counted_ptr<PainterBrushShaderGLSL> > brush_shaders,
                               const UberShaderVaryings &declare_varyings,
                               const AliasVaryingLocation &datum)
 {
-  UberShaderStreamer<PainterCustomBrushShaderGLSL>::stream_uber(use_switch, frag, brush_shaders,
-                                                                &PainterCustomBrushShaderGLSL::fragment_src,
-                                                                item_shader_frag_name<PainterCustomBrushShaderGLSL>,
-                                                                pre_stream_varyings<PainterCustomBrushShaderGLSL>(declare_varyings, datum),
-                                                                post_stream_varyings<PainterCustomBrushShaderGLSL>(declare_varyings, datum),
+  UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, frag, brush_shaders,
+                                                                &PainterBrushShaderGLSL::fragment_src,
+                                                                item_shader_frag_name<PainterBrushShaderGLSL>,
+                                                                pre_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
+                                                                post_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
                                                                 pre_stream_src_brush(), post_stream_src_brush(),
                                                                 "vec4",
                                                                 "fastuidraw_run_custom_brush_frag_shader(in uint frag_shader, "

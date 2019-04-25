@@ -19,7 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_packed_value.hpp>
-#include <fastuidraw/painter/shader/painter_custom_brush_shader.hpp>
+#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 
 namespace fastuidraw
 {
@@ -115,7 +115,7 @@ namespace fastuidraw
     /*!
      * \brief
      * A CustomBrush is just a conveniance to wrap a
-     * pointer to a \ref PainterCustomBrushShader
+     * pointer to a \ref PainterBrushShader
      * together with a value<PainterBrushShaderData>.
      */
     class CustomBrush
@@ -126,7 +126,7 @@ namespace fastuidraw
        * \param sh value with which to initialize \ref m_shader
        * \param d value with which to initialize \ref m_data
        */
-      CustomBrush(const PainterCustomBrushShader *sh,
+      CustomBrush(const PainterBrushShader *sh,
                   const value<PainterBrushShaderData> &d
                   = value<PainterBrushShaderData>()):
         m_shader(sh),
@@ -139,15 +139,15 @@ namespace fastuidraw
        * \param d value with which to initialize \ref m_data
        */
       CustomBrush(const value<PainterBrushShaderData> &d,
-                  const PainterCustomBrushShader *sh):
+                  const PainterBrushShader *sh):
         m_shader(sh),
         m_data(d)
       {}
 
       /*!
-       * What \ref PainterCustomBrushShader is used
+       * What \ref PainterBrushShader is used
        */
-      const PainterCustomBrushShader *m_shader;
+      const PainterBrushShader *m_shader;
 
       /*!
        * What, if any, data for \ref m_shader to use.
@@ -160,7 +160,7 @@ namespace fastuidraw
      * A brush_value stores the brush applied; it stores either
      * a \ref value for a \ref PainterBrush or a \ref value
      * for a \ref PainterBrushShaderData together with
-     * a value from \ref PainterCustomBrushShader::ID().
+     * a value from \ref PainterBrushShader::ID().
      */
     class brush_value
     {
@@ -249,9 +249,9 @@ namespace fastuidraw
       /*!
        * Returns nullptr if the brush_value is set to brush using
        * using \ref PainterBrush; otherwise returns a pointer
-       * to the PainterCustomBrushShader used.
+       * to the PainterBrushShader used.
        */
-      const PainterCustomBrushShader*
+      const PainterBrushShader*
       custom_shader_brush(void) const
       {
         return m_custom_brush_shader;
@@ -281,7 +281,7 @@ namespace fastuidraw
       /*!
        * Provided as a conveniance, returns the PainterBrush::shader()
        * if backed by a \ref PainterBrush, otherwise returns
-       * \ref PainterCustomBrushShader::ID() if backed by a custom
+       * \ref PainterBrushShader::ID() if backed by a custom
        * brush.
        */
       uint32_t
@@ -295,7 +295,7 @@ namespace fastuidraw
       /*!
        * Provided as a conveniance, returns 0 if backed by a
        * \ref PainterBrush, otherwise returns the value of
-       * PainterCustomBrushShader::group() if backed by a custom
+       * PainterBrushShader::group() if backed by a custom
        * brush.
        */
       uint32_t
@@ -309,7 +309,7 @@ namespace fastuidraw
     private:
       /*!
        * The \ref value for the brush data for a brush
-       * implemented via \ref PainterCustomBrushShader.
+       * implemented via \ref PainterBrushShader.
        * Only has effect if \ref m_custom_brush_shader
        * is not nullptr.
        */
@@ -319,7 +319,7 @@ namespace fastuidraw
        * If non-null, indicates that the brush is a realized
        * by a custom brush shader.
        */
-      const PainterCustomBrushShader *m_custom_brush_shader;
+      const PainterBrushShader *m_custom_brush_shader;
 
       /*!
        * If m_custom_brush_shader is null, gives the

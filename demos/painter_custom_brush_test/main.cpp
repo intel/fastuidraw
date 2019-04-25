@@ -2,7 +2,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/font_database.hpp>
-#include <fastuidraw/glsl/painter_custom_brush_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_brush_shader_glsl.hpp>
 
 #include "sdl_painter_demo.hpp"
 #include "PanZoomTracker.hpp"
@@ -60,10 +60,10 @@ public:
   float m_width, m_height;
 };
 
-class painter_custom_brush_test:public sdl_painter_demo
+class painter_brush_test:public sdl_painter_demo
 {
 public:
-  painter_custom_brush_test(void);
+  painter_brush_test(void);
 
 protected:
 
@@ -88,13 +88,13 @@ private:
   command_line_argument_value<std::string> m_image_file;
   command_line_argument_value<bool> m_use_atlas;
 
-  vecN<reference_counted_ptr<PainterCustomBrushShader>, number_custom_brushes> m_brush_shader;
+  vecN<reference_counted_ptr<PainterBrushShader>, number_custom_brushes> m_brush_shader;
   reference_counted_ptr<const Image> m_image;
   unsigned int m_current_brush;
 };
 
-painter_custom_brush_test::
-painter_custom_brush_test(void):
+painter_brush_test::
+painter_brush_test(void):
   m_image_file("", "image", "if a valid file name, apply an image to drawing the fill", *this),
   m_use_atlas(true, "use_atlas",
               "If false, each image is realized as a texture; if "
@@ -111,7 +111,7 @@ painter_custom_brush_test(void):
 }
 
 void
-painter_custom_brush_test::
+painter_brush_test::
 derived_init(int w, int h)
 {
   FASTUIDRAWunused(w);
@@ -161,13 +161,13 @@ derived_init(int w, int h)
         .add_source("custom_brush_example.frag.glsl.resource_string", glsl::ShaderSource::from_resource)
         .remove_macro(macros[i]);
 
-      m_brush_shader[i] = FASTUIDRAWnew glsl::PainterCustomBrushShaderGLSL(1, vert_src, frag_src, varyings);
+      m_brush_shader[i] = FASTUIDRAWnew glsl::PainterBrushShaderGLSL(1, vert_src, frag_src, varyings);
       m_painter->painter_shader_registrar().register_shader(m_brush_shader[i]);
     }
 }
 
 void
-painter_custom_brush_test::
+painter_brush_test::
 draw_frame(void)
 {
   m_painter->begin(m_surface, Painter::y_increases_downwards);
@@ -216,7 +216,7 @@ draw_frame(void)
 }
 
 void
-painter_custom_brush_test::
+painter_brush_test::
 handle_event(const SDL_Event &ev)
 {
   switch(ev.type)
@@ -252,6 +252,6 @@ handle_event(const SDL_Event &ev)
 int
 main(int argc, char **argv)
 {
-  painter_custom_brush_test P;
+  painter_brush_test P;
   return P.main(argc, argv);
 }

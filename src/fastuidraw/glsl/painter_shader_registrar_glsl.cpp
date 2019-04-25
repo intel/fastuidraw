@@ -32,7 +32,7 @@
 #include <fastuidraw/painter/backend/painter_clip_equations.hpp>
 #include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_custom_brush_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_brush_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/unpack_source_generator.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
@@ -193,7 +193,7 @@ namespace
   class CustomBrushShaderGroup:public VaryingCounts
   {
   public:
-    typedef fastuidraw::glsl::PainterCustomBrushShaderGLSL Shader;
+    typedef fastuidraw::glsl::PainterBrushShaderGLSL Shader;
     typedef fastuidraw::reference_counted_ptr<Shader> Ref;
     std::vector<Ref> m_shaders;
   };
@@ -1782,7 +1782,7 @@ compute_blend_shader_group(PainterShader::Tag tag,
 uint32_t
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 compute_custom_brush_shader_group(PainterShader::Tag tag,
-                                  const reference_counted_ptr<PainterCustomBrushShader> &shader)
+                                  const reference_counted_ptr<PainterBrushShader> &shader)
 {
   FASTUIDRAWunused(shader);
   FASTUIDRAWunused(tag);
@@ -1884,17 +1884,17 @@ compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &
 
 fastuidraw::PainterShader::Tag
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
-absorb_custom_brush_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader)
+absorb_custom_brush_shader(const reference_counted_ptr<PainterBrushShader> &shader)
 {
   PainterShaderRegistrarGLSLPrivate *d;
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
 
-  reference_counted_ptr<PainterCustomBrushShaderGLSL> h;
+  reference_counted_ptr<PainterBrushShaderGLSL> h;
   fastuidraw::PainterShader::Tag return_value;
 
   FASTUIDRAWassert(!shader->parent());
-  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterCustomBrushShaderGLSL>());
-  h = shader.static_cast_ptr<PainterCustomBrushShaderGLSL>();
+  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBrushShaderGLSL>());
+  h = shader.static_cast_ptr<PainterBrushShaderGLSL>();
 
   d->m_custom_brush_shaders.m_shaders.push_back(h);
   d->m_custom_brush_shaders.update_varying_size(h->varyings());
@@ -1909,7 +1909,7 @@ absorb_custom_brush_shader(const reference_counted_ptr<PainterCustomBrushShader>
 
 uint32_t
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
-compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterCustomBrushShader> &shader)
+compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterBrushShader> &shader)
 {
   PainterShader::Tag tg(shader->parent()->tag());
   tg.m_ID += shader->sub_shader();

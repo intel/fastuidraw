@@ -48,8 +48,8 @@ namespace fastuidraw
      * - Blend shaders must be realized as \ref glsl::PainterBlendShaderGLSL
      *   objects or objects derived from \ref glsl::PainterBlendShaderGLSL
      * - Custom brush shaders must be realized as \ref
-     *   glsl::PainterCustomBrushShaderGLSL objects or objects derived from
-     *   \ref glsl::PainterCustomBrushShaderGLSL
+     *   glsl::PainterBrushShaderGLSL objects or objects derived from
+     *   \ref glsl::PainterBrushShaderGLSL
      */
     class PainterEngineGL:
       public glsl::PainterShaderRegistrarGLSLTypes,

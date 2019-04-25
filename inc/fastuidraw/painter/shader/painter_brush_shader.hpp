@@ -1,6 +1,6 @@
 /*!
- * \file painter_custom_brush_shader.hpp
- * \brief file painter_custom_brush_shader.hpp
+ * \file painter_brush_shader.hpp
+ * \brief file painter_brush_shader.hpp
  *
  * Copyright 2019 by Intel.
  *
@@ -29,14 +29,14 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterCustomBrushShader represents a shader
+   * A PainterBrushShader represents a shader
    * for performing a custom brush coloring.
    */
-  class PainterCustomBrushShader:public PainterShader
+  class PainterBrushShader:public PainterShader
   {
   public:
     /*!
-     * Ctor for creating a PainterCustomBrushShader which has multiple
+     * Ctor for creating a PainterBrushShader which has multiple
      * sub-shaders. The purpose of sub-shaders is for the case
      * where multiple shaders have almost same code and those
      * code differences can be realized by examining a sub-shader
@@ -44,17 +44,17 @@ namespace fastuidraw
      * \param num_sub_shaders number of sub-shaders
      */
     explicit
-    PainterCustomBrushShader(unsigned int num_sub_shaders = 1):
+    PainterBrushShader(unsigned int num_sub_shaders = 1):
       PainterShader(num_sub_shaders)
     {}
 
     /*!
-     * Ctor to create a PainterCustomBrushShader realized as a sub-shader
-     * of an existing PainterCustomBrushShader
-     * \param parent parent PainterCustomBrushShader that has sub-shaders
-     * \param sub_shader which sub-shader of the parent PainterCustomBrushShader
+     * Ctor to create a PainterBrushShader realized as a sub-shader
+     * of an existing PainterBrushShader
+     * \param parent parent PainterBrushShader that has sub-shaders
+     * \param sub_shader which sub-shader of the parent PainterBrushShader
      */
-    PainterCustomBrushShader(reference_counted_ptr<PainterCustomBrushShader> parent,
+    PainterBrushShader(reference_counted_ptr<PainterBrushShader> parent,
                              unsigned int sub_shader):
       PainterShader(parent, sub_shader)
     {}

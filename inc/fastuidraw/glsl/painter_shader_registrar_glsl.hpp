@@ -1064,7 +1064,7 @@ namespace fastuidraw
 
       /*!
        * To be optionally implemented by a derived class to
-       * compute the shader group of a PainterCustomBrushShader.
+       * compute the shader group of a PainterBrushShader.
        * The passed shader may or may not be a sub-shader.
        * The mutex() is locked for the duration of the function.
        * Default implementation is to return 0.
@@ -1077,7 +1077,7 @@ namespace fastuidraw
       virtual
       uint32_t
       compute_custom_brush_shader_group(PainterShader::Tag tag,
-                                        const reference_counted_ptr<PainterCustomBrushShader> &shader);
+                                        const reference_counted_ptr<PainterBrushShader> &shader);
 
       virtual
       PainterShader::Tag
@@ -1105,11 +1105,11 @@ namespace fastuidraw
 
       virtual
       PainterShader::Tag
-      absorb_custom_brush_shader(const reference_counted_ptr<PainterCustomBrushShader> &shader) final override;
+      absorb_custom_brush_shader(const reference_counted_ptr<PainterBrushShader> &shader) final override;
 
       virtual
       uint32_t
-      compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterCustomBrushShader> &shader) final override;
+      compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterBrushShader> &shader) final override;
 
     private:
       void *m_d;

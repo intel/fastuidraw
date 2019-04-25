@@ -1,6 +1,6 @@
 /*!
- * \file painter_custom_brush_shader_glsl.hpp
- * \brief file painter_custom_brush_shader_glsl.hpp
+ * \file painter_brush_shader_glsl.hpp
+ * \brief file painter_brush_shader_glsl.hpp
  *
  * Copyright 2019 by Intel.
  *
@@ -21,7 +21,7 @@
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/blend_mode.hpp>
-#include <fastuidraw/painter/shader/painter_custom_brush_shader.hpp>
+#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/varying_list.hpp>
 
@@ -34,7 +34,7 @@ namespace fastuidraw
  */
     /*!
      * \brief
-     * A PainterCustomBrushShaderGLSL is a PainterCustomBrushShader whose
+     * A PainterBrushShaderGLSL is a PainterBrushShader whose
      * shader code fragment is via GLSL.The vertex shader code needs to implement the function:
      * \code
      *   void
@@ -43,7 +43,7 @@ namespace fastuidraw
      *                                 in vec2 brush_p)
      * \endcode
      * where
-     *  - sub_shader corresponds to PainterCustomBrushShader::sub_shader()
+     *  - sub_shader corresponds to PainterBrushShader::sub_shader()
      *  - brush_p is the brush position emitted by the item shader and
      *  - shader_data_offset is what block in the data store for
      *    the data packed by PainterBrushShaderData::pack_data()
@@ -83,7 +83,7 @@ namespace fastuidraw
      * shader code to unpack values from the data in the data store buffer.
      * That machine generated code uses the macro fastuidraw_fetch_data().
      */
-    class PainterCustomBrushShaderGLSL:public PainterCustomBrushShader
+    class PainterBrushShaderGLSL:public PainterBrushShader
     {
     public:
       /*!
@@ -135,10 +135,10 @@ namespace fastuidraw
          */
         DependencyList&
         add_shader(c_string name,
-                   const reference_counted_ptr<const PainterCustomBrushShaderGLSL> &shader);
+                   const reference_counted_ptr<const PainterBrushShaderGLSL> &shader);
 
       private:
-        friend class PainterCustomBrushShaderGLSL;
+        friend class PainterBrushShaderGLSL;
         void *m_d;
       };
 
@@ -149,17 +149,17 @@ namespace fastuidraw
        * \param fragment_src GLSL source holding fragment shader routine
        * \param varyings list of varyings of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
-       * \param dependencies list of other \ref PainterCustomBrushShaderGLSL
+       * \param dependencies list of other \ref PainterBrushShaderGLSL
        *                     that are used directly.
        */
-      PainterCustomBrushShaderGLSL(unsigned int number_context_textures,
+      PainterBrushShaderGLSL(unsigned int number_context_textures,
                                    const ShaderSource &vertex_src,
                                    const ShaderSource &fragment_src,
                                    const varying_list &varyings,
                                    unsigned int num_sub_shaders = 1,
                                    const DependencyList &dependencies = DependencyList());
 
-      ~PainterCustomBrushShaderGLSL(void);
+      ~PainterBrushShaderGLSL(void);
 
       /*!
        * Number of external textures the custum brush uses.
@@ -188,7 +188,7 @@ namespace fastuidraw
       /*!
        * Return the list of shaders on which this shader is dependent.
        */
-      c_array<const reference_counted_ptr<const PainterCustomBrushShaderGLSL> >
+      c_array<const reference_counted_ptr<const PainterBrushShaderGLSL> >
       dependency_list_shaders(void) const;
 
       /*!

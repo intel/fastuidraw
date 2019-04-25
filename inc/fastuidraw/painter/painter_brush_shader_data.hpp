@@ -1,6 +1,6 @@
 /*!
- * \file painter_custom_brush_shader_data.hpp
- * \brief file painter_custom_brush_shader_data.hpp
+ * \file painter_brush_shader_data.hpp
+ * \brief file painter_brush_shader_data.hpp
  *
  * Copyright 2019 by Intel.
  *
