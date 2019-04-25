@@ -40,8 +40,7 @@ class ImageAtlas;
    * An Image represents an image comprising of RGBA8 values.
    * The texel values themselves are stored in a ImageAtlas.
    */
-  class Image:
-    public reference_counted<Image>::concurrent
+  class Image:public resource_base
   {
   public:
     /*!

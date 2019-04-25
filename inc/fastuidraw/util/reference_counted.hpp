@@ -496,6 +496,19 @@ namespace fastuidraw
      */
     typedef reference_counted_base<T, reference_count_atomic> concurrent;
   };
+
+  /*!
+   * \brief
+   * A common base class to use for resources that need to be saved opaquely
+   */
+  class resource_base:
+    public reference_counted<resource_base>::concurrent
+  {
+  public:
+    virtual
+    ~resource_base()
+    {}
+  };
 /*! @} */
 
 } //namespace fastuidraw

@@ -249,8 +249,7 @@ namespace fastuidraw
    * The values of ColorStop::m_place are discretized. Values in between the
    * ColorStop 's of a ColorStopSequence are interpolated.
    */
-  class ColorStopSequenceOnAtlas:
-    public reference_counted<ColorStopSequenceOnAtlas>::concurrent
+  class ColorStopSequenceOnAtlas:public resource_base
   {
   public:
     /*!
