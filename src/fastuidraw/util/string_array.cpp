@@ -33,8 +33,20 @@ namespace
 
     StringArrayPrivate(const StringArrayPrivate &obj):
       m_strings(obj.m_strings),
-      m_c_strings_ready(obj.m_strings.empty())
-    {}
+      m_c_strings_ready(false)
+    {
+    }
+
+    StringArrayPrivate&
+    operator=(const StringArrayPrivate &rhs)
+    {
+      if (&rhs != this)
+        {
+          m_strings = rhs.m_strings;
+          m_c_strings_ready = false;
+        }
+      return *this;
+    }
 
     void
     ready_c_strings(void)
