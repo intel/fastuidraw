@@ -34,7 +34,7 @@ namespace fastuidraw
    * as according to PainterDashedStrokeParams::stroke_data_offset_t.
    * Data for dashing is packed [TODO describe].
    */
-  class PainterDashedStrokeParams:public PainterItemShaderData, noncopyable
+  class PainterDashedStrokeParams:public PainterItemShaderData
   {
   public:
     /*!
@@ -101,7 +101,26 @@ namespace fastuidraw
      */
     PainterDashedStrokeParams(void);
 
+    /*!
+     * Copy ctor.
+     */
+    PainterDashedStrokeParams(const PainterDashedStrokeParams &obj);
+
     ~PainterDashedStrokeParams();
+
+    /*!
+     * Assignment operator.
+     * \param obj value from which to copy
+     */
+    PainterDashedStrokeParams&
+    operator=(const PainterDashedStrokeParams &obj);
+
+    /*!
+     * Swap operation
+     * \param obj object with which to swap
+     */
+    void
+    swap(PainterDashedStrokeParams &obj);
 
     /*!
      * The miter limit for miter joins

@@ -62,11 +62,11 @@ namespace fastuidraw
     void
     swap(PainterPackedValueBase &obj);
 
-    const void*
-    raw_value(void) const;
-
     c_array<generic_data>
     packed_data(void) const;
+
+    c_array<const reference_counted_ptr<const Image> >
+    bind_images(void) const;
 
     void *m_d;
   };
@@ -89,7 +89,7 @@ namespace fastuidraw
   class PainterPackedValue:PainterPackedValueBase
   {
   private:
-    typedef const T& (PainterPackedValue::*unspecified_bool_type)(void) const;
+    typedef void (PainterPackedValue::*unspecified_bool_type)(void);
 
   public:
     /*!
@@ -130,22 +130,17 @@ namespace fastuidraw
     c_array<generic_data>
     packed_data(void) const
     {
-      FASTUIDRAWassert(this->m_d);
       return PainterPackedValueBase::packed_data();
     }
 
     /*!
-     * Returns the value to which the handle points.
-     * If the handle is not-valid, then FASTUIDRAWasserts.
+     * Returns the images needed for binding,
+     * only makes sense when T = \ref PainterBrushShaderData
      */
-    const T&
-    value(void) const
+    c_array<const reference_counted_ptr<const Image> >
+    bind_images(void) const
     {
-      const T *p;
-
-      FASTUIDRAWassert(this->m_d);
-      p = static_cast<const T*>(this->raw_value());
-      return *p;
+      return PainterPackedValueBase::bind_images();
     }
 
     /*!
@@ -156,7 +151,7 @@ namespace fastuidraw
     operator
     unspecified_bool_type(void) const
     {
-      return this->m_d ? &PainterPackedValue::value : 0;
+      return this->m_d ? &PainterPackedValue::reset : 0;
     }
 
     /*!
@@ -211,88 +206,5 @@ namespace fastuidraw
     {}
   };
 
-  /*!
-   * \brief
-   * A PainterPackedValuePool can be used to create PainterPackedValue
-   * objects.
-   *
-   * Just like PainterPackedValue, PainterPackedValuePool is
-   * NOT thread safe, as such it is not a safe operation to use the
-   * same PainterPackedValuePool object from multiple threads at the
-   * same time. A fixed PainterPackedValuePool can create \ref
-   * PainterPackedValue objects used by different \ref Painter objects.
-   */
-  class PainterPackedValuePool:noncopyable
-  {
-  public:
-    /*!
-     * Ctor.
-     */
-    explicit
-    PainterPackedValuePool(void);
-
-    ~PainterPackedValuePool();
-
-    /*!
-     * Create and return a PainterPackedValue<PainterBrush>
-     * object for the value of a PainterBrush object.
-     * \param value data to pack into returned PainterPackedValue
-     */
-    PainterPackedValue<PainterBrush>
-    create_packed_value(const PainterBrush &value);
-
-    /*!
-     * Create and return a PainterPackedValue<PainterClipEquations>
-     * object for the value of a PainterClipEquations object.
-     * \param value data to pack into returned PainterPackedValue
-     */
-    PainterPackedValue<PainterClipEquations>
-    create_packed_value(const PainterClipEquations &value);
-
-    /*!
-     * Create and return a PainterPackedValue<PainterItemMatrix>
-     * object for the value of a PainterItemMatrix object.
-     * \param value data to pack into returned PainterPackedValue
-     */
-    PainterPackedValue<PainterItemMatrix>
-    create_packed_value(const PainterItemMatrix &value);
-
-    /*!
-     * Create and return a PainterPackedValue<PainterItemShaderData>
-     * object for the value of a PainterItemShaderData object.
-     * \param value data to pack into returned PainterPackedValue
-     */
-    PainterPackedValue<PainterItemShaderData>
-    create_packed_value(const PainterItemShaderData &value);
-
-    /*!
-     * Create and return a PainterPackedValue<PainterBlendShaderData>
-     * object for the value of a PainterBlendShaderData object.
-     * \param value data to pack into returned PainterPackedValue
-     */
-    PainterPackedValue<PainterBlendShaderData>
-    create_packed_value(const PainterBlendShaderData &value);
-
-    /*!
-     * Create and return a PainterPackedValue<PainterCustomBrushShaderData>
-     * object for the value of a PainterCustomBrushShaderData object.
-     * \param value data to pack into returned PainterPackedValue
-     */
-    PainterPackedValue<PainterCustomBrushShaderData>
-    create_packed_value(const PainterCustomBrushShaderData &value);
-
-    /*!
-     * Create and return a PainterPackedValue<PainterBrushAdjust>
-     * object for the value of a PainterBrushAdjust object.
-     * \param value data to pack into returned PainterPackedValue
-     */
-    PainterPackedValue<PainterBrushAdjust>
-    create_packed_value(const PainterBrushAdjust &value);
-
-  private:
-    void *m_d;
-  };
-
 /*! @} */
-
 }

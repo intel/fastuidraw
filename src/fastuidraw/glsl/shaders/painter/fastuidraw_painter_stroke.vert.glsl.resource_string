@@ -49,14 +49,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   if (dash_style != fastuidraw_stroke_not_dashed)
     {
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, dashed_stroke_params);
-      stroke_width_pixels = (dashed_stroke_params.radius < 0.0);
+      stroke_width_pixels = (dashed_stroke_params.stroking_units == fastuidraw_stroke_pixel_units);
       stroke_radius = abs(dashed_stroke_params.radius);
       miter_limit = dashed_stroke_params.miter_limit;
     }
   else
     {
       fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
-      stroke_width_pixels = (stroke_params.radius < 0.0);
+      stroke_width_pixels = (stroke_params.stroking_units == fastuidraw_stroke_pixel_units);
       stroke_radius = abs(stroke_params.radius);
       miter_limit = stroke_params.miter_limit;
     }

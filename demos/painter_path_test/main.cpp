@@ -481,13 +481,13 @@ private:
   vecN<std::string, PainterBrush::number_spread_types> m_spread_type_labels;
   vecN<std::string, fill_by_number_modes> m_fill_by_mode_labels;
 
-  PainterPackedValue<PainterBrush> m_black_pen;
-  PainterPackedValue<PainterBrush> m_white_pen;
-  PainterPackedValue<PainterBrush> m_stroke_pen;
-  PainterPackedValue<PainterBrush> m_draw_line_pen;
-  PainterPackedValue<PainterBrush> m_blue_pen;
-  PainterPackedValue<PainterBrush> m_red_pen;
-  PainterPackedValue<PainterBrush> m_green_pen;
+  PainterData::brush_value m_black_pen;
+  PainterData::brush_value m_white_pen;
+  PainterData::brush_value m_stroke_pen;
+  PainterData::brush_value m_draw_line_pen;
+  PainterData::brush_value m_blue_pen;
+  PainterData::brush_value m_red_pen;
+  PainterData::brush_value m_green_pen;
 
   Path m_rect;
 
@@ -1640,12 +1640,12 @@ painter_stroke_test::
 draw_scene(bool drawing_wire_frame)
 {
   m_painter->save();
-  if (!m_draw_line_pen)
+  if (!m_draw_line_pen.packed())
     {
       PainterBrush br;
       br.color(m_draw_line_red.value(), m_draw_line_green.value(),
              m_draw_line_blue.value(), m_draw_line_alpha.value());
-      m_draw_line_pen = m_painter->packed_value_pool().create_packed_value(br);
+      m_draw_line_pen = m_painter->packed_value_pool().create_packed_brush(br);
     }
 
   if (m_paths[m_selected_path].m_from_glyph)
@@ -1844,13 +1844,13 @@ draw_scene(bool drawing_wire_frame)
 
       inv_scale = 1.0f / zoomer().transformation().scale();
       r = 15.0f * inv_scale;
-      if (!m_blue_pen)
+      if (!m_blue_pen.packed())
         {
-          FASTUIDRAWassert(!m_red_pen);
-          FASTUIDRAWassert(!m_green_pen);
-          m_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(0.0, 0.0, 1.0, 1.0));
-          m_red_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(1.0, 0.0, 0.0, 1.0));
-          m_green_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(0.0, 1.0, 0.0, 1.0));
+          FASTUIDRAWassert(!m_red_pen.packed());
+          FASTUIDRAWassert(!m_green_pen.packed());
+          m_blue_pen = m_painter->packed_value_pool().create_packed_brush(PainterBrush().color(0.0, 0.0, 1.0, 1.0));
+          m_red_pen = m_painter->packed_value_pool().create_packed_brush(PainterBrush().color(1.0, 0.0, 0.0, 1.0));
+          m_green_pen = m_painter->packed_value_pool().create_packed_brush(PainterBrush().color(0.0, 1.0, 0.0, 1.0));
         }
 
       for (const vec2 &pt : m_paths[m_selected_path].m_pts)
@@ -1869,16 +1869,16 @@ draw_scene(bool drawing_wire_frame)
         }
     }
 
-  if (!m_stroke_pen)
+  if (!m_stroke_pen.packed())
     {
       PainterBrush br;
       br.color(m_stroke_red.value(), m_stroke_green.value(), m_stroke_blue.value(), m_stroke_alpha.value());
-      m_stroke_pen = m_painter->packed_value_pool().create_packed_value(br);
+      m_stroke_pen = m_painter->packed_value_pool().create_packed_brush(br);
     }
 
   if (m_stroke_width > 0.0f)
     {
-      PainterPackedValue<PainterBrush> *stroke_pen;
+      PainterData::brush_value *stroke_pen;
       stroke_pen = (!drawing_wire_frame) ? &m_stroke_pen : &m_draw_line_pen;
 
       if (m_draw_fill == draw_fill_path_occludes_stroking)
@@ -1966,11 +1966,11 @@ draw_scene(bool drawing_wire_frame)
           r1 *= inv_scale;
         }
 
-      if (!m_black_pen)
+      if (!m_black_pen.packed())
         {
-          FASTUIDRAWassert(!m_white_pen);
-          m_white_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(1.0, 1.0, 1.0, 1.0));
-          m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().color(0.0, 0.0, 0.0, 1.0));
+          FASTUIDRAWassert(!m_white_pen.packed());
+          m_white_pen = m_painter->packed_value_pool().create_packed_brush(PainterBrush().color(1.0, 1.0, 1.0, 1.0));
+          m_black_pen = m_painter->packed_value_pool().create_packed_brush(PainterBrush().color(0.0, 0.0, 0.0, 1.0));
         }
 
       fill_centered_rect(p0, r1, PainterData(m_black_pen));

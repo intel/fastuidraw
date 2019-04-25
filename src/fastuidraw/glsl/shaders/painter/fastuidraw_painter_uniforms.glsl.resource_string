@@ -33,8 +33,8 @@
    * The array of \ref fastuidraw::Image objects whose \ref fastuidraw::Image::type()
    * has value \ref fastuidraw::Image::context_texture2d that are currently bound.
    * For \ref fastuidraw::PainterBrush if it has such an image, it is always bound
-   * to fastuidraw_context_texture[0] and for \ref fastuidraw::PainterCustomBrushShaderData,
-   * the i'th index into \ref fastuidraw::PainterCustomBrushShaderData is bound to
+   * to fastuidraw_context_texture[0] and for \ref fastuidraw::PainterBrushShaderData,
+   * the i'th index into \ref fastuidraw::PainterBrushShaderData is bound to
    * fastuidraw_context_texture[i]
    */
   uniform sampler2D fastuidraw_context_texture[FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES];

@@ -130,7 +130,7 @@ are
   and \ref fastuidraw::PainterItemCoverageShader
 - \ref fastuidraw::PainterBlendShaderData for \ref fastuidraw::PainterBlendShader
 - \ref fastuidraw::PainterBrush for the built-in brush of FastUIDraw
-- \ref fastuidraw::PainterCustomBrushShaderData for \ref fastuidraw::PainterCustomBrushShader
+- \ref fastuidraw::PainterBrushShaderData for \ref fastuidraw::PainterCustomBrushShader
   for custom brushes
 
 

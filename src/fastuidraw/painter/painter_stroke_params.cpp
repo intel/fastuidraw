@@ -56,18 +56,24 @@ fastuidraw::PainterStrokeParams::
   FASTUIDRAWdelete(d);
 }
 
-setget_implement_callback(fastuidraw::PainterStrokeParams,
-                          PainterStrokeParamsPrivate,
-                          float, radius, mark_dirty())
+copy_ctor(fastuidraw::PainterStrokeParams,
+          PainterStrokeParams,
+          PainterStrokeParamsPrivate)
 
-setget_implement_callback(fastuidraw::PainterStrokeParams,
-                          PainterStrokeParamsPrivate,
-                          float, miter_limit, mark_dirty())
+assign_swap_implement(fastuidraw::PainterStrokeParams)
 
-setget_implement_callback(fastuidraw::PainterStrokeParams,
-                          PainterStrokeParamsPrivate,
-                          enum fastuidraw::PainterStrokeParams::stroking_units_t,
-                          stroking_units, mark_dirty())
+setget_implement(fastuidraw::PainterStrokeParams,
+                 PainterStrokeParamsPrivate,
+                 float, radius)
+
+setget_implement(fastuidraw::PainterStrokeParams,
+                 PainterStrokeParamsPrivate,
+                 float, miter_limit)
+
+setget_implement(fastuidraw::PainterStrokeParams,
+                 PainterStrokeParamsPrivate,
+                 enum fastuidraw::PainterStrokeParams::stroking_units_t,
+                 stroking_units)
 
 float
 fastuidraw::PainterStrokeParams::
@@ -87,7 +93,7 @@ unsigned int
 fastuidraw::PainterStrokeParams::
 data_size(void) const
 {
-  return PainterStrokeParams::stroke_data_size;
+  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterStrokeParams::stroke_data_size);
 }
 
 void

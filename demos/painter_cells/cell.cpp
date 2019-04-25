@@ -60,6 +60,15 @@ Cell(PainterWidget *p, const CellParams &params):
 
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);
+
+  if (params.m_image)
+    {
+      m_rect_dims = vec2(params.m_image->dimensions());
+    }
+  else
+    {
+      m_rect_dims = vec2(m_dimensions) * 0.25f;
+    }
 }
 
 void
@@ -145,14 +154,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   if (m_shared_state->m_draw_image)
     {
       vec2 wh;
-      if (m_image_brush.value().image())
-        {
-          wh = vec2(m_image_brush.value().image()->dimensions());
-        }
-      else
-        {
-          wh = vec2(m_dimensions) * 0.25f;
-        }
+      wh = m_rect_dims;
       painter->save();
       painter->translate(-wh * 0.5f);
       painter->blend_shader(m_shared_state->m_rect_blend_mode);

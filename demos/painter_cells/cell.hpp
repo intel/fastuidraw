@@ -47,10 +47,12 @@ public:
   reference_counted_ptr<FontDatabase> m_font_database;
   reference_counted_ptr<GlyphCache> m_glyph_cache;
   reference_counted_ptr<const FontBase> m_font;
-  PainterPackedValue<PainterBrush> m_background_brush;
-  PainterPackedValue<PainterBrush> m_image_brush;
-  PainterPackedValue<PainterBrush> m_text_brush;
-  PainterPackedValue<PainterBrush> m_line_brush;
+  PainterData::brush_value m_background_brush;
+  PainterData::brush_value m_image_brush;
+  PainterData::brush_value m_text_brush;
+  PainterData::brush_value m_line_brush;
+  const Image *m_image;
+  ivec2 m_rect_dims;
   std::string m_text;
   std::string m_image_name;
   vec2 m_pixels_per_ms;
@@ -86,14 +88,15 @@ private:
   int m_thousandths_degrees_cell_rotation;
 
   vec2 m_table_pos;
+  vec2 m_rect_dims;
 
   vec2 m_pixels_per_ms;
   int m_degrees_per_s;
 
-  PainterPackedValue<PainterBrush> m_background_brush;
-  PainterPackedValue<PainterBrush> m_image_brush;
-  PainterPackedValue<PainterBrush> m_text_brush;
-  PainterPackedValue<PainterBrush> m_line_brush;
+  PainterData::brush_value m_background_brush;
+  PainterData::brush_value m_image_brush;
+  PainterData::brush_value m_text_brush;
+  PainterData::brush_value m_line_brush;
 
   vec2 m_item_location;
   float m_item_rotation;

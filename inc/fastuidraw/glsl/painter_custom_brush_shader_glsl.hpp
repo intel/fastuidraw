@@ -46,8 +46,8 @@ namespace fastuidraw
      *  - sub_shader corresponds to PainterCustomBrushShader::sub_shader()
      *  - brush_p is the brush position emitted by the item shader and
      *  - shader_data_offset is what block in the data store for
-     *    the data packed by PainterCustomBrushShaderData::pack_data()
-     *    of the PainterCustomBrushShaderData in the \ref Painter call;
+     *    the data packed by PainterBrushShaderData::pack_data()
+     *    of the PainterBrushShaderData in the \ref Painter call;
      *    use the macro fastuidraw_fetch_data() to read the data.
      *
      * The fragment shader code needs to implement the function:

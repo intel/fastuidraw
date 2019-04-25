@@ -111,16 +111,12 @@ namespace fastuidraw
 
     /*!
      * Ctor.
-     * \param pool pool with which to make a default brush; this brush
-     *             is used when draw_generic() is called and the passed
-     *             PainterData object lacks a brush value
      * \param stats location to which to update stat values
      * \param backend handle to PainterBackend for the constructed PainterPacker
      * \param config configuration from PainterEngine
      */
     explicit
-    PainterPacker(PainterPackedValuePool &pool,
-                  vecN<unsigned int, num_stats> &stats,
+    PainterPacker(vecN<unsigned int, num_stats> &stats,
                   reference_counted_ptr<PainterBackend> backend,
                   const PainterEngine::ConfigurationBase &config);
 
@@ -409,6 +405,9 @@ namespace fastuidraw
     unsigned int
     compute_room_needed_for_packing(const PainterData::value<T> &obj);
 
+    unsigned int
+    compute_room_needed_for_packing(const detail::PackedValuePoolBase::ElementBase* d);
+
     template<typename T, typename ShaderType>
     void
     draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
@@ -421,7 +420,6 @@ namespace fastuidraw
     flush_implement(void);
 
     reference_counted_ptr<PainterBackend> m_backend;
-    PainterData::value<PainterBrush> m_default_brush;
     unsigned int m_header_size;
 
     PainterBlendShader *m_blend_shader;

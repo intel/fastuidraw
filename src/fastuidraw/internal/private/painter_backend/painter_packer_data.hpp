@@ -20,6 +20,7 @@
 
 #include <fastuidraw/painter/painter_data.hpp>
 #include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
+#include <private/painter_backend/painter_packed_value_pool_private.hpp>
 
 namespace fastuidraw
 {
@@ -54,17 +55,17 @@ namespace fastuidraw
     /*!
      * value for the clip equations.
      */
-    value<PainterClipEquations> m_clip;
+    detail::PackedValuePool<fastuidraw::PainterClipEquations>::ElementHandle m_clip;
 
     /*!
      * value for the transformation matrix.
      */
-    value<PainterItemMatrix> m_matrix;
+    detail::PackedValuePool<fastuidraw::PainterItemMatrix>::ElementHandle m_matrix;
 
     /*!
      * value for the brush adjust
      */
-    value<PainterBrushAdjust> m_brush_adjust;
+    detail::PackedValuePool<fastuidraw::PainterBrushAdjust>::ElementHandle m_brush_adjust;
   };
 
 /*! @} */

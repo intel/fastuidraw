@@ -62,7 +62,7 @@ namespace fastuidraw
    *  -# an optional repeat window is applied, see \ref
    *     repeat_window() and \ref no_repeat_window().
    */
-  class PainterBrush:public PainterCustomBrushShaderData
+  class PainterBrush:public PainterBrushShaderData
   {
   public:
     /*!
@@ -713,6 +713,13 @@ namespace fastuidraw
     {}
 
     /*!
+     * Copy ctor.
+     */
+    PainterBrush(const PainterBrush &obj):
+      m_data(obj.m_data)
+    {}
+
+    /*!
      * Ctor. Initializes the brush to have no image, no gradient,
      * no repeat window and no transformation with the given
      * color color.
@@ -721,6 +728,17 @@ namespace fastuidraw
     PainterBrush(const vec4 &pcolor)
     {
       m_data.m_color = pcolor;
+    }
+
+    /*!
+     * Assignment operator.
+     * \param obj value from which to copy
+     */
+    PainterBrush&
+    operator=(const PainterBrush &obj)
+    {
+      m_data = obj.m_data;
+      return *this;
     }
 
     /*!
@@ -817,7 +835,6 @@ namespace fastuidraw
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
-      mark_dirty();
       return *this;
     }
 
@@ -850,7 +867,6 @@ namespace fastuidraw
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
-      mark_dirty();
       return *this;
     }
 
@@ -901,7 +917,6 @@ namespace fastuidraw
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
-      mark_dirty();
       return *this;
     }
 
@@ -970,7 +985,6 @@ namespace fastuidraw
     {
       m_data.m_cs = reference_counted_ptr<const ColorStopSequenceOnAtlas>();
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
-      mark_dirty();
       return *this;
     }
 
@@ -1009,7 +1023,6 @@ namespace fastuidraw
     {
       m_data.m_transformation_p = p;
       m_data.m_shader_raw |= transformation_translation_mask;
-      mark_dirty();
       return *this;
     }
 
@@ -1031,7 +1044,6 @@ namespace fastuidraw
     {
       m_data.m_transformation_matrix = m;
       m_data.m_shader_raw |= transformation_matrix_mask;
-      mark_dirty();
       return *this;
     }
 
@@ -1053,7 +1065,6 @@ namespace fastuidraw
     {
       m_data.m_shader_raw |= transformation_matrix_mask;
       m_data.m_transformation_matrix = m_data.m_transformation_matrix * m;
-      mark_dirty();
       return *this;
     }
 
@@ -1070,7 +1081,6 @@ namespace fastuidraw
       m_data.m_transformation_matrix(1, 0) *= sx;
       m_data.m_transformation_matrix(0, 1) *= sy;
       m_data.m_transformation_matrix(1, 1) *= sy;
-      mark_dirty();
       return *this;
     }
 
@@ -1102,7 +1112,6 @@ namespace fastuidraw
     {
       m_data.m_transformation_p += m_data.m_transformation_matrix * p;
       m_data.m_shader_raw |= transformation_translation_mask;
-      mark_dirty();
       return *this;
     }
 
@@ -1128,7 +1137,6 @@ namespace fastuidraw
     {
       m_data.m_shader_raw &= ~transformation_translation_mask;
       m_data.m_transformation_p = vec2(0.0f, 0.0f);
-      mark_dirty();
       return *this;
     }
 
@@ -1140,7 +1148,6 @@ namespace fastuidraw
     {
       m_data.m_shader_raw &= ~transformation_matrix_mask;
       m_data.m_transformation_matrix = float2x2();
-      mark_dirty();
       return *this;
     }
 
@@ -1177,7 +1184,6 @@ namespace fastuidraw
       m_data.m_shader_raw |= pack_bits(repeat_window_y_spread_type_bit0,
                                        spread_type_num_bits,
                                        y_mode);
-      mark_dirty();
       return *this;
     }
 
@@ -1231,7 +1237,6 @@ namespace fastuidraw
     no_repeat_window(void)
     {
       m_data.m_shader_raw &= ~(repeat_window_mask | repeat_window_spread_type_mask);
-      mark_dirty();
       return *this;
     }
 
@@ -1336,19 +1341,12 @@ namespace fastuidraw
       return 2;
     }
 
-    unsigned int
-    number_bind_images(void) const override
+    c_array<const reference_counted_ptr<const Image> >
+    bind_images(void) const override
     {
-      return (image_requires_binding()) ? 1 : 0;
-    }
-
-    void
-    save_bind_images(c_array<reference_counted_ptr<const Image> > dst) const override
-    {
-      if (image_requires_binding())
-        {
-          dst[0] = m_data.m_image;
-        }
+      return (image_requires_binding()) ?
+        c_array<const reference_counted_ptr<const Image> >(&m_data.m_image, 1) :
+        c_array<const reference_counted_ptr<const Image> >();
     }
 
   private:

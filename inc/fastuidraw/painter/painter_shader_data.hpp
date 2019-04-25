@@ -32,51 +32,16 @@ namespace fastuidraw
   /*!
    * \brief
    * Common base class to \ref PainterItemShaderData,
-   * \ref PainterCustomBrushShaderData and \ref
+   * \ref PainterBrushShaderData and \ref
    * PainterBlendShaderData to hold shader data for
    * custom shaders.
    */
-  class PainterShaderData
+  class PainterShaderData:noncopyable
   {
   public:
-    /*!
-     * Ctor.
-     */
-    PainterShaderData(void);
-
-    /*!
-     * Copy ctor.
-     */
-    PainterShaderData(const PainterShaderData &obj);
-
     virtual
-    ~PainterShaderData();
-
-    /*!
-     * Assignment operator
-     */
-    PainterShaderData&
-    operator=(const PainterShaderData &rhs);
-
-    /*!
-     * Swap operation
-     * \param obj object with which to swap
-     */
-    void
-    swap(PainterShaderData &obj);
-
-    /*!
-     * Returns the data packed. The length of the returned
-     * array is guaranteed to be a multiple of 4.
-     */
-    c_array<const generic_data>
-    packed_data(void) const;
-
-    /*!
-     * Returns the resources used by this \ref PainterShaderData
-     */
-    c_array<const reference_counted_ptr<const resource_base> >
-    resources(void) const;
+    ~PainterShaderData()
+    {}
 
     /*!
      * To be implemented by a derived class to pack the
@@ -85,10 +50,7 @@ namespace fastuidraw
      */
     virtual
     void
-    pack_data(c_array<generic_data> dst) const
-    {
-      FASTUIDRAWunused(dst);
-    }
+    pack_data(c_array<generic_data> dst) const = 0;
 
     /*!
      * To be implemented by a derived class to return
@@ -96,10 +58,7 @@ namespace fastuidraw
      */
     virtual
     unsigned int
-    data_size(void) const
-    {
-      return 0;
-    }
+    data_size(void) const = 0;
 
     /*!
      * To be optionally implemented by a derived class to
@@ -124,18 +83,7 @@ namespace fastuidraw
     number_resources(void) const
     {
       return 0;
-    }
-
-    /*!
-     * To be called by a derived class to indicate that the nature of
-     * the data so that either data_size() or pack_data() will do
-     * something different than what the last call to them did.
-     */
-    void
-    mark_dirty(void);
-
-  private:
-    void *m_d;
+    };
   };
 
   /*!

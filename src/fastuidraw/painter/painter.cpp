@@ -245,6 +245,42 @@ namespace
     return &shader.shader(st, tp);
   }
 
+  class ExtendedPool:public fastuidraw::PainterPackedValuePool
+  {
+  public:
+    typedef fastuidraw::detail::PackedValuePool<fastuidraw::PainterClipEquations> ClipEquationsPool;
+    typedef fastuidraw::detail::PackedValuePool<fastuidraw::PainterItemMatrix> ItemMatrixPool;
+    typedef fastuidraw::detail::PackedValuePool<fastuidraw::PainterBrushAdjust> BrushAdjustPool;
+    typedef ClipEquationsPool::ElementHandle PackedClipEquations;
+    typedef ItemMatrixPool::ElementHandle PackedItemMatrix;
+    typedef BrushAdjustPool::ElementHandle PackedBrushAdjust;
+
+    using fastuidraw::PainterPackedValuePool::create_packed_value;
+
+    PackedClipEquations
+    create_packed_value(const fastuidraw::PainterClipEquations &cp)
+    {
+      return m_clip_equations_pool.allocate(cp);
+    }
+
+    PackedItemMatrix
+    create_packed_value(const fastuidraw::PainterItemMatrix &cp)
+    {
+      return m_item_matrix_pool.allocate(cp);
+    }
+
+    PackedBrushAdjust
+    create_packed_value(const fastuidraw::PainterBrushAdjust &cp)
+    {
+      return m_brush_adjust_pool.allocate(cp);
+    }
+
+  private:
+    ClipEquationsPool::Holder m_clip_equations_pool;
+    ItemMatrixPool::Holder m_item_matrix_pool;
+    BrushAdjustPool::Holder m_brush_adjust_pool;
+  };
+
   class clip_rect
   {
   public:
@@ -386,7 +422,7 @@ namespace
     set_clip_equations_to_clip_rect(enum rect_coordinate_type_t c);
 
     std::bitset<4>
-    set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &prev_clip,
+    set_clip_equations_to_clip_rect(const ExtendedPool::PackedClipEquations &prev_clip,
                                     enum rect_coordinate_type_t c);
 
     const fastuidraw::float3x3&
@@ -397,11 +433,11 @@ namespace
     {
       if (m_override_matrix_state)
         {
-          return m_override_matrix_state.value().m_item_matrix;
+          return m_override_matrix_state.unpacked_value().m_item_matrix;
         }
 
       return (m_item_matrix_state) ?
-        m_item_matrix_state.value().m_item_matrix :
+        m_item_matrix_state.unpacked_value().m_item_matrix :
         m_item_matrix.m_item_matrix;
     }
 
@@ -432,11 +468,11 @@ namespace
     clip_equations(const fastuidraw::PainterClipEquations &v)
     {
       m_clip_equations = v;
-      m_clip_equations_state = fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>();
+      m_clip_equations_state.reset();
     }
 
-    const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
-    current_item_matrix_state(fastuidraw::PainterPackedValuePool &pool) const
+    const ExtendedPool::PackedItemMatrix&
+    current_item_matrix_state(ExtendedPool &pool) const
     {
       if (m_override_matrix_state)
         {
@@ -456,7 +492,7 @@ namespace
      * state value and to restore it back to the previous state.
      */
     void
-    override_item_matrix_state(const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> &v)
+    override_item_matrix_state(const ExtendedPool::PackedItemMatrix &v)
     {
       m_override_matrix_state = v;
     }
@@ -464,11 +500,11 @@ namespace
     void
     stop_override_item_matrix_state(void)
     {
-      m_override_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+      m_override_matrix_state.reset();
     }
 
-    const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
-    current_item_matrix_coverage_buffer_state(fastuidraw::PainterPackedValuePool &pool)
+    const ExtendedPool::PackedItemMatrix&
+    current_item_matrix_coverage_buffer_state(ExtendedPool &pool)
     {
       FASTUIDRAWassert(!m_override_matrix_state);
       if (!m_item_matrix_coverage_buffer_state)
@@ -485,12 +521,12 @@ namespace
     void
     coverage_buffer_normalized_translate(fastuidraw::vec2 v)
     {
-      m_item_matrix_coverage_buffer_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+      m_item_matrix_coverage_buffer_state.reset();
       m_coverage_buffer_normalized_translate = v;
     }
 
-    const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>&
-    clip_equations_state(fastuidraw::PainterPackedValuePool &pool) const
+    const ExtendedPool::PackedClipEquations&
+    clip_equations_state(ExtendedPool &pool) const
     {
       if (!m_clip_equations_state)
         {
@@ -500,10 +536,10 @@ namespace
     }
 
     void
-    clip_equations_state(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &v)
+    clip_equations_state(const ExtendedPool::PackedClipEquations &v)
     {
       m_clip_equations_state = v;
-      m_clip_equations = v.value();
+      m_clip_equations = v.unpacked_value();
     }
 
     bool
@@ -523,7 +559,7 @@ namespace
     void
     set_normalized_device_translate(const fastuidraw::vec2 &v)
     {
-      m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+      m_item_matrix_state.reset();
       m_item_matrix.m_normalized_translate = v;
     }
 
@@ -552,18 +588,18 @@ namespace
     mutable enum matrix_type_t m_matrix_type;
     bool m_item_matrix_transition_tricky;
     fastuidraw::PainterItemMatrix m_item_matrix;
-    mutable fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_state;
+    mutable ExtendedPool::PackedItemMatrix m_item_matrix_state;
     fastuidraw::PainterClipEquations m_clip_equations;
-    mutable fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_equations_state;
+    mutable ExtendedPool::PackedClipEquations m_clip_equations_state;
     fastuidraw::vec2 m_coverage_buffer_normalized_translate;
-    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_item_matrix_coverage_buffer_state;
+    ExtendedPool::PackedItemMatrix m_item_matrix_coverage_buffer_state;
     mutable bool m_inverse_transpose_ready;
     fastuidraw::vec2 m_viewport_dimensions;
     mutable fastuidraw::float3x3 m_item_matrix_inverse_transpose;
     mutable bool m_item_matrix_singular_values_ready;
     mutable fastuidraw::vec2 m_item_matrix_singular_values;
 
-    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_override_matrix_state;
+    ExtendedPool::PackedItemMatrix m_override_matrix_state;
   };
 
   class occluder_stack_entry
@@ -693,7 +729,7 @@ namespace
     /* identity matrix state; this is needed because PainterItemMatrix
      * also stores the normalized translation.
      */
-    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_identity_matrix;
+    ExtendedPool::PackedItemMatrix m_identity_matrix;
   };
 
   class EffectsLayerFactory
@@ -760,7 +796,7 @@ namespace
                                      fastuidraw::ivec2 p_min_corner_in_surface,
                                      const BufferRect &buffer_rect,
                                      const fastuidraw::PainterSurface::Viewport &vwp,
-                                     const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &p_clip_eq_state):
+                                     const ExtendedPool::PackedClipEquations &p_clip_eq_state):
       m_packer(p_packer),
       m_normalized_translate(buffer_rect.compute_normalized_translate(p_min_corner_in_surface, vwp)),
       m_root_surface_min_corner(buffer_rect.m_bl),
@@ -806,7 +842,7 @@ namespace
       return m_normalized_translate;
     }
 
-    const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>&
+    const ExtendedPool::PackedClipEquations&
     clip_eq_state(void) const
     {
       return m_clip_eq_state ;
@@ -838,7 +874,7 @@ namespace
      * drawing is clipped to within the region
      * of the coverage for this entry only
      */
-    fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip_eq_state;
+    ExtendedPool::PackedClipEquations m_clip_eq_state;
 
     /* The bottom left corner of the source rect
      * relative to the root surface.
@@ -1090,7 +1126,7 @@ namespace
   public:
     explicit
     RoundedRectTransformations(const fastuidraw::RoundedRect &R,
-                               fastuidraw::PainterPackedValuePool *pool = nullptr)
+                               ExtendedPool *pool = nullptr)
     {
       using namespace fastuidraw;
 
@@ -1120,7 +1156,7 @@ namespace
     }
 
     fastuidraw::vecN<fastuidraw::PainterBrushAdjust, 4> m_adjusts;
-    fastuidraw::vecN<fastuidraw::PainterPackedValue<fastuidraw::PainterBrushAdjust>, 4> m_packed_adjusts;
+    fastuidraw::vecN<ExtendedPool::PackedBrushAdjust, 4> m_packed_adjusts;
   };
 
   fastuidraw::PainterAttribute
@@ -1731,7 +1767,7 @@ namespace
         m_deferred_coverage_stack.back().packer();
     }
 
-    const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
+    const ExtendedPool::PackedItemMatrix&
     identity_matrix(void)
     {
       return m_effects_layer_stack.empty() ?
@@ -1745,7 +1781,7 @@ namespace
 
     DefaultGlyphRendererChooser m_default_glyph_renderer_chooser;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker> m_root_packer;
-    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_root_identity_matrix;
+    ExtendedPool::PackedItemMatrix m_root_identity_matrix;
     fastuidraw::vecN<unsigned int, fastuidraw::PainterPacker::num_stats> m_stats;
     fastuidraw::PainterSurface::Viewport m_viewport;
     fastuidraw::vec2 m_viewport_dimensions;
@@ -1766,9 +1802,9 @@ namespace
     fastuidraw::PainterEngine::PerformanceHints m_hints;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectColorModulate> m_color_modulate_fx;
     fastuidraw::PainterShaderSet m_default_shaders;
-    fastuidraw::PainterPackedValuePool m_pool;
-    fastuidraw::PainterPackedValue<fastuidraw::PainterBrush> m_reset_brush, m_black_brush;
-    const fastuidraw::PainterPackedValue<fastuidraw::PainterBrushAdjust> *m_current_brush_adjust;
+    ExtendedPool m_pool;
+    fastuidraw::PainterData::brush_value m_black_brush;
+    const ExtendedPool::PackedBrushAdjust *m_current_brush_adjust;
     ClipEquationStore m_clip_store;
     PainterWorkRoom m_work_room;
     unsigned int m_max_attribs_per_block, m_max_indices_per_block;
@@ -1995,8 +2031,8 @@ item_matrix(const fastuidraw::float3x3 &v,
   m_item_matrix_transition_tricky = m_item_matrix_transition_tricky || trick_transition;
   m_inverse_transpose_ready = false;
   m_item_matrix.m_item_matrix = v;
-  m_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
-  m_item_matrix_coverage_buffer_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+  m_item_matrix_state.reset();
+  m_item_matrix_coverage_buffer_state.reset();
   if (singular_value_scaled < 0.0f)
     {
       m_item_matrix_singular_values_ready = false;
@@ -2074,13 +2110,13 @@ void
 ClipRectState::
 set_clip_equations_to_clip_rect(enum rect_coordinate_type_t c)
 {
-  fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> null;
+  ExtendedPool::PackedClipEquations null;
   set_clip_equations_to_clip_rect(null, c);
 }
 
 std::bitset<4>
 ClipRectState::
-set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &pcl,
+set_clip_equations_to_clip_rect(const ExtendedPool::PackedClipEquations &pcl,
                                 enum rect_coordinate_type_t c)
 {
   FASTUIDRAWassert(!m_override_matrix_state);
@@ -2128,7 +2164,7 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
   /* see if the vertices of the clipping rectangle are all within the
    * passed clipped equations.
    */
-  const fastuidraw::PainterClipEquations &eq(pcl.value());
+  const fastuidraw::PainterClipEquations &eq(pcl.unpacked_value());
   std::bitset<4> return_value;
 
   /* return_value[i] is true exactly when each point of the rectangle is inside
@@ -2469,7 +2505,7 @@ fetch(unsigned int effects_depth,
           reference_counted_ptr<PainterSurface> surface;
           reference_counted_ptr<const Image> image;
 
-          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend,
+          packer = FASTUIDRAWnew PainterPacker(d->m_stats, d->m_backend,
                                                d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::color_buffer_type);
@@ -2653,7 +2689,7 @@ fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
           reference_counted_ptr<PainterPacker> packer;
           reference_counted_ptr<PainterSurface> surface;
 
-          packer = FASTUIDRAWnew PainterPacker(d->m_pool, d->m_stats, d->m_backend,
+          packer = FASTUIDRAWnew PainterPacker(d->m_stats, d->m_backend,
                                                d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::deferred_coverage_buffer_type);
@@ -2719,10 +2755,9 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine
   // the shaders as well.
   m_default_shaders = m_backend_factory->default_shaders();
   m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
-  m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_pool, m_stats, m_backend,
+  m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_stats, m_backend,
                                                           m_backend_factory->configuration_base());
-  m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
-  m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
+  m_black_brush = m_pool.create_packed_brush(fastuidraw::PainterBrush()
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));
   m_root_identity_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
@@ -3308,8 +3343,8 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
       p.m_matrix = m_clip_rect_state.current_item_matrix_coverage_buffer_state(m_pool);
       coverage_buffer_offset = m_deferred_coverage_stack.back().coverage_buffer_offset();
 
-      FASTUIDRAWassert(p.m_clip.m_packed_value);
-      FASTUIDRAWassert(p.m_matrix.m_packed_value);
+      FASTUIDRAWassert(p.m_clip);
+      FASTUIDRAWassert(p.m_matrix);
       cvg_packer->draw_generic(shader->coverage_shader(), p,
                                attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector);
       packer()->set_coverage_surface(cvg_packer->surface());
@@ -3321,12 +3356,12 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
-  FASTUIDRAWassert(p.m_clip.m_packed_value);
-  FASTUIDRAWassert(p.m_matrix.m_packed_value);
+  FASTUIDRAWassert(p.m_clip);
+  FASTUIDRAWassert(p.m_matrix);
   if (m_current_brush_adjust)
     {
       p.m_brush_adjust = *m_current_brush_adjust;
-      FASTUIDRAWassert(p.m_brush_adjust.m_packed_value);
+      FASTUIDRAWassert(p.m_brush_adjust);
     }
 
   packer()->draw_generic(coverage_buffer_offset, shader, p,
@@ -3353,8 +3388,8 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
       p.m_matrix = m_clip_rect_state.current_item_matrix_coverage_buffer_state(m_pool);
       coverage_buffer_offset = m_deferred_coverage_stack.back().coverage_buffer_offset();
 
-      FASTUIDRAWassert(p.m_clip.m_packed_value);
-      FASTUIDRAWassert(p.m_matrix.m_packed_value);
+      FASTUIDRAWassert(p.m_clip);
+      FASTUIDRAWassert(p.m_matrix);
       cvg_packer->draw_generic(shader->coverage_shader(), p, src);
       packer()->set_coverage_surface(cvg_packer->surface());
     }
@@ -3365,12 +3400,12 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 
   p.m_clip = m_clip_rect_state.clip_equations_state(m_pool);
   p.m_matrix = m_clip_rect_state.current_item_matrix_state(m_pool);
-  FASTUIDRAWassert(p.m_clip.m_packed_value);
-  FASTUIDRAWassert(p.m_matrix.m_packed_value);
+  FASTUIDRAWassert(p.m_clip);
+  FASTUIDRAWassert(p.m_matrix);
   if (m_current_brush_adjust)
     {
       p.m_brush_adjust = *m_current_brush_adjust;
-      FASTUIDRAWassert(p.m_brush_adjust.m_packed_value);
+      FASTUIDRAWassert(p.m_brush_adjust);
     }
   packer()->draw_generic(coverage_buffer_offset, shader, p, src, z);
   ++m_draw_data_added_count;
@@ -6252,7 +6287,7 @@ clip_in_rect(const Rect &rect)
    *  2. we draw the -complement- of the half planes of each
    *     of the old clip equations as occluders
    */
-  PainterPackedValue<PainterClipEquations> prev_clip, current_clip;
+  ExtendedPool::PackedClipEquations prev_clip, current_clip;
 
   prev_clip = d->m_clip_rect_state.clip_equations_state(d->m_pool);
   FASTUIDRAWassert(prev_clip);
@@ -6306,7 +6341,7 @@ clip_in_rect(const Rect &rect)
    * We do this because round off error can have us
    * miss a few pixels when drawing the occluder
    */
-  PainterClipEquations slightly_bigger(current_clip.value());
+  PainterClipEquations slightly_bigger(current_clip.unpacked_value());
   for(unsigned int i = 0; i < 4; ++i)
     {
       float f;
@@ -6325,7 +6360,7 @@ clip_in_rect(const Rect &rect)
         {
           d->draw_half_plane_complement(default_shaders().fill_shader(),
                                         PainterData(d->m_black_brush),
-                                        prev_clip.value().m_clip_equations[i]);
+                                        prev_clip.unpacked_value().m_clip_equations[i]);
         }
     }
   d->packer()->remove_callback(zdatacallback);

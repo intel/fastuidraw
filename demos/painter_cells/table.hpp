@@ -74,15 +74,15 @@ private:
                              CellGroup *parent, int &J,
                              const ivec2 &xy,
                              int count_x, int count_y,
-                             std::vector<PainterPackedValue<PainterBrush> > &txt,
-                             std::vector<PainterPackedValue<PainterBrush> > &bg,
-                             std::vector<PainterPackedValue<PainterBrush> > &im);
+                             std::vector<PainterData::brush_value > &txt,
+                             std::vector<PainterData::brush_value > &bg,
+                             std::vector<PainterData::brush_value > &im);
 
   TableParams m_params;
   vec2 m_cell_sz;
   bool m_first_draw;
   PainterAttributeData m_lines;
-  PainterPackedValue<PainterBrush> m_line_brush;
+  PainterData::brush_value m_line_brush;
   Path m_grid_path;
 
   simple_time m_time;

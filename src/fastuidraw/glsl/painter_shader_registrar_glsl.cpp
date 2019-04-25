@@ -794,11 +794,13 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str,
   UnpackSourceGenerator("fastuidraw_stroking_params")
     .set(PainterStrokeParams::stroke_radius_offset, ".radius")
     .set(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
+    .set(PainterStrokeParams::stroking_units_offset, ".stroking_units", UnpackSourceGenerator::uint_type)
     .stream_unpack_function(str, "fastuidraw_read_stroking_params", true);
 
   UnpackSourceGenerator("fastuidraw_dashed_stroking_params_header")
     .set(PainterDashedStrokeParams::stroke_radius_offset, ".radius")
     .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
+    .set(PainterDashedStrokeParams::stroking_units_offset, ".stroking_units", UnpackSourceGenerator::uint_type)
     .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
     .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
     .set(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")

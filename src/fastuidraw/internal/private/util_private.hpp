@@ -154,6 +154,15 @@ namespace fastuidraw
   set_implement_string_callback(class_name, class_name_private, member_name, callback) \
   get_implement_string(class_name, class_name_private, member_name)
 
+#define copy_ctor(class_name, unscoped_class_name, class_name_private)  \
+  class_name::                                                          \
+  unscoped_class_name(const unscoped_class_name &obj)                   \
+  {                                                                     \
+    class_name_private *d;                                              \
+    d = static_cast<class_name_private*>(obj.m_d);                      \
+    m_d = FASTUIDRAWnew class_name_private(*d);                         \
+  }
+
 #define assign_swap_implement(class_name) \
   void                                    \
   class_name::                            \
@@ -165,7 +174,7 @@ namespace fastuidraw
   class_name::                            \
   operator=(const class_name &rhs)        \
   {                                       \
-    if (this != &rhs)                      \
+    if (this != &rhs)                     \
       {                                   \
         class_name v(rhs);                \
         swap(v);                          \

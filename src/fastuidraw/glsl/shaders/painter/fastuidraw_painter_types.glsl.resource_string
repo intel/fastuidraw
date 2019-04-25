@@ -65,6 +65,12 @@ struct fastuidraw_stroking_params
    * of \ref fastuidraw::PainterStrokeParams::miter_limit().
    */
   float miter_limit;
+
+  /*!
+   * The stroking units of the strok, i.e. the value of
+   * \ref fastuidraw::PainterStrokeParams::stroking_units().
+   */
+  uint stroking_units;
 };
 
 /*!
@@ -86,6 +92,12 @@ struct fastuidraw_dashed_stroking_params_header
    * of \ref fastuidraw::PainterDashedStrokeParams::miter_limit().
    */
   float miter_limit;
+
+  /*!
+   * The stroking units of the strok, i.e. the value of
+   * \ref fastuidraw::PainterDashedStrokeParams::stroking_units().
+   */
+  uint stroking_units;
 
   /*!
    * The dash offset, i.e. the value of \ref

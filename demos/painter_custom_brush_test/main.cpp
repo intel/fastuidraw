@@ -21,7 +21,7 @@ on_off(bool v)
   return v ? "ON" : "OFF";
 }
 
-class ExampleCustomBrushData:public PainterCustomBrushShaderData
+class ExampleCustomBrushData:public PainterBrushShaderData
 {
 public:
   ExampleCustomBrushData(void):
@@ -49,6 +49,12 @@ public:
   {
     dst[0].f = 1.0f / m_width;
     dst[1].f = 1.0f / m_height;
+  }
+
+  unsigned int
+  data_size(void) const override
+  {
+    return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2);
   }
 
   float m_width, m_height;

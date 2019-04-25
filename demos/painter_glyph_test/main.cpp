@@ -942,8 +942,8 @@ draw_glyphs(float us)
       unsigned int src(m_current_drawer);
 
       // reuse brush parameters across all glyphs
-      PainterPackedValue<PainterBrush> pbr;
-      pbr = m_painter->packed_value_pool().create_packed_value(glyph_brush);
+      PainterData::brush_value pbr;
+      pbr = m_painter->packed_value_pool().create_packed_brush(glyph_brush);
 
       for(unsigned int i : glyphs_visible)
         {
@@ -989,8 +989,8 @@ draw_glyphs(float us)
       src = m_current_drawer;
 
       // reuse stroke and brush parameters across all glyphs
-      PainterPackedValue<PainterBrush> pbr;
-      pbr = m_painter->packed_value_pool().create_packed_value(stroke_brush);
+      PainterData::brush_value pbr;
+      pbr = m_painter->packed_value_pool().create_packed_brush(stroke_brush);
 
       PainterPackedValue<PainterItemShaderData> pst;
       pst = m_painter->packed_value_pool().create_packed_value(st);
@@ -1026,14 +1026,14 @@ draw_glyphs(float us)
   if (m_draw_path_pts)
     {
       vecN<PainterBrush, 3> brs;
-      vecN<PainterPackedValue<PainterBrush>, 3 > pbrs;
+      vecN<PainterData::brush_value, 3 > pbrs;
 
       brs[0].color(1.0f, 0.0f, 0.0f, 0.5f);
       brs[1].color(0.0f, 1.0f, 0.0f, 0.5f);
       brs[2].color(0.0f, 0.0f, 1.0f, 0.5f);
       for (int i = 0; i < 3; ++i)
         {
-          pbrs[i] = m_painter->packed_value_pool().create_packed_value(brs[i]);
+          pbrs[i] = m_painter->packed_value_pool().create_packed_brush(brs[i]);
         }
 
       for(unsigned int i : glyphs_visible)

@@ -349,6 +349,12 @@ pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
                 detail::PackedValuePoolBase::ElementBase *d,
                 uint32_t &location)
 {
+  if (!d)
+    {
+      location = 0;
+      return;
+    }
+
   if (d->m_painter[render_type] == p && d->m_draw_command_id[render_type] == p->m_number_commands)
     {
       location = d->m_offset[render_type];
@@ -385,18 +391,7 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
     {
       pack_state_data(render_type, p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
       pack_state_data(render_type, p, state.m_brush_adjust, out_data.m_brush_adjust_data_loc);
-      if (state.m_brush.custom_shader_brush())
-        {
-          pack_state_data(render_type, p, state.m_brush.custom_brush_shader_data(), out_data.m_brush_shader_data_loc);
-        }
-      else if (state.m_brush.fixed_function_brush().has_data())
-        {
-          pack_state_data(render_type, p, state.m_brush.fixed_function_brush(), out_data.m_brush_shader_data_loc);
-        }
-      else
-        {
-          pack_state_data(render_type, p, p->m_default_brush, out_data.m_brush_shader_data_loc);
-        }
+      pack_state_data(render_type, p, state.m_brush.brush_shader_data(), out_data.m_brush_shader_data_loc);
     }
   else
     {
@@ -525,8 +520,7 @@ active(void) const
 ////////////////////////////////////////////
 // fastuidraw::PainterPacker methods
 fastuidraw::PainterPacker::
-PainterPacker(PainterPackedValuePool &pool,
-              vecN<unsigned int, num_stats> &stats,
+PainterPacker(vecN<unsigned int, num_stats> &stats,
               reference_counted_ptr<PainterBackend> backend,
               const PainterEngine::ConfigurationBase &config):
   m_backend(backend),
@@ -536,7 +530,6 @@ PainterPacker(PainterPackedValuePool &pool,
   m_stats(stats)
 {
   m_header_size = PainterHeader::data_size();
-  m_default_brush.make_packed(pool);
   m_binded_images.resize(config.number_context_textures());
 }
 
@@ -596,6 +589,13 @@ compute_room_needed_for_packing(const PainterData::value<T> &obj)
 
 unsigned int
 fastuidraw::PainterPacker::
+compute_room_needed_for_packing(const detail::PackedValuePoolBase::ElementBase* d)
+{
+  return (d) ? d->m_data.size() : 0;
+}
+
+unsigned int
+fastuidraw::PainterPacker::
 compute_room_needed_for_packing(const PainterPackerData &draw_state)
 {
   unsigned int R(0);
@@ -603,16 +603,9 @@ compute_room_needed_for_packing(const PainterPackerData &draw_state)
   R += compute_room_needed_for_packing(draw_state.m_matrix);
   R += compute_room_needed_for_packing(draw_state.m_item_shader_data);
 
-  if (m_render_type == PainterSurface::color_buffer_type && draw_state.m_brush.has_data())
+  if (m_render_type == PainterSurface::color_buffer_type)
     {
-      if (draw_state.m_brush.custom_shader_brush())
-        {
-          R += compute_room_needed_for_packing(draw_state.m_brush.custom_brush_shader_data());
-        }
-      else
-        {
-          R += compute_room_needed_for_packing(draw_state.m_brush.fixed_function_brush());
-        }
+      R += compute_room_needed_for_packing(draw_state.m_brush.brush_shader_data());
       R += compute_room_needed_for_packing(draw_state.m_blend_shader_data);
     }
   return R;
@@ -633,11 +626,11 @@ upload_draw_state(const PainterPackerData &draw_state)
   m_accumulated_draws.back().pack_painter_state(m_render_type, draw_state,
                                                 this, m_painter_state_location);
 
-  if (m_render_type == PainterSurface::color_buffer_type && draw_state.m_brush.has_data())
+  if (m_render_type == PainterSurface::color_buffer_type)
     {
       c_array<const reference_counted_ptr<const Image> > images;
 
-      images = draw_state.m_brush.bind_images();
+      images = draw_state.m_brush.brush_shader_data().bind_images();
       for (unsigned int i = 0, endi = t_min(images.size(), m_binded_images.size()); i < endi; ++i)
         {
           if (images[i]

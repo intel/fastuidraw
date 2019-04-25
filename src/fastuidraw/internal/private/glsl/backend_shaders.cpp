@@ -291,6 +291,8 @@ ShaderSetCreatorStrokingConstants(void)
     .add_macro_u32("fastuidraw_stroke_not_dashed", sub_shader(PainterEnums::number_cap_styles));
 
   m_common_stroke_constants
+    .add_macro_u32("fastuidraw_stroke_pixel_units", PainterStrokeParams::pixel_stroking_units)
+    .add_macro_u32("fastuidraw_stroke_path_units", PainterStrokeParams::pixel_stroking_units)
     .add_macro_u32("fastuidraw_stroke_gauranteed_to_be_covered_mask", 1u)
     .add_macro_u32("fastuidraw_stroke_skip_dash_interval_lookup_mask", 2u)
     .add_macro_u32("fastuidraw_stroke_distance_constant", 4u)

@@ -112,7 +112,7 @@ private:
   PanZoomTrackerSDLEvent m_zoomer;
   Table *m_table;
   simple_time m_time, m_draw_timer;
-  PainterPackedValue<PainterBrush> m_text_brush;
+  PainterData::brush_value m_text_brush;
 
   unsigned int m_current_blend;
   std::vector<named_blend_mode> m_blend_labels;
@@ -632,11 +632,11 @@ draw_frame(void)
         }
       ostr << "\ndraw_generics: " << m_painter->draw_data_added_count() << "\n";
 
-      if (!m_text_brush)
+      if (!m_text_brush.packed())
         {
           PainterBrush brush;
           brush.color(0.0f, 1.0f, 1.0f, 1.0f);
-          m_text_brush = m_painter->packed_value_pool().create_packed_value(brush);
+          m_text_brush = m_painter->packed_value_pool().create_packed_brush(brush);
         }
       draw_text(ostr.str(), m_fps_pixel_size.value(),
                 m_table_params.m_font.get(), PainterData(m_text_brush));
