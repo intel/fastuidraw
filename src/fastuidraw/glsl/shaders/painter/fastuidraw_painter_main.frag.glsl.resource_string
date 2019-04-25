@@ -67,15 +67,7 @@ main(void)
            * pre-multiplied by alpha.
            */
           vec4 b, c;
-          if ((fastuidraw_brush_shader & FASTUIDRAW_FIXED_FUNCTION_BRUSH) != 0u)
-            {
-              b = fastuidraw_fixed_function_brush_compute_color(fastuidraw_brush_shader, fastuidraw_brush_shader_data_location);
-            }
-          else
-            {
-              b = fastuidraw_run_custom_brush_frag_shader(fastuidraw_brush_shader, fastuidraw_brush_shader_data_location);
-            }
-
+          b = fastuidraw_run_brush_frag_shader(fastuidraw_brush_shader, fastuidraw_brush_shader_data_location);
           c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
           v = b * c;
         }

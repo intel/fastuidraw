@@ -1802,6 +1802,7 @@ namespace
     fastuidraw::PainterEngine::PerformanceHints m_hints;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectColorModulate> m_color_modulate_fx;
     fastuidraw::PainterShaderSet m_default_shaders;
+    fastuidraw::PainterBrushShader *m_default_brush_shader;
     ExtendedPool m_pool;
     fastuidraw::PainterData::brush_value m_black_brush;
     const ExtendedPool::PackedBrushAdjust *m_current_brush_adjust;
@@ -2505,7 +2506,8 @@ fetch(unsigned int effects_depth,
           reference_counted_ptr<PainterSurface> surface;
           reference_counted_ptr<const Image> image;
 
-          packer = FASTUIDRAWnew PainterPacker(d->m_stats, d->m_backend,
+          packer = FASTUIDRAWnew PainterPacker(d->m_default_brush_shader,
+                                               d->m_stats, d->m_backend,
                                                d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::color_buffer_type);
@@ -2689,7 +2691,8 @@ fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
           reference_counted_ptr<PainterPacker> packer;
           reference_counted_ptr<PainterSurface> surface;
 
-          packer = FASTUIDRAWnew PainterPacker(d->m_stats, d->m_backend,
+          packer = FASTUIDRAWnew PainterPacker(d->m_default_brush_shader,
+                                               d->m_stats, d->m_backend,
                                                d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::deferred_coverage_buffer_type);
@@ -2748,14 +2751,16 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine
   m_hints(backend_factory->hints()),
   m_current_brush_adjust(nullptr)
 {
-  // By calling PainterBackend::default_shaders(), we make the shaders
-  // registered. By setting m_default_shaders to its return value,
-  // and using that for the return value of Painter::default_shaders(),
-  // we skip the check in PainterBackend::default_shaders() to register
-  // the shaders as well.
+  /* By calling PainterBackend::default_shaders(), we make the shaders
+   * registered. By setting m_default_shaders to its return value,
+   * and using that for the return value of Painter::default_shaders(),
+   * we skip the check in PainterBackend::default_shaders() to register
+   * the shaders as well.
+   */
   m_default_shaders = m_backend_factory->default_shaders();
+  m_default_brush_shader = m_default_shaders.brush_shader().get();
   m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
-  m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_stats, m_backend,
+  m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_default_brush_shader, m_stats, m_backend,
                                                           m_backend_factory->configuration_base());
   m_black_brush = m_pool.create_packed_brush(fastuidraw::PainterBrush()
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));

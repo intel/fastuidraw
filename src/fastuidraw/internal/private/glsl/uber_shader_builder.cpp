@@ -1017,7 +1017,7 @@ stream_uber_brush_vert_shader(bool use_switch,
                                                                 post_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
                                                                 pre_stream_src_brush(), post_stream_src_brush(),
                                                                 "void",
-                                                                "fastuidraw_run_custom_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
+                                                                "fastuidraw_run_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
                                                                 "fastuidraw_gl_vert_brush_main",
                                                                 ", h.brush_shader_data_location, brush_p",
                                                                 "h.brush_shader");
@@ -1037,7 +1037,7 @@ stream_uber_brush_frag_shader(bool use_switch,
                                                                 post_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
                                                                 pre_stream_src_brush(), post_stream_src_brush(),
                                                                 "vec4",
-                                                                "fastuidraw_run_custom_brush_frag_shader(in uint frag_shader, "
+                                                                "fastuidraw_run_brush_frag_shader(in uint frag_shader, "
                                                                 "in uint frag_shader_data_location)",
                                                                 "fastuidraw_gl_frag_brush_main", ", frag_shader_data_location",
                                                                 "frag_shader");

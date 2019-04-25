@@ -26,12 +26,7 @@ fastuidraw_read_header(in uint location, out fastuidraw_header h);
   fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
 
   vec4
-  fastuidraw_run_custom_brush_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
-
-  vec4
-  fastuidraw_fixed_function_brush_compute_color(in uint frag_shader, in uint frag_shader_data_location);
-
-
+  fastuidraw_run_brush_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
 
   #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
     void

@@ -548,11 +548,7 @@ remove_macro(c_string macro_name,
              enum add_location_t loc)
 {
   std::ostringstream ostr;
-  ostr << "#ifndef " << macro_name << "\n"
-       << "#error \"FastUIDraw: ShaderSource::remove_macro() "
-       << "used on undefined macro " << macro_name << "\"\n"
-       << "#endif\n"
-       << "#undef " << macro_name << "\n";
+  ostr << "#undef " << macro_name << "\n";
   return add_source(ostr.str().c_str(), from_string, loc);
 }
 

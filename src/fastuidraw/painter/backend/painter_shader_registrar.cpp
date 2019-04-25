@@ -228,6 +228,7 @@ register_shader(const PainterShaderSet &shaders)
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
   register_shader(shaders.blend_shaders());
+  register_shader(shaders.brush_shader());
 }
 
 void

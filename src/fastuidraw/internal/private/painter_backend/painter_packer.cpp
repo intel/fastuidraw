@@ -220,7 +220,7 @@ public:
   pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
               unsigned int header_size,
               fastuidraw::ivec2 deferred_coverage_buffer_offset,
-              uint32_t brush_shader, uint32_t brush_group,
+              const PainterBrushShader *brush_shader,
               PainterBlendShader *blend_shader,
               BlendMode mode,
               T *item_shader,
@@ -407,7 +407,7 @@ fastuidraw::PainterPacker::per_draw_command::
 pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
             unsigned int header_size,
             fastuidraw::ivec2 deferred_coverage_buffer_offset,
-            uint32_t brush_shader, uint32_t brush_group,
+            const PainterBrushShader *brush_shader,
             PainterBlendShader *blend_shader,
             BlendMode blend_mode,
             T *item_shader,
@@ -424,7 +424,7 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
   dst = allocate_store(header_size);
 
   PainterShaderGroupPrivate current;
-  PainterShader::Tag blend;
+  PainterShader::Tag blend, brush;
 
   FASTUIDRAWassert(item_shader);
 
@@ -435,6 +435,11 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
         {
           blend = blend_shader->tag();
           current.m_blend_shader_type = blend_shader->type();
+        }
+
+      if (brush_shader)
+        {
+          brush = brush_shader->tag();
         }
     }
   else
@@ -450,7 +455,7 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
     }
 
   current.m_item_group = item_shader->group();
-  current.m_brush_group = brush_group;
+  current.m_brush_group = brush.m_group;
   current.m_blend_group = blend.m_group;
   current.m_blend_mode = blend_mode;
 
@@ -461,7 +466,7 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
   header.m_blend_shader_data_location = loc.m_blend_shader_data_loc;
   header.m_brush_adjust_location = loc.m_brush_adjust_data_loc;
   header.m_item_shader = item_shader->ID();
-  header.m_brush_shader = brush_shader;
+  header.m_brush_shader = brush.m_ID;
   header.m_blend_shader = blend.m_ID;
   header.m_z = z;
   header.m_offset_to_deferred_coverage = deferred_coverage_buffer_offset;
@@ -520,9 +525,11 @@ active(void) const
 ////////////////////////////////////////////
 // fastuidraw::PainterPacker methods
 fastuidraw::PainterPacker::
-PainterPacker(vecN<unsigned int, num_stats> &stats,
+PainterPacker(PainterBrushShader *default_brush_shader,
+              vecN<unsigned int, num_stats> &stats,
               reference_counted_ptr<PainterBackend> backend,
               const PainterEngine::ConfigurationBase &config):
+  m_default_brush_shader(default_brush_shader),
   m_backend(backend),
   m_blend_shader(nullptr),
   m_number_commands(0),
@@ -734,12 +741,18 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
       if (allocate_header)
         {
           bool draw_break_added;
+          const PainterBrushShader *brush_shader;
 
           ++m_stats[PainterEnums::num_headers];
           allocate_header = false;
+          brush_shader = draw.m_brush.brush_shader();
+          if (!brush_shader)
+            {
+              brush_shader = m_default_brush_shader;
+            }
           draw_break_added = cmd.pack_header(m_render_type, m_header_size,
                                              deferred_coverage_buffer_offset,
-                                             draw.m_brush.shader(), draw.m_brush.shader_group(),
+                                             brush_shader,
                                              m_blend_shader, m_blend_mode,
                                              shader.get(),
                                              z, m_painter_state_location,

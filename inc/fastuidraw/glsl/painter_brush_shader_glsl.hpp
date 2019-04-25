@@ -153,11 +153,11 @@ namespace fastuidraw
        *                     that are used directly.
        */
       PainterBrushShaderGLSL(unsigned int number_context_textures,
-                                   const ShaderSource &vertex_src,
-                                   const ShaderSource &fragment_src,
-                                   const varying_list &varyings,
-                                   unsigned int num_sub_shaders = 1,
-                                   const DependencyList &dependencies = DependencyList());
+                             const ShaderSource &vertex_src,
+                             const ShaderSource &fragment_src,
+                             const varying_list &varyings,
+                             unsigned int num_sub_shaders = 1,
+                             const DependencyList &dependencies = DependencyList());
 
       ~PainterBrushShaderGLSL(void);
 

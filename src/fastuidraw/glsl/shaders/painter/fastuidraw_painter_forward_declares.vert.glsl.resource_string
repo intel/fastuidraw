@@ -35,10 +35,8 @@ fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z,
                            out vec2 brush_p, out vec3 out_clip_p);
 
 void
-fastuidraw_run_custom_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p);
+fastuidraw_run_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p);
 
-void
-fastuidraw_fixed_function_brush_vert_processing(in fastuidraw_header h, in vec2 brush_p);
 
 #else
 

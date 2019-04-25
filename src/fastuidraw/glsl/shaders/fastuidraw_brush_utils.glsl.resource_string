@@ -16,6 +16,13 @@
  *
  */
 
+struct fastuidraw_brush_header
+{
+  uint features;
+  uint red_green;
+  uint blue_alpha;
+};
+
 struct fastuidraw_brush_image_data
 {
   // size of the (sub)image in texels
@@ -37,7 +44,6 @@ struct fastuidraw_brush_image_data
   // only valid for images taken from a handle
   uint bindless_handle_low, bindless_handle_hi;
 };
-
 
 struct fastuidraw_brush_gradient
 {
@@ -133,7 +139,7 @@ uint
 fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brush_gradient_raw raw);
 
 uint
-fastuidraw_read_color(in uint location, out vec4 color);
+fastuidraw_read_brush_header(in uint location, out fastuidraw_brush_header color);
 
 uint
 fastuidraw_read_brush_image_data(in uint location, in uint shader, out fastuidraw_brush_image_data image);

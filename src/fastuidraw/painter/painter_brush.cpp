@@ -29,7 +29,7 @@ data_size(void) const
   unsigned int return_value(0);
   uint32_t pfeatures = features();
 
-  return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(color_data_size);
+  return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(header_data_size);
 
   if (pfeatures & image_mask)
     {
@@ -82,14 +82,13 @@ pack_data(c_array<generic_data> dst) const
   uint32_t pfeatures = features();
 
   {
-    sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(color_data_size);
+    sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(header_data_size);
     sub_dest = dst.sub_array(current, sz);
     current += sz;
 
-    sub_dest[color_red_offset].f = m_data.m_color.x();
-    sub_dest[color_green_offset].f = m_data.m_color.y();
-    sub_dest[color_blue_offset].f = m_data.m_color.z();
-    sub_dest[color_alpha_offset].f = m_data.m_color.w();
+    sub_dest[features_offset].u = pfeatures;
+    sub_dest[header_red_green_offset].u = pack_as_fp16(m_data.m_color.x(), m_data.m_color.y());
+    sub_dest[header_blue_alpha_offset].u = pack_as_fp16(m_data.m_color.z(), m_data.m_color.w());
   }
 
   if (pfeatures & image_mask)

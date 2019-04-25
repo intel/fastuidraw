@@ -170,8 +170,7 @@ namespace fastuidraw
        * (custom or \ref PainterBrush).
        */
       brush_value(void):
-        m_custom_brush_shader(nullptr),
-        m_fixed_brush_shader(0)
+        m_brush_shader(nullptr)
       {}
 
       /*!
@@ -194,12 +193,11 @@ namespace fastuidraw
 
       /*!
        * Ctor to set the brush_value to source from a
-       * custom brush.
+       * \ref PainterBrush packed.
        */
-      brush_value(uint32_t painter_brush_shader,
-                  const value<PainterBrushShaderData> &brush_data)
+      brush_value(const value<PainterBrushShaderData> &brush_data)
       {
-        set(painter_brush_shader, brush_data);
+        set(brush_data);
       }
 
       /*!
@@ -210,8 +208,7 @@ namespace fastuidraw
       {
         FASTUIDRAWassert(v);
         m_brush_shader_data = v;
-        m_fixed_brush_shader = v->features();
-        m_custom_brush_shader = nullptr;
+        m_brush_shader = nullptr;
       }
 
       /*!
@@ -221,40 +218,38 @@ namespace fastuidraw
       set(const CustomBrush &br)
       {
         m_brush_shader_data = br.m_data;
-        m_custom_brush_shader = br.m_shader;
+        m_brush_shader = br.m_shader;
       }
 
       /*!
        * Set to source from a packed PainterBrush value.
        */
       void
-      set(uint32_t painter_brush_shader,
-          const value<PainterBrushShaderData> &brush_data)
+      set(const value<PainterBrushShaderData> &brush_data)
       {
         m_brush_shader_data = brush_data;
-        m_fixed_brush_shader = painter_brush_shader;
-        m_custom_brush_shader = nullptr;
+        m_brush_shader = nullptr;
+      }
+
+      /*!
+       * Returns the \ref PainterBrushShader for the brush;
+       * a value of nullptr indicates to used the default
+       * brush that processes \ref PainterBrush data.
+       */
+      const PainterBrushShader*
+      brush_shader(void) const
+      {
+        return m_brush_shader;
       }
 
       /*!
        * Returns the value<PainterBrushShaderData> holding
-       * the brush data packed.
+       * the brush data.
        */
       const value<PainterBrushShaderData>&
       brush_shader_data(void) const
       {
         return m_brush_shader_data;
-      }
-
-      /*!
-       * Returns nullptr if the brush_value is set to brush using
-       * using \ref PainterBrush; otherwise returns a pointer
-       * to the PainterBrushShader used.
-       */
-      const PainterBrushShader*
-      custom_shader_brush(void) const
-      {
-        return m_custom_brush_shader;
       }
 
       /*!
@@ -278,41 +273,9 @@ namespace fastuidraw
         return m_brush_shader_data.packed();
       }
 
-      /*!
-       * Provided as a conveniance, returns the \ref
-       * PainterBrush::features() if backed by a \ref
-       * PainterBrush, otherwise returns \ref
-       * PainterBrushShader::ID() if backed by a custom
-       * brush.
-       */
-      uint32_t
-      shader(void) const
-      {
-        return (m_custom_brush_shader) ?
-          m_custom_brush_shader->ID() :
-          m_fixed_brush_shader;
-      }
-
-      /*!
-       * Provided as a conveniance, returns 0 if backed by a
-       * \ref PainterBrush, otherwise returns the value of
-       * PainterBrushShader::group() if backed by a custom
-       * brush.
-       */
-      uint32_t
-      shader_group(void) const
-      {
-        return (m_custom_brush_shader) ?
-          m_custom_brush_shader->group() :
-          0u;
-      }
-
     private:
       /*!
-       * The \ref value for the brush data for a brush
-       * implemented via \ref PainterBrushShader.
-       * Only has effect if \ref m_custom_brush_shader
-       * is not nullptr.
+       * The \ref value for the brush data
        */
       value<PainterBrushShaderData> m_brush_shader_data;
 
@@ -320,13 +283,7 @@ namespace fastuidraw
        * If non-null, indicates that the brush is a realized
        * by a custom brush shader.
        */
-      const PainterBrushShader *m_custom_brush_shader;
-
-      /*!
-       * If m_custom_brush_shader is null, gives the
-       * brush shader value.
-       */
-      unsigned int m_fixed_brush_shader;
+      const PainterBrushShader *m_brush_shader;
     };
 
     /*!

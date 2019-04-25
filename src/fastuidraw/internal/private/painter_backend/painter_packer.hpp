@@ -116,7 +116,8 @@ namespace fastuidraw
      * \param config configuration from PainterEngine
      */
     explicit
-    PainterPacker(vecN<unsigned int, num_stats> &stats,
+    PainterPacker(PainterBrushShader *default_brush_shader,
+                  vecN<unsigned int, num_stats> &stats,
                   reference_counted_ptr<PainterBackend> backend,
                   const PainterEngine::ConfigurationBase &config);
 
@@ -419,6 +420,7 @@ namespace fastuidraw
     void
     flush_implement(void);
 
+    PainterBrushShader *m_default_brush_shader;
     reference_counted_ptr<PainterBackend> m_backend;
     unsigned int m_header_size;
 

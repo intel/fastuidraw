@@ -57,14 +57,7 @@ main(void)
 
   fastuidraw_brush_shader_data_location = h.brush_shader_data_location;
   fastuidraw_brush_shader = h.brush_shader;
-  if ((h.brush_shader & FASTUIDRAW_FIXED_FUNCTION_BRUSH) != 0u)
-    {
-      fastuidraw_fixed_function_brush_vert_processing(h, brush_p);
-    }
-  else
-    {
-      fastuidraw_run_custom_brush_vert_shader(h, brush_p);
-    }
+  fastuidraw_run_brush_vert_shader(h, brush_p);
 
   if (h.blend_shader_data_location == FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
     {

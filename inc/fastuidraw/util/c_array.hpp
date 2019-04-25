@@ -493,6 +493,34 @@ convert_to_fp16(c_array<const float> src, c_array<uint16_t> dst);
 void
 convert_to_fp32(c_array<const uint16_t> src, c_array<float> dst);
 
+/*!
+ * Conveniance function to pack a single \ref vec2
+ * into an fp16-pair returned as a uint32_t.
+ * \param src float-pair to pack as an fp16-pair.
+ */
+inline
+uint32_t
+pack_as_fp16(vec2 src)
+{
+  uint32_t return_value;
+  uint16_t *ptr(reinterpret_cast<uint16_t*>(&return_value));
+  convert_to_fp16(src, c_array<uint16_t>(ptr, 2));
+  return return_value;
+}
+
+/*!
+ * Provided as a conveniance, equivalent to
+ * \code
+ *  pack_as_fp16(vec2(x, y));
+ * \endcode
+ */
+inline
+uint32_t
+pack_as_fp16(float x, float y)
+{
+  return pack_as_fp16(vec2(x, y));
+}
+
 /*! @} */
 
 } //namespace

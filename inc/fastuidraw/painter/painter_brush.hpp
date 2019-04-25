@@ -394,10 +394,10 @@ namespace fastuidraw
     enum packing_order_t
       {
         /*!
-         * Color packed first, see \ref color_offset_t
+         * Color packed first, see \ref header_offset_t
          * for the offsets for the individual fields
          */
-        color_packing,
+        header_packing,
 
         /*!
          * image packing, see \ref image_offset_t
@@ -474,14 +474,13 @@ namespace fastuidraw
      * \brief
      * enumerations for offsets to color values
      */
-    enum color_offset_t
+    enum header_offset_t
       {
-        color_red_offset, /*!< offset for color red value (packed as float) */
-        color_green_offset, /*!< offset for color green value (packed as float) */
-        color_blue_offset, /*!< offset for color blue value (packed as float) */
-        color_alpha_offset, /*!< offset for color alpha value (packed as float) */
+        features_offset, /*!< offset to value of features() (packed as uint) */
+        header_red_green_offset, /*!< offset for color red and green value (packed as fp16 pair) */
+        header_blue_alpha_offset, /*!< offset for color blue and alpha value (packed as fp16 pair) */
 
-        color_data_size /*!< number of elements to pack color */
+        header_data_size /*!< number of elements to pack color */
       };
 
     /*!

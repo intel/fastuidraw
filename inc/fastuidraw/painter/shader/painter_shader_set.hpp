@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 #include <fastuidraw/painter/shader/painter_fill_shader.hpp>
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/shader/painter_glyph_shader.hpp>
@@ -139,6 +140,21 @@ namespace fastuidraw
      */
     PainterShaderSet&
     blend_shaders(const PainterBlendShaderSet &sh);
+
+    /*!
+     * Returns the \ref PainterBrushShader that performs
+     * the fixed function brush shading as encoded by
+     * \ref PainterBrush.
+     */
+    const reference_counted_ptr<PainterBrushShader>&
+    brush_shader(void) const;
+
+    /*!
+     * Set the value returned by brush_shader(void) const.
+     * \param sh value to use
+     */
+    PainterShaderSet&
+    brush_shader(const reference_counted_ptr<PainterBrushShader> &sh);
 
   private:
     void *m_d;

@@ -186,8 +186,7 @@ fastuidraw_brush_image_of_bindless(in vec2 p, in uint image_filter, in float lod
 #endif
 
 vec4
-fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
-                                              in uint brush_shader_data_location)
+fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
 {
   vec2 p, dpdx, dpdy;
   uint gradient_type;
@@ -207,17 +206,17 @@ fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
    *    - repeat
    *    - mirror-repeat
    */
-  if ((brush_shader & uint(fastuidraw_brush_repeat_window_mask)) != 0u)
+  if ((fastuidraw_brush_features & uint(fastuidraw_brush_repeat_window_mask)) != 0u)
     {
       uint x_spread, y_spread;
 
       x_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_repeat_window_x_spread_type_bit0,
                                          fastuidraw_brush_gradient_type_num_bits,
-                                         brush_shader);
+                                         fastuidraw_brush_features);
 
       y_spread = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_repeat_window_y_spread_type_bit0,
                                          fastuidraw_brush_gradient_type_num_bits,
-                                         brush_shader);
+                                         fastuidraw_brush_features);
 
       p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
       p.x = fastuidraw_brush_apply_spread(p.x, fastuidraw_brush_repeat_window_w, x_spread);
@@ -227,7 +226,7 @@ fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
 
   gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
                                           fastuidraw_brush_gradient_type_num_bits,
-                                          brush_shader);
+                                          fastuidraw_brush_features);
 
   if (gradient_type != fastuidraw_brush_no_gradient_type)
     {
@@ -237,7 +236,7 @@ fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
       t = fastuidraw_brush_compute_interpolate(p, gradient_type, good);
       spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_spread_type_bit0,
                                             fastuidraw_brush_spread_type_num_bits,
-                                            brush_shader);
+                                            fastuidraw_brush_features);
 
       /* NOTE: there is a Mesa/i965 bug where if we change the
        * order of this if/else chain to something different,
@@ -267,7 +266,7 @@ fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
    * pre-multiplied alpha value
    */
   return_value.rgb *= return_value.a;
-  if ((brush_shader & uint(fastuidraw_brush_image_mask)) != 0u)
+  if ((fastuidraw_brush_features & uint(fastuidraw_brush_image_mask)) != 0u)
     {
       uint image_filter, image_type, mipmap_max_level;
       vec2 q;
@@ -281,15 +280,15 @@ fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
       q.y = clamp(p.y, 0.0, float(fastuidraw_brush_image_size_y) - 1.0);
       image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
                                            fastuidraw_brush_image_filter_num_bits,
-                                           brush_shader);
+                                           fastuidraw_brush_features);
 
       image_filter = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_filter_bit0,
                                              fastuidraw_brush_image_filter_num_bits,
-                                             brush_shader);
+                                             fastuidraw_brush_features);
 
       mipmap_max_level = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_mipmap_bit0,
                                                  fastuidraw_brush_image_mipmap_num_bits,
-                                                 brush_shader);
+                                                 fastuidraw_brush_features);
 
       if (mipmap_max_level > 0u)
         {
@@ -321,7 +320,7 @@ fastuidraw_fixed_function_brush_compute_color(in uint brush_shader,
        * image-formats: rgba and premultiplied_rgba with a non-zero
        * value indicateing that the rgb components are pre-multiplied.
        */
-      if ((brush_shader & fastuidraw_brush_image_format_mask) == 0u)
+      if ((fastuidraw_brush_features & fastuidraw_brush_image_format_mask) == 0u)
         {
           image_color.rgb *= image_color.a;
         }
