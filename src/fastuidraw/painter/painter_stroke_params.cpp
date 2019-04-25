@@ -24,46 +24,15 @@
 
 namespace
 {
-  class PainterStrokeParamsData:public fastuidraw::PainterShaderData::DataBase
+  class PainterStrokeParamsPrivate
   {
   public:
     explicit
-    PainterStrokeParamsData(void):
+    PainterStrokeParamsPrivate(void):
       m_miter_limit(15.0f),
       m_radius(1.0f),
       m_stroking_units(fastuidraw::PainterStrokeParams::path_stroking_units)
     {}
-
-    virtual
-    fastuidraw::PainterShaderData::DataBase*
-    copy(void) const
-    {
-      return FASTUIDRAWnew PainterStrokeParamsData(*this);
-    }
-
-    virtual
-    unsigned int
-    data_size(void) const
-    {
-      using namespace fastuidraw;
-      return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterStrokeParams::stroke_data_size);
-    }
-
-    virtual
-    void
-    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
-    {
-      using namespace fastuidraw;
-      dst[PainterStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
-      if (m_stroking_units == PainterStrokeParams::pixel_stroking_units)
-        {
-          dst[PainterStrokeParams::stroke_radius_offset].f = -m_radius;
-        }
-      else
-        {
-          dst[PainterStrokeParams::stroke_radius_offset].f = m_radius;
-        }
-    }
 
     float m_miter_limit;
     float m_radius;
@@ -76,96 +45,66 @@ namespace
 fastuidraw::PainterStrokeParams::
 PainterStrokeParams(void)
 {
-  m_data = FASTUIDRAWnew PainterStrokeParamsData();
+  m_d = FASTUIDRAWnew PainterStrokeParamsPrivate();
 }
 
-fastuidraw::PainterStrokeParams&
 fastuidraw::PainterStrokeParams::
-miter_limit(float f)
+~PainterStrokeParams()
 {
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_miter_limit = t_max(0.0f, f);
-  return *this;
+  PainterStrokeParamsPrivate *d;
+  d = static_cast<PainterStrokeParamsPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
 }
 
-float
-fastuidraw::PainterStrokeParams::
-miter_limit(void) const
-{
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  return d->m_miter_limit;
-}
+setget_implement_callback(fastuidraw::PainterStrokeParams,
+                          PainterStrokeParamsPrivate,
+                          float, radius, mark_dirty())
+
+setget_implement_callback(fastuidraw::PainterStrokeParams,
+                          PainterStrokeParamsPrivate,
+                          float, miter_limit, mark_dirty())
+
+setget_implement_callback(fastuidraw::PainterStrokeParams,
+                          PainterStrokeParamsPrivate,
+                          enum fastuidraw::PainterStrokeParams::stroking_units_t,
+                          stroking_units, mark_dirty())
 
 float
 fastuidraw::PainterStrokeParams::
 width(void) const
 {
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  return d->m_radius * 2.0f;
+  return 2.0f * radius();
 }
 
 fastuidraw::PainterStrokeParams&
 fastuidraw::PainterStrokeParams::
 width(float f)
 {
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_radius = (f > 0.0f ) ? 0.5f * f : 0.0f;
-  return *this;
+  return radius(0.5f * f);
 }
 
-float
+unsigned int
 fastuidraw::PainterStrokeParams::
-radius(void) const
+data_size(void) const
 {
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  return d->m_radius;
+  return PainterStrokeParams::stroke_data_size;
 }
 
-fastuidraw::PainterStrokeParams&
+void
 fastuidraw::PainterStrokeParams::
-radius(float f)
+pack_data(c_array<generic_data> dst) const
 {
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_radius = (f > 0.0f ) ? f : 0.0f;
-  return *this;
-}
+  PainterStrokeParamsPrivate *d;
+  d = static_cast<PainterStrokeParamsPrivate*>(m_d);
 
-enum fastuidraw::PainterStrokeParams::stroking_units_t
-fastuidraw::PainterStrokeParams::
-stroking_units(void) const
-{
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  return d->m_stroking_units;
-}
-
-fastuidraw::PainterStrokeParams&
-fastuidraw::PainterStrokeParams::
-stroking_units(enum stroking_units_t v)
-{
-  PainterStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_stroking_units = v;
-  return *this;
+  dst[stroke_miter_limit_offset].f = t_max(0.0f, d->m_miter_limit);
+  dst[stroke_radius_offset].f = t_max(0.0f, d->m_radius);
+  dst[stroking_units_offset].u = d->m_stroking_units;
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterStrokeParams::
 stroking_data_selector(bool pixel_arc_stroking_possible)
 {
-  return FASTUIDRAWnew detail::StrokingDataSelectorT<PainterStrokeParamsData>(pixel_arc_stroking_possible);
+  return FASTUIDRAWnew detail::StrokingDataSelector<stroke_miter_limit_offset, stroke_radius_offset, stroking_units_offset>(pixel_arc_stroking_possible);
 }

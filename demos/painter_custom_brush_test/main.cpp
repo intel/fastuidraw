@@ -24,68 +24,34 @@ on_off(bool v)
 class ExampleCustomBrushData:public PainterCustomBrushShaderData
 {
 public:
-  ExampleCustomBrushData(void)
+  ExampleCustomBrushData(void):
+    m_width(100.0f),
+    m_height(100.0f)
   {
-    m_data = FASTUIDRAWnew DataBaseImplemenet();
   }
 
   ExampleCustomBrushData&
   width(float v)
   {
-    DataBaseImplemenet *d;
-    d = static_cast<DataBaseImplemenet*>(m_data);
-    d->m_width = v;
+    m_width = v;
     return *this;
   }
 
   ExampleCustomBrushData&
   height(float v)
   {
-    DataBaseImplemenet *d;
-    d = static_cast<DataBaseImplemenet*>(m_data);
-    d->m_height = v;
+    m_height = v;
     return *this;
   }
-private:
-  class DataBaseImplemenet:public DataBase
+
+  void
+  pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const override
   {
-  public:
-    DataBaseImplemenet(void):
-      m_width(100.0f),
-      m_height(100.0f)
-    {}
+    dst[0].f = 1.0f / m_width;
+    dst[1].f = 1.0f / m_height;
+  }
 
-    virtual
-    DataBase*
-    copy(void) const
-    {
-      return FASTUIDRAWnew DataBaseImplemenet(*this);
-    }
-
-    virtual
-    unsigned int
-    data_size(void) const
-    {
-      return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2);
-    }
-
-    virtual
-    void
-    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
-    {
-      dst[0].f = 1.0f / m_width;
-      dst[1].f = 1.0f / m_height;
-    }
-
-    virtual
-    c_array<const reference_counted_ptr<const Image> >
-    bind_images(void) const
-    {
-      return c_array<const reference_counted_ptr<const Image> >();
-    }
-
-    float m_width, m_height;
-  };
+  float m_width, m_height;
 };
 
 class painter_custom_brush_test:public sdl_painter_demo

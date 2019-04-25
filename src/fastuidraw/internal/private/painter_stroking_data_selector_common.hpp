@@ -18,30 +18,31 @@
 
 #pragma once
 
+#include <cmath>
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
 
 namespace fastuidraw
 {
   namespace detail
   {
-    template<typename T>
-    class StrokingDataSelectorT:public fastuidraw::StrokingDataSelectorBase
+    template<unsigned int MiterLimitOffset,
+             unsigned int RadiusOffset,
+             unsigned int UnitsOffset>
+    class StrokingDataSelector:public fastuidraw::StrokingDataSelectorBase
     {
     public:
       explicit
-      StrokingDataSelectorT(bool pixel_arc_stroking_possible):
+      StrokingDataSelector(bool pixel_arc_stroking_possible):
         m_pixel_arc_stroking_possible(pixel_arc_stroking_possible)
       {}
 
       float
-      compute_thresh(const fastuidraw::PainterShaderData::DataBase *data,
+      compute_thresh(fastuidraw::c_array<const fastuidraw::generic_data> data,
                      float path_magnification,
                      float curve_flatness) const override final
       {
-        const T *d;
-        d = static_cast<const T*>(data);
-
-        if (d->m_radius <= 0.0f)
+        if (data[RadiusOffset].f <= 0.0f)
           {
             /* Not really stroking, just select a LARGE value
              * to get a very low level of detail.
@@ -52,8 +53,8 @@ namespace fastuidraw
           {
             float return_value;
 
-            return_value = curve_flatness / fastuidraw::t_max(1.0f, d->m_radius);
-            if (d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units)
+            return_value = curve_flatness / fastuidraw::t_max(1.0f, data[RadiusOffset].f);
+            if (data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units)
               {
                 return_value /= path_magnification;
               }
@@ -62,45 +63,45 @@ namespace fastuidraw
       }
 
       void
-      stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
+      stroking_distances(fastuidraw::c_array<const fastuidraw::generic_data> data,
                          fastuidraw::c_array<float> out_geometry_inflation) const override final
       {
-        const T *d;
-        d = static_cast<const T*>(data);
-
         float out_pixel_distance, out_item_space_distance;
 
-        if (d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units)
+        if (data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units)
           {
             out_pixel_distance = 0.0f;
-            out_item_space_distance = d->m_radius;
+            out_item_space_distance = data[RadiusOffset].f;
           }
         else
           {
-            out_pixel_distance = d->m_radius;
+            out_pixel_distance = data[RadiusOffset].f;
             out_item_space_distance = 0.0f;
           }
 
         out_geometry_inflation[pixel_space_distance] = out_pixel_distance;
         out_geometry_inflation[item_space_distance] = out_item_space_distance;
-        out_geometry_inflation[pixel_space_distance_miter_joins] = d->m_miter_limit * out_pixel_distance;
-        out_geometry_inflation[item_space_distance_miter_joins] = d->m_miter_limit * out_item_space_distance;
+        out_geometry_inflation[pixel_space_distance_miter_joins] = data[MiterLimitOffset].f * out_pixel_distance;
+        out_geometry_inflation[item_space_distance_miter_joins] = data[MiterLimitOffset].f * out_item_space_distance;
       }
 
       bool
-      arc_stroking_possible(const fastuidraw::PainterShaderData::DataBase *data) const override final
+      arc_stroking_possible(fastuidraw::c_array<const fastuidraw::generic_data> data) const override final
       {
-        const T *d;
-        d = static_cast<const T*>(data);
-
         return m_pixel_arc_stroking_possible
-          || d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units;
+          || data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units;
       }
 
       bool
-      data_compatible(const fastuidraw::PainterShaderData::DataBase *data) const override final
+      data_compatible(fastuidraw::c_array<const fastuidraw::generic_data> data) const override final
       {
-        return dynamic_cast<const T*>(data);
+        return data.size() > MiterLimitOffset
+          && data.size() > RadiusOffset
+          && data.size() > UnitsOffset
+          && std::isfinite(data[MiterLimitOffset].f)
+          && std::isfinite(data[RadiusOffset].f)
+          && (data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units
+              || data[UnitsOffset].u == fastuidraw::PainterStrokeParams::pixel_stroking_units);
       }
 
     private:

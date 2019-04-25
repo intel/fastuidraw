@@ -21,6 +21,7 @@
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/reference_counted.hpp>
 
 namespace fastuidraw
 {
@@ -31,70 +32,24 @@ namespace fastuidraw
   /*!
    * \brief
    * Common base class to \ref PainterItemShaderData,
-   * and \ref PainterBlendShaderData to hold shader
-   * data for custom shaders.
-   *
-   * Derived classes CANNOT add any data or virtual functions.
-   * The class PainterShaderData is essentially a wrapper over
-   * a PainterShaderData::DataBase object that handles holding
-   * data and copying itself (for the purpose of copying
-   * PainterShaderData objects).
+   * \ref PainterCustomBrushShaderData and \ref
+   * PainterBlendShaderData to hold shader data for
+   * custom shaders.
    */
   class PainterShaderData
   {
   public:
     /*!
-     * \brief
-     * Class that holds the actual data and packs the data.
-     *
-     * A class derived from PainterShaderData should set the
-     * field \ref m_data to point to an object derived from
-     * DataBase for the purpose of holding and packing data.
-     */
-    class DataBase
-    {
-    public:
-      virtual
-      ~DataBase()
-      {}
-
-      /*!
-       * To be implemented by a derived class to create
-       * a copy of itself.
-       */
-      virtual
-      DataBase*
-      copy(void) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the length of the data needed to encode the data.
-       */
-      virtual
-      unsigned int
-      data_size(void) const = 0;
-
-      /*!
-       * To be implemtend by a derive class to pack its data.
-       * \param dst place to which to pack data
-       */
-      virtual
-      void
-      pack_data(c_array<generic_data> dst) const = 0;
-    };
-
-    /*!
-     * Ctor. A derived class from PainterShaderData
-     * should set \ref m_data.
+     * Ctor.
      */
     PainterShaderData(void);
 
     /*!
-     * Copy ctor, calls DataBase::copy() to
-     * copy the data behind \ref m_data.
+     * Copy ctor.
      */
     PainterShaderData(const PainterShaderData &obj);
 
+    virtual
     ~PainterShaderData();
 
     /*!
@@ -111,39 +66,76 @@ namespace fastuidraw
     swap(PainterShaderData &obj);
 
     /*!
-     * Returns the length of the data needed to encode the data.
-     * The returned value is guaranteed to be a multiple of 4.
+     * Returns the data packed. The length of the returned
+     * array is guaranteed to be a multiple of 4.
      */
-    unsigned int
-    data_size(void) const;
+    c_array<const generic_data>
+    packed_data(void) const;
 
     /*!
-     * Pack the values of this object
-     * \param dst place to which to pack data
+     * Returns the resources used by this \ref PainterShaderData
      */
+    c_array<const reference_counted_ptr<const resource_base> >
+    resources(void) const;
+
+    /*!
+     * To be implemented by a derived class to pack the
+     * data.
+     * \param dst location to which to pack the data
+     */
+    virtual
     void
-    pack_data(c_array<generic_data> dst) const;
-
-    /*!
-     * Returns a pointer to the underlying object holding
-     * the data of the PainterShaderData.
-     */
-    const DataBase*
-    data_base(void) const
+    pack_data(c_array<generic_data> dst) const
     {
-      return m_data;
+      FASTUIDRAWunused(dst);
     }
 
-  protected:
     /*!
-     * Initialized as nullptr by the ctor PainterShaderData(void).
-     * A derived class of PainterShaderData should assign \ref
-     * m_data to point to an object derived from DataBase.
-     * That object is the object that is to determine the
-     * size of data to pack and how to pack the data into
-     * the data store buffer.
+     * To be implemented by a derived class to return
+     * the length needed to pack the data.
      */
-    DataBase *m_data;
+    virtual
+    unsigned int
+    data_size(void) const
+    {
+      return 0;
+    }
+
+    /*!
+     * To be optionally implemented by a derived class to
+     * save references to resources that need to be resident
+     * after packing. Default implementation does nothing.
+     * \param dst location to which to save resources.
+     */
+    virtual
+    void
+    save_resources(c_array<reference_counted_ptr<const resource_base> > dst) const
+    {
+      FASTUIDRAWunused(dst);
+    }
+
+    /*!
+     * To be optionally implemented by a derived class to
+     * return the number of resources that need to be resident
+     * after packing. Default implementation returns 0.
+     */
+    virtual
+    unsigned int
+    number_resources(void) const
+    {
+      return 0;
+    }
+
+    /*!
+     * To be called by a derived class to indicate that the nature of
+     * the data so that either data_size() or pack_data() will do
+     * something different than what the last call to them did.
+     */
+    void
+    mark_dirty(void);
+
+  private:
+    void *m_d;
   };
 
   /*!

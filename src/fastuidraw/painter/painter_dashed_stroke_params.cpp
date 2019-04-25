@@ -27,22 +27,18 @@
 
 namespace
 {
-  class PainterDashedStrokeParamsData:public fastuidraw::PainterShaderData::DataBase
+  class PainterDashedStrokedParamsPrivate
   {
   public:
-    PainterDashedStrokeParamsData(void);
-
-    virtual
-    fastuidraw::PainterShaderData::DataBase*
-    copy(void) const;
-
-    virtual
-    unsigned int
-    data_size(void) const;
-
-    virtual
-    void
-    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+    PainterDashedStrokedParamsPrivate(void):
+      m_miter_limit(15.0f),
+      m_radius(1.0f),
+      m_stroking_units(fastuidraw::PainterStrokeParams::path_stroking_units),
+      m_dash_offset(0.0f),
+      m_total_length(0.0f),
+      m_first_interval_start(0.0f),
+      m_first_interval_start_on_looping(0.0f)
+    {}
 
     float m_miter_limit;
     float m_radius;
@@ -56,148 +52,55 @@ namespace
   };
 }
 
-//////////////////////////////////////
-// PainterDashedStrokeParamsData methods
-PainterDashedStrokeParamsData::
-PainterDashedStrokeParamsData(void):
-  m_miter_limit(15.0f),
-  m_radius(1.0f),
-  m_stroking_units(fastuidraw::PainterStrokeParams::path_stroking_units),
-  m_dash_offset(0.0f),
-  m_total_length(0.0f),
-  m_first_interval_start(0.0f),
-  m_first_interval_start_on_looping(0.0f)
-{}
-
-fastuidraw::PainterShaderData::DataBase*
-PainterDashedStrokeParamsData::
-copy(void) const
-{
-  return FASTUIDRAWnew PainterDashedStrokeParamsData(*this);
-}
-
-unsigned int
-PainterDashedStrokeParamsData::
-data_size(void) const
-{
-  using namespace fastuidraw;
-  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterDashedStrokeParams::stroke_static_data_size)
-    + FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2 * m_dash_pattern.size());
-}
-
-void
-PainterDashedStrokeParamsData::
-pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
-{
-  using namespace fastuidraw;
-
-  dst[PainterDashedStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
-  if (m_stroking_units == PainterStrokeParams::pixel_stroking_units)
-    {
-      dst[PainterDashedStrokeParams::stroke_radius_offset].f = -m_radius;
-    }
-  else
-    {
-      dst[PainterDashedStrokeParams::stroke_radius_offset].f = m_radius;
-    }
-  dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
-  dst[PainterDashedStrokeParams::stroke_total_length_offset].f = m_total_length;
-  dst[PainterDashedStrokeParams::stroke_first_interval_start_offset].f = m_first_interval_start;
-  dst[PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset].f = m_first_interval_start_on_looping;
-  dst[PainterDashedStrokeParams::stroke_number_intervals_offset].u = m_dash_pattern_packed.size();
-
-  if (!m_dash_pattern_packed.empty())
-    {
-      c_array<generic_data> dst_pattern;
-      dst_pattern = dst.sub_array(FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterDashedStrokeParams::stroke_static_data_size));
-      std::copy(m_dash_pattern_packed.begin(), m_dash_pattern_packed.end(), dst_pattern.begin());
-      for(unsigned int i = m_dash_pattern_packed.size(), endi = dst_pattern.size(); i < endi; ++i)
-        {
-          //make the last entry larger than the total length so a
-          //shader can use that to know when it has reached the end.
-          dst_pattern[i].f = m_total_length * 2.0f + 1.0f;
-        }
-    }
-}
-
 ///////////////////////////////////
 // fastuidraw::PainterDashedStrokeParams methods
 fastuidraw::PainterDashedStrokeParams::
 PainterDashedStrokeParams(void)
 {
-  m_data = FASTUIDRAWnew PainterDashedStrokeParamsData();
+  m_d = FASTUIDRAWnew PainterDashedStrokedParamsPrivate();
 }
 
-float
 fastuidraw::PainterDashedStrokeParams::
-miter_limit(void) const
+~PainterDashedStrokeParams(void)
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  return d->m_miter_limit;
+  PainterDashedStrokedParamsPrivate *d;
+  d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
 }
 
-fastuidraw::PainterDashedStrokeParams&
-fastuidraw::PainterDashedStrokeParams::
-miter_limit(float f)
-{
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_miter_limit = t_max(f, 0.0f);
-  return *this;
-}
+setget_implement_callback(fastuidraw::PainterDashedStrokeParams,
+                          PainterDashedStrokedParamsPrivate,
+                          float, miter_limit, mark_dirty())
+
+setget_implement_callback(fastuidraw::PainterDashedStrokeParams,
+                          PainterDashedStrokedParamsPrivate,
+                          float, radius, mark_dirty())
+
+setget_implement_callback(fastuidraw::PainterDashedStrokeParams,
+                          PainterDashedStrokedParamsPrivate,
+                          enum fastuidraw::PainterStrokeParams::stroking_units_t,
+                          stroking_units, mark_dirty())
 
 float
 fastuidraw::PainterDashedStrokeParams::
 width(void) const
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  return d->m_radius * 2.0f;
+  return radius() * 2.0f;
 }
 
 fastuidraw::PainterDashedStrokeParams&
 fastuidraw::PainterDashedStrokeParams::
 width(float f)
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_radius = (f > 0.0f) ? 0.5f * f : 0.0f;
-  return *this;
-}
-
-float
-fastuidraw::PainterDashedStrokeParams::
-radius(void) const
-{
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  return d->m_radius;
-}
-
-fastuidraw::PainterDashedStrokeParams&
-fastuidraw::PainterDashedStrokeParams::
-radius(float f)
-{
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_radius = (f > 0.0f) ? f : 0.0f;
-  return *this;
+  return radius(0.5f * f);
 }
 
 float
 fastuidraw::PainterDashedStrokeParams::
 dash_offset(void) const
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  PainterDashedStrokedParamsPrivate *d;
+  d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
   return d->m_dash_offset;
 }
 
@@ -205,9 +108,8 @@ fastuidraw::PainterDashedStrokeParams&
 fastuidraw::PainterDashedStrokeParams::
 dash_offset(float f)
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  PainterDashedStrokedParamsPrivate *d;
+  d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
   d->m_dash_offset = f;
   return *this;
 }
@@ -216,9 +118,8 @@ fastuidraw::c_array<const fastuidraw::PainterDashedStrokeParams::DashPatternElem
 fastuidraw::PainterDashedStrokeParams::
 dash_pattern(void) const
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  PainterDashedStrokedParamsPrivate *d;
+  d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
   return make_c_array(d->m_dash_pattern);
 }
 
@@ -226,9 +127,8 @@ fastuidraw::PainterDashedStrokeParams&
 fastuidraw::PainterDashedStrokeParams::
 dash_pattern(c_array<const DashPatternElement> f)
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  PainterDashedStrokedParamsPrivate *d;
+  d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
 
   /* skip to first element on f[] that is non-zero.   */
   while(f.front().m_draw_length <= 0.0f && f.front().m_space_length <= 0.0f)
@@ -315,33 +215,54 @@ dash_pattern(c_array<const DashPatternElement> f)
         }
     }
 
+  mark_dirty();
   return *this;
 }
 
-enum fastuidraw::PainterStrokeParams::stroking_units_t
+unsigned int
 fastuidraw::PainterDashedStrokeParams::
-stroking_units(void) const
+data_size(void) const
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  return d->m_stroking_units;
+  PainterDashedStrokedParamsPrivate *d;
+  d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
+
+  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(stroke_static_data_size)
+    + FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2 * d->m_dash_pattern.size());
 }
 
-fastuidraw::PainterDashedStrokeParams&
+void
 fastuidraw::PainterDashedStrokeParams::
-stroking_units(enum PainterStrokeParams::stroking_units_t v)
+pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
 {
-  PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
-  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_stroking_units = v;
-  return *this;
+  PainterDashedStrokedParamsPrivate *d;
+  d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
+
+  dst[stroke_miter_limit_offset].f = t_max(0.0f, d->m_miter_limit);
+  dst[stroke_radius_offset].f = t_max(0.0f, d->m_radius);
+  dst[stroking_units_offset].u = d->m_stroking_units;
+  dst[stroke_dash_offset_offset].f = d->m_dash_offset;
+  dst[stroke_total_length_offset].f = d->m_total_length;
+  dst[stroke_first_interval_start_offset].f = d->m_first_interval_start;
+  dst[stroke_first_interval_start_on_looping_offset].f = d->m_first_interval_start_on_looping;
+  dst[stroke_number_intervals_offset].u = d->m_dash_pattern_packed.size();
+
+  if (!d->m_dash_pattern_packed.empty())
+    {
+      c_array<generic_data> dst_pattern;
+      dst_pattern = dst.sub_array(FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(stroke_static_data_size));
+      std::copy(d->m_dash_pattern_packed.begin(), d->m_dash_pattern_packed.end(), dst_pattern.begin());
+      for(unsigned int i = d->m_dash_pattern_packed.size(), endi = dst_pattern.size(); i < endi; ++i)
+        {
+          //make the last entry larger than the total length so a
+          //shader can use that to know when it has reached the end.
+          dst_pattern[i].f = d->m_total_length * 2.0f + 1.0f;
+        }
+    }
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterDashedStrokeParams::
 stroking_data_selector(bool pixel_arc_stroking_possible)
 {
-  return FASTUIDRAWnew detail::StrokingDataSelectorT<PainterDashedStrokeParamsData>(pixel_arc_stroking_possible);
+  return FASTUIDRAWnew detail::StrokingDataSelector<stroke_miter_limit_offset, stroke_radius_offset, stroking_units_offset>(pixel_arc_stroking_possible);
 }

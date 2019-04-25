@@ -1165,7 +1165,7 @@ namespace fastuidraw
      * to fetch the \ref TessellatedPath from which it will fetch the \ref StrokedPath
      * to perform path stroking.
      * \param path \ref Path to choose the thresh for
-     * \param shader_data underlying data for stroking shader
+     * \param shader_data data sent to stroking shader
      * \param selector object (see PainterStrokeShader::stroking_data_selector())
      *                 to use stroking parameters to help compute necessary thresh
      * \param[out] out_rounded_thresh location to which to write threshhold to be
@@ -1174,7 +1174,7 @@ namespace fastuidraw
      */
     float
     compute_path_thresh(const Path &path,
-                        const PainterShaderData::DataBase *shader_data,
+                        const c_array<const generic_data> shader_data,
                         const reference_counted_ptr<const StrokingDataSelectorBase> &selector,
                         float *out_rounded_thresh);
 

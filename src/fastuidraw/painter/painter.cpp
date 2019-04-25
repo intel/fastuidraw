@@ -1684,7 +1684,7 @@ namespace
 
     float
     compute_path_thresh(const fastuidraw::Path &path,
-                        const fastuidraw::PainterShaderData::DataBase *shader_data,
+                        const fastuidraw::c_array<const fastuidraw::generic_data> shader_data,
                         const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
                         float &thresh);
 
@@ -3143,7 +3143,7 @@ compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::v
 float
 PainterPrivate::
 compute_path_thresh(const fastuidraw::Path &path,
-                    const fastuidraw::PainterShaderData::DataBase *shader_data,
+                    const fastuidraw::c_array<const fastuidraw::generic_data> shader_data,
                     const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
                     float &thresh)
 {
@@ -3168,7 +3168,7 @@ select_stroked_path(const fastuidraw::Path &path,
   using namespace fastuidraw;
 
   float t;
-  const PainterShaderData::DataBase *data(draw.m_item_shader_data.data().data_base());
+  c_array<const generic_data> data(draw.m_item_shader_data.m_packed_value.packed_data());
   const reference_counted_ptr<const StrokingDataSelectorBase> &selector(shader.stroking_data_selector());
 
   if (selector->data_compatible(data))
@@ -3620,7 +3620,7 @@ compute_bounding_box_of_stroked_path(const fastuidraw::StrokedPath &stroked_path
 void
 PainterPrivate::
 stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
-                   const fastuidraw::PainterData &draw,
+                   const fastuidraw::PainterData &pdraw,
                    const fastuidraw::StrokedPath &path, float thresh,
                    enum fastuidraw::Painter::cap_style cp,
                    enum fastuidraw::Painter::join_style js,
@@ -3634,12 +3634,20 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
     }
 
   const PainterAttributeData *cap_data(nullptr), *join_data(nullptr);
-  const PainterShaderData::DataBase *raw_data;
+  c_array<const generic_data> raw_data;
   const StrokedCapsJoins &caps_joins(path.caps_joins());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
   bool requires_coverage_buffer(false);
+  PainterData draw(pdraw);
 
-  raw_data = draw.m_item_shader_data.data().data_base();
+  /* if any of the data elements of draw are NOT packed state,
+   * make them as packed state so that they are reused
+   * to prevent filling up the data buffer with repeated
+   * state data. In addition, we need for the PainterItemShaderData
+   * to be packed so that we can query it correctly.
+   */
+  draw.make_packed(m_pool);
+  raw_data = draw.m_item_shader_data.m_packed_value.packed_data();
 
   switch(cp)
     {
@@ -3775,7 +3783,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
                 bool edge_use_arc_shaders,
                 bool join_use_arc_shaders,
                 bool cap_use_arc_shaders,
-                const fastuidraw::PainterData &pdraw,
+                const fastuidraw::PainterData &draw,
                 const fastuidraw::StrokedPath *stroked_path,
                 fastuidraw::c_array<const unsigned int> stroked_subset_ids,
                 const fastuidraw::PainterAttributeData *cap_data,
@@ -3826,7 +3834,6 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
   c_array<int> z_increments;
   c_array<int> start_zs;
   c_array<const reference_counted_ptr<PainterItemShader>* > shaders;
-  PainterData draw(pdraw);
 
   m_work_room.m_stroke.m_attrib_chunks.resize(total_chunks);
   m_work_room.m_stroke.m_index_chunks.resize(total_chunks);
@@ -3896,12 +3903,6 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
         }
     }
 
-  /* if any of the data elements of draw are NOT packed state,
-   * make them as packed state so that they are reused
-   * to prevent filling up the data buffer with repeated
-   * state data.
-   */
-  draw.make_packed(m_pool);
   draw_generic_z_layered(shaders, draw, z_increments, zinc_sum,
                          attrib_chunks, index_chunks, index_adjusts,
                          start_zs, m_current_z);
@@ -5047,7 +5048,7 @@ compute_path_thresh(const fastuidraw::Path &path)
 float
 fastuidraw::Painter::
 compute_path_thresh(const Path &path,
-                    const PainterShaderData::DataBase *shader_data,
+                    const c_array<const generic_data> shader_data,
                     const reference_counted_ptr<const StrokingDataSelectorBase> &selector,
                     float *thresh)
 {
@@ -5109,7 +5110,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
 
 void
 fastuidraw::Painter::
-stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
+stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw, const Path &path,
             const StrokingStyle &stroke_style,
             bool apply_shader_anti_aliasing,
             enum stroking_method_t stroking_method)
@@ -5117,8 +5118,10 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
   PainterPrivate *d;
   const StrokedPath *stroked_path;
   float thresh;
+  PainterData draw(pdraw);
 
   d = static_cast<PainterPrivate*>(m_d);
+  draw.make_packed(d->m_pool);
   stroked_path = d->select_stroked_path(path, shader, draw,
                                         apply_shader_anti_aliasing,
                                         stroking_method, thresh);
@@ -5161,7 +5164,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
 
 void
 fastuidraw::Painter::
-stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
+stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &pdraw, const Path &path,
                    const StrokingStyle &stroke_style,
                    bool apply_shader_anti_aliasing,
                    enum stroking_method_t stroking_method)
@@ -5169,8 +5172,10 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   PainterPrivate *d;
   const StrokedPath *stroked_path;
   float thresh;
+  PainterData draw(pdraw);
 
   d = static_cast<PainterPrivate*>(m_d);
+  draw.make_packed(d->m_pool);
   stroked_path = d->select_stroked_path(path, shader.shader(stroke_style.m_cap_style), draw,
                                         apply_shader_anti_aliasing,
                                         stroking_method, thresh);

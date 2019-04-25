@@ -18,6 +18,7 @@
 
 #include <fastuidraw/painter/painter_packed_value.hpp>
 #include <private/painter_backend/painter_packed_value_pool_private.hpp>
+#include <private/util_private.hpp>
 
 namespace
 {
@@ -104,6 +105,15 @@ raw_value(void) const
   detail::PackedValuePoolBase::ElementBase *d;
   d = static_cast<detail::PackedValuePoolBase::ElementBase*>(m_d);
   return d->m_raw_data;
+}
+
+fastuidraw::c_array<fastuidraw::generic_data>
+fastuidraw::PainterPackedValueBase::
+packed_data(void) const
+{
+  detail::PackedValuePoolBase::ElementBase *d;
+  d = static_cast<detail::PackedValuePoolBase::ElementBase*>(m_d);
+  return make_c_array(d->m_data);
 }
 
 /////////////////////////////////////////////////////

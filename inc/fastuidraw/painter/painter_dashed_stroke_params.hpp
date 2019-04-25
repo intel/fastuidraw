@@ -34,7 +34,7 @@ namespace fastuidraw
    * as according to PainterDashedStrokeParams::stroke_data_offset_t.
    * Data for dashing is packed [TODO describe].
    */
-  class PainterDashedStrokeParams:public PainterItemShaderData
+  class PainterDashedStrokeParams:public PainterItemShaderData, noncopyable
   {
   public:
     /*!
@@ -47,6 +47,7 @@ namespace fastuidraw
       {
         stroke_radius_offset, /*!< offset to dashed stroke radius (packed as float) */
         stroke_miter_limit_offset, /*!< offset to dashed stroke miter limit (packed as float) */
+        stroking_units_offset, /*!< Offset to stroking units (packed as uint) */
         stroke_dash_offset_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
         stroke_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
         stroke_first_interval_start_offset, /*!< offset to value recording the start of the first interval (packed as float) */
@@ -99,6 +100,8 @@ namespace fastuidraw
      * Ctor.
      */
     PainterDashedStrokeParams(void);
+
+    ~PainterDashedStrokeParams();
 
     /*!
      * The miter limit for miter joins
@@ -194,6 +197,15 @@ namespace fastuidraw
     static
     reference_counted_ptr<const StrokingDataSelectorBase>
     stroking_data_selector(bool pixel_arc_stroking_possible);
+
+    unsigned int
+    data_size(void) const override;
+
+    void
+    pack_data(c_array<generic_data> dst) const override;
+
+  private:
+    void *m_d;
   };
 /*! @} */
 

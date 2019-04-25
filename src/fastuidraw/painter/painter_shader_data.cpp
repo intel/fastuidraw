@@ -16,75 +16,103 @@
  *
  */
 
-
 #include <fastuidraw/painter/painter_shader_data.hpp>
-#include <fastuidraw/util/fastuidraw_memory.hpp>
+#include <vector>
+#include "private/util_private.hpp"
+
+namespace
+{
+  class PainterShaderDataPrivate
+  {
+  public:
+    PainterShaderDataPrivate(void):
+      m_dirty(true)
+    {}
+
+    void
+    update(const fastuidraw::PainterShaderData *p);
+
+    bool m_dirty;
+    std::vector<fastuidraw::generic_data> m_packed_data;
+    std::vector<fastuidraw::reference_counted_ptr<const fastuidraw::resource_base> > m_resources;
+  };
+}
+
+//////////////////////////////////////
+// PainterShaderDataPrivate methods
+void
+PainterShaderDataPrivate::
+update(const fastuidraw::PainterShaderData *p)
+{
+  if (m_dirty)
+    {
+      unsigned int padded_size, unpadded_size;
+
+      unpadded_size = p->data_size();
+      padded_size = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(unpadded_size);
+      m_packed_data.resize(padded_size);
+      p->pack_data(make_c_array(m_packed_data));
+
+      m_resources.clear();
+      m_resources.resize(p->number_resources());
+      p->save_resources(make_c_array(m_resources));
+
+      m_dirty = false;
+    }
+}
 
 //////////////////////////////////////////////
 // fastuidraw::PainterShaderData methods
 fastuidraw::PainterShaderData::
 PainterShaderData(void)
 {
-  m_data = nullptr;
+  m_d = FASTUIDRAWnew PainterShaderDataPrivate();
 }
 
 fastuidraw::PainterShaderData::
 PainterShaderData(const PainterShaderData &obj)
 {
-  if (obj.m_data)
-    {
-      m_data = obj.m_data->copy();
-    }
-  else
-    {
-      m_data = nullptr;
-    }
+  PainterShaderDataPrivate *d;
+  d = static_cast<PainterShaderDataPrivate*>(obj.m_d);
+  d->update(&obj);
+  m_d = FASTUIDRAWnew PainterShaderDataPrivate(*d);
 }
 
 fastuidraw::PainterShaderData::
 ~PainterShaderData()
 {
-  if (m_data)
-    {
-      FASTUIDRAWdelete(m_data);
-    }
-  m_data = nullptr;
+  PainterShaderDataPrivate *d;
+  d = static_cast<PainterShaderDataPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
 }
 
 void
 fastuidraw::PainterShaderData::
-swap(PainterShaderData &obj)
+mark_dirty(void)
 {
-  std::swap(m_data, obj.m_data);
+  PainterShaderDataPrivate *d;
+  d = static_cast<PainterShaderDataPrivate*>(m_d);
+  d->m_dirty = true;
 }
 
-fastuidraw::PainterShaderData&
+fastuidraw::c_array<const fastuidraw::generic_data>
 fastuidraw::PainterShaderData::
-operator=(const PainterShaderData &rhs)
+packed_data(void) const
 {
-  if (this != &rhs)
-    {
-      PainterShaderData v(rhs);
-      swap(v);
-    }
-  return *this;
+  PainterShaderDataPrivate *d;
+  d = static_cast<PainterShaderDataPrivate*>(m_d);
+  d->update(this);
+  return make_c_array(d->m_packed_data);
 }
 
-void
+fastuidraw::c_array<const fastuidraw::reference_counted_ptr<const fastuidraw::resource_base> >
 fastuidraw::PainterShaderData::
-pack_data(c_array<generic_data> dst) const
+resources(void) const
 {
-  if (m_data)
-    {
-      m_data->pack_data(dst);
-    }
+  PainterShaderDataPrivate *d;
+  d = static_cast<PainterShaderDataPrivate*>(m_d);
+  d->update(this);
+  return make_c_array(d->m_resources);
 }
 
-unsigned int
-fastuidraw::PainterShaderData::
-data_size(void) const
-{
-  return m_data ?
-    FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(m_data->data_size()) :
-    0;
-}
+assign_swap_implement(fastuidraw::PainterShaderData)

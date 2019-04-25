@@ -94,8 +94,7 @@ namespace fastuidraw
      * used to select rounded join level of detail (\ref
      * StrokedCapsJoins::rounded_joins()) and rounded cap level of detail
      * (\ref StrokedCapsJoins::rounded_caps()).
-     * \param data PainterItemShaderData::DataBase object holding
-     *             the data to be sent to the shader
+     * \param data packed data to be sent to the shader
      * \param path_magnification by how much the path is magnified
      *                           from its native coordiantes to pixel
      *                           coordinates.
@@ -103,7 +102,7 @@ namespace fastuidraw
      */
     virtual
     float
-    compute_thresh(const PainterShaderData::DataBase *data,
+    compute_thresh(c_array<const generic_data> data,
                    float path_magnification,
                    float curve_flatness) const = 0;
 
@@ -116,33 +115,32 @@ namespace fastuidraw
      * out_item_space_distance, then to convert the box
      * to clip-coordinates and then push each clip-equation
      * by *out_pixel_space_distance
-     * \param data PainterItemShaderData::DataBase object holding
-     *             the data to be sent to the shader
+     * \param data packed data to be sent to the shader
      * \param[out] out_values output with array indexed as according
      *                        to \ref path_geometry_inflation_index_t
      */
     virtual
     void
-    stroking_distances(const PainterShaderData::DataBase *data,
+    stroking_distances(c_array<const generic_data> data,
                        c_array<float> out_values) const = 0;
 
     /*!
      * To be implemented by a derived class to specify if
      * arc-stroking is possible with the stroking parameters.
-     * \param data PainterItemShaderData::DataBase object holding
-     *             the data to be sent to the shader
+     * \param data packed data to be sent to the shader
      */
     virtual
     bool
-    arc_stroking_possible(const PainterShaderData::DataBase *data) const = 0;
+    arc_stroking_possible(c_array<const generic_data> data) const = 0;
 
     /*!
      * To be implemented by a derived class to specify if the passed
      * data is suitable for it.
+     * \param data packed data to be sent to the shader
      */
     virtual
     bool
-    data_compatible(const PainterShaderData::DataBase *data) const = 0;
+    data_compatible(c_array<const generic_data> data) const = 0;
   };
 
   /*!

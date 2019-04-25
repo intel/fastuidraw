@@ -32,7 +32,7 @@ namespace fastuidraw
    * Class to specify stroking parameters, data is packed
    * as according to PainterStrokeParams::stroke_data_offset_t.
    */
-  class PainterStrokeParams:public PainterItemShaderData
+  class PainterStrokeParams:public PainterItemShaderData, noncopyable
   {
   public:
     /*!
@@ -60,15 +60,9 @@ namespace fastuidraw
      */
     enum stroke_data_offset_t
       {
-        /*!
-         * Offset to stroke radius (packed as float).
-         * The absolute value gives the stroking radius,
-         * if the value is negative then the stroking radius
-         * is in units of pixels, if positive it is in local
-         * path coordinates.
-         */
-        stroke_radius_offset,
+        stroke_radius_offset, /*!< Offset to stroke radius (packed as float) */
         stroke_miter_limit_offset, /*!< offset to stroke miter limit (packed as float) */
+        stroking_units_offset, /*!< Offset to stroking units (packed as uint) */
 
         stroke_data_size /*!< size of data for stroking*/
       };
@@ -77,6 +71,8 @@ namespace fastuidraw
      * Ctor.
      */
     PainterStrokeParams(void);
+
+    ~PainterStrokeParams();
 
     /*!
      * The miter limit for miter joins.
@@ -148,6 +144,15 @@ namespace fastuidraw
     static
     reference_counted_ptr<const StrokingDataSelectorBase>
     stroking_data_selector(bool pixel_arc_stroking_possible);
+
+    unsigned int
+    data_size(void) const override;
+
+    void
+    pack_data(c_array<generic_data> dst) const override;
+
+  private:
+    void *m_d;
   };
 
 /*! @} */

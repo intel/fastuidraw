@@ -103,6 +103,18 @@ namespace fastuidraw
     return *this;                                                       \
   }
 
+#define set_implement_callback(class_name, class_name_private, type_name, member_name, callback) \
+  class_name&                                                           \
+  class_name::                                                          \
+  member_name(type_name v)                                              \
+  {                                                                     \
+    class_name_private *d;                                              \
+    d = static_cast<class_name_private*>(m_d);                          \
+    d->m_##member_name = v;                                             \
+    callback;                                                           \
+    return *this;                                                       \
+  }
+
 #define set_implement_string(class_name, class_name_private, member_name) \
   class_name&                                                           \
   class_name::                                                          \
@@ -114,12 +126,32 @@ namespace fastuidraw
     return *this;                                                       \
   }
 
+#define set_implement_string_callback(class_name, class_name_private, member_name, callback) \
+  class_name&                                                           \
+  class_name::                                                          \
+  member_name(c_string v)                                               \
+  {                                                                     \
+    class_name_private *d;                                              \
+    d = static_cast<class_name_private*>(m_d);                          \
+    d->m_##member_name = (v) ? v : "";                                  \
+    callback;                                                           \
+    return *this;                                                       \
+  }
+
 #define setget_implement(class_name, class_name_private, type_name, member_name) \
   set_implement(class_name, class_name_private, type_name, member_name) \
   get_implement(class_name, class_name_private, type_name, member_name)
 
+#define setget_implement_callback(class_name, class_name_private, type_name, member_name, callback) \
+  set_implement_callback(class_name, class_name_private, type_name, member_name, callback) \
+  get_implement(class_name, class_name_private, type_name, member_name)
+
 #define setget_implement_string(class_name, class_name_private, member_name) \
   set_implement_string(class_name, class_name_private, member_name) \
+  get_implement_string(class_name, class_name_private, member_name)
+
+#define setget_implement_string_callback(class_name, class_name_private, member_name, callback) \
+  set_implement_string_callback(class_name, class_name_private, member_name, callback) \
   get_implement_string(class_name, class_name_private, member_name)
 
 #define assign_swap_implement(class_name) \

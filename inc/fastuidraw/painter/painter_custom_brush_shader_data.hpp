@@ -32,83 +32,21 @@ namespace fastuidraw
   /*!
    * \brief
    * Base class to hold custom data for custom brush shaders.
-   *
-   * Derived classes CANNOT add any data or virtual functions.
-   * The class PainterCustomBrushShaderData is essentially a
-   * wrapper over a PainterCustomBrushShaderData::DataBase
-   * object that handles holding data and copying itself (for
-   * the purpose of copying PainterCustomBrushShaderData
-   * objects).
    */
   class PainterCustomBrushShaderData
   {
   public:
     /*!
-     * \brief
-     * Class that holds the actual data and packs the data.
-     *
-     * A class derived from PainterCustomBrushShaderData should set the
-     * field \ref m_data to point to an object derived from
-     * DataBase for the purpose of holding and packing data.
-     */
-    class DataBase
-    {
-    public:
-      virtual
-      ~DataBase()
-      {}
-
-      /*!
-       * To be implemented by a derived class to create
-       * a copy of itself.
-       */
-      virtual
-      DataBase*
-      copy(void) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * a \ref c_array of references to \ref Image
-       * objects whose Image::type() value is \ref
-       * Image::context_texture2d. The i'th entry in
-       * the returned array will be bound to the i'th
-       * external texture slot of the backend via the
-       * \ref PainterDrawBreakAction objected returned
-       * by \ref PainterBackend::bind_image().
-       */
-      virtual
-      c_array<const reference_counted_ptr<const Image> >
-      bind_images(void) const = 0;
-
-      /*!
-       * To be implemented by a derived class to return
-       * the length of the data needed to encode the data.
-       */
-      virtual
-      unsigned int
-      data_size(void) const = 0;
-
-      /*!
-       * To be implemtend by a derive class to pack its data.
-       * \param dst place to which to pack data
-       */
-      virtual
-      void
-      pack_data(c_array<generic_data> dst) const = 0;
-    };
-
-    /*!
-     * Ctor. A derived class from PainterCustomBrushShaderData
-     * should set \ref m_data.
+     * Ctor.
      */
     PainterCustomBrushShaderData(void);
 
     /*!
-     * Copy ctor, calls DataBase::copy() to
-     * copy the data behind \ref m_data.
+     * Copy ctor.
      */
     PainterCustomBrushShaderData(const PainterCustomBrushShaderData &obj);
 
+    virtual
     ~PainterCustomBrushShaderData();
 
     /*!
@@ -125,51 +63,113 @@ namespace fastuidraw
     swap(PainterCustomBrushShaderData &obj);
 
     /*!
-     * Return a \ref c_array of references to \ref
-     * Image objects whose Image::type() value is
-     * \ref Image::context_texture2d. The i'th entry
-     * in the returned array will be bound to the i'th
-     * external texture slot of the backend via the
-     * \ref PainterDrawBreakAction objected returned
-     * by \ref PainterBackend::bind_image().
+     * Returns the data packed. The length of the returned
+     * array is guaranteed to be a multiple of 4.
+     */
+    c_array<const generic_data>
+    packed_data(void) const;
+
+    /*!
+     * Returns the resources used by this \ref PainterCustomBrushShaderData
+     */
+    c_array<const reference_counted_ptr<const resource_base> >
+    resources(void) const;
+
+    /*!
+     * Returns a \ref c_array as saved by \ref
+     * save_bind_images().
      */
     c_array<const reference_counted_ptr<const Image> >
     bind_images(void) const;
 
     /*!
-     * Returns the length of the data needed to encode the data.
-     * The returned value is guaranteed to be a multiple of 4.
+     * To be implemented by a derived class to pack the
+     * data.
+     * \param dst location to which to pack the data
      */
-    unsigned int
-    data_size(void) const;
-
-    /*!
-     * Pack the values of this object
-     * \param dst place to which to pack data
-     */
+    virtual
     void
-    pack_data(c_array<generic_data> dst) const;
-
-    /*!
-     * Returns a pointer to the underlying object holding
-     * the data of the PainterCustomBrushShaderData.
-     */
-    const DataBase*
-    data_base(void) const
+    pack_data(c_array<generic_data> dst) const
     {
-      return m_data;
+      FASTUIDRAWunused(dst);
     }
 
-  protected:
     /*!
-     * Initialized as nullptr by the ctor PainterCustomBrushShaderData(void).
-     * A derived class of PainterCustomBrushShaderData should assign \ref
-     * m_data to point to an object derived from DataBase.
-     * That object is the object that is to determine the
-     * size of data to pack and how to pack the data into
-     * the data store buffer.
+     * To be implemented by a derived class to return
+     * the length needed to pack the data.
      */
-    DataBase *m_data;
+    virtual
+    unsigned int
+    data_size(void) const
+    {
+      return 0;
+    }
+
+    /*!
+     * To be optionally implemented by a derived class to
+     * save references to resources that need to be resident
+     * after packing. Default implementation does nothing.
+     * \param dst location to which to save resources.
+     */
+    virtual
+    void
+    save_resources(c_array<reference_counted_ptr<const resource_base> > dst) const
+    {
+      FASTUIDRAWunused(dst);
+    }
+
+    /*!
+     * To be optionally implemented by a derived class to
+     * return the number of resources that need to be resident
+     * after packing. Default implementation returns 0.
+     */
+    virtual
+    unsigned int
+    number_resources(void) const
+    {
+      return 0;
+    }
+
+    /*!
+     * To be implemented by a derived class to write to a
+     * \ref c_array of references to \ref Image objects whose
+     * Image::type() value is \ref Image::context_texture2d.
+     * The i'th entry in the returned array will be bound to
+     * the i'th external texture slot of the backend via the
+     * \ref PainterDrawBreakAction objected returned by \ref
+     * PainterBackend::bind_image(). Default implementation
+     * is to do nothing.
+     * \param dst location to which to write the bind images.
+     */
+    virtual
+    void
+    save_bind_images(c_array<reference_counted_ptr<const Image> > dst) const
+    {
+      FASTUIDRAWunused(dst);
+    }
+
+    /*!
+     * To be optionally implemented by a derived class to
+     * return the number of bind images.
+     * after packing. Default implementation returns 0.
+     */
+    virtual
+    unsigned int
+    number_bind_images(void) const
+    {
+      return 0;
+    }
+
+    /*!
+     * To be called by a derived class to indicate that the nature of
+     * the data so that either data_size() or pack_data() will do
+     * something different than what the last call to them did.
+     */
+    void
+    mark_dirty(void);
+
+  private:
+    void *m_d;
   };
 
 /*! @} */

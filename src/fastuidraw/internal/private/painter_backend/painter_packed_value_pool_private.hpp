@@ -26,6 +26,65 @@ namespace fastuidraw
 {
   namespace detail
   {
+    namespace PackedValuePoolHelper
+    {
+      template<typename T>
+      class FillData
+      {
+      public:
+        static
+        void
+        fetch_data(const T &src, std::vector<generic_data> *dst)
+        {
+          dst->resize(src.data_size());
+          src.pack_data(fastuidraw::make_c_array(*dst));
+        }
+      };
+
+      template<typename T>
+      class CopyData
+      {
+      public:
+        static
+        void
+        fetch_data(const T &src,
+                   std::vector<generic_data> *dst)
+        {
+          c_array<const generic_data> src_data(src.packed_data());
+          dst->resize(src_data.size());
+          std::copy(src_data.begin(), src_data.end(), dst->begin());
+        }
+      };
+
+      template<typename T>
+      class DataType
+      {
+      public:
+        typedef CopyData<T> Type;
+      };
+
+      template<>
+      class DataType<PainterClipEquations>
+      {
+      public:
+        typedef FillData<PainterClipEquations> Type;
+      };
+
+      template<>
+      class DataType<PainterItemMatrix>
+      {
+      public:
+        typedef FillData<PainterItemMatrix> Type;
+      };
+
+      template<>
+      class DataType<PainterBrushAdjust>
+      {
+      public:
+        typedef FillData<PainterBrushAdjust> Type;
+      };
+    }
+
     class PackedValuePoolBase:public reference_counted<PackedValuePoolBase>::non_concurrent
     {
     public:
@@ -169,11 +228,11 @@ namespace fastuidraw
         {
           this->initialize_common(slot, p);
           m_state = st;
-          m_data.resize(m_state.data_size());
-          m_state.pack_data(fastuidraw::make_c_array(m_data));
+          GetData::fetch_data(m_state, &m_data);
         }
 
       private:
+        typedef typename PackedValuePoolHelper::DataType<T>::Type GetData;
         T m_state;
       };
 

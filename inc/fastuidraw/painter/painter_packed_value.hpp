@@ -65,6 +65,9 @@ namespace fastuidraw
     const void*
     raw_value(void) const;
 
+    c_array<generic_data>
+    packed_data(void) const;
+
     void *m_d;
   };
 
@@ -119,6 +122,16 @@ namespace fastuidraw
     {
       PainterPackedValue tmp;
       swap(tmp);
+    }
+
+    /*!
+     * Returns the data of the PainterPackedValue
+     */
+    c_array<generic_data>
+    packed_data(void) const
+    {
+      FASTUIDRAWassert(this->m_d);
+      return PainterPackedValueBase::packed_data();
     }
 
     /*!

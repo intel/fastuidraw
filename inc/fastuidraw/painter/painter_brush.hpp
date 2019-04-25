@@ -28,6 +28,8 @@
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
+#include <fastuidraw/painter/painter_custom_brush_shader_data.hpp>
 
 namespace fastuidraw
 {
@@ -60,7 +62,7 @@ namespace fastuidraw
    *  -# an optional repeat window is applied, see \ref
    *     repeat_window() and \ref no_repeat_window().
    */
-  class PainterBrush
+  class PainterBrush:public PainterCustomBrushShaderData
   {
   public:
     /*!
@@ -815,6 +817,7 @@ namespace fastuidraw
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
+      mark_dirty();
       return *this;
     }
 
@@ -847,6 +850,7 @@ namespace fastuidraw
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
+      mark_dirty();
       return *this;
     }
 
@@ -897,6 +901,7 @@ namespace fastuidraw
         0u;
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       m_data.m_shader_raw |= gradient_bits;
+      mark_dirty();
       return *this;
     }
 
@@ -965,6 +970,7 @@ namespace fastuidraw
     {
       m_data.m_cs = reference_counted_ptr<const ColorStopSequenceOnAtlas>();
       m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
+      mark_dirty();
       return *this;
     }
 
@@ -1003,6 +1009,7 @@ namespace fastuidraw
     {
       m_data.m_transformation_p = p;
       m_data.m_shader_raw |= transformation_translation_mask;
+      mark_dirty();
       return *this;
     }
 
@@ -1024,6 +1031,7 @@ namespace fastuidraw
     {
       m_data.m_transformation_matrix = m;
       m_data.m_shader_raw |= transformation_matrix_mask;
+      mark_dirty();
       return *this;
     }
 
@@ -1045,6 +1053,7 @@ namespace fastuidraw
     {
       m_data.m_shader_raw |= transformation_matrix_mask;
       m_data.m_transformation_matrix = m_data.m_transformation_matrix * m;
+      mark_dirty();
       return *this;
     }
 
@@ -1061,6 +1070,7 @@ namespace fastuidraw
       m_data.m_transformation_matrix(1, 0) *= sx;
       m_data.m_transformation_matrix(0, 1) *= sy;
       m_data.m_transformation_matrix(1, 1) *= sy;
+      mark_dirty();
       return *this;
     }
 
@@ -1074,7 +1084,6 @@ namespace fastuidraw
       float s, c;
       float2x2 tr;
 
-      m_data.m_shader_raw |= transformation_matrix_mask;
       s = t_sin(angle);
       c = t_cos(angle);
       tr(0, 0) = c;
@@ -1093,6 +1102,7 @@ namespace fastuidraw
     {
       m_data.m_transformation_p += m_data.m_transformation_matrix * p;
       m_data.m_shader_raw |= transformation_translation_mask;
+      mark_dirty();
       return *this;
     }
 
@@ -1118,6 +1128,7 @@ namespace fastuidraw
     {
       m_data.m_shader_raw &= ~transformation_translation_mask;
       m_data.m_transformation_p = vec2(0.0f, 0.0f);
+      mark_dirty();
       return *this;
     }
 
@@ -1129,6 +1140,7 @@ namespace fastuidraw
     {
       m_data.m_shader_raw &= ~transformation_matrix_mask;
       m_data.m_transformation_matrix = float2x2();
+      mark_dirty();
       return *this;
     }
 
@@ -1165,6 +1177,7 @@ namespace fastuidraw
       m_data.m_shader_raw |= pack_bits(repeat_window_y_spread_type_bit0,
                                        spread_type_num_bits,
                                        y_mode);
+      mark_dirty();
       return *this;
     }
 
@@ -1218,28 +1231,9 @@ namespace fastuidraw
     no_repeat_window(void)
     {
       m_data.m_shader_raw &= ~(repeat_window_mask | repeat_window_spread_type_mask);
+      mark_dirty();
       return *this;
     }
-
-    /*!
-     * Returns the length of the data needed to encode the brush.
-     * Data is padded to be multiple of 4 and also
-     * sub-data of brush is padded to be along 4-alignment
-     * boundaries.
-     */
-    unsigned int
-    data_size(void) const;
-
-    /*!
-     * Encodes the data. Data is packed in the order
-     * specified by \ref packing_order_t.
-     * Data is padded to be multiple of 4 and also
-     * sub-data of brush is padded to be along 4-alignment
-     * boundaries.
-     * \param dst location to which to encode the brush
-     */
-    void
-    pack_data(c_array<generic_data> dst) const;
 
     /*!
      * Returns the brush shader ID which when tested against the
@@ -1323,8 +1317,41 @@ namespace fastuidraw
       return m_data.m_cs;
     }
 
-  private:
+    unsigned int
+    data_size(void) const override;
 
+    void
+    pack_data(c_array<generic_data> dst) const override;
+
+    void
+    save_resources(c_array<reference_counted_ptr<const resource_base> > dst) const override
+    {
+      dst[0] = m_data.m_image;
+      dst[1] = m_data.m_cs;
+    }
+
+    unsigned int
+    number_resources(void) const override
+    {
+      return 2;
+    }
+
+    unsigned int
+    number_bind_images(void) const override
+    {
+      return (image_requires_binding()) ? 1 : 0;
+    }
+
+    void
+    save_bind_images(c_array<reference_counted_ptr<const Image> > dst) const override
+    {
+      if (image_requires_binding())
+        {
+          dst[0] = m_data.m_image;
+        }
+    }
+
+  private:
     class brush_data
     {
     public:
