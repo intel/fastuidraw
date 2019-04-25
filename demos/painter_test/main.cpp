@@ -293,7 +293,7 @@ main(int argc, char **argv)
             << std::setw(45) << "brush transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
             << std::setw(45) << "brush image_type_mask = " << bitset(PainterBrush::image_type_mask) << "\n"
             << std::setw(45) << "brush image_format_mask = " << bitset(PainterBrush::image_format_mask) << "\n"
-            << std::setw(45) << "brush number_shader_bits = " << PainterBrush::number_shader_bits << "\n"
+            << std::setw(45) << "brush number_feature_bits = " << PainterBrush::number_feature_bits << "\n"
 
             << std::setw(45) << "stroked_number_offset_types = " << StrokedPoint::number_offset_types << "\n"
             << std::setw(45) << "stroked_offset_type_bit0 = " << StrokedPoint::offset_type_bit0 << "\n"

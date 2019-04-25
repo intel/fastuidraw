@@ -27,11 +27,11 @@ fastuidraw::PainterBrush::
 data_size(void) const
 {
   unsigned int return_value(0);
-  uint32_t pshader = shader();
+  uint32_t pfeatures = features();
 
   return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(color_data_size);
 
-  if (pshader & image_mask)
+  if (pfeatures & image_mask)
     {
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(image_data_size);
     }
@@ -54,17 +54,17 @@ data_size(void) const
       break;
     }
 
-  if (pshader & repeat_window_mask)
+  if (pfeatures & repeat_window_mask)
     {
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(repeat_window_data_size);
     }
 
-  if (pshader & transformation_translation_mask)
+  if (pfeatures & transformation_translation_mask)
     {
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_translation_data_size);
     }
 
-  if (pshader & transformation_matrix_mask)
+  if (pfeatures & transformation_matrix_mask)
     {
       return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_matrix_data_size);
     }
@@ -79,7 +79,7 @@ pack_data(c_array<generic_data> dst) const
   unsigned int current(0);
   unsigned int sz;
   c_array<generic_data> sub_dest;
-  uint32_t pshader = shader();
+  uint32_t pfeatures = features();
 
   {
     sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(color_data_size);
@@ -92,7 +92,7 @@ pack_data(c_array<generic_data> dst) const
     sub_dest[color_alpha_offset].f = m_data.m_color.w();
   }
 
-  if (pshader & image_mask)
+  if (pfeatures & image_mask)
     {
       sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(image_data_size);
       sub_dest = dst.sub_array(current, sz);
@@ -175,7 +175,7 @@ pack_data(c_array<generic_data> dst) const
         }
     }
 
-  if (pshader & repeat_window_mask)
+  if (pfeatures & repeat_window_mask)
     {
       sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(repeat_window_data_size);
       sub_dest = dst.sub_array(current, sz);
@@ -187,7 +187,7 @@ pack_data(c_array<generic_data> dst) const
       sub_dest[repeat_window_height_offset].f = m_data.m_window_size.y();
     }
 
-  if (pshader & transformation_matrix_mask)
+  if (pfeatures & transformation_matrix_mask)
     {
       sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_matrix_data_size);
       sub_dest = dst.sub_array(current, sz);
@@ -199,7 +199,7 @@ pack_data(c_array<generic_data> dst) const
       sub_dest[transformation_matrix_row1_col1_offset].f = m_data.m_transformation_matrix(1, 1);
     }
 
-  if (pshader & transformation_translation_mask)
+  if (pfeatures & transformation_translation_mask)
     {
       sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_translation_data_size);
       sub_dest = dst.sub_array(current, sz);
@@ -233,17 +233,17 @@ sub_image(const reference_counted_ptr<const Image> &im,
   m_data.m_image_start = xy;
   m_data.m_image_size = wh;
 
-  m_data.m_shader_raw &= ~image_mask;
-  m_data.m_shader_raw |= pack_bits(image_filter_bit0, image_filter_num_bits, filter_bits);
+  m_data.m_features_raw &= ~image_mask;
+  m_data.m_features_raw |= pack_bits(image_filter_bit0, image_filter_num_bits, filter_bits);
 
-  m_data.m_shader_raw &= ~image_type_mask;
-  m_data.m_shader_raw |= pack_bits(image_type_bit0, image_type_num_bits, type_bits);
+  m_data.m_features_raw &= ~image_type_mask;
+  m_data.m_features_raw |= pack_bits(image_type_bit0, image_type_num_bits, type_bits);
 
-  m_data.m_shader_raw &= ~image_mipmap_mask;
-  m_data.m_shader_raw |= pack_bits(image_mipmap_bit0, image_mipmap_num_bits, mip_bits);
+  m_data.m_features_raw &= ~image_mipmap_mask;
+  m_data.m_features_raw |= pack_bits(image_mipmap_bit0, image_mipmap_num_bits, mip_bits);
 
-  m_data.m_shader_raw &= ~image_format_mask;
-  m_data.m_shader_raw |= pack_bits(image_format_bit0, image_format_num_bits, fmt_bits);
+  m_data.m_features_raw &= ~image_format_mask;
+  m_data.m_features_raw |= pack_bits(image_format_bit0, image_format_num_bits, fmt_bits);
 
   return *this;
 }
@@ -263,13 +263,13 @@ image(const reference_counted_ptr<const Image> &im, enum image_filter f,
 
 uint32_t
 fastuidraw::PainterBrush::
-shader(void) const
+features(void) const
 {
   uint32_t return_value;
 
-  FASTUIDRAWstatic_assert(number_shader_bits <= 32u);
+  FASTUIDRAWstatic_assert(number_feature_bits <= 32u);
 
-  return_value = m_data.m_shader_raw;
+  return_value = m_data.m_features_raw;
   if (!m_data.m_image && !m_data.m_cs)
     {
       /* lacking an image or gradient means the brush does
@@ -285,7 +285,7 @@ fastuidraw::PainterBrush::
 reset(void)
 {
   color(1.0, 1.0, 1.0, 1.0);
-  m_data.m_shader_raw = 0u;
+  m_data.m_features_raw = 0u;
   m_data.m_image = nullptr;
   m_data.m_cs = nullptr;
   m_data.m_transformation_p = vec2(0.0f, 0.0f);

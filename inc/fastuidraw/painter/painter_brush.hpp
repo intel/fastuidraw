@@ -203,14 +203,14 @@ namespace fastuidraw
     /*!
      * \brief
      * Enumeration describing the roles of the bits for
-     * PainterBrush::shader().
+     * \ref features().
      */
-    enum shader_bits
+    enum feature_bits
       {
         /*!
          * Number of bits needed to encode filter for image,
-         * the value packed into the shader ID encodes both
-         * what filter to use and whether or not an image
+         * the value packed into the \ref features() encodes
+         * both what filter to use and whether or not an image
          * is present. A value of 0 indicates no image applied,
          * a non-zero value indicates an image applied and
          * the value specifies what filter via the enumeration
@@ -305,19 +305,19 @@ namespace fastuidraw
         image_format_bit0 = image_type_bit0 + image_type_num_bits,
 
         /*!
-         * Must be last enum, gives number of bits needed to hold shader bits
+         * Must be last enum, gives number of bits needed to hold feature bits
          * of a PainterBrush.
          */
-        number_shader_bits = image_format_bit0 + image_format_num_bits,
+        number_feature_bits = image_format_bit0 + image_format_num_bits,
       };
 
     /*!
      * \brief
-     * Masks generated from shader_bits, use these masks on the
-     * return value of PainterBrush::shader() to get what features
+     * Masks generated from \ref feature_bits, use these masks on the
+     * return value of \ref features() to get what features
      * are active on the brush.
      */
-    enum shader_masks
+    enum feature_masks
       {
         /*!
          * mask generated from \ref image_filter_bit0 and \ref image_filter_num_bits
@@ -489,7 +489,7 @@ namespace fastuidraw
      * Offsets for image data packing.
      *
      * The number of index look ups is recorded in
-     * PainterBrush::shader(). The ratio of the size of the
+     * PainterBrush::features(). The ratio of the size of the
      * image to the size of the master index is given by
      * pow(I, Image::number_index_lookups). where I is given
      * by ImageAtlas::index_tile_size().
@@ -833,8 +833,8 @@ namespace fastuidraw
         pack_bits(gradient_type_bit0, gradient_type_num_bits, linear_gradient_type)
         | pack_bits(gradient_spread_type_bit0, spread_type_num_bits, spread) :
         0u;
-      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
-      m_data.m_shader_raw |= gradient_bits;
+      m_data.m_features_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
+      m_data.m_features_raw |= gradient_bits;
       return *this;
     }
 
@@ -865,8 +865,8 @@ namespace fastuidraw
         pack_bits(gradient_type_bit0, gradient_type_num_bits, radial_gradient_type)
         | pack_bits(gradient_spread_type_bit0, spread_type_num_bits, spread) :
         0u;
-      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
-      m_data.m_shader_raw |= gradient_bits;
+      m_data.m_features_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
+      m_data.m_features_raw |= gradient_bits;
       return *this;
     }
 
@@ -915,8 +915,8 @@ namespace fastuidraw
         pack_bits(gradient_type_bit0, gradient_type_num_bits, sweep_gradient_type)
         | pack_bits(gradient_spread_type_bit0, spread_type_num_bits, spread) :
         0u;
-      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
-      m_data.m_shader_raw |= gradient_bits;
+      m_data.m_features_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
+      m_data.m_features_raw |= gradient_bits;
       return *this;
     }
 
@@ -984,7 +984,7 @@ namespace fastuidraw
     no_gradient(void)
     {
       m_data.m_cs = reference_counted_ptr<const ColorStopSequenceOnAtlas>();
-      m_data.m_shader_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
+      m_data.m_features_raw &= ~(gradient_type_mask | gradient_spread_type_mask);
       return *this;
     }
 
@@ -997,7 +997,7 @@ namespace fastuidraw
       uint32_t v;
       v = unpack_bits(gradient_type_bit0,
                       gradient_type_num_bits,
-                      m_data.m_shader_raw);
+                      m_data.m_features_raw);
       return static_cast<enum gradient_type_t>(v);
     }
 
@@ -1010,7 +1010,7 @@ namespace fastuidraw
       uint32_t v;
       v = unpack_bits(gradient_spread_type_bit0,
                       spread_type_num_bits,
-                      m_data.m_shader_raw);
+                      m_data.m_features_raw);
       return static_cast<enum spread_type_t>(v);
     }
 
@@ -1022,7 +1022,7 @@ namespace fastuidraw
     transformation_translate(const vec2 &p)
     {
       m_data.m_transformation_p = p;
-      m_data.m_shader_raw |= transformation_translation_mask;
+      m_data.m_features_raw |= transformation_translation_mask;
       return *this;
     }
 
@@ -1043,7 +1043,7 @@ namespace fastuidraw
     transformation_matrix(const float2x2 &m)
     {
       m_data.m_transformation_matrix = m;
-      m_data.m_shader_raw |= transformation_matrix_mask;
+      m_data.m_features_raw |= transformation_matrix_mask;
       return *this;
     }
 
@@ -1063,7 +1063,7 @@ namespace fastuidraw
     PainterBrush&
     apply_matrix(const float2x2 &m)
     {
-      m_data.m_shader_raw |= transformation_matrix_mask;
+      m_data.m_features_raw |= transformation_matrix_mask;
       m_data.m_transformation_matrix = m_data.m_transformation_matrix * m;
       return *this;
     }
@@ -1076,7 +1076,7 @@ namespace fastuidraw
     PainterBrush&
     apply_shear(float sx, float sy)
     {
-      m_data.m_shader_raw |= transformation_matrix_mask;
+      m_data.m_features_raw |= transformation_matrix_mask;
       m_data.m_transformation_matrix(0, 0) *= sx;
       m_data.m_transformation_matrix(1, 0) *= sx;
       m_data.m_transformation_matrix(0, 1) *= sy;
@@ -1111,7 +1111,7 @@ namespace fastuidraw
     apply_translate(const vec2 &p)
     {
       m_data.m_transformation_p += m_data.m_transformation_matrix * p;
-      m_data.m_shader_raw |= transformation_translation_mask;
+      m_data.m_features_raw |= transformation_translation_mask;
       return *this;
     }
 
@@ -1135,7 +1135,7 @@ namespace fastuidraw
     PainterBrush&
     no_transformation_translation(void)
     {
-      m_data.m_shader_raw &= ~transformation_translation_mask;
+      m_data.m_features_raw &= ~transformation_translation_mask;
       m_data.m_transformation_p = vec2(0.0f, 0.0f);
       return *this;
     }
@@ -1146,7 +1146,7 @@ namespace fastuidraw
     PainterBrush&
     no_transformation_matrix(void)
     {
-      m_data.m_shader_raw &= ~transformation_matrix_mask;
+      m_data.m_features_raw &= ~transformation_matrix_mask;
       m_data.m_transformation_matrix = float2x2();
       return *this;
     }
@@ -1176,12 +1176,12 @@ namespace fastuidraw
     {
       m_data.m_window_position = pos;
       m_data.m_window_size = size;
-      m_data.m_shader_raw |= repeat_window_mask;
-      m_data.m_shader_raw &= ~repeat_window_spread_type_mask;
-      m_data.m_shader_raw |= pack_bits(repeat_window_x_spread_type_bit0,
+      m_data.m_features_raw |= repeat_window_mask;
+      m_data.m_features_raw &= ~repeat_window_spread_type_mask;
+      m_data.m_features_raw |= pack_bits(repeat_window_x_spread_type_bit0,
                                        spread_type_num_bits,
                                        x_mode);
-      m_data.m_shader_raw |= pack_bits(repeat_window_y_spread_type_bit0,
+      m_data.m_features_raw |= pack_bits(repeat_window_y_spread_type_bit0,
                                        spread_type_num_bits,
                                        y_mode);
       return *this;
@@ -1197,7 +1197,7 @@ namespace fastuidraw
     {
       *pos = m_data.m_window_position;
       *size = m_data.m_window_size;
-      return m_data.m_shader_raw & repeat_window_mask;
+      return m_data.m_features_raw & repeat_window_mask;
     }
 
     /*!
@@ -1211,7 +1211,7 @@ namespace fastuidraw
       uint32_t v;
       v = unpack_bits(repeat_window_x_spread_type_bit0,
                       spread_type_num_bits,
-                      m_data.m_shader_raw);
+                      m_data.m_features_raw);
       return static_cast<enum spread_type_t>(v);
     }
 
@@ -1226,7 +1226,7 @@ namespace fastuidraw
       uint32_t v;
       v = unpack_bits(repeat_window_y_spread_type_bit0,
                       spread_type_num_bits,
-                      m_data.m_shader_raw);
+                      m_data.m_features_raw);
       return static_cast<enum spread_type_t>(v);
     }
 
@@ -1236,42 +1236,42 @@ namespace fastuidraw
     PainterBrush&
     no_repeat_window(void)
     {
-      m_data.m_shader_raw &= ~(repeat_window_mask | repeat_window_spread_type_mask);
+      m_data.m_features_raw &= ~(repeat_window_mask | repeat_window_spread_type_mask);
       return *this;
     }
 
     /*!
-     * Returns the brush shader ID which when tested against the
-     * bit masks from \ref shader_masks tells what features are
-     * active in the brush. The shader is decoded as follows:
+     * Returns the brush features which when tested against the
+     * bit masks from \ref feature_masks tells what features are
+     * active in the brush; \ref features() is decoded as follows:
      *
      * - The value given by
      *   \code
-     *   unpack_bits(image_filter_bit0, image_filter_num_bits, shader())
+     *   unpack_bits(image_filter_bit0, image_filter_num_bits, features())
      *   \endcode
      *   is non-zero if an image is present and when is non-zero the value's meaning
      *   is enumerated by image_filter
      * - The value given by
      *   \code
-     *   unpack_bits(gradient_type_bit0, gradient_type_num_bits, shader())
+     *   unpack_bits(gradient_type_bit0, gradient_type_num_bits, features())
      *   \endcode
      *   gives what gradient (if any) the brush applies as according to
      *   \ref gradient_type_t
      * - The value given by
      *   \code
-     *   unpack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, shader())
+     *   unpack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, features())
      *   \endcode
      *   gives the gradient spread pattern (if any) the brush applies as
      *   according to \ref spread_type_t
-     * - If shader() & \ref repeat_window_mask is non-zero, then a repeat
+     * - If features() & \ref repeat_window_mask is non-zero, then a repeat
      *   window is applied to the brush.
-     * - If shader() & \ref transformation_translation_mask is non-zero, then a
+     * - If features() & \ref transformation_translation_mask is non-zero, then a
      *   translation is applied to the brush.
-     * - If shader() & \ref transformation_matrix_mask is non-zero, then a
+     * - If features() & \ref transformation_matrix_mask is non-zero, then a
      *   2x2 matrix is applied to the brush.
      */
     uint32_t
-    shader(void) const;
+    features(void) const;
 
     /*!
      * Returns true if the brush sources from an Image whose
@@ -1354,7 +1354,7 @@ namespace fastuidraw
     {
     public:
       brush_data(void):
-        m_shader_raw(0),
+        m_features_raw(0),
         m_color(1.0f, 1.0f, 1.0f, 1.0f),
         m_image_size(0, 0),
         m_image_start(0, 0),
@@ -1368,7 +1368,7 @@ namespace fastuidraw
         m_transformation_p(0.0f, 0.0f)
       {}
 
-      uint32_t m_shader_raw;
+      uint32_t m_features_raw;
       vec4 m_color;
       reference_counted_ptr<const Image> m_image;
       uvec2 m_image_size, m_image_start;

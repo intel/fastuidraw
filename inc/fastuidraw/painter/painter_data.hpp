@@ -210,7 +210,7 @@ namespace fastuidraw
       {
         FASTUIDRAWassert(v);
         m_brush_shader_data = v;
-        m_fixed_brush_shader = v->shader();
+        m_fixed_brush_shader = v->features();
         m_custom_brush_shader = nullptr;
       }
 
@@ -279,9 +279,10 @@ namespace fastuidraw
       }
 
       /*!
-       * Provided as a conveniance, returns the PainterBrush::shader()
-       * if backed by a \ref PainterBrush, otherwise returns
-       * \ref PainterBrushShader::ID() if backed by a custom
+       * Provided as a conveniance, returns the \ref
+       * PainterBrush::features() if backed by a \ref
+       * PainterBrush, otherwise returns \ref
+       * PainterBrushShader::ID() if backed by a custom
        * brush.
        */
       uint32_t
