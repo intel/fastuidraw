@@ -47,34 +47,57 @@ public:
   compute_shader_list(void) const;
 
 private:
-  enum varying_type
+  enum varying_type_t
     {
       varying_float_smooth,
       varying_float_flat,
       varying_float_noperspective,
       varying_int,
       varying_uint,
+      varying_alias,
 
       number_varying_types
     };
 
-  static
-  void
-  absorb_varyings(std::map<std::string, enum varying_type> &present_varyings,
-                  c_array<const c_string> varying_names, enum varying_type tp);
+  class varying_type
+  {
+  public:
+    varying_type(enum varying_type_t tp = number_varying_types):
+      m_tp(tp)
+    {}
+
+    varying_type(const std::string &v):
+      m_alias(v),
+      m_tp(varying_alias)
+    {}
+
+    bool
+    operator==(const std::string &v) const
+    {
+      return m_tp == varying_alias
+        && m_alias == v;
+    }
+
+    std::string m_alias;
+    enum varying_type_t m_tp;
+  };
 
   static
   void
-  absorb_varyings(std::map<std::string, enum varying_type> &present_varyings,
+  absorb_varyings(std::map<std::string, varying_type> &present_varyings,
+                  c_array<const c_string> varying_names, enum varying_type_t tp);
+
+  static
+  void
+  absorb_varyings(std::map<std::string, varying_type> &present_varyings,
                   const varying_list *varying_names);
 
   static
   void
-  add_varying(varying_list *dst,
-              const std::string &name, enum varying_type tp);
+  add_varying(varying_list *dst, const std::string &name, varying_type tp);
 
   std::map<std::string, reference_counted_ptr<const T> > m_shaders;
-  std::map<std::string, enum varying_type> m_varyings;
+  std::map<std::string, varying_type> m_varyings;
 };
 
 
@@ -124,13 +147,13 @@ add_element(c_string pname,
 template<typename T>
 void
 DependencyListPrivateT<T>::
-absorb_varyings(std::map<std::string, enum varying_type> &present_varyings,
-                c_array<const c_string> varying_names, enum varying_type tp)
+absorb_varyings(std::map<std::string, varying_type> &present_varyings,
+                c_array<const c_string> varying_names, enum varying_type_t tp)
 {
   for(c_string nm : varying_names)
     {
       FASTUIDRAWassert(present_varyings.find(nm) == present_varyings.end()
-                       || present_varyings[nm] == tp);
+                       || present_varyings[nm].m_tp == tp);
       present_varyings[nm] = tp;
     }
 }
@@ -138,7 +161,7 @@ absorb_varyings(std::map<std::string, enum varying_type> &present_varyings,
 template<typename T>
 void
 DependencyListPrivateT<T>::
-absorb_varyings(std::map<std::string, enum varying_type> &present_varyings,
+absorb_varyings(std::map<std::string, varying_type> &present_varyings,
                 const varying_list *varying_names)
 {
   if (!varying_names)
@@ -151,6 +174,18 @@ absorb_varyings(std::map<std::string, enum varying_type> &present_varyings,
   absorb_varyings(present_varyings, varying_names->floats(varying_list::interpolation_noperspective), varying_float_noperspective);
   absorb_varyings(present_varyings, varying_names->ints(), varying_int);
   absorb_varyings(present_varyings, varying_names->uints(), varying_uint);
+
+  c_array<const c_string> names(varying_names->alias_list_names());
+  c_array<const c_string> aliases(varying_names->alias_list_alias_names());
+  FASTUIDRAWassert(names.size() == aliases.size());
+  for (unsigned int i = 0; i < names.size(); ++i)
+    {
+      std::string key(aliases[i]);
+      std::string value(names[i]);
+      FASTUIDRAWassert(present_varyings.find(key) == present_varyings.end()
+                       || present_varyings[key] == value);
+      present_varyings[key] = value;
+    }
 }
 
 template<typename T>
@@ -159,7 +194,7 @@ DependencyListPrivateT<T>::
 compute_varying_list(const varying_list &combine_with) const
 {
   varying_list return_value;
-  std::map<std::string, enum varying_type> tmp(m_varyings);
+  std::map<std::string, varying_type> tmp(m_varyings);
 
   absorb_varyings(tmp, &combine_with);
   for (const auto &v : tmp)
@@ -175,11 +210,11 @@ template<typename T>
 void
 DependencyListPrivateT<T>::
 add_varying(varying_list *dst,
-            const std::string &name, enum varying_type tp)
+            const std::string &name, varying_type tp)
 {
   c_string cname(name.c_str());
 
-  switch(tp)
+  switch(tp.m_tp)
     {
     case varying_float_smooth:
       dst->add_float(cname, varying_list::interpolation_smooth);
@@ -196,7 +231,9 @@ add_varying(varying_list *dst,
     case varying_uint:
       dst->add_uint(cname);
       break;
-
+    case varying_alias:
+      dst->add_alias(tp.m_alias.c_str(), cname);
+      break;
     default:
       FASTUIDRAWassert(!"Bad enum value");
     }
