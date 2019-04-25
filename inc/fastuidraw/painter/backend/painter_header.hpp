@@ -47,15 +47,6 @@ namespace fastuidraw
          * computation from the brush and item can be skipped.
          */
         drawing_occluder = ~0u,
-
-        /*!
-         * Bit mask (with only the leading bit up). If the value
-         * of \ref m_brush_shader bitwise anded with this value
-         * is non-zero, it indicates that the brush is realized
-         * by a PainterBrush. If the bitwise and value is zero,
-         * then it is realized by a \ref PainterBrushShader.
-         */
-        fixed_function_brush_shader = (1u << 31u),
       };
 
     /*!

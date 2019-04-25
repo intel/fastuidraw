@@ -471,7 +471,6 @@ ready_constants(void)
     ////////////////////////////////////
     // constants for PainterHeader
     .add_macro_u32("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", PainterHeader::drawing_occluder)
-    .add_macro_u32("FASTUIDRAW_FIXED_FUNCTION_BRUSH", PainterHeader::fixed_function_brush_shader)
     .add_macro_i32("fastuidraw_deferred_offset_bias", PainterHeader::offset_to_deferred_coverage_bias)
     .add_macro_u32("fastuidraw_deferred_offset_coord_num_bits", PainterHeader::offset_to_deferred_coverage_coord_num_bits)
     .add_macro_u32("fastuidraw_deferred_offset_x_bit0", PainterHeader::offset_to_deferred_coverage_x_coord_bit0)

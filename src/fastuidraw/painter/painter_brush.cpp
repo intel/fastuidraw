@@ -276,7 +276,7 @@ features(void) const
        */
       return_value = 0;
     }
-  return return_value | PainterHeader::fixed_function_brush_shader;
+  return return_value;
 }
 
 fastuidraw::PainterBrush&
