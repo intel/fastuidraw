@@ -103,8 +103,9 @@ namespace fastuidraw
        *
        * Each such used shader is given a name by which the caller will use it.
        * In addition, the caller has access to the varyings of the callee as well.
-       * Thus, the varyings of the caller are the varyings listed in its ctor
-       * together with the varyings of all the shaders listed in the DependencyList.
+       * A varying V of an element in the \ref DependencyList is accessed from the
+       * parent shader with dep_V where dep is the argument value of name to \ref
+       * add_shader().
        */
       class DependencyList
       {
@@ -287,8 +288,9 @@ namespace fastuidraw
        *
        * Each such used shader is given a name by which the caller will use it.
        * In addition, the caller has access to the varyings of the callee as well.
-       * Thus, the varyings of the caller are the varyings listed in its ctor
-       * together with the varyings of all the shaders listed in the DependencyList.
+       * A varying V of an element in the \ref DependencyList is accessed from the
+       * parent shader with dep_V where dep is the argument value of name to \ref
+       * add_shader().
        */
       class DependencyList
       {

@@ -107,9 +107,6 @@ namespace fastuidraw
        * a DependencyList provides the means to do so.
        *
        * Each such used shader is given a name by which the caller will use it.
-       * In addition, the caller has access to the varyings of the callee as well.
-       * Thus, the varyings of the caller are the varyings listed in its ctor
-       * together with the varyings of all the shaders listed in the DependencyList.
        */
       class DependencyList
       {
