@@ -28,12 +28,10 @@ namespace
   public:
     enum
       {
-        interpolation_number_types = fastuidraw::glsl::varying_list::interpolation_number_types
+        interpolation_number_types = fastuidraw::glsl::varying_list::interpolator_number_types
       };
 
-    fastuidraw::vecN<fastuidraw::string_array, interpolation_number_types> m_floats;
-    fastuidraw::string_array m_ints;
-    fastuidraw::string_array m_uints;
+    fastuidraw::vecN<fastuidraw::string_array, interpolation_number_types> m_varyings;
     fastuidraw::string_array m_alias_list_names, m_alias_list_alias_names;
   };
 }
@@ -67,58 +65,20 @@ assign_swap_implement(fastuidraw::glsl::varying_list)
 
 fastuidraw::c_array<const fastuidraw::c_string>
 fastuidraw::glsl::varying_list::
-floats(enum interpolation_qualifier_t q) const
+varyings(enum interpolator_type_t q) const
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
-  return d->m_floats[q].get();
-}
-
-fastuidraw::c_array<const fastuidraw::c_string>
-fastuidraw::glsl::varying_list::
-uints(void) const
-{
-  VaryingListPrivate *d;
-  d = static_cast<VaryingListPrivate*>(m_d);
-  return d->m_uints.get();
-}
-
-fastuidraw::c_array<const fastuidraw::c_string>
-fastuidraw::glsl::varying_list::
-ints(void) const
-{
-  VaryingListPrivate *d;
-  d = static_cast<VaryingListPrivate*>(m_d);
-  return d->m_ints.get();
+  return d->m_varyings[q].get();
 }
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-add_float(c_string pname, enum interpolation_qualifier_t q)
+add_varying(c_string pname, enum interpolator_type_t q)
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
-  d->m_floats[q].push_back(pname);
-  return *this;
-}
-
-fastuidraw::glsl::varying_list&
-fastuidraw::glsl::varying_list::
-add_uint(c_string pname)
-{
-  VaryingListPrivate *d;
-  d = static_cast<VaryingListPrivate*>(m_d);
-  d->m_uints.push_back(pname);
-  return *this;
-}
-
-fastuidraw::glsl::varying_list&
-fastuidraw::glsl::varying_list::
-add_int(c_string pname)
-{
-  VaryingListPrivate *d;
-  d = static_cast<VaryingListPrivate*>(m_d);
-  d->m_ints.push_back(pname);
+  d->m_varyings[q].push_back(pname);
   return *this;
 }
 

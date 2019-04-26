@@ -40,9 +40,7 @@ private:
    * start aliasing: which varying and which component
    */
   std::string m_label;
-  uvec2 m_uint_varying_start;
-  uvec2 m_int_varying_start;
-  vecN<uvec2, varying_list::interpolation_number_types> m_float_varying_start;
+  vecN<uvec2, varying_list::interpolator_number_types> m_varying_start;
 };
 
 class UberShaderVaryings:fastuidraw::noncopyable
@@ -53,28 +51,22 @@ public:
                const varying_list &p,
                AliasVaryingLocation *datum)
   {
-    vecN<size_t, varying_list::interpolation_number_types> float_counts;
+    vecN<size_t, varying_list::interpolator_number_types> counts;
 
-    for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
+    for (unsigned int i = 0; i < varying_list::interpolator_number_types; ++i)
       {
-        enum varying_list::interpolation_qualifier_t tp;
+        enum varying_list::interpolator_type_t tp;
 
-        tp = static_cast<enum varying_list::interpolation_qualifier_t>(i);
-        float_counts[i] = p.floats(tp).size();
+        tp = static_cast<enum varying_list::interpolator_type_t>(i);
+        counts[i] = p.varyings(tp).size();
       }
 
-    add_varyings(label,
-                 p.uints().size(),
-                 p.ints().size(),
-                 float_counts,
-                 datum);
+    add_varyings(label, counts, datum);
   }
 
   void
   add_varyings(c_string label,
-               size_t uint_count,
-               size_t int_count,
-               c_array<const size_t> float_counts,
+               c_array<const size_t> counts,
                AliasVaryingLocation *datum);
 
   void
@@ -120,7 +112,8 @@ private:
   uvec2
   add_varyings_impl_type(std::vector<per_varying> &varyings,
                          unsigned int cnt,
-                         c_string qualifier, c_string types[],
+                         c_string qualifier,
+                         vecN<c_string, 4> types,
                          c_string name, bool is_flat);
 
   void
@@ -135,13 +128,8 @@ private:
                              c_array<const c_string> p,
                              bool add_aliases, uvec2 start) const;
 
-  std::vector<per_varying> m_uint_varyings;
-  std::vector<per_varying> m_int_varyings;
-  vecN<std::vector<per_varying>, varying_list::interpolation_number_types> m_float_varyings;
+  vecN<std::vector<per_varying>, varying_list::interpolator_number_types> m_varyings;
 };
-
-void
-stream_as_local_variables(ShaderSource &shader, const varying_list &p);
 
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,

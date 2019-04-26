@@ -25,6 +25,14 @@
 
 namespace
 {
+  struct varying_type_information
+  {
+    fastuidraw::c_string m_qualifier;
+    fastuidraw::vecN<fastuidraw::c_string, 4> m_types;
+    fastuidraw::c_string m_fastuidraw_prefix;
+    bool m_is_flat;
+  };
+
   void
   stream_varyings_as_local_variables_array(fastuidraw::glsl::ShaderSource &vert,
                                            fastuidraw::c_array<const fastuidraw::c_string> p,
@@ -101,6 +109,7 @@ namespace
     operator()(fastuidraw::glsl::ShaderSource &dst,
                const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh)
     {
+      FASTUIDRAWunused(sh);
       dst << "\n#define fastuidraw_brush_context_dependency_count " << m_count
           << "\n#define fastuidraw_brush_context_texture(X) "
           << "fastuidraw_context_texture[X + fastuidraw_brush_context_dependency_count]\n";
@@ -117,8 +126,7 @@ namespace
     operator()(fastuidraw::glsl::ShaderSource &dst,
                const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh)
     {
-      unsigned int cnt(sh->number_context_textures());
-
+      FASTUIDRAWunused(sh);
       dst << "\n#undef fastuidraw_brush_context_dependency_count\n"
           << "#undef fastuidraw_brush_context_texture\n";
     }
@@ -588,63 +596,88 @@ namespace fastuidraw { namespace glsl { namespace detail {
 void
 UberShaderVaryings::
 add_varyings(c_string label,
-             size_t uint_count,
-             size_t int_count,
-             c_array<const size_t> float_counts,
+             c_array<const size_t> counts,
              AliasVaryingLocation *datum)
 {
-  c_string uint_labels[]=
+  struct varying_type_information info[varying_list::interpolator_number_types] =
     {
-      "uint",
-      "uvec2",
-      "uvec3",
-      "uvec4",
+      [varying_list::interpolator_smooth] =
+      {
+        .m_qualifier = "",
+        .m_types =
+        {
+          "float",
+          "vec2",
+          "vec3",
+          "vec4",
+        },
+        .m_fastuidraw_prefix = "fastuidraw_float_smooth_varying",
+        .m_is_flat = false,
+      },
+
+      [varying_list::interpolator_noperspective] =
+      {
+        .m_qualifier = "noperspective",
+        .m_types =
+        {
+          "float",
+          "vec2",
+          "vec3",
+          "vec4",
+        },
+        .m_fastuidraw_prefix = "fastuidraw_float_flat_varying",
+        .m_is_flat = false,
+      },
+
+      [varying_list::interpolator_flat] =
+      {
+        .m_qualifier = "flat",
+        .m_types =
+        {
+          "float",
+          "vec2",
+          "vec3",
+          "vec4",
+        },
+        .m_fastuidraw_prefix = "fastuidraw_float_flat_varying",
+        .m_is_flat = true,
+      },
+
+      [varying_list::interpolator_uint] =
+      {
+        .m_qualifier = "flat",
+        .m_types =
+        {
+          "uint",
+          "uvec2",
+          "uvec3",
+          "uvec4",
+        },
+        .m_fastuidraw_prefix = "fastuidraw_uint_varying",
+        .m_is_flat = true,
+      },
+
+      [varying_list::interpolator_int] =
+      {
+        .m_qualifier = "flat",
+        .m_types =
+        {
+          "int",
+          "ivec2",
+          "ivec3",
+          "ivec4",
+        },
+        .m_fastuidraw_prefix = "fastuidraw_int_varying",
+        .m_is_flat = true,
+      },
     };
 
-  c_string int_labels[]=
+  for (unsigned int i = 0; i < varying_list::interpolator_number_types; ++i)
     {
-      "int",
-      "ivec2",
-      "ivec3",
-      "ivec4",
-    };
-
-  c_string float_labels[]=
-    {
-      "float",
-      "vec2",
-      "vec3",
-      "vec4",
-    };
-
-  datum->m_uint_varying_start = add_varyings_impl_type(m_uint_varyings, uint_count,
-                                                       "flat", uint_labels,
-                                                       "fastuidraw_uint_varying", true);
-
-  datum->m_int_varying_start = add_varyings_impl_type(m_int_varyings, int_count,
-                                                      "flat", int_labels,
-                                                      "fastuidraw_int_varying", true);
-
-  datum->m_float_varying_start[varying_list::interpolation_smooth] =
-    add_varyings_impl_type(m_float_varyings[varying_list::interpolation_smooth],
-                           float_counts[varying_list::interpolation_smooth],
-                           "", float_labels,
-                           "fastuidraw_float_smooth_varying",
-                           false);
-
-  datum->m_float_varying_start[varying_list::interpolation_flat] =
-    add_varyings_impl_type(m_float_varyings[varying_list::interpolation_flat],
-                           float_counts[varying_list::interpolation_flat],
-                           "flat", float_labels,
-                           "fastuidraw_float_flat_varying",
-                           true);
-
-  datum->m_float_varying_start[varying_list::interpolation_noperspective] =
-    add_varyings_impl_type(m_float_varyings[varying_list::interpolation_noperspective],
-                           float_counts[varying_list::interpolation_noperspective],
-                           "noperspective", float_labels,
-                           "fastuidraw_float_noperspective_varying",
-                           false);
+      datum->m_varying_start[i] = add_varyings_impl_type(m_varyings[i], counts[i],
+                                                         info[i].m_qualifier, info[i].m_types,
+                                                         info[i].m_fastuidraw_prefix, info[i].m_is_flat);
+    }
 
   datum->m_label = label;
 }
@@ -653,7 +686,8 @@ uvec2
 UberShaderVaryings::
 add_varyings_impl_type(std::vector<per_varying> &varyings,
                        unsigned int cnt,
-                       c_string qualifier, c_string types[],
+                       c_string qualifier,
+                       vecN<c_string, 4> types,
                        c_string name, bool is_flat)
 {
   uvec2 return_value;
@@ -724,11 +758,9 @@ declare_varyings(std::ostringstream &str,
       varying_qualifier = "";
     }
 
-  declare_varyings_impl(str, m_uint_varyings, varying_qualifier, cnt);
-  declare_varyings_impl(str, m_int_varyings, varying_qualifier, cnt);
-  for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
+  for (unsigned int i = 0; i < varying_list::interpolator_number_types; ++i)
     {
-      declare_varyings_impl(str, m_float_varyings[i], varying_qualifier, cnt);
+      declare_varyings_impl(str, m_varyings[i], varying_qualifier, cnt);
     }
 
   if (interface_name)
@@ -807,23 +839,16 @@ stream_alias_varyings(ShaderSource &shader, const varying_list &p,
 {
   shader << "//////////////////////////////////////////////////\n"
          << "// Stream variable aliases for: " << datum.m_label
-         << " u@" << datum.m_uint_varying_start
-         << " i@" << datum.m_int_varying_start
-         << " f@" << datum.m_float_varying_start
+         << " @" << datum.m_varying_start
          << "\n";
 
-  stream_alias_varyings_impl(m_uint_varyings, shader, p.uints(),
-                             add_aliases, datum.m_uint_varying_start);
-
-  stream_alias_varyings_impl(m_int_varyings, shader, p.ints(),
-                             add_aliases, datum.m_int_varying_start);
-  for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
+  for (unsigned int i = 0; i < varying_list::interpolator_number_types; ++i)
     {
-      enum varying_list::interpolation_qualifier_t q;
-      q = static_cast<enum varying_list::interpolation_qualifier_t>(i);
+      enum varying_list::interpolator_type_t q;
+      q = static_cast<enum varying_list::interpolator_type_t>(i);
 
-      stream_alias_varyings_impl(m_float_varyings[i], shader, p.floats(q),
-                                 add_aliases, datum.m_float_varying_start[i]);
+      stream_alias_varyings_impl(m_varyings[i], shader, p.varyings(q),
+                                 add_aliases, datum.m_varying_start[i]);
     }
 
   if (add_aliases)
@@ -849,20 +874,6 @@ stream_alias_varyings(ShaderSource &shader, const varying_list &p,
 
 /////////////////////
 // non-class methods
-void
-stream_as_local_variables(ShaderSource &shader, const varying_list &p)
-{
-  stream_varyings_as_local_variables_array(shader, p.uints(), "uint");
-  stream_varyings_as_local_variables_array(shader, p.ints(), "uint");
-
-  for(unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
-    {
-      enum varying_list::interpolation_qualifier_t q;
-      q = static_cast<enum varying_list::interpolation_qualifier_t>(i);
-      stream_varyings_as_local_variables_array(shader, p.floats(q), "float");
-    }
-}
-
 void
 stream_uber_vert_shader(bool use_switch,
                         ShaderSource &vert,

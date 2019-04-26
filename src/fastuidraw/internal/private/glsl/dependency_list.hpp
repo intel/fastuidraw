@@ -169,11 +169,11 @@ absorb_varyings(std::map<std::string, varying_type> &present_varyings,
       return;
     }
 
-  absorb_varyings(present_varyings, varying_names->floats(varying_list::interpolation_smooth), varying_float_smooth);
-  absorb_varyings(present_varyings, varying_names->floats(varying_list::interpolation_flat), varying_float_flat);
-  absorb_varyings(present_varyings, varying_names->floats(varying_list::interpolation_noperspective), varying_float_noperspective);
-  absorb_varyings(present_varyings, varying_names->ints(), varying_int);
-  absorb_varyings(present_varyings, varying_names->uints(), varying_uint);
+  absorb_varyings(present_varyings, varying_names->varyings(varying_list::interpolator_smooth), varying_float_smooth);
+  absorb_varyings(present_varyings, varying_names->varyings(varying_list::interpolator_flat), varying_float_flat);
+  absorb_varyings(present_varyings, varying_names->varyings(varying_list::interpolator_noperspective), varying_float_noperspective);
+  absorb_varyings(present_varyings, varying_names->varyings(varying_list::interpolator_int), varying_int);
+  absorb_varyings(present_varyings, varying_names->varyings(varying_list::interpolator_uint), varying_uint);
 
   c_array<const c_string> names(varying_names->alias_list_names());
   c_array<const c_string> aliases(varying_names->alias_list_alias_names());
@@ -217,13 +217,13 @@ add_varying(varying_list *dst,
   switch(tp.m_tp)
     {
     case varying_float_smooth:
-      dst->add_float(cname, varying_list::interpolation_smooth);
+      dst->add_float(cname);
       break;
     case varying_float_flat:
-      dst->add_float(cname, varying_list::interpolation_flat);
+      dst->add_float_flat(cname);
       break;
     case varying_float_noperspective:
-      dst->add_float(cname, varying_list::interpolation_noperspective);
+      dst->add_float_noperspective(cname);
       break;
     case varying_int:
       dst->add_int(cname);

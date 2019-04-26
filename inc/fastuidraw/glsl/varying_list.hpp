@@ -51,15 +51,17 @@ namespace fastuidraw
     public:
       /*!
        * \brief
-       * Enumeration to define the interpolation of a varying
+       * Enumeration to define the interpolator type of a varying
        */
-      enum interpolation_qualifier_t
+      enum interpolator_type_t
         {
-          interpolation_smooth, /*!< corresponds to "smooth" in GLSL */
-          interpolation_flat, /*!< corresponds to "flat" in GLSL */
-          interpolation_noperspective, /*!< corresponds to "noperspective" in GLSL */
+          interpolator_smooth, /*!< corresponds to "smooth" of type float in GLSL */
+          interpolator_noperspective, /*!< corresponds to "noperspective" of type float in GLSL */
+          interpolator_flat, /*!< corresponds to "flat" of type float in GLSL */
+          interpolator_uint, /*!< corresponds to "flat" of type uint in GLSL */
+          interpolator_int, /*!< corresponds to "flat" of type int in GLSL */
 
-          interpolation_number_types,
+          interpolator_number_types,
         };
 
       /*!
@@ -90,24 +92,12 @@ namespace fastuidraw
       swap(varying_list &obj);
 
       /*!
-       * Returns the names of the float varyings of the
-       * specified interpolation type.
-       * \param q interpolation type
+       * Returns the names of the varyings of the
+       * specified interpolator type.
+       * \param q interpolator type
        */
       c_array<const c_string>
-      floats(enum interpolation_qualifier_t q) const;
-
-      /*!
-       * Returns the names of the uint varyings
-       */
-      c_array<const c_string>
-      uints(void) const;
-
-      /*!
-       * Returns the names of the int varyings
-       */
-      c_array<const c_string>
-      ints(void) const;
+      varyings(enum interpolator_type_t q) const;
 
       /*!
        * Returns the source names of the aliases, i.e.
@@ -126,31 +116,72 @@ namespace fastuidraw
       alias_list_alias_names(void) const;
 
       /*!
-       * Add a float varying, equivalent to
-       * \code
-       * set_float_varying(floats(q).size(), pname, q)
-       * \endcode
+       * Add a varying
+       * \param pname name by which to reference the varying
+       * \param q interpolator type of the varying
        */
       varying_list&
-      add_float(c_string pname, enum interpolation_qualifier_t q = interpolation_smooth);
+      add_varying(c_string pname, enum interpolator_type_t q);
 
       /*!
        * Add an uint varying, equivalent to
        * \code
-       * set_uint_varying(uints().size(), pname)
+       * add_varying(pname, interpolator_uint);
        * \endcode
        */
       varying_list&
-      add_uint(c_string pname);
+      add_uint(c_string pname)
+      {
+        return add_varying(pname, interpolator_uint);
+      }
 
       /*!
-       * Add an int varying, equivalent to
+       * Add an uint varying, equivalent to
        * \code
-       * set_int_varying(ints().size(), pname)
+       * add_varying(pname, interpolator_int);
        * \endcode
        */
       varying_list&
-      add_int(c_string pname);
+      add_int(c_string pname)
+      {
+        return add_varying(pname, interpolator_int);
+      }
+
+      /*!
+       * Add an uint varying, equivalent to
+       * \code
+       * add_varying(pname, interpolator_smooth);
+       * \endcode
+       */
+      varying_list&
+      add_float(c_string pname)
+      {
+        return add_varying(pname, interpolator_smooth);
+      }
+
+      /*!
+       * Add an uint varying, equivalent to
+       * \code
+       * add_varying(pname, interpolator_flat);
+       * \endcode
+       */
+      varying_list&
+      add_float_flat(c_string pname)
+      {
+        return add_varying(pname, interpolator_flat);
+      }
+
+      /*!
+       * Add an uint varying, equivalent to
+       * \code
+       * add_varying(pname, interpolator_noperspective);
+       * \endcode
+       */
+      varying_list&
+      add_float_noperspective(c_string pname)
+      {
+        return add_varying(pname, interpolator_noperspective);
+      }
 
       /*!
        * Add an alias to a varying. The use case being if a fixed

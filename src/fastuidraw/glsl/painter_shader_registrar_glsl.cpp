@@ -159,27 +159,21 @@ namespace
   {
   public:
     VaryingCounts(void):
-      m_number_float_varyings(0),
-      m_number_uint_varyings(0),
-      m_number_int_varyings(0)
+      m_number_varyings(0)
     {}
 
     void
     update_varying_size(const fastuidraw::glsl::varying_list &plist)
     {
-      m_number_uint_varyings = std::max(m_number_uint_varyings, plist.uints().size());
-      m_number_int_varyings = std::max(m_number_int_varyings, plist.ints().size());
-      for(unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolation_number_types; ++i)
+      for(unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
         {
-          enum fastuidraw::glsl::varying_list::interpolation_qualifier_t q;
-          q = static_cast<enum fastuidraw::glsl::varying_list::interpolation_qualifier_t>(i);
-          m_number_float_varyings[q] = std::max(m_number_float_varyings[q], plist.floats(q).size());
+          enum fastuidraw::glsl::varying_list::interpolator_type_t q;
+          q = static_cast<enum fastuidraw::glsl::varying_list::interpolator_type_t>(i);
+          m_number_varyings[q] = std::max(m_number_varyings[q], plist.varyings(q).size());
         }
     }
 
-    fastuidraw::vecN<size_t, fastuidraw::glsl::varying_list::interpolation_number_types> m_number_float_varyings;
-    size_t m_number_uint_varyings;
-    size_t m_number_int_varyings;
+    fastuidraw::vecN<size_t, fastuidraw::glsl::varying_list::interpolator_number_types> m_number_varyings;
   };
 
   class BlendShaderGroup
@@ -735,9 +729,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
   if (render_type == PainterSurface::color_buffer_type)
     {
       uber_shader_varyings.add_varyings("brush",
-                                        m_custom_brush_shaders.m_number_uint_varyings,
-                                        m_custom_brush_shaders.m_number_int_varyings,
-                                        m_custom_brush_shaders.m_number_float_varyings,
+                                        m_custom_brush_shaders.m_number_varyings,
                                         &brush_varying_datum);
     }
 
@@ -1092,9 +1084,7 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
     }
 
   uber_shader_varyings.add_varyings("shader",
-                                    shaders.m_number_uint_varyings,
-                                    shaders.m_number_int_varyings,
-                                    shaders.m_number_float_varyings,
+                                    shaders.m_number_varyings,
                                     &shader_varying_datum);
 
   construct_shader_common(blend_type, render_type, shaders, backend, vert, frag,
