@@ -45,7 +45,7 @@ namespace
                                    const DependencyListPrivate &dependencies):
       m_vertex_src(vertex_src),
       m_fragment_src(fragment_src),
-      m_varyings(dependencies.compute_varying_list(varyings)),
+      m_varyings(dependencies.compute_varyings(varyings)),
       m_dependency_shader_names(dependencies.compute_name_list()),
       m_dependent_shaders(dependencies.compute_shader_list())
     {}

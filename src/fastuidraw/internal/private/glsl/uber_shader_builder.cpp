@@ -55,42 +55,63 @@ namespace
   }
 
   template<typename T>
-  class pre_stream_varyings
+  class StreamVaryingsHelper
   {
   public:
-    pre_stream_varyings(const fastuidraw::glsl::detail::UberShaderVaryings &src,
-                        const fastuidraw::glsl::detail::AliasVaryingLocation &datum):
-      m_src(src),
-      m_datum(datum)
-    {}
-
-    void
-    operator()(fastuidraw::glsl::ShaderSource &dst,
-               const fastuidraw::reference_counted_ptr<const T> &sh)
-    {
-      m_src.stream_alias_varyings(dst, sh->varyings(), true, m_datum);
-    }
-
-  private:
-    const fastuidraw::glsl::detail::UberShaderVaryings &m_src;
-    const fastuidraw::glsl::detail::AliasVaryingLocation &m_datum;
-  };
-
-  template<typename T>
-  class post_stream_varyings
-  {
-  public:
-    post_stream_varyings(const fastuidraw::glsl::detail::UberShaderVaryings &src,
+    StreamVaryingsHelper(const fastuidraw::glsl::detail::UberShaderVaryings &src,
                          const fastuidraw::glsl::detail::AliasVaryingLocation &datum):
       m_src(src),
       m_datum(datum)
     {}
 
     void
-    operator()(fastuidraw::glsl::ShaderSource &dst,
-               const fastuidraw::reference_counted_ptr<const T> &sh)
+    before_shader(fastuidraw::glsl::ShaderSource &dst,
+                  const fastuidraw::reference_counted_ptr<const T> &sh) const
+    {
+      m_src.stream_alias_varyings(dst, sh->varyings(), true, m_datum);
+    }
+
+    void
+    after_shader(fastuidraw::glsl::ShaderSource &dst,
+                 const fastuidraw::reference_counted_ptr<const T> &sh) const
     {
       m_src.stream_alias_varyings(dst, sh->varyings(), false, m_datum);
+    }
+
+    void
+    before_dependency(fastuidraw::glsl::ShaderSource &dst,
+                      fastuidraw::c_string dep_name,
+                      const fastuidraw::reference_counted_ptr<const T> &child_shader) const
+    {
+      dst << "// stream dependency varyings for " << dep_name << "\n";
+      for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
+        {
+          enum fastuidraw::glsl::varying_list::interpolator_type_t q;
+          q = static_cast<enum fastuidraw::glsl::varying_list::interpolator_type_t>(i);
+
+          for (fastuidraw::c_string v : child_shader->varyings().varyings(q))
+            {
+              dst << "#define " << v << " " << dep_name << "_" << v << "\n";
+            }
+        }
+    }
+
+    void
+    after_dependency(fastuidraw::glsl::ShaderSource &dst,
+                     fastuidraw::c_string dep_name,
+                     const fastuidraw::reference_counted_ptr<const T> &child_shader) const
+    {
+      dst << "// unstream dependency varyings for " << dep_name << "\n";
+      for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
+        {
+          enum fastuidraw::glsl::varying_list::interpolator_type_t q;
+          q = static_cast<enum fastuidraw::glsl::varying_list::interpolator_type_t>(i);
+
+          for (fastuidraw::c_string v : child_shader->varyings().varyings(q))
+            {
+              dst << "#undef " << v << "\n";
+            }
+        }
     }
 
   private:
@@ -98,49 +119,75 @@ namespace
     const fastuidraw::glsl::detail::AliasVaryingLocation &m_datum;
   };
 
-  class pre_stream_src_brush
+  template<>
+  class StreamVaryingsHelper<fastuidraw::glsl::PainterBlendShaderGLSL>
   {
   public:
-    pre_stream_src_brush(void):
+    void
+    before_shader(fastuidraw::glsl::ShaderSource&,
+                  const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
+    {}
+
+    void
+    after_shader(fastuidraw::glsl::ShaderSource&,
+                  const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
+    {}
+
+    void
+    before_dependency(fastuidraw::glsl::ShaderSource &,
+                      fastuidraw::c_string,
+                      const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
+    {}
+
+    void
+    after_dependency(fastuidraw::glsl::ShaderSource &,
+                     fastuidraw::c_string,
+                     const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
+    {}
+  };
+
+  template<typename T>
+  class StreamSurroundSrcHelper
+  {
+  public:
+    void
+    pre_source(fastuidraw::glsl::ShaderSource&,
+               const fastuidraw::reference_counted_ptr<const T> &) const
+    {}
+
+    void
+    post_source(fastuidraw::glsl::ShaderSource&) const
+    {}
+  };
+
+  template<>
+  class StreamSurroundSrcHelper<fastuidraw::glsl::PainterBrushShaderGLSL>
+  {
+  public:
+    StreamSurroundSrcHelper(void):
       m_count(0)
     {}
 
     void
-    operator()(fastuidraw::glsl::ShaderSource &dst,
-               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh)
+    pre_source(fastuidraw::glsl::ShaderSource &dst,
+               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh) const
     {
       FASTUIDRAWunused(sh);
       dst << "\n#define fastuidraw_brush_context_dependency_count " << m_count
           << "\n#define fastuidraw_brush_context_texture(X) "
           << "fastuidraw_context_texture[X + fastuidraw_brush_context_dependency_count]\n";
+      m_count += sh->number_context_textures();
     }
 
-  private:
-    unsigned int m_count;
-  };
-
-  class post_stream_src_brush
-  {
-  public:
     void
-    operator()(fastuidraw::glsl::ShaderSource &dst,
-               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh)
+    post_source(fastuidraw::glsl::ShaderSource &dst) const
     {
-      FASTUIDRAWunused(sh);
       dst << "\n#undef fastuidraw_brush_context_dependency_count\n"
           << "#undef fastuidraw_brush_context_texture\n";
     }
-  };
 
-  template<typename T>
-  class stream_nothing
-  {
-  public:
-    void
-    operator()(fastuidraw::glsl::ShaderSource&,
-               const fastuidraw::reference_counted_ptr<const T> &)
-    {
-    }
+  private:
+    mutable unsigned int m_count;
   };
 
   template<typename T>
@@ -217,61 +264,17 @@ namespace
     typedef const ShaderSource& (T::*get_src_type)(void) const;
     typedef fastuidraw::c_string (*get_main_name_type)(const ref_const_type&);
 
-    template<typename pre_stream_entire_type,
-             typename post_stream_entire_type,
-             typename pre_stream_src_type,
-             typename post_stream_src_type>
     static
     void
     stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
                 get_src_type get_src, get_main_name_type get_main_name,
-                pre_stream_entire_type pre_stream_entire,
-                post_stream_entire_type post_stream_entire,
-                pre_stream_src_type pre_stream_src,
-                post_stream_src_type post_stream_src,
+                const StreamVaryingsHelper<T> &stream_varyings_helper,
+                const StreamSurroundSrcHelper<T> &stream_surround_src,
                 const std::string &return_type,
                 const std::string &uber_func_with_args,
                 const std::string &shader_main,
                 const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
                 const std::string &shader_id);
-
-    template<typename pre_stream_entire_type,
-             typename post_stream_entire_type>
-    static
-    void
-    stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-                get_src_type get_src, get_main_name_type get_main_name,
-                pre_stream_entire_type pre_stream_entire,
-                post_stream_entire_type post_stream_entire,
-                const std::string &return_type,
-                const std::string &uber_func_with_args,
-                const std::string &shader_main,
-                const std::string &shader_args,
-                const std::string &shader_id)
-    {
-      stream_uber(use_switch, dst, shaders, get_src, get_main_name,
-                  pre_stream_entire, post_stream_entire,
-                  stream_nothing<T>(), stream_nothing<T>(),
-                  return_type, uber_func_with_args,
-                  shader_main, shader_args, shader_id);
-    }
-
-    static
-    void
-    stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-                get_src_type get_src, get_main_name_type get_main_name,
-                const std::string &return_type,
-                const std::string &uber_func_with_args,
-                const std::string &shader_main,
-                const std::string &shader_args,
-                const std::string &shader_id)
-    {
-      stream_uber(use_switch, dst, shaders, get_src, get_main_name,
-                  stream_nothing<T>(), stream_nothing<T>(),
-                  stream_nothing<T>(), stream_nothing<T>(),
-                  return_type, uber_func_with_args,
-                  shader_main, shader_args, shader_id);
-    }
 
   private:
     static
@@ -279,27 +282,23 @@ namespace
     stream_source(ShaderSource &dst, const std::string &prefix,
                   const ShaderSource &shader);
 
-    template<typename pre_stream_src_type,
-             typename post_stream_src_type>
     static
     void
     stream_shader(ShaderSource &dst, const std::string &prefix,
-                  pre_stream_src_type &pre_stream_src,
-                  post_stream_src_type &post_stream_src,
                   get_src_type get_src, get_main_name_type get_main_name,
+                  const StreamVaryingsHelper<T> &stream_varyings_helper,
+                  const StreamSurroundSrcHelper<T> &stream_surround_src,
                   const fastuidraw::reference_counted_ptr<const T> &shader,
                   const std::string &shader_main, int dependency_depth);
 
-    template<typename pre_stream_src_type,
-             typename post_stream_src_type>
     static
     std::string
     stream_dependency(ShaderSource &dst, const std::string &prefix, int idx,
-                      pre_stream_src_type &pre_stream_src,
-                      post_stream_src_type &post_stream_src,
                       get_src_type get_src, get_main_name_type get_main_name,
+                      const StreamVaryingsHelper<T> &stream_varyings_helper,
+                      const StreamSurroundSrcHelper<T> &stream_surround_src,
                       const fastuidraw::reference_counted_ptr<const T> &shader,
-                      int dependency_depth);
+                      fastuidraw::c_string dep_name, int dependency_depth);
   };
 
 }
@@ -363,14 +362,12 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
 }
 
 template<typename T>
-template<typename pre_stream_src_type,
-         typename post_stream_src_type>
 void
 UberShaderStreamer<T>::
 stream_shader(ShaderSource &dst, const std::string &prefix,
-              pre_stream_src_type &pre_stream_src,
-              post_stream_src_type &post_stream_src,
               get_src_type get_src, get_main_name_type get_main_name,
+              const StreamVaryingsHelper<T> &stream_varyings_helper,
+              const StreamSurroundSrcHelper<T> &stream_surround_src,
               const fastuidraw::reference_counted_ptr<const T> &sh,
               const std::string &shader_main, int dependency_depth)
 {
@@ -384,15 +381,16 @@ stream_shader(ShaderSource &dst, const std::string &prefix,
   for (unsigned int i = 0; i < deps.size(); ++i)
     {
       std::string realized_name;
-      realized_name = stream_dependency(dst, prefix, i, pre_stream_src, post_stream_src,
-                                        get_src, get_main_name, deps[i], dependency_depth + 1);
+      realized_name = stream_dependency(dst, prefix, i, get_src, get_main_name,
+                                        stream_varyings_helper, stream_surround_src,
+                                        deps[i], dep_names[i], dependency_depth + 1);
       dst.add_macro(dep_names[i], realized_name.c_str());
     }
 
   dst.add_macro(shader_main.c_str(), prefix.c_str());
-  pre_stream_src(dst, sh);
+  stream_surround_src.pre_source(dst, sh);
   stream_source(dst, prefix, (sh.get()->*get_src)());
-  post_stream_src(dst, sh);
+  stream_surround_src.post_source(dst);
   dst.remove_macro(shader_main.c_str());
 
   for (unsigned int i = 0; i < deps.size(); ++i)
@@ -402,16 +400,14 @@ stream_shader(ShaderSource &dst, const std::string &prefix,
 }
 
 template<typename T>
-template<typename pre_stream_src_type,
-         typename post_stream_src_type>
 std::string
 UberShaderStreamer<T>::
 stream_dependency(ShaderSource &dst, const std::string &in_prefix, int idx,
-                  pre_stream_src_type &pre_stream_src,
-                  post_stream_src_type &post_stream_src,
                   get_src_type get_src, get_main_name_type get_main_name,
+                  const StreamVaryingsHelper<T> &stream_varyings_helper,
+                  const StreamSurroundSrcHelper<T> &stream_surround_src,
                   const fastuidraw::reference_counted_ptr<const T> &shader,
-                  int dependency_depth)
+                  fastuidraw::c_string dep_name, int dependency_depth)
 {
   std::ostringstream str;
   std::string nm;
@@ -419,26 +415,25 @@ stream_dependency(ShaderSource &dst, const std::string &in_prefix, int idx,
   str << in_prefix << "_dep" << idx;
   nm = str.str();
   dst << "// stream-dependency #" << idx << "{depth = "
-      << dependency_depth << "}: " << in_prefix << "\n";
-  stream_shader(dst, nm, pre_stream_src, post_stream_src, get_src, get_main_name,
+      << dependency_depth << "}: " << in_prefix
+      << ", name_in_parent = " << dep_name << "\n";
+
+  stream_varyings_helper.before_dependency(dst, dep_name, shader);
+  stream_shader(dst, nm, get_src, get_main_name,
+                stream_varyings_helper, stream_surround_src,
                 shader, get_main_name(shader), dependency_depth);
+  stream_varyings_helper.after_dependency(dst, dep_name, shader);
 
   return nm;
 }
 
 template<typename T>
-template<typename pre_stream_type,
-         typename post_stream_type,
-         typename pre_stream_src_type,
-         typename post_stream_src_type>
 void
 UberShaderStreamer<T>::
 stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             get_src_type get_src, get_main_name_type get_main_name,
-            pre_stream_type pre_stream,
-            post_stream_type post_stream,
-            pre_stream_src_type pre_stream_src,
-            post_stream_src_type post_stream_src,
+            const StreamVaryingsHelper<T> &stream_varyings_helper,
+            const StreamSurroundSrcHelper<T> &stream_surround_src,
             const std::string &return_type,
             const std::string &uber_func_with_args,
             const std::string &shader_main,
@@ -447,7 +442,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 {
   using namespace fastuidraw;
 
-  /* first stream all of the item_shaders with predefined macros. */
+  /* first stream all of the shaders with predefined macros. */
   for(const auto &sh : shaders)
     {
       std::ostringstream str;
@@ -456,10 +451,13 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
           << "// Start Shader #" << sh->ID() << "\n";
 
       str << shader_main << sh->ID();
-      pre_stream(dst, sh);
-      stream_shader(dst, str.str(), pre_stream_src, post_stream_src,
-                    get_src, get_main_name, sh, shader_main, 0);
-      post_stream(dst, sh);
+      stream_varyings_helper.before_shader(dst, sh);
+      stream_shader(dst, str.str(),
+                    get_src, get_main_name,
+                    stream_varyings_helper,
+                    stream_surround_src,
+                    sh, shader_main, 0);
+      stream_varyings_helper.after_shader(dst, sh);
     }
 
   bool has_sub_shaders(false), has_return_value(return_type != "void");
@@ -837,10 +835,17 @@ stream_alias_varyings(ShaderSource &shader, const varying_list &p,
                       bool add_aliases,
                       const AliasVaryingLocation &datum) const
 {
-  shader << "//////////////////////////////////////////////////\n"
-         << "// Stream variable aliases for: " << datum.m_label
-         << " @" << datum.m_varying_start
-         << "\n";
+  if (add_aliases)
+    {
+      shader << "//////////////////////////////////////////////////\n"
+             << "// Stream varying aliases for: " << datum.m_label
+             << " @" << datum.m_varying_start
+             << "\n";
+    }
+  else
+    {
+      shader << "// Remove varying aliases\n";
+    }
 
   for (unsigned int i = 0; i < varying_list::interpolator_number_types; ++i)
     {
@@ -884,8 +889,8 @@ stream_uber_vert_shader(bool use_switch,
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                          &PainterItemShaderGLSL::vertex_src,
                                                          item_shader_vert_name<PainterItemShaderGLSL>,
-                                                         pre_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
-                                                         post_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
+                                                         StreamVaryingsHelper<PainterItemShaderGLSL>(declare_varyings, datum),
+                                                         StreamSurroundSrcHelper<PainterItemShaderGLSL>(),
                                                          "void",
                                                          "fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)",
                                                          "fastuidraw_gl_vert_main",
@@ -904,8 +909,8 @@ stream_uber_frag_shader(bool use_switch,
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                          &PainterItemShaderGLSL::fragment_src,
                                                          item_shader_frag_name<PainterItemShaderGLSL>,
-                                                         pre_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
-                                                         post_stream_varyings<PainterItemShaderGLSL>(declare_varyings, datum),
+                                                         StreamVaryingsHelper<PainterItemShaderGLSL>(declare_varyings, datum),
+                                                         StreamSurroundSrcHelper<PainterItemShaderGLSL>(),
                                                          "vec4",
                                                          "fastuidraw_run_frag_shader(in uint frag_shader, "
                                                          "in uint frag_shader_data_location)",
@@ -923,8 +928,8 @@ stream_uber_vert_shader(bool use_switch,
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::vertex_src,
                                                                  item_shader_vert_name<PainterItemCoverageShaderGLSL>,
-                                                                 pre_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
-                                                                 post_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
+                                                                 StreamVaryingsHelper<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
+                                                                 StreamSurroundSrcHelper<PainterItemCoverageShaderGLSL>(),
                                                                  "void",
                                                                  "fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 clip_p)",
                                                                  "fastuidraw_gl_vert_main",
@@ -943,8 +948,8 @@ stream_uber_frag_shader(bool use_switch,
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::fragment_src,
                                                                  item_shader_frag_name<PainterItemCoverageShaderGLSL>,
-                                                                 pre_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
-                                                                 post_stream_varyings<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
+                                                                 StreamVaryingsHelper<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
+                                                                 StreamSurroundSrcHelper<PainterItemCoverageShaderGLSL>(),
                                                                  "float",
                                                                  "fastuidraw_run_frag_shader(in uint frag_shader, "
                                                                  "in uint frag_shader_data_location)",
@@ -1000,11 +1005,12 @@ stream_uber_blend_shader(bool use_switch,
   UberShaderStreamer<PainterBlendShaderGLSL>::stream_uber(use_switch, frag, shaders,
                                                           &PainterBlendShaderGLSL::blend_src,
                                                           blend_shader_name,
+                                                          StreamVaryingsHelper<PainterBlendShaderGLSL>(),
+                                                          StreamSurroundSrcHelper<PainterBlendShaderGLSL>(),
                                                           "void", func_name,
                                                           sub_func_name, sub_func_args, "blend_shader");
 }
 
-      /////////////////////////////
 void
 stream_uber_brush_vert_shader(bool use_switch,
                               ShaderSource &vert,
@@ -1013,16 +1019,15 @@ stream_uber_brush_vert_shader(bool use_switch,
                               const AliasVaryingLocation &datum)
 {
   UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, vert, brush_shaders,
-                                                                &PainterBrushShaderGLSL::vertex_src,
-                                                                item_shader_vert_name<PainterBrushShaderGLSL>,
-                                                                pre_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
-                                                                post_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
-                                                                pre_stream_src_brush(), post_stream_src_brush(),
-                                                                "void",
-                                                                "fastuidraw_run_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
-                                                                "fastuidraw_gl_vert_brush_main",
-                                                                ", h.brush_shader_data_location, brush_p",
-                                                                "h.brush_shader");
+                                                          &PainterBrushShaderGLSL::vertex_src,
+                                                          item_shader_vert_name<PainterBrushShaderGLSL>,
+                                                          StreamVaryingsHelper<PainterBrushShaderGLSL>(declare_varyings, datum),
+                                                          StreamSurroundSrcHelper<PainterBrushShaderGLSL>(),
+                                                          "void",
+                                                          "fastuidraw_run_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
+                                                          "fastuidraw_gl_vert_brush_main",
+                                                          ", h.brush_shader_data_location, brush_p",
+                                                          "h.brush_shader");
 }
 
 void
@@ -1033,16 +1038,15 @@ stream_uber_brush_frag_shader(bool use_switch,
                               const AliasVaryingLocation &datum)
 {
   UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, frag, brush_shaders,
-                                                                &PainterBrushShaderGLSL::fragment_src,
-                                                                item_shader_frag_name<PainterBrushShaderGLSL>,
-                                                                pre_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
-                                                                post_stream_varyings<PainterBrushShaderGLSL>(declare_varyings, datum),
-                                                                pre_stream_src_brush(), post_stream_src_brush(),
-                                                                "vec4",
-                                                                "fastuidraw_run_brush_frag_shader(in uint frag_shader, "
-                                                                "in uint frag_shader_data_location)",
-                                                                "fastuidraw_gl_frag_brush_main", ", frag_shader_data_location",
-                                                                "frag_shader");
+                                                          &PainterBrushShaderGLSL::fragment_src,
+                                                          item_shader_frag_name<PainterBrushShaderGLSL>,
+                                                          StreamVaryingsHelper<PainterBrushShaderGLSL>(declare_varyings, datum),
+                                                          StreamSurroundSrcHelper<PainterBrushShaderGLSL>(),
+                                                          "vec4",
+                                                          "fastuidraw_run_brush_frag_shader(in uint frag_shader, "
+                                                          "in uint frag_shader_data_location)",
+                                                          "fastuidraw_gl_frag_brush_main", ", frag_shader_data_location",
+                                                          "frag_shader");
 }
 
 }}}
