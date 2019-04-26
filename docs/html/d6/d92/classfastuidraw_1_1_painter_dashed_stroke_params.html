@@ -82,8 +82,9 @@ Inheritance diagram for fastuidraw::PainterDashedStrokeParams:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../df/d24/classfastuidraw_1_1_painter_dashed_stroke_params__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_painter_dashed_stroke_params_inherit__map" alt="Inheritance graph"/></div>
 <map name="fastuidraw_1_1_painter_dashed_stroke_params_inherit__map" id="fastuidraw_1_1_painter_dashed_stroke_params_inherit__map">
-<area shape="rect" id="node2" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html" title="PainterItemShaderData holds custom data for item shaders. " alt="" coords="5,80,232,107"/>
-<area shape="rect" id="node3" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html" title="Common base class to PainterItemShaderData, and PainterBlendShaderData to hold shader data for custom..." alt="" coords="19,5,219,32"/>
+<area shape="rect" id="node2" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html" title="PainterItemShaderData holds custom data for item shaders. " alt="" coords="5,155,232,181"/>
+<area shape="rect" id="node3" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html" title="Common base class to PainterItemShaderData, PainterBrushShaderData and PainterBlendShaderData to hold..." alt="" coords="19,80,219,107"/>
+<area shape="rect" id="node4" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="37,5,200,32"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -98,13 +99,15 @@ Public Types</h2></td></tr>
 <tr class="memitem:af3f8af2d0844debdb0e16076895dbce3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3">stroke_data_offset_t</a> { <br />
 &#160;&#160;<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3a35186205fb51521dd378b175380e0f83">stroke_radius_offset</a>, 
 <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3a6a9ec621ad80b0e0bca37d709e774026">stroke_miter_limit_offset</a>, 
+<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3ad77f2ac5346480c24b89981469bd2c5f">stroking_units_offset</a>, 
 <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3aa392c4ef03dba915e0dcf10b8d30a441">stroke_dash_offset_offset</a>, 
-<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3a4f4c9bd79ffe1ce1813f90232b798325">stroke_total_length_offset</a>, 
 <br />
-&#160;&#160;<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3ae18170c1a215f1e71efa20aa078da352">stroke_first_interval_start_offset</a>, 
+&#160;&#160;<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3a4f4c9bd79ffe1ce1813f90232b798325">stroke_total_length_offset</a>, 
+<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3ae18170c1a215f1e71efa20aa078da352">stroke_first_interval_start_offset</a>, 
 <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3acf03b894503beecdfc9219d8aa6db930">stroke_first_interval_start_on_looping_offset</a>, 
 <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3ab8ee05f33cfd42c391ea8a446191e5ed">stroke_number_intervals_offset</a>, 
-<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3ab69b0f1c57575fdc510fa3d0c5ebb2b7">stroke_static_data_size</a>
+<br />
+&#160;&#160;<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3ab69b0f1c57575fdc510fa3d0c5ebb2b7">stroke_static_data_size</a>
 <br />
  }<tr class="memdesc:af3f8af2d0844debdb0e16076895dbce3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration that provides offsets for the stroking parameters. The dashed pattern is packed in the next block of the data store.  <a href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3">More...</a><br /></td></tr>
 </td></tr>
@@ -114,6 +117,8 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a79b63be25f66bdf517235fce5736c156"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a79b63be25f66bdf517235fce5736c156">PainterDashedStrokeParams</a> (void)</td></tr>
 <tr class="separator:a79b63be25f66bdf517235fce5736c156"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f6be6ebb9036329f9c5278e320cb183"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a0f6be6ebb9036329f9c5278e320cb183">PainterDashedStrokeParams</a> (const <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;obj)</td></tr>
+<tr class="separator:a0f6be6ebb9036329f9c5278e320cb183"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a440cbe96c3227df5b94707a4da6677cc"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a440cbe96c3227df5b94707a4da6677cc">dash_offset</a> (void) const</td></tr>
 <tr class="separator:a440cbe96c3227df5b94707a4da6677cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba261a8f59de0b98ee9ba340d13c0942"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#aba261a8f59de0b98ee9ba340d13c0942">dash_offset</a> (float f)</td></tr>
@@ -122,10 +127,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9ae493b93395dbe2c8ea7149e487bf24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9a53ff45ce4f784dfe34a131b1d826ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a9a53ff45ce4f784dfe34a131b1d826ac">dash_pattern</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../df/d91/classfastuidraw_1_1_painter_dashed_stroke_params_1_1_dash_pattern_element.html">DashPatternElement</a> &gt; v)</td></tr>
 <tr class="separator:a9a53ff45ce4f784dfe34a131b1d826ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1df7707df9153e9f75ade45387aaddc0"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a1df7707df9153e9f75ade45387aaddc0">data_size</a> (void) const override</td></tr>
+<tr class="separator:a1df7707df9153e9f75ade45387aaddc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2789fb77a34add67c31aa007def35c46"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a2789fb77a34add67c31aa007def35c46">miter_limit</a> (void) const</td></tr>
 <tr class="separator:a2789fb77a34add67c31aa007def35c46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7b9cb1e5d13b35ee3a9144e623dbc77"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#ab7b9cb1e5d13b35ee3a9144e623dbc77">miter_limit</a> (float f)</td></tr>
 <tr class="separator:ab7b9cb1e5d13b35ee3a9144e623dbc77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea8faca0bdfbc7d722ec5cdb41362965"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#aea8faca0bdfbc7d722ec5cdb41362965">operator=</a> (const <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;obj)</td></tr>
+<tr class="separator:aea8faca0bdfbc7d722ec5cdb41362965"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e8dae053d6db3a54dd148819924bc8e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a9e8dae053d6db3a54dd148819924bc8e">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> &gt; dst) const override</td></tr>
+<tr class="separator:a9e8dae053d6db3a54dd148819924bc8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51f6c47cb5899af8378744659621bdc2"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a51f6c47cb5899af8378744659621bdc2">radius</a> (void) const</td></tr>
 <tr class="separator:a51f6c47cb5899af8378744659621bdc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad29b2339784a0f847b8243f8bddae28"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#aad29b2339784a0f847b8243f8bddae28">radius</a> (float f)</td></tr>
@@ -134,36 +145,22 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab89fe4e546dfe415352df8f649fa77e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94091172155fcc838214837ac9f5514c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a94091172155fcc838214837ac9f5514c">stroking_units</a> (enum <a class="el" href="../../df/df5/classfastuidraw_1_1_painter_stroke_params.html#aa02d8ddad011243b5bcdd54c8803724a">PainterStrokeParams::stroking_units_t</a>)</td></tr>
 <tr class="separator:a94091172155fcc838214837ac9f5514c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae71d4b9f43e3ba55dd3a727dfc333213"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#ae71d4b9f43e3ba55dd3a727dfc333213">swap</a> (<a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;obj)</td></tr>
+<tr class="separator:ae71d4b9f43e3ba55dd3a727dfc333213"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0740543bf9a25aba7940b1256f416eb"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#aa0740543bf9a25aba7940b1256f416eb">width</a> (void) const</td></tr>
 <tr class="separator:aa0740543bf9a25aba7940b1256f416eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4487a4d2dccecf9d726b4ecc6ad3577b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a4487a4d2dccecf9d726b4ecc6ad3577b">width</a> (float f)</td></tr>
 <tr class="separator:a4487a4d2dccecf9d726b4ecc6ad3577b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfastuidraw_1_1_painter_shader_data"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfastuidraw_1_1_painter_shader_data')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html">fastuidraw::PainterShaderData</a></td></tr>
-<tr class="memitem:a04dfdac45be05863a9b9dd110b87afa5 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a04dfdac45be05863a9b9dd110b87afa5">PainterShaderData</a> (void)</td></tr>
-<tr class="separator:a04dfdac45be05863a9b9dd110b87afa5 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b5aa9788402b63c0a084fa3f223cd54 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a4b5aa9788402b63c0a084fa3f223cd54">PainterShaderData</a> (const <a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html">PainterShaderData</a> &amp;obj)</td></tr>
-<tr class="separator:a4b5aa9788402b63c0a084fa3f223cd54 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa011db5e7ee7b670b448736d64c356d inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d2/d3f/classfastuidraw_1_1_painter_shader_data_1_1_data_base.html">DataBase</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#aaa011db5e7ee7b670b448736d64c356d">data_base</a> (void) const</td></tr>
-<tr class="separator:aaa011db5e7ee7b670b448736d64c356d inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e7d466b692646eefcc7e9009267e5ef inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a7e7d466b692646eefcc7e9009267e5ef">data_size</a> (void) const</td></tr>
-<tr class="separator:a7e7d466b692646eefcc7e9009267e5ef inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad404a4197387fa3898c6860fefc2567a inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html">PainterShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#ad404a4197387fa3898c6860fefc2567a">operator=</a> (const <a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html">PainterShaderData</a> &amp;rhs)</td></tr>
-<tr class="separator:ad404a4197387fa3898c6860fefc2567a inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d8f1d8b8b3f87218307384e30e9bbe5 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a3d8f1d8b8b3f87218307384e30e9bbe5">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> &gt; dst) const</td></tr>
-<tr class="separator:a3d8f1d8b8b3f87218307384e30e9bbe5 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab660b710f597dd4cc839097fe765788e inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#ab660b710f597dd4cc839097fe765788e">swap</a> (<a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html">PainterShaderData</a> &amp;obj)</td></tr>
-<tr class="separator:ab660b710f597dd4cc839097fe765788e inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12165c64dd6628a74f670260cb912713 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a12165c64dd6628a74f670260cb912713">number_resources</a> (void) const</td></tr>
+<tr class="separator:a12165c64dd6628a74f670260cb912713 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a00b5fc7f02bd89d417235b701c5681 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a6a00b5fc7f02bd89d417235b701c5681">save_resources</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../de/dfc/classfastuidraw_1_1resource__base.html">resource_base</a> &gt; &gt; dst) const</td></tr>
+<tr class="separator:a6a00b5fc7f02bd89d417235b701c5681 inherit pub_methods_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a65434cceeef42cd655a7a712b48e3c65"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html">StrokingDataSelectorBase</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a65434cceeef42cd655a7a712b48e3c65">stroking_data_selector</a> (bool pixel_arc_stroking_possible)</td></tr>
 <tr class="separator:a65434cceeef42cd655a7a712b48e3c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pro_attribs_classfastuidraw_1_1_painter_shader_data"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classfastuidraw_1_1_painter_shader_data')"><img src="../../closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html">fastuidraw::PainterShaderData</a></td></tr>
-<tr class="memitem:affa298b7039889ac44e1d13ec97e8b70 inherit pro_attribs_classfastuidraw_1_1_painter_shader_data"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d3f/classfastuidraw_1_1_painter_shader_data_1_1_data_base.html">DataBase</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#affa298b7039889ac44e1d13ec97e8b70">m_data</a></td></tr>
-<tr class="separator:affa298b7039889ac44e1d13ec97e8b70 inherit pro_attribs_classfastuidraw_1_1_painter_shader_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class to specify dashed stroking parameters, data is packed as according to <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#af3f8af2d0844debdb0e16076895dbce3" title="Enumeration that provides offsets for the stroking parameters. The dashed pattern is packed in the ne...">PainterDashedStrokeParams::stroke_data_offset_t</a>. Data for dashing is packed [TODO describe]. </p>
@@ -188,6 +185,8 @@ Additional Inherited Members</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="af3f8af2d0844debdb0e16076895dbce3a6a9ec621ad80b0e0bca37d709e774026"></a>stroke_miter_limit_offset&#160;</td><td class="fielddoc"><p>offset to dashed stroke miter limit (packed as float) </p>
 </td></tr>
+<tr><td class="fieldname"><a id="af3f8af2d0844debdb0e16076895dbce3ad77f2ac5346480c24b89981469bd2c5f"></a>stroking_units_offset&#160;</td><td class="fielddoc"><p>Offset to stroking units (packed as uint) </p>
+</td></tr>
 <tr><td class="fieldname"><a id="af3f8af2d0844debdb0e16076895dbce3aa392c4ef03dba915e0dcf10b8d30a441"></a>stroke_dash_offset_offset&#160;</td><td class="fielddoc"><p>offset to dash offset value for dashed stroking (packed as float) </p>
 </td></tr>
 <tr><td class="fieldname"><a id="af3f8af2d0844debdb0e16076895dbce3a4f4c9bd79ffe1ce1813f90232b798325"></a>stroke_total_length_offset&#160;</td><td class="fielddoc"><p>offset to total legnth of dash pattern (packed as float) </p>
@@ -208,7 +207,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a79b63be25f66bdf517235fce5736c156"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a79b63be25f66bdf517235fce5736c156">&#9670;&nbsp;</a></span>PainterDashedStrokeParams()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a79b63be25f66bdf517235fce5736c156">&#9670;&nbsp;</a></span>PainterDashedStrokeParams() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -223,6 +222,25 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Ctor. </p>
+
+</div>
+</div>
+<a id="a0f6be6ebb9036329f9c5278e320cb183"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f6be6ebb9036329f9c5278e320cb183">&#9670;&nbsp;</a></span>PainterDashedStrokeParams() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">fastuidraw::PainterDashedStrokeParams::PainterDashedStrokeParams </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Copy ctor. </p>
 
 </div>
 </div>
@@ -308,6 +326,35 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a1df7707df9153e9f75ade45387aaddc0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1df7707df9153e9f75ade45387aaddc0">&#9670;&nbsp;</a></span>data_size()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int fastuidraw::PainterDashedStrokeParams::data_size </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>To be implemented by a derived class to return the length needed to pack the data. </p>
+
+<p>Implements <a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a70e8368d554fd1d48ea96c94c16c1068">fastuidraw::PainterShaderData</a>.</p>
+
+</div>
+</div>
 <a id="a2789fb77a34add67c31aa007def35c46"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2789fb77a34add67c31aa007def35c46">&#9670;&nbsp;</a></span>miter_limit() <span class="overload">[1/2]</span></h2>
 
@@ -343,6 +390,64 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Set the value of <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#a2789fb77a34add67c31aa007def35c46">miter_limit(void) const</a> value is clamped to be non-negative. </p>
+
+</div>
+</div>
+<a id="aea8faca0bdfbc7d722ec5cdb41362965"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea8faca0bdfbc7d722ec5cdb41362965">&#9670;&nbsp;</a></span>operator=()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a>&amp; fastuidraw::PainterDashedStrokeParams::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Assignment operator. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">obj</td><td>value from which to copy </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9e8dae053d6db3a54dd148819924bc8e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e8dae053d6db3a54dd148819924bc8e">&#9670;&nbsp;</a></span>pack_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::PainterDashedStrokeParams::pack_data </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> &gt;&#160;</td>
+          <td class="paramname"><em>dst</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>To be implemented by a derived class to pack the data. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dst</td><td>location to which to pack the data </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implements <a class="el" href="../../d2/d6f/classfastuidraw_1_1_painter_shader_data.html#ae0f470d5d310504f824aea00e7bf5b88">fastuidraw::PainterShaderData</a>.</p>
 
 </div>
 </div>
@@ -449,6 +554,30 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Set the value of <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html#ab89fe4e546dfe415352df8f649fa77e0">stroking_units(void) const</a>, values are clamped to be non-negative. </p>
+
+</div>
+</div>
+<a id="ae71d4b9f43e3ba55dd3a727dfc333213"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae71d4b9f43e3ba55dd3a727dfc333213">&#9670;&nbsp;</a></span>swap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::PainterDashedStrokeParams::swap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Swap operation </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">obj</td><td>object with which to swap </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

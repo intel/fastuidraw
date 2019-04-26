@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['total_5flength',['total_length',['../d2/d0b/structfastuidraw__dashed__stroking__params__header.html#a20db49d27babf4305a51b8a4dfe33a44',1,'fastuidraw_dashed_stroking_params_header']]]
+  ['stroking_5funits',['stroking_units',['../d8/d41/structfastuidraw__stroking__params.html#ac330e25d98731487bfaccdd8969ae62e',1,'fastuidraw_stroking_params::stroking_units()'],['../d2/d0b/structfastuidraw__dashed__stroking__params__header.html#aaec786728a5736556343a2aaf8ab6ae8',1,'fastuidraw_dashed_stroking_params_header::stroking_units()']]]
 ];

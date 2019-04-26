@@ -105,9 +105,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d8a/classfastuidraw_1_1_mutex.html">fastuidraw::Mutex</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d7f/classfastuidraw_1_1opaque__reference__counted.html">fastuidraw::opaque_reference_counted</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inherit from a member class of <a class="el" href="../../d5/d7f/classfastuidraw_1_1opaque__reference__counted.html">opaque_reference_counted</a> in order to implement the PIMPL pattern for reference counted data and the reference to be the type reference_counted_ptr&lt;opaque_reference_counted::base&gt;.  <a href="../../d5/d7f/classfastuidraw_1_1opaque__reference__counted.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d18/classfastuidraw_1_1orthogonal__projection__params.html">fastuidraw::orthogonal_projection_params&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An <a class="el" href="../../d7/d18/classfastuidraw_1_1orthogonal__projection__params.html" title="An orthogonal_projection_params holds the data to describe an orthogonal projection matrix without pe...">orthogonal_projection_params</a> holds the data to describe an orthogonal projection matrix without perspective.  <a href="../../d7/d18/classfastuidraw_1_1orthogonal__projection__params.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -128,6 +125,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">fastuidraw::reference_counted_ptr&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A wrapper over a pointer to implement reference counting.  <a href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/dfc/classfastuidraw_1_1resource__base.html">fastuidraw::resource_base</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A common base class to use for resources that need to be saved opaquely.  <a href="../../de/dfc/classfastuidraw_1_1resource__base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d1b/classfastuidraw_1_1static__resource.html">fastuidraw::static_resource</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provided as a conveniance. The ctor calls <a class="el" href="../../da/d46/group___utility.html#gabf43867b6dc6abcb6c649bbf2a675bee">generate_static_resource()</a>.  <a href="../../d9/d1b/classfastuidraw_1_1static__resource.html#details">More...</a><br /></td></tr>
@@ -319,6 +319,10 @@ Functions</h2></td></tr>
 <tr class="memitem:ga5bd671451ea87589fce592d0984c28e2"><td class="memTemplParams" colspan="2">template&lt;typename T , typename S &gt; </td></tr>
 <tr class="memitem:ga5bd671451ea87589fce592d0984c28e2"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga5bd671451ea87589fce592d0984c28e2">fastuidraw::operator==</a> (T *lhs, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; S &gt; &amp;rhs)</td></tr>
 <tr class="separator:ga5bd671451ea87589fce592d0984c28e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad53e49566fa84a5af9145985dfb20f2b"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gad53e49566fa84a5af9145985dfb20f2b">fastuidraw::pack_as_fp16</a> (<a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> src)</td></tr>
+<tr class="separator:gad53e49566fa84a5af9145985dfb20f2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac3f3f745df00508906cfa5a5a29debd0"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gac3f3f745df00508906cfa5a5a29debd0">fastuidraw::pack_as_fp16</a> (float x, float y)</td></tr>
+<tr class="separator:gac3f3f745df00508906cfa5a5a29debd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad64c2cdcdbd7d40191e7ca64d82416fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gad64c2cdcdbd7d40191e7ca64d82416fe">fastuidraw::pack_vec4</a> (float x, float y, float z, float w)</td></tr>
 <tr class="separator:gad64c2cdcdbd7d40191e7ca64d82416fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga82d4fca256120603cb3ee0a7c1745a98"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
@@ -2094,6 +2098,78 @@ template&lt;typename T , typename S &gt; </div>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00376">376</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+
+</div>
+</div>
+<a id="gad53e49566fa84a5af9145985dfb20f2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad53e49566fa84a5af9145985dfb20f2b">&#9670;&nbsp;</a></span>pack_as_fp16() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t fastuidraw::pack_as_fp16 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td>
+          <td class="paramname"><em>src</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Conveniance function to pack a single <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> into an fp16-pair returned as a uint32_t. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">src</td><td>float-pair to pack as an fp16-pair. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../db/d2d/c__array_8hpp_source.html#l00503">503</a> of file <a class="el" href="../../db/d2d/c__array_8hpp_source.html">c_array.hpp</a>.</p>
+
+</div>
+</div>
+<a id="gac3f3f745df00508906cfa5a5a29debd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac3f3f745df00508906cfa5a5a29debd0">&#9670;&nbsp;</a></span>pack_as_fp16() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t fastuidraw::pack_as_fp16 </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>y</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/d46/group___utility.html#gad53e49566fa84a5af9145985dfb20f2b">pack_as_fp16</a>(<a class="code" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>(x, y));</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../db/d2d/c__array_8hpp_source.html#l00519">519</a> of file <a class="el" href="../../db/d2d/c__array_8hpp_source.html">c_array.hpp</a>.</p>
 
 </div>
 </div>

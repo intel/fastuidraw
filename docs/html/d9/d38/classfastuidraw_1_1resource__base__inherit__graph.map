@@ -1,0 +1,7 @@
+<map id="fastuidraw::resource_base" name="fastuidraw::resource_base">
+<area shape="rect" id="node4" href="$d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html" title="A ColorStopSequenceOnAtlas is a ColorStopSequence on a ColorStopAtlas. A ColorStopAtlas is backed by ..." alt="" coords="5,244,212,285"/>
+<area shape="rect" id="node5" href="$dc/dd5/classfastuidraw_1_1_image.html" title="An Image represents an image comprising of RGBA8 values. The texel values themselves are stored in a ..." alt="" coords="236,251,363,278"/>
+<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="107,80,299,121"/>
+<area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="122,5,285,32"/>
+<area shape="rect" id="node6" href="$d3/d70/classfastuidraw_1_1gl_1_1_texture_image.html" title="fastuidraw::gl::TextureImage" alt="" coords="205,333,393,360"/>
+</map>

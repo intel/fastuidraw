@@ -1,6 +1,10 @@
 var searchData=
 [
   ['header_5fattrib_5fslot',['header_attrib_slot',['../db/db7/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l_types.html#a089b989bafff551140e9613c54252abca6a9c60454d039642a821bc7cfb5043bb',1,'fastuidraw::glsl::PainterShaderRegistrarGLSLTypes']]],
+  ['header_5fblue_5falpha_5foffset',['header_blue_alpha_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a6a2b49b6514470764976ef72b43d3acfac603b110ae3cf0dbb9eacdfa9ad96e6c',1,'fastuidraw::PainterBrush']]],
+  ['header_5fdata_5fsize',['header_data_size',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a6a2b49b6514470764976ef72b43d3acfa8b8d26799fabfae914965ae1e0a908e6',1,'fastuidraw::PainterBrush']]],
+  ['header_5fpacking',['header_packing',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ad43d8259a30ec0c421eb4a9c26ca3cd6a129ba94e664fa1eb6f057de4f008d121',1,'fastuidraw::PainterBrush']]],
+  ['header_5fred_5fgreen_5foffset',['header_red_green_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a6a2b49b6514470764976ef72b43d3acfa9b302c2a4b855571c72fd79a8e6fa641',1,'fastuidraw::PainterBrush']]],
   ['header_5fsize',['header_size',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a1a4bfefdd6d9fc878b9ac0522093e14b',1,'fastuidraw::PainterHeader']]],
   ['hierarchy_5fchild0_5foffset_5fbit0',['hierarchy_child0_offset_bit0',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784a7dd22311becde54abff377489f7debd9',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['hierarchy_5fchild1_5foffset_5fbit0',['hierarchy_child1_offset_bit0',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a8fb4c7edcc638b4ffbd31f20a785f784a2c075cf76ad7093161ef4c25c74c98e8',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],

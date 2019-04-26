@@ -1,3 +1,4 @@
 <map id="fastuidraw::PainterBlendShaderData" name="fastuidraw::PainterBlendShaderData">
-<area shape="rect" id="node2" href="$d2/d6f/classfastuidraw_1_1_painter_shader_data.html" title="Common base class to PainterItemShaderData, and PainterBlendShaderData to hold shader data for custom..." alt="" coords="5,5,205,32"/>
+<area shape="rect" id="node2" href="$d2/d6f/classfastuidraw_1_1_painter_shader_data.html" title="Common base class to PainterItemShaderData, PainterBrushShaderData and PainterBlendShaderData to hold..." alt="" coords="5,80,205,107"/>
+<area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="24,5,187,32"/>
 </map>

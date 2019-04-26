@@ -2,8 +2,7 @@ var searchData=
 [
   ['value',['value',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html',1,'fastuidraw::PainterData']]],
   ['value_3c_20fastuidraw_3a_3apainterblendshaderdata_20_3e',['value&lt; fastuidraw::PainterBlendShaderData &gt;',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html',1,'fastuidraw::PainterData']]],
-  ['value_3c_20fastuidraw_3a_3apainterbrush_20_3e',['value&lt; fastuidraw::PainterBrush &gt;',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html',1,'fastuidraw::PainterData']]],
-  ['value_3c_20fastuidraw_3a_3apaintercustombrushshaderdata_20_3e',['value&lt; fastuidraw::PainterCustomBrushShaderData &gt;',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html',1,'fastuidraw::PainterData']]],
+  ['value_3c_20fastuidraw_3a_3apainterbrushshaderdata_20_3e',['value&lt; fastuidraw::PainterBrushShaderData &gt;',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html',1,'fastuidraw::PainterData']]],
   ['value_3c_20fastuidraw_3a_3apainteritemshaderdata_20_3e',['value&lt; fastuidraw::PainterItemShaderData &gt;',['../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html',1,'fastuidraw::PainterData']]],
   ['varying_5flist',['varying_list',['../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html',1,'fastuidraw::glsl']]],
   ['vecn',['vecN',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],

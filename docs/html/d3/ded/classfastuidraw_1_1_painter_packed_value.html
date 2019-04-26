@@ -88,6 +88,8 @@ Inheritance diagram for fastuidraw::PainterPackedValue&lt; T &gt;:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aaec4e8186b83b8252439e7d1099ccbff"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#aaec4e8186b83b8252439e7d1099ccbff">PainterPackedValue</a> (void)</td></tr>
 <tr class="separator:aaec4e8186b83b8252439e7d1099ccbff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec53d68302880b8ab24c9bce6d84765a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#aec53d68302880b8ab24c9bce6d84765a">bind_images</a> (void) const</td></tr>
+<tr class="separator:aec53d68302880b8ab24c9bce6d84765a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf4efcdaecbc9217892bdcc63323065b"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#adf4efcdaecbc9217892bdcc63323065b">opaque_data</a> (void) const</td></tr>
 <tr class="separator:adf4efcdaecbc9217892bdcc63323065b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abbafa3df153d6277b924ea9f4331741d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#abbafa3df153d6277b924ea9f4331741d">operator unspecified_bool_type</a> (void) const</td></tr>
@@ -98,12 +100,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a898c85418a1895f1c6b80571f15a56f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cdf3e54ee41da3179f3df4d72b457fb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#a0cdf3e54ee41da3179f3df4d72b457fb">operator==</a> (const <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">PainterPackedValue</a> &amp;rhs) const</td></tr>
 <tr class="separator:a0cdf3e54ee41da3179f3df4d72b457fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39ef28e59c0bf8efb53ac497d2491042"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#a39ef28e59c0bf8efb53ac497d2491042">packed_data</a> (void) const</td></tr>
+<tr class="separator:a39ef28e59c0bf8efb53ac497d2491042"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec56131ba067079fcae67b861e532f3e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#aec56131ba067079fcae67b861e532f3e">reset</a> (void)</td></tr>
 <tr class="separator:aec56131ba067079fcae67b861e532f3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab55425be36490f5feedb288d3091924e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#ab55425be36490f5feedb288d3091924e">swap</a> (<a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">PainterPackedValue</a> &amp;obj)</td></tr>
 <tr class="separator:ab55425be36490f5feedb288d3091924e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae68da037ffc83608bee5bedb2910fca4"><td class="memItemLeft" align="right" valign="top">const T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#ae68da037ffc83608bee5bedb2910fca4">value</a> (void) const</td></tr>
-<tr class="separator:ae68da037ffc83608bee5bedb2910fca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -147,11 +149,42 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 <p>Ctor, initializes handle to nullptr, i.e. no underlying value object. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00096">96</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00099">99</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aec53d68302880b8ab24c9bce6d84765a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec53d68302880b8ab24c9bce6d84765a">&#9670;&nbsp;</a></span>bind_images()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a>&gt; &gt; <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">fastuidraw::PainterPackedValue</a>&lt; T &gt;::bind_images </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returns the images needed for binding, only makes sense when T = <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00141">141</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+
+</div>
+</div>
 <a id="adf4efcdaecbc9217892bdcc63323065b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adf4efcdaecbc9217892bdcc63323065b">&#9670;&nbsp;</a></span>opaque_data()</h2>
 
@@ -179,7 +212,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 <p>Pointer to opaque data of <a class="el" href="../../db/d27/classfastuidraw_1_1_painter_packed_value_base.html" title="(Private) base class used for PainterPackedValue ">PainterPackedValueBase</a>, used internally by fastuidraw. Do not touch! </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00187">187</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00195">195</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -210,7 +243,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 <p>Used to allow using object as a boolean without accidentally converting to a boolean (since it returns a pointer to a function). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00144">144</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00152">152</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -246,7 +279,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00166">166</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00174">174</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -282,7 +315,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00177">177</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00185">185</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -318,7 +351,38 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00155">155</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00163">163</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a39ef28e59c0bf8efb53ac497d2491042"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39ef28e59c0bf8efb53ac497d2491042">&#9670;&nbsp;</a></span>packed_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;<a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>&gt; <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">fastuidraw::PainterPackedValue</a>&lt; T &gt;::packed_data </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returns the data of the <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a> </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00131">131</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -348,7 +412,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 <p>Resets the object to not refer to anything. Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#aaec4e8186b83b8252439e7d1099ccbff">PainterPackedValue</a> tmp;</div><div class="line"><a class="code" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#ab55425be36490f5feedb288d3091924e">swap</a>(tmp);</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00118">118</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00121">121</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
@@ -384,38 +448,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00104">104</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
-
-</div>
-</div>
-<a id="ae68da037ffc83608bee5bedb2910fca4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae68da037ffc83608bee5bedb2910fca4">&#9670;&nbsp;</a></span>value()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const T&amp; <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">fastuidraw::PainterPackedValue</a>&lt; T &gt;::value </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Returns the value to which the handle points. If the handle is not-valid, then FASTUIDRAWasserts. </p>
-
-<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00129">129</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html#l00107">107</a> of file <a class="el" href="../../d2/d54/painter__packed__value_8hpp_source.html">painter_packed_value.hpp</a>.</p>
 
 </div>
 </div>
