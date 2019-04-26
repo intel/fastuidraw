@@ -88,15 +88,24 @@ namespace fastuidraw
     public:
       /*!
        * \brief
-       * If one wishes to make use of other \ref PainterItemCoverageShaderGLSL
-       * fastuidraw_gl_vert_main()/fastuidraw_gl_frag_main() of other shaders
-       * (for example to have a simple shader that adds on to a previous
-       * shader), a DependencyList provides the means to do so.
+       * If one wishes to make use of other \ref PainterBrushShaderGLSL
+       * fastuidraw_gl_vert_brush_main()/fastuidraw_gl_frag_brush_main()
+       * of other shaders (for example to have a simple shader that adds
+       * on to a previous shader), a DependencyList provides the means to do so.
        *
        * Each such used shader is given a name by which the caller will use it.
        * In addition, the caller has access to the varyings of the callee as well.
        * Thus, the varyings of the caller are the varyings listed in its ctor
        * together with the varyings of all the shaders listed in the DependencyList.
+       *
+       * Lastly, the uber-shader assembler tracks the number of context
+       * textures used by dependencies. To avoid re-using the same context
+       * textures, the macros fastuidraw_brush_context_dependency_count,
+       * and fastuidraw_brush_context_texture(X) are provided where
+       * - fastuidraw_brush_context_dependency_count is a constant uint giving
+       *   the number of context textures used by all dependencies.
+       * - fastuidraw_brush_context_texture(X) is just
+       *   fastuidraw_context_texture[X + fastuidraw_brush_context_dependency_count]
        */
       class DependencyList
       {

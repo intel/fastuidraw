@@ -153,7 +153,7 @@ FASTUIDRAW_LOCAL(brush_image_of_texture)(in sampler2D surface, in vec2 texel_coo
 vec4
 FASTUIDRAW_LOCAL(brush_image_of_context_texture)(in vec2 texel_coord, in uint image_filter, in float lod)
 {
-  return FASTUIDRAW_LOCAL(brush_image_of_texture)(fastuidraw_context_texture[0], texel_coord, image_filter, lod);
+  return FASTUIDRAW_LOCAL(brush_image_of_texture)(fastuidraw_brush_context_texture(0), texel_coord, image_filter, lod);
 }
 
 #if defined(FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE)

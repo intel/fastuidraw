@@ -101,15 +101,9 @@ namespace
     operator()(fastuidraw::glsl::ShaderSource &dst,
                const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh)
     {
-      unsigned int cnt(sh->number_context_textures());
-      dst << "#define fastuidraw_external_brush_texture_first " << m_count
-          << "\n";
-
-      for (unsigned int i = 0; i < cnt; ++i, ++m_count)
-        {
-          dst << "#define fastuidraw_external_brush_texture" << i
-              << " fastuidraw_context_texture[" << m_count << "]\n";
-        }
+      dst << "\n#define fastuidraw_brush_context_dependency_count " << m_count
+          << "\n#define fastuidraw_brush_context_texture(X) "
+          << "fastuidraw_context_texture[X + fastuidraw_brush_context_dependency_count]\n";
     }
 
   private:
@@ -125,11 +119,8 @@ namespace
     {
       unsigned int cnt(sh->number_context_textures());
 
-      dst << "#undef fastuidraw_external_brush_texture_first\n";
-      for (unsigned int i = 0; i < cnt; ++i)
-        {
-          dst << "#undef fastuidraw_external_brush_texture" << i << "\n";
-        }
+      dst << "\n#undef fastuidraw_brush_context_dependency_count\n"
+          << "#undef fastuidraw_brush_context_texture\n";
     }
   };
 
