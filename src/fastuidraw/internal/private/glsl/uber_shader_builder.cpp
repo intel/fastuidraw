@@ -33,17 +33,6 @@ namespace
     bool m_is_flat;
   };
 
-  void
-  stream_varyings_as_local_variables_array(fastuidraw::glsl::ShaderSource &vert,
-                                           fastuidraw::c_array<const fastuidraw::c_string> p,
-                                           fastuidraw::c_string type)
-  {
-    for(fastuidraw::c_string str : p)
-      {
-        vert << type << " " << str << ";\n";
-      }
-  }
-
   std::string
   make_name(fastuidraw::c_string name,
             unsigned int idx)
@@ -94,6 +83,14 @@ namespace
               dst << "#define " << v << " " << dep_name << "_" << v << "\n";
             }
         }
+      fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_list_names());
+      fastuidraw::c_array<const fastuidraw::c_string> aliases(child_shader->varyings().alias_list_alias_names());
+
+      FASTUIDRAWassert(names.size() == aliases.size());
+      for (unsigned int i = 0; i < names.size(); ++i)
+        {
+          dst.add_macro(aliases[i], names[i]);
+        }
     }
 
     void
@@ -102,6 +99,12 @@ namespace
                      const fastuidraw::reference_counted_ptr<const T> &child_shader) const
     {
       dst << "// unstream dependency varyings for " << dep_name << "\n";
+      fastuidraw::c_array<const fastuidraw::c_string> aliases(child_shader->varyings().alias_list_alias_names());
+      for (unsigned int i = 0; i < aliases.size(); ++i)
+        {
+          dst.remove_macro(aliases[i]);
+        }
+
       for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
         {
           enum fastuidraw::glsl::varying_list::interpolator_type_t q;
