@@ -801,43 +801,43 @@ create_brush_shader(void)
     .set(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
     .set(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
     .set(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
-    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix");
+    .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)");
 
   UnpackSourceGenerator("vec2")
     .set(PainterBrush::transformation_translation_x_offset, ".x")
     .set(PainterBrush::transformation_translation_y_offset, ".y")
-    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_translation");
+    .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)");
 
-  UnpackSourceGenerator("fastuidraw_brush_header")
+  UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_header)")
     .set(PainterBrush::features_offset, ".features", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::header_red_green_offset, ".red_green", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::header_blue_alpha_offset, ".blue_alpha", UnpackSourceGenerator::uint_type)
-    .stream_unpack_function(str, "fastuidraw_read_brush_header");
+    .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)");
 
-  UnpackSourceGenerator("fastuidraw_brush_repeat_window")
+  UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window)")
     .set(PainterBrush::repeat_window_x_offset, ".xy.x")
     .set(PainterBrush::repeat_window_y_offset, ".xy.y")
     .set(PainterBrush::repeat_window_width_offset, ".wh.x")
     .set(PainterBrush::repeat_window_height_offset, ".wh.y")
-    .stream_unpack_function(str, "fastuidraw_read_brush_repeat_window");
+    .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)");
 
-  UnpackSourceGenerator("fastuidraw_brush_image_data_raw")
+  UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw)")
     .set(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::image_size_xy_offset, ".image_size_xy", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::image_start_xy_offset, ".image_start_xy", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::image_number_lookups_offset, ".image_number_lookups", UnpackSourceGenerator::uint_type)
-    .stream_unpack_function(str, "fastuidraw_read_brush_image_raw_data");
+    .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)");
 
-  UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
+  UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
     .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
     .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
     .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
     .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
     .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
-    .stream_unpack_function(str, "fastuidraw_read_brush_linear_or_sweep_gradient_data");
+    .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)");
 
-  UnpackSourceGenerator("fastuidraw_brush_gradient_raw")
+  UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
     .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
     .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
     .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
@@ -846,7 +846,7 @@ create_brush_shader(void)
     .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::gradient_start_radius_offset, ".r0")
     .set(PainterBrush::gradient_end_radius_offset, ".r1")
-    .stream_unpack_function(str, "fastuidraw_read_brush_radial_gradient_data");
+    .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)");
 
   brush_varyings
     .add_float("fastuidraw_brush_p_x")
