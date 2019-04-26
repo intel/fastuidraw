@@ -55,7 +55,7 @@ to GLSL code fragments for both vertex and fragment shading for
 custom shading as embodied by the classes \ref
 fastuidraw::glsl::PainterItemShaderGLSL, \ref
 fastuidraw::glsl::PainterBlendShaderGLSL and \ref
-fastuidraw::glsl::PainterCustomBrushShaderGLSL.
+fastuidraw::glsl::PainterBrushShaderGLSL.
 @}
 
 \defgroup GLSLVertCode GLSL Vertex Code
@@ -65,7 +65,7 @@ This group documents the GLSL functions fastuidraw makes available
 to GLSL code fragments for only vertex shading for custom shading
 as embodied by the classes \ref fastuidraw::glsl::PainterItemShaderGLSL,
 \ref fastuidraw::glsl::PainterBlendShaderGLSL and \ref
-fastuidraw::glsl::PainterCustomBrushShaderGLSL.
+fastuidraw::glsl::PainterBrushShaderGLSL.
 @}
 
 \defgroup GLSLFragCode GLSL Fragment Code
@@ -75,7 +75,7 @@ This group documents the GLSL functions fastuidraw makes available
 to GLSL code fragments for only fragment shader for custom shading
 as embodied by the classes \ref fastuidraw::glsl::PainterItemShaderGLSL,
 \ref fastuidraw::glsl::PainterBlendShaderGLSL and \ref
-fastuidraw::glsl::PainterCustomBrushShaderGLSL.
+fastuidraw::glsl::PainterBrushShaderGLSL.
 @}
 
 \defgroup Painter Painter
@@ -130,7 +130,7 @@ are
   and \ref fastuidraw::PainterItemCoverageShader
 - \ref fastuidraw::PainterBlendShaderData for \ref fastuidraw::PainterBlendShader
 - \ref fastuidraw::PainterBrush for the built-in brush of FastUIDraw
-- \ref fastuidraw::PainterBrushShaderData for \ref fastuidraw::PainterCustomBrushShader
+- \ref fastuidraw::PainterBrushShaderData for \ref fastuidraw::PainterBrushShader
   for custom brushes
 
 

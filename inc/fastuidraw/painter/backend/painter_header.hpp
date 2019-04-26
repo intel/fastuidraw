@@ -179,11 +179,7 @@ namespace fastuidraw
     uint32_t m_item_shader;
 
     /*!
-     * The brush shader. If the leading bit is up, the brush
-     * is realized by a \ref PainterBrush and the value is from
-     * \ref PainterBrush::shader(). If the leading bit is down,
-     * then it indicates a custom brush implemented via a \ref
-     * PainterBrushShader.
+     * The ID of the brush shader (i.e. PainterBrushShader::ID()).
      */
     uint32_t m_brush_shader;
 
