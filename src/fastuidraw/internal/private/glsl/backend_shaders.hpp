@@ -153,6 +153,9 @@ private:
   PainterFillShader
   create_fill_shader(void);
 
+  reference_counted_ptr<PainterBrushShader>
+  create_brush_shader(void);
+
   ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;
 };

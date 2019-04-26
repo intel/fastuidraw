@@ -783,23 +783,31 @@ create_fill_shader(void)
   return fill_shader;
 }
 
-PainterShaderSet
+reference_counted_ptr<PainterBrushShader>
 ShaderSetCreator::
-create_shader_set(void)
+create_brush_shader(void)
 {
-  PainterShaderSet return_value;
-  reference_counted_ptr<const StrokingDataSelectorBase> se;
   reference_counted_ptr<PainterBrushShader> br;
   ShaderSource::MacroSet brush_macros;
   varying_list brush_varyings;
   ShaderSource str;
 
-  se = PainterStrokeParams::stroking_data_selector(false);
-
   /* TODO: localize all these functions with FASTUIDRAW_LOCAL
    * and localize the routines in the .glsl.resource_string
    * files as well.
    */
+  UnpackSourceGenerator("mat2")
+    .set(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
+    .set(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
+    .set(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
+    .set(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
+    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix");
+
+  UnpackSourceGenerator("vec2")
+    .set(PainterBrush::transformation_translation_x_offset, ".x")
+    .set(PainterBrush::transformation_translation_y_offset, ".y")
+    .stream_unpack_function(str, "fastuidraw_read_brush_transformation_translation");
+
   UnpackSourceGenerator("fastuidraw_brush_header")
     .set(PainterBrush::features_offset, ".features", UnpackSourceGenerator::uint_type)
     .set(PainterBrush::header_red_green_offset, ".red_green", UnpackSourceGenerator::uint_type)
@@ -950,13 +958,25 @@ create_shader_set(void)
                                             .remove_macros(brush_macros),
                                             brush_varyings);
 
+  return br;
+}
+
+PainterShaderSet
+ShaderSetCreator::
+create_shader_set(void)
+{
+  PainterShaderSet return_value;
+  reference_counted_ptr<const StrokingDataSelectorBase> se;
+
+  se = PainterStrokeParams::stroking_data_selector(false);
+
   return_value
     .glyph_shader(create_glyph_shader())
     .stroke_shader(create_stroke_shader(PainterEnums::number_cap_styles, se))
     .dashed_stroke_shader(create_dashed_stroke_shader_set())
     .fill_shader(create_fill_shader())
     .blend_shaders(create_blend_shaders())
-    .brush_shader(br);
+    .brush_shader(create_brush_shader());
   return return_value;
 }
 

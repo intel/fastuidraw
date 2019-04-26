@@ -293,8 +293,7 @@ namespace
                           fastuidraw::glsl::ShaderSource &src);
 
     void
-    stream_unpack_code(fastuidraw::glsl::ShaderSource &src,
-                       enum fastuidraw::PainterSurface::render_type_t render_type);
+    stream_unpack_code(fastuidraw::glsl::ShaderSource &src);
 
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     PerItemShaderRenderType<fastuidraw::glsl::PainterItemShaderGLSL> m_item_shaders;
@@ -520,26 +519,10 @@ ready_constants(void)
 
 void
 PainterShaderRegistrarGLSLPrivate::
-stream_unpack_code(fastuidraw::glsl::ShaderSource &str,
-                   enum fastuidraw::PainterSurface::render_type_t render_type)
+stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
-
-  if (render_type == PainterSurface::color_buffer_type)
-    {
-      UnpackSourceGenerator("mat2")
-        .set(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
-        .set(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
-        .set(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
-        .set(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
-        .stream_unpack_function(str, "fastuidraw_read_brush_transformation_matrix");
-
-      UnpackSourceGenerator("vec2")
-        .set(PainterBrush::transformation_translation_x_offset, ".x")
-        .set(PainterBrush::transformation_translation_y_offset, ".y")
-        .stream_unpack_function(str, "fastuidraw_read_brush_transformation_translation");
-    }
 
   UnpackSourceGenerator("fastuidraw_header")
     .set(PainterHeader::clip_equations_location_offset, ".clipping_location", UnpackSourceGenerator::uint_type)
@@ -994,7 +977,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_source("fastuidraw_painter_clipping.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(vert_main_src, ShaderSource::from_resource);
 
-  stream_unpack_code(vert, render_type);
+  stream_unpack_code(vert);
 
   add_backend_constants(backend, frag);
   frag
@@ -1052,7 +1035,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
   frag
     .add_source(frag_main_src, ShaderSource::from_resource);
 
-  stream_unpack_code(frag, render_type);
+  stream_unpack_code(frag);
 
   if (render_type == PainterSurface::color_buffer_type)
     {
