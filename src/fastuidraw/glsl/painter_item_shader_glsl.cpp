@@ -64,15 +64,13 @@ namespace
   {
   public:
     PainterBrushShaderGLSLPrivate(unsigned num_context_textures,
-                                        const fastuidraw::glsl::ShaderSource &vertex_src,
-                                        const fastuidraw::glsl::ShaderSource &fragment_src,
-                                        const fastuidraw::glsl::varying_list &varyings,
-                                        const DependencyListPrivate &dependencies):
-      PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, varyings, dependencies),
-      m_number_context_textures(num_context_textures)
-    {}
+                                  const fastuidraw::glsl::ShaderSource &vertex_src,
+                                  const fastuidraw::glsl::ShaderSource &fragment_src,
+                                  const fastuidraw::glsl::varying_list &varyings,
+                                  const DependencyListPrivate &dependencies);
 
     unsigned int m_number_context_textures;
+    unsigned int m_context_texture_start;
   };
 
   class PainterItemShaderGLSLPrivate:
@@ -90,6 +88,24 @@ namespace
 
     bool m_uses_discard;
   };
+}
+
+///////////////////////////////////////////////////
+// PainterBrushShaderGLSLPrivate methods
+PainterBrushShaderGLSLPrivate::
+PainterBrushShaderGLSLPrivate(unsigned num_context_textures,
+                              const fastuidraw::glsl::ShaderSource &vertex_src,
+                              const fastuidraw::glsl::ShaderSource &fragment_src,
+                              const fastuidraw::glsl::varying_list &varyings,
+                              const DependencyListPrivate &dependencies):
+  PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, varyings, dependencies),
+  m_context_texture_start(0)
+{
+  for (unsigned int i = 0, endi = m_dependent_shaders.size(); i < endi; ++i)
+    {
+      m_context_texture_start += m_dependent_shaders[i]->number_context_textures();
+    }
+  m_number_context_textures = m_context_texture_start + num_context_textures;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -400,3 +416,8 @@ get_implement(fastuidraw::glsl::PainterBrushShaderGLSL,
               PainterBrushShaderGLSLPrivate,
               const fastuidraw::glsl::ShaderSource&,
               fragment_src)
+
+get_implement(fastuidraw::glsl::PainterBrushShaderGLSL,
+              PainterBrushShaderGLSLPrivate,
+              unsigned int,
+              context_texture_start)

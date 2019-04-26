@@ -99,14 +99,19 @@ namespace fastuidraw
        * parent shader with dep_V where dep is the argument value of name to \ref
        * add_shader().
        *
-       * Lastly, the uber-shader assembler tracks the number of context
-       * textures used by dependencies. To avoid re-using the same context
-       * textures, the macros fastuidraw_brush_context_dependency_count,
+       * Lastly, the uber-shader assembler gives a means to avoid collision
+       * in using context textures. To avoid re-using the same context
+       * textures, the macros fastuidraw_brush_start_context_texture,
        * and fastuidraw_brush_context_texture(X) are provided where
-       * - fastuidraw_brush_context_dependency_count is a constant uint giving
-       *   the number of context textures used by all dependencies.
+       * - fastuidraw_brush_start_context_texture is the first texture for
+       *   the brush shader to use.
        * - fastuidraw_brush_context_texture(X) is just
-       *   fastuidraw_context_texture[X + fastuidraw_brush_context_dependency_count]
+       *   fastuidraw_brush_context_texture[X + fastuidraw_brush_start_context_texture]
+       *
+       * The Uber-shader assembler fills the textures depth-first. Thus the first
+       * dependency uses slots [0, 1, .., N - 1] where N is number_context_textures()
+       * of the first dependency, then the second dependency uses [N, N + 1, ..., N + M - 1]
+       * where M is number_context_textures() of the second dependency and so on.
        */
       class DependencyList
       {
@@ -176,6 +181,15 @@ namespace fastuidraw
        */
       unsigned int
       number_context_textures(void) const;
+
+      /*!
+       * This is the sum across \ref dependency_list_shaders()
+       * of \ref number_context_textures() which in turn gives
+       * the value of fastuidraw_brush_start_context_texture
+       * for the shader code passed in the ctor.
+       */
+      unsigned int
+      context_texture_start(void) const;
 
       /*!
        * Returns the varying of the shader

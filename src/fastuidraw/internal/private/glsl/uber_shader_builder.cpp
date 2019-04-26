@@ -173,16 +173,16 @@ namespace
                const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &sh) const
     {
       FASTUIDRAWunused(sh);
-      dst << "\n#define fastuidraw_brush_context_dependency_count " << m_count
+      dst << "\n#define fastuidraw_brush_start_context_texture " << m_count
           << "\n#define fastuidraw_brush_context_texture(X) "
-          << "fastuidraw_context_texture[X + fastuidraw_brush_context_dependency_count]\n";
+          << "fastuidraw_context_texture[X + fastuidraw_brush_start_context_texture]\n";
       m_count += sh->number_context_textures();
     }
 
     void
     post_source(fastuidraw::glsl::ShaderSource &dst) const
     {
-      dst << "\n#undef fastuidraw_brush_context_dependency_count\n"
+      dst << "\n#undef fastuidraw_brush_start_context_texture\n"
           << "#undef fastuidraw_brush_context_texture\n";
     }
 
