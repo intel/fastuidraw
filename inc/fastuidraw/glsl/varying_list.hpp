@@ -187,7 +187,7 @@ namespace fastuidraw
        * Add an alias to a varying. The use case being if a fixed
        * varying is used in two different roles and aliasing the
        * name makes the GLSL shader code more readable.
-       * \param name the new identifier to reference an existing alias
+       * \param name the new identifier to reference an existing varying
        * \param src_name the varying referenced by name, which should
        *                 be a string value that has been passed as
        *                 the first argument to \ref add_varying() or
