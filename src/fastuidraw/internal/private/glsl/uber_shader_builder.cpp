@@ -207,6 +207,20 @@ namespace
     return "fastuidraw_gl_frag_main";
   }
 
+  template<>
+  fastuidraw::c_string
+  item_shader_vert_name(const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &)
+  {
+    return "fastuidraw_gl_vert_brush_main";
+  }
+
+  template<>
+  fastuidraw::c_string
+  item_shader_frag_name(const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBrushShaderGLSL> &)
+  {
+    return "fastuidraw_gl_frag_brush_main";
+  }
+
   fastuidraw::c_string
   blend_shader_name(const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &shader)
   {
@@ -275,7 +289,6 @@ namespace
                 const StreamSurroundSrcHelper<T> &stream_surround_src,
                 const std::string &return_type,
                 const std::string &uber_func_with_args,
-                const std::string &shader_main,
                 const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
                 const std::string &shader_id);
 
@@ -292,7 +305,7 @@ namespace
                   const StreamVaryingsHelper<T> &stream_varyings_helper,
                   const StreamSurroundSrcHelper<T> &stream_surround_src,
                   const fastuidraw::reference_counted_ptr<const T> &shader,
-                  const std::string &shader_main, int dependency_depth);
+                  int dependency_depth);
 
     static
     std::string
@@ -372,7 +385,7 @@ stream_shader(ShaderSource &dst, const std::string &prefix,
               const StreamVaryingsHelper<T> &stream_varyings_helper,
               const StreamSurroundSrcHelper<T> &stream_surround_src,
               const fastuidraw::reference_counted_ptr<const T> &sh,
-              const std::string &shader_main, int dependency_depth)
+              int dependency_depth)
 {
   using namespace fastuidraw;
 
@@ -390,11 +403,11 @@ stream_shader(ShaderSource &dst, const std::string &prefix,
       dst.add_macro(dep_names[i], realized_name.c_str());
     }
 
-  dst.add_macro(shader_main.c_str(), prefix.c_str());
+  dst.add_macro(get_main_name(sh), prefix.c_str());
   stream_surround_src.pre_source(dst, sh);
   stream_source(dst, prefix, (sh.get()->*get_src)());
   stream_surround_src.post_source(dst);
-  dst.remove_macro(shader_main.c_str());
+  dst.remove_macro(get_main_name(sh));
 
   for (unsigned int i = 0; i < deps.size(); ++i)
     {
@@ -424,7 +437,7 @@ stream_dependency(ShaderSource &dst, const std::string &in_prefix, int idx,
   stream_varyings_helper.before_dependency(dst, dep_name, shader);
   stream_shader(dst, nm, get_src, get_main_name,
                 stream_varyings_helper, stream_surround_src,
-                shader, get_main_name(shader), dependency_depth);
+                shader, dependency_depth);
   stream_varyings_helper.after_dependency(dst, dep_name, shader);
 
   return nm;
@@ -439,7 +452,6 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             const StreamSurroundSrcHelper<T> &stream_surround_src,
             const std::string &return_type,
             const std::string &uber_func_with_args,
-            const std::string &shader_main,
             const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
             const std::string &shader_id)
 {
@@ -453,13 +465,13 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       dst << "\n/////////////////////////////////////////\n"
           << "// Start Shader #" << sh->ID() << "\n";
 
-      str << shader_main << sh->ID();
+      str << get_main_name(sh) << sh->ID();
       stream_varyings_helper.before_shader(dst, sh);
       stream_shader(dst, str.str(),
                     get_src, get_main_name,
                     stream_varyings_helper,
                     stream_surround_src,
-                    sh, shader_main, 0);
+                    sh, 0);
       stream_varyings_helper.after_shader(dst, sh);
     }
 
@@ -500,7 +512,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             {
               dst << "p = ";
             }
-          dst << shader_main << sh->ID()
+          dst << get_main_name(sh) << sh->ID()
               << "(" << shader_id << " - uint(" << start << ")" << shader_args << ");\n"
               << "    }\n";
           has_sub_shaders = true;
@@ -555,7 +567,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
               dst << "p = ";
             }
 
-          dst << shader_main << sh->ID()
+          dst << get_main_name(sh) << sh->ID()
               << "(uint(0)" << shader_args << ");\n";
 
           if (use_switch)
@@ -896,7 +908,6 @@ stream_uber_vert_shader(bool use_switch,
                                                          StreamSurroundSrcHelper<PainterItemShaderGLSL>(),
                                                          "void",
                                                          "fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)",
-                                                         "fastuidraw_gl_vert_main",
                                                          ", fastuidraw_attribute0, fastuidraw_attribute1, "
                                                          "fastuidraw_attribute2, h.item_shader_data_location, add_z, brush_p, clip_p",
                                                          "h.item_shader");
@@ -915,9 +926,8 @@ stream_uber_frag_shader(bool use_switch,
                                                          StreamVaryingsHelper<PainterItemShaderGLSL>(declare_varyings, datum),
                                                          StreamSurroundSrcHelper<PainterItemShaderGLSL>(),
                                                          "vec4",
-                                                         "fastuidraw_run_frag_shader(in uint frag_shader, "
-                                                         "in uint frag_shader_data_location)",
-                                                         "fastuidraw_gl_frag_main", ", frag_shader_data_location",
+                                                         "fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
+                                                         ", frag_shader_data_location",
                                                          "frag_shader");
 }
 
@@ -935,7 +945,6 @@ stream_uber_vert_shader(bool use_switch,
                                                                  StreamSurroundSrcHelper<PainterItemCoverageShaderGLSL>(),
                                                                  "void",
                                                                  "fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 clip_p)",
-                                                                 "fastuidraw_gl_vert_main",
                                                                  ", fastuidraw_attribute0, fastuidraw_attribute1, "
                                                                  "fastuidraw_attribute2, h.item_shader_data_location, clip_p",
                                                                  "h.item_shader");
@@ -954,9 +963,8 @@ stream_uber_frag_shader(bool use_switch,
                                                                  StreamVaryingsHelper<PainterItemCoverageShaderGLSL>(declare_varyings, datum),
                                                                  StreamSurroundSrcHelper<PainterItemCoverageShaderGLSL>(),
                                                                  "float",
-                                                                 "fastuidraw_run_frag_shader(in uint frag_shader, "
-                                                                 "in uint frag_shader_data_location)",
-                                                                 "fastuidraw_gl_frag_main", ", frag_shader_data_location",
+                                                                 "fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
+                                                                 ", frag_shader_data_location",
                                                                  "frag_shader");
 }
 
@@ -966,7 +974,7 @@ stream_uber_blend_shader(bool use_switch,
                          c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
                          enum PainterBlendShader::shader_type tp)
 {
-  std::string sub_func_name, func_name, sub_func_args;
+  std::string sub_func_args, func_name;
 
   switch(tp)
     {
@@ -975,7 +983,6 @@ stream_uber_blend_shader(bool use_switch,
       //fall through
     case PainterBlendShader::single_src:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src)";
-      sub_func_name = "fastuidraw_gl_compute_blend_value";
       sub_func_args = ", blend_shader_data_location, in_src, out_src";
       add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type!");
       add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type!");
@@ -985,7 +992,6 @@ stream_uber_blend_shader(bool use_switch,
 
     case PainterBlendShader::dual_src:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1)";
-      sub_func_name = "fastuidraw_gl_compute_blend_factors";
       sub_func_args = ", blend_shader_data_location, color0, src0, src1";
       add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
       add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
@@ -995,7 +1001,6 @@ stream_uber_blend_shader(bool use_switch,
 
     case PainterBlendShader::framebuffer_fetch:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
-      sub_func_name = "fastuidraw_gl_compute_post_blended_value";
       sub_func_args = ", blend_shader_data_location, in_src, in_fb, out_src";
       add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
       add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
@@ -1011,7 +1016,7 @@ stream_uber_blend_shader(bool use_switch,
                                                           StreamVaryingsHelper<PainterBlendShaderGLSL>(),
                                                           StreamSurroundSrcHelper<PainterBlendShaderGLSL>(),
                                                           "void", func_name,
-                                                          sub_func_name, sub_func_args, "blend_shader");
+                                                          sub_func_args, "blend_shader");
 }
 
 void
@@ -1028,7 +1033,6 @@ stream_uber_brush_vert_shader(bool use_switch,
                                                           StreamSurroundSrcHelper<PainterBrushShaderGLSL>(),
                                                           "void",
                                                           "fastuidraw_run_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
-                                                          "fastuidraw_gl_vert_brush_main",
                                                           ", h.brush_shader_data_location, brush_p",
                                                           "h.brush_shader");
 }
@@ -1046,9 +1050,8 @@ stream_uber_brush_frag_shader(bool use_switch,
                                                           StreamVaryingsHelper<PainterBrushShaderGLSL>(declare_varyings, datum),
                                                           StreamSurroundSrcHelper<PainterBrushShaderGLSL>(),
                                                           "vec4",
-                                                          "fastuidraw_run_brush_frag_shader(in uint frag_shader, "
-                                                          "in uint frag_shader_data_location)",
-                                                          "fastuidraw_gl_frag_brush_main", ", frag_shader_data_location",
+                                                          "fastuidraw_run_brush_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
+                                                          ", frag_shader_data_location",
                                                           "frag_shader");
 }
 
