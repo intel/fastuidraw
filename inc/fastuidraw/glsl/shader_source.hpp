@@ -45,22 +45,21 @@ public:
   enum source_t
     {
       /*!
-       * Shader source code is taken
-       * from the file whose name
-       * is the passed string.
+       * Shader source code is taken from the file whose
+       * name is the passed string.
        */
       from_file,
 
       /*!
-       * The passed string is the
-       * shader source code.
+       * The passed string is the shader source code.
        */
       from_string,
 
       /*!
-       * The passed string is label
-       * for a string of text fetched
-       * with fastuidraw::fetch_static_resource()
+       * The passed string is label for a string of text
+       * fetched with fastuidraw::fetch_static_resource().
+       * The resource will be IGNORED if the last byte of
+       * resource is not 0 (which indicates end-of-string).
        */
       from_resource,
     };
