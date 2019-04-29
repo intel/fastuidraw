@@ -942,9 +942,9 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
 
   if (params.clipping_type() != PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance)
     {
-      uber_shader_varyings.stream_alias_varyings(vert, m_clip_varyings, true, clip_varying_datum);
+      uber_shader_varyings.stream_alias_varyings(false, vert, m_clip_varyings, true, clip_varying_datum);
     }
-  uber_shader_varyings.stream_alias_varyings(vert, *main_varyings, true, main_varying_datum);
+  uber_shader_varyings.stream_alias_varyings(false, vert, *main_varyings, true, main_varying_datum);
 
   vert
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
@@ -991,11 +991,13 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
+  uber_shader_varyings.stream_varying_rw_copies(frag);
+
   if (params.clipping_type() != PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance)
     {
-      uber_shader_varyings.stream_alias_varyings(frag, m_clip_varyings, true, clip_varying_datum);
+      uber_shader_varyings.stream_alias_varyings(false, frag, m_clip_varyings, true, clip_varying_datum);
     }
-  uber_shader_varyings.stream_alias_varyings(frag, *main_varyings, true, main_varying_datum);
+  uber_shader_varyings.stream_alias_varyings(false, frag, *main_varyings, true, main_varying_datum);
 
   if (render_type == PainterSurface::color_buffer_type)
     {
@@ -1166,11 +1168,11 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
         << "\n";
     }
 
-  uber_shader_varyings.stream_alias_varyings(vert, shader->varyings(), true, shader_varying_datum);
+  uber_shader_varyings.stream_alias_varyings(false, vert, shader->varyings(), true, shader_varying_datum);
   vert.add_source(shader->vertex_src());
   vert.add_source(run_vert_shader.str().c_str(), ShaderSource::from_string);
 
-  uber_shader_varyings.stream_alias_varyings(frag, shader->varyings(), true, shader_varying_datum);
+  uber_shader_varyings.stream_alias_varyings(true, frag, shader->varyings(), true, shader_varying_datum);
   run_frag_shader
     << frag_return_type << " fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)\n"
     << "{\n"

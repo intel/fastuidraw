@@ -23,6 +23,7 @@ main(void)
 {
   float v = 0.0;
 
+  fastuidraw_mirror_varyings();
   fastuidraw_apply_clipping();
 
   #ifdef FASTUIDRAW_RUN_ITEM_FRAG_SHADER

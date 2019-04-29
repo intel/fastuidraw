@@ -69,12 +69,6 @@ public:
                c_array<const size_t> counts,
                AliasVaryingLocation *datum);
 
-  void
-  declare_varyings(std::ostringstream &str,
-                   c_string varying_qualifier,
-                   c_string interface_name = nullptr,
-                   c_string instance_name = nullptr) const;
-
   std::string
   declare_varyings(c_string varying_qualifier,
                    c_string interface_name = nullptr,
@@ -86,6 +80,16 @@ public:
     return str.str();
   }
 
+  /* Sighs. GLSL mandates that in's of a fragment shader are
+   * read-only. The bad news is that then when one's chains
+   * shaders, it is not possible to directly modify the
+   * varyings. So, instead we need to within the fragment shader
+   * -copy- the in values to global values and in fragment shader
+   * use those copy global values instead of the original in's.
+   */
+  void
+  stream_varying_rw_copies(ShaderSource &dst) const;
+
   /*!
    * Add or remove aliases that have elements of p
    * refer to varying declared by a UberShaderVaryings
@@ -95,7 +99,8 @@ public:
    *                    if false remove the aliases by remove_macro()
    */
   void
-  stream_alias_varyings(ShaderSource &shader, const varying_list &p,
+  stream_alias_varyings(bool use_rw_copies,
+                        ShaderSource &shader, const varying_list &p,
                         bool add_aliases,
                         const AliasVaryingLocation &datum) const;
 private:
@@ -108,6 +113,12 @@ private:
     std::string m_qualifier;
     unsigned int m_num_components;
   };
+
+  void
+  declare_varyings(std::ostringstream &str,
+                   c_string varying_qualifier,
+                   c_string interface_name = nullptr,
+                   c_string instance_name = nullptr) const;
 
   uvec2
   add_varyings_impl_type(std::vector<per_varying> &varyings,
@@ -123,7 +134,8 @@ private:
                         unsigned int &slot) const;
 
   void
-  stream_alias_varyings_impl(const std::vector<per_varying> &varyings_to_use,
+  stream_alias_varyings_impl(bool use_rw_copies,
+                             const std::vector<per_varying> &varyings_to_use,
                              ShaderSource &shader,
                              c_array<const c_string> p,
                              bool add_aliases, uvec2 start) const;
