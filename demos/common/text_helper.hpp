@@ -76,6 +76,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
  */
 void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
+                      enum fastuidraw::Painter::screen_orientation,
                       std::istream &stream,
                       const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
@@ -90,6 +91,7 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
  */
 void
 create_formatted_text(fastuidraw::GlyphRun &out_run,
+                      enum fastuidraw::Painter::screen_orientation,
                       std::istream &stream,
                       const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,

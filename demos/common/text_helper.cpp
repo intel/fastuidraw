@@ -336,7 +336,6 @@ create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
 {
   fastuidraw::vec2 pen(shift_by);
   float format_size(out_sequence.format_size());
-  enum fastuidraw::Painter::screen_orientation orientation(out_sequence.orientation());
   fastuidraw::GlyphMetrics layout;
   float ratio;
 
@@ -357,6 +356,7 @@ template<typename T>
 static
 void
 create_formatted_textT(T &out_sequence,
+                       enum fastuidraw::Painter::screen_orientation orientation,
                        std::istream &istr,
                        const fastuidraw::FontBase *font,
                        fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
@@ -364,7 +364,6 @@ create_formatted_textT(T &out_sequence,
 {
   std::streampos current_position, end_position;
   float format_size(out_sequence.format_size());
-  enum fastuidraw::Painter::screen_orientation orientation(out_sequence.orientation());
   unsigned int loc(0);
   fastuidraw::vec2 pen(starting_place);
   std::string line, original_line;
@@ -430,22 +429,24 @@ create_formatted_textT(T &out_sequence,
 
 void
 create_formatted_text(fastuidraw::GlyphSequence &out_sequence,
+                      enum fastuidraw::Painter::screen_orientation orientation,
                       std::istream &istr,
                       const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &starting_place)
 {
-  create_formatted_textT(out_sequence, istr, font, font_database, starting_place);
+  create_formatted_textT(out_sequence, orientation, istr, font, font_database, starting_place);
 }
 
 void
 create_formatted_text(fastuidraw::GlyphRun &out_sequence,
+                      enum fastuidraw::Painter::screen_orientation orientation,
                       std::istream &istr,
                       const fastuidraw::FontBase *font,
                       fastuidraw::reference_counted_ptr<fastuidraw::FontDatabase> font_database,
                       const fastuidraw::vec2 &starting_place)
 {
-  create_formatted_textT(out_sequence, istr, font, font_database, starting_place);
+  create_formatted_textT(out_sequence, orientation, istr, font, font_database, starting_place);
 }
 
 void

@@ -141,6 +141,7 @@ private:
 
   GlyphSequence *m_glyph_sequence;
   GenericHierarchy *m_hierarchy;
+  enum Painter::screen_orientation m_orientation;
 };
 
 class painter_glyph_test:public sdl_painter_demo
@@ -268,7 +269,6 @@ void
 GlyphDrawsShared::
 make_hierarchy(void)
 {
-  enum Painter::screen_orientation orientation(m_glyph_sequence->orientation());
   float format_size(m_glyph_sequence->format_size());
   GlyphMetrics metrics;
   vec2 p;
@@ -293,7 +293,7 @@ make_hierarchy(void)
           min_bb *= ratio;
           max_bb *= ratio;
 
-          if (orientation == Painter::y_increases_downwards)
+          if (m_orientation == Painter::y_increases_downwards)
             {
               min_bb.y() = -min_bb.y();
               max_bb.y() = -max_bb.y();
@@ -340,6 +340,7 @@ init(const reference_counted_ptr<const FontBase> &pfont,
   offset = scale_factor * static_cast<float>(face->face()->height);
   num_glyphs = font->number_glyphs();
 
+  m_orientation = screen_orientation;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(format_size_formatting,
                                                  screen_orientation, glyph_cache);
 
@@ -400,8 +401,8 @@ init(const reference_counted_ptr<const FontBase> &pfont,
     {
       std::istringstream stream(nav_iter->second);
 
-      create_formatted_text(*m_glyph_sequence, stream, font.get(),
-                            font_database,
+      create_formatted_text(*m_glyph_sequence, m_orientation,
+                            stream, font.get(), font_database,
                             vec2(line_length, nav_iter->first));
     }
   std::cout << "took " << timer.restart() << " ms\n";
@@ -418,6 +419,7 @@ init(const std::vector<uint32_t> &glyph_codes,
   simple_time timer;
 
   std::cout << "Formatting glyphs ..." << std::flush;
+  m_orientation = screen_orientation;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(format_size_formatting,
                                                  screen_orientation, glyph_cache);
   create_formatted_text(*m_glyph_sequence, glyph_codes, font.get());
@@ -434,6 +436,7 @@ init(std::istream &istr,
      float format_size_formatting,
      enum Painter::screen_orientation screen_orientation)
 {
+  m_orientation = screen_orientation;
   m_glyph_sequence = FASTUIDRAWnew GlyphSequence(format_size_formatting,
                                                  screen_orientation, glyph_cache);
   if (istr)
@@ -441,7 +444,7 @@ init(std::istream &istr,
       simple_time timer;
 
       std::cout << "Formatting glyphs ..." << std::flush;
-      create_formatted_text(*m_glyph_sequence, istr, font.get(), font_database);
+      create_formatted_text(*m_glyph_sequence, m_orientation, istr, font.get(), font_database);
       std::cout << "took " << timer.restart() << " ms\n";
     }
 }

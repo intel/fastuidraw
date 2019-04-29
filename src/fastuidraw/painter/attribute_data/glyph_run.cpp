@@ -353,24 +353,6 @@ glyph_cache(void) const
   return *d->m_cache;
 }
 
-enum fastuidraw::PainterEnums::screen_orientation
-fastuidraw::GlyphRun::
-orientation(void) const
-{
-  GlyphRunPrivate *d;
-  d = static_cast<GlyphRunPrivate*>(m_d);
-  return d->m_orientation;
-}
-
-enum fastuidraw::PainterEnums::glyph_layout_type
-fastuidraw::GlyphRun::
-layout(void) const
-{
-  GlyphRunPrivate *d;
-  d = static_cast<GlyphRunPrivate*>(m_d);
-  return d->m_layout;
-}
-
 void
 fastuidraw::GlyphRun::
 add_glyphs(c_array<const GlyphSource> sources,

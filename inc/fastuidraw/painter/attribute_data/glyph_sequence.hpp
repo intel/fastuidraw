@@ -202,20 +202,6 @@ namespace fastuidraw
     format_size(void) const;
 
     /*!
-     * Orientation with which glyph sequences added by
-     * add_glyphs() and add_glyph() are formatted.
-     */
-    enum PainterEnums::screen_orientation
-    orientation(void) const;
-
-    /*!
-     * Layout with which glyph sequences added by
-     * add_glyphs() and add_glyph() are formatted.
-     */
-    PainterEnums::glyph_layout_type
-    layout(void) const;
-
-    /*!
      * Returns the total number of \ref Subset objects of this
      * \ref GlyphSequence. This value can change when add_glyph()
      * or add_glyphs() is called.

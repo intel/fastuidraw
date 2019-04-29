@@ -153,20 +153,6 @@ namespace fastuidraw
     format_size(void) const;
 
     /*!
-     * Orientation with which glyph sequences added by
-     * add_glyphs() and add_glyph() are formatted.
-     */
-    enum PainterEnums::screen_orientation
-    orientation(void) const;
-
-    /*!
-     * Layout with which glyph sequences added by
-     * add_glyphs() and add_glyph() are formatted.
-     */
-    PainterEnums::glyph_layout_type
-    layout(void) const;
-
-    /*!
      * Returns a const-reference to \ref PainterAttributeWriter
      * object for rendering a named range of glyphs for
      * a specified \ref GlyphRenderer. The returned object

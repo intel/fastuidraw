@@ -801,7 +801,7 @@ draw_text(const std::string &text, float pixel_size,
   std::istringstream str(text);
   fastuidraw::GlyphRun run(pixel_size, orientation, m_painter->glyph_cache());
 
-  create_formatted_text(run, str, font, m_font_database);
+  create_formatted_text(run, orientation, str, font, m_font_database);
   m_painter->draw_glyphs(draw, run, 0, run.number_glyphs(), renderer);
 }
 

@@ -55,7 +55,9 @@ Cell(PainterWidget *p, const CellParams &params):
        << "\n" << params.m_image_name;
 
   std::istringstream str(ostr.str());
-  create_formatted_text(m_text, str, params.m_font.get(),
+  create_formatted_text(m_text,
+                        PainterEnums::y_increases_downwards,
+                        str, params.m_font.get(),
                         params.m_font_database);
 
   m_dimensions = params.m_size;
