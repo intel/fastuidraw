@@ -100,20 +100,20 @@ namespace fastuidraw
       varyings(enum interpolator_type_t q) const;
 
       /*!
-       * Returns the source names of the aliases, i.e.
-       * the values of the first argument of calls to
-       * \ref add_alias().
+       * Returns the alias names of the aliases, i.e.
+       * the values of the first argument of calls
+       * to \ref add_varying_alias().
        */
       c_array<const c_string>
-      alias_list_names(void) const;
+      alias_varying_names(void) const;
 
       /*!
-       * Returns the alias names of the aliases, i.e.
-       * the values of the second argument of calls
-       * to \ref add_alias().
+       * Returns the source names of the aliases, i.e.
+       * the values of the second argument of calls to
+       * \ref add_varying_alias().
        */
       c_array<const c_string>
-      alias_list_alias_names(void) const;
+      alias_varying_source_names(void) const;
 
       /*!
        * Add a varying
@@ -187,11 +187,14 @@ namespace fastuidraw
        * Add an alias to a varying. The use case being if a fixed
        * varying is used in two different roles and aliasing the
        * name makes the GLSL shader code more readable.
-       * \param name the name of the varying to alias
-       * \param alias_name the alias for the varying
+       * \param name the new identifier to reference an existing alias
+       * \param src_name the varying referenced by name, which should
+       *                 be a string value that has been passed as
+       *                 the first argument to \ref add_varying() or
+       *                 \ref add_varying_alias().
        */
       varying_list&
-      add_alias(c_string name, c_string alias_name);
+      add_varying_alias(c_string name, c_string src_name);
 
     private:
       void *m_d;

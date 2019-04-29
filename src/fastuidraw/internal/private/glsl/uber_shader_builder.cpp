@@ -85,13 +85,13 @@ namespace
               dst << "#define " << v << " " << dep_name << "_" << v << "\n";
             }
         }
-      fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_list_names());
-      fastuidraw::c_array<const fastuidraw::c_string> aliases(child_shader->varyings().alias_list_alias_names());
+      fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_varying_names());
+      fastuidraw::c_array<const fastuidraw::c_string> src_names(child_shader->varyings().alias_varying_source_names());
 
-      FASTUIDRAWassert(names.size() == aliases.size());
+      FASTUIDRAWassert(names.size() == src_names.size());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          dst.add_macro(aliases[i], names[i]);
+          dst.add_macro(names[i], src_names[i]);
         }
     }
 
@@ -101,10 +101,10 @@ namespace
                      const fastuidraw::reference_counted_ptr<const T> &child_shader) const
     {
       dst << "// unstream dependency varyings for " << dep_name << "\n";
-      fastuidraw::c_array<const fastuidraw::c_string> aliases(child_shader->varyings().alias_list_alias_names());
-      for (unsigned int i = 0; i < aliases.size(); ++i)
+      fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_varying_names());
+      for (unsigned int i = 0; i < names.size(); ++i)
         {
-          dst.remove_macro(aliases[i]);
+          dst.remove_macro(names[i]);
         }
 
       for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
@@ -907,21 +907,21 @@ stream_alias_varyings(bool use_rw_copies,
 
   if (add_aliases)
     {
-      c_array<const c_string> names(p.alias_list_names());
-      c_array<const c_string> aliases(p.alias_list_alias_names());
+      c_array<const c_string> names(p.alias_varying_names());
+      c_array<const c_string> src_names(p.alias_varying_source_names());
 
-      FASTUIDRAWassert(names.size() == aliases.size());
+      FASTUIDRAWassert(names.size() == src_names.size());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          shader.add_macro(aliases[i], names[i]);
+          shader.add_macro(names[i], src_names[i]);
         }
     }
   else
     {
-      c_array<const c_string> aliases(p.alias_list_alias_names());
-      for (unsigned int i = 0; i < aliases.size(); ++i)
+      c_array<const c_string> names(p.alias_varying_names());
+      for (unsigned int i = 0; i < names.size(); ++i)
         {
-          shader.remove_macro(aliases[i]);
+          shader.remove_macro(names[i]);
         }
     }
 }

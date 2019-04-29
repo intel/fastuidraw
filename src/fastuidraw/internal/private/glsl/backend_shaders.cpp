@@ -877,12 +877,12 @@ create_brush_shader(void)
     .add_float_flat("fastuidraw_brush_color_z")
     .add_float_flat("fastuidraw_brush_color_w")
     .add_uint("fastuidraw_brush_features")
-    .add_alias("fastuidraw_brush_image_layer", "fastuidraw_brush_image_bindless_low_handle")
-    .add_alias("fastuidraw_brush_image_number_index_lookups", "fastuidraw_brush_image_bindless_high_handle")
-    .add_alias("fastuidraw_brush_gradient_p0_x", "fastuidraw_brush_gradient_sweep_point_x")
-    .add_alias("fastuidraw_brush_gradient_p0_y", "fastuidraw_brush_gradient_sweep_point_y")
-    .add_alias("fastuidraw_brush_gradient_p1_x", "fastuidraw_brush_gradient_sweep_angle")
-    .add_alias("fastuidraw_brush_gradient_p1_y", "fastuidraw_brush_gradient_sweep_sign_factor");
+    .add_varying_alias("fastuidraw_brush_image_bindless_low_handle", "fastuidraw_brush_image_layer")
+    .add_varying_alias("fastuidraw_brush_image_bindless_high_handle", "fastuidraw_brush_image_number_index_lookups")
+    .add_varying_alias("fastuidraw_brush_gradient_sweep_point_x", "fastuidraw_brush_gradient_p0_x")
+    .add_varying_alias("fastuidraw_brush_gradient_sweep_point_y", "fastuidraw_brush_gradient_p0_y")
+    .add_varying_alias("fastuidraw_brush_gradient_sweep_angle", "fastuidraw_brush_gradient_p1_x")
+    .add_varying_alias("fastuidraw_brush_gradient_sweep_sign_factor", "fastuidraw_brush_gradient_p1_y");
 
   brush_macros
     .add_macro_u32("fastuidraw_brush_image_mask", PainterBrush::image_mask)
