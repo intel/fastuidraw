@@ -19,6 +19,10 @@
 #include "initialization.hpp"
 
 //! [ExampleCustomBrushDefining]
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/painter/painter_brush_shader_data.hpp>
 #include <fastuidraw/glsl/painter_brush_shader_glsl.hpp>
 
@@ -116,6 +120,7 @@ fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader>
 create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
 {
   using namespace fastuidraw;
+  using namespace fastuidraw::gl;
   using namespace fastuidraw::glsl;
 
   /* Get the brush shader for the default shader brush */
@@ -178,6 +183,22 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
     "   return standard_brush(sub_shader, shader_data_offset + 1);\n"
     "}\n";
 
+  /* When creating the ShaderSource objects to pass to the ctor of
+   * PainterBrushShader, we can elect to take the sources from
+   * a string, a file or a resource. When we take a string from
+   * a file or resource, the uber-shader assembly can list what the
+   * name of the file or resource if one dumps the shader source.
+   * To aid in debugging it is usually BEST to take shader source
+   * from a file or resource for just that reason.
+   */
+  generate_static_resource("custom_brush_vert_shader", custom_brush_vert_shader);
+  generate_static_resource("custom_brush_frag_shader", custom_brush_frag_shader);
+
+  ShaderSource vert, frag;
+
+  vert.add_source("custom_brush_vert_shader", ShaderSource::from_resource);
+  frag.add_source("custom_brush_frag_shader", ShaderSource::from_resource);
+
   /* The ctor of PainterBrushShaderGLSL needs to know how many
    * context textures the custom brushes shaders used DIRECTLY,
    * i.e. NOT counting the number coming from the dependencies.
@@ -196,14 +217,74 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
 
   reference_counted_ptr<PainterBrushShader> return_value;
   return_value = FASTUIDRAWnew PainterBrushShaderGLSL(number_context_textures,
-                                                      ShaderSource()
-                                                      .add_source(custom_brush_vert_shader, ShaderSource::from_string),
-                                                      ShaderSource()
-                                                      .add_source(custom_brush_frag_shader, ShaderSource::from_string),
+                                                      vert, frag,
                                                       varyings, deps);
 
   /* Before the shader can be used, it must be registered. */
   painter_engine_gl->painter_shader_registrar().register_shader(return_value);
+
+  /* One big danger of having custom shaders is that if the GLSL code we gave
+   * has a syntax error, then the entire uber-shader cannot be compiled by
+   * the GL implementation. For debugging, we check if the uber-shader could
+   * be compiled/linked and if not bail out and save the logs and built shader
+   * source so that we can fix any errors in our shader code.
+   */
+  #ifdef FASTUIDRAW_DEBUG
+    {
+      reference_counted_ptr<Program> pr;
+
+      /* There are several GLSL programs that the painter engine
+       * actually has, For simplicity we grab the GLSL program
+       * that is used to draw any item that is blended with a
+       * blend shader that uses single-src blending.
+       */
+      pr = painter_engine_gl->program(PainterEngineGL::program_all, PainterBlendShader::single_src);
+      if (!pr->link_success())
+        {
+          std::cout << "Uber GLSL-program failed to be linked, dumping logs and sources of it\n";
+
+          std::ofstream program_log("program_log.txt");
+          program_log << "Log:\n" << pr->log()
+                      << "\nLinkLog:\n" << pr->link_log()
+                      << "\n";
+
+          /* For each shader of the program, dump its compile log
+           * and original shader source.
+           */
+          GLenum tps[2] = {GL_VERTEX_SHADER, GL_FRAGMENT_SHADER};
+          for (GLenum tp : tps)
+            {
+              for (unsigned int i = 0, endi = pr->num_shaders(tp); i < endi; ++i)
+                {
+                  if (!pr->shader_compile_success(tp, i))
+                    {
+                      std::ostringstream name_common, name_log, name_src;
+                      name_common << "compliled_failed.shader_" << i
+                                  << "." << Shader::gl_shader_type_label(tp)
+                                  << ".";
+                      name_log << name_common.str() << "log";
+                      name_src << name_common.str() << "glsl";
+
+                      std::ofstream shader_log(name_log.str().c_str());
+                      std::ofstream shader_src(name_src.str().c_str());
+
+                      shader_log << pr->shader_compile_log(tp, i);
+
+                      /* The shader_src_code() returns of the uber shader, that
+                       * source code will also have a comment at the end of each
+                       * line giving the line number of from where the source comes
+                       * when the source comes from a file or a resource.
+                       */
+                      shader_src << pr->shader_src_code(tp, i);
+                    }
+                }
+            }
+
+          return_value = nullptr;
+        }
+    }
+  #endif
+
   return return_value;
 }
 //! [ExampleCustomBrushDefining]
@@ -243,6 +324,10 @@ ExampleCustomBrush(DemoRunner *runner, int argc, char **argv):
   seq.add(ColorStop(u8vec4(255, 255, 255, 0), 1.0f));
   m_color_stops = FASTUIDRAWnew ColorStopSequenceOnAtlas(seq, m_painter_engine_gl->colorstop_atlas(), 8);
   m_custom_brush_shader = create_wavy_custom_brush(m_painter_engine_gl.get());
+  if (!m_custom_brush_shader)
+    {
+      end_demo(-1);
+    }
 }
 
 void
