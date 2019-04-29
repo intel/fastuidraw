@@ -37,6 +37,18 @@ namespace fastuidraw
   generate_static_resource(c_string resource_label, c_array<const uint8_t> value);
 
   /*!
+   * Generate and store a resource for use. Once a resource is added it
+   * cannot be removed.
+   * \param resource_label "name" of resource, the string is copied
+   * \param value "value" of resource, the data behind value is copied,
+   *               the value is though of as a string and thus must be
+   *               null-terminated. The created resource includes the
+   *               end-of-string marker.
+   */
+  void
+  generate_static_resource(c_string resource_label, c_string value);
+
+  /*!
    * Returns the data behind a resource. If no resource is found,
    * returns an empty const_c_array.
    * \param resource_label label of resource as specified

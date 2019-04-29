@@ -21,6 +21,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <cstring>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -56,6 +57,18 @@ generate_static_resource(c_string presource_label, c_array<const uint8_t> pvalue
   FASTUIDRAWassert(hoard().m_data.find(sresource_label) == hoard().m_data.end());
   hoard().m_data[sresource_label].swap(svalue);
   hoard().m_mutex.unlock();
+}
+
+void
+fastuidraw::
+generate_static_resource(c_string presource_label, c_string pvalue)
+{
+  const uint8_t *p;
+
+  FASTUIDRAWassert(pvalue);
+  p = reinterpret_cast<const uint8_t*>(pvalue);
+  generate_static_resource(presource_label,
+                           c_array<const uint8_t>(p, std::strlen(pvalue) + 1));
 }
 
 fastuidraw::c_array<const uint8_t>
