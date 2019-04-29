@@ -31,10 +31,14 @@ namespace
   public:
     void
     set_values(GlyphRunPrivate *p,
+               const fastuidraw::GlyphAttributePacker &packer,
                fastuidraw::GlyphRenderer renderer);
 
     std::vector<fastuidraw::PainterAttribute> m_attribs;
     std::vector<fastuidraw::PainterIndex> m_indices;
+
+    std::vector<unsigned int> m_glyph_attribs_start;
+    std::vector<unsigned int> m_glyph_indices_start;
   };
 
   class SubSequence:public fastuidraw::PainterAttributeWriter
@@ -77,6 +81,7 @@ namespace
   private:
     fastuidraw::c_array<const fastuidraw::PainterIndex> m_indices;
     fastuidraw::c_array<const fastuidraw::PainterAttribute> m_attributes;
+    unsigned int m_attribute_start;
   };
 
   class GlyphLocation
@@ -91,13 +96,11 @@ namespace
   public:
     explicit
     GlyphRunPrivate(float format_size,
-                    enum fastuidraw::PainterEnums::screen_orientation orientation,
                     const fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> &cache,
-                    enum fastuidraw::PainterEnums::glyph_layout_type layout):
+                    const fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAttributePacker> &packer):
       m_format_size(format_size),
-      m_orientation(orientation),
-      m_layout(layout),
       m_cache(cache),
+      m_packer(packer),
       m_atlas_clear_count(0)
     {
       FASTUIDRAWassert(cache);
@@ -146,9 +149,8 @@ namespace
     fetch_render_data(const fastuidraw::GlyphRenderer &renderer);
 
     float m_format_size;
-    enum fastuidraw::PainterEnums::screen_orientation m_orientation;
-    enum fastuidraw::PainterEnums::glyph_layout_type m_layout;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
+    fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAttributePacker> m_packer;
     SubSequence m_subsequence;
 
     std::vector<GlyphLocation> m_glyph_locations;
@@ -165,8 +167,16 @@ void
 SubSequence::
 set_src(const PerGlyphRender *data, unsigned int begin, unsigned int cnt)
 {
-  m_indices = fastuidraw::make_c_array(data->m_indices).sub_array(6 * begin, 6 * cnt);
-  m_attributes = fastuidraw::make_c_array(data->m_attribs).sub_array(4 * begin, 4 * cnt);
+  using namespace fastuidraw;
+
+  m_indices = make_c_array(data->m_indices);
+  m_indices = m_indices.sub_array(data->m_glyph_indices_start[begin],
+                                  data->m_glyph_indices_start[begin + cnt] - data->m_glyph_indices_start[begin]);
+
+  m_attributes = make_c_array(data->m_attribs);
+  m_attributes = m_attributes.sub_array(data->m_glyph_attribs_start[begin],
+                                        data->m_glyph_attribs_start[begin + cnt] - data->m_glyph_attribs_start[begin]);
+  m_attribute_start = data->m_glyph_attribs_start[begin];
 }
 
 unsigned int
@@ -212,6 +222,10 @@ write_indices(fastuidraw::c_array<fastuidraw::PainterIndex> dst,
 {
   for (unsigned int i = 0; i < dst.size(); ++i)
     {
+      fastuidraw::PainterIndex idx(m_indices[i]);
+
+      FASTUIDRAWassert(idx >= m_attribute_start);
+      idx -= m_attribute_start;
       dst[i] = index_offset_value + m_indices[i];
     }
 }
@@ -229,27 +243,71 @@ write_attributes(fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
 void
 PerGlyphRender::
 set_values(GlyphRunPrivate *p,
+           const fastuidraw::GlyphAttributePacker &packer,
            fastuidraw::GlyphRenderer renderer)
 {
   using namespace fastuidraw;
 
   unsigned int num(p->m_glyph_locations.size());
+  unsigned int num_indices(0), num_attribs(0);
   std::vector<Glyph> tmp_glyphs(num);
   c_array<const GlyphMetrics> glyph_metrics(make_c_array(p->m_glyphs));
   c_array<Glyph> glyphs(make_c_array(tmp_glyphs));
 
-  m_attribs.resize(4 * num);
-  m_indices.resize(6 * num);
+  m_glyph_indices_start.resize(num + 1);
+  m_glyph_attribs_start.resize(num + 1);
   p->m_cache->fetch_glyphs(renderer, glyph_metrics, glyphs, true);
-
   for (unsigned int g = 0; g < num; ++g)
     {
-      glyphs[g].pack_glyph(4 * g, fastuidraw::make_c_array(m_attribs),
-                           6 * g, fastuidraw::make_c_array(m_indices),
-                           p->m_glyph_locations[g].m_position,
-                           p->m_glyph_locations[g].m_scale,
-                           p->m_orientation,
-                           p->m_layout);
+      unsigned int i(0), a(0);
+
+      m_glyph_indices_start[g] = num_indices;
+      m_glyph_attribs_start[g] = num_attribs;
+      if (glyphs[g].valid())
+        {
+          packer.compute_needed_room(glyphs[g].renderer(), glyphs[g].attributes(), &i, &a);
+        }
+      num_indices += i;
+      num_attribs += a;
+    }
+  m_glyph_indices_start.back() = num_indices;
+  m_glyph_attribs_start.back() = num_attribs;
+  m_attribs.resize(num_attribs);
+  m_indices.resize(num_indices);
+
+  c_array<PainterAttribute> attribs(make_c_array(m_attribs));
+  c_array<PainterIndex> indices(make_c_array(m_indices));
+
+  for (unsigned int g = 0, ii = 0, aa = 0; g < num; ++g)
+    {
+      unsigned int i(0), a(0);
+
+      if (glyphs[g].valid())
+        {
+          packer.compute_needed_room(glyphs[g].renderer(), glyphs[g].attributes(), &i, &a);
+        }
+
+      if (a > 0 && i > 0)
+        {
+          vec2 p_bl, p_tr;
+          c_array<PainterIndex> sub_i;
+          c_array<PainterAttribute> sub_a;
+
+          sub_i = indices.sub_array(ii, i);
+          sub_a = attribs.sub_array(aa, a);
+          packer.glyph_position(glyphs[g],
+                                p->m_glyph_locations[g].m_position,
+                                p->m_glyph_locations[g].m_scale,
+                                &p_bl, &p_tr);
+          packer.realize_attribute_data(glyphs[g].renderer(), glyphs[g].attributes(),
+                                        sub_i, sub_a, p_bl, p_tr);
+          for (PainterIndex &value : sub_i)
+            {
+              value += aa;
+            }
+          ii += i;
+          aa += a;
+        }
     }
 }
 
@@ -282,7 +340,7 @@ add_glyphs(const fastuidraw::FontBase *font,
         }
       else
         {
-              L.m_scale = 1.0f;
+          L.m_scale = 1.0f;
         }
       m_glyph_locations.push_back(L);
     }
@@ -306,7 +364,7 @@ fetch_render_data(const fastuidraw::GlyphRenderer &renderer)
   if (iter == m_data.end())
     {
       PerGlyphRender &p(m_data[renderer]);
-      p.set_values(this, renderer);
+      p.set_values(this, *m_packer, renderer);
       data = &p;
     }
   else
@@ -324,7 +382,15 @@ GlyphRun(float format_size,
          GlyphCache &cache,
          enum PainterEnums::glyph_layout_type layout)
 {
-  m_d = FASTUIDRAWnew GlyphRunPrivate(format_size, orientation, &cache, layout);
+  m_d = FASTUIDRAWnew GlyphRunPrivate(format_size, &cache,
+                                      &GlyphAttributePacker::standard_packer(orientation, layout));
+}
+
+fastuidraw::GlyphRun::
+GlyphRun(float format_size, GlyphCache &cache,
+         const reference_counted_ptr<const GlyphAttributePacker> &packer)
+{
+  m_d = FASTUIDRAWnew GlyphRunPrivate(format_size, &cache, packer);
 }
 
 fastuidraw::GlyphRun::

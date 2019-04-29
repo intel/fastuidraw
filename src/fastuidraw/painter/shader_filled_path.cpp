@@ -24,6 +24,7 @@
 #include <fastuidraw/text/glyph_render_data_banded_rays.hpp>
 #include <fastuidraw/text/glyph_render_data_restricted_rays.hpp>
 #include <fastuidraw/painter/shader_filled_path.hpp>
+#include <fastuidraw/painter/attribute_data/glyph_attribute_packer.hpp>
 #include <private/util_private.hpp>
 #include <private/bounding_box.hpp>
 #include <private/bezier_util.hpp>
@@ -420,10 +421,17 @@ update_attribute_data(void)
       m_query_data.set_glyph_attributes(&m_per_fill_rule[f].m_glyph_attribs,
                                         static_cast<enum PainterEnums::fill_rule_t>(f),
                                         m_allocation);
-      Glyph::pack_raw(m_per_fill_rule[f].m_glyph_attribs,
-                      0, m_per_fill_rule[f].m_attribs,
-                      0, m_per_fill_rule[f].m_indices,
-                      m_bbox.min_point(), m_bbox.max_point());
+
+      /* It does not matter which packer from the standard_packer() to take
+       * because we are not using it to position the rect drawn.
+       */
+      const GlyphAttributePacker &packer(GlyphAttributePacker::standard_packer(PainterEnums::y_increases_downwards,
+                                                                               PainterEnums::glyph_layout_horizontal));
+      packer.realize_attribute_data(GlyphRenderer(GlyphType),
+                                    m_per_fill_rule[f].m_glyph_attribs,
+                                    m_per_fill_rule[f].m_indices,
+                                    m_per_fill_rule[f].m_attribs,
+                                    m_bbox.min_point(), m_bbox.max_point());
     }
 }
 

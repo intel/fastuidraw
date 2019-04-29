@@ -9,6 +9,7 @@ FASTUIDRAW_SOURCES += $(call filelist, \
 	stroked_caps_joins.cpp stroked_point.cpp \
 	stroked_path.cpp filled_path.cpp \
 	glyph_sequence.cpp glyph_run.cpp \
+	glyph_attribute_packer.cpp \
 	arc_stroked_point.cpp)
 
 # Begin standard footer

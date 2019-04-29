@@ -25,6 +25,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/glyph_source.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/attribute_data/glyph_attribute_packer.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_writer.hpp>
 
@@ -69,6 +70,17 @@ namespace fastuidraw
              GlyphCache &cache,
              enum PainterEnums::glyph_layout_type layout
              = PainterEnums::glyph_layout_horizontal);
+
+    /*!
+     * Ctor.
+     * \param format_size format size at which glyphs added via
+     * \param cache \ref GlyphCache used to fetch \ref Glyph values
+     * \param packer specifies how the \ref Glyph values
+     *               will be realized as attribute and index data.
+     */
+    explicit
+    GlyphRun(float format_size, GlyphCache &cache,
+             const reference_counted_ptr<const GlyphAttributePacker> &packer);
 
     ~GlyphRun();
 
