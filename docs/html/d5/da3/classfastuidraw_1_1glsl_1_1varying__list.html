@@ -78,13 +78,18 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ae2f866f737e7c345a14145ad2046a414"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414">interpolation_qualifier_t</a> { <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414aced4f994a64285bffaa25d1404fcb865">interpolation_smooth</a>, 
-<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414a461bde96c88ca64f6578b41effa795c6">interpolation_flat</a>, 
-<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414a25d1525afa10e766ef9e3a0347e93455">interpolation_noperspective</a>, 
-<b>interpolation_number_types</b>
- }<tr class="memdesc:ae2f866f737e7c345a14145ad2046a414"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to define the interpolation of a varying.  <a href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414">More...</a><br /></td></tr>
+<tr class="memitem:a145f5a19291f09fa3c97783c55545330"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330">interpolator_type_t</a> { <br />
+&#160;&#160;<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330a5f08a4ceadb2a6f0deef9c482d478465">interpolator_smooth</a>, 
+<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330af87d72b804cf57f4acc8e256b31b9ed4">interpolator_noperspective</a>, 
+<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330adfe0cedac20066cb9caf321cf3bace1a">interpolator_flat</a>, 
+<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330ad1eb70384ca08978edc427cfd974f5fd">interpolator_uint</a>, 
+<br />
+&#160;&#160;<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330a64c8108b1f812c18a9c36b3e80765433">interpolator_int</a>, 
+<b>interpolator_number_types</b>
+<br />
+ }<tr class="memdesc:a145f5a19291f09fa3c97783c55545330"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to define the interpolator type of a varying.  <a href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330">More...</a><br /></td></tr>
 </td></tr>
-<tr class="separator:ae2f866f737e7c345a14145ad2046a414"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a145f5a19291f09fa3c97783c55545330"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -94,26 +99,28 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a16ea75f8899b0121fae83874d5ea3512"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a6885f956ad41800a77fe887e61382c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a3a6885f956ad41800a77fe887e61382c">add_alias</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> name, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> alias_name)</td></tr>
 <tr class="separator:a3a6885f956ad41800a77fe887e61382c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25f55d4b0cf17c851236a67eb6c5fa12"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a25f55d4b0cf17c851236a67eb6c5fa12">add_float</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> pname, enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414">interpolation_qualifier_t</a> q=<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414aced4f994a64285bffaa25d1404fcb865">interpolation_smooth</a>)</td></tr>
-<tr class="separator:a25f55d4b0cf17c851236a67eb6c5fa12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17e56d60d42a8c74214433ea8be82903"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a17e56d60d42a8c74214433ea8be82903">add_float</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> pname)</td></tr>
+<tr class="separator:a17e56d60d42a8c74214433ea8be82903"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab15bb829001add78da0df5a3bdf5edd2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ab15bb829001add78da0df5a3bdf5edd2">add_float_flat</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> pname)</td></tr>
+<tr class="separator:ab15bb829001add78da0df5a3bdf5edd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6e32189528c0d1ac5a80d88f4a04c5d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ab6e32189528c0d1ac5a80d88f4a04c5d">add_float_noperspective</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> pname)</td></tr>
+<tr class="separator:ab6e32189528c0d1ac5a80d88f4a04c5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a981ef7bac98159c385c6e43ade6096ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a981ef7bac98159c385c6e43ade6096ba">add_int</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> pname)</td></tr>
 <tr class="separator:a981ef7bac98159c385c6e43ade6096ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a920a5d4f24e14b3a7af28edb961a33ea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a920a5d4f24e14b3a7af28edb961a33ea">add_uint</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> pname)</td></tr>
 <tr class="separator:a920a5d4f24e14b3a7af28edb961a33ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a448249fb4558cbeba7402d524af00308"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a448249fb4558cbeba7402d524af00308">add_varying</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> pname, enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330">interpolator_type_t</a> q)</td></tr>
+<tr class="separator:a448249fb4558cbeba7402d524af00308"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49e0b0cfcde83400e98c929ff7f36a6b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a49e0b0cfcde83400e98c929ff7f36a6b">alias_list_alias_names</a> (void) const</td></tr>
 <tr class="separator:a49e0b0cfcde83400e98c929ff7f36a6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa34f6a8cbbba90b6063d7565c977bfcb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#aa34f6a8cbbba90b6063d7565c977bfcb">alias_list_names</a> (void) const</td></tr>
 <tr class="separator:aa34f6a8cbbba90b6063d7565c977bfcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97f09be12071cc23786524778efaa71a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a97f09be12071cc23786524778efaa71a">floats</a> (enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414">interpolation_qualifier_t</a> q) const</td></tr>
-<tr class="separator:a97f09be12071cc23786524778efaa71a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3529b132fadc517d63d81e7c9ea7bb5c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a3529b132fadc517d63d81e7c9ea7bb5c">ints</a> (void) const</td></tr>
-<tr class="separator:a3529b132fadc517d63d81e7c9ea7bb5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3df8963f634c8d754a55351daa3f028d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a3df8963f634c8d754a55351daa3f028d">operator=</a> (const <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;rhs)</td></tr>
 <tr class="separator:a3df8963f634c8d754a55351daa3f028d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a626c33c1f2ced6485eb0c767e79df63b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a626c33c1f2ced6485eb0c767e79df63b">swap</a> (<a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a> &amp;obj)</td></tr>
 <tr class="separator:a626c33c1f2ced6485eb0c767e79df63b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff9a64fc9856bb73931357a107068f6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#aff9a64fc9856bb73931357a107068f6e">uints</a> (void) const</td></tr>
-<tr class="separator:aff9a64fc9856bb73931357a107068f6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46b20a9bf5bfba3303abb729823f310b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a46b20a9bf5bfba3303abb729823f310b">varyings</a> (enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330">interpolator_type_t</a> q) const</td></tr>
+<tr class="separator:a46b20a9bf5bfba3303abb729823f310b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html" title="A varying_list lists all the in&#39;s of a frag shader (and their names) which is the same as the out&#39;s o...">varying_list</a> lists all the in's of a frag shader (and their names) which is the same as the out's of the vertex shader which which it is paired. </p>
@@ -121,25 +128,29 @@ Public Member Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d6/d95/varying__list_8hpp_source.html#l00049">49</a> of file <a class="el" href="../../d6/d95/varying__list_8hpp_source.html">varying_list.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="ae2f866f737e7c345a14145ad2046a414"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2f866f737e7c345a14145ad2046a414">&#9670;&nbsp;</a></span>interpolation_qualifier_t</h2>
+<a id="a145f5a19291f09fa3c97783c55545330"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a145f5a19291f09fa3c97783c55545330">&#9670;&nbsp;</a></span>interpolator_type_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414">fastuidraw::glsl::varying_list::interpolation_qualifier_t</a></td>
+          <td class="memname">enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330">fastuidraw::glsl::varying_list::interpolator_type_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Enumeration to define the interpolation of a varying. </p>
+<p>Enumeration to define the interpolator type of a varying. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ae2f866f737e7c345a14145ad2046a414aced4f994a64285bffaa25d1404fcb865"></a>interpolation_smooth&#160;</td><td class="fielddoc"><p>corresponds to "smooth" in GLSL </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a145f5a19291f09fa3c97783c55545330a5f08a4ceadb2a6f0deef9c482d478465"></a>interpolator_smooth&#160;</td><td class="fielddoc"><p>corresponds to "smooth" of type float in GLSL </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ae2f866f737e7c345a14145ad2046a414a461bde96c88ca64f6578b41effa795c6"></a>interpolation_flat&#160;</td><td class="fielddoc"><p>corresponds to "flat" in GLSL </p>
+<tr><td class="fieldname"><a id="a145f5a19291f09fa3c97783c55545330af87d72b804cf57f4acc8e256b31b9ed4"></a>interpolator_noperspective&#160;</td><td class="fielddoc"><p>corresponds to "noperspective" of type float in GLSL </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ae2f866f737e7c345a14145ad2046a414a25d1525afa10e766ef9e3a0347e93455"></a>interpolation_noperspective&#160;</td><td class="fielddoc"><p>corresponds to "noperspective" in GLSL </p>
+<tr><td class="fieldname"><a id="a145f5a19291f09fa3c97783c55545330adfe0cedac20066cb9caf321cf3bace1a"></a>interpolator_flat&#160;</td><td class="fielddoc"><p>corresponds to "flat" of type float in GLSL </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a145f5a19291f09fa3c97783c55545330ad1eb70384ca08978edc427cfd974f5fd"></a>interpolator_uint&#160;</td><td class="fielddoc"><p>corresponds to "flat" of type uint in GLSL </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a145f5a19291f09fa3c97783c55545330a64c8108b1f812c18a9c36b3e80765433"></a>interpolator_int&#160;</td><td class="fielddoc"><p>corresponds to "flat" of type int in GLSL </p>
 </td></tr>
 </table>
 
@@ -227,32 +238,88 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a25f55d4b0cf17c851236a67eb6c5fa12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25f55d4b0cf17c851236a67eb6c5fa12">&#9670;&nbsp;</a></span>add_float()</h2>
+<a id="a17e56d60d42a8c74214433ea8be82903"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17e56d60d42a8c74214433ea8be82903">&#9670;&nbsp;</a></span>add_float()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a>&amp; fastuidraw::glsl::varying_list::add_float </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
-          <td class="paramname"><em>pname</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>pname</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414">interpolation_qualifier_t</a>&#160;</td>
-          <td class="paramname"><em>q</em> = <code><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414aced4f994a64285bffaa25d1404fcb865">interpolation_smooth</a></code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
-<p>Add a float varying, equivalent to </p><div class="fragment"><div class="line">set_float_varying(<a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a97f09be12071cc23786524778efaa71a">floats</a>(q).size(), pname, q)</div></div><!-- fragment --> 
+<p>Add an uint varying, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a448249fb4558cbeba7402d524af00308">add_varying</a>(pname, <a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330a5f08a4ceadb2a6f0deef9c482d478465">interpolator_smooth</a>);</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../d6/d95/varying__list_8hpp_source.html#l00157">157</a> of file <a class="el" href="../../d6/d95/varying__list_8hpp_source.html">varying_list.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ab15bb829001add78da0df5a3bdf5edd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab15bb829001add78da0df5a3bdf5edd2">&#9670;&nbsp;</a></span>add_float_flat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a>&amp; fastuidraw::glsl::varying_list::add_float_flat </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>pname</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Add an uint varying, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a448249fb4558cbeba7402d524af00308">add_varying</a>(pname, <a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330adfe0cedac20066cb9caf321cf3bace1a">interpolator_flat</a>);</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../d6/d95/varying__list_8hpp_source.html#l00169">169</a> of file <a class="el" href="../../d6/d95/varying__list_8hpp_source.html">varying_list.hpp</a>.</p>
+
+</div>
+</div>
+<a id="ab6e32189528c0d1ac5a80d88f4a04c5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6e32189528c0d1ac5a80d88f4a04c5d">&#9670;&nbsp;</a></span>add_float_noperspective()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a>&amp; fastuidraw::glsl::varying_list::add_float_noperspective </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>pname</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Add an uint varying, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a448249fb4558cbeba7402d524af00308">add_varying</a>(pname, <a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330af87d72b804cf57f4acc8e256b31b9ed4">interpolator_noperspective</a>);</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../d6/d95/varying__list_8hpp_source.html#l00181">181</a> of file <a class="el" href="../../d6/d95/varying__list_8hpp_source.html">varying_list.hpp</a>.</p>
+
 </div>
 </div>
 <a id="a981ef7bac98159c385c6e43ade6096ba"></a>
@@ -260,6 +327,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a>&amp; fastuidraw::glsl::varying_list::add_int </td>
@@ -269,8 +339,15 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
-<p>Add an int varying, equivalent to </p><div class="fragment"><div class="line">set_int_varying(<a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a3529b132fadc517d63d81e7c9ea7bb5c">ints</a>().size(), pname)</div></div><!-- fragment --> 
+<p>Add an uint varying, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a448249fb4558cbeba7402d524af00308">add_varying</a>(pname, <a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330a64c8108b1f812c18a9c36b3e80765433">interpolator_int</a>);</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../d6/d95/varying__list_8hpp_source.html#l00145">145</a> of file <a class="el" href="../../d6/d95/varying__list_8hpp_source.html">varying_list.hpp</a>.</p>
+
 </div>
 </div>
 <a id="a920a5d4f24e14b3a7af28edb961a33ea"></a>
@@ -278,6 +355,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a>&amp; fastuidraw::glsl::varying_list::add_uint </td>
@@ -287,8 +367,50 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
-<p>Add an uint varying, equivalent to </p><div class="fragment"><div class="line">set_uint_varying(<a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#aff9a64fc9856bb73931357a107068f6e">uints</a>().size(), pname)</div></div><!-- fragment --> 
+<p>Add an uint varying, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a448249fb4558cbeba7402d524af00308">add_varying</a>(pname, <a class="code" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330ad1eb70384ca08978edc427cfd974f5fd">interpolator_uint</a>);</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../d6/d95/varying__list_8hpp_source.html#l00133">133</a> of file <a class="el" href="../../d6/d95/varying__list_8hpp_source.html">varying_list.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a448249fb4558cbeba7402d524af00308"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a448249fb4558cbeba7402d524af00308">&#9670;&nbsp;</a></span>add_varying()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html">varying_list</a>&amp; fastuidraw::glsl::varying_list::add_varying </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>pname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330">interpolator_type_t</a>&#160;</td>
+          <td class="paramname"><em>q</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Add a varying </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pname</td><td>name by which to reference the varying </td></tr>
+    <tr><td class="paramname">q</td><td>interpolator type of the varying </td></tr>
+  </table>
+  </dd>
+</dl>
+
 </div>
 </div>
 <a id="a49e0b0cfcde83400e98c929ff7f36a6b"></a>
@@ -326,49 +448,6 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Returns the source names of the aliases, i.e. the values of the first argument of calls to <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a3a6885f956ad41800a77fe887e61382c">add_alias()</a>. </p>
-
-</div>
-</div>
-<a id="a97f09be12071cc23786524778efaa71a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a97f09be12071cc23786524778efaa71a">&#9670;&nbsp;</a></span>floats()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&gt; fastuidraw::glsl::varying_list::floats </td>
-          <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#ae2f866f737e7c345a14145ad2046a414">interpolation_qualifier_t</a>&#160;</td>
-          <td class="paramname"><em>q</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the names of the float varyings of the specified interpolation type. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">q</td><td>interpolation type </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a3529b132fadc517d63d81e7c9ea7bb5c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3529b132fadc517d63d81e7c9ea7bb5c">&#9670;&nbsp;</a></span>ints()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&gt; fastuidraw::glsl::varying_list::ints </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the names of the int varyings </p>
 
 </div>
 </div>
@@ -420,22 +499,27 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aff9a64fc9856bb73931357a107068f6e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aff9a64fc9856bb73931357a107068f6e">&#9670;&nbsp;</a></span>uints()</h2>
+<a id="a46b20a9bf5bfba3303abb729823f310b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46b20a9bf5bfba3303abb729823f310b">&#9670;&nbsp;</a></span>varyings()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&gt; fastuidraw::glsl::varying_list::uints </td>
+          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;const <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&gt; fastuidraw::glsl::varying_list::varyings </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">enum <a class="el" href="../../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html#a145f5a19291f09fa3c97783c55545330">interpolator_type_t</a>&#160;</td>
+          <td class="paramname"><em>q</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the names of the uint varyings </p>
+<p>Returns the names of the varyings of the specified interpolator type. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">q</td><td>interpolator type </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

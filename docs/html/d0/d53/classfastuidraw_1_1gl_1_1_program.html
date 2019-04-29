@@ -163,6 +163,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a43526076f60665a6a7ae1a229fc249f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c080edebfbe712ca987a95ca77a2622"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a5c080edebfbe712ca987a95ca77a2622">shader_compile_log</a> (GLenum tp, unsigned int i) const</td></tr>
 <tr class="separator:a5c080edebfbe712ca987a95ca77a2622"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb679db5609e1d8cc59959e913b7ecf0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d53/classfastuidraw_1_1gl_1_1_program.html#afb679db5609e1d8cc59959e913b7ecf0">shader_compile_success</a> (GLenum tp, unsigned int i) const</td></tr>
+<tr class="separator:afb679db5609e1d8cc59959e913b7ecf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00a8b9311bb817fd60026cb2e81717e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a00a8b9311bb817fd60026cb2e81717e0">shader_src_code</a> (GLenum tp, unsigned int i) const</td></tr>
 <tr class="separator:a00a8b9311bb817fd60026cb2e81717e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f26b2791fabcf5a9e3dcaf1fc6a1d21"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d89/classfastuidraw_1_1gl_1_1_program_1_1block__info.html">block_info</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a4f26b2791fabcf5a9e3dcaf1fc6a1d21">shader_storage_block</a> (unsigned int I)</td></tr>
@@ -825,6 +827,41 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Returns the compile log for a shader attached to the <a class="el" href="../../d0/d53/classfastuidraw_1_1gl_1_1_program.html" title="Class for creating and using GLSL programs. ">Program</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tp</td><td>GL enumeration of the shader type, see <a class="el" href="../../d6/d88/classfastuidraw_1_1gl_1_1_shader.html#a7723c5d7457c6dbac1ce60cdddd8e5df">Shader::shader_type()</a> </td></tr>
+    <tr><td class="paramname">i</td><td>which shader with 0 &lt;= i &lt; num_shaders(tp) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afb679db5609e1d8cc59959e913b7ecf0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb679db5609e1d8cc59959e913b7ecf0">&#9670;&nbsp;</a></span>shader_compile_success()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool fastuidraw::gl::Program::shader_compile_success </td>
+          <td>(</td>
+          <td class="paramtype">GLenum&#160;</td>
+          <td class="paramname"><em>tp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>i</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns true if the source code string for a shader attached to the <a class="el" href="../../d0/d53/classfastuidraw_1_1gl_1_1_program.html" title="Class for creating and using GLSL programs. ">Program</a> compiled successfully. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">tp</td><td>GL enumeration of the shader type, see <a class="el" href="../../d6/d88/classfastuidraw_1_1gl_1_1_shader.html#a7723c5d7457c6dbac1ce60cdddd8e5df">Shader::shader_type()</a> </td></tr>
     <tr><td class="paramname">i</td><td>which shader with 0 &lt;= i &lt; num_shaders(tp) </td></tr>

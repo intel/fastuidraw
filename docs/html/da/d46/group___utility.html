@@ -302,6 +302,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga2cd245f326f1a14298e1b7470b24a758"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabf43867b6dc6abcb6c649bbf2a675bee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gabf43867b6dc6abcb6c649bbf2a675bee">fastuidraw::generate_static_resource</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> resource_label, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const uint8_t &gt; value)</td></tr>
 <tr class="separator:gabf43867b6dc6abcb6c649bbf2a675bee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga51fde83dce1235560a7689182b71b3d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga51fde83dce1235560a7689182b71b3d0">fastuidraw::generate_static_resource</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> resource_label, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> value)</td></tr>
+<tr class="separator:ga51fde83dce1235560a7689182b71b3d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad9809f0403ccf771d97c4bb7759baa7c"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gad9809f0403ccf771d97c4bb7759baa7c">fastuidraw::local_distance_from_pixel_distance</a> (float distance, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;resolution, const <a class="el" href="../../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3">float3x3</a> &amp;transformation_matrix, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;point, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;direction)</td></tr>
 <tr class="separator:gad9809f0403ccf771d97c4bb7759baa7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga97936da20fc93fa511b6e22aa4df08f4"><td class="memTemplParams" colspan="2">template&lt;typename T , size_t N&gt; </td></tr>
@@ -1806,7 +1808,7 @@ template&lt;typename T , size_t N&gt; </div>
 </div>
 </div>
 <a id="gabf43867b6dc6abcb6c649bbf2a675bee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gabf43867b6dc6abcb6c649bbf2a675bee">&#9670;&nbsp;</a></span>generate_static_resource()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gabf43867b6dc6abcb6c649bbf2a675bee">&#9670;&nbsp;</a></span>generate_static_resource() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1834,6 +1836,41 @@ template&lt;typename T , size_t N&gt; </div>
   <table class="params">
     <tr><td class="paramname">resource_label</td><td>"name" of resource, the string is copied </td></tr>
     <tr><td class="paramname">value</td><td>"value" of resource, the data behind value is copied </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga51fde83dce1235560a7689182b71b3d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga51fde83dce1235560a7689182b71b3d0">&#9670;&nbsp;</a></span>generate_static_resource() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::generate_static_resource </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>resource_label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generate and store a resource for use. Once a resource is added it cannot be removed. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">resource_label</td><td>"name" of resource, the string is copied </td></tr>
+    <tr><td class="paramname">value</td><td>"value" of resource, the data behind value is copied, the value is though of as a string and thus must be null-terminated. The created resource includes the end-of-string marker. </td></tr>
   </table>
   </dd>
 </dl>
