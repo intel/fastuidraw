@@ -22,6 +22,9 @@ include $(dir)/Rules.mk
 dir := $(d)/image
 include $(dir)/Rules.mk
 
+dir := $(d)/custom_brush
+include $(dir)/Rules.mk
+
 # Begin standard footer
 d		:= $(dirstack_$(sp))
 sp		:= $(basename $(sp))
