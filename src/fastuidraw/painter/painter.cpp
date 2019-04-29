@@ -4695,17 +4695,18 @@ end(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  /* pop the effects stack until it is empty */
-  while (!d->m_effects_layer_stack.empty())
-    {
-      end_layer();
-    }
-
-  /* pop the deferred coverage stack until it is empty */
-  while (!d->m_deferred_coverage_stack.empty())
-    {
-      d->end_coverage_buffer();
-    }
+  /* All begin_layer() and begin_coverage_buffers() should
+   * have a matching end_layer() and end_coverage_buffer().
+   * If not, we can silently ignore the issue because these
+   * functions just pop entries on a tracking stack and do
+   * not affect the rendering data sent via PainterPacker.
+   */
+  FASTUIDRAWassert(d->m_effects_stack.empty());
+  FASTUIDRAWassert(d->m_deferred_coverage_stack.empty());
+  FASTUIDRAWassert(d->m_effects_layer_stack.empty());
+  d->m_effects_stack.clear();
+  d->m_deferred_coverage_stack.clear();
+  d->m_effects_layer_stack.clear();
 
   /* pop m_clip_stack to perform necessary writes */
   while (!d->m_occluder_stack.empty())
