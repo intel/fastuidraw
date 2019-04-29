@@ -1424,6 +1424,15 @@ public:
   num_shaders(GLenum tp) const;
 
   /*!
+   * Returns true if the source code string for a shader
+   * attached to the Program compiled successfully.
+   * \param tp GL enumeration of the shader type, see Shader::shader_type()
+   * \param i which shader with 0 <= i < num_shaders(tp)
+   */
+  bool
+  shader_compile_success(GLenum tp, unsigned int i) const;
+
+  /*!
    * Returns the source code string for a shader attached to
    * the Program.
    * \param tp GL enumeration of the shader type, see Shader::shader_type()

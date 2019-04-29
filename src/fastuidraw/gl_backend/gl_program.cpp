@@ -660,6 +660,7 @@ namespace
     GLuint m_name;
     GLenum m_shader_type;
     std::string m_compile_log;
+    bool m_compile_success;
   };
 
   class ProgramPrivate
@@ -2609,6 +2610,7 @@ clear_shaders_and_save_shader_data(void)
       m_shader_data[i].m_name = m_shaders[i]->name();
       m_shader_data[i].m_shader_type = m_shaders[i]->shader_type();
       m_shader_data[i].m_compile_log = m_shaders[i]->compile_log();
+      m_shader_data[i].m_compile_success = m_shaders[i]->compile_success();
       m_shader_data_sorted_by_type[m_shader_data[i].m_shader_type].push_back(i);
       fastuidraw_glDetachShader(m_name, m_shaders[i]->name());
     }
@@ -3224,6 +3226,25 @@ num_shaders(GLenum tp) const
   iter = d->m_shader_data_sorted_by_type.find(tp);
   return (iter != d->m_shader_data_sorted_by_type.end()) ?
     iter->second.size() : 0;
+}
+
+bool
+fastuidraw::gl::Program::
+shader_compile_success(GLenum tp, unsigned int i) const
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+
+  std::map<GLenum, std::vector<int> >::const_iterator iter;
+  iter = d->m_shader_data_sorted_by_type.find(tp);
+  if (iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
+    {
+      return d->m_shader_data[iter->second[i]].m_compile_success;
+    }
+  else
+    {
+      return false;
+    }
 }
 
 fastuidraw::c_string
