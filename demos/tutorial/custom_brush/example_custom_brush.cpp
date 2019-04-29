@@ -17,6 +17,7 @@
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include "initialization.hpp"
+#include "image_loader.hpp"
 
 //! [ExampleCustomBrushDefining]
 #include <iostream>
@@ -306,6 +307,7 @@ public:
 private:
   fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> m_color_stops;
   fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader> m_custom_brush_shader;
+  fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_image;
 };
 
 ExampleCustomBrush::
@@ -318,15 +320,23 @@ ExampleCustomBrush(DemoRunner *runner, int argc, char **argv):
   /* Make a simple color-stop-sequence with 4 color-stops. */
   ColorStopSequence seq;
 
-  seq.add(ColorStop(u8vec4(0, 0, 255, 255), 0.0f));
-  seq.add(ColorStop(u8vec4(255, 0, 0, 255), 0.5f));
-  seq.add(ColorStop(u8vec4(0, 255, 0, 255), 0.75f));
-  seq.add(ColorStop(u8vec4(255, 255, 255, 0), 1.0f));
+  seq.add(ColorStop(u8vec4(27, 27, 255, 255), 0.0f));
+  seq.add(ColorStop(u8vec4(255, 27, 27, 255), 0.5f));
+  seq.add(ColorStop(u8vec4(127, 255, 27, 255), 0.75f));
+  seq.add(ColorStop(u8vec4(255, 255, 255, 27), 1.0f));
   m_color_stops = FASTUIDRAWnew ColorStopSequenceOnAtlas(seq, m_painter_engine_gl->colorstop_atlas(), 8);
   m_custom_brush_shader = create_wavy_custom_brush(m_painter_engine_gl.get());
   if (!m_custom_brush_shader)
     {
       end_demo(-1);
+    }
+
+  if (argc >= 2)
+    {
+      ImageSourceSDL image_loader(argv[1]);
+      m_image = m_painter_engine_gl->image_atlas().create(image_loader.width(),
+                                                          image_loader.height(),
+                                                          image_loader);
     }
 }
 
@@ -358,6 +368,16 @@ draw_frame(void)
                      window_dims * 0.45f,
                      window_dims * 0.55f,
                      fastuidraw::PainterBrush::spread_mirror_repeat);
+
+  if (m_image)
+    {
+      /* Have the brush modulate against an image as well. */
+      brush.m_brush_values.image(m_image);
+
+      /* apply a repeat window to the brush the size of the image */
+      brush.m_brush_values.repeat_window(fastuidraw::vec2(0.0f, 0.0f),
+                                         fastuidraw::vec2(m_image->dimensions()));
+    }
 
   /* Now set the values of the m_phase, m_amplitide to animate the wave.
    * The value of m_period is used to determine the period of the wave.
