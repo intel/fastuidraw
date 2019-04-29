@@ -1007,7 +1007,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
   frag
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_atlases.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_globals.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource)
