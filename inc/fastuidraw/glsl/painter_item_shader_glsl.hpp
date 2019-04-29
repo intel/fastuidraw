@@ -166,6 +166,21 @@ namespace fastuidraw
                                     unsigned int num_sub_shaders = 1,
                                     const DependencyList &dependencies = DependencyList());
 
+      /*!
+       * Ctor.
+       * \param vertex_src GLSL source holding vertex shader routine
+       * \param fragment_src GLSL source holding fragment shader routine
+       * \param varyings list of varyings of the shader
+       * \param num_sub_shaders the number of sub-shaders it supports
+       * \param dependencies list of other \ref PainterItemCoverageShaderGLSL
+       *                     that are used directly.
+       */
+      PainterItemCoverageShaderGLSL(const ShaderSource &vertex_src,
+                                    const ShaderSource &fragment_src,
+                                    const varying_list &varyings,
+                                    const DependencyList &dependencies,
+                                    unsigned int num_sub_shaders = 1);
+
       ~PainterItemCoverageShaderGLSL();
 
       /*!
@@ -366,6 +381,7 @@ namespace fastuidraw
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
        * \param varyings list of varyings of the shader
+       * \param num_sub_shaders the number of sub-shaders it supports
        * \param cvg the coverage shader (if any) to be used by the item shader
        * \param dependencies list of other \ref PainterItemShaderGLSL that are
        *                     used directly.
@@ -375,7 +391,52 @@ namespace fastuidraw
                             const ShaderSource &fragment_src,
                             const varying_list &varyings,
                             const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg,
-                            const DependencyList &dependencies = DependencyList());
+                            const DependencyList &dependencies = DependencyList(),
+                            unsigned int num_sub_shaders = 1);
+
+      /*!
+       * Ctor.
+       * \param puses_discard set to true if and only if the shader code
+       *                      will use discard. Discard should be used
+       *                      in the GLSL code via the macro FASTUIDRAW_DISCARD.
+       * \param vertex_src GLSL source holding vertex shader routine
+       * \param fragment_src GLSL source holding fragment shader routine
+       * \param varyings list of varyings of the shader
+       * \param num_sub_shaders the number of sub-shaders it supports
+       * \param cvg the coverage shader (if any) to be used by the item shader
+       * \param dependencies list of other \ref PainterItemShaderGLSL that are
+       *                     used directly.
+       */
+      PainterItemShaderGLSL(bool puses_discard,
+                            const ShaderSource &vertex_src,
+                            const ShaderSource &fragment_src,
+                            const varying_list &varyings,
+                            const DependencyList &dependencies,
+                            const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg =
+                            reference_counted_ptr<PainterItemCoverageShaderGLSL>(),
+                            unsigned int num_sub_shaders = 1);
+
+      /*!
+       * Ctor.
+       * \param puses_discard set to true if and only if the shader code
+       *                      will use discard. Discard should be used
+       *                      in the GLSL code via the macro FASTUIDRAW_DISCARD.
+       * \param vertex_src GLSL source holding vertex shader routine
+       * \param fragment_src GLSL source holding fragment shader routine
+       * \param varyings list of varyings of the shader
+       * \param num_sub_shaders the number of sub-shaders it supports
+       * \param cvg the coverage shader (if any) to be used by the item shader
+       * \param dependencies list of other \ref PainterItemShaderGLSL that are
+       *                     used directly.
+       */
+      PainterItemShaderGLSL(bool puses_discard,
+                            const ShaderSource &vertex_src,
+                            const ShaderSource &fragment_src,
+                            const varying_list &varyings,
+                            const DependencyList &dependencies,
+                            unsigned int num_sub_shaders,
+                            const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg =
+                            reference_counted_ptr<PainterItemCoverageShaderGLSL>());
 
       ~PainterItemShaderGLSL();
 

@@ -159,7 +159,11 @@ namespace fastuidraw
 
       /*!
        * Ctor.
-       * \param number_context_textures number of external textures the shader uses
+       * \param number_context_textures number of context textures the shader
+       *                                specified in vertex_src/fragment_src uses;
+       *                                i.e., this value does NOT include the
+       *                                number of context textures any dependencies
+       *                                use
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
        * \param varyings list of varyings of the shader
@@ -173,6 +177,27 @@ namespace fastuidraw
                              const varying_list &varyings,
                              unsigned int num_sub_shaders = 1,
                              const DependencyList &dependencies = DependencyList());
+
+      /*!
+       * Ctor.
+       * \param number_context_textures number of context textures the shader
+       *                                specified in vertex_src/fragment_src uses;
+       *                                i.e., this value does NOT include the
+       *                                number of context textures any dependencies
+       *                                use
+       * \param vertex_src GLSL source holding vertex shader routine
+       * \param fragment_src GLSL source holding fragment shader routine
+       * \param varyings list of varyings of the shader
+       * \param num_sub_shaders the number of sub-shaders it supports
+       * \param dependencies list of other \ref PainterBrushShaderGLSL
+       *                     that are used directly.
+       */
+      PainterBrushShaderGLSL(unsigned int number_context_textures,
+                             const ShaderSource &vertex_src,
+                             const ShaderSource &fragment_src,
+                             const varying_list &varyings,
+                             const DependencyList &dependencies,
+                             unsigned int num_sub_shaders = 1);
 
       ~PainterBrushShaderGLSL(void);
 
