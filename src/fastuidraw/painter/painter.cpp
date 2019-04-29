@@ -5822,26 +5822,33 @@ void
 fastuidraw::Painter::
 end_layer(void)
 {
-  //matches the save() at precisely the end of begin_layer();
-  restore();
-
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  EffectsStackEntry R(d->m_effects_stack.back());
+  /* Matches the save() at the end of begin_layer(). */
+  restore();
 
-  /* restore any saves() done within the layer. */
+  EffectsStackEntry R(d->m_effects_stack.back());
+  d->m_effects_stack.pop_back();
+
+  /* The interface to FastUIDraw requires that any saves()
+   * issused within a begin_layer()/end_layer() pair need
+   * to be restored() as well. That is what the assert is
+   * for. However, we try a weak recovery for release that
+   * we restore() until the state stack size is correct.
+   */
   FASTUIDRAWassert(R.m_state_stack_size == d->m_state_stack.size());
+  d->m_effects_layer_stack.resize(R.m_effects_layer_stack_size);
   while (R.m_state_stack_size > d->m_state_stack.size())
     {
       restore();
     }
-  d->m_effects_layer_stack.resize(R.m_effects_layer_stack_size);
 
   /* issue the restore that matches with the save() at the start
    * of begin_layer(); this will restore the clipping and
    * blending state to what it was when the begin_layer()
-   * was issued */
+   * was issued
+   */
   restore();
 
   if (!d->m_deferred_coverage_stack.empty()
