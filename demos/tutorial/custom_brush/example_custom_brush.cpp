@@ -129,7 +129,6 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
                                                       ShaderSource()
                                                       .add_source(custom_brush_frag_shader, ShaderSource::from_string),
                                                       varying_list(),
-                                                      1,
                                                       PainterBrushShaderGLSL::DependencyList()
                                                       .add_shader("standard_brush",
                                                                   default_brush.static_cast_ptr<PainterBrushShaderGLSL>())
