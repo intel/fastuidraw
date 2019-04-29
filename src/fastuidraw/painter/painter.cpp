@@ -1791,6 +1791,7 @@ namespace
     ClipRectState m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
+    std::vector<unsigned int> m_restore_guard;
     EffectsLayerFactory m_effects_layer_factory;
     std::vector<EffectsLayer> m_effects_layer_stack;
     std::vector<EffectsStackEntry> m_effects_stack;
@@ -4650,6 +4651,8 @@ begin(const reference_counted_ptr<PainterSurface> &surface,
    * dimensions.
    */
   d->m_one_pixel_width = 2.0f / d->m_viewport_dimensions;
+  d->m_restore_guard.resize(1);
+  d->m_restore_guard[0] = 0;
 
   d->m_current_z = 1;
   d->m_draw_data_added_count = 0;
@@ -5697,6 +5700,18 @@ restore(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
+  FASTUIDRAWassert(!d->m_restore_guard.empty());
+  FASTUIDRAWassert(d->m_restore_guard.back() > d->m_state_stack.size());
+  if (d->m_restore_guard.empty()
+      || d->m_restore_guard.back() > d->m_state_stack.size())
+    {
+      /* On release builds, if an application tries to restore()
+       * beyond a resource guard, we silently ignore the request;
+       * debug builds assert though from the above assert.
+       */
+      return;
+    }
+
   FASTUIDRAWassert(!d->m_state_stack.empty());
   const state_stack_entry &st(d->m_state_stack.back());
 
@@ -5815,7 +5830,7 @@ begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
    * Painter default values
    */
   blend_shader(blend_porter_duff_src_over);
-  save();
+  d->m_restore_guard.push_back(d->m_state_stack.size());
 }
 
 void
@@ -5825,11 +5840,22 @@ end_layer(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  /* Matches the save() at the end of begin_layer(). */
-  restore();
+  FASTUIDRAWassert(!d->m_effects_stack.empty());
+  if (d->m_effects_stack.empty())
+    {
+      /* There was no FX-layer active, debug builds
+       * will assert, but make release builds silently
+       * ignore the error.
+       */
+      return;
+    }
 
+  /* get the state of the stack when begin_layer was started */
   EffectsStackEntry R(d->m_effects_stack.back());
   d->m_effects_stack.pop_back();
+
+  /* remove the restore guard made in begin_layer() */
+  d->m_restore_guard.pop_back();
 
   /* The interface to FastUIDraw requires that any saves()
    * issused within a begin_layer()/end_layer() pair need
