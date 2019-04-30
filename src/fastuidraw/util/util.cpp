@@ -164,24 +164,31 @@ void
 fastuidraw::
 assert_fail(c_string str, c_string file, int line)
 {
-  std::cerr << file << ":" << line << ": Assertion '" << str << "' failed\n";
+  std::cerr << "[" << file << "," << line << "]: " << str << "\n";
 
-#ifdef __linux__
-  #define STACK_MAX_BACKTRACE_SIZE 30
-  void *backtrace_data[STACK_MAX_BACKTRACE_SIZE];
-  char **backtrace_strings;
-  size_t backtrace_size;
-
-  std::cerr << "Backtrace:\n" << std::flush;
-  backtrace_size = backtrace(backtrace_data, STACK_MAX_BACKTRACE_SIZE);
-  backtrace_strings = backtrace_symbols(backtrace_data, backtrace_size);
-  for (size_t i = 0; i < backtrace_size; ++i)
+  #ifdef __linux__
     {
-      std::cerr << "\t" << backtrace_strings[i]
-                << "{" << demangled_function_name(backtrace_strings[i])
-                << "}\n";
+      #define STACK_MAX_BACKTRACE_SIZE 30
+      void *backtrace_data[STACK_MAX_BACKTRACE_SIZE];
+      char **backtrace_strings;
+      size_t backtrace_size;
+
+      std::cerr << "Backtrace:\n" << std::flush;
+      backtrace_size = backtrace(backtrace_data, STACK_MAX_BACKTRACE_SIZE);
+      backtrace_strings = backtrace_symbols(backtrace_data, backtrace_size);
+      for (size_t i = 0; i < backtrace_size; ++i)
+        {
+          std::cerr << "\t" << backtrace_strings[i]
+                    << "{" << demangled_function_name(backtrace_strings[i])
+                    << "}\n";
+        }
+      free(backtrace_strings);
     }
-  free(backtrace_strings);
-#endif
-  std::abort();
+  #endif
+
+  #ifdef FASTUIDRAW_DEBUG
+    {
+      std::abort();
+    }
+  #endif
 }

@@ -87,15 +87,28 @@
  * is true and if it is not true prints to std::cerr and
  * then aborts. If FastUIDRAW_DEBUG is not defined, then
  * macro is empty (and thus the condition is not evaluated).
+ * \param X condition to check
  */
 #ifdef FASTUIDRAW_DEBUG
 #define FASTUIDRAWassert(X) do {                        \
     if (!(X)) {                                          \
-      fastuidraw::assert_fail(#X, __FILE__, __LINE__);  \
+      fastuidraw::assert_fail("Assertion '" #X "' failed", __FILE__, __LINE__);  \
     } } while(0)
 #else
 #define FASTUIDRAWassert(X)
 #endif
+
+/*!\def FASTUIDRAWmessaged_assert
+ * Regardless FASTUIDRAW_DEBUG is defined or not, checks if
+ * the statement is true and if it is not true prints to
+ * std::cerr. If FASTUIDRAW_DEBUG is defined also aborts.
+ * \param X condition to check
+ * \param Y string to print if condition is false
+ */
+#define FASTUIDRAWmessaged_assert(X, Y) do {                    \
+    if (!(X)) {                                                 \
+      fastuidraw::assert_fail(Y, __FILE__, __LINE__);           \
+    } } while(0)
 
 /*!\def FASTUIDRAWstatic_assert
  * Conveniance for using static_assert where message
