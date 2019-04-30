@@ -114,6 +114,17 @@ resize(unsigned int size, c_string value)
   d->m_c_strings_ready = false;
 }
 
+void
+fastuidraw::string_array::
+clear(void)
+{
+  StringArrayPrivate *d;
+  d = static_cast<StringArrayPrivate*>(m_d);
+  d->m_strings.clear();
+  d->m_c_strings.clear();
+  d->m_c_strings_ready = true;
+}
+
 fastuidraw::c_array<const fastuidraw::c_string>
 fastuidraw::string_array::
 get(void) const

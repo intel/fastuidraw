@@ -75,6 +75,12 @@ namespace fastuidraw
     resize(unsigned int size, c_string value = "");
 
     /*!
+     * Clears the string_array.
+     */
+    void
+    clear(void);
+
+    /*!
      * Get all elements of the string_array, pointer
      * and pointer contents are valid until the string_array
      * is modified.
