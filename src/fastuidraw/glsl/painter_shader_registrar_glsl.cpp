@@ -1554,7 +1554,9 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   PainterShader::Tag return_value;
 
   FASTUIDRAWassert(!shader->parent());
-  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
+  FASTUIDRAWmessaged_assert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>(),
+                            "PainterItemShader fails to be dynamic-castable "
+                            "to PainterItemShaderGLSL");
   h = shader.static_cast_ptr<PainterItemShaderGLSL>();
 
   return_value.m_ID = d->m_item_shaders.absorb_item_shader(h);
@@ -1584,7 +1586,9 @@ absorb_item_coverage_shader(const reference_counted_ptr<PainterItemCoverageShade
   PainterShader::Tag return_value;
 
   FASTUIDRAWassert(!shader->parent());
-  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterItemCoverageShaderGLSL>());
+  FASTUIDRAWmessaged_assert(shader.dynamic_cast_ptr<PainterItemCoverageShaderGLSL>(),
+                            "PainterItemCoverageShader fails to be dynamic-castable "
+                            "to PainterItemCoverageShaderGLSL");
   h = shader.static_cast_ptr<PainterItemCoverageShaderGLSL>();
 
   return_value.m_ID = d->m_item_coverage_shaders.absorb_item_shader(h);
@@ -1614,7 +1618,9 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
   fastuidraw::PainterShader::Tag return_value;
 
   FASTUIDRAWassert(!shader->parent());
-  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
+  FASTUIDRAWmessaged_assert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>(),
+                            "PainterBlendShader fails to be dynamic-castable "
+                            "to PainterBlendShaderGLSL");
   h = shader.static_cast_ptr<PainterBlendShaderGLSL>();
 
   d->m_blend_shaders[h->type()].m_shaders.push_back(h);
@@ -1647,7 +1653,9 @@ absorb_custom_brush_shader(const reference_counted_ptr<PainterBrushShader> &shad
   fastuidraw::PainterShader::Tag return_value;
 
   FASTUIDRAWassert(!shader->parent());
-  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBrushShaderGLSL>());
+  FASTUIDRAWmessaged_assert(shader.dynamic_cast_ptr<PainterBrushShaderGLSL>(),
+                            "PainterBrushShader fails to be dynamic-castable "
+                            "to PainterBrushShaderGLSL");
   h = shader.static_cast_ptr<PainterBrushShaderGLSL>();
 
   d->m_custom_brush_shaders.m_shaders.push_back(h);

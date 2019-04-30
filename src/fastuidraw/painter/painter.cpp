@@ -3256,7 +3256,9 @@ PainterPrivate::
 select_subsets(const fastuidraw::FilledPath &path,
                fastuidraw::c_array<unsigned int> dst)
 {
-  FASTUIDRAWassert(dst.size() >= path.number_subsets());
+  FASTUIDRAWmessaged_assert(dst.size() >= path.number_subsets(),
+                            "Painter::select_subsets(FilledPath) provided with "
+                            "smaller array than number of subsets of FilledPath");
   if (m_clip_rect_state.m_all_content_culled)
     {
       return 0u;
@@ -3276,7 +3278,9 @@ select_subsets(const fastuidraw::StrokedPath &path,
                fastuidraw::c_array<const float> geometry_inflation,
                fastuidraw::c_array<unsigned int> dst)
 {
-  FASTUIDRAWassert(dst.size() >= path.number_subsets());
+  FASTUIDRAWmessaged_assert(dst.size() >= path.number_subsets(),
+                            "Painter::select_subsets(StrokedPath) provided with "
+                            "smaller array than number of subsets of StrokedPath");
   if (m_clip_rect_state.m_all_content_culled)
     {
       return 0u;
@@ -4701,8 +4705,13 @@ end(void)
    * functions just pop entries on a tracking stack and do
    * not affect the rendering data sent via PainterPacker.
    */
-  FASTUIDRAWassert(d->m_effects_stack.empty());
-  FASTUIDRAWassert(d->m_deferred_coverage_stack.empty());
+  FASTUIDRAWmessaged_assert(d->m_effects_stack.empty(),
+                            "Painter::end() called before needed "
+                            "end_layer() call(s) to end current layer(s)");
+  FASTUIDRAWmessaged_assert(d->m_deferred_coverage_stack.empty(),
+                            "Painter::end() called before needed "
+                            "end_coverage_buffer() call(s) to end "
+                            "current coverage buffer(s)");
   FASTUIDRAWassert(d->m_effects_layer_stack.empty());
   d->m_effects_stack.clear();
   d->m_deferred_coverage_stack.clear();
@@ -4967,9 +4976,16 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
       return;
     }
 
-  FASTUIDRAWassert(attrib_chunks.size() == index_chunks.size());
-  FASTUIDRAWassert(attrib_chunks.size() == z_ranges.size());
-  FASTUIDRAWassert(attrib_chunks.size() == index_adjusts.size() || index_adjusts.empty());
+  FASTUIDRAWmessaged_assert(attrib_chunks.size() == index_chunks.size(),
+                            "Painter::draw_generic: different number of "
+                            "attribute and index chunks provided");
+  FASTUIDRAWmessaged_assert(attrib_chunks.size() == z_ranges.size(),
+                            "Painter::draw_generic: different number of "
+                            "attribute chunks and z_ranges provided");
+  FASTUIDRAWmessaged_assert(attrib_chunks.size() == index_adjusts.size() || index_adjusts.empty(),
+                            "Painter::draw_generic: index_adjust non-empty "
+                            "and provided with different number of "
+                            "attribute and index_adjusts");
 
   int total_z_increment(0);
   if (index_adjusts.empty())
@@ -5144,8 +5160,10 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
-  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
+  FASTUIDRAWmessaged_assert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles,
+                            "Painter::stroke_path: bad cap_style provided");
+  FASTUIDRAWmessaged_assert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles,
+                            "Painter::stroke_path: bad join_style provided");
   d->stroke_path_common(shader, draw, path, thresh,
                         stroke_style.m_cap_style,
                         stroke_style.m_join_style,
@@ -5197,8 +5215,10 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  FASTUIDRAWassert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles);
-  FASTUIDRAWassert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles);
+  FASTUIDRAWmessaged_assert(0 <= stroke_style.m_cap_style && stroke_style.m_cap_style < number_cap_styles,
+                            "Painter::stroke_path: bad cap_style provided");
+  FASTUIDRAWmessaged_assert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles,
+                            "Painter::stroke_path: bad join_style provided");
   d->stroke_path_common(shader.shader(stroke_style.m_cap_style), draw,
                         path, thresh,
                         number_cap_styles,
@@ -5701,8 +5721,14 @@ restore(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  FASTUIDRAWassert(!d->m_restore_guard.empty());
-  FASTUIDRAWassert(d->m_restore_guard.back() > d->m_state_stack.size());
+  FASTUIDRAWmessaged_assert(!d->m_restore_guard.empty(),
+                            "Painter::restore() attempting to restore without "
+                            "matching save");
+
+  FASTUIDRAWmessaged_assert(!d->m_restore_guard.empty()
+                            && (d->m_restore_guard.back() <= d->m_state_stack.size()),
+                            "Painter::restore() attempting to restore without "
+                            "matching save");
   if (d->m_restore_guard.empty()
       || d->m_restore_guard.back() > d->m_state_stack.size())
     {
@@ -5713,7 +5739,9 @@ restore(void)
       return;
     }
 
-  FASTUIDRAWassert(!d->m_state_stack.empty());
+  FASTUIDRAWmessaged_assert(!d->m_state_stack.empty(),
+                            "Painter::restore() attempting to restoure without "
+                            "matching save");
   const state_stack_entry &st(d->m_state_stack.back());
 
   d->m_clip_rect_state = st.m_clip_rect_state;
@@ -5841,7 +5869,9 @@ end_layer(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  FASTUIDRAWassert(!d->m_effects_stack.empty());
+  FASTUIDRAWmessaged_assert(!d->m_effects_stack.empty(),
+                            "Painter::end_layer() called "
+                            "without matching begin_layer()");
   if (d->m_effects_stack.empty())
     {
       /* There was no FX-layer active, debug builds
@@ -5864,7 +5894,9 @@ end_layer(void)
    * for. However, we try a weak recovery for release that
    * we restore() until the state stack size is correct.
    */
-  FASTUIDRAWassert(R.m_state_stack_size == d->m_state_stack.size());
+  FASTUIDRAWmessaged_assert(R.m_state_stack_size == d->m_state_stack.size(),
+                            "Painter::end_layer() called without matching "
+                            "restores()'s from save()'s called within layer");
   d->m_effects_layer_stack.resize(R.m_effects_layer_stack_size);
   while (R.m_state_stack_size > d->m_state_stack.size())
     {
@@ -6518,7 +6550,6 @@ query_stats(c_array<unsigned int> dst) const
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  FASTUIDRAWassert(dst.size() == PainterPacker::num_stats);
   for (unsigned int i = 0; i < dst.size() && i < PainterPacker::num_stats; ++i)
     {
       dst[i] = d->m_stats[i];

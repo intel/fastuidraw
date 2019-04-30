@@ -69,6 +69,9 @@ varyings(enum interpolator_type_t q) const
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
+  FASTUIDRAWmessaged_assert(q < interpolator_number_types,
+                            "varying_list::varyings() requested invalid "
+                            "interpolator_type_t value");
   return d->m_varyings[q].get();
 }
 
@@ -78,6 +81,9 @@ add_varying(c_string pname, enum interpolator_type_t q)
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
+  FASTUIDRAWmessaged_assert(q < interpolator_number_types,
+                            "varying_list::add_varying() requested invalid "
+                            "interpolator_type_t value");
   d->m_varyings[q].push_back(pname);
   return *this;
 }

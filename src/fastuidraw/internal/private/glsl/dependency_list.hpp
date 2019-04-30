@@ -134,8 +134,9 @@ add_varying(const std::string &name,
     }
 
   ref->m_names.insert(name);
-  FASTUIDRAWassert(ref->m_type == varying_list::interpolator_number_types
-                   || ref->m_type == q);
+  FASTUIDRAWmessaged_assert(ref->m_type == varying_list::interpolator_number_types
+                            || ref->m_type == q,
+                            "Shader aliases merge across different varying types");
   ref->m_type = q;
 }
 
@@ -166,6 +167,9 @@ add_alias(const std::string &name, const std::string &src_name)
           ref1->m_names.insert(nm);
         }
 
+      FASTUIDRAWmessaged_assert(ref1->m_type == varying_list::interpolator_number_types
+                                || ref1->m_type == ref2->m_type,
+                                "Shader aliases merge across different varying types");
       if (ref1->m_type == varying_list::interpolator_number_types)
         {
           ref1->m_type = ref2->m_type;
@@ -217,7 +221,8 @@ add_varyings_from_tracker(varying_list *dst)
           std::string vname(*ref->m_names.begin());
 
           ref->m_added = true;
-          FASTUIDRAWassert(ref->m_type != varying_list::interpolator_number_types);
+          FASTUIDRAWmessaged_assert(ref->m_type != varying_list::interpolator_number_types,
+                                    "Shader alias chain lacks alias to actual varying");
 
           dst->add_varying(vname.c_str(), ref->m_type);
           ref->m_names.erase(vname);
