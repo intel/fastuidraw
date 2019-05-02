@@ -1,5 +1,12 @@
 ifeq ($(MAKECMDGOALS),check)
 
+
+ifeq (, $(shell which $(LEX)))
+CHECK_LEX := "Cannot find $(LEX) for lex/flex tool in path. Install package with tool, for example with Ubuntu using flex, apt install flex"
+else
+CHECK_LEX := "Found $(LEX) for lex/flex in path"
+endif
+
 CHECK_FREETYPE_CFLAGS_CODE := $(shell pkg-config freetype2 --cflags 1> /dev/null 2> /dev/null; echo $$?)
 ifeq ($(CHECK_FREETYPE_CFLAGS_CODE), 0)
 CHECK_FREETYPE_CFLAGS := "Found cflags for freetype2: $(shell pkg-config freetype2 --cflags)"
@@ -96,6 +103,7 @@ endif
 endif
 
 check:
+	@echo "$(CHECK_LEX)"
 	@echo "$(CHECK_SDL_CFLAGS)"
 	@echo "$(CHECK_SDL_LIBS)"
 ifeq ($(DEMOS_HAVE_FONT_CONFIG),1)
