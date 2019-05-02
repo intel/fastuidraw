@@ -58,21 +58,7 @@ CLEAN_FILES += $(1)-$(2)-$(3) $(1)-$(2)-$(3).exe
 CLEAN_FILES += $(1)-$(2)-$(3)-static $(1)-$(2)-$(3)-static.exe
 SUPER_CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
 ifeq ($(4),1)
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-all)
-ifneq ($(MAKECMDGOALS),targets)
-ifneq ($(MAKECMDGOALS),docs)
-ifneq ($(MAKECMDGOALS),clean-docs)
-ifneq ($(MAKECMDGOALS),install-docs)
-ifneq ($(MAKECMDGOALS),uninstall-docs)
 -include $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
-endif
-endif
-endif
-endif
-endif
-endif
-endif
 demos-$(2)-$(3): $(1)-$(2)-$(3)
 .PHONY: demos-$(2)-$(3)
 $(1)-$(2): $(1)-$(2)-$(3)
