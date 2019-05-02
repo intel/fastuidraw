@@ -72,7 +72,9 @@ varyings(enum interpolator_type_t q) const
   FASTUIDRAWmessaged_assert(q < interpolator_number_types,
                             "varying_list::varyings() requested invalid "
                             "interpolator_type_t value");
-  return d->m_varyings[q].get();
+  return (q < interpolator_number_types) ?
+    d->m_varyings[q].get() :
+    c_array<const c_string>();
 }
 
 fastuidraw::glsl::varying_list&
@@ -84,7 +86,10 @@ add_varying(c_string pname, enum interpolator_type_t q)
   FASTUIDRAWmessaged_assert(q < interpolator_number_types,
                             "varying_list::add_varying() requested invalid "
                             "interpolator_type_t value");
-  d->m_varyings[q].push_back(pname);
+  if (q < interpolator_number_types)
+    {
+      d->m_varyings[q].push_back(pname);
+    }
   return *this;
 }
 
