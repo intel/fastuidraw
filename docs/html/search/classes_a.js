@@ -15,6 +15,7 @@ var searchData=
   ['painterbrushshader',['PainterBrushShader',['../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html',1,'fastuidraw']]],
   ['painterbrushshaderdata',['PainterBrushShaderData',['../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html',1,'fastuidraw']]],
   ['painterbrushshaderglsl',['PainterBrushShaderGLSL',['../d8/d41/classfastuidraw_1_1glsl_1_1_painter_brush_shader_g_l_s_l.html',1,'fastuidraw::glsl']]],
+  ['painterbrushshaderset',['PainterBrushShaderSet',['../d9/de8/classfastuidraw_1_1_painter_brush_shader_set.html',1,'fastuidraw']]],
   ['painterclipequations',['PainterClipEquations',['../da/d19/classfastuidraw_1_1_painter_clip_equations.html',1,'fastuidraw']]],
   ['painterdashedstrokeparams',['PainterDashedStrokeParams',['../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html',1,'fastuidraw']]],
   ['painterdashedstrokeshaderset',['PainterDashedStrokeShaderSet',['../dd/d61/classfastuidraw_1_1_painter_dashed_stroke_shader_set.html',1,'fastuidraw']]],

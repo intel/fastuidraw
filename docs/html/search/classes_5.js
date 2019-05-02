@@ -10,6 +10,7 @@ var searchData=
   ['glyphatlasparams',['GlyphAtlasParams',['../dc/d0d/classfastuidraw_1_1gl_1_1_painter_engine_g_l_1_1_glyph_atlas_params.html',1,'fastuidraw::gl::PainterEngineGL']]],
   ['glyphatlasproxy',['GlyphAtlasProxy',['../d2/d61/classfastuidraw_1_1_glyph_atlas_proxy.html',1,'fastuidraw']]],
   ['glyphattribute',['GlyphAttribute',['../d7/dff/classfastuidraw_1_1_glyph_attribute.html',1,'fastuidraw']]],
+  ['glyphattributepacker',['GlyphAttributePacker',['../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html',1,'fastuidraw']]],
   ['glyphcache',['GlyphCache',['../d7/d38/classfastuidraw_1_1_glyph_cache.html',1,'fastuidraw']]],
   ['glyphmetrics',['GlyphMetrics',['../d2/d4c/classfastuidraw_1_1_glyph_metrics.html',1,'fastuidraw']]],
   ['glyphmetricsvalue',['GlyphMetricsValue',['../dd/d04/classfastuidraw_1_1_glyph_metrics_value.html',1,'fastuidraw']]],

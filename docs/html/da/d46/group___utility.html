@@ -162,6 +162,8 @@ Macros</h2></td></tr>
 <tr class="separator:ga8898574a2c09aef1b9bc551e431e61ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga002cb9e461886c326983c220913908bf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga002cb9e461886c326983c220913908bf">FASTUIDRAWmalloc</a>(size)&#160;&#160;&#160;fastuidraw::memory::malloc_implement(size, __FILE__, __LINE__)</td></tr>
 <tr class="separator:ga002cb9e461886c326983c220913908bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf699a3bf474108fba2ebddefa2c6a9b7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#gaf699a3bf474108fba2ebddefa2c6a9b7">FASTUIDRAWmessaged_assert</a>(X,  Y)</td></tr>
+<tr class="separator:gaf699a3bf474108fba2ebddefa2c6a9b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga524a8b6674554f360cf8b04a3a6a37b0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga524a8b6674554f360cf8b04a3a6a37b0">FASTUIDRAWnew</a>&#160;&#160;&#160;::new(__FILE__, __LINE__)</td></tr>
 <tr class="separator:ga524a8b6674554f360cf8b04a3a6a37b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1d72e63e8bb949ded084f01045f47b20"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d46/group___utility.html#ga1d72e63e8bb949ded084f01045f47b20">FASTUIDRAWrealloc</a>(ptr,  size)&#160;&#160;&#160;fastuidraw::memory::realloc_implement(ptr, size, __FILE__, __LINE__)</td></tr>
@@ -606,9 +608,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>If FASTUIDRAW_DEBUG is defined, checks if the statement is true and if it is not true prints to std::cerr and then aborts. If FastUIDRAW_DEBUG is not defined, then macro is empty (and thus the condition is not evaluated). </p>
+<p>If FASTUIDRAW_DEBUG is defined, checks if the statement is true and if it is not true prints to std::cerr and then aborts. If FastUIDRAW_DEBUG is not defined, then macro is empty (and thus the condition is not evaluated). </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">X</td><td>condition to check </td></tr>
+  </table>
+  </dd>
+</dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00097">97</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00098">98</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -722,6 +729,44 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="gaf699a3bf474108fba2ebddefa2c6a9b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf699a3bf474108fba2ebddefa2c6a9b7">&#9670;&nbsp;</a></span>FASTUIDRAWmessaged_assert</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define FASTUIDRAWmessaged_assert</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">X, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">Y&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> {                    \</div><div class="line">    if (!(X)) {                                                 <a class="code" href="../../d4/d4c/namespacefastuidraw.html#af348e30087ff447ce7519559c055152c">\</a></div><div class="line"><a class="code" href="../../d4/d4c/namespacefastuidraw.html#af348e30087ff447ce7519559c055152c">      fastuidraw::assert_fail</a>(Y, __FILE__, __LINE__);           \</div><div class="line">    } } <span class="keywordflow">while</span>(0)</div><div class="ttc" id="namespacefastuidraw_html_af348e30087ff447ce7519559c055152c"><div class="ttname"><a href="../../d4/d4c/namespacefastuidraw.html#af348e30087ff447ce7519559c055152c">fastuidraw::assert_fail</a></div><div class="ttdeci">void assert_fail(const char *str, const char *file, int line)</div></div>
+</div><!-- fragment --><p>Regardless FASTUIDRAW_DEBUG is defined or not, checks if the statement is true and if it is not true prints to std::cerr. If FASTUIDRAW_DEBUG is defined also aborts. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">X</td><td>condition to check </td></tr>
+    <tr><td class="paramname">Y</td><td>string to print if condition is false </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00108">108</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+
+</div>
+</div>
 <a id="ga524a8b6674554f360cf8b04a3a6a37b0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga524a8b6674554f360cf8b04a3a6a37b0">&#9670;&nbsp;</a></span>FASTUIDRAWnew</h2>
 
@@ -793,7 +838,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Conveniance for using static_assert where message is the condition stringified. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00104">104</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00117">117</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
