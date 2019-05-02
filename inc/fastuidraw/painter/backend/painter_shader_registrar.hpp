@@ -20,7 +20,6 @@
 #pragma once
 
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
-#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 #include <fastuidraw/util/mutex.hpp>
 
 namespace fastuidraw
@@ -75,7 +74,7 @@ namespace fastuidraw
     register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
 
     /*!
-     * Registers a blend shader for use; registring a shader more than
+     * Registers a brush shader for use; registring a shader more than
      * once to the SAME PainterShaderRegistrar has no effect. However,
      * registering a shader to multiple PainterShaderRegistrar objects
      * is an error.
@@ -84,27 +83,22 @@ namespace fastuidraw
     register_shader(const reference_counted_ptr<PainterBrushShader> &shader);
 
     /*!
-     * Provided as a conveniance, equivalent to registering
-     * each of the non-null shaders returned by
-     * PainterStrokeShader::shader(enum stroke_type_t, enum shader_type_t) const.
-     * \param p PainterStrokeShader hold shaders to register
+     * Register each \ref PainterItemShader in a \ref
+     * PainterStrokeShader
      */
     void
     register_shader(const PainterStrokeShader &p);
 
     /*!
-     * Provided as a conveniance, registers each of the
-     * shaders within a \ref PainterFillShader.
-     * \param p PainterFillShader hold shaders to register
+     * Register each \ref PainterItemShader in a \ref
+     * PainterFillShader
      */
     void
     register_shader(const PainterFillShader &p);
 
     /*!
-     * Provided as a conveniance, equivalent to calling
-     * register_shader(const PainterStrokeShader&) on each
-     * PainterDashedStrokeShaderSet::shader(enum PainterEnums::dashed_cap_style) const.
-     * \param p PainterDashedStrokeShaderSet hold shaders to register
+     * Register each \ref PainterStrokeShader in a \ref
+     * PainterDashedStrokeShaderSet
      */
     void
     register_shader(const PainterDashedStrokeShaderSet &p);
@@ -117,11 +111,18 @@ namespace fastuidraw
     register_shader(const PainterGlyphShader &p);
 
     /*!
-     * Register each of the reference_counted_ptr<PainterBlendShader>
-     * in a PainterBlendShaderSet.
+     * Register each of the \ref PainterBlendShader
+     * in a \ref PainterBlendShaderSet.
      */
     void
     register_shader(const PainterBlendShaderSet &p);
+
+    /*!
+     * Register each of the \ref PainterBrushShader
+     * in a \ref PainterBrushShaderSet.
+     */
+    void
+    register_shader(const PainterBrushShaderSet &p);
 
     /*!
      * Register each of the shaders in a PainterShaderSet.
@@ -253,7 +254,7 @@ namespace fastuidraw
      * of a sub-shader. When called, the value of the shader's PainterShader::ID()
      * and PainterShader::registered_to() are already set correctly. In addition,
      * the value of PainterShader::group() is initialized to the same value as
-     * that of the PainterBlendShader::parent(). In addition, mutex() will be
+     * that of the PainterBrushShader::parent(). In addition, mutex() will be
      * locked on entry.
      * \param shader shader whose group is to be computed
      */

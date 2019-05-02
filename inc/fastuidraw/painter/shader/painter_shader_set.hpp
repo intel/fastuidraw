@@ -25,6 +25,7 @@
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/shader/painter_glyph_shader.hpp>
 #include <fastuidraw/painter/shader/painter_blend_shader_set.hpp>
+#include <fastuidraw/painter/shader/painter_brush_shader_set.hpp>
 #include <fastuidraw/painter/shader/painter_dashed_stroke_shader_set.hpp>
 
 namespace fastuidraw
@@ -146,15 +147,15 @@ namespace fastuidraw
      * the fixed function brush shading as encoded by
      * \ref PainterBrush.
      */
-    const reference_counted_ptr<PainterBrushShader>&
-    brush_shader(void) const;
+    const PainterBrushShaderSet&
+    brush_shaders(void) const;
 
     /*!
-     * Set the value returned by brush_shader(void) const.
+     * Set the value returned by brush_shaders(void) const.
      * \param sh value to use
      */
     PainterShaderSet&
-    brush_shader(const reference_counted_ptr<PainterBrushShader> &sh);
+    brush_shaders(const PainterBrushShaderSet &sh);
 
   private:
     void *m_d;

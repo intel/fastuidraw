@@ -126,7 +126,8 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
 
   /* Get the brush shader for the default shader brush */
   const PainterShaderSet &default_shaders(painter_engine_gl->default_shaders());
-  reference_counted_ptr<PainterBrushShader> default_brush(default_shaders.brush_shader());
+  const PainterBrushShaderSet &default_brushes(default_shaders.brush_shaders());
+  reference_counted_ptr<PainterBrushShader> strandard_brush(default_brushes.standard_brush());
 
   /* Our custom brush is going to use the default standard brush. We need to
    * declare in the PainterBrushShaderGLSL ctor what other brush shaders it
@@ -139,7 +140,7 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
    * varying as standard_brush_FOO.
    */
   PainterBrushShaderGLSL::DependencyList deps;
-  deps.add_shader("standard_brush", default_brush.static_cast_ptr<PainterBrushShaderGLSL>());
+  deps.add_shader("standard_brush", strandard_brush.static_cast_ptr<PainterBrushShaderGLSL>());
 
   /* The vertex shader of our custom brush, the main point of interest
    * is that it calls the vertext shader of the default brush by calling

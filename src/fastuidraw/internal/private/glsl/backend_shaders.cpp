@@ -783,10 +783,11 @@ create_fill_shader(void)
   return fill_shader;
 }
 
-reference_counted_ptr<PainterBrushShader>
+PainterBrushShaderSet
 ShaderSetCreator::
-create_brush_shader(void)
+create_brush_shaders(void)
 {
+  PainterBrushShaderSet return_value;
   reference_counted_ptr<PainterBrushShader> br;
   ShaderSource::MacroSet brush_macros;
   varying_list brush_varyings;
@@ -958,7 +959,8 @@ create_brush_shader(void)
                                             .remove_macros(brush_macros),
                                             brush_varyings);
 
-  return br;
+  return_value.standard_brush(br);
+  return return_value;
 }
 
 PainterShaderSet
@@ -976,7 +978,7 @@ create_shader_set(void)
     .dashed_stroke_shader(create_dashed_stroke_shader_set())
     .fill_shader(create_fill_shader())
     .blend_shaders(create_blend_shaders())
-    .brush_shader(create_brush_shader());
+    .brush_shaders(create_brush_shaders());
   return return_value;
 }
 

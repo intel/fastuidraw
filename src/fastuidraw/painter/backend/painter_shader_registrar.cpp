@@ -221,6 +221,13 @@ register_shader(const PainterBlendShaderSet &p)
 
 void
 fastuidraw::PainterShaderRegistrar::
+register_shader(const PainterBrushShaderSet &shaders)
+{
+  register_shader(shaders.standard_brush());
+}
+
+void
+fastuidraw::PainterShaderRegistrar::
 register_shader(const PainterShaderSet &shaders)
 {
   register_shader(shaders.stroke_shader());
@@ -228,7 +235,7 @@ register_shader(const PainterShaderSet &shaders)
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
   register_shader(shaders.blend_shaders());
-  register_shader(shaders.brush_shader());
+  register_shader(shaders.brush_shaders());
 }
 
 void

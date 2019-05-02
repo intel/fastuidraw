@@ -2759,7 +2759,7 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine
    * the shaders as well.
    */
   m_default_shaders = m_backend_factory->default_shaders();
-  m_default_brush_shader = m_default_shaders.brush_shader().get();
+  m_default_brush_shader = m_default_shaders.brush_shaders().standard_brush().get();
   m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
   m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_default_brush_shader, m_stats, m_backend,
                                                           m_backend_factory->configuration_base());
