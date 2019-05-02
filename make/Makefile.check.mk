@@ -4,7 +4,7 @@ CHECK_FREETYPE_CFLAGS_CODE := $(shell pkg-config freetype2 --cflags 1> /dev/null
 ifeq ($(CHECK_FREETYPE_CFLAGS_CODE), 0)
 CHECK_FREETYPE_CFLAGS := "Found cflags for freetype2: $(shell pkg-config freetype2 --cflags)"
 else
-CHECK_FREETYPE_CFLAGS := "Cannot build FastUIDraw: Unable to find freetype2 cflags from pkg-config: $(shell pkg-config freetype2 --cflags 2>$1)"
+CHECK_FREETYPE_CFLAGS := "Cannot build FastUIDraw: Unable to find freetype2 cflags from pkg-config: Install package with fontconfig development files, for example on Ubuntu, apt install libfreetype6-dev"
 FASTUIDRAW_CAN_BUILD := 0
 endif
 
@@ -12,7 +12,7 @@ CHECK_FREETYPE_LIBS_CODE := $(shell pkg-config freetype2 --libs 1> /dev/null 2> 
 ifeq ($(CHECK_FREETYPE_LIBS_CODE), 0)
 CHECK_FREETYPE_LIBS := "Found libs for freetype2: $(shell pkg-config freetype2 --libs)"
 else
-CHECK_FREETYPE_LIBS := "Cannot build FastUIDraw: Unable to find freetype2 libs from pkg-config: $(shell pkg-config freetype2 --libs 2>$1)"
+CHECK_FREETYPE_LIBS := "Cannot build FastUIDraw: Unable to find freetype2 libs from pkg-config: Install package with fontconfig development files, for example on Ubuntu, apt install libfreetype6-dev"
 endif
 
 #####################################
@@ -41,7 +41,7 @@ ifneq ($(HAVE_FOUND_GL_HEADERS), 0)
 CHECK_GL_HEADERS := "GL headers found: $(FOUND_GL_HEADERS)"
 endif
 ifneq ($(HAVE_MISSING_GL_HEADERS), 0)
-CHECK_GL_HEADERS += "GL headers missing: $(MISSING_GL_HEADERS)"
+CHECK_GL_HEADERS := "GL headers missing: $(MISSING_GL_HEADERS): Either get the files directly from khronos or install a package that includes them"
 endif
 
 endif
@@ -57,7 +57,7 @@ ifneq ($(HAVE_FOUND_GLES_HEADERS), 0)
 CHECK_GLES_HEADERS := "GLES headers found: $(FOUND_GLES_HEADERS)"
 endif
 ifneq ($(HAVE_MISSING_GLES_HEADERS), 0)
-CHECK_GLES_HEADERS += "GLES headers missing: $(MISSING_GLES_HEADERS)"
+CHECK_GLES_HEADERS := "GLES headers missing: $(MISSING_GLES_HEADERS): Either get the files directly from khronos or install a package that includes them"
 endif
 
 endif
@@ -68,14 +68,14 @@ CHECK_SDL_CFLAGS_CODE := $(shell pkg-config SDL2_image --cflags 1> /dev/null 2> 
 ifeq ($(CHECK_SDL_CFLAGS_CODE), 0)
 CHECK_SDL_CFLAGS := "Found cflags for SDL2_image: $(shell pkg-config SDL2_image --cflags)"
 else
-CHECK_SDL_CFLAGS := "Cannot build demos: Unable to find SDL2_image cflags from pkg-config SDL2_image: $(shell pkg-config SDL2_image --cflags 2>$1)"
+CHECK_SDL_CFLAGS := "Cannot build demos: Unable to find SDL2_image cflags from pkg-config SDL2_image: Install package with SDL2_image development files, for example on Ubuntu, apt install libsdl2-image-dev"
 endif
 
 CHECK_SDL_LIBS_CODE := $(shell pkg-config SDL2_image --libs 1> /dev/null 2> /dev/null; echo $$?)
 ifeq ($(CHECK_SDL_LIBS_CODE), 0)
 CHECK_SDL_LIBS := "Found libs for SDL2_image: $(shell pkg-config SDL2_image --libs)"
 else
-CHECK_SDL_LIBS := "Cannot build demos: Unable to find SDL2_image libs from pkg-config SDL2_image: $(shell pkg-config SDL2_image --libs 2>$1)"
+CHECK_SDL_LIBS := "Cannot build demos: Unable to find SDL2_image libs from pkg-config SDL2_image: Install package with SDL2_image development files, for example on Ubuntu, apt install libsdl2-image-dev"
 endif
 
 ifeq ($(DEMOS_HAVE_FONT_CONFIG),1)
@@ -83,14 +83,14 @@ CHECK_FONTCONFIG_CFLAGS_CODE := $(shell pkg-config fontconfig --cflags 1> /dev/n
 ifeq ($(CHECK_FONTCONFIG_CFLAGS_CODE), 0)
 CHECK_FONTCONFIG_CFLAGS := "Found cflags for fontconfig: $(shell pkg-config fontconfig --cflags)"
 else
-CHECK_FONTCONFIG_CFLAGS := "Cannot build demos: Unable to find fontconfig cflags from pkg-config: $(shell pkg-config fontconfig --cflags 2>$1)"
+CHECK_FONTCONFIG_CFLAGS := "Cannot build demos: Unable to find fontconfig cflags from pkg-config: Install package with fontconfig development files, for example on Ubuntu, apt install libfontconfig1-dev"
 endif
 
 CHECK_FONTCONFIG_LIBS_CODE := $(shell pkg-config fontconfig --libs 1> /dev/null 2> /dev/null; echo $$?)
 ifeq ($(CHECK_FONTCONFIG_LIBS_CODE), 0)
 CHECK_FONTCONFIG_LIBS := "Found libs for fontconfig: $(shell pkg-config fontconfig --libs)"
 else
-CHECK_FONTCONFIG_LIBS := "Cannot build demos: Unable to find fontconfig libs from pkg-config: $(shell pkg-config fontconfig --libs 2>$1)"
+CHECK_FONTCONFIG_LIBS := "Cannot build demos: Unable to find fontconfig libs from pkg-config: Install package with fontconfig development files, for example on Ubuntu, apt install libfontconfig1-dev"
 endif
 
 endif
