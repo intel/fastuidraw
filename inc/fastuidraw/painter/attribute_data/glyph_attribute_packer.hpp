@@ -82,7 +82,7 @@ namespace fastuidraw
      * To be implemented by a derived class to return
      * how many indices and attributes are needed to
      * realize a single glyph.
-     * \param GlyphRenderer \ref Glyph::renderer() of \ref Glyph to realize
+     * \param glyph_renderer \ref Glyph::renderer() of \ref Glyph to realize
      * \param glyph_attributes \ref Glyph::attributes() of \ref Glyph to realize
      * \param[out] out_num_indices number of indices needed
      *                             to realize the glyph
@@ -99,7 +99,7 @@ namespace fastuidraw
     /*!
      * To be implemented by a derived class to provide the
      * attributes and indices to realize a glyph.
-     * \param GlyphRenderer \ref Glyph::renderer() of \ref Glyph to realize
+     * \param glyph_renderer \ref Glyph::renderer() of \ref Glyph to realize
      * \param glyph_attributes \ref Glyph::attributes() of \ref Glyph to realize
      * \param dst_indices location to which to write the indices;
      *                    the values are offsets into dst_attribs
@@ -118,9 +118,9 @@ namespace fastuidraw
                            const vec2 p_bl, const vec2 p_tr) const = 0;
 
     /*!
-     * Returns a \ref GlyphAttributePacker suitable for the specified
-     * \ref PainterEnums::screen_orientation and \ref
-     * \ref PainterEnums::glyph_layout_type that packs each single
+     * Returns a \ref GlyphAttributePacker suitable for the
+     * specified \ref PainterEnums::screen_orientation and \ref
+     * PainterEnums::glyph_layout_type that packs each single
      * \ref Glyph object as exactly 4 attributes and 6 indices as
      * follows:
      *   - PainterAttribute::m_attrib0 .xy -> position in item coordinates of the

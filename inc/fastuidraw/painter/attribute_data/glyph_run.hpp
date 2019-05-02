@@ -54,7 +54,8 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Ctor.
+     * Ctor that sets the \ref GlyphAttributePacker to come from
+     * \ref GlyphAttributePacker::standard_packer().
      * \param format_size format size at which glyphs added via
      *                   add_glyphs() or add_glyph() are formatted
      * \param orientation screen orientation at which glyphs added by
@@ -165,13 +166,20 @@ namespace fastuidraw
     format_size(void) const;
 
     /*!
+     * Returns the \ref GlyphAttributePacker that is used to
+     * create the attribute and index data.
+     */
+    const GlyphAttributePacker&
+    attribute_packer(void) const;
+
+    /*!
      * Returns a const-reference to \ref PainterAttributeWriter
      * object for rendering a named range of glyphs for
      * a specified \ref GlyphRenderer. The returned object
      * is valid in value until this GlyphRun is destroyed or
      * one of add_glyph(), add_glyphs(), subsequence() is called.
      * The \ref PainterAttributeWriter will provide indices and
-     * attributes as packed by \ref Glyph::pack_glyph().
+     * attributes as packed by \ref attribute_packer().
      * \param renderer how to render the glyphs
      * \param begin index to select which is the first glyph
      * \param count number of glyphs to take starting at begin
@@ -186,7 +194,7 @@ namespace fastuidraw
      * is valid in value until this GlyphRun is destroyed or
      * one of add_glyph(), add_glyphs(), subsequence() is called.
      * The \ref PainterAttributeWriter will provide indices and
-     * attributes as packed by \ref Glyph::pack_glyph().
+     * attributes as packed by \ref attribute_packer().
      * \param renderer how to render the glyphs
      * \param begin index to select which is the first glyph
      */
@@ -200,7 +208,7 @@ namespace fastuidraw
      * is valid in value until this GlyphRun is destroyed or
      * one of add_glyph(), add_glyphs(), subsequence() is called.
      * The \ref PainterAttributeWriter will provide indices and
-     * attributes as packed by \ref Glyph::pack_glyph().
+     * attributes as packed by \ref attribute_packer().
      * \param renderer how to render the glyphs
      */
     const PainterAttributeWriter&

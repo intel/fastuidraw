@@ -410,6 +410,15 @@ format_size(void) const
   return d->m_format_size;
 }
 
+const fastuidraw::GlyphAttributePacker&
+fastuidraw::GlyphRun::
+attribute_packer(void) const
+{
+  GlyphRunPrivate *d;
+  d = static_cast<GlyphRunPrivate*>(m_d);
+  return *d->m_packer;
+}
+
 fastuidraw::GlyphCache&
 fastuidraw::GlyphRun::
 glyph_cache(void) const

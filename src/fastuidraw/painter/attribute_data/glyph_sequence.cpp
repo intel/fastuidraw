@@ -992,6 +992,15 @@ format_size(void) const
   return d->format_size();
 }
 
+const fastuidraw::GlyphAttributePacker&
+fastuidraw::GlyphSequence::
+attribute_packer(void) const
+{
+  GlyphSequencePrivate *d;
+  d = static_cast<GlyphSequencePrivate*>(m_d);
+  return d->packer();
+}
+
 fastuidraw::GlyphCache&
 fastuidraw::GlyphSequence::
 glyph_cache(void) const
