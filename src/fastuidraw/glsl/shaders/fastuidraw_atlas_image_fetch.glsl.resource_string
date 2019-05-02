@@ -100,7 +100,7 @@ struct fastuidraw_image_info_type
 
 /*!
  * \brief
- * Structure that fully describes a \ ref
+ * Structure that fully describes a \ref
  * fastuidraw::Image or a sub-image of one.
  * Only available if \ref FASTUIDRAW_IMAGE_ATLAS_DISABLED is
  * not defined.
