@@ -201,7 +201,8 @@ namespace fastuidraw
    * used to describe the \ref Image::type(), \ref Image::format(),
    * what filtering and mipmapping to apply to the image data.
    */
-  class PainterImageBrushShader
+  class PainterImageBrushShader:
+    public reference_counted<PainterImageBrushShader>::concurrent
   {
   public:
     /*!
