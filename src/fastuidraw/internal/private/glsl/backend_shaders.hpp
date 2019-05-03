@@ -153,6 +153,9 @@ private:
   PainterFillShader
   create_fill_shader(void);
 
+  reference_counted_ptr<const PainterImageBrushShader>
+  create_image_brush_shader(void);
+
   PainterBrushShaderSet
   create_brush_shaders(void);
 

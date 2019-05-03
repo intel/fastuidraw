@@ -798,55 +798,55 @@ create_brush_shaders(void)
    * files as well.
    */
   UnpackSourceGenerator("mat2")
-    .set(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
-    .set(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
-    .set(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
-    .set(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
+    .set_float(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
+    .set_float(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
+    .set_float(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
+    .set_float(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)");
 
   UnpackSourceGenerator("vec2")
-    .set(PainterBrush::transformation_translation_x_offset, ".x")
-    .set(PainterBrush::transformation_translation_y_offset, ".y")
+    .set_float(PainterBrush::transformation_translation_x_offset, ".x")
+    .set_float(PainterBrush::transformation_translation_y_offset, ".y")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_header)")
-    .set(PainterBrush::features_offset, ".features", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::header_red_green_offset, ".red_green", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::header_blue_alpha_offset, ".blue_alpha", UnpackSourceGenerator::uint_type)
+    .set_uint(PainterBrush::features_offset, ".features")
+    .set_uint(PainterBrush::header_red_green_offset, ".red_green")
+    .set_uint(PainterBrush::header_blue_alpha_offset, ".blue_alpha")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window)")
-    .set(PainterBrush::repeat_window_x_offset, ".xy.x")
-    .set(PainterBrush::repeat_window_y_offset, ".xy.y")
-    .set(PainterBrush::repeat_window_width_offset, ".wh.x")
-    .set(PainterBrush::repeat_window_height_offset, ".wh.y")
+    .set_float(PainterBrush::repeat_window_x_offset, ".xy.x")
+    .set_float(PainterBrush::repeat_window_y_offset, ".xy.y")
+    .set_float(PainterBrush::repeat_window_width_offset, ".wh.x")
+    .set_float(PainterBrush::repeat_window_height_offset, ".wh.y")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw)")
-    .set(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::image_size_xy_offset, ".image_size_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::image_start_xy_offset, ".image_start_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::image_number_lookups_offset, ".image_number_lookups", UnpackSourceGenerator::uint_type)
+    .set_uint(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz")
+    .set_uint(PainterBrush::image_size_xy_offset, ".image_size_xy")
+    .set_uint(PainterBrush::image_start_xy_offset, ".image_start_xy")
+    .set_uint(PainterBrush::image_number_lookups_offset, ".image_number_lookups")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
-    .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
-    .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
-    .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
-    .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
-    .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
+    .set_float(PainterBrush::gradient_p0_x_offset, ".p0.x")
+    .set_float(PainterBrush::gradient_p0_y_offset, ".p0.y")
+    .set_float(PainterBrush::gradient_p1_x_offset, ".p1.x")
+    .set_float(PainterBrush::gradient_p1_y_offset, ".p1.y")
+    .set_uint(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy")
+    .set_uint(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
-    .set(PainterBrush::gradient_p0_x_offset, ".p0.x")
-    .set(PainterBrush::gradient_p0_y_offset, ".p0.y")
-    .set(PainterBrush::gradient_p1_x_offset, ".p1.x")
-    .set(PainterBrush::gradient_p1_y_offset, ".p1.y")
-    .set(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length", UnpackSourceGenerator::uint_type)
-    .set(PainterBrush::gradient_start_radius_offset, ".r0")
-    .set(PainterBrush::gradient_end_radius_offset, ".r1")
+    .set_float(PainterBrush::gradient_p0_x_offset, ".p0.x")
+    .set_float(PainterBrush::gradient_p0_y_offset, ".p0.y")
+    .set_float(PainterBrush::gradient_p1_x_offset, ".p1.x")
+    .set_float(PainterBrush::gradient_p1_y_offset, ".p1.y")
+    .set_float(PainterBrush::gradient_start_radius_offset, ".r0")
+    .set_float(PainterBrush::gradient_end_radius_offset, ".r1")
+    .set_uint(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy")
+    .set_uint(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)");
 
   brush_varyings

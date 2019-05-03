@@ -61,6 +61,27 @@ struct FASTUIDRAW_LOCAL(fastuidraw_brush_gradient)
   float r0, r1;
 };
 
+struct FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)
+{
+  /* start and end of gradients packed as usual floats
+   */
+  vec2 p0, p1;
+
+  /* packed:
+     - bits [0 , 15] ColorStopSequenceOnAtlas::texel_location().x()
+     - bits [16, 31] ColorStopSequenceOnAtlas::texel_location().y
+   */
+  uint color_stop_sequence_xy;
+
+  /* just the length
+   */
+  uint color_stop_sequence_length;
+
+  /* radial gradient values
+   */
+  float r0, r1;
+};
+
 struct FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window)
 {
   vec2 xy; //x-y position of window
@@ -96,27 +117,6 @@ struct FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw)
 
   /* image and number of index lookups needed */
   uint image_number_lookups;
-};
-
-struct FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)
-{
-  /* start and end of gradients packed as usual floats
-   */
-  vec2 p0, p1;
-
-  /* packed:
-     - bits [0 , 15] ColorStopSequenceOnAtlas::texel_location().x()
-     - bits [16, 31] ColorStopSequenceOnAtlas::texel_location().y
-   */
-  uint color_stop_sequence_xy;
-
-  /* just the length
-   */
-  uint color_stop_sequence_length;
-
-  /* radial gradient values
-   */
-  float r0, r1;
 };
 
 uint

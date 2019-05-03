@@ -30,21 +30,45 @@ namespace
   {
   public:
     UnpackElement(void):
-      m_type(fastuidraw::glsl::UnpackSourceGenerator::padding_type),
-      m_idx(0)
+      m_type(fastuidraw::glsl::UnpackSourceGenerator::padding_type)
     {}
 
     UnpackElement(fastuidraw::c_string name,
                   fastuidraw::glsl::UnpackSourceGenerator::type_t tp,
+                  enum fastuidraw::glsl::UnpackSourceGenerator::cast_t cast,
                   unsigned int idx):
       m_name(name),
       m_type(tp),
-      m_idx(idx)
+      m_cast(cast),
+      m_idx(idx),
+      m_bit0(-1),
+      m_num_bits(-1)
     {}
+
+    UnpackElement(fastuidraw::c_string name,
+                  unsigned int bit0, unsigned int num_bits,
+                  fastuidraw::glsl::UnpackSourceGenerator::type_t tp,
+                  enum fastuidraw::glsl::UnpackSourceGenerator::cast_t cast,
+                  unsigned int idx):
+      m_name(name),
+      m_type(tp),
+      m_cast(cast),
+      m_idx(idx),
+      m_bit0(bit0),
+      m_num_bits(num_bits)
+    {}
+
+    bool
+    is_bitfield(void) const
+    {
+      return m_bit0 >= 0;
+    }
 
     std::string m_name;
     fastuidraw::glsl::UnpackSourceGenerator::type_t m_type;
+    enum fastuidraw::glsl::UnpackSourceGenerator::cast_t m_cast;
     unsigned int m_idx;
+    int m_bit0, m_num_bits;
   };
 
   class UnpackSourceGeneratorPrivate
@@ -61,7 +85,11 @@ namespace
     {}
 
     std::vector<std::string> m_structs;
-    std::vector<UnpackElement> m_elements;
+
+    /* m_elements[A] is all elements that are unpacked
+     * from data at offset A.
+     */
+    std::vector<std::vector<UnpackElement> > m_elements;
   };
 }
 
@@ -100,7 +128,7 @@ assign_swap_implement(fastuidraw::glsl::UnpackSourceGenerator)
 
 fastuidraw::glsl::UnpackSourceGenerator&
 fastuidraw::glsl::UnpackSourceGenerator::
-set(unsigned int offset, c_string field_name, type_t type, unsigned int idx)
+set(unsigned int offset, c_string field_name, type_t type, enum cast_t cast, unsigned int idx)
 {
   UnpackSourceGeneratorPrivate *d;
 
@@ -109,7 +137,25 @@ set(unsigned int offset, c_string field_name, type_t type, unsigned int idx)
     {
       d->m_elements.resize(offset + 1);
     }
-  d->m_elements[offset] = UnpackElement(field_name, type, idx);
+  d->m_elements[offset].push_back(UnpackElement(field_name, type, cast, idx));
+  return *this;
+}
+
+fastuidraw::glsl::UnpackSourceGenerator&
+fastuidraw::glsl::UnpackSourceGenerator::
+set(unsigned int offset,
+    unsigned int bit0, unsigned int num_bits,
+    c_string field_name, type_t type, enum cast_t cast,
+    unsigned int idx)
+{
+  UnpackSourceGeneratorPrivate *d;
+
+  d = static_cast<UnpackSourceGeneratorPrivate*>(m_d);
+  if (offset >= d->m_elements.size())
+    {
+      d->m_elements.resize(offset + 1);
+    }
+  d->m_elements[offset].push_back(UnpackElement(field_name, bit0, num_bits, type, cast, idx));
   return *this;
 }
 
@@ -129,12 +175,12 @@ stream_unpack_function(ShaderSource &dst,
       ".xyz",
       ".xyzw"
     };
-  const fastuidraw::c_string ext_components[] =
+  const fastuidraw::c_string utemp_components[] =
     {
-      ".x",
-      ".y",
-      ".z",
-      ".w"
+      "utemp.x",
+      "utemp.y",
+      "utemp.z",
+      "utemp.w"
     };
 
   d = static_cast<UnpackSourceGeneratorPrivate*>(m_d);
@@ -158,7 +204,9 @@ stream_unpack_function(ShaderSource &dst,
     }
   str << ")\n"
       << "{\n"
-      << "\tuvec4 utemp;\n";
+      << "\tuvec4 utemp;\n"
+      << "\tuint tempbits;\n"
+      << "\tfloat ftemp;\n";
 
   number_blocks = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(d->m_elements.size());
   FASTUIDRAWassert(4 * number_blocks >= d->m_elements.size());
@@ -179,28 +227,47 @@ stream_unpack_function(ShaderSource &dst,
       /* perform bit cast to correct type. */
       for(unsigned int k = 0; k < 4 && i < d->m_elements.size(); ++k, ++i)
         {
-          fastuidraw::c_string ext;
-          ext = ext_components[k];
-          switch(d->m_elements[i].m_type)
+          for (const auto &e : d->m_elements[i])
             {
-            case int_type:
-              str << "\tout_value" << d->m_elements[i].m_idx
-                  << d->m_elements[i].m_name << " = "
-                  << "int(utemp" << ext << ");\n";
-              break;
-            case uint_type:
-              str << "\tout_value" << d->m_elements[i].m_idx
-                  << d->m_elements[i].m_name << " = "
-                  << "utemp" << ext << ";\n";
-              break;
-            case float_type:
-              str << "\tout_value" << d->m_elements[i].m_idx
-                  << d->m_elements[i].m_name << " = "
-                  << "uintBitsToFloat(utemp" << ext << ");\n";
-              break;
-            default:
-            case padding_type:
-              str << "\t//Padding at component " << ext << "\n";
+              fastuidraw::c_string src;
+
+              src = utemp_components[k];
+              if (e.is_bitfield())
+                {
+                  str << "\ttempbits = FASTUIDRAW_EXTRACT_BITS("
+                      << e.m_bit0 << ", " << e.m_num_bits
+                      << ", " << src << ");\n";
+                  src = "tempbits";
+                }
+
+              if (e.m_cast == reinterpret_to_float_bits)
+                {
+                  str << "\tftemp = uintBitsToFloat(" << src << ");\n";
+                  src = "ftemp";
+                }
+
+              switch(e.m_type)
+                {
+                case int_type:
+                  str << "\tout_value" << e.m_idx
+                      << e.m_name << " = "
+                      << "int(" << src << ");\n";
+                  break;
+                case uint_type:
+                  str << "\tout_value" << e.m_idx
+                      << e.m_name << " = "
+                      << "uint(" << src << ");\n";
+                  break;
+                case float_type:
+                  str << "\tout_value" << e.m_idx
+                      << e.m_name << " = "
+                      << "float(" << src << ");\n";
+                  break;
+
+                default:
+                case padding_type:
+                  str << "\t//Padding at component " << src << "\n";
+                }
             }
         }
     }

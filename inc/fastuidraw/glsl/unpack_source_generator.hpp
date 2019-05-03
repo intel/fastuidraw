@@ -54,6 +54,24 @@ namespace fastuidraw
         };
 
       /*!
+       * Enumeration specifying to bit-cast with
+       * GLSL's built-in uintBitsToFloat() or not
+       */
+      enum cast_t
+        {
+          /*!
+           * Reinterpret the bits as float bits, i.e.
+           * use uintBitsToFloat() of GLSL
+           */
+          reinterpret_to_float_bits,
+
+          /*!
+           * only type-cast the bits.
+           */
+          type_cast,
+        };
+
+      /*!
        * Ctor.
        * \param type_name name of GLSL type to which to unpack
        *                  data from the data store buffer
@@ -98,13 +116,100 @@ namespace fastuidraw
        *                   include the dot if it is a field member of
        *                   a struct.
        * \param type the GLSL type of the field
+       * \param cast how to interpret the bits of the value
        * \param struct_idx if the ctor was given an array of c_string
        *                   values, refers to the index into that
        *                   array of the values.
        */
       UnpackSourceGenerator&
-      set(unsigned int offset, c_string field_name, type_t type = float_type,
+      set(unsigned int offset, c_string field_name,
+          type_t type, enum cast_t cast,
           unsigned int struct_idx = 0);
+
+      /*!
+       * Set the field name that corresponds to an offset and range of
+       * bits within the value at the named offset
+       * \param offset offset from the start of the packed struct
+       * \param bit0 first bit of field value storted at offset
+       * \param num_bits number of bits used to store value.
+       * \param field_name GLSL name of the field to which to unpack
+       *                   the single scalar value. The value must
+       *                   include the dot if it is a field member of
+       *                   a struct.
+       * \param type the GLSL type of the field, must be \ref uint_type
+       *             or \ref int_type
+       * \param cast how to interpret the bits of the value
+       * \param struct_idx if the ctor was given an array of c_string
+       *                   values, refers to the index into that
+       *                   array of the values.
+       */
+      UnpackSourceGenerator&
+      set(unsigned int offset, unsigned int bit0, unsigned int num_bits,
+          c_string field_name, type_t type, enum cast_t cast,
+          unsigned int struct_idx = 0);
+
+      /*!
+       * Provided as a conveniance, equivalent to
+       * \code
+       * set(offset, field_name, float_type, reinterpret_to_float_bits, struct_idx);
+       * \endcode
+       * \param offset offset from the start of the packed struct
+       * \param field_name GLSL name of the field to which to unpack
+       *                   the single scalar value. The value must
+       *                   include the dot if it is a field member of
+       *                   a struct.
+       * \param struct_idx if the ctor was given an array of c_string
+       *                   values, refers to the index into that
+       *                   array of the values.
+       */
+      UnpackSourceGenerator&
+      set_float(unsigned int offset, c_string field_name,
+                unsigned int struct_idx = 0)
+      {
+        return set(offset, field_name, float_type, reinterpret_to_float_bits, struct_idx);
+      }
+
+      /*!
+       * Provided as a conveniance, equivalent to
+       * \code
+       * set(offset, field_name, uint_type, type_cast, struct_idx);
+       * \endcode
+       * \param offset offset from the start of the packed struct
+       * \param field_name GLSL name of the field to which to unpack
+       *                   the single scalar value. The value must
+       *                   include the dot if it is a field member of
+       *                   a struct.
+       * \param struct_idx if the ctor was given an array of c_string
+       *                   values, refers to the index into that
+       *                   array of the values.
+       */
+      UnpackSourceGenerator&
+      set_uint(unsigned int offset, c_string field_name,
+                unsigned int struct_idx = 0)
+      {
+        return set(offset, field_name, uint_type, type_cast, struct_idx);
+      }
+
+      /*!
+       * Provided as a conveniance, equivalent to
+       * \code
+       * set(offset, field_name, int_type, type_cast, struct_idx);
+       * \endcode
+       * \param offset offset from the start of the packed struct
+       * \param field_name GLSL name of the field to which to unpack
+       *                   the single scalar value. The value must
+       *                   include the dot if it is a field member of
+       *                   a struct.
+       * \param struct_idx if the ctor was given an array of c_string
+       *                   values, refers to the index into that
+       *                   array of the values.
+       */
+      UnpackSourceGenerator&
+      set_int(unsigned int offset, c_string field_name,
+              unsigned int struct_idx = 0)
+      {
+        return set(offset, field_name, int_type, type_cast, struct_idx);
+      }
 
       /*!
        * Stream the unpack function into a \ref ShaderSource object.
