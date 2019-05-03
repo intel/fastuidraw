@@ -46,6 +46,22 @@ private:
 class UberShaderVaryings:fastuidraw::noncopyable
 {
 public:
+  typedef bool (*filter_varying_t)(c_string name);
+
+  static
+  bool
+  accept_all_varyings(c_string)
+  {
+    return true;
+  }
+
+  static
+  bool
+  accept_all_varying_alias(c_string, c_string)
+  {
+    return true;
+  }
+
   void
   add_varyings(c_string label,
                const varying_list &p,
@@ -102,7 +118,8 @@ public:
   stream_alias_varyings(bool use_rw_copies,
                         ShaderSource &shader, const varying_list &p,
                         bool add_aliases,
-                        const AliasVaryingLocation &datum) const;
+                        const AliasVaryingLocation &datum,
+                        filter_varying_t filter_varying = &accept_all_varyings) const;
 private:
   class per_varying
   {
@@ -138,7 +155,8 @@ private:
                              const std::vector<per_varying> &varyings_to_use,
                              ShaderSource &shader,
                              c_array<const c_string> p,
-                             bool add_aliases, uvec2 start) const;
+                             bool add_aliases, uvec2 start,
+                             filter_varying_t filter_varying) const;
 
   vecN<std::vector<per_varying>, varying_list::interpolator_number_types> m_varyings;
 };

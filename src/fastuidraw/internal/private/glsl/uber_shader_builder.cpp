@@ -44,7 +44,7 @@ namespace
   }
 
   std::string
-  replace_double_colon_with_double_space(const std::string &input)
+  replace_double_colon_with_double_underscore(const std::string &input)
   {
     std::string return_value(input);
     char *prev_char(nullptr);
@@ -60,6 +60,30 @@ namespace
       }
 
     return return_value;
+  }
+
+  bool
+  has_double_colon(fastuidraw::c_string v)
+  {
+    FASTUIDRAWassert(v);
+
+    char prev_char(0);
+    for (const char *p = v; *p != 0; ++p)
+      {
+        if (prev_char == ':' && *p == ':')
+          {
+            return true;
+          }
+        prev_char = *p;
+      }
+
+    return false;
+  }
+
+  bool
+  does_not_have_double_colon(fastuidraw::c_string v)
+  {
+    return !has_double_colon(v);
   }
 
   template<typename T>
@@ -78,14 +102,99 @@ namespace
     before_shader(fastuidraw::glsl::ShaderSource &dst,
                   const fastuidraw::reference_counted_ptr<const T> &sh) const
     {
-      m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(), true, m_datum);
+      m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
+                                  true, m_datum, has_double_colon);
     }
 
     void
     after_shader(fastuidraw::glsl::ShaderSource &dst,
                  const fastuidraw::reference_counted_ptr<const T> &sh) const
     {
-      m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(), false, m_datum);
+      m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
+                                  false, m_datum, has_double_colon);
+    }
+
+    void
+    pre_source(fastuidraw::glsl::ShaderSource &dst,
+               unsigned int depth, fastuidraw::c_string dep_name,
+               const fastuidraw::reference_counted_ptr<const T> &sh) const
+    {
+      dst << "//PreSource, depth = " << depth << ", dep_name = " << dep_name << "\n";
+      if (depth == 0)
+        {
+          m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
+                                      true, m_datum, does_not_have_double_colon);
+        }
+      else
+        {
+          for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
+            {
+              enum fastuidraw::glsl::varying_list::interpolator_type_t q;
+              q = static_cast<enum fastuidraw::glsl::varying_list::interpolator_type_t>(i);
+
+              for (fastuidraw::c_string v : sh->varyings().varyings(q))
+                {
+                  if (does_not_have_double_colon(v))
+                    {
+                      std::string vv(replace_double_colon_with_double_underscore(v));
+                      dst << "#define " << vv << " " << dep_name << "__" << vv << "\n";
+                    }
+                }
+            }
+          fastuidraw::c_array<const fastuidraw::c_string> names(sh->varyings().alias_varying_names());
+          fastuidraw::c_array<const fastuidraw::c_string> src_names(sh->varyings().alias_varying_source_names());
+
+          FASTUIDRAWassert(names.size() == src_names.size());
+          for (unsigned int i = 0; i < names.size(); ++i)
+            {
+              if (does_not_have_double_colon(names[i]))
+                {
+                  std::string name(replace_double_colon_with_double_underscore(names[i]));
+                  std::string src_name(replace_double_colon_with_double_underscore(src_names[i]));
+                  dst.add_macro(name.c_str(), src_name.c_str());
+                }
+            }
+        }
+    }
+
+    void
+    post_source(fastuidraw::glsl::ShaderSource &dst,
+                unsigned int depth, fastuidraw::c_string dep_name,
+                const fastuidraw::reference_counted_ptr<const T> &sh) const
+    {
+      dst << "//PostSource, depth = " << depth << ", dep_name = " << dep_name << "\n";
+      if (depth == 0)
+        {
+          m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
+                                      false, m_datum, does_not_have_double_colon);
+        }
+      else
+        {
+          fastuidraw::c_array<const fastuidraw::c_string> names(sh->varyings().alias_varying_names());
+          for (unsigned int i = 0; i < names.size(); ++i)
+            {
+              if (does_not_have_double_colon(names[i]))
+                {
+                  std::string name(replace_double_colon_with_double_underscore(names[i]));
+                  dst.remove_macro(name.c_str());
+                }
+            }
+
+          for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
+            {
+              enum fastuidraw::glsl::varying_list::interpolator_type_t q;
+              q = static_cast<enum fastuidraw::glsl::varying_list::interpolator_type_t>(i);
+
+              for (fastuidraw::c_string v : sh->varyings().varyings(q))
+                {
+                  if (does_not_have_double_colon(v))
+                    {
+                      std::string vv(replace_double_colon_with_double_underscore(v));
+                      dst << "#undef " << vv << "\n";
+                    }
+                }
+            }
+        }
     }
 
     void
@@ -101,8 +210,11 @@ namespace
 
           for (fastuidraw::c_string v : child_shader->varyings().varyings(q))
             {
-              std::string vv(replace_double_colon_with_double_space(v));
-              dst << "#define " << vv << " " << dep_name << "__" << vv << "\n";
+              if (has_double_colon(v))
+                {
+                  std::string vv(replace_double_colon_with_double_underscore(v));
+                  dst << "#define " << vv << " " << dep_name << "__" << vv << "\n";
+                }
             }
         }
       fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_varying_names());
@@ -111,9 +223,12 @@ namespace
       FASTUIDRAWassert(names.size() == src_names.size());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          std::string name(replace_double_colon_with_double_space(names[i]));
-          std::string src_name(replace_double_colon_with_double_space(src_names[i]));
-          dst.add_macro(name.c_str(), src_name.c_str());
+          if (has_double_colon(names[i]))
+            {
+              std::string name(replace_double_colon_with_double_underscore(names[i]));
+              std::string src_name(replace_double_colon_with_double_underscore(src_names[i]));
+              dst.add_macro(name.c_str(), src_name.c_str());
+            }
         }
     }
 
@@ -126,8 +241,11 @@ namespace
       fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_varying_names());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          std::string name(replace_double_colon_with_double_space(names[i]));
-          dst.remove_macro(name.c_str());
+          if (has_double_colon(names[i]))
+            {
+              std::string name(replace_double_colon_with_double_underscore(names[i]));
+              dst.remove_macro(name.c_str());
+            }
         }
 
       for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
@@ -137,8 +255,11 @@ namespace
 
           for (fastuidraw::c_string v : child_shader->varyings().varyings(q))
             {
-              std::string vv(replace_double_colon_with_double_space(v));
-              dst << "#undef " << vv << "\n";
+              if (has_double_colon(v))
+                {
+                  std::string vv(replace_double_colon_with_double_underscore(v));
+                  dst << "#undef " << vv << "\n";
+                }
             }
         }
     }
@@ -160,7 +281,19 @@ namespace
 
     void
     after_shader(fastuidraw::glsl::ShaderSource&,
-                  const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
+    {}
+
+    void
+    pre_source(fastuidraw::glsl::ShaderSource&,
+               unsigned int, fastuidraw::c_string,
+               const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
+    {}
+
+    void
+    post_source(fastuidraw::glsl::ShaderSource&,
+                unsigned int, fastuidraw::c_string,
+                const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
     {}
 
     void
@@ -328,6 +461,7 @@ namespace
     static
     void
     stream_shader(ShaderSource &dst, const std::string &prefix,
+                  const std::string &dep_name,
                   get_src_type get_src, get_main_name_type get_main_name,
                   const StreamVaryingsHelper<T> &stream_varyings_helper,
                   const StreamSurroundSrcHelper<T> &stream_surround_src,
@@ -379,7 +513,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
       /* stream up to pos */
       if (pos > last_pos)
         {
-          dst << replace_double_colon_with_double_space(src.substr(last_pos, pos - last_pos));
+          dst << replace_double_colon_with_double_underscore(src.substr(last_pos, pos - last_pos));
         }
 
       /* find the first open and close-parentesis pair after pos. */
@@ -400,7 +534,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
         }
     }
 
-  dst << replace_double_colon_with_double_space(src.substr(last_pos))
+  dst << replace_double_colon_with_double_underscore(src.substr(last_pos))
       << "\n";
 }
 
@@ -408,6 +542,7 @@ template<typename T>
 void
 UberShaderStreamer<T>::
 stream_shader(ShaderSource &dst, const std::string &prefix,
+              const std::string &dep_name,
               get_src_type get_src, get_main_name_type get_main_name,
               const StreamVaryingsHelper<T> &stream_varyings_helper,
               const StreamSurroundSrcHelper<T> &stream_surround_src,
@@ -431,9 +566,11 @@ stream_shader(ShaderSource &dst, const std::string &prefix,
     }
 
   dst.add_macro(get_main_name(sh), prefix.c_str());
+  stream_varyings_helper.pre_source(dst, dependency_depth, dep_name.c_str(), sh);
   stream_surround_src.pre_source(dst, sh);
   stream_source(dst, prefix, (sh.get()->*get_src)());
   stream_surround_src.post_source(dst);
+  stream_varyings_helper.post_source(dst, dependency_depth, dep_name.c_str(), sh);
   dst.remove_macro(get_main_name(sh));
 
   for (unsigned int i = 0; i < deps.size(); ++i)
@@ -462,7 +599,7 @@ stream_dependency(ShaderSource &dst, const std::string &in_prefix, int idx,
       << ", name_in_parent = " << dep_name << "\n";
 
   stream_varyings_helper.before_dependency(dst, dep_name, shader);
-  stream_shader(dst, nm, get_src, get_main_name,
+  stream_shader(dst, nm, dep_name, get_src, get_main_name,
                 stream_varyings_helper, stream_surround_src,
                 shader, dependency_depth);
   stream_varyings_helper.after_dependency(dst, dep_name, shader);
@@ -494,7 +631,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
       str << get_main_name(sh) << sh->ID();
       stream_varyings_helper.before_shader(dst, sh);
-      stream_shader(dst, str.str(),
+      stream_shader(dst, str.str(), "",
                     get_src, get_main_name,
                     stream_varyings_helper,
                     stream_surround_src,
@@ -860,7 +997,8 @@ stream_alias_varyings_impl(bool use_rw_copies,
                            const std::vector<per_varying> &varyings_to_use,
                            ShaderSource &shader,
                            c_array<const c_string> p,
-                           bool add_aliases, uvec2 start) const
+                           bool add_aliases, uvec2 start,
+                           filter_varying_t filter_varying) const
 {
   if (add_aliases)
     {
@@ -889,16 +1027,23 @@ stream_alias_varyings_impl(bool use_rw_copies,
             {
               str << "." << ext[start.y()];
             }
-          std::string pp(replace_double_colon_with_double_space(p[i]));
-          shader.add_macro(pp.c_str(), str.str().c_str());
+
+          if (filter_varying(p[i]))
+            {
+              std::string pp(replace_double_colon_with_double_underscore(p[i]));
+              shader.add_macro(pp.c_str(), str.str().c_str());
+            }
         }
     }
   else
     {
       for (unsigned int i = 0; i < p.size(); ++i)
         {
-          std::string pp(replace_double_colon_with_double_space(p[i]));
-          shader.remove_macro(pp.c_str());
+          if (filter_varying(p[i]))
+            {
+              std::string pp(replace_double_colon_with_double_underscore(p[i]));
+              shader.remove_macro(pp.c_str());
+            }
         }
     }
 }
@@ -908,7 +1053,8 @@ UberShaderVaryings::
 stream_alias_varyings(bool use_rw_copies,
                       ShaderSource &shader, const varying_list &p,
                       bool add_aliases,
-                      const AliasVaryingLocation &datum) const
+                      const AliasVaryingLocation &datum,
+                      filter_varying_t filter_varying) const
 {
   if (add_aliases)
     {
@@ -928,7 +1074,7 @@ stream_alias_varyings(bool use_rw_copies,
       q = static_cast<enum varying_list::interpolator_type_t>(i);
 
       stream_alias_varyings_impl(use_rw_copies, m_varyings[i], shader, p.varyings(q),
-                                 add_aliases, datum.m_varying_start[i]);
+                                 add_aliases, datum.m_varying_start[i], filter_varying);
     }
 
   if (add_aliases)
@@ -939,9 +1085,12 @@ stream_alias_varyings(bool use_rw_copies,
       FASTUIDRAWassert(names.size() == src_names.size());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          std::string name(replace_double_colon_with_double_space(names[i]));
-          std::string src_name(replace_double_colon_with_double_space(src_names[i]));
-          shader.add_macro(name.c_str(), src_name.c_str());
+          if (filter_varying(names[i]))
+            {
+              std::string name(replace_double_colon_with_double_underscore(names[i]));
+              std::string src_name(replace_double_colon_with_double_underscore(src_names[i]));
+              shader.add_macro(name.c_str(), src_name.c_str());
+            }
         }
     }
   else
@@ -949,8 +1098,11 @@ stream_alias_varyings(bool use_rw_copies,
       c_array<const c_string> names(p.alias_varying_names());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          std::string name(replace_double_colon_with_double_space(names[i]));
-          shader.remove_macro(name.c_str());
+          if (filter_varying(names[i]))
+            {
+              std::string name(replace_double_colon_with_double_underscore(names[i]));
+              shader.remove_macro(name.c_str());
+            }
         }
     }
 }

@@ -1118,7 +1118,6 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
   reference_counted_ptr<T> shader;
   UberShaderVaryings uber_shader_varyings;
   AliasVaryingLocation shader_varying_datum;
-  const char *frag_return_type(nullptr);
   c_array<const reference_counted_ptr<T> > item_shaders;
 
   FASTUIDRAWassert(shader_id < shaders.m_shaders_keyed_by_id.size());
