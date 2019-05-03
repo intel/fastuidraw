@@ -175,37 +175,44 @@ void
 DependencyListPrivateT<T>::VaryingTracker::
 add_alias(const std::string &name, const std::string &src_name)
 {
-  EqClassRef &ref1(m_data[name]);
-  EqClassRef &ref2(m_data[src_name]);
+  EqClassRef &pref1(m_data[name]);
+  EqClassRef &pref2(m_data[src_name]);
 
-  if (!ref1)
+  if (!pref1)
     {
-      ref1 = FASTUIDRAWnew EqClass();
+      pref1 = FASTUIDRAWnew EqClass();
     }
 
-  if (!ref2)
+  if (!pref2)
     {
-      ref2 = FASTUIDRAWnew EqClass();
+      pref2 = FASTUIDRAWnew EqClass();
     }
 
-  ref1->m_names.insert(name);
-  ref2->m_names.insert(src_name);
-  if (&ref1 != &ref2)
+  EqClassRef r1(pref1);
+  EqClassRef r2(pref2);
+
+  r1->m_names.insert(name);
+  r2->m_names.insert(src_name);
+  if (r1 != r2)
     {
-      for (const std::string &nm : ref2->m_names)
+      for (const std::string &nm : r2->m_names)
         {
-          ref1->m_names.insert(nm);
+          r1->m_names.insert(nm);
+
+          EqClassRef &ref(m_data[nm]);
+          if (ref != r1)
+            {
+              ref = r1;
+            }
         }
 
-      FASTUIDRAWmessaged_assert(ref1->m_type == varying_list::interpolator_number_types
-                                || ref1->m_type == ref2->m_type,
+      FASTUIDRAWmessaged_assert(r1->m_type == varying_list::interpolator_number_types
+                                || r1->m_type == r2->m_type,
                                 "Shader aliases merge across different varying types");
-      if (ref1->m_type == varying_list::interpolator_number_types)
+      if (r1->m_type == varying_list::interpolator_number_types)
         {
-          ref1->m_type = ref2->m_type;
+          r1->m_type = r2->m_type;
         }
-
-      ref2 = ref1;
     }
 }
 
