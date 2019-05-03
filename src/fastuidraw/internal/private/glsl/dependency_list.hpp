@@ -65,6 +65,9 @@ private:
       m_added(false)
     {}
 
+    std::string
+    extract_double_colon_value(void);
+
     std::set<std::string> m_names;
     enum varying_list::interpolator_type_t m_type;
     bool m_added;
@@ -102,6 +105,33 @@ private:
 
   std::map<std::string, PerShader> m_shaders;
 };
+
+//////////////////////////////////////////////
+// DependencyListPrivateT<T>::EqClass methods
+template<typename T>
+std::string
+DependencyListPrivateT<T>::EqClass::
+extract_double_colon_value(void)
+{
+  std::string return_value;
+  std::set<std::string>::iterator iter;
+
+  for (iter = m_names.begin(); iter != m_names.end(); ++iter)
+    {
+      if (iter->find("::") != std::string::npos)
+        {
+          return_value = *iter;
+          m_names.erase(iter);
+          return return_value;
+        }
+    }
+
+  iter = m_names.begin();
+  return_value = *iter;
+  m_names.erase(iter);
+
+  return return_value;
+}
 
 /////////////////////////////////////////////////////
 // DependencyListPrivateT<T>::VaryingTracker methods
@@ -218,14 +248,15 @@ add_varyings_from_tracker(varying_list *dst)
       if (!ref->m_added)
         {
           FASTUIDRAWassert(!ref->m_names.empty());
-          std::string vname(*ref->m_names.begin());
 
           ref->m_added = true;
           FASTUIDRAWmessaged_assert(ref->m_type != varying_list::interpolator_number_types,
                                     "Shader alias chain lacks alias to actual varying");
 
+          /* find an entry that does not have :: in it */
+          std::string vname(ref->extract_double_colon_value());
+
           dst->add_varying(vname.c_str(), ref->m_type);
-          ref->m_names.erase(vname);
           for (const std::string &nm : ref->m_names)
             {
               dst->add_varying_alias(nm.c_str(), vname.c_str());
