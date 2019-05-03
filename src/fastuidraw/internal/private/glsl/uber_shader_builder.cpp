@@ -44,7 +44,7 @@ namespace
   }
 
   std::string
-  replace_double_colon_with_double_underscore(const std::string &input)
+  replace_double_colon_with_double_D(const std::string &input)
   {
     std::string return_value(input);
     char *prev_char(nullptr);
@@ -53,8 +53,8 @@ namespace
       {
         if (prev_char && *prev_char == ':' && *iter == ':')
           {
-            *prev_char = '_';
-            *iter = '_';
+            *prev_char = 'D';
+            *iter = 'D';
           }
         prev_char = &(*iter);
       }
@@ -136,8 +136,8 @@ namespace
                 {
                   if (does_not_have_double_colon(v))
                     {
-                      std::string vv(replace_double_colon_with_double_underscore(v));
-                      dst << "#define " << vv << " " << dep_name << "__" << vv << "\n";
+                      std::string vv(replace_double_colon_with_double_D(v));
+                      dst << "#define " << vv << " " << dep_name << "DD" << vv << "\n";
                     }
                 }
             }
@@ -149,8 +149,8 @@ namespace
             {
               if (does_not_have_double_colon(names[i]))
                 {
-                  std::string name(replace_double_colon_with_double_underscore(names[i]));
-                  std::string src_name(replace_double_colon_with_double_underscore(src_names[i]));
+                  std::string name(replace_double_colon_with_double_D(names[i]));
+                  std::string src_name(replace_double_colon_with_double_D(src_names[i]));
                   dst.add_macro(name.c_str(), src_name.c_str());
                 }
             }
@@ -175,7 +175,7 @@ namespace
             {
               if (does_not_have_double_colon(names[i]))
                 {
-                  std::string name(replace_double_colon_with_double_underscore(names[i]));
+                  std::string name(replace_double_colon_with_double_D(names[i]));
                   dst.remove_macro(name.c_str());
                 }
             }
@@ -189,7 +189,7 @@ namespace
                 {
                   if (does_not_have_double_colon(v))
                     {
-                      std::string vv(replace_double_colon_with_double_underscore(v));
+                      std::string vv(replace_double_colon_with_double_D(v));
                       dst << "#undef " << vv << "\n";
                     }
                 }
@@ -212,8 +212,8 @@ namespace
             {
               if (has_double_colon(v))
                 {
-                  std::string vv(replace_double_colon_with_double_underscore(v));
-                  dst << "#define " << vv << " " << dep_name << "__" << vv << "\n";
+                  std::string vv(replace_double_colon_with_double_D(v));
+                  dst << "#define " << vv << " " << dep_name << "DD" << vv << "\n";
                 }
             }
         }
@@ -225,8 +225,8 @@ namespace
         {
           if (has_double_colon(names[i]))
             {
-              std::string name(replace_double_colon_with_double_underscore(names[i]));
-              std::string src_name(replace_double_colon_with_double_underscore(src_names[i]));
+              std::string name(replace_double_colon_with_double_D(names[i]));
+              std::string src_name(replace_double_colon_with_double_D(src_names[i]));
               dst.add_macro(name.c_str(), src_name.c_str());
             }
         }
@@ -243,7 +243,7 @@ namespace
         {
           if (has_double_colon(names[i]))
             {
-              std::string name(replace_double_colon_with_double_underscore(names[i]));
+              std::string name(replace_double_colon_with_double_D(names[i]));
               dst.remove_macro(name.c_str());
             }
         }
@@ -257,7 +257,7 @@ namespace
             {
               if (has_double_colon(v))
                 {
-                  std::string vv(replace_double_colon_with_double_underscore(v));
+                  std::string vv(replace_double_colon_with_double_D(v));
                   dst << "#undef " << vv << "\n";
                 }
             }
@@ -513,7 +513,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
       /* stream up to pos */
       if (pos > last_pos)
         {
-          dst << replace_double_colon_with_double_underscore(src.substr(last_pos, pos - last_pos));
+          dst << replace_double_colon_with_double_D(src.substr(last_pos, pos - last_pos));
         }
 
       /* find the first open and close-parentesis pair after pos. */
@@ -534,7 +534,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
         }
     }
 
-  dst << replace_double_colon_with_double_underscore(src.substr(last_pos))
+  dst << replace_double_colon_with_double_D(src.substr(last_pos))
       << "\n";
 }
 
@@ -1030,7 +1030,7 @@ stream_alias_varyings_impl(bool use_rw_copies,
 
           if (filter_varying(p[i]))
             {
-              std::string pp(replace_double_colon_with_double_underscore(p[i]));
+              std::string pp(replace_double_colon_with_double_D(p[i]));
               shader.add_macro(pp.c_str(), str.str().c_str());
             }
         }
@@ -1041,7 +1041,7 @@ stream_alias_varyings_impl(bool use_rw_copies,
         {
           if (filter_varying(p[i]))
             {
-              std::string pp(replace_double_colon_with_double_underscore(p[i]));
+              std::string pp(replace_double_colon_with_double_D(p[i]));
               shader.remove_macro(pp.c_str());
             }
         }
@@ -1087,8 +1087,8 @@ stream_alias_varyings(bool use_rw_copies,
         {
           if (filter_varying(names[i]))
             {
-              std::string name(replace_double_colon_with_double_underscore(names[i]));
-              std::string src_name(replace_double_colon_with_double_underscore(src_names[i]));
+              std::string name(replace_double_colon_with_double_D(names[i]));
+              std::string src_name(replace_double_colon_with_double_D(src_names[i]));
               shader.add_macro(name.c_str(), src_name.c_str());
             }
         }
@@ -1100,7 +1100,7 @@ stream_alias_varyings(bool use_rw_copies,
         {
           if (filter_varying(names[i]))
             {
-              std::string name(replace_double_colon_with_double_underscore(names[i]));
+              std::string name(replace_double_colon_with_double_D(names[i]));
               shader.remove_macro(name.c_str());
             }
         }
