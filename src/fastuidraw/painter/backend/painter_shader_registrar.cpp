@@ -59,7 +59,7 @@ mutex(void)
 
 void
 fastuidraw::PainterShaderRegistrar::
-register_shader(const reference_counted_ptr<PainterItemShader> &shader)
+register_shader(PainterItemShader *shader)
 {
   if (!shader || shader->registered_to() == this)
     {
@@ -69,11 +69,11 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
   if (shader->registered_to() == nullptr)
     {
       /* register the coverage shader if it has one. */
-      register_shader(shader->coverage_shader());
+      register_shader(shader->coverage_shader().get());
 
       if (shader->parent())
         {
-          register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
+          register_shader(static_cast<PainterItemShader*>(shader->parent().get()));
 
           /* activate the guard AFTER calling register_shader(),
            * otherwise we would attempt to double-lock the mutex
@@ -94,7 +94,7 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
-register_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader)
+register_shader(PainterItemCoverageShader *shader)
 {
   if (!shader || shader->registered_to() == this)
     {
@@ -105,7 +105,7 @@ register_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader)
     {
       if (shader->parent())
         {
-          register_shader(shader->parent().static_cast_ptr<PainterItemCoverageShader>());
+          register_shader(static_cast<PainterItemCoverageShader*>(shader->parent().get()));
 
           /* activate the guard AFTER calling register_shader(),
            * otherwise we would attempt to double-lock the mutex
@@ -126,7 +126,7 @@ register_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
-register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
+register_shader(PainterBlendShader *shader)
 {
   if (!shader || shader->registered_to() == this)
     {
@@ -144,7 +144,7 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
     {
       if (shader->parent())
         {
-          register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
+          register_shader(static_cast<PainterBlendShader*>(shader->parent().get()));
 
           /* activate the guard AFTER calling register_shader(),
            * otherwise we would attempt to double-lock the mutex
@@ -165,7 +165,7 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
-register_shader(const reference_counted_ptr<PainterBrushShader> &shader)
+register_shader(PainterBrushShader *shader)
 {
   if (!shader || shader->registered_to() == this)
     {
@@ -176,7 +176,7 @@ register_shader(const reference_counted_ptr<PainterBrushShader> &shader)
     {
       if (shader->parent())
         {
-          register_shader(shader->parent().static_cast_ptr<PainterBrushShader>());
+          register_shader(static_cast<PainterBrushShader*>(shader->parent().get()));
 
           /* activate the guard AFTER calling register_shader(),
            * otherwise we would attempt to double-lock the mutex
@@ -192,6 +192,22 @@ register_shader(const reference_counted_ptr<PainterBrushShader> &shader)
           tag = absorb_custom_brush_shader(shader);
           shader->register_shader(tag, this);
         }
+    }
+}
+
+void
+fastuidraw::PainterShaderRegistrar::
+register_shader(const PainterImageBrushShader *shader)
+{
+  if (!shader)
+    {
+      return;
+    }
+
+  c_array<const reference_counted_ptr<PainterBrushShader> > sub_shaders(shader->sub_shaders());
+  for (const reference_counted_ptr<PainterBrushShader> &sub : sub_shaders)
+    {
+      register_shader(sub);
     }
 }
 
@@ -224,6 +240,7 @@ fastuidraw::PainterShaderRegistrar::
 register_shader(const PainterBrushShaderSet &shaders)
 {
   register_shader(shaders.standard_brush());
+  register_shader(shaders.image_brush());
 }
 
 void

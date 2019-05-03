@@ -47,40 +47,57 @@ namespace fastuidraw
     ~PainterShaderRegistrar();
 
     /*!
-     * Registers an item shader for use; registring a shader more than
+     * Registers an item shader for use; registering a shader more than
      * once to the SAME PainterShaderRegistrar has no effect. However,
      * registering a shader to multiple PainterShaderRegistrar objects
      * is an error.
      */
     void
-    register_shader(const reference_counted_ptr<PainterItemShader> &shader);
+    register_shader(PainterItemShader *shader);
 
     /*!
-     * Registers an item shader for use; registring a shader more than
+     * Registers an item shader for use; registering a shader more than
      * once to the SAME PainterShaderRegistrar has no effect. However,
      * registering a shader to multiple PainterShaderRegistrar objects
      * is an error.
      */
     void
-    register_shader(const reference_counted_ptr<PainterItemCoverageShader> &shader);
+    register_shader(PainterItemCoverageShader *shader);
 
     /*!
-     * Registers a blend shader for use; registring a shader more than
+     * Registers a blend shader for use; registering a shader more than
      * once to the SAME PainterShaderRegistrar has no effect. However,
      * registering a shader to multiple PainterShaderRegistrar objects
      * is an error.
      */
     void
-    register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
+    register_shader(PainterBlendShader *shader);
 
     /*!
-     * Registers a brush shader for use; registring a shader more than
+     * Registers a brush shader for use; registering a shader more than
      * once to the SAME PainterShaderRegistrar has no effect. However,
      * registering a shader to multiple PainterShaderRegistrar objects
      * is an error.
      */
     void
-    register_shader(const reference_counted_ptr<PainterBrushShader> &shader);
+    register_shader(PainterBrushShader *shader);
+
+    /*!
+     * Registers each of the sub-shaders of a \ref PainterImageBrushShader.
+     */
+    void
+    register_shader(const PainterImageBrushShader *shader);
+
+    /*!
+     * Provided as a conveniance to allow registering shaders
+     * through reference counted pointers.
+     */
+    template<typename T>
+    void
+    register_shader(const reference_counted_ptr<T> &shader)
+    {
+      register_shader(shader.get());
+    }
 
     /*!
      * Register each \ref PainterItemShader in a \ref
