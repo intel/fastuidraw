@@ -209,23 +209,23 @@ namespace fastuidraw
      * \brief
      * Enumeration specifying what filter to apply to an image
      */
-    enum image_filter
+    enum filter_t
       {
         /*!
          * Indicates to use nearest filtering (i.e
          * choose closest pixel).
          */
-        image_filter_nearest = 0,
+        filter_nearest = 0,
 
         /*!
          * Indicates to use bilinear filtering.
          */
-        image_filter_linear,
+        filter_linear,
 
         /*!
          * Indicates to use bicubic filtering.
          */
-        image_filter_cubic
+        filter_cubic
       };
 
     /*!
@@ -258,7 +258,7 @@ namespace fastuidraw
          * is present. A value of 0 indicates no image applied,
          * a non-zero value indicates an image applied and
          * the value specifies what filter via the enumeration
-         * image_filter.
+         * \ref filter_t.
          */
         filter_num_bits = 2,
 
@@ -310,7 +310,33 @@ namespace fastuidraw
         /*!
          * the total number of sub-shaders
          */
-        number_sub_shaders = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(number_bits)
+        number_sub_shaders = 1u << number_bits
+      };
+
+    /*!
+     * Various bit-mask values derived from \ref sub_shader_bits
+     */
+    enum sub_shader_masks
+      {
+        /*!
+         * mask generated from \ref filter_bit0 and \ref filter_num_bits
+         */
+        filter_mask = FASTUIDRAW_MASK(filter_bit0, filter_num_bits),
+
+        /*!
+         * mask generated from \ref mipmap_bit0 and \ref mipmap_num_bits
+         */
+        mipmap_mask = FASTUIDRAW_MASK(mipmap_bit0, mipmap_num_bits),
+
+        /*!
+         * mask generated from \ref type_bit0 and \ref type_num_bits
+         */
+        type_mask = FASTUIDRAW_MASK(type_bit0, type_num_bits),
+
+        /*!
+         * mask generated from \ref format_bit0 and \ref format_num_bits
+         */
+        format_mask = FASTUIDRAW_MASK(format_bit0, format_num_bits),
       };
 
     /*!
@@ -337,7 +363,7 @@ namespace fastuidraw
      */
     const reference_counted_ptr<PainterBrushShader>&
     sub_shader(const Image *image,
-               enum image_filter image_filter,
+               enum filter_t image_filter,
                enum mipmap_t mip_mapping) const;
 
     /*!
@@ -360,7 +386,7 @@ namespace fastuidraw
     create_brush(PainterPackedValuePool &pool,
                  const reference_counted_ptr<const Image> &image,
                  uvec2 xy, uvec2 wh,
-                 enum image_filter image_filter = image_filter_linear,
+                 enum filter_t image_filter = filter_linear,
                  enum mipmap_t mip_mapping = apply_mipmapping) const;
 
     /*!
@@ -374,7 +400,7 @@ namespace fastuidraw
     PainterCustomBrush
     create_brush(PainterPackedValuePool &pool,
                  const reference_counted_ptr<const Image> &image,
-                 enum image_filter image_filter = image_filter_linear,
+                 enum filter_t image_filter = filter_linear,
                  enum mipmap_t mip_mapping = apply_mipmapping) const;
 
   private:

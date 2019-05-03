@@ -58,7 +58,7 @@ fastuidraw::PainterImageBrushShader::
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader>&
 fastuidraw::PainterImageBrushShader::
 sub_shader(const Image *image,
-           enum image_filter image_filter,
+           enum filter_t image_filter,
            enum mipmap_t mip_mapping) const
 {
   PainterImageBrushShaderPrivate *d;
@@ -94,7 +94,7 @@ fastuidraw::PainterImageBrushShader::
 create_brush(PainterPackedValuePool &pool,
              const reference_counted_ptr<const Image> &image,
              uvec2 xy, uvec2 wh,
-             enum image_filter image_filter,
+             enum filter_t image_filter,
              enum mipmap_t mip_mapping) const
 {
   PainterData::value<PainterBrushShaderData> packed_data;
@@ -109,7 +109,7 @@ fastuidraw::PainterCustomBrush
 fastuidraw::PainterImageBrushShader::
 create_brush(PainterPackedValuePool &pool,
              const reference_counted_ptr<const Image> &image,
-             enum image_filter image_filter,
+             enum filter_t image_filter,
              enum mipmap_t mip_mapping) const
 {
   PainterData::value<PainterBrushShaderData> packed_data;

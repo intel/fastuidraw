@@ -1,0 +1,58 @@
+/*!
+ * \file fastuidraw_painter_image_brush.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_image_brush.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+void
+fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in vec2 in_p)
+{
+  uint image_type;
+  FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image;
+
+  image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
+                                       fastuidraw_brush_image_filter_num_bits,
+                                       sub_shader);
+  FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(shader_data_offset, image_type, image);
+  fastuidraw_brush_image_size_x = float(image.image_size.x);
+  fastuidraw_brush_image_size_y = float(image.image_size.y);
+  #ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
+  if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
+    {
+      vec2 T;
+      fastuidraw_image_info_type image_info;
+
+      fastuidraw_compute_image_info(image.number_index_lookups, image_info);
+
+      T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_info.image_texel_size_on_master_index_tile;
+      fastuidraw_brush_image_x = T.x;
+      fastuidraw_brush_image_y = T.y;
+      fastuidraw_brush_image_layer = uint(image.master_index_tile_atlas_location_xyz.z);
+      fastuidraw_brush_image_texel_size_on_master_index_tile = image_info.image_texel_size_on_master_index_tile;
+      fastuidraw_brush_recip_image_texel_size_on_master_index_tile = image_info.recip_image_texel_size_on_master_index_tile;
+      fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
+    }
+  else
+  #endif
+    {
+      fastuidraw_brush_image_x = float(image.image_start.x);
+      fastuidraw_brush_image_y = float(image.image_start.y);
+      fastuidraw_brush_image_bindless_low_handle = image.bindless_handle_low;
+      fastuidraw_brush_image_bindless_high_handle = image.bindless_handle_hi;
+    }
+
+  fastuidraw_brush_p_x = in_p.x;
+  fastuidraw_brush_p_y = in_p.y;
+}
