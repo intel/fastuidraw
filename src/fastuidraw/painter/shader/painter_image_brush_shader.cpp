@@ -79,3 +79,126 @@ sub_shader(const Image *image,
     }
   return d->m_sub_shaders[sub_shader_id];
 }
+
+fastuidraw::c_array<const fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader> >
+fastuidraw::PainterImageBrushShader::
+sub_shaders(void) const
+{
+  PainterImageBrushShaderPrivate *d;
+  d = static_cast<PainterImageBrushShaderPrivate*>(m_d);
+  return d->m_sub_shaders;
+}
+
+////////////////////////////////////////////////
+// fastuidraw::PainterImageBrushShaderData methods
+fastuidraw::PainterImageBrushShaderData::
+PainterImageBrushShaderData(void)
+{
+  reference_counted_ptr<const Image> null_image;
+  image(null_image);
+}
+
+void
+fastuidraw::PainterImageBrushShaderData::
+pack_data(c_array<generic_data> dst) const
+{
+  std::copy(m_packed_data.begin(), m_packed_data.end(), dst.begin());
+}
+
+unsigned int
+fastuidraw::PainterImageBrushShaderData::
+data_size(void) const
+{
+  return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(shader_data_size);
+}
+
+void
+fastuidraw::PainterImageBrushShaderData::
+save_resources(c_array<reference_counted_ptr<const resource_base> > dst) const
+{
+  if (m_image)
+    {
+      dst[0] = m_image;
+    }
+}
+
+unsigned int
+fastuidraw::PainterImageBrushShaderData::
+number_resources(void) const
+{
+  return (m_image) ? 1 : 0;
+}
+
+fastuidraw::c_array<const fastuidraw::reference_counted_ptr<const fastuidraw::Image> >
+fastuidraw::PainterImageBrushShaderData::
+bind_images(void) const
+{
+  unsigned int sz;
+  const reference_counted_ptr<const Image> *im;
+  sz = (m_image && m_image->type() == Image::context_texture2d) ? 1 : 0;
+  im = (sz != 0) ? &m_image : nullptr;
+  return c_array<const reference_counted_ptr<const Image> >(im, sz);
+}
+
+void
+fastuidraw::PainterImageBrushShaderData::
+image(const reference_counted_ptr<const Image> &im)
+{
+  sub_image(im, uvec2(0, 0),
+            (im) ? uvec2(im->dimensions()) : uvec2(0, 0));
+}
+
+void
+fastuidraw::PainterImageBrushShaderData::
+sub_image(const reference_counted_ptr<const Image> &im,
+          uvec2 xy, uvec2 wh)
+{
+  generic_data zero;
+
+  zero.u = 0u;
+  std::fill(m_packed_data.begin(), m_packed_data.end(), zero);
+  m_image = im;
+
+  if (m_image)
+    {
+      m_packed_data[size_xy_offset].u =
+        pack_bits(size_x_bit0, size_x_num_bits, xy.x())
+        | pack_bits(size_y_bit0, size_y_num_bits, xy.y());
+
+      m_packed_data[start_xy_offset].u =
+        pack_bits(size_x_bit0, size_x_num_bits, wh.x())
+        | pack_bits(size_y_bit0, size_y_num_bits, wh.y());
+
+      switch (m_image->type())
+        {
+        case Image::on_atlas:
+          {
+            uvec3 loc(m_image->master_index_tile());
+            uint32_t lookups(m_image->number_index_lookups());
+
+            m_packed_data[atlas_location_xyz_offset].u =
+              pack_bits(atlas_location_x_bit0, atlas_location_x_num_bits, loc.x())
+              | pack_bits(atlas_location_y_bit0, atlas_location_y_num_bits, loc.y())
+              | pack_bits(atlas_location_z_bit0, atlas_location_z_num_bits, loc.z());
+            m_packed_data[number_lookups_offset].u = lookups;
+          }
+          break;
+
+        case Image::bindless_texture2d:
+          {
+            uint64_t v, hi, low;
+
+            v = m_image->bindless_handle();
+            hi = uint64_unpack_bits(32, 32, v);
+            low = uint64_unpack_bits(0, 32, v);
+            m_packed_data[bindless_handle_hi_offset].u = hi;
+            m_packed_data[bindless_handle_low_offset].u = low;
+          }
+          break;
+
+        default:
+          break;
+        }
+
+    }
+}
