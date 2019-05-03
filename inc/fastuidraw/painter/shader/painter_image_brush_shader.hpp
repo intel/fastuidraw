@@ -215,17 +215,17 @@ namespace fastuidraw
          * Indicates to use nearest filtering (i.e
          * choose closest pixel).
          */
-        filter_nearest = 0,
+        filter_nearest = 1,
 
         /*!
          * Indicates to use bilinear filtering.
          */
-        filter_linear,
+        filter_linear = 2,
 
         /*!
          * Indicates to use bicubic filtering.
          */
-        filter_cubic
+        filter_cubic = 3,
       };
 
     /*!
