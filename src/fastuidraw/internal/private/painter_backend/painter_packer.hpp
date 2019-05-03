@@ -404,7 +404,7 @@ namespace fastuidraw
 
     template<typename T>
     unsigned int
-    compute_room_needed_for_packing(const PainterData::value<T> &obj);
+    compute_room_needed_for_packing(const PainterDataValue<T> &obj);
 
     unsigned int
     compute_room_needed_for_packing(const detail::PackedValuePoolBase::ElementBase* d);

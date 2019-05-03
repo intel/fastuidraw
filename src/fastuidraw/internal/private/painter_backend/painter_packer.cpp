@@ -266,7 +266,7 @@ private:
   void
   pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
                   PainterPacker *p,
-                  const PainterData::value<T> &obj,
+                  const PainterDataValue<T> &obj,
                   uint32_t &location);
 
   unsigned int m_store_blocks_written;
@@ -319,7 +319,7 @@ void
 fastuidraw::PainterPacker::per_draw_command::
 pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
                 PainterPacker *p,
-                const PainterData::value<T> &obj,
+                const PainterDataValue<T> &obj,
                 uint32_t &location)
 {
   if (obj.m_packed_value)
@@ -569,7 +569,7 @@ start_new_command(void)
 template<typename T>
 unsigned int
 fastuidraw::PainterPacker::
-compute_room_needed_for_packing(const PainterData::value<T> &obj)
+compute_room_needed_for_packing(const PainterDataValue<T> &obj)
 {
   if (obj.m_packed_value)
     {

@@ -1763,27 +1763,27 @@ draw_scene(bool drawing_wire_frame)
         }
       else
         {
-          enum PainterBrush::image_filter f;
-          enum PainterBrush::mipmap_t mf;
+          enum PainterImageBrushShader::filter_t f;
+          enum PainterImageBrushShader::mipmap_t mf;
 
           switch(m_image_filter)
             {
             case image_nearest_filter:
-              f = PainterBrush::image_filter_nearest;
+              f = PainterImageBrushShader::filter_nearest;
               break;
             case image_linear_filter:
-              f = PainterBrush::image_filter_linear;
+              f = PainterImageBrushShader::filter_linear;
               break;
             case image_cubic_filter:
-              f = PainterBrush::image_filter_cubic;
+              f = PainterImageBrushShader::filter_cubic;
               break;
             default:
               FASTUIDRAWassert(!"Incorrect value for m_image_filter!");
-              f = PainterBrush::image_filter_nearest;
+              f = PainterImageBrushShader::filter_nearest;
             }
           mf = (m_apply_mipmapping) ?
-            PainterBrush::apply_mipmapping:
-            PainterBrush::dont_apply_mipmapping;
+            PainterImageBrushShader::apply_mipmapping:
+            PainterImageBrushShader::dont_apply_mipmapping;
           fill_brush.sub_image(m_image, m_image_offset, m_image_size, f, mf);
         }
 

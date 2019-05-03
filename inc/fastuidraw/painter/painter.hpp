@@ -620,7 +620,7 @@ namespace fastuidraw
      */
     void
     clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
-                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    const PainterDataValue<PainterItemShaderData> &shader_data,
                     c_array<const c_array<const PainterAttribute> > attrib_chunks,
                     c_array<const c_array<const PainterIndex> > index_chunks,
                     c_array<const int> index_adjusts,
@@ -638,7 +638,7 @@ namespace fastuidraw
      */
     void
     clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
-                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    const PainterDataValue<PainterItemShaderData> &shader_data,
                     c_array<const c_array<const PainterAttribute> > attrib_chunks,
                     c_array<const c_array<const PainterIndex> > index_chunks,
                     c_array<const int> index_adjusts)
@@ -658,7 +658,7 @@ namespace fastuidraw
      */
     void
     clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
-                    const PainterData::value<PainterItemShaderData> &shader_data,
+                    const PainterDataValue<PainterItemShaderData> &shader_data,
                     c_array<const PainterAttribute> attrib_chunk,
                     c_array<const PainterIndex> index_chunk,
                     int index_adjust = 0)

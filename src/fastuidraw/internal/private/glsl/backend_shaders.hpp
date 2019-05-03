@@ -153,7 +153,10 @@ private:
   PainterFillShader
   create_fill_shader(void);
 
-  reference_counted_ptr<const PainterImageBrushShader>
+  reference_counted_ptr<PainterBrushShaderGLSL>
+  create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image_brush);
+
+  reference_counted_ptr<PainterBrushShaderGLSL>
   create_image_brush_shader(void);
 
   PainterBrushShaderSet
@@ -161,7 +164,6 @@ private:
 
   ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;
-  ShaderSource m_image_brush_utils;
 };
 
 }}}

@@ -23,7 +23,7 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
   FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image;
 
   image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
-                                       fastuidraw_brush_image_filter_num_bits,
+                                       fastuidraw_brush_image_type_num_bits,
                                        sub_shader);
   FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(shader_data_offset, image_type, image);
   fastuidraw_brush_image_size_x = float(image.image_size.x);
@@ -53,6 +53,6 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
       fastuidraw_brush_image_bindless_high_handle = image.bindless_handle_hi;
     }
 
-  fastuidraw_brush_p_x = in_p.x;
-  fastuidraw_brush_p_y = in_p.y;
+  fastuidraw_image_brush_p_x = in_p.x;
+  fastuidraw_image_brush_p_y = in_p.y;
 }

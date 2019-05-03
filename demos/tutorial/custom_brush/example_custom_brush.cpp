@@ -143,7 +143,7 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
   deps.add_shader("standard_brush", strandard_brush.static_cast_ptr<PainterBrushShaderGLSL>());
 
   /* The vertex shader of our custom brush, the main point of interest
-   * is that it calls the vertext shader of the default brush by calling
+   * is that it calls the vertex shader of the default brush by calling
    * standard_brush(). Note that we pass 0 as the sub_shader to the
    * standard brush and that we pass shader_data_offset + 1 as the
    * shader data offset. The "+1" is there because the PainterBrush
@@ -157,7 +157,7 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
     "                              in uint shader_data_offset,\n"
     "                              in vec2 brush_p)\n"
     "{\n"
-    "  standard_brush(0, shader_data_offset + 1, brush_p);\n"
+    "  standard_brush(0, shader_data_offset + 1u, brush_p);\n"
     "}\n";
 
   /* The fragment shader of our custom brush. It first unpacks

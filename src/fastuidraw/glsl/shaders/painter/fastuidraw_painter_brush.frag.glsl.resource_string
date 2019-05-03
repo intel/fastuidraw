@@ -81,110 +81,6 @@ FASTUIDRAW_LOCAL(brush_compute_interpolate)(in vec2 p, in uint gradient_type, ou
   return t;
 }
 
-#ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
-
-vec4
-FASTUIDRAW_LOCAL(brush_image_of_atlas)(in vec2 q, in uint image_filter, in float lod)
-{
-  vec2 image_xy;
-  fastuidraw_image_extended_info_type image_info;
-  vec4 image_color;
-
-  image_info.base.num_levels = fastuidraw_brush_image_number_index_lookups;
-  image_info.base.image_texel_size_on_master_index_tile = fastuidraw_brush_image_texel_size_on_master_index_tile;
-  image_info.base.recip_image_texel_size_on_master_index_tile = fastuidraw_brush_recip_image_texel_size_on_master_index_tile;
-  image_info.image_size = vec2(fastuidraw_brush_image_size_x, fastuidraw_brush_image_size_y);
-  image_info.master_index_tile_bottom_left = vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
-  image_info.master_index_tile_layer = fastuidraw_brush_image_layer;
-
-  /* clamp lod away from FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_LOG2_SIZE */
-  lod = min(lod, float(FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_LOG2_SIZE) - 0.5);
-
-  if (image_filter == uint(fastuidraw_brush_image_filter_nearest))
-    {
-      lod = ceil(lod);
-      image_color = fastuidraw_nearest_filter_atlas_image(q, image_info, lod);
-    }
-  else if (image_filter == uint(fastuidraw_brush_image_filter_linear) || lod > 0.5)
-    {
-      lod = round(lod);
-      image_color = fastuidraw_linear_filter_atlas_image(q, image_info, int(lod));
-    }
-  else
-    {
-      image_color = fastuidraw_cubic_filter_atlas_image(q, image_info);
-    }
-
-  return image_color;
-}
-
-#else
-
-vec4
-FASTUIDRAW_LOCAL(brush_image_of_atlas)(in vec2 q, in uint image_filter, in float lod)
-{
-  return vec4(1.0, 1.0, 1.0, 1.0);
-}
-
-#endif
-
-vec4
-FASTUIDRAW_LOCAL(brush_image_of_texture)(in sampler2D surface, in vec2 texel_coord, in uint image_filter, in float lod)
-{
-  vec4 image_color;
-
-  texel_coord += vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
-  if (image_filter == uint(fastuidraw_brush_image_filter_nearest))
-    {
-      image_color = fastuidraw_nearest_filter_texture(surface, texel_coord, lod);
-    }
-  else if (image_filter == uint(fastuidraw_brush_image_filter_linear) || lod > 0.5)
-    {
-      image_color = fastuidraw_linear_filter_texture(surface, texel_coord, lod);
-    }
-  else
-    {
-      image_color = fastuidraw_cubic_filter_texture(surface, texel_coord);
-    }
-
-  return image_color;
-}
-
-vec4
-FASTUIDRAW_LOCAL(brush_image_of_context_texture)(in vec2 texel_coord, in uint image_filter, in float lod)
-{
-  return FASTUIDRAW_LOCAL(brush_image_of_texture)(fastuidraw_brush_context_texture(0), texel_coord, image_filter, lod);
-}
-
-#if defined(FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE)
-
-vec4
-FASTUIDRAW_LOCAL(brush_image_of_bindless)(in vec2 texel_coord, in uint image_filter, in float lod)
-{
-  #if defined(FASTUIDRAW_BINDLESS_HANDLE_UVEC2)
-    uvec2 handle;
-    handle.x = fastuidraw_brush_image_bindless_low_handle;
-    handle.y = fastuidraw_brush_image_bindless_high_handle;
-  #else
-    uint64_t handle;
-    handle = uint64_t(fastuidraw_brush_image_bindless_high_handle) << uint64_t(32u);
-    handle |= uint64_t(fastuidraw_brush_image_bindless_low_handle);
-  #endif
-
-  sampler2D im = sampler2D(handle);
-  return FASTUIDRAW_LOCAL(brush_image_of_texture)(im, texel_coord, image_filter, lod);
-}
-
-#else
-
-vec4
-FASTUIDRAW_LOCAL(brush_image_of_bindless)(in vec2 p, in uint image_filter, in float lod)
-{
-  return vec4(1.0, 1.0, 1.0, 1.0);
-}
-
-#endif
-
 vec4
 fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
 {
@@ -222,6 +118,9 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
       p.x = FASTUIDRAW_LOCAL(brush_apply_spread)(p.x, fastuidraw_brush_repeat_window_w, x_spread);
       p.y = FASTUIDRAW_LOCAL(brush_apply_spread)(p.y, fastuidraw_brush_repeat_window_h, y_spread);
       p += vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
+
+      fastuidraw_brush_p_x = p.x;
+      fastuidraw_brush_p_y = p.y;
     }
 
   gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
@@ -268,64 +167,19 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
   return_value.rgb *= return_value.a;
   if ((fastuidraw_brush_features & uint(fastuidraw_brush_image_mask)) != 0u)
     {
-      uint image_filter, image_type, mipmap_max_level;
-      vec2 q;
-      float lod;
-      vec4 image_color;
+      uint image_sub_shader;
 
-      /* Clamp the image coordinate to the dimensions of the image;
-       * Should we allow for repeat modes as well?
-       */
-      q.x = clamp(p.x, 0.0, float(fastuidraw_brush_image_size_x) - 1.0);
-      q.y = clamp(p.y, 0.0, float(fastuidraw_brush_image_size_y) - 1.0);
-      image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
-                                           fastuidraw_brush_image_filter_num_bits,
-                                           fastuidraw_brush_features);
-
-      image_filter = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_filter_bit0,
-                                             fastuidraw_brush_image_filter_num_bits,
-                                             fastuidraw_brush_features);
-
-      mipmap_max_level = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_mipmap_bit0,
-                                                 fastuidraw_brush_image_mipmap_num_bits,
+      image_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_bit0,
+                                                 fastuidraw_brush_image_num_bits,
                                                  fastuidraw_brush_features);
 
-      if (mipmap_max_level > 0u)
-        {
-          float rho;
-          rho = (dot(dpdx, dpdx) + dot(dpdy, dpdy)) * 0.5;
-          lod = 0.5 * log2(max(1.0, rho));
-          lod = min(float(mipmap_max_level), lod);
-        }
-      else
-        {
-          lod = 0.0;
-        }
-
-      if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
-        {
-          image_color = FASTUIDRAW_LOCAL(brush_image_of_atlas)(q, image_filter, lod);
-        }
-      else if (image_type == uint(fastuidraw_brush_image_type_bindless_texture2d))
-        {
-          image_color = FASTUIDRAW_LOCAL(brush_image_of_bindless)(q, image_filter, lod);
-        }
-      else
-        {
-          image_color = FASTUIDRAW_LOCAL(brush_image_of_context_texture)(q, image_filter, lod);
-        }
-
-      /* BEWARE: we are just testing if the format bits are non-zero;
-       * We get away with this for now because there are only two
-       * image-formats: rgba and premultiplied_rgba with a non-zero
-       * value indicateing that the rgb components are pre-multiplied.
+      /* Strictly speaking, using the value as shader_data_offset
+       * is incorrect because the image-brush data did not actually
+       * start at shader_data_offset; however we know that the
+       * GLSL implementation of the image-brush does not read the
+       * shader data, so we are in the clear.
        */
-      if ((fastuidraw_brush_features & fastuidraw_brush_image_format_mask) == 0u)
-        {
-          image_color.rgb *= image_color.a;
-        }
-
-      return_value *= image_color;
+      return_value *= image_brush(image_sub_shader, shader_data_offset);
     }
 
   return return_value;

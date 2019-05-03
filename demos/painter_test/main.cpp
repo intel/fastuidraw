@@ -6,6 +6,8 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/painter/backend/painter_header.hpp>
+#include <fastuidraw/painter/backend/painter_item_matrix.hpp>
+#include <fastuidraw/painter/backend/painter_clip_equations.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
 
@@ -274,7 +276,7 @@ main(int argc, char **argv)
   std::cout << std::setw(45) << "header_size = " << PainterHeader::header_size << "\n"
             << std::setw(45) << "clip_equations_data_size = " << PainterClipEquations::clip_data_size << "\n"
             << std::setw(45) << "item_matrix_data_size = " << PainterItemMatrix::matrix_data_size << "\n"
-            << std::setw(45) << "brush image_data_size = " << PainterBrush::image_data_size << "\n"
+            << std::setw(45) << "brush image_data_size = " << PainterImageBrushShaderData::shader_data_size << "\n"
             << std::setw(45) << "brush linear_gradient_data_size = " << PainterBrush::linear_gradient_data_size << "\n"
             << std::setw(45) << "brush radial_gradient_data_size = " << PainterBrush::radial_gradient_data_size << "\n"
             << std::setw(45) << "brush repeat_window_data_size = " << PainterBrush::repeat_window_data_size << "\n"
@@ -283,7 +285,7 @@ main(int argc, char **argv)
             << "\n"
 
             << std::setw(45) << "brush image_mask = " << bitset(PainterBrush::image_mask) << "\n"
-            << std::setw(45) << "brush image_mipmap_mask = " << bitset(PainterBrush::image_mipmap_mask) << "\n"
+            << std::setw(45) << "brush image_mipmap_mask = " << bitset(PainterImageBrushShader::mipmap_mask << PainterBrush::image_bit0) << "\n"
             << std::setw(45) << "brush gradient_type_mask = " << bitset(PainterBrush::gradient_type_mask) << "\n"
             << std::setw(45) << "brush gradient_spread_type_mask = " << bitset(PainterBrush::gradient_spread_type_mask) << "\n"
             << std::setw(45) << "brush repeat_window_mask = " << bitset(PainterBrush::repeat_window_mask) << "\n"
@@ -291,8 +293,8 @@ main(int argc, char **argv)
             << std::setw(45) << "brush repeat_window_y_spread_type_mask = " << bitset(PainterBrush::repeat_window_y_spread_type_mask) << "\n"
             << std::setw(45) << "brush transformation_translation_mask = " << bitset(PainterBrush::transformation_translation_mask) << "\n"
             << std::setw(45) << "brush transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
-            << std::setw(45) << "brush image_type_mask = " << bitset(PainterBrush::image_type_mask) << "\n"
-            << std::setw(45) << "brush image_format_mask = " << bitset(PainterBrush::image_format_mask) << "\n"
+            << std::setw(45) << "brush image_type_mask = " << bitset(PainterImageBrushShader::type_mask << PainterBrush::image_bit0) << "\n"
+            << std::setw(45) << "brush image_format_mask = " << bitset(PainterImageBrushShader::format_mask << PainterBrush::image_bit0) << "\n"
             << std::setw(45) << "brush number_feature_bits = " << PainterBrush::number_feature_bits << "\n"
 
             << std::setw(45) << "stroked_number_offset_types = " << StrokedPoint::number_offset_types << "\n"

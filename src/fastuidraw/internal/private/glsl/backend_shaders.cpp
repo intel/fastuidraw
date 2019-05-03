@@ -582,34 +582,6 @@ ShaderSetCreator(enum PainterBlendShader::shader_type preferred_blending_type,
     .add_macro("FASTUIDRAW_GLYPH_RECT_HEIGHT_BIT0", uint32_t(GlyphAttribute::rect_height_bit0))
     .add_macro("FASTUIDRAW_GLYPH_RECT_X_BIT0", uint32_t(GlyphAttribute::rect_x_bit0))
     .add_macro("FASTUIDRAW_GLYPH_RECT_Y_BIT0", uint32_t(GlyphAttribute::rect_y_bit0));
-
-  ShaderSource unpack_image_brush_code;
-  ShaderSource::MacroSet image_brush_macros;
-
-  UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw)")
-    .set_uint(PainterBrush::image_atlas_location_xyz_offset, ".image_atlas_location_xyz")
-    .set_uint(PainterBrush::image_size_xy_offset, ".image_size_xy")
-    .set_uint(PainterBrush::image_start_xy_offset, ".image_start_xy")
-    .set_uint(PainterBrush::image_number_lookups_offset, ".image_number_lookups")
-    .stream_unpack_function(unpack_image_brush_code, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)");
-
-  image_brush_macros
-    .add_macro_u32("fastuidraw_brush_image_master_index_x_bit0",     PainterBrush::image_atlas_location_x_bit0)
-    .add_macro_u32("fastuidraw_brush_image_master_index_x_num_bits", PainterBrush::image_atlas_location_x_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_master_index_y_bit0",     PainterBrush::image_atlas_location_y_bit0)
-    .add_macro_u32("fastuidraw_brush_image_master_index_y_num_bits", PainterBrush::image_atlas_location_y_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_master_index_z_bit0",     PainterBrush::image_atlas_location_z_bit0)
-    .add_macro_u32("fastuidraw_brush_image_master_index_z_num_bits", PainterBrush::image_atlas_location_z_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_size_x_bit0",     PainterBrush::image_size_x_bit0)
-    .add_macro_u32("fastuidraw_brush_image_size_x_num_bits", PainterBrush::image_size_x_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_size_y_bit0",     PainterBrush::image_size_y_bit0)
-    .add_macro_u32("fastuidraw_brush_image_size_y_num_bits", PainterBrush::image_size_y_num_bits);
-
-  m_image_brush_utils
-    .add_macros(image_brush_macros)
-    .add_source("fastuidraw_image_brush_utils.glsl.resource_string", ShaderSource::from_resource)
-    .add_source(unpack_image_brush_code)
-    .remove_macros(image_brush_macros);
 }
 
 reference_counted_ptr<PainterItemShader>
@@ -811,20 +783,95 @@ create_fill_shader(void)
   return fill_shader;
 }
 
-PainterBrushShaderSet
+reference_counted_ptr<PainterBrushShaderGLSL>
 ShaderSetCreator::
-create_brush_shaders(void)
+create_image_brush_shader(void)
 {
-  PainterBrushShaderSet return_value;
+  varying_list varyings;
+  ShaderSource::MacroSet macros;
+  ShaderSource unpack_code;
+
+  varyings
+    .add_float("fastuidraw_image_brush_p_x")
+    .add_float("fastuidraw_image_brush_p_y")
+    .add_float_flat("fastuidraw_brush_image_x")
+    .add_float_flat("fastuidraw_brush_image_y")
+    .add_float_flat("fastuidraw_brush_image_size_x")
+    .add_float_flat("fastuidraw_brush_image_size_y")
+    .add_float_flat("fastuidraw_brush_image_texel_size_on_master_index_tile")
+    .add_float_flat("fastuidraw_brush_recip_image_texel_size_on_master_index_tile")
+    .add_uint("fastuidraw_brush_image_layer")
+    .add_uint("fastuidraw_brush_image_number_index_lookups")
+    .add_varying_alias("fastuidraw_brush_image_bindless_low_handle", "fastuidraw_brush_image_layer")
+    .add_varying_alias("fastuidraw_brush_image_bindless_high_handle", "fastuidraw_brush_image_number_index_lookups");
+
+  macros
+    .add_macro_u32("fastuidraw_brush_image_master_index_x_bit0",     PainterImageBrushShaderData::atlas_location_x_bit0)
+    .add_macro_u32("fastuidraw_brush_image_master_index_x_num_bits", PainterImageBrushShaderData::atlas_location_x_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_master_index_y_bit0",     PainterImageBrushShaderData::atlas_location_y_bit0)
+    .add_macro_u32("fastuidraw_brush_image_master_index_y_num_bits", PainterImageBrushShaderData::atlas_location_y_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_master_index_z_bit0",     PainterImageBrushShaderData::atlas_location_z_bit0)
+    .add_macro_u32("fastuidraw_brush_image_master_index_z_num_bits", PainterImageBrushShaderData::atlas_location_z_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_uvec2_x_bit0",     PainterImageBrushShaderData::uvec2_x_bit0)
+    .add_macro_u32("fastuidraw_brush_image_uvec2_x_num_bits", PainterImageBrushShaderData::uvec2_x_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_uvec2_y_bit0",     PainterImageBrushShaderData::uvec2_y_bit0)
+    .add_macro_u32("fastuidraw_brush_image_uvec2_y_num_bits", PainterImageBrushShaderData::uvec2_y_num_bits)
+
+    .add_macro_u32("fastuidraw_brush_image_filter_mask", PainterImageBrushShader::filter_mask)
+    .add_macro_u32("fastuidraw_brush_image_filter_bit0", PainterImageBrushShader::filter_bit0)
+    .add_macro_u32("fastuidraw_brush_image_filter_num_bits", PainterImageBrushShader::filter_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_filter_nearest", PainterImageBrushShader::filter_nearest)
+    .add_macro_u32("fastuidraw_brush_image_filter_linear", PainterImageBrushShader::filter_linear)
+    .add_macro_u32("fastuidraw_brush_image_filter_cubic", PainterImageBrushShader::filter_cubic)
+
+    .add_macro_u32("fastuidraw_brush_image_type_mask", PainterImageBrushShader::type_mask)
+    .add_macro_u32("fastuidraw_brush_image_type_bit0", PainterImageBrushShader::type_bit0)
+    .add_macro_u32("fastuidraw_brush_image_type_num_bits", PainterImageBrushShader::type_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_type_on_atlas", Image::on_atlas)
+    .add_macro_u32("fastuidraw_brush_image_type_bindless_texture2d", Image::bindless_texture2d)
+    .add_macro_u32("fastuidraw_brush_image_type_context_texture2d", Image::context_texture2d)
+
+    .add_macro_u32("fastuidraw_brush_image_format_mask", PainterImageBrushShader::format_mask)
+    .add_macro_u32("fastuidraw_brush_image_format_bit0", PainterImageBrushShader::format_bit0)
+    .add_macro_u32("fastuidraw_brush_image_format_num_bits", PainterImageBrushShader::format_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_format_rgba", Image::rgba_format)
+    .add_macro_u32("fastuidraw_brush_image_format_premultipied_rgba", Image::premultipied_rgba_format)
+
+    .add_macro_u32("fastuidraw_brush_image_mipmap_mask", PainterImageBrushShader::mipmap_mask)
+    .add_macro_u32("fastuidraw_brush_image_mipmap_bit0", PainterImageBrushShader::mipmap_bit0)
+    .add_macro_u32("fastuidraw_brush_image_mipmap_num_bits", PainterImageBrushShader::mipmap_num_bits);
+
+  UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw)")
+    .set_uint(PainterImageBrushShaderData::atlas_location_xyz_offset, ".image_atlas_location_xyz")
+    .set_uint(PainterImageBrushShaderData::size_xy_offset, ".image_size_xy")
+    .set_uint(PainterImageBrushShaderData::start_xy_offset, ".image_start_xy")
+    .set_uint(PainterImageBrushShaderData::number_lookups_offset, ".image_number_lookups")
+    .stream_unpack_function(unpack_code, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)");
+
+  return FASTUIDRAWnew PainterBrushShaderGLSL(1, /* for the single image */
+                                              ShaderSource()
+                                              .add_macros(macros)
+                                              .add_source("fastuidraw_image_brush_utils.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source(unpack_code)
+                                              .add_source("fastuidraw_painter_image_brush.vert.glsl.resource_string", ShaderSource::from_resource)
+                                              .remove_macros(macros),
+                                              ShaderSource()
+                                              .add_macros(macros)
+                                              .add_source("fastuidraw_painter_image_brush.frag.glsl.resource_string", ShaderSource::from_resource)
+                                              .remove_macros(macros),
+                                              varyings,
+                                              PainterImageBrushShader::number_sub_shaders);
+}
+
+reference_counted_ptr<PainterBrushShaderGLSL>
+ShaderSetCreator::
+create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image_brush)
+{
   reference_counted_ptr<PainterBrushShader> br;
   ShaderSource::MacroSet brush_macros;
   varying_list brush_varyings;
   ShaderSource str;
 
-  /* TODO: localize all these functions with FASTUIDRAW_LOCAL
-   * and localize the routines in the .glsl.resource_string
-   * files as well.
-   */
   UnpackSourceGenerator("mat2")
     .set_float(PainterBrush::transformation_matrix_col0_row0_offset, "[0][0]")
     .set_float(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
@@ -883,14 +930,6 @@ create_brush_shaders(void)
     .add_float_flat("fastuidraw_brush_gradient_p1_y")
     .add_float_flat("fastuidraw_brush_gradient_r0")
     .add_float_flat("fastuidraw_brush_gradient_r1")
-    .add_float_flat("fastuidraw_brush_image_x")
-    .add_float_flat("fastuidraw_brush_image_y")
-    .add_float_flat("fastuidraw_brush_image_size_x")
-    .add_float_flat("fastuidraw_brush_image_size_y")
-    .add_float_flat("fastuidraw_brush_image_texel_size_on_master_index_tile")
-    .add_float_flat("fastuidraw_brush_recip_image_texel_size_on_master_index_tile")
-    .add_uint("fastuidraw_brush_image_layer")
-    .add_uint("fastuidraw_brush_image_number_index_lookups")
     .add_float_flat("fastuidraw_brush_color_stop_x")
     .add_float_flat("fastuidraw_brush_color_stop_y")
     .add_float_flat("fastuidraw_brush_color_stop_length")
@@ -899,37 +938,17 @@ create_brush_shaders(void)
     .add_float_flat("fastuidraw_brush_color_z")
     .add_float_flat("fastuidraw_brush_color_w")
     .add_uint("fastuidraw_brush_features")
-    .add_varying_alias("fastuidraw_brush_image_bindless_low_handle", "fastuidraw_brush_image_layer")
-    .add_varying_alias("fastuidraw_brush_image_bindless_high_handle", "fastuidraw_brush_image_number_index_lookups")
     .add_varying_alias("fastuidraw_brush_gradient_sweep_point_x", "fastuidraw_brush_gradient_p0_x")
     .add_varying_alias("fastuidraw_brush_gradient_sweep_point_y", "fastuidraw_brush_gradient_p0_y")
     .add_varying_alias("fastuidraw_brush_gradient_sweep_angle", "fastuidraw_brush_gradient_p1_x")
-    .add_varying_alias("fastuidraw_brush_gradient_sweep_sign_factor", "fastuidraw_brush_gradient_p1_y");
+    .add_varying_alias("fastuidraw_brush_gradient_sweep_sign_factor", "fastuidraw_brush_gradient_p1_y")
+    .add_varying_alias("image_brush_fastuidraw_image_brush_p_x", "fastuidraw_brush_p_x")
+    .add_varying_alias("image_brush_fastuidraw_image_brush_p_y", "fastuidraw_brush_p_y");
 
   brush_macros
     .add_macro_u32("fastuidraw_brush_image_mask", PainterBrush::image_mask)
-    .add_macro_u32("fastuidraw_brush_image_filter_bit0", PainterBrush::image_filter_bit0)
-    .add_macro_u32("fastuidraw_brush_image_filter_num_bits", PainterBrush::image_filter_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_filter_nearest", PainterBrush::image_filter_nearest)
-    .add_macro_u32("fastuidraw_brush_image_filter_linear", PainterBrush::image_filter_linear)
-    .add_macro_u32("fastuidraw_brush_image_filter_cubic", PainterBrush::image_filter_cubic)
-
-    .add_macro_u32("fastuidraw_brush_image_type_mask", PainterBrush::image_type_mask)
-    .add_macro_u32("fastuidraw_brush_image_type_bit0", PainterBrush::image_type_bit0)
-    .add_macro_u32("fastuidraw_brush_image_type_num_bits", PainterBrush::image_type_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_type_on_atlas", Image::on_atlas)
-    .add_macro_u32("fastuidraw_brush_image_type_bindless_texture2d", Image::bindless_texture2d)
-    .add_macro_u32("fastuidraw_brush_image_type_context_texture2d", Image::context_texture2d)
-
-    .add_macro_u32("fastuidraw_brush_image_format_mask", PainterBrush::image_format_mask)
-    .add_macro_u32("fastuidraw_brush_image_format_bit0", PainterBrush::image_format_bit0)
-    .add_macro_u32("fastuidraw_brush_image_format_num_bits", PainterBrush::image_format_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_format_rgba", Image::rgba_format)
-    .add_macro_u32("fastuidraw_brush_image_format_premultipied_rgba", Image::premultipied_rgba_format)
-
-    .add_macro_u32("fastuidraw_brush_image_mipmap_mask", PainterBrush::image_mipmap_mask)
-    .add_macro_u32("fastuidraw_brush_image_mipmap_bit0", PainterBrush::image_mipmap_bit0)
-    .add_macro_u32("fastuidraw_brush_image_mipmap_num_bits", PainterBrush::image_mipmap_num_bits)
+    .add_macro_u32("fastuidraw_brush_image_bit0", PainterBrush::image_bit0)
+    .add_macro_u32("fastuidraw_brush_image_num_bits", PainterBrush::image_num_bits)
 
     .add_macro_u32("fastuidraw_brush_gradient_type_bit0", PainterBrush::gradient_type_bit0)
     .add_macro_u32("fastuidraw_brush_gradient_type_num_bits", PainterBrush::gradient_type_num_bits)
@@ -957,86 +976,36 @@ create_brush_shaders(void)
     .add_macro_u32("fastuidraw_brush_colorstop_y_bit0",     PainterBrush::gradient_color_stop_y_bit0)
     .add_macro_u32("fastuidraw_brush_colorstop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits);
 
-  br = FASTUIDRAWnew PainterBrushShaderGLSL(1,
-                                            ShaderSource()
-                                            .add_macros(brush_macros)
-                                            .add_source(m_image_brush_utils)
-                                            .add_source("fastuidraw_brush_utils.glsl.resource_string", ShaderSource::from_resource)
-                                            .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", ShaderSource::from_resource)
-                                            .add_source(str)
-                                            .remove_macros(brush_macros),
-                                            ShaderSource()
-                                            .add_macros(brush_macros)
-                                            .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
-                                            .remove_macros(brush_macros),
-                                            brush_varyings);
-
-  return_value
-    .standard_brush(br)
-    .image_brush(create_image_brush_shader());
-  return return_value;
+  return FASTUIDRAWnew PainterBrushShaderGLSL(0,
+                                              ShaderSource()
+                                              .add_macros(brush_macros)
+                                              .add_source("fastuidraw_brush_utils.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source(str)
+                                              .remove_macros(brush_macros),
+                                              ShaderSource()
+                                              .add_macros(brush_macros)
+                                              .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
+                                              .remove_macros(brush_macros),
+                                              brush_varyings,
+                                              PainterBrushShaderGLSL::DependencyList()
+                                              .add_shader("image_brush", image_brush));
 }
 
-reference_counted_ptr<const PainterImageBrushShader>
+PainterBrushShaderSet
 ShaderSetCreator::
-create_image_brush_shader(void)
+create_brush_shaders(void)
 {
-  reference_counted_ptr<PainterBrushShader> shader;
-  varying_list varyings;
-  ShaderSource::MacroSet macros;
+  PainterBrushShaderSet return_value;
+  reference_counted_ptr<PainterBrushShaderGLSL> image_shader, brush_shader;
 
-  varyings
-    .add_float("fastuidraw_brush_p_x")
-    .add_float("fastuidraw_brush_p_y")
-    .add_float_flat("fastuidraw_brush_image_x")
-    .add_float_flat("fastuidraw_brush_image_y")
-    .add_float_flat("fastuidraw_brush_image_size_x")
-    .add_float_flat("fastuidraw_brush_image_size_y")
-    .add_float_flat("fastuidraw_brush_image_texel_size_on_master_index_tile")
-    .add_float_flat("fastuidraw_brush_recip_image_texel_size_on_master_index_tile")
-    .add_uint("fastuidraw_brush_image_layer")
-    .add_uint("fastuidraw_brush_image_number_index_lookups")
-    .add_varying_alias("fastuidraw_brush_image_bindless_low_handle", "fastuidraw_brush_image_layer")
-    .add_varying_alias("fastuidraw_brush_image_bindless_high_handle", "fastuidraw_brush_image_number_index_lookups");
+  image_shader = create_image_brush_shader();
+  brush_shader = create_standard_brush_shader(image_shader);
 
-  macros
-    .add_macro_u32("fastuidraw_brush_image_filter_bit0", PainterImageBrushShader::filter_bit0)
-    .add_macro_u32("fastuidraw_brush_image_filter_num_bits", PainterImageBrushShader::filter_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_filter_nearest", PainterImageBrushShader::filter_nearest)
-    .add_macro_u32("fastuidraw_brush_image_filter_linear", PainterImageBrushShader::filter_linear)
-    .add_macro_u32("fastuidraw_brush_image_filter_cubic", PainterImageBrushShader::filter_cubic)
-
-    .add_macro_u32("fastuidraw_brush_image_type_mask", PainterImageBrushShader::type_mask)
-    .add_macro_u32("fastuidraw_brush_image_type_bit0", PainterImageBrushShader::type_bit0)
-    .add_macro_u32("fastuidraw_brush_image_type_num_bits", PainterImageBrushShader::type_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_type_on_atlas", Image::on_atlas)
-    .add_macro_u32("fastuidraw_brush_image_type_bindless_texture2d", Image::bindless_texture2d)
-    .add_macro_u32("fastuidraw_brush_image_type_context_texture2d", Image::context_texture2d)
-
-    .add_macro_u32("fastuidraw_brush_image_format_mask", PainterImageBrushShader::format_mask)
-    .add_macro_u32("fastuidraw_brush_image_format_bit0", PainterImageBrushShader::format_bit0)
-    .add_macro_u32("fastuidraw_brush_image_format_num_bits", PainterImageBrushShader::format_num_bits)
-    .add_macro_u32("fastuidraw_brush_image_format_rgba", Image::rgba_format)
-    .add_macro_u32("fastuidraw_brush_image_format_premultipied_rgba", Image::premultipied_rgba_format)
-
-    .add_macro_u32("fastuidraw_brush_image_mipmap_mask", PainterImageBrushShader::mipmap_mask)
-    .add_macro_u32("fastuidraw_brush_image_mipmap_bit0", PainterImageBrushShader::mipmap_bit0)
-    .add_macro_u32("fastuidraw_brush_image_mipmap_num_bits", PainterImageBrushShader::mipmap_num_bits);
-
-  shader = FASTUIDRAWnew PainterBrushShaderGLSL(1, /* for the single image */
-                                                ShaderSource()
-                                                .add_macros(macros)
-                                                .add_source(m_image_brush_utils)
-                                                .add_source("fastuidraw_painter_image_brush.vert.glsl.resource_string", ShaderSource::from_resource)
-                                                .remove_macros(macros),
-                                                ShaderSource()
-                                                .add_macros(macros)
-                                                .add_source("fastuidraw_painter_image_brush.frag.glsl.resource_string", ShaderSource::from_resource)
-                                                .remove_macros(macros),
-                                                varyings,
-                                                PainterImageBrushShader::number_sub_shaders);
-
-  return FASTUIDRAWnew PainterImageBrushShader(shader);
+  return_value
+    .standard_brush(brush_shader)
+    .image_brush(FASTUIDRAWnew PainterImageBrushShader(image_shader));
+  return return_value;
 }
 
 PainterShaderSet

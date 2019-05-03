@@ -22,6 +22,9 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/painter/backend/painter_surface.hpp>
+#include <fastuidraw/painter/backend/painter_clip_equations.hpp>
+#include <fastuidraw/painter/backend/painter_item_matrix.hpp>
+#include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
 #include <private/util_private.hpp>
 
 namespace fastuidraw

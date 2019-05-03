@@ -30,6 +30,7 @@
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
 #include <fastuidraw/painter/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/shader/painter_image_brush_shader.hpp>
 
 namespace fastuidraw
 {
@@ -65,29 +66,6 @@ namespace fastuidraw
   class PainterBrush:public PainterBrushShaderData
   {
   public:
-    /*!
-     * \brief
-     * Enumeration specifying what filter to apply to an image
-     */
-    enum image_filter
-      {
-        /*!
-         * Indicates to use nearest filtering (i.e
-         * choose closest pixel).
-         */
-        image_filter_nearest = 1,
-
-        /*!
-         * Indicates to use bilinear filtering.
-         */
-        image_filter_linear = 2,
-
-        /*!
-         * Indicates to use bicubic filtering.
-         */
-        image_filter_cubic = 3
-      };
-
     /*!
      * \brief
      * Enumeration to specify what kind of gradient is applied
@@ -185,22 +163,6 @@ namespace fastuidraw
       };
 
     /*!
-     * enumeration to specify mipmapping on an image
-     */
-    enum mipmap_t
-      {
-        /*!
-         * Indicates to apply mipmap filtering
-         */
-        apply_mipmapping,
-
-        /*!
-         * Indicates to not apply mipmap filtering
-         */
-        dont_apply_mipmapping
-      };
-
-    /*!
      * \brief
      * Enumeration describing the roles of the bits for
      * \ref features().
@@ -208,34 +170,10 @@ namespace fastuidraw
     enum feature_bits
       {
         /*!
-         * Number of bits needed to encode filter for image,
-         * the value packed into the \ref features() encodes
-         * both what filter to use and whether or not an image
-         * is present. A value of 0 indicates no image applied,
-         * a non-zero value indicates an image applied and
-         * the value specifies what filter via the enumeration
-         * image_filter.
+         * Number of bits needed to encode if and how
+         * an \ref Omage is sourced from.
          */
-        image_filter_num_bits = 2,
-
-        /*!
-         * Number of bits needed to encode the image type
-         * (when an image is present). The possible values
-         * are given by the enumeration \ref Image::type_t.
-         */
-        image_type_num_bits = 4,
-
-        /*!
-         * Number of bits needed to encode the value of
-         * Image::format().
-         */
-        image_format_num_bits = 1,
-
-        /*!
-         * Number of bits used to encode number of mipmap
-         * levels (when an image is present).
-         */
-        image_mipmap_num_bits = 7,
+        image_num_bits = PainterImageBrushShader::number_bits,
 
         /*!
          * Number of bits used to encode the gradient type,
@@ -249,19 +187,15 @@ namespace fastuidraw
         spread_type_num_bits = 2,
 
         /*!
-         * first bit for if image is present on the brush and if so, what filter
+         * First bit to encode if and how the brush sources
+         * from an \ref Image
          */
-        image_filter_bit0 = 0,
-
-        /*!
-         * first bit to indicate maximum mipmap level to use
-         */
-        image_mipmap_bit0 = image_filter_bit0 + image_filter_num_bits,
+        image_bit0 = 0,
 
         /*!
          * first bit used to encode the \ref gradient_type_t
          */
-        gradient_type_bit0 = image_mipmap_bit0 + image_mipmap_num_bits,
+        gradient_type_bit0 = image_bit0 + image_num_bits,
 
         /*!
          * first bit used to encode the \ref gradient_spread_type
@@ -294,21 +228,10 @@ namespace fastuidraw
         transformation_matrix_bit,
 
         /*!
-         * First bit to hold the type of image present if an image is present;
-         * the value is the enumeration in \ref Image::type_t
-         */
-        image_type_bit0,
-
-        /*!
-         * First bit to encode \ref Image::format_t
-         */
-        image_format_bit0 = image_type_bit0 + image_type_num_bits,
-
-        /*!
          * Must be last enum, gives number of bits needed to hold feature bits
          * of a PainterBrush.
          */
-        number_feature_bits = image_format_bit0 + image_format_num_bits,
+        number_feature_bits = transformation_matrix_bit + 1,
       };
 
     /*!
@@ -320,14 +243,9 @@ namespace fastuidraw
     enum feature_masks
       {
         /*!
-         * mask generated from \ref image_filter_bit0 and \ref image_filter_num_bits
+         * mask generated from \ref image_bit0 and \ref image_num_bits
          */
-        image_mask = FASTUIDRAW_MASK(image_filter_bit0, image_filter_num_bits),
-
-        /*!
-         * mask generated from \ref image_mipmap_bit0 and \ref image_mipmap_num_bits
-         */
-        image_mipmap_mask = FASTUIDRAW_MASK(image_mipmap_bit0, image_mipmap_num_bits),
+        image_mask = FASTUIDRAW_MASK(image_bit0, image_num_bits),
 
         /*!
          * mask generated from \ref gradient_type_bit0 and \ref gradient_type_num_bits
@@ -373,16 +291,6 @@ namespace fastuidraw
          * mask generated from \ref transformation_matrix_bit
          */
         transformation_matrix_mask = FASTUIDRAW_MASK(transformation_matrix_bit, 1),
-
-        /*!
-         * mask generated from \ref image_type_bit0 and \ref image_type_num_bits
-         */
-        image_type_mask = FASTUIDRAW_MASK(image_type_bit0, image_type_num_bits),
-
-        /*!
-         * mask generated from \ref image_format_bit0 and \ref image_format_num_bits
-         */
-        image_format_mask = FASTUIDRAW_MASK(image_format_bit0, image_format_num_bits),
       };
 
     /*!
@@ -398,12 +306,6 @@ namespace fastuidraw
          * for the offsets for the individual fields
          */
         header_packing,
-
-        /*!
-         * image packing, see \ref image_offset_t
-         * for the offsets for the individual fields
-         */
-        image_packing,
 
         /*!
          * gradient packing, see \ref gradient_offset_t
@@ -432,42 +334,11 @@ namespace fastuidraw
          * offsets of the individual fields
          */
         transformation_matrix_packing,
-      };
-
-    /*!
-     * \brief
-     * Bit packing for the master index tile of a Image
-     */
-    enum image_atlas_location_encoding
-      {
-        image_atlas_location_x_num_bits = 8,  /*!< number bits to encode Image::master_index_tile().x() */
-        image_atlas_location_y_num_bits = 8,  /*!< number bits to encode Image::master_index_tile().y() */
-        image_atlas_location_z_num_bits = 16, /*!< number bits to encode Image::master_index_tile().z() */
-
-        image_atlas_location_x_bit0 = 0, /*!< bit where Image::master_index_tile().x() is encoded */
 
         /*!
-         * bit where Image::master_index_tile().y() is encoded
+         * image packing as packed by \ref PainterImageBrushShaderData
          */
-        image_atlas_location_y_bit0 = image_atlas_location_x_num_bits,
-
-        /*!
-         * bit where Image::master_index_tile().z() is encoded
-         */
-        image_atlas_location_z_bit0 = image_atlas_location_y_bit0 + image_atlas_location_y_num_bits,
-      };
-
-    /*!
-     * \brief
-     * Bit packing for size of the image, Image::dimensions()
-     */
-    enum image_size_encoding
-      {
-        image_size_x_num_bits = 16, /*!< number bits to encode Image::dimensions().x() */
-        image_size_y_num_bits = 16, /*!< number bits to encode Image::dimensions().y() */
-
-        image_size_x_bit0 = 0, /*!< bit where Image::dimensions().x() is encoded */
-        image_size_y_bit0 = image_size_x_num_bits, /*!< bit where Image::dimensions().y() is encoded */
+        image_packing,
       };
 
     /*!
@@ -481,69 +352,6 @@ namespace fastuidraw
         header_blue_alpha_offset, /*!< offset for color blue and alpha value (packed as fp16 pair) */
 
         header_data_size /*!< number of elements to pack color */
-      };
-
-    /*!
-     * \brief
-     * Offsets for image data packing.
-     *
-     * The number of index look ups is recorded in
-     * PainterBrush::features(). The ratio of the size of the
-     * image to the size of the master index is given by
-     * pow(I, Image::number_index_lookups). where I is given
-     * by ImageAtlas::index_tile_size().
-     */
-    enum image_offset_t
-      {
-        /*!
-         * Width and height of the image (Image::dimensions())
-         * encoded in a single uint32. The bits are packed as according
-         * to \ref image_size_encoding
-         */
-        image_size_xy_offset,
-
-        /*!
-         * top left corner of start of image to use (for example
-         * using the entire image would be (0,0)). Both x and y
-         * start values are encoded into a single uint32. Encoding
-         * is the same as \ref image_size_xy_offset, see \ref
-         * image_size_encoding
-         */
-        image_start_xy_offset,
-
-        /*!
-         * Location of image (Image::master_index_tile()) in the image
-         * atlas is encoded in a single uint32. The bits are packed as
-         * according to \ref image_atlas_location_encoding. If the image
-         * is not of type Image::on_atlas, gives the high 32-bits of
-         * Image::handle().
-         */
-        image_atlas_location_xyz_offset,
-
-        /*!
-         * Offset to the high 32-bits of the handle value when the
-         * Image is of type Image::bindless_texture2d.
-         */
-        image_bindless_handle_hi_offset = image_atlas_location_xyz_offset,
-
-        /*!
-         * Holds the amount the number of index looks ups, see \ref
-         * Image::number_index_lookups(). If the image is not of type
-         * Image::on_atlas, gives the low 32-bits of Image::handle().
-         */
-        image_number_lookups_offset,
-
-        /*!
-         * Offset to the low 32-bits of the handle value when the
-         * Image is of type Image::bindless_texture2d.
-         */
-        image_bindless_handle_low_offset = image_number_lookups_offset,
-
-        /*!
-         * Number of elements packed for image support
-         * for a brush.
-         */
-        image_data_size
       };
 
     /*!
@@ -784,8 +592,8 @@ namespace fastuidraw
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im,
-          enum image_filter f = image_filter_nearest,
-          enum mipmap_t mipmap_filtering = apply_mipmapping);
+          enum PainterImageBrushShader::filter_t f = PainterImageBrushShader::filter_linear,
+          enum PainterImageBrushShader::mipmap_t mipmap_filtering = PainterImageBrushShader::apply_mipmapping);
 
     /*!
      * Set the brush to source from a sub-rectangle of an image
@@ -798,8 +606,8 @@ namespace fastuidraw
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum image_filter f = image_filter_linear,
-              enum mipmap_t mipmap_filtering = apply_mipmapping);
+              enum PainterImageBrushShader::filter_t f = PainterImageBrushShader::filter_linear,
+              enum PainterImageBrushShader::mipmap_t mipmap_filtering = PainterImageBrushShader::apply_mipmapping);
 
     /*!
      * Sets the brush to not have an image.
@@ -1273,41 +1081,13 @@ namespace fastuidraw
     features(void) const;
 
     /*!
-     * Returns true if the brush sources from an Image whose
-     * Image::type() is \ref Image::context_texture2d.
-     */
-    bool
-    image_requires_binding(void) const
-    {
-      return image()
-        && image()->type() == Image::context_texture2d;
-    }
-
-    /*!
      * Returns a reference to the Image that the brush is set
      * to use; if there is no such image, returns nullptr.
      */
     const reference_counted_ptr<const Image>&
     image(void) const
     {
-      return m_data.m_image;
-    }
-
-    /*!
-     * Returns a pointer to the Image that the brush is
-     * set to use together with the sub-image of the image
-     * used.
-     * \param start location to which to write the min-corner
-     *              of the image that is used
-     * \param size location to which to write the size of
-     *             the portion of the image used.
-     */
-    const reference_counted_ptr<const Image>&
-    image(uvec2 *start, uvec2 *size) const
-    {
-      *start = m_data.m_image_start;
-      *size = m_data.m_image_size;
-      return m_data.m_image;
+      return m_data.m_image.image();
     }
 
     /*!
@@ -1330,7 +1110,7 @@ namespace fastuidraw
     void
     save_resources(c_array<reference_counted_ptr<const resource_base> > dst) const override
     {
-      dst[0] = m_data.m_image;
+      dst[0] = m_data.m_image.image();
       dst[1] = m_data.m_cs;
     }
 
@@ -1343,9 +1123,7 @@ namespace fastuidraw
     c_array<const reference_counted_ptr<const Image> >
     bind_images(void) const override
     {
-      return (image_requires_binding()) ?
-        c_array<const reference_counted_ptr<const Image> >(&m_data.m_image, 1) :
-        c_array<const reference_counted_ptr<const Image> >();
+      return m_data.m_image.bind_images();
     }
 
   private:
@@ -1355,8 +1133,6 @@ namespace fastuidraw
       brush_data(void):
         m_features_raw(0),
         m_color(1.0f, 1.0f, 1.0f, 1.0f),
-        m_image_size(0, 0),
-        m_image_start(0, 0),
         m_grad_start(0.0f, 0.0f),
         m_grad_end(1.0f, 1.0f),
         m_grad_start_r(0.0f),
@@ -1369,8 +1145,7 @@ namespace fastuidraw
 
       uint32_t m_features_raw;
       vec4 m_color;
-      reference_counted_ptr<const Image> m_image;
-      uvec2 m_image_size, m_image_start;
+      PainterImageBrushShaderData m_image;
       reference_counted_ptr<const ColorStopSequenceOnAtlas> m_cs;
       vec2 m_grad_start, m_grad_end;
       float m_grad_start_r, m_grad_end_r;

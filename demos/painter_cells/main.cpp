@@ -79,7 +79,7 @@ private:
   command_line_list<std::string> m_strings;
   command_line_list<std::string> m_files;
   command_line_list<std::string> m_images;
-  enumerated_command_line_argument_value<enum PainterBrush::image_filter> m_image_filter;
+  enumerated_command_line_argument_value<enum PainterImageBrushShader::filter_t> m_image_filter;
   command_line_argument_value<bool> m_image_use_mipmaps;
   command_line_argument_value<bool> m_use_atlas;
   command_line_argument_value<bool> m_draw_image_name;
@@ -146,11 +146,11 @@ painter_cells(void):
   m_strings("add_string", "add a string to use by the cells", *this),
   m_files("add_string_file", "add a string to use by a cell, taken from file", *this),
   m_images("add_image", "Add an image to use by the cells", *this),
-  m_image_filter(PainterBrush::image_filter_nearest,
-                 enumerated_string_type<enum PainterBrush::image_filter>()
-                 .add_entry("nearest", PainterBrush::image_filter_nearest, "nearest filtering")
-                 .add_entry("linear", PainterBrush::image_filter_linear, "(bi)linear filtering")
-                 .add_entry("cubic", PainterBrush::image_filter_cubic, "(bi)cubic filtering"),
+  m_image_filter(PainterImageBrushShader::filter_nearest,
+                 enumerated_string_type<enum PainterImageBrushShader::filter_t>()
+                 .add_entry("nearest", PainterImageBrushShader::filter_nearest, "nearest filtering")
+                 .add_entry("linear", PainterImageBrushShader::filter_linear, "(bi)linear filtering")
+                 .add_entry("cubic", PainterImageBrushShader::filter_cubic, "(bi)cubic filtering"),
                  "image_filter",
                  "Specifies how to filter the images applied to the rects",
                  *this),
@@ -401,8 +401,8 @@ derived_init(int w, int h)
             compare_named_images);
   m_table_params.m_image_filter = m_image_filter.value();
   m_table_params.m_image_mipmapping = m_image_use_mipmaps.value() ?
-    PainterBrush::apply_mipmapping:
-    PainterBrush::dont_apply_mipmapping;
+    PainterImageBrushShader::apply_mipmapping:
+    PainterImageBrushShader::dont_apply_mipmapping;
 
   generate_random_colors(m_num_background_colors.value(), m_table_params.m_background_colors,
                          m_background_colors_opaque.value());

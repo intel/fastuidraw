@@ -19,8 +19,7 @@
 #pragma once
 #include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 #include <fastuidraw/painter/painter_brush_shader_data.hpp>
-#include <fastuidraw/painter/painter_packed_value_pool.hpp>
-#include <fastuidraw/painter/painter_data.hpp>
+#include <fastuidraw/painter/painter_custom_brush.hpp>
 #include <fastuidraw/image.hpp>
 
 namespace fastuidraw
@@ -45,13 +44,13 @@ namespace fastuidraw
      * \brief
      * Bit packing for an uvec2 value.
      */
-    enum size_encoding
+    enum uvec2_encoding
       {
-        size_x_num_bits = 16, /*!< number bits to encode Image::dimensions().x() */
-        size_y_num_bits = 16, /*!< number bits to encode Image::dimensions().y() */
+        uvec2_x_num_bits = 16, /*!< number bits to encode x-coordinate */
+        uvec2_y_num_bits = 16, /*!< number bits to encode y-coordinate */
 
-        size_x_bit0 = 0, /*!< bit where Image::dimensions().x() is encoded */
-        size_y_bit0 = size_x_num_bits, /*!< bit where Image::dimensions().y() is encoded */
+        uvec2_x_bit0 = 0, /*!< bit where x-coordinate is encoded */
+        uvec2_y_bit0 = uvec2_x_num_bits, /*!< bit where y-coordinate is encoded */
       };
 
     /*!
@@ -116,12 +115,6 @@ namespace fastuidraw
         atlas_location_xyz_offset,
 
         /*!
-         * Offset to the high 32-bits of the handle value when the
-         * Image is of type Image::bindless_texture2d.
-         */
-        bindless_handle_hi_offset = atlas_location_xyz_offset,
-
-        /*!
          * Holds the amount the number of index looks ups, see \ref
          * Image::number_index_lookups(). If the image is not of type
          * Image::on_atlas, gives the low 32-bits of Image::handle().
@@ -129,22 +122,49 @@ namespace fastuidraw
         number_lookups_offset,
 
         /*!
+         * Number of elements packed for image support
+         * for a brush
+         */
+        shader_data_size,
+
+        /*!
+         * Offset to the high 32-bits of the handle value when the
+         * Image is of type Image::bindless_texture2d.
+         */
+        bindless_handle_hi_offset = atlas_location_xyz_offset,
+
+        /*!
          * Offset to the low 32-bits of the handle value when the
          * Image is of type Image::bindless_texture2d.
          */
         bindless_handle_low_offset = number_lookups_offset,
-
-        /*!
-         * Number of elements packed for image support
-         * for a brush
-         */
-        shader_data_size
       };
 
     /*!
      * Ctor initializes to not source from any image data
      */
     PainterImageBrushShaderData(void);
+
+    /*!
+     * Copy ctor.
+     */
+    PainterImageBrushShaderData(const PainterImageBrushShaderData &obj):
+      m_image(obj.m_image),
+      m_image_xy(obj.m_image_xy),
+      m_image_wh(obj.m_image_wh)
+    {}
+
+    /*!
+     * Assignment operator
+     */
+    PainterImageBrushShaderData&
+    operator=(const PainterImageBrushShaderData &rhs)
+    {
+      m_image = rhs.m_image;
+      m_image_xy = rhs.m_image_xy;
+      m_image_wh = rhs.m_image_wh;
+      return *this;
+    }
 
     /*!
      * Set to source from a sub-rectangle of a \ref Image
@@ -167,10 +187,10 @@ namespace fastuidraw
     /*!
      * Returns the \ref Image from which to source
      */
-    const Image*
+    const reference_counted_ptr<const Image>&
     image(void) const
     {
-      return m_image.get();
+      return m_image;
     }
 
     void
@@ -190,7 +210,7 @@ namespace fastuidraw
 
   private:
     reference_counted_ptr<const Image> m_image;
-    vecN<generic_data, shader_data_size> m_packed_data;
+    uvec2 m_image_xy, m_image_wh;
   };
 
   /*!
@@ -402,6 +422,22 @@ namespace fastuidraw
                  const reference_counted_ptr<const Image> &image,
                  enum filter_t image_filter = filter_linear,
                  enum mipmap_t mip_mapping = apply_mipmapping) const;
+
+    /*!
+     * Produce the sub-shader ID from what \ref Image
+     * and how to sample from the image.
+     * \param image \ref Image from which the brush-image
+     *              will source; a nullptr value indicates
+     *              no image and the brush-image will emit
+     *              constant color white fully opaque
+     * \param image_filter filtering to apply to image
+     * \param mip_mapping mipmapping to apply to image
+     */
+    static
+    uint32_t
+    sub_shader_id(const Image *image,
+                  enum filter_t image_filter,
+                  enum mipmap_t mip_mapping);
 
   private:
     void *m_d;

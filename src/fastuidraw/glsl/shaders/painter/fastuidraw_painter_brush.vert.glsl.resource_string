@@ -20,9 +20,8 @@
 void
 fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in vec2 in_p)
 {
-  uint data_ptr, image_type, gradient_type;
+  uint data_ptr, gradient_type;
   FASTUIDRAW_LOCAL(fastuidraw_brush_header) header;
-  FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image;
   FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) gradient;
   FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window) repeat_window;
   vec2 p, color_rg, color_ba;
@@ -40,14 +39,6 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
   fastuidraw_brush_color_z = color_ba.x;
   fastuidraw_brush_color_w = color_ba.y;
   fastuidraw_brush_features = header.features;
-
-  if ((header.features & uint(fastuidraw_brush_image_mask)) != 0u)
-    {
-      image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
-                                           fastuidraw_brush_image_filter_num_bits,
-                                           header.features);
-      data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(data_ptr, image_type, image);
-    }
 
   gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
                                           fastuidraw_brush_gradient_type_num_bits,
@@ -91,33 +82,6 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
   fastuidraw_brush_gradient_r0 = gradient.r0;
   fastuidraw_brush_gradient_r1 = gradient.r1;
 
-  fastuidraw_brush_image_size_x = float(image.image_size.x);
-  fastuidraw_brush_image_size_y = float(image.image_size.y);
-  #ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
-  if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
-    {
-      vec2 T;
-      fastuidraw_image_info_type image_info;
-
-      fastuidraw_compute_image_info(image.number_index_lookups, image_info);
-
-      T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_info.image_texel_size_on_master_index_tile;
-      fastuidraw_brush_image_x = T.x;
-      fastuidraw_brush_image_y = T.y;
-      fastuidraw_brush_image_layer = uint(image.master_index_tile_atlas_location_xyz.z);
-      fastuidraw_brush_image_texel_size_on_master_index_tile = image_info.image_texel_size_on_master_index_tile;
-      fastuidraw_brush_recip_image_texel_size_on_master_index_tile = image_info.recip_image_texel_size_on_master_index_tile;
-      fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
-    }
-  else
-  #endif
-    {
-      fastuidraw_brush_image_x = float(image.image_start.x);
-      fastuidraw_brush_image_y = float(image.image_start.y);
-      fastuidraw_brush_image_bindless_low_handle = image.bindless_handle_low;
-      fastuidraw_brush_image_bindless_high_handle = image.bindless_handle_hi;
-    }
-
   color_stop_recip = fastuidraw_colorStopAtlas_size_reciprocal;
   fastuidraw_brush_color_stop_length = color_stop_recip * gradient.color_stop_sequence_length;
   fastuidraw_brush_color_stop_x = color_stop_recip * gradient.color_stop_sequence_xy.x;
@@ -135,6 +99,16 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
       vec2 q;
       data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)(data_ptr, q);
       p += q;
+    }
+
+  if ((header.features & fastuidraw_brush_image_mask) != 0u)
+    {
+      uint image_sub_shader;
+
+      image_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_bit0,
+                                                 fastuidraw_brush_image_num_bits,
+                                                 header.features);
+      image_brush(image_sub_shader, data_ptr, p);
     }
 
   fastuidraw_brush_p_x = p.x;

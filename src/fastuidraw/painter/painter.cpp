@@ -6092,7 +6092,7 @@ clip_out_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 void
 fastuidraw::Painter::
 clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
-                const PainterData::value<PainterItemShaderData> &shader_data,
+                const PainterDataValue<PainterItemShaderData> &shader_data,
                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
                 c_array<const c_array<const PainterIndex> > index_chunks,
                 c_array<const int> index_adjusts,
@@ -6200,7 +6200,7 @@ clip_out_convex_polygon(c_array<const vec2> poly)
 
   d->ready_non_aa_polygon_attribs(poly);
   clip_out_custom(default_shaders().fill_shader().item_shader(),
-                  PainterData::value<PainterItemShaderData>(),
+                  PainterDataValue<PainterItemShaderData>(),
                   make_c_array(d->m_work_room.m_polygon.m_attribs),
                   make_c_array(d->m_work_room.m_polygon.m_indices));
 }

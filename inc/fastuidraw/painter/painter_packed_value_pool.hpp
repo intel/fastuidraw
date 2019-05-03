@@ -20,7 +20,6 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_data.hpp>
-#include <fastuidraw/painter/painter_packed_value.hpp>
 
 namespace fastuidraw
 {
@@ -88,7 +87,7 @@ namespace fastuidraw
      * packed from a \ref PainterData::CustomBrush value.
      */
     PainterData::brush_value
-    create_packed_brush(const PainterData::CustomBrush &brush)
+    create_packed_brush(const PainterCustomBrush &brush)
     {
       PainterData::brush_value R(brush);
       R.make_packed(*this);
@@ -103,7 +102,7 @@ namespace fastuidraw
 
   template<typename T>
   void
-  PainterData::value<T>::
+  PainterDataValue<T>::
   make_packed(PainterPackedValuePool &pool)
   {
     if (!m_packed_value && m_value != nullptr)

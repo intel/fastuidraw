@@ -20,13 +20,9 @@
 #pragma once
 
 
-#include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/painter_shader_data.hpp>
-#include <fastuidraw/painter/painter_brush_shader_data.hpp>
-#include <fastuidraw/painter/painter_brush.hpp>
-#include <fastuidraw/painter/backend/painter_item_matrix.hpp>
-#include <fastuidraw/painter/backend/painter_clip_equations.hpp>
-#include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
+#include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/image.hpp>
 
 namespace fastuidraw
 {

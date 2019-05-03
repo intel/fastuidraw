@@ -83,20 +83,20 @@ void
 FASTUIDRAW_LOCAL(fastuidraw_process_image_data_common)(in FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw,
                                                        out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) cooked)
 {
-  cooked.image_size.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_x_bit0,
-                                                fastuidraw_brush_image_size_x_num_bits,
+  cooked.image_size.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_uvec2_x_bit0,
+                                                fastuidraw_brush_image_uvec2_x_num_bits,
                                                 raw.image_size_xy);
 
-  cooked.image_size.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_y_bit0,
-                                                fastuidraw_brush_image_size_y_num_bits,
+  cooked.image_size.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_uvec2_y_bit0,
+                                                fastuidraw_brush_image_uvec2_y_num_bits,
                                                 raw.image_size_xy);
 
-  cooked.image_start.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_x_bit0,
-                                                 fastuidraw_brush_image_size_x_num_bits,
+  cooked.image_start.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_uvec2_x_bit0,
+                                                 fastuidraw_brush_image_uvec2_x_num_bits,
                                                  raw.image_start_xy);
 
-  cooked.image_start.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_y_bit0,
-                                                 fastuidraw_brush_image_size_y_num_bits,
+  cooked.image_start.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_uvec2_y_bit0,
+                                                 fastuidraw_brush_image_uvec2_y_num_bits,
                                                  raw.image_start_xy);
 }
 

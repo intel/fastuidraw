@@ -31,8 +31,8 @@ namespace
     {
       FASTUIDRAWunused(brush_rect);
       m_brush.image(image,
-		    fastuidraw::PainterBrush::image_filter_nearest,
-		    fastuidraw::PainterBrush::dont_apply_mipmapping);
+		    fastuidraw::PainterImageBrushShader::filter_nearest,
+		    fastuidraw::PainterImageBrushShader::dont_apply_mipmapping);
       return fastuidraw::PainterData::brush_value(&m_brush);
     }
 

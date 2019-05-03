@@ -18,8 +18,12 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_packed_value.hpp>
-#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
+#include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_data_value.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
+#include <fastuidraw/painter/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/painter_custom_brush.hpp>
+#include <fastuidraw/painter/painter_brush.hpp>
 
 namespace fastuidraw
 {
@@ -38,129 +42,13 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Holds both a PainterPackedValue and a pointer to a value.
-     * If \ref m_packed_value is valid, then its value is used. If
-     * it is nullptr then the value pointed to by \ref m_value is used.
-     */
-    template<typename T>
-    class value
-    {
-    public:
-      /*!
-       * Ctor from a value.
-       * \param p value with which to initialize, the object point to
-       *          by p must stay in scope until either make_packed()
-       *          is called or the dtor of this \ref value object is
-       *          called.
-       */
-      value(const T *p = nullptr):
-        m_value(p)
-      {}
-
-      /*!
-       * Ctor from a packed value.
-       * \param p value with which to initialize \ref m_packed_value
-       */
-      value(const PainterPackedValue<T> &p):
-        m_value(nullptr),
-        m_packed_value(p)
-      {}
-
-      /*!
-       * Only makes sense for \ref PainterBrushShaderData,
-       * see \ref PainterBrushShaderData::bind_images().
-       */
-      c_array<const reference_counted_ptr<const Image> >
-      bind_images(void) const
-      {
-        return (m_value) ?
-          m_value->bind_images() :
-          m_packed_value.bind_images();
-      }
-
-      /*!
-       * If \ref m_packed_value is null, then sets it
-       * to a packed value created by the passed \ref
-       * PainterPackedValuePool. In addition, sets
-       * \ref m_value to nullptr.
-       * \param pool \ref PainterPackedValuePool from
-       *             which to create the packed value
-       */
-      void
-      make_packed(PainterPackedValuePool &pool);
-
-      /*!
-       * Provided as a conveniance, equivalent to
-       * \code
-       * m_packed_value
-       * \endcode
-       */
-      bool
-      packed(void) const
-      {
-        return m_packed_value;
-      }
-
-      /*!
-       * Pointer to value.
-       */
-      const T *m_value;
-
-      /*!
-       * Value pre-packed and ready for reuse.
-       */
-      PainterPackedValue<T> m_packed_value;
-    };
-
-    /*!
      * \brief
-     * A CustomBrush is just a conveniance to wrap a
-     * pointer to a \ref PainterBrushShader
-     * together with a value<PainterBrushShaderData>.
-     */
-    class CustomBrush
-    {
-    public:
-      /*!
-       * Ctor.
-       * \param sh value with which to initialize \ref m_shader
-       * \param d value with which to initialize \ref m_data
-       */
-      CustomBrush(const PainterBrushShader *sh,
-                  const value<PainterBrushShaderData> &d
-                  = value<PainterBrushShaderData>()):
-        m_shader(sh),
-        m_data(d)
-      {}
-
-      /*!
-       * Ctor.
-       * \param sh value with which to initialize \ref m_shader
-       * \param d value with which to initialize \ref m_data
-       */
-      CustomBrush(const value<PainterBrushShaderData> &d,
-                  const PainterBrushShader *sh):
-        m_shader(sh),
-        m_data(d)
-      {}
-
-      /*!
-       * What \ref PainterBrushShader is used
-       */
-      const PainterBrushShader *m_shader;
-
-      /*!
-       * What, if any, data for \ref m_shader to use.
-       */
-      value<PainterBrushShaderData> m_data;
-    };
-
-    /*!
-     * \brief
-     * A brush_value stores the brush applied; it stores either
-     * a \ref value for a \ref PainterBrush or a \ref value
-     * for a \ref PainterBrushShaderData together with
-     * a value from \ref PainterBrushShader::ID().
+     * A brush_value stores the brush applied; it stores
+     * a pointer to a \ref PainterBrushShader together
+     * with a PainterDataValue<PainterBrushShaderData>.
+     * If the pointer to the \ref PainterBrushShader is null,
+     * then it indicates to use the standard brush shader,
+     * \ref PainterBrushShaderSet::standard_brush().
      */
     class brush_value
     {
@@ -186,7 +74,7 @@ namespace fastuidraw
        * Ctor to set the brush_value to source from a
        * custom brush.
        */
-      brush_value(const CustomBrush &br)
+      brush_value(const PainterCustomBrush &br)
       {
         set(br);
       }
@@ -195,7 +83,7 @@ namespace fastuidraw
        * Ctor to set the brush_value to source from a
        * \ref PainterBrush packed.
        */
-      brush_value(const value<PainterBrushShaderData> &brush_data)
+      brush_value(const PainterDataValue<PainterBrushShaderData> &brush_data)
       {
         set(brush_data);
       }
@@ -215,7 +103,7 @@ namespace fastuidraw
        * Set to source from a custom brush shader
        */
       void
-      set(const CustomBrush &br)
+      set(const PainterCustomBrush &br)
       {
         m_brush_shader_data = br.m_data;
         m_brush_shader = br.m_shader;
@@ -225,7 +113,7 @@ namespace fastuidraw
        * Set to source from a packed PainterBrush value.
        */
       void
-      set(const value<PainterBrushShaderData> &brush_data)
+      set(const PainterDataValue<PainterBrushShaderData> &brush_data)
       {
         m_brush_shader_data = brush_data;
         m_brush_shader = nullptr;
@@ -243,10 +131,10 @@ namespace fastuidraw
       }
 
       /*!
-       * Returns the value<PainterBrushShaderData> holding
+       * Returns the PainterDataValue<PainterBrushShaderData> holding
        * the brush data.
        */
-      const value<PainterBrushShaderData>&
+      const PainterDataValue<PainterBrushShaderData>&
       brush_shader_data(void) const
       {
         return m_brush_shader_data;
@@ -277,7 +165,7 @@ namespace fastuidraw
       /*!
        * The \ref value for the brush data
        */
-      value<PainterBrushShaderData> m_brush_shader_data;
+      PainterDataValue<PainterBrushShaderData> m_brush_shader_data;
 
       /*!
        * If non-null, indicates that the brush is a realized
@@ -348,12 +236,12 @@ namespace fastuidraw
     /*!
      * value for item shader data
      */
-    value<PainterItemShaderData> m_item_shader_data;
+    PainterDataValue<PainterItemShaderData> m_item_shader_data;
 
     /*!
      * value for blend shader data
      */
-    value<PainterBlendShaderData> m_blend_shader_data;
+    PainterDataValue<PainterBlendShaderData> m_blend_shader_data;
 
     /*!
      * Sets \ref m_brush
@@ -379,7 +267,7 @@ namespace fastuidraw
      * Sets \ref m_brush
      */
     PainterData&
-    set(const CustomBrush &value)
+    set(const PainterCustomBrush &value)
     {
       m_brush.set(value);
       return *this;
@@ -389,7 +277,7 @@ namespace fastuidraw
      * Sets \ref m_item_shader_data
      */
     PainterData&
-    set(const value<PainterItemShaderData> &value)
+    set(const PainterDataValue<PainterItemShaderData> &value)
     {
       m_item_shader_data = value;
       return *this;
@@ -399,7 +287,7 @@ namespace fastuidraw
      * Sets \ref m_blend_shader_data
      */
     PainterData&
-    set(const value<PainterBlendShaderData> &value)
+    set(const PainterDataValue<PainterBlendShaderData> &value)
     {
       m_blend_shader_data = value;
       return *this;
@@ -420,11 +308,6 @@ namespace fastuidraw
       m_blend_shader_data.make_packed(pool);
     }
   };
-
-  /*!
-   * Conveniance typedef
-   */
-  typedef PainterData::CustomBrush PainterCustomBrush;
 
 /*! @} */
 }
