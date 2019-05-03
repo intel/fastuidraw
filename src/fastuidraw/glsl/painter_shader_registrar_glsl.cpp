@@ -1118,78 +1118,29 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
   reference_counted_ptr<T> shader;
   UberShaderVaryings uber_shader_varyings;
   AliasVaryingLocation shader_varying_datum;
-  std::ostringstream run_vert_shader, run_frag_shader;
   const char *frag_return_type(nullptr);
+  c_array<const reference_counted_ptr<T> > item_shaders;
 
   FASTUIDRAWassert(shader_id < shaders.m_shaders_keyed_by_id.size());
   FASTUIDRAWassert(shaders.m_shaders_keyed_by_id[shader_id]);
 
   shader = shaders.m_shaders_keyed_by_id[shader_id];
   FASTUIDRAWassert(shader_id >= shader->ID());
+  item_shaders = c_array<const reference_counted_ptr<T> >(&shader, 1);
 
-  uber_shader_varyings.add_varyings("item",
+  uber_shader_varyings.add_varyings("shader",
                                     shader->varyings(),
                                     &shader_varying_datum);
-
-  vert
-    .add_macro("FASTUIDRAW_LOCAL(X)", "X");
-
-  frag
-    .add_macro("FASTUIDRAW_LOCAL(X)", "X");
 
   construct_shader_common(blend_type, render_type, shaders, backend, vert, frag,
                           uber_shader_varyings,
                           params, discard_macro_value);
 
-  if (render_type == PainterSurface::color_buffer_type)
-    {
-      frag_return_type = "vec4";
-      run_vert_shader
-        << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)\n"
-        << "{\n"
-        << "  fastuidraw_gl_vert_main(uint(h.item_shader) - uint(" << shader->ID() << "), fastuidraw_attribute0,\n"
-        << "                          fastuidraw_attribute1, fastuidraw_attribute2,\n"
-        << "                          h.item_shader_data_location, add_z, brush_p, clip_p);\n"
-        << "}\n"
-        << "\n";
-    }
-  else
-    {
-      frag_return_type = "float";
-      run_vert_shader
-        << "void fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 clip_p)\n"
-        << "{\n"
-        << "  fastuidraw_gl_vert_main(uint(h.item_shader) - uint(" << shader->ID() << "), fastuidraw_attribute0,\n"
-        << "                          fastuidraw_attribute1, fastuidraw_attribute2,\n"
-        << "                          h.item_shader_data_location, clip_p);\n"
-        << "}\n"
-        << "\n";
-    }
+  stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
+                          uber_shader_varyings, shader_varying_datum);
 
-  uber_shader_varyings.stream_alias_varyings(false, vert, shader->varyings(), true, shader_varying_datum);
-  vert.add_source(shader->vertex_src());
-  vert.add_source(run_vert_shader.str().c_str(), ShaderSource::from_string);
-
-  uber_shader_varyings.stream_alias_varyings(true, frag, shader->varyings(), true, shader_varying_datum);
-  run_frag_shader
-    << frag_return_type << " fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)\n"
-    << "{\n"
-    << "  return fastuidraw_gl_frag_main(uint(frag_shader) - uint(" << shader->ID() << "), frag_shader_data_location);\n"
-    << "}\n"
-    << "\n";
-  frag.add_source(shader->fragment_src());
-  frag.add_source(run_frag_shader.str().c_str(), ShaderSource::from_string);
-
-  if (render_type == PainterSurface::color_buffer_type)
-    {
-      stream_uber_brush_vert_shader(params.vert_shader_use_switch(), vert,
-                                    make_c_array(m_custom_brush_shaders.m_shaders),
-                                    uber_shader_varyings, shader_varying_datum);
-
-      stream_uber_brush_frag_shader(params.frag_shader_use_switch(), frag,
-                                    make_c_array(m_custom_brush_shaders.m_shaders),
-                                    uber_shader_varyings, shader_varying_datum);
-    }
+  stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
+                          uber_shader_varyings, shader_varying_datum);
 }
 
 //////////////////////////////////////////////////////
