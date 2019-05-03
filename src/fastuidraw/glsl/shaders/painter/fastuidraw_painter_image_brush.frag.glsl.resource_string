@@ -126,7 +126,7 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
   vec2 p, dpdx, dpdy;
   vec4 return_value;
 
-  p = vec2(fastuidraw_image_brush_p_x, fastuidraw_image_brush_p_y);
+  p = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
   dpdx = dFdx(p);
   dpdy = dFdy(p);
 

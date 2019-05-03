@@ -792,8 +792,8 @@ create_image_brush_shader(void)
   ShaderSource unpack_code;
 
   varyings
-    .add_float("fastuidraw_image_brush_p_x")
-    .add_float("fastuidraw_image_brush_p_y")
+    .add_float("fastuidraw_brush_p_x")
+    .add_float("fastuidraw_brush_p_y")
     .add_float_flat("fastuidraw_brush_image_x")
     .add_float_flat("fastuidraw_brush_image_y")
     .add_float_flat("fastuidraw_brush_image_size_x")
@@ -942,8 +942,8 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
     .add_varying_alias("fastuidraw_brush_gradient_sweep_point_y", "fastuidraw_brush_gradient_p0_y")
     .add_varying_alias("fastuidraw_brush_gradient_sweep_angle", "fastuidraw_brush_gradient_p1_x")
     .add_varying_alias("fastuidraw_brush_gradient_sweep_sign_factor", "fastuidraw_brush_gradient_p1_y")
-    .add_varying_alias("image_brush::fastuidraw_image_brush_p_x", "fastuidraw_brush_p_x")
-    .add_varying_alias("image_brush::fastuidraw_image_brush_p_y", "fastuidraw_brush_p_y");
+    .add_varying_alias("image_brush::fastuidraw_brush_p_x", "fastuidraw_brush_p_x")
+    .add_varying_alias("image_brush::fastuidraw_brush_p_y", "fastuidraw_brush_p_y");
 
   brush_macros
     .add_macro_u32("fastuidraw_brush_image_mask", PainterBrush::image_mask)

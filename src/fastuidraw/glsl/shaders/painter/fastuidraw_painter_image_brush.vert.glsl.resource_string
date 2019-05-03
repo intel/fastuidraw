@@ -53,6 +53,6 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
       fastuidraw_brush_image_bindless_high_handle = image.bindless_handle_hi;
     }
 
-  fastuidraw_image_brush_p_x = in_p.x;
-  fastuidraw_image_brush_p_y = in_p.y;
+  fastuidraw_brush_p_x = in_p.x;
+  fastuidraw_brush_p_y = in_p.y;
 }
