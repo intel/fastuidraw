@@ -55,7 +55,7 @@ namespace fastuidraw
      * \param sub_shader which sub-shader of the parent PainterBrushShader
      */
     PainterBrushShader(reference_counted_ptr<PainterBrushShader> parent,
-                             unsigned int sub_shader):
+                       unsigned int sub_shader):
       PainterShader(parent, sub_shader)
     {}
   };
