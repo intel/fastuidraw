@@ -23,28 +23,6 @@ struct FASTUIDRAW_LOCAL(fastuidraw_brush_header)
   uint blue_alpha;
 };
 
-struct FASTUIDRAW_LOCAL(fastuidraw_brush_image_data)
-{
-  // size of the (sub)image in texels
-  uvec2 image_size;
-
-  // location within image of start of sub-image
-  uvec2 image_start;
-
-  //////////////////////////////////////////////////////////
-  // only valid for images of type fastuidraw_image_on_atlas
-
-  /* location of mater index tile for the image */
-  vec3 master_index_tile_atlas_location_xyz;
-
-  /* number of index tile lookups */
-  uint number_index_lookups;
-
-  ////////////////////////////////////////////
-  // only valid for images taken from a handle
-  uint bindless_handle_low, bindless_handle_hi;
-};
-
 struct FASTUIDRAW_LOCAL(fastuidraw_brush_gradient)
 {
   /* location on atlas in texels
@@ -88,37 +66,6 @@ struct FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window)
   vec2 wh; //width and height of window
 };
 
-struct FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw)
-{
-  /* packed: Image::master_index_tile().xyz()
-   */
-  uint image_atlas_location_xyz;
-
-  /* packed: Image::dimensions().xy() (or a sub-value for sub-imaging)
-   *
-   * NOTE: The formula to go from image coordinates to
-   *       master index tile coordinates is given by:
-   *          i + p / A
-   *       where
-   *          i = Image::master_index_tile().xy()
-   *          p = image coordinates
-   *          A = TileSize * pow(IndexTileSize, NumberIndexLookups - 1)
-   *
-   *       TileSize is given by FASTUIDRAW_IMAGE_ATLAS_COLOR_TILE_SIZE
-   *       NumberIndexLookups is also packed into shader_brush (occupying 5 bits)
-   *       IndexTileSize is given by (1 << FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE),
-   *                     note that then pow(IndexTileSize, NumberIndexLevels - 1) is same as
-   *                     (1 << (FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * (NumberIndexLookups - 1) )
-   */
-  uint image_size_xy;
-
-  /* offset of start rectangle for sub-image. */
-  uint image_start_xy;
-
-  /* image and number of index lookups needed */
-  uint image_number_lookups;
-};
-
 uint
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)(in uint location, out mat2 m);
 
@@ -128,10 +75,6 @@ FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)(in uint locat
 uint
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)(in uint location,
                                                       out FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window) w);
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)(in uint location,
-                                                       out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw);
 
 uint
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(in uint location,
@@ -146,74 +89,12 @@ FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(in uint location,
                                                out FASTUIDRAW_LOCAL(fastuidraw_brush_header) color);
 
 uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(in uint location, in uint shader,
-                                                   out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image);
-
-uint
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(in uint location,
                                                                       out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) grad);
 
 uint
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(in uint location,
                                                              out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) grad);
-
-
-void
-FASTUIDRAW_LOCAL(fastuidraw_process_image_data_common)(in FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw,
-                                                       out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) cooked)
-{
-  cooked.image_size.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_x_bit0,
-                                                fastuidraw_brush_image_size_x_num_bits,
-                                                raw.image_size_xy);
-
-  cooked.image_size.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_y_bit0,
-                                                fastuidraw_brush_image_size_y_num_bits,
-                                                raw.image_size_xy);
-
-  cooked.image_start.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_x_bit0,
-                                                 fastuidraw_brush_image_size_x_num_bits,
-                                                 raw.image_start_xy);
-
-  cooked.image_start.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_size_y_bit0,
-                                                 fastuidraw_brush_image_size_y_num_bits,
-                                                 raw.image_start_xy);
-}
-
-#ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
-
-void
-FASTUIDRAW_LOCAL(fastuidraw_process_image_data_on_atlas)(in FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw,
-                                                         inout FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) cooked)
-{
-  uvec3 master_xyz;
-  uint index_pows, number_index_lookups, ww;
-
-  master_xyz.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_master_index_x_bit0,
-                                         fastuidraw_brush_image_master_index_x_num_bits,
-                                         raw.image_atlas_location_xyz);
-
-  master_xyz.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_master_index_y_bit0,
-                                         fastuidraw_brush_image_master_index_y_num_bits,
-                                         raw.image_atlas_location_xyz);
-
-  master_xyz.z = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_master_index_z_bit0,
-                                         fastuidraw_brush_image_master_index_z_num_bits,
-                                         raw.image_atlas_location_xyz);
-
-  master_xyz.xy *= uint(FASTUIDRAW_IMAGE_ATLAS_INDEX_TILE_SIZE);
-  cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
-  cooked.number_index_lookups = raw.image_number_lookups;
-}
-
-#endif
-
-void
-FASTUIDRAW_LOCAL(fastuidraw_process_image_data_bindless)(in FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw,
-                                                         inout FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) cooked)
-{
-  cooked.bindless_handle_hi = raw.image_atlas_location_xyz;
-  cooked.bindless_handle_low = raw.image_number_lookups;
-}
 
 void
 FASTUIDRAW_LOCAL(fastuidraw_process_gradient_data)(in FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw) raw,
@@ -237,29 +118,6 @@ FASTUIDRAW_LOCAL(fastuidraw_process_gradient_data)(in FASTUIDRAW_LOCAL(fastuidra
                                                     raw.color_stop_sequence_xy);
 
   cooked.color_stop_sequence_xy = vec2(color_stop_sequence_xy);
-}
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(in uint location, in uint image_type,
-                                                   out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image)
-{
-  uint return_value;
-  FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw;
-
-  return_value = FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)(location, raw);
-
-  FASTUIDRAW_LOCAL(fastuidraw_process_image_data_common)(raw, image);
-  #ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
-  if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
-    {
-      FASTUIDRAW_LOCAL(fastuidraw_process_image_data_on_atlas)(raw, image);
-    }
-  else
-  #endif
-    {
-      FASTUIDRAW_LOCAL(fastuidraw_process_image_data_bindless)(raw, image);
-    }
-  return return_value;
 }
 
 uint

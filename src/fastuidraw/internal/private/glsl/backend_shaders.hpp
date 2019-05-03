@@ -161,6 +161,7 @@ private:
 
   ShaderSource::MacroSet m_fill_macros;
   ShaderSource::MacroSet m_common_glyph_attribute_macros;
+  ShaderSource m_image_brush_utils;
 };
 
 }}}
