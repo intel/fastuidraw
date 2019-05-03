@@ -798,7 +798,7 @@ namespace fastuidraw
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum image_filter f = image_filter_nearest,
+              enum image_filter f = image_filter_linear,
               enum mipmap_t mipmap_filtering = apply_mipmapping);
 
     /*!
