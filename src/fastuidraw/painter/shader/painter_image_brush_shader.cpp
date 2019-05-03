@@ -59,7 +59,7 @@ const fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader>&
 fastuidraw::PainterImageBrushShader::
 sub_shader(const Image *image,
            enum image_filter image_filter,
-           enum mipmap_t mip_mapping)
+           enum mipmap_t mip_mapping) const
 {
   PainterImageBrushShaderPrivate *d;
   d = static_cast<PainterImageBrushShaderPrivate*>(m_d);
@@ -87,6 +87,37 @@ sub_shaders(void) const
   PainterImageBrushShaderPrivate *d;
   d = static_cast<PainterImageBrushShaderPrivate*>(m_d);
   return d->m_sub_shaders;
+}
+
+fastuidraw::PainterCustomBrush
+fastuidraw::PainterImageBrushShader::
+create_brush(PainterPackedValuePool &pool,
+             const reference_counted_ptr<const Image> &image,
+             uvec2 xy, uvec2 wh,
+             enum image_filter image_filter,
+             enum mipmap_t mip_mapping) const
+{
+  PainterData::value<PainterBrushShaderData> packed_data;
+  PainterImageBrushShaderData data;
+
+  data.sub_image(image, xy, wh);
+  packed_data = pool.create_packed_value(data);
+  return PainterCustomBrush(packed_data, sub_shader(image.get(), image_filter, mip_mapping).get());
+}
+
+fastuidraw::PainterCustomBrush
+fastuidraw::PainterImageBrushShader::
+create_brush(PainterPackedValuePool &pool,
+             const reference_counted_ptr<const Image> &image,
+             enum image_filter image_filter,
+             enum mipmap_t mip_mapping) const
+{
+  PainterData::value<PainterBrushShaderData> packed_data;
+  PainterImageBrushShaderData data;
+
+  data.image(image);
+  packed_data = pool.create_packed_value(data);
+  return PainterCustomBrush(packed_data, sub_shader(image.get(), image_filter, mip_mapping).get());
 }
 
 ////////////////////////////////////////////////
