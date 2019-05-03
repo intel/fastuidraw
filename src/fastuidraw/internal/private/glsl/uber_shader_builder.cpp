@@ -43,6 +43,25 @@ namespace
     return str.str();
   }
 
+  std::string
+  replace_double_colon_with_double_space(const std::string &input)
+  {
+    std::string return_value(input);
+    char *prev_char(nullptr);
+
+    for (auto iter = return_value.begin(), end = return_value.end(); iter != end; ++iter)
+      {
+        if (prev_char && *prev_char == ':' && *iter == ':')
+          {
+            *prev_char = '_';
+            *iter = '_';
+          }
+        prev_char = &(*iter);
+      }
+
+    return return_value;
+  }
+
   template<typename T>
   class StreamVaryingsHelper
   {
@@ -82,7 +101,8 @@ namespace
 
           for (fastuidraw::c_string v : child_shader->varyings().varyings(q))
             {
-              dst << "#define " << v << " " << dep_name << "_" << v << "\n";
+              std::string vv(replace_double_colon_with_double_space(v));
+              dst << "#define " << vv << " " << dep_name << "__" << vv << "\n";
             }
         }
       fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_varying_names());
@@ -91,7 +111,9 @@ namespace
       FASTUIDRAWassert(names.size() == src_names.size());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          dst.add_macro(names[i], src_names[i]);
+          std::string name(replace_double_colon_with_double_space(names[i]));
+          std::string src_name(replace_double_colon_with_double_space(src_names[i]));
+          dst.add_macro(name.c_str(), src_name.c_str());
         }
     }
 
@@ -104,7 +126,8 @@ namespace
       fastuidraw::c_array<const fastuidraw::c_string> names(child_shader->varyings().alias_varying_names());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          dst.remove_macro(names[i]);
+          std::string name(replace_double_colon_with_double_space(names[i]));
+          dst.remove_macro(name.c_str());
         }
 
       for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
@@ -114,7 +137,8 @@ namespace
 
           for (fastuidraw::c_string v : child_shader->varyings().varyings(q))
             {
-              dst << "#undef " << v << "\n";
+              std::string vv(replace_double_colon_with_double_space(v));
+              dst << "#undef " << vv << "\n";
             }
         }
     }
@@ -355,7 +379,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
       /* stream up to pos */
       if (pos > last_pos)
         {
-          dst << src.substr(last_pos, pos - last_pos);
+          dst << replace_double_colon_with_double_space(src.substr(last_pos, pos - last_pos));
         }
 
       /* find the first open and close-parentesis pair after pos. */
@@ -376,7 +400,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
         }
     }
 
-  dst << src.substr(last_pos)
+  dst << replace_double_colon_with_double_space(src.substr(last_pos))
       << "\n";
 }
 
@@ -865,14 +889,16 @@ stream_alias_varyings_impl(bool use_rw_copies,
             {
               str << "." << ext[start.y()];
             }
-          shader.add_macro(p[i], str.str().c_str());
+          std::string pp(replace_double_colon_with_double_space(p[i]));
+          shader.add_macro(pp.c_str(), str.str().c_str());
         }
     }
   else
     {
       for (unsigned int i = 0; i < p.size(); ++i)
         {
-          shader.remove_macro(p[i]);
+          std::string pp(replace_double_colon_with_double_space(p[i]));
+          shader.remove_macro(pp.c_str());
         }
     }
 }
@@ -913,7 +939,9 @@ stream_alias_varyings(bool use_rw_copies,
       FASTUIDRAWassert(names.size() == src_names.size());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          shader.add_macro(names[i], src_names[i]);
+          std::string name(replace_double_colon_with_double_space(names[i]));
+          std::string src_name(replace_double_colon_with_double_space(src_names[i]));
+          shader.add_macro(name.c_str(), src_name.c_str());
         }
     }
   else
@@ -921,7 +949,8 @@ stream_alias_varyings(bool use_rw_copies,
       c_array<const c_string> names(p.alias_varying_names());
       for (unsigned int i = 0; i < names.size(); ++i)
         {
-          shader.remove_macro(names[i]);
+          std::string name(replace_double_colon_with_double_space(names[i]));
+          shader.remove_macro(name.c_str());
         }
     }
 }

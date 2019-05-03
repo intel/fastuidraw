@@ -117,7 +117,7 @@ make_name(c_string prefix, c_string name)
     }
 
   std::ostringstream tmp;
-  tmp << prefix << "_" << name;
+  tmp << prefix << "::" << name;
   return tmp.str();
 }
 

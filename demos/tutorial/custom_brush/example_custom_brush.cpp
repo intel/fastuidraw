@@ -181,7 +181,7 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
     "   phase = uintBitsToFloat(packed_value.x);\n"
     "   period = uintBitsToFloat(packed_value.y);\n"
     "   amplitude = uintBitsToFloat(packed_value.z);\n"
-    "   standard_brush_fastuidraw_brush_p_x += amplitude * cos((2.0 * PI / period) * (phase + standard_brush_fastuidraw_brush_p_y));\n"
+    "   standard_brush::fastuidraw_brush_p_x += amplitude * cos((2.0 * PI / period) * (phase + standard_brush::fastuidraw_brush_p_y));\n"
     "   return standard_brush(sub_shader, shader_data_offset + 1);\n"
     "}\n";
 
