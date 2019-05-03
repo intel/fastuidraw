@@ -26,6 +26,7 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader> m_standard_brush;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterImageBrushShader> m_image_brush;
   };
 }
 
@@ -58,3 +59,6 @@ assign_swap_implement(fastuidraw::PainterBrushShaderSet)
 setget_implement(fastuidraw::PainterBrushShaderSet, PainterBrushShaderSetPrivate,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader>&,
                  standard_brush)
+setget_implement(fastuidraw::PainterBrushShaderSet, PainterBrushShaderSetPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterImageBrushShader>&,
+                 image_brush)

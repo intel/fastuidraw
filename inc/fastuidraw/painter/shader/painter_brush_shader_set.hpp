@@ -19,6 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/shader/painter_brush_shader.hpp>
+#include <fastuidraw/painter/shader/painter_image_brush_shader.hpp>
 
 namespace fastuidraw
 {
@@ -75,6 +76,19 @@ namespace fastuidraw
      */
     PainterBrushShaderSet&
     standard_brush(const reference_counted_ptr<PainterBrushShader> &sh);
+
+    /*!
+     * Returns the \ref PainterImageBrushShader.
+     */
+    const reference_counted_ptr<const PainterImageBrushShader>&
+    image_brush(void) const;
+
+    /*!
+     * Set the value returned by image_brush(void) const.
+     * \param sh value to use
+     */
+    PainterBrushShaderSet&
+    image_brush(const reference_counted_ptr<const PainterImageBrushShader> &sh);
   private:
     void *m_d;
   };
