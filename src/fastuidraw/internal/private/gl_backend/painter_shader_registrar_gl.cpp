@@ -447,6 +447,12 @@ configure_source_front_matter(void)
       else
         {
           glsl_version = "330";
+
+          /* We need this extension for unpackHalf2x16() */
+          m_front_matter_vert.specify_extension("GL_ARB_shading_language_packing",
+                                                ShaderSource::require_extension);
+          m_front_matter_frag.specify_extension("GL_ARB_shading_language_packing",
+                                                ShaderSource::require_extension);
           if (m_uber_shader_builder_params.assign_layout_to_varyings())
             {
               m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects",
