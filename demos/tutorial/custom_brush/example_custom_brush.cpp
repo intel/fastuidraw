@@ -157,7 +157,7 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
     "                              in uint shader_data_offset,\n"
     "                              in vec2 brush_p)\n"
     "{\n"
-    "  standard_brush(0, shader_data_offset + 1u, brush_p);\n"
+    "  standard_brush(0u, shader_data_offset + 1u, brush_p);\n"
     "}\n";
 
   /* The fragment shader of our custom brush. It first unpacks
@@ -182,7 +182,7 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
     "   period = uintBitsToFloat(packed_value.y);\n"
     "   amplitude = uintBitsToFloat(packed_value.z);\n"
     "   standard_brush::fastuidraw_brush_p_x += amplitude * cos((2.0 * PI / period) * (phase + standard_brush::fastuidraw_brush_p_y));\n"
-    "   return standard_brush(sub_shader, shader_data_offset + 1);\n"
+    "   return standard_brush(sub_shader, shader_data_offset + 1u);\n"
     "}\n";
 
   /* When creating the ShaderSource objects to pass to the ctor of
