@@ -17,10 +17,12 @@
  */
 
 #pragma once
-#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
+
+#include <fastuidraw/image.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_brush_shader_data.hpp>
 #include <fastuidraw/painter/painter_custom_brush.hpp>
-#include <fastuidraw/image.hpp>
+#include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 
 namespace fastuidraw
 {
@@ -37,7 +39,9 @@ namespace fastuidraw
    * what \ref Image and what rectangular region within
    * it from which to source image data.
    */
-  class PainterImageBrushShaderData:public PainterBrushShaderData
+  class PainterImageBrushShaderData:
+    public PainterBrushShaderData,
+    public PainterBrushEnums
   {
   public:
     /*!
@@ -218,48 +222,10 @@ namespace fastuidraw
    * what filtering and mipmapping to apply to the image data.
    */
   class PainterImageBrushShader:
-    public reference_counted<PainterImageBrushShader>::concurrent
+    public reference_counted<PainterImageBrushShader>::concurrent,
+    public PainterBrushEnums
   {
   public:
-    /*!
-     * \brief
-     * Enumeration specifying what filter to apply to an image
-     */
-    enum filter_t
-      {
-        /*!
-         * Indicates to use nearest filtering (i.e
-         * choose closest pixel).
-         */
-        filter_nearest = 1,
-
-        /*!
-         * Indicates to use bilinear filtering.
-         */
-        filter_linear = 2,
-
-        /*!
-         * Indicates to use bicubic filtering.
-         */
-        filter_cubic = 3,
-      };
-
-    /*!
-     * enumeration to specify mipmapping on an image
-     */
-    enum mipmap_t
-      {
-        /*!
-         * Indicates to apply mipmap filtering
-         */
-        apply_mipmapping,
-
-        /*!
-         * Indicates to not apply mipmap filtering
-         */
-        dont_apply_mipmapping
-      };
-
     /*!
      * \brief
      * Enumeration describing the roles of the bits for
@@ -272,7 +238,7 @@ namespace fastuidraw
          * A value of 0 indicates no image applied, a non-zero
          * value indicates an image applied and the value
          * specifies what filter via the enumeration \ref
-         * filter_t.
+         * PainterBrushEnums::filter_t.
          */
         filter_num_bits = 2,
 

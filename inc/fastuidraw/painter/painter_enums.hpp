@@ -74,6 +74,45 @@ namespace fastuidraw
 
         number_spread_types
       };
+
+    /*!
+     * \brief
+     * Enumeration specifying what filter to apply to an image
+     */
+    enum filter_t
+      {
+        /*!
+         * Indicates to use nearest filtering (i.e
+         * choose closest pixel).
+         */
+        filter_nearest = 1,
+
+        /*!
+         * Indicates to use bilinear filtering.
+         */
+        filter_linear = 2,
+
+        /*!
+         * Indicates to use bicubic filtering.
+         */
+        filter_cubic = 3,
+      };
+
+    /*!
+     * enumeration to specify mipmapping on an image
+     */
+    enum mipmap_t
+      {
+        /*!
+         * Indicates to apply mipmap filtering
+         */
+        apply_mipmapping,
+
+        /*!
+         * Indicates to not apply mipmap filtering
+         */
+        dont_apply_mipmapping
+      };
   };
 
   /*!

@@ -499,8 +499,8 @@ namespace fastuidraw
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im,
-          enum PainterImageBrushShader::filter_t f = PainterImageBrushShader::filter_linear,
-          enum PainterImageBrushShader::mipmap_t mipmap_filtering = PainterImageBrushShader::apply_mipmapping);
+          enum filter_t f = filter_linear,
+          enum mipmap_t mipmap_filtering = apply_mipmapping);
 
     /*!
      * Set the brush to source from a sub-rectangle of an image
@@ -513,8 +513,8 @@ namespace fastuidraw
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum PainterImageBrushShader::filter_t f = PainterImageBrushShader::filter_linear,
-              enum PainterImageBrushShader::mipmap_t mipmap_filtering = PainterImageBrushShader::apply_mipmapping);
+              enum filter_t f = filter_linear,
+              enum mipmap_t mipmap_filtering = apply_mipmapping);
 
     /*!
      * Sets the brush to not have an image.

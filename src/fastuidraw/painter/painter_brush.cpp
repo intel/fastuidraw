@@ -127,8 +127,8 @@ fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 sub_image(const reference_counted_ptr<const Image> &im,
           uvec2 xy, uvec2 wh,
-          enum PainterImageBrushShader::filter_t f,
-          enum PainterImageBrushShader::mipmap_t mipmap_filtering)
+          enum filter_t f,
+          enum mipmap_t mipmap_filtering)
 {
   uint32_t image_bits;
 
@@ -144,8 +144,8 @@ sub_image(const reference_counted_ptr<const Image> &im,
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 image(const reference_counted_ptr<const Image> &im,
-      enum PainterImageBrushShader::filter_t f,
-      enum PainterImageBrushShader::mipmap_t mipmap_filtering)
+      enum filter_t f,
+      enum mipmap_t mipmap_filtering)
 {
   uvec2 sz(0, 0);
   if (im)
