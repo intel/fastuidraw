@@ -16,11 +16,9 @@
  *
  */
 
-#include <iostream>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/painter/shader/painter_image_brush_shader.hpp>
 #include <fastuidraw/painter/painter_packed_value_pool.hpp>
-#include <private/util_private_ostream.hpp>
 
 namespace
 {
