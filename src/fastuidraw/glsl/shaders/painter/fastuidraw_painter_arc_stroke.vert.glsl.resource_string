@@ -21,7 +21,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         in uvec4 in_attrib0,
                         in uvec4 in_attrib1,
                         in uvec4 in_attrib2,
-                        in uint shader_data_block,
+                        inout uint shader_data_block,
                         #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
                         out int z_add,
                         out vec2 out_brush_p,
@@ -57,12 +57,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       fastuidraw_read_dashed_stroking_params_header(shader_data_block, dashed_stroke_params);
       stroke_width_pixels = (dashed_stroke_params.radius < 0.0);
       stroke_radius = abs(dashed_stroke_params.radius);
+      fastuidraw_stroke_shader_data_size = fastuidraw_read_dashed_stroking_params_header_size() + (dashed_stroke_params.number_intervals >> 1u);
     }
   else
     {
       fastuidraw_read_stroking_params(shader_data_block, stroke_params);
       stroke_width_pixels = (stroke_params.radius < 0.0);
       stroke_radius = abs(stroke_params.radius);
+      fastuidraw_stroke_shader_data_size = fastuidraw_read_stroking_params_size();
     }
 
   position = primary_attrib.xy;
@@ -420,5 +422,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   #endif
 
+  shader_data_block += fastuidraw_stroke_shader_data_size;
   out_clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
 }

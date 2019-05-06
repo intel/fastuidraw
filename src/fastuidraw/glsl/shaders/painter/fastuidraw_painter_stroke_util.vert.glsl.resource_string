@@ -47,7 +47,7 @@ struct FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_edge_extend)
 
 void
 FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(in float d,
-                                                    in uint shader_data_block,
+                                                    inout uint shader_data_block,
                                                     in fastuidraw_dashed_stroking_params_header stroke_params,
                                                     out FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) out_data)
 {
@@ -63,7 +63,7 @@ FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(in float d,
 }
 
 void
-FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_extend_edge)(in uint shader_data_block,
+FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_extend_edge)(inout uint shader_data_block,
                                                            in fastuidraw_dashed_stroking_params_header stroke_params,
                                                            in float stroke_radius,
                                                            in bool is_edge_end,

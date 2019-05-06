@@ -18,7 +18,7 @@
 
 
 void
-fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in vec2 in_p)
+fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, in vec2 in_p)
 {
   uint gradient_type;
   FASTUIDRAW_LOCAL(fastuidraw_brush_header) header;

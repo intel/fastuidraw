@@ -82,7 +82,7 @@ FASTUIDRAW_LOCAL(brush_compute_interpolate)(in vec2 p, in uint gradient_type, ou
 }
 
 vec4
-fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
+fastuidraw_gl_frag_brush_main(in uint sub_shader, inout uint shader_data_block)
 {
   vec2 p, dpdx, dpdy;
   uint gradient_type;
@@ -118,6 +118,7 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
       p.x = FASTUIDRAW_LOCAL(brush_apply_spread)(p.x, fastuidraw_brush_repeat_window_w, x_spread);
       p.y = FASTUIDRAW_LOCAL(brush_apply_spread)(p.y, fastuidraw_brush_repeat_window_h, y_spread);
       p += vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window_size)();
 
       fastuidraw_brush_p_x = p.x;
       fastuidraw_brush_p_y = p.y;
@@ -136,6 +137,15 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
       spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_spread_type_bit0,
                                             fastuidraw_brush_spread_type_num_bits,
                                             fastuidraw_brush_features);
+
+      if (gradient_type == fastuidraw_brush_radial_gradient_type)
+        {
+          shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data_size)();
+        }
+      else
+        {
+          shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data_size)();
+        }
 
       /* NOTE: there is a Mesa/i965 bug where if we change the
        * order of this if/else chain to something different,
@@ -161,6 +171,16 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
       return_value *= (good * fastuidraw_colorStopFetch(t, fastuidraw_brush_color_stop_y));
     }
 
+  if ((fastuidraw_brush_features & uint(fastuidraw_brush_transformation_matrix_mask)) != 0u)
+    {
+      shader_data_block = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix_size)();
+    }
+
+  if ((fastuidraw_brush_features & uint(fastuidraw_brush_transformation_translation_mask)) != 0u)
+    {
+      shader_data_block = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation_size)();
+    }
+
   /* apply alpha before doing image because image will multiply
    * pre-multiplied alpha value
    */
@@ -173,12 +193,6 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
                                                  fastuidraw_brush_image_num_bits,
                                                  fastuidraw_brush_features);
 
-      /* Strictly speaking, using the value as shader_data_block
-       * is incorrect because the image-brush data did not actually
-       * start at shader_data_block; however we know that the
-       * GLSL implementation of the image-brush does not read the
-       * shader data, so we are in the clear.
-       */
       return_value *= image_brush(image_sub_shader, shader_data_block);
     }
 

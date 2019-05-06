@@ -42,7 +42,7 @@ namespace fastuidraw
      *   The shader code fragment must provide the function
      *   \code
      *   void
-     *   fastuidraw_gl_compute_blend_value(in uint sub_shader, in uint shader_data_block,
+     *   fastuidraw_gl_compute_blend_value(in uint sub_shader, inout uint shader_data_block,
      *                                     in vec4 in_src, out vec4 out_src)
      *   \endcode
      *   where in_src is the output of the item fragment shader modulated by the
@@ -53,7 +53,7 @@ namespace fastuidraw
      *   The shader code fragment must provide the function
      *   \code
      *   void
-     *   fastuidraw_gl_compute_blend_factors(in uint sub_shader, in uint shader_data_block,
+     *   fastuidraw_gl_compute_blend_factors(in uint sub_shader, inout uint shader_data_block,
      *                                       in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
      *   \endcode
      *   where in_src is the output of the item fragment shader modulated by the
@@ -65,7 +65,7 @@ namespace fastuidraw
      *   The shader code fragment must provide the function
      *   \code
      *   void
-     *   fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint shader_data_block,
+     *   fastuidraw_gl_compute_post_blended_value(in uint sub_shader, inout uint shader_data_block,
      *                                            in vec4 in_src, in vec4 in_fb, out vec4 out_src)
      *   \endcode
      *   where in_src is the output of the item fragment shader modulated by the
@@ -79,6 +79,8 @@ namespace fastuidraw
      * For both stages, the value of the argument of shader_data_block is
      * which 128-bit block into the data store (PainterDraw::m_store) of the
      * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
+     * On exit, this value must be updated to the location just past the
+     * shader data of the shader.
      *
      * For both stages, the value of the argument of sub_shader() is the
      * value of \ref PainterShader::sub_shader() of the active shader.

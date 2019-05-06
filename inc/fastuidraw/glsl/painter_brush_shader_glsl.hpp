@@ -39,7 +39,7 @@ namespace fastuidraw
      * \code
      *   void
      *   fastuidraw_gl_vert_brush_main(in uint sub_shader,
-     *                                 in uint shader_data_block,
+     *                                 inout uint shader_data_block,
      *                                 in vec2 brush_p)
      * \endcode
      * where
@@ -54,7 +54,7 @@ namespace fastuidraw
      * \code
      *   vec4
      *   fastuidraw_gl_frag_brush_main(in uint sub_shader,
-     *                                 in uint shader_data_block)
+     *                                 inout uint shader_data_block)
      * \endcode
      * which returns the color value, pre-multiplied by alpha, by which
      * to modulate the outgoing fragment color.
@@ -71,6 +71,8 @@ namespace fastuidraw
      * For both stages, the value of the argument of shader_data_block is
      * which 128-bit block into the data store (PainterDraw::m_store) of the
      * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
+     * On exit, this value must be updated to the location just past the
+     * shader data of the shader.
      *
      * For both stages, the value of the argument of sub_shader() is the
      * value of \ref PainterShader::sub_shader() of the active shader.

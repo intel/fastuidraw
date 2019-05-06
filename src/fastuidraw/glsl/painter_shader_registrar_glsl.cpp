@@ -575,7 +575,8 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set_float(PainterStrokeParams::stroke_radius_offset, ".radius")
     .set_float(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
     .set_uint(PainterStrokeParams::stroking_units_offset, ".stroking_units")
-    .stream_unpack_function(str, "fastuidraw_read_stroking_params");
+    .stream_unpack_function(str, "fastuidraw_read_stroking_params")
+    .stream_unpack_size_function(str, "fastuidraw_read_stroking_params_size");
 
   UnpackSourceGenerator("fastuidraw_dashed_stroking_params_header")
     .set_float(PainterDashedStrokeParams::stroke_radius_offset, ".radius")
@@ -586,7 +587,8 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set_float(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")
     .set_float(PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset, ".first_interval_start_on_looping")
     .set_uint(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals")
-    .stream_unpack_function(str, "fastuidraw_read_dashed_stroking_params_header");
+    .stream_unpack_function(str, "fastuidraw_read_dashed_stroking_params_header")
+    .stream_unpack_size_function(str, "fastuidraw_read_dashed_stroking_params_header_size");
 }
 
 std::string

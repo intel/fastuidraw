@@ -22,10 +22,11 @@ vec4
 float
 #endif
 fastuidraw_gl_frag_main(in uint sub_shader,
-                        in uint shader_data_block)
+                        inout uint shader_data_block)
 {
   #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER) && defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {
+      shader_data_block += fastuidraw_stroke_shader_data_size;
       return vec4(fastuidraw_read_deferred_coverage_buffer);
     }
   #else
@@ -113,7 +114,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
               if (dash_style == fastuidraw_stroke_dashed_flat_caps)
                 {
                   alpha = FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(shader_data_block, dist, distw,
-                                                                  skip_lookup, dont_anti_alias_dash_boundary);
+                                                                                    skip_lookup, dont_anti_alias_dash_boundary);
                 }
               else
                 {
@@ -174,6 +175,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           #endif
         }
 
+      shader_data_block += fastuidraw_stroke_shader_data_size;
       #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
         {
           return vec4(alpha);

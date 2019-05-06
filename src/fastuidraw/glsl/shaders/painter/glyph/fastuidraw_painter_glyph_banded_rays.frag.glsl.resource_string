@@ -17,7 +17,7 @@
  */
 vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
-                        in uint shader_data_block)
+                        inout uint shader_data_block)
 {
   vec2 glyph_coord, glyph_coord_fwidth;
   uint data_location;

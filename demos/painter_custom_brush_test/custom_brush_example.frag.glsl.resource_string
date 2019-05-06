@@ -1,5 +1,5 @@
 vec4
-fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
+fastuidraw_gl_frag_brush_main(in uint sub_shader, inout uint shader_data_block)
 {
   #ifdef RED_GREEN
     {

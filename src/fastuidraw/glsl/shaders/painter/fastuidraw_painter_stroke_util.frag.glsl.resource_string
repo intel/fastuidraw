@@ -127,7 +127,7 @@ FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage_implement)(in bool add_
 float
 FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in bool add_rounded_caps,
                                                          in bool add_square_caps,
-                                                         in uint shader_data_block,
+                                                         inout uint shader_data_block,
                                                          in float distance_value,
                                                          in float fwidth_distance_value,
                                                          in float stroking_on_boundary,
@@ -174,7 +174,7 @@ FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in bool add_rounded_ca
 }
 
 float
-FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in uint shader_data_block,
+FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(inout uint shader_data_block,
                                                          in float distance_value,
                                                          in float fwidth_distance_value,
                                                          in bool skip_interval_lookup,
