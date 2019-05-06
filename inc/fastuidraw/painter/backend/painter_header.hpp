@@ -87,7 +87,9 @@ namespace fastuidraw
     /*!
      * \brief
      * Enumerations specifying how the contents of a PainterHeader
-     * are packed into a data store buffer (PainterDraw::m_store).
+     * are packed into a data store buffer (PainterDraw::m_store),
+     * offsets are in units of \ref generic_data (not \ref
+     * vecN<generic_data, 4>).
      */
     enum offset_t
       {
@@ -120,7 +122,7 @@ namespace fastuidraw
      * location in the data store buffer (PainterDraw::m_store) for the
      * clip equations. I.e. the PainterClipEquations value is stored
      * (packed) at the location \code
-     * PainterDraw::m_store[m_clip_equations_location * 4]
+     * PainterDraw::m_store[m_clip_equations_location]
      * \endcode
      */
     uint32_t m_clip_equations_location;
@@ -131,7 +133,7 @@ namespace fastuidraw
      * item matrix. I.e. the PainterItemMatrix value is stored (packed)
      * at the location
      * \code
-     * PainterDraw::m_store[m_item_matrix_location * 4]
+     * PainterDraw::m_store[m_item_matrix_location]
      * \endcode
      */
     uint32_t m_item_matrix_location;
@@ -142,7 +144,7 @@ namespace fastuidraw
      * brush shader data. I.e. the data for a brush is stored (packed)
      * at the location
      * \code
-     * PainterDraw::m_store[m_brush_shader_data_location * 4]
+     * PainterDraw::m_store[m_brush_shader_data_location]
      * \endcode
      */
     uint32_t m_brush_shader_data_location;
@@ -153,7 +155,7 @@ namespace fastuidraw
      * item shader data. I.e. the PainterItemShaderData value is stored
      * (packed) at the location
      * \code
-     * PainterDraw::m_store[m_item_shader_data_location * 4]
+     * PainterDraw::m_store[m_item_shader_data_location]
      * \endcode
      */
     uint32_t m_item_shader_data_location;
@@ -164,7 +166,7 @@ namespace fastuidraw
      * blend shader data. I.e. the PainterBlendShaderData value
      * is stored (packed) at the location
      * \code
-     * PainterDraw::m_store[m_blend_shader_data_location * 4]
+     * PainterDraw::m_store[m_blend_shader_data_location]
      * \endcode
      * NOTE: if \ref m_blend_shader_data_location is \ref
      * drawing_occluder this means that the item being drawing
@@ -210,7 +212,7 @@ namespace fastuidraw
      * store buffer (PainterDraw::m_store) for the value encoded
      * by a \ref PainterBrushAdjust packed at the location
      * \code
-     * PainterDraw::m_store[m_clip_equations_location * 4]
+     * PainterDraw::m_store[m_clip_equations_location]
      * \endcode
      */
     uint32_t m_brush_adjust_location;
@@ -220,17 +222,16 @@ namespace fastuidraw
      * \param dst place to which to pack data
      */
     void
-    pack_data(c_array<generic_data> dst) const;
+    pack_data(c_array<vecN<generic_data, 4> > dst) const;
 
     /*!
      * Returns the length of the data needed to encode the data.
-     * Data is padded to be multiple of 4.
      */
     static
     unsigned int
     data_size(void)
     {
-      return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(header_size);
+      return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(header_size);
     }
   };
 

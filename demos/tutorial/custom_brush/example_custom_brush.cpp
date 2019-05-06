@@ -40,37 +40,35 @@ public:
   {}
 
   /*
-   * Data size is how many -scalar- values that the object will
-   * add to the data store. This value must ALWAYS be a multiple
-   * of 4.
+   * Data size is how many vecN<generic_data, 4> values that the object
+   * will add to the data store.
    */
   unsigned int
   data_size(void) const override
   {
     /* Our object is just a few floats (m_phase, m_amplitude and m_period)
-     * toegher with the data from a fastuidraw::PainterBrush. In order
-     * to seemlessly use fastuidraw::PainterBrush as a dependency, its
-     * data must also start on a multiple-of-4 boundary. So, we just
-     * return 4 + how much data the PainterBrush neededs.
+     * togeher with the data from a fastuidraw::PainterBrush. That is just
+     * three values, so only one generic_data is needed more in addition
+     * to the data needed to pack the PainterBrush stored in m_brush_values.
      */
-    return 4 + m_brush_values.data_size();
+    return 1 + m_brush_values.data_size();
   }
 
   /* Packing the data represents placing the data into the data store
    * which will be extacted on GPU by the shader.
    */
   void
-  pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const override
+  pack_data(fastuidraw::c_array<fastuidraw::vecN<fastuidraw::generic_data, 4> > dst) const override
   {
     /* We place the data of (m_phase, m_amplitude and m_period) first. */
-    dst[0].f = m_phase;
-    dst[1].f = m_period;
-    dst[2].f = m_amplitude;
+    dst[0].x().f = m_phase;
+    dst[0].y().f = m_period;
+    dst[0].z().f = m_amplitude;
 
     /* then place the data of the PainterBrush after our data starting
-     * at 4-boundary of generic_data.
+     * at the next vecN<fastuidraw::generic_data, 4> element
      */
-    m_brush_values.pack_data(dst.sub_array(4));
+    m_brush_values.pack_data(dst.sub_array(1));
   }
 
   /* PainterBrushShaderData need to indicate how many resources they use.

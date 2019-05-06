@@ -22,8 +22,10 @@
 // fastuidraw::PainterItemMatrix methods
 void
 fastuidraw::PainterItemMatrix::
-pack_data(c_array<generic_data> dst) const
+pack_data(c_array<vecN<generic_data, 4> > pdst) const
 {
+  c_array<generic_data> dst(pdst.flatten_array());
+
   dst[matrix_row0_col0_offset].f = m_item_matrix(0, 0);
   dst[matrix_row0_col1_offset].f = m_item_matrix(0, 1);
   dst[matrix_row0_col2_offset].f = m_item_matrix(0, 2);

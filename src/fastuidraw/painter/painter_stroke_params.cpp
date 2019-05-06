@@ -93,13 +93,14 @@ unsigned int
 fastuidraw::PainterStrokeParams::
 data_size(void) const
 {
-  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(PainterStrokeParams::stroke_data_size);
+  return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterStrokeParams::stroke_data_size);
 }
 
 void
 fastuidraw::PainterStrokeParams::
-pack_data(c_array<generic_data> dst) const
+pack_data(c_array<vecN<generic_data, 4> > pdst) const
 {
+  c_array<generic_data> dst(pdst.flatten_array());
   PainterStrokeParamsPrivate *d;
   d = static_cast<PainterStrokeParamsPrivate*>(m_d);
 

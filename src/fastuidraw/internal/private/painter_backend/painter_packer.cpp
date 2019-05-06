@@ -201,7 +201,7 @@ public:
   unsigned int
   store_written(void) const
   {
-    return current_block() * 4;
+    return m_store_blocks_written;
   }
 
   void
@@ -243,14 +243,8 @@ public:
   unsigned int m_attributes_written, m_indices_written;
 
 private:
-  c_array<generic_data>
+  c_array<vecN<generic_data, 4> >
   allocate_store(unsigned int num_elements);
-
-  unsigned int
-  current_block(void) const
-  {
-    return m_store_blocks_written;
-  }
 
   void
   pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
@@ -289,14 +283,13 @@ per_draw_command(const reference_counted_ptr<PainterDraw> &r):
   m_prev_state.m_blend_shader_type = fastuidraw::PainterBlendShader::number_types;
 }
 
-fastuidraw::c_array<fastuidraw::generic_data>
+fastuidraw::c_array<fastuidraw::vecN<fastuidraw::generic_data, 4> >
 fastuidraw::PainterPacker::per_draw_command::
 allocate_store(unsigned int num_elements)
 {
-  c_array<generic_data> return_value;
-  FASTUIDRAWassert(num_elements % 4 == 0);
+  c_array<vecN<generic_data, 4> > return_value;
   return_value = m_draw_command->m_store.sub_array(store_written(), num_elements);
-  m_store_blocks_written += num_elements >> 2;
+  m_store_blocks_written += num_elements;
   return return_value;
 }
 
@@ -305,10 +298,10 @@ void
 fastuidraw::PainterPacker::per_draw_command::
 pack_state_data_from_value(const T &st, uint32_t &location)
 {
-  c_array<generic_data> dst;
+  c_array<vecN<generic_data, 4> > dst;
   unsigned int data_sz;
 
-  location = current_block();
+  location = store_written();
   data_sz = st.data_size();
   dst = allocate_store(data_sz);
   st.pack_data(dst);
@@ -364,10 +357,10 @@ pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
   /* data not in current data store but packed in d->m_data, place
    * it onto the current store.
    */
-  c_array<const generic_data> src;
-  c_array<generic_data> dst;
+  c_array<const vecN<generic_data, 4> > src;
+  c_array<vecN<generic_data, 4> > dst;
 
-  location = current_block();
+  location = store_written();
   src = make_c_array(d->m_data);
   dst = allocate_store(src.size());
   std::copy(src.begin(), src.end(), dst.begin());
@@ -417,10 +410,10 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
             unsigned int *header_location)
 {
   bool return_value(false);
-  c_array<generic_data> dst;
+  c_array<vecN<generic_data, 4> > dst;
   PainterHeader header;
 
-  *header_location = current_block();
+  *header_location = store_written();
   dst = allocate_store(header_size);
 
   PainterShaderGroupPrivate current;
@@ -488,7 +481,7 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
 
   for (const auto &call_back: call_backs)
     {
-      call_back->header_added(m_draw_command, header, dst);
+      call_back->header_added(m_draw_command, header, dst.flatten_array());
     }
 
   return return_value;

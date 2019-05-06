@@ -144,7 +144,7 @@ unsigned int
 fastuidraw::PainterImageBrushShaderData::
 data_size(void) const
 {
-  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(shader_data_size);
+  return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(shader_data_size);
 }
 
 void
@@ -196,8 +196,11 @@ sub_image(const reference_counted_ptr<const Image> &im,
 
 void
 fastuidraw::PainterImageBrushShaderData::
-pack_data(c_array<generic_data> dst) const
+pack_data(c_array<vecN<generic_data, 4> > pdst) const
 {
+  c_array<generic_data> dst;
+
+  dst = pdst.flatten_array();
   if (m_image)
     {
       dst[start_xy_offset].u = pack_bits(uvec2_x_bit0, uvec2_x_num_bits, m_image_xy.x())

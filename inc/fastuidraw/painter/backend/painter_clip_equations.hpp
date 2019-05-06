@@ -45,7 +45,8 @@ namespace fastuidraw
      * \brief
      * Enumeration that provides offsets for the
      * elements of the clip equation offsets
-     * (clip_equations_offset)
+     * (clip_equations_offset) in units of \ref
+     * generic_data.
      */
     enum clip_equations_data_offset_t
       {
@@ -80,7 +81,7 @@ namespace fastuidraw
      * \param dst place to which to pack data
      */
     void
-    pack_data(c_array<generic_data> dst) const;
+    pack_data(c_array<vecN<generic_data, 4> > dst) const;
 
     /*!
      * Returns the length of the data needed to encode the data.
@@ -89,7 +90,7 @@ namespace fastuidraw
     unsigned int
     data_size(void) const
     {
-      return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(clip_data_size);
+      return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(clip_data_size);
     }
 
     /*!

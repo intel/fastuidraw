@@ -1174,7 +1174,7 @@ namespace fastuidraw
      */
     float
     compute_path_thresh(const Path &path,
-                        const c_array<const generic_data> shader_data,
+                        const c_array<const vecN<generic_data, 4> > shader_data,
                         const reference_counted_ptr<const StrokingDataSelectorBase> &selector,
                         float *out_rounded_thresh);
 

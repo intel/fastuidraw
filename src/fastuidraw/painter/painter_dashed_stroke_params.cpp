@@ -231,14 +231,15 @@ data_size(void) const
   PainterDashedStrokedParamsPrivate *d;
   d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
 
-  return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(stroke_static_data_size)
-    + FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2 * d->m_dash_pattern.size());
+  return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(stroke_static_data_size)
+    + FASTUIDRAW_NUMBER_BLOCK4_NEEDED(2 * d->m_dash_pattern.size());
 }
 
 void
 fastuidraw::PainterDashedStrokeParams::
-pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
+pack_data(fastuidraw::c_array<vecN<fastuidraw::generic_data, 4> > pdst) const
 {
+  c_array<generic_data> dst(pdst.flatten_array());
   PainterDashedStrokedParamsPrivate *d;
   d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
 

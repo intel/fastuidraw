@@ -78,13 +78,9 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Offsets for image data packing.
-     *
-     * The number of index look ups is recorded in
-     * PainterBrush::features(). The ratio of the size of the
-     * image to the size of the master index is given by
-     * pow(I, Image::number_index_lookups). where I is given
-     * by ImageAtlas::index_tile_size().
+     * Offsets for image data packing. The offsets are in
+     * units of \ref generic_data, NOT units of
+     * vecN<generic_data, 4>.
      */
     enum offset_t
       {
@@ -194,7 +190,7 @@ namespace fastuidraw
     }
 
     void
-    pack_data(c_array<generic_data> dst) const override;
+    pack_data(c_array<vecN<generic_data, 4> > dst) const override;
 
     unsigned int
     data_size(void) const override;

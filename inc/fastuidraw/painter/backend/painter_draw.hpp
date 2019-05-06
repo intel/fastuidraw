@@ -121,7 +121,7 @@ namespace fastuidraw
      * items. The store is understood to be write
      * only.
      */
-    c_array<generic_data> m_store;
+    c_array<vecN<generic_data, 4> > m_store;
 
     /*!
      * Ctor, a derived class will set \ref m_attributes,

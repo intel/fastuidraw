@@ -29,20 +29,20 @@ data_size(void) const
   unsigned int return_value(0);
   uint32_t pfeatures = features();
 
-  return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(header_data_size);
+  return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(header_data_size);
 
   switch(gradient_type())
     {
     case no_gradient_type:
       break;
     case linear_gradient_type:
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
+      return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(linear_gradient_data_size);
       break;
     case sweep_gradient_type:
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(sweep_gradient_data_size);
+      return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(sweep_gradient_data_size);
       break;
     case radial_gradient_type:
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
+      return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(radial_gradient_data_size);
       break;
     default:
       FASTUIDRAWassert(!"Invalid gradient_type()");
@@ -51,17 +51,17 @@ data_size(void) const
 
   if (pfeatures & repeat_window_mask)
     {
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(repeat_window_data_size);
+      return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(repeat_window_data_size);
     }
 
   if (pfeatures & transformation_translation_mask)
     {
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_translation_data_size);
+      return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(transformation_translation_data_size);
     }
 
   if (pfeatures & transformation_matrix_mask)
     {
-      return_value += FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_matrix_data_size);
+      return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(transformation_matrix_data_size);
     }
 
   if (pfeatures & image_mask)
@@ -74,37 +74,34 @@ data_size(void) const
 
 void
 fastuidraw::PainterBrush::
-pack_data(c_array<generic_data> dst) const
+pack_data(c_array<vecN<generic_data, 4> > dst) const
 {
   unsigned int current(0);
   unsigned int sz;
   c_array<generic_data> sub_dest;
   uint32_t pfeatures = features();
 
-  {
-    sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(header_data_size);
-    sub_dest = dst.sub_array(current, sz);
-    current += sz;
-
-    sub_dest[features_offset].u = pfeatures;
-    sub_dest[header_red_green_offset].u = pack_as_fp16(m_data.m_color.x(), m_data.m_color.y());
-    sub_dest[header_blue_alpha_offset].u = pack_as_fp16(m_data.m_color.z(), m_data.m_color.w());
-  }
+  sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(header_data_size);
+  sub_dest = dst.sub_array(current, sz).flatten_array();
+  current += sz;
+  sub_dest[features_offset].u = pfeatures;
+  sub_dest[header_red_green_offset].u = pack_as_fp16(m_data.m_color.x(), m_data.m_color.y());
+  sub_dest[header_blue_alpha_offset].u = pack_as_fp16(m_data.m_color.z(), m_data.m_color.w());
 
   enum gradient_type_t tp(gradient_type());
   if (tp != no_gradient_type)
     {
       if (tp == radial_gradient_type)
         {
-          sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(radial_gradient_data_size);
+          sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(radial_gradient_data_size);
         }
       else
         {
           FASTUIDRAWassert(sweep_gradient_data_size == linear_gradient_data_size);
-          sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(linear_gradient_data_size);
+          sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(linear_gradient_data_size);
         }
 
-      sub_dest = dst.sub_array(current, sz);
+      sub_dest = dst.sub_array(current, sz).flatten_array();
       current += sz;
 
       FASTUIDRAWassert(m_data.m_cs);
@@ -135,8 +132,8 @@ pack_data(c_array<generic_data> dst) const
 
   if (pfeatures & repeat_window_mask)
     {
-      sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(repeat_window_data_size);
-      sub_dest = dst.sub_array(current, sz);
+      sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(repeat_window_data_size);
+      sub_dest = dst.sub_array(current, sz).flatten_array();
       current += sz;
 
       sub_dest[repeat_window_x_offset].f = m_data.m_window_position.x();
@@ -147,8 +144,8 @@ pack_data(c_array<generic_data> dst) const
 
   if (pfeatures & transformation_matrix_mask)
     {
-      sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_matrix_data_size);
-      sub_dest = dst.sub_array(current, sz);
+      sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(transformation_matrix_data_size);
+      sub_dest = dst.sub_array(current, sz).flatten_array();
       current += sz;
 
       sub_dest[transformation_matrix_row0_col0_offset].f = m_data.m_transformation_matrix(0, 0);
@@ -159,8 +156,8 @@ pack_data(c_array<generic_data> dst) const
 
   if (pfeatures & transformation_translation_mask)
     {
-      sz = FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(transformation_translation_data_size);
-      sub_dest = dst.sub_array(current, sz);
+      sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(transformation_translation_data_size);
+      sub_dest = dst.sub_array(current, sz).flatten_array();
       current += sz;
 
       sub_dest[transformation_translation_x_offset].f = m_data.m_transformation_p.x();
@@ -170,9 +167,8 @@ pack_data(c_array<generic_data> dst) const
   if (pfeatures & image_mask)
     {
       sz = m_data.m_image.data_size();
-      sub_dest = dst.sub_array(current, sz);
+      m_data.m_image.pack_data(dst.sub_array(current, sz));
       current += sz;
-      m_data.m_image.pack_data(sub_dest);
     }
 
   FASTUIDRAWassert(current == dst.size());

@@ -21,8 +21,10 @@
 
 void
 fastuidraw::PainterHeader::
-pack_data(c_array<generic_data> dst) const
+pack_data(c_array<vecN<generic_data, 4> > pdst) const
 {
+  c_array<generic_data> dst(pdst.flatten_array());
+
   uint32_t packed_deferred_coverage_offset;
 
   packed_deferred_coverage_offset =

@@ -46,7 +46,8 @@ namespace fastuidraw
     /*!
      * \brief
      * Enumeration that provides offsets for the values
-     * in a \ref PainterBrushAdjust
+     * in a \ref PainterBrushAdjust in units of \ref
+     * generic_data.
      */
     enum data_offset_t
       {
@@ -73,7 +74,7 @@ namespace fastuidraw
     unsigned int
     data_size(void) const
     {
-      return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(raw_data_size);
+      return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(raw_data_size);
     }
 
     /*!
@@ -81,7 +82,7 @@ namespace fastuidraw
      * \param dst place to which to pack data
      */
     void
-    pack_data(c_array<generic_data> dst) const;
+    pack_data(c_array<vecN<generic_data, 4> > dst) const;
 
     /*!
      * The shearing to apply to the brush before the

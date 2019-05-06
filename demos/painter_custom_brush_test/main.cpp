@@ -45,16 +45,16 @@ public:
   }
 
   void
-  pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const override
+  pack_data(fastuidraw::c_array<fastuidraw::vecN<fastuidraw::generic_data, 4> > dst) const override
   {
-    dst[0].f = 1.0f / m_width;
-    dst[1].f = 1.0f / m_height;
+    dst[0].x().f = 1.0f / m_width;
+    dst[0].y().f = 1.0f / m_height;
   }
 
   unsigned int
   data_size(void) const override
   {
-    return FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(2);
+    return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(2);
   }
 
   float m_width, m_height;

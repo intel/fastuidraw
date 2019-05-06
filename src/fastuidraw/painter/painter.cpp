@@ -1720,7 +1720,7 @@ namespace
 
     float
     compute_path_thresh(const fastuidraw::Path &path,
-                        const fastuidraw::c_array<const fastuidraw::generic_data> shader_data,
+                        const fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > shader_data,
                         const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
                         float &thresh);
 
@@ -3184,7 +3184,7 @@ compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::v
 float
 PainterPrivate::
 compute_path_thresh(const fastuidraw::Path &path,
-                    const fastuidraw::c_array<const fastuidraw::generic_data> shader_data,
+                    const fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > shader_data,
                     const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
                     float &thresh)
 {
@@ -3209,7 +3209,7 @@ select_stroked_path(const fastuidraw::Path &path,
   using namespace fastuidraw;
 
   float t;
-  c_array<const generic_data> data(draw.m_item_shader_data.m_packed_value.packed_data());
+  c_array<const vecN<generic_data, 4> > data(draw.m_item_shader_data.m_packed_value.packed_data());
   const reference_counted_ptr<const StrokingDataSelectorBase> &selector(shader.stroking_data_selector());
 
   if (selector->data_compatible(data))
@@ -3679,7 +3679,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
     }
 
   const PainterAttributeData *cap_data(nullptr), *join_data(nullptr);
-  c_array<const generic_data> raw_data;
+  c_array<const vecN<generic_data, 4> > raw_data;
   const StrokedCapsJoins &caps_joins(path.caps_joins());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
   bool requires_coverage_buffer(false);
@@ -5108,7 +5108,7 @@ compute_path_thresh(const fastuidraw::Path &path)
 float
 fastuidraw::Painter::
 compute_path_thresh(const Path &path,
-                    const c_array<const generic_data> shader_data,
+                    const c_array<const vecN<generic_data, 4> > shader_data,
                     const reference_counted_ptr<const StrokingDataSelectorBase> &selector,
                     float *thresh)
 {

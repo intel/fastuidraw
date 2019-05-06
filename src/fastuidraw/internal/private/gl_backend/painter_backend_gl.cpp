@@ -401,8 +401,8 @@ DrawCommand(const reference_counted_ptr<painter_vao_pool> &hnd,
                                            params.attributes_per_buffer());
   m_indices = c_array<PainterIndex>(static_cast<PainterIndex*>(index_bo),
                                     params.indices_per_buffer());
-  m_store = c_array<generic_data>(static_cast<generic_data*>(data_bo),
-                                  hnd->data_buffer_size() / sizeof(generic_data));
+  m_store = c_array<vecN<generic_data, 4> >(static_cast<vecN<generic_data, 4>*>(data_bo),
+                                            hnd->data_buffer_size() / sizeof(vecN<generic_data, 4>));
 
   m_header_attributes = c_array<uint32_t>(static_cast<uint32_t*>(header_bo),
                                           params.attributes_per_buffer());

@@ -47,11 +47,12 @@ namespace fastuidraw
      */
     virtual
     void
-    pack_data(c_array<generic_data> dst) const = 0;
+    pack_data(c_array<vecN<generic_data, 4> > dst) const = 0;
 
     /*!
      * To be implemented by a derived class to return
-     * the length needed to pack the data.
+     * the number of vecN<generic_data, 4> blocks needed
+     * to pack the data.
      */
     virtual
     unsigned int

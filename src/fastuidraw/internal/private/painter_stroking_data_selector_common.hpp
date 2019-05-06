@@ -38,10 +38,11 @@ namespace fastuidraw
       {}
 
       float
-      compute_thresh(fastuidraw::c_array<const fastuidraw::generic_data> data,
+      compute_thresh(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata,
                      float path_magnification,
                      float curve_flatness) const override final
       {
+        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
         if (data[RadiusOffset].f <= 0.0f)
           {
             /* Not really stroking, just select a LARGE value
@@ -63,9 +64,10 @@ namespace fastuidraw
       }
 
       void
-      stroking_distances(fastuidraw::c_array<const fastuidraw::generic_data> data,
+      stroking_distances(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata,
                          fastuidraw::c_array<float> out_geometry_inflation) const override final
       {
+        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
         float out_pixel_distance, out_item_space_distance;
 
         if (data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units)
@@ -86,15 +88,17 @@ namespace fastuidraw
       }
 
       bool
-      arc_stroking_possible(fastuidraw::c_array<const fastuidraw::generic_data> data) const override final
+      arc_stroking_possible(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata) const override final
       {
+        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
         return m_pixel_arc_stroking_possible
           || data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units;
       }
 
       bool
-      data_compatible(fastuidraw::c_array<const fastuidraw::generic_data> data) const override final
+      data_compatible(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata) const override final
       {
+        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
         return data.size() > MiterLimitOffset
           && data.size() > RadiusOffset
           && data.size() > UnitsOffset

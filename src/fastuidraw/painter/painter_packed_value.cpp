@@ -95,7 +95,7 @@ operator=(const PainterPackedValueBase &obj)
   return *this;
 }
 
-fastuidraw::c_array<fastuidraw::generic_data>
+fastuidraw::c_array<fastuidraw::vecN<fastuidraw::generic_data, 4> >
 fastuidraw::PainterPackedValueBase::
 packed_data(void) const
 {

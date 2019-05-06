@@ -58,7 +58,7 @@ namespace fastuidraw
     void
     swap(PainterPackedValueBase &obj);
 
-    c_array<generic_data>
+    c_array<vecN<generic_data, 4> >
     packed_data(void) const;
 
     c_array<const reference_counted_ptr<const Image> >
@@ -123,7 +123,7 @@ namespace fastuidraw
     /*!
      * Returns the data of the PainterPackedValue
      */
-    c_array<generic_data>
+    c_array<vecN<generic_data, 4> >
     packed_data(void) const
     {
       return PainterPackedValueBase::packed_data();
