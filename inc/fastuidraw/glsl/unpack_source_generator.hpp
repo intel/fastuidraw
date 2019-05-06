@@ -111,6 +111,7 @@ namespace fastuidraw
       /*!
        * Set the field name that corresponds to an offset
        * \param offset offset from the start of the packed struct
+       *               in units of \ref generic_data
        * \param field_name GLSL name of the field to which to unpack
        *                   the single scalar value. The value must
        *                   include the dot if it is a field member of
@@ -130,6 +131,7 @@ namespace fastuidraw
        * Set the field name that corresponds to an offset and range of
        * bits within the value at the named offset
        * \param offset offset from the start of the packed struct
+       *               in units of \ref generic_data
        * \param bit0 first bit of field value storted at offset
        * \param num_bits number of bits used to store value.
        * \param field_name GLSL name of the field to which to unpack
@@ -154,6 +156,7 @@ namespace fastuidraw
        * set(offset, field_name, float_type, reinterpret_to_float_bits, struct_idx);
        * \endcode
        * \param offset offset from the start of the packed struct
+       *               in units of \ref generic_data
        * \param field_name GLSL name of the field to which to unpack
        *                   the single scalar value. The value must
        *                   include the dot if it is a field member of
@@ -175,6 +178,7 @@ namespace fastuidraw
        * set(offset, field_name, uint_type, type_cast, struct_idx);
        * \endcode
        * \param offset offset from the start of the packed struct
+       *               in units of \ref generic_data
        * \param field_name GLSL name of the field to which to unpack
        *                   the single scalar value. The value must
        *                   include the dot if it is a field member of
@@ -196,6 +200,7 @@ namespace fastuidraw
        * set(offset, field_name, int_type, type_cast, struct_idx);
        * \endcode
        * \param offset offset from the start of the packed struct
+       *               in units of \ref generic_data
        * \param field_name GLSL name of the field to which to unpack
        *                   the single scalar value. The value must
        *                   include the dot if it is a field member of

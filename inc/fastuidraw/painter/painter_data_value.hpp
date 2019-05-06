@@ -44,10 +44,10 @@ namespace fastuidraw
   public:
     /*!
      * Ctor from a value.
-     * \param p value with which to initialize, the object point to
-     *          by p must stay in scope until either make_packed()
-     *          is called or the dtor of this \ref value object is
-     *          called.
+     * \param p value with which to initialize, the object pointed
+     *          to by p must stay in scope until either make_packed()
+     *          is called or the dtor of this \ref PainterDataValue
+     *          object is called.
      */
     PainterDataValue(const T *p = nullptr):
       m_value(p)

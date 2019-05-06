@@ -171,7 +171,7 @@ namespace fastuidraw
       {
         /*!
          * Number of bits needed to encode if and how
-         * an \ref Omage is sourced from.
+         * an \ref Image is sourced from.
          */
         image_num_bits = PainterImageBrushShader::number_bits,
 

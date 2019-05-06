@@ -88,7 +88,7 @@ namespace fastuidraw
          * Width and height of the sub-rectangle of the \ref
          * Image from which to source and encoded in a single
          * uint32_t. The bits are packed as according to \ref
-         * size_encoding.  If there is no valid backing image,
+         * uvec2_encoding.  If there is no valid backing image,
          * then the encoded value will be 0.
          */
         size_xy_offset,
@@ -97,7 +97,7 @@ namespace fastuidraw
          * The minx-miny corener of the sub-rectangle of the \ref
          * Image from which to source and encoded in a single
          * uint32_t. The bits are packed as according to \ref
-         * size_encoding.
+         * uvec2_encoding.
          */
         start_xy_offset,
 
@@ -268,13 +268,11 @@ namespace fastuidraw
     enum sub_shader_bits
       {
         /*!
-         * Number of bits needed to encode filter for image,
-         * the value packed into the \ref features() encodes
-         * both what filter to use and whether or not an image
-         * is present. A value of 0 indicates no image applied,
-         * a non-zero value indicates an image applied and
-         * the value specifies what filter via the enumeration
-         * \ref filter_t.
+         * Number of bits needed to encode filter for image.
+         * A value of 0 indicates no image applied, a non-zero
+         * value indicates an image applied and the value
+         * specifies what filter via the enumeration \ref
+         * filter_t.
          */
         filter_num_bits = 2,
 
@@ -392,7 +390,7 @@ namespace fastuidraw
      * Create a \ref PainterCustomBrush with packed data to brush
      * by sourcing from a sub-rectangle of an Image.
      * \param pool \ref PainterPackedValuePool used to create the packed value
-     * \param im \ref Image from which to source
+     * \param image \ref Image from which to source
      * \param xy minx-miny corner of sub-rectangle
      * \param wh width and height of sub-rectangle
      * \param image_filter filtering to apply to image
@@ -409,7 +407,7 @@ namespace fastuidraw
      * Create a \ref PainterCustomBrush with packed data to brush
      * by sourcing from the entirity of an Image.
      * \param pool \ref PainterPackedValuePool used to create the packed value
-     * \param im \ref Image from which to source
+     * \param image \ref Image from which to source
      * \param image_filter filtering to apply to image
      * \param mip_mapping mipmapping to apply to image
      */

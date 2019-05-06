@@ -1199,8 +1199,8 @@ magnitude_compare(const vecN<T, N> &a,
 
   /*!
    * unvecN extracts from a type T \ref vecN::array_size
-   * and \ref vecN::type is T is a vecN<S, N> for some
-   * type S and N.
+   * and \ref vecN::value_type if T is a vecN<S, N> for
+   * some type S and N.
    */
   template<typename T>
   class unvecN

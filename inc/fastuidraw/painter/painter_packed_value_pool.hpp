@@ -84,7 +84,7 @@ namespace fastuidraw
 
     /*!
      * Returns a \ref PainterData::brush_value whose data is
-     * packed from a \ref PainterData::CustomBrush value.
+     * packed from a \ref PainterCustomBrush  value.
      */
     PainterData::brush_value
     create_packed_brush(const PainterCustomBrush &brush)
