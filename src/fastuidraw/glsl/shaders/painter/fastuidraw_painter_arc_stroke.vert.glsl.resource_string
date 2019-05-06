@@ -21,7 +21,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         in uvec4 in_attrib0,
                         in uvec4 in_attrib1,
                         in uvec4 in_attrib2,
-                        in uint shader_data_offset,
+                        in uint shader_data_block,
                         #ifdef FASTUIDRAW_RENDER_TO_COLOR_BUFFER
                         out int z_add,
                         out vec2 out_brush_p,
@@ -54,13 +54,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   dash_style = sub_shader;
   if (dash_style != fastuidraw_stroke_not_dashed)
     {
-      fastuidraw_read_dashed_stroking_params_header(shader_data_offset, dashed_stroke_params);
+      fastuidraw_read_dashed_stroking_params_header(shader_data_block, dashed_stroke_params);
       stroke_width_pixels = (dashed_stroke_params.radius < 0.0);
       stroke_radius = abs(dashed_stroke_params.radius);
     }
   else
     {
-      fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+      fastuidraw_read_stroking_params(shader_data_block, stroke_params);
       stroke_width_pixels = (stroke_params.radius < 0.0);
       stroke_radius = abs(stroke_params.radius);
     }
@@ -99,17 +99,17 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) base, base_start, base_end;
 
       stroke_distance = distance_from_contour_start + dashed_stroke_params.dash_offset;
-      FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(stroke_distance, shader_data_offset, dashed_stroke_params, base);
+      FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(stroke_distance, shader_data_block, dashed_stroke_params, base);
       fastuidraw_arc_stroking_distance = base.d;
 
       if (dash_style != fastuidraw_stroke_dashed_flat_caps)
         {
           edge_start = distance_from_contour_start - distance_from_edge_start + dashed_stroke_params.dash_offset;
-          FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_start, shader_data_offset, dashed_stroke_params, base_start);
+          FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_start, shader_data_block, dashed_stroke_params, base_start);
           fastuidraw_arc_stroking_distance_sub_edge_start = (base_start.s < 0.0) ? base_start.interval_end : base_start.interval_begin - stroke_radius;
 
           edge_end = edge_start + total_edge_length;
-          FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_end, shader_data_offset, dashed_stroke_params, base_end);
+          FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_end, shader_data_block, dashed_stroke_params, base_end);
           fastuidraw_arc_stroking_distance_sub_edge_end = (base_end.s < 0.0) ? base_end.interval_begin : base_end.interval_end + stroke_radius;
         }
 

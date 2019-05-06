@@ -21,7 +21,7 @@ vec4
 float
 #endif
 fastuidraw_gl_frag_main(in uint sub_shader,
-                        in uint shader_data_offset)
+                        in uint shader_data_block)
 {
   #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER) && defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {

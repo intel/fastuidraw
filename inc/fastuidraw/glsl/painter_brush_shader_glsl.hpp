@@ -39,13 +39,13 @@ namespace fastuidraw
      * \code
      *   void
      *   fastuidraw_gl_vert_brush_main(in uint sub_shader,
-     *                                 in uint shader_data_offset,
+     *                                 in uint shader_data_block,
      *                                 in vec2 brush_p)
      * \endcode
      * where
      *  - sub_shader corresponds to PainterBrushShader::sub_shader()
      *  - brush_p is the brush position emitted by the item shader and
-     *  - shader_data_offset is what block in the data store for
+     *  - shader_data_block is what block in the data store for
      *    the data packed by PainterBrushShaderData::pack_data()
      *    of the PainterBrushShaderData in the \ref Painter call;
      *    use the macro fastuidraw_fetch_data() to read the data.
@@ -54,7 +54,7 @@ namespace fastuidraw
      * \code
      *   vec4
      *   fastuidraw_gl_frag_brush_main(in uint sub_shader,
-     *                                 in uint shader_data_offset)
+     *                                 in uint shader_data_block)
      * \endcode
      * which returns the color value, pre-multiplied by alpha, by which
      * to modulate the outgoing fragment color.
@@ -68,9 +68,12 @@ namespace fastuidraw
      * Available to both the vertex and fragment shader are the following:
      *  - the GLSL elements in the module \ref GLSLVertFragCode
      *
-     * For both stages, the value of the argument of shader_data_offset is
+     * For both stages, the value of the argument of shader_data_block is
      * which 128-bit block into the data store (PainterDraw::m_store) of the
      * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
+     *
+     * For both stages, the value of the argument of sub_shader() is the
+     * value of \ref PainterShader::sub_shader() of the active shader.
      *
      * Also, if one defines macros in any of the passed ShaderSource objects,
      * those macros MUST be undefined at the end. In addition, if one

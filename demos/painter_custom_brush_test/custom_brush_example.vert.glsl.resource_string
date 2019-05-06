@@ -1,12 +1,12 @@
 void
 fastuidraw_gl_vert_brush_main(in uint sub_shader,
-                              in uint shader_data_offset,
+                              in uint shader_data_block,
                               in vec2 brush_p)
 {
   float w, h;
   uvec4 d;
 
-  d = fastuidraw_fetch_data(shader_data_offset);
+  d = fastuidraw_fetch_data(shader_data_block);
   w = uintBitsToFloat(d.x);
   h = uintBitsToFloat(d.y);
 

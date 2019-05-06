@@ -121,7 +121,7 @@ FASTUIDRAW_LOCAL(brush_image_of_bindless)(in vec2 p, in uint image_filter, in fl
 #endif
 
 vec4
-fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
+fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
 {
   vec2 p, dpdx, dpdy;
   vec4 return_value;

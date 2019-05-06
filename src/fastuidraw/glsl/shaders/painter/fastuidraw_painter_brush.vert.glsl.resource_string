@@ -18,7 +18,7 @@
 
 
 void
-fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in vec2 in_p)
+fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in vec2 in_p)
 {
   uint data_ptr, gradient_type;
   FASTUIDRAW_LOCAL(fastuidraw_brush_header) header;
@@ -28,7 +28,7 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
   float color_stop_recip;
 
   p = in_p;
-  data_ptr = shader_data_offset;
+  data_ptr = shader_data_block;
 
   /* Directly unpack brush data into brush varyings */
   data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(data_ptr, header);

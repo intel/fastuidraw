@@ -19,7 +19,7 @@
 
 vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
-                        in uint shader_data_offset)
+                        in uint shader_data_block)
 {
   return vec4(1.0, 1.0, 1.0, 1.0);
 }

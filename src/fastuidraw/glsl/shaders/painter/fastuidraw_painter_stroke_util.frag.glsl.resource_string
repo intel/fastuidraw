@@ -127,7 +127,7 @@ FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage_implement)(in bool add_
 float
 FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in bool add_rounded_caps,
                                                          in bool add_square_caps,
-                                                         in uint shader_data_offset,
+                                                         in uint shader_data_block,
                                                          in float distance_value,
                                                          in float fwidth_distance_value,
                                                          in float stroking_on_boundary,
@@ -141,8 +141,8 @@ FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in bool add_rounded_ca
   uint dash_pattern_at;
   fastuidraw_dashed_stroking_params_header stroke_params;
 
-  dash_pattern_at = shader_data_offset + fastuidraw_stroke_dashed_stroking_params_header_num_blocks;
-  fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
+  dash_pattern_at = shader_data_block + fastuidraw_stroke_dashed_stroking_params_header_num_blocks;
+  fastuidraw_read_dashed_stroking_params_header(shader_data_block, stroke_params);
 
   if (skip_interval_lookup)
     {
@@ -174,7 +174,7 @@ FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in bool add_rounded_ca
 }
 
 float
-FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in uint shader_data_offset,
+FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in uint shader_data_block,
                                                          in float distance_value,
                                                          in float fwidth_distance_value,
                                                          in bool skip_interval_lookup,
@@ -184,8 +184,8 @@ FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(in uint shader_data_of
   uint dash_pattern_at;
   fastuidraw_dashed_stroking_params_header stroke_params;
 
-  dash_pattern_at = shader_data_offset + fastuidraw_stroke_dashed_stroking_params_header_num_blocks;
-  fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
+  dash_pattern_at = shader_data_block + fastuidraw_stroke_dashed_stroking_params_header_num_blocks;
+  fastuidraw_read_dashed_stroking_params_header(shader_data_block, stroke_params);
 
   if (skip_interval_lookup)
     {

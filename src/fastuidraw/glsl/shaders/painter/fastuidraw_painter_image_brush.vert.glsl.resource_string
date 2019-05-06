@@ -17,7 +17,7 @@
  */
 
 void
-fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in vec2 in_p)
+fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in vec2 in_p)
 {
   uint image_type;
   FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image;
@@ -25,7 +25,7 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_offset, in
   image_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_type_bit0,
                                        fastuidraw_brush_image_type_num_bits,
                                        sub_shader);
-  FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(shader_data_offset, image_type, image);
+  FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(shader_data_block, image_type, image);
   fastuidraw_brush_image_size_x = float(image.image_size.x);
   fastuidraw_brush_image_size_y = float(image.image_size.y);
   #ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED

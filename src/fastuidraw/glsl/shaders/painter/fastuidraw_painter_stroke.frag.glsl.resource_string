@@ -22,7 +22,7 @@ vec4
 float
 #endif
 fastuidraw_gl_frag_main(in uint sub_shader,
-                        in uint shader_data_offset)
+                        in uint shader_data_block)
 {
   #if defined(FASTUIDRAW_RENDER_TO_COLOR_BUFFER) && defined(FASTUIDRAW_STROKING_USE_DEFFERRED_COVERAGE)
     {
@@ -49,7 +49,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                 {
                   alpha = FASTUIDRAW_LOCAL(fastuidraw_stroke_compute_dash_coverage)(dash_style == fastuidraw_stroke_dashed_rounded_caps,
                                                                   dash_style == fastuidraw_stroke_dashed_square_caps,
-                                                                  shader_data_offset,
+                                                                  shader_data_block,
                                                                   fastuidraw_stroking_distance,
                                                                   fwidth_fastuidraw_stroking_distance,
                                                                   fastuidraw_stroking_on_boundary,

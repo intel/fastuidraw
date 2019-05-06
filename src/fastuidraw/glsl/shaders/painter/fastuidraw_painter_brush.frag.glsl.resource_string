@@ -82,7 +82,7 @@ FASTUIDRAW_LOCAL(brush_compute_interpolate)(in vec2 p, in uint gradient_type, ou
 }
 
 vec4
-fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
+fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_block)
 {
   vec2 p, dpdx, dpdy;
   uint gradient_type;
@@ -173,13 +173,13 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, in uint shader_data_offset)
                                                  fastuidraw_brush_image_num_bits,
                                                  fastuidraw_brush_features);
 
-      /* Strictly speaking, using the value as shader_data_offset
+      /* Strictly speaking, using the value as shader_data_block
        * is incorrect because the image-brush data did not actually
-       * start at shader_data_offset; however we know that the
+       * start at shader_data_block; however we know that the
        * GLSL implementation of the image-brush does not read the
        * shader data, so we are in the clear.
        */
-      return_value *= image_brush(image_sub_shader, shader_data_offset);
+      return_value *= image_brush(image_sub_shader, shader_data_block);
     }
 
   return return_value;

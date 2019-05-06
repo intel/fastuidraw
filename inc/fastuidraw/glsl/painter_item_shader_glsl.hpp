@@ -42,7 +42,7 @@ namespace fastuidraw
      *                           in uvec4 attrib0,
      *                           in uvec4 attrib1,
      *                           in uvec4 attrib2,
-     *                           in uint shader_data_offset,
+     *                           in uint shader_data_block,
      *                           out vec3 clip_p)
      * \endcode
      * where
@@ -50,7 +50,7 @@ namespace fastuidraw
      *  - attrib0 corresponds to PainterAttribute::m_attrib0,
      *  - attrib1 corresponds to PainterAttribute::m_attrib1,
      *  - attrib2 corresponds to PainterAttribute::m_attrib2 and
-     *  - shader_data_offset is what block in the data store for
+     *  - shader_data_block is what block in the data store for
      *    the data packed by PainterItemCoverageShaderData::pack_data()
      *    of the PainterItemCoverageShaderData in the \ref Painter call;
      *    use the macro fastuidraw_fetch_data() to read the data.
@@ -61,7 +61,7 @@ namespace fastuidraw
      * \code
      *   float
      *   fastuidraw_gl_frag_main(in uint sub_shader,
-     *                           in uint shader_data_offset)
+     *                           in uint shader_data_block)
      * \endcode
      *
      * which returns the value to write to the coverage buffer
@@ -76,9 +76,12 @@ namespace fastuidraw
      * Available to both the vertex and fragment shader are the following:
      *  - the GLSL elements in the module \ref GLSLVertFragCode
      *
-     * For both stages, the value of the argument of shader_data_offset is
+     * For both stages, the value of the argument of shader_data_block is
      * which 128-bit block into the data store (PainterDraw::m_store) of the
      * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
+     *
+     * For both stages, the value of the argument of sub_shader() is the
+     * value of \ref PainterShader::sub_shader() of the active shader.
      *
      * Also, if one defines macros in any of the passed ShaderSource objects,
      * those macros MUST be undefined at the end. In addition, if one
@@ -235,7 +238,7 @@ namespace fastuidraw
      *                           in uvec4 attrib0,
      *                           in uvec4 attrib1,
      *                           in uvec4 attrib2,
-     *                           in uint shader_data_offset,
+     *                           in uint shader_data_block,
      *                           out uint z_add,
      *                           out vec2 brush_p,
      *                           out vec3 clip_p)
@@ -245,7 +248,7 @@ namespace fastuidraw
      *  - attrib0 corresponds to PainterAttribute::m_attrib0,
      *  - attrib1 corresponds to PainterAttribute::m_attrib1,
      *  - attrib2 corresponds to PainterAttribute::m_attrib2 and
-     *  - shader_data_offset is what block in the data store for
+     *  - shader_data_block is what block in the data store for
      *    the data packed by PainterItemShaderData::pack_data()
      *    of the PainterItemShaderData in the \ref Painter call;
      *    use the macro fastuidraw_fetch_data() to read the data.
@@ -261,7 +264,7 @@ namespace fastuidraw
      * \code
      *   vec4
      *   fastuidraw_gl_frag_main(in uint sub_shader,
-     *                           in uint shader_data_offset)
+     *                           in uint shader_data_block)
      * \endcode
      *
      * which returns the color of the fragment for the item -before-
@@ -278,9 +281,12 @@ namespace fastuidraw
      * Available to both the vertex and fragment shader are the following:
      *  - the GLSL elements in the module \ref GLSLVertFragCode
      *
-     * For both stages, the value of the argument of shader_data_offset is
+     * For both stages, the value of the argument of shader_data_block is
      * which 128-bit block into the data store (PainterDraw::m_store) of the
      * shader data to be read with the GLSL macro \ref fastuidraw_fetch_data.
+     *
+     * For both stages, the value of the argument of sub_shader() is the
+     * value of \ref PainterShader::sub_shader() of the active shader.
      *
      * Also, if one defines macros in any of the passed ShaderSource objects,
      * those macros MUST be undefined at the end. In addition, if one
