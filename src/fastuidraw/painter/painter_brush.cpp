@@ -71,8 +71,8 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
   sub_dest[header_red_green_offset].u = pack_as_fp16(m_data.m_color.x(), m_data.m_color.y());
   sub_dest[header_blue_alpha_offset].u = pack_as_fp16(m_data.m_color.z(), m_data.m_color.w());
 
-  enum PainterGradientBrushShaderData::type_t tp(gradient_type());
-  if (tp != PainterGradientBrushShaderData::non)
+  enum gradient_type_t tp(gradient_type());
+  if (tp != gradient_non)
     {
       sz = m_data.m_gradient.data_size();
       m_data.m_gradient.pack_data(dst.sub_array(current, sz));

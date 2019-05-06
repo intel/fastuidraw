@@ -964,18 +964,18 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
 
     .add_macro_u32("fastuidraw_brush_gradient_type_bit0", PainterBrush::gradient_type_bit0)
     .add_macro_u32("fastuidraw_brush_gradient_type_num_bits", PainterBrush::gradient_type_num_bits)
-    .add_macro_u32("fastuidraw_brush_no_gradient_type", PainterGradientBrushShaderData::non)
-    .add_macro_u32("fastuidraw_brush_linear_gradient_type", PainterGradientBrushShaderData::linear)
-    .add_macro_u32("fastuidraw_brush_radial_gradient_type", PainterGradientBrushShaderData::radial)
-    .add_macro_u32("fastuidraw_brush_sweep_gradient_type", PainterGradientBrushShaderData::sweep)
+    .add_macro_u32("fastuidraw_brush_no_gradient_type", PainterBrushEnums::gradient_non)
+    .add_macro_u32("fastuidraw_brush_linear_gradient_type", PainterBrushEnums::gradient_linear)
+    .add_macro_u32("fastuidraw_brush_radial_gradient_type", PainterBrushEnums::gradient_radial)
+    .add_macro_u32("fastuidraw_brush_sweep_gradient_type", PainterBrushEnums::gradient_sweep)
 
     .add_macro_u32("fastuidraw_brush_gradient_spread_type_bit0", PainterBrush::gradient_spread_type_bit0)
 
     .add_macro_u32("fastuidraw_brush_spread_type_num_bits", PainterBrush::spread_type_num_bits)
-    .add_macro_u32("fastuidraw_brush_spread_clamp", PainterBrush::spread_clamp)
-    .add_macro_u32("fastuidraw_brush_spread_repeat", PainterBrush::spread_repeat)
-    .add_macro_u32("fastuidraw_brush_spread_mirror_repeat", PainterBrush::spread_mirror_repeat)
-    .add_macro_u32("fastuidraw_brush_spread_mirror", PainterBrush::spread_mirror)
+    .add_macro_u32("fastuidraw_brush_spread_clamp", PainterBrushEnums::spread_clamp)
+    .add_macro_u32("fastuidraw_brush_spread_repeat", PainterBrushEnums::spread_repeat)
+    .add_macro_u32("fastuidraw_brush_spread_mirror_repeat", PainterBrushEnums::spread_mirror_repeat)
+    .add_macro_u32("fastuidraw_brush_spread_mirror", PainterBrushEnums::spread_mirror)
 
     .add_macro_u32("fastuidraw_brush_repeat_window_mask", PainterBrush::repeat_window_mask)
     .add_macro_u32("fastuidraw_brush_repeat_window_x_spread_type_bit0", PainterBrush::repeat_window_x_spread_type_bit0)

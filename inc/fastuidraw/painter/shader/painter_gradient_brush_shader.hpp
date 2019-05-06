@@ -19,11 +19,11 @@
 
 #pragma once
 
+#include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_brush_shader_data.hpp>
 #include <fastuidraw/painter/painter_custom_brush.hpp>
 #include <fastuidraw/painter/shader/painter_brush_shader.hpp>
-#include <fastuidraw/colorstop_atlas.hpp>
 
 namespace fastuidraw
 {
@@ -40,67 +40,11 @@ namespace fastuidraw
    * \ref ColorStopSequenceOnAtlas to use together with the
    * geometric properties of the gradient.
    */
-  class PainterGradientBrushShaderData:public PainterBrushShaderData
+  class PainterGradientBrushShaderData:
+    public PainterBrushShaderData,
+    public PainterBrushEnums
   {
   public:
-    /*!
-     * enumeration to describe the gradient type.
-     */
-    enum type_t
-      {
-        /*!
-         * indicates not a gradient because none of
-         * \ref set_linear(), \ref set_radial() or
-         * \ref set_sweep() where called.
-         */
-        non = 0,
-
-        /*!
-         * Indicates a linear gradient, set via set_linear();
-         * a linear gradient is defined by two points
-         * p0 and p1 where the interpolate at a point p
-         * is the value t when p = p0 + (p1 - p0) * t
-         */
-        linear,
-
-        /*!
-         * Indicates a radial gradient, set via set_radial();
-         * a radial gradient is defined by two circles
-         * C0 = Circle(p0, r0), C1 = Circle(p1, r1)
-         * where the interpolate at a point p is the
-         * time t when p is on the circle C(t) where
-         * C(t) = Circle(p(t), r(t)) where
-         * p(t) = p0 + (p1 - p0) * t
-         * r(t) = r0 + (r1 - r0) * t
-         */
-        radial,
-
-        /*!
-         * Indicates a sweep gradient, set via set_sweep();
-         * a sweep gradient is defined by a single point C,
-         * an angle theta (in radians), a sign S and a factor F.
-         * The angle theta represents at what angle the gradient
-         * starts, the point C is the center point of the
-         * sweep, the sign of S represents the angle orientation
-         * and the factor F reprsents how many times the
-         * gradient is to be repated. Precisely, the interpolate
-         * at a point p is defined as t_interpolate where
-         * \code
-         * vec2 d = p - C;
-         * float theta, v;
-         * theta = S * atan(p.y, p.x);
-         * if (theta < alpha )
-         *   {
-         *    theta  += 2 * PI;
-         *   }
-         * theta -= alpha;
-         * v = (theta - angle) / (2 * PI);
-         * t_interpolate = (S < 0.0) ? F * (1.0 - v) : F * v;
-         * \endcode
-         */
-        sweep,
-      };
-
     /*!
      * \brief
      * Bit encoding for packing ColorStopSequenceOnAtlas::texel_location()
@@ -242,14 +186,14 @@ namespace fastuidraw
     reset(void)
     {
       m_data.m_cs.clear();
-      m_data.m_type = non;
+      m_data.m_type = gradient_non;
       return *this;
     }
 
     /*!
      * Returns the type of gradient the data specifies.
      */
-    enum type_t
+    enum gradient_type_t
     type(void) const
     {
       return m_data.m_type;
@@ -280,7 +224,7 @@ namespace fastuidraw
       m_data.m_cs = cs;
       m_data.m_grad_start = start_p;
       m_data.m_grad_end = end_p;
-      m_data.m_type = cs ? linear : non;
+      m_data.m_type = cs ? gradient_linear : gradient_non;
       return *this;
     }
 
@@ -303,7 +247,7 @@ namespace fastuidraw
       m_data.m_grad_start_r = start_r;
       m_data.m_grad_end = end_p;
       m_data.m_grad_end_r = end_r;
-      m_data.m_type = cs ? radial : non;
+      m_data.m_type = cs ? gradient_radial : gradient_non;
       return *this;
     }
 
@@ -343,7 +287,7 @@ namespace fastuidraw
       m_data.m_cs = cs;
       m_data.m_grad_start = p;
       m_data.m_grad_end = vec2(theta, F);
-      m_data.m_type = cs ? sweep : non;
+      m_data.m_type = cs ? gradient_sweep : gradient_non;
       return *this;
     }
 
@@ -428,13 +372,13 @@ namespace fastuidraw
         m_grad_end(1.0f, 1.0f),
         m_grad_start_r(0.0f),
         m_grad_end_r(1.0f),
-        m_type(non)
+        m_type(gradient_non)
       {}
 
       reference_counted_ptr<const ColorStopSequenceOnAtlas> m_cs;
       vec2 m_grad_start, m_grad_end;
       float m_grad_start_r, m_grad_end_r;
-      enum type_t m_type;
+      enum gradient_type_t m_type;
     };
 
     data m_data;

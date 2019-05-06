@@ -26,11 +26,11 @@ data_size(void) const
 {
   switch (m_data.m_type)
     {
-    case linear:
+    case gradient_linear:
       return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(linear_data_size);
-    case sweep:
+    case gradient_sweep:
       return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(sweep_data_size);
-    case radial:
+    case gradient_radial:
       return FASTUIDRAW_NUMBER_BLOCK4_NEEDED(radial_data_size);
     default:
       return 0;
@@ -41,7 +41,7 @@ void
 fastuidraw::PainterGradientBrushShaderData::
 pack_data(c_array<vecN<generic_data, 4> > dst) const
 {
-  if (!m_data.m_cs || m_data.m_type == non)
+  if (!m_data.m_cs || m_data.m_type == gradient_non)
     {
       return;
     }
@@ -63,7 +63,7 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
   sub_dest[p1_x_offset].f = m_data.m_grad_end.x();
   sub_dest[p1_y_offset].f = m_data.m_grad_end.y();
 
-  if (m_data.m_type == radial)
+  if (m_data.m_type == gradient_radial)
     {
       sub_dest[start_radius_offset].f = m_data.m_grad_start_r;
       sub_dest[end_radius_offset].f = m_data.m_grad_end_r;

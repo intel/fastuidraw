@@ -113,6 +113,62 @@ namespace fastuidraw
          */
         dont_apply_mipmapping
       };
+
+    /*!
+     * enumeration to describe a gradient type.
+     */
+    enum gradient_type_t
+      {
+        /*!
+         * indicates the lack of a gradient.
+         */
+        gradient_non = 0,
+
+        /*!
+         * Indicates a linear gradient;
+         * a linear gradient is defined by two points
+         * p0 and p1 where the interpolate at a point p
+         * is the value t when p = p0 + (p1 - p0) * t
+         */
+        gradient_linear,
+
+        /*!
+         * Indicates a radial gradient;
+         * a radial gradient is defined by two circles
+         * C0 = Circle(p0, r0), C1 = Circle(p1, r1)
+         * where the interpolate at a point p is the
+         * time t when p is on the circle C(t) where
+         * C(t) = Circle(p(t), r(t)) where
+         * p(t) = p0 + (p1 - p0) * t
+         * r(t) = r0 + (r1 - r0) * t
+         */
+        gradient_radial,
+
+        /*!
+         * Indicates a sweep gradient;
+         * a sweep gradient is defined by a single point C,
+         * an angle theta (in radians), a sign S and a factor F.
+         * The angle theta represents at what angle the gradient
+         * starts, the point C is the center point of the
+         * sweep, the sign of S represents the angle orientation
+         * and the factor F reprsents how many times the
+         * gradient is to be repated. Precisely, the interpolate
+         * at a point p is defined as t_interpolate where
+         * \code
+         * vec2 d = p - C;
+         * float theta, v;
+         * theta = S * atan(p.y, p.x);
+         * if (theta < alpha )
+         *   {
+         *    theta  += 2 * PI;
+         *   }
+         * theta -= alpha;
+         * v = (theta - angle) / (2 * PI);
+         * t_interpolate = (S < 0.0) ? F * (1.0 - v) : F * v;
+         * \endcode
+         */
+        gradient_sweep,
+      };
   };
 
   /*!

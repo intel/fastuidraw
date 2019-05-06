@@ -84,7 +84,7 @@ namespace fastuidraw
 
         /*!
          * Number of bits used to encode the gradient type,
-         * see \ref PainterGradientBrushShaderData::type_t
+         * see \ref PainterBrushEnums::gradient_type_t
          */
         gradient_type_num_bits = 2,
 
@@ -100,7 +100,7 @@ namespace fastuidraw
         image_bit0 = 0,
 
         /*!
-         * first bit used to encode the \ref PainterGradientBrushShaderData::type_t
+         * first bit used to encode the \ref PainterBrushEnums::gradient_type_t
          */
         gradient_type_bit0 = image_bit0 + image_num_bits,
 
@@ -679,7 +679,7 @@ namespace fastuidraw
     /*!
      * Return the gradient_type_t that the brush applies.
      */
-    enum PainterGradientBrushShaderData::type_t
+    enum gradient_type_t
     gradient_type(void) const
     {
       return m_data.m_gradient.type();
