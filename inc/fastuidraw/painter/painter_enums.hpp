@@ -168,6 +168,8 @@ namespace fastuidraw
          * \endcode
          */
         gradient_sweep,
+
+        number_gradient_types,
       };
   };
 
