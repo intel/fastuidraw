@@ -546,11 +546,21 @@ namespace fastuidraw
   {
   public:
     /*!
-     * implicit cast operator to bool to return true.
+     * Typedef for value_type.
      */
-    operator bool() const
+    typedef bool value_type;
+
+    /*!
+     * constexpr for the value.
+     */
+    static constexpr value_type value = true;
+
+    /*!
+     * implicit cast operator to bool to return false.
+     */
+    constexpr value_type operator()() const noexcept
     {
-      return true;
+      return false;
     }
   };
 
@@ -564,13 +574,93 @@ namespace fastuidraw
   {
   public:
     /*!
+     * Typedef for value_type.
+     */
+    typedef bool value_type;
+
+    /*!
+     * constexpr for the value.
+     */
+    static constexpr value_type value = false;
+
+    /*!
      * implicit cast operator to bool to return false.
      */
-    operator bool() const
+    constexpr value_type operator()() const noexcept
     {
       return false;
     }
   };
+
+  /*!
+   * Provideds functionality of std::remove_const so
+   * that we do not depend on std.
+   */
+  template<typename T>
+  class remove_const
+  {
+  public:
+    /*!
+     * The type of \ref type will be the same
+     * as T but with the const-ness removed.
+     */
+    typedef T type;
+  };
+
+  /*!
+   * Provideds functionality of std::remove_const so
+   * that we do not depend on std.
+   */
+  template<typename T>
+  class remove_const<T const>
+  {
+  public:
+    /*!
+     * The type of \ref type will be the same
+     * as T but with the const-ness removed.
+     */
+    typedef T type;
+  };
+
+  /*!
+   * Provideds functionality of std::is_const so
+   * that we do not depend on std.
+   */
+  template<typename T>
+  class is_const : public false_type
+  {
+  };
+
+  ///@cond
+  template<typename T>
+  class is_const<T const> : public true_type
+  {
+  };
+  ///@endcond
+
+  /*!
+   * Typedef to give same const-ness of type T
+   * to a type S.
+   */
+  template<typename T, typename S>
+  class same_const
+  {
+  public:
+    /*!
+     * The type of \ref type will be the same
+     * as S but with the const-ness of T.
+     */
+    typedef typename remove_const<S>::type type;
+  };
+
+  ///@cond
+  template<typename T, typename S>
+  class same_const<T const, S>
+  {
+  public:
+    typedef typename remove_const<S>::type const type;
+  };
+  ///@endcond
 
 }
 /*! @} */
