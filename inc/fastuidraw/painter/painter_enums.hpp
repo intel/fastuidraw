@@ -28,10 +28,61 @@ namespace fastuidraw
  */
 
   /*!
-   * \brief Class to encapsulate enumerations used in Painter
-   *        interface, part of the main library libFastUIDraw.
+   * \brief
+   * Class to contain various enumerations needed for
+   * describing a brush.
    */
-  class PainterEnums
+  class PainterBrushEnums
+  {
+  public:
+    /*!
+     * Enumeration to specify how a value is interpreted
+     * outside of its natural range. For gradients the
+     * range is [0, 1] acting on its interpolate.
+     */
+    enum spread_type_t
+      {
+        /*!
+         * Clamp the value to its range, i.e.
+         * for a value t on a range [A, B] the
+         * value is clamp(r, A, B).
+         */
+        spread_clamp,
+
+        /*!
+         * Mirror the value across the start of
+         * its range, i.e. for a value t on a
+         * range [A, B] the value is
+         * clamp(A + abs(t - A), A, B)
+         */
+        spread_mirror,
+
+        /*!
+         * Repeat the value to its range, i.e.
+         * for a value t on a range [A, B] the
+         * value is A + mod(t - A, B - A)
+         */
+        spread_repeat,
+
+        /*!
+         * Mirror repeat the  value across the start
+         * of its range, i.e. for a value t on a
+         * range [A, B] the value is
+         * B - abs(mod(t - A, 2 * (B - A)) - (B - A))
+         */
+        spread_mirror_repeat,
+
+        number_spread_types
+      };
+  };
+
+  /*!
+   * \brief
+   * Class to encapsulate enumerations used in Painter
+   * interface, part of the main library libFastUIDraw.
+   */
+  class PainterEnums:
+    public PainterBrushEnums
   {
   public:
     /*!

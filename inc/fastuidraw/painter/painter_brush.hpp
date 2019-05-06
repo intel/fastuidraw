@@ -64,49 +64,11 @@ namespace fastuidraw
    *  -# an optional repeat window is applied, see \ref
    *     repeat_window() and \ref no_repeat_window().
    */
-  class PainterBrush:public PainterBrushShaderData
+  class PainterBrush:
+    public PainterBrushShaderData,
+    public PainterBrushEnums
   {
   public:
-    /*!
-     * Enumeration to specify how a value is interpreted
-     * outside of its natural range. For gradients the
-     * range is [0, 1] acting on its interpolate.
-     */
-    enum spread_type_t
-      {
-        /*!
-         * Clamp the value to its range, i.e.
-         * for a value t on a range [A, B] the
-         * value is clamp(r, A, B).
-         */
-        spread_clamp,
-
-        /*!
-         * Mirror the value across the start of
-         * its range, i.e. for a value t on a
-         * range [A, B] the value is
-         * clamp(A + abs(t - A), A, B)
-         */
-        spread_mirror,
-
-        /*!
-         * Repeat the value to its range, i.e.
-         * for a value t on a range [A, B] the
-         * value is A + mod(t - A, B - A)
-         */
-        spread_repeat,
-
-        /*!
-         * Mirror repeat the  value across the start
-         * of its range, i.e. for a value t on a
-         * range [A, B] the value is
-         * B - abs(mod(t - A, 2 * (B - A)) - (B - A))
-         */
-        spread_mirror_repeat,
-
-        number_spread_types
-      };
-
     /*!
      * \brief
      * Enumeration describing the roles of the bits for
