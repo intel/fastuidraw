@@ -1136,7 +1136,6 @@ private:
   T m_data[N];
 };
 
-
 /*!
  * conveniance function, equivalent to
  * \code
@@ -1197,6 +1196,55 @@ magnitude_compare(const vecN<T, N> &a,
 {
   return a.magnitudeSq()<b.magnitudeSq();
 }
+
+  /*!
+   * unvecN extracts from a type T \ref vecN::array_size
+   * and \ref vecN::type is T is a vecN<S, N> for some
+   * type S and N.
+   */
+  template<typename T>
+  class unvecN
+  {
+  public:
+    enum
+      {
+        /*!
+         * If T is the type vecN<S, N> for some type S,
+         * then is the value of N, otherwise is 1.
+         */
+        array_size = 1,
+      };
+
+    /*!
+     * If T is the type vecN<S, N> for some type S,
+     * then is the type S, otherwise is the type T.
+     */
+    typedef T type;
+  };
+
+  ///@cond
+  template<typename T, unsigned int N>
+  class unvecN<vecN<T, N> >
+  {
+  public:
+    enum
+      {
+        array_size = N,
+      };
+    typedef T type;
+  };
+
+  template<typename T, unsigned int N>
+  class unvecN<vecN<T, N> const >
+  {
+  public:
+    enum
+      {
+        array_size = N,
+      };
+    typedef T const type;
+  };
+  ///@endcond
 
   /*!
    * Conveniance typedef
