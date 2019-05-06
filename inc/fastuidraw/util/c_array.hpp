@@ -236,6 +236,18 @@ public:
   }
 
   /*!
+   * For when T is vecN<S, N> for a type S, flattens the c_array<T>
+   * into a c_array<S> refering to the same data.
+   */
+  c_array<typename unvecN<T>::type>
+  flatten_array(void) const
+  {
+    typename unvecN<T>::type *p;
+    p = reinterpret_cast<typename unvecN<T>::type*>(c_ptr());
+    return c_array<typename unvecN<T>::type>(p, m_size * unvecN<T>::array_size);
+  }
+
+  /*!
    * Pointer of the c_array.
    */
   T*
@@ -473,7 +485,6 @@ private:
   size_type m_size;
   T *m_ptr;
 };
-
 
 /*!
  * Convert an array of 32-bit floating point values
