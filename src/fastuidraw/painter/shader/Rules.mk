@@ -12,7 +12,8 @@ FASTUIDRAW_SOURCES += $(call filelist, \
 	painter_blend_shader_set.cpp \
 	painter_brush_shader_set.cpp \
 	painter_fill_shader.cpp \
-	painter_image_brush_shader.cpp)
+	painter_image_brush_shader.cpp\
+	painter_gradient_brush_shader.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

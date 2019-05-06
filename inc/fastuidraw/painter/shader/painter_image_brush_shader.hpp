@@ -32,8 +32,8 @@ namespace fastuidraw
   /*!
    * \brief
    * A \ref PainterImageBrushShaderData defines the \ref
-   * PainterImageBrushShaderData that the shaders of a
-   * \ref PainterImageBrushShader consume. It specifies
+   * PainterBrushShaderData that the shaders of a \ref
+   * PainterImageBrushShader consume. It specifies
    * what \ref Image and what rectangular region within
    * it from which to source image data.
    */
