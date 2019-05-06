@@ -80,12 +80,7 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">brush_value</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores either a value for a PainterBrush or a value for a ...">brush_value</a> stores the brush applied; it stores either a <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a> for a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> or a <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a> for a <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> together with a value from <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterBrushShader::ID()</a>.  <a href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">CustomBrush</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html" title="A CustomBrush is just a conveniance to wrap a pointer to a PainterBrushShader together with a value&lt;P...">CustomBrush</a> is just a conveniance to wrap a pointer to a <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> together with a value&lt;PainterBrushShaderData&gt;.  <a href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores a pointer to a PainterBrushShader together with a P...">brush_value</a> stores the brush applied; it stores a pointer to a <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> together with a PainterDataValue&lt;PainterBrushShaderData&gt;. If the pointer to the <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> is null, then it indicates to use the standard brush shader, <a class="el" href="../../d9/de8/classfastuidraw_1_1_painter_brush_shader_set.html#a7b6453e962c8df5f541ca779f8e504ab">PainterBrushShaderSet::standard_brush()</a>.  <a href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
@@ -103,30 +98,30 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a447c8169dc79116677390ed7d9b8423e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa470be480b826fbb5c9b1b3694dde3df"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aa470be480b826fbb5c9b1b3694dde3df">make_packed</a> (<a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html">PainterPackedValuePool</a> &amp;pool)</td></tr>
 <tr class="separator:aa470be480b826fbb5c9b1b3694dde3df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8783d39800fc2b6407253cd08040e8d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aa8783d39800fc2b6407253cd08040e8d">set</a> (const <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">brush_value</a> &amp;<a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>)</td></tr>
+<tr class="memitem:aa8783d39800fc2b6407253cd08040e8d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aa8783d39800fc2b6407253cd08040e8d">set</a> (const <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">brush_value</a> &amp;value)</td></tr>
 <tr class="separator:aa8783d39800fc2b6407253cd08040e8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57052f0bb3fc5f8b814a4d79fb615a0f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a57052f0bb3fc5f8b814a4d79fb615a0f">set</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> *<a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>)</td></tr>
+<tr class="memitem:a57052f0bb3fc5f8b814a4d79fb615a0f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a57052f0bb3fc5f8b814a4d79fb615a0f">set</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> *value)</td></tr>
 <tr class="separator:a57052f0bb3fc5f8b814a4d79fb615a0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a46b520c8692fd3a21eaa687258cf793d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a46b520c8692fd3a21eaa687258cf793d">set</a> (const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">CustomBrush</a> &amp;<a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>)</td></tr>
-<tr class="separator:a46b520c8692fd3a21eaa687258cf793d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a49eecbb9b2fc8a2c47cb33b4e56e37e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a49eecbb9b2fc8a2c47cb33b4e56e37e1">set</a> (const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;<a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>)</td></tr>
-<tr class="separator:a49eecbb9b2fc8a2c47cb33b4e56e37e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc8b78693033565ebfdc9a409672ee72"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#adc8b78693033565ebfdc9a409672ee72">set</a> (const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &gt; &amp;<a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>)</td></tr>
-<tr class="separator:adc8b78693033565ebfdc9a409672ee72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51d2ddc9ece78297e32520f613a21890"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a51d2ddc9ece78297e32520f613a21890">set</a> (const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;value)</td></tr>
+<tr class="separator:a51d2ddc9ece78297e32520f613a21890"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96f13be546d8bed9f9117648a3530443"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a96f13be546d8bed9f9117648a3530443">set</a> (const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;value)</td></tr>
+<tr class="separator:a96f13be546d8bed9f9117648a3530443"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6df77449fcb3bb5b4a931c9174217dc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#ac6df77449fcb3bb5b4a931c9174217dc">set</a> (const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &gt; &amp;value)</td></tr>
+<tr class="separator:ac6df77449fcb3bb5b4a931c9174217dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a62b502833637a2051f61df04b7048b9f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a62b502833637a2051f61df04b7048b9f">m_blend_shader_data</a></td></tr>
-<tr class="separator:a62b502833637a2051f61df04b7048b9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5b73e1e78b46b8ab2ca170407e1a9d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aa5b73e1e78b46b8ab2ca170407e1a9d3">m_blend_shader_data</a></td></tr>
+<tr class="separator:aa5b73e1e78b46b8ab2ca170407e1a9d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25a8a17a11738d1a62a281d00c5cd14f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">brush_value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a25a8a17a11738d1a62a281d00c5cd14f">m_brush</a></td></tr>
 <tr class="separator:a25a8a17a11738d1a62a281d00c5cd14f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac1b397f2bb8822680aa6df951e1ff59"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aac1b397f2bb8822680aa6df951e1ff59">m_item_shader_data</a></td></tr>
-<tr class="separator:aac1b397f2bb8822680aa6df951e1ff59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a6d446600dffbe872b188296c09a178"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a8a6d446600dffbe872b188296c09a178">m_item_shader_data</a></td></tr>
+<tr class="separator:a8a6d446600dffbe872b188296c09a178"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html" title="A PainterData provides the data for how for a Painter to draw content. ">PainterData</a> provides the data for how for a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to draw content. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00037">37</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00041">41</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a474ee8c34a93d820fccfe28e9b0f3946"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a474ee8c34a93d820fccfe28e9b0f3946">&#9670;&nbsp;</a></span>PainterData() <span class="overload">[1/4]</span></h2>
@@ -153,7 +148,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Ctor. Intitializes all fields as default nothings. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00292">292</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00180">180</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -189,7 +184,7 @@ template&lt;typename T1 &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00302">302</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00190">190</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -236,7 +231,7 @@ template&lt;typename T1 , typename T2 &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00317">317</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00205">205</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -290,7 +285,7 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00336">336</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00224">224</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -318,14 +313,14 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Call <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html#ab3ecbb167e18d28cf426d729c98e8d9c">value::make_packed()</a> on <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a25a8a17a11738d1a62a281d00c5cd14f">m_brush</a>, <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aac1b397f2bb8822680aa6df951e1ff59">m_item_shader_data</a>, and <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a62b502833637a2051f61df04b7048b9f">m_blend_shader_data</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Call value::make_packed() on <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a25a8a17a11738d1a62a281d00c5cd14f">m_brush</a>, <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a8a6d446600dffbe872b188296c09a178">m_item_shader_data</a>, and <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aa5b73e1e78b46b8ab2ca170407e1a9d3">m_blend_shader_data</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pool</td><td><a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html">PainterPackedValuePool</a> from which to create the packed value </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00416">416</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00304">304</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -354,7 +349,7 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
 </div><div class="memdoc">
 <p>Sets <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a25a8a17a11738d1a62a281d00c5cd14f">m_brush</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00362">362</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00250">250</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -383,12 +378,12 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
 </div><div class="memdoc">
 <p>Sets <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a25a8a17a11738d1a62a281d00c5cd14f">m_brush</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00372">372</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00260">260</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a46b520c8692fd3a21eaa687258cf793d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a46b520c8692fd3a21eaa687258cf793d">&#9670;&nbsp;</a></span>set() <span class="overload">[3/5]</span></h2>
+<a id="a51d2ddc9ece78297e32520f613a21890"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51d2ddc9ece78297e32520f613a21890">&#9670;&nbsp;</a></span>set() <span class="overload">[3/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -399,7 +394,7 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a>&amp; fastuidraw::PainterData::set </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">CustomBrush</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
@@ -412,12 +407,12 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
 </div><div class="memdoc">
 <p>Sets <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a25a8a17a11738d1a62a281d00c5cd14f">m_brush</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00382">382</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00270">270</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a49eecbb9b2fc8a2c47cb33b4e56e37e1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a49eecbb9b2fc8a2c47cb33b4e56e37e1">&#9670;&nbsp;</a></span>set() <span class="overload">[4/5]</span></h2>
+<a id="a96f13be546d8bed9f9117648a3530443"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96f13be546d8bed9f9117648a3530443">&#9670;&nbsp;</a></span>set() <span class="overload">[4/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -428,7 +423,7 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a>&amp; fastuidraw::PainterData::set </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
@@ -439,14 +434,14 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Sets <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aac1b397f2bb8822680aa6df951e1ff59">m_item_shader_data</a> </p>
+<p>Sets <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a8a6d446600dffbe872b188296c09a178">m_item_shader_data</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00392">392</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00280">280</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="adc8b78693033565ebfdc9a409672ee72"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc8b78693033565ebfdc9a409672ee72">&#9670;&nbsp;</a></span>set() <span class="overload">[5/5]</span></h2>
+<a id="ac6df77449fcb3bb5b4a931c9174217dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac6df77449fcb3bb5b4a931c9174217dc">&#9670;&nbsp;</a></span>set() <span class="overload">[5/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -457,7 +452,7 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a>&amp; fastuidraw::PainterData::set </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
@@ -468,27 +463,27 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Sets <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#a62b502833637a2051f61df04b7048b9f">m_blend_shader_data</a> </p>
+<p>Sets <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html#aa5b73e1e78b46b8ab2ca170407e1a9d3">m_blend_shader_data</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00402">402</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00290">290</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a62b502833637a2051f61df04b7048b9f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a62b502833637a2051f61df04b7048b9f">&#9670;&nbsp;</a></span>m_blend_shader_data</h2>
+<a id="aa5b73e1e78b46b8ab2ca170407e1a9d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5b73e1e78b46b8ab2ca170407e1a9d3">&#9670;&nbsp;</a></span>m_blend_shader_data</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt;<a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a>&gt; fastuidraw::PainterData::m_blend_shader_data</td>
+          <td class="memname"><a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt;<a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a>&gt; fastuidraw::PainterData::m_blend_shader_data</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>value for blend shader data </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00356">356</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00244">244</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -505,24 +500,24 @@ template&lt;typename T1 , typename T2 , typename T3 &gt; </div>
 </div><div class="memdoc">
 <p>value for brush (fixed-function or custom brush shading). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00346">346</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00234">234</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aac1b397f2bb8822680aa6df951e1ff59"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac1b397f2bb8822680aa6df951e1ff59">&#9670;&nbsp;</a></span>m_item_shader_data</h2>
+<a id="a8a6d446600dffbe872b188296c09a178"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a6d446600dffbe872b188296c09a178">&#9670;&nbsp;</a></span>m_item_shader_data</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt;<a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a>&gt; fastuidraw::PainterData::m_item_shader_data</td>
+          <td class="memname"><a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt;<a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a>&gt; fastuidraw::PainterData::m_item_shader_data</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>value for item shader data </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00351">351</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00239">239</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>

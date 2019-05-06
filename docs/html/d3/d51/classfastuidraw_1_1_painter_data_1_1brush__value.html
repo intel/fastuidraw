@@ -70,7 +70,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores either a value for a PainterBrush or a value for a ...">brush_value</a> stores the brush applied; it stores either a <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a> for a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> or a <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a> for a <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> together with a value from <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterBrushShader::ID()</a>.  
+<p>A <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores a pointer to a PainterBrushShader together with a P...">brush_value</a> stores the brush applied; it stores a pointer to a <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> together with a PainterDataValue&lt;PainterBrushShaderData&gt;. If the pointer to the <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> is null, then it indicates to use the standard brush shader, <a class="el" href="../../d9/de8/classfastuidraw_1_1_painter_brush_shader_set.html#a7b6453e962c8df5f541ca779f8e504ab">PainterBrushShaderSet::standard_brush()</a>.  
  <a href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>&gt;</code></p>
@@ -81,29 +81,29 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a99c1b3136b936f688f8b71c7092dae17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a55ab5801f6c4a957af54d15de038dc5e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a55ab5801f6c4a957af54d15de038dc5e">brush_value</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> *v)</td></tr>
 <tr class="separator:a55ab5801f6c4a957af54d15de038dc5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78a921e3770aa03c31479a12f89446d6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a78a921e3770aa03c31479a12f89446d6">brush_value</a> (const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">CustomBrush</a> &amp;br)</td></tr>
-<tr class="separator:a78a921e3770aa03c31479a12f89446d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af362cfea6577ef3b4425ea1a53868ef3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#af362cfea6577ef3b4425ea1a53868ef3">brush_value</a> (const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;brush_data)</td></tr>
-<tr class="separator:af362cfea6577ef3b4425ea1a53868ef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcac6c892fa8d581d5688a7f85dc979a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#abcac6c892fa8d581d5688a7f85dc979a">brush_value</a> (const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;br)</td></tr>
+<tr class="separator:abcac6c892fa8d581d5688a7f85dc979a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35352e698cd6b3e6dfed3500d63c4c56"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a35352e698cd6b3e6dfed3500d63c4c56">brush_value</a> (const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;brush_data)</td></tr>
+<tr class="separator:a35352e698cd6b3e6dfed3500d63c4c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e3b6f9c0e9e29d3dd4e10adf0713630"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a1e3b6f9c0e9e29d3dd4e10adf0713630">brush_shader</a> (void) const</td></tr>
 <tr class="separator:a1e3b6f9c0e9e29d3dd4e10adf0713630"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64138eb869a56679bb7ce60c8d6721b3"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a64138eb869a56679bb7ce60c8d6721b3">brush_shader_data</a> (void) const</td></tr>
-<tr class="separator:a64138eb869a56679bb7ce60c8d6721b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e5a8a41702643487062074ca0484c5f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a3e5a8a41702643487062074ca0484c5f">brush_shader_data</a> (void) const</td></tr>
+<tr class="separator:a3e5a8a41702643487062074ca0484c5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92743cfb8817a130e990f9454cdd1c02"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a92743cfb8817a130e990f9454cdd1c02">make_packed</a> (<a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html">PainterPackedValuePool</a> &amp;pool)</td></tr>
 <tr class="separator:a92743cfb8817a130e990f9454cdd1c02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e6db4f82ca350d12b41ed50568edfac"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a9e6db4f82ca350d12b41ed50568edfac">packed</a> (void) const</td></tr>
 <tr class="separator:a9e6db4f82ca350d12b41ed50568edfac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07277978a8069255493e50d45d9cbc6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a07277978a8069255493e50d45d9cbc6c">set</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> *v)</td></tr>
 <tr class="separator:a07277978a8069255493e50d45d9cbc6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad37499f212278ba8292f5e3bd05e2324"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#ad37499f212278ba8292f5e3bd05e2324">set</a> (const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">CustomBrush</a> &amp;br)</td></tr>
-<tr class="separator:ad37499f212278ba8292f5e3bd05e2324"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1350d07a6c3e33299fe340951559a8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#aa1350d07a6c3e33299fe340951559a8d">set</a> (const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;brush_data)</td></tr>
-<tr class="separator:aa1350d07a6c3e33299fe340951559a8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6d9ee59898fc308658c29a7dddb491f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#af6d9ee59898fc308658c29a7dddb491f">set</a> (const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;br)</td></tr>
+<tr class="separator:af6d9ee59898fc308658c29a7dddb491f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6058773278b2eab7425f3f8db22bb52f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a6058773278b2eab7425f3f8db22bb52f">set</a> (const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;brush_data)</td></tr>
+<tr class="separator:a6058773278b2eab7425f3f8db22bb52f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores either a value for a PainterBrush or a value for a ...">brush_value</a> stores the brush applied; it stores either a <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a> for a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> or a <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a> for a <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> together with a value from <a class="el" href="../../de/d74/classfastuidraw_1_1_painter_shader.html#aeb3318ceb427695dfbac1f8333ac3bef">PainterBrushShader::ID()</a>. </p>
+<div class="textblock"><p>A <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores a pointer to a PainterBrushShader together with a P...">brush_value</a> stores the brush applied; it stores a pointer to a <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> together with a PainterDataValue&lt;PainterBrushShaderData&gt;. If the pointer to the <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> is null, then it indicates to use the standard brush shader, <a class="el" href="../../d9/de8/classfastuidraw_1_1_painter_brush_shader_set.html#a7b6453e962c8df5f541ca779f8e504ab">PainterBrushShaderSet::standard_brush()</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00165">165</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00053">53</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a99c1b3136b936f688f8b71c7092dae17"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a99c1b3136b936f688f8b71c7092dae17">&#9670;&nbsp;</a></span>brush_value() <span class="overload">[1/4]</span></h2>
@@ -130,7 +130,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Empty ctor that initializes to not have a brush source (custom or <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a>). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00172">172</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00060">60</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -157,14 +157,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Ctor to set the <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores either a value for a PainterBrush or a value for a ...">brush_value</a> to source from a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a>. </p>
+<p>Ctor to set the <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores a pointer to a PainterBrushShader together with a P...">brush_value</a> to source from a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00180">180</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00068">68</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a78a921e3770aa03c31479a12f89446d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a78a921e3770aa03c31479a12f89446d6">&#9670;&nbsp;</a></span>brush_value() <span class="overload">[3/4]</span></h2>
+<a id="abcac6c892fa8d581d5688a7f85dc979a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abcac6c892fa8d581d5688a7f85dc979a">&#9670;&nbsp;</a></span>brush_value() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -175,7 +175,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">fastuidraw::PainterData::brush_value::brush_value </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">CustomBrush</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;&#160;</td>
           <td class="paramname"><em>br</em></td><td>)</td>
           <td></td>
         </tr>
@@ -186,14 +186,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Ctor to set the <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores either a value for a PainterBrush or a value for a ...">brush_value</a> to source from a custom brush. </p>
+<p>Ctor to set the <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores a pointer to a PainterBrushShader together with a P...">brush_value</a> to source from a custom brush. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00189">189</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00077">77</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="af362cfea6577ef3b4425ea1a53868ef3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af362cfea6577ef3b4425ea1a53868ef3">&#9670;&nbsp;</a></span>brush_value() <span class="overload">[4/4]</span></h2>
+<a id="a35352e698cd6b3e6dfed3500d63c4c56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35352e698cd6b3e6dfed3500d63c4c56">&#9670;&nbsp;</a></span>brush_value() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -204,7 +204,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">fastuidraw::PainterData::brush_value::brush_value </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>brush_data</em></td><td>)</td>
           <td></td>
         </tr>
@@ -215,9 +215,9 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Ctor to set the <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores either a value for a PainterBrush or a value for a ...">brush_value</a> to source from a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> packed. </p>
+<p>Ctor to set the <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html" title="A brush_value stores the brush applied; it stores a pointer to a PainterBrushShader together with a P...">brush_value</a> to source from a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> packed. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00198">198</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00086">86</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -247,12 +247,12 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> for the brush; a value of nullptr indicates to used the default brush that processes <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> data. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00240">240</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00128">128</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a64138eb869a56679bb7ce60c8d6721b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64138eb869a56679bb7ce60c8d6721b3">&#9670;&nbsp;</a></span>brush_shader_data()</h2>
+<a id="a3e5a8a41702643487062074ca0484c5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e5a8a41702643487062074ca0484c5f">&#9670;&nbsp;</a></span>brush_shader_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -261,7 +261,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt;<a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a>&gt;&amp; fastuidraw::PainterData::brush_value::brush_shader_data </td>
+          <td class="memname">const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt;<a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a>&gt;&amp; fastuidraw::PainterData::brush_value::brush_shader_data </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -274,9 +274,9 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns the value&lt;PainterBrushShaderData&gt; holding the brush data. </p>
+<p>Returns the PainterDataValue&lt;PainterBrushShaderData&gt; holding the brush data. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00250">250</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00138">138</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -305,7 +305,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Packs the brush shader data. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00259">259</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00147">147</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -332,8 +332,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a64138eb869a56679bb7ce60c8d6721b3">brush_shader_data</a>().packed().</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00271">271</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html#a3e5a8a41702643487062074ca0484c5f">brush_shader_data</a>().packed().</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00159">159</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -362,12 +362,12 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set to source from a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00207">207</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00095">95</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="ad37499f212278ba8292f5e3bd05e2324"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad37499f212278ba8292f5e3bd05e2324">&#9670;&nbsp;</a></span>set() <span class="overload">[2/3]</span></h2>
+<a id="af6d9ee59898fc308658c29a7dddb491f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6d9ee59898fc308658c29a7dddb491f">&#9670;&nbsp;</a></span>set() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -378,7 +378,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::PainterData::brush_value::set </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">CustomBrush</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;&#160;</td>
           <td class="paramname"><em>br</em></td><td>)</td>
           <td></td>
         </tr>
@@ -391,12 +391,12 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set to source from a custom brush shader </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00218">218</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00106">106</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aa1350d07a6c3e33299fe340951559a8d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa1350d07a6c3e33299fe340951559a8d">&#9670;&nbsp;</a></span>set() <span class="overload">[3/3]</span></h2>
+<a id="a6058773278b2eab7425f3f8db22bb52f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6058773278b2eab7425f3f8db22bb52f">&#9670;&nbsp;</a></span>set() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -407,7 +407,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::PainterData::brush_value::set </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../d2/d25/classfastuidraw_1_1_painter_data_1_1value.html">value</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>brush_data</em></td><td>)</td>
           <td></td>
         </tr>
@@ -420,7 +420,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set to source from a packed <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. ">PainterBrush</a> value. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00228">228</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d9d/painter__data_8hpp_source.html#l00116">116</a> of file <a class="el" href="../../df/d9d/painter__data_8hpp_source.html">painter_data.hpp</a>.</p>
 
 </div>
 </div>

@@ -89,8 +89,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:affd44a54409fa20dcdb11b58042f722b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7581f70b3a0e82cc3a64877d176d2fee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">PainterData::brush_value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html#a7581f70b3a0e82cc3a64877d176d2fee">create_packed_brush</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;brush)</td></tr>
 <tr class="separator:a7581f70b3a0e82cc3a64877d176d2fee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aece9fb8be25bb79cc301ad7525f92092"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">PainterData::brush_value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html#aece9fb8be25bb79cc301ad7525f92092">create_packed_brush</a> (const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">PainterData::CustomBrush</a> &amp;brush)</td></tr>
-<tr class="separator:aece9fb8be25bb79cc301ad7525f92092"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3e3d124c27cdfb517a4220f81fb2fa6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">PainterData::brush_value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html#af3e3d124c27cdfb517a4220f81fb2fa6">create_packed_brush</a> (const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;brush)</td></tr>
+<tr class="separator:af3e3d124c27cdfb517a4220f81fb2fa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd355a758e6a665cfbd4354ef795951e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">PainterPackedValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html#afd355a758e6a665cfbd4354ef795951e">create_packed_value</a> (const <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &amp;value)</td></tr>
 <tr class="separator:afd355a758e6a665cfbd4354ef795951e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01388446c574dd3208c299a4294d165a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">PainterPackedValue</a>&lt; <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html#a01388446c574dd3208c299a4294d165a">create_packed_value</a> (const <a class="el" href="../../d6/d65/classfastuidraw_1_1_painter_blend_shader_data.html">PainterBlendShaderData</a> &amp;value)</td></tr>
@@ -102,7 +102,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>A <a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html" title="A PainterPackedValuePool can be used to create PainterPackedValue objects. ">PainterPackedValuePool</a> can be used to create <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a> objects. </p>
 <p>Just like <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a>, <a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html" title="A PainterPackedValuePool can be used to create PainterPackedValue objects. ">PainterPackedValuePool</a> is NOT thread safe, as such it is not a safe operation to use the same <a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html" title="A PainterPackedValuePool can be used to create PainterPackedValue objects. ">PainterPackedValuePool</a> object from multiple threads at the same time. A fixed <a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html" title="A PainterPackedValuePool can be used to create PainterPackedValue objects. ">PainterPackedValuePool</a> can create <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">PainterPackedValue</a> objects used by different <a class="el" href="../../d3/d46/group___painter.html">Painter</a> objects. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html#l00039">39</a> of file <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html">painter_packed_value_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html#l00038">38</a> of file <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html">painter_packed_value_pool.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="affd44a54409fa20dcdb11b58042f722b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#affd44a54409fa20dcdb11b58042f722b">&#9670;&nbsp;</a></span>PainterPackedValuePool()</h2>
@@ -157,12 +157,12 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns a <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">PainterData::brush_value</a> whose data is packed from a <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> value. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html#l00079">79</a> of file <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html">painter_packed_value_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html#l00078">78</a> of file <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html">painter_packed_value_pool.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aece9fb8be25bb79cc301ad7525f92092"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aece9fb8be25bb79cc301ad7525f92092">&#9670;&nbsp;</a></span>create_packed_brush() <span class="overload">[2/2]</span></h2>
+<a id="af3e3d124c27cdfb517a4220f81fb2fa6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3e3d124c27cdfb517a4220f81fb2fa6">&#9670;&nbsp;</a></span>create_packed_brush() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -173,7 +173,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">PainterData::brush_value</a> fastuidraw::PainterPackedValuePool::create_packed_brush </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">PainterData::CustomBrush</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> &amp;&#160;</td>
           <td class="paramname"><em>brush</em></td><td>)</td>
           <td></td>
         </tr>
@@ -184,9 +184,9 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns a <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">PainterData::brush_value</a> whose data is packed from a <a class="el" href="../../df/d9f/classfastuidraw_1_1_painter_data_1_1_custom_brush.html">PainterData::CustomBrush</a> value. </p>
+<p>Returns a <a class="el" href="../../d3/d51/classfastuidraw_1_1_painter_data_1_1brush__value.html">PainterData::brush_value</a> whose data is packed from a <a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a> value. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html#l00091">91</a> of file <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html">painter_packed_value_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html#l00090">90</a> of file <a class="el" href="../../df/dae/painter__packed__value__pool_8hpp_source.html">painter_packed_value_pool.hpp</a>.</p>
 
 </div>
 </div>

@@ -78,6 +78,10 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
+<tr class="memitem:af364919b400c6d1ba51821dbe28438bf"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bf">cast_t</a> { <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa071e910ad272e682bc6fba54d3a5afaa">reinterpret_to_float_bits</a>, 
+<a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa16062b4ec7e46d803936ce00847b9447">type_cast</a>
+ }</td></tr>
+<tr class="separator:af364919b400c6d1ba51821dbe28438bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa63fafa1949ac4cae5f7170472fda988"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988">type_t</a> { <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988aa54c6d8dc801983ed0c6a246eea52c21">float_type</a>, 
 <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988a9324bfd96e6493700c292c724520469e">uint_type</a>, 
 <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988abf9969d75295b6ed22e4add48ef2fc96">int_type</a>, 
@@ -95,10 +99,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af2adcded9edcd551850e2e26a8797a95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68e818ccfffa8a16e526aa11a3233188"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a68e818ccfffa8a16e526aa11a3233188">operator=</a> (const <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;rhs)</td></tr>
 <tr class="separator:a68e818ccfffa8a16e526aa11a3233188"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4579d76663b42d41892a7bc64332f37f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a4579d76663b42d41892a7bc64332f37f">set</a> (unsigned int offset, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> field_name, <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988">type_t</a> type=<a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988aa54c6d8dc801983ed0c6a246eea52c21">float_type</a>, unsigned int struct_idx=0)</td></tr>
-<tr class="separator:a4579d76663b42d41892a7bc64332f37f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adefc276387117b3843ef5125fb112997"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#adefc276387117b3843ef5125fb112997">stream_unpack_function</a> (<a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;str, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> function_name, bool returns_new_offset=true) const</td></tr>
-<tr class="separator:adefc276387117b3843ef5125fb112997"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4298d51e8d4dc1aef199b3b375540ebc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a4298d51e8d4dc1aef199b3b375540ebc">set</a> (unsigned int offset, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> field_name, <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988">type_t</a> type, enum <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bf">cast_t</a> cast, unsigned int struct_idx=0)</td></tr>
+<tr class="separator:a4298d51e8d4dc1aef199b3b375540ebc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa88012b58fdad030c8a8e349bd909b5f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa88012b58fdad030c8a8e349bd909b5f">set</a> (unsigned int offset, unsigned int bit0, unsigned int num_bits, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> field_name, <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988">type_t</a> type, enum <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bf">cast_t</a> cast, unsigned int struct_idx=0)</td></tr>
+<tr class="separator:aa88012b58fdad030c8a8e349bd909b5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac3f868176bea35dc97930c6b2d18d61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aac3f868176bea35dc97930c6b2d18d61">set_float</a> (unsigned int offset, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> field_name, unsigned int struct_idx=0)</td></tr>
+<tr class="separator:aac3f868176bea35dc97930c6b2d18d61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b06ddd938d77040831194e81a9af73a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a3b06ddd938d77040831194e81a9af73a">set_int</a> (unsigned int offset, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> field_name, unsigned int struct_idx=0)</td></tr>
+<tr class="separator:a3b06ddd938d77040831194e81a9af73a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a248b1456fe050dcf94eef346cb87220e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a248b1456fe050dcf94eef346cb87220e">set_uint</a> (unsigned int offset, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> field_name, unsigned int struct_idx=0)</td></tr>
+<tr class="separator:a248b1456fe050dcf94eef346cb87220e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e7579842ae0a6be74fa06cb1da541ee"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a5e7579842ae0a6be74fa06cb1da541ee">stream_unpack_function</a> (<a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;str, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> function_name) const</td></tr>
+<tr class="separator:a5e7579842ae0a6be74fa06cb1da541ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c68cdc180e1bdb93799d59cba6b561c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a5c68cdc180e1bdb93799d59cba6b561c">stream_unpack_function</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> function_name) const</td></tr>
+<tr class="separator:a5c68cdc180e1bdb93799d59cba6b561c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4685396cdf13659ea8d37187e12741da"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a4685396cdf13659ea8d37187e12741da">stream_unpack_size_function</a> (<a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;str, <a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> function_name) const</td></tr>
+<tr class="separator:a4685396cdf13659ea8d37187e12741da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55357c3ecc1320151d050c283bb79853"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a55357c3ecc1320151d050c283bb79853">stream_unpack_size_function</a> (<a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a> function_name) const</td></tr>
+<tr class="separator:a55357c3ecc1320151d050c283bb79853"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab19e28c8223c28ef195068c510993d04"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#ab19e28c8223c28ef195068c510993d04">swap</a> (<a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a> &amp;obj)</td></tr>
 <tr class="separator:ab19e28c8223c28ef195068c510993d04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -107,6 +125,29 @@ Public Member Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html#l00036">36</a> of file <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html">unpack_source_generator.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="af364919b400c6d1ba51821dbe28438bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af364919b400c6d1ba51821dbe28438bf">&#9670;&nbsp;</a></span>cast_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bf">fastuidraw::glsl::UnpackSourceGenerator::cast_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Enumeration specifying to bit-cast with GLSL's built-in uintBitsToFloat() or not </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af364919b400c6d1ba51821dbe28438bfa071e910ad272e682bc6fba54d3a5afaa"></a>reinterpret_to_float_bits&#160;</td><td class="fielddoc"><p>Reinterpret the bits as float bits, i.e. use uintBitsToFloat() of GLSL </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af364919b400c6d1ba51821dbe28438bfa16062b4ec7e46d803936ce00847b9447"></a>type_cast&#160;</td><td class="fielddoc"><p>only type-cast the bits. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html#l00060">60</a> of file <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html">unpack_source_generator.hpp</a>.</p>
+
+</div>
+</div>
 <a id="aa63fafa1949ac4cae5f7170472fda988"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa63fafa1949ac4cae5f7170472fda988">&#9670;&nbsp;</a></span>type_t</h2>
 
@@ -243,8 +284,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a4579d76663b42d41892a7bc64332f37f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4579d76663b42d41892a7bc64332f37f">&#9670;&nbsp;</a></span>set()</h2>
+<a id="a4298d51e8d4dc1aef199b3b375540ebc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4298d51e8d4dc1aef199b3b375540ebc">&#9670;&nbsp;</a></span>set() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -265,7 +306,13 @@ Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988">type_t</a>&#160;</td>
-          <td class="paramname"><em>type</em> = <code><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988aa54c6d8dc801983ed0c6a246eea52c21">float_type</a></code>, </td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bf">cast_t</a>&#160;</td>
+          <td class="paramname"><em>cast</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -282,9 +329,10 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set the field name that corresponds to an offset </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct </td></tr>
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
     <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
     <tr><td class="paramname">type</td><td>the GLSL type of the field </td></tr>
+    <tr><td class="paramname">cast</td><td>how to interpret the bits of the value </td></tr>
     <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
   </table>
   </dd>
@@ -292,14 +340,240 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="adefc276387117b3843ef5125fb112997"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adefc276387117b3843ef5125fb112997">&#9670;&nbsp;</a></span>stream_unpack_function()</h2>
+<a id="aa88012b58fdad030c8a8e349bd909b5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa88012b58fdad030c8a8e349bd909b5f">&#9670;&nbsp;</a></span>set() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void fastuidraw::glsl::UnpackSourceGenerator::stream_unpack_function </td>
+          <td class="memname"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>&amp; fastuidraw::glsl::UnpackSourceGenerator::set </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>bit0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>num_bits</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>field_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988">type_t</a>&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bf">cast_t</a>&#160;</td>
+          <td class="paramname"><em>cast</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>struct_idx</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field name that corresponds to an offset and range of bits within the value at the named offset </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">bit0</td><td>first bit of field value storted at offset </td></tr>
+    <tr><td class="paramname">num_bits</td><td>number of bits used to store value. </td></tr>
+    <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
+    <tr><td class="paramname">type</td><td>the GLSL type of the field, must be <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988a9324bfd96e6493700c292c724520469e">uint_type</a> or <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988abf9969d75295b6ed22e4add48ef2fc96">int_type</a> </td></tr>
+    <tr><td class="paramname">cast</td><td>how to interpret the bits of the value </td></tr>
+    <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aac3f868176bea35dc97930c6b2d18d61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac3f868176bea35dc97930c6b2d18d61">&#9670;&nbsp;</a></span>set_float()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>&amp; fastuidraw::glsl::UnpackSourceGenerator::set_float </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>field_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>struct_idx</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><span class="keyword">set</span>(offset, field_name, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988aa54c6d8dc801983ed0c6a246eea52c21">float_type</a>, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa071e910ad272e682bc6fba54d3a5afaa">reinterpret_to_float_bits</a>, struct_idx);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
+    <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html#l00169">169</a> of file <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html">unpack_source_generator.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a3b06ddd938d77040831194e81a9af73a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b06ddd938d77040831194e81a9af73a">&#9670;&nbsp;</a></span>set_int()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>&amp; fastuidraw::glsl::UnpackSourceGenerator::set_int </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>field_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>struct_idx</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><span class="keyword">set</span>(offset, field_name, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988abf9969d75295b6ed22e4add48ef2fc96">int_type</a>, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa16062b4ec7e46d803936ce00847b9447">type_cast</a>, struct_idx);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
+    <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html#l00213">213</a> of file <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html">unpack_source_generator.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a248b1456fe050dcf94eef346cb87220e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a248b1456fe050dcf94eef346cb87220e">&#9670;&nbsp;</a></span>set_uint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>&amp; fastuidraw::glsl::UnpackSourceGenerator::set_uint </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>field_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>struct_idx</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><span class="keyword">set</span>(offset, field_name, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988a9324bfd96e6493700c292c724520469e">uint_type</a>, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa16062b4ec7e46d803936ce00847b9447">type_cast</a>, struct_idx);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
+    <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html#l00191">191</a> of file <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html">unpack_source_generator.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a5e7579842ae0a6be74fa06cb1da541ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e7579842ae0a6be74fa06cb1da541ee">&#9670;&nbsp;</a></span>stream_unpack_function() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>&amp; fastuidraw::glsl::UnpackSourceGenerator::stream_unpack_function </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td>
           <td class="paramname"><em>str</em>, </td>
@@ -308,13 +582,7 @@ Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
-          <td class="paramname"><em>function_name</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>returns_new_offset</em> = <code>true</code>&#160;</td>
+          <td class="paramname"><em>function_name</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -323,14 +591,116 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Stream the unpack function into a <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> object. For values constructed passed a single c_string, the function generated is </p><div class="fragment"><div class="line">return_type</div><div class="line">function_name(in uint location, out struct_name v)</div></div><!-- fragment --><p> and for those values constructed passed an array of c_string values, the function generated is </p><div class="fragment"><div class="line">return_type</div><div class="line">function_name(in uint location, out struct_name0 v0, out struct_name1 v1, ...)</div></div><!-- fragment --><p> where for voth, location is the location of the struct to unpack, struct_name is the name of the struct to unpack to given in the ctor. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Stream the unpack function into a <a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> object. For values constructed passed a single c_string, the function generated is </p><div class="fragment"><div class="line"><span class="keywordtype">void</span></div><div class="line">function_name(in uint location, out struct_name v)</div></div><!-- fragment --><p> and for those values constructed passed an array of c_string values, the function generated is </p><div class="fragment"><div class="line"><span class="keywordtype">void</span></div><div class="line">function_name(in uint location, out struct_name0 v0, out struct_name1 v1, ...)</div></div><!-- fragment --><p> where for both, location is the location from which to unpack data and the remaining arguments are the struct types to which to unpacked as passed in the ctor. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">str</td><td><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> to which to stream the unpack function </td></tr>
     <tr><td class="paramname">function_name</td><td>name to give the function </td></tr>
-    <tr><td class="paramname">returns_new_offset</td><td>if true, the return_type is an uint and returns the offset of the last offset supplied by <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a4579d76663b42d41892a7bc64332f37f">set()</a>. If value, return_type is void. </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a5c68cdc180e1bdb93799d59cba6b561c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c68cdc180e1bdb93799d59cba6b561c">&#9670;&nbsp;</a></span>stream_unpack_function() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> fastuidraw::glsl::UnpackSourceGenerator::stream_unpack_function </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>function_name</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line">ShaderSource return_value;</div><div class="line"><a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a5e7579842ae0a6be74fa06cb1da541ee">stream_unpack_function</a>(return_value, function_name);</div><div class="line"><span class="keywordflow">return</span> return_value;</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>to give the function </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html#l00265">265</a> of file <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html">unpack_source_generator.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a4685396cdf13659ea8d37187e12741da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4685396cdf13659ea8d37187e12741da">&#9670;&nbsp;</a></span>stream_unpack_size_function() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>&amp; fastuidraw::glsl::UnpackSourceGenerator::stream_unpack_size_function </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> &amp;&#160;</td>
+          <td class="paramname"><em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>function_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Stream a function with the given name that returns the number of data blocks (i.e. the number of vecN&lt;generic_data, 4&gt; elements) used to store the struct described by this <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> to which to stream the unpack function </td></tr>
+    <tr><td class="paramname">function_name</td><td>name to give the function </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a55357c3ecc1320151d050c283bb79853"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55357c3ecc1320151d050c283bb79853">&#9670;&nbsp;</a></span>stream_unpack_size_function() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> fastuidraw::glsl::UnpackSourceGenerator::stream_unpack_size_function </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d4c/namespacefastuidraw.html#af4f69794f023ec29dddc1b586305e35a">c_string</a>&#160;</td>
+          <td class="paramname"><em>function_name</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line">ShaderSource return_value;</div><div class="line"><a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#a4685396cdf13659ea8d37187e12741da">stream_unpack_size_function</a>(return_value, function_name);</div><div class="line"><span class="keywordflow">return</span> return_value;</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>to give the function </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html#l00282">282</a> of file <a class="el" href="../../dc/dfa/unpack__source__generator_8hpp_source.html">unpack_source_generator.hpp</a>.</p>
 
 </div>
 </div>

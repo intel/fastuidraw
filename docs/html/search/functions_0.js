@@ -76,7 +76,7 @@ var searchData=
   ['arc_5fdegrees',['arc_degrees',['../df/dea/classfastuidraw_1_1_path.html#abf73b7206a30b16fe2c1db212835482b',1,'fastuidraw::Path']]],
   ['arc_5frounded_5fcaps',['arc_rounded_caps',['../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a80567debadb703758fdc2af2b739bd75',1,'fastuidraw::StrokedCapsJoins']]],
   ['arc_5frounded_5fjoins',['arc_rounded_joins',['../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a5dc7b7aa3794dc0a9842f5c4b3d80479',1,'fastuidraw::StrokedCapsJoins']]],
-  ['arc_5fstroking_5fpossible',['arc_stroking_possible',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a601d6417c80ab40551c76e0d69fc92d7',1,'fastuidraw::StrokingDataSelectorBase']]],
+  ['arc_5fstroking_5fpossible',['arc_stroking_possible',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a29d27b913c151715fa65a844d391ca94',1,'fastuidraw::StrokingDataSelectorBase']]],
   ['arc_5fto',['arc_to',['../df/dea/classfastuidraw_1_1_path.html#a1d5356ad9bad73057cbf39dbe6b349e5',1,'fastuidraw::Path']]],
   ['array_5fstride',['array_stride',['../d5/de8/classfastuidraw_1_1gl_1_1_program_1_1shader__variable__info.html#ad1c6e9f422c20002cac73f0e3fb4ebc6',1,'fastuidraw::gl::Program::shader_variable_info']]],
   ['ascender',['ascender',['../da/dc3/classfastuidraw_1_1_font_metrics.html#a82767b22ebb2c23784ae0dd83360169e',1,'fastuidraw::FontMetrics::ascender(void) const'],['../da/dc3/classfastuidraw_1_1_font_metrics.html#a97ca7aa27a56e9aa5a7ace97b46a645b',1,'fastuidraw::FontMetrics::ascender(float)']]],

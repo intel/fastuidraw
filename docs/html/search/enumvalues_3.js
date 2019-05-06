@@ -16,7 +16,7 @@ var searchData=
   ['distance_5fconstant_5fon_5fprimitive_5fbit',['distance_constant_on_primitive_bit',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a0364105ff2b0bd42c5bc09085f6de579a408107fd9e3da927892e324635ede1b6',1,'fastuidraw::ArcStrokedPoint']]],
   ['distance_5fconstant_5fon_5fprimitive_5fmask',['distance_constant_on_primitive_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0a93d05af6a93c55bd623923cdecf9cc00',1,'fastuidraw::ArcStrokedPoint']]],
   ['distance_5ffield_5fglyph',['distance_field_glyph',['../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02da7cfa9ccd761329a5ea2785a78993a461',1,'fastuidraw']]],
-  ['dont_5fapply_5fmipmapping',['dont_apply_mipmapping',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a31832ce12401832875bb07af583d730fa95499a7d50af09119210fb2b0e2084dc',1,'fastuidraw::PainterBrush']]],
+  ['dont_5fapply_5fmipmapping',['dont_apply_mipmapping',['../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2ae7bb59a7478770ed26acc42bd127d05e',1,'fastuidraw::PainterImageBrushShader']]],
   ['drawing_5foccluder',['drawing_occluder',['../d9/d8f/classfastuidraw_1_1_painter_header.html#add507632a34ba86d39cfec22d9c340faa3863bdd17369eb8e9ac726878a5dc246',1,'fastuidraw::PainterHeader']]],
   ['dst_5falpha',['DST_ALPHA',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859ad22ad86f76f80c2b5d1703426b882a5b',1,'fastuidraw::BlendMode']]],
   ['dst_5fcolor',['DST_COLOR',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a3340808f6d6939895962fade20364859a62e48ea1b69101afcb20b08b855ea91b',1,'fastuidraw::BlendMode']]],
