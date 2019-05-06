@@ -70,11 +70,11 @@ struct FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw)
   uint image_number_lookups;
 };
 
-uint
+void
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)(in uint location,
                                                        out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw);
 
-uint
+void
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(in uint location, in uint shader,
                                                    out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image);
 
@@ -136,15 +136,13 @@ FASTUIDRAW_LOCAL(fastuidraw_process_image_data_bindless)(in FASTUIDRAW_LOCAL(fas
   cooked.bindless_handle_low = raw.image_number_lookups;
 }
 
-uint
+void
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(in uint location, in uint image_type,
                                                    out FASTUIDRAW_LOCAL(fastuidraw_brush_image_data) image)
 {
-  uint return_value;
   FASTUIDRAW_LOCAL(fastuidraw_brush_image_data_raw) raw;
 
-  return_value = FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)(location, raw);
-
+  FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_raw_data)(location, raw);
   FASTUIDRAW_LOCAL(fastuidraw_process_image_data_common)(raw, image);
   #ifndef FASTUIDRAW_IMAGE_ATLAS_DISABLED
   if (image_type == uint(fastuidraw_brush_image_type_on_atlas))
@@ -156,5 +154,4 @@ FASTUIDRAW_LOCAL(fastuidraw_read_brush_image_data)(in uint location, in uint ima
     {
       FASTUIDRAW_LOCAL(fastuidraw_process_image_data_bindless)(raw, image);
     }
-  return return_value;
 }

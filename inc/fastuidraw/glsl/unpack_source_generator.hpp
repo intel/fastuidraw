@@ -221,29 +221,70 @@ namespace fastuidraw
        * For values constructed passed a single c_string, the function
        * generated is
        * \code
-       * return_type
+       * void
        * function_name(in uint location, out struct_name v)
        * \endcode
        * and for those values constructed passed an array of c_string
        * values, the function generated is
        * \code
-       * return_type
+       * void
        * function_name(in uint location, out struct_name0 v0, out struct_name1 v1, ...)
        * \endcode
-       * where for voth, location is the location of the struct to unpack,
-       * struct_name is the name of the struct to unpack to given
-       * in the ctor.
+       * where for both, location is the location from which to unpack
+       * data and the remaining arguments are the struct types to which
+       * to unpacked as passed in the ctor.
        * \param str \ref ShaderSource to which to stream the unpack function
        * \param function_name name to give the function
-       * \param returns_new_offset if true, the return_type is an uint and
-       *                           returns the offset of the last offset
-       *                           supplied by set(). If value, return_type is
-       *                           void.
        */
-      void
+      const UnpackSourceGenerator&
       stream_unpack_function(ShaderSource &str,
-                             c_string function_name,
-                             bool returns_new_offset = true) const;
+                             c_string function_name) const;
+
+      /*!
+       * Stream a function with the given name that returns the
+       * number of data blocks (i.e. the number of vecN<generic_data, 4>
+       * elements) used to store the struct described by this
+       * \ref UnpackSourceGenerator.
+       * \param str \ref ShaderSource to which to stream the unpack function
+       * \param function_name name to give the function
+       */
+      const UnpackSourceGenerator&
+      stream_unpack_size_function(ShaderSource &str,
+                                  c_string function_name) const;
+
+      /*!
+       * Provided as a conveniance, equivalent to
+       * \code
+       * ShaderSource return_value;
+       * stream_unpack_function(return_value, function_name);
+       * return return_value;
+       * \endcode
+       * \param name to give the function
+       */
+      ShaderSource
+      stream_unpack_function(c_string function_name) const
+      {
+        ShaderSource return_value;
+        stream_unpack_function(return_value, function_name);
+        return return_value;
+      }
+
+      /*!
+       * Provided as a conveniance, equivalent to
+       * \code
+       * ShaderSource return_value;
+       * stream_unpack_size_function(return_value, function_name);
+       * return return_value;
+       * \endcode
+       * \param name to give the function
+       */
+      ShaderSource
+      stream_unpack_size_function(c_string function_name) const
+      {
+        ShaderSource return_value;
+        stream_unpack_size_function(return_value, function_name);
+        return return_value;
+      }
 
     private:
       void *m_d;

@@ -144,7 +144,7 @@ struct fastuidraw_dashed_stroking_params_header
  * \param location offset (in units of uvec4's) into data store buffer
  * \param[out] p unpack value destination
  */
-uint
+void
 fastuidraw_read_stroking_params(in uint location, out fastuidraw_stroking_params p);
 
 /*!
@@ -153,6 +153,6 @@ fastuidraw_read_stroking_params(in uint location, out fastuidraw_stroking_params
  * \param location offset (in units of uvec4's) into data store buffer
  * \param[out] p unpack value destination
  */
-uint
+void
 fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);
 /*! @} */

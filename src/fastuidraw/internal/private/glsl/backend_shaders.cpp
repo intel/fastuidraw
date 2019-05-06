@@ -877,17 +877,20 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
     .set_float(PainterBrush::transformation_matrix_col1_row0_offset, "[1][0]")
     .set_float(PainterBrush::transformation_matrix_col0_row1_offset, "[0][1]")
     .set_float(PainterBrush::transformation_matrix_col1_row1_offset, "[1][1]")
+    .stream_unpack_size_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix_size)")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)");
 
   UnpackSourceGenerator("vec2")
     .set_float(PainterBrush::transformation_translation_x_offset, ".x")
     .set_float(PainterBrush::transformation_translation_y_offset, ".y")
+    .stream_unpack_size_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation_size)")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_header)")
     .set_uint(PainterBrush::features_offset, ".features")
     .set_uint(PainterBrush::header_red_green_offset, ".red_green")
     .set_uint(PainterBrush::header_blue_alpha_offset, ".blue_alpha")
+    .stream_unpack_size_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_header_size)")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window)")
@@ -895,6 +898,7 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
     .set_float(PainterBrush::repeat_window_y_offset, ".xy.y")
     .set_float(PainterBrush::repeat_window_width_offset, ".wh.x")
     .set_float(PainterBrush::repeat_window_height_offset, ".wh.y")
+    .stream_unpack_size_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window_size)")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
@@ -904,6 +908,7 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
     .set_float(PainterBrush::gradient_p1_y_offset, ".p1.y")
     .set_uint(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy")
     .set_uint(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length")
+    .stream_unpack_size_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data_size)")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
@@ -915,6 +920,7 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
     .set_float(PainterBrush::gradient_end_radius_offset, ".r1")
     .set_uint(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy")
     .set_uint(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length")
+    .stream_unpack_size_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data_size)")
     .stream_unpack_function(str, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)");
 
   brush_varyings

@@ -159,11 +159,9 @@ set(unsigned int offset,
   return *this;
 }
 
-void
+const fastuidraw::glsl::UnpackSourceGenerator&
 fastuidraw::glsl::UnpackSourceGenerator::
-stream_unpack_function(ShaderSource &dst,
-                       c_string function_name,
-                       bool has_return_value) const
+stream_unpack_function(ShaderSource &dst, c_string function_name) const
 {
   UnpackSourceGeneratorPrivate *d;
   unsigned int number_blocks;
@@ -184,15 +182,7 @@ stream_unpack_function(ShaderSource &dst,
     };
 
   d = static_cast<UnpackSourceGeneratorPrivate*>(m_d);
-  if (has_return_value)
-    {
-      str << "uint\n";
-    }
-  else
-    {
-      str << "void\n";
-    }
-  str << function_name << "(in uint location, ";
+  str << "void\n" << function_name << "(in uint location, ";
 
   for (unsigned int s = 0; s < d->m_structs.size(); ++s)
     {
@@ -272,10 +262,29 @@ stream_unpack_function(ShaderSource &dst,
         }
     }
 
-  if (has_return_value)
-    {
-      str << "return uint(" << number_blocks << ") + location;\n";
-    }
   str << "}\n\n";
   dst.add_source(str.str().c_str(), glsl::ShaderSource::from_string);
+
+  return *this;
+}
+
+const fastuidraw::glsl::UnpackSourceGenerator&
+fastuidraw::glsl::UnpackSourceGenerator::
+stream_unpack_size_function(ShaderSource &dst,
+                            c_string function_name) const
+{
+  std::ostringstream str;
+  UnpackSourceGeneratorPrivate *d;
+  d = static_cast<UnpackSourceGeneratorPrivate*>(m_d);
+
+  str << "uint\n"
+      << function_name << "(void)\n"
+      << "{\n"
+      << "\treturn uint("
+      << FASTUIDRAW_NUMBER_BLOCK4_NEEDED(d->m_elements.size())
+      << ");\n"
+      << "}\n";
+  dst.add_source(str.str().c_str(), glsl::ShaderSource::from_string);
+
+  return *this;
 }

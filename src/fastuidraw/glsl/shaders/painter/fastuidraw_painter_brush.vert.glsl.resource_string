@@ -20,7 +20,7 @@
 void
 fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in vec2 in_p)
 {
-  uint data_ptr, gradient_type;
+  uint gradient_type;
   FASTUIDRAW_LOCAL(fastuidraw_brush_header) header;
   FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) gradient;
   FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window) repeat_window;
@@ -28,10 +28,10 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in 
   float color_stop_recip;
 
   p = in_p;
-  data_ptr = shader_data_block;
 
   /* Directly unpack brush data into brush varyings */
-  data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(data_ptr, header);
+  FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(shader_data_block, header);
+  shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_header_size)();
   color_rg = unpackHalf2x16(header.red_green);
   color_ba = unpackHalf2x16(header.blue_alpha);
   fastuidraw_brush_color_x = color_rg.x;
@@ -45,12 +45,12 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in 
                                           header.features);
   if (gradient_type == fastuidraw_brush_radial_gradient_type)
     {
-      data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(data_ptr, gradient);
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(shader_data_block, gradient);
     }
   else if (gradient_type == fastuidraw_brush_linear_gradient_type
            || gradient_type == fastuidraw_brush_sweep_gradient_type)
     {
-      data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(data_ptr, gradient);
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(shader_data_block, gradient);
     }
   else
     {
@@ -62,7 +62,8 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in 
 
   if ((header.features & uint(fastuidraw_brush_repeat_window_mask)) != 0u)
     {
-      data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)(data_ptr, repeat_window);
+      FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)(shader_data_block, repeat_window);
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window_size)();
     }
   else
     {
@@ -90,14 +91,16 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in 
   if ((header.features & uint(fastuidraw_brush_transformation_matrix_mask)) != 0u)
     {
       mat2 m;
-      data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)(data_ptr, m);
+      FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)(shader_data_block, m);
+      shader_data_block = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix_size)();
       p = m * p;
     }
 
   if ((header.features & uint(fastuidraw_brush_transformation_translation_mask)) != 0u)
     {
       vec2 q;
-      data_ptr = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)(data_ptr, q);
+      FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)(shader_data_block, q);
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation_size)();
       p += q;
     }
 
@@ -108,7 +111,7 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, in uint shader_data_block, in 
       image_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_image_bit0,
                                                  fastuidraw_brush_image_num_bits,
                                                  header.features);
-      image_brush(image_sub_shader, data_ptr, p);
+      image_brush(image_sub_shader, shader_data_block, p);
     }
 
   fastuidraw_brush_p_x = p.x;

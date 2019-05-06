@@ -529,7 +529,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set_uint(PainterHeader::blend_shader_offset, ".blend_shader")
     .set_uint(PainterHeader::offset_to_deferred_coverage_offset, ".deferred_buffer_offset_packed")
     .set_uint(PainterHeader::brush_adjust_location_offset, ".brush_adjust_location")
-    .stream_unpack_function(str, "fastuidraw_read_header", false);
+    .stream_unpack_function(str, "fastuidraw_read_header");
 
   UnpackSourceGenerator("fastuidraw_clipping_data")
     .set_float(PainterClipEquations::clip0_coeff_x, ".clip0.x")
@@ -544,14 +544,14 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set_float(PainterClipEquations::clip3_coeff_x, ".clip3.x")
     .set_float(PainterClipEquations::clip3_coeff_y, ".clip3.y")
     .set_float(PainterClipEquations::clip3_coeff_w, ".clip3.z")
-    .stream_unpack_function(str, "fastuidraw_read_clipping", false);
+    .stream_unpack_function(str, "fastuidraw_read_clipping");
 
   UnpackSourceGenerator("fastuidraw_brush_adjust_data")
     .set_float(PainterBrushAdjust::shear_x_offset, ".shear.x")
     .set_float(PainterBrushAdjust::shear_y_offset, ".shear.y")
     .set_float(PainterBrushAdjust::translation_x_offset, ".translate.x")
     .set_float(PainterBrushAdjust::translation_y_offset, ".translate.y")
-    .stream_unpack_function(str, "fastuidraw_read_brush_adjust", false);
+    .stream_unpack_function(str, "fastuidraw_read_brush_adjust");
 
   /* Matrics in GLSL are [column][row], that is why we use the
    * matrix_colX_rowY_offset enums
@@ -569,13 +569,13 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set_float(PainterItemMatrix::matrix_col2_row2_offset, "[2][2]", 0)
     .set_float(PainterItemMatrix::normalized_translate_x, ".x", 1)
     .set_float(PainterItemMatrix::normalized_translate_y, ".y", 1)
-    .stream_unpack_function(str, "fastuidraw_read_item_matrix", false);
+    .stream_unpack_function(str, "fastuidraw_read_item_matrix");
 
   UnpackSourceGenerator("fastuidraw_stroking_params")
     .set_float(PainterStrokeParams::stroke_radius_offset, ".radius")
     .set_float(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
     .set_uint(PainterStrokeParams::stroking_units_offset, ".stroking_units")
-    .stream_unpack_function(str, "fastuidraw_read_stroking_params", true);
+    .stream_unpack_function(str, "fastuidraw_read_stroking_params");
 
   UnpackSourceGenerator("fastuidraw_dashed_stroking_params_header")
     .set_float(PainterDashedStrokeParams::stroke_radius_offset, ".radius")
@@ -586,7 +586,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set_float(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")
     .set_float(PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset, ".first_interval_start_on_looping")
     .set_uint(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals")
-    .stream_unpack_function(str, "fastuidraw_read_dashed_stroking_params_header", true);
+    .stream_unpack_function(str, "fastuidraw_read_dashed_stroking_params_header");
 }
 
 std::string
