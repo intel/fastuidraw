@@ -213,6 +213,34 @@ register_shader(const PainterImageBrushShader *shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
+register_shader(const PainterGradientBrushShader *shader)
+{
+  if (!shader)
+    {
+      return;
+    }
+
+  register_shader(shader->white_shader());
+  for (unsigned int i = 0; i < PainterBrushEnums::number_spread_types; ++i)
+    {
+      enum PainterBrushEnums::spread_type_t sp;
+
+      sp = static_cast<enum PainterBrushEnums::spread_type_t>(i);
+      register_shader(shader->linear_sub_shader(sp));
+      register_shader(shader->radial_sub_shader(sp));
+      register_shader(shader->sweep_sub_shader(sp));
+      for (int j = 0; j < PainterBrushEnums::number_gradient_types; ++j)
+        {
+          enum PainterBrushEnums::gradient_type_t gt;
+
+          gt = static_cast<enum PainterBrushEnums::gradient_type_t>(j);
+          register_shader(shader->sub_shader(sp, gt));
+        }
+    }
+}
+
+void
+fastuidraw::PainterShaderRegistrar::
 register_shader(const PainterGlyphShader &shader)
 {
   for(unsigned int i = 0, endi = shader.shader_count(); i < endi; ++i)
@@ -241,6 +269,7 @@ register_shader(const PainterBrushShaderSet &shaders)
 {
   register_shader(shaders.standard_brush());
   register_shader(shaders.image_brush());
+  register_shader(shaders.gradient_brush());
 }
 
 void

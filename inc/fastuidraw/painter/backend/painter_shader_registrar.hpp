@@ -89,6 +89,12 @@ namespace fastuidraw
     register_shader(const PainterImageBrushShader *shader);
 
     /*!
+     * Registers each of the sub-shaders of a \ref PainterGradientBrushShader.
+     */
+    void
+    register_shader(const PainterGradientBrushShader *shader);
+
+    /*!
      * Provided as a conveniance to allow registering shaders
      * through reference counted pointers.
      */

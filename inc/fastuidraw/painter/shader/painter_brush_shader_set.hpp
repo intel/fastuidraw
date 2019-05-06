@@ -20,6 +20,7 @@
 
 #include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 #include <fastuidraw/painter/shader/painter_image_brush_shader.hpp>
+#include <fastuidraw/painter/shader/painter_gradient_brush_shader.hpp>
 
 namespace fastuidraw
 {
@@ -89,6 +90,19 @@ namespace fastuidraw
      */
     PainterBrushShaderSet&
     image_brush(const reference_counted_ptr<const PainterImageBrushShader> &sh);
+
+    /*!
+     * Returns the \ref PainterGradientBrushShader.
+     */
+    const reference_counted_ptr<const PainterGradientBrushShader>&
+    gradient_brush(void) const;
+
+    /*!
+     * Set the value returned by gradient_brush(void) const.
+     * \param sh value to use
+     */
+    PainterBrushShaderSet&
+    gradient_brush(const reference_counted_ptr<const PainterGradientBrushShader> &sh);
   private:
     void *m_d;
   };

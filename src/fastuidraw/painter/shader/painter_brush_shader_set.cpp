@@ -27,6 +27,7 @@ namespace
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader> m_standard_brush;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterImageBrushShader> m_image_brush;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterGradientBrushShader> m_gradient_brush;
   };
 }
 
@@ -62,3 +63,6 @@ setget_implement(fastuidraw::PainterBrushShaderSet, PainterBrushShaderSetPrivate
 setget_implement(fastuidraw::PainterBrushShaderSet, PainterBrushShaderSetPrivate,
                  const fastuidraw::reference_counted_ptr<const fastuidraw::PainterImageBrushShader>&,
                  image_brush)
+setget_implement(fastuidraw::PainterBrushShaderSet, PainterBrushShaderSetPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterGradientBrushShader>&,
+                 gradient_brush)
