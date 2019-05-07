@@ -735,7 +735,24 @@ configure_from_context(bool choose_optimal_rendering_quality,
                                              ctx,
                                              !NVIDIA_detected);
 
-  /* likely shader compilers like if/ese chains more than
+  if (ctx.has_extension("GL_ARB_bindless_texture")
+      || ctx.has_extension("GL_NV_bindless_texture"))
+    {
+      /* bindless texturng gives all the benefits of atlasing without
+       * the higher shader overhead, if bindless is available, then
+       * disable image atlasing.
+       */
+      d->m_image_atlas_params.support_image_on_atlas(false);
+    }
+  else
+    {
+      /* even with the high overhead of atlasing, without bindless,
+       * it is worth the shader overhead cost.
+       */
+      d->m_image_atlas_params.support_image_on_atlas(true);
+    }
+
+  /* likely shader compilers like if/else chains more than
    * switches, atleast Mesa really prefers if/else chains
    */
   d->m_vert_shader_use_switch = false;
