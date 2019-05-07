@@ -37,7 +37,7 @@ namespace fastuidraw
  * index checking and STL style iterators via pointer iterators.
  *
  * \param T typename with a constructor that takes no arguments.
- * \param N unsigned integer size of array
+ * \param N size of array
  */
 template<typename T, size_t N>
 class vecN
@@ -1223,7 +1223,7 @@ magnitude_compare(const vecN<T, N> &a,
   };
 
   ///@cond
-  template<typename T, unsigned int N>
+  template<typename T, size_t N>
   class unvecN<vecN<T, N> >
   {
   public:
@@ -1234,7 +1234,7 @@ magnitude_compare(const vecN<T, N> &a,
     typedef T type;
   };
 
-  template<typename T, unsigned int N>
+  template<typename T, size_t N>
   class unvecN<vecN<T, N> const >
   {
   public:
