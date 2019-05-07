@@ -30,12 +30,13 @@ data_size(void) const
   uint32_t pfeatures = features();
 
   return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(header_data_size);
-  return_value += m_data.m_gradient.data_size();
 
   if (pfeatures & repeat_window_mask)
     {
       return_value += FASTUIDRAW_NUMBER_BLOCK4_NEEDED(repeat_window_data_size);
     }
+
+  return_value += m_data.m_gradient.data_size();
 
   if (pfeatures & transformation_translation_mask)
     {
@@ -71,14 +72,6 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
   sub_dest[header_red_green_offset].u = pack_as_fp16(m_data.m_color.x(), m_data.m_color.y());
   sub_dest[header_blue_alpha_offset].u = pack_as_fp16(m_data.m_color.z(), m_data.m_color.w());
 
-  enum gradient_type_t tp(gradient_type());
-  if (tp != gradient_non)
-    {
-      sz = m_data.m_gradient.data_size();
-      m_data.m_gradient.pack_data(dst.sub_array(current, sz));
-      current += sz;
-    }
-
   if (pfeatures & repeat_window_mask)
     {
       sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(repeat_window_data_size);
@@ -89,6 +82,14 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
       sub_dest[repeat_window_y_offset].f = m_data.m_window_position.y();
       sub_dest[repeat_window_width_offset].f = m_data.m_window_size.x();
       sub_dest[repeat_window_height_offset].f = m_data.m_window_size.y();
+    }
+
+  enum gradient_type_t tp(gradient_type());
+  if (tp != gradient_non)
+    {
+      sz = m_data.m_gradient.data_size();
+      m_data.m_gradient.pack_data(dst.sub_array(current, sz));
+      current += sz;
     }
 
   if (pfeatures & transformation_matrix_mask)

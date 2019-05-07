@@ -23,48 +23,18 @@ struct FASTUIDRAW_LOCAL(fastuidraw_brush_header)
   uint blue_alpha;
 };
 
-struct FASTUIDRAW_LOCAL(fastuidraw_brush_gradient)
-{
-  /* location on atlas in texels
-   */
-  vec2 color_stop_sequence_xy;
-
-  /* just the length */
-  float color_stop_sequence_length;
-
-  /* start and end of gradients packed as usual floats */
-  vec2 p0, p1;
-
-  /* radial gradient values */
-  float r0, r1;
-};
-
-struct FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)
-{
-  /* start and end of gradients packed as usual floats
-   */
-  vec2 p0, p1;
-
-  /* packed:
-     - bits [0 , 15] ColorStopSequenceOnAtlas::texel_location().x()
-     - bits [16, 31] ColorStopSequenceOnAtlas::texel_location().y
-   */
-  uint color_stop_sequence_xy;
-
-  /* just the length
-   */
-  uint color_stop_sequence_length;
-
-  /* radial gradient values
-   */
-  float r0, r1;
-};
-
 struct FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window)
 {
   vec2 xy; //x-y position of window
   vec2 wh; //width and height of window
 };
+
+void
+FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(in uint location,
+                                               out FASTUIDRAW_LOCAL(fastuidraw_brush_header) color);
+
+uint
+FASTUIDRAW_LOCAL(fastuidraw_read_brush_header_size)(void);
 
 void
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)(in uint location, out mat2 m);
@@ -84,80 +54,3 @@ FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)(in uint location,
 
 uint
 FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window_size)(void);
-
-void
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(in uint location,
-                                                                      out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw) raw);
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data_size)(void);
-
-void
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(in uint location,
-                                                             out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw) raw);
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data_size)(void);
-
-void
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(in uint location,
-                                               out FASTUIDRAW_LOCAL(fastuidraw_brush_header) color);
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_header_size)(void);
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(in uint location,
-                                                                      out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) grad);
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(in uint location,
-                                                             out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) grad);
-
-void
-FASTUIDRAW_LOCAL(fastuidraw_process_gradient_data)(in FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw) raw,
-                                                   out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) cooked)
-{
-  cooked.p0 = raw.p0;
-  cooked.p1 = raw.p1;
-
-  cooked.r0 = raw.r0;
-  cooked.r1 = raw.r1;
-
-  cooked.color_stop_sequence_length = float(raw.color_stop_sequence_length);
-
-  uvec2 color_stop_sequence_xy;
-  color_stop_sequence_xy.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_colorstop_x_bit0,
-                                                    fastuidraw_brush_colorstop_x_num_bits,
-                                                    raw.color_stop_sequence_xy);
-
-  color_stop_sequence_xy.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_colorstop_y_bit0,
-                                                    fastuidraw_brush_colorstop_y_num_bits,
-                                                    raw.color_stop_sequence_xy);
-
-  cooked.color_stop_sequence_xy = vec2(color_stop_sequence_xy);
-}
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(in uint location,
-                                                                      out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) grad)
-{
-  FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw) raw;
-
-  FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(location, raw);
-  raw.r0 = 0.0;
-  raw.r1 = 1.0;
-  FASTUIDRAW_LOCAL(fastuidraw_process_gradient_data)(raw, grad);
-  return FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data_size)();
-}
-
-uint
-FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(in uint location,
-                                                             out FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) grad)
-{
-  FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw) raw;
-
-  FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(location, raw);
-  FASTUIDRAW_LOCAL(fastuidraw_process_gradient_data)(raw, grad);
-  return FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data_size)();
-}

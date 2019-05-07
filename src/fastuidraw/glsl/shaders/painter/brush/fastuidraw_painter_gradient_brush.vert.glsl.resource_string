@@ -1,0 +1,69 @@
+/*!
+ * \file fastuidraw_painter_gradient_brush.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_gradient_brush.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+void
+fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, in vec2 p)
+{
+  uint gradient_type;
+  float color_stop_recip;
+  FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) gradient;
+
+  #ifndef FIXED_GRADIENT_TYPE
+    {
+      gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
+                                              fastuidraw_brush_gradient_type_num_bits,
+                                              sub_shader);
+    }
+  #else
+    {
+      gradient_type = FIXED_GRADIENT_TYPE;
+    }
+  #endif
+
+  if (gradient_type == fastuidraw_brush_radial_gradient_type)
+    {
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(shader_data_block, gradient);
+    }
+  else if (gradient_type == fastuidraw_brush_linear_gradient_type
+           || gradient_type == fastuidraw_brush_sweep_gradient_type)
+    {
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(shader_data_block, gradient);
+    }
+  else
+    {
+      gradient.p0 = gradient.p1 = vec2(0.0, 0.0);
+      gradient.r0 = gradient.r1 = 0.0;
+      gradient.color_stop_sequence_length = 1.0;
+      gradient.color_stop_sequence_xy = vec2(0.0, 0.0);
+    }
+
+  fastuidraw_brush_gradient_p0_x = gradient.p0.x;
+  fastuidraw_brush_gradient_p0_y = gradient.p0.y;
+  fastuidraw_brush_gradient_p1_x = gradient.p1.x;
+  fastuidraw_brush_gradient_p1_y = gradient.p1.y;
+  fastuidraw_brush_gradient_r0 = gradient.r0;
+  fastuidraw_brush_gradient_r1 = gradient.r1;
+
+  color_stop_recip = fastuidraw_colorStopAtlas_size_reciprocal;
+  fastuidraw_brush_color_stop_length = color_stop_recip * gradient.color_stop_sequence_length;
+  fastuidraw_brush_color_stop_x = color_stop_recip * gradient.color_stop_sequence_xy.x;
+  fastuidraw_brush_color_stop_y = gradient.color_stop_sequence_xy.y;
+
+  fastuidraw_brush_p_x = p.x;
+  fastuidraw_brush_p_y = p.y;
+}

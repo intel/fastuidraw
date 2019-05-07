@@ -154,10 +154,14 @@ private:
   create_fill_shader(void);
 
   reference_counted_ptr<PainterBrushShaderGLSL>
-  create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image_brush);
+  create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image_brush,
+                               reference_counted_ptr<PainterBrushShaderGLSL> gradient_brush);
 
   reference_counted_ptr<PainterBrushShaderGLSL>
   create_image_brush_shader(void);
+
+  reference_counted_ptr<PainterBrushShaderGLSL>
+  create_gradient_brush_shader(void);
 
   PainterBrushShaderSet
   create_brush_shaders(void);

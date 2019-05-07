@@ -1,0 +1,133 @@
+/*!
+ * \file fastuidraw_painter_gradient_brush.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_gradient_brush.frag.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+float
+FASTUIDRAW_LOCAL(brush_compute_interpolate)(in vec2 p, in uint gradient_type, out float good)
+{
+  float t;
+
+  t = 1.0;
+  if (gradient_type == fastuidraw_brush_radial_gradient_type)
+    {
+      fastuidraw_radial_gradient g;
+
+      g.p0 = vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
+      g.p1 = vec2(fastuidraw_brush_gradient_p1_x, fastuidraw_brush_gradient_p1_y);
+      g.r0 = fastuidraw_brush_gradient_r0;
+      g.r1 = fastuidraw_brush_gradient_r1;
+
+      t = fastuidraw_compute_interpolate(p, g, good);
+    }
+  else if (gradient_type == fastuidraw_brush_linear_gradient_type)
+    {
+      fastuidraw_linear_gradient g;
+
+      g.p0 = vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
+      g.p1 = vec2(fastuidraw_brush_gradient_p1_x, fastuidraw_brush_gradient_p1_y);
+
+      good = 1.0;
+      t = fastuidraw_compute_interpolate(p, g);
+    }
+  else if (gradient_type == fastuidraw_brush_sweep_gradient_type)
+    {
+      fastuidraw_sweep_gradient g;
+
+      g.p = vec2(fastuidraw_brush_gradient_sweep_point_x, fastuidraw_brush_gradient_sweep_point_y);
+      g.sweep_angle = fastuidraw_brush_gradient_sweep_angle;
+      g.signed_factor = fastuidraw_brush_gradient_sweep_sign_factor;
+
+      good = 1.0;
+      t = fastuidraw_compute_interpolate(p, g);
+    }
+
+  return t;
+}
+
+vec4
+fastuidraw_gl_frag_brush_main(in uint sub_shader, inout uint shader_data_block)
+{
+  vec4 return_value;
+  vec2 p;
+  uint gradient_type;
+
+  p = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
+
+  /* Hopefully, a compiler will optimize out the ifs below
+   * since the value of gradient_type is statically assigned
+   */
+  #ifndef FIXED_GRADIENT_TYPE
+    {
+      gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
+                                              fastuidraw_brush_gradient_type_num_bits,
+                                              sub_shader);
+    }
+  #else
+    {
+      gradient_type = FIXED_GRADIENT_TYPE;
+    }
+  #endif
+
+  if (gradient_type != fastuidraw_brush_no_gradient_type)
+    {
+      float t, good;
+      uint spread_type;
+
+      t = FASTUIDRAW_LOCAL(brush_compute_interpolate)(p, gradient_type, good);
+      spread_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_spread_type_bit0,
+                                            fastuidraw_brush_gradient_spread_type_num_bits,
+                                            sub_shader);
+
+      if (gradient_type == fastuidraw_brush_radial_gradient_type)
+        {
+          shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data_size)();
+        }
+      else
+        {
+          shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data_size)();
+        }
+
+      /* NOTE: there is a Mesa/i965 bug where if we change the
+       * order of this if/else chain to something different,
+       * it might not correctly evaluate.
+       */
+      if (spread_type == fastuidraw_brush_spread_mirror)
+        {
+          t = fastuidraw_compute_mirror_spread(t);
+        }
+      else if (spread_type == fastuidraw_brush_spread_repeat)
+        {
+          t = fastuidraw_compute_repeat_spread(t);
+        }
+      else if (spread_type == fastuidraw_brush_spread_mirror_repeat)
+        {
+          t = fastuidraw_compute_mirror_repeat_spread(t);
+        }
+      else
+        {
+          t = fastuidraw_compute_clamp_spread(t);
+        }
+      t = fastuidraw_brush_color_stop_x + t * fastuidraw_brush_color_stop_length;
+      return_value = (good * fastuidraw_colorStopFetch(t, fastuidraw_brush_color_stop_y));
+    }
+  else
+    {
+      return_value = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+
+  return return_value;
+}

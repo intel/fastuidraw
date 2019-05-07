@@ -16,18 +16,12 @@
  *
  */
 
-
 void
-fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, in vec2 in_p)
+fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, in vec2 p)
 {
-  uint gradient_type;
   FASTUIDRAW_LOCAL(fastuidraw_brush_header) header;
-  FASTUIDRAW_LOCAL(fastuidraw_brush_gradient) gradient;
   FASTUIDRAW_LOCAL(fastuidraw_brush_repeat_window) repeat_window;
-  vec2 p, color_rg, color_ba;
-  float color_stop_recip;
-
-  p = in_p;
+  vec2 color_rg, color_ba;
 
   /* Directly unpack brush data into brush varyings */
   FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(shader_data_block, header);
@@ -39,26 +33,6 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, 
   fastuidraw_brush_color_z = color_ba.x;
   fastuidraw_brush_color_w = color_ba.y;
   fastuidraw_brush_features = header.features;
-
-  gradient_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_type_bit0,
-                                          fastuidraw_brush_gradient_type_num_bits,
-                                          header.features);
-  if (gradient_type == fastuidraw_brush_radial_gradient_type)
-    {
-      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)(shader_data_block, gradient);
-    }
-  else if (gradient_type == fastuidraw_brush_linear_gradient_type
-           || gradient_type == fastuidraw_brush_sweep_gradient_type)
-    {
-      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)(shader_data_block, gradient);
-    }
-  else
-    {
-      gradient.p0 = gradient.p1 = vec2(0.0, 0.0);
-      gradient.r0 = gradient.r1 = 0.0;
-      gradient.color_stop_sequence_length = 1.0;
-      gradient.color_stop_sequence_xy = vec2(0.0, 0.0);
-    }
 
   if ((header.features & uint(fastuidraw_brush_repeat_window_mask)) != 0u)
     {
@@ -76,19 +50,17 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, 
   fastuidraw_brush_repeat_window_w = repeat_window.wh.x;
   fastuidraw_brush_repeat_window_h = repeat_window.wh.y;
 
-  fastuidraw_brush_gradient_p0_x = gradient.p0.x;
-  fastuidraw_brush_gradient_p0_y = gradient.p0.y;
-  fastuidraw_brush_gradient_p1_x = gradient.p1.x;
-  fastuidraw_brush_gradient_p1_y = gradient.p1.y;
-  fastuidraw_brush_gradient_r0 = gradient.r0;
-  fastuidraw_brush_gradient_r1 = gradient.r1;
+  if ((header.features & fastuidraw_brush_gradient_mask) != 0u)
+    {
+      uint gradient_sub_shader;
 
-  color_stop_recip = fastuidraw_colorStopAtlas_size_reciprocal;
-  fastuidraw_brush_color_stop_length = color_stop_recip * gradient.color_stop_sequence_length;
-  fastuidraw_brush_color_stop_x = color_stop_recip * gradient.color_stop_sequence_xy.x;
-  fastuidraw_brush_color_stop_y = gradient.color_stop_sequence_xy.y;
+      gradient_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_bit0,
+                                                    fastuidraw_brush_gradient_num_bits,
+                                                    header.features);
+      gradient_brush(gradient_sub_shader, shader_data_block, p);
+    }
 
-  if ((header.features & uint(fastuidraw_brush_transformation_matrix_mask)) != 0u)
+  if ((header.features & fastuidraw_brush_transformation_matrix_mask) != 0u)
     {
       mat2 m;
       FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)(shader_data_block, m);
@@ -96,7 +68,7 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, 
       p = m * p;
     }
 
-  if ((header.features & uint(fastuidraw_brush_transformation_translation_mask)) != 0u)
+  if ((header.features & fastuidraw_brush_transformation_translation_mask) != 0u)
     {
       vec2 q;
       FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation)(shader_data_block, q);

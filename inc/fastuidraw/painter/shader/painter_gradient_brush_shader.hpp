@@ -419,12 +419,12 @@ namespace fastuidraw
         /*!
          * first bit used to encode the \ref spread_type_t
          */
-        gradient_spread_type_bit0 = 0,
+        spread_type_bit0 = 0,
 
         /*!
          * first bit used to encode the \ref PainterBrushEnums::gradient_type_t
          */
-        gradient_type_bit0 = gradient_spread_type_bit0 + spread_type_num_bits,
+        gradient_type_bit0 = spread_type_bit0 + spread_type_num_bits,
 
         /*!
          * The total number of bits needed to specify the sub-shader IDs.
@@ -441,7 +441,7 @@ namespace fastuidraw
          * the total number of sub-shaders that a parent shader for
          * a specific gradient type has.
          */
-        number_sub_shaders_of_specific_gradient = 1u << gradient_type_num_bits
+        number_sub_shaders_of_specific_gradient = 1u << spread_type_num_bits
       };
 
     /*!
@@ -452,7 +452,7 @@ namespace fastuidraw
         /*!
          * mask generated from \ref gradient_spread_type_bit0 and \ref spread_type_num_bits
          */
-        gradient_spread_type_mask = FASTUIDRAW_MASK(gradient_spread_type_bit0, spread_type_num_bits),
+        gradient_spread_type_mask = FASTUIDRAW_MASK(spread_type_bit0, spread_type_num_bits),
 
         /*!
          * mask generated from \ref gradient_type_bit0 and \ref gradient_type_num_bits

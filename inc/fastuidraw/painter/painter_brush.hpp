@@ -86,12 +86,7 @@ namespace fastuidraw
          * Number of bits used to encode the gradient type,
          * see \ref PainterBrushEnums::gradient_type_t
          */
-        gradient_type_num_bits = 2,
-
-        /*!
-         * Number of bits used to encode a \ref spread_type_t
-         */
-        spread_type_num_bits = 2,
+        gradient_num_bits = 4,
 
         /*!
          * First bit to encode if and how the brush sources
@@ -102,17 +97,12 @@ namespace fastuidraw
         /*!
          * first bit used to encode the \ref PainterBrushEnums::gradient_type_t
          */
-        gradient_type_bit0 = image_bit0 + image_num_bits,
-
-        /*!
-         * first bit used to encode the \ref gradient_spread_type
-         */
-        gradient_spread_type_bit0 = gradient_type_bit0 + gradient_type_num_bits,
+        gradient_bit0 = image_bit0 + image_num_bits,
 
         /*!
          * Bit up if the brush has a repeat window
          */
-        repeat_window_bit = gradient_spread_type_bit0 + spread_type_num_bits,
+        repeat_window_bit = gradient_bit0 + gradient_num_bits,
 
         /* First bit used to encore the spread mode for the x-coordinate
          * if a repeat window is active
@@ -122,12 +112,12 @@ namespace fastuidraw
         /* First bit used to encore the spread mode for the x-coordinate
          * if a repeat window is active
          */
-        repeat_window_y_spread_type_bit0 = repeat_window_x_spread_type_bit0 + spread_type_num_bits,
+        repeat_window_y_spread_type_bit0 = repeat_window_x_spread_type_bit0 + PainterGradientBrushShader::spread_type_num_bits,
 
         /*!
          * Bit up if transformation 2x2 matrix is present
          */
-        transformation_translation_bit = repeat_window_y_spread_type_bit0 + spread_type_num_bits,
+        transformation_translation_bit = repeat_window_y_spread_type_bit0 + PainterGradientBrushShader::spread_type_num_bits,
 
         /*!
          * Bit up is translation is present
@@ -155,14 +145,9 @@ namespace fastuidraw
         image_mask = FASTUIDRAW_MASK(image_bit0, image_num_bits),
 
         /*!
-         * mask generated from \ref gradient_type_bit0 and \ref gradient_type_num_bits
+         * mask generated from \ref gradient_bit0 and \ref gradient_num_bits
          */
-        gradient_type_mask = FASTUIDRAW_MASK(gradient_type_bit0, gradient_type_num_bits),
-
-        /*!
-         * mask generated from \ref gradient_spread_type_bit0 and \ref spread_type_num_bits
-         */
-        gradient_spread_type_mask = FASTUIDRAW_MASK(gradient_spread_type_bit0, spread_type_num_bits),
+        gradient_mask = FASTUIDRAW_MASK(gradient_bit0, gradient_num_bits),
 
         /*!
          * mask generated from \ref repeat_window_bit
@@ -171,17 +156,17 @@ namespace fastuidraw
 
         /*!
          * mask generated from \ref repeat_window_x_spread_type
-         * and \ref spread_type_num_bits
+         * and \ref PainterGradientBrushShader::spread_type_num_bits
          */
         repeat_window_x_spread_type_mask = FASTUIDRAW_MASK(repeat_window_x_spread_type_bit0,
-                                                           spread_type_num_bits),
+                                                           PainterGradientBrushShader::spread_type_num_bits),
 
         /*!
          * mask generated from \ref repeat_window_y_spread_type
-         * and \ref spread_type_num_bits
+         * and \ref PainterGradientBrushShader::spread_type_num_bits
          */
         repeat_window_y_spread_type_mask = FASTUIDRAW_MASK(repeat_window_y_spread_type_bit0,
-                                                           spread_type_num_bits),
+                                                           PainterGradientBrushShader::spread_type_num_bits),
 
         /*!
          * mask of \ref repeat_window_x_spread_type_mask and \ref
@@ -215,18 +200,18 @@ namespace fastuidraw
         header_packing,
 
         /*!
-         * gradient packing, see \ref gradient_offset_t
-         * for the offsets from the start of gradient packing
-         * for individual fields
-         */
-        gradient_packing,
-
-        /*!
          * repeat window packing, see \ref
          * repeat_window_offset_t for the offsets
          * for the individual fields
          */
         repeat_window_packing,
+
+        /*!
+         * gradient packing, see \ref gradient_offset_t
+         * for the offsets from the start of gradient packing
+         * for individual fields
+         */
+        gradient_packing,
 
         /*!
          * transformation_translation, see \ref
@@ -576,19 +561,6 @@ namespace fastuidraw
     }
 
     /*!
-     * Return the gradient_type_t that the brush applies.
-     */
-    enum spread_type_t
-    gradient_spread_type(void) const
-    {
-      uint32_t v;
-      v = unpack_bits(gradient_spread_type_bit0,
-                      spread_type_num_bits,
-                      m_data.m_features_raw);
-      return static_cast<enum spread_type_t>(v);
-    }
-
-    /*!
      * Sets the brush to have a translation in its transformation.
      * \param p translation value for brush transformation
      */
@@ -753,11 +725,11 @@ namespace fastuidraw
       m_data.m_features_raw |= repeat_window_mask;
       m_data.m_features_raw &= ~repeat_window_spread_type_mask;
       m_data.m_features_raw |= pack_bits(repeat_window_x_spread_type_bit0,
-                                       spread_type_num_bits,
-                                       x_mode);
+                                         PainterGradientBrushShader::spread_type_num_bits,
+                                         x_mode);
       m_data.m_features_raw |= pack_bits(repeat_window_y_spread_type_bit0,
-                                       spread_type_num_bits,
-                                       y_mode);
+                                         PainterGradientBrushShader::spread_type_num_bits,
+                                         y_mode);
       return *this;
     }
 
@@ -784,7 +756,7 @@ namespace fastuidraw
     {
       uint32_t v;
       v = unpack_bits(repeat_window_x_spread_type_bit0,
-                      spread_type_num_bits,
+                      PainterGradientBrushShader::spread_type_num_bits,
                       m_data.m_features_raw);
       return static_cast<enum spread_type_t>(v);
     }
@@ -799,7 +771,7 @@ namespace fastuidraw
     {
       uint32_t v;
       v = unpack_bits(repeat_window_y_spread_type_bit0,
-                      spread_type_num_bits,
+                      PainterGradientBrushShader::spread_type_num_bits,
                       m_data.m_features_raw);
       return static_cast<enum spread_type_t>(v);
     }
@@ -823,20 +795,14 @@ namespace fastuidraw
      *   \code
      *   unpack_bits(image_filter_bit0, image_filter_num_bits, features())
      *   \endcode
-     *   is non-zero if an image is present and when is non-zero the value's meaning
-     *   is enumerated by image_filter
+     *   is non-zero if an image is present and meannig of the value
+     *   is encoded by \ref PainterImageBrushShader::sub_shader_bits
      * - The value given by
      *   \code
-     *   unpack_bits(gradient_type_bit0, gradient_type_num_bits, features())
+     *   unpack_bits(gradient_bit0, gradient_num_bits, features())
      *   \endcode
-     *   gives what gradient (if any) the brush applies as according to
-     *   \ref gradient_type_t
-     * - The value given by
-     *   \code
-     *   unpack_bits(gradient_spread_type_bit0, gradient_spread_type_num_bits, features())
-     *   \endcode
-     *   gives the gradient spread pattern (if any) the brush applies as
-     *   according to \ref spread_type_t
+     *   gives what gradient (if any) and spread type the brush applies as
+     *   encoded by \ref PainterGradientBrushShader::sub_shader_bits
      * - If features() & \ref repeat_window_mask is non-zero, then a repeat
      *   window is applied to the brush.
      * - If features() & \ref transformation_translation_mask is non-zero, then a
@@ -918,15 +884,16 @@ namespace fastuidraw
     void
     update_gradient_bits(enum spread_type_t spread)
     {
-      uint32_t gradient_bits, spread_bits;
+      uint32_t gradient_bits;
 
-      gradient_bits = pack_bits(gradient_type_bit0,
-                                gradient_type_num_bits,
-                                m_data.m_gradient.type());
-      spread_bits = pack_bits(gradient_spread_type_bit0,
-                              spread_type_num_bits, spread);
-      gradient_bits |= spread_bits;
-      m_data.m_features_raw &= ~gradient_type_mask;
+      gradient_bits = (m_data.m_gradient.type() != gradient_non) ?
+        PainterGradientBrushShader::sub_shader_id(spread, m_data.m_gradient.type()) :
+        0u;
+      gradient_bits = pack_bits(gradient_bit0,
+                                gradient_num_bits,
+                                gradient_bits);
+
+      m_data.m_features_raw &= ~gradient_mask;
       m_data.m_features_raw |= gradient_bits;
     }
 

@@ -284,8 +284,7 @@ main(int argc, char **argv)
 
             << std::setw(45) << "brush image_mask = " << bitset(PainterBrush::image_mask) << "\n"
             << std::setw(45) << "brush image_mipmap_mask = " << bitset(PainterImageBrushShader::mipmap_mask << PainterBrush::image_bit0) << "\n"
-            << std::setw(45) << "brush gradient_type_mask = " << bitset(PainterBrush::gradient_type_mask) << "\n"
-            << std::setw(45) << "brush gradient_spread_type_mask = " << bitset(PainterBrush::gradient_spread_type_mask) << "\n"
+            << std::setw(45) << "brush gradient_mask = " << bitset(PainterBrush::gradient_mask) << "\n"
             << std::setw(45) << "brush repeat_window_mask = " << bitset(PainterBrush::repeat_window_mask) << "\n"
             << std::setw(45) << "brush repeat_window_x_spread_type_mask = " << bitset(PainterBrush::repeat_window_x_spread_type_mask) << "\n"
             << std::setw(45) << "brush repeat_window_y_spread_type_mask = " << bitset(PainterBrush::repeat_window_y_spread_type_mask) << "\n"
