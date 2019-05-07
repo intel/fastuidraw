@@ -207,9 +207,8 @@ namespace fastuidraw
         repeat_window_packing,
 
         /*!
-         * gradient packing, see \ref gradient_offset_t
-         * for the offsets from the start of gradient packing
-         * for individual fields
+         * gradient packing, as packed by \ref
+         * PainterGradientBrushShaderData
          */
         gradient_packing,
 

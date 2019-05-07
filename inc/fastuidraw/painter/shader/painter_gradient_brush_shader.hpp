@@ -35,7 +35,7 @@ namespace fastuidraw
   /*!
    * \brief
    * A \ref PainterGradientBrushShaderData defines the \ref
-   * \ref PainterBrushShaderData that the shaders of a \ref
+   * PainterBrushShaderData that the shaders of a \ref
    * PainterGradientBrushShader consume. It specifies what
    * \ref ColorStopSequenceOnAtlas to use together with the
    * geometric properties of the gradient.
@@ -92,7 +92,7 @@ namespace fastuidraw
         /*!
          * Offset to the x and y-location of the color stops.
          * The offset is stored as a uint32 packed as according
-         * in the enumeration \ref gradient_color_stop_xy_encoding
+         * in the enumeration \ref color_stop_xy_encoding
          */
         color_stop_xy_offset,
 
@@ -450,7 +450,7 @@ namespace fastuidraw
     enum sub_shader_masks
       {
         /*!
-         * mask generated from \ref gradient_spread_type_bit0 and \ref spread_type_num_bits
+         * mask generated from \ref spread_type_bit0 and \ref spread_type_num_bits
          */
         gradient_spread_type_mask = FASTUIDRAW_MASK(spread_type_bit0, spread_type_num_bits),
 

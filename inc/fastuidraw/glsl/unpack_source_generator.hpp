@@ -259,7 +259,7 @@ namespace fastuidraw
        * stream_unpack_function(return_value, function_name);
        * return return_value;
        * \endcode
-       * \param name to give the function
+       * \param function_name to give the function
        */
       ShaderSource
       stream_unpack_function(c_string function_name) const
@@ -276,7 +276,7 @@ namespace fastuidraw
        * stream_unpack_size_function(return_value, function_name);
        * return return_value;
        * \endcode
-       * \param name to give the function
+       * \param function_name to give the function
        */
       ShaderSource
       stream_unpack_size_function(c_string function_name) const
