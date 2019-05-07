@@ -426,8 +426,7 @@ namespace fastuidraw
          * Only needed if data_store_backing(void) const
          * has value data_store_ubo. Gives the size in
          * blocks of PainterDraw::m_store which
-         * is PainterDraw::m_store.size() divided
-         * by 4.
+         * is PainterDraw::m_store.size().
          */
         int
         data_blocks_per_store_buffer(void) const;
@@ -726,7 +725,9 @@ namespace fastuidraw
 
         /*!
          * Should be the same value as AtlasColorBackingStoreBase::dimensions() .x()
-         * of ImageAtlas::color_store()
+         * of ImageAtlas::color_store(). A value of zero indicates that sourcing
+         * from an \ref Image with \ref Image::type() having value \ref Image::on_atlas
+         * is not supported (i.e. there is no image-atlasing).
          */
         int
         image_atlas_color_store_width(void) const;
@@ -739,7 +740,9 @@ namespace fastuidraw
 
         /*!
          * Should be the same value as AtlasColorBackingStoreBase::dimensions() .y()
-         * of ImageAtlas::color_store()
+         * of ImageAtlas::color_store(). A value of zero indicates that sourcing
+         * from an \ref Image with \ref Image::type() having value \ref Image::on_atlas
+         * is not supported (i.e. there is no image-atlasing).
          */
         int
         image_atlas_color_store_height(void) const;
@@ -751,7 +754,10 @@ namespace fastuidraw
         image_atlas_color_store_height(int);
 
         /*!
-         * Should be the same as ImageAtlas::index_tile_size()
+         * Should be the same as ImageAtlas::index_tile_size() and must be a power
+         * of 2. A value of zero indicates that sourcing from an \ref Image with
+         * \ref Image::type() having value \ref Image::on_atlas is not supported
+         * (i.e. there is no image-atlasing).
          */
         int
         image_atlas_index_tile_size(void) const;
@@ -763,8 +769,10 @@ namespace fastuidraw
         image_atlas_index_tile_size(int);
 
         /*!
-         * Should be the same as ImageAtlas::color_tile_size()
-         * and must be a power of 2.
+         * Should be the same as ImageAtlas::color_tile_size() and must be a power
+         * of 2. A value of zero indicates that sourcing from an \ref Image with
+         * \ref Image::type() having value \ref Image::on_atlas is not supported
+         * (i.e. there is no image-atlasing).
          */
         int
         image_atlas_color_tile_size(void) const;
