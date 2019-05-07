@@ -81,30 +81,16 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, inout uint shader_data_block)
       fastuidraw_brush_p_y = p.y;
     }
 
-  if ((fastuidraw_brush_features & fastuidraw_brush_gradient_mask) != 0u)
-    {
-      uint gradient_sub_shader;
-
-      gradient_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_bit0,
-                                                    fastuidraw_brush_gradient_num_bits,
-                                                    fastuidraw_brush_features);
-      return_value *= gradient_brush(gradient_sub_shader, shader_data_block);
-    }
-
   if ((fastuidraw_brush_features & uint(fastuidraw_brush_transformation_matrix_mask)) != 0u)
     {
-      shader_data_block = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix_size)();
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix_size)();
     }
 
   if ((fastuidraw_brush_features & uint(fastuidraw_brush_transformation_translation_mask)) != 0u)
     {
-      shader_data_block = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation_size)();
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_translation_size)();
     }
 
-  /* apply alpha before doing image because image will multiply
-   * pre-multiplied alpha value
-   */
-  return_value.rgb *= return_value.a;
   if ((fastuidraw_brush_features & uint(fastuidraw_brush_image_mask)) != 0u)
     {
       uint image_sub_shader;
@@ -114,6 +100,16 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, inout uint shader_data_block)
                                                  fastuidraw_brush_features);
 
       return_value *= image_brush(image_sub_shader, shader_data_block);
+    }
+
+  if ((fastuidraw_brush_features & fastuidraw_brush_gradient_mask) != 0u)
+    {
+      uint gradient_sub_shader;
+
+      gradient_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_bit0,
+                                                    fastuidraw_brush_gradient_num_bits,
+                                                    fastuidraw_brush_features);
+      return_value *= gradient_brush(gradient_sub_shader, shader_data_block);
     }
 
   return return_value;

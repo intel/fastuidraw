@@ -26,12 +26,16 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, 
   /* Directly unpack brush data into brush varyings */
   FASTUIDRAW_LOCAL(fastuidraw_read_brush_header)(shader_data_block, header);
   shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_header_size)();
+
+  /* unpack the colr values and multiply by alpha */
   color_rg = unpackHalf2x16(header.red_green);
   color_ba = unpackHalf2x16(header.blue_alpha);
-  fastuidraw_brush_color_x = color_rg.x;
-  fastuidraw_brush_color_y = color_rg.y;
-  fastuidraw_brush_color_z = color_ba.x;
+  fastuidraw_brush_color_x = color_rg.x * color_ba.y;
+  fastuidraw_brush_color_y = color_rg.y * color_ba.y;
+  fastuidraw_brush_color_z = color_ba.x * color_ba.y;
   fastuidraw_brush_color_w = color_ba.y;
+
+  /* save what features are active to a varying */
   fastuidraw_brush_features = header.features;
 
   if ((header.features & uint(fastuidraw_brush_repeat_window_mask)) != 0u)
@@ -50,21 +54,11 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, 
   fastuidraw_brush_repeat_window_w = repeat_window.wh.x;
   fastuidraw_brush_repeat_window_h = repeat_window.wh.y;
 
-  if ((header.features & fastuidraw_brush_gradient_mask) != 0u)
-    {
-      uint gradient_sub_shader;
-
-      gradient_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_bit0,
-                                                    fastuidraw_brush_gradient_num_bits,
-                                                    header.features);
-      gradient_brush(gradient_sub_shader, shader_data_block, p);
-    }
-
   if ((header.features & fastuidraw_brush_transformation_matrix_mask) != 0u)
     {
       mat2 m;
       FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix)(shader_data_block, m);
-      shader_data_block = FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix_size)();
+      shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_transformation_matrix_size)();
       p = m * p;
     }
 
@@ -84,6 +78,16 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, 
                                                  fastuidraw_brush_image_num_bits,
                                                  header.features);
       image_brush(image_sub_shader, shader_data_block, p);
+    }
+
+  if ((header.features & fastuidraw_brush_gradient_mask) != 0u)
+    {
+      uint gradient_sub_shader;
+
+      gradient_sub_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_brush_gradient_bit0,
+                                                    fastuidraw_brush_gradient_num_bits,
+                                                    header.features);
+      gradient_brush(gradient_sub_shader, shader_data_block, p);
     }
 
   fastuidraw_brush_p_x = p.x;

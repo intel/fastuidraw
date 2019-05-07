@@ -207,12 +207,6 @@ namespace fastuidraw
         repeat_window_packing,
 
         /*!
-         * gradient packing, as packed by \ref
-         * PainterGradientBrushShaderData
-         */
-        gradient_packing,
-
-        /*!
          * transformation_translation, see \ref
          * transformation_translation_offset_t for the
          * offsets of the individual fields
@@ -230,6 +224,12 @@ namespace fastuidraw
          * image packing as packed by \ref PainterImageBrushShaderData
          */
         image_packing,
+
+        /*!
+         * gradient packing, as packed by \ref
+         * PainterGradientBrushShaderData
+         */
+        gradient_packing,
       };
 
     /*!
@@ -287,7 +287,7 @@ namespace fastuidraw
      */
     enum transformation_translation_offset_t
       {
-        transformation_translation_x_offset, /*!< offset for x-coordinate of translation (packed at float) */
+        transformation_translation_x_offset = 0, /*!< offset for x-coordinate of translation (packed at float) */
         transformation_translation_y_offset, /*!< offset for y-coordinate of translation (packed at float) */
         transformation_translation_data_size /*!< size of data for transformation translation (packed at float) */
       };
