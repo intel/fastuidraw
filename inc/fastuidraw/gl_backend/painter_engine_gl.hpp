@@ -121,35 +121,48 @@ namespace fastuidraw
         swap(ImageAtlasParams &obj);
 
         /*!
-         * The log2 of the width and height of the color tile
-         * size, initial value is 5. A negative value indicates
-         * to NOT use an atlas to hold images (and thus rely
-         * on bindless texturing or binding textures).
+         * If false, indicates that sourcing from an \ref Image with
+         * \ref Image::type() having value \ref Image::on_atlas is
+         * not supported (i.e. there is no image-atlasing). Default
+         * value is true.
          */
-        int
+        bool
+        support_image_on_atlas(void) const;
+
+        /*!
+         * Set the value for support_image_on_atlas(void) const
+         */
+        ImageAtlasParams&
+        support_image_on_atlas(bool);
+
+        /*!
+         * The log2 of the width and height of the color tile
+         * size, initial value is 5. Value is ignored if \ref
+         * support_image_on_atlas(void) const is false.
+         */
+        unsigned int
         log2_color_tile_size(void) const;
 
         /*!
          * Set the value for log2_color_tile_size(void) const
          */
         ImageAtlasParams&
-        log2_color_tile_size(int v);
+        log2_color_tile_size(unsigned int v);
 
         /*!
          * The log2 of the number of color tiles across and
          * down per layer, initial value is 8. Effective
-         * value is clamped to 8. A negative value indicates
-         * to NOT use an atlas to hold images (and thus rely
-         * on bindless texturing or binding textures).
+         * value is clamped to 8. Value is ignored if \ref
+         * support_image_on_atlas(void) const is false.
          */
-        int
+        unsigned int
         log2_num_color_tiles_per_row_per_col(void) const;
 
         /*!
          * Set the value for log2_num_color_tiles_per_row_per_col(void) const
          */
         ImageAtlasParams&
-        log2_num_color_tiles_per_row_per_col(int v);
+        log2_num_color_tiles_per_row_per_col(unsigned int v);
 
         /*!
          * Sets log2_color_tile_size() and log2_num_color_tiles_per_row_per_col()
@@ -160,56 +173,60 @@ namespace fastuidraw
         optimal_color_sizes(int log2_color_tile_size);
 
         /*!
-         * The initial number of color layers, initial value is 1
+         * The initial number of color layers, initial value is 1.
+         * Value is ignored if \ref support_image_on_atlas(void) const
+         * is false.
          */
-        int
+        unsigned int
         num_color_layers(void) const;
 
         /*!
          * Set the value for num_color_layers(void) const
          */
         ImageAtlasParams&
-        num_color_layers(int v);
+        num_color_layers(unsigned int v);
 
         /*!
          * The log2 of the width and height of the index tile
-         * size, initial value is 2. A negative value indicates
-         * to NOT use an atlas to hold images (and thus rely
-         * on bindless texturing or binding textures).
+         * size, initial value is 2. Value is ignored if \ref
+         * support_image_on_atlas(void) const is false.
          */
-        int
+        unsigned int
         log2_index_tile_size(void) const;
 
         /*!
          * Set the value for log2_index_tile_size(void) const
          */
         ImageAtlasParams&
-        log2_index_tile_size(int v);
+        log2_index_tile_size(unsigned int v);
 
         /*!
          * The log2 of the number of index tiles across and
-         * down per layer, initial value is 6
+         * down per layer, initial value is 6. Value is ignored
+         * if \ref support_image_on_atlas(void) const is false.
          */
-        int
+        unsigned int
         log2_num_index_tiles_per_row_per_col(void) const;
 
         /*!
          * Set the value for log2_num_index_tiles_per_row_per_col(void) const
          */
         ImageAtlasParams&
-        log2_num_index_tiles_per_row_per_col(int v);
+        log2_num_index_tiles_per_row_per_col(unsigned int v);
 
         /*!
-         * The initial number of index layers, initial value is 4
+         * The initial number of index layers, initial value is 4.
+         * Value is ignored f \ref support_image_on_atlas(void) const
+         * is false.
          */
-        int
+        unsigned int
         num_index_layers(void) const;
 
         /*!
          * Set the value for num_index_layers(void) const
          */
         ImageAtlasParams&
-        num_index_layers(int v);
+        num_index_layers(unsigned int v);
 
       private:
         void *m_d;

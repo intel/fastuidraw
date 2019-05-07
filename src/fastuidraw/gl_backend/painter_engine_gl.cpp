@@ -43,6 +43,7 @@ namespace
   {
   public:
     ImageAtlasParamsPrivate(void):
+      m_support_image_on_atlas(true),
       m_log2_color_tile_size(5),
       m_log2_num_color_tiles_per_row_per_col(8),
       m_num_color_layers(1),
@@ -51,12 +52,13 @@ namespace
       m_num_index_layers(4)
     {}
 
-    int m_log2_color_tile_size;
-    int m_log2_num_color_tiles_per_row_per_col;
-    int m_num_color_layers;
-    int m_log2_index_tile_size;
-    int m_log2_num_index_tiles_per_row_per_col;
-    int m_num_index_layers;
+    bool m_support_image_on_atlas;
+    unsigned int m_log2_color_tile_size;
+    unsigned int m_log2_num_color_tiles_per_row_per_col;
+    unsigned int m_num_color_layers;
+    unsigned int m_log2_index_tile_size;
+    unsigned int m_log2_num_index_tiles_per_row_per_col;
+    unsigned int m_num_index_layers;
   };
 
   class ColorStopAtlasParamsPrivate
@@ -408,22 +410,25 @@ optimal_color_sizes(int log2_color_tile_size)
 assign_swap_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams)
 setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
                  ImageAtlasParamsPrivate,
-                 int, log2_color_tile_size)
+                 bool, support_image_on_atlas)
 setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
                  ImageAtlasParamsPrivate,
-                 int, log2_num_color_tiles_per_row_per_col)
+                 unsigned int, log2_color_tile_size)
 setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
                  ImageAtlasParamsPrivate,
-                 int, num_color_layers)
+                 unsigned int, log2_num_color_tiles_per_row_per_col)
 setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
                  ImageAtlasParamsPrivate,
-                 int, log2_index_tile_size)
+                 unsigned int, num_color_layers)
 setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
                  ImageAtlasParamsPrivate,
-                 int, log2_num_index_tiles_per_row_per_col)
+                 unsigned int, log2_index_tile_size)
 setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
                  ImageAtlasParamsPrivate,
-                 int, num_index_layers)
+                 unsigned int, log2_num_index_tiles_per_row_per_col)
+setget_implement(fastuidraw::gl::PainterEngineGL::ImageAtlasParams,
+                 ImageAtlasParamsPrivate,
+                 unsigned int, num_index_layers)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterEngineGL::ColorStopAtlasParams methods

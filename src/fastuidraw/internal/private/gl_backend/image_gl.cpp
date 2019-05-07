@@ -44,31 +44,18 @@ namespace
   unsigned int
   compute_color_tile_size(const fastuidraw::gl::PainterEngineGL::ImageAtlasParams &P)
   {
-    bool no_atlas;
-
-    no_atlas = P.log2_color_tile_size() < 0
-      || P.log2_index_tile_size() < 0
-      || P.log2_num_color_tiles_per_row_per_col() < 0;
-
-    return no_atlas ? 0 : (1 << P.log2_color_tile_size());
+    return (P.support_image_on_atlas()) ? (1 << P.log2_color_tile_size()) : 0u;
   }
 
   unsigned int
   compute_index_tile_size(const fastuidraw::gl::PainterEngineGL::ImageAtlasParams &P)
   {
-    bool no_atlas;
-
-    no_atlas = P.log2_color_tile_size() < 0
-      || P.log2_index_tile_size() < 0
-      || P.log2_num_color_tiles_per_row_per_col() < 0;
-
-    return no_atlas ? 0 : (1 << P.log2_index_tile_size());
+    return (P.support_image_on_atlas()) ? (1 << P.log2_index_tile_size()) : 0u;
   }
 
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
   {
   public:
-    ColorBackingStoreGL(int log2_tile_size, int log2_num_tiles_per_row_per_col, int number_layers);
     ~ColorBackingStoreGL() {}
 
     virtual
@@ -99,15 +86,17 @@ namespace
 
     static
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>
-    create(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers)
+    create(const fastuidraw::gl::PainterEngineGL::ImageAtlasParams &P)
     {
-      if (log2_tile_size < 0 || log2_num_tiles_per_row_per_col < 0)
+      if (!P.support_image_on_atlas())
         {
           return nullptr;
         }
 
       ColorBackingStoreGL *p;
-      p = FASTUIDRAWnew ColorBackingStoreGL(log2_tile_size, log2_num_tiles_per_row_per_col, num_layers);
+      p = FASTUIDRAWnew ColorBackingStoreGL(P.log2_color_tile_size(),
+                                            P.log2_num_color_tiles_per_row_per_col(),
+                                            P.num_color_layers());
       return fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>(p);
     }
 
@@ -124,15 +113,13 @@ namespace
   private:
     typedef Texture<GL_RGBA8, GL_RGBA, GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
+
+    ColorBackingStoreGL(int log2_tile_size, int log2_num_tiles_per_row_per_col, int number_layers);
   };
 
   class IndexBackingStoreGL:public fastuidraw::AtlasIndexBackingStoreBase
   {
   public:
-    IndexBackingStoreGL(int log2_tile_size,
-                        int log2_num_index_tiles_per_row_per_col,
-                        int num_layers);
-
     ~IndexBackingStoreGL()
     {}
 
@@ -163,19 +150,17 @@ namespace
 
     static
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase>
-    create(int log2_tile_size,
-           int log2_num_index_tiles_per_row_per_col,
-           int num_layers)
+    create(const fastuidraw::gl::PainterEngineGL::ImageAtlasParams &P)
     {
-      if (log2_tile_size < 0 || log2_num_index_tiles_per_row_per_col < 0)
+      if (!P.support_image_on_atlas())
         {
           return nullptr;
         }
 
       IndexBackingStoreGL *p;
-      p = FASTUIDRAWnew IndexBackingStoreGL(log2_tile_size,
-                                           log2_num_index_tiles_per_row_per_col,
-                                           num_layers);
+      p = FASTUIDRAWnew IndexBackingStoreGL(P.log2_index_tile_size(),
+                                            P.log2_num_index_tiles_per_row_per_col(),
+                                            P.num_index_layers());
       return fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase>(p);
     }
 
@@ -201,6 +186,10 @@ namespace
      */
     typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST, GL_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
+
+    IndexBackingStoreGL(int log2_tile_size,
+                        int log2_num_index_tiles_per_row_per_col,
+                        int num_layers);
   };
 
 } //namespace
@@ -351,12 +340,8 @@ fastuidraw::gl::detail::ImageAtlasGL::
 ImageAtlasGL(const PainterEngineGL::ImageAtlasParams &P):
   fastuidraw::ImageAtlas(compute_color_tile_size(P),
                          compute_index_tile_size(P),
-                         ColorBackingStoreGL::create(P.log2_color_tile_size(),
-                                                     P.log2_num_color_tiles_per_row_per_col(),
-                                                     P.num_color_layers()),
-                         IndexBackingStoreGL::create(P.log2_index_tile_size(),
-                                                     P.log2_num_index_tiles_per_row_per_col(),
-                                                     P.num_index_layers()))
+                         ColorBackingStoreGL::create(P),
+                         IndexBackingStoreGL::create(P))
 {
 }
 
