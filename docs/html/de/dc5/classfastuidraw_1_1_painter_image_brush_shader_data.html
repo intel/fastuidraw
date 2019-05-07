@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> defines the <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> that the shaders of a <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html">PainterImageBrushShader</a> consume. It specifies what <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> and what rectangular region within it from which to source image data.  
+<p>A <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> defines the <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> that the shaders of a <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html">PainterImageBrushShader</a> consume. It specifies what <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> and what rectangular region within it from which to source image data.  
  <a href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>&gt;</code></p>
@@ -80,8 +80,9 @@ Inheritance diagram for fastuidraw::PainterImageBrushShaderData:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../dd/dda/classfastuidraw_1_1_painter_image_brush_shader_data__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_painter_image_brush_shader_data_inherit__map" alt="Inheritance graph"/></div>
 <map name="fastuidraw_1_1_painter_image_brush_shader_data_inherit__map" id="fastuidraw_1_1_painter_image_brush_shader_data_inherit__map">
-<area shape="rect" id="node2" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html" title="Base class to hold custom data for custom brush shaders. " alt="" coords="6,80,171,121"/>
-<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="7,5,170,32"/>
+<area shape="rect" id="node2" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html" title="Base class to hold custom data for custom brush shaders. " alt="" coords="5,80,171,121"/>
+<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="7,5,169,32"/>
+<area shape="rect" id="node4" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html" title="Class to contain various enumerations needed for describing a brush. " alt="" coords="195,80,360,121"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -119,6 +120,37 @@ Public Types</h2></td></tr>
  }<tr class="memdesc:a0dda34d0e9c8acfa47d4cedccc0671c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit packing for an uvec2 value.  <a href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a0dda34d0e9c8acfa47d4cedccc0671c2">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:a0dda34d0e9c8acfa47d4cedccc0671c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_classfastuidraw_1_1_painter_brush_enums"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classfastuidraw_1_1_painter_brush_enums')"><img src="../../closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html">fastuidraw::PainterBrushEnums</a></td></tr>
+<tr class="memitem:a5755076b60e546fdde983e5f1e14b15a inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a> { <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aac826111e03f3992044456ff666bd69e6">filter_nearest</a> = 1, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaccaf6cf862f6555fdcac4815a8970626">filter_linear</a> = 2, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaf527f9346a76e91551490ac3c226736f">filter_cubic</a> = 3
+ }<tr class="memdesc:a5755076b60e546fdde983e5f1e14b15a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration specifying what filter to apply to an image.  <a href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:a5755076b60e546fdde983e5f1e14b15a inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af106154c0652635f6474ce45054db2e1 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1">gradient_type_t</a> { <br />
+&#160;&#160;<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1af1532031875009da8894ec387e18a7d6">gradient_non</a> = 0, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1a281846f3da58005783a9b1355ec8908a">gradient_linear</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1a4682b53fb91322f22ed6c6f9e0473dcd">gradient_radial</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1a476339a1a14146a12ad46135496b1cb4">gradient_sweep</a>, 
+<br />
+&#160;&#160;<b>number_gradient_types</b>
+<br />
+ }</td></tr>
+<tr class="separator:af106154c0652635f6474ce45054db2e1 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05cdf526ba11ea7dd9185581fb3b303b inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a> { <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a">apply_mipmapping</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303ba3c306c51cdf0cf8a174f46aa96a1e7c1">dont_apply_mipmapping</a>
+ }</td></tr>
+<tr class="separator:a05cdf526ba11ea7dd9185581fb3b303b inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c9cfcee6017845ab4f0245abf6c9736 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736">spread_type_t</a> { <br />
+&#160;&#160;<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736a7df1da8029cf24d38c8d378b5a8486fc">spread_clamp</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736ae228487944e88c43059ae2a5e3f3c56c">spread_mirror</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736a065d9d338529f9670413ab26d326c28c">spread_repeat</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736ab62399c7ca29c84172b2a6da2836be06">spread_mirror_repeat</a>, 
+<br />
+&#160;&#160;<b>number_spread_types</b>
+<br />
+ }</td></tr>
+<tr class="separator:a9c9cfcee6017845ab4f0245abf6c9736 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -146,9 +178,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aed38861835bb67ccba34104c3817b69b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> defines the <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> that the shaders of a <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html">PainterImageBrushShader</a> consume. It specifies what <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> and what rectangular region within it from which to source image data. </p>
+<div class="textblock"><p>A <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> defines the <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> that the shaders of a <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html">PainterImageBrushShader</a> consume. It specifies what <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> and what rectangular region within it from which to source image data. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00040">40</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00042">42</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="aef82679ed75d6832ae028c073e24281b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aef82679ed75d6832ae028c073e24281b">&#9670;&nbsp;</a></span>atlas_location_encoding</h2>
@@ -178,7 +210,7 @@ Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00060">60</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00064">64</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -212,7 +244,7 @@ Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00085">85</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00089">89</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -240,7 +272,7 @@ Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00047">47</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00051">51</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -289,7 +321,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Copy ctor. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00147">147</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00151">151</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -401,7 +433,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> from which to source </p>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00187">187</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00191">191</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -459,7 +491,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Assignment operator </p>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00157">157</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00161">161</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>

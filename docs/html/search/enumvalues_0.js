@@ -16,7 +16,7 @@ var searchData=
   ['adobe_5fstandard',['adobe_standard',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93a3af55a236a76bb9633469dbb0cccb25a',1,'fastuidraw::CharacterEncoding']]],
   ['all',['all',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba55b86f9d519d0b86ec87bd4cf4394b1a',1,'fastuidraw::gpu_dirty_state']]],
   ['apple_5froman',['apple_roman',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93ac240a928893116d1143fa5a7c6b3e048',1,'fastuidraw::CharacterEncoding']]],
-  ['apply_5fmipmapping',['apply_mipmapping',['../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58',1,'fastuidraw::PainterImageBrushShader']]],
+  ['apply_5fmipmapping',['apply_mipmapping',['../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a',1,'fastuidraw::PainterBrushEnums']]],
   ['arc_5fsegment',['arc_segment',['../da/df4/classfastuidraw_1_1_tessellated_path.html#a7e80892f4d3808c47222960ef8baedeaad808cdae4c7c9ec10aa695ce192cc02a',1,'fastuidraw::TessellatedPath']]],
   ['array_5fsize',['array_size',['../d1/d96/classfastuidraw_1_1vec_n.html#aac9dec9dcfa80478f3490ae38e9a0500a28ece2cf680310288bdd503d91001876',1,'fastuidraw::vecN::array_size()'],['../d2/dcd/classfastuidraw_1_1unvec_n.html#ae8f42b2efebf17d7c34f548b43ad5f51a77206d80fb82b133317adddcb8a7993d',1,'fastuidraw::unvecN::array_size()']]],
   ['atlas_5flocation_5fx_5fbit0',['atlas_location_x_bit0',['../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#aef82679ed75d6832ae028c073e24281ba005d1e065143e8871084261b1ddfcdc5',1,'fastuidraw::PainterImageBrushShaderData']]],

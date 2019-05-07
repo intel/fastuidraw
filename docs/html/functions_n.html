@@ -71,9 +71,6 @@ $(function() {
 <li>no_gradient()
 : <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#a8f9adbe41eec85eff049ac697e7bdf4c">fastuidraw::PainterBrush</a>
 </li>
-<li>no_gradient_type
-: <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#ac3edf1ceab12796cff0d12fa12689e96ab856b0875fd99184bff29440fc3f0275">fastuidraw::PainterBrush</a>
-</li>
 <li>no_image()
 : <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#a95b4c7cbb6620d28f89cee014ffb68b4">fastuidraw::PainterBrush</a>
 </li>
@@ -200,7 +197,8 @@ $(function() {
 : <a class="el" href="d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a848c2552e284c89e4eb0910e40aba5fd">fastuidraw::PainterAttributeWriter</a>
 </li>
 <li>number_bits
-: <a class="el" href="dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a87856e5e370a37ad50ef8d8aae34ae31ad9178cd81bc2a77eeaebc1b0128ec523">fastuidraw::PainterImageBrushShader</a>
+: <a class="el" href="da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html#a7c123613c0e969f2f118940aef4ab0c0aade904993b977d9da36b43d54c8c728b">fastuidraw::PainterGradientBrushShader</a>
+, <a class="el" href="dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a87856e5e370a37ad50ef8d8aae34ae31ad9178cd81bc2a77eeaebc1b0128ec523">fastuidraw::PainterImageBrushShader</a>
 </li>
 <li>number_cap_styles
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa73e197c0acd6dc0fced1c0b53f7f0367">fastuidraw::PainterEnums</a>
@@ -232,7 +230,7 @@ $(function() {
 : <a class="el" href="d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69a738b2b2027ec0016e48513a6eb58b4fc">fastuidraw::PainterEnums</a>
 </li>
 <li>number_floats()
-: <a class="el" href="dc/d0d/classfastuidraw_1_1gl_1_1_painter_engine_g_l_1_1_glyph_atlas_params.html#a05d42374bf3f61b2eeb8d18202d2f669">fastuidraw::gl::PainterEngineGL::GlyphAtlasParams</a>
+: <a class="el" href="dc/d0d/classfastuidraw_1_1gl_1_1_painter_engine_g_l_1_1_glyph_atlas_params.html#ae794ed6dcc8629c665180a2b38d0808d">fastuidraw::gl::PainterEngineGL::GlyphAtlasParams</a>
 </li>
 <li>number_fonts()
 : <a class="el" href="d4/d44/classfastuidraw_1_1_font_database.html#a38e0d67b3e37002feea9e527db9c76b4">fastuidraw::FontDatabase</a>
@@ -288,11 +286,12 @@ $(function() {
 : <a class="el" href="dc/dfc/classfastuidraw_1_1_path_contour.html#aa4c3d71fb556cdf9048f8c8e42940a06">fastuidraw::PathContour</a>
 </li>
 <li>number_pools()
-: <a class="el" href="dd/d69/classfastuidraw_1_1gl_1_1_painter_engine_g_l_1_1_configuration_g_l.html#a00cb8ba73276f28a50726950997e70dc">fastuidraw::gl::PainterEngineGL::ConfigurationGL</a>
+: <a class="el" href="dd/d69/classfastuidraw_1_1gl_1_1_painter_engine_g_l_1_1_configuration_g_l.html#ab1f4de9ec1f27a062bfa2b95174165a2">fastuidraw::gl::PainterEngineGL::ConfigurationGL</a>
 </li>
 <li>number_resources()
 : <a class="el" href="d9/d57/classfastuidraw_1_1_painter_brush.html#aa82bdfdc168c389cf9efbb898704984d">fastuidraw::PainterBrush</a>
 , <a class="el" href="d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#a1ad2bd5d463073df423e54d2059dfd7c">fastuidraw::PainterBrushShaderData</a>
+, <a class="el" href="d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a44337098c6f8d5863410d3c638832dfd">fastuidraw::PainterGradientBrushShaderData</a>
 , <a class="el" href="de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a98599525c6503f86f8716f631b532231">fastuidraw::PainterImageBrushShaderData</a>
 , <a class="el" href="d2/d6f/classfastuidraw_1_1_painter_shader_data.html#a12165c64dd6628a74f670260cb912713">fastuidraw::PainterShaderData</a>
 </li>
@@ -308,6 +307,12 @@ $(function() {
 <li>number_sub_shaders
 : <a class="el" href="dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a87856e5e370a37ad50ef8d8aae34ae31abf94f4dc5531b1481662c69223c9040f">fastuidraw::PainterImageBrushShader</a>
 , <a class="el" href="de/d74/classfastuidraw_1_1_painter_shader.html#a9cf30e77d388ec57d660a20bb1d15f3a">fastuidraw::PainterShader</a>
+</li>
+<li>number_sub_shaders_of_generic_gradient
+: <a class="el" href="da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html#a7c123613c0e969f2f118940aef4ab0c0aea71a26e23f14c8e302d2e971cca9ba2">fastuidraw::PainterGradientBrushShader</a>
+</li>
+<li>number_sub_shaders_of_specific_gradient
+: <a class="el" href="da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html#a7c123613c0e969f2f118940aef4ab0c0a0b73229ca968c018e12254f8e5adef47">fastuidraw::PainterGradientBrushShader</a>
 </li>
 <li>number_subsets()
 : <a class="el" href="d7/d9a/classfastuidraw_1_1_filled_path.html#ae11118f6f09d2f502108c6e92d703ef6">fastuidraw::FilledPath</a>

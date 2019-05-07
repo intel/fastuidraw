@@ -1,0 +1,9 @@
+<map id="fastuidraw::PainterBrushEnums" name="fastuidraw::PainterBrushEnums">
+<area shape="rect" id="node2" href="$d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. " alt="" coords="226,5,391,32"/>
+<area shape="rect" id="node3" href="$d6/db7/classfastuidraw_1_1_painter_enums.html" title="Class to encapsulate enumerations used in Painter interface, part of the main library libFastUIDraw..." alt="" coords="223,56,395,83"/>
+<area shape="rect" id="node5" href="$da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html" title="A PainterGradientBrushShader represents a set of brush shaders to to perform a gradient. Internally it containts four generic parent shaders: " alt="" coords="219,107,399,149"/>
+<area shape="rect" id="node6" href="$d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html" title="A PainterGradientBrushShaderData defines the PainterBrushShaderData that the shaders of a PainterGrad..." alt="" coords="219,173,399,214"/>
+<area shape="rect" id="node7" href="$dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html" title="A PainterImageBrushShader represents a single PainterBrushShader together with sub&#45;shaders of it that..." alt="" coords="225,238,392,279"/>
+<area shape="rect" id="node8" href="$de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html" title="A PainterImageBrushShaderData defines the PainterBrushShaderData that the shaders of a PainterImageBr..." alt="" coords="225,303,392,345"/>
+<area shape="rect" id="node4" href="$da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. " alt="" coords="447,56,577,83"/>
+</map>

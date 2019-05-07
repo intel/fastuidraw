@@ -29,6 +29,7 @@ var searchData=
   ['painter_5fenums_2ehpp',['painter_enums.hpp',['../d5/d08/painter__enums_8hpp.html',1,'']]],
   ['painter_5ffill_5fshader_2ehpp',['painter_fill_shader.hpp',['../d6/d8d/painter__fill__shader_8hpp.html',1,'']]],
   ['painter_5fglyph_5fshader_2ehpp',['painter_glyph_shader.hpp',['../dd/df6/painter__glyph__shader_8hpp.html',1,'']]],
+  ['painter_5fgradient_5fbrush_5fshader_2ehpp',['painter_gradient_brush_shader.hpp',['../d9/da7/painter__gradient__brush__shader_8hpp.html',1,'']]],
   ['painter_5fheader_2ehpp',['painter_header.hpp',['../d1/dc5/painter__header_8hpp.html',1,'']]],
   ['painter_5fimage_5fbrush_5fshader_2ehpp',['painter_image_brush_shader.hpp',['../db/d79/painter__image__brush__shader_8hpp.html',1,'']]],
   ['painter_5fitem_5fcoverage_5fshader_2ehpp',['painter_item_coverage_shader.hpp',['../dd/dc6/painter__item__coverage__shader_8hpp.html',1,'']]],

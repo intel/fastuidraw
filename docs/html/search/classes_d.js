@@ -2,7 +2,7 @@ var searchData=
 [
   ['same_5fconst',['same_const',['../d6/da2/classfastuidraw_1_1same__const.html',1,'fastuidraw']]],
   ['samplerinitializer',['SamplerInitializer',['../db/d8f/classfastuidraw_1_1gl_1_1_sampler_initializer.html',1,'fastuidraw::gl']]],
-  ['scratchspace',['ScratchSpace',['../df/dac/classfastuidraw_1_1_filled_path_1_1_scratch_space.html',1,'fastuidraw::FilledPath::ScratchSpace'],['../d3/dcd/classfastuidraw_1_1_stroked_caps_joins_1_1_scratch_space.html',1,'fastuidraw::StrokedCapsJoins::ScratchSpace'],['../d0/d0c/classfastuidraw_1_1_glyph_sequence_1_1_scratch_space.html',1,'fastuidraw::GlyphSequence::ScratchSpace'],['../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html',1,'fastuidraw::StrokedPath::ScratchSpace']]],
+  ['scratchspace',['ScratchSpace',['../d3/dcd/classfastuidraw_1_1_stroked_caps_joins_1_1_scratch_space.html',1,'fastuidraw::StrokedCapsJoins::ScratchSpace'],['../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html',1,'fastuidraw::StrokedPath::ScratchSpace'],['../d0/d0c/classfastuidraw_1_1_glyph_sequence_1_1_scratch_space.html',1,'fastuidraw::GlyphSequence::ScratchSpace'],['../df/dac/classfastuidraw_1_1_filled_path_1_1_scratch_space.html',1,'fastuidraw::FilledPath::ScratchSpace']]],
   ['segment',['segment',['../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html',1,'fastuidraw::TessellatedPath']]],
   ['segmentstorage',['SegmentStorage',['../d1/def/classfastuidraw_1_1_tessellated_path_1_1_segment_storage.html',1,'fastuidraw::TessellatedPath']]],
   ['shader',['Shader',['../d6/d88/classfastuidraw_1_1gl_1_1_shader.html',1,'fastuidraw::gl']]],

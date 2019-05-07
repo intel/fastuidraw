@@ -1,6 +1,7 @@
 var searchData=
 [
   ['enable_5fextension',['enable_extension',['../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a0b68f170619adbbbd947720518beda23a764f414ee58499d20b5e61dd8c1f09db',1,'fastuidraw::glsl::ShaderSource']]],
+  ['end_5fradius_5foffset',['end_radius_offset',['../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a68a9cce204fc19da55e9c2cd46977e08a027ffa36aa0dc33cf5e008e7dc6aec7e',1,'fastuidraw::PainterGradientBrushShaderData']]],
   ['end_5fsegment_5fbit',['end_segment_bit',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a0364105ff2b0bd42c5bc09085f6de579a06850d1f0799b05ea77bb576fcfbe49a',1,'fastuidraw::ArcStrokedPoint']]],
   ['end_5fsegment_5fmask',['end_segment_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0a5dd85da0ded7bf6d6729dd30fdadf97b',1,'fastuidraw::ArcStrokedPoint']]],
   ['end_5fsub_5fedge_5fbit',['end_sub_edge_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a5210a1ed0ec84f753b3fcae7386f0134afe4b7d5af9b2d88991cada3ba7c708e0',1,'fastuidraw::StrokedPoint']]],

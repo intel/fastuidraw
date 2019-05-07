@@ -79,9 +79,10 @@ Inheritance diagram for fastuidraw::PainterBrushShaderData:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../de/d5c/classfastuidraw_1_1_painter_brush_shader_data__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_painter_brush_shader_data_inherit__map" alt="Inheritance graph"/></div>
 <map name="fastuidraw_1_1_painter_brush_shader_data_inherit__map" id="fastuidraw_1_1_painter_brush_shader_data_inherit__map">
-<area shape="rect" id="node3" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. " alt="" coords="5,177,171,203"/>
-<area shape="rect" id="node4" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html" title="A PainterImageBrushShaderData defines the PainterImageBrushShaderData that the shaders of a PainterIm..." alt="" coords="195,169,362,211"/>
-<area shape="rect" id="node2" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="101,5,264,32"/>
+<area shape="rect" id="node3" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. " alt="" coords="437,5,602,32"/>
+<area shape="rect" id="node4" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html" title="A PainterGradientBrushShaderData defines the PainterBrushShaderData that the shaders of a PainterGrad..." alt="" coords="429,57,609,98"/>
+<area shape="rect" id="node5" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html" title="A PainterImageBrushShaderData defines the PainterBrushShaderData that the shaders of a PainterImageBr..." alt="" coords="436,122,603,163"/>
+<area shape="rect" id="node2" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,64,168,91"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -128,7 +129,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>To be implemented by a derived class to return a <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> of references to <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> objects whose <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#a3498cdb6c1a44951a1ba5def0e8dcc24">Image::type()</a> value is <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#aadc9d23baef018704949d6e42f3c4079a23db8baa72337d14b6c8960dde7bad66">Image::context_texture2d</a>. The i'th entry in the returned array will be bound to the i'th external texture slot of the backend via the <a class="el" href="../../d2/d15/classfastuidraw_1_1_painter_draw_break_action.html">PainterDrawBreakAction</a> objected returned by <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html#a19b439eebc7af4d1d320922bf2470094">PainterBackend::bind_image()</a>. Default implementation is to return an empty array. </p>
 
-<p>Reimplemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a1b0be538206c84820bf8c2367845da76">fastuidraw::PainterBrush</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a0550f9baeda4fa6b4ce53e5b055f1689">fastuidraw::PainterImageBrushShaderData</a>.</p>
+<p>Reimplemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a1b0be538206c84820bf8c2367845da76">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#afd193b01a75c2dd45c2bced227b35690">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a0550f9baeda4fa6b4ce53e5b055f1689">fastuidraw::PainterImageBrushShaderData</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/d0c/painter__brush__shader__data_8hpp_source.html#l00098">98</a> of file <a class="el" href="../../d2/d0c/painter__brush__shader__data_8hpp_source.html">painter_brush_shader_data.hpp</a>.</p>
 
@@ -159,7 +160,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>To be implemented by a derived class to return the number of vecN&lt;generic_data, 4&gt; blocks needed to pack the data. </p>
 
-<p>Implemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a23b815816c79620c56f35b99dddd5f0f">fastuidraw::PainterBrush</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#af78ceb51ef93ad957eae9de132e96542">fastuidraw::PainterImageBrushShaderData</a>.</p>
+<p>Implemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a23b815816c79620c56f35b99dddd5f0f">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#aa1c87dc05beca33645c299c49c4039be">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#af78ceb51ef93ad957eae9de132e96542">fastuidraw::PainterImageBrushShaderData</a>.</p>
 
 </div>
 </div>
@@ -188,7 +189,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>To be optionally implemented by a derived class to return the number of resources that need to be resident after packing. Default implementation returns 0. </p>
 
-<p>Reimplemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#aa82bdfdc168c389cf9efbb898704984d">fastuidraw::PainterBrush</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a98599525c6503f86f8716f631b532231">fastuidraw::PainterImageBrushShaderData</a>.</p>
+<p>Reimplemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#aa82bdfdc168c389cf9efbb898704984d">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a44337098c6f8d5863410d3c638832dfd">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a98599525c6503f86f8716f631b532231">fastuidraw::PainterImageBrushShaderData</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/d0c/painter__brush__shader__data_8hpp_source.html#l00081">81</a> of file <a class="el" href="../../d2/d0c/painter__brush__shader__data_8hpp_source.html">painter_brush_shader_data.hpp</a>.</p>
 
@@ -224,7 +225,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Implemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a7a455866c277a0daf9b8a872ed4d9547">fastuidraw::PainterBrush</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#af7102867e5454d09c2ac5c0ed7a549f2">fastuidraw::PainterImageBrushShaderData</a>.</p>
+<p>Implemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a7a455866c277a0daf9b8a872ed4d9547">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a7ed676e9b9d2fca069c2ace2c29716b8">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#af7102867e5454d09c2ac5c0ed7a549f2">fastuidraw::PainterImageBrushShaderData</a>.</p>
 
 </div>
 </div>
@@ -258,7 +259,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Reimplemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a7a1c79a591604e7d78a9cb3d92ab99ba">fastuidraw::PainterBrush</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#acd22adb5ebed4e35b66cb1340ce7a508">fastuidraw::PainterImageBrushShaderData</a>.</p>
+<p>Reimplemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a7a1c79a591604e7d78a9cb3d92ab99ba">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a95ba2dbd081c6b732c35e8d65e6421c7">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#acd22adb5ebed4e35b66cb1340ce7a508">fastuidraw::PainterImageBrushShaderData</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/d0c/painter__brush__shader__data_8hpp_source.html#l00069">69</a> of file <a class="el" href="../../d2/d0c/painter__brush__shader__data_8hpp_source.html">painter_brush_shader_data.hpp</a>.</p>
 

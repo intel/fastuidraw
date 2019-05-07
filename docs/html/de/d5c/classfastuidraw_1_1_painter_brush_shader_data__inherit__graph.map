@@ -1,5 +1,6 @@
 <map id="fastuidraw::PainterBrushShaderData" name="fastuidraw::PainterBrushShaderData">
-<area shape="rect" id="node3" href="$d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. " alt="" coords="5,177,171,203"/>
-<area shape="rect" id="node4" href="$de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html" title="A PainterImageBrushShaderData defines the PainterImageBrushShaderData that the shaders of a PainterIm..." alt="" coords="195,169,362,211"/>
-<area shape="rect" id="node2" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="101,5,264,32"/>
+<area shape="rect" id="node3" href="$d9/d57/classfastuidraw_1_1_painter_brush.html" title="A PainterBrush defines a brush for painting via Painter. " alt="" coords="437,5,602,32"/>
+<area shape="rect" id="node4" href="$d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html" title="A PainterGradientBrushShaderData defines the PainterBrushShaderData that the shaders of a PainterGrad..." alt="" coords="429,57,609,98"/>
+<area shape="rect" id="node5" href="$de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html" title="A PainterImageBrushShaderData defines the PainterBrushShaderData that the shaders of a PainterImageBr..." alt="" coords="436,122,603,163"/>
+<area shape="rect" id="node2" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,64,168,91"/>
 </map>

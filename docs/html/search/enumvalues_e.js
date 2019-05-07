@@ -1,5 +1,9 @@
 var searchData=
 [
+  ['p0_5fx_5foffset',['p0_x_offset',['../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a68a9cce204fc19da55e9c2cd46977e08a4be6fa837709a961338ffcd79a1cc2b0',1,'fastuidraw::PainterGradientBrushShaderData']]],
+  ['p0_5fy_5foffset',['p0_y_offset',['../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a68a9cce204fc19da55e9c2cd46977e08a7268f34ac3ac8ca9cd61a4e42c33dec3',1,'fastuidraw::PainterGradientBrushShaderData']]],
+  ['p1_5fx_5foffset',['p1_x_offset',['../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a68a9cce204fc19da55e9c2cd46977e08a0a4858bd4240d53c84ae3c3145fd0803',1,'fastuidraw::PainterGradientBrushShaderData']]],
+  ['p1_5fy_5foffset',['p1_y_offset',['../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a68a9cce204fc19da55e9c2cd46977e08ac94aa734c0bad42776aa22f224a2546e',1,'fastuidraw::PainterGradientBrushShaderData']]],
   ['padding_5ftype',['padding_type',['../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988a28d176d396a7405a75e874d9997f3138',1,'fastuidraw::glsl::UnpackSourceGenerator']]],
   ['path_5fstroking_5funits',['path_stroking_units',['../df/df5/classfastuidraw_1_1_painter_stroke_params.html#aa02d8ddad011243b5bcdd54c8803724aa41f8c84fa71d1c78bedfef4ce08911c4',1,'fastuidraw::PainterStrokeParams']]],
   ['pixel_5fspace_5fdistance',['pixel_space_distance',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc',1,'fastuidraw::StrokingDataSelectorBase']]],

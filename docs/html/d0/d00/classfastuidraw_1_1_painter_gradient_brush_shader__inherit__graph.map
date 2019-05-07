@@ -1,0 +1,5 @@
+<map id="fastuidraw::PainterGradientBrushShader" name="fastuidraw::PainterGradientBrushShader">
+<area shape="rect" id="node2" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="216,5,407,61"/>
+<area shape="rect" id="node3" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,20,168,47"/>
+<area shape="rect" id="node4" href="$d5/dcd/classfastuidraw_1_1_painter_brush_enums.html" title="Class to contain various enumerations needed for describing a brush. " alt="" coords="229,86,394,127"/>
+</map>

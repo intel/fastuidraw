@@ -86,7 +86,7 @@ var searchData=
   ['apple_5froman',['apple_roman',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93ac240a928893116d1143fa5a7c6b3e048',1,'fastuidraw::CharacterEncoding']]],
   ['apply_5fbit_5fflag',['apply_bit_flag',['../d4/d4c/namespacefastuidraw.html#a8df77893c6e421e0e009fe8665cb4a8a',1,'fastuidraw']]],
   ['apply_5fmatrix',['apply_matrix',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a17b3735ea40dfadf36b24d668de65d56',1,'fastuidraw::PainterBrush']]],
-  ['apply_5fmipmapping',['apply_mipmapping',['../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58',1,'fastuidraw::PainterImageBrushShader']]],
+  ['apply_5fmipmapping',['apply_mipmapping',['../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a',1,'fastuidraw::PainterBrushEnums']]],
   ['apply_5frotate',['apply_rotate',['../d9/d57/classfastuidraw_1_1_painter_brush.html#acbf47008e850cb6b086402aa7b808303',1,'fastuidraw::PainterBrush']]],
   ['apply_5fshear',['apply_shear',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a7dec7875c8b63018dde66c4d21edc118',1,'fastuidraw::PainterBrush']]],
   ['apply_5ftranslate',['apply_translate',['../d9/d57/classfastuidraw_1_1_painter_brush.html#aeaa237ff2a798eab0e128e1dcae5e6ab',1,'fastuidraw::PainterBrush']]],

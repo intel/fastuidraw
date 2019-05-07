@@ -81,23 +81,14 @@ Inheritance diagram for fastuidraw::PainterImageBrushShader:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../da/dd0/classfastuidraw_1_1_painter_image_brush_shader__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_painter_image_brush_shader_inherit__map" alt="Inheritance graph"/></div>
 <map name="fastuidraw_1_1_painter_image_brush_shader_inherit__map" id="fastuidraw_1_1_painter_image_brush_shader_inherit__map">
-<area shape="rect" id="node2" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,184,136"/>
-<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="13,5,176,32"/>
+<area shape="rect" id="node2" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="216,5,395,61"/>
+<area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,20,168,47"/>
+<area shape="rect" id="node4" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html" title="Class to contain various enumerations needed for describing a brush. " alt="" coords="223,86,388,127"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a03c18a05899acb3200c42000683426e6"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a> { <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6a1a4afc95032b5256e1a066ccc82a3680">filter_nearest</a> = 1, 
-<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6ad17f0ff90a9bdc451b5cbbb304ba6ec5">filter_linear</a> = 2, 
-<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6a58cf368603c3b0a4dd840ff7cd11ffcd">filter_cubic</a> = 3
- }<tr class="memdesc:a03c18a05899acb3200c42000683426e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration specifying what filter to apply to an image.  <a href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">More...</a><br /></td></tr>
-</td></tr>
-<tr class="separator:a03c18a05899acb3200c42000683426e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7bcc8e0300845394aec390475191db2"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a> { <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58">apply_mipmapping</a>, 
-<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2ae7bb59a7478770ed26acc42bd127d05e">dont_apply_mipmapping</a>
- }</td></tr>
-<tr class="separator:af7bcc8e0300845394aec390475191db2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87856e5e370a37ad50ef8d8aae34ae31"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a87856e5e370a37ad50ef8d8aae34ae31">sub_shader_bits</a> { <br />
 &#160;&#160;<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a87856e5e370a37ad50ef8d8aae34ae31a7bccfce57f88f899765ea30136907ac9">filter_num_bits</a> = 2, 
 <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a87856e5e370a37ad50ef8d8aae34ae31a84f3b4fb05ad43de3515d7901e7e4a29">mipmap_num_bits</a> = 7, 
@@ -121,16 +112,47 @@ Public Types</h2></td></tr>
 <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a226c4efb3a9ac51e477f9558f84de6a8af6c6be5bd579fa9fc58bbd5739093223">format_mask</a> = FASTUIDRAW_MASK(format_bit0, format_num_bits)
  }</td></tr>
 <tr class="separator:a226c4efb3a9ac51e477f9558f84de6a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_classfastuidraw_1_1_painter_brush_enums"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classfastuidraw_1_1_painter_brush_enums')"><img src="../../closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html">fastuidraw::PainterBrushEnums</a></td></tr>
+<tr class="memitem:a5755076b60e546fdde983e5f1e14b15a inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a> { <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aac826111e03f3992044456ff666bd69e6">filter_nearest</a> = 1, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaccaf6cf862f6555fdcac4815a8970626">filter_linear</a> = 2, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaf527f9346a76e91551490ac3c226736f">filter_cubic</a> = 3
+ }<tr class="memdesc:a5755076b60e546fdde983e5f1e14b15a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration specifying what filter to apply to an image.  <a href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:a5755076b60e546fdde983e5f1e14b15a inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af106154c0652635f6474ce45054db2e1 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1">gradient_type_t</a> { <br />
+&#160;&#160;<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1af1532031875009da8894ec387e18a7d6">gradient_non</a> = 0, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1a281846f3da58005783a9b1355ec8908a">gradient_linear</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1a4682b53fb91322f22ed6c6f9e0473dcd">gradient_radial</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1a476339a1a14146a12ad46135496b1cb4">gradient_sweep</a>, 
+<br />
+&#160;&#160;<b>number_gradient_types</b>
+<br />
+ }</td></tr>
+<tr class="separator:af106154c0652635f6474ce45054db2e1 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05cdf526ba11ea7dd9185581fb3b303b inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a> { <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a">apply_mipmapping</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303ba3c306c51cdf0cf8a174f46aa96a1e7c1">dont_apply_mipmapping</a>
+ }</td></tr>
+<tr class="separator:a05cdf526ba11ea7dd9185581fb3b303b inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c9cfcee6017845ab4f0245abf6c9736 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736">spread_type_t</a> { <br />
+&#160;&#160;<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736a7df1da8029cf24d38c8d378b5a8486fc">spread_clamp</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736ae228487944e88c43059ae2a5e3f3c56c">spread_mirror</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736a065d9d338529f9670413ab26d326c28c">spread_repeat</a>, 
+<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736ab62399c7ca29c84172b2a6da2836be06">spread_mirror_repeat</a>, 
+<br />
+&#160;&#160;<b>number_spread_types</b>
+<br />
+ }</td></tr>
+<tr class="separator:a9c9cfcee6017845ab4f0245abf6c9736 inherit pub_types_classfastuidraw_1_1_painter_brush_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a772e291f1ddd78f0a74ba4fc556f334a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a772e291f1ddd78f0a74ba4fc556f334a">PainterImageBrushShader</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> &gt; &amp;parent_shader)</td></tr>
 <tr class="separator:a772e291f1ddd78f0a74ba4fc556f334a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a984ed1bd86db3bde20b4147a44493dcf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a984ed1bd86db3bde20b4147a44493dcf">create_brush</a> (<a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html">PainterPackedValuePool</a> &amp;pool, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;image, <a class="el" href="../../da/d46/group___utility.html#ga4b6312154fcff1187fdc31432c22e9ee">uvec2</a> xy, <a class="el" href="../../da/d46/group___utility.html#ga4b6312154fcff1187fdc31432c22e9ee">uvec2</a> wh, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a> image_filter=<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6ad17f0ff90a9bdc451b5cbbb304ba6ec5">filter_linear</a>, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a> mip_mapping=<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58">apply_mipmapping</a>) const</td></tr>
+<tr class="memitem:a984ed1bd86db3bde20b4147a44493dcf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a984ed1bd86db3bde20b4147a44493dcf">create_brush</a> (<a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html">PainterPackedValuePool</a> &amp;pool, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;image, <a class="el" href="../../da/d46/group___utility.html#ga4b6312154fcff1187fdc31432c22e9ee">uvec2</a> xy, <a class="el" href="../../da/d46/group___utility.html#ga4b6312154fcff1187fdc31432c22e9ee">uvec2</a> wh, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a> image_filter=<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaccaf6cf862f6555fdcac4815a8970626">filter_linear</a>, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a> mip_mapping=<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a">apply_mipmapping</a>) const</td></tr>
 <tr class="separator:a984ed1bd86db3bde20b4147a44493dcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36ed1d6c410bc0aec054e74a262ee069"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a36ed1d6c410bc0aec054e74a262ee069">create_brush</a> (<a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html">PainterPackedValuePool</a> &amp;pool, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;image, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a> image_filter=<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6ad17f0ff90a9bdc451b5cbbb304ba6ec5">filter_linear</a>, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a> mip_mapping=<a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58">apply_mipmapping</a>) const</td></tr>
+<tr class="memitem:a36ed1d6c410bc0aec054e74a262ee069"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d98/classfastuidraw_1_1_painter_custom_brush.html">PainterCustomBrush</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a36ed1d6c410bc0aec054e74a262ee069">create_brush</a> (<a class="el" href="../../d9/d21/classfastuidraw_1_1_painter_packed_value_pool.html">PainterPackedValuePool</a> &amp;pool, const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;image, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a> image_filter=<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaccaf6cf862f6555fdcac4815a8970626">filter_linear</a>, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a> mip_mapping=<a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a">apply_mipmapping</a>) const</td></tr>
 <tr class="separator:a36ed1d6c410bc0aec054e74a262ee069"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad882278199d2364f0dbfeaae3946e2f7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#ad882278199d2364f0dbfeaae3946e2f7">sub_shader</a> (const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> *image, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a> image_filter, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a> mip_mapping) const</td></tr>
+<tr class="memitem:ad882278199d2364f0dbfeaae3946e2f7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#ad882278199d2364f0dbfeaae3946e2f7">sub_shader</a> (const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> *image, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a> image_filter, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a> mip_mapping) const</td></tr>
 <tr class="separator:ad882278199d2364f0dbfeaae3946e2f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acecee4a602617ef8726f47d0bd53c0ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#acecee4a602617ef8726f47d0bd53c0ec">sub_shaders</a> (void) const</td></tr>
 <tr class="separator:acecee4a602617ef8726f47d0bd53c0ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -140,7 +162,7 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ae134793cbc2e9d2e0b8830e124e5076c"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#ae134793cbc2e9d2e0b8830e124e5076c">sub_shader_id</a> (const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> *image, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a> image_filter, enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a> mip_mapping)</td></tr>
+<tr class="memitem:ae134793cbc2e9d2e0b8830e124e5076c"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#ae134793cbc2e9d2e0b8830e124e5076c">sub_shader_id</a> (const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> *image, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a> image_filter, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a> mip_mapping)</td></tr>
 <tr class="separator:ae134793cbc2e9d2e0b8830e124e5076c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_static_methods_classfastuidraw_1_1reference__counted__base"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_classfastuidraw_1_1reference__counted__base')"><img src="../../closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">fastuidraw::reference_counted_base&lt; T, Counter &gt;</a></td></tr>
 <tr class="memitem:a79626863af8be19ef21f1bbe1361d764 inherit pub_static_methods_classfastuidraw_1_1reference__counted__base"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html#a79626863af8be19ef21f1bbe1361d764">add_reference</a> (const <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">reference_counted_base</a>&lt; T, Counter &gt; *p)</td></tr>
@@ -151,57 +173,8 @@ Static Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html">PainterImageBrushShader</a> represents a single <a class="el" href="../../d9/dd0/classfastuidraw_1_1_painter_brush_shader.html">PainterBrushShader</a> together with sub-shaders of it that can be used to apply an <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a>. The sub-shader ID is used to describe the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#a3498cdb6c1a44951a1ba5def0e8dcc24">Image::type()</a>, <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html#a094dacf0e0f5d0d482016b0df0ee4204">Image::format()</a>, what filtering and mipmapping to apply to the image data. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00220">220</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00224">224</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="a03c18a05899acb3200c42000683426e6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a03c18a05899acb3200c42000683426e6">&#9670;&nbsp;</a></span>filter_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">fastuidraw::PainterImageBrushShader::filter_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Enumeration specifying what filter to apply to an image. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a03c18a05899acb3200c42000683426e6a1a4afc95032b5256e1a066ccc82a3680"></a>filter_nearest&#160;</td><td class="fielddoc"><p>Indicates to use nearest filtering (i.e choose closest pixel). </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a03c18a05899acb3200c42000683426e6ad17f0ff90a9bdc451b5cbbb304ba6ec5"></a>filter_linear&#160;</td><td class="fielddoc"><p>Indicates to use bilinear filtering. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a03c18a05899acb3200c42000683426e6a58cf368603c3b0a4dd840ff7cd11ffcd"></a>filter_cubic&#160;</td><td class="fielddoc"><p>Indicates to use bicubic filtering. </p>
-</td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00228">228</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
-
-</div>
-</div>
-<a id="af7bcc8e0300845394aec390475191db2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7bcc8e0300845394aec390475191db2">&#9670;&nbsp;</a></span>mipmap_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">fastuidraw::PainterImageBrushShader::mipmap_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>enumeration to specify mipmapping on an image </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58"></a>apply_mipmapping&#160;</td><td class="fielddoc"><p>Indicates to apply mipmap filtering </p>
-</td></tr>
-<tr><td class="fieldname"><a id="af7bcc8e0300845394aec390475191db2ae7bb59a7478770ed26acc42bd127d05e"></a>dont_apply_mipmapping&#160;</td><td class="fielddoc"><p>Indicates to not apply mipmap filtering </p>
-</td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00250">250</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
-
-</div>
-</div>
 <a id="a87856e5e370a37ad50ef8d8aae34ae31"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a87856e5e370a37ad50ef8d8aae34ae31">&#9670;&nbsp;</a></span>sub_shader_bits</h2>
 
@@ -216,7 +189,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Enumeration describing the roles of the bits for the sub-shader ID's. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a87856e5e370a37ad50ef8d8aae34ae31a7bccfce57f88f899765ea30136907ac9"></a>filter_num_bits&#160;</td><td class="fielddoc"><p>Number of bits needed to encode filter for image. A value of 0 indicates no image applied, a non-zero value indicates an image applied and the value specifies what filter via the enumeration <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a>. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a87856e5e370a37ad50ef8d8aae34ae31a7bccfce57f88f899765ea30136907ac9"></a>filter_num_bits&#160;</td><td class="fielddoc"><p>Number of bits needed to encode filter for image. A value of 0 indicates no image applied, a non-zero value indicates an image applied and the value specifies what filter via the enumeration <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">PainterBrushEnums::filter_t</a>. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a87856e5e370a37ad50ef8d8aae34ae31a84f3b4fb05ad43de3515d7901e7e4a29"></a>mipmap_num_bits&#160;</td><td class="fielddoc"><p>Number of bits used to encode number of mipmap levels (when an image is present). </p>
 </td></tr>
@@ -238,7 +211,7 @@ Static Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00268">268</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00234">234</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -265,7 +238,7 @@ Static Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00333">333</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html#l00299">299</a> of file <a class="el" href="../../db/d79/painter__image__brush__shader_8hpp_source.html">painter_image_brush_shader.hpp</a>.</p>
 
 </div>
 </div>
@@ -336,14 +309,14 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a>&#160;</td>
-          <td class="paramname"><em>image_filter</em> = <code><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6ad17f0ff90a9bdc451b5cbbb304ba6ec5">filter_linear</a></code>, </td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a>&#160;</td>
+          <td class="paramname"><em>image_filter</em> = <code><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaccaf6cf862f6555fdcac4815a8970626">filter_linear</a></code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a>&#160;</td>
-          <td class="paramname"><em>mip_mapping</em> = <code><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58">apply_mipmapping</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a>&#160;</td>
+          <td class="paramname"><em>mip_mapping</em> = <code><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a">apply_mipmapping</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -387,14 +360,14 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a>&#160;</td>
-          <td class="paramname"><em>image_filter</em> = <code><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6ad17f0ff90a9bdc451b5cbbb304ba6ec5">filter_linear</a></code>, </td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a>&#160;</td>
+          <td class="paramname"><em>image_filter</em> = <code><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaccaf6cf862f6555fdcac4815a8970626">filter_linear</a></code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a>&#160;</td>
-          <td class="paramname"><em>mip_mapping</em> = <code><a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2a7139b2896322097ac0a81492cc227f58">apply_mipmapping</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a>&#160;</td>
+          <td class="paramname"><em>mip_mapping</em> = <code><a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303bad78b2b6b727d78fabaa734f34640c34a">apply_mipmapping</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -430,13 +403,13 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a>&#160;</td>
           <td class="paramname"><em>image_filter</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a>&#160;</td>
           <td class="paramname"><em>mip_mapping</em>&#160;</td>
         </tr>
         <tr>
@@ -475,13 +448,13 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a03c18a05899acb3200c42000683426e6">filter_t</a>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15a">filter_t</a>&#160;</td>
           <td class="paramname"><em>image_filter</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#af7bcc8e0300845394aec390475191db2">mipmap_t</a>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a05cdf526ba11ea7dd9185581fb3b303b">mipmap_t</a>&#160;</td>
           <td class="paramname"><em>mip_mapping</em>&#160;</td>
         </tr>
         <tr>
