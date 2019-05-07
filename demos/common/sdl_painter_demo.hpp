@@ -125,10 +125,11 @@ private:
 
   /* Image atlas parameters */
   command_separator m_image_atlas_options;
-  command_line_argument_value<int> m_log2_color_tile_size, m_log2_num_color_tiles_per_row_per_col;
-  command_line_argument_value<int> m_num_color_layers;
-  command_line_argument_value<int> m_log2_index_tile_size, m_log2_num_index_tiles_per_row_per_col;
-  command_line_argument_value<int> m_num_index_layers;
+  command_line_argument_value<unsigned int> m_log2_color_tile_size, m_log2_num_color_tiles_per_row_per_col;
+  command_line_argument_value<unsigned int> m_num_color_layers;
+  command_line_argument_value<unsigned int> m_log2_index_tile_size, m_log2_num_index_tiles_per_row_per_col;
+  command_line_argument_value<unsigned int> m_num_index_layers;
+  command_line_argument_value<bool> m_support_image_on_atlas;
 
   /* Glyph atlas parameters */
   command_separator m_glyph_atlas_options;

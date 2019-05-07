@@ -246,21 +246,18 @@ sdl_painter_demo(const std::string &about_text,
 
   m_image_atlas_options("Image Atlas Options", *this),
   m_log2_color_tile_size(m_image_atlas_params.log2_color_tile_size(), "log2_color_tile_size",
-                         "Specifies the log2 of the width and height of each color tile. "
-                         "A negative value disables image atlasing",
+                         "Specifies the log2 of the width and height of each color tile.",
                          *this),
   m_log2_num_color_tiles_per_row_per_col(m_image_atlas_params.log2_num_color_tiles_per_row_per_col(),
                                          "log2_num_color_tiles_per_row_per_col",
                                          "Specifies the log2 of the number of color tiles "
-                                         "in each row and column of each layer. A negative "
-                                         "value disables image atlasing. Note that "
+                                         "in each row and column of each layer. Note that "
                                          "then the total number of color tiles available "
                                          "is given as num_color_layers*pow(2, 2*log2_num_color_tiles_per_row_per_col)",
                                          *this),
   m_num_color_layers(m_image_atlas_params.num_color_layers(), "num_color_layers",
-                     "Specifies the number of layers in the color texture. A negative "
-                     "value disables image atlasing. Note that then the total number of "
-                     "color tiles available is given as "
+                     "Specifies the number of layers in the color texture. Note that "
+                     "then the total number of color tiles available is given as "
                      "num_color_layers*pow(2, 2*log2_num_color_tiles_per_row_per_col)"
                      "The number of layers grows to accomodate more images at the cost "
                      "of needing to move color data to new GL textures",
@@ -272,8 +269,7 @@ sdl_painter_demo(const std::string &about_text,
   m_log2_num_index_tiles_per_row_per_col(m_image_atlas_params.log2_num_index_tiles_per_row_per_col(),
                                          "log2_num_index_tiles_per_row_per_col",
                                          "Specifies the log2 of the number of index tiles "
-                                         "in each row and column of each layer; A negative "
-                                         "value disables image atlasing. Note that "
+                                         "in each row and column of each layer; note that "
                                          "then the total number of index tiles available "
                                          "is given as num_index_layers*pow(2, 2*log2_num_index_tiles_per_row_per_col)",
                                          *this),
@@ -284,6 +280,12 @@ sdl_painter_demo(const std::string &about_text,
                      "The number of layers grows to accomodate more images at the cost "
                      "of needing to move index data to new GL textures",
                      *this),
+  m_support_image_on_atlas(m_image_atlas_params.support_image_on_atlas(),
+                           "enabled_image_atlas",
+                           "Specifies if image atlasing is enabled. When atlasing is disabled, "
+                           "then a draw-call break is made on each different image used unless "
+                           "bindless texturing is supported",
+                           *this),
 
   m_glyph_atlas_options("Glyph Atlas options", *this),
   m_glyph_atlas_size(m_glyph_atlas_params.number_floats(),
@@ -558,7 +560,8 @@ init_gl(int w, int h)
     .num_color_layers(m_num_color_layers.value())
     .log2_index_tile_size(m_log2_index_tile_size.value())
     .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.value())
-    .num_index_layers(m_num_index_layers.value());
+    .num_index_layers(m_num_index_layers.value())
+    .support_image_on_atlas(m_support_image_on_atlas.value());
 
   m_glyph_atlas_params
     .number_floats(m_glyph_atlas_size.value());
