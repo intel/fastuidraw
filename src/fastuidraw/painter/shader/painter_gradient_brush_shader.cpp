@@ -172,7 +172,7 @@ fastuidraw::PainterCustomBrush
 fastuidraw::PainterGradientBrushShader::
 create_brush(PainterPackedValuePool &pool,
              const PainterGradientBrushShaderData &data,
-             enum spread_type_t spread)
+             enum spread_type_t spread) const
 {
   PainterDataValue<PainterBrushShaderData> packed_data;
 

@@ -530,7 +530,7 @@ namespace fastuidraw
     PainterCustomBrush
     create_brush(PainterPackedValuePool &pool,
                  const PainterGradientBrushShaderData &brush_data,
-                 enum spread_type_t spread);
+                 enum spread_type_t spread) const;
 
     /*!
      * The sub-shader to take from the generic parent shader
