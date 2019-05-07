@@ -1280,24 +1280,36 @@ create(int w, int h, const ImageSourceBase &image_data,
        enum Image::type_t type)
 {
   reference_counted_ptr<Image> return_value;
+  vecN<enum Image::type_t, 2> try_types;
 
-  if (type == Image::bindless_texture2d)
+  try_types[0] = type;
+  switch (type)
     {
-      return_value = create_image_bindless(w, h, image_data);
-      if (return_value)
-        {
-          return return_value;
-        }
-      type = Image::on_atlas;
+    case Image::bindless_texture2d:
+      try_types[1] = Image::on_atlas;
+      break;
+    case Image::on_atlas:
+      try_types[1] = Image::bindless_texture2d;
+      break;
+    default:
+      try_types[1] = type;
     }
 
-  if (type == Image::on_atlas)
+  for (unsigned int i = 0; i < 2 && !return_value; ++i)
     {
-      return_value = create_image_on_atlas(w, h, image_data);
-      if (return_value)
+      if (try_types[i] == Image::bindless_texture2d)
         {
-          return return_value;
+          return_value = create_image_bindless(w, h, image_data);
         }
+      else if (try_types[i] == Image::on_atlas)
+        {
+          return_value = create_image_on_atlas(w, h, image_data);
+        }
+    }
+
+  if (return_value)
+    {
+      return return_value;
     }
 
   return_value = create_image_context_texture2d(w, h, image_data);
