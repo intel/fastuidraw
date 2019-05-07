@@ -554,18 +554,62 @@ init_gl(int w, int h)
       m_color_stop_atlas_layers.value() = max_layers;
     }
 
-  m_image_atlas_params
-    .log2_color_tile_size(m_log2_color_tile_size.value())
-    .log2_num_color_tiles_per_row_per_col(m_log2_num_color_tiles_per_row_per_col.value())
-    .num_color_layers(m_num_color_layers.value())
-    .log2_index_tile_size(m_log2_index_tile_size.value())
-    .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.value())
-    .num_index_layers(m_num_index_layers.value())
-    .support_image_on_atlas(m_support_image_on_atlas.value());
+  if (m_painter_optimal.value() != painter_no_optimal)
+    {
+      m_painter_params.configure_from_context(m_painter_optimal.value() == painter_optimal_rendering);
+    }
 
-  m_glyph_atlas_params
-    .number_floats(m_glyph_atlas_size.value());
+#define APPLY_PARAM(X, Y) do {                            \
+    if (Y.set_by_command_line())                          \
+      {                                                   \
+        std::cout << "Apply: "#X": " << Y.value()         \
+                  << "\n"; m_painter_params.X(Y.value()); \
+      }                                                   \
+  } while (0)
 
+  APPLY_PARAM(attributes_per_buffer, m_painter_attributes_per_buffer);
+  APPLY_PARAM(indices_per_buffer, m_painter_indices_per_buffer);
+  APPLY_PARAM(data_blocks_per_store_buffer, m_painter_data_blocks_per_buffer);
+  APPLY_PARAM(number_pools, m_painter_number_pools);
+  APPLY_PARAM(break_on_shader_change, m_painter_break_on_shader_change);
+  APPLY_PARAM(clipping_type, m_use_hw_clip_planes);
+  APPLY_PARAM(vert_shader_use_switch, m_uber_vert_use_switch);
+  APPLY_PARAM(frag_shader_use_switch, m_uber_frag_use_switch);
+  APPLY_PARAM(blend_shader_use_switch, m_uber_blend_use_switch);
+  APPLY_PARAM(data_store_backing, m_data_store_backing);
+  APPLY_PARAM(assign_layout_to_vertex_shader_inputs, m_assign_layout_to_vertex_shader_inputs);
+  APPLY_PARAM(assign_layout_to_varyings, m_assign_layout_to_varyings);
+  APPLY_PARAM(assign_binding_points, m_assign_binding_points);
+  APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
+  APPLY_PARAM(allow_bindless_texture_from_surface, m_allow_bindless_texture_from_surface);
+  APPLY_PARAM(preferred_blend_type, m_preferred_blend_type);
+  APPLY_PARAM(fbf_blending_type, m_fbf_blending_type);
+  APPLY_PARAM(support_dual_src_blend_shaders, m_support_dual_src_blend_shaders);
+  APPLY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
+
+#undef APPLY_PARAM
+
+#define APPLY_IMAGE_PARAM(X, Y) do {                      \
+    if (Y.set_by_command_line())                          \
+      {                                                   \
+        std::cout << "Apply: "#X": " << Y.value()         \
+                  << "\n"; m_image_atlas_params.X(Y.value()); \
+      }                                                   \
+  } while (0)
+
+  m_image_atlas_params = m_painter_params.image_atlas_params();
+  APPLY_IMAGE_PARAM(log2_color_tile_size, m_log2_color_tile_size);
+  APPLY_IMAGE_PARAM(log2_num_color_tiles_per_row_per_col, m_log2_num_color_tiles_per_row_per_col);
+  APPLY_IMAGE_PARAM(num_color_layers, m_num_color_layers);
+  APPLY_IMAGE_PARAM(log2_index_tile_size, m_log2_index_tile_size);
+  APPLY_IMAGE_PARAM(log2_num_index_tiles_per_row_per_col, m_log2_num_index_tiles_per_row_per_col);
+  APPLY_IMAGE_PARAM(num_index_layers, m_num_index_layers);
+  APPLY_IMAGE_PARAM(support_image_on_atlas, m_support_image_on_atlas);
+
+#undef APPLY_IMAGE_PARAM
+
+  m_glyph_atlas_params = m_painter_params.glyph_atlas_params();
+  m_glyph_atlas_params.number_floats(m_glyph_atlas_size.value());
   switch(m_glyph_backing_store_type.value())
     {
     case glyph_backing_store_texture_buffer:
@@ -609,6 +653,7 @@ init_gl(int w, int h)
         }
     }
 
+  m_colorstop_atlas_params = m_painter_params.colorstop_atlas_params();
   m_colorstop_atlas_params
     .width(m_color_stop_atlas_width.value())
     .num_layers(m_color_stop_atlas_layers.value());
@@ -619,35 +664,6 @@ init_gl(int w, int h)
       std::cout << "Colorstop Atlas optimal width selected to be "
                 << m_colorstop_atlas_params.width() << "\n";
     }
-
-  if (m_painter_optimal.value() != painter_no_optimal)
-    {
-      m_painter_params.configure_from_context(m_painter_optimal.value() == painter_optimal_rendering);
-    }
-
-#define APPLY_PARAM(X, Y) do { if (Y.set_by_command_line()) { std::cout << "Apply: "#X": " << Y.value() << "\n"; m_painter_params.X(Y.value()); } } while (0)
-
-  APPLY_PARAM(attributes_per_buffer, m_painter_attributes_per_buffer);
-  APPLY_PARAM(indices_per_buffer, m_painter_indices_per_buffer);
-  APPLY_PARAM(data_blocks_per_store_buffer, m_painter_data_blocks_per_buffer);
-  APPLY_PARAM(number_pools, m_painter_number_pools);
-  APPLY_PARAM(break_on_shader_change, m_painter_break_on_shader_change);
-  APPLY_PARAM(clipping_type, m_use_hw_clip_planes);
-  APPLY_PARAM(vert_shader_use_switch, m_uber_vert_use_switch);
-  APPLY_PARAM(frag_shader_use_switch, m_uber_frag_use_switch);
-  APPLY_PARAM(blend_shader_use_switch, m_uber_blend_use_switch);
-  APPLY_PARAM(data_store_backing, m_data_store_backing);
-  APPLY_PARAM(assign_layout_to_vertex_shader_inputs, m_assign_layout_to_vertex_shader_inputs);
-  APPLY_PARAM(assign_layout_to_varyings, m_assign_layout_to_varyings);
-  APPLY_PARAM(assign_binding_points, m_assign_binding_points);
-  APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
-  APPLY_PARAM(allow_bindless_texture_from_surface, m_allow_bindless_texture_from_surface);
-  APPLY_PARAM(preferred_blend_type, m_preferred_blend_type);
-  APPLY_PARAM(fbf_blending_type, m_fbf_blending_type);
-  APPLY_PARAM(support_dual_src_blend_shaders, m_support_dual_src_blend_shaders);
-  APPLY_PARAM(use_uber_item_shader, m_use_uber_item_shader);
-
-#undef APPLY_PARAM
 
   m_painter_params
     .image_atlas_params(m_image_atlas_params)
