@@ -739,10 +739,23 @@ init_gl(int w, int h)
                   << "  (requested " << m_painter_params.X() << ")\n";  \
       } while(0)
 
+      #define LAZY_IMAGE_PARAM(X, Y) do {                               \
+        std::cout << std::setw(40) << Y.name() << ": " << std::setw(8)  \
+                  << m_backend->configuration_gl().image_atlas_params().X() \
+                  << "  (requested " << m_painter_params.image_atlas_params().X() << ")\n";  \
+      } while(0)
+
       #define LAZY_PARAM_ENUM(X, Y) do {                                \
         std::cout << std::setw(40) << Y.name() <<": " << std::setw(8)   \
                   << make_enum_wrapper(m_backend->configuration_gl().X()) \
                   << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
+                  << ")\n";                                             \
+      } while(0)
+
+      #define LAZY_IMAGE_PARAM_ENUM(X, Y) do {                          \
+        std::cout << std::setw(40) << Y.name() <<": " << std::setw(8)   \
+                  << make_enum_wrapper(m_backend->configuration_gl().image_atlas_params().X()) \
+                  << "  (requested " << make_enum_wrapper(m_painter_params.image_atlas_params().X()) \
                   << ")\n";                                             \
       } while(0)
 
@@ -768,8 +781,19 @@ init_gl(int w, int h)
       std::cout << std::setw(40) << "geometry_backing_store_type:"
                 << std::setw(8) << m_painter_params.glyph_atlas_params().glyph_data_backing_store_type()
                 << "\n";
+      LAZY_IMAGE_PARAM_ENUM(support_image_on_atlas, m_support_image_on_atlas);
+      if (m_backend->configuration_gl().image_atlas_params().support_image_on_atlas())
+        {
+          LAZY_IMAGE_PARAM(log2_color_tile_size, m_log2_color_tile_size);
+          LAZY_IMAGE_PARAM(log2_num_color_tiles_per_row_per_col, m_log2_num_color_tiles_per_row_per_col);
+          LAZY_IMAGE_PARAM(num_color_layers, m_num_color_layers);
+          LAZY_IMAGE_PARAM(log2_index_tile_size, m_log2_index_tile_size);
+          LAZY_IMAGE_PARAM(log2_num_index_tiles_per_row_per_col, m_log2_num_index_tiles_per_row_per_col);
+          LAZY_IMAGE_PARAM(num_index_layers, m_num_index_layers);
+        }
 
       #undef LAZY_PARAM
+      #undef LAZY_IMAGE_PARAM
       #undef LAZY_ENUM_PARAM
     }
 
