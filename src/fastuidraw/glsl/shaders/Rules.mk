@@ -13,8 +13,6 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_atlas_image_fetch.glsl.resource_string \
 	fastuidraw_spread.glsl.resource_string \
 	fastuidraw_gradient.glsl.resource_string \
-	fastuidraw_brush_utils.glsl.resource_string \
-	fastuidraw_image_brush_utils.glsl.resource_string \
 	fastuidraw_compute_interval.glsl.resource_string \
 	fastuidraw_circular_interpolate.glsl.resource_string \
 	fastuidraw_anisotropic.frag.glsl.resource_string \
