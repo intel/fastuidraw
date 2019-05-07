@@ -277,8 +277,6 @@ main(int argc, char **argv)
             << std::setw(45) << "clip_equations_data_size = " << PainterClipEquations::clip_data_size << "\n"
             << std::setw(45) << "item_matrix_data_size = " << PainterItemMatrix::matrix_data_size << "\n"
             << std::setw(45) << "brush image_data_size = " << PainterImageBrushShaderData::shader_data_size << "\n"
-            << std::setw(45) << "brush linear_gradient_data_size = " << PainterBrush::linear_gradient_data_size << "\n"
-            << std::setw(45) << "brush radial_gradient_data_size = " << PainterBrush::radial_gradient_data_size << "\n"
             << std::setw(45) << "brush repeat_window_data_size = " << PainterBrush::repeat_window_data_size << "\n"
             << std::setw(45) << "brush transformation_matrix_data_size = " << PainterBrush::transformation_matrix_data_size << "\n"
             << std::setw(45) << "brush transformation_translation_data_size = " << PainterBrush::transformation_translation_data_size << "\n"

@@ -908,24 +908,24 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
     .stream_unpack_function(unpack_code, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_repeat_window)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
-    .set_float(PainterBrush::gradient_p0_x_offset, ".p0.x")
-    .set_float(PainterBrush::gradient_p0_y_offset, ".p0.y")
-    .set_float(PainterBrush::gradient_p1_x_offset, ".p1.x")
-    .set_float(PainterBrush::gradient_p1_y_offset, ".p1.y")
-    .set_uint(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy")
-    .set_uint(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length")
+    .set_float(PainterGradientBrushShaderData::p0_x_offset, ".p0.x")
+    .set_float(PainterGradientBrushShaderData::p0_y_offset, ".p0.y")
+    .set_float(PainterGradientBrushShaderData::p1_x_offset, ".p1.x")
+    .set_float(PainterGradientBrushShaderData::p1_y_offset, ".p1.y")
+    .set_uint(PainterGradientBrushShaderData::color_stop_xy_offset, ".color_stop_sequence_xy")
+    .set_uint(PainterGradientBrushShaderData::color_stop_length_offset, ".color_stop_sequence_length")
     .stream_unpack_size_function(unpack_code, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data_size)")
     .stream_unpack_function(unpack_code, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data)");
 
   UnpackSourceGenerator("FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)")
-    .set_float(PainterBrush::gradient_p0_x_offset, ".p0.x")
-    .set_float(PainterBrush::gradient_p0_y_offset, ".p0.y")
-    .set_float(PainterBrush::gradient_p1_x_offset, ".p1.x")
-    .set_float(PainterBrush::gradient_p1_y_offset, ".p1.y")
-    .set_float(PainterBrush::gradient_start_radius_offset, ".r0")
-    .set_float(PainterBrush::gradient_end_radius_offset, ".r1")
-    .set_uint(PainterBrush::gradient_color_stop_xy_offset, ".color_stop_sequence_xy")
-    .set_uint(PainterBrush::gradient_color_stop_length_offset, ".color_stop_sequence_length")
+    .set_float(PainterGradientBrushShaderData::p0_x_offset, ".p0.x")
+    .set_float(PainterGradientBrushShaderData::p0_y_offset, ".p0.y")
+    .set_float(PainterGradientBrushShaderData::p1_x_offset, ".p1.x")
+    .set_float(PainterGradientBrushShaderData::p1_y_offset, ".p1.y")
+    .set_float(PainterGradientBrushShaderData::start_radius_offset, ".r0")
+    .set_float(PainterGradientBrushShaderData::end_radius_offset, ".r1")
+    .set_uint(PainterGradientBrushShaderData::color_stop_xy_offset, ".color_stop_sequence_xy")
+    .set_uint(PainterGradientBrushShaderData::color_stop_length_offset, ".color_stop_sequence_length")
     .stream_unpack_size_function(unpack_code, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data_size)")
     .stream_unpack_function(unpack_code, "FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data)");
 
@@ -983,10 +983,10 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
 
     .add_macro_u32("fastuidraw_brush_transformation_translation_mask", PainterBrush::transformation_translation_mask)
     .add_macro_u32("fastuidraw_brush_transformation_matrix_mask", PainterBrush::transformation_matrix_mask)
-    .add_macro_u32("fastuidraw_brush_colorstop_x_bit0",     PainterBrush::gradient_color_stop_x_bit0)
-    .add_macro_u32("fastuidraw_brush_colorstop_x_num_bits", PainterBrush::gradient_color_stop_x_num_bits)
-    .add_macro_u32("fastuidraw_brush_colorstop_y_bit0",     PainterBrush::gradient_color_stop_y_bit0)
-    .add_macro_u32("fastuidraw_brush_colorstop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits);
+    .add_macro_u32("fastuidraw_brush_colorstop_x_bit0",     PainterGradientBrushShaderData::color_stop_x_bit0)
+    .add_macro_u32("fastuidraw_brush_colorstop_x_num_bits", PainterGradientBrushShaderData::color_stop_x_num_bits)
+    .add_macro_u32("fastuidraw_brush_colorstop_y_bit0",     PainterGradientBrushShaderData::color_stop_y_bit0)
+    .add_macro_u32("fastuidraw_brush_colorstop_y_num_bits", PainterGradientBrushShaderData::color_stop_y_num_bits);
 
   return FASTUIDRAWnew PainterBrushShaderGLSL(0,
                                               ShaderSource()

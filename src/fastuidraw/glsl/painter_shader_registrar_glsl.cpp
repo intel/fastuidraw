@@ -425,11 +425,6 @@ add_backend_constants(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::B
     .add_macro_u32("fastuidraw_colorStopAtlas_size", backend.colorstop_atlas_store_width())
     .add_macro("fastuidraw_colorStopAtlas_size_reciprocal", "(1.0 / float(fastuidraw_colorStopAtlas_size) )")
 
-    .add_macro_u32("fastuidraw_brush_header_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::header_data_size))
-    .add_macro_u32("fastuidraw_brush_linear_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::linear_gradient_data_size))
-    .add_macro_u32("fastuidraw_brush_sweep_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::sweep_gradient_data_size))
-    .add_macro_u32("fastuidraw_brush_radial_gradient_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::radial_gradient_data_size))
-    .add_macro_u32("fastuidraw_brush_repeat_window_num_blocks", FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::repeat_window_data_size))
     .add_macro_u32("fastuidraw_brush_transformation_matrix_num_blocks",
                    FASTUIDRAW_NUMBER_BLOCK4_NEEDED(PainterBrush::transformation_matrix_data_size))
     .add_macro_u32("fastuidraw_brush_transformation_translation_num_blocks",
