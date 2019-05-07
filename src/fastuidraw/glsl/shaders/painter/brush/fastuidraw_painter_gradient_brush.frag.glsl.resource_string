@@ -22,7 +22,18 @@ FASTUIDRAW_LOCAL(brush_compute_interpolate)(in vec2 p, in uint gradient_type, ou
   float t;
 
   t = 1.0;
-  if (gradient_type == fastuidraw_brush_radial_gradient_type)
+  if (gradient_type == fastuidraw_brush_linear_gradient_type)
+    {
+      fastuidraw_linear_gradient g;
+
+      g.p0 = vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
+      g.p1 = vec2(fastuidraw_brush_gradient_p1_x, fastuidraw_brush_gradient_p1_y);
+
+      good = 1.0;
+      t = fastuidraw_compute_interpolate(p, g);
+    }
+  #ifdef SUPPORTS_RADIAL_VARYINGS
+  else if (gradient_type == fastuidraw_brush_radial_gradient_type)
     {
       fastuidraw_radial_gradient g;
 
@@ -33,16 +44,7 @@ FASTUIDRAW_LOCAL(brush_compute_interpolate)(in vec2 p, in uint gradient_type, ou
 
       t = fastuidraw_compute_interpolate(p, g, good);
     }
-  else if (gradient_type == fastuidraw_brush_linear_gradient_type)
-    {
-      fastuidraw_linear_gradient g;
-
-      g.p0 = vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
-      g.p1 = vec2(fastuidraw_brush_gradient_p1_x, fastuidraw_brush_gradient_p1_y);
-
-      good = 1.0;
-      t = fastuidraw_compute_interpolate(p, g);
-    }
+  #endif
   else if (gradient_type == fastuidraw_brush_sweep_gradient_type)
     {
       fastuidraw_sweep_gradient g;
@@ -92,11 +94,13 @@ fastuidraw_gl_frag_brush_main(in uint sub_shader, inout uint shader_data_block)
                                             fastuidraw_brush_gradient_spread_type_num_bits,
                                             sub_shader);
 
+      #ifdef SUPPORTS_RADIAL_VARYINGS
       if (gradient_type == fastuidraw_brush_radial_gradient_type)
         {
           shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_radial_gradient_data_size)();
         }
       else
+      #endif
         {
           shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_linear_or_sweep_gradient_data_size)();
         }

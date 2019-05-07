@@ -871,8 +871,20 @@ create_image_brush_shader(void)
 
 reference_counted_ptr<PainterBrushShaderGLSL>
 ShaderSetCreator::
-create_gradient_brush_shader(void)
+create_gradient_brush_shader(enum PainterBrushEnums::gradient_type_t tp)
 {
+  if (tp == PainterBrushEnums::gradient_non)
+    {
+      return FASTUIDRAWnew PainterBrushShaderGLSL(0, /* for the single image */
+                                                  ShaderSource()
+                                                  .add_source("fastuidraw_painter_white_brush.vert.glsl.resource_string",
+                                                              ShaderSource::from_resource),
+                                                  ShaderSource()
+                                                  .add_source("fastuidraw_painter_white_brush.frag.glsl.resource_string",
+                                                              ShaderSource::from_resource),
+                                                  varying_list());
+    }
+
   ShaderSource::MacroSet brush_macros;
   varying_list brush_varyings;
   ShaderSource unpack_code;
@@ -906,8 +918,6 @@ create_gradient_brush_shader(void)
     .add_float_flat("fastuidraw_brush_gradient_p0_y")
     .add_float_flat("fastuidraw_brush_gradient_p1_x")
     .add_float_flat("fastuidraw_brush_gradient_p1_y")
-    .add_float_flat("fastuidraw_brush_gradient_r0")
-    .add_float_flat("fastuidraw_brush_gradient_r1")
     .add_float_flat("fastuidraw_brush_color_stop_x")
     .add_float_flat("fastuidraw_brush_color_stop_y")
     .add_float_flat("fastuidraw_brush_color_stop_length")
@@ -915,6 +925,20 @@ create_gradient_brush_shader(void)
     .add_varying_alias("fastuidraw_brush_gradient_sweep_point_y", "fastuidraw_brush_gradient_p0_y")
     .add_varying_alias("fastuidraw_brush_gradient_sweep_angle", "fastuidraw_brush_gradient_p1_x")
     .add_varying_alias("fastuidraw_brush_gradient_sweep_sign_factor", "fastuidraw_brush_gradient_p1_y");
+
+  if (tp == PainterBrushEnums::gradient_radial
+      || tp == PainterBrushEnums::number_gradient_types)
+    {
+      brush_macros.add_macro("SUPPORTS_RADIAL_VARYINGS");
+      brush_varyings
+        .add_float_flat("fastuidraw_brush_gradient_r0")
+        .add_float_flat("fastuidraw_brush_gradient_r1");
+    }
+
+  if (tp != PainterBrushEnums::number_gradient_types)
+    {
+      brush_macros.add_macro_u32("FIXED_GRADIENT_TYPE", tp);
+    }
 
   brush_macros
     .add_macro_u32("fastuidraw_brush_gradient_type_bit0", PainterGradientBrushShader::gradient_type_bit0)
@@ -939,15 +963,19 @@ create_gradient_brush_shader(void)
   return FASTUIDRAWnew PainterBrushShaderGLSL(0, /* for the single image */
                                               ShaderSource()
                                               .add_macros(brush_macros)
-                                              .add_source("fastuidraw_gradient_brush_utils.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_gradient_brush_utils.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .add_source(unpack_code)
-                                              .add_source("fastuidraw_painter_gradient_brush.vert.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_painter_gradient_brush.vert.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .remove_macros(brush_macros),
                                               ShaderSource()
                                               .add_macros(brush_macros)
-                                              .add_source("fastuidraw_gradient_brush_utils.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_gradient_brush_utils.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .add_source(unpack_code)
-                                              .add_source("fastuidraw_painter_gradient_brush.frag.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_painter_gradient_brush.frag.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .remove_macros(brush_macros),
                                               brush_varyings,
                                               PainterGradientBrushShader::number_sub_shaders_of_generic_gradient);
@@ -1033,15 +1061,19 @@ create_standard_brush_shader(reference_counted_ptr<PainterBrushShaderGLSL> image
   return FASTUIDRAWnew PainterBrushShaderGLSL(0,
                                               ShaderSource()
                                               .add_macros(brush_macros)
-                                              .add_source("fastuidraw_brush_utils.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_brush_utils.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .add_source(unpack_code)
-                                              .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_painter_brush.vert.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .remove_macros(brush_macros),
                                               ShaderSource()
                                               .add_macros(brush_macros)
-                                              .add_source("fastuidraw_brush_utils.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_brush_utils.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .add_source(unpack_code)
-                                              .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
+                                              .add_source("fastuidraw_painter_brush.frag.glsl.resource_string",
+                                                          ShaderSource::from_resource)
                                               .remove_macros(brush_macros),
                                               brush_varyings,
                                               PainterBrushShaderGLSL::DependencyList()
@@ -1054,15 +1086,22 @@ ShaderSetCreator::
 create_brush_shaders(void)
 {
   PainterBrushShaderSet return_value;
-  reference_counted_ptr<PainterBrushShaderGLSL> image_shader, gradient_shader, brush_shader;
+  reference_counted_ptr<PainterBrushShaderGLSL> image_shader, brush_shader;
+  reference_counted_ptr<PainterBrushShaderGLSL> generic_gradient_shader;
 
   image_shader = create_image_brush_shader();
-  gradient_shader = create_gradient_brush_shader();
-  brush_shader = create_standard_brush_shader(image_shader, gradient_shader);
+  generic_gradient_shader = create_gradient_brush_shader(PainterBrushEnums::number_gradient_types);
+  brush_shader = create_standard_brush_shader(image_shader, generic_gradient_shader);
 
   return_value
     .standard_brush(brush_shader)
-    .image_brush(FASTUIDRAWnew PainterImageBrushShader(image_shader));
+    .image_brush(FASTUIDRAWnew PainterImageBrushShader(image_shader))
+    .gradient_brush(FASTUIDRAWnew PainterGradientBrushShader(generic_gradient_shader,
+                                                             create_gradient_brush_shader(PainterBrushEnums::gradient_linear),
+                                                             create_gradient_brush_shader(PainterBrushEnums::gradient_radial),
+                                                             create_gradient_brush_shader(PainterBrushEnums::gradient_sweep),
+                                                             create_gradient_brush_shader(PainterBrushEnums::gradient_non)));
+
   return return_value;
 }
 

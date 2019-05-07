@@ -160,8 +160,13 @@ private:
   reference_counted_ptr<PainterBrushShaderGLSL>
   create_image_brush_shader(void);
 
+  /*
+   * gradient_non          --> white brush shader
+   * number_gradient_types --> generic gradient shader
+   * all-other-values      --> specifc gradient shader for named type
+   */
   reference_counted_ptr<PainterBrushShaderGLSL>
-  create_gradient_brush_shader(void);
+  create_gradient_brush_shader(enum PainterBrushEnums::gradient_type_t tp);
 
   PainterBrushShaderSet
   create_brush_shaders(void);

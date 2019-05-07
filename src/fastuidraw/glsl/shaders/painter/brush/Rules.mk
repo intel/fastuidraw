@@ -5,6 +5,8 @@ d		:= $(dir)
 # End standard header
 
 FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
+	fastuidraw_painter_white_brush.vert.glsl.resource_string \
+	fastuidraw_painter_white_brush.frag.glsl.resource_string \
 	fastuidraw_brush_utils.glsl.resource_string \
 	fastuidraw_painter_brush.vert.glsl.resource_string \
 	fastuidraw_painter_brush.frag.glsl.resource_string \

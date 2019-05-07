@@ -1,0 +1,23 @@
+/*!
+ * \file fastuidraw_painter_white_brush.frag.glsl.resource_string
+ * \brief file fastuidraw_painter_white_brush.frag.glsl.resource_string
+ *
+ * Copyright 2019 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+vec4
+fastuidraw_gl_frag_brush_main(in uint sub_shader, inout uint shader_data_block)
+{
+  return vec4(1.0, 1.0, 1.0, 1.0);
+}
