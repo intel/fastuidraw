@@ -24,6 +24,7 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw  {
@@ -119,68 +120,13 @@ public:
   };
 
   /*!
-   * \brief
-   * A Builder is used to specify the nature of the contours
-   * from which to geneate joins and caps.
-   */
-  class Builder:fastuidraw::noncopyable
-  {
-  public:
-    Builder(void);
-    ~Builder();
-
-    /*!
-     * Begin a contour
-     * \param start_pt starting point of contour
-     * \param start_direction unit vector from start point to next point
-     */
-    void
-    begin_contour(const vec2 &start_pt,
-                  const vec2 &start_direction);
-
-
-    /*!
-     * Add a join
-     * \param join_pt location of join
-     * \param distance_from_previous_join distance from previous join
-     * \param direction_into_join unit vector of path into the join
-     * \param direction_leaving_join unit vector of path leaving the join
-     */
-    void
-    add_join(const vec2 &join_pt,
-             float distance_from_previous_join,
-             const vec2 &direction_into_join,
-             const vec2 &direction_leaving_join);
-
-    /*!
-     * Close the contour giving it the two joins of the closing edge
-     * \param distance_from_previous_join distance from previous join
-     * \param direction_into_join unit vector of path into the join that ends
-     *                            the closing edge
-     */
-    void
-    close_contour(float distance_from_previous_join,
-                  const vec2 &direction_into_join);
-
-    /*!
-     * End the contour in caps giving it a cap at the start and end of the contour.
-     */
-    void
-    end_contour(const vec2 &cap_pt,
-                float distance_from_previous_join,
-                const vec2 &direction_into_cap);
-
-  private:
-    friend class StrokedCapsJoins;
-    void *m_d;
-  };
-
-  /*!
    * Ctor.
-   * \param b Builder holding the data to generate joins and caps
+   * \param joins data specifying the geometry of the joins
+   * \param caps data specifying the geometry of the caps
    */
   explicit
-  StrokedCapsJoins(const Builder &b);
+  StrokedCapsJoins(c_array<const TessellatedPath::join> joins,
+                   c_array<const TessellatedPath::cap> caps);
 
   ~StrokedCapsJoins();
 

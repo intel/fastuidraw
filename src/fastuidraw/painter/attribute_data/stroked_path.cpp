@@ -441,23 +441,11 @@ namespace
   {
   public:
     explicit
-    StrokedPathPrivate(const fastuidraw::TessellatedPath &P,
-                       const fastuidraw::StrokedCapsJoins::Builder &b);
+    StrokedPathPrivate(const fastuidraw::TessellatedPath &P);
     ~StrokedPathPrivate();
 
     void
     create_edges(const fastuidraw::TessellatedPath &P);
-
-    static
-    void
-    ready_builder(const fastuidraw::TessellatedPath *tess,
-                  fastuidraw::StrokedCapsJoins::Builder &b);
-
-    static
-    void
-    ready_builder_contour(const fastuidraw::TessellatedPath *tess,
-                          unsigned int contour,
-                          fastuidraw::StrokedCapsJoins::Builder &b);
 
     bool m_has_arcs;
     fastuidraw::StrokedCapsJoins m_caps_joins;
@@ -1976,10 +1964,9 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
 /////////////////////////////////////////////
 // StrokedPathPrivate methods
 StrokedPathPrivate::
-StrokedPathPrivate(const fastuidraw::TessellatedPath &P,
-                   const fastuidraw::StrokedCapsJoins::Builder &b):
+StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
   m_has_arcs(P.has_arcs()),
-  m_caps_joins(b),
+  m_caps_joins(P.join_data(), P.cap_data()),
   m_root(nullptr)
 {
   if (!P.segment_data().empty())
@@ -1994,66 +1981,6 @@ StrokedPathPrivate::
   if (m_root)
     {
       FASTUIDRAWdelete(m_root);
-    }
-}
-
-void
-StrokedPathPrivate::
-ready_builder(const fastuidraw::TessellatedPath *tess,
-              fastuidraw::StrokedCapsJoins::Builder &b)
-{
-  for(unsigned int c = 0; c < tess->number_contours(); ++c)
-    {
-      ready_builder_contour(tess, c, b);
-    }
-}
-
-void
-StrokedPathPrivate::
-ready_builder_contour(const fastuidraw::TessellatedPath *tess,
-                      unsigned int c,
-                      fastuidraw::StrokedCapsJoins::Builder &b)
-{
-  fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> last_segs;
-  float distance_accumulated(0.0f);
-
-  last_segs = tess->edge_segment_data(c, 0);
-  b.begin_contour(last_segs.front().m_start_pt,
-                  last_segs.front().m_enter_segment_unit_vector);
-
-  for(unsigned int e = 1, ende = tess->number_edges(c); e < ende; ++e)
-    {
-      fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> segs;
-      fastuidraw::vec2 delta_into, delta_leaving;
-
-      segs = tess->edge_segment_data(c, e);
-      /* Leaving the previous segment is entering the join;
-       * Entering the segment is leaving the join
-       */
-      delta_into = last_segs.back().m_leaving_segment_unit_vector;
-      delta_leaving = segs.front().m_enter_segment_unit_vector;
-      distance_accumulated += last_segs.back().m_edge_length;
-
-      if (tess->edge_type(c, e) == fastuidraw::PathEnums::starts_new_edge)
-        {
-          b.add_join(segs.front().m_start_pt,
-                     distance_accumulated,
-                     delta_into, delta_leaving);
-          distance_accumulated = 0.0f;
-        }
-      last_segs = segs;
-    }
-
-  if (tess->contour_closed(c))
-    {
-      b.close_contour(last_segs.back().m_edge_length + distance_accumulated,
-                      last_segs.back().m_leaving_segment_unit_vector);
-    }
-  else
-    {
-      b.end_contour(last_segs.back().m_end_pt,
-                    distance_accumulated,
-                    last_segs.back().m_leaving_segment_unit_vector);
     }
 }
 
@@ -2114,9 +2041,7 @@ bounding_box(void) const
 fastuidraw::StrokedPath::
 StrokedPath(const fastuidraw::TessellatedPath &P)
 {
-  StrokedCapsJoins::Builder b;
-  StrokedPathPrivate::ready_builder(&P, b);
-  m_d = FASTUIDRAWnew StrokedPathPrivate(P, b);
+  m_d = FASTUIDRAWnew StrokedPathPrivate(P);
 }
 
 fastuidraw::StrokedPath::

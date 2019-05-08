@@ -57,10 +57,7 @@ namespace
   class PerJoinData
   {
   public:
-    PerJoinData(const fastuidraw::vec2 &p,
-                float distance_from_previous_join,
-                const fastuidraw::vec2 &tangent_into_join,
-                const fastuidraw::vec2 &tangent_leaving_join);
+    PerJoinData(const fastuidraw::TessellatedPath::join &join);
 
     const fastuidraw::vec2&
     n0(void) const
@@ -107,6 +104,15 @@ namespace
   class PerCapData
   {
   public:
+    PerCapData(const fastuidraw::TessellatedPath::cap &src):
+      m_tangent_into_cap(src.m_unit_vector),
+      m_p(src.m_position),
+      m_distance_from_edge_start(src.m_is_starting_cap ? 0.0f : src.m_edge_length),
+      m_distance_from_contour_start(src.m_is_starting_cap ? 0.0f : src.m_contour_length),
+      m_contour_length(src.m_contour_length),
+      m_is_starting_cap(src.m_is_starting_cap)
+    {}
+
     fastuidraw::vec2 m_tangent_into_cap;
     fastuidraw::vec2 m_p;
     float m_distance_from_edge_start;
@@ -131,64 +137,6 @@ namespace
       pt->m_contour_length = m_contour_length;
       pt->m_distance_from_contour_start = m_distance_from_contour_start;
     }
-  };
-
-  class PerContourData
-  {
-  public:
-    PerContourData(void);
-
-    void
-    start(const fastuidraw::vec2 &p,
-          const fastuidraw::vec2 &tangent_along_curve);
-
-    void
-    close(float distance_from_previous_join,
-          const fastuidraw::vec2 &direction_into_join);
-
-    void
-    end(const fastuidraw::vec2 &end_cap_pt,
-        float distance_from_previous_join,
-        const fastuidraw::vec2 &end_cap_direction);
-
-    void
-    add_join(const fastuidraw::vec2 &p,
-             float distance_from_previous_join,
-             const fastuidraw::vec2 &tangent_into_join,
-             const fastuidraw::vec2 &tangent_leaving_join);
-
-    bool
-    has_caps(void) const
-    {
-      return m_has_caps;
-    }
-
-    const PerCapData&
-    cap(unsigned int I) const
-    {
-      FASTUIDRAWassert(m_has_caps && m_cap_count == 2);
-      return m_caps[I];
-    }
-
-    fastuidraw::c_array<const PerJoinData>
-    joins(void) const
-    {
-      FASTUIDRAWassert(m_cap_count == 2);
-      return fastuidraw::make_c_array(m_joins);
-    }
-
-  private:
-    std::vector<PerJoinData> m_joins;
-    fastuidraw::vecN<PerCapData, 2> m_caps;
-    unsigned int m_cap_count;
-    bool m_has_caps;
-  };
-
-  class ContourData:fastuidraw::noncopyable
-  {
-  public:
-    fastuidraw::BoundingBox<float> m_bounding_box;
-    std::vector<PerContourData> m_per_contour_data;
   };
 
   template<typename T>
@@ -266,7 +214,8 @@ namespace
   public:
     static
     CullingHierarchy*
-    create(const ContourData &contour_data);
+    create(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
+           fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps);
 
     ~CullingHierarchy();
 
@@ -1063,11 +1012,13 @@ namespace
   {
   public:
     explicit
-    StrokedCapsJoinsPrivate(const ContourData &P);
+    StrokedCapsJoinsPrivate(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
+                            fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps);
     ~StrokedCapsJoinsPrivate();
 
     void
-    create_joins_caps(const ContourData &P);
+    create_joins_caps(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
+                      fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps);
 
     template<typename T>
     const fastuidraw::PainterAttributeData&
@@ -1098,109 +1049,6 @@ namespace
 
 }
 
-/////////////////////////////////
-// PerContourData methods
-PerContourData::
-PerContourData(void):
-  m_cap_count(0)
-{}
-
-void
-PerContourData::
-start(const fastuidraw::vec2 &p,
-      const fastuidraw::vec2 &tangent_along_curve)
-{
-  FASTUIDRAWassert(m_cap_count == 0);
-  m_caps[0].m_p = p;
-  m_caps[0].m_tangent_into_cap = -tangent_along_curve;
-  m_caps[0].m_distance_from_edge_start = 0.0f;
-  m_caps[0].m_distance_from_contour_start = 0.0f;
-  m_caps[0].m_is_starting_cap = true;
-  m_cap_count = 1;
-}
-
-void
-PerContourData::
-end(const fastuidraw::vec2 &end_cap_pt,
-    float distance_from_previous_join,
-    const fastuidraw::vec2 &end_cap_direction)
-{
-  FASTUIDRAWassert(m_cap_count == 1);
-
-  /* compute the contour length values */
-  float d(0.0f);
-  for(unsigned int i = 0, endi = m_joins.size(); i < endi; ++i)
-    {
-      d += m_joins[i].m_distance_from_previous_join;
-      m_joins[i].m_distance_from_contour_start = d;
-    }
-
-  d += distance_from_previous_join;
-  for (PerJoinData &J : m_joins)
-    {
-      J.m_contour_length = d;
-    }
-
-  for (PerCapData &C : m_caps)
-    {
-      C.m_contour_length = d;
-    }
-
-  m_caps[1].m_p = end_cap_pt;
-  m_caps[1].m_tangent_into_cap = end_cap_direction;
-  m_caps[1].m_distance_from_edge_start = distance_from_previous_join;
-  m_caps[1].m_distance_from_contour_start = m_caps[1].m_contour_length;
-  m_caps[1].m_is_starting_cap = false;
-  m_cap_count = 2;
-  m_has_caps = true;
-}
-
-void
-PerContourData::
-close(float distance_from_previous_join,
-      const fastuidraw::vec2 &direction_into_join)
-{
-  FASTUIDRAWassert(m_cap_count == 1);
-
-  /* the last added join started the closing edge,
-   * add the join that ends the closing edge
-   */
-  if (!m_joins.empty())
-    {
-      add_join(m_caps[0].m_p, distance_from_previous_join,
-               direction_into_join,
-               -m_caps[0].m_tangent_into_cap);
-    }
-
-  /* compute the contour length values */
-  float d(0.0f);
-  for(unsigned int i = 0, endi = m_joins.size(); i < endi; ++i)
-    {
-      d += m_joins[i].m_distance_from_previous_join;
-      m_joins[i].m_distance_from_contour_start = d;
-    }
-
-  for (PerJoinData &J : m_joins)
-    {
-      J.m_contour_length = d;
-    }
-
-  m_cap_count = 2;
-  m_has_caps = false;
-}
-
-void
-PerContourData::
-add_join(const fastuidraw::vec2 &p,
-         float distance_from_previous_join,
-         const fastuidraw::vec2 &tangent_into_join,
-         const fastuidraw::vec2 &tangent_leaving_join)
-{
-  FASTUIDRAWassert(m_cap_count == 1);
-  m_joins.push_back(PerJoinData(p, distance_from_previous_join,
-                                tangent_into_join, tangent_leaving_join));
-}
-
 ///////////////////////////
 // GenericOrdering methods
 template<typename T>
@@ -1228,28 +1076,27 @@ post_process(fastuidraw::range_type<unsigned int> range,
 // CullingHierarchy methods
 CullingHierarchy*
 CullingHierarchy::
-create(const ContourData &path_data)
+create(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> in_joins,
+       fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> in_caps)
 {
   std::vector<PerJoinData> joins;
   std::vector<PerCapData> caps;
+  fastuidraw::BoundingBox<float> bounding_box;
   CullingHierarchy *return_value;
 
-  /* fill joins and caps from the data in path_data */
-  for(const PerContourData &C : path_data.m_per_contour_data)
+  for (const fastuidraw::TessellatedPath::cap &cap : in_caps)
     {
-      if (C.has_caps())
-        {
-          caps.push_back(C.cap(0));
-          caps.push_back(C.cap(1));
-        }
-
-      for(const PerJoinData &J : C.joins())
-        {
-          joins.push_back(J);
-        }
+      caps.push_back(cap);
+      bounding_box.union_point(cap.m_position);
     }
 
-  return_value = FASTUIDRAWnew CullingHierarchy(path_data.m_bounding_box, joins, caps);
+  for (const fastuidraw::TessellatedPath::join &join : in_joins)
+    {
+      joins.push_back(join);
+      bounding_box.union_point(join.m_position);
+    }
+
+  return_value = FASTUIDRAWnew CullingHierarchy(bounding_box, joins, caps);
   return return_value;
 }
 
@@ -1584,18 +1431,15 @@ compute_chunks_implement(ScratchSpacePrivate &scratch,
 ////////////////////////////////////////////////
 // PerJoinData methods
 PerJoinData::
-PerJoinData(const fastuidraw::vec2 &p,
-            float distance_from_previous_join,
-            const fastuidraw::vec2 &tangent_into_join,
-            const fastuidraw::vec2 &tangent_leaving_join):
-  m_p(p),
-  m_tangent_into_join(tangent_into_join),
-  m_tangent_leaving_join(tangent_leaving_join),
-  m_distance_from_previous_join(distance_from_previous_join),
-  m_distance_from_contour_start(0.0f),
-  m_contour_length(0.0f),
-  m_normal_into_join(-tangent_into_join.y(), tangent_into_join.x()),
-  m_normal_leaving_join(-tangent_leaving_join.y(), tangent_leaving_join.x())
+PerJoinData(const fastuidraw::TessellatedPath::join &join):
+  m_p(join.m_position),
+  m_tangent_into_join(join.m_enter_join_unit_vector),
+  m_tangent_leaving_join(join.m_leaving_join_unit_vector),
+  m_distance_from_previous_join(join.m_distance_from_previous_join),
+  m_distance_from_contour_start(join.m_distance_from_contour_start),
+  m_contour_length(join.m_contour_length),
+  m_normal_into_join(-m_tangent_into_join.y(), m_tangent_into_join.x()),
+  m_normal_leaving_join(-m_tangent_leaving_join.y(), m_tangent_leaving_join.x())
 {
   /* Explanation:
    *  We have two curves, a(t) and b(t) with a(1) = b(0)
@@ -2746,13 +2590,14 @@ add_cap(const PerCapData &C, unsigned int depth,
 /////////////////////////////////////////////
 // StrokedCapsJoinsPrivate methods
 StrokedCapsJoinsPrivate::
-StrokedCapsJoinsPrivate(const ContourData &P):
+StrokedCapsJoinsPrivate(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
+                        fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps):
   m_subset(nullptr)
 {
-  if (!P.m_per_contour_data.empty())
+  if (!joins.empty() || !caps.empty())
     {
       m_empty_path = false;
-      create_joins_caps(P);
+      create_joins_caps(joins, caps);
     }
   else
     {
@@ -2789,13 +2634,14 @@ StrokedCapsJoinsPrivate::
 
 void
 StrokedCapsJoinsPrivate::
-create_joins_caps(const ContourData &P)
+create_joins_caps(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
+                  fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps)
 {
   CullingHierarchy *s;
   SubsetPrivate::CreationValues cnts;
 
   FASTUIDRAWassert(!m_empty_path);
-  s = CullingHierarchy::create(P);
+  s = CullingHierarchy::create(joins, caps);
   m_subset = SubsetPrivate::create(s, cnts, m_path_data.m_join_ordering, m_path_data.m_cap_ordering);
 
   m_path_data.m_number_join_chunks = cnts.m_join_chunk_cnt;
@@ -2961,87 +2807,13 @@ reset(void)
   d->reset();
 }
 
-////////////////////////////////////////
-// fastuidraw::StrokedCapsJoins::Builder methods
-fastuidraw::StrokedCapsJoins::Builder::
-Builder(void)
-{
-  m_d = FASTUIDRAWnew ContourData();
-}
-
-fastuidraw::StrokedCapsJoins::Builder::
-~Builder()
-{
-  ContourData *d;
-  d = static_cast<ContourData*>(m_d);
-  FASTUIDRAWdelete(d);
-}
-
-void
-fastuidraw::StrokedCapsJoins::Builder::
-begin_contour(const vec2 &start_pt,
-              const vec2 &path_direction)
-{
-  ContourData *d;
-  d = static_cast<ContourData*>(m_d);
-
-  d->m_bounding_box.union_point(start_pt);
-  d->m_per_contour_data.push_back(PerContourData());
-  d->m_per_contour_data.back().start(start_pt, path_direction);
-}
-
-void
-fastuidraw::StrokedCapsJoins::Builder::
-add_join(const vec2 &join_pt,
-         float distance_from_previous_join,
-         const vec2 &direction_into_join,
-         const vec2 &direction_leaving_join)
-{
-  ContourData *d;
-  d = static_cast<ContourData*>(m_d);
-
-  FASTUIDRAWassert(!d->m_per_contour_data.empty());
-  d->m_bounding_box.union_point(join_pt);
-  d->m_per_contour_data.back().add_join(join_pt, distance_from_previous_join,
-                                        direction_into_join, direction_leaving_join);
-}
-
-void
-fastuidraw::StrokedCapsJoins::Builder::
-close_contour(float distance_from_previous_join,
-              const vec2 &tangent_along_curve)
-{
-  ContourData *d;
-  d = static_cast<ContourData*>(m_d);
-
-  FASTUIDRAWassert(!d->m_per_contour_data.empty());
-  d->m_per_contour_data.back().close(distance_from_previous_join,
-                                     tangent_along_curve);
-}
-
-void
-fastuidraw::StrokedCapsJoins::Builder::
-end_contour(const vec2 &end_cap_pt, float distance_from_previous_join,
-            const vec2 &end_cap_direction)
-{
-  ContourData *d;
-  d = static_cast<ContourData*>(m_d);
-
-  FASTUIDRAWassert(!d->m_per_contour_data.empty());
-  d->m_per_contour_data.back().end(end_cap_pt,
-                                   distance_from_previous_join,
-                                   end_cap_direction);
-}
-
 //////////////////////////////////////////////////////////////
 // fastuidraw::StrokedCapsJoins methods
 fastuidraw::StrokedCapsJoins::
-StrokedCapsJoins(const Builder &B)
+StrokedCapsJoins(c_array<const TessellatedPath::join> joins,
+                 c_array<const TessellatedPath::cap> caps)
 {
-  ContourData *C;
-  C = static_cast<ContourData*>(B.m_d);
-
-  m_d = FASTUIDRAWnew StrokedCapsJoinsPrivate(*C);
+  m_d = FASTUIDRAWnew StrokedCapsJoinsPrivate(joins, caps);
 }
 
 fastuidraw::StrokedCapsJoins::
