@@ -73,33 +73,6 @@ init_sdl(void)
 
   int window_width(800), window_height(600);
 
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-  /* FastUIDraw requires for GL atleast 3.30 core profile
-   * and for GLES atleast GLES 3.0. Some GL implementations
-   * will only give a GL 3.0 compatibility context unless
-   * we ask SDL to create a core profile. If using the
-   * GLES backend, the macro FASTUIDRAW_GL_USE_GLES will
-   * be defined.
-   */
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    }
-  #else
-    {
-      /* DANGER: there are GL implementations that will give
-       * you JUST the version requested when creating a GL
-       * context rather than the highest version it could give.
-       */
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    }
-  #endif
-
   m_window = SDL_CreateWindow("",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               window_width,
@@ -112,7 +85,61 @@ init_sdl(void)
       return fastuidraw::routine_fail;
     }
 
-  m_ctx = SDL_GL_CreateContext(m_window);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+  /* FastUIDraw requires for GL atleast 3.30 core profile
+   * and for GLES atleast GLES 3.0. Some GL implementations
+   * will only give a GL 3.0 compatibility context unless
+   * we ask SDL to create a core profile. If using the
+   * GLES backend, the macro FASTUIDRAW_GL_USE_GLES will
+   * be defined.
+   */
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      /* DANGER: there are GLES implementations that will give
+       * you JUST the version requested when creating a GL
+       * context rather than the highest version it could give.
+       *
+       * We would like to get the latest version that we know
+       * of, so we start with version 3.2 going backwards to
+       * 3.0 and stopping as soon as a context is made.
+       */
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+      for (int gl_minor = 2; gl_minor >= 0 && !m_ctx; --gl_minor)
+        {
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, gl_minor);
+          m_ctx = SDL_GL_CreateContext(m_window);
+        }
+    }
+  #else
+    {
+      /* DANGER: there are GL implementations that will give
+       * you JUST the version requested when creating a GL
+       * context rather than the highest version it could give.
+       *
+       * We would like to get the latest version that we know
+       * of, so we start with version 4.6 going backwards to
+       * 3.3 and stopping as soon as a context is made.
+       */
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+      for (int gl_minor = 6; gl_minor >= 0 && !m_ctx; --gl_minor)
+        {
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, gl_minor);
+          m_ctx = SDL_GL_CreateContext(m_window);
+        }
+
+      if (!m_ctx)
+        {
+          /* Unable to get a GL 4.x context, try a 3.3 context */
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+          m_ctx = SDL_GL_CreateContext(m_window);
+        }
+    }
+  #endif
+
   if (m_ctx == nullptr)
     {
       std::cerr << "Unable to create GL context: " << SDL_GetError() << "\n";
