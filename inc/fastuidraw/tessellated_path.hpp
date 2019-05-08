@@ -248,6 +248,106 @@ public:
 
   /*!
    * \brief
+   * Represents the geometric data for a join
+   */
+  class join
+  {
+  public:
+    /*!
+     * Gives the position of the join
+     */
+    vec2 m_position;
+
+    /*!
+     * Gives the unit-vector of the path entering the join.
+     */
+    vec2 m_enter_join_unit_vector;
+
+    /*!
+     * Gives the unit-vector of the path leaving the join.
+     */
+    vec2 m_leaving_join_unit_vector;
+
+    /*!
+     * Gives the distance of the join from the previous join.
+     */
+    float m_distance_from_previous_join;
+
+    /*!
+     * Gives the distance of the join from the start
+     * of the -contour- on which the point resides.
+     */
+    float m_distance_from_contour_start;
+
+    /*!
+     * Length of the contour on which the join resides.
+     */
+    float m_contour_length;
+
+    /*!
+     * Gives the contour from which the join originates,
+     * following the same convention as \ref
+     * segment::m_contour_id.
+     */
+    unsigned int m_contour_id;
+
+    /*!
+     * Gives the interpolator that goes into the join,
+     * following the same convention as \ref
+     * segment::m_edge_id.
+     */
+    unsigned int m_edge_into_join_id;
+
+    /*!
+     * Gives the interpolator that leaves the join,
+     * following the same convention as \ref
+     * segment::m_edge_id.
+     */
+    unsigned int m_edge_leaving_join_id;
+  };
+
+  /*!
+   * \brief
+   * Represents the geometric data for a cap
+   */
+  class cap
+  {
+  public:
+    /*!
+     * Gives the position of the cap
+     */
+    vec2 m_position;
+
+    /*!
+     * Gives the unit-vector into the cap
+     */
+    vec2 m_unit_vector;
+
+    /*!
+     * Length of the contour on which the cap resides.
+     */
+    float m_contour_length;
+
+    /*!
+     * Length of the edge on which the cap resides.
+     */
+    float m_edge_length;
+
+    /*!
+     * True if the cap is from the start of a contour
+     */
+    bool m_is_starting_cap;
+
+    /*!
+     * Gives the contour from which the join originates,
+     * following the same convention as \ref
+     * segment::m_contour_id.
+     */
+    unsigned int m_contour_id;
+  };
+
+  /*!
+   * \brief
    * A wrapper over a dynamic array of \ref segment objects;
    * segment values added to SegmentStorage must be added
    * in order of time along the domain of a \ref
@@ -372,6 +472,18 @@ public:
    */
   c_array<const segment>
   segment_data(void) const;
+
+  /*!
+   * Returns all the join data
+   */
+  c_array<const join>
+  join_data(void) const;
+
+  /*!
+   * Returns all the join data
+   */
+  c_array<const cap>
+  cap_data(void) const;
 
   /*!
    * Returns the number of contours

@@ -115,6 +115,8 @@ namespace
 
     std::vector<TessellatedContour> m_contours;
     std::vector<fastuidraw::TessellatedPath::segment> m_segment_data;
+    std::vector<fastuidraw::TessellatedPath::join> m_join_data;
+    std::vector<fastuidraw::TessellatedPath::cap> m_cap_data;
     fastuidraw::BoundingBox<float> m_bounding_box;
     fastuidraw::TessellatedPath::TessellationParams m_params;
     float m_max_distance;
@@ -509,16 +511,70 @@ finalize(TessellatedPathBuildingState &b)
   for (unsigned int C = 0, endC = m_contours.size(); C < endC; ++C)
     {
       const TessellatedContour &contour(m_contours[C]);
+      const TessellatedPath::segment *prev_segment(nullptr);
+
+      if (contour.m_edges.empty())
+        {
+          continue;
+        }
+
+      if (contour.m_is_closed)
+        {
+          prev_segment = &m_segment_data[contour.m_edges.back().m_edge_range.m_end - 1];
+        }
+      else
+        {
+          TessellatedPath::cap cap;
+          const TessellatedPath::segment *start, *end;
+
+          start = &m_segment_data[contour.m_edges.front().m_edge_range.m_begin];
+          end = &m_segment_data[contour.m_edges.back().m_edge_range.m_end - 1];
+
+          cap.m_contour_id = C;
+          cap.m_contour_length = start->m_contour_length;
+
+          cap.m_position = start->m_start_pt;
+          cap.m_unit_vector = -start->m_enter_segment_unit_vector;
+          cap.m_edge_length = start->m_edge_length;
+          cap.m_is_starting_cap = true;
+          m_cap_data.push_back(cap);
+
+          cap.m_position = end->m_end_pt;
+          cap.m_unit_vector = end->m_leaving_segment_unit_vector;
+          cap.m_edge_length = end->m_edge_length;
+          cap.m_is_starting_cap = false;
+          m_cap_data.push_back(cap);
+        }
+
       for (unsigned int E = 0, endE = contour.m_edges.size(); E < endE; ++E)
         {
           const Edge &edge(contour.m_edges[E]);
           c_array<TessellatedPath::segment> edge_segs;
 
           edge_segs = make_c_array(m_segment_data).sub_array(edge.m_edge_range);
+          FASTUIDRAWassert(!edge_segs.empty());
+
+          if (prev_segment && edge.m_edge_type == fastuidraw::PathEnums::starts_new_edge)
+            {
+              TessellatedPath::join J;
+
+              J.m_position = prev_segment->m_end_pt;
+              J.m_enter_join_unit_vector = prev_segment->m_leaving_segment_unit_vector;
+              J.m_leaving_join_unit_vector = edge_segs.front().m_enter_segment_unit_vector;
+              J.m_contour_id = C;
+              J.m_edge_into_join_id = (E == 0) ? (endE - 1) : (E + 1);
+              J.m_edge_leaving_join_id = E;
+              J.m_distance_from_previous_join = prev_segment->m_distance_from_edge_start + prev_segment->m_length;
+              J.m_distance_from_contour_start = prev_segment->m_distance_from_contour_start + prev_segment->m_length;
+              J.m_contour_length = edge_segs.front().m_contour_length;
+              m_join_data.push_back(J);
+            }
+
           for (TessellatedPath::segment &S : edge_segs)
             {
               S.m_contour_id = C;
               S.m_edge_id = E;
+              prev_segment = &S;
             }
         }
     }
@@ -846,6 +902,26 @@ segment_data(void) const
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
   return make_c_array(d->m_segment_data);
+}
+
+fastuidraw::c_array<const fastuidraw::TessellatedPath::join>
+fastuidraw::TessellatedPath::
+join_data(void) const
+{
+  TessellatedPathPrivate *d;
+  d = static_cast<TessellatedPathPrivate*>(m_d);
+
+  return make_c_array(d->m_join_data);
+}
+
+fastuidraw::c_array<const fastuidraw::TessellatedPath::cap>
+fastuidraw::TessellatedPath::
+cap_data(void) const
+{
+  TessellatedPathPrivate *d;
+  d = static_cast<TessellatedPathPrivate*>(m_d);
+
+  return make_c_array(d->m_cap_data);
 }
 
 unsigned int
