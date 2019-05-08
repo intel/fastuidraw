@@ -86,9 +86,6 @@ Inheritance diagram for fastuidraw::StrokedCapsJoins:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html">Builder</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html" title="A Builder is used to specify the nature of the contours from which to geneate joins and caps...">Builder</a> is used to specify the nature of the contours from which to geneate joins and caps.  <a href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html">ChunkSet</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Object to hold the output of a chunk query via <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a685231dd15e50063f7a27d71d8262fa7">compute_chunks()</a>.  <a href="../../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -98,8 +95,8 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6170a9520ff2353800af142b61a8dc71"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a6170a9520ff2353800af142b61a8dc71">StrokedCapsJoins</a> (const <a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html">Builder</a> &amp;b)</td></tr>
-<tr class="separator:a6170a9520ff2353800af142b61a8dc71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16a22c5d9989454b85c14110f7ec28a6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a16a22c5d9989454b85c14110f7ec28a6">StrokedCapsJoins</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d2/d10/classfastuidraw_1_1_tessellated_path_1_1join.html">TessellatedPath::join</a> &gt; joins, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../dc/d7d/classfastuidraw_1_1_tessellated_path_1_1cap.html">TessellatedPath::cap</a> &gt; caps)</td></tr>
+<tr class="separator:a16a22c5d9989454b85c14110f7ec28a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a443d044edf8cf47578d2dfc813f66d94"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a443d044edf8cf47578d2dfc813f66d94">adjustable_caps</a> (void) const</td></tr>
 <tr class="separator:a443d044edf8cf47578d2dfc813f66d94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80567debadb703758fdc2af2b739bd75"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a80567debadb703758fdc2af2b739bd75">arc_rounded_caps</a> (void) const</td></tr>
@@ -135,10 +132,10 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>A <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html" title="A StrokedCapsJoins represents the data needed to draw a the joins and caps of a stroked path...">StrokedCapsJoins</a> represents the data needed to draw a the joins and caps of a stroked path. It contains -all- the data needed to do regardless of stroking parameters. </p>
 <p>The data is stored as <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>, a seperate object for each type of join and each type of cap. What chunks to use from these objects is computed by the member function <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a685231dd15e50063f7a27d71d8262fa7">compute_chunks()</a>; the <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html" title="PainterAttributeData represents the attribute and index data ready to be consumed by a Painter...">PainterAttributeData</a> chunking for joins and caps is the same regardless of the cap and join type. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html#l00051">51</a> of file <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html">stroked_caps_joins.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html#l00052">52</a> of file <a class="el" href="../../dd/de7/stroked__caps__joins_8hpp_source.html">stroked_caps_joins.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a6170a9520ff2353800af142b61a8dc71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6170a9520ff2353800af142b61a8dc71">&#9670;&nbsp;</a></span>StrokedCapsJoins()</h2>
+<a id="a16a22c5d9989454b85c14110f7ec28a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16a22c5d9989454b85c14110f7ec28a6">&#9670;&nbsp;</a></span>StrokedCapsJoins()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -149,9 +146,19 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">fastuidraw::StrokedCapsJoins::StrokedCapsJoins </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html">Builder</a> &amp;&#160;</td>
-          <td class="paramname"><em>b</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d2/d10/classfastuidraw_1_1_tessellated_path_1_1join.html">TessellatedPath::join</a> &gt;&#160;</td>
+          <td class="paramname"><em>joins</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../dc/d7d/classfastuidraw_1_1_tessellated_path_1_1cap.html">TessellatedPath::cap</a> &gt;&#160;</td>
+          <td class="paramname"><em>caps</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -162,7 +169,8 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Ctor. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">b</td><td><a class="el" href="../../dd/df3/classfastuidraw_1_1_stroked_caps_joins_1_1_builder.html" title="A Builder is used to specify the nature of the contours from which to geneate joins and caps...">Builder</a> holding the data to generate joins and caps </td></tr>
+    <tr><td class="paramname">joins</td><td>data specifying the geometry of the joins </td></tr>
+    <tr><td class="paramname">caps</td><td>data specifying the geometry of the caps </td></tr>
   </table>
   </dd>
 </dl>

@@ -83,12 +83,16 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a4e2fcbfe100ae264accf51c437d99563"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6872b68a7e4ef79aa3bc74d92ddb07f3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a6872b68a7e4ef79aa3bc74d92ddb07f3">m_continuation_with_predecessor</a></td></tr>
 <tr class="separator:a6872b68a7e4ef79aa3bc74d92ddb07f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abbf4302390f90212eade087e9c86d9b6"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#abbf4302390f90212eade087e9c86d9b6">m_contour_id</a></td></tr>
+<tr class="separator:abbf4302390f90212eade087e9c86d9b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a737519eccf5d20801c5f21237c0d6b91"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a737519eccf5d20801c5f21237c0d6b91">m_contour_length</a></td></tr>
 <tr class="separator:a737519eccf5d20801c5f21237c0d6b91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1997a364b913df99fabaf15e85100ff"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#af1997a364b913df99fabaf15e85100ff">m_distance_from_contour_start</a></td></tr>
 <tr class="separator:af1997a364b913df99fabaf15e85100ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd957e39286f1a0c97145afae8feca1f"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#acd957e39286f1a0c97145afae8feca1f">m_distance_from_edge_start</a></td></tr>
 <tr class="separator:acd957e39286f1a0c97145afae8feca1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47a399427a47d40297e141f4b428a75d"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a47a399427a47d40297e141f4b428a75d">m_edge_id</a></td></tr>
+<tr class="separator:a47a399427a47d40297e141f4b428a75d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0d23e449d45123873bf226ebe060afc"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#ac0d23e449d45123873bf226ebe060afc">m_edge_length</a></td></tr>
 <tr class="separator:ac0d23e449d45123873bf226ebe060afc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27f516644a7cbd09a40b7c0d3d093cf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a27f516644a7cbd09a40b7c0d3d093cf6">m_end_pt</a></td></tr>
@@ -162,6 +166,23 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="abbf4302390f90212eade087e9c86d9b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abbf4302390f90212eade087e9c86d9b6">&#9670;&nbsp;</a></span>m_contour_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int fastuidraw::TessellatedPath::segment::m_contour_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The contour from which the <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> originates, i.e. the <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> originates from the <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#afd5b96a456daf8b0156d05422b127e7c">PathContour::interpolator</a>(<a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a47a399427a47d40297e141f4b428a75d">m_edge_id</a>) of the <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> of <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a981f2d2563eeffb159619f3e0cef6cae">Path::contour</a>(<a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#abbf4302390f90212eade087e9c86d9b6">m_contour_id</a>). </p>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00237">237</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+
+</div>
+</div>
 <a id="a737519eccf5d20801c5f21237c0d6b91"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a737519eccf5d20801c5f21237c0d6b91">&#9670;&nbsp;</a></span>m_contour_length</h2>
 
@@ -210,6 +231,23 @@ Public Attributes</h2></td></tr>
 <p>Gives the distance of the start of the segment from the start of the edge (i.e <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html" title="Base class to describe how to interpolate from one point of a PathContour to the next, i.e. describes the shape of an edge. ">PathContour::interpolator_base</a>). </p>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00189">189</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a47a399427a47d40297e141f4b428a75d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47a399427a47d40297e141f4b428a75d">&#9670;&nbsp;</a></span>m_edge_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int fastuidraw::TessellatedPath::segment::m_edge_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The edge from which the <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> originates, i.e. the <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> originates from the <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html#afd5b96a456daf8b0156d05422b127e7c">PathContour::interpolator</a>(<a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#a47a399427a47d40297e141f4b428a75d">m_edge_id</a>) of the <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> of <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a981f2d2563eeffb159619f3e0cef6cae">Path::contour</a>(<a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#abbf4302390f90212eade087e9c86d9b6">m_contour_id</a>). </p>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00246">246</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
 
 </div>
 </div>
