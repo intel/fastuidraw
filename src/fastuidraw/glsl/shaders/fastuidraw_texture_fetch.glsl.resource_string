@@ -107,7 +107,7 @@ fastuidraw_cubic_filter_texture(in sampler2D surface, in vec2 texel_coord)
                      y_weights.x + y_weights.y, y_weights.z + y_weights.w);
 
   texture_coords = corner_coords + vec4(x_weights.yw, y_weights.yw) / weight_sums;
-  texture_coords *= recip_sz.xyxy;
+  texture_coords *= recip_sz.xxyy;
 
   t00 = textureLod(surface, texture_coords.xz, 0.0);
   t10 = textureLod(surface, texture_coords.yz, 0.0);
