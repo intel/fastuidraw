@@ -226,6 +226,24 @@ public:
      * angle smaller or to make it monotonic.
      */
     bool m_continuation_with_predecessor;
+
+    /*!
+     * The contour from which the \ref segment originates,
+     * i.e. the \ref segment originates from the \ref
+     * PathContour::interpolator_base \ref
+     * PathContour::interpolator(\ref m_edge_id) of the
+     * \ref PathContour of \ref Path::contour(\ref m_contour_id).
+     */
+    unsigned int m_contour_id;
+
+    /*!
+     * The edge from which the \ref segment originates,
+     * i.e. the \ref segment originates from the \ref
+     * PathContour::interpolator_base \ref
+     * PathContour::interpolator(\ref m_edge_id) of the
+     * \ref PathContour of \ref Path::contour(\ref m_contour_id).
+     */
+    unsigned int m_edge_id;
   };
 
   /*!

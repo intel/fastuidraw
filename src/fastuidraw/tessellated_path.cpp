@@ -493,6 +493,8 @@ void
 TessellatedPathPrivate::
 finalize(TessellatedPathBuildingState &b)
 {
+  using namespace fastuidraw;
+
   unsigned int total_needed;
 
   total_needed = m_contours.back().m_edges.back().m_edge_range.m_end;
@@ -502,6 +504,24 @@ finalize(TessellatedPathBuildingState &b)
       std::copy(iter->begin(), iter->end(), std::back_inserter(m_segment_data));
     }
   FASTUIDRAWassert(total_needed == m_segment_data.size());
+
+  /* set the edge/contour properties of each segment */
+  for (unsigned int C = 0, endC = m_contours.size(); C < endC; ++C)
+    {
+      const TessellatedContour &contour(m_contours[C]);
+      for (unsigned int E = 0, endE = contour.m_edges.size(); E < endE; ++E)
+        {
+          const Edge &edge(contour.m_edges[E]);
+          c_array<TessellatedPath::segment> edge_segs;
+
+          edge_segs = make_c_array(m_segment_data).sub_array(edge.m_edge_range);
+          for (TessellatedPath::segment &S : edge_segs)
+            {
+              S.m_contour_id = C;
+              S.m_edge_id = E;
+            }
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////
