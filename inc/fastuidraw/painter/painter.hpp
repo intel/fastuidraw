@@ -138,15 +138,16 @@ namespace fastuidraw
        * what GlyphRender to use when the transformation
        * matrix (see Painter::transformation()) does not
        * have perspective.
-       * \param logical_pixel_size the pixel size at which
-       *                           the glyphs of a GlyphRun
-       *                           or GlyphSequence are
-       *                           formatted
+       * \param logical_format_size the format size at which
+       *                            the glyphs of a GlyphRun
+       *                            or GlyphSequence are
+       *                            formatted
        * \param transformation the transformation matrix from
        *                       logical (i.e. item) coordinates
        *                       to normalized device coordinates,
        *                       i.e. the value of \ref
        *                       Painter::transformation().
+       * \param viewport_size width and height of the
        * \param max_singular_value the largest singluar value
        *                           the transformation matrix
        *                           concacted with the viewport
@@ -158,8 +159,9 @@ namespace fastuidraw
        */
       virtual
       GlyphRenderer
-      choose_glyph_render(float logical_pixel_size,
+      choose_glyph_render(float logical_format_size,
                           const float3x3 &transformation,
+                          vec2 viewport_size,
                           float max_singular_value,
                           float min_singular_value) const = 0;
 
@@ -168,20 +170,22 @@ namespace fastuidraw
        * what GlyphRender to use when the transformation
        * matrix (see Painter::transformation()) has
        * perspective.
-       * \param logical_pixel_size the pixel size at which
-       *                           the glyphs of a GlyphRun
-       *                           or GlyphSequence are
-       *                           formatted
+       * \param logical_format_size the pixel size at which
+       *                            the glyphs of a GlyphRun
+       *                            or GlyphSequence are
+       *                            formatted
        * \param transformation the transformation matrix from
        *                       logical (i.e. item) coordinates
        *                       to normalized device coordinates,
        *                       i.e. the value of \ref
        *                       Painter::transformation().
+       * \param viewport_size width and height of the
        */
       virtual
       GlyphRenderer
-      choose_glyph_render(float logical_pixel_size,
-                          const float3x3 &transformation) const = 0;
+      choose_glyph_render(float logical_format_size,
+                          const float3x3 &transformation,
+                          vec2 viewport_size) const = 0;
     };
 
     /*!
