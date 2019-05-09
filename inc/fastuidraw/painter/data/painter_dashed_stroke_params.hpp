@@ -24,7 +24,7 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Painter
+/*!\addtogroup PainterShaderData
  * @{
  */
 

@@ -24,6 +24,10 @@
 namespace fastuidraw
 {
 
+/*!\addtogroup PainterShaderData
+ * @{
+ */
+
   /*!
    * \brief
    * A PainterPackedValuePool can be used to create PainterPackedValue

@@ -31,7 +31,7 @@ namespace fastuidraw
   template<typename T>
   class PainterPackedValue;
 
-/*!\addtogroup Painter
+/*!\addtogroup PainterShaderData
  * @{
  */
 

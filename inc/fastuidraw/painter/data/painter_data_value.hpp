@@ -24,7 +24,7 @@ namespace fastuidraw
 {
   class PainterPackedValuePool;
 
-/*!\addtogroup Painter
+/*!\addtogroup PainterShaderData
  * @{
  */
 
