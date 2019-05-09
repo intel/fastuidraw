@@ -108,8 +108,10 @@ of text.
 \defgroup PainterShaders Painter Shaders
 @{
 \brief
-Painter Shaders defines the interface how to specify shaders used by
-\ref Painter to render items. There are four types of shaders
+\ref PainterShaders defines the interface how to specify shaders used by
+\ref Painter to render items.
+
+There are four types of shaders
 - \ref fastuidraw::PainterItemShader represents the shader code to
   perform vertex and fragment processing on an item.
 - \ref fastuidraw::PainterBrush and \ref fastuidraw::PainterCustomBrush
@@ -120,7 +122,6 @@ Painter Shaders defines the interface how to specify shaders used by
 - \ref fastuidraw::PainterItemCoverageShader is an auxiliary shader
   that can be used by a \ref fastuidraw::PainterItemShader to compute
   a coverage value for the purpose of two-pass rendering.
-
 
 Each of these shaders can fetch shader-data to modify their processing
 (for example an item shader for stroking a path would fetch the stroking
@@ -133,7 +134,6 @@ are
 - \ref fastuidraw::PainterBrushShaderData for \ref fastuidraw::PainterBrushShader
   for custom brushes
 
-
 Each of these objects can be passed to a \ref fastuidraw::Painter drawing method
 by address with the class \ref fastuidraw::PainterData. In addition, if a value
 is to be reused in several drawing calls to \ref fastuidraw::Painter, one can use
@@ -141,6 +141,31 @@ the interface of \ref fastuidraw::PainterPackedValuePool (fetched from \ref
 fastuidraw::Painter::packed_value_pool()) to realize a \ref fastuidraw::PainterPackedValue
 which represents the value immutably packed for the GPU in such a way that its packing
 into the GPU can be dramatically reused within a frame.
+@}
+
+\defgroup PainterShaderData Painter Shader Data
+@{
+\brief
+\ref PainterShaderData defines the interface for providing
+to shaders a small amount of data that is constant across
+all vertices and pixels of a drawn item.
+
+Each of the data classes is paired with a shader classes:
+- \ref fastuidraw::PainterItemShaderData for both \ref fastuidraw::PainterItemShader
+  and \ref fastuidraw::PainterItemCoverageShader
+- \ref fastuidraw::PainterBlendShaderData for \ref fastuidraw::PainterBlendShader
+- \ref fastuidraw::PainterBrush for the built-in brush of FastUIDraw
+- \ref fastuidraw::PainterBrushShaderData for \ref fastuidraw::PainterBrushShader
+  for custom brushes
+
+The data is passed to \ref fastuidraw::Painter methods through the class
+\ref fastuidraw::PainterData. Shader data can also be pre-packed by a
+caller for reuse through the immutable class \ref fastuidraw::PainterPackedValue.
+Using \ref fastuidraw::PainterPackedValue for when the same shader data values
+are used is a big win because that class provides the means for
+FastUIDraw to upload that shader data far fewer times (usually once for
+an entire frame instead once per use).
+
 @}
 
 \defgroup PainterBackend Painter Backend
@@ -310,45 +335,75 @@ namespace fastuidraw {
 
   \section Purpose
 
-  Fast UI Draw is a library that provides a higher performance Canvas interface.
+  FastUIDraw is a library that provides a higher performance Canvas interface.
   It is designed so that it always draws using a GPU.
 
-  In contrast to many common implementations of Canvas drawing, Fast UI Draw
+  In contrast to many common implementations of Canvas drawing, FastUIDraw
   has that changes in clipping are very cheap and optimized for GPU's. In
-  addition, Fast UI Draw has, with the GL backend, very few pipeline states.
-  Indeed an API trace of an application using Fast UI Draw will see only a
+  addition, FastUIDraw has, with the GL backend, very few pipeline states.
+  Indeed an API trace of an application using FastUIDraw will see only a
   handful of draw calls per frame, even under high Canvas state trashing,
   and high clip state changes. Indeed, for the GL backend, only one Canvas
   state change invokes a pipeline state change: changing the blend mode.
 
-  In addition, Fast UI Draw gives an application the ability to make their
+  The class to execute drawing is \ref fastuidraw::Painter which supplies
+  the expected standard drawing features: stroking and filling paths,
+  drawing text, applying a brush (image and/or gradient), blending (including
+  all Porter-Duff modes), a 3x3 transformation allowing for perspective
+  drawing, clipping in by a rectangle or filled path and clipping out by
+  a filled path.
+
+  In addition, FastUIDraw gives an application the ability to make their
   own shaders for custom drawing.
 
-  \section Concepts
+  \section Drawing Concepts
 
-  FastUIDraw strongly seperates what to draw from how to draw. The what to
-  draw is essentially immutable attribute data to fed to shaders. Examples
-  of attribute data are \ref fastuidraw::StrokedPath, \ref fastuidraw::FilledPath,
-  \ref fastuidraw::GlyphRun and \ref fastuidraw::GlyphSequence. The how to
-  draw is represented by a small amount of data interpreted by a shader to
-  change how to draw. Examples of such are \ref fastuidraw::PainterBrush,
-  \ref fastuidraw::PainterStrokeParams and \ref fastuidraw::PainterDashedStrokeParams.
-  Changing the "how" to draw is a cheap operation allowing for greater dynamic
-  scenes with greater detail wherer the load of rendering is carried by the
-  GPU. For futher details on the "what" to draw, see \ref PainterAttribute.
-  For futher details on "how" to draw, see \ref PainterShaders.
+  If one needs to create its own custom way of drawing, one needs
+  to know the drawing concepts in FastUIDraw. There are three distinct
+  ingredients of drawing in FastUIDraw:
+  - Attribute and index data processed by the GPU. This data should be
+    immutable to be created/calculated once and reused greatly.
+    At the very bottom of this stack is \ref fastuidraw::PainterIndex
+    to represent an index and \ref fastuidraw::PainterAttribute to
+    represent an attribute. A \ref fastuidraw::PainterAttributeData
+    represents a collection of attribute and index chunks. The classes,
+    \ref fastuidraw::StrokedPath, \ref fastuidraw::FilledPath, \ref
+    fastuidraw::GlyphRun and \ref fastuidraw::GlyphSequence hold \ref
+    fastuidraw::PainterAttributeData objects ready for drawing. For
+    futher reading, see \ref PainterAttribute
+  - The shader to draw the attribute and index data. FastUIDraw has
+    three shader types in its vertex and fragment pipeline (defined
+    in the module \ref PainterShaders).
+    - An item shader is represented by \ref fastuidraw::PainterItemShader.
+      This shader represents how the attribute and index data are
+      processed.
+    - A brush shader is represented by \ref fastuidraw::PainterBrushShader.
+      This shader represents computing a per-pixel color, for example
+      an image or gradient applied.
+    - A blend shader is represented by \ref fastuidraw::PainterBlendShader.
+      This shader represents how blending is performed (for example the
+      Porter-Duff modes).
+  - A small amount of data that is cheap to recalculate that is constant
+    for all vertices and pixels of an item. Each of the shader stages has
+    their own data classes (defined in the module \ref PainterShaderData).
+    - For item shading, the class \ref fastuidraw::PainterItemShaderData
+      is used to hold values that are constant for all attributes across
+      an item. One example are stroking paremeters such as stroking
+      width and miter-limit to apply to stroking as realized by \ref
+      fastuidraw::PainterStrokeParams and \ref fastuidraw::PainterDashedStrokeParams.
+    - For brush shading, the class \ref fastuidraw::PainterBrushShaderData
+      is used to hold values that are constant for the purpose of appliying
+      a brush. The main example is \ref fastuidraw::PainterBrush which holds
+      all the data needed to apply a standard brush consisting of an image,
+      gradient, repeat pattern and brush transformation.
+    - For blend shading, the class \ref fastuidraw::PainterBlendShaderData
+      is used to hold constants values for doing blending.
 
-  FastUIDraw implements the following vertex-pipeline
-  - the local item xy-coordinates and brush coordinates from the item shader
-    (see \ref fastuidraw::PainterItemShader)
-  - the local item xy-coordinates are multipled by the current 3x3 transformation
-    matrix (see \ref fastuidraw::Painter::transformation) to convert from local
-    item coordinates to clip-coordinates
-
-  FastUIDraw implements the following pixel-pipeline
-  - computation of RGBA from the item shader (see \ref fastuidraw::PainterItemShader)
-  - computation of RGBA value from brush (see \ref fastuidraw::PainterBrush and \ref fastuidraw::PainterCustomBrush)
-  - Above values are component-wise multipled and then blending is appled (see \ref fastuidraw::PainterBlendShader)
+  The GL/GLES backends of FastUIDraw represents shaders as portions of GLSL
+  shader code, see the classes \ref fastuidraw::glsl::PainterItemShaderGLSL,
+  \ref fastuidraw::glsl::PainterBlendShaderGLSL and \ref
+  fastuidraw::glsl::PainterBrushShaderGLSL for the shader class types and their
+  interfaces.
 
   \section Examples
   - See \ref ex_framework for the example framework to get started with the examples.
