@@ -200,8 +200,7 @@ ColorBackingStoreGL::
 ColorBackingStoreGL(int log2_tile_size,
                     int log2_num_tiles_per_row_per_col,
                     int number_layers):
-  fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
-                                         true),
+  fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers)),
   m_backing_store(dimensions(), true, log2_tile_size)
 {}
 
@@ -285,8 +284,7 @@ IndexBackingStoreGL(int log2_tile_size,
                     int num_layers):
   fastuidraw::AtlasIndexBackingStoreBase(store_size(log2_tile_size,
                                                     log2_num_index_tiles_per_row_per_col,
-                                                    num_layers),
-                                         true),
+                                                    num_layers)),
   m_backing_store(dimensions(), true)
 {}
 

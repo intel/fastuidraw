@@ -148,18 +148,15 @@ namespace
   class BackingStorePrivate
   {
   public:
-    BackingStorePrivate(fastuidraw::ivec3 whl, bool presizable):
-      m_dimensions(whl),
-      m_resizeable(presizable)
+    BackingStorePrivate(fastuidraw::ivec3 whl):
+      m_dimensions(whl)
     {}
 
-    BackingStorePrivate(int w, int h, int num_layers, bool presizable):
-      m_dimensions(w, h, num_layers),
-      m_resizeable(presizable)
+    BackingStorePrivate(int w, int h, int num_layers):
+      m_dimensions(w, h, num_layers)
     {}
 
     fastuidraw::ivec3 m_dimensions;
-    bool m_resizeable;
   };
 
   class inited_bool
@@ -296,8 +293,7 @@ namespace
       m_color_tiles(pcolor_tile_size, dimensions_of_store(pcolor_store)),
       m_index_store(pindex_store),
       m_index_store_constant(m_index_store),
-      m_index_tiles(pindex_tile_size, dimensions_of_store(pindex_store)),
-      m_resizeable(m_color_store && m_color_store->resizeable() && m_index_store && m_index_store->resizeable())
+      m_index_tiles(pindex_tile_size, dimensions_of_store(pindex_store))
     {}
 
     int
@@ -350,8 +346,6 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase> m_index_store;
     fastuidraw::reference_counted_ptr<const fastuidraw::AtlasIndexBackingStoreBase> m_index_store_constant;
     tile_allocator m_index_tiles;
-
-    bool m_resizeable;
   };
 
   /* TODO: take into account for repeated tile colors. */
@@ -928,7 +922,6 @@ ImageAtlasPrivate::
 resize_to_fit(int num_color_tiles, int num_index_tiles)
 {
   std::lock_guard<std::mutex> M(m_mutex);
-  FASTUIDRAWassert(m_resizeable);
   if (m_color_tiles.resize_to_fit(num_color_tiles))
     {
       m_color_store->resize(m_color_tiles.num_tiles().z());
@@ -1014,15 +1007,15 @@ format(void) const
 //////////////////////////////////////////////////
 // fastuidraw::AtlasColorBackingStoreBase methods
 fastuidraw::AtlasColorBackingStoreBase::
-AtlasColorBackingStoreBase(ivec3 whl, bool presizable)
+AtlasColorBackingStoreBase(ivec3 whl)
 {
-  m_d = FASTUIDRAWnew BackingStorePrivate(whl, presizable);
+  m_d = FASTUIDRAWnew BackingStorePrivate(whl);
 }
 
 fastuidraw::AtlasColorBackingStoreBase::
-AtlasColorBackingStoreBase(int w, int h, int num_layers, bool presizable)
+AtlasColorBackingStoreBase(int w, int h, int num_layers)
 {
-  m_d = FASTUIDRAWnew BackingStorePrivate(w, h, num_layers, presizable);
+  m_d = FASTUIDRAWnew BackingStorePrivate(w, h, num_layers);
 }
 
 fastuidraw::AtlasColorBackingStoreBase::
@@ -1043,15 +1036,6 @@ dimensions(void) const
   return d->m_dimensions;
 }
 
-bool
-fastuidraw::AtlasColorBackingStoreBase::
-resizeable(void) const
-{
-  BackingStorePrivate *d;
-  d = static_cast<BackingStorePrivate*>(m_d);
-  return d->m_resizeable;
-}
-
 void
 fastuidraw::AtlasColorBackingStoreBase::
 resize(int new_num_layers)
@@ -1059,7 +1043,6 @@ resize(int new_num_layers)
   BackingStorePrivate *d;
 
   d = static_cast<BackingStorePrivate*>(m_d);
-  FASTUIDRAWassert(d->m_resizeable);
   FASTUIDRAWassert(new_num_layers > d->m_dimensions.z());
   resize_implement(new_num_layers);
   d->m_dimensions.z() = new_num_layers;
@@ -1068,15 +1051,15 @@ resize(int new_num_layers)
 ///////////////////////////////////////////////
 // fastuidraw::AtlasIndexBackingStoreBase methods
 fastuidraw::AtlasIndexBackingStoreBase::
-AtlasIndexBackingStoreBase(ivec3 whl, bool presizable)
+AtlasIndexBackingStoreBase(ivec3 whl)
 {
-  m_d = FASTUIDRAWnew BackingStorePrivate(whl, presizable);
+  m_d = FASTUIDRAWnew BackingStorePrivate(whl);
 }
 
 fastuidraw::AtlasIndexBackingStoreBase::
-AtlasIndexBackingStoreBase(int w, int h, int l, bool presizable)
+AtlasIndexBackingStoreBase(int w, int h, int l)
 {
-  m_d = FASTUIDRAWnew BackingStorePrivate(w, h, l, presizable);
+  m_d = FASTUIDRAWnew BackingStorePrivate(w, h, l);
 }
 
 fastuidraw::AtlasIndexBackingStoreBase::
@@ -1097,15 +1080,6 @@ dimensions(void) const
   return d->m_dimensions;
 }
 
-bool
-fastuidraw::AtlasIndexBackingStoreBase::
-resizeable(void) const
-{
-  BackingStorePrivate *d;
-  d = static_cast<BackingStorePrivate*>(m_d);
-  return d->m_resizeable;
-}
-
 void
 fastuidraw::AtlasIndexBackingStoreBase::
 resize(int new_num_layers)
@@ -1113,7 +1087,6 @@ resize(int new_num_layers)
   BackingStorePrivate *d;
 
   d = static_cast<BackingStorePrivate*>(m_d);
-  FASTUIDRAWassert(d->m_resizeable);
   FASTUIDRAWassert(new_num_layers > d->m_dimensions.z());
   resize_implement(new_num_layers);
   d->m_dimensions.z() = new_num_layers;
@@ -1220,15 +1193,6 @@ index_store(void) const
   return d->m_index_store_constant;
 }
 
-bool
-fastuidraw::ImageAtlas::
-resizeable(void) const
-{
-  ImageAtlasPrivate *d;
-  d = static_cast<ImageAtlasPrivate*>(m_d);
-  return d->m_resizeable;
-}
-
 void
 fastuidraw::ImageAtlas::
 queue_resource_release_action(const reference_counted_ptr<Image::ResourceReleaseAction> &action)
@@ -1273,14 +1237,7 @@ create_image_on_atlas(int w, int h, const ImageSourceBase &image_data)
        * delay this until iamge construction, check if it succeeded
        * and if not then delete it and return an invalid handle.
        */
-      if (resizeable())
-        {
-          d->resize_to_fit(num_color_tiles.x() * num_color_tiles.y(), index_tiles);
-        }
-      else
-        {
-          return reference_counted_ptr<Image>();
-        }
+      d->resize_to_fit(num_color_tiles.x() * num_color_tiles.y(), index_tiles);
     }
 
   return FASTUIDRAWnew Image(*this, w, h, image_data);

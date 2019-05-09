@@ -45,22 +45,6 @@ namespace fastuidraw
     public reference_counted<AtlasColorBackingStoreBase>::concurrent
   {
   public:
-    /*!
-     * Ctor.
-     * \param whl provides the dimensions of the AtlasColorBackingStoreBase
-     * \param presizable if true the object can be resized to be larger
-     */
-    AtlasColorBackingStoreBase(ivec3 whl, bool presizable);
-
-    /*!
-     * Ctor.
-     * \param w width of the backing store
-     * \param h height of the backing store
-     * \param num_layers number of layers of the backing store
-     * \param presizable if true the object can be resized to be larger
-     */
-    AtlasColorBackingStoreBase(int w, int h, int num_layers, bool presizable);
-
     virtual
     ~AtlasColorBackingStoreBase();
 
@@ -107,21 +91,27 @@ namespace fastuidraw
     dimensions(void) const;
 
     /*!
-     * Returns true if and only if this object can be
-     * resized to a larger size.
-     */
-    bool
-    resizeable(void) const;
-
-    /*!
      * Resize the object by increasing the number of layers.
-     * The routine resizeable() must return true, if not
-     * the function FASTUIDRAWasserts.
      */
     void
     resize(int new_num_layers);
 
   protected:
+    /*!
+     * Ctor.
+     * \param whl provides the dimensions of the AtlasColorBackingStoreBase
+     */
+    explicit
+    AtlasColorBackingStoreBase(ivec3 whl);
+
+    /*!
+     * Ctor.
+     * \param w width of the backing store
+     * \param h height of the backing store
+     * \param num_layers number of layers of the backing store
+     */
+    AtlasColorBackingStoreBase(int w, int h, int num_layers);
+
     /*!
      * To be implemented by a derived class to resize the
      * object. The resize changes ONLY the number of layers
@@ -152,22 +142,6 @@ namespace fastuidraw
     public reference_counted<AtlasIndexBackingStoreBase>::concurrent
   {
   public:
-    /*!
-     * Ctor.
-     * \param whl dimensions of the backing store
-     * \param presizable if true the object can be resized to be larger
-     */
-    AtlasIndexBackingStoreBase(ivec3 whl, bool presizable);
-
-    /*!
-     * Ctor.
-     * \param w width of the backing store
-     * \param h height of the backing store
-     * \param l number layers of the backing store
-     * \param presizable if true the object can be resized to be larger
-     */
-    AtlasIndexBackingStoreBase(int w, int h, int l, bool presizable);
-
     virtual
     ~AtlasIndexBackingStoreBase();
 
@@ -204,21 +178,27 @@ namespace fastuidraw
     dimensions(void) const;
 
     /*!
-     * Returns true if and only if this object can be
-     * resized to a larger size.
-     */
-    bool
-    resizeable(void) const;
-
-    /*!
      * Resize the object by increasing the number of layers.
-     * The routine resizeable() must return true, if not
-     * the function FASTUIDRAWasserts.
      */
     void
     resize(int new_num_layers);
 
   protected:
+    /*!
+     * Ctor.
+     * \param whl dimensions of the backing store
+     */
+    explicit
+    AtlasIndexBackingStoreBase(ivec3 whl);
+
+    /*!
+     * Ctor.
+     * \param w width of the backing store
+     * \param h height of the backing store
+     * \param l number layers of the backing store
+     */
+    AtlasIndexBackingStoreBase(int w, int h, int l);
+
     /*!
      * To be implemented by a derived class to resize the
      * object. The resize changes ONLY the number of layers
@@ -316,13 +296,6 @@ namespace fastuidraw
      */
     const reference_counted_ptr<const AtlasIndexBackingStoreBase>&
     index_store(void) const;
-
-    /*!
-     * Returns true if and only if the backing stores of the atlas
-     * can be increased in size.
-     */
-    bool
-    resizeable(void) const;
 
     /*!
      * Increments an internal counter. If this internal
