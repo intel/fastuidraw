@@ -177,34 +177,6 @@ namespace fastuidraw
       void *m_d;
     };
 
-    /*!
-     * Ctor.
-     * \param glyph_atlas GlyphAtlas for glyphs drawn by each \ref PainterBackend
-     *                    returned by \ref create_backend() of the created
-     *                    \ref PainterEngine
-     * \param image_atlas ImageAtlas for images drawn by each \ref PainterBackend
-     *                    returned by \ref create_backend() of the created
-     *                    \ref PainterEngine
-     * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by
-     *                        each \ref PainterBackend returned by \ref create_backend()
-     *                        of the created PainterEngine
-     * \param shader_registrar PainterShaderRegistrar used by each \ref PainterBackend
-     *                         returned by \ref create_backend() of the created
-     *                         \ref PainterEngine
-     * \param config \ref ConfigurationBase for each \ref PainterBackend returned by
-     *               \ref create_backend() of the created \ref PainterEngine
-     * \param pdefault_shaders default shaders for each \ref PainterBackend returned
-     *                         by \ref create_backend() of the created \ref
-     *                         PainterEngine; shaders are registered at
-     *                         construction of the created \ref PainterEngine
-     */
-    PainterEngine(reference_counted_ptr<GlyphAtlas> glyph_atlas,
-                          reference_counted_ptr<ImageAtlas> image_atlas,
-                          reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                          reference_counted_ptr<PainterShaderRegistrar> shader_registrar,
-                          const ConfigurationBase &config,
-                          const PainterShaderSet &pdefault_shaders);
-
     virtual
     ~PainterEngine();
 
@@ -271,6 +243,20 @@ namespace fastuidraw
     painter_shader_registrar(void) const;
 
     /*!
+     * Provided as a conveniance, equivalent to
+     * \code
+     * painter_shader_registrar().register_shader(v)
+     * \endcode
+     * \param v shade value to register to \ref painter_shader_registrar()
+     */
+    template<typename T>
+    void
+    register_shader(const T &v)
+    {
+      painter_shader_registrar().register_shader(v);
+    }
+
+    /*!
      * Returns the ConfigurationBase passed in the ctor.
      */
     const ConfigurationBase&
@@ -308,6 +294,34 @@ namespace fastuidraw
                    enum PainterSurface::render_type_t render_type) = 0;
 
   protected:
+    /*!
+     * Ctor.
+     * \param glyph_atlas GlyphAtlas for glyphs drawn by each \ref PainterBackend
+     *                    returned by \ref create_backend() of the created
+     *                    \ref PainterEngine
+     * \param image_atlas ImageAtlas for images drawn by each \ref PainterBackend
+     *                    returned by \ref create_backend() of the created
+     *                    \ref PainterEngine
+     * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by
+     *                        each \ref PainterBackend returned by \ref create_backend()
+     *                        of the created PainterEngine
+     * \param shader_registrar PainterShaderRegistrar used by each \ref PainterBackend
+     *                         returned by \ref create_backend() of the created
+     *                         \ref PainterEngine
+     * \param config \ref ConfigurationBase for each \ref PainterBackend returned by
+     *               \ref create_backend() of the created \ref PainterEngine
+     * \param pdefault_shaders default shaders for each \ref PainterBackend returned
+     *                         by \ref create_backend() of the created \ref
+     *                         PainterEngine; shaders are registered at
+     *                         construction of the created \ref PainterEngine
+     */
+    PainterEngine(reference_counted_ptr<GlyphAtlas> glyph_atlas,
+                  reference_counted_ptr<ImageAtlas> image_atlas,
+                  reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
+                  reference_counted_ptr<PainterShaderRegistrar> shader_registrar,
+                  const ConfigurationBase &config,
+                  const PainterShaderSet &pdefault_shaders);
+
     /*!
      * To be accessed by a derived class in its ctor
      * to set the performance hint values for itself.

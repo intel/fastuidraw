@@ -226,7 +226,7 @@ create_wavy_custom_brush(fastuidraw::gl::PainterEngineGL *painter_engine_gl)
                                                       varyings, deps);
 
   /* Before the shader can be used, it must be registered. */
-  painter_engine_gl->painter_shader_registrar().register_shader(return_value);
+  painter_engine_gl->register_shader(return_value);
 
   /* One big danger of having custom shaders is that if the GLSL code we gave
    * has a syntax error, then the entire uber-shader cannot be compiled by
