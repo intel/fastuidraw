@@ -414,4 +414,5 @@ namespace fastuidraw {
   - See \ref ex_custom_brush for an example of creating a custom brush
   - See \ref ex_path for an example of using \ref fastuidraw::Path to stroke and fill paths.
   - See \ref ex_path2 for creating a \ref fastuidraw::Path with the operator<< overloads and filling it with a custom fill rule.
+  - See \ref ex_packed_value for an example of using \ref fastuidraw::PainterPackedValue and coordinate transformations of \ref fastuidraw::Painter.
 */

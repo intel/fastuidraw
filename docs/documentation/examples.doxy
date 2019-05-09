@@ -25,7 +25,7 @@
   \page ex_initialization Example Initialization
   \brief Example code that shows how to create a Painter and to use the GL backend.
 
-  The Example Initialization builds from \ref ex_framework to demonstrate
+  The \ref ex_initialization builds from \ref ex_framework to demonstrate
   how to initialize FastUIDraw's GL (or GLES) backend and to create a
   fastuidraw::Painter object.
 
@@ -43,7 +43,7 @@
   \page ex_gradient Example Gradient
   \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render gradients.
 
-  The Example Brush builds from \ref ex_initialization to demonstrate
+  The \ref ex_gradient builds from \ref ex_initialization to demonstrate
   how to use \ref fastuidraw::PainterBrush to render gradients.
 
   The implementation is given by:
@@ -54,7 +54,7 @@
   \page ex_image Example Image
   \brief Simple example showing how to use \ref fastuidraw::PainterBrush to render an image.
 
-  The Example Image builds from \ref ex_initialization to demonstrate
+  The \ref ex_image builds from \ref ex_initialization to demonstrate
   how to use \ref fastuidraw::PainterBrush to render an image.
 
   A fastuidraw::Image requires a pixel data specified by a class derived from
@@ -76,7 +76,7 @@
   \page ex_text Example Text
   \brief Simple example showing how to use \ref fastuidraw::GlyphSequence to render text.
 
-  The Example Text builds from \ref ex_initialization to demonstrate
+  The \ref ex_text builds from \ref ex_initialization to demonstrate
   how to construct and use \ref fastuidraw::GlyphSequence to render
   text with \ref fastuidraw::Painter.
 
@@ -88,7 +88,7 @@
   \page ex_path Example Path
   \brief Simple example showing how to use \ref fastuidraw::Path to stroke and fill paths.
 
-  The Example Path builds from \ref ex_initialization to demonstrate
+  The \ref ex_path builds from \ref ex_initialization to demonstrate
   how to construct and use \ref fastuidraw::Path to stroke and fills
   paths with \ref fastuidraw::Painter.
 
@@ -102,7 +102,7 @@
   Simple example showing how to operator<< overloads to construct a complicated path
   and to fill it with a custom fill rule.
 
-  The Example Path 2 builds from \ref ex_initialization to demonstrate
+  The \ref ex_path2 builds from \ref ex_initialization to demonstrate
   how to construct a \ref fastuidraw::Path using operator<< overloads
   and to fill it with a custom fill rule.
 
@@ -115,7 +115,7 @@
   \brief
   Example on how to create a custom-brush that builds from teh standard brush.
 
-  The Example Custom Brush builds from \ref ex_initialization to demonstrate
+  The \ref ex_custom_brush builds from \ref ex_initialization to demonstrate
   how to create a custom-brush that builds from the standard brush. The
   example custom is implemented by modifying in the fragment shader the brush
   position fed to the standard brush.
@@ -132,3 +132,23 @@
   The implementation of using the custom brush is given by
   \snippet example_custom_brush.cpp ExampleCustomBrushUsing
 */
+
+/*!
+ * \page ex_packed_value Example Packed Value
+ * \brief
+ * Example of using \ref fastuidraw::PainterPackedValue and using the
+ * coordinate transformation interface of \ref fastuidraw::Painter
+ *
+ * The \ref ex_packed_value builds from \ref ex_initialization to demonstrate
+ * how to use and create \ref fastuidraw::PainterPackedValue objects
+ * to allow FastUIDraw to resuse \ref fastuidraw::PainterBrushShaderData
+ * that is common across many calls to \ref fastuidraw::Painter draw methods.
+ * In addition, it also provides an example of using some the coordinate
+ * transformation methods of \ref fastuidraw::Painter along with saving and
+ * restoring its state via \ref fastuidraw::Painter::save() and \ref
+ * fastuidraw::Painter::restore().
+ *
+ * The code is given by
+ * \snippet example_packed_value.cpp ExamplePackedValue
+ *
+ */
