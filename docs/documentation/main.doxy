@@ -12,10 +12,10 @@ commonly used ones being \ref reference_counted_ptr, \ref vecN,
 and \ref c_array. Part of the main library libFastUIDraw.
 @}
 
-\defgroup Text Text
+\defgroup Glyph Glyph
 @{
 \brief
-Text provides the interfaces to realizing glyph data for rendering
+\ref Glyph provides the interfaces to realizing glyph data for rendering
 glyphs. The big classes being \ref Glyph, \ref GlyphCache, \ref
 GlyphAtlas and \ref FontBase. Part of the main library libFastUIDraw.
 @}
@@ -370,7 +370,7 @@ namespace fastuidraw {
     \ref fastuidraw::StrokedPath, \ref fastuidraw::FilledPath, \ref
     fastuidraw::GlyphRun and \ref fastuidraw::GlyphSequence hold \ref
     fastuidraw::PainterAttributeData objects ready for drawing. For
-    futher reading, see \ref PainterAttribute
+    futher reading, see \ref PainterAttribute.
   - The shader to draw the attribute and index data. FastUIDraw has
     three shader types in its vertex and fragment pipeline (defined
     in the module \ref PainterShaders).

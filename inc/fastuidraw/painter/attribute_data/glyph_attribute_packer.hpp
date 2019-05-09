@@ -22,11 +22,12 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Text
+/*!\addtogroup PainterAttribute
  * @{
  */
 
   /*!
+   * \brief
    * A GlyphAttributePacker provides an interface to customize
    * how glyph attribute and index data is realized by a \ref
    * GlyphRun and \ref GlyphSequence.

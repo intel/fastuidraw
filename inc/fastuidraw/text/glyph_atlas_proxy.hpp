@@ -22,7 +22,7 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Text
+/*!\addtogroup Glyph
  * @{
  */
   class Glyph;

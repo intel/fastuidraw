@@ -31,7 +31,7 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Text
+/*!\addtogroup PainterAttribute
  * @{
  */
 
