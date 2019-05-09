@@ -44,21 +44,6 @@ namespace fastuidraw
     public reference_counted<ColorStopBackingStore>::concurrent
   {
   public:
-    /*!
-     * Ctor.
-     * \param wl provides the dimensions of the ColorStopBackingStore
-     * \param presizable if true the object can be resized to be larger
-     */
-    ColorStopBackingStore(ivec2 wl, bool presizable);
-
-    /*!
-     * Ctor
-     * \param w width of backing store
-     * \param num_layers number of layers of backing store
-     * \param presizable if true the object can be resized to be larger
-     */
-    ColorStopBackingStore(int w, int num_layers, bool presizable);
-
     virtual
     ~ColorStopBackingStore();
 
@@ -72,8 +57,7 @@ namespace fastuidraw
      */
     virtual
     void
-    set_data(int x, int l,
-             int w,
+    set_data(int x, int l, int w,
              c_array<const u8vec4> data)=0;
 
     /*!
@@ -100,21 +84,26 @@ namespace fastuidraw
     width_times_height(void) const;
 
     /*!
-     * Returns true if and only if this object can be
-     * resized to a larger size.
-     */
-    bool
-    resizeable(void) const;
-
-    /*!
      * Resize the object by increasing the number of layers.
-     * The routine resizeable() must return true, if not
-     * the function FASTUIDRAWasserts.
      */
     void
     resize(int new_num_layers);
 
   protected:
+    /*!
+     * Ctor.
+     * \param wl provides the dimensions of the ColorStopBackingStore
+     */
+    explicit
+    ColorStopBackingStore(ivec2 wl);
+
+    /*!
+     * Ctor
+     * \param w width of backing store
+     * \param num_layers number of layers of backing store
+     */
+    ColorStopBackingStore(int w, int num_layers);
+
     /*!
      * To be implemented by a derived class to resize the
      * object. The resize changes ONLY the number of layers
@@ -159,7 +148,7 @@ namespace fastuidraw
      * \param pwidth specifies number of texels to occupy on the ColorStopAtlas.
      *               The discretization of the color stop values is specified by
      *               the width. Additionally, the width is clamped to \ref
-     *               largest_width_possible().
+     *               max_width().
      */
     reference_counted_ptr<ColorStopSequence>
     create(const ColorStopArray &color_stops, unsigned int pwidth);
@@ -170,14 +159,6 @@ namespace fastuidraw
      */
     unsigned int
     max_width(void) const;
-
-    /*!
-     * Returns the largest value for the parameter pwidth
-     * allowed taking into account available space on the
-     * ColorStopAtlas.
-     */
-    unsigned int
-    largest_width_possible(void) const;
 
     /*!
      * Returns a handle to the backing store of the atlas.

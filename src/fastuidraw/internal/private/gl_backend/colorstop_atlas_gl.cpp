@@ -117,7 +117,7 @@ namespace
 // BackingStore methods
 BackingStore::
 BackingStore(int w, int l):
-  fastuidraw::ColorStopBackingStore(w, l, true),
+  fastuidraw::ColorStopBackingStore(w, l),
   m_backing_store(dimensions_for_store(w, l), true)
 {
 }
