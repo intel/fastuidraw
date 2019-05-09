@@ -19,6 +19,7 @@
 
 //! [ExampleImage]
 
+#include <vector>
 #include <fastuidraw/image.hpp>
 #include <SDL_image.h>
 
@@ -67,7 +68,72 @@ public:
   format(void) const override;
 
 private:
-  SDL_Surface *m_surface;
+
+  /* Dead simple class that stores pixels in a linear array. */
+  class PerMipmapLevel
+  {
+  public:
+    PerMipmapLevel(int w, int h):
+      m_pixels(w * h),
+      m_width(w),
+      m_height(h),
+      m_stride(w)
+    {}
+
+    /* use C++ move semantics to avoid potentially
+     * expensive copy of pixel data.
+     */
+    PerMipmapLevel(PerMipmapLevel &&src) noexcept:
+      m_pixels(std::move(src.m_pixels)),
+      m_width(src.m_width),
+      m_height(src.m_height),
+      m_stride(src.m_stride)
+    {}
+
+    PerMipmapLevel(const PerMipmapLevel &) = delete;
+
+    fastuidraw::u8vec4&
+    pixel(int x, int y)
+    {
+      clamp(x, y);
+      return m_pixels[x + y * m_stride];
+    }
+
+    fastuidraw::u8vec4
+    pixel(int x, int y) const
+    {
+      clamp(x, y);
+      return m_pixels[x + y * m_stride];
+    }
+
+    int
+    width(void) const
+    {
+      return m_width;
+    }
+
+    int
+    height(void) const
+    {
+      return m_height;
+    }
+
+  private:
+    void
+    clamp(int &x, int &y) const
+    {
+      x = fastuidraw::t_max(0, fastuidraw::t_min(x, m_width - 1));
+      y = fastuidraw::t_max(0, fastuidraw::t_min(y, m_height - 1));
+    }
+
+    std::vector<fastuidraw::u8vec4> m_pixels;
+    int m_width, m_height, m_stride;
+  };
+
+  void
+  extract_image_data_from_surface(SDL_Surface *surface);
+
+  std::vector<PerMipmapLevel> m_image_data;
 };
 
 //! [ExampleImage]
