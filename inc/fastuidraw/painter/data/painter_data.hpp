@@ -274,6 +274,16 @@ namespace fastuidraw
     }
 
     /*!
+     * Sets \ref m_brush
+     */
+    PainterData&
+    set(const PainterDataValue<PainterBrushShaderData> &value)
+    {
+      m_brush.set(value);
+      return *this;
+    }
+
+    /*!
      * Sets \ref m_item_shader_data
      */
     PainterData&
