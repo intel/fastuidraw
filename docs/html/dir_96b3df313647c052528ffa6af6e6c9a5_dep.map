@@ -1,25 +1,30 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter">
-<area shape="rect" id="node3" href="dir_13518f9f81065eb5318503fe096eec54.html" title="backend" alt="" coords="67,159,139,207"/>
-<area shape="rect" id="edge5-headlabel" href="dir_000014_000016.html" title="3" alt="" coords="142,144,150,159"/>
-<area shape="rect" id="node4" href="dir_b9b9452a1b30a3edca482693313b6b99.html" title="effects" alt="" coords="163,159,235,207"/>
-<area shape="rect" id="edge4-headlabel" href="dir_000014_000017.html" title="1" alt="" coords="203,133,211,147"/>
-<area shape="rect" id="node2" href="dir_84aba8bf841c62ef333ca1d6e9f9a2fa.html" title="attribute_data" alt="" coords="37,255,139,303"/>
-<area shape="rect" id="node6" href="dir_f5357b77b90d4e709136f75714af7738.html" title="util" alt="" coords="236,351,308,399"/>
-<area shape="rect" id="edge2-headlabel" href="dir_000015_000020.html" title="29" alt="" coords="215,340,229,355"/>
-<area shape="rect" id="node7" href="dir_e13ac1d41f8e25201066c76815917188.html" title="text" alt="" coords="309,255,381,303"/>
-<area shape="rect" id="edge3-headlabel" href="dir_000015_000019.html" title="9" alt="" coords="306,229,314,244"/>
-<area shape="rect" id="edge6-headlabel" href="dir_000016_000015.html" title="1" alt="" coords="99,230,107,245"/>
-<area shape="rect" id="node5" href="dir_ce6f9bf4eb4401b3c8665d26169cdf24.html" title="shader" alt="" coords="163,255,235,303"/>
-<area shape="rect" id="edge9-headlabel" href="dir_000016_000018.html" title="2" alt="" coords="155,229,163,243"/>
-<area shape="rect" id="edge7-headlabel" href="dir_000016_000020.html" title="27" alt="" coords="273,325,288,339"/>
-<area shape="rect" id="edge8-headlabel" href="dir_000016_000019.html" title="3" alt="" coords="292,240,300,255"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000017_000020.html" title="3" alt="" coords="324,367,332,382"/>
-<area shape="rect" id="edge14-headlabel" href="dir_000018_000016.html" title="2" alt="" coords="138,218,146,233"/>
-<area shape="rect" id="edge13-headlabel" href="dir_000018_000020.html" title="4" alt="" coords="245,323,253,338"/>
-<area shape="rect" id="edge15-headlabel" href="dir_000018_000019.html" title="1" alt="" coords="287,263,295,278"/>
-<area shape="rect" id="edge11-headlabel" href="dir_000019_000014.html" title="4" alt="" coords="218,123,226,138"/>
-<area shape="rect" id="edge10-headlabel" href="dir_000019_000015.html" title="1" alt="" coords="133,244,141,259"/>
-<area shape="rect" id="edge12-headlabel" href="dir_000019_000020.html" title="33" alt="" coords="301,334,316,348"/>
-<area shape="rect" id="clust2" href="dir_96b3df313647c052528ffa6af6e6c9a5.html" alt="" coords="27,52,245,313"/>
-<area shape="rect" id="clust1" href="dir_96ee1382077ca02ffb1cad6827bd1657.html" title="fastuidraw" alt="" coords="16,16,256,324"/>
+<area shape="rect" id="node3" href="dir_13518f9f81065eb5318503fe096eec54.html" title="backend" alt="" coords="186,159,258,207"/>
+<area shape="rect" id="edge6-headlabel" href="dir_000014_000016.html" title="3" alt="" coords="226,133,234,147"/>
+<area shape="rect" id="node5" href="dir_b9b9452a1b30a3edca482693313b6b99.html" title="effects" alt="" coords="90,159,162,207"/>
+<area shape="rect" id="edge5-headlabel" href="dir_000014_000018.html" title="1" alt="" coords="165,144,173,159"/>
+<area shape="rect" id="node2" href="dir_84aba8bf841c62ef333ca1d6e9f9a2fa.html" title="attribute_data" alt="" coords="212,255,314,303"/>
+<area shape="rect" id="node7" href="dir_f5357b77b90d4e709136f75714af7738.html" title="util" alt="" coords="132,447,204,495"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000015_000021.html" title="29" alt="" coords="194,428,209,443"/>
+<area shape="rect" id="node8" href="dir_e13ac1d41f8e25201066c76815917188.html" title="text" alt="" coords="346,351,418,399"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000015_000020.html" title="9" alt="" coords="332,327,340,341"/>
+<area shape="rect" id="edge7-headlabel" href="dir_000016_000015.html" title="1" alt="" coords="249,227,257,241"/>
+<area shape="rect" id="node6" href="dir_ce6f9bf4eb4401b3c8665d26169cdf24.html" title="shader" alt="" coords="116,255,188,303"/>
+<area shape="rect" id="edge10-headlabel" href="dir_000016_000019.html" title="2" alt="" coords="175,236,183,251"/>
+<area shape="rect" id="edge8-headlabel" href="dir_000016_000021.html" title="27" alt="" coords="112,436,127,450"/>
+<area shape="rect" id="edge9-headlabel" href="dir_000016_000020.html" title="3" alt="" coords="373,323,381,338"/>
+<area shape="rect" id="node4" href="dir_336e2c40bbcc45d936fc5b606b59ded9.html" title="data" alt="" coords="96,351,168,399"/>
+<area shape="rect" id="edge19-headlabel" href="dir_000017_000019.html" title="3" alt="" coords="140,312,148,327"/>
+<area shape="rect" id="edge18-headlabel" href="dir_000017_000021.html" title="8" alt="" coords="157,419,165,434"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000018_000017.html" title="1" alt="" coords="117,323,125,337"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000018_000021.html" title="3" alt="" coords="113,442,121,456"/>
+<area shape="rect" id="edge15-headlabel" href="dir_000019_000016.html" title="2" alt="" coords="191,210,199,225"/>
+<area shape="rect" id="edge17-headlabel" href="dir_000019_000017.html" title="2" alt="" coords="136,326,144,341"/>
+<area shape="rect" id="edge14-headlabel" href="dir_000019_000021.html" title="4" alt="" coords="183,423,191,438"/>
+<area shape="rect" id="edge16-headlabel" href="dir_000019_000020.html" title="1" alt="" coords="328,335,336,350"/>
+<area shape="rect" id="edge12-headlabel" href="dir_000020_000014.html" title="4" alt="" coords="251,122,259,137"/>
+<area shape="rect" id="edge11-headlabel" href="dir_000020_000015.html" title="1" alt="" coords="306,313,314,328"/>
+<area shape="rect" id="edge13-headlabel" href="dir_000020_000021.html" title="33" alt="" coords="217,461,232,475"/>
+<area shape="rect" id="clust2" href="dir_96b3df313647c052528ffa6af6e6c9a5.html" alt="" coords="79,52,324,409"/>
+<area shape="rect" id="clust1" href="dir_96ee1382077ca02ffb1cad6827bd1657.html" title="fastuidraw" alt="" coords="68,16,335,420"/>
 </map>
