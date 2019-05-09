@@ -67,9 +67,12 @@ $(function() {
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="../../d5/d32/classfastuidraw_1_1_glyph_attribute_packer-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">fastuidraw::GlyphAttributePacker Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span><div class="ingroups"><a class="el" href="../../df/d67/group___text.html">Text</a></div></div>  </div>
+<div class="title">fastuidraw::GlyphAttributePacker Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span><div class="ingroups"><a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A <a class="el" href="../../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html" title="A GlyphAttributePacker provides an interface to customize how glyph attribute and index data is reali...">GlyphAttributePacker</a> provides an interface to customize how glyph attribute and index data is realized by a <a class="el" href="../../df/d7e/classfastuidraw_1_1_glyph_run.html">GlyphRun</a> and <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a>.  
+ <a href="../../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../da/df6/glyph__attribute__packer_8hpp_source.html">glyph_attribute_packer.hpp</a>&gt;</code></p>
 <div class="dynheader">
@@ -107,9 +110,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="separator:a337fbbaa63cbc8cc7ad198df52d753da inherit pub_static_methods_classfastuidraw_1_1reference__counted__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html">GlyphAttributePacker</a> provides an interface to customize how glyph attribute and index data is realized by a <a class="el" href="../../df/d7e/classfastuidraw_1_1_glyph_run.html">GlyphRun</a> and <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a>. </p>
+<div class="textblock"><p>A <a class="el" href="../../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html" title="A GlyphAttributePacker provides an interface to customize how glyph attribute and index data is reali...">GlyphAttributePacker</a> provides an interface to customize how glyph attribute and index data is realized by a <a class="el" href="../../df/d7e/classfastuidraw_1_1_glyph_run.html">GlyphRun</a> and <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../da/df6/glyph__attribute__packer_8hpp_source.html#l00034">34</a> of file <a class="el" href="../../da/df6/glyph__attribute__packer_8hpp_source.html">glyph_attribute_packer.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/df6/glyph__attribute__packer_8hpp_source.html#l00035">35</a> of file <a class="el" href="../../da/df6/glyph__attribute__packer_8hpp_source.html">glyph_attribute_packer.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a03f4f82c48abd05087063507f8f22209"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a03f4f82c48abd05087063507f8f22209">&#9670;&nbsp;</a></span>compute_needed_room()</h2>
@@ -158,8 +161,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>To be implemented by a derived class to return how many indices and attributes are needed to realize a single glyph. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir"></td><td class="paramname">glyph_renderer</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#af8cfb1c51ce3f09fe6a41c613be630de">Glyph::renderer()</a> of <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a> to realize </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">glyph_attributes</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#a6e56066ed4f2c48d609a43f0ac93618b">Glyph::attributes()</a> of <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a> to realize </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">glyph_renderer</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#af8cfb1c51ce3f09fe6a41c613be630de">Glyph::renderer()</a> of <a class="el" href="../../de/df6/group___glyph.html">Glyph</a> to realize </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">glyph_attributes</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#a6e56066ed4f2c48d609a43f0ac93618b">Glyph::attributes()</a> of <a class="el" href="../../de/df6/group___glyph.html">Glyph</a> to realize </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">out_num_indices</td><td>number of indices needed to realize the glyph </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">out_num_attributes</td><td>number of attributes needed to realize the glyph </td></tr>
   </table>
@@ -223,7 +226,7 @@ Static Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">glyph</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> to realize </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">position</td><td>position of bottom left of glyph </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">scale_factor</td><td>the amount by which to scale from the <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a> object's coordinates </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">scale_factor</td><td>the amount by which to scale from the <a class="el" href="../../de/df6/group___glyph.html">Glyph</a> object's coordinates </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">p_bl</td><td>location to which to write the bottom-left coordinate of the glyph </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">p_tr</td><td>location to which to write the top-right coordinate of the glyph </td></tr>
   </table>
@@ -287,7 +290,7 @@ Static Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">metrics</td><td>GlyphMertics to use to compute the bounding box </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">position</td><td>position of bottom left of glyph </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">scale_factor</td><td>the amount by which to scale from the <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a> object's coordinates </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">scale_factor</td><td>the amount by which to scale from the <a class="el" href="../../de/df6/group___glyph.html">Glyph</a> object's coordinates </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">p_bl</td><td>location to which to write the bottom-left coordinate of the glyph </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">p_tr</td><td>location to which to write the top-right coordinate of the glyph </td></tr>
   </table>
@@ -355,8 +358,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>To be implemented by a derived class to provide the attributes and indices to realize a glyph. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">glyph_renderer</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#af8cfb1c51ce3f09fe6a41c613be630de">Glyph::renderer()</a> of <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a> to realize </td></tr>
-    <tr><td class="paramname">glyph_attributes</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#a6e56066ed4f2c48d609a43f0ac93618b">Glyph::attributes()</a> of <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a> to realize </td></tr>
+    <tr><td class="paramname">glyph_renderer</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#af8cfb1c51ce3f09fe6a41c613be630de">Glyph::renderer()</a> of <a class="el" href="../../de/df6/group___glyph.html">Glyph</a> to realize </td></tr>
+    <tr><td class="paramname">glyph_attributes</td><td><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html#a6e56066ed4f2c48d609a43f0ac93618b">Glyph::attributes()</a> of <a class="el" href="../../de/df6/group___glyph.html">Glyph</a> to realize </td></tr>
     <tr><td class="paramname">dst_indices</td><td>location to which to write the indices; the values are offsets into dst_attribs </td></tr>
     <tr><td class="paramname">dst_attribs</td><td>location to which to write the attributes </td></tr>
     <tr><td class="paramname">p_bl</td><td>position of bottom left of glyph as emited by <a class="el" href="../../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html#a73ab26c1d8e5c5450d2db59a7dd1e36e">glyph_position()</a> </td></tr>
@@ -400,7 +403,7 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns a <a class="el" href="../../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html">GlyphAttributePacker</a> suitable for the specified <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5">PainterEnums::screen_orientation</a> and <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#aa1330294fb339fa585f902bafb99ec57">PainterEnums::glyph_layout_type</a> that packs each single <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a> object as exactly 4 attributes and 6 indices as follows:</p><ul>
+<p>Returns a <a class="el" href="../../df/ded/classfastuidraw_1_1_glyph_attribute_packer.html">GlyphAttributePacker</a> suitable for the specified <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5">PainterEnums::screen_orientation</a> and <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#aa1330294fb339fa585f902bafb99ec57">PainterEnums::glyph_layout_type</a> that packs each single <a class="el" href="../../de/df6/group___glyph.html">Glyph</a> object as exactly 4 attributes and 6 indices as follows:</p><ul>
 <li><a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html#a966d21ea328a05102ecd353d8f7a4e9d">PainterAttribute::m_attrib0</a> .xy -&gt; position in item coordinates of the vertex of the quad to draw the glyph (float)</li>
 <li><a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html#a966d21ea328a05102ecd353d8f7a4e9d">PainterAttribute::m_attrib0</a> .zw -&gt; the difference in item coordinates between the bottom-left vertex position and the top-right vertex position.</li>
 <li><a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html#a2a16ec1df08ac336bf5f9d566c729e6a">PainterAttribute::m_attrib1</a> .x -&gt; Glyph::attribute()[0]</li>

@@ -8,7 +8,7 @@ var searchData=
   ['sin_5fsign_5fmask',['sin_sign_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a4ac465cb114de585425162fb54a25288',1,'fastuidraw::StrokedPoint']]],
   ['single_5fsrc',['single_src',['../d7/d7e/classfastuidraw_1_1_painter_blend_shader.html#a3be6a72f6fb8261c8218b0cd02ac6e1ca9afc42f0d827c08874a07c618d69fb12',1,'fastuidraw::PainterBlendShader']]],
   ['size_5fxy_5foffset',['size_xy_offset',['../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#ac1b05a711a13a1fb6f966683c2e0d7eda364f851227ecc1d0f8c77b13bd0ce902',1,'fastuidraw::PainterImageBrushShaderData']]],
-  ['sjis',['sjis',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93abc9257e1473ad13f4d858b6306bc3f57',1,'fastuidraw::CharacterEncoding']]],
+  ['sjis',['sjis',['../de/df6/group___glyph.html#ggad84db30962afd79ec6c0f6aeac661a93abc9257e1473ad13f4d858b6306bc3f57',1,'fastuidraw::CharacterEncoding']]],
   ['spread_5fclamp',['spread_clamp',['../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736a7df1da8029cf24d38c8d378b5a8486fc',1,'fastuidraw::PainterBrushEnums']]],
   ['spread_5fmirror',['spread_mirror',['../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736ae228487944e88c43059ae2a5e3f3c56c',1,'fastuidraw::PainterBrushEnums']]],
   ['spread_5fmirror_5frepeat',['spread_mirror_repeat',['../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736ab62399c7ca29c84172b2a6da2836be06',1,'fastuidraw::PainterBrushEnums']]],

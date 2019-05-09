@@ -72,7 +72,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> defines the <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> that the shaders of a <a class="el" href="../../da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html">PainterGradientBrushShader</a> consume. It specifies what <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> to use together with the geometric properties of the gradient.  
+<p>A <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> defines the <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> that the shaders of a <a class="el" href="../../da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html">PainterGradientBrushShader</a> consume. It specifies what <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> to use together with the geometric properties of the gradient.  
  <a href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d5/dce/painter__gradient__brush__shader__data_8hpp_source.html">painter_gradient_brush_shader_data.hpp</a>&gt;</code></p>
@@ -93,7 +93,7 @@ Public Types</h2></td></tr>
 <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a0038b722d51ad1ae579aaf9bbf430fe4a9ff2d5be0b0e82ae3365f65ccb1e59e5">color_stop_y_num_bits</a> = 16, 
 <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a0038b722d51ad1ae579aaf9bbf430fe4a54053918ebd59f3192d57eba588c354e">color_stop_x_bit0</a> = 0, 
 <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a0038b722d51ad1ae579aaf9bbf430fe4a73a519f214d95825199d27fecd6c873a">color_stop_y_bit0</a> = color_stop_x_num_bits
- }<tr class="memdesc:a0038b722d51ad1ae579aaf9bbf430fe4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit encoding for packing <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html#af0294de75b0de1e52460dba27594dec7">ColorStopSequenceOnAtlas::texel_location()</a>  <a href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a0038b722d51ad1ae579aaf9bbf430fe4">More...</a><br /></td></tr>
+ }<tr class="memdesc:a0038b722d51ad1ae579aaf9bbf430fe4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit encoding for packing <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#a99f48a953d08b5739791183665810cb5">ColorStopSequence::texel_location()</a>  <a href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a0038b722d51ad1ae579aaf9bbf430fe4">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:a0038b722d51ad1ae579aaf9bbf430fe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68a9cce204fc19da55e9c2cd46977e08"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a68a9cce204fc19da55e9c2cd46977e08">gradient_offset_t</a> { <br />
@@ -159,37 +159,37 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2762d757eb79a159e5cd620910753f73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd193b01a75c2dd45c2bced227b35690"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#afd193b01a75c2dd45c2bced227b35690">bind_images</a> (void) const override</td></tr>
 <tr class="separator:afd193b01a75c2dd45c2bced227b35690"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a95826564d705c1f39889f9dcf783ff21"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a95826564d705c1f39889f9dcf783ff21">color_stops</a> (void) const</td></tr>
-<tr class="separator:a95826564d705c1f39889f9dcf783ff21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00bcf3c0b9037dcea6b7541794e25d1e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a00bcf3c0b9037dcea6b7541794e25d1e">color_stops</a> (void) const</td></tr>
+<tr class="separator:a00bcf3c0b9037dcea6b7541794e25d1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1c87dc05beca33645c299c49c4039be"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#aa1c87dc05beca33645c299c49c4039be">data_size</a> (void) const override</td></tr>
 <tr class="separator:aa1c87dc05beca33645c299c49c4039be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee0395334036434c0a1122ceca73d420"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#aee0395334036434c0a1122ceca73d420">linear_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;start_p, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;end_p)</td></tr>
-<tr class="separator:aee0395334036434c0a1122ceca73d420"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4dca6d88a7381ec40cce257205c351b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#aa4dca6d88a7381ec40cce257205c351b">linear_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;start_p, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;end_p)</td></tr>
+<tr class="separator:aa4dca6d88a7381ec40cce257205c351b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44337098c6f8d5863410d3c638832dfd"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a44337098c6f8d5863410d3c638832dfd">number_resources</a> (void) const override</td></tr>
 <tr class="separator:a44337098c6f8d5863410d3c638832dfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a540d91612505aa6323916f1f814896d8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a540d91612505aa6323916f1f814896d8">operator=</a> (const <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;obj)</td></tr>
 <tr class="separator:a540d91612505aa6323916f1f814896d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ed676e9b9d2fca069c2ace2c29716b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a7ed676e9b9d2fca069c2ace2c29716b8">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, 4 &gt; &gt; dst) const override</td></tr>
 <tr class="separator:a7ed676e9b9d2fca069c2ace2c29716b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83cc55e0172600d910c3d79ce5f020ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a83cc55e0172600d910c3d79ce5f020ec">radial_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;start_p, float start_r, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;end_p, float end_r)</td></tr>
-<tr class="separator:a83cc55e0172600d910c3d79ce5f020ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d32c852b67855f553ce562d75a669dc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a0d32c852b67855f553ce562d75a669dc">radial_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float r)</td></tr>
-<tr class="separator:a0d32c852b67855f553ce562d75a669dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4eea00f171adc99a422dc305a2e0ac5e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a4eea00f171adc99a422dc305a2e0ac5e">radial_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;start_p, float start_r, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;end_p, float end_r)</td></tr>
+<tr class="separator:a4eea00f171adc99a422dc305a2e0ac5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03c99d210cc589657e8461f428e4b33c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a03c99d210cc589657e8461f428e4b33c">radial_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float r)</td></tr>
+<tr class="separator:a03c99d210cc589657e8461f428e4b33c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc5fcd5d5b40f7a9193f38b682f59e38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#adc5fcd5d5b40f7a9193f38b682f59e38">reset</a> (void)</td></tr>
 <tr class="separator:adc5fcd5d5b40f7a9193f38b682f59e38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a95ba2dbd081c6b732c35e8d65e6421c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a95ba2dbd081c6b732c35e8d65e6421c7">save_resources</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../de/dfc/classfastuidraw_1_1resource__base.html">resource_base</a> &gt; &gt; dst) const override</td></tr>
 <tr class="separator:a95ba2dbd081c6b732c35e8d65e6421c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af6c8c7f098e474d97d17d8414d4a1e2d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#af6c8c7f098e474d97d17d8414d4a1e2d">sweep_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float theta, float F=1.0f)</td></tr>
-<tr class="separator:af6c8c7f098e474d97d17d8414d4a1e2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc4b1060abccc4b22498013f8488eae1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#adc4b1060abccc4b22498013f8488eae1">sweep_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float theta, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5">PainterEnums::screen_orientation</a> orientation, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854">PainterEnums::rotation_orientation_t</a> rotation_orientation, float F)</td></tr>
-<tr class="separator:adc4b1060abccc4b22498013f8488eae1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1fc4493e09a7ccd008870b17ea4a337"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#af1fc4493e09a7ccd008870b17ea4a337">sweep_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float theta, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5">PainterEnums::screen_orientation</a> orientation, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854">PainterEnums::rotation_orientation_t</a> rotation_orientation)</td></tr>
-<tr class="separator:af1fc4493e09a7ccd008870b17ea4a337"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dc288fd739007cef535a2685ecff723"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a2dc288fd739007cef535a2685ecff723">sweep_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float theta, float F=1.0f)</td></tr>
+<tr class="separator:a2dc288fd739007cef535a2685ecff723"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95b98791f1c06d8e9275d5bde833f14d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a95b98791f1c06d8e9275d5bde833f14d">sweep_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float theta, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5">PainterEnums::screen_orientation</a> orientation, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854">PainterEnums::rotation_orientation_t</a> rotation_orientation, float F)</td></tr>
+<tr class="separator:a95b98791f1c06d8e9275d5bde833f14d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acebed79672413e26d6c649e3bd886162"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#acebed79672413e26d6c649e3bd886162">sweep_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float theta, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5">PainterEnums::screen_orientation</a> orientation, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854">PainterEnums::rotation_orientation_t</a> rotation_orientation)</td></tr>
+<tr class="separator:acebed79672413e26d6c649e3bd886162"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab540c15e401787b11a06945c97efc0ab"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#af106154c0652635f6474ce45054db2e1">gradient_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#ab540c15e401787b11a06945c97efc0ab">type</a> (void) const</td></tr>
 <tr class="separator:ab540c15e401787b11a06945c97efc0ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> defines the <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> that the shaders of a <a class="el" href="../../da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html">PainterGradientBrushShader</a> consume. It specifies what <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> to use together with the geometric properties of the gradient. </p>
+<div class="textblock"><p>A <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a> defines the <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html">PainterBrushShaderData</a> that the shaders of a <a class="el" href="../../da/d9f/classfastuidraw_1_1_painter_gradient_brush_shader.html">PainterGradientBrushShader</a> consume. It specifies what <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> to use together with the geometric properties of the gradient. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/dce/painter__gradient__brush__shader__data_8hpp_source.html#l00041">41</a> of file <a class="el" href="../../d5/dce/painter__gradient__brush__shader__data_8hpp_source.html">painter_gradient_brush_shader_data.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
@@ -205,15 +205,15 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Bit encoding for packing <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html#af0294de75b0de1e52460dba27594dec7">ColorStopSequenceOnAtlas::texel_location()</a> </p>
+<p>Bit encoding for packing <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#a99f48a953d08b5739791183665810cb5">ColorStopSequence::texel_location()</a> </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4adb7c7fed1690f6237c63e8338cb35834"></a>color_stop_x_num_bits&#160;</td><td class="fielddoc"><p>number bits to encode <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html#af0294de75b0de1e52460dba27594dec7">ColorStopSequenceOnAtlas::texel_location()</a>.x() </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4adb7c7fed1690f6237c63e8338cb35834"></a>color_stop_x_num_bits&#160;</td><td class="fielddoc"><p>number bits to encode <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#a99f48a953d08b5739791183665810cb5">ColorStopSequence::texel_location()</a>.x() </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4a9ff2d5be0b0e82ae3365f65ccb1e59e5"></a>color_stop_y_num_bits&#160;</td><td class="fielddoc"><p>number bits to encode <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html#af0294de75b0de1e52460dba27594dec7">ColorStopSequenceOnAtlas::texel_location()</a>.y() </p>
+<tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4a9ff2d5be0b0e82ae3365f65ccb1e59e5"></a>color_stop_y_num_bits&#160;</td><td class="fielddoc"><p>number bits to encode <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#a99f48a953d08b5739791183665810cb5">ColorStopSequence::texel_location()</a>.y() </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4a54053918ebd59f3192d57eba588c354e"></a>color_stop_x_bit0&#160;</td><td class="fielddoc"><p>where <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html#af0294de75b0de1e52460dba27594dec7">ColorStopSequenceOnAtlas::texel_location()</a>.x() is encoded </p>
+<tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4a54053918ebd59f3192d57eba588c354e"></a>color_stop_x_bit0&#160;</td><td class="fielddoc"><p>where <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#a99f48a953d08b5739791183665810cb5">ColorStopSequence::texel_location()</a>.x() is encoded </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4a73a519f214d95825199d27fecd6c873a"></a>color_stop_y_bit0&#160;</td><td class="fielddoc"><p>where <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html#af0294de75b0de1e52460dba27594dec7">ColorStopSequenceOnAtlas::texel_location()</a>.y() is encoded </p>
+<tr><td class="fieldname"><a id="a0038b722d51ad1ae579aaf9bbf430fe4a73a519f214d95825199d27fecd6c873a"></a>color_stop_y_bit0&#160;</td><td class="fielddoc"><p>where <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#a99f48a953d08b5739791183665810cb5">ColorStopSequence::texel_location()</a>.y() is encoded </p>
 </td></tr>
 </table>
 
@@ -245,7 +245,7 @@ Public Member Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="a68a9cce204fc19da55e9c2cd46977e08a9128c7e96b73154eb45a1601786eea16"></a>color_stop_xy_offset&#160;</td><td class="fielddoc"><p>Offset to the x and y-location of the color stops. The offset is stored as a uint32 packed as according in the enumeration <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a0038b722d51ad1ae579aaf9bbf430fe4">color_stop_xy_encoding</a> </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a68a9cce204fc19da55e9c2cd46977e08aebbbe65c62710104056e22f77613428d"></a>color_stop_length_offset&#160;</td><td class="fielddoc"><p>Offset to the length of the color stop in -texels-, i.e. <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html#a18669c08e25810d7ad47bc17bd9cd65e">ColorStopSequenceOnAtlas::width()</a>, packed as a uint32 </p>
+<tr><td class="fieldname"><a id="a68a9cce204fc19da55e9c2cd46977e08aebbbe65c62710104056e22f77613428d"></a>color_stop_length_offset&#160;</td><td class="fielddoc"><p>Offset to the length of the color stop in -texels-, i.e. <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#a274621ec432c1c74c22c8e69ce2db66e">ColorStopSequence::width()</a>, packed as a uint32 </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a68a9cce204fc19da55e9c2cd46977e08aeb6b1e52104848410378bd228bc019c8"></a>linear_data_size&#160;</td><td class="fielddoc"><p>Size of the data for linear gradients. </p>
 </td></tr>
@@ -362,8 +362,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a95826564d705c1f39889f9dcf783ff21"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a95826564d705c1f39889f9dcf783ff21">&#9670;&nbsp;</a></span>color_stops()</h2>
+<a id="a00bcf3c0b9037dcea6b7541794e25d1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a00bcf3c0b9037dcea6b7541794e25d1e">&#9670;&nbsp;</a></span>color_stops()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -372,7 +372,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a>&gt;&amp; fastuidraw::PainterGradientBrushShaderData::color_stops </td>
+          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a>&gt;&amp; fastuidraw::PainterGradientBrushShaderData::color_stops </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -385,7 +385,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns the value of the handle to the <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html" title="A ColorStopSequenceOnAtlas is a ColorStopSequence on a ColorStopAtlas. A ColorStopAtlas is backed by ...">ColorStopSequenceOnAtlas</a> that the brush is set to use. </p>
+<p>Returns the value of the handle to the <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html" title="A ColorStopSequence is a ColorStopArray on a ColorStopAtlas. A ColorStopAtlas is backed by a 1D textu...">ColorStopSequence</a> that the brush is set to use. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/dce/painter__gradient__brush__shader__data_8hpp_source.html#l00206">206</a> of file <a class="el" href="../../d5/dce/painter__gradient__brush__shader__data_8hpp_source.html">painter_gradient_brush_shader_data.hpp</a>.</p>
 
@@ -420,8 +420,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aee0395334036434c0a1122ceca73d420"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee0395334036434c0a1122ceca73d420">&#9670;&nbsp;</a></span>linear_gradient()</h2>
+<a id="aa4dca6d88a7381ec40cce257205c351b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4dca6d88a7381ec40cce257205c351b">&#9670;&nbsp;</a></span>linear_gradient()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -432,7 +432,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a>&amp; fastuidraw::PainterGradientBrushShaderData::linear_gradient </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
@@ -569,8 +569,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a83cc55e0172600d910c3d79ce5f020ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a83cc55e0172600d910c3d79ce5f020ec">&#9670;&nbsp;</a></span>radial_gradient() <span class="overload">[1/2]</span></h2>
+<a id="a4eea00f171adc99a422dc305a2e0ac5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4eea00f171adc99a422dc305a2e0ac5e">&#9670;&nbsp;</a></span>radial_gradient() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -581,7 +581,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a>&amp; fastuidraw::PainterGradientBrushShaderData::radial_gradient </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
@@ -635,8 +635,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a0d32c852b67855f553ce562d75a669dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d32c852b67855f553ce562d75a669dc">&#9670;&nbsp;</a></span>radial_gradient() <span class="overload">[2/2]</span></h2>
+<a id="a03c99d210cc589657e8461f428e4b33c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03c99d210cc589657e8461f428e4b33c">&#9670;&nbsp;</a></span>radial_gradient() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -647,7 +647,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a>&amp; fastuidraw::PainterGradientBrushShaderData::radial_gradient </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
@@ -674,7 +674,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Sets the brush to have a radial gradient. Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a83cc55e0172600d910c3d79ce5f020ec">radial_gradient</a>(cs, p, 0.0f, p, r);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+<p>Sets the brush to have a radial gradient. Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a4eea00f171adc99a422dc305a2e0ac5e">radial_gradient</a>(cs, p, 0.0f, p, r);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cs</td><td>color stops for gradient. If handle is invalid, then sets brush to not have a gradient. </td></tr>
     <tr><td class="paramname">p</td><td>start and end position of gradient </td></tr>
@@ -750,8 +750,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af6c8c7f098e474d97d17d8414d4a1e2d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af6c8c7f098e474d97d17d8414d4a1e2d">&#9670;&nbsp;</a></span>sweep_gradient() <span class="overload">[1/3]</span></h2>
+<a id="a2dc288fd739007cef535a2685ecff723"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dc288fd739007cef535a2685ecff723">&#9670;&nbsp;</a></span>sweep_gradient() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -762,7 +762,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a>&amp; fastuidraw::PainterGradientBrushShaderData::sweep_gradient </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
@@ -809,8 +809,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="adc4b1060abccc4b22498013f8488eae1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adc4b1060abccc4b22498013f8488eae1">&#9670;&nbsp;</a></span>sweep_gradient() <span class="overload">[2/3]</span></h2>
+<a id="a95b98791f1c06d8e9275d5bde833f14d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95b98791f1c06d8e9275d5bde833f14d">&#9670;&nbsp;</a></span>sweep_gradient() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -821,7 +821,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a>&amp; fastuidraw::PainterGradientBrushShaderData::sweep_gradient </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
@@ -882,8 +882,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af1fc4493e09a7ccd008870b17ea4a337"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1fc4493e09a7ccd008870b17ea4a337">&#9670;&nbsp;</a></span>sweep_gradient() <span class="overload">[3/3]</span></h2>
+<a id="acebed79672413e26d6c649e3bd886162"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acebed79672413e26d6c649e3bd886162">&#9670;&nbsp;</a></span>sweep_gradient() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -894,7 +894,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html">PainterGradientBrushShaderData</a>&amp; fastuidraw::PainterGradientBrushShaderData::sweep_gradient </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d8/d4e/classfastuidraw_1_1_color_stop_sequence_on_atlas.html">ColorStopSequenceOnAtlas</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>cs</em>, </td>
         </tr>
         <tr>
@@ -933,7 +933,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Sets the brush to have a sweep gradient with a repeat factor of 1.0 and where the sign is determined by a <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5" title="Enumeration to indicate in what direction the y-coordinate increases. ">PainterEnums::screen_orientation</a> and a <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854" title="Enumeration to specify orientation of a rotation. ">PainterEnums::rotation_orientation_t</a>. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#af6c8c7f098e474d97d17d8414d4a1e2d">sweep_gradient</a>(cs, p, theta, orientation, rotation_orientation, 1.0f, repeat);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+<p>Sets the brush to have a sweep gradient with a repeat factor of 1.0 and where the sign is determined by a <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a3e96faa847c849ddd2caea92b8a877e5" title="Enumeration to indicate in what direction the y-coordinate increases. ">PainterEnums::screen_orientation</a> and a <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#ae7bcfa0a4d11a1129608eae839c8b854" title="Enumeration to specify orientation of a rotation. ">PainterEnums::rotation_orientation_t</a>. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a2dc288fd739007cef535a2685ecff723">sweep_gradient</a>(cs, p, theta, orientation, rotation_orientation, 1.0f, repeat);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cs</td><td>color stops for gradient. If handle is invalid, then sets brush to not have a gradient. </td></tr>
     <tr><td class="paramname">p</td><td>position of gradient </td></tr>

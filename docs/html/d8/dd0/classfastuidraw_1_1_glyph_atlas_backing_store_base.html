@@ -87,14 +87,10 @@ Inheritance diagram for fastuidraw::GlyphAtlasBackingStoreBase:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a33692537f006b7cf51c12fcdead9071d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#a33692537f006b7cf51c12fcdead9071d">GlyphAtlasBackingStoreBase</a> (unsigned int psize, bool presizable)</td></tr>
-<tr class="separator:a33692537f006b7cf51c12fcdead9071d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a686fa06038361cdc783c669dd43dc0a9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#a686fa06038361cdc783c669dd43dc0a9">flush</a> (void)=0</td></tr>
 <tr class="separator:a686fa06038361cdc783c669dd43dc0a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e69b363a7cdc8df1f136bbff44f6b9b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#a3e69b363a7cdc8df1f136bbff44f6b9b">resize</a> (unsigned int new_size)</td></tr>
 <tr class="separator:a3e69b363a7cdc8df1f136bbff44f6b9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbaaf4fc8f6213e037165fc022d6b174"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#abbaaf4fc8f6213e037165fc022d6b174">resizeable</a> (void) const</td></tr>
-<tr class="separator:abbaaf4fc8f6213e037165fc022d6b174"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a8c6484452e7d2dc930ab56b7200e95"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#a2a8c6484452e7d2dc930ab56b7200e95">set_values</a> (unsigned int location, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> &gt; pdata)=0</td></tr>
 <tr class="separator:a2a8c6484452e7d2dc930ab56b7200e95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a771a210dda4164b31217894c3d870a"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#a4a771a210dda4164b31217894c3d870a">size</a> (void)</td></tr>
@@ -105,6 +101,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
+<tr class="memitem:a0fd50f9450b261f4a220cb8cf5763604"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#a0fd50f9450b261f4a220cb8cf5763604">GlyphAtlasBackingStoreBase</a> (unsigned int psize)</td></tr>
+<tr class="separator:a0fd50f9450b261f4a220cb8cf5763604"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f05e4f78a504aae124f44b62fc2898c"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#a3f05e4f78a504aae124f44b62fc2898c">resize_implement</a> (unsigned int new_size)=0</td></tr>
 <tr class="separator:a3f05e4f78a504aae124f44b62fc2898c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -122,35 +120,32 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../de/d47/glyph__atlas_8hpp_source.html#l00042">42</a> of file <a class="el" href="../../de/d47/glyph__atlas_8hpp_source.html">glyph_atlas.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a33692537f006b7cf51c12fcdead9071d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a33692537f006b7cf51c12fcdead9071d">&#9670;&nbsp;</a></span>GlyphAtlasBackingStoreBase()</h2>
+<a id="a0fd50f9450b261f4a220cb8cf5763604"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fd50f9450b261f4a220cb8cf5763604">&#9670;&nbsp;</a></span>GlyphAtlasBackingStoreBase()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">fastuidraw::GlyphAtlasBackingStoreBase::GlyphAtlasBackingStoreBase </td>
           <td>(</td>
           <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>psize</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>psize</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>presizable</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <p>Ctor. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">psize</td><td>number of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html" title="Union to store 32-bit data. ">generic_data</a> elements that the <a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html" title="GlyphAtlasStoreBase represents an interface to an aray of generic_data values. ">GlyphAtlasBackingStoreBase</a> backs </td></tr>
-    <tr><td class="paramname">presizable</td><td>if true the object can be resized to be larger </td></tr>
   </table>
   </dd>
 </dl>
@@ -200,7 +195,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Resize the object to a larger size. The routine <a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#abbaaf4fc8f6213e037165fc022d6b174">resizeable()</a> must return true, if not the function FASTUIDRAWasserts. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Resize the object to a larger size. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">new_size</td><td>new number of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> for the store to back </td></tr>
   </table>
@@ -238,25 +233,6 @@ Additional Inherited Members</h2></td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="abbaaf4fc8f6213e037165fc022d6b174"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abbaaf4fc8f6213e037165fc022d6b174">&#9670;&nbsp;</a></span>resizeable()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool fastuidraw::GlyphAtlasBackingStoreBase::resizeable </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns true if and only if this object can be resized to a larger size. </p>
 
 </div>
 </div>

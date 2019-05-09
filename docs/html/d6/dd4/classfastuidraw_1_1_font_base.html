@@ -66,7 +66,7 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="../../dc/daf/classfastuidraw_1_1_font_base-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">fastuidraw::FontBase Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span><div class="ingroups"><a class="el" href="../../df/d67/group___text.html">Text</a></div></div>  </div>
+<div class="title">fastuidraw::FontBase Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span><div class="ingroups"><a class="el" href="../../de/df6/group___glyph.html">Glyph</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -89,7 +89,7 @@ Inheritance diagram for fastuidraw::FontBase:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9bd03619e87bc1d29bf1b80dd547693a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a9bd03619e87bc1d29bf1b80dd547693a">FontBase</a> (const <a class="el" href="../../df/d1f/classfastuidraw_1_1_font_properties.html">FontProperties</a> &amp;pprops, const <a class="el" href="../../da/dc3/classfastuidraw_1_1_font_metrics.html">FontMetrics</a> &amp;pmetrics)</td></tr>
 <tr class="separator:a9bd03619e87bc1d29bf1b80dd547693a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8dcb3f2a6327ef4ecfeea9c2a7575fbe"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a8dcb3f2a6327ef4ecfeea9c2a7575fbe">can_create_rendering_data</a> (enum <a class="el" href="../../df/d67/group___text.html#ga6308023a8250ddf0776ab2bd52e0d02d">glyph_type</a> tp) const =0</td></tr>
+<tr class="memitem:a8dcb3f2a6327ef4ecfeea9c2a7575fbe"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a8dcb3f2a6327ef4ecfeea9c2a7575fbe">can_create_rendering_data</a> (enum <a class="el" href="../../de/df6/group___glyph.html#ga6308023a8250ddf0776ab2bd52e0d02d">glyph_type</a> tp) const =0</td></tr>
 <tr class="separator:a8dcb3f2a6327ef4ecfeea9c2a7575fbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afaf3cd589fedb67b5c256282960a1d4b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#afaf3cd589fedb67b5c256282960a1d4b">compute_metrics</a> (uint32_t <a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a47d0bd9968a32a169677812ead1fdafd">glyph_code</a>, <a class="el" href="../../dd/d04/classfastuidraw_1_1_glyph_metrics_value.html">GlyphMetricsValue</a> &amp;<a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a26f175284a07e7ff46710d8944d1aa1e">metrics</a>) const =0</td></tr>
 <tr class="separator:afaf3cd589fedb67b5c256282960a1d4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -97,7 +97,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab37c24be469396e0e3550128bbfd9685"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47d0bd9968a32a169677812ead1fdafd"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#a47d0bd9968a32a169677812ead1fdafd">glyph_code</a> (uint32_t pcharacter_code) const</td></tr>
 <tr class="separator:a47d0bd9968a32a169677812ead1fdafd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1f5c378b3668b5aa42fe64986e058da"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab1f5c378b3668b5aa42fe64986e058da">glyph_codes</a> (enum <a class="el" href="../../df/d67/group___text.html#gad84db30962afd79ec6c0f6aeac661a93">CharacterEncoding::encoding_value_t</a> encoding, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const uint32_t &gt; in_character_codes, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; uint32_t &gt; out_glyph_codes) const =0</td></tr>
+<tr class="memitem:ab1f5c378b3668b5aa42fe64986e058da"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab1f5c378b3668b5aa42fe64986e058da">glyph_codes</a> (enum <a class="el" href="../../de/df6/group___glyph.html#gad84db30962afd79ec6c0f6aeac661a93">CharacterEncoding::encoding_value_t</a> encoding, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const uint32_t &gt; in_character_codes, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; uint32_t &gt; out_glyph_codes) const =0</td></tr>
 <tr class="separator:ab1f5c378b3668b5aa42fe64986e058da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:accf7580750f2ef5dd2a4f8eba087b6ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#accf7580750f2ef5dd2a4f8eba087b6ba">glyph_codes</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const uint32_t &gt; in_character_codes, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; uint32_t &gt; out_glyph_codes) const</td></tr>
 <tr class="separator:accf7580750f2ef5dd2a4f8eba087b6ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -174,7 +174,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">virtual bool fastuidraw::FontBase::can_create_rendering_data </td>
           <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../df/d67/group___text.html#ga6308023a8250ddf0776ab2bd52e0d02d">glyph_type</a>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../de/df6/group___glyph.html#ga6308023a8250ddf0776ab2bd52e0d02d">glyph_type</a>&#160;</td>
           <td class="paramname"><em>tp</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -341,7 +341,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">virtual void fastuidraw::FontBase::glyph_codes </td>
           <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../df/d67/group___text.html#gad84db30962afd79ec6c0f6aeac661a93">CharacterEncoding::encoding_value_t</a>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../de/df6/group___glyph.html#gad84db30962afd79ec6c0f6aeac661a93">CharacterEncoding::encoding_value_t</a>&#160;</td>
           <td class="paramname"><em>encoding</em>, </td>
         </tr>
         <tr>
@@ -414,7 +414,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab1f5c378b3668b5aa42fe64986e058da">glyph_codes</a>(<a class="code" href="../../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93a9a2f888b9c1673f1e74328dffac3e84e">CharacterEncoding::unicode</a>,</div><div class="line">            in_character_codes,</div><div class="line">            out_glyph_codes);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../d6/dd4/classfastuidraw_1_1_font_base.html#ab1f5c378b3668b5aa42fe64986e058da">glyph_codes</a>(<a class="code" href="../../de/df6/group___glyph.html#ggad84db30962afd79ec6c0f6aeac661a93a9a2f888b9c1673f1e74328dffac3e84e">CharacterEncoding::unicode</a>,</div><div class="line">            in_character_codes,</div><div class="line">            out_glyph_codes);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">in_character_codes</td><td>character codes from which to fetch glyph codes </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">out_glyph_codes</td><td>location to which to write glyph codes. </td></tr>

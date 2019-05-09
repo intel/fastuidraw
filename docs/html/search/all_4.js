@@ -6,7 +6,7 @@ var searchData=
   ['edge_5ftype_5ft',['edge_type_t',['../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd',1,'fastuidraw::PathEnums']]],
   ['empty',['empty',['../de/df7/classfastuidraw_1_1c__array.html#a9296fcd2645897dc4b86beb31994f64d',1,'fastuidraw::c_array']]],
   ['enable_5fextension',['enable_extension',['../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a0b68f170619adbbbd947720518beda23a764f414ee58499d20b5e61dd8c1f09db',1,'fastuidraw::glsl::ShaderSource']]],
-  ['encoding_5fvalue_5ft',['encoding_value_t',['../df/d67/group___text.html#gad84db30962afd79ec6c0f6aeac661a93',1,'fastuidraw::CharacterEncoding']]],
+  ['encoding_5fvalue_5ft',['encoding_value_t',['../de/df6/group___glyph.html#gad84db30962afd79ec6c0f6aeac661a93',1,'fastuidraw::CharacterEncoding']]],
   ['end',['end',['../da/de0/classfastuidraw_1_1_painter.html#a36fdc36656a738b260c48dd72b6e23c4',1,'fastuidraw::Painter::end()'],['../de/df7/classfastuidraw_1_1c__array.html#a962e3d0eba68c5f7479e25b69a7403dd',1,'fastuidraw::c_array::end()'],['../d1/d96/classfastuidraw_1_1vec_n.html#a9c007b3082287f79f48df9d113946f83',1,'fastuidraw::vecN::end(void)'],['../d1/d96/classfastuidraw_1_1vec_n.html#aca6250007d77f7c8679ef10d6b30eec5',1,'fastuidraw::vecN::end(void) const']]],
   ['end_5fc_5fptr',['end_c_ptr',['../de/df7/classfastuidraw_1_1c__array.html#ad221cbb25ea98010c3a6d8f2178f4279',1,'fastuidraw::c_array']]],
   ['end_5fcoverage_5fbuffer',['end_coverage_buffer',['../da/de0/classfastuidraw_1_1_painter.html#a7a4983d7d49203f64d12721da9865e0a',1,'fastuidraw::Painter']]],

@@ -68,7 +68,7 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="../../dd/d81/classfastuidraw_1_1_glyph_render_data_restricted_rays-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">fastuidraw::GlyphRenderDataRestrictedRays Class Reference<div class="ingroups"><a class="el" href="../../df/d67/group___text.html">Text</a></div></div>  </div>
+<div class="title">fastuidraw::GlyphRenderDataRestrictedRays Class Reference<div class="ingroups"><a class="el" href="../../de/df6/group___glyph.html">Glyph</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -393,13 +393,13 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Finalize the input data after which no more contours or curves may be added; all added contours must be closed before calling <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a15988b095a25a4e1e742ec236cf2c746">finalize()</a>. Once <a class="el" href="../../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a15988b095a25a4e1e742ec236cf2c746">finalize()</a> is called, no further data can be added. How the data is broken into bounding boxes is specified by</p><ul>
 <li>units_per_EM argument (see below)</li>
-<li><a class="el" href="../../df/d67/group___text.html#ga3a4476187aacee3b937b11892c4a224f">GlyphGenerateParams::restricted_rays_minimum_render_size()</a></li>
-<li><a class="el" href="../../df/d67/group___text.html#ga1df0b8e5887bb5415c4e4a82a3b619c0">GlyphGenerateParams::restricted_rays_split_thresh()</a></li>
-<li><a class="el" href="../../df/d67/group___text.html#gab423be05d8272557f0856be3f2ec3acc">GlyphGenerateParams::restricted_rays_max_recursion()</a> All contours added must be closed as well. <dl class="params"><dt>Parameters</dt><dd>
+<li><a class="el" href="../../de/df6/group___glyph.html#ga3a4476187aacee3b937b11892c4a224f">GlyphGenerateParams::restricted_rays_minimum_render_size()</a></li>
+<li><a class="el" href="../../de/df6/group___glyph.html#ga1df0b8e5887bb5415c4e4a82a3b619c0">GlyphGenerateParams::restricted_rays_split_thresh()</a></li>
+<li><a class="el" href="../../de/df6/group___glyph.html#gab423be05d8272557f0856be3f2ec3acc">GlyphGenerateParams::restricted_rays_max_recursion()</a> All contours added must be closed as well. <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">f</td><td>fill rule to use for rendering </td></tr>
     <tr><td class="paramname">glyph_rect</td><td>the rect of the glyph </td></tr>
-    <tr><td class="paramname">units_per_EM</td><td>the units per EM for the glyph; this value together with <a class="el" href="../../df/d67/group___text.html#ga3a4476187aacee3b937b11892c4a224f">GlyphGenerateParams::restricted_rays_minimum_render_size()</a> is used to decide how close a curve may be to a bounding box to decide if it is included. </td></tr>
+    <tr><td class="paramname">units_per_EM</td><td>the units per EM for the glyph; this value together with <a class="el" href="../../de/df6/group___glyph.html#ga3a4476187aacee3b937b11892c4a224f">GlyphGenerateParams::restricted_rays_minimum_render_size()</a> is used to decide how close a curve may be to a bounding box to decide if it is included. </td></tr>
   </table>
   </dd>
 </dl>

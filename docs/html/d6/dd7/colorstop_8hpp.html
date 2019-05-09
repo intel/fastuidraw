@@ -75,15 +75,21 @@ $(function() {
 <div class="textblock"><code>#include &lt;<a class="el" href="../../d0/d3f/util_8hpp_source.html">fastuidraw/util/util.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../d0/d19/vec_n_8hpp_source.html">fastuidraw/util/vecN.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../db/d2d/c__array_8hpp_source.html">fastuidraw/util/c_array.hpp</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">fastuidraw/util/reference_counted.hpp</a>&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for colorstop.hpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d2/dfc/colorstop_8hpp__incl.png" border="0" usemap="#_2media_2kevin_2_p4_2github_2fastuidraw_2inc_2fastuidraw_2colorstop_8hpp" alt=""/></div>
 <map name="_2media_2kevin_2_p4_2github_2fastuidraw_2inc_2fastuidraw_2colorstop_8hpp" id="_2media_2kevin_2_p4_2github_2fastuidraw_2inc_2fastuidraw_2colorstop_8hpp">
-<area shape="rect" id="node2" href="../../d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="278,259,427,285"/>
-<area shape="rect" id="node5" href="../../d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="58,184,221,211"/>
-<area shape="rect" id="node10" href="../../db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="171,109,345,136"/>
-<area shape="rect" id="node7" href="../../d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="5,259,167,285"/>
+<area shape="rect" id="node2" href="../../d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="325,295,474,322"/>
+<area shape="rect" id="node5" href="../../d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="74,206,237,233"/>
+<area shape="rect" id="node10" href="../../db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="61,117,236,143"/>
+<area shape="rect" id="node11" href="../../d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="559,109,720,151"/>
+<area shape="rect" id="node7" href="../../d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="92,295,253,322"/>
+<area shape="rect" id="node12" href="../../da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="807,199,973,240"/>
+<area shape="rect" id="node16" href="../../dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="363,199,524,240"/>
+<area shape="rect" id="node17" href="../../d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="548,199,731,240"/>
+<area shape="rect" id="node14" href="../../dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="875,288,1041,329"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -117,8 +123,11 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html">fastuidraw::ColorStop</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html" title="A ColorStop is a pair consisting of an RGBA value and a place. The value of the place is a floating p...">ColorStop</a> is a pair consisting of an RGBA value and a place. The value of the place is a floating point value in the range [0, 1].  <a href="../../dd/d78/classfastuidraw_1_1_color_stop.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d27/classfastuidraw_1_1_color_stop_array.html">fastuidraw::ColorStopArray</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../db/d27/classfastuidraw_1_1_color_stop_array.html" title="A ColorStopArray is a sequence of ColorStop values used to define the color stops of a gradient...">ColorStopArray</a> is a sequence of <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html" title="A ColorStop is a pair consisting of an RGBA value and a place. The value of the place is a floating p...">ColorStop</a> values used to define the color stops of a gradient.  <a href="../../db/d27/classfastuidraw_1_1_color_stop_array.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">fastuidraw::ColorStopSequence</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html" title="A ColorStopSequence is a sequence of ColorStop values used to define the color stops of a gradient...">ColorStopSequence</a> is a sequence of <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html" title="A ColorStop is a pair consisting of an RGBA value and a place. The value of the place is a floating p...">ColorStop</a> values used to define the color stops of a gradient.  <a href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html" title="A ColorStopSequence is a ColorStopArray on a ColorStopAtlas. A ColorStopAtlas is backed by a 1D textu...">ColorStopSequence</a> is a <a class="el" href="../../db/d27/classfastuidraw_1_1_color_stop_array.html">ColorStopArray</a> on a <a class="el" href="../../db/d62/classfastuidraw_1_1_color_stop_atlas.html">ColorStopAtlas</a>. A <a class="el" href="../../db/d62/classfastuidraw_1_1_color_stop_atlas.html">ColorStopAtlas</a> is backed by a 1D texture array with linear filtering. The values of <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html#a6d698f2c3a50a16422fc6be7ddb525d3">ColorStop::m_place</a> are discretized. Values in between the <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html">ColorStop</a> 's of a <a class="el" href="../../db/d27/classfastuidraw_1_1_color_stop_array.html">ColorStopArray</a> are interpolated.  <a href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>

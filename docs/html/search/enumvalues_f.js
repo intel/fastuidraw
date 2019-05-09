@@ -16,7 +16,7 @@ var searchData=
   ['repeat_5fwindow_5fy_5foffset',['repeat_window_y_offset',['../d9/d57/classfastuidraw_1_1_painter_brush.html#a550f35169b2cd94b7562cbac77a381e1ad13735b3d828568a496737328b8ac90d',1,'fastuidraw::PainterBrush']]],
   ['repeat_5fwindow_5fy_5fspread_5ftype_5fmask',['repeat_window_y_spread_type_mask',['../d9/d57/classfastuidraw_1_1_painter_brush.html#ad9c15293a1d07e0075b685591396eb00aa3b5396e8aede052ff11f68f0eacaa36',1,'fastuidraw::PainterBrush']]],
   ['require_5fextension',['require_extension',['../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html#a0b68f170619adbbbd947720518beda23af6784f1eb7d437e630ef7725105139e0',1,'fastuidraw::glsl::ShaderSource']]],
-  ['restricted_5frays_5fglyph',['restricted_rays_glyph',['../df/d67/group___text.html#gga6308023a8250ddf0776ab2bd52e0d02dae895767e029ffe27df957b378a548b7c',1,'fastuidraw']]],
+  ['restricted_5frays_5fglyph',['restricted_rays_glyph',['../de/df6/group___glyph.html#gga6308023a8250ddf0776ab2bd52e0d02dae895767e029ffe27df957b378a548b7c',1,'fastuidraw']]],
   ['reverse_5fsubtract',['REVERSE_SUBTRACT',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a73b66e27681b83563258b0f2334c2355ad41ca92ad0dc487661efae620359145e',1,'fastuidraw::BlendMode']]],
   ['rgba_5fformat',['rgba_format',['../dc/dd5/classfastuidraw_1_1_image.html#a689a3d5fde110d49bbac1f1c31c1f535a8cc2856db82dbaa0de04be46351c5741',1,'fastuidraw::Image']]],
   ['rounded_5fcaps',['rounded_caps',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa5c175ac2ce1367be331fca16da7cb3c7',1,'fastuidraw::PainterEnums']]],

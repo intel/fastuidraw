@@ -29,5 +29,5 @@ var searchData=
   ['miter_5fjoins',['miter_joins',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbcaba337968ef1125d91a73aeae4c043b58',1,'fastuidraw::PainterEnums']]],
   ['move_5fto_5farc_5fcenter_5fbit',['move_to_arc_center_bit',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a30191120a8178444a9e67e86ecee4c9aa5b7c6285f907a625791d8087b5a2ef7f',1,'fastuidraw::ArcStrokedPoint']]],
   ['move_5fto_5farc_5fcenter_5fmask',['move_to_arc_center_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0ad673a4565bfd9ec7f66558c589b2452a',1,'fastuidraw::ArcStrokedPoint']]],
-  ['ms_5fsymbol',['ms_symbol',['../df/d67/group___text.html#ggad84db30962afd79ec6c0f6aeac661a93a70978f3ba7b36ca23fa301658de2c747',1,'fastuidraw::CharacterEncoding']]]
+  ['ms_5fsymbol',['ms_symbol',['../de/df6/group___glyph.html#ggad84db30962afd79ec6c0f6aeac661a93a70978f3ba7b36ca23fa301658de2c747',1,'fastuidraw::CharacterEncoding']]]
 ];

@@ -1,5 +1,0 @@
-<map id="fastuidraw::ColorStopSequenceOnAtlas" name="fastuidraw::ColorStopSequenceOnAtlas">
-<area shape="rect" id="node2" href="$de/dfc/classfastuidraw_1_1resource__base.html" title="A common base class to use for resources that need to be saved opaquely. " alt="" coords="21,169,196,196"/>
-<area shape="rect" id="node3" href="$d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="13,80,205,121"/>
-<area shape="rect" id="node4" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="27,5,190,32"/>
-</map>
