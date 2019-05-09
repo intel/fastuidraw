@@ -351,83 +351,6 @@ namespace fastuidraw
     unlock_resources(void);
 
     /*!
-     * Returns the number of index color tiles that are available
-     * in the atlas without resizing the AtlasIndexBackingStoreBase
-     * of the ImageAtlas.
-     */
-    int
-    number_free_index_tiles(void) const;
-
-    /*!
-     * Adds an index tile that indexes into color data
-     * \param data array of tiles as returned by add_color_tile()
-     */
-    ivec3
-    add_index_tile(c_array<const ivec3> data);
-
-    /*!
-     * Adds an index tile that indexes into the index data. This is needed
-     * for large images where more than one level of index look up is
-     * needed to access the image
-     * \param data array of tiles as returned by add_index_tile()
-     */
-    ivec3
-    add_index_tile_index_data(c_array<const ivec3> data);
-
-    /*!
-     * Mark a tile as free in the atlas
-     * \param tile tile to free as returned by add_index_tile().
-     */
-    void
-    delete_index_tile(ivec3 tile);
-
-    /*!
-     * Adds a tile to the atlas returning the location
-     * (in pixels) of the tile in the backing store
-     * of the atlas.
-     * \param src_xy location from ImageSourceBase to take data
-     * \param image_data image data to which to set the tile
-     */
-    ivec3
-    add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data);
-
-    /*!
-     * Adds a tile of a constant color to the atlas returning
-     * the location (in pixels) of the tile in the backing store
-     * of the atlas.
-     * \param color_data color value to which to set all pixels of
-     *                   the tile
-     */
-    ivec3
-    add_color_tile(u8vec4 color_data);
-
-    /*!
-     * Mark a tile as free in the atlas
-     * \param tile tile to free as returned by add_color_tile().
-     */
-    void
-    delete_color_tile(ivec3 tile);
-
-    /*!
-     * Returns the number of free color tiles that are available
-     * in the atlas without resizing the AtlasColorBackingStoreBase
-     * of the ImageAtlas.
-     */
-    int
-    number_free_color_tiles(void) const;
-
-    /*!
-     * Resize the color and image backing stores so that
-     * the given number of color and index tiles can also
-     * be added to the atlas without needing to free any
-     * tiles.
-     * \param num_color_tiles number of color tiles
-     * \param num_index_tiles number of index tiles
-     */
-    void
-    resize_to_fit(int num_color_tiles, int num_index_tiles);
-
-    /*!
      * Queue a ResourceReleaseAction to be executed when resources are
      * not locked down, see lock_resources() and unlock_resources().
      */
@@ -453,6 +376,8 @@ namespace fastuidraw
                reference_counted_ptr<AtlasIndexBackingStoreBase> pindex_store);
 
   private:
+    friend class Image;
+
     /*!
      * Construct an \ref Image backed by an \ref ImageAtlas. If there is
      * insufficient room on the atlas, returns a nullptr handle.
