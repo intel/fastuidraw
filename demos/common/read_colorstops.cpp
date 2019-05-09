@@ -1,7 +1,7 @@
 #include "read_colorstops.hpp"
 
 void
-read_colorstops(fastuidraw::ColorStopSequence &seq, std::istream &input)
+read_colorstops(fastuidraw::ColorStopArray &seq, std::istream &input)
 {
   while(input)
     {

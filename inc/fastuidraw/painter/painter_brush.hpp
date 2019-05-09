@@ -408,7 +408,7 @@ namespace fastuidraw
      * \param spread specifies the gradient spread type
      */
     PainterBrush&
-    linear_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    linear_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                     const vec2 &start_p, const vec2 &end_p,
                     enum spread_type_t spread)
     {
@@ -428,7 +428,7 @@ namespace fastuidraw
      * \param spread specifies the gradient spread type
      */
     PainterBrush&
-    radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    radial_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                     const vec2 &start_p, float start_r,
                     const vec2 &end_p, float end_r,
                     enum spread_type_t spread)
@@ -451,7 +451,7 @@ namespace fastuidraw
      * \param spread specifies the gradient spread type
      */
     PainterBrush&
-    radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    radial_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                     const vec2 &p, float r, enum spread_type_t spread)
     {
       m_data.m_gradient.radial_gradient(cs, p, 0.0f, p, r);
@@ -472,7 +472,7 @@ namespace fastuidraw
      * \param spread specifies the gradient spread type
      */
     PainterBrush&
-    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                    const vec2 &p, float theta, float F,
                    enum spread_type_t spread)
     {
@@ -497,7 +497,7 @@ namespace fastuidraw
      * \param spread specifies the gradient spread type
      */
     PainterBrush&
-    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation,
@@ -527,7 +527,7 @@ namespace fastuidraw
      * \param spread specifies the gradient spread type
      */
     PainterBrush&
-    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation,
@@ -824,10 +824,10 @@ namespace fastuidraw
 
     /*!
      * Returns the value of the handle to the
-     * ColorStopSequenceOnAtlas that the
+     * ColorStopSequence that the
      * brush is set to use.
      */
-    const reference_counted_ptr<const ColorStopSequenceOnAtlas>&
+    const reference_counted_ptr<const ColorStopSequence>&
     color_stops(void) const
     {
       return m_data.m_gradient.color_stops();

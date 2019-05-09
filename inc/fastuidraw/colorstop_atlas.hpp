@@ -24,7 +24,7 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Imaging
+/*!\addtogroup PainterBackend
  * @{
  */
 
@@ -154,6 +154,76 @@ namespace fastuidraw
     ~ColorStopAtlas();
 
     /*!
+     * Create a \ref ColorStopSequence onto this \ref ColorStopAtlas.
+     * \param color_stops source color stops to use
+     * \param pwidth specifies number of texels to occupy on the ColorStopAtlas.
+     *               The discretization of the color stop values is specified by
+     *               the width. Additionally, the width is clamped to \ref
+     *               largest_width_possible().
+     */
+    reference_counted_ptr<ColorStopSequence>
+    create(const ColorStopArray &color_stops, unsigned int pwidth);
+
+    /*!
+     * Returns the width of the ColorStopBackingStore
+     * of the atlas.
+     */
+    unsigned int
+    max_width(void) const;
+
+    /*!
+     * Returns the largest value for the parameter pwidth
+     * allowed taking into account available space on the
+     * ColorStopAtlas.
+     */
+    unsigned int
+    largest_width_possible(void) const;
+
+    /*!
+     * Returns a handle to the backing store of the atlas.
+     */
+    reference_counted_ptr<const ColorStopBackingStore>
+    backing_store(void) const;
+
+    /*!
+     * Increments an internal counter. If this internal
+     * counter is greater than zero, then the reurning
+     * of interval to the free store for later use is
+     * -delayed- until the counter reaches zero again
+     * (see unlock_resources()). The use case is
+     * for buffered painting where the GPU calls are delayed
+     * for later (to batch commands) and an Image may go
+     * out of scope before the GPU commands are sent to
+     * the GPU. By delaying the return of intervals to the
+     * freestore, the color stop data is valid still for
+     * rendering even if the owning ColorStopSequence
+     * has been deleted.
+     */
+    void
+    lock_resources(void);
+
+    /*!
+     * Decrements an internal counter. If this internal
+     * counter reaches zero, those intervals from those
+     * ColorStopSequence objects that were deleted
+     * while the counter was non-zero, are then returned
+     * to the interval free store. See lock_resources()
+     * for more details.
+     */
+    void
+    unlock_resources(void);
+
+    /*!
+     * Calls ColorStopBackingStore::flush() on
+     * the backing store (see backing_store()).
+     */
+    void
+    flush(void) const;
+
+  private:
+    friend class ColorStopSequence;
+
+    /*!
      * Allocate and set on the atlas a sequence of color values
      * to be stored continuously in a common layer. Returns
      * the offset into the layer in ivec2::x() and the which
@@ -180,119 +250,6 @@ namespace fastuidraw
     int
     total_available(void) const;
 
-    /*!
-     * Returns the largest size possible to allocate on the atlas
-     * via allocate(). Note that this value is much smaller
-     * than total_available() because an allocation needs
-     * to all be within the same layer and continuous within the
-     * layer.
-     */
-    int
-    largest_allocation_possible(void) const;
-
-    /*!
-     * Returns the width of the ColorStopBackingStore
-     * of the atlas.
-     */
-    int
-    max_width(void) const;
-
-    /*!
-     * Returns a handle to the backing store of the atlas.
-     */
-    reference_counted_ptr<const ColorStopBackingStore>
-    backing_store(void) const;
-
-    /*!
-     * Increments an internal counter. If this internal
-     * counter is greater than zero, then the reurning
-     * of interval to the free store for later use is
-     * -delayed- until the counter reaches zero again
-     * (see unlock_resources()). The use case is
-     * for buffered painting where the GPU calls are delayed
-     * for later (to batch commands) and an Image may go
-     * out of scope before the GPU commands are sent to
-     * the GPU. By delaying the return of intervals to the
-     * freestore, the color stop data is valid still for
-     * rendering even if the owning ColorStopSequenceOnAtlas
-     * has been deleted.
-     */
-    void
-    lock_resources(void);
-
-    /*!
-     * Decrements an internal counter. If this internal
-     * counter reaches zero, those intervals from those
-     * ColorStopSequenceOnAtlas objects that were deleted
-     * while the counter was non-zero, are then returned
-     * to the interval free store. See lock_resources()
-     * for more details.
-     */
-    void
-    unlock_resources(void);
-
-    /*!
-     * Calls ColorStopBackingStore::flush() on
-     * the backing store (see backing_store()).
-     */
-    void
-    flush(void) const;
-
-  private:
-    void *m_d;
-  };
-
-  /*!
-   * \brief
-   * A ColorStopSequenceOnAtlas is a ColorStopSequence on a ColorStopAtlas.
-   * A ColorStopAtlas is backed by a 1D texture array with linear filtering.
-   * The values of ColorStop::m_place are discretized. Values in between the
-   * ColorStop 's of a ColorStopSequence are interpolated.
-   */
-  class ColorStopSequenceOnAtlas:public resource_base
-  {
-  public:
-    /*!
-     * Ctor.
-     * \param color_stops source color stops to use
-     * \param atlas ColorStopAtlas on to which to place
-     * \param pwidth specifies number of texels to occupy on the ColorStopAtlas.
-     *               The discretization of the color stop values is specified by
-     *               the width. Additionally the width is clamped to
-     *               ColorStopAtlas::max_width().
-     */
-    ColorStopSequenceOnAtlas(const ColorStopSequence &color_stops,
-                             ColorStopAtlas& atlas,
-                             int pwidth);
-
-    ~ColorStopSequenceOnAtlas();
-
-    /*!
-     * Returns the location in the backing store to
-     * the logical start of the ColorStopSequenceOnAtlas.
-     * A ColorStopSequenceOnAtlas is added to an atlas
-     * so that the first and last texel are repeated, thus
-     * allowing for implementation to use linear texture
-     * filtering to implement color interpolation quickly
-     * in a shader.
-     */
-    ivec2
-    texel_location(void) const;
-
-    /*!
-     * Returns the number of texels NOT including repeating the
-     * boundary texels used in the backing store.
-     */
-    int
-    width(void) const;
-
-    /*!
-     * Returns the atlas on which the object resides
-     */
-    reference_counted_ptr<const ColorStopAtlas>
-    atlas(void) const;
-
-  private:
     void *m_d;
   };
 

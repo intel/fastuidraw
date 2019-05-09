@@ -268,7 +268,7 @@ private:
     };
 
   typedef std::pair<std::string,
-                    reference_counted_ptr<ColorStopSequenceOnAtlas> > named_color_stop;
+                    reference_counted_ptr<ColorStopSequence> > named_color_stop;
 
   void
   construct_paths(int w, int h);
@@ -1586,23 +1586,22 @@ construct_color_stops(void)
         end = m_color_stop_args.values().end();
       iter != end; ++iter)
     {
-      reference_counted_ptr<ColorStopSequenceOnAtlas> h;
-      h = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops,
-                                                 m_painter->colorstop_atlas(),
-                                                 iter->second->m_discretization);
+      reference_counted_ptr<ColorStopSequence> h;
+      h = m_painter->colorstop_atlas().create(iter->second->m_stops,
+                                              iter->second->m_discretization);
       m_color_stops.push_back(named_color_stop(iter->first, h));
     }
 
   if (m_color_stops.empty())
     {
-      ColorStopSequence S;
-      reference_counted_ptr<ColorStopSequenceOnAtlas> h;
+      ColorStopArray S;
+      reference_counted_ptr<ColorStopSequence> h;
 
       S.add(ColorStop(u8vec4(0, 255, 0, 255), 0.0f));
       S.add(ColorStop(u8vec4(0, 255, 255, 255), 0.33f));
       S.add(ColorStop(u8vec4(255, 255, 0, 255), 0.66f));
       S.add(ColorStop(u8vec4(255, 0, 0, 255), 1.0f));
-      h = FASTUIDRAWnew ColorStopSequenceOnAtlas(S, m_painter->colorstop_atlas(), 8);
+      h = m_painter->colorstop_atlas().create(S, 8);
       m_color_stops.push_back(named_color_stop("Default ColorStop Sequence", h));
     }
 }

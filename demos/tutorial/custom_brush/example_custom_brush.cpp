@@ -74,7 +74,7 @@ public:
   /* PainterBrushShaderData need to indicate how many resources they use.
    * A resource is any object that must stay alive for the custom brush
    * to correctly execute. Typically resources are just fastuidraw::Image
-   * and fastuidraw::ColorStopSequenceOnAtlas objects. In this example
+   * and fastuidraw::ColorStopSequence objects. In this example
    * the resources are coming from only the PainterBrush m_brush_values,
    * so we use its return values.
    */
@@ -309,7 +309,7 @@ public:
   draw_frame(void) override;
 
 private:
-  fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> m_color_stops;
+  fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequence> m_color_stops;
   fastuidraw::reference_counted_ptr<fastuidraw::PainterBrushShader> m_custom_brush_shader;
   fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_image;
 };
@@ -322,13 +322,13 @@ ExampleCustomBrush(DemoRunner *runner, int argc, char **argv):
   using namespace fastuidraw::glsl;
 
   /* Make a simple color-stop-sequence with 4 color-stops. */
-  ColorStopSequence seq;
+  ColorStopArray seq;
 
   seq.add(ColorStop(u8vec4(27, 27, 255, 255), 0.0f));
   seq.add(ColorStop(u8vec4(255, 27, 27, 255), 0.5f));
   seq.add(ColorStop(u8vec4(127, 255, 27, 255), 0.75f));
   seq.add(ColorStop(u8vec4(255, 255, 255, 27), 1.0f));
-  m_color_stops = FASTUIDRAWnew ColorStopSequenceOnAtlas(seq, m_painter_engine_gl->colorstop_atlas(), 8);
+  m_color_stops = m_painter_engine_gl->colorstop_atlas().create(seq, 8);
   m_custom_brush_shader = create_wavy_custom_brush(m_painter_engine_gl.get());
   if (!m_custom_brush_shader)
     {

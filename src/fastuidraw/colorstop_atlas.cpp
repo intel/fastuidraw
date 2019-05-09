@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <mutex>
 #include <fastuidraw/colorstop_atlas.hpp>
+#include <fastuidraw/util/math.hpp>
 #include <private/interval_allocator.hpp>
 #include <private/util_private.hpp>
 
@@ -105,7 +106,7 @@ namespace
     bool m_resizeable;
   };
 
-  class ColorStopSequenceOnAtlasPrivate
+  class ColorStopSequencePrivate
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_atlas;
@@ -269,6 +270,18 @@ fastuidraw::ColorStopAtlas::
   m_d = nullptr;
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::ColorStopSequence>
+fastuidraw::ColorStopAtlas::
+create(const ColorStopArray &color_stops, unsigned int pwidth)
+{
+  pwidth = t_min(pwidth, largest_width_possible());
+  if (pwidth == 0)
+    {
+      return nullptr;
+    }
+  return FASTUIDRAWnew ColorStopSequence(color_stops, *this, pwidth);
+}
+
 void
 fastuidraw::ColorStopAtlas::
 lock_resources(void)
@@ -341,14 +354,19 @@ total_available(void) const
   return d->m_backing_store->width_times_height() - d->m_allocated;
 }
 
-int
+unsigned int
 fastuidraw::ColorStopAtlas::
-largest_allocation_possible(void) const
+largest_width_possible(void) const
 {
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   std::lock_guard<std::mutex> m(d->m_mutex);
+  if (d->m_backing_store->resizeable())
+    {
+      return d->m_backing_store->dimensions().x();
+    }
+
   if (d->m_available_layers.empty())
     {
       return 0;
@@ -368,7 +386,7 @@ allocate(c_array<const u8vec4> data)
 
   std::map<int, std::set<int> >::iterator iter;
   ivec2 return_value;
-  int width(data.size());
+  unsigned int width(data.size());
 
   FASTUIDRAWassert(width > 0);
   FASTUIDRAWassert(width <= max_width());
@@ -421,8 +439,7 @@ allocate(c_array<const u8vec4> data)
   return return_value;
 }
 
-
-int
+unsigned int
 fastuidraw::ColorStopAtlas::
 max_width(void) const
 {
@@ -441,13 +458,13 @@ backing_store(void) const
 }
 
 ///////////////////////////////////////////
-// fastuidraw::ColorStopSequenceOnAtlas methods
-fastuidraw::ColorStopSequenceOnAtlas::
-ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
-                         ColorStopAtlas &atlas, int pwidth)
+// fastuidraw::ColorStopSequence methods
+fastuidraw::ColorStopSequence::
+ColorStopSequence(const ColorStopArray &pcolor_stops,
+                  ColorStopAtlas &atlas, unsigned int pwidth)
 {
-  ColorStopSequenceOnAtlasPrivate *d;
-  d = FASTUIDRAWnew ColorStopSequenceOnAtlasPrivate();
+  ColorStopSequencePrivate *d;
+  d = FASTUIDRAWnew ColorStopSequencePrivate();
   m_d = d;
 
   d->m_atlas = &atlas;
@@ -476,8 +493,7 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
 
   std::vector<u8vec4> data(d->m_width + d->m_start_slack + d->m_end_slack);
 
-  /* Discretize and interpolate color_stops into data
-   */
+  /* Discretize and interpolate color_stops into data */
   {
     unsigned int data_i, color_stops_i;
     float current_t, delta_t;
@@ -545,11 +561,11 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
   d->m_texel_location.x() += d->m_start_slack;
 }
 
-fastuidraw::ColorStopSequenceOnAtlas::
-~ColorStopSequenceOnAtlas(void)
+fastuidraw::ColorStopSequence::
+~ColorStopSequence(void)
 {
-  ColorStopSequenceOnAtlasPrivate *d;
-  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
+  ColorStopSequencePrivate *d;
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
 
   ivec2 loc(d->m_texel_location);
 
@@ -560,28 +576,28 @@ fastuidraw::ColorStopSequenceOnAtlas::
 }
 
 fastuidraw::ivec2
-fastuidraw::ColorStopSequenceOnAtlas::
+fastuidraw::ColorStopSequence::
 texel_location(void) const
 {
-  ColorStopSequenceOnAtlasPrivate *d;
-  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
+  ColorStopSequencePrivate *d;
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
   return d->m_texel_location;
 }
 
 int
-fastuidraw::ColorStopSequenceOnAtlas::
+fastuidraw::ColorStopSequence::
 width(void) const
 {
-  ColorStopSequenceOnAtlasPrivate *d;
-  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
+  ColorStopSequencePrivate *d;
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
   return d->m_width;
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopAtlas>
-fastuidraw::ColorStopSequenceOnAtlas::
+fastuidraw::ColorStopAtlas&
+fastuidraw::ColorStopSequence::
 atlas(void) const
 {
-  ColorStopSequenceOnAtlasPrivate *d;
-  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
-  return d->m_atlas;
+  ColorStopSequencePrivate *d;
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
+  return *d->m_atlas;
 }

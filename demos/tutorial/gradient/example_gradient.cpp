@@ -48,7 +48,7 @@ private:
     };
 
   unsigned int m_gradient_type;
-  fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> m_color_stops;
+  fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequence> m_color_stops;
 };
 
 ExampleGradient::
@@ -59,30 +59,28 @@ ExampleGradient(DemoRunner *runner, int argc, char **argv):
   std::cout << "Press any key to change gradient\n";
 
   /* Create the color stop sequence object that the fastuidraw::PainterBrush
-   * will consume fro drawing gradients. The object fastuidraw::ColorStopSequence
+   * will consume fro drawing gradients. The object fastuidraw::ColorStopArray
    * species the location and color of each of the colro stops and the
-   * object ColorStopSequenceOnAtlas is the object realized in the
+   * object ColorStopSequence is the object realized in the
    * backend for drawing.
    */
 
   /* Make a simple color-stop-sequence with 4 color-stops. */
-  fastuidraw::ColorStopSequence seq;
+  fastuidraw::ColorStopArray seq;
 
   seq.add(fastuidraw::ColorStop(fastuidraw::u8vec4(0, 0, 255, 255), 0.0f));
   seq.add(fastuidraw::ColorStop(fastuidraw::u8vec4(255, 0, 0, 255), 0.5f));
   seq.add(fastuidraw::ColorStop(fastuidraw::u8vec4(0, 255, 0, 255), 0.75f));
   seq.add(fastuidraw::ColorStop(fastuidraw::u8vec4(255, 255, 255, 0), 1.0f));
 
-  /* create the fastuidraw::ColorStopSequenceOnAtlas, the trickiest
+  /* create the fastuidraw::ColorStopSequence, the trickiest
    * argument to set correctly is the last argument, pwidth() which
    * specifies how many texels the color-stop will occupy on a texture.
    * For this example, our color stops are evenly spaced at 0.25
    * increments, so taking a width as 8 will capture the color stop
    * values.
    */
-  m_color_stops = FASTUIDRAWnew fastuidraw::ColorStopSequenceOnAtlas(seq,
-                                                                     m_painter_engine_gl->colorstop_atlas(),
-                                                                     8);
+  m_color_stops = m_painter_engine_gl->colorstop_atlas().create(seq, 8);
 }
 
 void

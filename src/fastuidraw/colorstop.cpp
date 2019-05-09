@@ -25,15 +25,15 @@
 
 namespace
 {
-  class ColorStopSequencePrivate
+  class ColorStopArrayPrivate
   {
   public:
-    ColorStopSequencePrivate(void):
+    ColorStopArrayPrivate(void):
       m_dirty(true)
     {}
 
     explicit
-    ColorStopSequencePrivate(int rev):
+    ColorStopArrayPrivate(int rev):
       m_dirty(true)
     {
       m_values.reserve(rev);
@@ -46,51 +46,51 @@ namespace
 
 
 /////////////////////////////////////
-// fastuidraw::ColorStopSequence methods
-fastuidraw::ColorStopSequence::
-ColorStopSequence(void):
-  m_d(FASTUIDRAWnew ColorStopSequencePrivate())
+// fastuidraw::ColorStopArray methods
+fastuidraw::ColorStopArray::
+ColorStopArray(void):
+  m_d(FASTUIDRAWnew ColorStopArrayPrivate())
 {}
 
-fastuidraw::ColorStopSequence::
-ColorStopSequence(int reserve):
-  m_d(FASTUIDRAWnew ColorStopSequencePrivate(reserve))
+fastuidraw::ColorStopArray::
+ColorStopArray(int reserve):
+  m_d(FASTUIDRAWnew ColorStopArrayPrivate(reserve))
 {}
 
-fastuidraw::ColorStopSequence::
-~ColorStopSequence()
+fastuidraw::ColorStopArray::
+~ColorStopArray()
 {
-  ColorStopSequencePrivate *d;
-  d = static_cast<ColorStopSequencePrivate*>(m_d);
+  ColorStopArrayPrivate *d;
+  d = static_cast<ColorStopArrayPrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
 void
-fastuidraw::ColorStopSequence::
+fastuidraw::ColorStopArray::
 add(const ColorStop &c)
 {
-  ColorStopSequencePrivate *d;
-  d = static_cast<ColorStopSequencePrivate*>(m_d);
+  ColorStopArrayPrivate *d;
+  d = static_cast<ColorStopArrayPrivate*>(m_d);
   d->m_dirty = true;
   d->m_values.push_back(c);
 }
 
 void
-fastuidraw::ColorStopSequence::
+fastuidraw::ColorStopArray::
 clear(void)
 {
-  ColorStopSequencePrivate *d;
-  d = static_cast<ColorStopSequencePrivate*>(m_d);
+  ColorStopArrayPrivate *d;
+  d = static_cast<ColorStopArrayPrivate*>(m_d);
   d->m_dirty = true;
   d->m_values.clear();
 }
 
 fastuidraw::c_array<const fastuidraw::ColorStop>
-fastuidraw::ColorStopSequence::
+fastuidraw::ColorStopArray::
 values(void) const
 {
-  ColorStopSequencePrivate *d;
-  d = static_cast<ColorStopSequencePrivate*>(m_d);
+  ColorStopArrayPrivate *d;
+  d = static_cast<ColorStopArrayPrivate*>(m_d);
   if (d->m_dirty)
     {
       d->m_dirty = false;

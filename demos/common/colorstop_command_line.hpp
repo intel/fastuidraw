@@ -17,7 +17,7 @@ public:
       m_discretization(16)
     {}
 
-    fastuidraw::ColorStopSequence m_stops;
+    fastuidraw::ColorStopArray m_stops;
     int m_discretization;
   };
 

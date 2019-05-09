@@ -39,8 +39,8 @@ struct FASTUIDRAW_LOCAL(fastuidraw_brush_gradient_raw)
   vec2 p0, p1;
 
   /* packed:
-     - bits [0 , 15] ColorStopSequenceOnAtlas::texel_location().x()
-     - bits [16, 31] ColorStopSequenceOnAtlas::texel_location().y
+     - bits [0 , 15] ColorStopSequence::texel_location().x()
+     - bits [16, 31] ColorStopSequence::texel_location().y
    */
   uint color_stop_sequence_xy;
 

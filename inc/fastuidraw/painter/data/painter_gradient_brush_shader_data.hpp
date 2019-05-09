@@ -35,7 +35,7 @@ namespace fastuidraw
    * A \ref PainterGradientBrushShaderData defines the \ref
    * PainterBrushShaderData that the shaders of a \ref
    * PainterGradientBrushShader consume. It specifies what
-   * \ref ColorStopSequenceOnAtlas to use together with the
+   * \ref ColorStopSequence to use together with the
    * geometric properties of the gradient.
    */
   class PainterGradientBrushShaderData:
@@ -45,15 +45,15 @@ namespace fastuidraw
   public:
     /*!
      * \brief
-     * Bit encoding for packing ColorStopSequenceOnAtlas::texel_location()
+     * Bit encoding for packing ColorStopSequence::texel_location()
      */
     enum color_stop_xy_encoding
       {
-        color_stop_x_num_bits = 16, /*!< number bits to encode ColorStopSequenceOnAtlas::texel_location().x() */
-        color_stop_y_num_bits = 16, /*!< number bits to encode ColorStopSequenceOnAtlas::texel_location().y() */
+        color_stop_x_num_bits = 16, /*!< number bits to encode ColorStopSequence::texel_location().x() */
+        color_stop_y_num_bits = 16, /*!< number bits to encode ColorStopSequence::texel_location().y() */
 
-        color_stop_x_bit0 = 0, /*!< where ColorStopSequenceOnAtlas::texel_location().x() is encoded */
-        color_stop_y_bit0 = color_stop_x_num_bits /*!< where ColorStopSequenceOnAtlas::texel_location().y() is encoded */
+        color_stop_x_bit0 = 0, /*!< where ColorStopSequence::texel_location().x() is encoded */
+        color_stop_y_bit0 = color_stop_x_num_bits /*!< where ColorStopSequence::texel_location().y() is encoded */
       };
 
     /*!
@@ -96,7 +96,7 @@ namespace fastuidraw
 
         /*!
          * Offset to the length of the color stop in -texels-, i.e.
-         * ColorStopSequenceOnAtlas::width(), packed as a uint32
+         * ColorStopSequence::width(), packed as a uint32
          */
         color_stop_length_offset,
 
@@ -199,10 +199,10 @@ namespace fastuidraw
 
     /*!
      * Returns the value of the handle to the
-     * ColorStopSequenceOnAtlas that the
+     * ColorStopSequence that the
      * brush is set to use.
      */
-    const reference_counted_ptr<const ColorStopSequenceOnAtlas>&
+    const reference_counted_ptr<const ColorStopSequence>&
     color_stops(void) const
     {
       return m_data.m_cs;
@@ -216,7 +216,7 @@ namespace fastuidraw
      * \param end_p end position of gradient.
      */
     PainterGradientBrushShaderData&
-    linear_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    linear_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                     const vec2 &start_p, const vec2 &end_p)
     {
       m_data.m_cs = cs;
@@ -236,7 +236,7 @@ namespace fastuidraw
      * \param end_r ending radius of radial gradient
      */
     PainterGradientBrushShaderData&
-    radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    radial_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                     const vec2 &start_p, float start_r,
                     const vec2 &end_p, float end_r)
     {
@@ -261,7 +261,7 @@ namespace fastuidraw
      * \param r ending radius of radial gradient
      */
     PainterGradientBrushShaderData&
-    radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    radial_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                     const vec2 &p, float r)
     {
       return radial_gradient(cs, p, 0.0f, p, r);
@@ -279,7 +279,7 @@ namespace fastuidraw
      *          sweep gradient.
      */
     PainterGradientBrushShaderData&
-    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                    const vec2 &p, float theta, float F = 1.0f)
     {
       m_data.m_cs = cs;
@@ -304,7 +304,7 @@ namespace fastuidraw
      * \param rotation_orientation orientation of the sweep
      */
     PainterGradientBrushShaderData&
-    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation,
@@ -335,7 +335,7 @@ namespace fastuidraw
      * \param rotation_orientation orientation of the sweep
      */
     PainterGradientBrushShaderData&
-    sweep_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
+    sweep_gradient(const reference_counted_ptr<const ColorStopSequence> &cs,
                    const vec2 &p, float theta,
                    enum PainterEnums::screen_orientation orientation,
                    enum PainterEnums::rotation_orientation_t rotation_orientation)
@@ -373,7 +373,7 @@ namespace fastuidraw
         m_type(gradient_non)
       {}
 
-      reference_counted_ptr<const ColorStopSequenceOnAtlas> m_cs;
+      reference_counted_ptr<const ColorStopSequence> m_cs;
       vec2 m_grad_start, m_grad_end;
       float m_grad_start_r, m_grad_end_r;
       enum gradient_type_t m_type;
