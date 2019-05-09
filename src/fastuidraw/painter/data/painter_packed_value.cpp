@@ -16,8 +16,8 @@
  *
  */
 
-#include <fastuidraw/painter/painter_packed_value.hpp>
-#include <fastuidraw/painter/painter_packed_value_pool.hpp>
+#include <fastuidraw/painter/data/painter_packed_value.hpp>
+#include <fastuidraw/painter/data/painter_packed_value_pool.hpp>
 #include <private/painter_backend/painter_packed_value_pool_private.hpp>
 #include <private/util_private.hpp>
 

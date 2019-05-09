@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_packed_value.hpp>
+#include <fastuidraw/painter/data/painter_packed_value.hpp>
 
 namespace fastuidraw
 {

@@ -24,7 +24,7 @@
 #include <fstream>
 #include <sstream>
 #include <fastuidraw/util/static_resource.hpp>
-#include <fastuidraw/painter/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/data/painter_brush_shader_data.hpp>
 #include <fastuidraw/glsl/painter_brush_shader_glsl.hpp>
 
 /* The data of a custom brush is represented by an object of type

@@ -20,7 +20,7 @@
 
 #include <cmath>
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
-#include <fastuidraw/painter/painter_stroke_params.hpp>
+#include <fastuidraw/painter/data/painter_stroke_params.hpp>
 
 namespace fastuidraw
 {

@@ -20,7 +20,7 @@
 
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/data/painter_brush_shader_data.hpp>
 #include <fastuidraw/painter/painter_custom_brush.hpp>
 #include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 

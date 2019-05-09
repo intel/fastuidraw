@@ -28,8 +28,8 @@
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/painter_shader_data.hpp>
-#include <fastuidraw/painter/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/data/painter_shader_data.hpp>
+#include <fastuidraw/painter/data/painter_brush_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_image_brush_shader.hpp>
 #include <fastuidraw/painter/shader/painter_gradient_brush_shader.hpp>
 

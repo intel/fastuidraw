@@ -19,9 +19,9 @@
 #pragma once
 
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/painter_data_value.hpp>
-#include <fastuidraw/painter/painter_shader_data.hpp>
-#include <fastuidraw/painter/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/data/painter_data_value.hpp>
+#include <fastuidraw/painter/data/painter_shader_data.hpp>
+#include <fastuidraw/painter/data/painter_brush_shader_data.hpp>
 #include <fastuidraw/painter/painter_custom_brush.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 

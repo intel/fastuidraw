@@ -34,9 +34,9 @@
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/stroking_style.hpp>
 #include <fastuidraw/painter/fill_rule.hpp>
-#include <fastuidraw/painter/painter_stroke_params.hpp>
-#include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/painter_packed_value_pool.hpp>
+#include <fastuidraw/painter/data/painter_stroke_params.hpp>
+#include <fastuidraw/painter/data/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/data/painter_packed_value_pool.hpp>
 
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_writer.hpp>

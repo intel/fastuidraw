@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_data.hpp>
+#include <fastuidraw/painter/data/painter_data.hpp>
 
 namespace fastuidraw
 {
