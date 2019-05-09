@@ -35,7 +35,7 @@ namespace
     StoreGL(unsigned int number,
             GLenum pbinding_point, const fastuidraw::ivec2 &log2_dims,
             bool binding_point_is_texture_unit):
-      fastuidraw::GlyphAtlasBackingStoreBase(number, true),
+      fastuidraw::GlyphAtlasBackingStoreBase(number),
       m_binding_point(pbinding_point),
       m_log2_dims(log2_dims),
       m_binding_point_is_texture_unit(binding_point_is_texture_unit)

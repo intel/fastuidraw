@@ -28,13 +28,11 @@ namespace
   class GlyphAtlasBackingStoreBasePrivate
   {
   public:
-    GlyphAtlasBackingStoreBasePrivate(unsigned int psize, bool presizable):
-      m_resizeable(presizable),
+    GlyphAtlasBackingStoreBasePrivate(unsigned int psize):
       m_size(psize)
     {
     }
 
-    bool m_resizeable;
     unsigned int m_size;
   };
 
@@ -98,9 +96,9 @@ namespace
 ///////////////////////////////////////////
 // fastuidraw::GlyphAtlasBackingStoreBase methods
 fastuidraw::GlyphAtlasBackingStoreBase::
-GlyphAtlasBackingStoreBase(unsigned int psize, bool presizable)
+GlyphAtlasBackingStoreBase(unsigned int psize)
 {
-  m_d = FASTUIDRAWnew GlyphAtlasBackingStoreBasePrivate(psize, presizable);
+  m_d = FASTUIDRAWnew GlyphAtlasBackingStoreBasePrivate(psize);
 }
 
 fastuidraw::GlyphAtlasBackingStoreBase::
@@ -121,22 +119,12 @@ size(void)
   return d->m_size;
 }
 
-bool
-fastuidraw::GlyphAtlasBackingStoreBase::
-resizeable(void) const
-{
-  GlyphAtlasBackingStoreBasePrivate *d;
-  d = static_cast<GlyphAtlasBackingStoreBasePrivate*>(m_d);
-  return d->m_resizeable;
-}
-
 void
 fastuidraw::GlyphAtlasBackingStoreBase::
 resize(unsigned int new_size)
 {
   GlyphAtlasBackingStoreBasePrivate *d;
   d = static_cast<GlyphAtlasBackingStoreBasePrivate*>(m_d);
-  FASTUIDRAWassert(d->m_resizeable);
   FASTUIDRAWassert(new_size > d->m_size);
   resize_implement(new_size);
   d->m_size = new_size;
@@ -177,17 +165,10 @@ allocate_data(c_array<const generic_data> pdata)
   return_value = d->m_data_allocator.allocate_interval(pdata.size());
   if (return_value == -1)
     {
-      if (d->m_store->resizeable())
-        {
-          d->m_store->resize(pdata.size() + 2 * d->m_store->size());
-          d->m_data_allocator.resize(d->m_store->size());
-          return_value = d->m_data_allocator.allocate_interval(pdata.size());
-          FASTUIDRAWassert(return_value != -1);
-        }
-      else
-        {
-          return return_value;
-        }
+      d->m_store->resize(pdata.size() + 2 * d->m_store->size());
+      d->m_data_allocator.resize(d->m_store->size());
+      return_value = d->m_data_allocator.allocate_interval(pdata.size());
+      FASTUIDRAWassert(return_value != -1);
     }
 
   d->m_data_allocated += pdata.size();

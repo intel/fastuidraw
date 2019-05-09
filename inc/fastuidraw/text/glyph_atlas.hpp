@@ -43,14 +43,6 @@ namespace fastuidraw
     public reference_counted<GlyphAtlasBackingStoreBase>::concurrent
   {
   public:
-    /*!
-     * Ctor.
-     * \param psize number of generic_data elements that the
-                    GlyphAtlasBackingStoreBase backs
-     * \param presizable if true the object can be resized to be larger
-     */
-    GlyphAtlasBackingStoreBase(unsigned int psize, bool presizable);
-
     virtual
     ~GlyphAtlasBackingStoreBase();
 
@@ -79,21 +71,20 @@ namespace fastuidraw
     flush(void) = 0;
 
     /*!
-     * Returns true if and only if this object can be
-     * resized to a larger size.
-     */
-    bool
-    resizeable(void) const;
-
-    /*!
-     * Resize the object to a larger size. The routine resizeable()
-     * must return true, if not the function FASTUIDRAWasserts.
+     * Resize the object to a larger size.
      * \param new_size new number of \ref generic_data for the store to back
      */
     void
     resize(unsigned int new_size);
 
   protected:
+    /*!
+     * Ctor.
+     * \param psize number of generic_data elements that the
+                    GlyphAtlasBackingStoreBase backs
+     */
+    explicit
+    GlyphAtlasBackingStoreBase(unsigned int psize);
 
     /*!
      * To be implemented by a derived class to resize the
