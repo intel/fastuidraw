@@ -30,7 +30,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * Orovides an interface to write attribute and index data when
+   * Provides an interface to write attribute and index data when
    * a simple copy of data from \ref c_array objects is not sufficient.
    *
    * A \ref PainterAttributeWriter is to be stateless. However, in
@@ -59,15 +59,15 @@ namespace fastuidraw
       c_array<unsigned int> m_state;
 
       /*!
-       * Gives the minimum size of the next attribute
-       * array passed to \ref PainterAttributeWriter::write()
+       * Gives the minimum size of the next attribute array
+       * passed to \ref PainterAttributeWriter::write_data()
        * must be in order to successfully write data.
        */
       unsigned int m_min_attributes_for_next;
 
       /*!
-       * Gives the minimum size of the next index
-       * array passed to \ref PainterAttributeWriter::write()
+       * Gives the minimum size of the next index array
+       * passed to \ref PainterAttributeWriter::write_data()
        * must be in order to successfully write data.
        */
       unsigned int m_min_indices_for_next;
@@ -91,7 +91,7 @@ namespace fastuidraw
      * \ref WriteState to indicate the start of writing data
      * for a subsequence calls to \ref write_data(). Returns
      * true if there is attribute and index data to upload.
-     * \parm state \ref WriteState to initialize
+     * \param state \ref WriteState to initialize
      */
     virtual
     bool
@@ -101,6 +101,7 @@ namespace fastuidraw
      * To be implemented by a derived class. Called by the
      * caller of a \ref PainterAttributeWriter to indicate
      * that a new data store has been started.
+     * \param state \ref WriteState to update
      */
     virtual
     void
