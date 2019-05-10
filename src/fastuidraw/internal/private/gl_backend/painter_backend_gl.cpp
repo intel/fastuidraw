@@ -570,7 +570,7 @@ unmap_implement(unsigned int attributes_written,
   fastuidraw_glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
   fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_data_bo);
-  fastuidraw_glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, data_store_written * sizeof(generic_data));
+  fastuidraw_glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, data_store_written * sizeof(vecN<generic_data, 4>));
   fastuidraw_glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
