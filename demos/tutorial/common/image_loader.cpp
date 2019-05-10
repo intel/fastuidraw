@@ -17,6 +17,7 @@
 
 //! [ExampleImage]
 
+#include <iostream>
 #include "image_loader.hpp"
 
 static
@@ -67,8 +68,11 @@ void
 ImageSourceSDL::
 extract_image_data_from_surface(SDL_Surface *surface)
 {
-  if (!surface)
+  if (!surface || surface->w == 0 || surface->h == 0)
     {
+      std::cerr << "Warning: unable to load image, substituting with an "
+                << "image with width and height 1 whose only pixel is "
+                << "(255, 255, 0, 255)\n";
       m_image_data.push_back(PerMipmapLevel(1, 1));
       m_image_data.back().pixel(0, 0) = fastuidraw::u8vec4(255, 255, 0, 255);
       return;
@@ -141,6 +145,7 @@ number_levels(void) const
    * of LOD's is specified by the fastuidraw::ImageSourceBase
    * that constructs them.
    */
+  FASTUIDRAWassert(!m_image_data.empty());
   return m_image_data.size();
 }
 
