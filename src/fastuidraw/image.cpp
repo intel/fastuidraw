@@ -475,7 +475,7 @@ ImagePrivate(fastuidraw::ImageAtlas &patlas,
    * size of the image.
    */
   int max_levels;
-  max_levels = uint32_log2(t_min(m_atlas_private->color_tile_size(), t_min(w, h)));
+  max_levels = 1u + uint32_log2(t_min(m_atlas_private->color_tile_size(), t_min(w, h)));
   m_number_levels = t_min(max_levels, m_number_levels);
 }
 
