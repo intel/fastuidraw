@@ -19,4 +19,5 @@ mv docs/doxy/html docs/html
 git add docs/html
 git commit -nm "Update content"
 git push
+rm -r docs/html
 git checkout master
