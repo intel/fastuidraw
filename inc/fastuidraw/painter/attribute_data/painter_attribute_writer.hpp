@@ -30,86 +30,114 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A provides an interface to write attribute and index data when
-   * a simple copy of data as exposed by Painter::draw_generic()
-   * methods is not sufficient (for example to modify or filter data
-   * based off of some dynamic state).
+   * Orovides an interface to write attribute and index data when
+   * a simple copy of data from \ref c_array objects is not sufficient.
+   *
+   * A \ref PainterAttributeWriter is to be stateless. However, in
+   * order to be able to successfully write multiple chunks of
+   * attributes and indices, a \ref PainterAttributeWriter is given
+   * a "cookie" (see \ref WriteState) which represents how far along
+   * streaming it is.
    */
   class PainterAttributeWriter:fastuidraw::noncopyable
   {
   public:
+    /*!
+     * A \ref WriteState represents how far along a \ref
+     * PainterAttributeWriter has written its attribute
+     * and index data along with if there is more to write.
+     */
+    class WriteState
+    {
+    public:
+      /*!
+       * \ref m_state represents how far along a \ref
+       * PainterAttributeWriter has written its attribute
+       * and index data. The length of state will be
+       * \ref PainterAttributeWriter::state_length().
+       */
+      c_array<unsigned int> m_state;
+
+      /*!
+       * Gives the minimum size of the next attribute
+       * array passed to \ref PainterAttributeWriter::write()
+       * must be in order to successfully write data.
+       */
+      unsigned int m_min_attributes_for_next;
+
+      /*!
+       * Gives the minimum size of the next index
+       * array passed to \ref PainterAttributeWriter::write()
+       * must be in order to successfully write data.
+       */
+      unsigned int m_min_indices_for_next;
+    };
+
     virtual
     ~PainterAttributeWriter()
     {}
 
     /*!
      * To be implemented by a derived class to return
-     * the number of attribute chunks of the PainterAttributeWriter.
+     * how large the array \ref WriteState::m_state
+     * should be.
      */
     virtual
     unsigned int
-    number_attribute_chunks(void) const = 0;
+    state_length(void) const = 0;
 
     /*!
-     * To be implemented by a derived class to return
-     * the number of attribute of an attribute chunk
-     * of the PainterAttributeWriter.
-     * \param attribute_chunk which chunk of attributes
+     * To be implemented by a derived clas to initialize a
+     * \ref WriteState to indicate the start of writing data
+     * for a subsequence calls to \ref write_data(). Returns
+     * true if there is attribute and index data to upload.
+     * \parm state \ref WriteState to initialize
      */
     virtual
-    unsigned int
-    number_attributes(unsigned int attribute_chunk) const = 0;
+    bool
+    initialize_state(WriteState *state) const = 0;
 
     /*!
-     * To be implemented by a derived class to return
-     * the number of index chunks of the PainterAttributeWriter.
-     */
-    virtual
-    unsigned int
-    number_index_chunks(void) const = 0;
-
-    /*!
-     * To be implemented by a derived class to return
-     * the number of indices of an index chunk
-     * of the PainterAttributeWriter.
-     * \param index_chunk which chunk of attributes
-     */
-    virtual
-    unsigned int
-    number_indices(unsigned int index_chunk) const = 0;
-
-    /*!
-     * To be implemented by a derived class to return
-     * what attribute chunk to use for a given index
-     * chunk.
-     * \param index_chunk index chunk with 0 <= index_chunk <= number_index_chunks()
-     */
-    virtual
-    unsigned int
-    attribute_chunk_selection(unsigned int index_chunk) const = 0;
-
-    /*!
-     * To be implemented by a derived class to write indices.
-     * \param dst location to which to write indices
-     * \param index_offset_value value by which to increment the index
-     *                           values written
-     * \param index_chunk which chunk of indices to write
+     * To be implemented by a derived class. Called by the
+     * caller of a \ref PainterAttributeWriter to indicate
+     * that a new data store has been started.
      */
     virtual
     void
-    write_indices(c_array<PainterIndex> dst,
-                  unsigned int index_offset_value,
-                  unsigned int index_chunk) const = 0;
+    on_new_store(WriteState *state) const = 0;
 
     /*!
-     * To be implemented by a derived class to write attributes.
-     * \param dst location to which to write indices
-     * \param attribute_chunk which chunk of attributes to write
+     * To be implemented by a derived class to write attribute
+     * and index data. Returns true if there is further attribute
+     * and index data to upload.
+     * \param dst_attribs location to which to write attributes.
+     *                    The size of the array is guaranteed by
+     *                    the caller to be atleast the value of
+     *                    \ref WriteState::m_min_attributes_for_next.
+     * \param dst_indices location to which to write indices.
+     *                    The size of the array is guaranteed by
+     *                    the caller to be atleast the value of
+     *                    \ref WriteState::m_min_indices_for_next.
+     * \param attrib_location index value of the attribute at
+     *                        dst_attribs[0].
+     * \param state the write state of the session which is to be
+     *              updated for the next call to write_data().
+     * \param num_attribs_written location to which to write
+     *                            the number of attributes
+     *                            written by the call to \ref
+     *                            write_data().
+     * \param num_indices_written location to which to write the
+     *                            number of indices written by the
+     *                            call to \ref write_data().
      */
     virtual
-    void
-    write_attributes(c_array<PainterAttribute> dst,
-                     unsigned int attribute_chunk) const = 0;
+    bool
+    write_data(c_array<PainterAttribute> dst_attribs,
+               c_array<PainterIndex> dst_indices,
+               unsigned int attrib_location,
+               WriteState *state,
+               unsigned int *num_attribs_written,
+               unsigned int *num_indices_written) const = 0;
   };
 /*! @} */
 }

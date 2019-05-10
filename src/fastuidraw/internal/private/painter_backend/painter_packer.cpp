@@ -85,6 +85,91 @@ namespace
     }
 
     unsigned int
+    state_length(void) const
+    {
+      /* [0] stores what is the current index chunk,
+       * [I + 1] store where the I'th attribute chunk was written
+       */
+      return 1 + number_index_chunks();
+    }
+
+    bool
+    initialize_state(fastuidraw::PainterAttributeWriter::WriteState *state) const
+    {
+      state->m_state[0] = 0;
+      on_new_store(state);
+      return number_index_chunks() > 0;
+    }
+
+    void
+    on_new_store(fastuidraw::PainterAttributeWriter::WriteState *state) const
+    {
+      unsigned int index_chunk(state->m_state[0]);
+      unsigned int attribute_chunk(attribute_chunk_selection(index_chunk));
+
+      for (unsigned int i = 0; i < m_attrib_chunks.size(); ++i)
+        {
+          state->m_state[i + 1] = NOT_LOADED;
+        }
+      state->m_min_attributes_for_next = number_attributes(attribute_chunk);
+      state->m_min_indices_for_next = number_indices(index_chunk);
+    }
+
+    bool
+    write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+               fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+               unsigned int attrib_location,
+               fastuidraw::PainterAttributeWriter::WriteState *state,
+               unsigned int *num_attribs_written,
+               unsigned int *num_indices_written) const
+    {
+      unsigned int index_chunk(state->m_state[0]);
+      unsigned int attribute_chunk(attribute_chunk_selection(index_chunk));
+
+      if (state->m_state[attribute_chunk + 1] == NOT_LOADED)
+        {
+          /* indicate the chunk is not yet loaded, so load
+           * it into dst_attribs.
+           */
+          write_attributes(dst_attribs, attribute_chunk);
+          state->m_state[attribute_chunk + 1] = attrib_location;
+          *num_attribs_written = number_attributes(attribute_chunk);
+        }
+      else
+        {
+          attrib_location = state->m_state[attribute_chunk + 1];
+          *num_attribs_written = 0;
+        }
+
+      write_indices(dst_indices, attrib_location, index_chunk);
+      *num_indices_written = number_indices(index_chunk);
+
+      ++(state->m_state[0]);
+      index_chunk = state->m_state[0];
+      if (index_chunk < number_index_chunks())
+        {
+          attribute_chunk = attribute_chunk_selection(index_chunk);
+          state->m_min_indices_for_next = number_indices(index_chunk);
+          state->m_min_attributes_for_next = (state->m_state[attribute_chunk + 1] == NOT_LOADED) ?
+            number_attributes(attribute_chunk) :
+            0u;
+          return true;
+        }
+      else
+        {
+          state->m_min_indices_for_next = 0;
+          state->m_min_attributes_for_next = 0;
+          return false;
+        }
+    }
+
+  private:
+    enum
+      {
+        NOT_LOADED = ~0u
+      };
+
+    unsigned int
     number_attribute_chunks(void) const
     {
       return m_attrib_chunks.size();
@@ -129,8 +214,8 @@ namespace
       FASTUIDRAWassert(index_chunk < m_index_chunks.size());
       src = m_index_chunks[index_chunk];
 
-      FASTUIDRAWassert(dst.size() == src.size());
-      for(unsigned int i = 0; i < dst.size(); ++i)
+      FASTUIDRAWassert(dst.size() >= src.size());
+      for(unsigned int i = 0; i < src.size(); ++i)
         {
           int adjust;
 
@@ -149,7 +234,7 @@ namespace
       FASTUIDRAWassert(attribute_chunk < m_attrib_chunks.size());
       src = m_attrib_chunks[attribute_chunk];
 
-      FASTUIDRAWassert(dst.size() == src.size());
+      FASTUIDRAWassert(dst.size() >= src.size());
       /* use void pointers to silence a compiler warning on
        * using memcpy PainterAttributeData; some compilers
        * will warn on using memcpy with pointer to a type
@@ -159,7 +244,7 @@ namespace
        * though ).
        */
       void *dst_ptr(dst.c_ptr());
-      std::memcpy(dst_ptr, src.c_ptr(), sizeof(fastuidraw::PainterAttribute) * dst.size());
+      std::memcpy(dst_ptr, src.c_ptr(), sizeof(fastuidraw::PainterAttribute) * src.size());
     }
 
     fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attrib_chunks;
@@ -611,17 +696,19 @@ compute_room_needed_for_packing(const PainterPackerData &draw_state)
   return R;
 }
 
-void
+bool
 fastuidraw::PainterPacker::
 upload_draw_state(const PainterPackerData &draw_state)
 {
   unsigned int needed_room;
+  bool return_value(false);
 
   FASTUIDRAWassert(!m_accumulated_draws.empty());
   needed_room = compute_room_needed_for_packing(draw_state);
   if (needed_room > m_accumulated_draws.back().store_room())
     {
       start_new_command();
+      return_value = true;
     }
   m_accumulated_draws.back().pack_painter_state(m_render_type, draw_state,
                                                 this, m_painter_state_location);
@@ -648,6 +735,8 @@ upload_draw_state(const PainterPackerData &draw_state)
             }
         }
     }
+
+  return return_value;
 }
 
 template<typename T, typename ShaderType>
@@ -659,14 +748,11 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
                        const T &src,
                        int z)
 {
-  bool allocate_header;
-  unsigned int header_loc;
-  const unsigned int NOT_LOADED = ~0u;
-  unsigned int number_index_chunks, number_attribute_chunks;
+  bool allocate_header, data_to_write;
+  unsigned int header_loc, state_length;
+  PainterAttributeWriter::WriteState write_state;
 
-  number_index_chunks = src.number_index_chunks();
-  number_attribute_chunks = src.number_attribute_chunks();
-  if (!shader || number_index_chunks == 0 || number_attribute_chunks == 0)
+  if (!shader)
     {
       /* should we emit a warning message that the PainterItemShader
        * was missing the item shader value?
@@ -674,59 +760,51 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
       return;
     }
 
-  m_work_room.m_attribs_loaded.clear();
-  m_work_room.m_attribs_loaded.resize(number_attribute_chunks, NOT_LOADED);
+  state_length = src.state_length();
+  m_work_room.m_state_values.resize(state_length);
+  write_state.m_state = make_c_array(m_work_room.m_state_values);
 
-  FASTUIDRAWassert(shader);
+  if (!src.initialize_state(&write_state))
+    {
+      return;
+    }
 
   upload_draw_state(draw);
   allocate_header = true;
+  data_to_write = true;
 
-  for(unsigned chunk = 0; chunk < number_index_chunks; ++chunk)
+  while (data_to_write)
     {
       unsigned int attrib_room, index_room, data_room;
-      unsigned int attrib_src, needed_attrib_room;
-      unsigned int num_attribs, num_indices;
+      bool started_new_command;
 
       attrib_room = m_accumulated_draws.back().attribute_room();
       index_room = m_accumulated_draws.back().index_room();
       data_room = m_accumulated_draws.back().store_room();
 
-      attrib_src = src.attribute_chunk_selection(chunk);
-      FASTUIDRAWassert(attrib_src < number_attribute_chunks);
-
-      num_attribs = src.number_attributes(attrib_src);
-      num_indices = src.number_indices(chunk);
-      if (num_attribs == 0 || num_indices == 0)
-        {
-          continue;
-        }
-
-      needed_attrib_room = (m_work_room.m_attribs_loaded[attrib_src] == NOT_LOADED) ?
-        num_attribs : 0;
-
-      if (attrib_room < needed_attrib_room || index_room < num_indices
-         || (allocate_header && data_room < m_header_size))
+      if (attrib_room < write_state.m_min_attributes_for_next
+          || index_room < write_state.m_min_indices_for_next
+          || (allocate_header && data_room < m_header_size))
         {
           start_new_command();
-          upload_draw_state(draw);
 
-          /* reset attribs_loaded[] and recompute needed_attrib_room
-           */
-          std::fill(m_work_room.m_attribs_loaded.begin(), m_work_room.m_attribs_loaded.end(), NOT_LOADED);
-          needed_attrib_room = num_attribs;
-
+          src.on_new_store(&write_state);
           attrib_room = m_accumulated_draws.back().attribute_room();
           index_room = m_accumulated_draws.back().index_room();
           data_room = m_accumulated_draws.back().store_room();
           allocate_header = true;
 
-          if (attrib_room < needed_attrib_room || index_room < num_indices)
+          if (attrib_room < write_state.m_min_attributes_for_next
+              || index_room < write_state.m_min_indices_for_next)
             {
-              FASTUIDRAWassert(!"Unable to fit chunk into freshly allocated draw command, not good!");
-              continue;
+              FASTUIDRAWmessaged_assert(false,
+                                        "Unable to fit chunk into freshly allocated draw command, bailing out");
+              return;
             }
 
+          started_new_command = upload_draw_state(draw);
+          FASTUIDRAWassert(!started_new_command);
+          FASTUIDRAWunused(started_new_command);
           FASTUIDRAWassert(data_room >= m_header_size);
         }
 
@@ -757,41 +835,31 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
             }
         }
 
-      /* copy attribute data and get offset into attribute buffer
-       * where attributes are copied
+      /* Note that we allow the arrays to be bigger than what src
+       * requests. Recall that src requests only the bare minumum
+       * to go forward. By giving it as much as possible, it can
+       * go forward potentially much more.
        */
-      unsigned int attrib_offset;
+      unsigned int num_attribs_written(0), num_indices_written(0);
+      c_array<PainterAttribute> dst_attribs;
+      c_array<uint32_t> dst_indices, dst_header;
 
-      if (needed_attrib_room > 0)
-        {
-          c_array<PainterAttribute> attrib_dst_ptr;
-          c_array<uint32_t> header_dst_ptr;
+      dst_attribs = cmd.m_draw_command->m_attributes.sub_array(cmd.m_attributes_written);
+      dst_indices = cmd.m_draw_command->m_indices.sub_array(cmd.m_indices_written);
 
-          attrib_dst_ptr = cmd.m_draw_command->m_attributes.sub_array(cmd.m_attributes_written, num_attribs);
-          header_dst_ptr = cmd.m_draw_command->m_header_attributes.sub_array(cmd.m_attributes_written, num_attribs);
+      data_to_write = src.write_data(dst_attribs, dst_indices,
+                                     cmd.m_attributes_written,
+                                     &write_state,
+                                     &num_attribs_written,
+                                     &num_indices_written);
 
-          src.write_attributes(attrib_dst_ptr, attrib_src);
-          std::fill(header_dst_ptr.begin(), header_dst_ptr.end(), header_loc);
+      /* Write the header location only to the attributes that src.write_data() wrote to */
+      dst_header = cmd.m_draw_command->m_header_attributes.sub_array(cmd.m_attributes_written, num_attribs_written);
+      std::fill(dst_header.begin(), dst_header.end(), header_loc);
 
-          FASTUIDRAWassert(m_work_room.m_attribs_loaded[attrib_src] == NOT_LOADED);
-          m_work_room.m_attribs_loaded[attrib_src] = cmd.m_attributes_written;
-
-          attrib_offset = cmd.m_attributes_written;
-          cmd.m_attributes_written += attrib_dst_ptr.size();
-        }
-      else
-        {
-          FASTUIDRAWassert(m_work_room.m_attribs_loaded[attrib_src] != NOT_LOADED);
-          attrib_offset = m_work_room.m_attribs_loaded[attrib_src];
-        }
-
-      /* copy and adjust the index value by incrementing them by attrib_offset
-       */
-      c_array<PainterIndex> index_dst_ptr;
-
-      index_dst_ptr = cmd.m_draw_command->m_indices.sub_array(cmd.m_indices_written, num_indices);
-      src.write_indices(index_dst_ptr, attrib_offset, chunk);
-      cmd.m_indices_written += index_dst_ptr.size();
+      /* update how many indices and attributes have been written to cmd */
+      cmd.m_attributes_written += num_attribs_written;
+      cmd.m_indices_written += num_indices_written;
     }
 }
 

@@ -390,13 +390,13 @@ namespace fastuidraw
     class Workroom
     {
     public:
-      std::vector<unsigned int> m_attribs_loaded;
+      std::vector<unsigned int> m_state_values;
     };
 
     void
     start_new_command(void);
 
-    void
+    bool //return true if it started a new command
     upload_draw_state(const PainterPackerData &draw_state);
 
     unsigned int

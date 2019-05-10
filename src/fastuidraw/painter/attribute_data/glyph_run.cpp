@@ -49,39 +49,30 @@ namespace
 
     virtual
     unsigned int
-    number_attribute_chunks(void) const;
+    state_length(void) const override;
 
     virtual
-    unsigned int
-    number_attributes(unsigned int) const;
-
-    virtual
-    unsigned int
-    number_index_chunks(void) const;
-
-    virtual
-    unsigned int
-    number_indices(unsigned int) const;
-
-    virtual
-    unsigned int
-    attribute_chunk_selection(unsigned int) const;
+    bool
+    initialize_state(fastuidraw::PainterAttributeWriter::WriteState *dst) const override;
 
     virtual
     void
-    write_indices(fastuidraw::c_array<fastuidraw::PainterIndex> dst,
-                  unsigned int index_offset_value,
-                  unsigned int) const;
+    on_new_store(fastuidraw::PainterAttributeWriter::WriteState *) const override
+    {}
 
     virtual
-    void
-    write_attributes(fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
-                     unsigned int attribute_chunk) const;
+    bool
+    write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attributs,
+               fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+               unsigned int index_addition,
+               fastuidraw::PainterAttributeWriter::WriteState *state,
+               unsigned int *num_attributes_written,
+               unsigned int *num_indices_written) const override;
 
   private:
     fastuidraw::c_array<const fastuidraw::PainterIndex> m_indices;
     fastuidraw::c_array<const fastuidraw::PainterAttribute> m_attributes;
-    unsigned int m_attribute_start;
+    unsigned int m_attribute_start, m_number_glyphs;
   };
 
   class GlyphLocation
@@ -177,65 +168,61 @@ set_src(const PerGlyphRender *data, unsigned int begin, unsigned int cnt)
   m_attributes = m_attributes.sub_array(data->m_glyph_attribs_start[begin],
                                         data->m_glyph_attribs_start[begin + cnt] - data->m_glyph_attribs_start[begin]);
   m_attribute_start = data->m_glyph_attribs_start[begin];
+  m_number_glyphs = cnt;
 }
 
 unsigned int
 SubSequence::
-number_attribute_chunks(void) const
+state_length(void) const
 {
   return 1;
 }
 
-unsigned int
+bool
 SubSequence::
-number_attributes(unsigned int) const
+initialize_state(fastuidraw::PainterAttributeWriter::WriteState *dst) const
 {
-  return m_attributes.size();
+  dst->m_state[0] = 0;
+  dst->m_min_attributes_for_next = 4;
+  dst->m_min_indices_for_next = 6;
+  return m_number_glyphs > 0;
 }
 
-unsigned int
+bool
 SubSequence::
-number_index_chunks(void) const
+write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+           fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+           unsigned int index_addition,
+           fastuidraw::PainterAttributeWriter::WriteState *state,
+           unsigned int *num_attribs_written,
+           unsigned int *num_indices_written) const
 {
-  return 1;
-}
+  using namespace fastuidraw;
 
-unsigned int
-SubSequence::
-number_indices(unsigned int) const
-{
-  return m_indices.size();
-}
+  c_array<const PainterIndex> src_indices;
+  c_array<const PainterAttribute> src_attributes;
+  unsigned int &a(*num_attribs_written);
+  unsigned int &i(*num_indices_written);
+  unsigned int &glyph(state->m_state[0]);
 
-unsigned int
-SubSequence::
-attribute_chunk_selection(unsigned int) const
-{
-  return 0;
-}
+  src_attributes = m_attributes.sub_array(4 * glyph);
+  src_indices = m_indices.sub_array(6 * glyph);
 
-void
-SubSequence::
-write_indices(fastuidraw::c_array<fastuidraw::PainterIndex> dst,
-              unsigned int index_offset_value,
-              unsigned int) const
-{
-  for (unsigned int i = 0; i < dst.size(); ++i)
+  for (a = 0, i = 0;
+       a + 4u < dst_attribs.size() && i + 6u < dst_indices.size() && glyph < m_number_glyphs; ++glyph)
     {
-      fastuidraw::PainterIndex idx(m_indices[i]);
+      for (unsigned int aa = 0; aa < 4; ++aa, ++a)
+        {
+          dst_attribs[a] = src_attributes[a];
+        }
 
-      FASTUIDRAWassert(idx >= m_attribute_start);
-      idx -= m_attribute_start;
-      dst[i] = index_offset_value + m_indices[i];
+      for (unsigned int ii = 0; ii < 6; ++ii, ++i)
+        {
+          dst_indices[i] = src_indices[i] + index_addition - m_attribute_start;
+        }
     }
-}
 
-void
-SubSequence::
-write_attributes(fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
-                 unsigned int) const
-{
-  std::copy(m_attributes.begin(), m_attributes.end(), dst.begin());
+  return (glyph < m_number_glyphs);
 }
 
 //////////////////////////////////////////
