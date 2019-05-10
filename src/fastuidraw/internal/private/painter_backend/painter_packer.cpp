@@ -80,7 +80,7 @@ namespace
       m_attrib_chunk_selector(attrib_chunk_selector)
     {
       FASTUIDRAWassert((m_attrib_chunk_selector.empty() && m_attrib_chunks.size() == m_index_chunks.size())
-             || (m_attrib_chunk_selector.size() == m_index_chunks.size()) );
+                       || (m_attrib_chunk_selector.size() == m_index_chunks.size()) );
       FASTUIDRAWassert(m_index_adjusts.size() == m_index_chunks.size() || m_index_adjusts.empty());
     }
 
@@ -97,8 +97,15 @@ namespace
     initialize_state(fastuidraw::PainterAttributeWriter::WriteState *state) const
     {
       state->m_state[0] = 0;
-      on_new_store(state);
-      return number_index_chunks() > 0;
+      if (number_index_chunks() > 0 && number_attribute_chunks() > 0)
+        {
+          on_new_store(state);
+          return true;
+        }
+      else
+        {
+          return false;
+        }
     }
 
     void
