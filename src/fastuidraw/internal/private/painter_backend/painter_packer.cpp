@@ -90,7 +90,7 @@ namespace
       /* [0] stores what is the current index chunk,
        * [I + 1] store where the I'th attribute chunk was written
        */
-      return 1 + number_index_chunks();
+      return 1 + number_attribute_chunks();
     }
 
     bool
