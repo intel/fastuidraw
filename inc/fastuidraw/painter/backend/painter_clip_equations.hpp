@@ -45,8 +45,7 @@ namespace fastuidraw
      * \brief
      * Enumeration that provides offsets for the
      * elements of the clip equation offsets
-     * (clip_equations_offset) in units of \ref
-     * uint32_t.
+     * in units of uint32_t.
      */
     enum clip_equations_data_offset_t
       {

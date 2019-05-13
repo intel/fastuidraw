@@ -46,8 +46,7 @@ namespace fastuidraw
     /*!
      * \brief
      * Enumeration that provides offsets for the values
-     * in a \ref PainterBrushAdjust in units of \ref
-     * uint32_t.
+     * in a \ref PainterBrushAdjust in units of uint32_t.
      */
     enum data_offset_t
       {

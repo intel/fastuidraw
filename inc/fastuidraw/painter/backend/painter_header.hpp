@@ -88,7 +88,7 @@ namespace fastuidraw
      * \brief
      * Enumerations specifying how the contents of a PainterHeader
      * are packed into a data store buffer (PainterDraw::m_store),
-     * offsets are in units of \ref uint32_t (not uvec4).
+     * offsets are in units of uint32_t (not \ref uvec4).
      */
     enum offset_t
       {

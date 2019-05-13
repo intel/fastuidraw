@@ -58,7 +58,7 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Enumeration that provides offset, in units of \ref
+     * Enumeration that provides offset, in units of
      * uint32_t, of the packing of the gradient data
      */
     enum gradient_offset_t

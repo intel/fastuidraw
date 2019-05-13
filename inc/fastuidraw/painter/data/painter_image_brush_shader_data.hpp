@@ -83,8 +83,7 @@ namespace fastuidraw
     /*!
      * \brief
      * Offsets for image data packing. The offsets are in
-     * units of \ref uint32_t, NOT units of
-     * uvec4.
+     * units of uint32_t, NOT units of \ref uvec4.
      */
     enum offset_t
       {

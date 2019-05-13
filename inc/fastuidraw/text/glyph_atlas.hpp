@@ -47,7 +47,7 @@ namespace fastuidraw
     ~GlyphAtlasBackingStoreBase();
 
     /*!
-     * Returns the number of \ref uint32_t backed by the store.
+     * Returns the number of uint32_t backed by the store.
      */
     unsigned int
     size(void);
@@ -72,7 +72,7 @@ namespace fastuidraw
 
     /*!
      * Resize the object to a larger size.
-     * \param new_size new number of \ref uint32_t for the store to back
+     * \param new_size new number of uint32_t for the store to back
      */
     void
     resize(unsigned int new_size);
@@ -90,7 +90,7 @@ namespace fastuidraw
      * To be implemented by a derived class to resize the
      * object. When called, the return value of size() is
      * the size before the resize completes.
-     * \param new_size new number of \ref uint32_t for the store to back
+     * \param new_size new number of int32_t for the store to back
      */
     virtual
     void

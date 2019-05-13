@@ -44,8 +44,7 @@ namespace fastuidraw
      * \brief
      * Enumeration that provides offsets for the
      * item matrix from the location of that data
-     * (item_matrix_offset) in units of \ref
-     * uint32_t.
+     * (item_matrix_offset) in units of uint32_t.
      */
     enum item_matrix_data_offset_t
       {
