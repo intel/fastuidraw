@@ -194,17 +194,17 @@ sub_image(const reference_counted_ptr<const Image> &im,
 
 void
 fastuidraw::PainterImageBrushShaderData::
-pack_data(c_array<vecN<generic_data, 4> > pdst) const
+pack_data(c_array<uvec4> pdst) const
 {
-  c_array<generic_data> dst;
+  c_array<uint32_t> dst;
 
   dst = pdst.flatten_array();
   if (m_image)
     {
-      dst[start_xy_offset].u = pack_bits(uvec2_x_bit0, uvec2_x_num_bits, m_image_xy.x())
+      dst[start_xy_offset] = pack_bits(uvec2_x_bit0, uvec2_x_num_bits, m_image_xy.x())
         | pack_bits(uvec2_y_bit0, uvec2_y_num_bits, m_image_xy.y());
 
-      dst[size_xy_offset].u = pack_bits(uvec2_x_bit0, uvec2_x_num_bits, m_image_wh.x())
+      dst[size_xy_offset] = pack_bits(uvec2_x_bit0, uvec2_x_num_bits, m_image_wh.x())
         | pack_bits(uvec2_y_bit0, uvec2_y_num_bits, m_image_wh.y());
 
       switch (m_image->type())
@@ -214,11 +214,11 @@ pack_data(c_array<vecN<generic_data, 4> > pdst) const
             uvec3 loc(m_image->master_index_tile());
             uint32_t lookups(m_image->number_index_lookups());
 
-            dst[atlas_location_xyz_offset].u = pack_bits(atlas_location_x_bit0, atlas_location_x_num_bits, loc.x())
+            dst[atlas_location_xyz_offset] = pack_bits(atlas_location_x_bit0, atlas_location_x_num_bits, loc.x())
               | pack_bits(atlas_location_y_bit0, atlas_location_y_num_bits, loc.y())
               | pack_bits(atlas_location_z_bit0, atlas_location_z_num_bits, loc.z());
 
-            dst[number_lookups_offset].u = lookups;
+            dst[number_lookups_offset] = lookups;
           }
           break;
 
@@ -229,8 +229,8 @@ pack_data(c_array<vecN<generic_data, 4> > pdst) const
             v = m_image->bindless_handle();
             hi = uint64_unpack_bits(32, 32, v);
             low = uint64_unpack_bits(0, 32, v);
-            dst[bindless_handle_hi_offset].u = hi;
-            dst[bindless_handle_low_offset].u = low;
+            dst[bindless_handle_hi_offset] = hi;
+            dst[bindless_handle_low_offset] = low;
           }
           break;
 
@@ -240,9 +240,6 @@ pack_data(c_array<vecN<generic_data, 4> > pdst) const
     }
   else
     {
-      generic_data zero;
-
-      zero.u = 0u;
-      std::fill(dst.begin(), dst.end(), zero);
+      std::fill(dst.begin(), dst.end(), 0u);
     }
 }

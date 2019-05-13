@@ -64,7 +64,7 @@ namespace
     virtual
     void
     set_values(unsigned int location,
-               fastuidraw::c_array<const fastuidraw::generic_data> pdata);
+               fastuidraw::c_array<const uint32_t> pdata);
 
     virtual
     void
@@ -97,7 +97,7 @@ namespace
     virtual
     void
     set_values(unsigned int location,
-               fastuidraw::c_array<const fastuidraw::generic_data> pdata);
+               fastuidraw::c_array<const uint32_t> pdata);
 
     virtual
     void
@@ -132,7 +132,7 @@ namespace
     virtual
     void
     set_values(unsigned int location,
-               fastuidraw::c_array<const fastuidraw::generic_data> pdata);
+               fastuidraw::c_array<const uint32_t> pdata);
 
     virtual
     void
@@ -245,7 +245,7 @@ gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const
 void
 StoreGL_Texture::
 set_values(unsigned int location,
-           fastuidraw::c_array<const fastuidraw::generic_data> pdata)
+           fastuidraw::c_array<const uint32_t> pdata)
 {
   unsigned int num_texels;
   fastuidraw::uvec3 p;
@@ -322,7 +322,7 @@ StoreGL_TextureBuffer::
 void
 StoreGL_TextureBuffer::
 set_values(unsigned int location,
-           fastuidraw::c_array<const fastuidraw::generic_data> pdata)
+           fastuidraw::c_array<const uint32_t> pdata)
 {
   m_backing_store.set_data(location * sizeof(float),
                            pdata.reinterpret_pointer<const uint8_t>());
@@ -389,7 +389,7 @@ StoreGL_StorageBuffer(unsigned int number):
 void
 StoreGL_StorageBuffer::
 set_values(unsigned int location,
-           fastuidraw::c_array<const fastuidraw::generic_data> pdata)
+           fastuidraw::c_array<const uint32_t> pdata)
 {
   m_backing_store.set_data(location * sizeof(float),
                            pdata.reinterpret_pointer<const uint8_t>());

@@ -792,10 +792,10 @@ namespace fastuidraw
         num_indices,
 
         /*!
-         * Offset to how many generic_data values placed
+         * Offset to how many uvec4 values placed
          * onto store buffer(s).
          */
-        num_generic_datas,
+        num_datas,
 
         /*!
          * Offset to how many PainterDraw objects sent

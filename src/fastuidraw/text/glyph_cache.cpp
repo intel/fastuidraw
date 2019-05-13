@@ -461,7 +461,7 @@ GlyphCachePrivate::
 // fastuidraw::GlyphAtlasProxy methods
 int
 fastuidraw::GlyphAtlasProxy::
-allocate_data(c_array<const generic_data> pdata)
+allocate_data(c_array<const uint32_t> pdata)
 {
   int L;
   GlyphAtlasProxyPrivate *d;
@@ -1097,7 +1097,7 @@ number_times_atlas_cleared(void)
 
 fastuidraw::GlyphCache::AllocationHandle
 fastuidraw::GlyphCache::
-allocate_data(c_array<const generic_data> pdata)
+allocate_data(c_array<const uint32_t> pdata)
 {
   AllocationHandle A;
   GlyphCachePrivate *d;

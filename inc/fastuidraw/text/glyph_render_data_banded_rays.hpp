@@ -211,7 +211,7 @@ namespace fastuidraw
        * thus, if the point becomes invalid once the queried
        * \ref GlyphRenderDataBandedRays goes out of scope.
        */
-      c_array<const generic_data> m_gpu_data;
+      c_array<const uint32_t> m_gpu_data;
 
       /*!
        * The number of vertical bands of the queried

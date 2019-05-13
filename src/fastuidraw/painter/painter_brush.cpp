@@ -57,19 +57,19 @@ data_size(void) const
 
 void
 fastuidraw::PainterBrush::
-pack_data(c_array<vecN<generic_data, 4> > dst) const
+pack_data(c_array<uvec4> dst) const
 {
   unsigned int current(0);
   unsigned int sz;
-  c_array<generic_data> sub_dest;
+  c_array<uint32_t> sub_dest;
   uint32_t pfeatures = features();
 
   sz = FASTUIDRAW_NUMBER_BLOCK4_NEEDED(header_data_size);
   sub_dest = dst.sub_array(current, sz).flatten_array();
   current += sz;
-  sub_dest[features_offset].u = pfeatures;
-  sub_dest[header_red_green_offset].u = pack_as_fp16(m_data.m_color.x(), m_data.m_color.y());
-  sub_dest[header_blue_alpha_offset].u = pack_as_fp16(m_data.m_color.z(), m_data.m_color.w());
+  sub_dest[features_offset] = pfeatures;
+  sub_dest[header_red_green_offset] = pack_as_fp16(m_data.m_color.x(), m_data.m_color.y());
+  sub_dest[header_blue_alpha_offset] = pack_as_fp16(m_data.m_color.z(), m_data.m_color.w());
 
   if (pfeatures & repeat_window_mask)
     {
@@ -77,10 +77,10 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
       sub_dest = dst.sub_array(current, sz).flatten_array();
       current += sz;
 
-      sub_dest[repeat_window_x_offset].f = m_data.m_window_position.x();
-      sub_dest[repeat_window_y_offset].f = m_data.m_window_position.y();
-      sub_dest[repeat_window_width_offset].f = m_data.m_window_size.x();
-      sub_dest[repeat_window_height_offset].f = m_data.m_window_size.y();
+      sub_dest[repeat_window_x_offset] = pack_float(m_data.m_window_position.x());
+      sub_dest[repeat_window_y_offset] = pack_float(m_data.m_window_position.y());
+      sub_dest[repeat_window_width_offset] = pack_float(m_data.m_window_size.x());
+      sub_dest[repeat_window_height_offset] = pack_float(m_data.m_window_size.y());
     }
 
   if (pfeatures & transformation_matrix_mask)
@@ -89,10 +89,10 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
       sub_dest = dst.sub_array(current, sz).flatten_array();
       current += sz;
 
-      sub_dest[transformation_matrix_row0_col0_offset].f = m_data.m_transformation_matrix(0, 0);
-      sub_dest[transformation_matrix_row0_col1_offset].f = m_data.m_transformation_matrix(0, 1);
-      sub_dest[transformation_matrix_row1_col0_offset].f = m_data.m_transformation_matrix(1, 0);
-      sub_dest[transformation_matrix_row1_col1_offset].f = m_data.m_transformation_matrix(1, 1);
+      sub_dest[transformation_matrix_row0_col0_offset] = pack_float(m_data.m_transformation_matrix(0, 0));
+      sub_dest[transformation_matrix_row0_col1_offset] = pack_float(m_data.m_transformation_matrix(0, 1));
+      sub_dest[transformation_matrix_row1_col0_offset] = pack_float(m_data.m_transformation_matrix(1, 0));
+      sub_dest[transformation_matrix_row1_col1_offset] = pack_float(m_data.m_transformation_matrix(1, 1));
     }
 
   if (pfeatures & transformation_translation_mask)
@@ -101,8 +101,8 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
       sub_dest = dst.sub_array(current, sz).flatten_array();
       current += sz;
 
-      sub_dest[transformation_translation_x_offset].f = m_data.m_transformation_p.x();
-      sub_dest[transformation_translation_y_offset].f = m_data.m_transformation_p.y();
+      sub_dest[transformation_translation_x_offset] = pack_float(m_data.m_transformation_p.x());
+      sub_dest[transformation_translation_y_offset] = pack_float(m_data.m_transformation_p.y());
     }
 
   if (pfeatures & image_mask)

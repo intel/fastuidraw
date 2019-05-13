@@ -203,7 +203,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_atlas;
     fastuidraw::BoundingBox<float> m_bbox;
     int m_allocation;
-    std::vector<fastuidraw::generic_data> m_gpu_data;
+    std::vector<uint32_t> m_gpu_data;
     RenderData::query_info m_query_data;
 
     fastuidraw::vecN<PerFillRule, fastuidraw::PainterEnums::number_fill_rule> m_per_fill_rule;
@@ -370,7 +370,7 @@ ShaderFilledPathPrivate(BuilderPrivate &B):
    */
   m_gpu_data.resize(m_query_data.m_gpu_data.size());
   std::copy(m_query_data.m_gpu_data.begin(), m_query_data.m_gpu_data.end(), m_gpu_data.begin());
-  m_query_data.m_gpu_data = make_c_array(m_gpu_data);
+  m_query_data.m_gpu_data = fastuidraw::make_c_array(m_gpu_data);
 }
 
 ShaderFilledPathPrivate::

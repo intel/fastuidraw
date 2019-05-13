@@ -146,17 +146,17 @@ namespace
     void
     action(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &)
     {
-      for(const fastuidraw::c_array<fastuidraw::generic_data> &d : m_dests)
+      for(const fastuidraw::c_array<uint32_t> &d : m_dests)
         {
-          d[fastuidraw::PainterHeader::z_offset].i = m_z_to_write;
-          d[fastuidraw::PainterHeader::blend_shader_data_location_offset].u = fastuidraw::PainterHeader::drawing_occluder;
+          d[fastuidraw::PainterHeader::z_offset] = static_cast<uint32_t>(m_z_to_write);
+          d[fastuidraw::PainterHeader::blend_shader_data_location_offset] = fastuidraw::PainterHeader::drawing_occluder;
         }
     }
 
   private:
     friend class ZDataCallBack;
     int32_t m_z_to_write;
-    std::vector<fastuidraw::c_array<fastuidraw::generic_data> > m_dests;
+    std::vector<fastuidraw::c_array<uint32_t> > m_dests;
   };
 
   class ZDataCallBack:public fastuidraw::PainterPacker::DataCallBack
@@ -166,7 +166,7 @@ namespace
     void
     header_added(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h,
                  const fastuidraw::PainterHeader &original_value,
-                 fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
+                 fastuidraw::c_array<uint32_t> mapped_location) override
     {
       if (h != m_cmd)
         {
@@ -1719,7 +1719,7 @@ namespace
 
     float
     compute_path_thresh(const fastuidraw::Path &path,
-                        const fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > shader_data,
+                        const fastuidraw::c_array<const fastuidraw::uvec4 > shader_data,
                         const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
                         float &thresh);
 
@@ -3186,7 +3186,7 @@ compute_max_magnification_at_clip_points(fastuidraw::c_array<const fastuidraw::v
 float
 PainterPrivate::
 compute_path_thresh(const fastuidraw::Path &path,
-                    const fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > shader_data,
+                    const fastuidraw::c_array<const fastuidraw::uvec4 > shader_data,
                     const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &selector,
                     float &thresh)
 {
@@ -3211,7 +3211,7 @@ select_stroked_path(const fastuidraw::Path &path,
   using namespace fastuidraw;
 
   float t;
-  c_array<const vecN<generic_data, 4> > data(draw.m_item_shader_data.m_packed_value.packed_data());
+  c_array<const uvec4 > data(draw.m_item_shader_data.m_packed_value.packed_data());
   const reference_counted_ptr<const StrokingDataSelectorBase> &selector(shader.stroking_data_selector());
 
   if (selector->data_compatible(data))
@@ -3681,7 +3681,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
     }
 
   const PainterAttributeData *cap_data(nullptr), *join_data(nullptr);
-  c_array<const vecN<generic_data, 4> > raw_data;
+  c_array<const uvec4 > raw_data;
   const StrokedCapsJoins &caps_joins(path.caps_joins());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
   bool requires_coverage_buffer(false);
@@ -5111,7 +5111,7 @@ compute_path_thresh(const fastuidraw::Path &path)
 float
 fastuidraw::Painter::
 compute_path_thresh(const Path &path,
-                    const c_array<const vecN<generic_data, 4> > shader_data,
+                    const c_array<const uvec4 > shader_data,
                     const reference_counted_ptr<const StrokingDataSelectorBase> &selector,
                     float *thresh)
 {
@@ -6571,7 +6571,7 @@ label(enum query_stats_t st)
     {
       EASY(num_attributes);
       EASY(num_indices);
-      EASY(num_generic_datas);
+      EASY(num_datas);
       EASY(num_draws);
       EASY(num_headers);
       EASY(num_render_targets);

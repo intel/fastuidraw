@@ -1748,7 +1748,7 @@ ubo_size(void)
 void
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 fill_uniform_buffer(const PainterSurface::Viewport &vwp,
-                    c_array<generic_data> p)
+                    c_array<uint32_t> p)
 {
   int w, h;
   vec2 wh, recip;
@@ -1759,9 +1759,9 @@ fill_uniform_buffer(const PainterSurface::Viewport &vwp,
   wh = vec2(w, h);
   recip = vec2(1.0f, 1.0f) / wh;
 
-  p[uniform_ubo_resolution_x_offset].f = wh.x();
-  p[uniform_ubo_resolution_y_offset].f = wh.y();
-  p[uniform_ubo_recip_resolution_x_offset].f = recip.x();
-  p[uniform_ubo_recip_resolution_y_offset].f = recip.y();
-  p[uniform_ubo_recip_magnitude_offset].f = recip.magnitude();
+  p[uniform_ubo_resolution_x_offset]= pack_float(wh.x());
+  p[uniform_ubo_resolution_y_offset]= pack_float(wh.y());
+  p[uniform_ubo_recip_resolution_x_offset]= pack_float(recip.x());
+  p[uniform_ubo_recip_resolution_y_offset]= pack_float(recip.y());
+  p[uniform_ubo_recip_magnitude_offset]= pack_float(recip.magnitude());
 }

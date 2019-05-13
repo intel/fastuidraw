@@ -1007,11 +1007,11 @@ namespace fastuidraw
        */
       void
       fill_uniform_buffer(const PainterSurface::Viewport &vwp,
-                          c_array<generic_data> p);
+                          c_array<uint32_t> p);
 
       /*!
        * Total size of UBO for uniforms in units of
-       * generic_data, see also fill_uniform_ubo().
+       * uint32_t, see also fill_uniform_ubo().
        */
       static
       uint32_t

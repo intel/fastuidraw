@@ -83,8 +83,8 @@ namespace fastuidraw
     /*!
      * \brief
      * Offsets for image data packing. The offsets are in
-     * units of \ref generic_data, NOT units of
-     * vecN<generic_data, 4>.
+     * units of \ref uint32_t, NOT units of
+     * uvec4.
      */
     enum offset_t
       {
@@ -194,7 +194,7 @@ namespace fastuidraw
     }
 
     void
-    pack_data(c_array<vecN<generic_data, 4> > dst) const override;
+    pack_data(c_array<uvec4> dst) const override;
 
     unsigned int
     data_size(void) const override;

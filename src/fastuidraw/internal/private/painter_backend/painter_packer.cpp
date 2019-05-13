@@ -335,7 +335,7 @@ public:
   unsigned int m_attributes_written, m_indices_written;
 
 private:
-  c_array<vecN<generic_data, 4> >
+  c_array<uvec4>
   allocate_store(unsigned int num_elements);
 
   void
@@ -375,11 +375,11 @@ per_draw_command(const reference_counted_ptr<PainterDraw> &r):
   m_prev_state.m_blend_shader_type = fastuidraw::PainterBlendShader::number_types;
 }
 
-fastuidraw::c_array<fastuidraw::vecN<fastuidraw::generic_data, 4> >
+fastuidraw::c_array<fastuidraw::uvec4>
 fastuidraw::PainterPacker::per_draw_command::
 allocate_store(unsigned int num_elements)
 {
-  c_array<vecN<generic_data, 4> > return_value;
+  c_array<uvec4> return_value;
   return_value = m_draw_command->m_store.sub_array(store_written(), num_elements);
   m_store_blocks_written += num_elements;
   return return_value;
@@ -390,7 +390,7 @@ void
 fastuidraw::PainterPacker::per_draw_command::
 pack_state_data_from_value(const T &st, uint32_t &location)
 {
-  c_array<vecN<generic_data, 4> > dst;
+  c_array<uvec4> dst;
   unsigned int data_sz;
 
   location = store_written();
@@ -449,8 +449,8 @@ pack_state_data(enum fastuidraw::PainterSurface::render_type_t render_type,
   /* data not in current data store but packed in d->m_data, place
    * it onto the current store.
    */
-  c_array<const vecN<generic_data, 4> > src;
-  c_array<vecN<generic_data, 4> > dst;
+  c_array<const uvec4 > src;
+  c_array<uvec4> dst;
 
   location = store_written();
   src = make_c_array(d->m_data);
@@ -502,7 +502,7 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
             unsigned int *header_location)
 {
   bool return_value(false);
-  c_array<vecN<generic_data, 4> > dst;
+  c_array<uvec4> dst;
   PainterHeader header;
 
   *header_location = store_written();
@@ -640,7 +640,7 @@ start_new_command(void)
 
       m_stats[PainterEnums::num_attributes] += c.m_attributes_written;
       m_stats[PainterEnums::num_indices] += c.m_indices_written;
-      m_stats[PainterEnums::num_generic_datas] += c.store_written();
+      m_stats[PainterEnums::num_datas] += c.store_written();
 
       c.unmap();
     }
@@ -937,7 +937,7 @@ flush_implement(void)
       per_draw_command &c(m_accumulated_draws.back());
       m_stats[PainterEnums::num_attributes] += c.m_attributes_written;
       m_stats[PainterEnums::num_indices] += c.m_indices_written;
-      m_stats[PainterEnums::num_generic_datas] += c.store_written();
+      m_stats[PainterEnums::num_datas] += c.store_written();
       c.unmap();
     }
 

@@ -295,7 +295,7 @@ namespace
 
     void
     pack_curves(const GlyphPath &path,
-                fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+                fastuidraw::c_array<uint32_t> dst) const;
 
   private:
     std::map<std::vector<CurveID>, uint32_t> m_offsets;
@@ -532,7 +532,7 @@ namespace
     GlyphPath *m_glyph;
     fastuidraw::ivec2 m_num_bands;
     enum fastuidraw::PainterEnums::fill_rule_t m_fill_rule;
-    std::vector<fastuidraw::generic_data> m_render_data;
+    std::vector<uint32_t> m_render_data;
     fastuidraw::vecN<float, num_costs> m_render_cost;
   };
 }
@@ -566,7 +566,7 @@ template<enum band_t BandType>
 void
 CurveListHoard<BandType>::
 pack_curves(const GlyphPath &path,
-            fastuidraw::c_array<fastuidraw::generic_data> dst) const
+            fastuidraw::c_array<uint32_t> dst) const
 {
   for (const auto &e : m_offsets)
     {
@@ -574,9 +574,9 @@ pack_curves(const GlyphPath &path,
       for (const CurveID &id : e.first)
         {
           const Curve &curve(path.curve(id));
-          dst[offset++].u = pack_point<BandType>(curve.start());
-          dst[offset++].u = pack_point<BandType>(curve.control());
-          dst[offset++].u = pack_point<BandType>(curve.end());
+          dst[offset++] = pack_point<BandType>(curve.start());
+          dst[offset++] = pack_point<BandType>(curve.control());
+          dst[offset++] = pack_point<BandType>(curve.end());
         }
     }
 }
@@ -1010,7 +1010,7 @@ finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect,
 
   // the needed room is now stored in offset
   d->m_render_data.resize(offset);
-  c_array<generic_data> dst(make_c_array(d->m_render_data));
+  c_array<uint32_t> dst(make_c_array(d->m_render_data));
 
   /* step 3: pack the data
    * The bands come in a very specific order:
@@ -1023,13 +1023,13 @@ finalize(enum PainterEnums::fill_rule_t f, const Rect &glyph_rect,
   vert_hoard.pack_curves(*d->m_glyph, dst);
   for (unsigned int i = 0; i < H; ++i)
     {
-      dst[i].u = split_horiz_bands[i].after_split_packed_band_value();
-      dst[i + H].u = split_horiz_bands[i].before_split_packed_band_value();
+      dst[i] = split_horiz_bands[i].after_split_packed_band_value();
+      dst[i + H] = split_horiz_bands[i].before_split_packed_band_value();
     }
   for (unsigned int i = 0; i < V; ++i)
     {
-      dst[i + 2 * H].u = split_vert_bands[i].after_split_packed_band_value();
-      dst[i + 2 * H + V].u = split_vert_bands[i].before_split_packed_band_value();
+      dst[i + 2 * H] = split_vert_bands[i].after_split_packed_band_value();
+      dst[i + 2 * H + V] = split_vert_bands[i].before_split_packed_band_value();
     }
 
   /* step 4: record the data neeed for shading */

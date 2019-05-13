@@ -697,7 +697,7 @@ configure_from_context(bool choose_optimal_rendering_quality,
   d->m_data_store_backing = data_store_ubo;
 
   unsigned int max_ubo_size, max_num_blocks, block_size;
-  block_size = 4 * sizeof(generic_data);
+  block_size = 4 * sizeof(uint32_t);
   max_ubo_size = context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
   max_num_blocks = max_ubo_size / block_size;
   if (max_num_blocks < d->m_data_blocks_per_store_buffer)
@@ -854,7 +854,7 @@ adjust_for_context(const ContextProperties &ctx)
     case data_store_ubo:
       {
         unsigned int max_ubo_size_bytes, max_num_blocks, block_size_bytes;
-        block_size_bytes = 4 * sizeof(generic_data);
+        block_size_bytes = 4 * sizeof(uint32_t);
         max_ubo_size_bytes = context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
         max_num_blocks = max_ubo_size_bytes / block_size_bytes;
         d->m_data_blocks_per_store_buffer = t_min(max_num_blocks,
@@ -865,7 +865,7 @@ adjust_for_context(const ContextProperties &ctx)
     case data_store_ssbo:
       {
         unsigned int max_ssbo_size_bytes, max_num_blocks, block_size_bytes;
-        block_size_bytes = 4 * sizeof(generic_data);
+        block_size_bytes = 4 * sizeof(uint32_t);
         max_ssbo_size_bytes = context_get<GLint>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
         max_num_blocks = max_ssbo_size_bytes / block_size_bytes;
         d->m_data_blocks_per_store_buffer = t_min(max_num_blocks,

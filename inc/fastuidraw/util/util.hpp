@@ -135,28 +135,6 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * Union to store 32-bit data.
-   */
-  union generic_data
-  {
-    /*!
-     * The data as an uint32_t
-     */
-    uint32_t u;
-
-    /*!
-     * The data as an int32_t
-     */
-    int32_t  i;
-
-    /*!
-     * The data as a float
-     */
-    float    f;
-  };
-
-  /*!
-   * \brief
    * Enumeration for simple return codes for functions
    * for success or failure.
    */

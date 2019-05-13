@@ -102,7 +102,7 @@ namespace fastuidraw
      */
     virtual
     float
-    compute_thresh(c_array<const vecN<generic_data, 4> > data,
+    compute_thresh(c_array<const uvec4 > data,
                    float path_magnification,
                    float curve_flatness) const = 0;
 
@@ -121,7 +121,7 @@ namespace fastuidraw
      */
     virtual
     void
-    stroking_distances(c_array<const vecN<generic_data, 4> > data,
+    stroking_distances(c_array<const uvec4 > data,
                        c_array<float> out_values) const = 0;
 
     /*!
@@ -131,7 +131,7 @@ namespace fastuidraw
      */
     virtual
     bool
-    arc_stroking_possible(c_array<const vecN<generic_data, 4> > data) const = 0;
+    arc_stroking_possible(c_array<const uvec4 > data) const = 0;
 
     /*!
      * To be implemented by a derived class to specify if the passed
@@ -140,7 +140,7 @@ namespace fastuidraw
      */
     virtual
     bool
-    data_compatible(c_array<const vecN<generic_data, 4> > data) const = 0;
+    data_compatible(c_array<const uvec4 > data) const = 0;
   };
 
   /*!

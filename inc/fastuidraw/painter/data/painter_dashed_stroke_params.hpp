@@ -221,7 +221,7 @@ namespace fastuidraw
     data_size(void) const override;
 
     void
-    pack_data(c_array<vecN<generic_data, 4> > dst) const override;
+    pack_data(c_array<uvec4> dst) const override;
 
   private:
     void *m_d;

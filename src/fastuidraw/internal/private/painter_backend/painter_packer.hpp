@@ -102,7 +102,7 @@ namespace fastuidraw
       void
       header_added(const reference_counted_ptr<const PainterDraw> &h,
                    const PainterHeader &original_value,
-                   c_array<generic_data> mapped_location) = 0;
+                   c_array<uint32_t> mapped_location) = 0;
 
     private:
       friend class PainterPacker;

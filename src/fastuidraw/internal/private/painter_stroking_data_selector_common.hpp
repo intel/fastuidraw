@@ -38,12 +38,14 @@ namespace fastuidraw
       {}
 
       float
-      compute_thresh(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata,
+      compute_thresh(fastuidraw::c_array<const fastuidraw::uvec4> pdata,
                      float path_magnification,
                      float curve_flatness) const override final
       {
-        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
-        if (data[RadiusOffset].f <= 0.0f)
+        fastuidraw::c_array<const uint32_t> data (pdata.flatten_array());
+        float radius(unpack_float(data[RadiusOffset]));
+
+        if (radius <= 0.0f)
           {
             /* Not really stroking, just select a LARGE value
              * to get a very low level of detail.
@@ -54,8 +56,8 @@ namespace fastuidraw
           {
             float return_value;
 
-            return_value = curve_flatness / fastuidraw::t_max(1.0f, data[RadiusOffset].f);
-            if (data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units)
+            return_value = curve_flatness / fastuidraw::t_max(1.0f, radius);
+            if (data[UnitsOffset] == fastuidraw::PainterStrokeParams::path_stroking_units)
               {
                 return_value /= path_magnification;
               }
@@ -64,48 +66,48 @@ namespace fastuidraw
       }
 
       void
-      stroking_distances(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata,
+      stroking_distances(fastuidraw::c_array<const fastuidraw::uvec4> pdata,
                          fastuidraw::c_array<float> out_geometry_inflation) const override final
       {
-        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
+        fastuidraw::c_array<const uint32_t> data (pdata.flatten_array());
         float out_pixel_distance, out_item_space_distance;
 
-        if (data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units)
+        if (data[UnitsOffset] == fastuidraw::PainterStrokeParams::path_stroking_units)
           {
             out_pixel_distance = 0.0f;
-            out_item_space_distance = data[RadiusOffset].f;
+            out_item_space_distance = unpack_float(data[RadiusOffset]);
           }
         else
           {
-            out_pixel_distance = data[RadiusOffset].f;
+            out_pixel_distance = unpack_float(data[RadiusOffset]);
             out_item_space_distance = 0.0f;
           }
 
         out_geometry_inflation[pixel_space_distance] = out_pixel_distance;
         out_geometry_inflation[item_space_distance] = out_item_space_distance;
-        out_geometry_inflation[pixel_space_distance_miter_joins] = data[MiterLimitOffset].f * out_pixel_distance;
-        out_geometry_inflation[item_space_distance_miter_joins] = data[MiterLimitOffset].f * out_item_space_distance;
+        out_geometry_inflation[pixel_space_distance_miter_joins] = unpack_float(data[MiterLimitOffset]) * out_pixel_distance;
+        out_geometry_inflation[item_space_distance_miter_joins] = unpack_float(data[MiterLimitOffset]) * out_item_space_distance;
       }
 
       bool
-      arc_stroking_possible(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata) const override final
+      arc_stroking_possible(fastuidraw::c_array<const fastuidraw::uvec4> pdata) const override final
       {
-        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
+        fastuidraw::c_array<const uint32_t> data (pdata.flatten_array());
         return m_pixel_arc_stroking_possible
-          || data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units;
+          || data[UnitsOffset] == fastuidraw::PainterStrokeParams::path_stroking_units;
       }
 
       bool
-      data_compatible(fastuidraw::c_array<const fastuidraw::vecN<fastuidraw::generic_data, 4> > pdata) const override final
+      data_compatible(fastuidraw::c_array<const fastuidraw::uvec4> pdata) const override final
       {
-        fastuidraw::c_array<const fastuidraw::generic_data> data (pdata.flatten_array());
+        fastuidraw::c_array<const uint32_t> data (pdata.flatten_array());
         return data.size() > MiterLimitOffset
           && data.size() > RadiusOffset
           && data.size() > UnitsOffset
-          && std::isfinite(data[MiterLimitOffset].f)
-          && std::isfinite(data[RadiusOffset].f)
-          && (data[UnitsOffset].u == fastuidraw::PainterStrokeParams::path_stroking_units
-              || data[UnitsOffset].u == fastuidraw::PainterStrokeParams::pixel_stroking_units);
+          && std::isfinite(unpack_float(data[MiterLimitOffset]))
+          && std::isfinite(unpack_float(data[RadiusOffset]))
+          && (data[UnitsOffset] == fastuidraw::PainterStrokeParams::path_stroking_units
+              || data[UnitsOffset] == fastuidraw::PainterStrokeParams::pixel_stroking_units);
       }
 
     private:

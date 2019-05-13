@@ -59,7 +59,7 @@ namespace fastuidraw
     /*!
      * \brief
      * Enumeration that provides offset, in units of \ref
-     * generic_data, of the packing of the gradient data
+     * uint32_t, of the packing of the gradient data
      */
     enum gradient_offset_t
       {
@@ -347,7 +347,7 @@ namespace fastuidraw
     data_size(void) const override;
 
     void
-    pack_data(c_array<vecN<generic_data, 4> > dst) const override;
+    pack_data(c_array<uvec4> dst) const override;
 
     void
     save_resources(c_array<reference_counted_ptr<const resource_base> > dst) const override;

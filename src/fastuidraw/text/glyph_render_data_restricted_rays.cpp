@@ -203,18 +203,18 @@ namespace
     }
 
     void
-    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst,
+    pack_data(fastuidraw::c_array<uint32_t> dst,
               const Transformation &tr) const
     {
       FASTUIDRAWassert(m_offset >= 0);
 
       unsigned int p(m_offset);
-      dst[p++].u = tr.pack_point(fstart());
+      dst[p++] = tr.pack_point(fstart());
       if (has_control())
         {
-          dst[p++].u = tr.pack_point(fcontrol());
+          dst[p++] = tr.pack_point(fcontrol());
         }
-      dst[p++].u = tr.pack_point(fend());
+      dst[p++] = tr.pack_point(fend());
     }
 
     fastuidraw::ivec2
@@ -427,7 +427,7 @@ namespace
     assign_curve_offsets(unsigned int &current_offset);
 
     void
-    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst,
+    pack_data(fastuidraw::c_array<uint32_t> dst,
               const Transformation &tr) const;
 
   private:
@@ -485,7 +485,7 @@ namespace
   class CurveListPacker
   {
   public:
-    CurveListPacker(fastuidraw::c_array<fastuidraw::generic_data> dst,
+    CurveListPacker(fastuidraw::c_array<uint32_t> dst,
                     unsigned int offset):
       m_dst(dst),
       m_current_offset(offset),
@@ -504,7 +504,7 @@ namespace
     room_required(unsigned int num_curves);
 
   private:
-    fastuidraw::c_array<fastuidraw::generic_data> m_dst;
+    fastuidraw::c_array<uint32_t> m_dst;
     unsigned int m_current_offset, m_sub_offset;
     uint32_t m_current_value;
   };
@@ -535,14 +535,14 @@ namespace
 
     void
     pack_data(const GlyphPath *p,
-              fastuidraw::c_array<fastuidraw::generic_data> data) const;
+              fastuidraw::c_array<uint32_t> data) const;
 
   private:
     void
     pack_element(const GlyphPath *p,
                  const std::vector<CurveID> &curves,
                  unsigned int offset,
-                 fastuidraw::c_array<fastuidraw::generic_data> data) const;
+                 fastuidraw::c_array<uint32_t> data) const;
 
     unsigned int m_start_offset, m_current_offset;
     std::map<std::vector<CurveID>, unsigned int> m_offsets;
@@ -590,7 +590,7 @@ namespace
     assign_curve_list_offsets(CurveListCollection &C);
 
     void
-    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+    pack_data(fastuidraw::c_array<uint32_t> dst) const;
 
     float
     compute_average_curve_cost(void) const;
@@ -622,11 +622,11 @@ namespace
     }
 
     void
-    pack_texel(fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+    pack_texel(fastuidraw::c_array<uint32_t> dst) const;
 
     void
     pack_sample_point(unsigned int &offset,
-                      fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+                      fastuidraw::c_array<uint32_t> dst) const;
 
     fastuidraw::vecN<CurveListHierarchy*, 2> m_child;
     unsigned int m_offset, m_splitting_coordinate, m_generation;
@@ -730,7 +730,7 @@ namespace
     assign_curve_offsets(unsigned int start_offset);
 
     void
-    pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst,
+    pack_data(fastuidraw::c_array<uint32_t> dst,
               const Transformation &tr) const;
 
     const Curve&
@@ -843,7 +843,7 @@ namespace
     GlyphPath *m_glyph;
     enum fastuidraw::PainterEnums::fill_rule_t m_fill_rule;
     fastuidraw::vecN<float, num_costs> m_costs;
-    std::vector<fastuidraw::generic_data> m_render_data;
+    std::vector<uint32_t> m_render_data;
   };
 }
 
@@ -1318,7 +1318,7 @@ assign_curve_offsets(unsigned int &current_offset)
 
 void
 Contour::
-pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst,
+pack_data(fastuidraw::c_array<uint32_t> dst,
           const Transformation &tr) const
 {
   for (const Curve &curve : m_curves)
@@ -1465,7 +1465,7 @@ add_curve(uint32_t curve_location, bool curve_is_quadratic)
     {
       FASTUIDRAWassert(m_sub_offset == 1);
 
-      m_dst[m_current_offset++].u = m_current_value | (v << G::curve_entry1_bit0);
+      m_dst[m_current_offset++] = m_current_value | (v << G::curve_entry1_bit0);
       m_current_value = 0u;
       m_sub_offset = 0;
     }
@@ -1490,7 +1490,7 @@ end_list(void)
 {
   if (m_sub_offset == 1)
     {
-      m_dst[m_current_offset++].u = m_current_value;
+      m_dst[m_current_offset++] = m_current_value;
     }
 }
 
@@ -1524,7 +1524,7 @@ assign_offset(CurveList &C)
 void
 CurveListCollection::
 pack_data(const GlyphPath *p,
-          fastuidraw::c_array<fastuidraw::generic_data> data) const
+          fastuidraw::c_array<uint32_t> data) const
 {
   for (const auto &element : m_offsets)
     {
@@ -1537,7 +1537,7 @@ CurveListCollection::
 pack_element(const GlyphPath *p,
              const std::vector<CurveID> &curves,
              unsigned int offset,
-             fastuidraw::c_array<fastuidraw::generic_data> dst) const
+             fastuidraw::c_array<uint32_t> dst) const
 {
   CurveListPacker curve_list_packer(dst, offset);
 
@@ -1560,7 +1560,7 @@ pack_element(const GlyphPath *p,
 void
 CurveListHierarchy::
 pack_sample_point(unsigned int &offset,
-                  fastuidraw::c_array<fastuidraw::generic_data> dst) const
+                  fastuidraw::c_array<uint32_t> dst) const
 {
   using namespace fastuidraw;
   typedef GlyphRenderDataRestrictedRays G;
@@ -1569,16 +1569,16 @@ pack_sample_point(unsigned int &offset,
    * bits 16-23 for dx
    * bits 24-31 for dy
    */
-  dst[offset++].u = pack_bits(G::winding_value_bit0,
-                              G::winding_value_numbits,
-                              bias_winding(m_winding))
+  dst[offset++] = pack_bits(G::winding_value_bit0,
+                            G::winding_value_numbits,
+                            bias_winding(m_winding))
     | pack_bits(G::delta_x_bit0, G::delta_numbits, m_delta.x())
     | pack_bits(G::delta_y_bit0, G::delta_numbits, m_delta.y());
 }
 
 void
 CurveListHierarchy::
-pack_texel(fastuidraw::c_array<fastuidraw::generic_data> dst) const
+pack_texel(fastuidraw::c_array<uint32_t> dst) const
 {
   using namespace fastuidraw;
   typedef GlyphRenderDataRestrictedRays G;
@@ -1587,9 +1587,9 @@ pack_texel(fastuidraw::c_array<fastuidraw::generic_data> dst) const
     {
       unsigned int offset(m_offset);
 
-      dst[offset++].u = pack_bits(G::hierarchy_leaf_curve_list_bit0,
-                                  G::hierarchy_leaf_curve_list_numbits,
-                                  m_curves.m_offset)
+      dst[offset++] = pack_bits(G::hierarchy_leaf_curve_list_bit0,
+                                G::hierarchy_leaf_curve_list_numbits,
+                                m_curves.m_offset)
         | pack_bits(G::hierarchy_leaf_curve_list_size_bit0,
                     G::hierarchy_leaf_curve_list_size_numbits,
                     m_curves.curves().size());
@@ -1601,7 +1601,7 @@ pack_texel(fastuidraw::c_array<fastuidraw::generic_data> dst) const
       FASTUIDRAWassert(m_splitting_coordinate <= 1u);
 
       /* pack the splitting data */
-      dst[m_offset].u =
+      dst[m_offset] =
         (1u << G::hierarchy_is_node_bit) // bit flag to indicate a node
         | (m_splitting_coordinate << G::hierarchy_splitting_coordinate_bit) // splitting coordinate
         | pack_bits(G::hierarchy_child0_offset_bit0,
@@ -1615,7 +1615,7 @@ pack_texel(fastuidraw::c_array<fastuidraw::generic_data> dst) const
 
 void
 CurveListHierarchy::
-pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst) const
+pack_data(fastuidraw::c_array<uint32_t> dst) const
 {
   pack_texel(dst);
   if (has_children())
@@ -2081,7 +2081,7 @@ assign_curve_offsets(unsigned int current_offset)
 
 void
 GlyphPath::
-pack_data(fastuidraw::c_array<fastuidraw::generic_data> dst,
+pack_data(fastuidraw::c_array<uint32_t> dst,
           const Transformation &tr) const
 {
   for (const Contour &C : m_contours)
@@ -2299,7 +2299,7 @@ finalize(enum PainterEnums::fill_rule_t f,
                     .min_point(d->m_glyph->glyph_rect_min())
                     .max_point(d->m_glyph->glyph_rect_max()));
   d->m_render_data.resize(total_size);
-  c_array<generic_data> render_data(make_c_array(d->m_render_data));
+  c_array<uint32_t> render_data(make_c_array(d->m_render_data));
 
   hierarchy.pack_data(render_data);
   curve_lists.pack_data(d->m_glyph, render_data);

@@ -45,10 +45,10 @@ public:
   }
 
   void
-  pack_data(fastuidraw::c_array<fastuidraw::vecN<fastuidraw::generic_data, 4> > dst) const override
+  pack_data(fastuidraw::c_array<fastuidraw::uvec4> dst) const override
   {
-    dst[0].x().f = 1.0f / m_width;
-    dst[0].y().f = 1.0f / m_height;
+    dst[0].x() = fastuidraw::pack_float(1.0f / m_width);
+    dst[0].y() = fastuidraw::pack_float(1.0f / m_height);
   }
 
   unsigned int

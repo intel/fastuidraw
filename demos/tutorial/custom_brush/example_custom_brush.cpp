@@ -40,7 +40,7 @@ public:
   {}
 
   /*
-   * Data size is how many vecN<generic_data, 4> values that the object
+   * Data size is how many uvec4 values that the object
    * will add to the data store.
    */
   unsigned int
@@ -48,7 +48,7 @@ public:
   {
     /* Our object is just a few floats (m_phase, m_amplitude and m_period)
      * togeher with the data from a fastuidraw::PainterBrush. That is just
-     * three values, so only one generic_data is needed more in addition
+     * three values, so only one uint32_t is needed more in addition
      * to the data needed to pack the PainterBrush stored in m_brush_values.
      */
     return 1 + m_brush_values.data_size();
@@ -58,15 +58,15 @@ public:
    * which will be extacted on GPU by the shader.
    */
   void
-  pack_data(fastuidraw::c_array<fastuidraw::vecN<fastuidraw::generic_data, 4> > dst) const override
+  pack_data(fastuidraw::c_array<fastuidraw::uvec4> dst) const override
   {
     /* We place the data of (m_phase, m_amplitude and m_period) first. */
-    dst[0].x().f = m_phase;
-    dst[0].y().f = m_period;
-    dst[0].z().f = m_amplitude;
+    dst[0].x() = fastuidraw::pack_float(m_phase);
+    dst[0].y() = fastuidraw::pack_float(m_period);
+    dst[0].z() = fastuidraw::pack_float(m_amplitude);
 
     /* then place the data of the PainterBrush after our data starting
-     * at the next vecN<fastuidraw::generic_data, 4> element
+     * at the next vecN<uint32_t, 4> element
      */
     m_brush_values.pack_data(dst.sub_array(1));
   }

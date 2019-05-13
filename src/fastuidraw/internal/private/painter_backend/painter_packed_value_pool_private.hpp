@@ -264,7 +264,7 @@ namespace fastuidraw
          * a PainterPacker for each Surface::render_type_t.
          */
         vecN<const void*, PainterSurface::number_buffer_types> m_painter;
-        std::vector<vecN<generic_data, 4> > m_data;
+        std::vector<uvec4> m_data;
         std::vector<reference_counted_ptr<const resource_base> > m_resources;
         std::vector<reference_counted_ptr<const Image> > m_bind_images;
         vecN<unsigned int, PainterSurface::number_buffer_types> m_draw_command_id, m_offset;

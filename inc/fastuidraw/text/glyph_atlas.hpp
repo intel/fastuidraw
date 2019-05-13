@@ -32,7 +32,7 @@ namespace fastuidraw
   /*!
    * \brief
    * GlyphAtlasStoreBase represents an interface to an aray of
-   * generic_data values.
+   * uint32_t values.
    *
    * An example implementation in GL would be a buffer object that backs
    * a single usamplerBuffer. An implementation of the class does NOT need to be
@@ -47,7 +47,7 @@ namespace fastuidraw
     ~GlyphAtlasBackingStoreBase();
 
     /*!
-     * Returns the number of \ref generic_data backed by the store.
+     * Returns the number of \ref uint32_t backed by the store.
      */
     unsigned int
     size(void);
@@ -60,7 +60,7 @@ namespace fastuidraw
      */
     virtual
     void
-    set_values(unsigned int location, c_array<const generic_data> pdata) = 0;
+    set_values(unsigned int location, c_array<const uint32_t> pdata) = 0;
 
     /*!
      * To be implemented by a derived class to flush contents
@@ -72,7 +72,7 @@ namespace fastuidraw
 
     /*!
      * Resize the object to a larger size.
-     * \param new_size new number of \ref generic_data for the store to back
+     * \param new_size new number of \ref uint32_t for the store to back
      */
     void
     resize(unsigned int new_size);
@@ -80,7 +80,7 @@ namespace fastuidraw
   protected:
     /*!
      * Ctor.
-     * \param psize number of generic_data elements that the
+     * \param psize number of uint32_t elements that the
                     GlyphAtlasBackingStoreBase backs
      */
     explicit
@@ -90,7 +90,7 @@ namespace fastuidraw
      * To be implemented by a derived class to resize the
      * object. When called, the return value of size() is
      * the size before the resize completes.
-     * \param new_size new number of \ref generic_data for the store to back
+     * \param new_size new number of \ref uint32_t for the store to back
      */
     virtual
     void
@@ -125,7 +125,7 @@ namespace fastuidraw
      * Negative return value indicates failure.
      */
     int
-    allocate_data(c_array<const generic_data> pdata);
+    allocate_data(c_array<const uint32_t> pdata);
 
     /*!
      * Deallocate data

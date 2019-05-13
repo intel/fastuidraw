@@ -48,7 +48,7 @@ namespace
     float m_first_interval_start;
     float m_first_interval_start_on_looping;
     std::vector<fastuidraw::PainterDashedStrokeParams::DashPatternElement> m_dash_pattern;
-    std::vector<fastuidraw::generic_data> m_dash_pattern_packed;
+    std::vector<uint32_t> m_dash_pattern_packed;
   };
 }
 
@@ -214,10 +214,10 @@ dash_pattern(c_array<const DashPatternElement> f)
       for(unsigned int i = 0, j = 0, endi = d->m_dash_pattern.size(); i < endi; ++i, j += 2)
         {
           total_length += d->m_dash_pattern[i].m_draw_length;
-          d->m_dash_pattern_packed[j].f = total_length;
+          d->m_dash_pattern_packed[j] = pack_float(total_length);
 
           total_length += d->m_dash_pattern[i].m_space_length;
-          d->m_dash_pattern_packed[j + 1].f = total_length;
+          d->m_dash_pattern_packed[j + 1] = pack_float(total_length);
         }
     }
 
@@ -237,31 +237,31 @@ data_size(void) const
 
 void
 fastuidraw::PainterDashedStrokeParams::
-pack_data(fastuidraw::c_array<vecN<fastuidraw::generic_data, 4> > pdst) const
+pack_data(c_array<uvec4> pdst) const
 {
-  c_array<generic_data> dst(pdst.flatten_array());
+  c_array<uint32_t> dst(pdst.flatten_array());
   PainterDashedStrokedParamsPrivate *d;
   d = static_cast<PainterDashedStrokedParamsPrivate*>(m_d);
 
-  dst[stroke_miter_limit_offset].f = t_max(0.0f, d->m_miter_limit);
-  dst[stroke_radius_offset].f = t_max(0.0f, d->m_radius);
-  dst[stroking_units_offset].u = d->m_stroking_units;
-  dst[stroke_dash_offset_offset].f = d->m_dash_offset;
-  dst[stroke_total_length_offset].f = d->m_total_length;
-  dst[stroke_first_interval_start_offset].f = d->m_first_interval_start;
-  dst[stroke_first_interval_start_on_looping_offset].f = d->m_first_interval_start_on_looping;
-  dst[stroke_number_intervals_offset].u = d->m_dash_pattern_packed.size();
+  dst[stroke_miter_limit_offset] = pack_float(t_max(0.0f, d->m_miter_limit));
+  dst[stroke_radius_offset] = pack_float(t_max(0.0f, d->m_radius));
+  dst[stroking_units_offset] = d->m_stroking_units;
+  dst[stroke_dash_offset_offset] = pack_float(d->m_dash_offset);
+  dst[stroke_total_length_offset] = pack_float(d->m_total_length);
+  dst[stroke_first_interval_start_offset] = pack_float(d->m_first_interval_start);
+  dst[stroke_first_interval_start_on_looping_offset] = pack_float(d->m_first_interval_start_on_looping);
+  dst[stroke_number_intervals_offset] = d->m_dash_pattern_packed.size();
 
   if (!d->m_dash_pattern_packed.empty())
     {
-      c_array<generic_data> dst_pattern;
+      c_array<uint32_t> dst_pattern;
       dst_pattern = dst.sub_array(FASTUIDRAW_ROUND_UP_MULTIPLE_OF4(stroke_static_data_size));
       std::copy(d->m_dash_pattern_packed.begin(), d->m_dash_pattern_packed.end(), dst_pattern.begin());
       for(unsigned int i = d->m_dash_pattern_packed.size(), endi = dst_pattern.size(); i < endi; ++i)
         {
           //make the last entry larger than the total length so a
           //shader can use that to know when it has reached the end.
-          dst_pattern[i].f = d->m_total_length * 2.0f + 1.0f;
+          dst_pattern[i] = pack_float(d->m_total_length * 2.0f + 1.0f);
         }
     }
 }

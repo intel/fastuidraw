@@ -35,6 +35,6 @@ namespace fastuidraw
     void
     pack_texels(const uvec2 &in_dims,
                 c_array<const uint8_t> texels,
-                std::vector<generic_data> *out_packed_texels);
+                std::vector<uint32_t> *out_packed_texels);
   }
 }

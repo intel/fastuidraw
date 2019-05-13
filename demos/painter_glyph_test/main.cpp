@@ -742,9 +742,9 @@ realize_all_glyphs(GlyphRenderer renderer)
   unsigned int num_elements(m_painter->glyph_atlas().data_allocated());
   unsigned int num_used(num_elements - pre_num_elements);
 
-  std::cout << "Used additional " << PrintBytes(num_used * sizeof(generic_data))
+  std::cout << "Used additional " << PrintBytes(num_used * sizeof(uint32_t))
             << " for glyph data\nTotal bytes glyph data total allocated = "
-            << PrintBytes(num_elements * sizeof(generic_data))
+            << PrintBytes(num_elements * sizeof(uint32_t))
             << "\n--------------------------------------\n\n";
 }
 
@@ -808,9 +808,9 @@ ready_glyph_data(int w, int h)
         {
           unsigned int num_elements(m_painter->glyph_atlas().data_allocated());
           unsigned int num_used(num_elements - pre_num_elements);
-          std::cout << "Used " << PrintBytes(num_used * sizeof(generic_data))
+          std::cout << "Used " << PrintBytes(num_used * sizeof(uint32_t))
                     << " glyph data, total used = "
-                    << PrintBytes(num_elements * sizeof(generic_data)) << ", ";
+                    << PrintBytes(num_elements * sizeof(uint32_t)) << ", ";
         }
       std::cout << "took " << timer.restart() << "ms.\n" << std::flush;
     }

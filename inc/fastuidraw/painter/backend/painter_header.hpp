@@ -88,7 +88,7 @@ namespace fastuidraw
      * \brief
      * Enumerations specifying how the contents of a PainterHeader
      * are packed into a data store buffer (PainterDraw::m_store),
-     * offsets are in units of \ref generic_data (not vecN<generic_data, 4>).
+     * offsets are in units of \ref uint32_t (not uvec4).
      */
     enum offset_t
       {
@@ -117,7 +117,7 @@ namespace fastuidraw
       };
 
     /*!
-     * The offset, in units of vecN<generic_data, 4> tuples, to the
+     * The offset, in units of uvec4 tuples, to the
      * location in the data store buffer (PainterDraw::m_store) for the
      * clip equations. I.e. the PainterClipEquations value is stored
      * (packed) at the location \code
@@ -127,7 +127,7 @@ namespace fastuidraw
     uint32_t m_clip_equations_location;
 
     /*!
-     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * The location, in units of uvec4 tuples, to the
      * location in the data store buffer (PainterDraw::m_store) for the
      * item matrix. I.e. the PainterItemMatrix value is stored (packed)
      * at the location
@@ -138,7 +138,7 @@ namespace fastuidraw
     uint32_t m_item_matrix_location;
 
     /*!
-     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * The location, in units of uvec4 tuples, to the
      * location in the data store buffer (PainterDraw::m_store) for the
      * brush shader data. I.e. the data for a brush is stored (packed)
      * at the location
@@ -149,7 +149,7 @@ namespace fastuidraw
     uint32_t m_brush_shader_data_location;
 
     /*!
-     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * The location, in units of uvec4 tuples, to the
      * location in the data store buffer (PainterDraw::m_store) for the
      * item shader data. I.e. the PainterItemShaderData value is stored
      * (packed) at the location
@@ -160,7 +160,7 @@ namespace fastuidraw
     uint32_t m_item_shader_data_location;
 
     /*!
-     * The location, in units of vecN<generic_data, 4> tuples, to the
+     * The location, in units of uvec4 tuples, to the
      * location in the data store buffer (PainterDraw::m_store) for the
      * blend shader data. I.e. the PainterBlendShaderData value
      * is stored (packed) at the location
@@ -207,7 +207,7 @@ namespace fastuidraw
      * If non-zero, indicates that the brush position is to be
      * adjusted in vertex shading before being fed the the brush
      * shading. When non-zero, is an offset, in units of
-     * vecN<generic_data, 4> tuples, to the location in the data
+     * uvec4 tuples, to the location in the data
      * store buffer (PainterDraw::m_store) for the value encoded
      * by a \ref PainterBrushAdjust packed at the location
      * \code
@@ -221,7 +221,7 @@ namespace fastuidraw
      * \param dst place to which to pack data
      */
     void
-    pack_data(c_array<vecN<generic_data, 4> > dst) const;
+    pack_data(c_array<uvec4> dst) const;
 
     /*!
      * Returns the length of the data needed to encode the data.

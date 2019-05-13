@@ -401,8 +401,8 @@ DrawCommand(const reference_counted_ptr<painter_vao_pool> &hnd,
                                            params.attributes_per_buffer());
   m_indices = c_array<PainterIndex>(static_cast<PainterIndex*>(index_bo),
                                     params.indices_per_buffer());
-  m_store = c_array<vecN<generic_data, 4> >(static_cast<vecN<generic_data, 4>*>(data_bo),
-                                            hnd->data_buffer_size() / sizeof(vecN<generic_data, 4>));
+  m_store = c_array<uvec4>(static_cast<uvec4*>(data_bo),
+                                            hnd->data_buffer_size() / sizeof(uvec4));
 
   m_header_attributes = c_array<uint32_t>(static_cast<uint32_t*>(header_bo),
                                           params.attributes_per_buffer());
@@ -570,7 +570,7 @@ unmap_implement(unsigned int attributes_written,
   fastuidraw_glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
   fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_data_bo);
-  fastuidraw_glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, data_store_written * sizeof(vecN<generic_data, 4>));
+  fastuidraw_glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, data_store_written * sizeof(uvec4));
   fastuidraw_glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
@@ -1108,7 +1108,7 @@ set_gl_state(RenderTargetState prev_state,
     {
       GLuint ubo;
       unsigned int size_generics(glsl::PainterShaderRegistrarGLSL::ubo_size());
-      unsigned int size_bytes(sizeof(generic_data) * size_generics);
+      unsigned int size_bytes(sizeof(uint32_t) * size_generics);
       void *ubo_mapped;
 
       /* Grabs and binds the buffer */
@@ -1117,11 +1117,11 @@ set_gl_state(RenderTargetState prev_state,
 
       if (!m_uniform_ubo_ready)
         {
-          c_array<generic_data> ubo_mapped_ptr;
+          c_array<uint32_t> ubo_mapped_ptr;
           ubo_mapped = fastuidraw_glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
                                                    GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
                                                    | GL_MAP_FLUSH_EXPLICIT_BIT);
-          ubo_mapped_ptr = c_array<generic_data>(static_cast<generic_data*>(ubo_mapped),
+          ubo_mapped_ptr = c_array<uint32_t>(static_cast<uint32_t*>(ubo_mapped),
                                                  size_generics);
 
           m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);

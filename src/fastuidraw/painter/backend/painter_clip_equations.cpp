@@ -22,23 +22,23 @@
 // fastuidraw::PainterClipEquations methods
 void
 fastuidraw::PainterClipEquations::
-pack_data(c_array<vecN<generic_data, 4> > pdst) const
+pack_data(c_array<uvec4> pdst) const
 {
-  c_array<generic_data> dst(pdst.flatten_array());
+  c_array<uint32_t> dst(pdst.flatten_array());
 
-  dst[clip0_coeff_x].f = m_clip_equations[0].x();
-  dst[clip0_coeff_y].f = m_clip_equations[0].y();
-  dst[clip0_coeff_w].f = m_clip_equations[0].z();
+  dst[clip0_coeff_x] = pack_float(m_clip_equations[0].x());
+  dst[clip0_coeff_y] = pack_float(m_clip_equations[0].y());
+  dst[clip0_coeff_w] = pack_float(m_clip_equations[0].z());
 
-  dst[clip1_coeff_x].f = m_clip_equations[1].x();
-  dst[clip1_coeff_y].f = m_clip_equations[1].y();
-  dst[clip1_coeff_w].f = m_clip_equations[1].z();
+  dst[clip1_coeff_x] = pack_float(m_clip_equations[1].x());
+  dst[clip1_coeff_y] = pack_float(m_clip_equations[1].y());
+  dst[clip1_coeff_w] = pack_float(m_clip_equations[1].z());
 
-  dst[clip2_coeff_x].f = m_clip_equations[2].x();
-  dst[clip2_coeff_y].f = m_clip_equations[2].y();
-  dst[clip2_coeff_w].f = m_clip_equations[2].z();
+  dst[clip2_coeff_x] = pack_float(m_clip_equations[2].x());
+  dst[clip2_coeff_y] = pack_float(m_clip_equations[2].y());
+  dst[clip2_coeff_w] = pack_float(m_clip_equations[2].z());
 
-  dst[clip3_coeff_x].f = m_clip_equations[3].x();
-  dst[clip3_coeff_y].f = m_clip_equations[3].y();
-  dst[clip3_coeff_w].f = m_clip_equations[3].z();
+  dst[clip3_coeff_x] = pack_float(m_clip_equations[3].x());
+  dst[clip3_coeff_y] = pack_float(m_clip_equations[3].y());
+  dst[clip3_coeff_w] = pack_float(m_clip_equations[3].z());
 }

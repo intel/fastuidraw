@@ -230,7 +230,7 @@ data_size(void) const
 
 void
 fastuidraw::PainterGradientBrushShaderData::
-pack_data(c_array<vecN<generic_data, 4> > dst) const
+pack_data(c_array<uvec4> dst) const
 {
   if (!m_data.m_cs || m_data.m_type == gradient_non)
     {
@@ -238,26 +238,26 @@ pack_data(c_array<vecN<generic_data, 4> > dst) const
     }
 
   uint32_t x, y;
-  c_array<generic_data> sub_dest;
+  c_array<uint32_t> sub_dest;
 
   sub_dest = dst.flatten_array();
   x = static_cast<uint32_t>(m_data.m_cs->texel_location().x());
   y = static_cast<uint32_t>(m_data.m_cs->texel_location().y());
 
-  sub_dest[color_stop_xy_offset].u =
+  sub_dest[color_stop_xy_offset] =
     pack_bits(color_stop_x_bit0, color_stop_x_num_bits, x)
     | pack_bits(color_stop_y_bit0, color_stop_y_num_bits, y);
 
-  sub_dest[color_stop_length_offset].u = m_data.m_cs->width();
-  sub_dest[p0_x_offset].f = m_data.m_grad_start.x();
-  sub_dest[p0_y_offset].f = m_data.m_grad_start.y();
-  sub_dest[p1_x_offset].f = m_data.m_grad_end.x();
-  sub_dest[p1_y_offset].f = m_data.m_grad_end.y();
+  sub_dest[color_stop_length_offset] = m_data.m_cs->width();
+  sub_dest[p0_x_offset] = pack_float(m_data.m_grad_start.x());
+  sub_dest[p0_y_offset] = pack_float(m_data.m_grad_start.y());
+  sub_dest[p1_x_offset] = pack_float(m_data.m_grad_end.x());
+  sub_dest[p1_y_offset] = pack_float(m_data.m_grad_end.y());
 
   if (m_data.m_type == gradient_radial)
     {
-      sub_dest[start_radius_offset].f = m_data.m_grad_start_r;
-      sub_dest[end_radius_offset].f = m_data.m_grad_end_r;
+      sub_dest[start_radius_offset] = pack_float(m_data.m_grad_start_r);
+      sub_dest[end_radius_offset] = pack_float(m_data.m_grad_end_r);
     }
 }
 

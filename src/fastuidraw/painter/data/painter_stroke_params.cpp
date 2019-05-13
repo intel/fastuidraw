@@ -98,15 +98,15 @@ data_size(void) const
 
 void
 fastuidraw::PainterStrokeParams::
-pack_data(c_array<vecN<generic_data, 4> > pdst) const
+pack_data(c_array<uvec4> pdst) const
 {
-  c_array<generic_data> dst(pdst.flatten_array());
+  c_array<uint32_t> dst(pdst.flatten_array());
   PainterStrokeParamsPrivate *d;
   d = static_cast<PainterStrokeParamsPrivate*>(m_d);
 
-  dst[stroke_miter_limit_offset].f = t_max(0.0f, d->m_miter_limit);
-  dst[stroke_radius_offset].f = t_max(0.0f, d->m_radius);
-  dst[stroking_units_offset].u = d->m_stroking_units;
+  dst[stroke_miter_limit_offset] = pack_float(t_max(0.0f, d->m_miter_limit));
+  dst[stroke_radius_offset] = pack_float(t_max(0.0f, d->m_radius));
+  dst[stroking_units_offset] = d->m_stroking_units;
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>

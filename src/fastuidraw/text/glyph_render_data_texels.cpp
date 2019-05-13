@@ -125,7 +125,7 @@ upload_to_atlas(GlyphAtlasProxy &atlas_proxy,
       return routine_success;
     }
 
-  std::vector<generic_data> data;
+  std::vector<uint32_t> data;
   int location;
 
   detail::pack_texels(uvec2(d->m_resolution),

@@ -149,7 +149,7 @@ fastuidraw::GlyphAtlas::
 
 int
 fastuidraw::GlyphAtlas::
-allocate_data(c_array<const generic_data> pdata)
+allocate_data(c_array<const uint32_t> pdata)
 {
   if (pdata.empty())
     {

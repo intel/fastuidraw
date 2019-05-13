@@ -45,7 +45,7 @@ namespace fastuidraw
      * Enumeration that provides offsets for the
      * item matrix from the location of that data
      * (item_matrix_offset) in units of \ref
-     * generic_data.
+     * uint32_t.
      */
     enum item_matrix_data_offset_t
       {
@@ -109,7 +109,7 @@ namespace fastuidraw
      * \param dst place to which to pack data
      */
     void
-    pack_data(c_array<vecN<generic_data, 4> > dst) const;
+    pack_data(c_array<uvec4> dst) const;
 
     /*!
      * The 3x3 matrix tranforming from item coordinate

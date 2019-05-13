@@ -22,12 +22,12 @@
 // fastuidraw::PainterBrushAdjust methods
 void
 fastuidraw::PainterBrushAdjust::
-pack_data(c_array<vecN<generic_data, 4> > pdst) const
+pack_data(c_array<uvec4> pdst) const
 {
-  c_array<generic_data> dst(pdst.flatten_array());
+  c_array<uint32_t> dst(pdst.flatten_array());
 
-  dst[shear_x_offset].f = m_shear.x();
-  dst[shear_y_offset].f = m_shear.y();
-  dst[translation_x_offset].f = m_translate.x();
-  dst[translation_y_offset].f = m_translate.y();
+  dst[shear_x_offset] = pack_float(m_shear.x());
+  dst[shear_y_offset] = pack_float(m_shear.y());
+  dst[translation_x_offset] = pack_float(m_translate.x());
+  dst[translation_y_offset] = pack_float(m_translate.y());
 }
