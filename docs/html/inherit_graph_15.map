@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html" title="A Subset represents a handle to a portion of a FilledPath. The handle is invalid once the FilledPath ..." alt="" coords="5,5,153,47"/>
+<area shape="rect" id="node1" href="$d9/da3/classfastuidraw_1_1false__type.html" title="Class for type traits to indicate true. Functionally, a simplified version of std::false_type. " alt="" coords="5,5,156,32"/>
+<area shape="rect" id="node2" href="$db/d5b/classfastuidraw_1_1is__const.html" title="fastuidraw::is_const\&lt; T \&gt;" alt="" coords="204,5,375,32"/>
 </map>

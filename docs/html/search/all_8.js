@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['i',['i',['../d5/de6/unionfastuidraw_1_1generic__data.html#a3a06459fc9b0a6bfe01c0ddfb79c1e62',1,'fastuidraw::generic_data']]],
   ['i16vec1',['i16vec1',['../da/d46/group___utility.html#ga9ceaf132feed97b0f16f51ffe5fd5ea2',1,'fastuidraw']]],
   ['i16vec2',['i16vec2',['../da/d46/group___utility.html#ga93540cf11d49cfe147241aea57c8d54f',1,'fastuidraw']]],
   ['i16vec3',['i16vec3',['../da/d46/group___utility.html#ga92ffb30da17f508ac5508ae9141a5ea9',1,'fastuidraw']]],
@@ -56,6 +55,7 @@ var searchData=
   ['indices_5fper_5fmapping',['indices_per_mapping',['../de/da0/classfastuidraw_1_1_painter_backend.html#ae0eb1ac7015c9933cb0ea687701f598c',1,'fastuidraw::PainterBackend']]],
   ['init_5funiform',['init_uniform',['../d9/d0f/classfastuidraw_1_1gl_1_1_uniform_initalizer_base.html#a81a8d4b3e844629a42046f3053d4afa4',1,'fastuidraw::gl::UniformInitalizerBase::init_uniform()'],['../d1/d5c/classfastuidraw_1_1gl_1_1_uniform_initializer.html#aaf38779da8c61db879237aa640e1377d',1,'fastuidraw::gl::UniformInitializer::init_uniform()'],['../d0/d6c/classfastuidraw_1_1gl_1_1_uniform_initializer_3_01c__array_3_01const_01_t_01_4_01_4.html#a33fac74f715a4d74261ee76adb8956c8',1,'fastuidraw::gl::UniformInitializer&lt; c_array&lt; const T &gt; &gt;::init_uniform()'],['../db/d8f/classfastuidraw_1_1gl_1_1_sampler_initializer.html#acc995d96b368890392bde5c4d7eeecd9',1,'fastuidraw::gl::SamplerInitializer::init_uniform()']]],
   ['initial_5fbuffer_5fbinding',['initial_buffer_binding',['../da/d89/classfastuidraw_1_1gl_1_1_program_1_1block__info.html#a1781b5d22ea5378f88969f6c458c4eb8',1,'fastuidraw::gl::Program::block_info']]],
+  ['initialize_5fstate',['initialize_state',['../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a4b70d6af54c32cd855a51295eba1e007',1,'fastuidraw::PainterAttributeWriter']]],
   ['inner_5fstroking_5fbit',['inner_stroking_bit',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a30191120a8178444a9e67e86ecee4c9aa9fa2658d5593b16a6b38283ee2d39522',1,'fastuidraw::ArcStrokedPoint']]],
   ['inner_5fstroking_5fmask',['inner_stroking_mask',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a28a2d8ff9687907af84d56d4ff36b7e0a182b18794baa2a7a0ecd4c6d8cb3b93f',1,'fastuidraw::ArcStrokedPoint']]],
   ['int_5ftype',['int_type',['../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988abf9969d75295b6ed22e4add48ef2fc96',1,'fastuidraw::glsl::UnpackSourceGenerator']]],

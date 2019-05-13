@@ -94,8 +94,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:adab5c95097cc7a61dd428af7e3b6af33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ad2bd5d463073df423e54d2059dfd7c"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#a1ad2bd5d463073df423e54d2059dfd7c">number_resources</a> (void) const</td></tr>
 <tr class="separator:a1ad2bd5d463073df423e54d2059dfd7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d3878732c548fd7884c043c6a1a7540"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#a9d3878732c548fd7884c043c6a1a7540">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, 4 &gt; &gt; dst) const =0</td></tr>
-<tr class="separator:a9d3878732c548fd7884c043c6a1a7540"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdc1548ab0dc16c9761d7621fac98880"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#afdc1548ab0dc16c9761d7621fac98880">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a> &gt; dst) const =0</td></tr>
+<tr class="separator:afdc1548ab0dc16c9761d7621fac98880"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c0c9ec8fc5c3ae2e8f1fc1a0076ada0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#a4c0c9ec8fc5c3ae2e8f1fc1a0076ada0">save_resources</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../de/dfc/classfastuidraw_1_1resource__base.html">resource_base</a> &gt; &gt; dst) const</td></tr>
 <tr class="separator:a4c0c9ec8fc5c3ae2e8f1fc1a0076ada0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -158,7 +158,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to return the number of vecN&lt;generic_data, 4&gt; blocks needed to pack the data. </p>
+<p>To be implemented by a derived class to return the number of uvec4 blocks needed to pack the data. </p>
 
 <p>Implemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a23b815816c79620c56f35b99dddd5f0f">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#aa1c87dc05beca33645c299c49c4039be">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#af78ceb51ef93ad957eae9de132e96542">fastuidraw::PainterImageBrushShaderData</a>.</p>
 
@@ -195,8 +195,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a9d3878732c548fd7884c043c6a1a7540"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9d3878732c548fd7884c043c6a1a7540">&#9670;&nbsp;</a></span>pack_data()</h2>
+<a id="afdc1548ab0dc16c9761d7621fac98880"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdc1548ab0dc16c9761d7621fac98880">&#9670;&nbsp;</a></span>pack_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -207,7 +207,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">virtual void fastuidraw::PainterBrushShaderData::pack_data </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, 4 &gt; &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a> &gt;&#160;</td>
           <td class="paramname"><em>dst</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -225,7 +225,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Implemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a7a455866c277a0daf9b8a872ed4d9547">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a7ed676e9b9d2fca069c2ace2c29716b8">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#af7102867e5454d09c2ac5c0ed7a549f2">fastuidraw::PainterImageBrushShaderData</a>.</p>
+<p>Implemented in <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#adbff64a93bcbf771258e50fd5fdab938">fastuidraw::PainterBrush</a>, <a class="el" href="../../d7/d3d/classfastuidraw_1_1_painter_gradient_brush_shader_data.html#a4446f8bb5c1047c361db0237356a9886">fastuidraw::PainterGradientBrushShaderData</a>, and <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a1c7902fe8007b1452d6bb50f93ec6154">fastuidraw::PainterImageBrushShaderData</a>.</p>
 
 </div>
 </div>

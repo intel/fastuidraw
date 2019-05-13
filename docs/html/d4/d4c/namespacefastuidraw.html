@@ -169,9 +169,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d4b/classfastuidraw_1_1_free_type_lib.html">FreeTypeLib</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d1/d4b/classfastuidraw_1_1_free_type_lib.html" title="A FreeTypeLib wraps an FT_Library object of the FreeType library together with a mutex in a reference...">FreeTypeLib</a> wraps an FT_Library object of the FreeType library together with a mutex in a reference counted object.  <a href="../../d1/d4b/classfastuidraw_1_1_free_type_lib.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">union &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Union to store 32-bit data.  <a href="../../d5/de6/unionfastuidraw_1_1generic__data.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html">Glyph</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d7/df2/classfastuidraw_1_1_glyph.html" title="A Glyph is essentially an opaque pointer to data for rendering and performing layout of a glyph...">Glyph</a> is essentially an opaque pointer to data for rendering and performing layout of a glyph.  <a href="../../d7/df2/classfastuidraw_1_1_glyph.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -179,7 +176,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html" title="A GlyphAtlas is a common location to place glyph data of an application. Ideally, all glyph data is p...">GlyphAtlas</a> is a common location to place glyph data of an application. Ideally, all glyph data is placed into a single <a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html" title="A GlyphAtlas is a common location to place glyph data of an application. Ideally, all glyph data is p...">GlyphAtlas</a>. Methods of <a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html" title="A GlyphAtlas is a common location to place glyph data of an application. Ideally, all glyph data is p...">GlyphAtlas</a> are thread safe, protected behind atomics and a mutex within the <a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html" title="A GlyphAtlas is a common location to place glyph data of an application. Ideally, all glyph data is p...">GlyphAtlas</a>.  <a href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html">GlyphAtlasBackingStoreBase</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">GlyphAtlasStoreBase represents an interface to an aray of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html" title="Union to store 32-bit data. ">generic_data</a> values.  <a href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">GlyphAtlasStoreBase represents an interface to an aray of uint32_t values.  <a href="../../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d61/classfastuidraw_1_1_glyph_atlas_proxy.html">GlyphAtlasProxy</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An <a class="el" href="../../d2/d61/classfastuidraw_1_1_glyph_atlas_proxy.html">GlyphAtlasProxy</a> is a proxy for a <a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html" title="A GlyphAtlas is a common location to place glyph data of an application. Ideally, all glyph data is p...">GlyphAtlas</a>; one can allocate through it. Internally it tracks all that was allocated with it.  <a href="../../d2/d61/classfastuidraw_1_1_glyph_atlas_proxy.html#details">More...</a><br /></td></tr>
@@ -265,7 +262,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../dd/dfc/classfastuidraw_1_1_painter_attribute_data_filler.html" title="A PainterAttributeDataFiller is the interfaceto fill the data held by a PainterAttributeData. ">PainterAttributeDataFiller</a> is the interfaceto fill the data held by a <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>.  <a href="../../dd/dfc/classfastuidraw_1_1_painter_attribute_data_filler.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A provides an interface to write attribute and index data when a simple copy of data as exposed by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a62d0a34036d9ff758ff1fda5fcd8a208">Painter::draw_generic()</a> methods is not sufficient (for example to modify or filter data based off of some dynamic state).  <a href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides an interface to write attribute and index data when a simple copy of data from <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> objects is not sufficient.  <a href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html">PainterBackend</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> is an interface that defines the API-specific elements to implement <a class="el" href="../../d3/d46/group___painter.html">Painter</a>. A fixed <a class="el" href="../../de/da0/classfastuidraw_1_1_painter_backend.html" title="A PainterBackend is an interface that defines the API-specific elements to implement Painter...">PainterBackend</a> will only be used by a single <a class="el" href="../../d3/d46/group___painter.html">Painter</a>.  <a href="../../de/da0/classfastuidraw_1_1_painter_backend.html#details">More...</a><br /></td></tr>
@@ -370,7 +367,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html" title="PainterItemShaderData holds custom data for item shaders. ">PainterItemShaderData</a> holds custom data for item shaders.  <a href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html">PainterPackedValue</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a> represents a handle to an object that stores packed state data and tracks if that underlying data is already is already copied to <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a0a9d2673591372d315b175fad5b2891f">PainterDraw::m_store</a>.  <a href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a> represents a handle to an object that stores packed state data and tracks if that underlying data is already is already copied to <a class="el" href="../../d4/d67/classfastuidraw_1_1_painter_draw.html#a0894bf52244df666aecbe85b9fedb8c7">PainterDraw::m_store</a>.  <a href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d27/classfastuidraw_1_1_painter_packed_value_base.html">PainterPackedValueBase</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Private) base class used for <a class="el" href="../../d3/ded/classfastuidraw_1_1_painter_packed_value.html" title="A PainterPackedValue represents a handle to an object that stores packed state data and tracks if tha...">PainterPackedValue</a>  <a href="../../db/d27/classfastuidraw_1_1_painter_packed_value_base.html#details">More...</a><br /></td></tr>
@@ -801,7 +798,7 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00163">163</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00141">141</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -854,7 +851,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00281">281</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00259">259</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -922,7 +919,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>For type T's which support comparison swap, makes sure that the returned <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a> has that <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html#ad4df53fa4fe43cee80461dccb8ad7c96">range_type::m_begin</a> &lt; <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html#a53c5d5d951d9bcb40b5628c8fe5b9e02">range_type::m_end</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00509">509</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00487">487</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -956,7 +953,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00211">211</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00189">189</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -985,7 +982,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Given v &gt; 0, compute N so that N is a power of 2 and so that N / 2 &lt; v &lt;= N. When v is 0, returns 0. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00235">235</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00213">213</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1056,7 +1053,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00315">315</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00293">293</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1090,7 +1087,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00381">381</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00359">359</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1161,7 +1158,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00299">299</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00277">277</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1195,7 +1192,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00223">223</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00201">201</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1243,7 +1240,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Given v &gt; 0, compute N so that N is a power of 2 and so that N / 2 &lt; v &lt;= N. When v is 0, returns 0. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00256">256</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00234">234</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1314,7 +1311,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00332">332</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00310">310</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1366,7 +1363,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00366">366</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00344">344</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1418,7 +1415,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00349">349</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00327">327</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>
@@ -1452,7 +1449,7 @@ template&lt;typename T &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00397">397</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d3f/util_8hpp_source.html#l00375">375</a> of file <a class="el" href="../../d0/d3f/util_8hpp_source.html">util.hpp</a>.</p>
 
 </div>
 </div>

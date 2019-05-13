@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['f',['f',['../d5/de6/unionfastuidraw_1_1generic__data.html#a7202d45537d2abf5b1e5e31f4e47afc5',1,'fastuidraw::generic_data']]],
   ['fastuidraw_5fcontext_5ftexture',['fastuidraw_context_texture',['../dd/dbb/group___g_l_s_l_vert_frag_code.html#ga6224a589eccd0a136356614a5e4e5bc5',1,'fastuidraw_painter_uniforms.glsl.hpp']]],
   ['fastuidraw_5fimageatlaslinear',['fastuidraw_imageAtlasLinear',['../dd/dbb/group___g_l_s_l_vert_frag_code.html#gadb2477aa9ff41f221726db446a52c58d',1,'fastuidraw_atlases.glsl.hpp']]],
   ['fastuidraw_5fimageatlasnearest',['fastuidraw_imageAtlasNearest',['../dd/dbb/group___g_l_s_l_vert_frag_code.html#gaef39adbf00884268526ee401f74aefc7',1,'fastuidraw_atlases.glsl.hpp']]],

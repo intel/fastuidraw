@@ -110,7 +110,7 @@ Public Types</h2></td></tr>
 <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#ac1b05a711a13a1fb6f966683c2e0d7edad1315e0bc963f7f4512e4b5d87560a4e">bindless_handle_hi_offset</a> = atlas_location_xyz_offset, 
 <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#ac1b05a711a13a1fb6f966683c2e0d7edaa319adf2b07f4d945be8a9730365e9ca">bindless_handle_low_offset</a> = number_lookups_offset
 <br />
- }<tr class="memdesc:ac1b05a711a13a1fb6f966683c2e0d7ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Offsets for image data packing. The offsets are in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, NOT units of vecN&lt;generic_data, 4&gt;.  <a href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#ac1b05a711a13a1fb6f966683c2e0d7ed">More...</a><br /></td></tr>
+ }<tr class="memdesc:ac1b05a711a13a1fb6f966683c2e0d7ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Offsets for image data packing. The offsets are in units of uint32_t, NOT units of <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a>.  <a href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#ac1b05a711a13a1fb6f966683c2e0d7ed">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:ac1b05a711a13a1fb6f966683c2e0d7ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0dda34d0e9c8acfa47d4cedccc0671c2"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a0dda34d0e9c8acfa47d4cedccc0671c2">uvec2_encoding</a> { <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a0dda34d0e9c8acfa47d4cedccc0671c2a704876ea4918d5500e7f6cb44f3ad79c">uvec2_x_num_bits</a> = 16, 
@@ -170,8 +170,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a98599525c6503f86f8716f631b532231"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3d6a3ef759521871205ef13ef1718768"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a3d6a3ef759521871205ef13ef1718768">operator=</a> (const <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html">PainterImageBrushShaderData</a> &amp;rhs)</td></tr>
 <tr class="separator:a3d6a3ef759521871205ef13ef1718768"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7102867e5454d09c2ac5c0ed7a549f2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#af7102867e5454d09c2ac5c0ed7a549f2">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, 4 &gt; &gt; dst) const override</td></tr>
-<tr class="separator:af7102867e5454d09c2ac5c0ed7a549f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c7902fe8007b1452d6bb50f93ec6154"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a1c7902fe8007b1452d6bb50f93ec6154">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a> &gt; dst) const override</td></tr>
+<tr class="separator:a1c7902fe8007b1452d6bb50f93ec6154"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd22adb5ebed4e35b66cb1340ce7a508"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#acd22adb5ebed4e35b66cb1340ce7a508">save_resources</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../de/dfc/classfastuidraw_1_1resource__base.html">resource_base</a> &gt; &gt; dst) const override</td></tr>
 <tr class="separator:acd22adb5ebed4e35b66cb1340ce7a508"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed38861835bb67ccba34104c3817b69b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#aed38861835bb67ccba34104c3817b69b">sub_image</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> &gt; &amp;im, <a class="el" href="../../da/d46/group___utility.html#ga4b6312154fcff1187fdc31432c22e9ee">uvec2</a> xy, <a class="el" href="../../da/d46/group___utility.html#ga4b6312154fcff1187fdc31432c22e9ee">uvec2</a> wh)</td></tr>
@@ -226,7 +226,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Offsets for image data packing. The offsets are in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, NOT units of vecN&lt;generic_data, 4&gt;. </p>
+<p>Offsets for image data packing. The offsets are in units of uint32_t, NOT units of <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac1b05a711a13a1fb6f966683c2e0d7eda364f851227ecc1d0f8c77b13bd0ce902"></a>size_xy_offset&#160;</td><td class="fielddoc"><p>Width and height of the sub-rectangle of the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> from which to source and encoded in a single uint32_t. The bits are packed as according to <a class="el" href="../../de/dc5/classfastuidraw_1_1_painter_image_brush_shader_data.html#a0dda34d0e9c8acfa47d4cedccc0671c2">uvec2_encoding</a>. If there is no valid backing image, then the encoded value will be 0. </p>
 </td></tr>
@@ -244,7 +244,7 @@ Public Member Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00089">89</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00088">88</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -321,7 +321,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Copy ctor. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00151">151</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00150">150</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -378,7 +378,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to return the number of vecN&lt;generic_data, 4&gt; blocks needed to pack the data. </p>
+<p>To be implemented by a derived class to return the number of uvec4 blocks needed to pack the data. </p>
 
 <p>Implements <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#adab5c95097cc7a61dd428af7e3b6af33">fastuidraw::PainterBrushShaderData</a>.</p>
 
@@ -433,7 +433,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Returns the <a class="el" href="../../dc/dd5/classfastuidraw_1_1_image.html">Image</a> from which to source </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00191">191</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00190">190</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
 
 </div>
 </div>
@@ -491,12 +491,12 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Assignment operator </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00161">161</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html#l00160">160</a> of file <a class="el" href="../../d9/d36/painter__image__brush__shader__data_8hpp_source.html">painter_image_brush_shader_data.hpp</a>.</p>
 
 </div>
 </div>
-<a id="af7102867e5454d09c2ac5c0ed7a549f2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7102867e5454d09c2ac5c0ed7a549f2">&#9670;&nbsp;</a></span>pack_data()</h2>
+<a id="a1c7902fe8007b1452d6bb50f93ec6154"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c7902fe8007b1452d6bb50f93ec6154">&#9670;&nbsp;</a></span>pack_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -507,7 +507,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::PainterImageBrushShaderData::pack_data </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, 4 &gt; &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a> &gt;&#160;</td>
           <td class="paramname"><em>dst</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -525,7 +525,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#a9d3878732c548fd7884c043c6a1a7540">fastuidraw::PainterBrushShaderData</a>.</p>
+<p>Implements <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#afdc1548ab0dc16c9761d7621fac98880">fastuidraw::PainterBrushShaderData</a>.</p>
 
 </div>
 </div>

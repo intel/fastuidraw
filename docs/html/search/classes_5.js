@@ -3,7 +3,6 @@ var searchData=
   ['generatorbase',['GeneratorBase',['../df/ddd/classfastuidraw_1_1_free_type_face_1_1_generator_base.html',1,'fastuidraw::FreeTypeFace']]],
   ['generatorfile',['GeneratorFile',['../db/dff/classfastuidraw_1_1_free_type_face_1_1_generator_file.html',1,'fastuidraw::FreeTypeFace']]],
   ['generatormemory',['GeneratorMemory',['../de/d36/classfastuidraw_1_1_free_type_face_1_1_generator_memory.html',1,'fastuidraw::FreeTypeFace']]],
-  ['generic_5fdata',['generic_data',['../d5/de6/unionfastuidraw_1_1generic__data.html',1,'fastuidraw']]],
   ['glyph',['Glyph',['../d7/df2/classfastuidraw_1_1_glyph.html',1,'fastuidraw']]],
   ['glyphatlas',['GlyphAtlas',['../da/da8/classfastuidraw_1_1_glyph_atlas.html',1,'fastuidraw']]],
   ['glyphatlasbackingstorebase',['GlyphAtlasBackingStoreBase',['../d8/dd0/classfastuidraw_1_1_glyph_atlas_backing_store_base.html',1,'fastuidraw']]],

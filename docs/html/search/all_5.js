@@ -1,7 +1,6 @@
 var searchData=
 [
   ['characterencoding',['CharacterEncoding',['../d6/def/namespacefastuidraw_1_1_character_encoding.html',1,'fastuidraw']]],
-  ['f',['f',['../d5/de6/unionfastuidraw_1_1generic__data.html#a7202d45537d2abf5b1e5e31f4e47afc5',1,'fastuidraw::generic_data']]],
   ['face',['face',['../d8/dd1/classfastuidraw_1_1_free_type_face.html#abd01307d4399b7cf547b115d9eca6c75',1,'fastuidraw::FreeTypeFace']]],
   ['face_5fforward',['face_forward',['../d1/d96/classfastuidraw_1_1vec_n.html#add8d8a9bf46fd5685e86e6f0204393cf',1,'fastuidraw::vecN']]],
   ['face_5fgenerator',['face_generator',['../da/d34/classfastuidraw_1_1_font_free_type.html#a59a38d7ef1671fd835b613970d496683',1,'fastuidraw::FontFreeType']]],
@@ -152,7 +151,7 @@ var searchData=
   ['fill_5frule_5ffcn',['fill_rule_fcn',['../d8/d6e/classfastuidraw_1_1_custom_fill_rule_function.html#a6e8bd710a11f4111053694414604e50e',1,'fastuidraw::CustomFillRuleFunction']]],
   ['fill_5frule_5ft',['fill_rule_t',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69',1,'fastuidraw::PainterEnums']]],
   ['fill_5fshader',['fill_shader',['../db/d4b/classfastuidraw_1_1_painter_shader_set.html#a39d27a77e152f34cb5b2fd02de29ab5c',1,'fastuidraw::PainterShaderSet::fill_shader(void) const'],['../db/d4b/classfastuidraw_1_1_painter_shader_set.html#a0c8b27e8f43aedb83493f7d77f3553ba',1,'fastuidraw::PainterShaderSet::fill_shader(const PainterFillShader &amp;sh)']]],
-  ['fill_5funiform_5fbuffer',['fill_uniform_buffer',['../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a56a7aa9d7ebef2fe35bb24eadbf1708d',1,'fastuidraw::glsl::PainterShaderRegistrarGLSL']]],
+  ['fill_5funiform_5fbuffer',['fill_uniform_buffer',['../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a084841330fbeeadc3aeb266da2abd446',1,'fastuidraw::glsl::PainterShaderRegistrarGLSL']]],
   ['filled',['filled',['../da/df4/classfastuidraw_1_1_tessellated_path.html#ac7c8aba0d344f13f5a5881fde8a73ba3',1,'fastuidraw::TessellatedPath::filled(float thresh) const'],['../da/df4/classfastuidraw_1_1_tessellated_path.html#a3d00c0ef6b804cd6ad71f13d735a5042',1,'fastuidraw::TessellatedPath::filled(void) const']]],
   ['filled_5fpath_2ehpp',['filled_path.hpp',['../d7/d73/filled__path_8hpp.html',1,'']]],
   ['filledpath',['FilledPath',['../d7/d9a/classfastuidraw_1_1_filled_path.html',1,'fastuidraw::FilledPath'],['../d7/d9a/classfastuidraw_1_1_filled_path.html#a055f433ed02865dc531c064977b451f9',1,'fastuidraw::FilledPath::FilledPath()']]],

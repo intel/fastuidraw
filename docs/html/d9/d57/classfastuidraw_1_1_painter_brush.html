@@ -258,8 +258,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa82bdfdc168c389cf9efbb898704984d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4fe3e39c08f6d951b34f98ac272dbb4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#ae4fe3e39c08f6d951b34f98ac272dbb4">operator=</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;obj)</td></tr>
 <tr class="separator:ae4fe3e39c08f6d951b34f98ac272dbb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a455866c277a0daf9b8a872ed4d9547"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a7a455866c277a0daf9b8a872ed4d9547">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, 4 &gt; &gt; dst) const override</td></tr>
-<tr class="separator:a7a455866c277a0daf9b8a872ed4d9547"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbff64a93bcbf771258e50fd5fdab938"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#adbff64a93bcbf771258e50fd5fdab938">pack_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a> &gt; dst) const override</td></tr>
+<tr class="separator:adbff64a93bcbf771258e50fd5fdab938"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4586a24c67734f9af64cf42a62786e97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#a4586a24c67734f9af64cf42a62786e97">radial_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;start_p, float start_r, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;end_p, float end_r, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736">spread_type_t</a> spread)</td></tr>
 <tr class="separator:a4586a24c67734f9af64cf42a62786e97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4bf177db4cf4a0a2b3f8bd518af43c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html#ac4bf177db4cf4a0a2b3f8bd518af43c2">radial_gradient</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d6/de3/classfastuidraw_1_1_color_stop_sequence.html">ColorStopSequence</a> &gt; &amp;cs, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;p, float r, enum <a class="el" href="../../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a9c9cfcee6017845ab4f0245abf6c9736">spread_type_t</a> spread)</td></tr>
@@ -964,7 +964,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to return the number of vecN&lt;generic_data, 4&gt; blocks needed to pack the data. </p>
+<p>To be implemented by a derived class to return the number of uvec4 blocks needed to pack the data. </p>
 
 <p>Implements <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#adab5c95097cc7a61dd428af7e3b6af33">fastuidraw::PainterBrushShaderData</a>.</p>
 
@@ -1394,8 +1394,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a7a455866c277a0daf9b8a872ed4d9547"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a455866c277a0daf9b8a872ed4d9547">&#9670;&nbsp;</a></span>pack_data()</h2>
+<a id="adbff64a93bcbf771258e50fd5fdab938"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbff64a93bcbf771258e50fd5fdab938">&#9670;&nbsp;</a></span>pack_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1406,7 +1406,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::PainterBrush::pack_data </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/d96/classfastuidraw_1_1vec_n.html">vecN</a>&lt; <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a>, 4 &gt; &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a> &gt;&#160;</td>
           <td class="paramname"><em>dst</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -1424,7 +1424,7 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#a9d3878732c548fd7884c043c6a1a7540">fastuidraw::PainterBrushShaderData</a>.</p>
+<p>Implements <a class="el" href="../../d9/dd2/classfastuidraw_1_1_painter_brush_shader_data.html#afdc1548ab0dc16c9761d7621fac98880">fastuidraw::PainterBrushShaderData</a>.</p>
 
 </div>
 </div>

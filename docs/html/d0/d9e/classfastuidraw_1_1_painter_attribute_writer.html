@@ -63,6 +63,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="../../d8/d32/classfastuidraw_1_1_painter_attribute_writer-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -70,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A provides an interface to write attribute and index data when a simple copy of data as exposed by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a62d0a34036d9ff758ff1fda5fcd8a208">Painter::draw_generic()</a> methods is not sufficient (for example to modify or filter data based off of some dynamic state).  
+<p>Provides an interface to write attribute and index data when a simple copy of data from <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> objects is not sufficient.  
  <a href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html">painter_attribute_writer.hpp</a>&gt;</code></p>
@@ -83,30 +84,30 @@ Inheritance diagram for fastuidraw::PainterAttributeWriter:</div>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:abf35c283dec1f772ae5c41d116ba3c7b"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#abf35c283dec1f772ae5c41d116ba3c7b">attribute_chunk_selection</a> (unsigned int index_chunk) const =0</td></tr>
-<tr class="separator:abf35c283dec1f772ae5c41d116ba3c7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25e0c6d6c4f8b2496cf865004cd02129"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a25e0c6d6c4f8b2496cf865004cd02129">number_attribute_chunks</a> (void) const =0</td></tr>
-<tr class="separator:a25e0c6d6c4f8b2496cf865004cd02129"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a848c2552e284c89e4eb0910e40aba5fd"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a848c2552e284c89e4eb0910e40aba5fd">number_attributes</a> (unsigned int attribute_chunk) const =0</td></tr>
-<tr class="separator:a848c2552e284c89e4eb0910e40aba5fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3caa75f3d49a60175303f3c6736b92a6"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a3caa75f3d49a60175303f3c6736b92a6">number_index_chunks</a> (void) const =0</td></tr>
-<tr class="separator:a3caa75f3d49a60175303f3c6736b92a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27ff2c47ac94590caaef71ab0730b91f"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a27ff2c47ac94590caaef71ab0730b91f">number_indices</a> (unsigned int index_chunk) const =0</td></tr>
-<tr class="separator:a27ff2c47ac94590caaef71ab0730b91f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56bd3a46091a9ea34a44561a31bb59f0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a56bd3a46091a9ea34a44561a31bb59f0">write_attributes</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; dst, unsigned int attribute_chunk) const =0</td></tr>
-<tr class="separator:a56bd3a46091a9ea34a44561a31bb59f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a169b7333ec54e30e445216a0aa0e230b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a169b7333ec54e30e445216a0aa0e230b">write_indices</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; dst, unsigned int index_offset_value, unsigned int index_chunk) const =0</td></tr>
-<tr class="separator:a169b7333ec54e30e445216a0aa0e230b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b70d6af54c32cd855a51295eba1e007"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a4b70d6af54c32cd855a51295eba1e007">initialize_state</a> (<a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *state) const =0</td></tr>
+<tr class="separator:a4b70d6af54c32cd855a51295eba1e007"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18776b47037c889a9a17cc5f784b557a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a18776b47037c889a9a17cc5f784b557a">on_new_store</a> (<a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *state) const =0</td></tr>
+<tr class="separator:a18776b47037c889a9a17cc5f784b557a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef380fc8ff5a46651a116f8ac1875643"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#aef380fc8ff5a46651a116f8ac1875643">state_length</a> (void) const =0</td></tr>
+<tr class="separator:aef380fc8ff5a46651a116f8ac1875643"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae46b15f7c49d4e7e2770344d82fd1e9a"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; dst_attribs, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; dst_indices, unsigned int attrib_location, <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *state, unsigned int *num_attribs_written, unsigned int *num_indices_written) const =0</td></tr>
+<tr class="separator:ae46b15f7c49d4e7e2770344d82fd1e9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A provides an interface to write attribute and index data when a simple copy of data as exposed by <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a62d0a34036d9ff758ff1fda5fcd8a208">Painter::draw_generic()</a> methods is not sufficient (for example to modify or filter data based off of some dynamic state). </p>
+<div class="textblock"><p>Provides an interface to write attribute and index data when a simple copy of data from <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> objects is not sufficient. </p>
+<p>A <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> is to be stateless. However, in order to be able to successfully write multiple chunks of attributes and indices, a <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> is given a "cookie" (see <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a>) which represents how far along streaming it is. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html#l00038">38</a> of file <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html">painter_attribute_writer.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html#l00042">42</a> of file <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html">painter_attribute_writer.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="abf35c283dec1f772ae5c41d116ba3c7b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf35c283dec1f772ae5c41d116ba3c7b">&#9670;&nbsp;</a></span>attribute_chunk_selection()</h2>
+<a id="a4b70d6af54c32cd855a51295eba1e007"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b70d6af54c32cd855a51295eba1e007">&#9670;&nbsp;</a></span>initialize_state()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -115,10 +116,10 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual unsigned int fastuidraw::PainterAttributeWriter::attribute_chunk_selection </td>
+          <td class="memname">virtual bool fastuidraw::PainterAttributeWriter::initialize_state </td>
           <td>(</td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>index_chunk</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -128,17 +129,17 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to return what attribute chunk to use for a given index chunk. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>To be implemented by a derived clas to initialize a <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> to indicate the start of writing data for a subsequence calls to <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data()</a>. Returns true if there is attribute and index data to upload. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">index_chunk</td><td>index chunk with 0 &lt;= index_chunk &lt;= <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a3caa75f3d49a60175303f3c6736b92a6">number_index_chunks()</a> </td></tr>
+    <tr><td class="paramname">state</td><td><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> to initialize </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a25e0c6d6c4f8b2496cf865004cd02129"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25e0c6d6c4f8b2496cf865004cd02129">&#9670;&nbsp;</a></span>number_attribute_chunks()</h2>
+<a id="a18776b47037c889a9a17cc5f784b557a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18776b47037c889a9a17cc5f784b557a">&#9670;&nbsp;</a></span>on_new_store()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -147,7 +148,39 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual unsigned int fastuidraw::PainterAttributeWriter::number_attribute_chunks </td>
+          <td class="memname">virtual void fastuidraw::PainterAttributeWriter::on_new_store </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>To be implemented by a derived class. Called by the caller of a <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> to indicate that a new data store has been started. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> to update </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aef380fc8ff5a46651a116f8ac1875643"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef380fc8ff5a46651a116f8ac1875643">&#9670;&nbsp;</a></span>state_length()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual unsigned int fastuidraw::PainterAttributeWriter::state_length </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -160,44 +193,12 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to return the number of attribute chunks of the <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html" title="A provides an interface to write attribute and index data when a simple copy of data as exposed by Pa...">PainterAttributeWriter</a>. </p>
+<p>To be implemented by a derived class to return how large the array <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html#ae812981ef73f769a78076615246885eb">WriteState::m_state</a> should be. </p>
 
 </div>
 </div>
-<a id="a848c2552e284c89e4eb0910e40aba5fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a848c2552e284c89e4eb0910e40aba5fd">&#9670;&nbsp;</a></span>number_attributes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual unsigned int fastuidraw::PainterAttributeWriter::number_attributes </td>
-          <td>(</td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>attribute_chunk</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>To be implemented by a derived class to return the number of attribute of an attribute chunk of the <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html" title="A provides an interface to write attribute and index data when a simple copy of data as exposed by Pa...">PainterAttributeWriter</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">attribute_chunk</td><td>which chunk of attributes </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a3caa75f3d49a60175303f3c6736b92a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3caa75f3d49a60175303f3c6736b92a6">&#9670;&nbsp;</a></span>number_index_chunks()</h2>
+<a id="ae46b15f7c49d4e7e2770344d82fd1e9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae46b15f7c49d4e7e2770344d82fd1e9a">&#9670;&nbsp;</a></span>write_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -206,124 +207,40 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual unsigned int fastuidraw::PainterAttributeWriter::number_index_chunks </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>To be implemented by a derived class to return the number of index chunks of the <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html" title="A provides an interface to write attribute and index data when a simple copy of data as exposed by Pa...">PainterAttributeWriter</a>. </p>
-
-</div>
-</div>
-<a id="a27ff2c47ac94590caaef71ab0730b91f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27ff2c47ac94590caaef71ab0730b91f">&#9670;&nbsp;</a></span>number_indices()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual unsigned int fastuidraw::PainterAttributeWriter::number_indices </td>
-          <td>(</td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>index_chunk</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>To be implemented by a derived class to return the number of indices of an index chunk of the <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html" title="A provides an interface to write attribute and index data when a simple copy of data as exposed by Pa...">PainterAttributeWriter</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">index_chunk</td><td>which chunk of attributes </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a56bd3a46091a9ea34a44561a31bb59f0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a56bd3a46091a9ea34a44561a31bb59f0">&#9670;&nbsp;</a></span>write_attributes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void fastuidraw::PainterAttributeWriter::write_attributes </td>
+          <td class="memname">virtual bool fastuidraw::PainterAttributeWriter::write_data </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt;&#160;</td>
-          <td class="paramname"><em>dst</em>, </td>
+          <td class="paramname"><em>dst_attribs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>attribute_chunk</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>To be implemented by a derived class to write attributes. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dst</td><td>location to which to write indices </td></tr>
-    <tr><td class="paramname">attribute_chunk</td><td>which chunk of attributes to write </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a169b7333ec54e30e445216a0aa0e230b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a169b7333ec54e30e445216a0aa0e230b">&#9670;&nbsp;</a></span>write_indices()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void fastuidraw::PainterAttributeWriter::write_indices </td>
-          <td>(</td>
           <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt;&#160;</td>
-          <td class="paramname"><em>dst</em>, </td>
+          <td class="paramname"><em>dst_indices</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>index_offset_value</em>, </td>
+          <td class="paramname"><em>attrib_location</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>index_chunk</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int *&#160;</td>
+          <td class="paramname"><em>num_attribs_written</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int *&#160;</td>
+          <td class="paramname"><em>num_indices_written</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -337,11 +254,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to write indices. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>To be implemented by a derived class to write attribute and index data. Returns true if there is further attribute and index data to upload. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dst</td><td>location to which to write indices </td></tr>
-    <tr><td class="paramname">index_offset_value</td><td>value by which to increment the index values written </td></tr>
-    <tr><td class="paramname">index_chunk</td><td>which chunk of indices to write </td></tr>
+    <tr><td class="paramname">dst_attribs</td><td>location to which to write attributes. The size of the array is guaranteed by the caller to be atleast the value of <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html#a984495e152dba5c4c9fd5c411fc6caaf">WriteState::m_min_attributes_for_next</a>. </td></tr>
+    <tr><td class="paramname">dst_indices</td><td>location to which to write indices. The size of the array is guaranteed by the caller to be atleast the value of <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html#a8f3d001a622bc18b64963c3c5c15f46d">WriteState::m_min_indices_for_next</a>. </td></tr>
+    <tr><td class="paramname">attrib_location</td><td>index value of the attribute at dst_attribs[0]. </td></tr>
+    <tr><td class="paramname">state</td><td>the write state of the session which is to be updated for the next call to <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data()</a>. </td></tr>
+    <tr><td class="paramname">num_attribs_written</td><td>location to which to write the number of attributes written by the call to <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data()</a>. </td></tr>
+    <tr><td class="paramname">num_indices_written</td><td>location to which to write the number of indices written by the call to <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data()</a>. </td></tr>
   </table>
   </dd>
 </dl>

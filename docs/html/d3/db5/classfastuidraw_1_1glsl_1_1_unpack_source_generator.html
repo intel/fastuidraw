@@ -329,7 +329,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set the field name that corresponds to an offset </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of uint32_t </td></tr>
     <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
     <tr><td class="paramname">type</td><td>the GLSL type of the field </td></tr>
     <tr><td class="paramname">cast</td><td>how to interpret the bits of the value </td></tr>
@@ -397,7 +397,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Set the field name that corresponds to an offset and range of bits within the value at the named offset </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of uint32_t </td></tr>
     <tr><td class="paramname">bit0</td><td>first bit of field value storted at offset </td></tr>
     <tr><td class="paramname">num_bits</td><td>number of bits used to store value. </td></tr>
     <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
@@ -451,7 +451,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><span class="keyword">set</span>(offset, field_name, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988aa54c6d8dc801983ed0c6a246eea52c21">float_type</a>, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa071e910ad272e682bc6fba54d3a5afaa">reinterpret_to_float_bits</a>, struct_idx);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of uint32_t </td></tr>
     <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
     <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
   </table>
@@ -503,7 +503,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><span class="keyword">set</span>(offset, field_name, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988abf9969d75295b6ed22e4add48ef2fc96">int_type</a>, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa16062b4ec7e46d803936ce00847b9447">type_cast</a>, struct_idx);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of uint32_t </td></tr>
     <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
     <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
   </table>
@@ -555,7 +555,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><span class="keyword">set</span>(offset, field_name, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#aa63fafa1949ac4cae5f7170472fda988a9324bfd96e6493700c292c724520469e">uint_type</a>, <a class="code" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html#af364919b400c6d1ba51821dbe28438bfa16062b4ec7e46d803936ce00847b9447">type_cast</a>, struct_idx);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of <a class="el" href="../../d5/de6/unionfastuidraw_1_1generic__data.html">generic_data</a> </td></tr>
+    <tr><td class="paramname">offset</td><td>offset from the start of the packed struct in units of uint32_t </td></tr>
     <tr><td class="paramname">field_name</td><td>GLSL name of the field to which to unpack the single scalar value. The value must include the dot if it is a field member of a struct. </td></tr>
     <tr><td class="paramname">struct_idx</td><td>if the ctor was given an array of c_string values, refers to the index into that array of the values. </td></tr>
   </table>
@@ -660,7 +660,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Stream a function with the given name that returns the number of data blocks (i.e. the number of vecN&lt;generic_data, 4&gt; elements) used to store the struct described by this <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Stream a function with the given name that returns the number of data blocks (i.e. the number of uvec4 elements) used to store the struct described by this <a class="el" href="../../d3/db5/classfastuidraw_1_1glsl_1_1_unpack_source_generator.html">UnpackSourceGenerator</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">str</td><td><a class="el" href="../../d5/db9/classfastuidraw_1_1glsl_1_1_shader_source.html">ShaderSource</a> to which to stream the unpack function </td></tr>
     <tr><td class="paramname">function_name</td><td>name to give the function </td></tr>
