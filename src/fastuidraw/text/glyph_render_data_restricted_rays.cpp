@@ -83,12 +83,16 @@ namespace
       m_end(b)
     {}
 
+    /* We say edge A is before edge B if it is entirely
+     * before B; The values of start and end are what
+     * location the edge starts and ends.
+     */
     static
     bool
     compare_edges(const Edge &lhs, const Edge &rhs)
     {
-      return fastuidraw::t_min(lhs.m_start, lhs.m_end)
-        < fastuidraw::t_max(rhs.m_start, rhs.m_end);
+      return fastuidraw::t_max(lhs.m_start, lhs.m_end)
+        < fastuidraw::t_min(rhs.m_start, rhs.m_end);
     }
 
     int m_start, m_end;
