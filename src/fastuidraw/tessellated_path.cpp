@@ -127,6 +127,22 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> > m_linearization;
   };
 
+  float
+  one_minus_cos(float theta)
+  {
+    /* naively doing 1.0 - cos(theta) will rise to
+     * catostrophic cancellation when theta is small.
+     * Instead, use the trig identity:
+     *  cos(t) = 1 - 2sin^2(t / 2)
+     * which gives
+     *  1 - cos(t) = 2sin^2(t / 2)
+     */
+    float sin_half_theta;
+
+    sin_half_theta = fastuidraw::t_sin(theta * 0.5f);
+    return 2.0f * sin_half_theta * sin_half_theta;
+  }
+
   void
   union_segment(const fastuidraw::TessellatedPath::segment &S,
                 fastuidraw::BoundingBox<float> &BB)
@@ -144,7 +160,7 @@ namespace
         half_angle = 0.5f * (S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
         c = t_cos(S.m_arc_angle.m_begin + half_angle);
         s = t_sin(S.m_arc_angle.m_begin + half_angle);
-        l = 1.0f - t_cos(half_angle);
+        l = one_minus_cos(half_angle);
         tau = l * vec2(c, s);
 
         BB.union_point(S.m_start_pt + tau);
@@ -325,7 +341,7 @@ namespace
     const float pi(FASTUIDRAW_PI);
     float error, eff(t_min(pi, t_abs(0.5f * delta_angle)));
 
-    error = S.m_radius * (1.0f - t_cos(eff));
+    error = S.m_radius * one_minus_cos(eff);
     return error;
   }
 }
