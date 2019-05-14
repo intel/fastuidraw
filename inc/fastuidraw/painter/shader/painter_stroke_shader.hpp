@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <fastuidraw/path_enums.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/data/painter_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_item_shader.hpp>
@@ -44,51 +45,10 @@ namespace fastuidraw
    * the stroking parameters.
    */
   class StrokingDataSelectorBase:
-    public reference_counted<StrokingDataSelectorBase>::concurrent
+    public reference_counted<StrokingDataSelectorBase>::concurrent,
+    public PathEnums
   {
   public:
-    /*!
-     * Enumeration to specify indexes into a \ref c_array
-     * on how much a path's geometry is inflated by stroking.
-     */
-    enum path_geometry_inflation_index_t
-      {
-        /*!
-         * Index into \ref c_array to indicate how much
-         * the path geometry is inflated in pixels after its
-         * inflation in in item coordinates and having the current
-         * transformation matrix applied.
-         */
-        pixel_space_distance = 0,
-
-        /*!
-         * Index into \ref c_array to indicate how much
-         * the path geometry is inflated in path cordinates
-         * before the transformation matrix applied or the
-         * inflation by \ref pixel_space_distance is applied
-         */
-        item_space_distance,
-
-        /*!
-         * Index into \ref c_array to indicate how much
-         * the bounding box for taking miter-joins is inflated
-         * in pixels after its inflation in in item coordinates
-         * and having the current transformation matrix applied.
-         */
-        pixel_space_distance_miter_joins,
-
-        /*!
-         * Index into \ref c_array to indicate how much
-         * the bounding box for taking miter-joins is inflated
-         * in path cordinates before the transformation matrix
-         * applied or the inflation by \ref
-         * pixel_space_distance_miter_joins is applied
-         */
-        item_space_distance_miter_joins,
-
-        path_geometry_inflation_index_count,
-      };
-
     /*!
      * To be implemented by a derived class to compute the value
      * used to select rounded join level of detail (\ref
