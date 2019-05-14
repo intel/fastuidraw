@@ -21,6 +21,7 @@
 #include <algorithm>
 
 #include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_path.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
@@ -38,12 +39,6 @@
 
 namespace
 {
-  enum
-    {
-      splitting_threshhold = 50,
-      max_recursion_depth = 10
-    };
-
   inline
   uint32_t
   pack_data(int on_boundary,
@@ -69,28 +64,8 @@ namespace
   class SingleSubEdge
   {
   public:
-    enum
-      {
-        first_segment_of_edge = 1,
-        last_segment_of_edge  = 2,
-      };
-
-    SingleSubEdge()
-    {}
-
-    static
-    void
-    add_sub_edge(const SingleSubEdge *prev_subedge_of_edge,
-                 const fastuidraw::TessellatedPath::segment &seg,
-                 std::vector<SingleSubEdge> &dst,
-                 fastuidraw::BoundingBox<float> &bx,
-                 uint32_t flags);
-
-    void
-    split_sub_edge(int splitting_coordinate,
-                   std::vector<SingleSubEdge> *dst_before_split_value,
-                   std::vector<SingleSubEdge> *dst_after_split_value,
-                   float split_value) const;
+    SingleSubEdge(const fastuidraw::PartitionedTessellatedPath::segment &seg,
+                  const fastuidraw::PartitionedTessellatedPath::segment *prev);
 
     fastuidraw::vec2
     unit_vector_into_segment(void) const
@@ -133,11 +108,6 @@ namespace
     bool m_has_end_dashed_capper;
 
   private:
-    SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg, uint32_t flags);
-
-    bool
-    intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const;
-
     static
     float
     compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1)
@@ -150,75 +120,12 @@ namespace
     }
   };
 
-  class SubPath:fastuidraw::noncopyable
+
+  class ScratchSpacePrivate
   {
   public:
-    explicit
-    SubPath(const fastuidraw::TessellatedPath &P);
-
-    fastuidraw::c_array<const SingleSubEdge>
-    edges(void) const
-    {
-      return fastuidraw::make_c_array(m_edges);
-    }
-
-    const fastuidraw::BoundingBox<float>&
-    bounding_box(void) const
-    {
-      return m_bounding_box;
-    }
-
-    bool
-    has_arcs(void) const
-    {
-      return m_has_arcs;
-    }
-
-    /* a value of -1 means to NOT split. */
-    int
-    choose_splitting_coordinate(float &split_value) const;
-
-    fastuidraw::vecN<SubPath*, 2>
-    split(int splitting_coordinate, float spliting_value) const;
-
-  private:
-    explicit
-    SubPath(bool phas_arcs);
-
-    void
-    process_edge(const fastuidraw::TessellatedPath &P,
-                 fastuidraw::range_type<unsigned int> R,
-                 const SingleSubEdge *prev,
-                 std::vector<SingleSubEdge> &dst);
-
-    static
-    void
-    split_segments(int splitting_coordinate,
-                   const std::vector<SingleSubEdge> &src,
-                   float splitting_value,
-                   std::vector<SingleSubEdge> &dstA,
-                   fastuidraw::BoundingBox<float> &boxA,
-                   std::vector<SingleSubEdge> &dstB,
-                   fastuidraw::BoundingBox<float> &boxB);
-
-    static
-    void
-    update_bounding_box(unsigned int &begin,
-                        const std::vector<SingleSubEdge> &segs,
-                        fastuidraw::BoundingBox<float> &box);
-
-    std::vector<SingleSubEdge> m_edges;
-    fastuidraw::BoundingBox<float> m_bounding_box;
-    bool m_has_arcs;
-  };
-
-  class ScratchSpacePrivate:fastuidraw::noncopyable
-  {
-  public:
-    std::vector<fastuidraw::vec3> m_adjusted_clip_eqs;
-    fastuidraw::c_array<const fastuidraw::vec2> m_clipped_rect;
-
-    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clip_scratch_vec2s;
+    fastuidraw::PartitionedTessellatedPath::ScratchSpace m_scratch;
+    std::vector<unsigned int> m_partioned_subset_choices;
   };
 
   class SubsetPrivate:fastuidraw::noncopyable
@@ -226,22 +133,11 @@ namespace
   public:
     ~SubsetPrivate();
 
-    unsigned int
-    select_subsets(ScratchSpacePrivate &scratch,
-                   fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
-                   const fastuidraw::float3x3 &clip_matrix_local,
-                   const fastuidraw::vec2 &one_pixel_width,
-                   float pixels_additional_room,
-                   float item_space_additional_room,
-                   unsigned int max_attribute_cnt,
+    void
+    select_subsets(unsigned int max_attribute_cnt,
                    unsigned int max_index_cnt,
-                   fastuidraw::c_array<unsigned int> dst);
-
-    bool //returns true if this is added to dst
-    select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
-                                unsigned int max_attribute_cnt,
-                                unsigned int max_index_cnt,
-                                unsigned int &current);
+                   fastuidraw::c_array<unsigned int> dst,
+                   unsigned int &current);
 
     void
     make_ready(void);
@@ -255,7 +151,7 @@ namespace
     const fastuidraw::Rect&
     bounding_box(void) const
     {
-      return m_bounding_box.as_rect();
+      return m_subset.bounding_box();
     }
 
     const fastuidraw::PainterAttributeData&
@@ -279,49 +175,43 @@ namespace
 
     static
     SubsetPrivate*
-    create_root_subset(const fastuidraw::TessellatedPath &P,
+    create_root_subset(bool has_arcs,
+                       const fastuidraw::PartitionedTessellatedPath &P,
                        std::vector<SubsetPrivate*> &out_values);
 
   private:
     /* creation of SubsetPrivate has that it takes ownership of data
      * it might delete the object or save it for later use.
      */
-    SubsetPrivate(int recursion_depth, SubPath *data,
+    SubsetPrivate(bool has_arcs,
+                  fastuidraw::PartitionedTessellatedPath::Subset src,
                   std::vector<SubsetPrivate*> &out_values);
-
-    bool //returns true if this is added to dst
-    select_subsets_implement(ScratchSpacePrivate &scratch,
-                             fastuidraw::c_array<unsigned int> dst,
-                             float item_space_additional_room,
-                             unsigned int max_attribute_cnt,
-                             unsigned int max_index_cnt,
-                             unsigned int &current);
 
     void
     make_ready_from_children(void);
 
     void
-    make_ready_from_sub_path(void);
+    make_ready_from_subset(void);
 
     void
     ready_sizes_from_children(void);
 
     unsigned int m_ID;
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
-    fastuidraw::BoundingBox<float> m_bounding_box;
     fastuidraw::Path m_bounding_path;
     fastuidraw::PainterAttributeData *m_painter_data;
     unsigned int m_num_attributes, m_num_indices;
     bool m_sizes_ready, m_ready, m_has_arcs;
-    SubPath *m_sub_path;
+
+    fastuidraw::PartitionedTessellatedPath::Subset m_subset;
   };
 
   class EdgeAttributeFillerBase:public fastuidraw::PainterAttributeDataFiller
   {
   public:
     explicit
-    EdgeAttributeFillerBase(const SubPath *src):
-      m_src(*src),
+    EdgeAttributeFillerBase(fastuidraw::PartitionedTessellatedPath::Subset src):
+      m_src(src),
       m_ready(false)
     {}
 
@@ -351,13 +241,17 @@ namespace
     void
     ready_data(void) const;
 
+    void
+    process_segment_chain(unsigned int &depth,
+                          const fastuidraw::PartitionedTessellatedPath::segment_chain &chain) const;
+
     virtual
     void
     process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
                      std::vector<fastuidraw::PainterAttribute> &attribute_data,
                      std::vector<fastuidraw::PainterIndex> &index_data) const = 0;
 
-    const SubPath &m_src;
+    fastuidraw::PartitionedTessellatedPath::Subset m_src;
 
     mutable bool m_ready;
     mutable std::vector<fastuidraw::PainterAttribute> m_attributes;
@@ -370,7 +264,7 @@ namespace
   {
   public:
     explicit
-    LineEdgeAttributeFiller(const SubPath *src):
+    LineEdgeAttributeFiller(fastuidraw::PartitionedTessellatedPath::Subset src):
       EdgeAttributeFillerBase(src)
     {}
 
@@ -397,7 +291,7 @@ namespace
   {
   public:
     explicit
-    ArcEdgeAttributeFiller(const SubPath *src):
+    ArcEdgeAttributeFiller(fastuidraw::PartitionedTessellatedPath::Subset src):
       EdgeAttributeFillerBase(src)
     {}
 
@@ -444,10 +338,8 @@ namespace
     StrokedPathPrivate(const fastuidraw::TessellatedPath &P);
     ~StrokedPathPrivate();
 
-    void
-    create_edges(const fastuidraw::TessellatedPath &P);
-
     bool m_has_arcs;
+    fastuidraw::reference_counted_ptr<fastuidraw::PartitionedTessellatedPath> m_path_partioned;
     fastuidraw::StrokedCapsJoins m_caps_joins;
     SubsetPrivate* m_root;
     std::vector<SubsetPrivate*> m_subsets;
@@ -458,7 +350,8 @@ namespace
 ////////////////////////////////////////
 // SingleSubEdge methods
 SingleSubEdge::
-SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg, uint32_t flags):
+SingleSubEdge(const fastuidraw::PartitionedTessellatedPath::segment &seg,
+              const fastuidraw::PartitionedTessellatedPath::segment *prev):
   m_from_line_segment(seg.m_type == fastuidraw::TessellatedPath::line_segment),
   m_pt0(seg.m_start_pt),
   m_pt1(seg.m_end_pt),
@@ -475,440 +368,33 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg, uint32_t flags):
   m_center(seg.m_center),
   m_arc_angle(seg.m_arc_angle),
   m_radius(seg.m_radius),
-  m_has_start_dashed_capper(flags & first_segment_of_edge),
-  m_has_end_dashed_capper(flags & last_segment_of_edge)
+  m_has_start_dashed_capper(!m_from_line_segment && seg.m_first_segment_of_edge),
+  m_has_end_dashed_capper(!m_from_line_segment && seg.m_last_segment_of_edge)
 {
-}
-
-bool
-SingleSubEdge::
-intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const
-{
-  using namespace fastuidraw;
-
-  vec2 v0(m_pt0 - m_center), v1(m_pt1 - m_center);
-  vec2 n0(-v0.y(), v0.x()), n1(-v1.y(), v1.x());
-
-  /* The arc's radial edges coincide with the edges of the
-   * triangle [m_center, m_pt0, m_pt1], as such we can use the
-   * edges that use m_center define the clipping planes to
-   * check if an intersection point is inside the arc.
-   */
-  pt -= m_center;
-  if ((dot(n0, pt) > 0.0) == (dot(n0, m_pt1 - m_center) > 0.0)
-      && (dot(n1, pt) > 0.0) == (dot(n1, m_pt0 - m_center) > 0.0))
-    {
-      /* pt is within the arc; compute the angle */
-      float theta;
-
-      theta = t_atan2(pt.y(), pt.x());
-      if (theta < t_min(m_arc_angle.m_begin, m_arc_angle.m_end))
-        {
-          theta += 2.0f * static_cast<float>(FASTUIDRAW_PI);
-        }
-      else if (theta > t_max(m_arc_angle.m_begin, m_arc_angle.m_end))
-        {
-          theta -= 2.0f * static_cast<float>(FASTUIDRAW_PI);
-        }
-
-      FASTUIDRAWassert(theta >= t_min(m_arc_angle.m_begin, m_arc_angle.m_end));
-      FASTUIDRAWassert(theta <= t_max(m_arc_angle.m_begin, m_arc_angle.m_end));
-      *out_arc_angle = theta;
-
-      return true;
-    }
-
-  return false;
-}
-
-void
-SingleSubEdge::
-add_sub_edge(const SingleSubEdge *prev_subedge_of_edge,
-             const fastuidraw::TessellatedPath::segment &seg,
-             std::vector<SingleSubEdge> &dst,
-             fastuidraw::BoundingBox<float> &bx,
-             uint32_t flags)
-{
-  SingleSubEdge sub_edge(seg, flags);
-
   /* If the dot product between the normal is negative, then
    * chances are there is a cusp; we do NOT want a bevel (or
    * arc) join then.
    */
-  if (!prev_subedge_of_edge
-      || seg.m_continuation_with_predecessor
-      || fastuidraw::dot(prev_subedge_of_edge->m_end_normal,
-                         sub_edge.m_begin_normal) < 0.0f)
+  if (seg.m_continuation_with_predecessor
+      || !prev
+      || fastuidraw::dot(prev->m_leaving_segment_unit_vector,
+                         seg.m_enter_segment_unit_vector) < 0.0f)
     {
-      sub_edge.m_bevel_lambda = 0.0f;
-      sub_edge.m_has_bevel = false;
-      sub_edge.m_use_arc_for_bevel = false;
-      sub_edge.m_bevel_normal = fastuidraw::vec2(0.0f, 0.0f);
+      m_bevel_lambda = 0.0f;
+      m_has_bevel = false;
+      m_use_arc_for_bevel = false;
+      m_bevel_normal = fastuidraw::vec2(0.0f, 0.0f);
     }
   else
     {
-      sub_edge.m_bevel_lambda = compute_lambda(prev_subedge_of_edge->m_end_normal,
-                                               sub_edge.m_begin_normal);
-      sub_edge.m_has_bevel = true;
-      sub_edge.m_bevel_normal = prev_subedge_of_edge->m_end_normal;
-      /* make them meet at an arc-join if one of them is not
-       * a line-segment
-       */
-      sub_edge.m_use_arc_for_bevel = !(sub_edge.m_from_line_segment && prev_subedge_of_edge->m_from_line_segment);
-    }
+      m_bevel_normal = fastuidraw::vec2(-prev->m_leaving_segment_unit_vector.y(),
+                                        +prev->m_leaving_segment_unit_vector.x());
+      m_bevel_lambda = compute_lambda(m_bevel_normal, m_begin_normal);
+      m_has_bevel = true;
 
-  /* When the edge is an arc, we have that it is monotonic
-   * in both coordinates, thus regardless if the edge is
-   * a line segment or arc, the bounding box is given
-   * by the bounding box of the end-points.
-   */
-  bx.union_point(sub_edge.m_pt0);
-  bx.union_point(sub_edge.m_pt1);
-
-  dst.push_back(sub_edge);
-}
-
-void
-SingleSubEdge::
-split_sub_edge(int splitting_coordinate,
-               std::vector<SingleSubEdge> *dst_before_split_value,
-               std::vector<SingleSubEdge> *dst_after_split_value,
-               float split_value) const
-{
-  float s, t, mid_angle;
-  fastuidraw::vec2 p, mid_normal;
-  fastuidraw::vecN<SingleSubEdge, 2> out_edges;
-
-  if (m_pt0[splitting_coordinate] <= split_value && m_pt1[splitting_coordinate] <= split_value)
-    {
-      dst_before_split_value->push_back(*this);
-      return;
-    }
-
-  if (m_pt0[splitting_coordinate] >= split_value && m_pt1[splitting_coordinate] >= split_value)
-    {
-      dst_after_split_value->push_back(*this);
-      return;
-    }
-
-  if (m_from_line_segment)
-    {
-      float v0, v1;
-
-      v0 = m_pt0[splitting_coordinate];
-      v1 = m_pt1[splitting_coordinate];
-      t = (split_value - v0) / (v1 - v0);
-
-      FASTUIDRAWassert(t >= 0.0f && t <= 1.0f);
-
-      s = 1.0 - t;
-      p[1 - splitting_coordinate] = s * m_pt0[1 - splitting_coordinate] + t * m_pt1[1 - splitting_coordinate];
-      p[splitting_coordinate] = split_value;
-      mid_normal = m_begin_normal;
-
-      /* strictly speaking this is non-sense, but lets silence
-       * any writes with uninitialized data here.
-       */
-      mid_angle = 0.5f * (m_arc_angle.m_begin + m_arc_angle.m_end);
-    }
-  else
-    {
-      /* compute t, s, p, mid_normal; We are gauranteed
-       * that the arc is monotonic, thus the splitting will
-       * split it into at most two pieces. In addition, because
-       * it is monotonic, we know it will split it in exactly
-       * two pieces.
-       */
-      float radical, d;
-      fastuidraw::vec2 test_pt;
-
-      d = split_value - m_center[splitting_coordinate];
-      radical = m_radius * m_radius - d * d;
-
-      FASTUIDRAWassert(radical > 0.0f);
-      radical = fastuidraw::t_sqrt(radical);
-
-      test_pt[splitting_coordinate] = split_value;
-      test_pt[1 - splitting_coordinate] = m_center[1 - splitting_coordinate] - radical;
-
-      if (!intersection_point_in_arc(test_pt, &mid_angle))
-        {
-          bool result;
-
-          test_pt[1 - splitting_coordinate] = m_center[1 - splitting_coordinate] + radical;
-          result = intersection_point_in_arc(test_pt, &mid_angle);
-
-          FASTUIDRAWassert(result);
-          FASTUIDRAWunused(result);
-        }
-
-      p = test_pt;
-      t = (mid_angle - m_arc_angle.m_begin) / (m_arc_angle.m_end - m_arc_angle.m_begin);
-      s = 1.0f - t;
-
-      mid_normal.x() = m_radius * fastuidraw::t_cos(mid_angle);
-      mid_normal.y() = m_radius * fastuidraw::t_sin(mid_angle);
-      if (m_arc_angle.m_begin > m_arc_angle.m_end)
-        {
-          mid_normal *= -1.0f;
-        }
-    }
-
-  out_edges[0].m_pt0 = m_pt0;
-  out_edges[0].m_pt1 = p;
-  out_edges[0].m_begin_normal = m_begin_normal;
-  out_edges[0].m_end_normal = mid_normal;
-  out_edges[0].m_arc_angle.m_begin = m_arc_angle.m_begin;
-  out_edges[0].m_arc_angle.m_end = mid_angle;
-  out_edges[0].m_distance_from_edge_start = m_distance_from_edge_start;
-  out_edges[0].m_distance_from_contour_start = m_distance_from_contour_start;
-  out_edges[0].m_sub_edge_length = t * m_sub_edge_length;
-  out_edges[0].m_has_start_dashed_capper = m_has_start_dashed_capper;
-  out_edges[0].m_has_end_dashed_capper = false;
-
-  out_edges[1].m_pt0 = p;
-  out_edges[1].m_pt1 = m_pt1;
-  out_edges[1].m_begin_normal = mid_normal;
-  out_edges[1].m_end_normal = m_end_normal;
-  out_edges[1].m_arc_angle.m_begin = mid_angle;
-  out_edges[1].m_arc_angle.m_end = m_arc_angle.m_end;
-  out_edges[1].m_distance_from_edge_start = m_distance_from_edge_start + out_edges[0].m_sub_edge_length;
-  out_edges[1].m_distance_from_contour_start = m_distance_from_contour_start + out_edges[0].m_sub_edge_length;
-  out_edges[1].m_sub_edge_length = s * m_sub_edge_length;
-  out_edges[1].m_has_start_dashed_capper = false;
-  out_edges[1].m_has_end_dashed_capper = m_has_end_dashed_capper;
-
-  int i_before, i_after;
-  if (m_pt0[splitting_coordinate] < split_value)
-    {
-      i_before = 0;
-      i_after = 1;
-    }
-  else
-    {
-      i_before = 1;
-      i_after = 0;
-    }
-
-  for(unsigned int i = 0; i < 2; ++i)
-    {
-      out_edges[i].m_from_line_segment = m_from_line_segment;
-      out_edges[i].m_delta = out_edges[i].m_pt1 - out_edges[i].m_pt0;
-      out_edges[i].m_has_bevel = m_has_bevel && (i == 0);
-      out_edges[i].m_bevel_lambda = (i == 0) ? m_bevel_lambda : 0.0f;
-      out_edges[i].m_bevel_normal = (i == 0) ? m_bevel_normal : fastuidraw::vec2(0.0f, 0.0f);
-      out_edges[i].m_use_arc_for_bevel = m_use_arc_for_bevel;
-
-      out_edges[i].m_center = m_center;
-      out_edges[i].m_radius = m_radius;
-
-      out_edges[i].m_edge_length = m_edge_length;
-      out_edges[i].m_contour_length = m_contour_length;
-    }
-
-  dst_before_split_value->push_back(out_edges[i_before]);
-  dst_after_split_value->push_back(out_edges[i_after]);
-}
-
-////////////////////////////////////////////
-// SubPath methods
-SubPath::
-SubPath(bool phas_arcs):
-  m_has_arcs(phas_arcs)
-{
-}
-
-SubPath::
-SubPath(const fastuidraw::TessellatedPath &P):
-  m_has_arcs(P.has_arcs())
-{
-  using namespace fastuidraw;
-
-  for(unsigned int o = 0; o < P.number_contours(); ++o)
-    {
-      for(unsigned int e = 0, ende = P.number_edges(o); e < ende; ++e)
-        {
-          const SingleSubEdge *prev(nullptr);
-          fastuidraw::range_type<unsigned int> R;
-
-          R = P.edge_range(o, e);
-          if (e != 0 && P.edge_type(o, e) != PathEnums::starts_new_edge)
-            {
-              prev = &m_edges.back();
-            }
-
-          process_edge(P, R, prev, m_edges);
-        }
-    }
-}
-
-void
-SubPath::
-process_edge(const fastuidraw::TessellatedPath &P,
-             fastuidraw::range_type<unsigned int> R,
-             const SingleSubEdge *prev,
-             std::vector<SingleSubEdge> &dst)
-{
-  using namespace fastuidraw;
-
-  c_array<const TessellatedPath::segment> src_segments(P.segment_data());
-  bool has_arcs(P.has_arcs());
-
-  FASTUIDRAWassert(R.m_end >= R.m_begin);
-  for(unsigned int i = R.m_begin; i < R.m_end; ++i)
-    {
-      uint32_t flags;
-
-      flags = 0u;
-      if (has_arcs && i == R.m_begin)
-        {
-          flags |= SingleSubEdge::first_segment_of_edge;
-        }
-      if (has_arcs && i + 1 == R.m_end)
-        {
-          flags |= SingleSubEdge::last_segment_of_edge;
-        }
-
-      SingleSubEdge::add_sub_edge(prev, src_segments[i],
-                                  dst, m_bounding_box, flags);
-      prev = &dst.back();
-    }
-}
-
-int
-SubPath::
-choose_splitting_coordinate(float &split_value) const
-{
-  using namespace fastuidraw;
-
-  unsigned int data_size(m_edges.size());
-
-  if (data_size < splitting_threshhold)
-    {
-      return -1;
-    }
-
-  /* NOTE: we can use the end points of the SingleSubEdge
-   * to count on what side or sides a SingleSubEdge
-   * will land even when arcs are present because we
-   * have the guarantee that a SingleSubEdge that is an
-   * arc is a monotonic-arc.
-   */
-  vecN<float, 2> split_values;
-  vecN<unsigned int, 2> split_counters(0, 0);
-  vecN<uvec2, 2> child_counters(uvec2(0, 0), uvec2(0, 0));
-
-  std::vector<float> qs;
-  qs.reserve(m_edges.size());
-
-  /* The split canidates are the median's of the x and y
-   * coordinates of all the SingleSubEdge values.
-   */
-  for (int c = 0; c < 2; ++c)
-    {
-      qs.clear();
-      qs.push_back(m_bounding_box.min_point()[c]);
-      qs.push_back(m_bounding_box.max_point()[c]);
-      for(const SingleSubEdge &sub_edge : m_edges)
-        {
-              qs.push_back(sub_edge.m_pt0[c]);
-        }
-      std::sort(qs.begin(), qs.end());
-      split_values[c] = qs[qs.size() / 2];
-
-      for(const SingleSubEdge &sub_edge : m_edges)
-        {
-          bool sA, sB;
-          sA = (sub_edge.m_pt0[c] < split_values[c]);
-          sB = (sub_edge.m_pt1[c] < split_values[c]);
-          if (sA != sB)
-            {
-              ++split_counters[c];
-              ++child_counters[c][0];
-              ++child_counters[c][1];
-            }
-          else
-            {
-              ++child_counters[c][sA];
-            }
-        }
-    }
-
-  /* choose the coordiante that splits the smallest number of edges */
-  int canidate;
-  canidate = (split_counters[0] < split_counters[1]) ? 0 : 1;
-
-  /* we require that both sides will have fewer edges
-   * than the parent size.
-   */
-  if (child_counters[canidate][0] < data_size
-      && child_counters[canidate][1] < data_size)
-    {
-      split_value = split_values[canidate];
-      return canidate;
-    }
-  else
-    {
-      return -1;
-    }
-}
-
-fastuidraw::vecN<SubPath*, 2>
-SubPath::
-split(int splitting_coordinate, float spliting_value) const
-{
-  using namespace fastuidraw;
-
-  vecN<SubPath*, 2> children;
-
-  FASTUIDRAWassert(splitting_coordinate != -1);
-  children[0] = FASTUIDRAWnew SubPath(m_has_arcs);
-  children[1] = FASTUIDRAWnew SubPath(m_has_arcs);
-
-  split_segments(splitting_coordinate,
-                 m_edges,
-                 spliting_value,
-                 children[0]->m_edges, children[0]->m_bounding_box,
-                 children[1]->m_edges, children[1]->m_bounding_box);
-
-  return children;
-}
-
-void
-SubPath::
-split_segments(int splitting_coordinate,
-               const std::vector<SingleSubEdge> &src,
-               float splitting_value,
-               std::vector<SingleSubEdge> &dstA,
-               fastuidraw::BoundingBox<float> &boxA,
-               std::vector<SingleSubEdge> &dstB,
-               fastuidraw::BoundingBox<float> &boxB)
-{
-  using namespace fastuidraw;
-
-  unsigned int lastA(dstA.size());
-  unsigned int lastB(dstB.size());
-
-  for(const SingleSubEdge &sub_edge : src)
-    {
-      sub_edge.split_sub_edge(splitting_coordinate,
-                              &dstA, &dstB,
-                              splitting_value);
-      update_bounding_box(lastA, dstA, boxA);
-      update_bounding_box(lastB, dstB, boxB);
-    }
-}
-
-void
-SubPath::
-update_bounding_box(unsigned int &begin,
-                    const std::vector<SingleSubEdge> &segs,
-                    fastuidraw::BoundingBox<float> &box)
-{
-  for (unsigned int end = segs.size(); begin < end; ++begin)
-    {
-      box.union_point(segs[begin].m_pt0);
-      box.union_point(segs[begin].m_pt1);
+      /* make them meet at an arc-join if one of them is as arc-segment */
+      m_use_arc_for_bevel = prev->m_type == fastuidraw::TessellatedPath::arc_segment
+        || seg.m_type == fastuidraw::TessellatedPath::arc_segment;
     }
 }
 
@@ -916,59 +402,43 @@ update_bounding_box(unsigned int &begin,
 // SubsetPrivate methods
 SubsetPrivate*
 SubsetPrivate::
-create_root_subset(const fastuidraw::TessellatedPath &P,
+create_root_subset(bool has_arcs,
+                   const fastuidraw::PartitionedTessellatedPath &P,
                    std::vector<SubsetPrivate*> &out_values)
 {
-  SubPath *d;
   SubsetPrivate *return_value;
 
-  d = FASTUIDRAWnew SubPath(P);
-  return_value = FASTUIDRAWnew SubsetPrivate(0, d, out_values);
+  return_value = FASTUIDRAWnew SubsetPrivate(has_arcs, P.root_subset(), out_values);
   return return_value;
 }
 
 SubsetPrivate::
-SubsetPrivate(int recursion_depth, SubPath *data,
+SubsetPrivate(bool has_arcs,
+              fastuidraw::PartitionedTessellatedPath::Subset src,
               std::vector<SubsetPrivate*> &out_values):
-  m_ID(out_values.size()),
+  m_ID(src.ID()),
   m_children(nullptr, nullptr),
-  m_bounding_box(data->bounding_box()),
   m_painter_data(nullptr),
   m_num_attributes(0),
   m_num_indices(0),
   m_sizes_ready(false),
   m_ready(false),
-  m_has_arcs(data->has_arcs()),
-  m_sub_path(nullptr)
+  m_has_arcs(has_arcs),
+  m_subset(src)
 {
   using namespace fastuidraw;
 
-  int splitting_coordinate(-1);
-  float splitting_value;
-
-  out_values.push_back(this);
-  if (recursion_depth < max_recursion_depth)
+  out_values[m_ID] = this;
+  if (m_subset.has_children())
     {
-      splitting_coordinate = data->choose_splitting_coordinate(splitting_value);
+      vecN<fastuidraw::PartitionedTessellatedPath::Subset, 2> children;
+      children = m_subset.children();
+      m_children[0] = FASTUIDRAWnew SubsetPrivate(m_has_arcs, children[0], out_values);
+      m_children[1] = FASTUIDRAWnew SubsetPrivate(m_has_arcs, children[1], out_values);
     }
 
-  if (splitting_coordinate != -1)
-    {
-      vecN<SubPath*, 2> child_data;
-
-      child_data = data->split(splitting_coordinate, splitting_value);
-      FASTUIDRAWdelete(data);
-
-      m_children[0] = FASTUIDRAWnew SubsetPrivate(recursion_depth + 1, child_data[0], out_values);
-      m_children[1] = FASTUIDRAWnew SubsetPrivate(recursion_depth + 1, child_data[1], out_values);
-    }
-  else
-    {
-      m_sub_path = data;
-    }
-
-  const fastuidraw::vec2 &m(m_bounding_box.min_point());
-  const fastuidraw::vec2 &M(m_bounding_box.max_point());
+  const fastuidraw::vec2 &m(bounding_box().m_min_point);
+  const fastuidraw::vec2 &M(bounding_box().m_max_point);
   m_bounding_path << vec2(m.x(), m.y())
                   << vec2(m.x(), M.y())
                   << vec2(M.x(), M.y())
@@ -979,11 +449,6 @@ SubsetPrivate(int recursion_depth, SubPath *data,
 SubsetPrivate::
 ~SubsetPrivate()
 {
-  if (m_sub_path)
-    {
-      FASTUIDRAWdelete(m_sub_path);
-    }
-
   if (m_painter_data)
     {
       FASTUIDRAWdelete(m_painter_data);
@@ -1004,14 +469,14 @@ make_ready(void)
 {
   if (!m_ready)
     {
-      if (m_sub_path != nullptr)
+      if (have_children())
         {
-          make_ready_from_sub_path();
-          FASTUIDRAWassert(m_painter_data != nullptr);
+          make_ready_from_children();
         }
       else
         {
-          make_ready_from_children();
+          make_ready_from_subset();
+          FASTUIDRAWassert(m_painter_data != nullptr);
         }
     }
   FASTUIDRAWassert(m_ready);
@@ -1025,7 +490,7 @@ make_ready_from_children(void)
 
   FASTUIDRAWassert(m_children[0] != nullptr);
   FASTUIDRAWassert(m_children[1] != nullptr);
-  FASTUIDRAWassert(m_sub_path == nullptr);
+  FASTUIDRAWassert(m_subset.has_children());
   FASTUIDRAWassert(m_painter_data == nullptr);
 
   m_children[0]->make_ready();
@@ -1081,28 +546,26 @@ make_ready_from_children(void)
 
 void
 SubsetPrivate::
-make_ready_from_sub_path(void)
+make_ready_from_subset(void)
 {
   using namespace fastuidraw;
 
   FASTUIDRAWassert(m_children[0] == nullptr);
   FASTUIDRAWassert(m_children[1] == nullptr);
-  FASTUIDRAWassert(m_sub_path != nullptr);
   FASTUIDRAWassert(m_painter_data == nullptr);
+  FASTUIDRAWassert(!m_subset.has_children());
 
   m_ready = true;
   m_painter_data = FASTUIDRAWnew PainterAttributeData();
   if (m_has_arcs)
     {
-      m_painter_data->set_data(ArcEdgeAttributeFiller(m_sub_path));
+      m_painter_data->set_data(ArcEdgeAttributeFiller(m_subset));
     }
   else
     {
-      m_painter_data->set_data(LineEdgeAttributeFiller(m_sub_path));
+      m_painter_data->set_data(LineEdgeAttributeFiller(m_subset));
     }
 
-  FASTUIDRAWdelete(m_sub_path);
-  m_sub_path = nullptr;
   m_num_attributes = m_painter_data->attribute_data_chunk(0).size();
   m_num_indices = m_painter_data->index_data_chunk(0).size();
   m_sizes_ready = true;
@@ -1123,142 +586,18 @@ ready_sizes_from_children(void)
   m_num_indices = m_children[0]->m_num_indices + m_children[1]->m_num_indices;
 }
 
-unsigned int
+void
 SubsetPrivate::
-select_subsets(ScratchSpacePrivate &scratch,
-               fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
-               const fastuidraw::float3x3 &clip_matrix_local,
-               const fastuidraw::vec2 &one_pixel_width,
-               float pixels_additional_room,
-               float item_space_additional_room,
-               unsigned int max_attribute_cnt,
+select_subsets(unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,
-               fastuidraw::c_array<unsigned int> dst)
+               fastuidraw::c_array<unsigned int> dst,
+               unsigned int &current)
 {
-  using namespace fastuidraw;
 
-  scratch.m_adjusted_clip_eqs.resize(clip_equations.size());
-  for(unsigned int i = 0; i < clip_equations.size(); ++i)
-    {
-      vec3 c(clip_equations[i]);
-      float f;
-
-      /* make "w" larger by the named number of pixels. */
-      f = t_abs(c.x()) * one_pixel_width.x()
-        + t_abs(c.y()) * one_pixel_width.y();
-
-      c.z() += pixels_additional_room * f;
-
-      /* transform clip equations from clip coordinates to
-       * local coordinates.
-       */
-      scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
-    }
-
-  unsigned int return_value(0);
-
-  select_subsets_implement(scratch, dst,
-                           item_space_additional_room,
-                           max_attribute_cnt, max_index_cnt,
-                           return_value);
-
-  return return_value;
-}
-
-bool
-SubsetPrivate::
-select_subsets_implement(ScratchSpacePrivate &scratch,
-                         fastuidraw::c_array<unsigned int> dst,
-                         float item_space_additional_room,
-                         unsigned int max_attribute_cnt,
-                         unsigned int max_index_cnt,
-                         unsigned int &current)
-{
-  using namespace fastuidraw;
-
-  if (m_bounding_box.empty())
-    {
-      return false;
-    }
-
-  /* clip the bounding box of this StrokedPathSubset */
-  vecN<vec2, 4> bb;
-  bool unclipped;
-
-  m_bounding_box.inflated_polygon(bb, item_space_additional_room);
-  unclipped = detail::clip_against_planes(make_c_array(scratch.m_adjusted_clip_eqs),
-                                          bb, &scratch.m_clipped_rect,
-                                          scratch.m_clip_scratch_vec2s);
-
-  //completely clipped
-  if (scratch.m_clipped_rect.empty())
-    {
-      return false;
-    }
-
-  //completely unclipped.
-  if (unclipped || !have_children())
-    {
-      return select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
-    }
-
-  FASTUIDRAWassert(m_children[0] != nullptr);
-  FASTUIDRAWassert(m_children[1] != nullptr);
-
-  bool r0, r1;
-
-  r0 = m_children[0]->select_subsets_implement(scratch, dst, item_space_additional_room,
-                                               max_attribute_cnt, max_index_cnt,
-                                               current);
-  r1 = m_children[1]->select_subsets_implement(scratch, dst, item_space_additional_room,
-                                               max_attribute_cnt, max_index_cnt,
-                                               current);
-
-  if (r0 && r1)
-    {
-      /* the last two elements added are m_children[0] and m_children[1];
-       * remove them and add this instead (if possible).
-       */
-      FASTUIDRAWassert(current >= 2);
-      FASTUIDRAWassert(dst[current - 2] == m_children[0]->m_ID);
-      FASTUIDRAWassert(dst[current - 1] == m_children[1]->m_ID);
-
-      if (!m_sizes_ready)
-        {
-          ready_sizes_from_children();
-        }
-      FASTUIDRAWassert(m_sizes_ready);
-
-      if (m_num_attributes <= max_attribute_cnt
-          && m_num_indices <= max_index_cnt)
-        {
-          make_ready();
-          if (m_painter_data)
-            {
-              current -= 2;
-              dst[current] = m_ID;
-              ++current;
-              return true;
-            }
-        }
-    }
-
-  return false;
-}
-
-bool
-SubsetPrivate::
-select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
-                            unsigned int max_attribute_cnt,
-                            unsigned int max_index_cnt,
-                            unsigned int &current)
-{
-  using namespace fastuidraw;
-
-  if (!m_sizes_ready && !have_children() && m_sub_path != nullptr)
+  if (!m_sizes_ready && !have_children())
     {
       /* We need to make this one ready because it will be selected. */
-      make_ready_from_sub_path();
+      make_ready_from_subset();
       FASTUIDRAWassert(m_painter_data != nullptr);
       FASTUIDRAWassert(m_sizes_ready);
     }
@@ -1277,14 +616,14 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
         {
           dst[current] = m_ID;
           ++current;
-          return true;
+          return;
         }
     }
 
   if (have_children())
     {
-      m_children[0]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
-      m_children[1]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
+      m_children[0]->select_subsets(max_attribute_cnt, max_index_cnt, dst, current);
+      m_children[1]->select_subsets(max_attribute_cnt, max_index_cnt, dst, current);
       if (!m_sizes_ready)
         {
           ready_sizes_from_children();
@@ -1295,12 +634,24 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
       FASTUIDRAWassert(m_sizes_ready);
       FASTUIDRAWassert(!"Childless StrokedPath::Subset has too many attributes or indices");
     }
-
-  return false;
 }
 
 ////////////////////////////////////////
 // EdgeAttributeFillerBase methods
+void
+EdgeAttributeFillerBase::
+process_segment_chain(unsigned int &d,
+                      const fastuidraw::PartitionedTessellatedPath::segment_chain &chain) const
+{
+  const fastuidraw::PartitionedTessellatedPath::segment *prev(chain.m_prev_to_start);
+  for (const fastuidraw::PartitionedTessellatedPath::segment &S : chain.m_segments)
+    {
+      SingleSubEdge sub_edge(S, prev);
+      process_sub_edge(sub_edge, d, m_attributes, m_indices);
+      prev = &S;
+    }
+}
+
 void
 EdgeAttributeFillerBase::
 ready_data(void) const
@@ -1317,9 +668,9 @@ ready_data(void) const
    * other AFTER filling the data.
    */
   unsigned int d(0);
-  for (const SingleSubEdge &sub_edge : m_src.edges())
+  for (fastuidraw::PartitionedTessellatedPath::segment_chain chain : m_src.segment_chains())
     {
-      process_sub_edge(sub_edge, d, m_attributes, m_indices);
+      process_segment_chain(d, chain);
     }
   m_vertex_count = m_attributes.size();
   m_index_count = m_indices.size();
@@ -1971,7 +1322,9 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
 {
   if (!P.segment_data().empty())
     {
-      m_root = SubsetPrivate::create_root_subset(P, m_subsets);
+      m_path_partioned = FASTUIDRAWnew fastuidraw::PartitionedTessellatedPath(P);
+      m_subsets.resize(m_path_partioned->number_subsets());
+      m_root = SubsetPrivate::create_root_subset(m_has_arcs, *m_path_partioned, m_subsets);
     }
 }
 
@@ -2098,28 +1451,35 @@ select_subsets(ScratchSpace &scratch_space,
                c_array<unsigned int> dst) const
 {
   StrokedPathPrivate *d;
-  ScratchSpacePrivate *scratch_space_ptr;
-  unsigned int return_value;
+  ScratchSpacePrivate *scratch;
+  unsigned int return_value(0);
 
   d = static_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
 
   if (d->m_root)
     {
-      scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
-      return_value = d->m_root->select_subsets(*scratch_space_ptr,
-                                               clip_equations,
-                                               clip_matrix_local,
-                                               one_pixel_width,
-                                               geometry_inflation[StrokingDataSelectorBase::pixel_space_distance],
-                                               geometry_inflation[StrokingDataSelectorBase::item_space_distance],
-                                               max_attribute_cnt,
-                                               max_index_cnt,
-                                               dst);
-    }
-  else
-    {
-      return_value = 0;
+      unsigned int N;
+      c_array<unsigned int> partitioned_subsets;
+
+      scratch = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
+      scratch->m_partioned_subset_choices.resize(d->m_path_partioned->number_subsets());
+      partitioned_subsets = make_c_array(scratch->m_partioned_subset_choices);
+
+      N = d->m_path_partioned->select_subsets(scratch->m_scratch,
+                                              clip_equations,
+                                              clip_matrix_local,
+                                              one_pixel_width,
+                                              geometry_inflation,
+                                              partitioned_subsets);
+
+      partitioned_subsets = partitioned_subsets.sub_array(0, N);
+      for (unsigned int S : partitioned_subsets)
+        {
+          d->m_subsets[S]->select_subsets(max_attribute_cnt,
+                                          max_index_cnt,
+                                          dst, return_value);
+        }
     }
 
   return return_value;
@@ -2139,8 +1499,9 @@ select_subsets_no_culling(unsigned int max_attribute_cnt,
 
   if (d->m_root)
     {
-      d->m_root->select_subsets_all_unculled(dst, max_attribute_cnt,
-                                             max_index_cnt, return_value);
+      d->m_root->select_subsets(max_attribute_cnt,
+                                max_index_cnt,
+                                dst, return_value);
     }
   else
     {
