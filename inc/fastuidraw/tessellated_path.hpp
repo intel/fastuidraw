@@ -82,6 +82,38 @@ public:
     };
 
   /*!
+   * Enumeration to describe if a segment is split
+   */
+  enum split_t
+    {
+      /*!
+       * Indicates that entire segment is before
+       * the split value
+       */
+      segment_completey_before_split,
+
+      /*!
+       * Indicates that entire segment is after
+       * the split value
+       */
+      segment_completey_after_split,
+
+      /*!
+       * indicates that the \ref segment was split
+       * with the segment starting before the split
+       * point.
+       */
+      segment_split_start_before,
+
+      /*!
+       * indicates that the \ref segment was split
+       * with the segment starting after the split
+       * point.
+       */
+      segment_split_start_after,
+    };
+
+  /*!
    * \brief
    * A TessellationParams stores how finely to tessellate
    * the curves of a path.
@@ -223,7 +255,9 @@ public:
      * If true, indicates that the arc is a continuation of
      * its predecessor. This happens when TessellatedPath
      * breaks a \ref segment into smaller pieces to make its
-     * angle smaller or to make it monotonic.
+     * angle smaller, to make it monotonic or if it is the
+     * second portion of a split segment as calculated from
+     * \ref compute_split_x() or \ref compute_split_y().
      */
     bool m_continuation_with_predecessor;
 
@@ -244,6 +278,95 @@ public:
      * \ref PathContour of \ref Path::contour(\ref m_contour_id).
      */
     unsigned int m_edge_id;
+
+    /*!
+     * Indicates the this segment is the first segment of
+     * an edge
+     */
+    bool m_first_segment_of_edge;
+
+    /*!
+     * Indicates the this segment is the last segment of
+     * an edge
+     */
+    bool m_last_segment_of_edge;
+
+    /*!
+     * Compute the splitting splitting of this \ref segment
+     * against a vertical line with the given x-coordinate
+     * \param x_split x-coordinate of vertical splitting line
+     * \param dst_before_split location to which to write
+     *                         the portion of the segment that
+     *                         comes before the splitting line
+     * \param dst_after_split location to which to write
+     *                         the portion of the segment that
+     *                         comes after the splitting line
+     * \returns how the segment was split. Note that if the return
+     *          value is \ref segment_completey_before_split or
+     *          \ref segment_completey_after_split then neither
+     *          of dst_before_split and dst_after_split are
+     *          written to.
+     */
+    enum split_t
+    compute_split_x(float x_split,
+                    segment *dst_before_split,
+                    segment *dst_after_split) const;
+
+    /*!
+     * Compute the splitting splitting of this \ref segment
+     * against a horizontal line with the given y-coordinate
+     * \param y_split y-coordinate of horizontal splitting line
+     * \param dst_before_split location to which to write
+     *                         the portion of the segment that
+     *                         comes before the splitting line
+     * \param dst_after_split location to which to write
+     *                         the portion of the segment that
+     *                         comes after the splitting line
+     * \returns how the segment was split. Note that if the return
+     *          value is \ref segment_completey_before_split or
+     *          \ref segment_completey_after_split then neither
+     *          of dst_before_split and dst_after_split are
+     *          written to.
+     */
+    enum split_t
+    compute_split_y(float y_split,
+                    segment *dst_before_split,
+                    segment *dst_after_split) const;
+
+    /*!
+     * Compute the splitting splitting of this \ref segment
+     * against a horizontal or vertical line with the given
+     * coordinate. Provided as a conveniance, equivalent to
+     * \code
+     * if (splitting_coordinate == 0)
+     *  {
+     *     compute_split_x(split, dst_before_split, dst_after_split);
+     *  }
+     * else
+     *  {
+     *     compute_split_y(split, dst_before_split, dst_after_split);
+     *  }
+     * \endcode
+     * \param split x-coordinate or y-coordinate of splitting line
+     * \param dst_before_split location to which to write
+     *                         the portion of the segment that
+     *                         comes before the splitting line
+     * \param dst_after_split location to which to write
+     *                         the portion of the segment that
+     *                         comes after the splitting line
+     * \param splitting_coordinate determines if to split by a vertical
+     *                             line or a horizontal line.
+     * \returns how the segment was split. Note that if the return
+     *          value is \ref segment_completey_before_split or
+     *          \ref segment_completey_after_split then neither
+     *          of dst_before_split and dst_after_split are
+     *          written to.
+     */
+    enum split_t
+    compute_split(float split,
+                  segment *dst_before_split,
+                  segment *dst_after_split,
+                  int splitting_coordinate) const;
   };
 
   /*!
@@ -580,7 +703,7 @@ public:
    * \param thresh threshhold at which to linearize
    *               arc-segments.
    */
-  const TessellatedPath*
+  const TessellatedPath&
   linearization(float thresh) const;
 
   /*!
@@ -590,14 +713,14 @@ public:
    * linearization(-1.0f)
    * \endcode
    */
-  const TessellatedPath*
+  const TessellatedPath&
   linearization(void) const;
 
   /*!
    * Returns this \ref TessellatedPath stroked. The \ref
    * StrokedPath object is constructed lazily.
    */
-  const reference_counted_ptr<const StrokedPath>&
+  const StrokedPath&
   stroked(void) const;
 
   /*!
@@ -611,7 +734,7 @@ public:
    * \param thresh threshhold at which to linearize
    *               arc-segments.
    */
-  const reference_counted_ptr<const FilledPath>&
+  const FilledPath&
   filled(float thresh) const;
 
   /*!
@@ -621,7 +744,7 @@ public:
    * filled(-1.0f)
    * \endcode
    */
-  const reference_counted_ptr<const FilledPath>&
+  const FilledPath&
   filled(void) const;
 
 private:

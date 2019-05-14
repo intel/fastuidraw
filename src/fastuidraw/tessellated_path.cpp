@@ -344,6 +344,204 @@ namespace
     error = S.m_radius * one_minus_cos(eff);
     return error;
   }
+
+  bool
+  intersection_point_in_arc(const fastuidraw::TessellatedPath::segment &src,
+                            fastuidraw::vec2 pt, float *out_arc_angle)
+  {
+    using namespace fastuidraw;
+    const vec2 &pt0(src.m_start_pt);
+    const vec2 &pt1(src.m_end_pt);
+
+    vec2 v0(pt0 - src.m_center), v1(pt1 - src.m_center);
+    vec2 n0(-v0.y(), v0.x()), n1(-v1.y(), v1.x());
+
+    /* The arc's radial edges coincide with the edges of the
+     * triangle [m_center, m_pt0, m_pt1], as such we can use the
+     * edges that use m_center define the clipping planes to
+     * check if an intersection point is inside the arc.
+     */
+    pt -= src.m_center;
+    if ((dot(n0, pt) > 0.0) == (dot(n0, pt1 - src.m_center) > 0.0)
+        && (dot(n1, pt) > 0.0) == (dot(n1, pt0 - src.m_center) > 0.0))
+      {
+        /* pt is within the arc; compute the angle */
+        float theta;
+
+        theta = t_atan2(pt.y(), pt.x());
+        if (theta < t_min(src.m_arc_angle.m_begin, src.m_arc_angle.m_end))
+          {
+            theta += 2.0f * static_cast<float>(FASTUIDRAW_PI);
+          }
+        else if (theta > t_max(src.m_arc_angle.m_begin, src.m_arc_angle.m_end))
+          {
+            theta -= 2.0f * static_cast<float>(FASTUIDRAW_PI);
+          }
+
+        FASTUIDRAWassert(theta >= t_min(src.m_arc_angle.m_begin, src.m_arc_angle.m_end));
+        FASTUIDRAWassert(theta <= t_max(src.m_arc_angle.m_begin, src.m_arc_angle.m_end));
+        *out_arc_angle = theta;
+
+        return true;
+      }
+    return false;
+  }
+
+  enum fastuidraw::TessellatedPath::split_t
+  compute_segment_split(int splitting_coordinate,
+                        const fastuidraw::TessellatedPath::segment &src,
+                        float split_value,
+                        fastuidraw::TessellatedPath::segment *dst_before,
+                        fastuidraw::TessellatedPath::segment *dst_after)
+  {
+    using namespace fastuidraw;
+    float s, t, mid_angle;
+    vec2 p, mid_unit_vector;
+    vecN<TessellatedPath::segment*, 2> dst;
+    enum TessellatedPath::split_t return_value;
+
+    FASTUIDRAWassert(dst_before);
+    FASTUIDRAWassert(dst_after);
+    FASTUIDRAWassert(splitting_coordinate == 0 || splitting_coordinate == 1);
+
+    if (src.m_start_pt[splitting_coordinate] <= split_value
+        && src.m_end_pt[splitting_coordinate] <= split_value)
+      {
+        return TessellatedPath::segment_completey_before_split;
+      }
+
+    if (src.m_start_pt[splitting_coordinate] >= split_value
+        && src.m_end_pt[splitting_coordinate] >= split_value)
+      {
+        return TessellatedPath::segment_completey_after_split;
+      }
+
+    if (src.m_type == TessellatedPath::line_segment)
+      {
+        float v0, v1;
+
+        v0 = src.m_start_pt[splitting_coordinate];
+        v1 = src.m_end_pt[splitting_coordinate];
+        t = (split_value - v0) / (v1 - v0);
+        s = 1.0f - t;
+
+        p[splitting_coordinate] = split_value;
+        p[1 - splitting_coordinate] = s * src.m_start_pt[1 - splitting_coordinate]
+          + t * src.m_end_pt[1 - splitting_coordinate];
+
+        mid_unit_vector = src.m_enter_segment_unit_vector;
+
+        /* strictly speaking this is non-sense, but lets silence
+         * any writes with uninitialized data here.
+         */
+        mid_angle = 0.5f * (src.m_arc_angle.m_begin + src.m_arc_angle.m_end);
+      }
+    else
+      {
+        FASTUIDRAWassert(src.m_type == TessellatedPath::arc_segment);
+
+        /* compute t, s, p, mid_normal; We are gauranteed
+         * that the arc is monotonic, thus the splitting will
+         * split it into at most two pieces. In addition, because
+         * it is monotonic, we know it will split it in exactly
+         * two pieces.
+         */
+        float radical, d;
+        fastuidraw::vec2 test_pt;
+
+        d = split_value - src.m_center[splitting_coordinate];
+        radical = src.m_radius * src.m_radius - d * d;
+
+        FASTUIDRAWassert(radical > 0.0f);
+        radical = t_sqrt(radical);
+
+        test_pt[splitting_coordinate] = split_value;
+        test_pt[1 - splitting_coordinate] = src.m_center[1 - splitting_coordinate] - radical;
+
+        if (!intersection_point_in_arc(src, test_pt, &mid_angle))
+          {
+            bool result;
+
+            test_pt[1 - splitting_coordinate] = src.m_center[1 - splitting_coordinate] + radical;
+            result = intersection_point_in_arc(src, test_pt, &mid_angle);
+
+            FASTUIDRAWassert(result);
+            FASTUIDRAWunused(result);
+          }
+
+        p = test_pt;
+        t = (mid_angle - src.m_arc_angle.m_begin) / (src.m_arc_angle.m_end - src.m_arc_angle.m_begin);
+        s = 1.0f - t;
+
+        mid_unit_vector.x() = -src.m_radius * fastuidraw::t_sin(mid_angle);
+        mid_unit_vector.y() = +src.m_radius * fastuidraw::t_cos(mid_angle);
+        if (src.m_arc_angle.m_begin > src.m_arc_angle.m_end)
+          {
+            mid_unit_vector *= -1.0f;
+          }
+      }
+
+    /* we are going to write the sub-segment corrensponding to [0, t]
+     * to dst[0] and the sub-segment corrensponding to [t, 1] to
+     * dst[1], so we set the pointer values dependening on which
+     * side of the split the starting point is on.
+     */
+    if (src.m_start_pt[splitting_coordinate] < split_value)
+      {
+        return_value = TessellatedPath::segment_split_start_before;
+        dst[0] = dst_before;
+        dst[1] = dst_after;
+      }
+    else
+      {
+        return_value = TessellatedPath::segment_split_start_after;
+        dst[0] = dst_after;
+        dst[1] = dst_before;
+      }
+
+    dst[0]->m_type = src.m_type;
+    dst[0]->m_start_pt = src.m_start_pt;
+    dst[0]->m_end_pt = p;
+    dst[0]->m_center = src.m_center;
+    dst[0]->m_arc_angle.m_begin = src.m_arc_angle.m_begin;
+    dst[0]->m_arc_angle.m_end = mid_angle;
+    dst[0]->m_radius = src.m_radius;
+    dst[0]->m_length = t * src.m_length;
+    dst[0]->m_distance_from_edge_start = src.m_distance_from_edge_start;
+    dst[0]->m_distance_from_contour_start = src.m_distance_from_contour_start;
+    dst[0]->m_edge_length = src.m_edge_length;
+    dst[0]->m_contour_length = src.m_contour_length;
+    dst[0]->m_enter_segment_unit_vector = src.m_enter_segment_unit_vector;
+    dst[0]->m_leaving_segment_unit_vector = mid_unit_vector;
+    dst[0]->m_continuation_with_predecessor = src.m_continuation_with_predecessor;
+    dst[0]->m_contour_id = src.m_contour_id;
+    dst[0]->m_edge_id = src.m_edge_id;
+    dst[0]->m_first_segment_of_edge = src.m_first_segment_of_edge;
+    dst[0]->m_last_segment_of_edge = false;
+
+    dst[1]->m_type = src.m_type;
+    dst[1]->m_start_pt = p;
+    dst[1]->m_end_pt = src.m_end_pt;
+    dst[1]->m_center = src.m_center;
+    dst[1]->m_arc_angle.m_begin = mid_angle;
+    dst[1]->m_arc_angle.m_end = src.m_arc_angle.m_end;
+    dst[1]->m_radius = src.m_radius;
+    dst[1]->m_length = s * src.m_length;
+    dst[1]->m_distance_from_edge_start = dst[0]->m_distance_from_edge_start + dst[0]->m_length;
+    dst[1]->m_distance_from_contour_start = dst[0]->m_distance_from_contour_start + dst[0]->m_length;
+    dst[1]->m_edge_length = src.m_edge_length;
+    dst[1]->m_contour_length = src.m_contour_length;
+    dst[1]->m_enter_segment_unit_vector = mid_unit_vector;
+    dst[1]->m_leaving_segment_unit_vector = src.m_leaving_segment_unit_vector;
+    dst[1]->m_continuation_with_predecessor = true;
+    dst[1]->m_contour_id = src.m_contour_id;
+    dst[1]->m_edge_id = src.m_edge_id;
+    dst[1]->m_first_segment_of_edge = false;
+    dst[1]->m_last_segment_of_edge = src.m_last_segment_of_edge;
+
+    return return_value;
+  }
+
 }
 
 //////////////////////////////////////////////
@@ -590,10 +788,44 @@ finalize(TessellatedPathBuildingState &b)
             {
               S.m_contour_id = C;
               S.m_edge_id = E;
+              S.m_first_segment_of_edge = false;
+              S.m_last_segment_of_edge = false;
               prev_segment = &S;
             }
+          edge_segs.front().m_first_segment_of_edge = true;
+          edge_segs.back().m_last_segment_of_edge = true;
         }
     }
+}
+
+//////////////////////////////////////////
+// fastuidraw::TessellatedPath::segment methods
+enum fastuidraw::TessellatedPath::split_t
+fastuidraw::TessellatedPath::segment::
+compute_split_x(float x_split,
+                segment *dst_before_split,
+                segment *dst_after_split) const
+{
+  return compute_segment_split(0, *this, x_split, dst_before_split, dst_after_split);
+}
+
+enum fastuidraw::TessellatedPath::split_t
+fastuidraw::TessellatedPath::segment::
+compute_split_y(float y_split,
+                segment *dst_before_split,
+                segment *dst_after_split) const
+{
+  return compute_segment_split(1, *this, y_split, dst_before_split, dst_after_split);
+}
+
+enum fastuidraw::TessellatedPath::split_t
+fastuidraw::TessellatedPath::segment::
+compute_split(float split,
+              segment *dst_before_split,
+              segment *dst_after_split,
+              int splitting_coordinate) const
+{
+  return compute_segment_split(splitting_coordinate, *this, split, dst_before_split, dst_after_split);
 }
 
 //////////////////////////////////////////////////////////
@@ -1040,7 +1272,7 @@ has_arcs(void) const
   return d->m_has_arcs;
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath>&
+const fastuidraw::StrokedPath&
 fastuidraw::TessellatedPath::
 stroked(void) const
 {
@@ -1050,10 +1282,10 @@ stroked(void) const
     {
       d->m_stroked = FASTUIDRAWnew StrokedPath(*this);
     }
-  return d->m_stroked;
+  return *(d->m_stroked);
 }
 
-const fastuidraw::TessellatedPath*
+const fastuidraw::TessellatedPath&
 fastuidraw::TessellatedPath::
 linearization(float thresh) const
 {
@@ -1062,7 +1294,7 @@ linearization(float thresh) const
 
   if (!d->m_has_arcs)
     {
-      return this;
+      return *this;
     }
 
   if (d->m_linearization.empty())
@@ -1073,7 +1305,7 @@ linearization(float thresh) const
 
   if (thresh < 0.0f)
     {
-      return d->m_linearization.front().get();
+      return *(d->m_linearization.front());
     }
 
   /* asking for a finer tessellation than the
@@ -1090,7 +1322,7 @@ linearization(float thresh) const
       FASTUIDRAWassert(iter != d->m_linearization.end());
       FASTUIDRAWassert(*iter);
       FASTUIDRAWassert((*iter)->max_distance() <= thresh);
-      return iter->get();
+      return **iter;
     }
 
   float current(d->m_linearization.back()->max_distance());
@@ -1099,33 +1331,33 @@ linearization(float thresh) const
       current *= 0.5f;
       d->m_linearization.push_back(FASTUIDRAWnew TessellatedPath(*this, current));
     }
-  return d->m_linearization.back().get();
+  return *(d->m_linearization.back());
 }
 
-const fastuidraw::TessellatedPath*
+const fastuidraw::TessellatedPath&
 fastuidraw::TessellatedPath::
 linearization(void) const
 {
   return linearization(-1.0f);
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath>&
+const fastuidraw::FilledPath&
 fastuidraw::TessellatedPath::
 filled(float thresh) const
 {
   const TessellatedPath *tess;
   TessellatedPathPrivate *tess_d;
 
-  tess = linearization(thresh);
+  tess = &linearization(thresh);
   tess_d = static_cast<TessellatedPathPrivate*>(tess->m_d);
   if (!tess_d->m_filled)
     {
       tess_d->m_filled = FASTUIDRAWnew FilledPath(*tess);
     }
-  return tess_d->m_filled;
+  return *(tess_d->m_filled);
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath>&
+const fastuidraw::FilledPath&
 fastuidraw::TessellatedPath::
 filled(void) const
 {
