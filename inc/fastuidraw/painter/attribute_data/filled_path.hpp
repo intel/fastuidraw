@@ -215,10 +215,17 @@ public:
   number_subsets(void) const;
 
   /*!
-   * Return the named Subset object of the FilledPath.
+   * Return the named \ref Subset object of the FilledPath.
    */
   Subset
   subset(unsigned int I) const;
+
+  /*!
+   * Returns the root \ref Subset, i.e. the \ref Subset that
+   * encompasses the entire \ref FilledPath.
+   */
+  Subset
+  root_subset(void) const;
 
   /*!
    * Fetch those Subset objects that have triangles that

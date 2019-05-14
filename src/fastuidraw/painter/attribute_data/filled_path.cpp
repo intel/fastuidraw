@@ -3529,6 +3529,16 @@ subset(unsigned int I) const
   return Subset(p);
 }
 
+fastuidraw::FilledPath::Subset
+fastuidraw::FilledPath::
+root_subset(void) const
+{
+  FilledPathPrivate *d;
+  d = static_cast<FilledPathPrivate*>(m_d);
+  d->m_root->make_ready();
+  return Subset(d->m_root);
+}
+
 unsigned int
 fastuidraw::FilledPath::
 select_subsets(ScratchSpace &work_room,
