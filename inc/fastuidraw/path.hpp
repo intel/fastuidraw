@@ -1073,7 +1073,7 @@ public:
    *               thresh. A non-positive value will return the
    *               lowest level of detail tessellation.
    */
-  const reference_counted_ptr<const TessellatedPath>&
+  const TessellatedPath&
   tessellation(float thresh) const;
 
   /*!
@@ -1083,7 +1083,7 @@ public:
    * tessellation(-1.0f)
    * \endcode
    */
-  const reference_counted_ptr<const TessellatedPath>&
+  const TessellatedPath&
   tessellation(void) const;
 
   /*!
@@ -1092,7 +1092,7 @@ public:
    * Path contains anything besides line segments,
    * quadratic Bezier curves or cubic Bezier curves.
    */
-  const reference_counted_ptr<const ShaderFilledPath>&
+  const ShaderFilledPath&
   shader_filled_path(void) const;
 
 private:

@@ -563,11 +563,11 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_clipping_window(false)
 {
   m_end_fill_rule =
-    m_path.tessellation()->filled().root_subset().winding_numbers().size() + Painter::number_fill_rule;
+    m_path.tessellation().filled().root_subset().winding_numbers().size() + Painter::number_fill_rule;
 
   /* set transformation to center and contain path. */
   vec2 p0, p1, delta, dsp(w, h), ratio, mid;
-  const Rect &R(m_path.tessellation()->bounding_box());
+  const Rect &R(m_path.tessellation().bounding_box());
   float mm;
 
   p0 = R.m_min_point;
@@ -1367,7 +1367,7 @@ handle_event(const SDL_Event &ev)
                 {
                   c_array<const int> wnd;
                   int value;
-                  wnd = path().tessellation()->filled().root_subset().winding_numbers();
+                  wnd = path().tessellation().filled().root_subset().winding_numbers();
                   value = wnd[current_fill_rule() - Painter::number_fill_rule];
                   std::cout << "Fill rule set to custom fill rule: winding_number == "
                             << value << "\n";
@@ -1517,12 +1517,12 @@ per_path_processing(void)
   m_miter_limit = 0.0f;
   for(const PerPath &P : m_paths)
     {
-      reference_counted_ptr<const TessellatedPath> tess;
+      const TessellatedPath *tess;
       const StrokedCapsJoins *stroked;
       const PainterAttributeData *data;
       c_array<const PainterAttribute> miter_points;
 
-      tess = P.m_path.tessellation(-1.0f);
+      tess = &P.m_path.tessellation(-1.0f);
       stroked = &tess->stroked().caps_joins();
       data = &stroked->miter_clip_joins();
 
@@ -1795,7 +1795,7 @@ draw_scene(bool drawing_wire_frame)
           int value;
           c_array<const int> wnd;
 
-          wnd = path().tessellation()->filled().root_subset().winding_numbers();
+          wnd = path().tessellation().filled().root_subset().winding_numbers();
           value = wnd[current_fill_rule() - Painter::number_fill_rule];
           value_fill_rule = WindingValueFillRule(value);
           fill_rule = &value_fill_rule;
@@ -1825,15 +1825,10 @@ draw_scene(bool drawing_wire_frame)
         {
           m_painter->fill_path(D, path(), *fill_rule, m_aa_fill_mode);
         }
-      else
+      else if(current_fill_rule() < Painter::number_fill_rule)
         {
-          const ShaderFilledPath *sf;
-
-          sf = path().shader_filled_path().get();
-          if (sf && current_fill_rule() < Painter::number_fill_rule)
-            {
-              m_painter->fill_path(D, *sf, static_cast<enum Painter::fill_rule_t>(current_fill_rule()));
-            }
+          m_painter->fill_path(D, path().shader_filled_path(),
+                               static_cast<enum Painter::fill_rule_t>(current_fill_rule()));
         }
     }
 
@@ -2123,13 +2118,7 @@ draw_frame(void)
 
           if (m_fill_by_mode == fill_by_shader_filled_path)
             {
-              if (!path().shader_filled_path())
-                {
-                  print_fill_stats = false;
-                  ostr << "\n\nUnable to fill by " << m_fill_by_mode_labels[m_fill_by_mode]
-                       << "\nbecause Path does not have\nShaderFilledPath\n";
-                }
-              else if (current_fill_rule() >= Painter::number_fill_rule)
+              if (current_fill_rule() >= Painter::number_fill_rule)
                 {
                   print_fill_stats = false;
                   ostr << "\n\nUnable to fill by " << m_fill_by_mode_labels[m_fill_by_mode]
@@ -2159,7 +2148,7 @@ draw_frame(void)
                 {
                   c_array<const int> wnd;
                   int value;
-                  wnd = path().tessellation()->filled().root_subset().winding_numbers();
+                  wnd = path().tessellation().filled().root_subset().winding_numbers();
                   value = wnd[current_fill_rule() - Painter::number_fill_rule];
                   ostr << "Custom (Winding == " << value << ")";
                 }

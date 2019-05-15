@@ -1933,20 +1933,20 @@ operator<<(const fastuidraw::vec2 &pt)
   return *this;
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath>&
+const fastuidraw::TessellatedPath&
 fastuidraw::Path::
 tessellation(void) const
 {
   return tessellation(-1.0f);
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath>&
+const fastuidraw::TessellatedPath&
 fastuidraw::Path::
 tessellation(float max_distance) const
 {
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
-  return d->m_tess_list.tessellation(*this, max_distance);
+  return *d->m_tess_list.tessellation(*this, max_distance);
 }
 
 bool
@@ -2156,7 +2156,7 @@ contour(unsigned int i) const
   return d->m_contours[i];
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::ShaderFilledPath>&
+const fastuidraw::ShaderFilledPath&
 fastuidraw::Path::
 shader_filled_path(void) const
 {
@@ -2174,5 +2174,5 @@ shader_filled_path(void) const
       B.add_path(tol, *this);
       d->m_shader_filled_path = FASTUIDRAWnew ShaderFilledPath(B);
     }
-  return d->m_shader_filled_path;
+  return *d->m_shader_filled_path;
 }

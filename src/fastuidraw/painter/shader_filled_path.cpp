@@ -303,7 +303,7 @@ add_interpolator_from_tess(unsigned int contour_id, unsigned int interpolator_id
   float half_tol(0.5f * m_tol);
   if (!m_tess)
     {
-      m_tess = m_path->tessellation(half_tol).get();
+      m_tess = &m_path->tessellation(half_tol);
     }
 
   /* walk through the segments of the named interpolator */
