@@ -240,12 +240,14 @@ namespace fastuidraw
      * reference_counted_ptr<T> p;
      *
      * if (p)
-     *  {
-     *  }
+     *   {
+     *      // i.e. p.get() is not nullptr
+     *   }
      *
      * if (!p)
-     *  {
-     *  }
+     *   {
+     *      // i.e. p.get() is nullptr
+     *   }
      * \endcode
      */
     operator unspecified_bool_type() const
