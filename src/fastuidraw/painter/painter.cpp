@@ -1493,7 +1493,7 @@ namespace
       draw_generic(shader, draw, aa, ii, ia, c_array<const unsigned int>(), z);
     }
 
-    void
+    int
     draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
                  const fastuidraw::PainterData &draw,
                  const fastuidraw::PainterAttributeWriter &src,
@@ -3382,7 +3382,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
   ++m_draw_data_added_count;
 }
 
-void
+int
 PainterPrivate::
 draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
              const fastuidraw::PainterData &draw,
@@ -3392,6 +3392,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
   fastuidraw::PainterPackerData p(draw);
   fastuidraw::PainterPacker *cvg_packer(deferred_coverage_packer());
   fastuidraw::ivec2 coverage_buffer_offset(0, 0);
+  int return_value;
 
   if (shader->coverage_shader() && cvg_packer)
     {
@@ -3419,8 +3420,9 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
       p.m_brush_adjust = *m_current_brush_adjust;
       FASTUIDRAWassert(p.m_brush_adjust);
     }
-  packer()->draw_generic(coverage_buffer_offset, shader, p, src, z);
+  return_value = packer()->draw_generic(coverage_buffer_offset, shader, p, src, z);
   ++m_draw_data_added_count;
+  return return_value;
 }
 
 void
@@ -4916,14 +4918,15 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 
 void
 fastuidraw::Painter::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+             const PainterData &draw,
              const PainterAttributeWriter &src)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   if (!d->m_clip_rect_state.m_all_content_culled)
     {
-      d->draw_generic(shader, draw, src, d->m_current_z);
+      d->m_current_z += d->draw_generic(shader, draw, src, d->m_current_z);
     }
 }
 
@@ -4942,23 +4945,6 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
     {
       d->m_current_z -= z_range.m_begin;
       draw_generic(shader, draw, attrib_chunk, index_chunk, index_adjust);
-      d->m_current_z += z_range.m_end;
-    }
-}
-
-void
-fastuidraw::Painter::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
-             const PainterData &draw,
-             const PainterAttributeWriter &src,
-             range_type<int> z_range)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  if (!d->m_clip_rect_state.m_all_content_culled)
-    {
-      d->m_current_z -= z_range.m_begin;
-      draw_generic(shader, draw, src);
       d->m_current_z += z_range.m_end;
     }
 }

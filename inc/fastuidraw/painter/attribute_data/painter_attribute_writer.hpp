@@ -71,6 +71,13 @@ namespace fastuidraw
        * must be in order to successfully write data.
        */
       unsigned int m_min_indices_for_next;
+
+      /*!
+       * Gives the range of z-values that the vertex
+       * shader will emit in the next call to \ref
+       * PainterAttributeWriter::write_data().
+       */
+      range_type<int> m_z_range;
     };
 
     virtual

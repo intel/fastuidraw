@@ -275,8 +275,9 @@ namespace fastuidraw
      * \param data data for how to draw
      * \param src DrawWriter to use to write attribute and index data
      * \param z z-value z value placed into the header
+     * \returns the max-value of the attribute writer's m_z_range.m_end
      */
-    void
+    int
     draw_generic(ivec2 deferred_coverage_buffer_offset,
                  const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
@@ -316,7 +317,6 @@ namespace fastuidraw
      *                      values are not adjusted.
      * \param attrib_chunk_selector selects which attribute chunk to use for
      *        each index chunk
-     * \param z z-value z value placed into the header
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
@@ -410,7 +410,7 @@ namespace fastuidraw
     compute_room_needed_for_packing(const detail::PackedValuePoolBase::ElementBase* d);
 
     template<typename T, typename ShaderType>
-    void
+    int
     draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
                            const reference_counted_ptr<ShaderType> &shader,
                            const PainterPackerData &data,

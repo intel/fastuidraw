@@ -1679,17 +1679,6 @@ namespace fastuidraw
                  c_array<const unsigned int> attrib_chunk_selector);
 
     /*!
-     * Draw generic attribute data
-     * \param shader shader with which to draw data
-     * \param draw data for how to draw
-     * \param src generator of attribute and index data
-     */
-    void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
-                 const PainterData &draw,
-                 const PainterAttributeWriter &src);
-
-    /*!
      * Draw generic attribute data where the item self occludes
      * \param shader shader with which to draw data
      * \param draw data for how to draw
@@ -1730,13 +1719,11 @@ namespace fastuidraw
      * \param shader shader with which to draw data
      * \param draw data for how to draw
      * \param src generator of attribute and index data
-     * \param z_range z-range of item's attribute data
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
-                 const PainterAttributeWriter &src,
-                 range_type<int> z_range);
+                 const PainterAttributeWriter &src);
 
     /*!
      * Queue an action that uses (or affects) the GPU. Through these actions,

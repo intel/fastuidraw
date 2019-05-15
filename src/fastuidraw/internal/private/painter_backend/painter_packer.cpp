@@ -97,6 +97,8 @@ namespace
     initialize_state(fastuidraw::PainterAttributeWriter::WriteState *state) const
     {
       state->m_state[0] = 0;
+      state->m_z_range.m_begin = 0;
+      state->m_z_range.m_end = 0;
       if (number_index_chunks() > 0 && number_attribute_chunks() > 0)
         {
           on_new_store(state);
@@ -747,7 +749,7 @@ upload_draw_state(const PainterPackerData &draw_state)
 }
 
 template<typename T, typename ShaderType>
-void
+int
 fastuidraw::PainterPacker::
 draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
                        const reference_counted_ptr<ShaderType> &shader,
@@ -758,22 +760,25 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
   bool allocate_header, data_to_write;
   unsigned int header_loc, state_length;
   PainterAttributeWriter::WriteState write_state;
+  int last_z_begin(0), max_z_end(0);
 
   if (!shader)
     {
       /* should we emit a warning message that the PainterItemShader
        * was missing the item shader value?
        */
-      return;
+      return 0;
     }
 
   state_length = src.state_length();
   m_work_room.m_state_values.resize(state_length);
   write_state.m_state = make_c_array(m_work_room.m_state_values);
-
+  write_state.m_min_attributes_for_next = 0;
+  write_state.m_min_indices_for_next = 0;
+  write_state.m_z_range.m_begin = write_state.m_z_range.m_end = 0;
   if (!src.initialize_state(&write_state))
     {
-      return;
+      return 0;
     }
 
   upload_draw_state(draw);
@@ -806,7 +811,7 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
             {
               FASTUIDRAWmessaged_assert(false,
                                         "Unable to fit chunk into freshly allocated draw command, bailing out");
-              return;
+              return max_z_end;
             }
 
           started_new_command = upload_draw_state(draw);
@@ -833,9 +838,12 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
                                              brush_shader,
                                              m_blend_shader, m_blend_mode,
                                              shader.get(),
-                                             z, m_painter_state_location,
+                                             z + write_state.m_z_range.m_begin,
+                                             m_painter_state_location,
                                              m_callback_list,
                                              &header_loc);
+          last_z_begin = write_state.m_z_range.m_begin;
+          max_z_end = t_max(max_z_end, write_state.m_z_range.m_end);
           if (draw_break_added)
             {
               ++m_stats[PainterEnums::num_draws];
@@ -867,7 +875,14 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
       /* update how many indices and attributes have been written to cmd */
       cmd.m_attributes_written += num_attribs_written;
       cmd.m_indices_written += num_indices_written;
+
+      if (write_state.m_z_range.m_begin != last_z_begin)
+        {
+          allocate_header = true;
+        }
     }
+
+  return max_z_end;
 }
 
 void
@@ -1028,7 +1043,7 @@ draw_generic(ivec2 deferred_coverage_buffer_offset,
   draw_generic_implement(deferred_coverage_buffer_offset, shader, draw, src, z);
 }
 
-void
+int
 fastuidraw::PainterPacker::
 draw_generic(ivec2 deferred_coverage_buffer_offset,
              const reference_counted_ptr<PainterItemShader> &shader,
@@ -1036,7 +1051,7 @@ draw_generic(ivec2 deferred_coverage_buffer_offset,
              const PainterAttributeWriter &src,
              int z)
 {
-  draw_generic_implement(deferred_coverage_buffer_offset, shader, data, src, z);
+  return draw_generic_implement(deferred_coverage_buffer_offset, shader, data, src, z);
 }
 
 void
