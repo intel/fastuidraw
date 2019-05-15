@@ -166,14 +166,6 @@ public:
     void *m_d;
   };
 
-  /*!
-   * Ctor. Construct a StrokedPath from the data
-   * of a TessellatedPath.
-   * \param P source TessellatedPath
-   */
-  explicit
-  StrokedPath(const TessellatedPath &P);
-
   ~StrokedPath();
 
   /*!
@@ -265,6 +257,12 @@ public:
   caps_joins(void) const;
 
 private:
+  friend class TessellatedPath;
+
+  // only a TessellatedPath can construct a StrokedPath
+  explicit
+  StrokedPath(const TessellatedPath &P);
+
   void *m_d;
 };
 
