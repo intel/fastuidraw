@@ -352,7 +352,7 @@ namespace
     ~StrokedPathPrivate();
 
     bool m_has_arcs;
-    fastuidraw::reference_counted_ptr<fastuidraw::PartitionedTessellatedPath> m_path_partioned;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PartitionedTessellatedPath> m_path_partioned;
     fastuidraw::StrokedCapsJoins m_caps_joins;
     SubsetPrivate* m_root;
     std::vector<SubsetPrivate*> m_subsets;
@@ -1334,7 +1334,7 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
 {
   if (!P.segment_data().empty())
     {
-      m_path_partioned = FASTUIDRAWnew fastuidraw::PartitionedTessellatedPath(P);
+      m_path_partioned = &P.partitioned();
       m_subsets.resize(m_path_partioned->number_subsets());
       m_root = SubsetPrivate::create_root_subset(m_has_arcs, *m_path_partioned, m_subsets);
     }

@@ -142,7 +142,8 @@ namespace fastuidraw  {
     /*!
      * \brief
      * Opaque object to hold work room needed for functions
-     * of StrokedPath that require scratch space.
+     * of \ref PartitionedTessellatedPath that require scratch
+     * space.
      */
     class ScratchSpace:fastuidraw::noncopyable
     {
@@ -153,13 +154,6 @@ namespace fastuidraw  {
       friend class PartitionedTessellatedPath;
       void *m_d;
     };
-
-    /*!
-     * Ctor.
-     * \param path \ref TessellatedPath from which to generate values
-     */
-    explicit
-    PartitionedTessellatedPath(const TessellatedPath &path);
 
     ~PartitionedTessellatedPath();
 
@@ -210,6 +204,12 @@ namespace fastuidraw  {
                    c_array<unsigned int> dst) const;
 
   private:
+    friend class TessellatedPath;
+
+    // Only TessellatedPath can construct a PartitionedTessellatedPath
+    explicit
+    PartitionedTessellatedPath(const TessellatedPath &path);
+
     void *m_d;
   };
 
