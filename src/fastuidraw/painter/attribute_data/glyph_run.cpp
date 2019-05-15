@@ -60,6 +60,12 @@ namespace
     on_new_store(fastuidraw::PainterAttributeWriter::WriteState *) const override
     {}
 
+    bool
+    requires_coverage_buffer(void) const override
+    {
+      return false;
+    }
+
     virtual
     bool
     write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attributs,

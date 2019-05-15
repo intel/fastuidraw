@@ -101,6 +101,15 @@ namespace fastuidraw
     {}
 
     /*!
+     * To be implemented by a derived class to indicate
+     * if the attribute rendering requires a coverage
+     * buffer.
+     */
+    virtual
+    bool
+    requires_coverage_buffer(void) const = 0;
+
+    /*!
      * To be implemented by a derived class to return
      * how large the array \ref WriteState::m_state
      * should be.
