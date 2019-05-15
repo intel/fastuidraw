@@ -33,6 +33,7 @@ namespace fastuidraw  {
 class Path;
 class StrokedPath;
 class FilledPath;
+class PartitionedTessellatedPath;
 ///@endcond
 
 /*!\addtogroup Paths
@@ -746,6 +747,12 @@ public:
    */
   const FilledPath&
   filled(void) const;
+
+  /*!
+   * Returns the partitioning of this \ref TessellatedPath.
+   */
+  const PartitionedTessellatedPath&
+  partitioned(void) const;
 
 private:
   TessellatedPath(Refiner *p, float threshhold,

@@ -21,6 +21,7 @@
 #include <vector>
 #include <algorithm>
 #include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_path.hpp>
 #include <fastuidraw/painter/attribute_data/filled_path.hpp>
@@ -124,6 +125,7 @@ namespace
     unsigned int m_max_recursion;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> m_stroked;
     fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath> m_filled;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PartitionedTessellatedPath> m_partitioned;
     std::vector<fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> > m_linearization;
   };
 
@@ -1362,4 +1364,17 @@ fastuidraw::TessellatedPath::
 filled(void) const
 {
   return filled(-1.0f);
+}
+
+const fastuidraw::PartitionedTessellatedPath&
+fastuidraw::TessellatedPath::
+partitioned(void) const
+{
+  TessellatedPathPrivate *d;
+  d = static_cast<TessellatedPathPrivate*>(m_d);
+  if (!d->m_partitioned)
+    {
+      d->m_partitioned = FASTUIDRAWnew PartitionedTessellatedPath(*this);
+    }
+  return *(d->m_partitioned);
 }
