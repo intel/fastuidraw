@@ -192,14 +192,6 @@ public:
     void *m_d;
   };
 
-  /*!
-   * Ctor. Construct a FilledPath from the data
-   * of a TessellatedPath.
-   * \param P source TessellatedPath
-   */
-  explicit
-  FilledPath(const TessellatedPath &P);
-
   ~FilledPath();
 
   /*!
@@ -271,6 +263,12 @@ public:
                             unsigned int max_index_cnt,
                             c_array<unsigned int> dst) const;
 private:
+  friend class TessellatedPath;
+
+  // only a TessellatedPath can construct a FilledPath
+  explicit
+  FilledPath(const TessellatedPath &P);
+
   void *m_d;
 };
 
