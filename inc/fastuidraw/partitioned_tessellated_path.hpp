@@ -158,6 +158,16 @@ namespace fastuidraw  {
     ~PartitionedTessellatedPath();
 
     /*!
+     * Returns true if any of the \ref segment values
+     * of any of the \ref segment_chain values of any
+     * of the \ref Subset::segment_chains() has \ref
+     * \ref segment::m_type equal to \ref
+     * TessellatedPath::arc_segment.
+     */
+    bool
+    has_arcs(void) const;
+
+    /*!
      * Returns the number of Subset objects of the StrokedPath.
      */
     unsigned int

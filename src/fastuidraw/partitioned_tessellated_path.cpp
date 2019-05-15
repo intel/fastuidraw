@@ -200,6 +200,7 @@ namespace
 
     ~PartitionedTessellatedPathPrivate();
 
+    bool m_has_arcs;
     SubsetPrivate *m_root_subset;
     std::vector<SubsetPrivate*> m_subsets;
   };
@@ -564,7 +565,8 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
 ////////////////////////////////////////////
 // PartitionedTessellatedPathPrivate methods
 PartitionedTessellatedPathPrivate::
-PartitionedTessellatedPathPrivate(const fastuidraw::TessellatedPath &path)
+PartitionedTessellatedPathPrivate(const fastuidraw::TessellatedPath &path):
+  m_has_arcs(path.has_arcs())
 {
   m_root_subset = SubsetPrivate::create(path, m_subsets);
 }
@@ -671,6 +673,15 @@ fastuidraw::PartitionedTessellatedPath::
   PartitionedTessellatedPathPrivate *d;
   d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
+}
+
+bool
+fastuidraw::PartitionedTessellatedPath::
+has_arcs(void) const
+{
+  PartitionedTessellatedPathPrivate *d;
+  d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
+  return d->m_has_arcs;
 }
 
 unsigned int
