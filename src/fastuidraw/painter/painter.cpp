@@ -1528,10 +1528,6 @@ namespace
   class PainterPrivate
   {
   public:
-    typedef fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> ItemShaderRef;
-    typedef const ItemShaderRef ConstItemShaderRef;
-    typedef ConstItemShaderRef *ConstItemShaderRefPtr;
-
     explicit
     PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine> &backend_factory);
 
@@ -1568,7 +1564,7 @@ namespace
     end_coverage_buffer(void);
 
     void
-    draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+    draw_generic(fastuidraw::PainterItemShader *shader,
                  const fastuidraw::PainterData &draw,
                  fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
                  fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
@@ -1577,7 +1573,7 @@ namespace
                  int z);
 
     void
-    draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+    draw_generic(fastuidraw::PainterItemShader *shader,
                  const fastuidraw::PainterData &draw,
                  fastuidraw::c_array<const fastuidraw::PainterAttribute> attrib_chunks,
                  fastuidraw::c_array<const fastuidraw::PainterIndex> index_chunks,
@@ -1592,13 +1588,13 @@ namespace
     }
 
     int
-    draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+    draw_generic(fastuidraw::PainterItemShader *shader,
                  const fastuidraw::PainterData &draw,
                  const fastuidraw::PainterAttributeWriter &src,
                  int z);
 
     void
-    draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+    draw_generic(fastuidraw::PainterItemShader *shader,
                  const fastuidraw::PainterData &draw,
                  const fastuidraw::PainterAttributeWriter &src)
     {
@@ -1606,16 +1602,7 @@ namespace
     }
 
     void
-    draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
-                           const fastuidraw::PainterData &draw,
-                           fastuidraw::c_array<const int> z_increments, int zinc_sum,
-                           fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
-                           fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
-                           fastuidraw::c_array<const int> index_adjusts,
-                           fastuidraw::c_array<const int> start_zs, int startz);
-
-    void
-    draw_generic_z_layered(fastuidraw::c_array<const ConstItemShaderRefPtr> shaders,
+    draw_generic_z_layered(fastuidraw::PainterItemShader *shader,
                            const fastuidraw::PainterData &draw,
                            fastuidraw::c_array<const int> z_increments, int zinc_sum,
                            fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
@@ -3711,7 +3698,7 @@ select_filled_path(const fastuidraw::Path &path)
 
 void
 PainterPrivate::
-draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+draw_generic(fastuidraw::PainterItemShader *shader,
              const fastuidraw::PainterData &draw,
              fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
              fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
@@ -3732,7 +3719,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 
       FASTUIDRAWassert(p.m_clip);
       FASTUIDRAWassert(p.m_matrix);
-      cvg_packer->draw_generic(shader->coverage_shader(), p,
+      cvg_packer->draw_generic(shader->coverage_shader().get(), p,
                                attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector);
       packer()->set_coverage_surface(cvg_packer->surface());
     }
@@ -3759,7 +3746,7 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 
 int
 PainterPrivate::
-draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+draw_generic(fastuidraw::PainterItemShader *shader,
              const fastuidraw::PainterData &draw,
              const fastuidraw::PainterAttributeWriter &src,
              int z)
@@ -3782,14 +3769,13 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
 
       FASTUIDRAWassert(p.m_clip);
       FASTUIDRAWassert(p.m_matrix);
-      if (shader)
-        {
-          cvg_packer->draw_generic(shader->coverage_shader(), p, src);
-        }
-      else
-        {
-          cvg_packer->draw_generic(nullptr, p, src);
-        }
+      fastuidraw::PainterItemCoverageShader *cvg_shader;
+
+      cvg_shader = (shader) ?
+        shader->coverage_shader().get() :
+        nullptr;
+
+      cvg_packer->draw_generic(cvg_shader, p, src);
       packer()->set_coverage_surface(cvg_packer->surface());
     }
   else if (requires_coverage_buffer)
@@ -3911,7 +3897,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
       begin_coverage_buffer_normalized_rect(data.m_normalized_device_coords_bounding_box.as_rect(), true);
     }
 
-  draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
+  draw_generic_z_layered(shader.aa_fuzz_shader().get(), draw,
                          make_c_array(data.m_z_increments),
                          data.m_total_increment_z,
                          make_c_array(data.m_attrib_chunks),
@@ -3927,7 +3913,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader,
 
 void
 PainterPrivate::
-draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+draw_generic_z_layered(fastuidraw::PainterItemShader *shader,
                        const fastuidraw::PainterData &draw,
                        fastuidraw::c_array<const int> z_increments, int zinc_sum,
                        fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
@@ -3943,32 +3929,6 @@ draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
       z = startz + incr_z - start_zs[i];
 
       draw_generic(shader, draw,
-                   attrib_chunks.sub_array(i, 1),
-                   index_chunks.sub_array(i, 1),
-                   index_adjusts.sub_array(i, 1),
-                   fastuidraw::c_array<const unsigned int>(),
-                   z);
-    }
-}
-
-void
-PainterPrivate::
-draw_generic_z_layered(fastuidraw::c_array<const ConstItemShaderRefPtr> shaders,
-                       const fastuidraw::PainterData &draw,
-                       fastuidraw::c_array<const int> z_increments, int zinc_sum,
-                       fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
-                       fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
-                       fastuidraw::c_array<const int> index_adjusts,
-                       fastuidraw::c_array<const int> start_zs, int startz)
-{
-  for(unsigned int i = 0, incr_z = zinc_sum; i < start_zs.size(); ++i)
-    {
-      int z;
-
-      incr_z -= z_increments[i];
-      z = startz + incr_z - start_zs[i];
-
-      draw_generic(*shaders[i], draw,
                    attrib_chunks.sub_array(i, 1),
                    index_chunks.sub_array(i, 1),
                    index_adjusts.sub_array(i, 1),
@@ -4242,7 +4202,7 @@ fill_path(const fastuidraw::PainterFillShader &shader,
       m_work_room.m_fill_aa_fuzz.m_total_increment_z = 0;
     }
 
-  draw_generic(shader.item_shader(), draw,
+  draw_generic(shader.item_shader().get(), draw,
                make_c_array(m_work_room.m_fill_opaque.m_attrib_chunks),
                make_c_array(m_work_room.m_fill_opaque.m_index_chunks),
                make_c_array(m_work_room.m_fill_opaque.m_index_adjusts),
@@ -4414,7 +4374,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
       translate(rect_transforms.m_adjusts[i].m_translate);
       shear(rect_transforms.m_adjusts[i].m_shear.x(),
             rect_transforms.m_adjusts[i].m_shear.y());
-      draw_generic(shader.item_shader(), draw,
+      draw_generic(shader.item_shader().get(), draw,
                    make_c_array(m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill.m_attrib_chunks),
                    make_c_array(m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill.m_index_chunks),
                    make_c_array(m_work_room.m_rounded_rect.m_per_corner[i].m_opaque_fill.m_index_adjusts),
@@ -4443,7 +4403,7 @@ fill_rounded_rect(const fastuidraw::PainterFillShader &shader,
           if (!bb.empty())
             {
               begin_coverage_buffer_normalized_rect(bb.as_rect(), true);
-              draw_generic(shader.aa_fuzz_shader(), draw,
+              draw_generic(shader.aa_fuzz_shader().get(), draw,
                            attribs.sub_array(per_line[i].m_attrib_range),
                            indices.sub_array(per_line[i].m_index_range),
                            -per_line[i].m_attrib_range.m_begin,
@@ -4612,7 +4572,7 @@ fill_convex_polygon(bool allow_sw_clipping,
   ready_aa_polygon_attribs(pts, apply_anti_aliasing);
   ready_non_aa_polygon_attribs(pts);
 
-  draw_generic(shader.item_shader(), draw,
+  draw_generic(shader.item_shader().get(), draw,
                make_c_array(m_work_room.m_polygon.m_attribs),
                make_c_array(m_work_room.m_polygon.m_indices),
                0,
@@ -4621,7 +4581,7 @@ fill_convex_polygon(bool allow_sw_clipping,
   if (apply_anti_aliasing)
     {
       begin_coverage_buffer_normalized_rect(cvg_bb.as_rect(), true);
-      draw_generic(shader.aa_fuzz_shader(), draw,
+      draw_generic(shader.aa_fuzz_shader().get(), draw,
                    make_c_array(m_work_room.m_polygon.m_aa_fuzz_attribs),
                    make_c_array(m_work_room.m_polygon.m_aa_fuzz_indices),
                    0, z);
@@ -5031,7 +4991,7 @@ surface(void) const
 
 void
 fastuidraw::Painter::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+draw_generic(PainterItemShader *shader, const PainterData &draw,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
              c_array<const c_array<const PainterIndex> > index_chunks,
              c_array<const int> index_adjusts)
@@ -5048,7 +5008,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 
 void
 fastuidraw::Painter::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+draw_generic(PainterItemShader *shader, const PainterData &draw,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
              c_array<const c_array<const PainterIndex> > index_chunks,
              c_array<const int> index_adjusts,
@@ -5066,7 +5026,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 
 void
 fastuidraw::Painter::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+draw_generic(PainterItemShader *shader,
              const PainterData &draw,
              const PainterAttributeWriter &src)
 {
@@ -5080,7 +5040,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
 
 void
 fastuidraw::Painter::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+draw_generic(PainterItemShader *shader,
              const PainterData &draw,
              c_array<const PainterAttribute> attrib_chunk,
              c_array<const PainterIndex> index_chunk,
@@ -5099,7 +5059,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
 
 void
 fastuidraw::Painter::
-draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+draw_generic(PainterItemShader *shader,
              const PainterData &draw,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
              c_array<const c_array<const PainterIndex> > index_chunks,
@@ -5469,7 +5429,7 @@ fill_path(const PainterGlyphShader &sh, const PainterData &draw,
           const ShaderFilledPath &path, enum fill_rule_t fill_rule)
 {
   enum glyph_type tp(path.render_type());
-  const reference_counted_ptr<PainterItemShader> &shader(sh.shader(tp));
+  PainterItemShader *shader(sh.shader(tp).get());
   c_array<const PainterAttribute> attribs;
   c_array<const PainterIndex> indices;
 
@@ -5541,7 +5501,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
                    &d->m_work_room.m_glyph.m_attribs[k],
                    &d->m_work_room.m_glyph.m_indices[k]);
     }
-  d->draw_generic(shader.shader(renderer.m_type),
+  d->draw_generic(shader.shader(renderer.m_type).get(),
                   draw,
                   make_c_array(d->m_work_room.m_glyph.m_attribs),
                   make_c_array(d->m_work_room.m_glyph.m_indices),
@@ -5581,7 +5541,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
       return renderer;
     }
 
-  d->draw_generic(shader.shader(renderer.m_type),
+  d->draw_generic(shader.shader(renderer.m_type).get(),
                   draw,
                   glyph_run.subsequence(renderer, begin, count),
                   d->m_current_z);
@@ -6228,7 +6188,7 @@ clip_out_path(const FilledPath &path, const CustomFillRuleBase &fill_rule)
 
 void
 fastuidraw::Painter::
-clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+clip_out_custom(PainterItemShader *shader,
                 const PainterDataValue<PainterItemShaderData> &shader_data,
                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
                 c_array<const c_array<const PainterIndex> > index_chunks,
@@ -6336,7 +6296,7 @@ clip_out_convex_polygon(c_array<const vec2> poly)
     }
 
   d->ready_non_aa_polygon_attribs(poly);
-  clip_out_custom(default_shaders().fill_shader().item_shader(),
+  clip_out_custom(default_shaders().fill_shader().item_shader().get(),
                   PainterDataValue<PainterItemShaderData>(),
                   make_c_array(d->m_work_room.m_polygon.m_attribs),
                   make_c_array(d->m_work_room.m_polygon.m_indices));

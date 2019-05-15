@@ -231,7 +231,7 @@ namespace fastuidraw
      */
     void
     draw_generic(ivec2 deferred_coverage_buffer_offset,
-                 const reference_counted_ptr<PainterItemShader> &shader,
+                 PainterItemShader *shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
@@ -261,7 +261,7 @@ namespace fastuidraw
      */
     void
     draw_generic(ivec2 deferred_coverage_buffer_offset,
-                 const reference_counted_ptr<PainterItemShader> &shader,
+                 PainterItemShader *shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
@@ -279,7 +279,7 @@ namespace fastuidraw
      */
     int
     draw_generic(ivec2 deferred_coverage_buffer_offset,
-                 const reference_counted_ptr<PainterItemShader> &shader,
+                 PainterItemShader *shader,
                  const PainterPackerData &data,
                  const PainterAttributeWriter &src,
                  int z);
@@ -295,7 +295,7 @@ namespace fastuidraw
      *                      values are not adjusted.
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+    draw_generic(PainterItemCoverageShader *shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
@@ -319,7 +319,7 @@ namespace fastuidraw
      *        each index chunk
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+    draw_generic(PainterItemCoverageShader *shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
@@ -332,7 +332,7 @@ namespace fastuidraw
      * \param src DrawWriter to use to write attribute and index data
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+    draw_generic(PainterItemCoverageShader *shader,
                  const PainterPackerData &data,
                  const PainterAttributeWriter &src);
 
@@ -412,7 +412,7 @@ namespace fastuidraw
     template<typename T, typename ShaderType>
     int
     draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
-                           const reference_counted_ptr<ShaderType> &shader,
+                           ShaderType *shader,
                            const PainterPackerData &data,
                            const T &src,
                            int z);

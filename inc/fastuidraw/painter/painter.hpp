@@ -623,7 +623,7 @@ namespace fastuidraw
      *                              each index chunk
      */
     void
-    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+    clip_out_custom(PainterItemShader *shader,
                     const PainterDataValue<PainterItemShaderData> &shader_data,
                     c_array<const c_array<const PainterAttribute> > attrib_chunks,
                     c_array<const c_array<const PainterIndex> > index_chunks,
@@ -641,7 +641,7 @@ namespace fastuidraw
      *                      values are not adjusted.
      */
     void
-    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+    clip_out_custom(PainterItemShader *shader,
                     const PainterDataValue<PainterItemShaderData> &shader_data,
                     c_array<const c_array<const PainterAttribute> > attrib_chunks,
                     c_array<const c_array<const PainterIndex> > index_chunks,
@@ -661,7 +661,7 @@ namespace fastuidraw
      * \param index_adjust amount by which to adjust the values in index_chunk
      */
     void
-    clip_out_custom(const reference_counted_ptr<PainterItemShader> &shader,
+    clip_out_custom(PainterItemShader *shader,
                     const PainterDataValue<PainterItemShaderData> &shader_data,
                     c_array<const PainterAttribute> attrib_chunk,
                     c_array<const PainterIndex> index_chunk,
@@ -1628,7 +1628,7 @@ namespace fastuidraw
      * \param index_adjust amount by which to adjust the values in index_chunk
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(PainterItemShader *shader,
                  const PainterData &draw,
                  c_array<const PainterAttribute> attrib_chunk,
                  c_array<const PainterIndex> index_chunk,
@@ -1651,7 +1651,7 @@ namespace fastuidraw
      *                      values are not adjusted.
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(PainterItemShader *shader,
                  const PainterData &draw,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
@@ -1671,7 +1671,7 @@ namespace fastuidraw
      *                              each index chunk
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(PainterItemShader *shader,
                  const PainterData &draw,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
@@ -1688,7 +1688,7 @@ namespace fastuidraw
      * \param z_range z-range of item's attribute data
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(PainterItemShader *shader,
                  const PainterData &draw,
                  c_array<const PainterAttribute> attrib_chunk,
                  c_array<const PainterIndex> index_chunk,
@@ -1707,7 +1707,7 @@ namespace fastuidraw
      *                      values are not adjusted.
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(PainterItemShader *shader,
                  const PainterData &draw,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
                  c_array<const c_array<const PainterIndex> > index_chunks,
@@ -1721,7 +1721,7 @@ namespace fastuidraw
      * \param src generator of attribute and index data
      */
     void
-    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+    draw_generic(PainterItemShader *shader,
                  const PainterData &draw,
                  const PainterAttributeWriter &src);
 

@@ -776,7 +776,7 @@ template<typename T, typename ShaderType>
 int
 fastuidraw::PainterPacker::
 draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
-                       const reference_counted_ptr<ShaderType> &pshader,
+                       ShaderType *pshader,
                        const PainterPackerData &draw,
                        const T &src,
                        int z)
@@ -800,7 +800,7 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
       return 0;
     }
 
-  shader = get_shader<ShaderType>(pshader.get(), write_state);
+  shader = get_shader<ShaderType>(pshader, write_state);
   if (!shader)
     {
       /* should we emit a warning message that there was no shader? */
@@ -903,7 +903,7 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
       cmd.m_indices_written += num_indices_written;
 
       ShaderType *next_shader;
-      next_shader = get_shader<ShaderType>(pshader.get(), write_state);
+      next_shader = get_shader<ShaderType>(pshader, write_state);
 
       if (next_shader != shader || write_state.m_z_range.m_begin != last_z_begin)
         {
@@ -1062,7 +1062,7 @@ set_coverage_surface(const reference_counted_ptr<PainterSurface> &surface)
 void
 fastuidraw::PainterPacker::
 draw_generic(ivec2 deferred_coverage_buffer_offset,
-             const reference_counted_ptr<PainterItemShader> &shader,
+             PainterItemShader *shader,
              const PainterPackerData &draw,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
              c_array<const c_array<const PainterIndex> > index_chunks,
@@ -1077,7 +1077,7 @@ draw_generic(ivec2 deferred_coverage_buffer_offset,
 int
 fastuidraw::PainterPacker::
 draw_generic(ivec2 deferred_coverage_buffer_offset,
-             const reference_counted_ptr<PainterItemShader> &shader,
+             PainterItemShader *shader,
              const PainterPackerData &data,
              const PainterAttributeWriter &src,
              int z)
@@ -1087,7 +1087,7 @@ draw_generic(ivec2 deferred_coverage_buffer_offset,
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+draw_generic(PainterItemCoverageShader *shader,
              const PainterPackerData &draw,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
              c_array<const c_array<const PainterIndex> > index_chunks,
@@ -1100,7 +1100,7 @@ draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const reference_counted_ptr<PainterItemCoverageShader> &shader,
+draw_generic(PainterItemCoverageShader *shader,
              const PainterPackerData &data,
              const PainterAttributeWriter &src)
 {
