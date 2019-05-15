@@ -24,16 +24,12 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/path.hpp>
+#include <fastuidraw/partitioned_tessellated_path.hpp>
+#include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
 
 namespace fastuidraw  {
-
-///@cond
-class TessellatedPath;
-class Path;
-class PainterAttribute;
-class PainterAttributeData;
-///@endcond
 
 /*!\addtogroup PainterAttribute
  * @{
@@ -61,7 +57,46 @@ public:
    */
   class Subset
   {
+  private:
+    typedef bool (Subset::*unspecified_bool_type)(void) const;
+
   public:
+    /*!
+     * Ctor to initialize value to "null" handle.
+     */
+    Subset(void):
+      m_d(nullptr)
+    {}
+
+    /*!
+     * Allows one to legally write to test if Subset
+     * is a null-handle:
+     * \code
+     * Subset p;
+     *
+     * if (p)
+     *   {
+     *     // p does refers to data
+     *   }
+     *
+     * if (!p)
+     *   {
+     *     // p does not referr to any data
+     *   }
+     * \endcode
+     */
+    operator unspecified_bool_type() const
+    {
+      return m_d ? &Subset::has_children : 0;
+    }
+
+    /*!
+     * Returns the segments that are within this
+     * \ref Subset
+     */
+    c_array<const PartitionedTessellatedPath::segment_chain>
+    segment_chains(void) const;
+
     /*!
      * Returns the PainterAttributeData to draw the triangles
      * for the portion of the StrokedPath the Subset represents.
@@ -84,6 +119,28 @@ public:
      */
     const Path&
     bounding_path(void) const;
+
+    /*!
+     * Returns the ID of this Subset, i.e. the value to
+     * feed to \ref PartitionedTessellatedPath::subset()
+     * to get this \ref Subset.
+     */
+    unsigned int
+    ID(void) const;
+
+    /*!
+     * Returns true if this Subset has child Subset
+     */
+    bool
+    has_children(void) const;
+
+    /*!
+     * Returns the children of this Subset. It is an
+     * error to call this if \ref has_children() returns
+     * false.
+     */
+    vecN<Subset, 2>
+    children(void) const;
 
   private:
     friend class StrokedPath;

@@ -162,15 +162,29 @@ namespace
     }
 
     bool
-    have_children(void) const
+    has_children(void) const
     {
+      FASTUIDRAWassert((m_children[0] == nullptr) == !m_subset.has_children());
+      FASTUIDRAWassert((m_children[1] == nullptr) == !m_subset.has_children());
       return m_children[0] != nullptr;
+    }
+
+    SubsetPrivate*
+    child(unsigned int I)
+    {
+      return m_children[I];
     }
 
     unsigned int
     ID(void) const
     {
-      return m_ID;
+      return m_subset.ID();
+    }
+
+    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain>
+    segment_chains(void) const
+    {
+      return m_subset.segment_chains();
     }
 
     static
@@ -196,7 +210,6 @@ namespace
     void
     ready_sizes_from_children(void);
 
-    unsigned int m_ID;
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
     fastuidraw::Path m_bounding_path;
     fastuidraw::PainterAttributeData *m_painter_data;
@@ -416,7 +429,6 @@ SubsetPrivate::
 SubsetPrivate(bool has_arcs,
               fastuidraw::PartitionedTessellatedPath::Subset src,
               std::vector<SubsetPrivate*> &out_values):
-  m_ID(src.ID()),
   m_children(nullptr, nullptr),
   m_painter_data(nullptr),
   m_num_attributes(0),
@@ -428,7 +440,7 @@ SubsetPrivate(bool has_arcs,
 {
   using namespace fastuidraw;
 
-  out_values[m_ID] = this;
+  out_values[ID()] = this;
   if (m_subset.has_children())
     {
       vecN<fastuidraw::PartitionedTessellatedPath::Subset, 2> children;
@@ -469,7 +481,7 @@ make_ready(void)
 {
   if (!m_ready)
     {
-      if (have_children())
+      if (has_children())
         {
           make_ready_from_children();
         }
@@ -594,7 +606,7 @@ select_subsets(unsigned int max_attribute_cnt,
                unsigned int &current)
 {
 
-  if (!m_sizes_ready && !have_children())
+  if (!m_sizes_ready && !has_children())
     {
       /* We need to make this one ready because it will be selected. */
       make_ready_from_subset();
@@ -614,13 +626,13 @@ select_subsets(unsigned int max_attribute_cnt,
        */
       if (m_painter_data)
         {
-          dst[current] = m_ID;
+          dst[current] = ID();
           ++current;
           return;
         }
     }
 
-  if (have_children())
+  if (has_children())
     {
       m_children[0]->select_subsets(max_attribute_cnt, max_index_cnt, dst, current);
       m_children[1]->select_subsets(max_attribute_cnt, max_index_cnt, dst, current);
@@ -1368,6 +1380,7 @@ painter_data(void) const
 {
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
   return d->painter_data();
 }
 
@@ -1377,6 +1390,7 @@ bounding_path(void) const
 {
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
   return d->bounding_path();
 }
 
@@ -1386,7 +1400,55 @@ bounding_box(void) const
 {
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
   return d->bounding_box();
+}
+
+fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain>
+fastuidraw::StrokedPath::Subset::
+segment_chains(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->segment_chains();
+}
+
+unsigned int
+fastuidraw::StrokedPath::Subset::
+ID(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->ID();
+}
+
+bool
+fastuidraw::StrokedPath::Subset::
+has_children(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->has_children();
+}
+
+fastuidraw::vecN<fastuidraw::StrokedPath::Subset, 2>
+fastuidraw::StrokedPath::Subset::
+children(void) const
+{
+  SubsetPrivate *d, *p0(nullptr), *p1(nullptr);
+
+  d = static_cast<SubsetPrivate*>(m_d);
+  if (d && d->has_children())
+    {
+      p0 = d->child(0);
+      p1 = d->child(1);
+    }
+
+  Subset s0(p0), s1(p1);
+  return vecN<Subset, 2>(s0, s1);
 }
 
 //////////////////////////////////////////////////////////////
