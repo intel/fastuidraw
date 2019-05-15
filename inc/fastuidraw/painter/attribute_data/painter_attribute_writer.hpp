@@ -24,6 +24,10 @@
 
 namespace fastuidraw
 {
+  ///@cond
+  class PainterItemShader;
+  class PainterItemCoverageShader;
+  ///@endcond
 /*!\addtogroup PainterAttribute
  * @{
  */
@@ -78,6 +82,18 @@ namespace fastuidraw
        * PainterAttributeWriter::write_data().
        */
       range_type<int> m_z_range;
+
+      /*!
+       * If non-null, overrides what shader the caller
+       * provided when rendering to a color buffer.
+       */
+      PainterItemShader *m_item_shader_override;
+
+      /*!
+       * If non-null, overrides what shader the caller
+       * provided when rendering to a coverage buffer.
+       */
+      PainterItemCoverageShader *m_item_coverage_shader_override;
     };
 
     virtual
@@ -98,7 +114,7 @@ namespace fastuidraw
      * \ref WriteState to indicate the start of writing data
      * for a subsequence calls to \ref write_data(). Returns
      * true if there is attribute and index data to upload.
-     * \param state \ref WriteState to initialize
+     * \param state \ref WriteState to initialize.
      */
     virtual
     bool

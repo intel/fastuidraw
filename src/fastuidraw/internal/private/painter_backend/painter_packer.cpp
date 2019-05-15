@@ -67,6 +67,30 @@ namespace
     }
   };
 
+  template<typename T>
+  T*
+  get_shader(T*, const fastuidraw::PainterAttributeWriter::WriteState&)
+  {
+    FASTUIDRAWassert(false);
+    return nullptr;
+  }
+
+  template<>
+  fastuidraw::PainterItemShader*
+  get_shader<fastuidraw::PainterItemShader>(fastuidraw::PainterItemShader *shader,
+                                            const fastuidraw::PainterAttributeWriter::WriteState &state)
+  {
+    return (state.m_item_shader_override) ? state.m_item_shader_override : shader;
+  }
+
+  template<>
+  fastuidraw::PainterItemCoverageShader*
+  get_shader<fastuidraw::PainterItemCoverageShader>(fastuidraw::PainterItemCoverageShader *shader,
+                                                    const fastuidraw::PainterAttributeWriter::WriteState &state)
+  {
+    return (state.m_item_coverage_shader_override) ? state.m_item_coverage_shader_override : shader;
+  }
+
   class AttributeIndexSrcFromArray
   {
   public:
@@ -752,7 +776,7 @@ template<typename T, typename ShaderType>
 int
 fastuidraw::PainterPacker::
 draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
-                       const reference_counted_ptr<ShaderType> &shader,
+                       const reference_counted_ptr<ShaderType> &pshader,
                        const PainterPackerData &draw,
                        const T &src,
                        int z)
@@ -761,14 +785,7 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
   unsigned int header_loc, state_length;
   PainterAttributeWriter::WriteState write_state;
   int last_z_begin(0), max_z_end(0);
-
-  if (!shader)
-    {
-      /* should we emit a warning message that the PainterItemShader
-       * was missing the item shader value?
-       */
-      return 0;
-    }
+  ShaderType *shader;
 
   state_length = src.state_length();
   m_work_room.m_state_values.resize(state_length);
@@ -776,8 +793,17 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
   write_state.m_min_attributes_for_next = 0;
   write_state.m_min_indices_for_next = 0;
   write_state.m_z_range.m_begin = write_state.m_z_range.m_end = 0;
+  write_state.m_item_shader_override = nullptr;
+  write_state.m_item_coverage_shader_override = nullptr;
   if (!src.initialize_state(&write_state))
     {
+      return 0;
+    }
+
+  shader = get_shader<ShaderType>(pshader.get(), write_state);
+  if (!shader)
+    {
+      /* should we emit a warning message that there was no shader? */
       return 0;
     }
 
@@ -785,7 +811,7 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
   allocate_header = true;
   data_to_write = true;
 
-  while (data_to_write)
+  while (shader && data_to_write)
     {
       unsigned int attrib_room, index_room, data_room;
       bool started_new_command;
@@ -837,7 +863,7 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
                                              deferred_coverage_buffer_offset,
                                              brush_shader,
                                              m_blend_shader, m_blend_mode,
-                                             shader.get(),
+                                             shader,
                                              z + write_state.m_z_range.m_begin,
                                              m_painter_state_location,
                                              m_callback_list,
@@ -876,8 +902,13 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
       cmd.m_attributes_written += num_attribs_written;
       cmd.m_indices_written += num_indices_written;
 
-      if (write_state.m_z_range.m_begin != last_z_begin)
+      ShaderType *next_shader;
+      next_shader = get_shader<ShaderType>(pshader.get(), write_state);
+
+      if (next_shader != shader || write_state.m_z_range.m_begin != last_z_begin)
         {
+          /* should we emit a warning message if shader become null? */
+          shader = next_shader;
           allocate_header = true;
         }
     }
