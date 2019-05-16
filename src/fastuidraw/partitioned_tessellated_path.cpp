@@ -255,15 +255,20 @@ create(const fastuidraw::TessellatedPath &P,
 
   fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins(P.join_data());
   builder.m_joins.reserve(joins.size());
-  for (const join &J : joins)
+  for (const auto &inJ : joins)
     {
-      builder.m_joins.push_back(J);
-      builder.m_join_bbox.union_point(J.m_position);
+      join outJ(inJ, builder.m_joins.size());
+      builder.m_joins.push_back(outJ);
+      builder.m_join_bbox.union_point(outJ.m_position);
     }
 
   fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps(P.cap_data());
-  builder.m_caps.resize(caps.size());
-  std::copy(caps.begin(), caps.end(), builder.m_caps.begin());
+  builder.m_caps.reserve(caps.size());
+  for (const auto &inC : caps)
+    {
+      cap outC(inC, builder.m_caps.size());
+      builder.m_caps.push_back(outC);
+    }
 
   root = FASTUIDRAWnew SubsetPrivate(0, builder, out_values);
   return root;
