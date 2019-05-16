@@ -27,7 +27,6 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
-#include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
 
 namespace fastuidraw  {
 
@@ -107,6 +106,28 @@ public:
      */
     const PainterAttributeData&
     painter_data(void) const;
+
+    /*!
+     * Return the join chunk to feed the \ref PainterAttributeData
+     * returned by \ref bevel_joins(), \ref miter_clip_joins() \ref
+     * miter_bevel_joins(), \ref miter_joins(), \ref rounded_joins()
+     * or \ref arc_rounded_joins() to get the attribute and index
+     * data representing the joins within this subset. A return value
+     * of -1 indicates that there are no joins within this Subset.
+     */
+    int
+    join_chunk(void) const;
+
+    /*!
+     * Return the join chunk to feed the \ref PainterAttributeData
+     * returned by \ref adjustable_caps(), \ref square_caps() \ref
+     * \ref rounded_caps(), \ref arc_rounded_caps() to get the
+     * attribute and index data representing the joins within this
+     * subset. A return value of -1 indicates that there are no
+     * caps within this Subset.
+     */
+    int
+    cap_chunk(void) const;
 
     /*!
      * Returns the bounding box.
@@ -209,6 +230,93 @@ public:
   root_subset(void) const;
 
   /*!
+   * Returns the data to draw the square caps of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
+   */
+  const PainterAttributeData&
+  square_caps(void) const;
+
+  /*!
+   * Returns the data to draw the caps of a stroked path used
+   * when stroking with a dash pattern. The attribute data is
+   * packed \ref StrokedPoint data.
+   */
+  const PainterAttributeData&
+  adjustable_caps(void) const;
+
+  /*!
+   * Returns the data to draw the bevel joins of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
+   */
+  const PainterAttributeData&
+  bevel_joins(void) const;
+
+  /*!
+   * Returns the data to draw the miter joins of a stroked path,
+   * if the miter-limit is exceeded on stroking, the miter-join
+   * is clipped to the miter-limit. The attribute data is
+   * packed \ref StrokedPoint data.
+   */
+  const PainterAttributeData&
+  miter_clip_joins(void) const;
+
+  /*!
+   * Returns the data to draw the miter joins of a stroked path,
+   * if the miter-limit is exceeded on stroking, the miter-join
+   * is to be drawn as a bevel join. The attribute data is
+   * packed \ref StrokedPoint data.
+   */
+  const PainterAttributeData&
+  miter_bevel_joins(void) const;
+
+  /*!
+   * Returns the data to draw the miter joins of a stroked path,
+   * if the miter-limit is exceeded on stroking, the miter-join
+   * end point is clamped to the miter-distance. The attribute
+   * data is packed \ref StrokedPoint data.
+   */
+  const PainterAttributeData&
+  miter_joins(void) const;
+
+  /*!
+   * Returns the data to draw rounded joins of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
+   * \param thresh will return rounded joins so that the distance
+   *               between the approximation of the round and the
+   *               actual round is no more than thresh.
+   */
+  const PainterAttributeData&
+  rounded_joins(float thresh) const;
+
+  /*!
+   * Returns the data to draw rounded caps of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
+   * \param thresh will return rounded caps so that the distance
+   *               between the approximation of the round and the
+   *               actual round is no more than thresh.
+   */
+  const PainterAttributeData&
+  rounded_caps(float thresh) const;
+
+  /*!
+   * Returns the data to draw rounded joins of a stroked path
+   * using the fragment shader to provide per-pixel coverage
+   * computation. The attribute data is packed \ref
+   * ArcStrokedPoint data.
+   */
+  const PainterAttributeData&
+  arc_rounded_joins(void) const;
+
+  /*!
+   * Returns the data to draw rounded caps of a stroked path
+   * using the fragment shader to provide per-pixel coverage
+   * computation. The attribute data is packed \ref
+   * ArcStrokedPoint data.
+   */
+  const PainterAttributeData&
+  arc_rounded_caps(void) const;
+
+  /*!
    * Given a set of clip equations in clip coordinates
    * and a tranformation from local coordiante to clip
    * coordinates, compute what Subset are not completely
@@ -257,14 +365,6 @@ public:
   select_subsets_no_culling(unsigned int max_attribute_cnt,
                             unsigned int max_index_cnt,
                             c_array<unsigned int> dst) const;
-
-  /*!
-   * Returns the StrokedCapsJoins of the StrokedPath that
-   * provides the attribute data for teh stroking of the
-   * joins and caps.
-   */
-  const StrokedCapsJoins&
-  caps_joins(void) const;
 
 private:
   friend class TessellatedPath;

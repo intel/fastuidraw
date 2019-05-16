@@ -24,7 +24,6 @@
 #include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_path.hpp>
-#include <fastuidraw/painter/attribute_data/stroked_caps_joins.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
@@ -47,6 +46,176 @@ namespace
   {
     return fastuidraw::detail::stroked_point_pack_bits(on_boundary, pt, depth);
   }
+
+  inline
+  uint32_t
+  pack_data_join(int on_boundary,
+                 enum fastuidraw::StrokedPoint::offset_type_t pt,
+                 uint32_t depth)
+  {
+    return pack_data(on_boundary, pt, depth) | fastuidraw::StrokedPoint::join_mask;
+  }
+
+  template<typename T>
+  class OrderingEntry:public T
+  {
+  public:
+    OrderingEntry(const T &src, unsigned int chunk):
+      T(src),
+      m_chunk(chunk),
+      m_depth(0)
+    {}
+
+    unsigned int m_chunk;
+    unsigned int m_depth;
+  };
+
+  template<typename T>
+  class GenericOrdering
+  {
+  public:
+    fastuidraw::c_array<const OrderingEntry<T> >
+    elements(void) const
+    {
+      return fastuidraw::make_c_array(m_elements);
+    }
+
+    unsigned int
+    size(void) const
+    {
+      return m_elements.size();
+    }
+
+    const OrderingEntry<T>&
+    operator[](unsigned int N) const
+    {
+      FASTUIDRAWassert(N < m_elements.size());
+      return m_elements[N];
+    }
+
+    void
+    add_element(const T &src, unsigned int &chunk)
+    {
+      OrderingEntry<T> C(src, chunk);
+      m_elements.push_back(C);
+      ++chunk;
+    }
+
+    void
+    post_process(fastuidraw::range_type<unsigned int> range,
+                 unsigned int &depth);
+
+  private:
+    std::vector<OrderingEntry<T> > m_elements;
+  };
+
+  class PerJoinData:public fastuidraw::PartitionedTessellatedPath::join
+  {
+  public:
+    PerJoinData(const fastuidraw::PartitionedTessellatedPath::join &J):
+      fastuidraw::PartitionedTessellatedPath::join(J),
+      m_lambda(J.lambda()),
+      m_p(J.m_position)
+    {}
+
+    fastuidraw::vec2
+    n0(void) const
+    {
+      return enter_join_normal();
+    }
+
+    fastuidraw::vec2
+    n1(void) const
+    {
+      return leaving_join_normal();
+    }
+
+    void
+    set_distance_values(fastuidraw::StrokedPoint *pt) const
+    {
+      pt->m_distance_from_edge_start = m_distance_from_previous_join;
+      pt->m_edge_length = m_distance_from_previous_join;
+      pt->m_contour_length = m_contour_length;
+      pt->m_distance_from_contour_start = m_distance_from_contour_start;
+    }
+
+    void
+    set_distance_values(fastuidraw::ArcStrokedPoint *pt) const
+    {
+      pt->m_distance_from_edge_start = m_distance_from_previous_join;
+      pt->m_edge_length = m_distance_from_previous_join;
+      pt->m_contour_length = m_contour_length;
+      pt->m_distance_from_contour_start = m_distance_from_contour_start;
+    }
+
+    float m_lambda;
+    fastuidraw::vec2 m_p;
+  };
+
+  class PerCapData:public fastuidraw::PartitionedTessellatedPath::cap
+  {
+  public:
+    PerCapData(const fastuidraw::PartitionedTessellatedPath::cap &C):
+      fastuidraw::PartitionedTessellatedPath::cap(C),
+      m_p(C.m_position)
+    {}
+
+    void
+    set_distance_values(fastuidraw::StrokedPoint *pt) const
+    {
+      pt->m_distance_from_edge_start = (m_is_starting_cap) ? 0.0f : m_edge_length;
+      pt->m_edge_length = m_edge_length;
+      pt->m_contour_length = m_contour_length;
+      pt->m_distance_from_contour_start = (m_is_starting_cap) ? 0.0f : m_contour_length;
+    }
+
+    void
+    set_distance_values(fastuidraw::ArcStrokedPoint *pt) const
+    {
+      pt->m_distance_from_edge_start = (m_is_starting_cap) ? 0.0f : m_edge_length;
+      pt->m_edge_length = m_edge_length;
+      pt->m_contour_length = m_contour_length;
+      pt->m_distance_from_contour_start = (m_is_starting_cap) ? 0.0f : m_contour_length;
+    }
+
+    fastuidraw::vec2 m_p;
+  };
+
+  typedef GenericOrdering<PerCapData> CapOrdering;
+  typedef GenericOrdering<PerJoinData> JoinOrdering;
+
+  class CapJoinChunkDepthTracking
+  {
+  public:
+    CapJoinChunkDepthTracking(void):
+      m_join_chunk_cnt(0),
+      m_cap_chunk_cnt(0)
+    {}
+
+    unsigned int m_join_chunk_cnt;
+    JoinOrdering m_join_ordering;
+    unsigned int m_cap_chunk_cnt;
+    CapOrdering m_cap_ordering;
+  };
+
+  class RangeAndChunk
+  {
+  public:
+    /* what range of Joins/Caps hit by the chunk. */
+    fastuidraw::range_type<unsigned int> m_elements;
+
+    /* depth range of Joins/Caps hit */
+    fastuidraw::range_type<unsigned int> m_depth_range;
+
+    /* what the chunk is */
+    int m_chunk;
+
+    bool
+    non_empty(void) const
+    {
+      return m_depth_range.m_end > m_depth_range.m_begin;
+    }
+  };
 
   class SingleSubEdge
   {
@@ -107,7 +276,6 @@ namespace
     }
   };
 
-
   class ScratchSpacePrivate
   {
   public:
@@ -156,6 +324,12 @@ namespace
       return m_children[0] != nullptr;
     }
 
+    const SubsetPrivate*
+    child(unsigned int I) const
+    {
+      return m_children[I];
+    }
+
     SubsetPrivate*
     child(unsigned int I)
     {
@@ -174,19 +348,62 @@ namespace
       return m_subset.segment_chains();
     }
 
+    const RangeAndChunk&
+    joins(void) const
+    {
+      return m_joins;
+    }
+
+    const RangeAndChunk&
+    caps(void) const
+    {
+      return m_caps;
+    }
+
+    int
+    join_chunk(void) const
+    {
+      return (m_joins.non_empty()) ?
+        m_joins.m_chunk :
+        -1;
+    }
+
+    int
+    cap_chunk(void) const
+    {
+      return (m_caps.non_empty()) ?
+        m_caps.m_chunk :
+        -1;
+    }
+
     static
     SubsetPrivate*
-    create_root_subset(bool has_arcs,
+    create_root_subset(bool has_arcs, CapJoinChunkDepthTracking &tracking,
                        const fastuidraw::PartitionedTessellatedPath &P,
                        std::vector<SubsetPrivate*> &out_values);
 
   private:
+    class PostProcessVariables
+    {
+    public:
+      PostProcessVariables(void):
+        m_join_depth(0),
+        m_cap_depth(0)
+      {}
+
+      unsigned int m_join_depth;
+      unsigned int m_cap_depth;
+    };
+
     /* creation of SubsetPrivate has that it takes ownership of data
      * it might delete the object or save it for later use.
      */
-    SubsetPrivate(bool has_arcs,
+    SubsetPrivate(bool has_arcs, CapJoinChunkDepthTracking &tracking,
                   fastuidraw::PartitionedTessellatedPath::Subset src,
                   std::vector<SubsetPrivate*> &out_values);
+    void
+    post_process(PostProcessVariables &variables,
+                 CapJoinChunkDepthTracking &tracking);
 
     void
     make_ready_from_children(void);
@@ -203,7 +420,469 @@ namespace
     unsigned int m_num_attributes, m_num_indices;
     bool m_sizes_ready, m_ready, m_has_arcs;
 
+    RangeAndChunk m_joins, m_caps;
+
     fastuidraw::PartitionedTessellatedPath::Subset m_subset;
+  };
+
+  class JoinCreatorBase:public fastuidraw::PainterAttributeDataFiller
+  {
+  public:
+    explicit
+    JoinCreatorBase(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+
+    virtual
+    ~JoinCreatorBase() {}
+
+    virtual
+    void
+    compute_sizes(unsigned int &num_attributes,
+                  unsigned int &num_indices,
+                  unsigned int &num_attribute_chunks,
+                  unsigned int &num_index_chunks,
+                  unsigned int &number_z_ranges) const;
+
+    virtual
+    void
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+              fastuidraw::c_array<int> index_adjusts) const;
+
+  protected:
+    void
+    post_ctor_initalize(void);
+
+  private:
+    void
+    fill_join(unsigned int join_id, const PerJoinData &join_data,
+              unsigned int chunk, unsigned int depth,
+              fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+              fastuidraw::c_array<unsigned int> indices,
+              unsigned int &vertex_offset, unsigned int &index_offset,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+              fastuidraw::c_array<int> index_adjusts,
+              fastuidraw::c_array<fastuidraw::range_type<int> > join_vertex_ranges,
+              fastuidraw::c_array<fastuidraw::range_type<int> > join_index_ranges) const;
+
+    static
+    void
+    set_chunks(const SubsetPrivate *st,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+               fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+               fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+               fastuidraw::c_array<int> index_adjusts);
+
+    static
+    void
+    process_chunk(const RangeAndChunk &ch,
+                  fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+                  fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+                  fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+                  fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+                  fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+                  fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                  fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+                  fastuidraw::c_array<int> index_adjusts);
+
+    virtual
+    void
+    add_join(unsigned int join_id, const PerJoinData &join,
+             unsigned int &vert_count, unsigned int &index_count) const = 0;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const = 0;
+
+    const JoinOrdering &m_ordering;
+    const SubsetPrivate *m_st;
+    unsigned int m_num_verts, m_num_indices, m_num_chunks, m_num_joins;
+    bool m_post_ctor_initalized_called;
+  };
+
+  class ArcRoundedJoinCreator:public JoinCreatorBase
+  {
+  public:
+    ArcRoundedJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+
+  private:
+    class PerArcRoundedJoin:public PerJoinData
+    {
+    public:
+      explicit
+      PerArcRoundedJoin(const PerJoinData &J);
+
+      void
+      add_data(unsigned int depth,
+               fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+               unsigned int &vertex_offset,
+               fastuidraw::c_array<unsigned int> indices,
+               unsigned int &index_offset) const;
+
+      /* how many arc-joins are used to realize the join */
+      unsigned int m_count;
+
+      /* number of vertices and indices needed */
+      unsigned int m_vertex_count, m_index_count;
+
+      float m_delta_angle;
+      std::complex<float> m_arc_start;
+    };
+
+    virtual
+    void
+    add_join(unsigned int join_id, const PerJoinData &join,
+             unsigned int &vert_count, unsigned int &index_count) const;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    mutable std::vector<PerArcRoundedJoin> m_per_join_data;
+  };
+
+  class RoundedJoinCreator:public JoinCreatorBase
+  {
+  public:
+    RoundedJoinCreator(const CapJoinChunkDepthTracking &P,
+                       const SubsetPrivate *st,
+                       float thresh);
+
+  private:
+    class PerRoundedJoin:public PerJoinData
+    {
+    public:
+      PerRoundedJoin(const PerJoinData &J, float thresh);
+
+      void
+      add_data(unsigned int depth,
+               fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+               unsigned int &vertex_offset,
+               fastuidraw::c_array<unsigned int> indices,
+               unsigned int &index_offset) const;
+
+      std::complex<float> m_arc_start;
+      float m_delta_theta;
+      unsigned int m_num_arc_points;
+    };
+
+    virtual
+    void
+    add_join(unsigned int join_id, const PerJoinData &join,
+             unsigned int &vert_count, unsigned int &index_count) const;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    float m_thresh;
+    mutable std::vector<PerRoundedJoin> m_per_join_data;
+  };
+
+  class BevelJoinCreator:public JoinCreatorBase
+  {
+  public:
+    explicit
+    BevelJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+
+  private:
+    virtual
+    void
+    add_join(unsigned int join_id, const PerJoinData &join,
+             unsigned int &vert_count, unsigned int &index_count) const;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+  };
+
+  class MiterClipJoinCreator:public JoinCreatorBase
+  {
+  public:
+    explicit
+    MiterClipJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+
+  private:
+    virtual
+    void
+    add_join(unsigned int join_id, const PerJoinData &join,
+             unsigned int &vert_count, unsigned int &index_count) const;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+  };
+
+  template<enum fastuidraw::StrokedPoint::offset_type_t tp>
+  class MiterJoinCreator:public JoinCreatorBase
+  {
+  public:
+    explicit
+    MiterJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+
+  private:
+    virtual
+    void
+    add_join(unsigned int join_id, const PerJoinData &join,
+             unsigned int &vert_count, unsigned int &index_count) const;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+  };
+
+  class PointIndexCapSize
+  {
+  public:
+    PointIndexCapSize(void):
+      m_verts(0),
+      m_indices(0)
+    {}
+
+    unsigned int m_verts, m_indices;
+  };
+
+  class CapCreatorBase:public fastuidraw::PainterAttributeDataFiller
+  {
+  public:
+    CapCreatorBase(const CapJoinChunkDepthTracking &P,
+                   const SubsetPrivate *st,
+                   PointIndexCapSize sz);
+
+    virtual
+    ~CapCreatorBase()
+    {}
+
+    virtual
+    void
+    compute_sizes(unsigned int &num_attributes,
+                  unsigned int &num_indices,
+                  unsigned int &num_attribute_chunks,
+                  unsigned int &num_index_chunks,
+                  unsigned int &number_z_ranges) const;
+
+    virtual
+    void
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+              fastuidraw::c_array<int> index_adjusts) const;
+
+  private:
+    virtual
+    void
+    add_cap(const PerCapData &C, unsigned int depth,
+            fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+            fastuidraw::c_array<unsigned int> indices,
+            unsigned int &vertex_offset,
+            unsigned int &index_offset) const = 0;
+
+    static
+    void
+    set_chunks(const SubsetPrivate *st,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > cap_vertex_ranges,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > cap_index_ranges,
+               fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+               fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+               fastuidraw::c_array<int> index_adjusts);
+
+    const CapOrdering &m_ordering;
+    const SubsetPrivate *m_st;
+
+    unsigned int m_num_chunks;
+    PointIndexCapSize m_size;
+  };
+
+  class RoundedCapCreator:public CapCreatorBase
+  {
+  public:
+    RoundedCapCreator(const CapJoinChunkDepthTracking &P,
+                      const SubsetPrivate *st,
+                      float thresh);
+
+  private:
+    static
+    PointIndexCapSize
+    compute_size(const CapJoinChunkDepthTracking &P, float thresh);
+
+    virtual
+    void
+    add_cap(const PerCapData &C, unsigned int depth,
+            fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+            fastuidraw::c_array<unsigned int> indices,
+            unsigned int &vertex_offset,
+            unsigned int &index_offset) const;
+
+    float m_delta_theta;
+    unsigned int m_num_arc_points_per_cap;
+  };
+
+  class SquareCapCreator:public CapCreatorBase
+  {
+  public:
+    explicit
+    SquareCapCreator(const CapJoinChunkDepthTracking &P,
+                     const SubsetPrivate *st):
+      CapCreatorBase(P, st, compute_size(P))
+    {}
+
+  private:
+    static
+    PointIndexCapSize
+    compute_size(const CapJoinChunkDepthTracking &P);
+
+    void
+    add_cap(const PerCapData &C, unsigned int depth,
+            fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+            fastuidraw::c_array<unsigned int> indices,
+            unsigned int &vertex_offset,
+            unsigned int &index_offset) const;
+  };
+
+  class AdjustableCapCreator:public CapCreatorBase
+  {
+  public:
+    AdjustableCapCreator(const CapJoinChunkDepthTracking &P,
+                         const SubsetPrivate *st):
+      CapCreatorBase(P, st, compute_size(P))
+    {}
+
+  private:
+    enum
+      {
+        number_points_per_fan = 6,
+        number_triangles_per_fan = number_points_per_fan - 2,
+        number_indices_per_fan = 3 * number_triangles_per_fan,
+      };
+
+    static
+    PointIndexCapSize
+    compute_size(const CapJoinChunkDepthTracking &P);
+
+    void
+    add_cap(const PerCapData &C, unsigned int depth,
+            fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+            fastuidraw::c_array<unsigned int> indices,
+            unsigned int &vertex_offset,
+            unsigned int &index_offset) const;
+  };
+
+  class ArcRoundedCapCreator:public CapCreatorBase
+  {
+  public:
+    ArcRoundedCapCreator(const CapJoinChunkDepthTracking &P,
+                         const SubsetPrivate *st);
+
+  private:
+    enum
+      {
+        /* a cap is 180 degrees, make each arc-join as 45 degrees */
+        num_arcs_per_cap = 4
+      };
+
+    static
+    PointIndexCapSize
+    compute_size(const CapJoinChunkDepthTracking &P);
+
+    virtual
+    void
+    add_cap(const PerCapData &C, unsigned int depth,
+            fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+            fastuidraw::c_array<unsigned int> indices,
+            unsigned int &vertex_offset,
+            unsigned int &index_offset) const;
+  };
+
+  class ThreshWithData
+  {
+  public:
+    ThreshWithData(void):
+      m_data(nullptr),
+      m_thresh(-1)
+    {}
+
+    ThreshWithData(fastuidraw::PainterAttributeData *d, float t):
+      m_data(d), m_thresh(t)
+    {}
+
+    static
+    bool
+    reverse_compare_against_thresh(const ThreshWithData &lhs, float rhs)
+    {
+      return lhs.m_thresh > rhs;
+    }
+
+    fastuidraw::PainterAttributeData *m_data;
+    float m_thresh;
+  };
+
+  template<typename T>
+  class PreparedAttributeData
+  {
+  public:
+    PreparedAttributeData(void):
+      m_ready(false)
+    {}
+
+    /* must be called before the first call to data().
+     */
+    void
+    mark_as_empty(void)
+    {
+      m_ready = true;
+    }
+
+    const fastuidraw::PainterAttributeData&
+    data(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st)
+    {
+      if (!m_ready)
+        {
+          m_data.set_data(T(P, st));
+          m_ready = true;
+        }
+      return m_data;
+    }
+
+  private:
+    fastuidraw::PainterAttributeData m_data;
+    bool m_ready;
   };
 
   class EdgeAttributeFillerBase:public fastuidraw::PainterAttributeDataFiller
@@ -338,13 +1017,52 @@ namespace
     StrokedPathPrivate(const fastuidraw::TessellatedPath &P);
     ~StrokedPathPrivate();
 
+    template<typename T>
+    const fastuidraw::PainterAttributeData&
+    fetch_create(float thresh,
+                 std::vector<ThreshWithData> &values);
+
     bool m_has_arcs;
     fastuidraw::reference_counted_ptr<const fastuidraw::PartitionedTessellatedPath> m_path_partioned;
-    fastuidraw::StrokedCapsJoins m_caps_joins;
     SubsetPrivate* m_root;
     std::vector<SubsetPrivate*> m_subsets;
+
+    CapJoinChunkDepthTracking m_cap_join_tracking;
+    PreparedAttributeData<BevelJoinCreator> m_bevel_joins;
+    PreparedAttributeData<MiterClipJoinCreator> m_miter_clip_joins;
+    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPoint::offset_miter_join> > m_miter_joins;
+    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPoint::offset_miter_bevel_join> > m_miter_bevel_joins;
+    PreparedAttributeData<ArcRoundedJoinCreator> m_arc_rounded_joins;
+    PreparedAttributeData<SquareCapCreator> m_square_caps;
+    PreparedAttributeData<AdjustableCapCreator> m_adjustable_caps;
+    PreparedAttributeData<ArcRoundedCapCreator> m_arc_rounded_caps;
+    std::vector<ThreshWithData> m_rounded_joins;
+    std::vector<ThreshWithData> m_rounded_caps;
   };
 
+}
+
+///////////////////////////
+// GenericOrdering methods
+template<typename T>
+void
+GenericOrdering<T>::
+post_process(fastuidraw::range_type<unsigned int> range,
+             unsigned int &depth)
+{
+  unsigned int R, d;
+
+  /* the depth values of the caps must come in reverse
+   * so that higher depth values occlude later elements
+   */
+  R = range.difference();
+  d = depth + R - 1;
+  for(unsigned int i = range.m_begin; i < range.m_end; ++i, --d)
+    {
+      FASTUIDRAWassert(i < m_elements.size());
+      m_elements[i].m_depth = d;
+    }
+  depth += R;
 }
 
 ////////////////////////////////////////
@@ -402,18 +1120,53 @@ SingleSubEdge(const fastuidraw::PartitionedTessellatedPath::segment &seg,
 // SubsetPrivate methods
 SubsetPrivate*
 SubsetPrivate::
-create_root_subset(bool has_arcs,
+create_root_subset(bool has_arcs, CapJoinChunkDepthTracking &tracking,
                    const fastuidraw::PartitionedTessellatedPath &P,
                    std::vector<SubsetPrivate*> &out_values)
 {
   SubsetPrivate *return_value;
+  PostProcessVariables variables;
 
-  return_value = FASTUIDRAWnew SubsetPrivate(has_arcs, P.root_subset(), out_values);
+  return_value = FASTUIDRAWnew SubsetPrivate(has_arcs, tracking, P.root_subset(), out_values);
+  return_value->post_process(variables, tracking);
   return return_value;
 }
 
+void
 SubsetPrivate::
-SubsetPrivate(bool has_arcs,
+post_process(PostProcessVariables &variables,
+             CapJoinChunkDepthTracking &tracking)
+{
+  /* We want the depth to go in the reverse order as the
+   * draw order. The Draw order is child(0), child(1)
+   * Thus, we first handle depth child(1) and then child(0).
+   */
+  m_joins.m_depth_range.m_begin = variables.m_join_depth;
+  m_caps.m_depth_range.m_begin = variables.m_cap_depth;
+
+  if (has_children())
+    {
+      FASTUIDRAWassert(m_children[0] != nullptr);
+      FASTUIDRAWassert(m_children[1] != nullptr);
+
+      m_children[1]->post_process(variables, tracking);
+      m_children[0]->post_process(variables, tracking);
+    }
+  else
+    {
+      FASTUIDRAWassert(m_children[0] == nullptr);
+      FASTUIDRAWassert(m_children[1] == nullptr);
+
+      tracking.m_join_ordering.post_process(m_joins.m_elements, variables.m_join_depth);
+      tracking.m_cap_ordering.post_process(m_caps.m_elements, variables.m_cap_depth);
+    }
+
+  m_joins.m_depth_range.m_end = variables.m_join_depth;
+  m_caps.m_depth_range.m_end = variables.m_cap_depth;
+}
+
+SubsetPrivate::
+SubsetPrivate(bool has_arcs, CapJoinChunkDepthTracking &tracking,
               fastuidraw::PartitionedTessellatedPath::Subset src,
               std::vector<SubsetPrivate*> &out_values):
   m_children(nullptr, nullptr),
@@ -428,13 +1181,32 @@ SubsetPrivate(bool has_arcs,
   using namespace fastuidraw;
 
   out_values[ID()] = this;
+  m_joins.m_elements.m_begin = tracking.m_join_ordering.size();
+  m_caps.m_elements.m_begin = tracking.m_cap_ordering.size();
+
   if (m_subset.has_children())
     {
       vecN<fastuidraw::PartitionedTessellatedPath::Subset, 2> children;
       children = m_subset.children();
-      m_children[0] = FASTUIDRAWnew SubsetPrivate(m_has_arcs, children[0], out_values);
-      m_children[1] = FASTUIDRAWnew SubsetPrivate(m_has_arcs, children[1], out_values);
+      m_children[0] = FASTUIDRAWnew SubsetPrivate(m_has_arcs, tracking, children[0], out_values);
+      m_children[1] = FASTUIDRAWnew SubsetPrivate(m_has_arcs, tracking, children[1], out_values);
     }
+  else
+    {
+      for (const auto &J : src.joins())
+        {
+          tracking.m_join_ordering.add_element(J, tracking.m_join_chunk_cnt);
+        }
+      for (const auto &C : src.caps())
+        {
+          tracking.m_cap_ordering.add_element(C, tracking.m_cap_chunk_cnt);
+        }
+    }
+
+  m_joins.m_elements.m_end = tracking.m_join_ordering.size();
+  m_caps.m_elements.m_end = tracking.m_cap_ordering.size();
+  m_joins.m_chunk = tracking.m_join_chunk_cnt++;
+  m_caps.m_chunk = tracking.m_cap_chunk_cnt++;
 
   const fastuidraw::vec2 &m(bounding_box().m_min_point);
   const fastuidraw::vec2 &M(bounding_box().m_max_point);
@@ -633,6 +1405,1078 @@ select_subsets(unsigned int max_attribute_cnt,
       FASTUIDRAWassert(m_sizes_ready);
       FASTUIDRAWassert(!"Childless StrokedPath::Subset has too many attributes or indices");
     }
+}
+
+/////////////////////////////////////////////////
+// JoinCreatorBase methods
+JoinCreatorBase::
+JoinCreatorBase(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+  m_ordering(P.m_join_ordering),
+  m_st(st),
+  m_num_verts(0),
+  m_num_indices(0),
+  m_num_chunks(P.m_join_chunk_cnt),
+  m_num_joins(0),
+  m_post_ctor_initalized_called(false)
+{}
+
+void
+JoinCreatorBase::
+post_ctor_initalize(void)
+{
+  FASTUIDRAWassert(!m_post_ctor_initalized_called);
+  m_post_ctor_initalized_called = true;
+
+  for(const PerJoinData &J : m_ordering.elements())
+    {
+      add_join(m_num_joins, J, m_num_verts, m_num_indices);
+      ++m_num_joins;
+    }
+}
+
+void
+JoinCreatorBase::
+compute_sizes(unsigned int &num_attributes,
+              unsigned int &num_indices,
+              unsigned int &num_attribute_chunks,
+              unsigned int &num_index_chunks,
+              unsigned int &number_z_ranges) const
+{
+  FASTUIDRAWassert(m_post_ctor_initalized_called);
+  num_attributes = m_num_verts;
+  num_indices = m_num_indices;
+  number_z_ranges = num_attribute_chunks = num_index_chunks = m_num_chunks;
+}
+
+void
+JoinCreatorBase::
+fill_join(unsigned int join_id,
+          const PerJoinData &join_data,
+          unsigned int chunk, unsigned int depth,
+          fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+          fastuidraw::c_array<unsigned int> indices,
+          unsigned int &vertex_offset, unsigned int &index_offset,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+          fastuidraw::c_array<int> index_adjusts,
+          fastuidraw::c_array<fastuidraw::range_type<int> > join_vertex_ranges,
+          fastuidraw::c_array<fastuidraw::range_type<int> > join_index_ranges) const
+{
+  unsigned int v(vertex_offset), i(index_offset);
+
+  FASTUIDRAWassert(join_id < m_num_joins);
+
+  fill_join_implement(join_id, join_data, pts, depth, indices, vertex_offset, index_offset);
+
+  join_vertex_ranges[join_id].m_begin = v;
+  join_vertex_ranges[join_id].m_end = vertex_offset;
+
+  join_index_ranges[join_id].m_begin = i;
+  join_index_ranges[join_id].m_end = index_offset;
+
+  attribute_chunks[chunk] = pts.sub_array(v, vertex_offset - v);
+  index_chunks[chunk] = indices.sub_array(i, index_offset - i);
+  index_adjusts[chunk] = -int(v);
+  zranges[chunk] = fastuidraw::range_type<int>(depth, depth + 1);
+}
+
+void
+JoinCreatorBase::
+fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+          fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+          fastuidraw::c_array<int> index_adjusts) const
+{
+  unsigned int vertex_offset(0), index_offset(0), join_id(0);
+  std::vector<fastuidraw::range_type<int> > jvr(m_num_joins), jir(m_num_joins);
+  fastuidraw::c_array<fastuidraw::range_type<int> > join_vertex_ranges, join_index_ranges;
+
+  join_vertex_ranges = fastuidraw::make_c_array(jvr);
+  join_index_ranges = fastuidraw::make_c_array(jir);
+
+  FASTUIDRAWassert(attribute_data.size() == m_num_verts);
+  FASTUIDRAWassert(index_data.size() == m_num_indices);
+  FASTUIDRAWassert(attribute_chunks.size() == m_num_chunks);
+  FASTUIDRAWassert(index_chunks.size() == m_num_chunks);
+  FASTUIDRAWassert(zranges.size() == m_num_chunks);
+  FASTUIDRAWassert(index_adjusts.size() == m_num_chunks);
+
+  for(const OrderingEntry<PerJoinData> &J : m_ordering.elements())
+    {
+      fill_join(join_id, J, J.m_chunk, J.m_depth,
+                attribute_data, index_data,
+                vertex_offset, index_offset,
+                attribute_chunks, index_chunks,
+                zranges, index_adjusts,
+                join_vertex_ranges,
+                join_index_ranges);
+      ++join_id;
+    }
+
+  FASTUIDRAWassert(vertex_offset == m_num_verts);
+  FASTUIDRAWassert(index_offset == m_num_indices);
+  set_chunks(m_st,
+             join_vertex_ranges, join_index_ranges,
+             attribute_data, index_data,
+             attribute_chunks, index_chunks,
+             zranges, index_adjusts);
+}
+
+void
+JoinCreatorBase::
+set_chunks(const SubsetPrivate *st,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+           fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+           fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+           fastuidraw::c_array<int> index_adjusts)
+{
+  process_chunk(st->joins(),
+                join_vertex_ranges, join_index_ranges,
+                attribute_data, index_data,
+                attribute_chunks, index_chunks,
+                zranges, index_adjusts);
+
+  if (st->has_children())
+    {
+      set_chunks(st->child(0),
+                 join_vertex_ranges, join_index_ranges,
+                 attribute_data, index_data,
+                 attribute_chunks, index_chunks,
+                 zranges, index_adjusts);
+
+      set_chunks(st->child(1),
+                 join_vertex_ranges, join_index_ranges,
+                 attribute_data, index_data,
+                 attribute_chunks, index_chunks,
+                 zranges, index_adjusts);
+    }
+}
+
+void
+JoinCreatorBase::
+process_chunk(const RangeAndChunk &ch,
+              fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+              fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+              fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+              fastuidraw::c_array<int> index_adjusts)
+{
+  unsigned int K;
+  fastuidraw::range_type<int> vr, ir;
+
+  if (ch.m_elements.m_begin < ch.m_elements.m_end)
+    {
+      vr.m_begin = join_vertex_ranges[ch.m_elements.m_begin].m_begin;
+      vr.m_end = join_vertex_ranges[ch.m_elements.m_end - 1].m_end;
+
+      ir.m_begin = join_index_ranges[ch.m_elements.m_begin].m_begin;
+      ir.m_end = join_index_ranges[ch.m_elements.m_end - 1].m_end;
+    }
+  else
+    {
+      vr.m_begin = vr.m_end = 0;
+      ir.m_begin = ir.m_end = 0;
+    }
+
+  std::cout << "Join Chunk #" << ch.m_chunk << ":"
+            << "\n\tvertex_range = " << vr
+            << "\n\tindex_range = " << ir
+            << "\n\tzrange = " << ch.m_depth_range
+            << "\n";
+
+  K = ch.m_chunk;
+  attribute_chunks[K] = attribute_data.sub_array(vr);
+  index_chunks[K] = index_data.sub_array(ir);
+  zranges[K] = fastuidraw::range_type<int>(ch.m_depth_range.m_begin, ch.m_depth_range.m_end);
+  index_adjusts[K] = -int(vr.m_begin);
+}
+
+/////////////////////////////////////////////////
+// RoundedJoinCreator::PerRoundedJoin methods
+RoundedJoinCreator::PerRoundedJoin::
+PerRoundedJoin(const PerJoinData &J, float thresh):
+  PerJoinData(J)
+{
+  /* n0z represents the start point of the rounded join in the complex plane
+   * as if the join was at the origin, n1z represents the end point of the
+   * rounded join in the complex plane as if the join was at the origin.
+   */
+  std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
+  std::complex<float> n1z(m_lambda * n1().x(), m_lambda * n1().y());
+
+  /* n1z_times_conj_n0z satisfies:
+   * n1z = n1z_times_conj_n0z * n0z
+   * i.e. it represents the arc-movement from n0z to n1z
+   */
+  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
+
+  m_arc_start = n0z;
+  m_delta_theta = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
+  m_num_arc_points = fastuidraw::detail::number_segments_for_tessellation(m_delta_theta, thresh);
+  m_delta_theta /= static_cast<float>(m_num_arc_points - 1);
+}
+
+void
+RoundedJoinCreator::PerRoundedJoin::
+add_data(unsigned int depth,
+         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+         unsigned int &vertex_offset,
+         fastuidraw::c_array<unsigned int> indices,
+         unsigned int &index_offset) const
+{
+  unsigned int i, first;
+  float theta;
+  fastuidraw::StrokedPoint pt;
+
+  first = vertex_offset;
+  set_distance_values(&pt);
+
+  pt.m_position = m_p;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = m_p;
+  pt.m_pre_offset = m_lambda * n0();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  for(i = 1, theta = m_delta_theta; i < m_num_arc_points - 1; ++i, theta += m_delta_theta, ++vertex_offset)
+    {
+      float t, c, s;
+      std::complex<float> cs_as_complex;
+
+      t = static_cast<float>(i) / static_cast<float>(m_num_arc_points - 1);
+      c = fastuidraw::t_cos(theta);
+      s = fastuidraw::t_sin(theta);
+      cs_as_complex = std::complex<float>(c, s) * m_arc_start;
+
+      pt.m_position = m_p;
+      pt.m_pre_offset = m_lambda * fastuidraw::vec2(n0().x(), n1().x());
+      pt.m_auxiliary_offset = fastuidraw::vec2(t, cs_as_complex.real());
+      pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_rounded_join, depth);
+
+      if (m_lambda * n0().y() < 0.0f)
+        {
+          pt.m_packed_data |= fastuidraw::StrokedPoint::normal0_y_sign_mask;
+        }
+
+      if (m_lambda * n1().y() < 0.0f)
+        {
+          pt.m_packed_data |= fastuidraw::StrokedPoint::normal1_y_sign_mask;
+        }
+
+      if (cs_as_complex.imag() < 0.0f)
+        {
+          pt.m_packed_data |= fastuidraw::StrokedPoint::sin_sign_mask;
+        }
+      pt.pack_point(&pts[vertex_offset]);
+    }
+
+  pt.m_position = m_p;
+  pt.m_pre_offset = m_lambda * n1();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
+}
+
+///////////////////////////////////////////////////
+// RoundedJoinCreator methods
+RoundedJoinCreator::
+RoundedJoinCreator(const CapJoinChunkDepthTracking &P,
+                   const SubsetPrivate *st,
+                   float thresh):
+  JoinCreatorBase(P, st),
+  m_thresh(thresh)
+{
+  m_per_join_data.reserve(P.m_join_ordering.size());
+  post_ctor_initalize();
+}
+
+void
+RoundedJoinCreator::
+add_join(unsigned int join_id, const PerJoinData &join,
+         unsigned int &vert_count, unsigned int &index_count) const
+{
+  FASTUIDRAWunused(join_id);
+  PerRoundedJoin J(join, m_thresh);
+
+  m_per_join_data.push_back(J);
+
+  /* a triangle fan centered at J.m_p with
+   * J.m_num_arc_points along an edge
+   */
+  vert_count += (1 + J.m_num_arc_points);
+  index_count += 3 * (J.m_num_arc_points - 1);
+}
+
+void
+RoundedJoinCreator::
+fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
+                    fastuidraw::c_array<unsigned int> indices,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWunused(join);
+  FASTUIDRAWassert(join_id < m_per_join_data.size());
+  m_per_join_data[join_id].add_data(depth, pts, vertex_offset, indices, index_offset);
+}
+
+////////////////////////////////////////////////
+// ArcRoundedJoinCreator::PerArcRoundedJoin methods
+ArcRoundedJoinCreator::PerArcRoundedJoin::
+PerArcRoundedJoin(const PerJoinData &J):
+  PerJoinData(J)
+{
+  const float per_arc_angle_max(FASTUIDRAW_PI / 4.0);
+  float delta_angle_mag;
+
+  std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
+  std::complex<float> n1z(m_lambda * n1().x(), m_lambda * n1().y());
+  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
+
+  m_arc_start = n0z;
+  m_delta_angle = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(),
+                                      n1z_times_conj_n0z.real());
+  delta_angle_mag = fastuidraw::t_abs(m_delta_angle);
+
+  m_count = 1u + static_cast<unsigned int>(delta_angle_mag / per_arc_angle_max);
+  fastuidraw::detail::compute_arc_join_size(m_count, &m_vertex_count, &m_index_count);
+}
+
+void
+ArcRoundedJoinCreator::PerArcRoundedJoin::
+add_data(unsigned int depth,
+         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+         unsigned int &vertex_offset,
+         fastuidraw::c_array<unsigned int> indices,
+         unsigned int &index_offset) const
+{
+  fastuidraw::ArcStrokedPoint pt;
+
+  set_distance_values(&pt);
+  pt.m_position = m_p;
+  fastuidraw::detail::pack_arc_join(pt, m_count, m_lambda * n0(),
+                                    m_delta_angle, m_lambda * n1(),
+                                    depth, pts, vertex_offset,
+                                    indices, index_offset, true);
+}
+
+///////////////////////////////////////////////////
+// ArcRoundedJoinCreator methods
+ArcRoundedJoinCreator::
+ArcRoundedJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+  JoinCreatorBase(P, st)
+{
+  m_per_join_data.reserve(P.m_join_ordering.size());
+  post_ctor_initalize();
+}
+
+void
+ArcRoundedJoinCreator::
+add_join(unsigned int join_id, const PerJoinData &join,
+         unsigned int &vert_count, unsigned int &index_count) const
+{
+  FASTUIDRAWunused(join_id);
+  PerArcRoundedJoin J(join);
+
+  m_per_join_data.push_back(J);
+
+  vert_count += J.m_vertex_count;
+  index_count += J.m_index_count;
+}
+
+void
+ArcRoundedJoinCreator::
+fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
+                    fastuidraw::c_array<unsigned int> indices,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWunused(join);
+  FASTUIDRAWassert(join_id < m_per_join_data.size());
+  m_per_join_data[join_id].add_data(depth, pts, vertex_offset, indices, index_offset);
+}
+
+///////////////////////////////////////////////////
+// BevelJoinCreator methods
+BevelJoinCreator::
+BevelJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+  JoinCreatorBase(P, st)
+{
+  post_ctor_initalize();
+}
+
+void
+BevelJoinCreator::
+add_join(unsigned int join_id, const PerJoinData &join,
+         unsigned int &vert_count, unsigned int &index_count) const
+{
+  FASTUIDRAWunused(join_id);
+  FASTUIDRAWunused(join);
+
+  /* one triangle per bevel join */
+  vert_count += 3;
+  index_count += 3;
+}
+
+void
+BevelJoinCreator::
+fill_join_implement(unsigned int join_id, const PerJoinData &J,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
+                    fastuidraw::c_array<unsigned int> indices,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWunused(join_id);
+
+  fastuidraw::StrokedPoint pt;
+  J.set_distance_values(&pt);
+
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.m_lambda * J.n0();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset + 0]);
+
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset + 1]);
+
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.m_lambda * J.n1();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset + 2]);
+
+  fastuidraw::detail::add_triangle_fan(vertex_offset, vertex_offset + 3, indices, index_offset);
+
+  vertex_offset += 3;
+}
+
+
+
+///////////////////////////////////////////////////
+// MiterClipJoinCreator methods
+MiterClipJoinCreator::
+MiterClipJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+  JoinCreatorBase(P, st)
+{
+  post_ctor_initalize();
+}
+
+void
+MiterClipJoinCreator::
+add_join(unsigned int join_id, const PerJoinData &join,
+         unsigned int &vert_count, unsigned int &index_count) const
+{
+  FASTUIDRAWunused(join_id);
+  FASTUIDRAWunused(join);
+
+  /* Each join is a triangle fan from 5 points
+   * (thus 3 triangles, which is 9 indices)
+   */
+  vert_count += 5;
+  index_count += 9;
+}
+
+
+void
+MiterClipJoinCreator::
+fill_join_implement(unsigned int join_id, const PerJoinData &J,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
+                    fastuidraw::c_array<unsigned int> indices,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWunused(join_id);
+  fastuidraw::StrokedPoint pt;
+  unsigned int first;
+
+  /* The miter point is given by where the two boundary
+   * curves intersect. The two curves are given by:
+   *
+   * a(t) = J.m_p0 + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
+   * b(s) = J.m_p1 + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
+   *
+   * With J.m_0 is  the location of the join.
+   *
+   * We need to solve a(t) = b(s) and compute that location.
+   * Linear algebra gives us that:
+   *
+   * t = - stroke_width * J.m_lamba * r
+   * s = - stroke_width * J.m_lamba * r
+   * where
+   * r = (<J.m_v1, J.m_v0> - 1) / <J.m_v0, J.m_n1>
+   *
+   * thus
+   *
+   * a(t) = J.m_p + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
+   *     = b(s)
+   *     = J.m_p + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
+   */
+
+  first = vertex_offset;
+  J.set_distance_values(&pt);
+
+  // join center point.
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // join point from curve into join
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.m_lambda * J.n0();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // miter point A
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.n0();
+  pt.m_auxiliary_offset = J.n1();
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // miter point B
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.n1();
+  pt.m_auxiliary_offset = J.n0();
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join, depth);
+  pt.m_packed_data |= fastuidraw::StrokedPoint::lambda_negated_mask;
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // join point from curve out from join
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.m_lambda * J.n1();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
+}
+
+
+////////////////////////////////////
+// MiterJoinCreator methods
+template<enum fastuidraw::StrokedPoint::offset_type_t tp>
+MiterJoinCreator<tp>::
+MiterJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+  JoinCreatorBase(P, st)
+{
+  post_ctor_initalize();
+}
+
+template<enum fastuidraw::StrokedPoint::offset_type_t tp>
+void
+MiterJoinCreator<tp>::
+add_join(unsigned int join_id, const PerJoinData &J,
+         unsigned int &vert_count, unsigned int &index_count) const
+{
+  /* Each join is a triangle fan from 4 points
+   * (thus 2 triangles, which is 6 indices)
+   */
+  FASTUIDRAWunused(join_id);
+  FASTUIDRAWunused(J);
+
+  vert_count += 4;
+  index_count += 6;
+}
+
+template<enum fastuidraw::StrokedPoint::offset_type_t tp>
+void
+MiterJoinCreator<tp>::
+fill_join_implement(unsigned int join_id, const PerJoinData &J,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
+                    fastuidraw::c_array<unsigned int> indices,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWunused(join_id);
+
+  fastuidraw::StrokedPoint pt;
+  unsigned int first;
+
+  first = vertex_offset;
+  J.set_distance_values(&pt);
+
+  // join center point.
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // join point from curve into join
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.m_lambda * J.n0();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // miter point
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.n0();
+  pt.m_auxiliary_offset = J.n1();
+  pt.m_packed_data = pack_data_join(1, tp, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // join point from curve out from join
+  pt.m_position = J.m_p;
+  pt.m_pre_offset = J.m_lambda * J.n1();
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
+}
+
+
+///////////////////////////////////////////////
+// CapCreatorBase methods
+CapCreatorBase::
+CapCreatorBase(const CapJoinChunkDepthTracking &P,
+               const SubsetPrivate *st,
+               PointIndexCapSize sz):
+  m_ordering(P.m_cap_ordering),
+  m_st(st),
+  m_num_chunks(P.m_cap_chunk_cnt),
+  m_size(sz)
+{
+}
+
+void
+CapCreatorBase::
+compute_sizes(unsigned int &num_attributes,
+              unsigned int &num_indices,
+              unsigned int &num_attribute_chunks,
+              unsigned int &num_index_chunks,
+              unsigned int &number_z_ranges) const
+{
+  num_attributes = m_size.m_verts;
+  num_indices = m_size.m_indices;
+  number_z_ranges = num_attribute_chunks = num_index_chunks = m_num_chunks;
+}
+
+void
+CapCreatorBase::
+fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+          fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+          fastuidraw::c_array<int> index_adjusts) const
+{
+  unsigned int vertex_offset(0u), index_offset(0u), cap_id(0u);
+  std::vector<fastuidraw::range_type<int> > cvr(m_num_chunks), cir(m_num_chunks);
+
+  for(const OrderingEntry<PerCapData> &C : m_ordering.elements())
+    {
+      unsigned int v(vertex_offset), i(index_offset);
+
+      add_cap(C, C.m_depth, attribute_data, index_data, vertex_offset, index_offset);
+
+      cvr[cap_id].m_begin = v;
+      cvr[cap_id].m_end = vertex_offset;
+
+      cir[cap_id].m_begin = i;
+      cir[cap_id].m_end = index_offset;
+
+      attribute_chunks[C.m_chunk] = attribute_data.sub_array(cvr[cap_id]);
+      index_chunks[C.m_chunk] = index_data.sub_array(cir[cap_id]);
+      zranges[C.m_chunk] = fastuidraw::range_type<int>(C.m_depth, C.m_depth + 1);
+      index_adjusts[C.m_chunk] = -int(v);
+
+      ++cap_id;
+    }
+
+  FASTUIDRAWassert(vertex_offset == m_size.m_verts);
+  FASTUIDRAWassert(index_offset == m_size.m_indices);
+
+  set_chunks(m_st,
+             fastuidraw::make_c_array(cvr),
+             fastuidraw::make_c_array(cir),
+             attribute_data, index_data,
+             attribute_chunks, index_chunks,
+             zranges, index_adjusts);
+}
+
+void
+CapCreatorBase::
+set_chunks(const SubsetPrivate *st,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > cap_vertex_ranges,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > cap_index_ranges,
+           fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+           fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+           fastuidraw::c_array<int> index_adjusts)
+{
+  const RangeAndChunk &ch(st->caps());
+  fastuidraw::range_type<int> vr, ir;
+  unsigned int K;
+
+  if (ch.m_elements.m_begin < ch.m_elements.m_end)
+    {
+      vr.m_begin = cap_vertex_ranges[ch.m_elements.m_begin].m_begin;
+      vr.m_end = cap_vertex_ranges[ch.m_elements.m_end - 1].m_end;
+
+      ir.m_begin = cap_index_ranges[ch.m_elements.m_begin].m_begin;
+      ir.m_end = cap_index_ranges[ch.m_elements.m_end - 1].m_end;
+
+      FASTUIDRAWassert(ch.m_depth_range.m_begin < ch.m_depth_range.m_end);
+    }
+  else
+    {
+      vr.m_begin = vr.m_end = 0;
+      ir.m_begin = ir.m_end = 0;
+      FASTUIDRAWassert(ch.m_depth_range.m_begin == ch.m_depth_range.m_end);
+    }
+
+  K = ch.m_chunk;
+  attribute_chunks[K] = attribute_data.sub_array(vr);
+  index_chunks[K] = index_data.sub_array(ir);
+  zranges[K] = fastuidraw::range_type<int>(ch.m_depth_range.m_begin, ch.m_depth_range.m_end);
+  index_adjusts[K] = -int(vr.m_begin);
+
+  if (st->has_children())
+    {
+      set_chunks(st->child(0),
+                 cap_vertex_ranges, cap_index_ranges,
+                 attribute_data, index_data,
+                 attribute_chunks, index_chunks,
+                 zranges, index_adjusts);
+
+      set_chunks(st->child(1),
+                 cap_vertex_ranges, cap_index_ranges,
+                 attribute_data, index_data,
+                 attribute_chunks, index_chunks,
+                 zranges, index_adjusts);
+    }
+}
+
+///////////////////////////////////////////////////
+// RoundedCapCreator methods
+RoundedCapCreator::
+RoundedCapCreator(const CapJoinChunkDepthTracking &P,
+                  const SubsetPrivate *st,
+                  float thresh):
+  CapCreatorBase(P, st, compute_size(P, thresh))
+{
+  m_num_arc_points_per_cap = fastuidraw::detail::number_segments_for_tessellation(FASTUIDRAW_PI, thresh);
+  m_delta_theta = static_cast<float>(FASTUIDRAW_PI) / static_cast<float>(m_num_arc_points_per_cap - 1);
+}
+
+PointIndexCapSize
+RoundedCapCreator::
+compute_size(const CapJoinChunkDepthTracking &P, float thresh)
+{
+  unsigned int num_caps, num_arc_points_per_cap;
+  PointIndexCapSize return_value;
+
+  num_arc_points_per_cap = fastuidraw::detail::number_segments_for_tessellation(FASTUIDRAW_PI, thresh);
+
+  /* each cap is a triangle fan centered at the cap point. */
+  num_caps = P.m_cap_ordering.size();
+  return_value.m_verts = (1 + num_arc_points_per_cap) * num_caps;
+  return_value.m_indices = 3 * (num_arc_points_per_cap - 1) * num_caps;
+
+  return return_value;
+}
+
+void
+RoundedCapCreator::
+add_cap(const PerCapData &C, unsigned int depth,
+        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+        fastuidraw::c_array<unsigned int> indices,
+        unsigned int &vertex_offset,
+        unsigned int &index_offset) const
+{
+  fastuidraw::vec2 n, v;
+  unsigned int first, i;
+  float theta;
+  fastuidraw::StrokedPoint pt;
+
+  first = vertex_offset;
+  v = C.m_unit_vector;
+  n = fastuidraw::vec2(-v.y(), v.x());
+  C.set_distance_values(&pt);
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = n;
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  for(i = 1, theta = m_delta_theta; i < m_num_arc_points_per_cap - 1; ++i, theta += m_delta_theta, ++vertex_offset)
+    {
+      float s, c;
+
+      s = fastuidraw::t_sin(theta);
+      c = fastuidraw::t_cos(theta);
+      pt.m_position = C.m_p;
+      pt.m_pre_offset = n;
+      pt.m_auxiliary_offset = fastuidraw::vec2(s, c);
+      pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_rounded_cap, depth);
+      pt.pack_point(&pts[vertex_offset]);
+    }
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = -n;
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
+}
+
+///////////////////////////////////////////////////
+// SquareCapCreator methods
+PointIndexCapSize
+SquareCapCreator::
+compute_size(const CapJoinChunkDepthTracking &P)
+{
+  PointIndexCapSize return_value;
+  unsigned int num_caps;
+
+  /* each square cap generates 5 new points
+   * and 3 triangles (= 9 indices)
+   */
+  num_caps = P.m_cap_ordering.size();
+  return_value.m_verts = 5 * num_caps;
+  return_value.m_indices = 9 * num_caps;
+
+  return return_value;
+}
+
+void
+SquareCapCreator::
+add_cap(const PerCapData &C, unsigned int depth,
+        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+        fastuidraw::c_array<unsigned int> indices,
+        unsigned int &vertex_offset,
+        unsigned int &index_offset) const
+{
+  unsigned int first;
+  fastuidraw::vec2 n, v;
+  fastuidraw::StrokedPoint pt;
+
+  first = vertex_offset;
+  v = C.m_unit_vector;
+  n = fastuidraw::vec2(-v.y(), v.x());
+  C.set_distance_values(&pt);
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = n;
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = n;
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_square_cap, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = -n;
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_square_cap, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = -n;
+  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
+}
+
+//////////////////////////////////////
+// AdjustableCapCreator methods
+PointIndexCapSize
+AdjustableCapCreator::
+compute_size(const CapJoinChunkDepthTracking &P)
+{
+  PointIndexCapSize return_value;
+  unsigned int num_caps;
+
+  num_caps = P.m_cap_ordering.size();
+  return_value.m_verts = number_points_per_fan * num_caps;
+  return_value.m_indices = number_indices_per_fan * num_caps;
+
+  return return_value;
+}
+
+void
+AdjustableCapCreator::
+add_cap(const PerCapData &C, unsigned int depth,
+        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+        fastuidraw::c_array<unsigned int> indices,
+        unsigned int &vertex_offset,
+        unsigned int &index_offset) const
+{
+  using namespace fastuidraw;
+  enum StrokedPoint::offset_type_t type;
+  vec2 n, v;
+  unsigned int first;
+  uint32_t mask;
+  StrokedPoint pt;
+
+  mask = (C.m_is_starting_cap) ? 0u :
+    uint32_t(StrokedPoint::adjustable_cap_is_end_contour_mask);
+  type = StrokedPoint::offset_adjustable_cap;
+
+  first = vertex_offset;
+  v = C.m_unit_vector;
+  n = vec2(-v.y(), v.x());
+  C.set_distance_values(&pt);
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(0, type, depth) | mask;
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = n;
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(1, type, depth) | mask;
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = n;
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(0, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = -n;
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_pre_offset = -n;
+  pt.m_auxiliary_offset = v;
+  pt.m_packed_data = pack_data(1, type, depth) | mask;
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
+}
+
+///////////////////////////////////////////
+// ArcRoundedCapCreator methods
+ArcRoundedCapCreator::
+ArcRoundedCapCreator(const CapJoinChunkDepthTracking &P,
+                     const SubsetPrivate *st):
+  CapCreatorBase(P, st, compute_size(P))
+{
+}
+
+PointIndexCapSize
+ArcRoundedCapCreator::
+compute_size(const CapJoinChunkDepthTracking &P)
+{
+  unsigned int num_caps;
+  PointIndexCapSize return_value;
+  unsigned int verts_per_cap, indices_per_cap;
+
+  /* each cap is a triangle fan centered at the cap point. */
+  num_caps = P.m_cap_ordering.size();
+  fastuidraw::detail::compute_arc_join_size(num_arcs_per_cap, &verts_per_cap, &indices_per_cap);
+  return_value.m_verts = verts_per_cap * num_caps;
+  return_value.m_indices = indices_per_cap * num_caps;
+
+  return return_value;
+}
+
+void
+ArcRoundedCapCreator::
+add_cap(const PerCapData &C, unsigned int depth,
+        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+        fastuidraw::c_array<unsigned int> indices,
+        unsigned int &vertex_offset,
+        unsigned int &index_offset) const
+{
+  fastuidraw::ArcStrokedPoint pt;
+  fastuidraw::vec2 n, v;
+
+  pt.m_position = C.m_p;
+  C.set_distance_values(&pt);
+  v = C.m_unit_vector;
+  n = fastuidraw::vec2(v.y(), -v.x());
+
+  fastuidraw::detail::pack_arc_join(pt, num_arcs_per_cap,
+                                    n, FASTUIDRAW_PI, -n,
+                                    depth, pts, vertex_offset,
+                                    indices, index_offset, true);
 }
 
 ////////////////////////////////////////
@@ -1316,15 +3160,11 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
 StrokedPathPrivate::
 StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
   m_has_arcs(P.has_arcs()),
-  m_caps_joins(P.partitioned()),
   m_root(nullptr)
 {
-  if (!P.segment_data().empty())
-    {
-      m_path_partioned = &P.partitioned();
-      m_subsets.resize(m_path_partioned->number_subsets());
-      m_root = SubsetPrivate::create_root_subset(m_has_arcs, *m_path_partioned, m_subsets);
-    }
+  m_path_partioned = &P.partitioned();
+  m_subsets.resize(m_path_partioned->number_subsets());
+  m_root = SubsetPrivate::create_root_subset(m_has_arcs, m_cap_join_tracking, *m_path_partioned, m_subsets);
 }
 
 StrokedPathPrivate::
@@ -1333,6 +3173,61 @@ StrokedPathPrivate::
   if (m_root)
     {
       FASTUIDRAWdelete(m_root);
+    }
+
+  for(unsigned int i = 0, endi = m_rounded_joins.size(); i < endi; ++i)
+    {
+      FASTUIDRAWdelete(m_rounded_joins[i].m_data);
+    }
+
+  for(unsigned int i = 0, endi = m_rounded_caps.size(); i < endi; ++i)
+    {
+      FASTUIDRAWdelete(m_rounded_caps[i].m_data);
+    }
+}
+
+template<typename T>
+const fastuidraw::PainterAttributeData&
+StrokedPathPrivate::
+fetch_create(float thresh, std::vector<ThreshWithData> &values)
+{
+  if (values.empty())
+    {
+      fastuidraw::PainterAttributeData *newD;
+      newD = FASTUIDRAWnew fastuidraw::PainterAttributeData();
+      newD->set_data(T(m_cap_join_tracking, m_root, 1.0f));
+      values.push_back(ThreshWithData(newD, 1.0f));
+    }
+
+  /* we set a hard tolerance of 1e-6. Should we
+   * set it as a ratio of the bounding box of
+   * the underlying tessellated path?
+   */
+  thresh = fastuidraw::t_max(thresh, float(1e-6));
+  if (values.back().m_thresh <= thresh)
+    {
+      std::vector<ThreshWithData>::const_iterator iter;
+      iter = std::lower_bound(values.begin(), values.end(), thresh,
+                              ThreshWithData::reverse_compare_against_thresh);
+      FASTUIDRAWassert(iter != values.end());
+      FASTUIDRAWassert(iter->m_thresh <= thresh);
+      FASTUIDRAWassert(iter->m_data != nullptr);
+      return *iter->m_data;
+    }
+  else
+    {
+      float t;
+      t = values.back().m_thresh;
+      while(t > thresh)
+        {
+          fastuidraw::PainterAttributeData *newD;
+
+          t *= 0.5f;
+          newD = FASTUIDRAWnew fastuidraw::PainterAttributeData();
+          newD->set_data(T(m_cap_join_tracking, m_root, t));
+          values.push_back(ThreshWithData(newD, t));
+        }
+      return *values.back().m_data;
     }
 }
 
@@ -1436,6 +3331,26 @@ children(void) const
 
   Subset s0(p0), s1(p1);
   return vecN<Subset, 2>(s0, s1);
+}
+
+int
+fastuidraw::StrokedPath::Subset::
+cap_chunk(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->cap_chunk();
+}
+
+int
+fastuidraw::StrokedPath::Subset::
+join_chunk(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->join_chunk();
 }
 
 //////////////////////////////////////////////////////////////
@@ -1569,15 +3484,6 @@ root_subset(void) const
   return Subset(d->m_root);
 }
 
-const fastuidraw::StrokedCapsJoins&
-fastuidraw::StrokedPath::
-caps_joins(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins;
-}
-
 const fastuidraw::PartitionedTessellatedPath&
 fastuidraw::StrokedPath::
 partitioned_path(void) const
@@ -1585,4 +3491,95 @@ partitioned_path(void) const
   StrokedPathPrivate *d;
   d = static_cast<StrokedPathPrivate*>(m_d);
   return *d->m_path_partioned;
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+square_caps(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_square_caps.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+adjustable_caps(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_adjustable_caps.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+bevel_joins(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_bevel_joins.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+miter_clip_joins(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_miter_clip_joins.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+miter_bevel_joins(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_miter_bevel_joins.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+miter_joins(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_miter_joins.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+arc_rounded_joins(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_arc_rounded_joins.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+arc_rounded_caps(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_arc_rounded_caps.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+rounded_joins(float thresh) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+
+  return d->fetch_create<RoundedJoinCreator>(thresh, d->m_rounded_joins);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+rounded_caps(float thresh) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->fetch_create<RoundedCapCreator>(thresh, d->m_rounded_caps);
 }
