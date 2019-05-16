@@ -451,6 +451,12 @@ public:
     float m_miter_distance;
 
     /*!
+     * This gives the angle (in degrees) between the start and
+     * end points of the join.
+     */
+    float m_join_angle;
+
+    /*!
      * Gives the normal vector to going into the join
      */
     vec2

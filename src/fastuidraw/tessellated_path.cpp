@@ -20,6 +20,7 @@
 #include <list>
 #include <vector>
 #include <algorithm>
+#include <complex>
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
@@ -168,6 +169,34 @@ namespace
         return;
       }
     J.m_miter_distance = t_sqrt(1.0f + mag_s * mag_s);
+  }
+
+  inline
+  void
+  set_join_angle(fastuidraw::TessellatedPath::join &J)
+  {
+    /* n0z represents the start point of the rounded join in the complex plane
+     * as if the join was at the origin, n1z represents the end point of the
+     * rounded join in the complex plane as if the join was at the origin.
+     */
+    std::complex<float> n0z(J.m_lambda * J.enter_join_normal().x(), J.m_lambda * J.enter_join_normal().y());
+    std::complex<float> n1z(J.m_lambda * J.leaving_join_normal().x(), J.m_lambda * J.leaving_join_normal().y());
+
+    /* n1z_times_conj_n0z satisfies:
+     * n1z = n1z_times_conj_n0z * n0z
+     * i.e. it represents the arc-movement from n0z to n1z
+     */
+    std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
+    J.m_join_angle = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
+  }
+
+  inline
+  void
+  set_derived_values(fastuidraw::TessellatedPath::join &J)
+  {
+    set_lambda(J);
+    set_miter_distance(J);
+    set_join_angle(J);
   }
 
   class RefinerEdge
@@ -922,8 +951,7 @@ finalize(TessellatedPathBuildingState &b)
               J.m_distance_from_previous_join = prev_segment->m_distance_from_edge_start + prev_segment->m_length;
               J.m_distance_from_contour_start = prev_segment->m_distance_from_contour_start + prev_segment->m_length;
               J.m_contour_length = edge_segs.front().m_contour_length;
-              set_lambda(J);
-              set_miter_distance(J);
+              set_derived_values(J);
               m_join_data.push_back(J);
             }
 
