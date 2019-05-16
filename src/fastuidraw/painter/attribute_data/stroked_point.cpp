@@ -33,6 +33,16 @@ namespace
     pt->m_distance_from_contour_start = J.m_distance_from_contour_start;
   }
 
+  void
+  set_distance_values(const fastuidraw::TessellatedPath::cap &C,
+                      fastuidraw::StrokedPoint *pt)
+  {
+    pt->m_distance_from_edge_start = (C.m_is_starting_cap) ? 0.0f : C.m_edge_length;
+    pt->m_edge_length = C.m_edge_length;
+    pt->m_contour_length = C.m_contour_length;
+    pt->m_distance_from_contour_start = (C.m_is_starting_cap) ? 0.0f : C.m_contour_length;
+  }
+
   inline
   uint32_t
   pack_data(int on_boundary,
@@ -248,6 +258,183 @@ namespace
 
     fastuidraw::detail::add_triangle_fan(index_adjust, index_adjust + current_vertex, dst_indices);
   }
+
+  void
+  pack_square_cap(const fastuidraw::TessellatedPath::cap &C,
+                  unsigned int depth,
+                  fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                  fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                  unsigned int index_adjust)
+  {
+    fastuidraw::vec2 n, v;
+    fastuidraw::StrokedPoint pt;
+    unsigned int current_vertex(0);
+
+    v = C.m_unit_vector;
+    n = fastuidraw::vec2(-v.y(), v.x());
+    set_distance_values(C, &pt);
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_packed_data = pack_data(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = n;
+    pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = n;
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_square_cap, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = -n;
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_square_cap, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = -n;
+    pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    fastuidraw::detail::add_triangle_fan(index_adjust, index_adjust + current_vertex, dst_indices);
+  }
+
+  void
+  pack_adjustable_cap(const fastuidraw::TessellatedPath::cap &C,
+                      unsigned int depth,
+                      fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                      fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                      unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+
+    vec2 n, v;
+    StrokedPoint pt;
+    uint32_t mask;
+    unsigned int current_vertex(0);
+    enum StrokedPoint::offset_type_t type;
+
+    mask = (C.m_is_starting_cap) ? 0u :
+      uint32_t(StrokedPoint::adjustable_cap_is_end_contour_mask);
+    type = StrokedPoint::offset_adjustable_cap;
+
+    v = C.m_unit_vector;
+    n = vec2(-v.y(), v.x());
+    set_distance_values(C, &pt);
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = vec2(0.0f, 0.0f);
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(0, type, depth) | mask;
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = n;
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(1, type, depth) | mask;
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = n;
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = vec2(0.0f, 0.0f);
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(0, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = -n;
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = -n;
+    pt.m_auxiliary_offset = v;
+    pt.m_packed_data = pack_data(1, type, depth) | mask;
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    detail::add_triangle_fan(index_adjust, index_adjust + current_vertex, dst_indices);
+  }
+
+  void
+  pack_rounded_cap(const fastuidraw::TessellatedPath::cap &C,
+                   unsigned int depth,
+                   fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                   fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                   unsigned int index_adjust)
+  {
+    unsigned int i, num_arc_points_per_cap, current_vertex(0);
+    float theta, delta_theta;
+    fastuidraw::vec2 n, v;
+    fastuidraw::StrokedPoint pt;
+
+    v = C.m_unit_vector;
+    n = fastuidraw::vec2(-v.y(), v.x());
+    set_distance_values(C, &pt);
+
+    num_arc_points_per_cap = dst_attribs.size() - 1;
+    delta_theta = FASTUIDRAW_PI / static_cast<float>(num_arc_points_per_cap - 1);
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_packed_data = pack_data(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = n;
+    pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    for(i = 1, theta = delta_theta; i < num_arc_points_per_cap - 1; ++i, theta += delta_theta, ++current_vertex)
+      {
+        float s, c;
+
+        s = fastuidraw::t_sin(theta);
+        c = fastuidraw::t_cos(theta);
+        pt.m_position = C.m_position;
+        pt.m_pre_offset = n;
+        pt.m_auxiliary_offset = fastuidraw::vec2(s, c);
+        pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_rounded_cap, depth);
+        pt.pack_point(&dst_attribs[current_vertex]);
+      }
+
+    pt.m_position = C.m_position;
+    pt.m_pre_offset = -n;
+    pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
+    pt.pack_point(&dst_attribs[current_vertex]);
+    ++current_vertex;
+
+    fastuidraw::detail::add_triangle_fan(index_adjust, index_adjust + current_vertex, dst_indices);
+  }
 }
 
 //////////////////////////////////////
@@ -343,7 +530,49 @@ pack_join(enum PainterEnums::join_style js,
       break;
 
     default:
-      FASTUIDRAWmessaged_assert(false, "Invalid join style passed to pack_size()");
+      FASTUIDRAWmessaged_assert(false, "Invalid join style passed to pack_join()");
+      return;
+    }
+}
+
+void
+fastuidraw::StrokedPointPacking::
+pack_rounded_cap_size(float thresh,
+                      unsigned int *num_attributes,
+                      unsigned int *num_indices)
+{
+  unsigned int num_arc_points;
+
+  num_arc_points = detail::number_segments_for_tessellation(FASTUIDRAW_PI, thresh);
+  *num_attributes = 1 + num_arc_points;
+  *num_indices = 3 * (num_arc_points - 1);
+}
+
+void
+fastuidraw::StrokedPointPacking::
+pack_cap(enum cap_type_t cp,
+         const TessellatedPath::cap &cap,
+         unsigned int depth,
+         c_array<PainterAttribute> dst_attribs,
+         c_array<PainterIndex> dst_indices,
+         unsigned int index_adjust)
+{
+  switch (cp)
+    {
+    case square_cap:
+      pack_square_cap(cap, depth, dst_attribs, dst_indices, index_adjust);
+      break;
+
+    case adjustable_cap:
+      pack_adjustable_cap(cap, depth, dst_attribs, dst_indices, index_adjust);
+      break;
+
+    case rounded_cap:
+      pack_rounded_cap(cap, depth, dst_attribs, dst_indices, index_adjust);
+      break;
+
+    default:
+      FASTUIDRAWmessaged_assert(false, "Invalid cap style passed to pack_cap()");
       return;
     }
 }

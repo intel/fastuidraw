@@ -542,25 +542,35 @@ public:
  */
 namespace StrokedPointPacking
 {
+  /*!
+   */
+  enum cap_type_t
+    {
+      square_cap,
+      adjustable_cap,
+      rounded_cap
+    };
 
   /*!
    * \brief
    * Template class taking as argument a \ref PainterEnums::join_style
-   * which defines two enumerations:
-   * - number_attributes gives the number of attributes needed to pack a join
-   * - number_indices gives the number of attributes needed to pack a join
-   * NOTE: this is NOT defined for \ref PainterEnums::rounded_joins because
-   * the number of attributes and indices depends on the join and the threshold
-   * used to realize the join. To get the number of indices and attributes
-   * needed to pack a rounded join use \ref pack_rounded_join_size().
+   * or \ref cap_type_t which defines two enumerations:
+   * - number_attributes gives the number of attributes needed to pack a join or cap
+   * - number_indices gives the number of attributes needed to pack a join or cap
+   * NOTE: this is NOT defined for \ref PainterEnums::rounded_joins or \ref rounded_cap
+   * because the number of attributes and indices depends on the join or cap and the
+   * threshold used to realize the join or cap. To get the number of indices and
+   * attributes needed to pack a rounded join use \ref pack_rounded_join_size().
+   * To get the number of indices and attributes needed to pack a rounded cap use \ref
+   * pack_rounded_cap_size().
    */
-  template<enum PainterEnums::join_style>
-  class join_packing_size
+  template<typename T, T>
+  class packing_size
   {};
 
   ///@cond
   template<>
-  class join_packing_size<PainterEnums::no_joins>
+  class packing_size<enum PainterEnums::join_style, PainterEnums::no_joins>
   {
   public:
     enum
@@ -571,7 +581,7 @@ namespace StrokedPointPacking
   };
 
   template<>
-  class join_packing_size<PainterEnums::bevel_joins>
+  class packing_size<enum PainterEnums::join_style, PainterEnums::bevel_joins>
   {
   public:
     enum
@@ -582,7 +592,7 @@ namespace StrokedPointPacking
   };
 
   template<>
-  class join_packing_size<PainterEnums::miter_clip_joins>
+  class packing_size<enum PainterEnums::join_style, PainterEnums::miter_clip_joins>
   {
   public:
     enum
@@ -593,7 +603,7 @@ namespace StrokedPointPacking
   };
 
   template<>
-  class join_packing_size<PainterEnums::miter_bevel_joins>
+  class packing_size<enum PainterEnums::join_style, PainterEnums::miter_bevel_joins>
   {
   public:
     enum
@@ -604,13 +614,35 @@ namespace StrokedPointPacking
   };
 
   template<>
-  class join_packing_size<PainterEnums::miter_joins>
+  class packing_size<enum PainterEnums::join_style, PainterEnums::miter_joins>
   {
   public:
     enum
       {
         number_attributes = 4,
         number_indices = 6
+      };
+  };
+
+  template<>
+  class packing_size<enum cap_type_t, adjustable_cap>
+  {
+  public:
+    enum
+      {
+        number_attributes = 6,
+        number_indices = 12
+      };
+  };
+
+  template<>
+  class packing_size<enum cap_type_t, square_cap>
+  {
+  public:
+    enum
+      {
+        number_attributes = 5,
+        number_indices = 9
       };
   };
   ///@endcond
@@ -620,7 +652,7 @@ namespace StrokedPointPacking
    * StrokedPoint needed to pack a rounded join.
    * \param join join to realize a packed data
    * \param thresh the maximum distance allowed from the
-   *               approximation of the rounded join relized
+   *               approximation of the rounded join realized
    *               as triangles when the join is stroked
    *               with a stroking width of one.
    * \param num_attributes location to which to write the needed
@@ -635,7 +667,7 @@ namespace StrokedPointPacking
                          unsigned int *num_indices);
 
   /*!
-   * Pack the join into attribute data and index data
+   * Pack a join into attribute data and index data
    * realized with \ref StrokedPoint.
    * \param js join style to pack for
    * \param join join data to pack
@@ -647,12 +679,49 @@ namespace StrokedPointPacking
    *                     index values
    */
   void
-  pack_join(enum PainterEnums::join_style j,
+  pack_join(enum PainterEnums::join_style js,
             const TessellatedPath::join &join,
             unsigned int depth,
             c_array<PainterAttribute> dst_attribs,
             c_array<PainterIndex> dst_indices,
             unsigned int index_adjust);
+
+  /*!
+   * Returns the number of attributes realized with \ref
+   * StrokedPoint needed to pack a rounded cap.
+   * \param thresh the maximum distance allowed from the
+   *               approximation of the rounded cap realized
+   *               as triangles when the cap is stroked
+   *               with a stroking width of one.
+   * \param num_attributes location to which to write the needed
+   *                       number of attributes
+   * \param num_indices location to which to write the needed
+   *                       number of indices
+   */
+  void
+  pack_rounded_cap_size(float thresh,
+                        unsigned int *num_attributes,
+                        unsigned int *num_indices);
+
+  /*!
+   * Pack a cap into attribute data and index data
+   * realized with \ref StrokedPoint.
+   * \param cp join style to pack for
+   * \param cap cap data to pack
+   * \param depth the value for \ref depth() of the packed
+   *              \ref StrokedPoint values
+   * \param dst_attribs location to which to place the attributes
+   * \param dst_indices location to which to place the indices
+   * \param index_adjust value by which to increment the written
+   *                     index values
+   */
+  void
+  pack_cap(enum cap_type_t cp,
+           const TessellatedPath::cap &cap,
+           unsigned int depth,
+           c_array<PainterAttribute> dst_attribs,
+           c_array<PainterIndex> dst_indices,
+           unsigned int index_adjust);
 }
 
 /*! @} */
