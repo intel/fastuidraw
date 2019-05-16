@@ -801,6 +801,91 @@ finalize(TessellatedPathBuildingState &b)
 }
 
 //////////////////////////////////////////
+// fastuidraw::TessellatedPath::join methods
+float
+fastuidraw::TessellatedPath::join::
+lambda(void) const
+{
+  /* Explanation:
+   *  We have two curves, a(t) and b(t) with a(1) = b(0)
+   *  The point p0 represents the end of a(t) and the
+   *  point p1 represents the start of b(t).
+   *
+   *  When stroking we have four auxiliary curves:
+   *    a0(t) = a(t) + w * a_n(t)
+   *    a1(t) = a(t) - w * a_n(t)
+   *    b0(t) = b(t) + w * b_n(t)
+   *    b1(t) = b(t) - w * b_n(t)
+   *  where
+   *    w = width of stroking
+   *    a_n(t) = enter_join_normal() = J(m_enter_join_unit_vector)
+   *    b_n(t) = leaving_join_normal() = J(m_leaving_join_unit_vector)
+   *  where
+   *    J(x, y) = (-y, x).
+   *
+   *  A Bevel join is a triangle that connects
+   *  consists of p, A and B where p is a(1) = b(0),
+   *  A is one of a0(1) or a1(1) and B is one
+   *  of b0(0) or b1(0). Now if we use a0(1) for
+   *  A then we will use b0(0) for B because
+   *  the normals are generated the same way for
+   *  a(t) and b(t). Then, the questions comes
+   *  down to, do we wish to add or subtract the
+   *  normal. That value is represented by lambda.
+   *
+   *  Now to figure out lambda. Let q0 be a point
+   *  on a(t) before p = a(1). Then q0 is given by
+   *
+   *    q0 = p - s * m_enter_join_unit_vector
+   *
+   *  and let q1 be a point on b(t) after p=b(0),
+   *
+   *    q1 = p + t * m_leaving_join_unit_vector
+   *
+   *  where both s, t are positive. Let
+   *
+   *    z = (q0 + q1) / 2
+   *
+   *  the point z is then on the inside side of the
+   *  join.
+   *
+   *  With this in mind, if either of <z - p, enter_join_normal()>
+   *  or <z - p, leaving_join_normal() > is positive then we want
+   *  to add by -w * n (which means lambda is -1) rather than
+   *  w * n (lambda is +1).
+   *
+   *  Let
+   *    v0 = m_enter_join_unit_vector
+   *    v1 = m_leaving_join_unit_vector
+   *    n0 = J(v0) = enter_join_normal()
+   *    n1 = J(v1) = leaving_join_normal()
+   *
+   *  <z - p, n1> = 0.5 * <-s * v0 + t * v1, n1 >
+   *              = -0.5 * s * <v0, n1> + 0.5 * t * <v1, n1>
+   *              = -0.5 * s * <v0, n1>
+   *              = -0.5 * s * <v0, J(v1) >
+   *
+   *  and
+   *
+   *  <z-p, n0> = 0.5 * < -s * v0 + t * v1, n0 >
+   *            = -0.5 * s * <v0, n0> + 0.5 * t * <v1, n0>
+   *            = 0.5 * t * <v1, n0>
+   *            = 0.5 * t * <v1, J(v0) >
+   *            = -0.5 * t * <J(v1), v0>
+   *
+   *  (the last line because transpose(J) = -J). Notice that
+   *  the sign of <z - p, n1> and the sign of <z - p, n0>
+   *  is then the same. Thus,
+   *
+   *  lambda = -sign(<v1, n0>)
+   *         = -sign(<v1, J(n0)>)
+   *         =  sign(<J(v1), v0>)
+   */
+  return t_sign(dot(leaving_join_normal(),
+                    m_enter_join_unit_vector));
+}
+
+//////////////////////////////////////////
 // fastuidraw::TessellatedPath::segment methods
 enum fastuidraw::TessellatedPath::split_t
 fastuidraw::TessellatedPath::segment::

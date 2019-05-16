@@ -428,6 +428,38 @@ public:
      * segment::m_edge_id.
      */
     unsigned int m_edge_leaving_join_id;
+
+    /*!
+     * When stroking a join, one needs to know what side of the
+     * edge gets the join. For example a bevel join is formed by
+     * the triangle formed from the three points: the outer edge
+     * at the join of the segment going into the join, the outer
+     * edge of the segment leaving the join and the point where
+     * the segments meet. The value of lambda() gives the sign to
+     * apply to \ref enter_join_normal() and \ref leaving_join_normal()
+     * to get the unit vector from where the segments meet to the
+     * outer edge.
+     */
+    float
+    lambda(void) const;
+
+    /*!
+     * Gives the normal vector to going into the join
+     */
+    vec2
+    enter_join_normal(void) const
+    {
+      return vec2(-m_enter_join_unit_vector.y(), m_enter_join_unit_vector.x());
+    }
+
+    /*!
+     * Gives the normal vector to leaving from the join
+     */
+    vec2
+    leaving_join_normal(void) const
+    {
+      return vec2(-m_leaving_join_unit_vector.y(), m_leaving_join_unit_vector.x());
+    }
   };
 
   /*!
