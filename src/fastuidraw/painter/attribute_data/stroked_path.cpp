@@ -1329,7 +1329,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
 StrokedPathPrivate::
 StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
   m_has_arcs(P.has_arcs()),
-  m_caps_joins(P.join_data(), P.cap_data()),
+  m_caps_joins(P.partitioned()),
   m_root(nullptr)
 {
   if (!P.segment_data().empty())

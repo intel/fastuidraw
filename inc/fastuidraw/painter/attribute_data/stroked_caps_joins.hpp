@@ -25,6 +25,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw  {
@@ -121,12 +122,10 @@ public:
 
   /*!
    * Ctor.
-   * \param joins data specifying the geometry of the joins
-   * \param caps data specifying the geometry of the caps
+   * \param path source of join and cap data
    */
   explicit
-  StrokedCapsJoins(c_array<const TessellatedPath::join> joins,
-                   c_array<const TessellatedPath::cap> caps);
+  StrokedCapsJoins(const PartitionedTessellatedPath &path);
 
   ~StrokedCapsJoins();
 

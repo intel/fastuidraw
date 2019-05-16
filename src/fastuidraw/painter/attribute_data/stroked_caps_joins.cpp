@@ -57,7 +57,7 @@ namespace
   class PerJoinData
   {
   public:
-    PerJoinData(const fastuidraw::TessellatedPath::join &join);
+    PerJoinData(const fastuidraw::PartitionedTessellatedPath::join &join);
 
     const fastuidraw::vec2&
     n0(void) const
@@ -104,7 +104,7 @@ namespace
   class PerCapData
   {
   public:
-    PerCapData(const fastuidraw::TessellatedPath::cap &src):
+    PerCapData(const fastuidraw::PartitionedTessellatedPath::cap &src):
       m_tangent_into_cap(src.m_unit_vector),
       m_p(src.m_position),
       m_distance_from_edge_start(src.m_is_starting_cap ? 0.0f : src.m_edge_length),
@@ -214,8 +214,8 @@ namespace
   public:
     static
     CullingHierarchy*
-    create(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
-           fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps);
+    create(fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join> joins,
+           fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap> caps);
 
     ~CullingHierarchy();
 
@@ -1012,13 +1012,13 @@ namespace
   {
   public:
     explicit
-    StrokedCapsJoinsPrivate(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
-                            fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps);
+    StrokedCapsJoinsPrivate(fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join> joins,
+                            fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap> caps);
     ~StrokedCapsJoinsPrivate();
 
     void
-    create_joins_caps(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
-                      fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps);
+    create_joins_caps(fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join> joins,
+                      fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap> caps);
 
     template<typename T>
     const fastuidraw::PainterAttributeData&
@@ -1076,21 +1076,21 @@ post_process(fastuidraw::range_type<unsigned int> range,
 // CullingHierarchy methods
 CullingHierarchy*
 CullingHierarchy::
-create(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> in_joins,
-       fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> in_caps)
+create(fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join> in_joins,
+       fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap> in_caps)
 {
   std::vector<PerJoinData> joins;
   std::vector<PerCapData> caps;
   fastuidraw::BoundingBox<float> bounding_box;
   CullingHierarchy *return_value;
 
-  for (const fastuidraw::TessellatedPath::cap &cap : in_caps)
+  for (const fastuidraw::PartitionedTessellatedPath::cap &cap : in_caps)
     {
       caps.push_back(cap);
       bounding_box.union_point(cap.m_position);
     }
 
-  for (const fastuidraw::TessellatedPath::join &join : in_joins)
+  for (const fastuidraw::PartitionedTessellatedPath::join &join : in_joins)
     {
       joins.push_back(join);
       bounding_box.union_point(join.m_position);
@@ -1431,7 +1431,7 @@ compute_chunks_implement(ScratchSpacePrivate &scratch,
 ////////////////////////////////////////////////
 // PerJoinData methods
 PerJoinData::
-PerJoinData(const fastuidraw::TessellatedPath::join &join):
+PerJoinData(const fastuidraw::PartitionedTessellatedPath::join &join):
   m_p(join.m_position),
   m_tangent_into_join(join.m_enter_join_unit_vector),
   m_tangent_leaving_join(join.m_leaving_join_unit_vector),
@@ -2513,8 +2513,8 @@ add_cap(const PerCapData &C, unsigned int depth,
 /////////////////////////////////////////////
 // StrokedCapsJoinsPrivate methods
 StrokedCapsJoinsPrivate::
-StrokedCapsJoinsPrivate(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
-                        fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps):
+StrokedCapsJoinsPrivate(fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join> joins,
+                        fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap> caps):
   m_subset(nullptr)
 {
   if (!joins.empty() || !caps.empty())
@@ -2557,8 +2557,8 @@ StrokedCapsJoinsPrivate::
 
 void
 StrokedCapsJoinsPrivate::
-create_joins_caps(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
-                  fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps)
+create_joins_caps(fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join> joins,
+                  fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap> caps)
 {
   CullingHierarchy *s;
   SubsetPrivate::CreationValues cnts;
@@ -2733,10 +2733,9 @@ reset(void)
 //////////////////////////////////////////////////////////////
 // fastuidraw::StrokedCapsJoins methods
 fastuidraw::StrokedCapsJoins::
-StrokedCapsJoins(c_array<const TessellatedPath::join> joins,
-                 c_array<const TessellatedPath::cap> caps)
+StrokedCapsJoins(const PartitionedTessellatedPath &path)
 {
-  m_d = FASTUIDRAWnew StrokedCapsJoinsPrivate(joins, caps);
+  m_d = FASTUIDRAWnew StrokedCapsJoinsPrivate(path.joins(), path.caps());
 }
 
 fastuidraw::StrokedCapsJoins::
