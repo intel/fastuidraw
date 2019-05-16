@@ -172,5 +172,14 @@ namespace fastuidraw
     add_triangle_fan(PainterIndex begin, PainterIndex end,
                      c_array<PainterIndex> indices,
                      unsigned int &index_offset);
+    inline
+    unsigned int
+    add_triangle_fan(PainterIndex begin, PainterIndex end,
+                     c_array<PainterIndex> indices)
+    {
+      unsigned int index_offset(0);
+      add_triangle_fan(begin, end, indices, index_offset);
+      return index_offset;
+    }
   }
 }
