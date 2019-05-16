@@ -1590,3 +1590,12 @@ caps_joins(void) const
   d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_caps_joins;
 }
+
+const fastuidraw::PartitionedTessellatedPath&
+fastuidraw::StrokedPath::
+partitioned_path(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return *d->m_path_partioned;
+}

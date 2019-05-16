@@ -179,6 +179,16 @@ public:
   has_arcs(void) const;
 
   /*!
+   * Returns the source \ref PartitionedTessellatedPath of this
+   * \ref StrokedPath. The \ref PartitionedPath::Subset object
+   * returned by \ref PartitionedTessellatedPath::subset() refers
+   * to the exact same region as the \ref Subset object returned
+   * by \ref subset().
+   */
+  const PartitionedTessellatedPath&
+  partitioned_path(void) const;
+
+  /*!
    * Returns the number of Subset objects of the StrokedPath.
    */
   unsigned int
