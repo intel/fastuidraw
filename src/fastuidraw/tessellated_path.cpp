@@ -885,6 +885,62 @@ lambda(void) const
                     m_enter_join_unit_vector));
 }
 
+float
+fastuidraw::TessellatedPath::join::
+miter_distance(void) const
+{
+  /* We compute where the lines
+   *    A = { p + L * n0 + s * v0 | s >= 0 }
+   *    B = { p + L * n1 - t * v1 | t >= 0 }
+   * where
+   *    L = lambda()
+   *    v0 = m_enter_join_unit_vector
+   *    v1 = m_leaving_join_unit_vector
+   *    n0 = J(v0) = enter_join_normal()
+   *    n1 = J(v1) = leaving_join_normal()
+   *
+   * The intersect at s = lambda * (1 - <v0, v1>) / <n0, v1>
+   */
+
+  float abs_s, a_dot_b, Ja_dot_b;
+  Ja_dot_b = dot(m_leaving_join_unit_vector, enter_join_normal());
+  a_dot_b = dot(m_enter_join_unit_vector, m_leaving_join_unit_vector);
+
+  /* We only care about the absolute value of s. Because v0, v1
+   * have unit length and n0 = J(v0), n1 = J(v1) algebra gives
+   *
+   * |(1 - <v0, v1>) / <n0, v1> | = | <n0, v1> / (1.0 + <v0, v1>) |
+   *
+   * This can be realized direcltly or seeing that this is
+   * really a half tangent identity
+   *
+   *  tan(t / 2) = (1 - cos(t)) / sin(t)
+   *             = sin(t) / (1 + cost(t))
+   *
+   * where t is the angle between v0 and v1, i.e. dot(v0, v1) = cos(t)
+   * and from that n0 is v0 rotated by 0 degrees, up to sign,
+   * sin(t) = dot(n0, v1).
+   */
+  if (a_dot_b > 0.0f)
+    {
+      abs_s = Ja_dot_b / (1.0f + a_dot_b);
+    }
+  else if (t_abs(Ja_dot_b) != 0.0)
+    {
+      abs_s = (a_dot_b - 1.0f) / Ja_dot_b;
+    }
+  else
+    {
+      /* <v0, v1> is negative and <n0, v1> is "zero",
+       * meaning that v0 and v1 are anti-parallel which
+       * means that the miter-join goes on to infinity.
+       */
+      return -1.0f;
+    }
+
+  return t_sqrt(1.0f + abs_s * abs_s);
+}
+
 //////////////////////////////////////////
 // fastuidraw::TessellatedPath::segment methods
 enum fastuidraw::TessellatedPath::split_t

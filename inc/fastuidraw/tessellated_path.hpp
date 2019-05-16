@@ -444,6 +444,15 @@ public:
     lambda(void) const;
 
     /*!
+     * If this join is realized as a miter-join, returns the distance
+     * from the point of the join (i.e. where the segments intersect)
+     * to the tip of the miter join. If the path enter and leaving
+     * the join are parallel or anti-parallel, then return -1.0.
+     */
+    float
+    miter_distance(void) const;
+
+    /*!
      * Gives the normal vector to going into the join
      */
     vec2
