@@ -173,33 +173,6 @@ namespace
     fastuidraw::detail::add_triangle_fan(index_adjust, index_adjust + 4, dst_indices);
   }
 
-  class RoundJoinPackerHelper
-  {
-  public:
-    explicit
-    RoundJoinPackerHelper(const fastuidraw::TessellatedPath::join &J)
-    {
-      /* n0z represents the start point of the rounded join in the complex plane
-       * as if the join was at the origin, n1z represents the end point of the
-       * rounded join in the complex plane as if the join was at the origin.
-       */
-      std::complex<float> n0z(J.m_lambda * J.enter_join_normal().x(), J.m_lambda * J.enter_join_normal().y());
-      std::complex<float> n1z(J.m_lambda * J.leaving_join_normal().x(), J.m_lambda * J.leaving_join_normal().y());
-
-      /* n1z_times_conj_n0z satisfies:
-       * n1z = n1z_times_conj_n0z * n0z
-       * i.e. it represents the arc-movement from n0z to n1z
-       */
-      std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
-
-      m_arc_start = n0z;
-      m_theta = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
-    }
-
-    std::complex<float> m_arc_start;
-    float m_theta;
-  };
-
   void
   pack_rounded_join(const fastuidraw::TessellatedPath::join &J,
                     unsigned int depth,
@@ -209,12 +182,15 @@ namespace
   {
     /* the number of attributes will determine how many arc-points we have */
     unsigned int i, num_arc_points, current_vertex(0);
-    RoundJoinPackerHelper helper(J);
     fastuidraw::StrokedPoint pt;
     float theta, delta_theta;
+    fastuidraw::vec2 n0(J.m_lambda * J.enter_join_normal());
+    fastuidraw::vec2 n1(J.m_lambda * J.leaving_join_normal());
+    fastuidraw::vec2 pre_offset(n0.x(), n1.x());
+    std::complex<float> start(n0.x(), n0.y());
 
     num_arc_points = dst_attribs.size() - 1;
-    delta_theta = helper.m_theta / static_cast<float>(num_arc_points - 1);
+    delta_theta = J.m_join_angle / static_cast<float>(num_arc_points - 1);
     set_distance_values(J, &pt);
 
     pt.m_position = J.m_position;
@@ -239,19 +215,19 @@ namespace
         t = static_cast<float>(i) / static_cast<float>(num_arc_points - 1);
         c = fastuidraw::t_cos(theta);
         s = fastuidraw::t_sin(theta);
-        cs_as_complex = std::complex<float>(c, s) * helper.m_arc_start;
+        cs_as_complex = std::complex<float>(c, s) * start;
 
         pt.m_position = J.m_position;
-        pt.m_pre_offset = J.m_lambda * fastuidraw::vec2(J.enter_join_normal().x(), J.leaving_join_normal().x());
+        pt.m_pre_offset = pre_offset;
         pt.m_auxiliary_offset = fastuidraw::vec2(t, cs_as_complex.real());
         pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_rounded_join, depth);
 
-        if (J.m_lambda * J.enter_join_normal().y() < 0.0f)
+        if (n0.y() < 0.0f)
           {
             pt.m_packed_data |= fastuidraw::StrokedPoint::normal0_y_sign_mask;
           }
 
-        if (J.m_lambda * J.leaving_join_normal().y() < 0.0f)
+        if (n1.y() < 0.0f)
           {
             pt.m_packed_data |= fastuidraw::StrokedPoint::normal1_y_sign_mask;
           }
@@ -363,10 +339,9 @@ pack_rounded_size(const TessellatedPath::join &join,
                   unsigned int *num_attributes,
                   unsigned int *num_indices)
 {
-  RoundJoinPackerHelper helper(join);
   unsigned int num_arc_points;
 
-  num_arc_points = detail::number_segments_for_tessellation(helper.m_theta, thresh);
+  num_arc_points = detail::number_segments_for_tessellation(join.m_join_angle, thresh);
   *num_attributes = 1 + num_arc_points;
   *num_indices = 3 * (num_arc_points - 1);
 }
