@@ -581,8 +581,6 @@ namespace
                         unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
                         unsigned int &vertex_offset, unsigned int &index_offset) const;
-
-    unsigned int m_verts_per_join, m_indices_per_join;
   };
 
   typedef GenericJoinCreator<fastuidraw::PainterEnums::bevel_joins> BevelJoinCreator;
@@ -1527,7 +1525,7 @@ process_chunk(const RangeAndChunk &ch,
 RoundedJoinCreator::PerRoundedJoin::
 PerRoundedJoin(const PerJoinData &J, float thresh)
 {
-  fastuidraw::StrokedPoint::pack_rounded_join_size(J, thresh, &m_num_verts, &m_num_indices);
+  fastuidraw::StrokedPointPacking::pack_rounded_join_size(J, thresh, &m_num_verts, &m_num_indices);
 }
 
 ///////////////////////////////////////////////////
@@ -1568,8 +1566,8 @@ fill_join_implement(unsigned int join_id, const PerJoinData &join,
 
   pts = pts.sub_array(vertex_offset, m_per_join_data[join_id].m_num_verts);
   indices = indices.sub_array(index_offset, m_per_join_data[join_id].m_num_indices);
-  fastuidraw::StrokedPoint::pack_join(fastuidraw::PainterEnums::rounded_joins,
-                                      join, depth, pts, indices, vertex_offset);
+  fastuidraw::StrokedPointPacking::pack_join(fastuidraw::PainterEnums::rounded_joins,
+                                             join, depth, pts, indices, vertex_offset);
 
   vertex_offset += m_per_join_data[join_id].m_num_verts;
   index_offset += m_per_join_data[join_id].m_num_indices;
@@ -1657,11 +1655,8 @@ fill_join_implement(unsigned int join_id, const PerJoinData &join,
 template<enum fastuidraw::PainterEnums::join_style join_style>
 GenericJoinCreator<join_style>::
 GenericJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
-  JoinCreatorBase(P, st),
-  m_verts_per_join(0),
-  m_indices_per_join(0)
+  JoinCreatorBase(P, st)
 {
-  fastuidraw::StrokedPoint::pack_join_size(join_style, &m_verts_per_join, &m_indices_per_join);
   post_ctor_initalize();
 }
 
@@ -1671,11 +1666,12 @@ GenericJoinCreator<join_style>::
 add_join(unsigned int join_id, const PerJoinData &join,
          unsigned int &vert_count, unsigned int &index_count) const
 {
+  using namespace fastuidraw;
+
   FASTUIDRAWunused(join_id);
   FASTUIDRAWunused(join);
-
-  vert_count += m_verts_per_join;
-  index_count += m_indices_per_join;
+  vert_count += StrokedPointPacking::join_packing_size<join_style>::number_attributes;
+  index_count += StrokedPointPacking::join_packing_size<join_style>::number_indices;
 }
 
 template<enum fastuidraw::PainterEnums::join_style join_style>
@@ -1687,14 +1683,16 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
                     fastuidraw::c_array<unsigned int> indices,
                     unsigned int &vertex_offset, unsigned int &index_offset) const
 {
+  using namespace fastuidraw;
+  using namespace StrokedPointPacking;
   FASTUIDRAWunused(join_id);
 
-  pts = pts.sub_array(vertex_offset, m_verts_per_join);
-  indices = indices.sub_array(index_offset, m_indices_per_join);
+  pts = pts.sub_array(vertex_offset, join_packing_size<join_style>::number_attributes);
+  indices = indices.sub_array(index_offset, join_packing_size<join_style>::number_indices);
 
-  fastuidraw::StrokedPoint::pack_join(join_style, J, depth, pts, indices, vertex_offset);
-  vertex_offset += m_verts_per_join;
-  index_offset += m_indices_per_join;
+  pack_join(join_style, J, depth, pts, indices, vertex_offset);
+  vertex_offset += join_packing_size<join_style>::number_attributes;
+  index_offset += join_packing_size<join_style>::number_indices;
 }
 
 ///////////////////////////////////////////////

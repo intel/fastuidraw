@@ -251,7 +251,7 @@ namespace
 }
 
 //////////////////////////////////////
-// fastuidraw::StrokedPoint methods
+// fastuidraw::StrokedPointPacking methods
 void
 fastuidraw::StrokedPoint::
 pack_point(PainterAttribute *dst) const
@@ -292,48 +292,10 @@ unpack_point(StrokedPoint *dst, const PainterAttribute &a)
   dst->m_contour_length = unpack_float(a.m_attrib2.z());
 }
 
+//////////////////////////////////////
+// fastuidraw::StrokedPointPacking methods
 void
-fastuidraw::StrokedPoint::
-pack_join_size(enum PainterEnums::join_style js,
-               unsigned int *num_attributes,
-               unsigned int *num_indices)
-{
-  switch (js)
-    {
-    case PainterEnums::no_joins:
-      *num_attributes = 0;
-      *num_indices = 0;
-      break;
-
-    case PainterEnums::bevel_joins:
-      *num_attributes = 3;
-      *num_indices = 3;
-      break;
-
-    case PainterEnums::miter_clip_joins:
-      *num_attributes = 5;
-      *num_indices = 9;
-      break;
-
-    case PainterEnums::miter_bevel_joins:
-      *num_attributes = 4;
-      *num_indices = 6;
-      break;
-
-    case PainterEnums::miter_joins:
-      *num_attributes = 4;
-      *num_indices = 6;
-      break;
-
-    default:
-      FASTUIDRAWmessaged_assert(false, "Invalid join style passed to pack_size()");
-      *num_attributes = 0;
-      *num_indices = 0;
-    }
-}
-
-void
-fastuidraw::StrokedPoint::
+fastuidraw::StrokedPointPacking::
 pack_rounded_join_size(const TessellatedPath::join &join,
                        float thresh,
                        unsigned int *num_attributes,
@@ -347,7 +309,7 @@ pack_rounded_join_size(const TessellatedPath::join &join,
 }
 
 void
-fastuidraw::StrokedPoint::
+fastuidraw::StrokedPointPacking::
 pack_join(enum PainterEnums::join_style js,
           const TessellatedPath::join &join,
           unsigned int depth,
@@ -369,11 +331,11 @@ pack_join(enum PainterEnums::join_style js,
       break;
 
     case PainterEnums::miter_bevel_joins:
-      pack_miter_join<offset_miter_bevel_join>(join, depth, dst_attribs, dst_indices, index_adjust);
+      pack_miter_join<StrokedPoint::offset_miter_bevel_join>(join, depth, dst_attribs, dst_indices, index_adjust);
       break;
 
     case PainterEnums::miter_joins:
-      pack_miter_join<offset_miter_join>(join, depth, dst_attribs, dst_indices, index_adjust);
+      pack_miter_join<StrokedPoint::offset_miter_join>(join, depth, dst_attribs, dst_indices, index_adjust);
       break;
 
     case PainterEnums::rounded_joins:

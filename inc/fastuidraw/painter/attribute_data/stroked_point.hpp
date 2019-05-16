@@ -533,23 +533,87 @@ public:
   static
   void
   unpack_point(StrokedPoint *dst, const PainterAttribute &src);
+};
+
+/*!
+ * \brief
+ * Namespace to encompase packing values and functions of
+ * path data for stroking using \ref StrokedPoint.
+ */
+namespace StrokedPointPacking
+{
 
   /*!
-   * Computes the number of attributes and indices needed
-   * to realized with \ref StrokedPoint to pack a join of
-   * the named style for all join styles except \ref rounded_joins.
-   * \param js join style to query, value must NOT be \ref
-   *           rounded_joins.
-   * \param num_attributes location to which to write the needed
-   *                       number of attributes
-   * \param num_indices location to which to write the needed
-   *                       number of indices
+   * \brief
+   * Template class taking as argument a \ref PainterEnums::join_style
+   * which defines two enumerations:
+   * - number_attributes gives the number of attributes needed to pack a join
+   * - number_indices gives the number of attributes needed to pack a join
+   * NOTE: this is NOT defined for \ref PainterEnums::rounded_joins because
+   * the number of attributes and indices depends on the join and the threshold
+   * used to realize the join. To get the number of indices and attributes
+   * needed to pack a rounded join use \ref pack_rounded_join_size().
    */
-  static
-  void
-  pack_join_size(enum PainterEnums::join_style js,
-                 unsigned int *num_attributes,
-                 unsigned int *num_indices);
+  template<enum PainterEnums::join_style>
+  class join_packing_size
+  {};
+
+  ///@cond
+  template<>
+  class join_packing_size<PainterEnums::no_joins>
+  {
+  public:
+    enum
+      {
+        number_attributes = 0,
+        number_indices = 0
+      };
+  };
+
+  template<>
+  class join_packing_size<PainterEnums::bevel_joins>
+  {
+  public:
+    enum
+      {
+        number_attributes = 3,
+        number_indices = 3
+      };
+  };
+
+  template<>
+  class join_packing_size<PainterEnums::miter_clip_joins>
+  {
+  public:
+    enum
+      {
+        number_attributes = 5,
+        number_indices = 9
+      };
+  };
+
+  template<>
+  class join_packing_size<PainterEnums::miter_bevel_joins>
+  {
+  public:
+    enum
+      {
+        number_attributes = 4,
+        number_indices = 6
+      };
+  };
+
+  template<>
+  class join_packing_size<PainterEnums::miter_joins>
+  {
+  public:
+    enum
+      {
+        number_attributes = 4,
+        number_indices = 6
+      };
+  };
+  ///@endcond
 
   /*!
    * Returns the number of attributes realized with \ref
@@ -564,7 +628,6 @@ public:
    * \param num_indices location to which to write the needed
    *                       number of indices
    */
-  static
   void
   pack_rounded_join_size(const TessellatedPath::join &join,
                          float thresh,
@@ -583,7 +646,6 @@ public:
    * \param index_adjust value by which to increment the written
    *                     index values
    */
-  static
   void
   pack_join(enum PainterEnums::join_style j,
             const TessellatedPath::join &join,
@@ -591,8 +653,7 @@ public:
             c_array<PainterAttribute> dst_attribs,
             c_array<PainterIndex> dst_indices,
             unsigned int index_adjust);
-};
-
+}
 
 /*! @} */
 
