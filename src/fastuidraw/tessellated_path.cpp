@@ -31,6 +31,145 @@
 
 namespace
 {
+  void
+  set_lambda(fastuidraw::TessellatedPath::join &J)
+  {
+    /* Explanation:
+     *  We have two curves, a(t) and b(t) with a(1) = b(0)
+     *  The point p0 represents the end of a(t) and the
+     *  point p1 represents the start of b(t).
+     *
+     *  When stroking we have four auxiliary curves:
+     *    a0(t) = a(t) + w * a_n(t)
+     *    a1(t) = a(t) - w * a_n(t)
+     *    b0(t) = b(t) + w * b_n(t)
+     *    b1(t) = b(t) - w * b_n(t)
+     *  where
+     *    w = width of stroking
+     *    a_n(t) = enter_join_normal() = J(m_enter_join_unit_vector)
+     *    b_n(t) = leaving_join_normal() = J(m_leaving_join_unit_vector)
+     *  where
+     *    J(x, y) = (-y, x).
+     *
+     *  A Bevel join is a triangle that connects
+     *  consists of p, A and B where p is a(1) = b(0),
+     *  A is one of a0(1) or a1(1) and B is one
+     *  of b0(0) or b1(0). Now if we use a0(1) for
+     *  A then we will use b0(0) for B because
+     *  the normals are generated the same way for
+     *  a(t) and b(t). Then, the questions comes
+     *  down to, do we wish to add or subtract the
+     *  normal. That value is represented by lambda.
+     *
+     *  Now to figure out lambda. Let q0 be a point
+     *  on a(t) before p = a(1). Then q0 is given by
+     *
+     *    q0 = p - s * m_enter_join_unit_vector
+     *
+     *  and let q1 be a point on b(t) after p=b(0),
+     *
+     *    q1 = p + t * m_leaving_join_unit_vector
+     *
+     *  where both s, t are positive. Let
+     *
+     *    z = (q0 + q1) / 2
+     *
+     *  the point z is then on the inside side of the
+     *  join.
+     *
+     *  With this in mind, if either of <z - p, enter_join_normal()>
+     *  or <z - p, leaving_join_normal() > is positive then we want
+     *  to add by -w * n (which means lambda is -1) rather than
+     *  w * n (lambda is +1).
+     *
+     *  Let
+     *    v0 = m_enter_join_unit_vector
+     *    v1 = m_leaving_join_unit_vector
+     *    n0 = J(v0) = enter_join_normal()
+     *    n1 = J(v1) = leaving_join_normal()
+     *
+     *  <z - p, n1> = 0.5 * <-s * v0 + t * v1, n1 >
+     *              = -0.5 * s * <v0, n1> + 0.5 * t * <v1, n1>
+     *              = -0.5 * s * <v0, n1>
+     *              = -0.5 * s * <v0, J(v1) >
+     *
+     *  and
+     *
+     *  <z-p, n0> = 0.5 * < -s * v0 + t * v1, n0 >
+     *            = -0.5 * s * <v0, n0> + 0.5 * t * <v1, n0>
+     *            = 0.5 * t * <v1, n0>
+     *            = 0.5 * t * <v1, J(v0) >
+     *            = -0.5 * t * <J(v1), v0>
+     *
+     *  (the last line because transpose(J) = -J). Notice that
+     *  the sign of <z - p, n1> and the sign of <z - p, n0>
+     *  is then the same. Thus,
+     *
+     *  lambda = -sign(<v1, n0>)
+     *         = -sign(<v1, J(n0)>)
+     *         =  sign(<J(v1), v0>)
+     */
+    using namespace fastuidraw;
+    J.m_lambda = t_sign(dot(J.leaving_join_normal(),
+                            J.m_enter_join_unit_vector));
+  }
+
+  void
+  set_miter_distance(fastuidraw::TessellatedPath::join &J)
+  {
+     /* We compute where the lines
+      *    A = { p + L * n0 + s * v0 | s >= 0 }
+      *    B = { p + L * n1 - t * v1 | t >= 0 }
+      * where
+      *    L = lambda()
+      *    v0 = m_enter_join_unit_vector
+      *    v1 = m_leaving_join_unit_vector
+      *    n0 = J(v0) = enter_join_normal()
+      *    n1 = J(v1) = leaving_join_normal()
+      *
+      * The intersect at s = lambda * (1 - <v0, v1>) / <n0, v1>
+      */
+    using namespace fastuidraw;
+
+    float mag_s, v0_dot_v1, n0_dot_v1;
+    n0_dot_v1 = dot(J.m_leaving_join_unit_vector, J.enter_join_normal());
+    v0_dot_v1 = dot(J.m_enter_join_unit_vector, J.m_leaving_join_unit_vector);
+
+    /* We only care about the absolute value of s. Because v0, v1
+     * have unit length and n0 = J(v0), n1 = J(v1) algebra gives
+     *
+     * |(1 - <v0, v1>) / <n0, v1> | = | <n0, v1> / (1.0 + <v0, v1>) |
+     *
+     * This can be realized direcltly or seeing that this is
+     * really a half tangent identity
+     *
+     *  tan(t / 2) = (1 - cos(t)) / sin(t)
+     *             = sin(t) / (1 + cost(t))
+     *
+     * where t is the angle between v0 and v1, i.e. dot(v0, v1) = cos(t)
+     * and from that n0 is v0 rotated by 0 degrees, up to sign,
+     * sin(t) = dot(n0, v1).
+     */
+    if (v0_dot_v1 > 0.0f)
+      {
+        mag_s = n0_dot_v1 / (1.0f + v0_dot_v1);
+      }
+    else if (t_abs(n0_dot_v1) != 0.0)
+      {
+        mag_s = (v0_dot_v1 - 1.0f) / n0_dot_v1;
+      }
+    else
+      {
+        /* <v0, v1> is negative and <n0, v1> is "zero",
+         * meaning that v0 and v1 are anti-parallel which
+         * means that the miter-join goes on to infinity.
+         */
+        J.m_miter_distance -1.0f;
+        return;
+      }
+    J.m_miter_distance = t_sqrt(1.0f + mag_s * mag_s);
+  }
+
   class RefinerEdge
   {
   public:
@@ -783,6 +922,8 @@ finalize(TessellatedPathBuildingState &b)
               J.m_distance_from_previous_join = prev_segment->m_distance_from_edge_start + prev_segment->m_length;
               J.m_distance_from_contour_start = prev_segment->m_distance_from_contour_start + prev_segment->m_length;
               J.m_contour_length = edge_segs.front().m_contour_length;
+              set_lambda(J);
+              set_miter_distance(J);
               m_join_data.push_back(J);
             }
 
@@ -798,147 +939,6 @@ finalize(TessellatedPathBuildingState &b)
           edge_segs.back().m_last_segment_of_edge = true;
         }
     }
-}
-
-//////////////////////////////////////////
-// fastuidraw::TessellatedPath::join methods
-float
-fastuidraw::TessellatedPath::join::
-lambda(void) const
-{
-  /* Explanation:
-   *  We have two curves, a(t) and b(t) with a(1) = b(0)
-   *  The point p0 represents the end of a(t) and the
-   *  point p1 represents the start of b(t).
-   *
-   *  When stroking we have four auxiliary curves:
-   *    a0(t) = a(t) + w * a_n(t)
-   *    a1(t) = a(t) - w * a_n(t)
-   *    b0(t) = b(t) + w * b_n(t)
-   *    b1(t) = b(t) - w * b_n(t)
-   *  where
-   *    w = width of stroking
-   *    a_n(t) = enter_join_normal() = J(m_enter_join_unit_vector)
-   *    b_n(t) = leaving_join_normal() = J(m_leaving_join_unit_vector)
-   *  where
-   *    J(x, y) = (-y, x).
-   *
-   *  A Bevel join is a triangle that connects
-   *  consists of p, A and B where p is a(1) = b(0),
-   *  A is one of a0(1) or a1(1) and B is one
-   *  of b0(0) or b1(0). Now if we use a0(1) for
-   *  A then we will use b0(0) for B because
-   *  the normals are generated the same way for
-   *  a(t) and b(t). Then, the questions comes
-   *  down to, do we wish to add or subtract the
-   *  normal. That value is represented by lambda.
-   *
-   *  Now to figure out lambda. Let q0 be a point
-   *  on a(t) before p = a(1). Then q0 is given by
-   *
-   *    q0 = p - s * m_enter_join_unit_vector
-   *
-   *  and let q1 be a point on b(t) after p=b(0),
-   *
-   *    q1 = p + t * m_leaving_join_unit_vector
-   *
-   *  where both s, t are positive. Let
-   *
-   *    z = (q0 + q1) / 2
-   *
-   *  the point z is then on the inside side of the
-   *  join.
-   *
-   *  With this in mind, if either of <z - p, enter_join_normal()>
-   *  or <z - p, leaving_join_normal() > is positive then we want
-   *  to add by -w * n (which means lambda is -1) rather than
-   *  w * n (lambda is +1).
-   *
-   *  Let
-   *    v0 = m_enter_join_unit_vector
-   *    v1 = m_leaving_join_unit_vector
-   *    n0 = J(v0) = enter_join_normal()
-   *    n1 = J(v1) = leaving_join_normal()
-   *
-   *  <z - p, n1> = 0.5 * <-s * v0 + t * v1, n1 >
-   *              = -0.5 * s * <v0, n1> + 0.5 * t * <v1, n1>
-   *              = -0.5 * s * <v0, n1>
-   *              = -0.5 * s * <v0, J(v1) >
-   *
-   *  and
-   *
-   *  <z-p, n0> = 0.5 * < -s * v0 + t * v1, n0 >
-   *            = -0.5 * s * <v0, n0> + 0.5 * t * <v1, n0>
-   *            = 0.5 * t * <v1, n0>
-   *            = 0.5 * t * <v1, J(v0) >
-   *            = -0.5 * t * <J(v1), v0>
-   *
-   *  (the last line because transpose(J) = -J). Notice that
-   *  the sign of <z - p, n1> and the sign of <z - p, n0>
-   *  is then the same. Thus,
-   *
-   *  lambda = -sign(<v1, n0>)
-   *         = -sign(<v1, J(n0)>)
-   *         =  sign(<J(v1), v0>)
-   */
-  return t_sign(dot(leaving_join_normal(),
-                    m_enter_join_unit_vector));
-}
-
-float
-fastuidraw::TessellatedPath::join::
-miter_distance(void) const
-{
-  /* We compute where the lines
-   *    A = { p + L * n0 + s * v0 | s >= 0 }
-   *    B = { p + L * n1 - t * v1 | t >= 0 }
-   * where
-   *    L = lambda()
-   *    v0 = m_enter_join_unit_vector
-   *    v1 = m_leaving_join_unit_vector
-   *    n0 = J(v0) = enter_join_normal()
-   *    n1 = J(v1) = leaving_join_normal()
-   *
-   * The intersect at s = lambda * (1 - <v0, v1>) / <n0, v1>
-   */
-
-  float abs_s, a_dot_b, Ja_dot_b;
-  Ja_dot_b = dot(m_leaving_join_unit_vector, enter_join_normal());
-  a_dot_b = dot(m_enter_join_unit_vector, m_leaving_join_unit_vector);
-
-  /* We only care about the absolute value of s. Because v0, v1
-   * have unit length and n0 = J(v0), n1 = J(v1) algebra gives
-   *
-   * |(1 - <v0, v1>) / <n0, v1> | = | <n0, v1> / (1.0 + <v0, v1>) |
-   *
-   * This can be realized direcltly or seeing that this is
-   * really a half tangent identity
-   *
-   *  tan(t / 2) = (1 - cos(t)) / sin(t)
-   *             = sin(t) / (1 + cost(t))
-   *
-   * where t is the angle between v0 and v1, i.e. dot(v0, v1) = cos(t)
-   * and from that n0 is v0 rotated by 0 degrees, up to sign,
-   * sin(t) = dot(n0, v1).
-   */
-  if (a_dot_b > 0.0f)
-    {
-      abs_s = Ja_dot_b / (1.0f + a_dot_b);
-    }
-  else if (t_abs(Ja_dot_b) != 0.0)
-    {
-      abs_s = (a_dot_b - 1.0f) / Ja_dot_b;
-    }
-  else
-    {
-      /* <v0, v1> is negative and <n0, v1> is "zero",
-       * meaning that v0 and v1 are anti-parallel which
-       * means that the miter-join goes on to infinity.
-       */
-      return -1.0f;
-    }
-
-  return t_sqrt(1.0f + abs_s * abs_s);
 }
 
 //////////////////////////////////////////

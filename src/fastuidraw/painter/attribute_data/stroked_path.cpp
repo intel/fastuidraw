@@ -114,7 +114,6 @@ namespace
   public:
     PerJoinData(const fastuidraw::PartitionedTessellatedPath::join &J):
       fastuidraw::PartitionedTessellatedPath::join(J),
-      m_lambda(J.lambda()),
       m_p(J.m_position)
     {}
 
@@ -148,7 +147,6 @@ namespace
       pt->m_distance_from_contour_start = m_distance_from_contour_start;
     }
 
-    float m_lambda;
     fastuidraw::vec2 m_p;
   };
 
@@ -1587,12 +1585,6 @@ process_chunk(const RangeAndChunk &ch,
       vr.m_begin = vr.m_end = 0;
       ir.m_begin = ir.m_end = 0;
     }
-
-  std::cout << "Join Chunk #" << ch.m_chunk << ":"
-            << "\n\tvertex_range = " << vr
-            << "\n\tindex_range = " << ir
-            << "\n\tzrange = " << ch.m_depth_range
-            << "\n";
 
   K = ch.m_chunk;
   attribute_chunks[K] = attribute_data.sub_array(vr);

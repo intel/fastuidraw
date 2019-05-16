@@ -440,8 +440,7 @@ public:
      * to get the unit vector from where the segments meet to the
      * outer edge.
      */
-    float
-    lambda(void) const;
+    float m_lambda;
 
     /*!
      * If this join is realized as a miter-join, returns the distance
@@ -449,8 +448,7 @@ public:
      * to the tip of the miter join. If the path enter and leaving
      * the join are parallel or anti-parallel, then return -1.0.
      */
-    float
-    miter_distance(void) const;
+    float m_miter_distance;
 
     /*!
      * Gives the normal vector to going into the join

@@ -1524,17 +1524,14 @@ per_path_processing(void)
       joins = tess->partitioned().joins();
       for(const PartitionedTessellatedPath::join &J : joins)
         {
-          float v;
-
           /* TODO: if the join is so that the miter-distance
            * is infinity (because the join happens at anti-parallel
            * value), we should make m_miter_limit quite large.
-           * The method miter_distance() returns -1 if the
+           * The value of m_miter_distance() is -1 if the
            * miter-distance is (too floating point arithmatic)
            * infinity.
            */
-          v = J.miter_distance();
-          m_miter_limit = t_max(m_miter_limit, J.miter_distance());
+          m_miter_limit = t_max(m_miter_limit, J.m_miter_distance);
         }
 
       if (m_print_path.value())
