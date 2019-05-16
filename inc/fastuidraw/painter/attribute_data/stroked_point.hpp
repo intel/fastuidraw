@@ -505,15 +505,6 @@ public:
   }
 
   /*!
-   * When offset_type() is one of \ref offset_miter_clip_join,
-   * \ref offset_miter_bevel_join or \ref offset_miter_join,
-   * returns the distance to the miter point. For other point
-   * types, returns 0.0.
-   */
-  float
-  miter_distance(void) const;
-
-  /*!
    * Pack the data of this \ref StrokedPoint into a \ref
    * PainterAttribute. The packing is as follows:
    * - PainterAttribute::m_attrib0 .xy -> \ref m_position (float)
