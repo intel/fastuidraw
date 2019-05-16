@@ -1517,33 +1517,24 @@ per_path_processing(void)
   m_miter_limit = 0.0f;
   for(const PerPath &P : m_paths)
     {
+      c_array<const PartitionedTessellatedPath::join> joins;
       const TessellatedPath *tess;
-      const StrokedCapsJoins *stroked;
-      const PainterAttributeData *data;
-      c_array<const PainterAttribute> miter_points;
 
       tess = &P.m_path.tessellation(-1.0f);
-      stroked = &tess->stroked().caps_joins();
-      data = &stroked->miter_clip_joins();
-
-      for(unsigned int J = 0, endJ = stroked->number_joins(); J < endJ; ++J)
+      joins = tess->partitioned().joins();
+      for(const PartitionedTessellatedPath::join &J : joins)
         {
-          unsigned int chunk;
+          float v;
 
-          chunk = stroked->join_chunk(J);
-          miter_points = data->attribute_data_chunk(chunk);
-          for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
-            {
-              float v;
-              StrokedPoint pt;
-
-              StrokedPoint::unpack_point(&pt, miter_points[p]);
-              v = pt.miter_distance();
-              if (std::isfinite(v))
-                {
-                  m_miter_limit = fastuidraw::t_max(m_miter_limit, fastuidraw::t_abs(v));
-                }
-            }
+          /* TODO: if the join is so that the miter-distance
+           * is infinity (because the join happens at anti-parallel
+           * value), we should make m_miter_limit quite large.
+           * The method miter_distance() returns -1 if the
+           * miter-distance is (too floating point arithmatic)
+           * infinity.
+           */
+          v = J.miter_distance();
+          m_miter_limit = t_max(m_miter_limit, J.miter_distance());
         }
 
       if (m_print_path.value())
