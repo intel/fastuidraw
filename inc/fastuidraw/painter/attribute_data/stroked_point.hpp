@@ -21,6 +21,9 @@
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 
 namespace fastuidraw  {
@@ -530,6 +533,64 @@ public:
   static
   void
   unpack_point(StrokedPoint *dst, const PainterAttribute &src);
+
+  /*!
+   * Computes the number of attributes and indices needed
+   * to realized with \ref StrokedPoint to pack a join of
+   * the named style for all join styles except \ref rounded_joins.
+   * \param js join style to query, value must NOT be \ref
+   *           rounded_joins.
+   * \param num_attributes location to which to write the needed
+   *                       number of attributes
+   * \param num_indices location to which to write the needed
+   *                       number of indices
+   */
+  static
+  void
+  pack_size(enum PainterEnums::join_style js,
+            unsigned int *num_attributes,
+            unsigned int *num_indices);
+
+  /*!
+   * Returns the number of attributes realized with \ref
+   * StrokedPoint needed to pack a rounded join.
+   * \param join join to realize a packed data
+   * \param thresh the maximum distance allowed from the
+   *               approximation of the rounded join relized
+   *               as triangles when the join is stroked
+   *               with a stroking width of one.
+   * \param num_attributes location to which to write the needed
+   *                       number of attributes
+   * \param num_indices location to which to write the needed
+   *                       number of indices
+   */
+  static
+  void
+  pack_rounded_size(const TessellatedPath::join &join,
+                    float thresh,
+                    unsigned int *num_attributes,
+                    unsigned int *num_indices);
+
+  /*!
+   * Pack the join into attribute data and index data
+   * realized with \ref StrokedPoint.
+   * \param js join style to pack for
+   * \param join join data to pack
+   * \param depth the value for \ref depth() of the packed
+   *              \ref StrokedPoint values
+   * \param dst_attribs location to which to place the attributes
+   * \param dst_indices location to which to place the indices
+   * \param index_adjust value by which to increment the written
+   *                     index values
+   */
+  static
+  void
+  pack_join(enum PainterEnums::join_style j,
+            const TessellatedPath::join &join,
+            unsigned int depth,
+            c_array<PainterAttribute> dst_attribs,
+            c_array<PainterIndex> dst_indices,
+            unsigned int index_adjust);
 };
 
 
