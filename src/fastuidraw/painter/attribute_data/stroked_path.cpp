@@ -47,15 +47,6 @@ namespace
     return fastuidraw::detail::stroked_point_pack_bits(on_boundary, pt, depth);
   }
 
-  inline
-  uint32_t
-  pack_data_join(int on_boundary,
-                 enum fastuidraw::StrokedPoint::offset_type_t pt,
-                 uint32_t depth)
-  {
-    return pack_data(on_boundary, pt, depth) | fastuidraw::StrokedPoint::join_mask;
-  }
-
   template<typename T>
   class OrderingEntry:public T
   {
@@ -1536,7 +1527,7 @@ process_chunk(const RangeAndChunk &ch,
 RoundedJoinCreator::PerRoundedJoin::
 PerRoundedJoin(const PerJoinData &J, float thresh)
 {
-  fastuidraw::StrokedPoint::pack_rounded_size(J, thresh, &m_num_verts, &m_num_indices);
+  fastuidraw::StrokedPoint::pack_rounded_join_size(J, thresh, &m_num_verts, &m_num_indices);
 }
 
 ///////////////////////////////////////////////////
@@ -1670,7 +1661,7 @@ GenericJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
   m_verts_per_join(0),
   m_indices_per_join(0)
 {
-  fastuidraw::StrokedPoint::pack_size(join_style, &m_verts_per_join, &m_indices_per_join);
+  fastuidraw::StrokedPoint::pack_join_size(join_style, &m_verts_per_join, &m_indices_per_join);
   post_ctor_initalize();
 }
 

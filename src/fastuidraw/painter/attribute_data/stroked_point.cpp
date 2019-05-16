@@ -294,9 +294,9 @@ unpack_point(StrokedPoint *dst, const PainterAttribute &a)
 
 void
 fastuidraw::StrokedPoint::
-pack_size(enum PainterEnums::join_style js,
-          unsigned int *num_attributes,
-          unsigned int *num_indices)
+pack_join_size(enum PainterEnums::join_style js,
+               unsigned int *num_attributes,
+               unsigned int *num_indices)
 {
   switch (js)
     {
@@ -334,10 +334,10 @@ pack_size(enum PainterEnums::join_style js,
 
 void
 fastuidraw::StrokedPoint::
-pack_rounded_size(const TessellatedPath::join &join,
-                  float thresh,
-                  unsigned int *num_attributes,
-                  unsigned int *num_indices)
+pack_rounded_join_size(const TessellatedPath::join &join,
+                       float thresh,
+                       unsigned int *num_attributes,
+                       unsigned int *num_indices)
 {
   unsigned int num_arc_points;
 

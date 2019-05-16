@@ -547,9 +547,9 @@ public:
    */
   static
   void
-  pack_size(enum PainterEnums::join_style js,
-            unsigned int *num_attributes,
-            unsigned int *num_indices);
+  pack_join_size(enum PainterEnums::join_style js,
+                 unsigned int *num_attributes,
+                 unsigned int *num_indices);
 
   /*!
    * Returns the number of attributes realized with \ref
@@ -566,10 +566,10 @@ public:
    */
   static
   void
-  pack_rounded_size(const TessellatedPath::join &join,
-                    float thresh,
-                    unsigned int *num_attributes,
-                    unsigned int *num_indices);
+  pack_rounded_join_size(const TessellatedPath::join &join,
+                         float thresh,
+                         unsigned int *num_attributes,
+                         unsigned int *num_indices);
 
   /*!
    * Pack the join into attribute data and index data
