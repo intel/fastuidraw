@@ -38,7 +38,7 @@ namespace
       max_recursion_depth = 10
     };
 
-  class ChainBuilder:fastuidraw::noncopyable
+  class SubsetBuilder:fastuidraw::noncopyable
   {
   public:
     typedef fastuidraw::PartitionedTessellatedPath::segment segment;
@@ -90,8 +90,11 @@ namespace
     }
 
     fastuidraw::BoundingBox<float> m_bbox;
+    fastuidraw::BoundingBox<float> m_join_bbox;
     std::vector<segment> m_segments;
     std::vector<PerChain> m_chains;
+    std::vector<fastuidraw::PartitionedTessellatedPath::join> m_joins;
+    std::vector<fastuidraw::PartitionedTessellatedPath::cap> m_caps;
   };
 
   class ScratchSpacePrivate:fastuidraw::noncopyable
@@ -107,6 +110,8 @@ namespace
   {
   public:
     typedef fastuidraw::PartitionedTessellatedPath::segment segment;
+    typedef fastuidraw::PartitionedTessellatedPath::join join;
+    typedef fastuidraw::PartitionedTessellatedPath::cap cap;
     typedef fastuidraw::PartitionedTessellatedPath::segment_chain segment_chain;
 
     ~SubsetPrivate();
@@ -146,20 +151,32 @@ namespace
       return fastuidraw::make_c_array(m_chains);
     }
 
+    fastuidraw::c_array<const join>
+    joins(void) const
+    {
+      return fastuidraw::make_c_array(m_joins);
+    }
+
+    fastuidraw::c_array<const cap>
+    caps(void) const
+    {
+      return fastuidraw::make_c_array(m_caps);
+    }
+
     unsigned int
-    select_subsets(ScratchSpacePrivate &scratch,
+    select_subsets(bool miter_hunting,
+                   ScratchSpacePrivate &scratch,
                    fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                    const fastuidraw::float3x3 &clip_matrix_local,
                    const fastuidraw::vec2 &one_pixel_width,
-                   float pixels_additional_room,
-                   float item_space_additional_room,
+                   fastuidraw::c_array<const float> geometry_inflation,
                    fastuidraw::c_array<unsigned int> dst);
 
   private:
     /* creation will steal the vector<> values of
-     * the passed ChainBuilder
+     * the passed SubsetBuilder
      */
-    SubsetPrivate(int recursion_depth, ChainBuilder &chains,
+    SubsetPrivate(int recursion_depth, SubsetBuilder &builder,
                   std::vector<SubsetPrivate*> &out_values);
 
     void
@@ -172,16 +189,18 @@ namespace
     void
     process_chain(int splitting_coordinate, float splitting_value,
                   const segment_chain &chain,
-                  ChainBuilder *before_chain, ChainBuilder *after_chain);
+                  SubsetBuilder *before_split, SubsetBuilder *after_split);
 
     bool //returns true if this is added to dst
-    select_subsets_implement(ScratchSpacePrivate &scratch,
+    select_subsets_implement(bool miter_hunting,
+                             ScratchSpacePrivate &scratch,
                              fastuidraw::c_array<unsigned int> dst,
                              float item_space_additional_room,
                              unsigned int &current);
 
     bool //returns true if this is added to dst
-    select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
+    select_subsets_all_unculled(bool miter_hunting,
+                                fastuidraw::c_array<unsigned int> dst,
                                 unsigned int &current);
 
     unsigned int m_ID;
@@ -189,7 +208,10 @@ namespace
     std::vector<segment> m_segments;
     std::vector<segment_chain> m_chains;
     std::vector<segment> m_prev_start_segments;
+    std::vector<join> m_joins;
+    std::vector<cap> m_caps;
     fastuidraw::BoundingBox<float> m_bounding_box;
+    fastuidraw::BoundingBox<float> m_join_bounding_box;
   };
 
   class PartitionedTessellatedPathPrivate:fastuidraw::noncopyable
@@ -213,7 +235,7 @@ SubsetPrivate::
 create(const fastuidraw::TessellatedPath &P,
        std::vector<SubsetPrivate*> &out_values)
 {
-  ChainBuilder chain_builder;
+  SubsetBuilder builder;
   SubsetPrivate *root;
 
   for (unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
@@ -222,38 +244,53 @@ create(const fastuidraw::TessellatedPath &P,
         {
           fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> segs;
 
-          chain_builder.start_chain(nullptr);
+          builder.start_chain(nullptr);
           segs = P.edge_segment_data(C, E);
           for (const fastuidraw::TessellatedPath::segment &S : segs)
             {
-              chain_builder.add_segment(S);
+              builder.add_segment(S);
             }
         }
     }
 
-  root = FASTUIDRAWnew SubsetPrivate(0, chain_builder, out_values);
+  fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins(P.join_data());
+  builder.m_joins.reserve(joins.size());
+  for (const join &J : joins)
+    {
+      builder.m_joins.push_back(J);
+      builder.m_join_bbox.union_point(J.m_position);
+    }
+
+  fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps(P.cap_data());
+  builder.m_caps.resize(caps.size());
+  std::copy(caps.begin(), caps.end(), builder.m_caps.begin());
+
+  root = FASTUIDRAWnew SubsetPrivate(0, builder, out_values);
   return root;
 }
 
 SubsetPrivate::
-SubsetPrivate(int recursion_depth, ChainBuilder &chains,
+SubsetPrivate(int recursion_depth, SubsetBuilder &builder,
               std::vector<SubsetPrivate*> &out_values):
   m_ID(out_values.size()),
   m_children(nullptr, nullptr),
-  m_bounding_box(chains.m_bbox)
+  m_bounding_box(builder.m_bbox),
+  m_join_bounding_box(builder.m_join_bbox)
 {
   out_values.push_back(this);
-  m_segments.swap(chains.m_segments);
+  m_segments.swap(builder.m_segments);
+  m_joins.swap(builder.m_joins);
+  m_caps.swap(builder.m_caps);
 
   /* reserve before hand so that addresses of
    * values in m_prev_start_segments do not
    * change.
    */
-  m_chains.reserve(chains.m_chains.size());
-  m_prev_start_segments.reserve(chains.m_chains.size());
+  m_chains.reserve(builder.m_chains.size());
+  m_prev_start_segments.reserve(builder.m_chains.size());
 
   fastuidraw::c_array<const segment> segs(fastuidraw::make_c_array(m_segments));
-  for (const ChainBuilder::PerChain &R : chains.m_chains)
+  for (const SubsetBuilder::PerChain &R : builder.m_chains)
     {
       fastuidraw::c_array<const segment> sub_segs;
       sub_segs = segs.sub_array(R.m_range);
@@ -298,11 +335,11 @@ void
 SubsetPrivate::
 process_chain(int splitting_coordinate, float splitting_value,
               const segment_chain &chain,
-              ChainBuilder *before_chain, ChainBuilder *after_chain)
+              SubsetBuilder *before_split, SubsetBuilder *after_split)
 {
   using namespace fastuidraw;
 
-  ChainBuilder *last_added_to(nullptr);
+  SubsetBuilder *last_added_to(nullptr);
   const segment *prev_segment(chain.m_prev_to_start);
 
   for (const segment &S : chain.m_segments)
@@ -318,49 +355,49 @@ process_chain(int splitting_coordinate, float splitting_value,
         {
         case TessellatedPath::segment_completey_before_split:
           {
-            if (last_added_to != before_chain)
+            if (last_added_to != before_split)
               {
-                before_chain->start_chain(prev_segment);
-                last_added_to = before_chain;
+                before_split->start_chain(prev_segment);
+                last_added_to = before_split;
               }
-            prev_segment = before_chain->add_segment(S);
+            prev_segment = before_split->add_segment(S);
           }
           break;
 
         case TessellatedPath::segment_completey_after_split:
           {
-            if (last_added_to != after_chain)
+            if (last_added_to != after_split)
               {
-                after_chain->start_chain(prev_segment);
-                last_added_to = after_chain;
+                after_split->start_chain(prev_segment);
+                last_added_to = after_split;
               }
-            prev_segment = after_chain->add_segment(S);
+            prev_segment = after_split->add_segment(S);
           }
           break;
 
         case TessellatedPath::segment_split_start_before:
           {
-            if (last_added_to != before_chain)
+            if (last_added_to != before_split)
               {
-                before_chain->start_chain(prev_segment);
+                before_split->start_chain(prev_segment);
               }
-            prev_segment = before_chain->add_segment(before);
-            after_chain->start_chain(prev_segment);
-            prev_segment = after_chain->add_segment(after);
-            last_added_to = after_chain;
+            prev_segment = before_split->add_segment(before);
+            after_split->start_chain(prev_segment);
+            prev_segment = after_split->add_segment(after);
+            last_added_to = after_split;
           }
           break;
 
         case TessellatedPath::segment_split_start_after:
           {
-            if (last_added_to != after_chain)
+            if (last_added_to != after_split)
               {
-                after_chain->start_chain(prev_segment);
+                after_split->start_chain(prev_segment);
               }
-            prev_segment = after_chain->add_segment(after);
-            before_chain->start_chain(prev_segment);
-            prev_segment = before_chain->add_segment(before);
-            last_added_to = before_chain;
+            prev_segment = after_split->add_segment(after);
+            before_split->start_chain(prev_segment);
+            prev_segment = before_split->add_segment(before);
+            last_added_to = before_split;
           }
           break;
         } // switch
@@ -438,10 +475,10 @@ void
 SubsetPrivate::
 make_children(int recursion_depth, std::vector<SubsetPrivate*> &out_values)
 {
-  /* step 1: find a good splitting coordinate and splitting value */
   int splitting_coordinate(-1);
   float splitting_value;
 
+  /* step 1: find a good splitting coordinate and splitting value */
   splitting_coordinate = choose_splitting_coordinate(splitting_value);
   if (splitting_coordinate == -1)
     {
@@ -449,29 +486,72 @@ make_children(int recursion_depth, std::vector<SubsetPrivate*> &out_values)
     }
 
   /* step 2: split each chain */
-  ChainBuilder before_chain, after_chain;
+  SubsetBuilder before_split, after_split;
 
   for (const auto &chain : m_chains)
     {
       process_chain(splitting_coordinate, splitting_value, chain,
-                    &before_chain, &after_chain);
+                    &before_split, &after_split);
     }
 
-  m_children[0]= FASTUIDRAWnew SubsetPrivate(recursion_depth + 1, before_chain, out_values);
-  m_children[1]= FASTUIDRAWnew SubsetPrivate(recursion_depth + 1, after_chain, out_values);
+  /* step 3: split the joins */
+  for (const auto &join : m_joins)
+    {
+      SubsetBuilder *dst;
+      if (join.m_position[splitting_coordinate] > splitting_value)
+        {
+          dst = &after_split;
+        }
+      else
+        {
+          dst = &before_split;
+        }
+      dst->m_joins.push_back(join);
+      dst->m_join_bbox.union_point(join.m_position);
+    }
+
+  /* step 4: split the caps */
+  for (const auto &cap : m_caps)
+    {
+      if (cap.m_position[splitting_coordinate] > splitting_value)
+        {
+          after_split.m_caps.push_back(cap);
+        }
+      else
+        {
+          before_split.m_caps.push_back(cap);
+        }
+    }
+
+  m_children[0]= FASTUIDRAWnew SubsetPrivate(recursion_depth + 1, before_split, out_values);
+  m_children[1]= FASTUIDRAWnew SubsetPrivate(recursion_depth + 1, after_split, out_values);
 }
 
 unsigned int
 SubsetPrivate::
-select_subsets(ScratchSpacePrivate &scratch,
+select_subsets(bool miter_hunting,
+               ScratchSpacePrivate &scratch,
                fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                const fastuidraw::float3x3 &clip_matrix_local,
                const fastuidraw::vec2 &one_pixel_width,
-               float pixels_additional_room,
-               float item_space_additional_room,
+               fastuidraw::c_array<const float> geometry_inflation,
                fastuidraw::c_array<unsigned int> dst)
 {
   using namespace fastuidraw;
+
+  float pixels_additional_room;
+  float item_space_additional_room;
+
+  if (miter_hunting)
+    {
+      pixels_additional_room = geometry_inflation[PathEnums::pixel_space_distance_miter_joins];
+      item_space_additional_room = geometry_inflation[PathEnums::item_space_distance_miter_joins];
+    }
+  else
+    {
+      pixels_additional_room = geometry_inflation[PathEnums::pixel_space_distance];
+      item_space_additional_room = geometry_inflation[PathEnums::item_space_distance];
+    }
 
   scratch.m_adjusted_clip_eqs.resize(clip_equations.size());
   for(unsigned int i = 0; i < clip_equations.size(); ++i)
@@ -492,7 +572,7 @@ select_subsets(ScratchSpacePrivate &scratch,
     }
 
   unsigned int return_value(0);
-  select_subsets_implement(scratch, dst,
+  select_subsets_implement(miter_hunting, scratch, dst,
                            item_space_additional_room,
                            return_value);
 
@@ -501,7 +581,8 @@ select_subsets(ScratchSpacePrivate &scratch,
 
 bool
 SubsetPrivate::
-select_subsets_implement(ScratchSpacePrivate &scratch,
+select_subsets_implement(bool miter_hunting,
+                         ScratchSpacePrivate &scratch,
                          fastuidraw::c_array<unsigned int> dst,
                          float item_space_additional_room,
                          unsigned int &current)
@@ -517,7 +598,14 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
   vecN<vec2, 4> bb;
   bool unclipped;
 
-  m_bounding_box.inflated_polygon(bb, item_space_additional_room);
+  if (miter_hunting)
+    {
+      m_join_bounding_box.inflated_polygon(bb, item_space_additional_room);
+    }
+  else
+    {
+      m_bounding_box.inflated_polygon(bb, item_space_additional_room);
+    }
   unclipped = detail::clip_against_planes(make_c_array(scratch.m_adjusted_clip_eqs),
                                           bb, &scratch.m_clipped_rect,
                                           scratch.m_clip_scratch_vec2s);
@@ -541,8 +629,8 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
 
   bool r0, r1;
 
-  r0 = m_children[0]->select_subsets_implement(scratch, dst, item_space_additional_room, current);
-  r1 = m_children[1]->select_subsets_implement(scratch, dst, item_space_additional_room, current);
+  r0 = m_children[0]->select_subsets_implement(miter_hunting, scratch, dst, item_space_additional_room, current);
+  r1 = m_children[1]->select_subsets_implement(miter_hunting, scratch, dst, item_space_additional_room, current);
 
   if (r0 && r1)
     {
@@ -659,6 +747,26 @@ children(void) const
   return vecN<Subset, 2>(s0, s1);
 }
 
+fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+fastuidraw::PartitionedTessellatedPath::Subset::
+joins(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->joins();
+}
+
+fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+fastuidraw::PartitionedTessellatedPath::Subset::
+caps(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->caps();
+}
+
 ////////////////////////////////////////////
 // fastuidraw::PartitionedTessellatedPath methods
 fastuidraw::PartitionedTessellatedPath::
@@ -713,6 +821,24 @@ root_subset(void) const
   return Subset(d->m_root_subset);
 }
 
+fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+fastuidraw::PartitionedTessellatedPath::
+joins(void) const
+{
+  PartitionedTessellatedPathPrivate *d;
+  d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
+  return d->m_root_subset->joins();
+}
+
+fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+fastuidraw::PartitionedTessellatedPath::
+caps(void) const
+{
+  PartitionedTessellatedPathPrivate *d;
+  d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
+  return d->m_root_subset->caps();
+}
+
 unsigned int
 fastuidraw::PartitionedTessellatedPath::
 select_subsets(ScratchSpace &scratch_space,
@@ -729,11 +855,35 @@ select_subsets(ScratchSpace &scratch_space,
   scratch_d = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
 
   FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
-  return d->m_root_subset->select_subsets(*scratch_d,
+  return d->m_root_subset->select_subsets(false,
+                                          *scratch_d,
                                           clip_equations,
                                           clip_matrix_local,
                                           one_pixel_width,
-                                          geometry_inflation[PathEnums::pixel_space_distance],
-                                          geometry_inflation[PathEnums::item_space_distance],
+                                          geometry_inflation,
+                                          dst);
+}
+
+unsigned int
+fastuidraw::PartitionedTessellatedPath::
+select_subsets_miter(ScratchSpace &scratch_space,
+                     c_array<const vec3> clip_equations,
+                     const float3x3 &clip_matrix_local,
+                     const vec2 &one_pixel_width,
+                     c_array<const float> geometry_inflation,
+                     c_array<unsigned int> dst) const
+{
+  PartitionedTessellatedPathPrivate *d;
+  d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
+
+  ScratchSpacePrivate *scratch_d;
+  scratch_d = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
+
+  return d->m_root_subset->select_subsets(true,
+                                          *scratch_d,
+                                          clip_equations,
+                                          clip_matrix_local,
+                                          one_pixel_width,
+                                          geometry_inflation,
                                           dst);
 }

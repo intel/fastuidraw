@@ -55,6 +55,16 @@ namespace fastuidraw  {
     typedef TessellatedPath::segment segment;
 
     /*!
+     * A \ref join is the same as found in \ref TessellatedPath
+     */
+    typedef TessellatedPath::join join;
+
+    /*!
+     * A \ref cap is the same as found in \ref TessellatedPath
+     */
+    typedef TessellatedPath::cap cap;
+
+    /*!
      * A \ref segment_chain is a sequence of \ref
      * segment values where successive elements are
      * neighbors of the same edge in the source \ref
@@ -108,6 +118,18 @@ namespace fastuidraw  {
        */
       c_array<const segment_chain>
       segment_chains(void) const;
+
+      /*!
+       * Returns the joins within this \ref Subset
+       */
+      c_array<const join>
+      joins(void) const;
+
+      /*!
+       * Returns the caps within this \ref Subset
+       */
+      c_array<const cap>
+      caps(void) const;
 
       /*!
        * Returns the ID of this Subset, i.e. the value to
@@ -180,6 +202,18 @@ namespace fastuidraw  {
     subset(unsigned int I) const;
 
     /*!
+     * Returns the joins of the path.
+     */
+    c_array<const join>
+    joins(void) const;
+
+    /*!
+     * Returns the caps within this \ref Subset
+     */
+    c_array<const cap>
+    caps(void) const;
+
+    /*!
      * Returns the root-subset of the StrokedPath, this
      * is the \ref Subset that includes the entire
      * StrokedPath.
@@ -212,6 +246,34 @@ namespace fastuidraw  {
                    const vec2 &one_pixel_width,
                    c_array<const float> geometry_inflation,
                    c_array<unsigned int> dst) const;
+
+    /*!
+     * Given a set of clip equations in clip coordinates
+     * and a tranformation from local coordiante to clip
+     * coordinates, compute what Subsets have joins that
+     * when stroked as miter joins are not completely
+     * culled by the clip equations. NOTE! this is only
+     * gauranteed that the joins are not culled.
+     * \param scratch_space scratch space for computations
+     * \param clip_equations array of clip equations
+     * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
+     *                          coordinates to clip coordinates.
+     * \param one_pixel_width holds the size of a single pixel in
+     *                        normalized device coordinates
+     * \param geometry_inflation amount path geometry is inflated, array
+     *                           is indexed by the enumeration \ref
+     *                           PathEnums::path_geometry_inflation_index_t
+     * \param[out] dst location to which to write the \ref Subset ID values
+     * \returns the number of Subset object ID's written to dst, that
+     *          number is guaranteed to be no more than number_subsets().
+     */
+    unsigned int
+    select_subsets_miter(ScratchSpace &scratch_space,
+                         c_array<const vec3> clip_equations,
+                         const float3x3 &clip_matrix_local,
+                         const vec2 &one_pixel_width,
+                         c_array<const float> geometry_inflation,
+                         c_array<unsigned int> dst) const;
 
   private:
     friend class TessellatedPath;
