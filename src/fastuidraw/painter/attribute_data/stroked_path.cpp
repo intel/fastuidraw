@@ -545,21 +545,12 @@ namespace
                        float thresh);
 
   private:
-    class PerRoundedJoin:public PerJoinData
+    class PerRoundedJoin
     {
     public:
       PerRoundedJoin(const PerJoinData &J, float thresh);
 
-      void
-      add_data(unsigned int depth,
-               fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-               unsigned int &vertex_offset,
-               fastuidraw::c_array<unsigned int> indices,
-               unsigned int &index_offset) const;
-
-      std::complex<float> m_arc_start;
-      float m_delta_theta;
-      unsigned int m_num_arc_points;
+      unsigned int m_num_verts, m_num_indices;
     };
 
     virtual
@@ -579,11 +570,12 @@ namespace
     mutable std::vector<PerRoundedJoin> m_per_join_data;
   };
 
-  class BevelJoinCreator:public JoinCreatorBase
+  template<enum fastuidraw::PainterEnums::join_style join_style>
+  class GenericJoinCreator:public JoinCreatorBase
   {
   public:
     explicit
-    BevelJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+    GenericJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
 
   private:
     virtual
@@ -598,50 +590,14 @@ namespace
                         unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
                         unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    unsigned int m_verts_per_join, m_indices_per_join;
   };
 
-  class MiterClipJoinCreator:public JoinCreatorBase
-  {
-  public:
-    explicit
-    MiterClipJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
-
-  private:
-    virtual
-    void
-    add_join(unsigned int join_id, const PerJoinData &join,
-             unsigned int &vert_count, unsigned int &index_count) const;
-
-    virtual
-    void
-    fill_join_implement(unsigned int join_id, const PerJoinData &join,
-                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-                        unsigned int depth,
-                        fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset) const;
-  };
-
-  template<enum fastuidraw::StrokedPoint::offset_type_t tp>
-  class MiterJoinCreator:public JoinCreatorBase
-  {
-  public:
-    explicit
-    MiterJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
-
-  private:
-    virtual
-    void
-    add_join(unsigned int join_id, const PerJoinData &join,
-             unsigned int &vert_count, unsigned int &index_count) const;
-
-    virtual
-    void
-    fill_join_implement(unsigned int join_id, const PerJoinData &join,
-                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-                        unsigned int depth,
-                        fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset) const;
-  };
+  typedef GenericJoinCreator<fastuidraw::PainterEnums::bevel_joins> BevelJoinCreator;
+  typedef GenericJoinCreator<fastuidraw::PainterEnums::miter_clip_joins> MiterClipJoinCreator;
+  typedef GenericJoinCreator<fastuidraw::PainterEnums::miter_bevel_joins> MiterBevelJoinCreator;
+  typedef GenericJoinCreator<fastuidraw::PainterEnums::miter_joins> MiterJoinCreator;
 
   class PointIndexCapSize
   {
@@ -1010,8 +966,8 @@ namespace
     CapJoinChunkDepthTracking m_cap_join_tracking;
     PreparedAttributeData<BevelJoinCreator> m_bevel_joins;
     PreparedAttributeData<MiterClipJoinCreator> m_miter_clip_joins;
-    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPoint::offset_miter_join> > m_miter_joins;
-    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPoint::offset_miter_bevel_join> > m_miter_bevel_joins;
+    PreparedAttributeData<MiterJoinCreator> m_miter_joins;
+    PreparedAttributeData<MiterBevelJoinCreator> m_miter_bevel_joins;
     PreparedAttributeData<ArcRoundedJoinCreator> m_arc_rounded_joins;
     PreparedAttributeData<SquareCapCreator> m_square_caps;
     PreparedAttributeData<AdjustableCapCreator> m_adjustable_caps;
@@ -1578,97 +1534,9 @@ process_chunk(const RangeAndChunk &ch,
 /////////////////////////////////////////////////
 // RoundedJoinCreator::PerRoundedJoin methods
 RoundedJoinCreator::PerRoundedJoin::
-PerRoundedJoin(const PerJoinData &J, float thresh):
-  PerJoinData(J)
+PerRoundedJoin(const PerJoinData &J, float thresh)
 {
-  /* n0z represents the start point of the rounded join in the complex plane
-   * as if the join was at the origin, n1z represents the end point of the
-   * rounded join in the complex plane as if the join was at the origin.
-   */
-  std::complex<float> n0z(m_lambda * enter_join_normal().x(), m_lambda * enter_join_normal().y());
-  std::complex<float> n1z(m_lambda * leaving_join_normal().x(), m_lambda * leaving_join_normal().y());
-
-  /* n1z_times_conj_n0z satisfies:
-   * n1z = n1z_times_conj_n0z * n0z
-   * i.e. it represents the arc-movement from n0z to n1z
-   */
-  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
-
-  m_arc_start = n0z;
-  m_delta_theta = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
-  m_num_arc_points = fastuidraw::detail::number_segments_for_tessellation(m_delta_theta, thresh);
-  m_delta_theta /= static_cast<float>(m_num_arc_points - 1);
-}
-
-void
-RoundedJoinCreator::PerRoundedJoin::
-add_data(unsigned int depth,
-         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-         unsigned int &vertex_offset,
-         fastuidraw::c_array<unsigned int> indices,
-         unsigned int &index_offset) const
-{
-  unsigned int i, first;
-  float theta;
-  fastuidraw::StrokedPoint pt;
-
-  first = vertex_offset;
-  set_distance_values(&pt);
-
-  pt.m_position = m_position;
-  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  pt.m_position = m_position;
-  pt.m_pre_offset = m_lambda * enter_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  for(i = 1, theta = m_delta_theta; i < m_num_arc_points - 1; ++i, theta += m_delta_theta, ++vertex_offset)
-    {
-      float t, c, s;
-      std::complex<float> cs_as_complex;
-
-      t = static_cast<float>(i) / static_cast<float>(m_num_arc_points - 1);
-      c = fastuidraw::t_cos(theta);
-      s = fastuidraw::t_sin(theta);
-      cs_as_complex = std::complex<float>(c, s) * m_arc_start;
-
-      pt.m_position = m_position;
-      pt.m_pre_offset = m_lambda * fastuidraw::vec2(enter_join_normal().x(), leaving_join_normal().x());
-      pt.m_auxiliary_offset = fastuidraw::vec2(t, cs_as_complex.real());
-      pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_rounded_join, depth);
-
-      if (m_lambda * enter_join_normal().y() < 0.0f)
-        {
-          pt.m_packed_data |= fastuidraw::StrokedPoint::normal0_y_sign_mask;
-        }
-
-      if (m_lambda * leaving_join_normal().y() < 0.0f)
-        {
-          pt.m_packed_data |= fastuidraw::StrokedPoint::normal1_y_sign_mask;
-        }
-
-      if (cs_as_complex.imag() < 0.0f)
-        {
-          pt.m_packed_data |= fastuidraw::StrokedPoint::sin_sign_mask;
-        }
-      pt.pack_point(&pts[vertex_offset]);
-    }
-
-  pt.m_position = m_position;
-  pt.m_pre_offset = m_lambda * leaving_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::StrokedPoint::pack_rounded_size(J, thresh, &m_num_verts, &m_num_indices);
 }
 
 ///////////////////////////////////////////////////
@@ -1693,12 +1561,8 @@ add_join(unsigned int join_id, const PerJoinData &join,
   PerRoundedJoin J(join, m_thresh);
 
   m_per_join_data.push_back(J);
-
-  /* a triangle fan centered at J.m_position with
-   * J.m_num_arc_points along an edge
-   */
-  vert_count += (1 + J.m_num_arc_points);
-  index_count += 3 * (J.m_num_arc_points - 1);
+  vert_count += J.m_num_verts;
+  index_count += J.m_num_indices;
 }
 
 void
@@ -1709,9 +1573,15 @@ fill_join_implement(unsigned int join_id, const PerJoinData &join,
                     fastuidraw::c_array<unsigned int> indices,
                     unsigned int &vertex_offset, unsigned int &index_offset) const
 {
-  FASTUIDRAWunused(join);
   FASTUIDRAWassert(join_id < m_per_join_data.size());
-  m_per_join_data[join_id].add_data(depth, pts, vertex_offset, indices, index_offset);
+
+  pts = pts.sub_array(vertex_offset, m_per_join_data[join_id].m_num_verts);
+  indices = indices.sub_array(index_offset, m_per_join_data[join_id].m_num_indices);
+  fastuidraw::StrokedPoint::pack_join(fastuidraw::PainterEnums::rounded_joins,
+                                      join, depth, pts, indices, vertex_offset);
+
+  vertex_offset += m_per_join_data[join_id].m_num_verts;
+  index_offset += m_per_join_data[join_id].m_num_indices;
 }
 
 ////////////////////////////////////////////////
@@ -1792,29 +1662,34 @@ fill_join_implement(unsigned int join_id, const PerJoinData &join,
 }
 
 ///////////////////////////////////////////////////
-// BevelJoinCreator methods
-BevelJoinCreator::
-BevelJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
-  JoinCreatorBase(P, st)
+// GenericJoinCreator methods
+template<enum fastuidraw::PainterEnums::join_style join_style>
+GenericJoinCreator<join_style>::
+GenericJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+  JoinCreatorBase(P, st),
+  m_verts_per_join(0),
+  m_indices_per_join(0)
 {
+  fastuidraw::StrokedPoint::pack_size(join_style, &m_verts_per_join, &m_indices_per_join);
   post_ctor_initalize();
 }
 
+template<enum fastuidraw::PainterEnums::join_style join_style>
 void
-BevelJoinCreator::
+GenericJoinCreator<join_style>::
 add_join(unsigned int join_id, const PerJoinData &join,
          unsigned int &vert_count, unsigned int &index_count) const
 {
   FASTUIDRAWunused(join_id);
   FASTUIDRAWunused(join);
 
-  /* one triangle per bevel join */
-  vert_count += 3;
-  index_count += 3;
+  vert_count += m_verts_per_join;
+  index_count += m_indices_per_join;
 }
 
+template<enum fastuidraw::PainterEnums::join_style join_style>
 void
-BevelJoinCreator::
+GenericJoinCreator<join_style>::
 fill_join_implement(unsigned int join_id, const PerJoinData &J,
                     fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
                     unsigned int depth,
@@ -1823,220 +1698,13 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
 {
   FASTUIDRAWunused(join_id);
 
-  fastuidraw::StrokedPoint pt;
-  J.set_distance_values(&pt);
+  pts = pts.sub_array(vertex_offset, m_verts_per_join);
+  indices = indices.sub_array(index_offset, m_indices_per_join);
 
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.m_lambda * J.enter_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset + 0]);
-
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset + 1]);
-
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.m_lambda * J.leaving_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset + 2]);
-
-  fastuidraw::detail::add_triangle_fan(vertex_offset, vertex_offset + 3, indices, index_offset);
-
-  vertex_offset += 3;
+  fastuidraw::StrokedPoint::pack_join(join_style, J, depth, pts, indices, vertex_offset);
+  vertex_offset += m_verts_per_join;
+  index_offset += m_indices_per_join;
 }
-
-
-
-///////////////////////////////////////////////////
-// MiterClipJoinCreator methods
-MiterClipJoinCreator::
-MiterClipJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
-  JoinCreatorBase(P, st)
-{
-  post_ctor_initalize();
-}
-
-void
-MiterClipJoinCreator::
-add_join(unsigned int join_id, const PerJoinData &join,
-         unsigned int &vert_count, unsigned int &index_count) const
-{
-  FASTUIDRAWunused(join_id);
-  FASTUIDRAWunused(join);
-
-  /* Each join is a triangle fan from 5 points
-   * (thus 3 triangles, which is 9 indices)
-   */
-  vert_count += 5;
-  index_count += 9;
-}
-
-
-void
-MiterClipJoinCreator::
-fill_join_implement(unsigned int join_id, const PerJoinData &J,
-                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-                    unsigned int depth,
-                    fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset) const
-{
-  FASTUIDRAWunused(join_id);
-  fastuidraw::StrokedPoint pt;
-  unsigned int first;
-
-  /* The miter point is given by where the two boundary
-   * curves intersect. The two curves are given by:
-   *
-   * a(t) = J.m_position + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
-   * b(s) = J.m_position + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
-   *
-   * With J.m_0 is  the location of the join.
-   *
-   * We need to solve a(t) = b(s) and compute that location.
-   * Linear algebra gives us that:
-   *
-   * t = - stroke_width * J.m_lamba * r
-   * s = - stroke_width * J.m_lamba * r
-   * where
-   * r = (<J.m_v1, J.m_v0> - 1) / <J.m_v0, J.m_n1>
-   *
-   * thus
-   *
-   * a(t) = J.m_position + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
-   *     = b(s)
-   *     = J.m_position + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
-   */
-
-  first = vertex_offset;
-  J.set_distance_values(&pt);
-
-  // join center point.
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  // join point from curve into join
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.m_lambda * J.enter_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  // miter point A
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.enter_join_normal();
-  pt.m_auxiliary_offset = J.leaving_join_normal();
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  // miter point B
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.leaving_join_normal();
-  pt.m_auxiliary_offset = J.enter_join_normal();
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join, depth);
-  pt.m_packed_data |= fastuidraw::StrokedPoint::lambda_negated_mask;
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  // join point from curve out from join
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.m_lambda * J.leaving_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
-}
-
-
-////////////////////////////////////
-// MiterJoinCreator methods
-template<enum fastuidraw::StrokedPoint::offset_type_t tp>
-MiterJoinCreator<tp>::
-MiterJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
-  JoinCreatorBase(P, st)
-{
-  post_ctor_initalize();
-}
-
-template<enum fastuidraw::StrokedPoint::offset_type_t tp>
-void
-MiterJoinCreator<tp>::
-add_join(unsigned int join_id, const PerJoinData &J,
-         unsigned int &vert_count, unsigned int &index_count) const
-{
-  /* Each join is a triangle fan from 4 points
-   * (thus 2 triangles, which is 6 indices)
-   */
-  FASTUIDRAWunused(join_id);
-  FASTUIDRAWunused(J);
-
-  vert_count += 4;
-  index_count += 6;
-}
-
-template<enum fastuidraw::StrokedPoint::offset_type_t tp>
-void
-MiterJoinCreator<tp>::
-fill_join_implement(unsigned int join_id, const PerJoinData &J,
-                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-                    unsigned int depth,
-                    fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset) const
-{
-  FASTUIDRAWunused(join_id);
-
-  fastuidraw::StrokedPoint pt;
-  unsigned int first;
-
-  first = vertex_offset;
-  J.set_distance_values(&pt);
-
-  // join center point.
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  // join point from curve into join
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.m_lambda * J.enter_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  // miter point
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.enter_join_normal();
-  pt.m_auxiliary_offset = J.leaving_join_normal();
-  pt.m_packed_data = pack_data_join(1, tp, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  // join point from curve out from join
-  pt.m_position = J.m_position;
-  pt.m_pre_offset = J.m_lambda * J.leaving_join_normal();
-  pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
-}
-
 
 ///////////////////////////////////////////////
 // CapCreatorBase methods

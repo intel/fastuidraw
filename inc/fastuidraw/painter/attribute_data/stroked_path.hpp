@@ -283,7 +283,8 @@ public:
    * The attribute data is packed \ref StrokedPoint data.
    * \param thresh will return rounded joins so that the distance
    *               between the approximation of the round and the
-   *               actual round is no more than thresh.
+   *               actual round is no more than thresh when the
+   *               path is stroked with a stroking radius of one.
    */
   const PainterAttributeData&
   rounded_joins(float thresh) const;
@@ -293,7 +294,8 @@ public:
    * The attribute data is packed \ref StrokedPoint data.
    * \param thresh will return rounded caps so that the distance
    *               between the approximation of the round and the
-   *               actual round is no more than thresh.
+   *               actual round is no more than thresh when the
+   *               path is stroked with a stroking radius of one.
    */
   const PainterAttributeData&
   rounded_caps(float thresh) const;
