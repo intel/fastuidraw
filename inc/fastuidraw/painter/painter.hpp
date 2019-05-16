@@ -1174,7 +1174,7 @@ namespace fastuidraw
      *                 to use stroking parameters to help compute necessary thresh
      * \param[out] out_rounded_thresh location to which to write threshhold to be
      *                                used for rounded caps and joins of \ref
-     *                                StrokedCapsJoins.
+     *                                StrokedPath.
      */
     float
     compute_path_thresh(const Path &path,
@@ -1210,30 +1210,12 @@ namespace fastuidraw
                    c_array<unsigned int> dst);
 
     /*!
-     * Calls StrokedCapsJoins::compute_chunks() passing arguments derived
-     * from the current state of the Painter.
-     * \param caps_joins \ref StrokedCapsJoins from which to compute chunk selection
-     * \param geometry_inflation amount path geometry is inflated, array
-     *                           is indexed by the enumeration \ref
-     *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
-     * \param js join style
-     * \param cp cap style
-     * \param[out] dst location to which to write what chunks
-     */
-    void
-    select_chunks(const StrokedCapsJoins &caps_joins,
-                  c_array<const float> geometry_inflation,
-                  enum join_style js,
-                  enum fastuidraw::Painter::cap_style cp,
-                  StrokedCapsJoins::ChunkSet *dst);
-
-    /*!
      * Stroke a path.
      * \param shader shader with which to stroke the attribute data
      * \param draw data for how to draw
      * \param path StrokedPath to stroke
-     * \param rounded_thresh value to feed to StrokedCapsJoins::rounded_joins()
-     *                       and/or StrokedCapsJoins::rounded_caps() if rounded
+     * \param rounded_thresh value to feed to StrokedPath::rounded_joins()
+     *                       and/or StrokedPath::rounded_caps() if rounded
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
@@ -1304,8 +1286,8 @@ namespace fastuidraw
      * \param shader shader with which to draw
      * \param draw data for how to draw
      * \param path StrokedPath to stroke
-     * \param rounded_thresh value to feed to StrokedCapsJoins::rounded_joins()
-     *                       and/or StrokedCapsJoins::rounded_caps() if rounded
+     * \param rounded_thresh value to feed to StrokedPath::rounded_joins()
+     *                       and/or StrokedPath::rounded_caps() if rounded
      *                       joins and/or rounded caps are requested
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing

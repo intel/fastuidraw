@@ -1343,7 +1343,7 @@ namespace
     fastuidraw::c_array<const fastuidraw::vec2>
     join_positions(void) const
     {
-      return m_caps_joins_chunk_set.join_positions();
+      return fastuidraw::make_c_array(m_join_positions);
     }
 
     void
@@ -1366,6 +1366,9 @@ namespace
 
         number_offsets,
       };
+
+    void
+    set_join_cap_chunks(const std::vector<unsigned int> &subsets);
 
     bool
     requires_coverage_buffer(void) const override
@@ -1415,10 +1418,12 @@ namespace
 
     const fastuidraw::StrokedPath *m_path;
     std::vector<unsigned int> m_path_subsets;
+    std::vector<unsigned int> m_join_cap_subsets;
     const fastuidraw::PainterAttributeData *m_join_attribute_data;
-    fastuidraw::c_array<const unsigned int> m_join_chunks;
+    std::vector<unsigned int> m_join_chunks;
     const fastuidraw::PainterAttributeData *m_cap_attribute_data;
-    fastuidraw::c_array<const unsigned int> m_cap_chunks;
+    std::vector<unsigned int> m_cap_chunks;
+    std::vector<fastuidraw::vec2> m_join_positions;
 
     /**
      * conveniance values:
@@ -1427,8 +1432,7 @@ namespace
     fastuidraw::vecN<std::vector<int>, number_drawing_types> m_z_increments;
 
     fastuidraw::StrokedPath::ScratchSpace m_path_scratch;
-    fastuidraw::StrokedCapsJoins::ChunkSet m_caps_joins_chunk_set;
-    fastuidraw::StrokedCapsJoins::ScratchSpace m_caps_joins_scratch;
+    fastuidraw::PartitionedTessellatedPath::ScratchSpace m_partioned_path_scratch;
   };
 
   class AntiAliasFillWorkRoom:fastuidraw::noncopyable
@@ -1515,7 +1519,6 @@ namespace
     GenericLayeredWorkRoom m_generic_layered;
     ComputeClipIntersectRectWorkRoom m_compute_clip_intersect_rect;
     fastuidraw::StrokedPath::ScratchSpace m_path_scratch;
-    fastuidraw::StrokedCapsJoins::ScratchSpace m_caps_joins_scratch;
   };
 
   class EffectsStackEntry
@@ -1811,13 +1814,6 @@ namespace
                    fastuidraw::c_array<const float> geometry_inflation,
                    fastuidraw::c_array<unsigned int> dst);
 
-    void
-    select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
-                  fastuidraw::c_array<const float> geometry_inflation,
-                  enum fastuidraw::Painter::join_style js,
-                  enum fastuidraw::Painter::cap_style cp,
-                  fastuidraw::StrokedCapsJoins::ChunkSet *dst);
-
     const fastuidraw::StrokedPath*
     select_stroked_path(const fastuidraw::Path &path,
                         const fastuidraw::PainterStrokeShader &shader,
@@ -2015,6 +2011,38 @@ draw(PainterPrivate &painter, fastuidraw::PainterData &data)
   painter.draw_generic(nullptr, data, *this);
 }
 
+void
+StrokingWorkRoom::
+set_join_cap_chunks(const std::vector<unsigned int> &subsets)
+{
+  using namespace fastuidraw;
+
+  m_join_chunks.clear();
+  m_cap_chunks.clear();
+
+  if (!m_join_attribute_data && !m_cap_attribute_data)
+    {
+      return;
+    }
+
+  for (unsigned int I : subsets)
+    {
+      StrokedPath::Subset S(m_path->subset(I));
+      int J(S.join_chunk());
+      int K(S.cap_chunk());
+
+      if (J >= 0 && m_join_attribute_data)
+        {
+          m_join_chunks.push_back(J);
+        }
+
+      if (K >= 0 && m_cap_attribute_data)
+        {
+          m_cap_chunks.push_back(K);
+        }
+    }
+}
+
 bool
 StrokingWorkRoom::
 init_for_stroking(const PainterPrivate &painter,
@@ -2028,26 +2056,26 @@ init_for_stroking(const PainterPrivate &painter,
 {
   using namespace fastuidraw;
 
-  const StrokedCapsJoins &caps_joins(path.caps_joins());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
 
+  m_path = &path;
   m_requires_coverage_buffer = false;
   switch (cp)
     {
       case Painter::rounded_caps:
       if (edge_arc_shader)
         {
-          m_cap_attribute_data = &caps_joins.arc_rounded_caps();
+          m_cap_attribute_data = &path.arc_rounded_caps();
           cap_arc_shader = true;
         }
       else
         {
-          m_cap_attribute_data = &caps_joins.rounded_caps(thresh);
+          m_cap_attribute_data = &path.rounded_caps(thresh);
         }
       break;
 
     case Painter::square_caps:
-      m_cap_attribute_data = &caps_joins.square_caps();
+      m_cap_attribute_data = &path.square_caps();
       break;
 
     case Painter::flat_caps:
@@ -2055,37 +2083,37 @@ init_for_stroking(const PainterPrivate &painter,
       break;
 
     case Painter::number_cap_styles:
-      m_cap_attribute_data = &caps_joins.adjustable_caps();
+      m_cap_attribute_data = &path.adjustable_caps();
       break;
     }
 
   switch (js)
     {
     case Painter::miter_clip_joins:
-      m_join_attribute_data = &caps_joins.miter_clip_joins();
+      m_join_attribute_data = &path.miter_clip_joins();
       break;
 
     case Painter::miter_bevel_joins:
-      m_join_attribute_data = &caps_joins.miter_bevel_joins();
+      m_join_attribute_data = &path.miter_bevel_joins();
       break;
 
     case Painter::miter_joins:
-      m_join_attribute_data = &caps_joins.miter_joins();
+      m_join_attribute_data = &path.miter_joins();
       break;
 
     case Painter::bevel_joins:
-      m_join_attribute_data = &caps_joins.bevel_joins();
+      m_join_attribute_data = &path.bevel_joins();
       break;
 
     case Painter::rounded_joins:
       if (edge_arc_shader)
         {
-          m_join_attribute_data = &caps_joins.arc_rounded_joins();
+          m_join_attribute_data = &path.arc_rounded_joins();
           join_arc_shader = true;
         }
       else
         {
-          m_join_attribute_data = &caps_joins.rounded_joins(thresh);
+          m_join_attribute_data = &path.rounded_joins(thresh);
         }
       break;
 
@@ -2110,16 +2138,37 @@ init_for_stroking(const PainterPrivate &painter,
   FASTUIDRAWassert(subset_count <= m_path_subsets.size());
   m_path_subsets.resize(subset_count);
 
-  caps_joins.compute_chunks(m_caps_joins_scratch,
-                            painter.m_clip_store.current(),
-                            painter.m_clip_rect_state.item_matrix(),
-                            painter.m_one_pixel_width,
-                            additional_room,
-                            js, cp,
-                            m_caps_joins_chunk_set);
+  m_join_positions.clear();
+  if (PainterEnums::is_miter_join(js))
+    {
+      unsigned int num;
 
-  m_join_chunks = m_caps_joins_chunk_set.join_chunks();
-  m_cap_chunks = m_caps_joins_chunk_set.cap_chunks();
+      m_join_cap_subsets.resize(path.number_subsets());
+      num = path.partitioned_path().select_subsets_miter(m_partioned_path_scratch,
+                                                         painter.m_clip_store.current(),
+                                                         painter.m_clip_rect_state.item_matrix(),
+                                                         painter.m_one_pixel_width,
+                                                         additional_room,
+                                                         make_c_array(m_join_cap_subsets));
+      m_join_cap_subsets.resize(num);
+      set_join_cap_chunks(m_join_cap_subsets);
+
+      const PartitionedTessellatedPath &partitioned(path.partitioned_path());
+      for (unsigned int I : m_join_cap_subsets)
+        {
+          PartitionedTessellatedPath::Subset SP(partitioned.subset(I));
+          for (const auto &join : SP.joins())
+            {
+              m_join_positions.push_back(join.m_position);
+            }
+        }
+    }
+  else
+    {
+      /* The join positions are only needed for miter-joins */
+      set_join_cap_chunks(m_path_subsets);
+    }
+
   if (m_join_chunks.empty())
     {
       m_join_attribute_data = nullptr;
@@ -2138,8 +2187,6 @@ init_for_stroking(const PainterPrivate &painter,
     (subset_count > 0 && m_shader[drawing_edges]->coverage_shader())
     || (m_join_attribute_data && m_shader[drawing_joins]->coverage_shader())
     || (m_cap_attribute_data && m_shader[drawing_caps]->coverage_shader());
-
-  m_path = &path;
 
   int tmp(0);
 
@@ -3659,30 +3706,6 @@ select_subsets(const fastuidraw::StrokedPath &path,
                              m_max_attribs_per_block,
                              m_max_indices_per_block,
                              dst);
-}
-
-void
-PainterPrivate::
-select_chunks(const fastuidraw::StrokedCapsJoins &caps_joins,
-              fastuidraw::c_array<const float> geometry_inflation,
-              enum fastuidraw::Painter::join_style js,
-              enum fastuidraw::Painter::cap_style cp,
-              fastuidraw::StrokedCapsJoins::ChunkSet *dst)
-{
-  FASTUIDRAWassert(dst);
-  if (m_clip_rect_state.m_all_content_culled)
-    {
-      dst->reset();
-      return;
-    }
-
-  caps_joins.compute_chunks(m_work_room.m_caps_joins_scratch,
-                            m_clip_store.current(),
-                            m_clip_rect_state.item_matrix(),
-                            m_one_pixel_width,
-                            geometry_inflation,
-                            js, cp,
-                            *dst);
 }
 
 const fastuidraw::FilledPath&
@@ -5232,19 +5255,6 @@ select_subsets(const StrokedPath &path,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   return d->select_subsets(path, geometry_inflation, dst);
-}
-
-void
-fastuidraw::Painter::
-select_chunks(const StrokedCapsJoins &caps_joins,
-              fastuidraw::c_array<const float> geometry_inflation,
-              enum fastuidraw::Painter::join_style js,
-              enum fastuidraw::Painter::cap_style cp,
-              StrokedCapsJoins::ChunkSet *dst)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->select_chunks(caps_joins, geometry_inflation, js, cp, dst);
 }
 
 void
