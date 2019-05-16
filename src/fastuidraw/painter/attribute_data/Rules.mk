@@ -6,7 +6,7 @@ d		:= $(dir)
 
 FASTUIDRAW_SOURCES += $(call filelist, \
 	painter_attribute_data.cpp \
-	stroked_caps_joins.cpp stroked_point.cpp \
+	stroked_point.cpp \
 	stroked_path.cpp filled_path.cpp \
 	glyph_sequence.cpp glyph_run.cpp \
 	glyph_attribute_packer.cpp \
