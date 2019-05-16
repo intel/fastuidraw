@@ -927,6 +927,12 @@ draw_glyphs(float us)
         .union_point(p2)
         .union_point(p3);
 
+      if (m_stroke_glyphs)
+        {
+          screen.union_point(screen.min_point() - vec2(m_stroke_width));
+          screen.union_point(screen.max_point() + vec2(m_stroke_width));
+        }
+
       m_draw_shared.query_glyph_interesection(screen, &glyphs_visible);
     }
 
