@@ -98,7 +98,7 @@ namespace
 
     /* derived values from creation */
     fastuidraw::vec2 m_normal_into_join, m_normal_leaving_join;
-    float m_det, m_lambda;
+    float m_lambda;
   };
 
   class PerCapData
@@ -1438,87 +1438,10 @@ PerJoinData(const fastuidraw::TessellatedPath::join &join):
   m_distance_from_previous_join(join.m_distance_from_previous_join),
   m_distance_from_contour_start(join.m_distance_from_contour_start),
   m_contour_length(join.m_contour_length),
-  m_normal_into_join(-m_tangent_into_join.y(), m_tangent_into_join.x()),
-  m_normal_leaving_join(-m_tangent_leaving_join.y(), m_tangent_leaving_join.x())
+  m_normal_into_join(join.enter_join_normal()),
+  m_normal_leaving_join(join.leaving_join_normal()),
+  m_lambda(join.lambda())
 {
-  /* Explanation:
-   *  We have two curves, a(t) and b(t) with a(1) = b(0)
-   *  The point p0 represents the end of a(t) and the
-   *  point p1 represents the start of b(t).
-   *
-   *  When stroking we have four auxiliary curves:
-   *    a0(t) = a(t) + w * a_n(t)
-   *    a1(t) = a(t) - w * a_n(t)
-   *    b0(t) = b(t) + w * b_n(t)
-   *    b1(t) = b(t) - w * b_n(t)
-   *  where
-   *    w = width of stroking
-   *    a_n(t) = J( a'(t) ) / || a'(t) ||
-   *    b_n(t) = J( b'(t) ) / || b'(t) ||
-   *  when
-   *    J(x, y) = (-y, x).
-   *
-   *  A Bevel join is a triangle that connects
-   *  consists of p, A and B where p is a(1)=b(0),
-   *  A is one of a0(1) or a1(1) and B is one
-   *  of b0(0) or b1(0). Now if we use a0(1) for
-   *  A then we will use b0(0) for B because
-   *  the normals are generated the same way for
-   *  a(t) and b(t). Then, the questions comes
-   *  down to, do we wish to add or subtract the
-   *  normal. That value is represented by m_lambda.
-   *
-   *  Now to figure out m_lambda. Let q0 be a point
-   *  on a(t) before p=a(1). The q0 is given by
-   *
-   *    q0 = p - s * m_v0
-   *
-   *  and let q1 be a point on b(t) after p=b(0),
-   *
-   *    q1 = p + t * m_v1
-   *
-   *  where both s, t are positive. Let
-   *
-   *    z = (q0+q1) / 2
-   *
-   *  the point z is then on the side of the join
-   *  of the acute angle of the join.
-   *
-   *  With this in mind, if either of <z-p, m_n0>
-   *  or <z-p, m_n1> is positive then we want
-   *  to add by -w * n rather than  w * n.
-   *
-   *  Note that:
-   *
-   *  <z-p, m_n1> = 0.5 * < -s * m_v0 + t * m_v1, m_n1 >
-   *              = -0.5 * s * <m_v0, m_n1> + 0.5 * t * <m_v1, m_n1>
-   *              = -0.5 * s * <m_v0, m_n1>
-   *              = -0.5 * s * <m_v0, J(m_v1) >
-   *
-   *  and
-   *
-   *  <z-p, m_n0> = 0.5 * < -s * m_v0 + t * m_v1, m_n0 >
-   *              = -0.5 * s * <m_v0, m_n0> + 0.5 * t * <m_v1, m_n0>
-   *              = 0.5 * t * <m_v1, m_n0>
-   *              = 0.5 * t * <m_v1, J(m_v0) >
-   *              = -0.5 * t * <J(m_v1), m_v0>
-   *
-   *  (the last line because transpose(J) = -J). Notice
-   *  that the sign of <z-p, m_n1> and the sign of <z-p, m_n0>
-   *  is then the same.
-   *
-   *  thus m_lambda is positive if <m_v1, m_n0> is negative.
-   */
-
-  m_det = fastuidraw::dot(m_tangent_leaving_join, m_normal_into_join);
-  if (m_det > 0.0f)
-    {
-      m_lambda = -1.0f;
-    }
-  else
-    {
-      m_lambda = 1.0f;
-    }
 }
 
 /////////////////////////////////////////////////
