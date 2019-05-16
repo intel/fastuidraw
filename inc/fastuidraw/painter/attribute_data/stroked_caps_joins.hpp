@@ -158,40 +158,6 @@ public:
                  ChunkSet &dst) const;
 
   /*!
-   * Returns the number of joins of the StrokedPath
-   */
-  unsigned int
-  number_joins(void) const;
-
-  /*!
-   * Returns a chunk value for Painter::attribute_data_chunk()
-   * and related calls to feed the return value to any of
-   * bevel_joins(), miter_clip_joins(), miter_bevel_joins(),
-   * miter_joins() or rounded_joins() to fetch the chunk
-   * of the named join.
-   * \param J join ID with 0 <= J < number_joins()
-   */
-  unsigned int
-  join_chunk(unsigned int J) const;
-
-  /*!
-   * Return the chunk to feed to any of bevel_joins(),
-   * miter_clip_joins(), miter_bevel_joins(),
-   * miter_joins() or rounded_joins() that holds all
-   * the joins.
-   */
-  unsigned int
-  chunk_of_joins(void) const;
-
-  /*!
-   * Return the chunk to feed any of square_caps(),
-   * adjustable_caps() or rounded_caps() that holds
-   * data for all caps of this StrokedPath.
-   */
-  unsigned int
-  chunk_of_caps(void) const;
-
-  /*!
    * Returns the data to draw the square caps of a stroked path.
    * The attribute data is packed \ref StrokedPoint data.
    */

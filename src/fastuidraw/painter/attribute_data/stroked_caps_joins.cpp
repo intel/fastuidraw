@@ -2804,42 +2804,6 @@ compute_chunks(ScratchSpace &scratch_space,
                               one_pixel_width, pixel_dist, item_dist, *chunk_set_ptr);
 }
 
-unsigned int
-fastuidraw::StrokedCapsJoins::
-number_joins(void) const
-{
-  StrokedCapsJoinsPrivate *d;
-  d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
-  return d->m_path_data.m_join_ordering.size();
-}
-
-unsigned int
-fastuidraw::StrokedCapsJoins::
-join_chunk(unsigned int J) const
-{
-  StrokedCapsJoinsPrivate *d;
-  d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
-  return d->m_path_data.m_join_ordering[J].m_chunk;
-}
-
-unsigned int
-fastuidraw::StrokedCapsJoins::
-chunk_of_joins(void) const
-{
-  StrokedCapsJoinsPrivate *d;
-  d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
-  return d->m_chunk_of_joins;
-}
-
-unsigned int
-fastuidraw::StrokedCapsJoins::
-chunk_of_caps(void) const
-{
-  StrokedCapsJoinsPrivate *d;
-  d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
-  return d->m_chunk_of_caps;
-}
-
 const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedCapsJoins::
 square_caps(void) const
