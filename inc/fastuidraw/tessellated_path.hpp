@@ -604,7 +604,7 @@ public:
   join_data(void) const;
 
   /*!
-   * Returns all the join data
+   * Returns all the cap data
    */
   c_array<const cap>
   cap_data(void) const;
