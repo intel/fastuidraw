@@ -113,21 +113,8 @@ namespace
   {
   public:
     PerJoinData(const fastuidraw::PartitionedTessellatedPath::join &J):
-      fastuidraw::PartitionedTessellatedPath::join(J),
-      m_p(J.m_position)
+      fastuidraw::PartitionedTessellatedPath::join(J)
     {}
-
-    fastuidraw::vec2
-    n0(void) const
-    {
-      return enter_join_normal();
-    }
-
-    fastuidraw::vec2
-    n1(void) const
-    {
-      return leaving_join_normal();
-    }
 
     void
     set_distance_values(fastuidraw::StrokedPoint *pt) const
@@ -146,16 +133,13 @@ namespace
       pt->m_contour_length = m_contour_length;
       pt->m_distance_from_contour_start = m_distance_from_contour_start;
     }
-
-    fastuidraw::vec2 m_p;
   };
 
   class PerCapData:public fastuidraw::PartitionedTessellatedPath::cap
   {
   public:
     PerCapData(const fastuidraw::PartitionedTessellatedPath::cap &C):
-      fastuidraw::PartitionedTessellatedPath::cap(C),
-      m_p(C.m_position)
+      fastuidraw::PartitionedTessellatedPath::cap(C)
     {}
 
     void
@@ -175,8 +159,6 @@ namespace
       pt->m_contour_length = m_contour_length;
       pt->m_distance_from_contour_start = (m_is_starting_cap) ? 0.0f : m_contour_length;
     }
-
-    fastuidraw::vec2 m_p;
   };
 
   typedef GenericOrdering<PerCapData> CapOrdering;
@@ -1603,8 +1585,8 @@ PerRoundedJoin(const PerJoinData &J, float thresh):
    * as if the join was at the origin, n1z represents the end point of the
    * rounded join in the complex plane as if the join was at the origin.
    */
-  std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
-  std::complex<float> n1z(m_lambda * n1().x(), m_lambda * n1().y());
+  std::complex<float> n0z(m_lambda * enter_join_normal().x(), m_lambda * enter_join_normal().y());
+  std::complex<float> n1z(m_lambda * leaving_join_normal().x(), m_lambda * leaving_join_normal().y());
 
   /* n1z_times_conj_n0z satisfies:
    * n1z = n1z_times_conj_n0z * n0z
@@ -1633,15 +1615,15 @@ add_data(unsigned int depth,
   first = vertex_offset;
   set_distance_values(&pt);
 
-  pt.m_position = m_p;
+  pt.m_position = m_position;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = m_p;
-  pt.m_pre_offset = m_lambda * n0();
+  pt.m_position = m_position;
+  pt.m_pre_offset = m_lambda * enter_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
@@ -1657,17 +1639,17 @@ add_data(unsigned int depth,
       s = fastuidraw::t_sin(theta);
       cs_as_complex = std::complex<float>(c, s) * m_arc_start;
 
-      pt.m_position = m_p;
-      pt.m_pre_offset = m_lambda * fastuidraw::vec2(n0().x(), n1().x());
+      pt.m_position = m_position;
+      pt.m_pre_offset = m_lambda * fastuidraw::vec2(enter_join_normal().x(), leaving_join_normal().x());
       pt.m_auxiliary_offset = fastuidraw::vec2(t, cs_as_complex.real());
       pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_rounded_join, depth);
 
-      if (m_lambda * n0().y() < 0.0f)
+      if (m_lambda * enter_join_normal().y() < 0.0f)
         {
           pt.m_packed_data |= fastuidraw::StrokedPoint::normal0_y_sign_mask;
         }
 
-      if (m_lambda * n1().y() < 0.0f)
+      if (m_lambda * leaving_join_normal().y() < 0.0f)
         {
           pt.m_packed_data |= fastuidraw::StrokedPoint::normal1_y_sign_mask;
         }
@@ -1679,8 +1661,8 @@ add_data(unsigned int depth,
       pt.pack_point(&pts[vertex_offset]);
     }
 
-  pt.m_position = m_p;
-  pt.m_pre_offset = m_lambda * n1();
+  pt.m_position = m_position;
+  pt.m_pre_offset = m_lambda * leaving_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
@@ -1712,7 +1694,7 @@ add_join(unsigned int join_id, const PerJoinData &join,
 
   m_per_join_data.push_back(J);
 
-  /* a triangle fan centered at J.m_p with
+  /* a triangle fan centered at J.m_position with
    * J.m_num_arc_points along an edge
    */
   vert_count += (1 + J.m_num_arc_points);
@@ -1741,8 +1723,8 @@ PerArcRoundedJoin(const PerJoinData &J):
   const float per_arc_angle_max(FASTUIDRAW_PI / 4.0);
   float delta_angle_mag;
 
-  std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
-  std::complex<float> n1z(m_lambda * n1().x(), m_lambda * n1().y());
+  std::complex<float> n0z(m_lambda * enter_join_normal().x(), m_lambda * enter_join_normal().y());
+  std::complex<float> n1z(m_lambda * leaving_join_normal().x(), m_lambda * leaving_join_normal().y());
   std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
 
   m_arc_start = n0z;
@@ -1765,9 +1747,9 @@ add_data(unsigned int depth,
   fastuidraw::ArcStrokedPoint pt;
 
   set_distance_values(&pt);
-  pt.m_position = m_p;
-  fastuidraw::detail::pack_arc_join(pt, m_count, m_lambda * n0(),
-                                    m_delta_angle, m_lambda * n1(),
+  pt.m_position = m_position;
+  fastuidraw::detail::pack_arc_join(pt, m_count, m_lambda * enter_join_normal(),
+                                    m_delta_angle, m_lambda * leaving_join_normal(),
                                     depth, pts, vertex_offset,
                                     indices, index_offset, true);
 }
@@ -1844,20 +1826,20 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   fastuidraw::StrokedPoint pt;
   J.set_distance_values(&pt);
 
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.m_lambda * J.n0();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.m_lambda * J.enter_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset + 0]);
 
-  pt.m_position = J.m_p;
+  pt.m_position = J.m_position;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset + 1]);
 
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.m_lambda * J.n1();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.m_lambda * J.leaving_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset + 2]);
@@ -1909,8 +1891,8 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   /* The miter point is given by where the two boundary
    * curves intersect. The two curves are given by:
    *
-   * a(t) = J.m_p0 + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
-   * b(s) = J.m_p1 + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
+   * a(t) = J.m_position + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
+   * b(s) = J.m_position + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
    *
    * With J.m_0 is  the location of the join.
    *
@@ -1924,16 +1906,16 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
    *
    * thus
    *
-   * a(t) = J.m_p + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
+   * a(t) = J.m_position + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
    *     = b(s)
-   *     = J.m_p + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
+   *     = J.m_position + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
    */
 
   first = vertex_offset;
   J.set_distance_values(&pt);
 
   // join center point.
-  pt.m_position = J.m_p;
+  pt.m_position = J.m_position;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
@@ -1941,33 +1923,33 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   ++vertex_offset;
 
   // join point from curve into join
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.m_lambda * J.n0();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.m_lambda * J.enter_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   // miter point A
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.n0();
-  pt.m_auxiliary_offset = J.n1();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.enter_join_normal();
+  pt.m_auxiliary_offset = J.leaving_join_normal();
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   // miter point B
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.n1();
-  pt.m_auxiliary_offset = J.n0();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.leaving_join_normal();
+  pt.m_auxiliary_offset = J.enter_join_normal();
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join, depth);
   pt.m_packed_data |= fastuidraw::StrokedPoint::lambda_negated_mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   // join point from curve out from join
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.m_lambda * J.n1();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.m_lambda * J.leaving_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
@@ -2021,7 +2003,7 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   J.set_distance_values(&pt);
 
   // join center point.
-  pt.m_position = J.m_p;
+  pt.m_position = J.m_position;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
@@ -2029,24 +2011,24 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   ++vertex_offset;
 
   // join point from curve into join
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.m_lambda * J.n0();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.m_lambda * J.enter_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   // miter point
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.n0();
-  pt.m_auxiliary_offset = J.n1();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.enter_join_normal();
+  pt.m_auxiliary_offset = J.leaving_join_normal();
   pt.m_packed_data = pack_data_join(1, tp, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   // join point from curve out from join
-  pt.m_position = J.m_p;
-  pt.m_pre_offset = J.m_lambda * J.n1();
+  pt.m_position = J.m_position;
+  pt.m_pre_offset = J.m_lambda * J.leaving_join_normal();
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
@@ -2227,14 +2209,14 @@ add_cap(const PerCapData &C, unsigned int depth,
   n = fastuidraw::vec2(-v.y(), v.x());
   C.set_distance_values(&pt);
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = n;
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
@@ -2247,14 +2229,14 @@ add_cap(const PerCapData &C, unsigned int depth,
 
       s = fastuidraw::t_sin(theta);
       c = fastuidraw::t_cos(theta);
-      pt.m_position = C.m_p;
+      pt.m_position = C.m_position;
       pt.m_pre_offset = n;
       pt.m_auxiliary_offset = fastuidraw::vec2(s, c);
       pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_rounded_cap, depth);
       pt.pack_point(&pts[vertex_offset]);
     }
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
@@ -2300,35 +2282,35 @@ add_cap(const PerCapData &C, unsigned int depth,
   n = fastuidraw::vec2(-v.y(), v.x());
   C.set_distance_values(&pt);
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data(0, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = n;
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = n;
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_square_cap, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_square_cap, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
@@ -2378,42 +2360,42 @@ add_cap(const PerCapData &C, unsigned int depth,
   n = vec2(-v.y(), v.x());
   C.set_distance_values(&pt);
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(0, type, depth) | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = n;
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(1, type, depth) | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = n;
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(0, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = v;
   pt.m_packed_data = pack_data(1, type, depth) | mask;
@@ -2460,7 +2442,7 @@ add_cap(const PerCapData &C, unsigned int depth,
   fastuidraw::ArcStrokedPoint pt;
   fastuidraw::vec2 n, v;
 
-  pt.m_position = C.m_p;
+  pt.m_position = C.m_position;
   C.set_distance_values(&pt);
   v = C.m_unit_vector;
   n = fastuidraw::vec2(v.y(), -v.x());
