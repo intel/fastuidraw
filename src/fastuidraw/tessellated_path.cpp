@@ -164,7 +164,7 @@ namespace
          * meaning that v0 and v1 are anti-parallel which
          * means that the miter-join goes on to infinity.
          */
-        J.m_miter_distance -1.0f;
+        J.m_miter_distance = -1.0f;
         return;
       }
     J.m_miter_distance = t_sqrt(1.0f + mag_s * mag_s);
