@@ -23,24 +23,634 @@
 
 namespace
 {
+  inline
   void
-  set_distance_values(const fastuidraw::TessellatedPath::join &J,
-                      fastuidraw::ArcStrokedPoint *pt)
+  init(const fastuidraw::TessellatedPath::join &J,
+       fastuidraw::ArcStrokedPoint *pt)
   {
+    pt->m_position = J.m_position;
     pt->m_distance_from_edge_start = J.m_distance_from_previous_join;
     pt->m_edge_length = J.m_distance_from_previous_join;
     pt->m_contour_length = J.m_contour_length;
     pt->m_distance_from_contour_start = J.m_distance_from_contour_start;
   }
 
+  inline
   void
-  set_distance_values(const fastuidraw::TessellatedPath::cap &C,
-                      fastuidraw::ArcStrokedPoint *pt)
+  init(const fastuidraw::TessellatedPath::cap &C,
+       fastuidraw::ArcStrokedPoint *pt)
   {
+    pt->m_position = C.m_position;
     pt->m_distance_from_edge_start = (C.m_is_starting_cap) ? 0.0f : C.m_edge_length;
     pt->m_edge_length = C.m_edge_length;
     pt->m_contour_length = C.m_contour_length;
     pt->m_distance_from_contour_start = (C.m_is_starting_cap) ? 0.0f : C.m_contour_length;
+  }
+
+  inline
+  void
+  init_start_pt(const fastuidraw::TessellatedPath::segment &S,
+                fastuidraw::ArcStrokedPoint *pt)
+  {
+    pt->m_position = S.m_start_pt;
+    pt->m_distance_from_edge_start = S.m_distance_from_edge_start;
+    pt->m_distance_from_contour_start = S.m_distance_from_contour_start;
+    pt->m_edge_length = S.m_edge_length;
+    pt->m_contour_length = S.m_contour_length;
+    pt->m_data = fastuidraw::vec2(0.0f, 0.0f);
+  }
+
+  inline
+  void
+  init_end_pt(const fastuidraw::TessellatedPath::segment &S,
+                fastuidraw::ArcStrokedPoint *pt)
+  {
+    pt->m_position = S.m_end_pt;
+    pt->m_distance_from_edge_start = S.m_distance_from_edge_start + S.m_length;
+    pt->m_distance_from_contour_start = S.m_distance_from_contour_start + S.m_length;
+    pt->m_edge_length = S.m_edge_length;
+    pt->m_contour_length = S.m_contour_length;
+    pt->m_data = fastuidraw::vec2(0.0f, 0.0f);
+  }
+
+  inline
+  bool
+  segment_has_bevel(const fastuidraw::TessellatedPath::segment *prev,
+                    const fastuidraw::TessellatedPath::segment &S)
+  {
+    /* Bevel requires that the previous segment is not
+     * a continuation of the previous, that there is previous.
+     * Lastly, if the segment changes direction (indicated
+     * by the dot() of the vectors begin negative), then
+     * it is likely at a cusp of the curve and cusps do not
+     * get bevel eithers.
+     */
+    return !S.m_continuation_with_predecessor
+      && prev
+      && fastuidraw::dot(prev->m_leaving_segment_unit_vector,
+                         S.m_enter_segment_unit_vector) >= 0.0f;
+  }
+
+  inline
+  bool
+  use_arc_bevel(const fastuidraw::TessellatedPath::segment *prev,
+                const fastuidraw::TessellatedPath::segment &S)
+  {
+    /* Use an arc-bevel whenever one of the segments it connects between
+     * is an arc-segment.
+     */
+    FASTUIDRAWassert(prev);
+    return prev->m_type == fastuidraw::TessellatedPath::arc_segment
+      || S.m_type == fastuidraw::TessellatedPath::arc_segment;
+  }
+
+  inline
+  bool
+  has_start_dashed_capper(const fastuidraw::TessellatedPath::segment &S)
+  {
+    return S.m_type == fastuidraw::TessellatedPath::arc_segment
+      && S.m_first_segment_of_edge;
+  }
+
+  inline
+  bool
+  has_end_dashed_capper(const fastuidraw::TessellatedPath::segment &S)
+  {
+    return S.m_type == fastuidraw::TessellatedPath::arc_segment
+      && S.m_last_segment_of_edge;
+  }
+
+  void
+  pack_segment_single_chain_size(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
+                                 unsigned int *pdepth_range_size,
+                                 unsigned int *pnum_attributes,
+                                 unsigned int *pnum_indices)
+  {
+    unsigned int &depth_range_size(*pdepth_range_size);
+    unsigned int &num_attributes(*pnum_attributes);
+    unsigned int &num_indices(*pnum_indices);
+    const fastuidraw::TessellatedPath::segment *prev(chain.m_prev_to_start);
+
+    depth_range_size = 0;
+    num_attributes = 0;
+    num_indices = 0;
+
+    for (const auto &S : chain.m_segments)
+      {
+        if (segment_has_bevel(prev, S))
+          {
+            ++depth_range_size; //only inner increments depth
+            if (use_arc_bevel(prev, S))
+              {
+                /* each arc-bevel uses 5 attributes and 9 indices
+                 * (because each is realized in one arc). Since
+                 * there is an inner and outer bevel, then double
+                 * it.
+                 */
+                num_attributes += 10;
+                num_indices += 18;
+              }
+            else
+              {
+                num_attributes += 6;
+                num_indices += 6;
+              }
+          }
+
+        if (has_start_dashed_capper(S))
+          {
+            num_attributes += 6;
+            num_indices += 12;
+            ++depth_range_size;
+          }
+
+        if (has_end_dashed_capper(S))
+          {
+            num_attributes += 6;
+            num_indices += 12;
+            ++depth_range_size;
+          }
+
+        ++depth_range_size;
+        if (S.m_type == fastuidraw::TessellatedPath::arc_segment)
+          {
+            num_attributes += 12;
+            num_indices += 24;
+          }
+        else
+          {
+            /* each segment is two quads that share an edge;
+             * thus 6 attributes and 12 indices all sharing
+             * a single depth value.
+             */
+            num_attributes += 6;
+            num_indices += 12;
+          }
+
+        prev = &S;
+      }
+  }
+
+  inline
+  void
+  pack_arc_bevel(bool is_inner_bevel,
+                 const fastuidraw::TessellatedPath::segment *prev,
+                 const fastuidraw::TessellatedPath::segment &S,
+                 unsigned int &current_depth,
+                 fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                 unsigned int &current_vertex,
+                 fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                 unsigned int &current_index,
+                 unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+
+    ArcStrokedPoint pt;
+    float lambda;
+    unsigned int start_index(current_index);
+    fastuidraw::vec2 start_bevel, end_bevel;
+
+    FASTUIDRAWassert(use_arc_bevel(prev, S));
+
+    init_start_pt(S, &pt);
+    lambda = detail::compute_bevel_lambda(is_inner_bevel, prev, S,
+                                          start_bevel, end_bevel);
+    detail::pack_arc_join(pt, 1,
+                          lambda * start_bevel, lambda * end_bevel,
+                          current_depth,
+                          dst_attribs, current_vertex,
+                          dst_indices, current_index, false);
+    for (; start_index < current_index; ++start_index)
+      {
+        dst_indices[start_index] += index_adjust;
+      }
+
+    if (is_inner_bevel)
+      {
+        ++current_depth;
+      }
+  }
+
+  inline
+  void
+  pack_line_bevel(bool is_inner_bevel,
+                 const fastuidraw::TessellatedPath::segment *prev,
+                 const fastuidraw::TessellatedPath::segment &S,
+                 unsigned int &current_depth,
+                 fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                 unsigned int &vertex_offset,
+                 fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                 unsigned int &index_offset,
+                 unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+
+    ArcStrokedPoint pt;
+    float lambda;
+    vec2 start_bevel, end_bevel;
+
+    FASTUIDRAWassert(segment_has_bevel(prev, S));
+    FASTUIDRAWassert(!use_arc_bevel(prev, S));
+
+    init_start_pt(S, &pt);
+    lambda = detail::compute_bevel_lambda(is_inner_bevel, prev, S,
+                                          start_bevel, end_bevel);
+
+    for (unsigned int k = 0; k < 3; ++k, ++index_offset)
+      {
+        dst_indices[index_offset] = k + index_adjust + vertex_offset;
+      }
+
+    pt.m_offset_direction = vec2(0.0f, 0.0f);
+    pt.m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
+      | detail::arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_line_segment, current_depth);
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_offset_direction = lambda * start_bevel;
+    pt.m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
+      | detail::arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, current_depth);
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_offset_direction = lambda * end_bevel;
+    pt.m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
+      | detail::arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, current_depth);
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    if (is_inner_bevel)
+      {
+        ++current_depth;
+      }
+  }
+
+  inline
+  void
+  pack_bevel(bool is_inner_bevel,
+             const fastuidraw::TessellatedPath::segment *prev,
+             const fastuidraw::TessellatedPath::segment &S,
+             unsigned int &current_depth,
+             fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+             unsigned int &current_vertex,
+             fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+             unsigned int &current_index,
+             unsigned int index_adjust)
+  {
+    if (use_arc_bevel(prev, S))
+      {
+        pack_arc_bevel(is_inner_bevel, prev, S, current_depth,
+                       dst_attribs, current_vertex,
+                       dst_indices, current_index,
+                       index_adjust);
+      }
+    else
+      {
+        pack_line_bevel(is_inner_bevel, prev, S, current_depth,
+                        dst_attribs, current_vertex,
+                        dst_indices, current_index,
+                        index_adjust);
+      }
+  }
+
+  inline
+  void
+  pack_dashed_capper(bool for_start_dashed_capper,
+                     const fastuidraw::TessellatedPath::segment &S,
+                     unsigned int &current_depth,
+                     fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                     unsigned int &vertex_offset,
+                     fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                     unsigned int &index_offset,
+                     unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+
+    const PainterIndex tris[12] =
+      {
+        0, 3, 4,
+        0, 4, 1,
+        1, 4, 5,
+        1, 5, 2,
+      };
+
+    for (unsigned int i = 0; i < 12; ++i, ++index_offset)
+      {
+        dst_indices[index_offset] = tris[i] + index_adjust + vertex_offset;
+      }
+
+    ArcStrokedPoint pt;
+    vec2 normal;
+    uint32_t packed_data, packed_data_mid;
+
+    packed_data = detail::arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_dashed_capper, current_depth);
+    packed_data_mid = detail::arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_dashed_capper, current_depth);
+    if (for_start_dashed_capper)
+      {
+        normal = S.enter_segment_normal();
+        pt.m_data = -S.m_enter_segment_unit_vector;
+        init_start_pt(S, &pt);
+      }
+    else
+      {
+        normal = S.leaving_segment_normal();
+        pt.m_data = S.m_leaving_segment_unit_vector;
+        init_end_pt(S, &pt);
+        packed_data |= ArcStrokedPoint::end_segment_mask;
+        packed_data_mid |= ArcStrokedPoint::end_segment_mask;
+      }
+
+    pt.m_packed_data = packed_data;
+    pt.m_offset_direction = normal;
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_packed_data = packed_data_mid;
+    pt.m_offset_direction = vec2(0.0f, 0.0f);
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_packed_data = packed_data;
+    pt.m_offset_direction = -normal;
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_packed_data = packed_data | ArcStrokedPoint::extend_mask;
+    pt.m_offset_direction = normal;
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_packed_data = packed_data_mid | ArcStrokedPoint::extend_mask;
+    pt.m_offset_direction = vec2(0.0f, 0.0f);
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_packed_data = packed_data | ArcStrokedPoint::extend_mask;
+    pt.m_offset_direction = -normal;
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    ++current_depth;
+  }
+
+  inline
+  void
+  pack_line_segment(const fastuidraw::TessellatedPath::segment &S,
+                    unsigned int &current_depth,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                    unsigned int &current_vertex,
+                    fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                    unsigned int &current_index,
+                    unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+    using namespace detail;
+
+    const unsigned int tris[12] =
+      {
+        0, 2, 5,
+        0, 5, 3,
+        2, 1, 4,
+        2, 4, 5
+      };
+
+    for (unsigned int i = 0; i < 12; ++i, ++current_index)
+      {
+        dst_indices[current_index] = current_vertex + index_adjust + tris[i];
+      }
+
+    const int boundary_values[3] = { 1, 1, 0 };
+    const float normal_sign[3] = { 1.0f, -1.0f, 0.0f };
+    vec2 delta(S.m_end_pt - S.m_start_pt);
+    vecN<ArcStrokedPoint, 6> pts;
+
+    for(unsigned int k = 0; k < 3; ++k)
+      {
+        pts[k].m_position = S.m_start_pt;
+        pts[k].m_distance_from_edge_start = S.m_distance_from_edge_start;
+        pts[k].m_distance_from_contour_start = S.m_distance_from_contour_start;
+        pts[k].m_edge_length = S.m_edge_length;
+        pts[k].m_contour_length = S.m_contour_length;
+        pts[k].m_offset_direction = normal_sign[k] * S.enter_segment_normal();
+        pts[k].m_data = delta;
+        pts[k].m_packed_data = arc_stroked_point_pack_bits(boundary_values[k],
+                                                           ArcStrokedPoint::offset_line_segment,
+                                                           current_depth);
+
+        pts[k + 3].m_position = S.m_end_pt;
+        pts[k + 3].m_distance_from_edge_start = S.m_distance_from_edge_start + S.m_length;
+        pts[k + 3].m_distance_from_contour_start = S.m_distance_from_contour_start + S.m_length;
+        pts[k + 3].m_edge_length = S.m_edge_length;
+        pts[k + 3].m_contour_length = S.m_contour_length;
+        pts[k + 3].m_offset_direction = normal_sign[k] * S.leaving_segment_normal();
+        pts[k + 3].m_data = -delta;
+        pts[k + 3].m_packed_data = ArcStrokedPoint::end_segment_mask
+          | arc_stroked_point_pack_bits(boundary_values[k],
+                                        ArcStrokedPoint::offset_line_segment,
+                                        current_depth);
+    }
+
+    for (unsigned int i = 0; i < 6; ++i)
+      {
+        pts[i].pack_point(&dst_attribs[current_vertex++]);
+      }
+
+    ++current_depth;
+  }
+
+  inline
+  void
+  pack_arc_segment(const fastuidraw::TessellatedPath::segment &S,
+                   unsigned int &depth,
+                   fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                   unsigned int &current_vertex,
+                   fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                   unsigned int &current_index,
+                   unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+    using namespace detail;
+
+    ArcStrokedPoint begin_pt, end_pt;
+    vec2 begin_radial, end_radial;
+
+    const unsigned int tris[24] =
+      {
+        4, 6, 7,
+        4, 7, 5,
+        2, 4, 5,
+        2, 5, 3,
+        8, 0, 1,
+        9, 2, 3,
+
+        0,  1, 10,
+        1, 10, 11
+      };
+
+    for (unsigned int i = 0; i < 24; ++i, ++current_index)
+      {
+        dst_indices[current_index] = current_vertex + index_adjust + tris[i];
+      }
+
+    init_start_pt(S, &begin_pt);
+    begin_pt.radius() = S.m_radius;
+    begin_pt.arc_angle() = S.m_arc_angle.m_end - S.m_arc_angle.m_begin;
+
+    init_end_pt(S, &end_pt);
+    end_pt.radius() = begin_pt.radius();
+    end_pt.arc_angle() = begin_pt.arc_angle();
+
+    begin_radial = vec2(t_cos(S.m_arc_angle.m_begin), t_sin(S.m_arc_angle.m_begin));
+    end_radial = vec2(t_cos(S.m_arc_angle.m_end), t_sin(S.m_arc_angle.m_end));
+
+    /* inner stroking boundary points (points 0, 1) */
+    begin_pt.m_packed_data = ArcStrokedPoint::inner_stroking_mask
+      | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
+    begin_pt.m_position = S.m_start_pt;
+    begin_pt.m_offset_direction = begin_radial;
+    begin_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
+    end_pt.m_position = S.m_end_pt;
+    end_pt.m_offset_direction = end_radial;
+    end_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    /* the points that are on the arc (points 2, 3) */
+    begin_pt.m_packed_data = arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point, depth);
+    begin_pt.m_position = S.m_start_pt;
+    begin_pt.m_offset_direction = begin_radial;
+    begin_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
+    end_pt.m_position = S.m_end_pt;
+    end_pt.m_offset_direction = end_radial;
+    end_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    /* outer stroking boundary points (points 4, 5) */
+    begin_pt.m_packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
+    begin_pt.m_position = S.m_start_pt;
+    begin_pt.m_offset_direction = begin_radial;
+    begin_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
+    end_pt.m_position = S.m_end_pt;
+    end_pt.m_offset_direction = end_radial;
+    end_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    /* beyond outer stroking boundary points (points 6, 7) */
+    begin_pt.m_packed_data = ArcStrokedPoint::beyond_boundary_mask
+      | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
+    begin_pt.m_position = S.m_start_pt;
+    begin_pt.m_offset_direction = begin_radial;
+    begin_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
+    end_pt.m_position = S.m_end_pt;
+    end_pt.m_offset_direction = end_radial;
+    end_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    /* points that move to origin when stroking radius is larger than arc radius (points 8, 9) */
+    begin_pt.m_packed_data = ArcStrokedPoint::move_to_arc_center_mask
+      | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point, depth);
+    begin_pt.m_position = S.m_start_pt;
+    begin_pt.m_offset_direction = begin_radial;
+    begin_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    end_pt.m_packed_data = ArcStrokedPoint::move_to_arc_center_mask
+      | ArcStrokedPoint::end_segment_mask
+      | ArcStrokedPoint::inner_stroking_mask
+      | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
+    end_pt.m_position = S.m_end_pt;
+    end_pt.m_offset_direction = end_radial;
+    end_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    /* beyond inner stroking boundary (points 10, 11) */
+    begin_pt.m_packed_data = ArcStrokedPoint::beyond_boundary_mask
+      | ArcStrokedPoint::inner_stroking_mask
+      | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
+    begin_pt.m_position = S.m_start_pt;
+    begin_pt.m_offset_direction = begin_radial;
+    begin_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
+    end_pt.m_position = S.m_end_pt;
+    end_pt.m_offset_direction = end_radial;
+    end_pt.pack_point(&dst_attribs[current_vertex++]);
+
+    ++depth;
+  }
+
+  inline
+  void
+  pack_segment(const fastuidraw::TessellatedPath::segment &S,
+               unsigned int &current_depth,
+               fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+               unsigned int &current_vertex,
+               fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+               unsigned int &current_index,
+               unsigned int index_adjust)
+  {
+    if (S.m_type == fastuidraw::TessellatedPath::arc_segment)
+      {
+        pack_arc_segment(S, current_depth,
+                         dst_attribs, current_vertex,
+                         dst_indices, current_index,
+                         index_adjust);
+      }
+    else
+      {
+        pack_line_segment(S, current_depth,
+                          dst_attribs, current_vertex,
+                          dst_indices, current_index,
+                          index_adjust);
+      }
+  }
+
+  void
+  pack_single_segment_chain(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
+                            unsigned int &current_depth,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                            unsigned int &current_vertex,
+                            fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                            unsigned int &current_index,
+                            unsigned int index_adjust)
+  {
+    const fastuidraw::TessellatedPath::segment *prev(chain.m_prev_to_start);
+    for (const auto &S : chain.m_segments)
+      {
+        bool has_bevel;
+
+        has_bevel = segment_has_bevel(prev, S);
+        if (has_bevel)
+          {
+            pack_bevel(false, prev, S, current_depth,
+                       dst_attribs, current_vertex,
+                       dst_indices, current_index,
+                       index_adjust);
+          }
+
+        if (has_start_dashed_capper(S))
+          {
+            pack_dashed_capper(true, S, current_depth,
+                               dst_attribs, current_vertex,
+                               dst_indices, current_index,
+                               index_adjust);
+          }
+
+        pack_segment(S, current_depth,
+                     dst_attribs, current_vertex,
+                     dst_indices, current_index,
+                     index_adjust);
+
+        if (has_bevel)
+          {
+            pack_bevel(true, prev, S, current_depth,
+                       dst_attribs, current_vertex,
+                       dst_indices, current_index,
+                       index_adjust);
+          }
+
+        if (has_end_dashed_capper(S))
+          {
+            pack_dashed_capper(false, S, current_depth,
+                               dst_attribs, current_vertex,
+                               dst_indices, current_index,
+                               index_adjust);
+          }
+
+        prev = &S;
+      }
   }
 }
 
@@ -119,8 +729,7 @@ pack_join(const TessellatedPath::join &join,
 
   ArcStrokedPoint pt;
 
-  set_distance_values(join, &pt);
-  pt.m_position = join.m_position;
+  init(join, &pt);
   detail::pack_arc_join(pt, count, join.m_lambda * join.enter_join_normal(),
                         join.m_join_angle, join.m_lambda * join.leaving_join_normal(),
                         depth, dst_attribs, num_verts_used,
@@ -148,8 +757,7 @@ pack_cap(const TessellatedPath::cap &C,
   unsigned num_verts_used(0), num_indices_used(0);
   vec2 v(C.m_unit_vector), n(v.y(), -v.x());
 
-  set_distance_values(C, &pt);
-  pt.m_position = C.m_position;
+  init(C, &pt);
   detail::pack_arc_join(pt, arcs_per_cap,
                         n, FASTUIDRAW_PI, -n,
                         depth, dst_attribs, num_verts_used,
@@ -160,4 +768,56 @@ pack_cap(const TessellatedPath::cap &C,
     {
       idx += index_adjust;
     }
+}
+
+void
+fastuidraw::ArcStrokedPointPacking::
+pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+                        unsigned int *pdepth_range_size,
+                        unsigned int *pnum_attributes,
+                        unsigned int *pnum_indices)
+{
+  unsigned int &depth_range_size(*pdepth_range_size);
+  unsigned int &num_attributes(*pnum_attributes);
+  unsigned int &num_indices(*pnum_indices);
+
+  depth_range_size = 0;
+  num_attributes = 0;
+  num_indices = 0;
+
+  for (const PartitionedTessellatedPath::segment_chain &chain : chains)
+    {
+      unsigned int d, a, i;
+
+      pack_segment_single_chain_size(chain, &d, &a, &i);
+      depth_range_size += d;
+      num_attributes += a;
+      num_indices += i;
+    }
+}
+
+void
+fastuidraw::ArcStrokedPointPacking::
+pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+                   unsigned int depth_start,
+                   c_array<PainterAttribute> dst_attribs,
+                   c_array<PainterIndex> dst_indices,
+                   unsigned int index_adjust)
+{
+  /* pack the segments in the order we get them, incrementing the
+   * depth value as we go. After we are done, then we will reverse
+   * the indices to make it do in depth decreasing order.
+   */
+  unsigned int current_vertex(0), current_index(0), current_depth(depth_start);
+  for (const PartitionedTessellatedPath::segment_chain &chain : chains)
+    {
+      pack_single_segment_chain(chain, current_depth,
+                                dst_attribs, current_vertex,
+                                dst_indices, current_index,
+                                index_adjust);
+    }
+  FASTUIDRAWassert(current_vertex == dst_attribs.size());
+  FASTUIDRAWassert(current_index == dst_indices.size());
+
+  std::reverse(dst_indices.begin(), dst_indices.end());
 }
