@@ -27,18 +27,46 @@ number_segments_for_tessellation(float arc_angle, float distance_thresh)
 {
   if (distance_thresh <= 0.0f)
     {
+      /* a zero or negative value represents
+       *  non-sense so just say one segment.
+       */
       return 1;
     }
   else
     {
-      float needed_sizef, d, theta, num_half_circles;
+      /* The distance between an arc of angle theta and
+       * a line connecting the end points of the segment
+       * is given by 1 - cos(theta / 2). This is numerically
+       * unstable, but algebraically is the same as
+       * sin^2(theta / 4). So if the angle is smaller than
+       * PI, the distance between the line and the arc is
+       * given by:
+       *
+       *   distance = 2 sin^2 (theta / 4)
+       *
+       * and we want distance < distance_thresh, so:
+       *
+       *   sin^2 (theta / 4) < distance_thresh
+       *   sin (theta / 4) < sqrt(distance_thresh / 2)
+       *   theta < 4 * arcsin(sqrt(distance_thresh / 2))
+       */
+      float d, needed_sizef, theta, num_half_circles;
       const float pi(FASTUIDRAW_PI);
 
+      /* compute the number of half circles arc_angle has.
+       */
       num_half_circles = std::floor(t_abs(arc_angle / pi));
+
+      /* remove the half circles from arc_angle */
       arc_angle = t_max(-pi, t_min(arc_angle, pi));
 
-      d = t_max(1.0f - distance_thresh, 0.5f);
-      theta = t_max(0.00001f, 0.5f * std::acos(d));
+      /* follow formula outline above with a bounding of
+       * the angle away from zero; although analytically
+       * we should multiply by 4, this still lets us
+       * see bumps, so we ask for twice the number of points.
+       */
+      d = t_sqrt(0.5f * distance_thresh);
+      theta = t_max(0.00001f, 2.0f * std::asin(d));
       needed_sizef = (pi * num_half_circles + t_abs(arc_angle)) / theta;
 
       /* we ask for one more than necessary, to ensure that we BEAT
