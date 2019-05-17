@@ -538,7 +538,7 @@ public:
 
 /*!
  * \brief
- * Namespace to encompase packing values and functions of
+ * Namespace to encompass packing values and functions of
  * path data for stroking using \ref StrokedPoint.
  */
 namespace StrokedPointPacking
@@ -672,8 +672,8 @@ namespace StrokedPointPacking
    * realized with \ref StrokedPoint.
    * \param js join style to pack for
    * \param join join data to pack
-   * \param depth the value for \ref depth() of the packed
-   *              \ref StrokedPoint values
+   * \param depth the value for \ref StrokedPoin::depth() of the
+   *              packed \ref StrokedPoint values
    * \param dst_attribs location to which to place the attributes,
    *                    when js is \ref PainterEnums::rounded_joins,
    *                    the size of dst_attribs must be as indicated
@@ -715,8 +715,8 @@ namespace StrokedPointPacking
    * realized with \ref StrokedPoint.
    * \param cp join style to pack for
    * \param cap cap data to pack
-   * \param depth the value for \ref depth() of the packed
-   *              \ref StrokedPoint values
+   * \param depth the value for \ref StrokedPoint::depth() of
+   *               the packed \ref StrokedPoint values
    * \param dst_attribs location to which to place the attributes,
    *                    when cp is \ref rounded_caps, the size
    *                    of dst_attribs must be as indicated by
