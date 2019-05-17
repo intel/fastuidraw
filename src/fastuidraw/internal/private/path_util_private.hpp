@@ -73,22 +73,6 @@ namespace fastuidraw
     }
 
     inline
-    uint32_t
-    arc_stroked_point_pack_bits(int on_boundary,
-                                enum ArcStrokedPoint::offset_type_t pt,
-                                uint32_t depth)
-    {
-      FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
-
-      uint32_t bb(on_boundary), pp(pt);
-      return pack_bits(ArcStrokedPoint::offset_type_bit0,
-                       ArcStrokedPoint::offset_type_num_bits, pp)
-        | pack_bits(ArcStrokedPoint::boundary_bit, 1u, bb)
-        | pack_bits(ArcStrokedPoint::depth_bit0,
-                    ArcStrokedPoint::depth_num_bits, depth);
-    }
-
-    inline
     float
     compute_bevel_lambda(bool is_inner_bevel,
                          const TessellatedPath::segment *prev,

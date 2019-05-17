@@ -24,6 +24,22 @@
 namespace
 {
   inline
+  uint32_t
+  arc_stroked_point_pack_bits(int on_boundary,
+                              enum fastuidraw::ArcStrokedPoint::offset_type_t pt,
+                              uint32_t depth)
+  {
+    FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
+
+    uint32_t bb(on_boundary), pp(pt);
+    return pack_bits(fastuidraw::ArcStrokedPoint::offset_type_bit0,
+                     fastuidraw::ArcStrokedPoint::offset_type_num_bits, pp)
+      | pack_bits(fastuidraw::ArcStrokedPoint::boundary_bit, 1u, bb)
+      | pack_bits(fastuidraw::ArcStrokedPoint::depth_bit0,
+                  fastuidraw::ArcStrokedPoint::depth_num_bits, depth);
+  }
+
+  inline
   void
   init(const fastuidraw::TessellatedPath::join &J,
        fastuidraw::ArcStrokedPoint *pt)
@@ -376,17 +392,17 @@ namespace
 
     pt.m_offset_direction = vec2(0.0f, 0.0f);
     pt.m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
-      | detail::arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_line_segment, current_depth);
+      | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_line_segment, current_depth);
     pt.pack_point(&dst_attribs[vertex_offset++]);
 
     pt.m_offset_direction = lambda * start_bevel;
     pt.m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
-      | detail::arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, current_depth);
+      | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, current_depth);
     pt.pack_point(&dst_attribs[vertex_offset++]);
 
     pt.m_offset_direction = lambda * end_bevel;
     pt.m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
-      | detail::arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, current_depth);
+      | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, current_depth);
     pt.pack_point(&dst_attribs[vertex_offset++]);
 
     if (is_inner_bevel)
@@ -453,8 +469,8 @@ namespace
     vec2 normal;
     uint32_t packed_data, packed_data_mid;
 
-    packed_data = detail::arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_dashed_capper, current_depth);
-    packed_data_mid = detail::arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_dashed_capper, current_depth);
+    packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_dashed_capper, current_depth);
+    packed_data_mid = arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_dashed_capper, current_depth);
     if (for_start_dashed_capper)
       {
         normal = S.enter_segment_normal();
