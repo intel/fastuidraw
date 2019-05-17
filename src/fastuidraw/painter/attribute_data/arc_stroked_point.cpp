@@ -16,7 +16,23 @@
  *
  */
 
+#include <complex>
+#include <algorithm>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
+#include <private/path_util_private.hpp>
+
+namespace
+{
+  void
+  set_distance_values(const fastuidraw::TessellatedPath::join &J,
+                      fastuidraw::ArcStrokedPoint *pt)
+  {
+    pt->m_distance_from_edge_start = J.m_distance_from_previous_join;
+    pt->m_edge_length = J.m_distance_from_previous_join;
+    pt->m_contour_length = J.m_contour_length;
+    pt->m_distance_from_contour_start = J.m_distance_from_contour_start;
+  }
+}
 
 //////////////////////////////////////
 // fastuidraw::ArcStrokedPoint methods
@@ -58,4 +74,51 @@ unpack_point(ArcStrokedPoint *dst, const PainterAttribute &a)
   dst->m_packed_data = a.m_attrib2.x();
   dst->m_edge_length = unpack_float(a.m_attrib2.y());
   dst->m_contour_length = unpack_float(a.m_attrib2.z());
+}
+
+void
+fastuidraw::ArcStrokedPointPacking::
+pack_join_size(const TessellatedPath::join &join,
+               unsigned int *num_attributes,
+               unsigned int *num_indices)
+{
+  const float per_arc_angle_max(FASTUIDRAW_PI / 4.0);
+  float delta_angle_mag;
+  unsigned int count;
+
+  delta_angle_mag = fastuidraw::t_abs(join.m_join_angle);
+  count = 1u + static_cast<unsigned int>(delta_angle_mag / per_arc_angle_max);
+
+  *num_attributes = 3u * count + 2u;
+  *num_indices = 9u * count;
+}
+
+void
+fastuidraw::ArcStrokedPointPacking::
+pack_join(const TessellatedPath::join &join,
+          unsigned int depth,
+          c_array<PainterAttribute> dst_attribs,
+          c_array<PainterIndex> dst_indices,
+          unsigned int index_adjust)
+{
+  unsigned int count, num_verts_used(0), num_indices_used(0);
+
+  count = dst_indices.size() / 9u;
+  FASTUIDRAWassert(9u * count == dst_indices.size());
+  FASTUIDRAWassert(3u * count + 2u == dst_attribs.size());
+
+  ArcStrokedPoint pt;
+
+  set_distance_values(join, &pt);
+  pt.m_position = join.m_position;
+  fastuidraw::detail::pack_arc_join(pt, count, join.m_lambda * join.enter_join_normal(),
+                                    join.m_join_angle, join.m_lambda * join.leaving_join_normal(),
+                                    depth, dst_attribs, num_verts_used,
+                                    dst_indices, num_indices_used, true);
+  FASTUIDRAWassert(num_verts_used == dst_attribs.size());
+  FASTUIDRAWassert(num_indices_used == dst_indices.size());
+  for (PainterIndex &idx : dst_indices)
+    {
+      idx += index_adjust;
+    }
 }

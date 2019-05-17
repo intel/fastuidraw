@@ -21,6 +21,9 @@
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 
 namespace fastuidraw  {
@@ -411,6 +414,52 @@ public:
   unpack_point(ArcStrokedPoint *dst, const PainterAttribute &src);
 };
 
+/*!
+ * \brief
+ * Namespce to encompass packing values and functions of
+ * path data for stroking using \ref ArcStrokedPoint
+ */
+namespace ArcStrokedPointPacking
+{
+  /*!
+   * Returns the number of attributes realized with \ref
+   * ArcStrokedPoint needed to pack a join (to be drawn with
+   * he join style \ref PainterEnums::rounded_joins).
+   * \param join join to realize a packed data
+   * \param num_attributes location to which to write the needed
+   *                       number of attributes
+   * \param num_indices location to which to write the needed
+   *                       number of indices
+   */
+  void
+  pack_join_size(const TessellatedPath::join &join,
+                 unsigned int *num_attributes,
+                 unsigned int *num_indices);
+
+  /*!
+   * Pack a join into attribute data and index data
+   * realized with \ref ArcStrokedPoint.
+   * \param join join data to pack
+   * \param depth the value for \ref ArcStrokedPoin::depth() of the
+   *              packed \ref ArcStrokedPoint values
+   * \param dst_attribs location to which to place the attributes,
+   *                    when js is \ref PainterEnums::rounded_joins,
+   *                    the size of dst_attribs must be as indicated
+   *                    by \ref pack_join_size().
+   * \param dst_indices location to which to place the indices,
+   *                    when js is \ref PainterEnums::rounded_joins,
+   *                    the size of dst_indices must be as indicated
+   *                    by \ref pack_join_size().
+   * \param index_adjust value by which to increment the written
+   *                     index values
+   */
+  void
+  pack_join(const TessellatedPath::join &join,
+            unsigned int depth,
+            c_array<PainterAttribute> dst_attribs,
+            c_array<PainterIndex> dst_indices,
+            unsigned int index_adjust);
+}
 
 /*! @} */
 
