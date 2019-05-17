@@ -999,6 +999,23 @@ compute_split(float split,
   return compute_segment_split(splitting_coordinate, *this, split, dst_before_split, dst_after_split);
 }
 
+///////////////////////////////////////////
+// fastuidraw::TessellatedPath::join methods
+fastuidraw::TessellatedPath::join::
+join(const segment &into_join, const segment &from_join):
+  m_position(into_join.m_end_pt),
+  m_enter_join_unit_vector(into_join.m_leaving_segment_unit_vector),
+  m_leaving_join_unit_vector(from_join.m_enter_segment_unit_vector),
+  m_distance_from_previous_join(into_join.m_distance_from_edge_start + into_join.m_length),
+  m_distance_from_contour_start(into_join.m_distance_from_contour_start + into_join.m_length),
+  m_contour_length(into_join.m_contour_length),
+  m_contour_id(into_join.m_contour_id),
+  m_edge_into_join_id(into_join.m_edge_id),
+  m_edge_leaving_join_id(from_join.m_edge_id)
+{
+  set_derived_values(*this);
+}
+
 //////////////////////////////////////////////////////////
 // fastuidraw::TessellatedPath::SegmentStorage methods
 void

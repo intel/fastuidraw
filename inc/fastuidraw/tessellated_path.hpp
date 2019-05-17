@@ -398,6 +398,26 @@ public:
   {
   public:
     /*!
+     * Default ctor that does NOT initialize any of the fields
+     * of \ref join
+     */
+    join(void)
+    {}
+
+    /*!
+     * Ctor that initializes the values of a join to be the
+     * values of where two \ref segment values meet.
+     * \param into_join the \ref segment value into the join,
+     *                  it is required that into_join.m_end_pt
+     *                  has the same value as from_join.m_start_pt
+     * \param from_join the \ref segment value leaving from the join,
+     *                  it is required that into_join.m_end_pt
+     *                  has the same value as from_join.m_start_pt
+     */
+    join(const segment &into_join,
+         const segment &from_join);
+
+    /*!
      * Gives the position of the join
      */
     vec2 m_position;
