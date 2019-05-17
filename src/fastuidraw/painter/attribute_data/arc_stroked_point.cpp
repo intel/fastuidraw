@@ -32,6 +32,16 @@ namespace
     pt->m_contour_length = J.m_contour_length;
     pt->m_distance_from_contour_start = J.m_distance_from_contour_start;
   }
+
+  void
+  set_distance_values(const fastuidraw::TessellatedPath::cap &C,
+                      fastuidraw::ArcStrokedPoint *pt)
+  {
+    pt->m_distance_from_edge_start = (C.m_is_starting_cap) ? 0.0f : C.m_edge_length;
+    pt->m_edge_length = C.m_edge_length;
+    pt->m_contour_length = C.m_contour_length;
+    pt->m_distance_from_contour_start = (C.m_is_starting_cap) ? 0.0f : C.m_contour_length;
+  }
 }
 
 //////////////////////////////////////
@@ -82,7 +92,7 @@ pack_join_size(const TessellatedPath::join &join,
                unsigned int *num_attributes,
                unsigned int *num_indices)
 {
-  const float per_arc_angle_max(FASTUIDRAW_PI / 4.0);
+  const float per_arc_angle_max(FASTUIDRAW_PI / arcs_per_cap);
   float delta_angle_mag;
   unsigned int count;
 
@@ -111,10 +121,39 @@ pack_join(const TessellatedPath::join &join,
 
   set_distance_values(join, &pt);
   pt.m_position = join.m_position;
-  fastuidraw::detail::pack_arc_join(pt, count, join.m_lambda * join.enter_join_normal(),
-                                    join.m_join_angle, join.m_lambda * join.leaving_join_normal(),
-                                    depth, dst_attribs, num_verts_used,
-                                    dst_indices, num_indices_used, true);
+  detail::pack_arc_join(pt, count, join.m_lambda * join.enter_join_normal(),
+                        join.m_join_angle, join.m_lambda * join.leaving_join_normal(),
+                        depth, dst_attribs, num_verts_used,
+                        dst_indices, num_indices_used, true);
+  FASTUIDRAWassert(num_verts_used == dst_attribs.size());
+  FASTUIDRAWassert(num_indices_used == dst_indices.size());
+  for (PainterIndex &idx : dst_indices)
+    {
+      idx += index_adjust;
+    }
+}
+
+void
+fastuidraw::ArcStrokedPointPacking::
+pack_cap(const TessellatedPath::cap &C,
+         unsigned int depth,
+         c_array<PainterAttribute> dst_attribs,
+         c_array<PainterIndex> dst_indices,
+         unsigned int index_adjust)
+{
+  FASTUIDRAWassert(dst_attribs.size() == num_attributes_per_cap);
+  FASTUIDRAWassert(dst_indices.size() == num_indices_per_cap);
+
+  ArcStrokedPoint pt;
+  unsigned num_verts_used(0), num_indices_used(0);
+  vec2 v(C.m_unit_vector), n(v.y(), -v.x());
+
+  set_distance_values(C, &pt);
+  pt.m_position = C.m_position;
+  detail::pack_arc_join(pt, arcs_per_cap,
+                        n, FASTUIDRAW_PI, -n,
+                        depth, dst_attribs, num_verts_used,
+                        dst_indices, num_indices_used, true);
   FASTUIDRAWassert(num_verts_used == dst_attribs.size());
   FASTUIDRAWassert(num_indices_used == dst_indices.size());
   for (PainterIndex &idx : dst_indices)
