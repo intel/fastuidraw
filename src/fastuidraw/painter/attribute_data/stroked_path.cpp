@@ -91,32 +91,7 @@ namespace
     std::vector<OrderingEntry<T> > m_elements;
   };
 
-  class PerCapData:public fastuidraw::PartitionedTessellatedPath::cap
-  {
-  public:
-    PerCapData(const fastuidraw::PartitionedTessellatedPath::cap &C):
-      fastuidraw::PartitionedTessellatedPath::cap(C)
-    {}
-
-    void
-    set_distance_values(fastuidraw::StrokedPoint *pt) const
-    {
-      pt->m_distance_from_edge_start = (m_is_starting_cap) ? 0.0f : m_edge_length;
-      pt->m_edge_length = m_edge_length;
-      pt->m_contour_length = m_contour_length;
-      pt->m_distance_from_contour_start = (m_is_starting_cap) ? 0.0f : m_contour_length;
-    }
-
-    void
-    set_distance_values(fastuidraw::ArcStrokedPoint *pt) const
-    {
-      pt->m_distance_from_edge_start = (m_is_starting_cap) ? 0.0f : m_edge_length;
-      pt->m_edge_length = m_edge_length;
-      pt->m_contour_length = m_contour_length;
-      pt->m_distance_from_contour_start = (m_is_starting_cap) ? 0.0f : m_contour_length;
-    }
-  };
-
+  typedef fastuidraw::PartitionedTessellatedPath::cap PerCapData;
   typedef fastuidraw::PartitionedTessellatedPath::join PerJoinData;
 
   typedef GenericOrdering<PerCapData> CapOrdering;
@@ -378,7 +353,7 @@ namespace
                   unsigned int &num_indices,
                   unsigned int &num_attribute_chunks,
                   unsigned int &num_index_chunks,
-                  unsigned int &number_z_ranges) const;
+                  unsigned int &number_z_ranges) const override;
 
     virtual
     void
@@ -387,7 +362,7 @@ namespace
               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
-              fastuidraw::c_array<int> index_adjusts) const;
+              fastuidraw::c_array<int> index_adjusts) const override;
 
   protected:
     void
@@ -652,7 +627,7 @@ namespace
                   unsigned int &num_indices,
                   unsigned int &num_attribute_chunks,
                   unsigned int &num_index_chunks,
-                  unsigned int &number_z_ranges) const;
+                  unsigned int &number_z_ranges) const override;
 
     virtual
     void
@@ -661,7 +636,7 @@ namespace
               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
-              fastuidraw::c_array<int> index_adjusts) const;
+              fastuidraw::c_array<int> index_adjusts) const override;
 
   private:
     virtual
@@ -696,12 +671,30 @@ namespace
   public:
     RoundedCapCreator(const CapJoinChunkDepthTracking &P,
                       const SubsetPrivate *st,
-                      float thresh);
+                      float thresh):
+      CapCreatorBase(P, st, compute_size(P, thresh))
+    {
+      using namespace fastuidraw;
+      StrokedPointPacking::pack_rounded_cap_size(thresh, &m_num_verts_per_cap, &m_num_indices_per_cap);
+    }
 
   private:
     static
     PointIndexCapSize
-    compute_size(const CapJoinChunkDepthTracking &P, float thresh);
+    compute_size(const CapJoinChunkDepthTracking &P, float thresh)
+    {
+      using namespace fastuidraw;
+
+      PointIndexCapSize return_value;
+      unsigned int num_caps, num_verts_per_cap, num_indices_per_cap;
+
+      StrokedPointPacking::pack_rounded_cap_size(thresh, &num_verts_per_cap, &num_indices_per_cap);
+      num_caps = P.m_cap_ordering.size();
+      return_value.m_verts = num_verts_per_cap * num_caps;
+      return_value.m_indices = num_indices_per_cap * num_caps;
+
+      return return_value;
+    }
 
     virtual
     void
@@ -709,7 +702,16 @@ namespace
             fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
             fastuidraw::c_array<unsigned int> indices,
             unsigned int &vertex_offset,
-            unsigned int &index_offset) const;
+            unsigned int &index_offset) const override
+    {
+      using namespace fastuidraw;
+
+      pts = pts.sub_array(vertex_offset, m_num_verts_per_cap);
+      indices = indices.sub_array(index_offset, m_num_indices_per_cap);
+      StrokedPointPacking::pack_cap(StrokedPointPacking::rounded_cap, C, depth, pts, indices, vertex_offset);
+      vertex_offset += m_num_verts_per_cap;
+      index_offset += m_num_indices_per_cap;
+    }
 
     unsigned int m_num_verts_per_cap, m_num_indices_per_cap;
   };
@@ -729,14 +731,33 @@ namespace
 
     static
     PointIndexCapSize
-    compute_size(const CapJoinChunkDepthTracking &P);
+    compute_size(const CapJoinChunkDepthTracking &P)
+    {
+      PointIndexCapSize return_value;
+      unsigned int num_caps;
 
+      num_caps = P.m_cap_ordering.size();
+      return_value.m_verts = packing_size::number_attributes * num_caps;
+      return_value.m_indices = packing_size::number_indices * num_caps;
+
+      return return_value;
+    }
+
+    virtual
     void
     add_cap(const PerCapData &C, unsigned int depth,
             fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
             fastuidraw::c_array<unsigned int> indices,
             unsigned int &vertex_offset,
-            unsigned int &index_offset) const;
+            unsigned int &index_offset) const override
+    {
+       pts = pts.sub_array(vertex_offset, packing_size::number_attributes);
+       indices = indices.sub_array(index_offset, packing_size::number_indices);
+
+       pack_cap(cap_type, C, depth, pts, indices, vertex_offset);
+       vertex_offset += packing_size::number_attributes;
+       index_offset += packing_size::number_indices;
+    }
   };
 
   typedef GenericCapCreator<fastuidraw::StrokedPointPacking::square_cap> SquareCapCreator;
@@ -746,18 +767,26 @@ namespace
   {
   public:
     ArcRoundedCapCreator(const CapJoinChunkDepthTracking &P,
-                         const SubsetPrivate *st);
+                         const SubsetPrivate *st):
+      CapCreatorBase(P, st, compute_size(P))
+    {}
 
   private:
-    enum
-      {
-        /* a cap is 180 degrees, make each arc-join as 45 degrees */
-        num_arcs_per_cap = 4
-      };
-
     static
     PointIndexCapSize
-    compute_size(const CapJoinChunkDepthTracking &P);
+    compute_size(const CapJoinChunkDepthTracking &P)
+    {
+      using namespace fastuidraw;
+
+      unsigned int num_caps;
+      PointIndexCapSize return_value;
+
+      num_caps = P.m_cap_ordering.size();
+      return_value.m_verts = ArcStrokedPointPacking::num_attributes_per_cap * num_caps;
+      return_value.m_indices = ArcStrokedPointPacking::num_indices_per_cap * num_caps;
+
+      return return_value;
+    }
 
     virtual
     void
@@ -765,7 +794,16 @@ namespace
             fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
             fastuidraw::c_array<unsigned int> indices,
             unsigned int &vertex_offset,
-            unsigned int &index_offset) const;
+            unsigned int &index_offset) const override
+    {
+      using namespace fastuidraw;
+
+      pts = pts.sub_array(vertex_offset, ArcStrokedPointPacking::num_attributes_per_cap);
+      indices = indices.sub_array(index_offset, ArcStrokedPointPacking::num_indices_per_cap);
+      ArcStrokedPointPacking::pack_cap(C, depth, pts, indices, vertex_offset);
+      vertex_offset += ArcStrokedPointPacking::num_attributes_per_cap;
+      index_offset += ArcStrokedPointPacking::num_indices_per_cap;
+    }
   };
 
   class ThreshWithData
@@ -1685,134 +1723,6 @@ set_chunks(const SubsetPrivate *st,
                  attribute_chunks, index_chunks,
                  zranges, index_adjusts);
     }
-}
-
-///////////////////////////////////////////////////
-// RoundedCapCreator methods
-RoundedCapCreator::
-RoundedCapCreator(const CapJoinChunkDepthTracking &P,
-                  const SubsetPrivate *st,
-                  float thresh):
-  CapCreatorBase(P, st, compute_size(P, thresh))
-{
-  using namespace fastuidraw::StrokedPointPacking;
-  pack_rounded_cap_size(thresh, &m_num_verts_per_cap, &m_num_indices_per_cap);
-}
-
-PointIndexCapSize
-RoundedCapCreator::
-compute_size(const CapJoinChunkDepthTracking &P, float thresh)
-{
-  using namespace fastuidraw::StrokedPointPacking;
-
-  PointIndexCapSize return_value;
-  unsigned int num_caps, num_verts_per_cap, num_indices_per_cap;
-
-  pack_rounded_cap_size(thresh, &num_verts_per_cap, &num_indices_per_cap);
-  num_caps = P.m_cap_ordering.size();
-  return_value.m_verts = num_verts_per_cap * num_caps;
-  return_value.m_indices = num_indices_per_cap * num_caps;
-
-  return return_value;
-}
-
-void
-RoundedCapCreator::
-add_cap(const PerCapData &C, unsigned int depth,
-        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-        fastuidraw::c_array<unsigned int> indices,
-        unsigned int &vertex_offset,
-        unsigned int &index_offset) const
-{
-  using namespace fastuidraw::StrokedPointPacking;
-
-  pts = pts.sub_array(vertex_offset, m_num_verts_per_cap);
-  indices = indices.sub_array(index_offset, m_num_indices_per_cap);
-  pack_cap(rounded_cap, C, depth, pts, indices, vertex_offset);
-  vertex_offset += m_num_verts_per_cap;
-  index_offset += m_num_indices_per_cap;
-}
-
-///////////////////////////////////////////////////
-// size methods
-template<enum fastuidraw::StrokedPointPacking::cap_type_t cap_type>
-PointIndexCapSize
-GenericCapCreator<cap_type>::
-compute_size(const CapJoinChunkDepthTracking &P)
-{
-  PointIndexCapSize return_value;
-  unsigned int num_caps;
-
-  num_caps = P.m_cap_ordering.size();
-  return_value.m_verts = packing_size::number_attributes * num_caps;
-  return_value.m_indices = packing_size::number_indices * num_caps;
-
-  return return_value;
-}
-
-template<enum fastuidraw::StrokedPointPacking::cap_type_t cap_type>
-void
-GenericCapCreator<cap_type>::
-add_cap(const PerCapData &C, unsigned int depth,
-        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-        fastuidraw::c_array<unsigned int> indices,
-        unsigned int &vertex_offset,
-        unsigned int &index_offset) const
-{
-  pts = pts.sub_array(vertex_offset, packing_size::number_attributes);
-  indices = indices.sub_array(index_offset, packing_size::number_indices);
-
-  pack_cap(cap_type, C, depth, pts, indices, vertex_offset);
-  vertex_offset += packing_size::number_attributes;
-  index_offset += packing_size::number_indices;
-}
-
-///////////////////////////////////////////
-// ArcRoundedCapCreator methods
-ArcRoundedCapCreator::
-ArcRoundedCapCreator(const CapJoinChunkDepthTracking &P,
-                     const SubsetPrivate *st):
-  CapCreatorBase(P, st, compute_size(P))
-{
-}
-
-PointIndexCapSize
-ArcRoundedCapCreator::
-compute_size(const CapJoinChunkDepthTracking &P)
-{
-  unsigned int num_caps;
-  PointIndexCapSize return_value;
-  unsigned int verts_per_cap, indices_per_cap;
-
-  /* each cap is a triangle fan centered at the cap point. */
-  num_caps = P.m_cap_ordering.size();
-  fastuidraw::detail::compute_arc_join_size(num_arcs_per_cap, &verts_per_cap, &indices_per_cap);
-  return_value.m_verts = verts_per_cap * num_caps;
-  return_value.m_indices = indices_per_cap * num_caps;
-
-  return return_value;
-}
-
-void
-ArcRoundedCapCreator::
-add_cap(const PerCapData &C, unsigned int depth,
-        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-        fastuidraw::c_array<unsigned int> indices,
-        unsigned int &vertex_offset,
-        unsigned int &index_offset) const
-{
-  fastuidraw::ArcStrokedPoint pt;
-  fastuidraw::vec2 n, v;
-
-  pt.m_position = C.m_position;
-  C.set_distance_values(&pt);
-  v = C.m_unit_vector;
-  n = fastuidraw::vec2(v.y(), -v.x());
-
-  fastuidraw::detail::pack_arc_join(pt, num_arcs_per_cap,
-                                    n, FASTUIDRAW_PI, -n,
-                                    depth, pts, vertex_offset,
-                                    indices, index_offset, true);
 }
 
 ////////////////////////////////////////
