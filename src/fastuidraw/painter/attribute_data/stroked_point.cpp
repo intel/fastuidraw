@@ -438,8 +438,8 @@ namespace
   }
 
   bool
-  segment_has_bevel(const fastuidraw::PartitionedTessellatedPath::segment *prev,
-                    const fastuidraw::PartitionedTessellatedPath::segment &S)
+  segment_has_bevel(const fastuidraw::TessellatedPath::segment *prev,
+                    const fastuidraw::TessellatedPath::segment &S)
   {
     /* Bevel requires that the previous segment is not
      * a continuation of the previous, that there is previous.
@@ -463,7 +463,7 @@ namespace
     unsigned int &depth_range_size(*pdepth_range_size);
     unsigned int &num_attributes(*pnum_attributes);
     unsigned int &num_indices(*pnum_indices);
-    const fastuidraw::PartitionedTessellatedPath::segment *prev(chain.m_prev_to_start);
+    const fastuidraw::TessellatedPath::segment *prev(chain.m_prev_to_start);
 
     depth_range_size = 0;
     num_attributes = 0;
@@ -496,8 +496,8 @@ namespace
 
   void
   pack_segment_bevel(bool is_inner_bevel,
-                     const fastuidraw::PartitionedTessellatedPath::segment *prev,
-                     const fastuidraw::PartitionedTessellatedPath::segment &S,
+                     const fastuidraw::TessellatedPath::segment *prev,
+                     const fastuidraw::TessellatedPath::segment &S,
                      unsigned int &current_depth,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
                      unsigned int &vertex_offset,
@@ -549,7 +549,7 @@ namespace
   }
 
   void
-  pack_segment(const fastuidraw::PartitionedTessellatedPath::segment &S,
+  pack_segment(const fastuidraw::TessellatedPath::segment &S,
                unsigned int &current_depth,
                fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
                unsigned int &current_vertex,
@@ -626,7 +626,7 @@ namespace
                             unsigned int &current_index,
                             unsigned int index_adjust)
   {
-    const fastuidraw::PartitionedTessellatedPath::segment *prev(chain.m_prev_to_start);
+    const fastuidraw::TessellatedPath::segment *prev(chain.m_prev_to_start);
     for (const auto &S : chain.m_segments)
       {
         bool has_bevel;
