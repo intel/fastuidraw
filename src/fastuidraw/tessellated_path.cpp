@@ -1016,6 +1016,19 @@ join(const segment &into_join, const segment &from_join):
   set_derived_values(*this);
 }
 
+///////////////////////////////////////////
+// fastuidraw::TessellatedPath::cap methods
+fastuidraw::TessellatedPath::cap::
+cap(const segment &seg, bool is_start_cap):
+  m_position(is_start_cap ? seg.m_start_pt : seg.m_end_pt),
+  m_unit_vector(is_start_cap ? -seg.m_enter_segment_unit_vector : seg.m_leaving_segment_unit_vector),
+  m_contour_length(seg.m_contour_length),
+  m_edge_length(seg.m_edge_length),
+  m_is_starting_cap(is_start_cap),
+  m_contour_id(seg.m_contour_id)
+{
+}
+
 //////////////////////////////////////////////////////////
 // fastuidraw::TessellatedPath::SegmentStorage methods
 void

@@ -523,6 +523,24 @@ public:
   {
   public:
     /*!
+     * Default ctor that does NOT initialize any of the fields
+     * of \ref cap
+     */
+    cap(void)
+    {}
+
+    /*!
+     * Ctor that initializes the values of a cap to be values
+     * of where a segment starts or ends.
+     * \param seg the \ref segment value
+     * \param is_start_cap if true indicates to give the cap
+     *                     the value as a cap at the start of
+     *                     the \ref segment, if false, then at
+     *                     the end of the \ref segment.
+     */
+    cap(const segment &seg, bool is_start_cap);
+
+    /*!
      * Gives the position of the cap
      */
     vec2 m_position;
