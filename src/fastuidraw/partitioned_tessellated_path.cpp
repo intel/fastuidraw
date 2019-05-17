@@ -594,9 +594,19 @@ select_subsets_implement(bool miter_hunting,
 {
   using namespace fastuidraw;
 
-  if (m_bounding_box.empty())
+  if (miter_hunting)
     {
-      return false;
+      if (m_join_bounding_box.empty())
+        {
+          return false;
+        }
+    }
+  else
+    {
+      if (m_bounding_box.empty())
+        {
+          return false;
+        }
     }
 
   /* clip the bounding box of this StrokedPathSubset */
