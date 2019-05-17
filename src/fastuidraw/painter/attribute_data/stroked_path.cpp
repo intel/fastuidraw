@@ -38,15 +38,6 @@
 
 namespace
 {
-  inline
-  uint32_t
-  pack_data(int on_boundary,
-            enum fastuidraw::StrokedPoint::offset_type_t pt,
-            uint32_t depth)
-  {
-    return fastuidraw::detail::stroked_point_pack_bits(on_boundary, pt, depth);
-  }
-
   template<typename T>
   class OrderingEntry:public T
   {
@@ -100,32 +91,6 @@ namespace
     std::vector<OrderingEntry<T> > m_elements;
   };
 
-  class PerJoinData:public fastuidraw::PartitionedTessellatedPath::join
-  {
-  public:
-    PerJoinData(const fastuidraw::PartitionedTessellatedPath::join &J):
-      fastuidraw::PartitionedTessellatedPath::join(J)
-    {}
-
-    void
-    set_distance_values(fastuidraw::StrokedPoint *pt) const
-    {
-      pt->m_distance_from_edge_start = m_distance_from_previous_join;
-      pt->m_edge_length = m_distance_from_previous_join;
-      pt->m_contour_length = m_contour_length;
-      pt->m_distance_from_contour_start = m_distance_from_contour_start;
-    }
-
-    void
-    set_distance_values(fastuidraw::ArcStrokedPoint *pt) const
-    {
-      pt->m_distance_from_edge_start = m_distance_from_previous_join;
-      pt->m_edge_length = m_distance_from_previous_join;
-      pt->m_contour_length = m_contour_length;
-      pt->m_distance_from_contour_start = m_distance_from_contour_start;
-    }
-  };
-
   class PerCapData:public fastuidraw::PartitionedTessellatedPath::cap
   {
   public:
@@ -151,6 +116,8 @@ namespace
       pt->m_distance_from_contour_start = (m_is_starting_cap) ? 0.0f : m_contour_length;
     }
   };
+
+  typedef fastuidraw::PartitionedTessellatedPath::join PerJoinData;
 
   typedef GenericOrdering<PerCapData> CapOrdering;
   typedef GenericOrdering<PerJoinData> JoinOrdering;
@@ -486,36 +453,42 @@ namespace
   class ArcRoundedJoinCreator:public JoinCreatorBase
   {
   public:
-    ArcRoundedJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+    ArcRoundedJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+      JoinCreatorBase(P, st)
+    {
+      m_per_join_data.reserve(P.m_join_ordering.size());
+      post_ctor_initalize();
+    }
 
   private:
-    class PerArcRoundedJoin:public PerJoinData
+    class PerArcRoundedJoin
     {
     public:
       explicit
-      PerArcRoundedJoin(const PerJoinData &J);
-
-      void
-      add_data(unsigned int depth,
-               fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-               unsigned int &vertex_offset,
-               fastuidraw::c_array<unsigned int> indices,
-               unsigned int &index_offset) const;
-
-      /* how many arc-joins are used to realize the join */
-      unsigned int m_count;
+      PerArcRoundedJoin(const PerJoinData &J)
+      {
+        using namespace fastuidraw::ArcStrokedPointPacking;
+        pack_join_size(J, &m_vertex_count, &m_index_count);
+      }
 
       /* number of vertices and indices needed */
       unsigned int m_vertex_count, m_index_count;
-
-      float m_delta_angle;
-      std::complex<float> m_arc_start;
     };
 
     virtual
     void
     add_join(unsigned int join_id, const PerJoinData &join,
-             unsigned int &vert_count, unsigned int &index_count) const;
+             unsigned int &vert_count, unsigned int &index_count) const override
+    {
+      PerArcRoundedJoin J(join);
+
+      FASTUIDRAWassert(join_id == m_per_join_data.size());
+      FASTUIDRAWunused(join_id);
+      m_per_join_data.push_back(J);
+
+      vert_count += J.m_vertex_count;
+      index_count += J.m_index_count;
+    }
 
     virtual
     void
@@ -523,7 +496,16 @@ namespace
                         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
                         unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+                        unsigned int &vertex_offset, unsigned int &index_offset) const override
+    {
+      using namespace fastuidraw::ArcStrokedPointPacking;
+      pack_join(join, depth,
+                pts.sub_array(vertex_offset, m_per_join_data[join_id].m_vertex_count),
+                indices.sub_array(index_offset, m_per_join_data[join_id].m_index_count),
+                vertex_offset);
+      vertex_offset += m_per_join_data[join_id].m_vertex_count;
+      index_offset += m_per_join_data[join_id].m_index_count;
+    }
 
     mutable std::vector<PerArcRoundedJoin> m_per_join_data;
   };
@@ -533,13 +515,23 @@ namespace
   public:
     RoundedJoinCreator(const CapJoinChunkDepthTracking &P,
                        const SubsetPrivate *st,
-                       float thresh);
+                       float thresh):
+      JoinCreatorBase(P, st),
+      m_thresh(thresh)
+    {
+      m_per_join_data.reserve(P.m_join_ordering.size());
+      post_ctor_initalize();
+    }
 
   private:
     class PerRoundedJoin
     {
     public:
-      PerRoundedJoin(const PerJoinData &J, float thresh);
+      PerRoundedJoin(const PerJoinData &J, float thresh)
+      {
+        using namespace fastuidraw::StrokedPointPacking;
+        pack_rounded_join_size(J, thresh, &m_num_verts, &m_num_indices);
+      }
 
       unsigned int m_num_verts, m_num_indices;
     };
@@ -547,7 +539,18 @@ namespace
     virtual
     void
     add_join(unsigned int join_id, const PerJoinData &join,
-             unsigned int &vert_count, unsigned int &index_count) const;
+             unsigned int &vert_count, unsigned int &index_count) const override
+    {
+      FASTUIDRAWunused(join_id);
+      PerRoundedJoin J(join, m_thresh);
+
+      FASTUIDRAWassert(join_id == m_per_join_data.size());
+      FASTUIDRAWunused(join_id);
+      m_per_join_data.push_back(J);
+
+      vert_count += J.m_num_verts;
+      index_count += J.m_num_indices;
+    }
 
     virtual
     void
@@ -555,7 +558,18 @@ namespace
                         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
                         unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+                        unsigned int &vertex_offset, unsigned int &index_offset) const override
+    {
+      FASTUIDRAWassert(join_id < m_per_join_data.size());
+
+      pts = pts.sub_array(vertex_offset, m_per_join_data[join_id].m_num_verts);
+      indices = indices.sub_array(index_offset, m_per_join_data[join_id].m_num_indices);
+      fastuidraw::StrokedPointPacking::pack_join(fastuidraw::PainterEnums::rounded_joins,
+                                                 join, depth, pts, indices, vertex_offset);
+
+      vertex_offset += m_per_join_data[join_id].m_num_verts;
+      index_offset += m_per_join_data[join_id].m_num_indices;
+    }
 
     float m_thresh;
     mutable std::vector<PerRoundedJoin> m_per_join_data;
@@ -566,7 +580,11 @@ namespace
   {
   public:
     explicit
-    GenericJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st);
+    GenericJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
+      JoinCreatorBase(P, st)
+    {
+      post_ctor_initalize();
+    }
 
   private:
     typedef fastuidraw::StrokedPointPacking::packing_size<enum fastuidraw::PainterEnums::join_style, join_style> packing_size;
@@ -574,15 +592,31 @@ namespace
     virtual
     void
     add_join(unsigned int join_id, const PerJoinData &join,
-             unsigned int &vert_count, unsigned int &index_count) const;
+             unsigned int &vert_count, unsigned int &index_count) const override
+    {
+      FASTUIDRAWunused(join_id);
+      FASTUIDRAWunused(join);
+      vert_count += packing_size::number_attributes;
+      index_count += packing_size::number_indices;
+    }
 
     virtual
     void
-    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+    fill_join_implement(unsigned int join_id, const PerJoinData &J,
                         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
                         unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+                        unsigned int &vertex_offset, unsigned int &index_offset) const override
+    {
+      FASTUIDRAWunused(join_id);
+
+      pts = pts.sub_array(vertex_offset, packing_size::number_attributes);
+      indices = indices.sub_array(index_offset, packing_size::number_indices);
+
+      fastuidraw::StrokedPointPacking::pack_join(join_style, J, depth, pts, indices, vertex_offset);
+      vertex_offset += packing_size::number_attributes;
+      index_offset += packing_size::number_indices;
+    }
   };
 
   typedef GenericJoinCreator<fastuidraw::PainterEnums::bevel_joins> BevelJoinCreator;
@@ -1527,177 +1561,6 @@ process_chunk(const RangeAndChunk &ch,
   index_chunks[K] = index_data.sub_array(ir);
   zranges[K] = fastuidraw::range_type<int>(ch.m_depth_range.m_begin, ch.m_depth_range.m_end);
   index_adjusts[K] = -int(vr.m_begin);
-}
-
-/////////////////////////////////////////////////
-// RoundedJoinCreator::PerRoundedJoin methods
-RoundedJoinCreator::PerRoundedJoin::
-PerRoundedJoin(const PerJoinData &J, float thresh)
-{
-  fastuidraw::StrokedPointPacking::pack_rounded_join_size(J, thresh, &m_num_verts, &m_num_indices);
-}
-
-///////////////////////////////////////////////////
-// RoundedJoinCreator methods
-RoundedJoinCreator::
-RoundedJoinCreator(const CapJoinChunkDepthTracking &P,
-                   const SubsetPrivate *st,
-                   float thresh):
-  JoinCreatorBase(P, st),
-  m_thresh(thresh)
-{
-  m_per_join_data.reserve(P.m_join_ordering.size());
-  post_ctor_initalize();
-}
-
-void
-RoundedJoinCreator::
-add_join(unsigned int join_id, const PerJoinData &join,
-         unsigned int &vert_count, unsigned int &index_count) const
-{
-  FASTUIDRAWunused(join_id);
-  PerRoundedJoin J(join, m_thresh);
-
-  m_per_join_data.push_back(J);
-  vert_count += J.m_num_verts;
-  index_count += J.m_num_indices;
-}
-
-void
-RoundedJoinCreator::
-fill_join_implement(unsigned int join_id, const PerJoinData &join,
-                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-                    unsigned int depth,
-                    fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset) const
-{
-  FASTUIDRAWassert(join_id < m_per_join_data.size());
-
-  pts = pts.sub_array(vertex_offset, m_per_join_data[join_id].m_num_verts);
-  indices = indices.sub_array(index_offset, m_per_join_data[join_id].m_num_indices);
-  fastuidraw::StrokedPointPacking::pack_join(fastuidraw::PainterEnums::rounded_joins,
-                                             join, depth, pts, indices, vertex_offset);
-
-  vertex_offset += m_per_join_data[join_id].m_num_verts;
-  index_offset += m_per_join_data[join_id].m_num_indices;
-}
-
-////////////////////////////////////////////////
-// ArcRoundedJoinCreator::PerArcRoundedJoin methods
-ArcRoundedJoinCreator::PerArcRoundedJoin::
-PerArcRoundedJoin(const PerJoinData &J):
-  PerJoinData(J)
-{
-  const float per_arc_angle_max(FASTUIDRAW_PI / 4.0);
-  float delta_angle_mag;
-
-  std::complex<float> n0z(m_lambda * enter_join_normal().x(), m_lambda * enter_join_normal().y());
-  std::complex<float> n1z(m_lambda * leaving_join_normal().x(), m_lambda * leaving_join_normal().y());
-  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
-
-  m_arc_start = n0z;
-  m_delta_angle = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(),
-                                      n1z_times_conj_n0z.real());
-  delta_angle_mag = fastuidraw::t_abs(m_delta_angle);
-
-  m_count = 1u + static_cast<unsigned int>(delta_angle_mag / per_arc_angle_max);
-  fastuidraw::detail::compute_arc_join_size(m_count, &m_vertex_count, &m_index_count);
-}
-
-void
-ArcRoundedJoinCreator::PerArcRoundedJoin::
-add_data(unsigned int depth,
-         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-         unsigned int &vertex_offset,
-         fastuidraw::c_array<unsigned int> indices,
-         unsigned int &index_offset) const
-{
-  fastuidraw::ArcStrokedPoint pt;
-
-  set_distance_values(&pt);
-  pt.m_position = m_position;
-  fastuidraw::detail::pack_arc_join(pt, m_count, m_lambda * enter_join_normal(),
-                                    m_delta_angle, m_lambda * leaving_join_normal(),
-                                    depth, pts, vertex_offset,
-                                    indices, index_offset, true);
-}
-
-///////////////////////////////////////////////////
-// ArcRoundedJoinCreator methods
-ArcRoundedJoinCreator::
-ArcRoundedJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
-  JoinCreatorBase(P, st)
-{
-  m_per_join_data.reserve(P.m_join_ordering.size());
-  post_ctor_initalize();
-}
-
-void
-ArcRoundedJoinCreator::
-add_join(unsigned int join_id, const PerJoinData &join,
-         unsigned int &vert_count, unsigned int &index_count) const
-{
-  FASTUIDRAWunused(join_id);
-  PerArcRoundedJoin J(join);
-
-  m_per_join_data.push_back(J);
-
-  vert_count += J.m_vertex_count;
-  index_count += J.m_index_count;
-}
-
-void
-ArcRoundedJoinCreator::
-fill_join_implement(unsigned int join_id, const PerJoinData &join,
-                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-                    unsigned int depth,
-                    fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset) const
-{
-  FASTUIDRAWunused(join);
-  FASTUIDRAWassert(join_id < m_per_join_data.size());
-  m_per_join_data[join_id].add_data(depth, pts, vertex_offset, indices, index_offset);
-}
-
-///////////////////////////////////////////////////
-// GenericJoinCreator methods
-template<enum fastuidraw::PainterEnums::join_style join_style>
-GenericJoinCreator<join_style>::
-GenericJoinCreator(const CapJoinChunkDepthTracking &P, const SubsetPrivate *st):
-  JoinCreatorBase(P, st)
-{
-  post_ctor_initalize();
-}
-
-template<enum fastuidraw::PainterEnums::join_style join_style>
-void
-GenericJoinCreator<join_style>::
-add_join(unsigned int join_id, const PerJoinData &join,
-         unsigned int &vert_count, unsigned int &index_count) const
-{
-  FASTUIDRAWunused(join_id);
-  FASTUIDRAWunused(join);
-  vert_count += packing_size::number_attributes;
-  index_count += packing_size::number_indices;
-}
-
-template<enum fastuidraw::PainterEnums::join_style join_style>
-void
-GenericJoinCreator<join_style>::
-fill_join_implement(unsigned int join_id, const PerJoinData &J,
-                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
-                    unsigned int depth,
-                    fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset) const
-{
-  FASTUIDRAWunused(join_id);
-
-  pts = pts.sub_array(vertex_offset, packing_size::number_attributes);
-  indices = indices.sub_array(index_offset, packing_size::number_indices);
-
-  fastuidraw::StrokedPointPacking::pack_join(join_style, J, depth, pts, indices, vertex_offset);
-  vertex_offset += packing_size::number_attributes;
-  index_offset += packing_size::number_indices;
 }
 
 ///////////////////////////////////////////////
