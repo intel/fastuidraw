@@ -293,6 +293,26 @@ public:
     bool m_last_segment_of_edge;
 
     /*!
+     * Returns the normal vector to the path at the start of the segment.
+     */
+    vec2
+    enter_segment_normal(void) const
+    {
+      return vec2(-m_enter_segment_unit_vector.y(),
+                  +m_enter_segment_unit_vector.x());
+    }
+
+    /*!
+     * Returns the normal vector to the path at the end of the segment.
+     */
+    vec2
+    leaving_segment_normal(void) const
+    {
+      return vec2(-m_leaving_segment_unit_vector.y(),
+                  +m_leaving_segment_unit_vector.x());
+    }
+
+    /*!
      * Compute the splitting splitting of this \ref segment
      * against a vertical line with the given x-coordinate
      * \param x_split x-coordinate of vertical splitting line
