@@ -17,6 +17,7 @@
  */
 
 #include <complex>
+#include <algorithm>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <private/path_util_private.hpp>
 
@@ -435,6 +436,235 @@ namespace
 
     fastuidraw::detail::add_triangle_fan(index_adjust, index_adjust + current_vertex, dst_indices);
   }
+
+  bool
+  segment_has_bevel(const fastuidraw::PartitionedTessellatedPath::segment *prev,
+                    const fastuidraw::PartitionedTessellatedPath::segment &S)
+  {
+    /* Bevel requires that the previous segment is not
+     * a continuation of the previous, that there is previous.
+     * Lastly, if the segment changes direction (indicated
+     * by the dot() of the vectors begin negative), then
+     * it is likely at a cusp of the curve and cusps do not
+     * get bevel eithers.
+     */
+    return !S.m_continuation_with_predecessor
+      && prev
+      && fastuidraw::dot(prev->m_leaving_segment_unit_vector,
+                         S.m_enter_segment_unit_vector) >= 0.0f;
+  }
+
+  void
+  pack_segment_single_chain_size(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
+                                 unsigned int *pdepth_range_size,
+                                 unsigned int *pnum_attributes,
+                                 unsigned int *pnum_indices)
+  {
+    unsigned int &depth_range_size(*pdepth_range_size);
+    unsigned int &num_attributes(*pnum_attributes);
+    unsigned int &num_indices(*pnum_indices);
+    const fastuidraw::PartitionedTessellatedPath::segment *prev(chain.m_prev_to_start);
+
+    depth_range_size = 0;
+    num_attributes = 0;
+    num_indices = 0;
+
+    for (const auto &S : chain.m_segments)
+      {
+        if (segment_has_bevel(prev, S))
+          {
+            /* there is an inner and outer-bevel, each
+             * needs a single triangle; but only the
+             * inner bevel needs a depth value
+             */
+            num_attributes += 6;
+            num_indices += 6;
+            ++depth_range_size;
+          }
+
+        /* each segment is two quads that share an edge;
+         * thus 6 attributes and 12 indices all sharing
+         * a single depth value.
+         */
+        num_attributes += 6;
+        num_indices += 12;
+        ++depth_range_size;
+
+        prev = &S;
+      }
+  }
+
+  void
+  pack_segment_bevel(bool is_inner_level,
+                     const fastuidraw::PartitionedTessellatedPath::segment *prev,
+                     const fastuidraw::PartitionedTessellatedPath::segment &S,
+                     unsigned int &current_depth,
+                     fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                     unsigned int &vertex_offset,
+                     fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                     unsigned int &index_offset,
+                     unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+    using namespace detail;
+
+    StrokedPoint pt;
+    float lambda;
+    vec2 start_bevel, end_bevel;
+
+    for (unsigned int k = 0; k < 3; ++k, ++index_offset)
+      {
+        dst_indices[index_offset] = k + index_adjust + vertex_offset;
+      }
+
+    end_bevel.x() = -S.m_enter_segment_unit_vector.y();
+    end_bevel.y() = +S.m_enter_segment_unit_vector.x();
+
+    start_bevel.x() = -prev->m_leaving_segment_unit_vector.y();
+    start_bevel.y() = +prev->m_leaving_segment_unit_vector.x();
+
+    lambda = t_sign(dot(end_bevel, prev->m_leaving_segment_unit_vector));
+    if (is_inner_level)
+      {
+        lambda *= -1.0f;
+      }
+
+    pt.m_position = S.m_start_pt;
+    pt.m_distance_from_edge_start = S.m_distance_from_edge_start;
+    pt.m_distance_from_contour_start = S.m_distance_from_contour_start;
+    pt.m_edge_length = S.m_edge_length;
+    pt.m_contour_length = S.m_contour_length;
+    pt.m_auxiliary_offset = vec2(0.0f, 0.0f);
+
+    pt.m_pre_offset = vec2(0.0f, 0.0f);
+    pt.m_packed_data = pack_data(0, StrokedPoint::offset_sub_edge, current_depth)
+      | StrokedPoint::bevel_edge_mask;
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_pre_offset = lambda * start_bevel;
+    pt.m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, current_depth)
+      | StrokedPoint::bevel_edge_mask;
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    pt.m_pre_offset = lambda * end_bevel;
+    pt.m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, current_depth)
+      | StrokedPoint::bevel_edge_mask;
+    pt.pack_point(&dst_attribs[vertex_offset++]);
+
+    if (is_inner_level)
+      {
+        ++current_depth;
+      }
+  }
+
+  void
+  pack_segment(const fastuidraw::PartitionedTessellatedPath::segment &S,
+               unsigned int &current_depth,
+               fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+               unsigned int &current_vertex,
+               fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+               unsigned int &index_offset,
+               unsigned int index_adjust)
+  {
+    using namespace fastuidraw;
+
+    const int boundary_values[3] = { 1, 1, 0 };
+    const float normal_sign[3] = { 1.0f, -1.0f, 0.0f };
+    vecN<StrokedPoint, 6> pts;
+    vec2 delta(S.m_end_pt - S.m_start_pt);
+    vec2 begin_normal(-S.m_enter_segment_unit_vector.y(), S.m_enter_segment_unit_vector.x());
+    vec2 end_normal(-S.m_leaving_segment_unit_vector.y(), S.m_leaving_segment_unit_vector.x());
+
+    /* The quad is:
+     * (p, n, delta,  1),
+     * (p,-n, delta,  1),
+     * (p, 0,     0,  0),
+     * (p_next,  n, -delta, 1),
+     * (p_next, -n, -delta, 1),
+     * (p_next,  0, 0)
+     */
+    for(unsigned int k = 0; k < 3; ++k)
+      {
+        pts[k].m_position = S.m_start_pt;
+        pts[k].m_distance_from_edge_start = S.m_distance_from_edge_start;
+        pts[k].m_distance_from_contour_start = S.m_distance_from_contour_start;
+        pts[k].m_edge_length = S.m_edge_length;
+        pts[k].m_contour_length = S.m_contour_length;
+        pts[k].m_pre_offset = normal_sign[k] * begin_normal;
+        pts[k].m_auxiliary_offset = delta;
+        pts[k].m_packed_data = pack_data(boundary_values[k], StrokedPoint::offset_sub_edge, current_depth);
+
+        pts[k + 3].m_position = S.m_end_pt;
+        pts[k + 3].m_distance_from_edge_start = S.m_distance_from_edge_start + S.m_length;
+        pts[k + 3].m_distance_from_contour_start = S.m_distance_from_contour_start + S.m_length;
+        pts[k + 3].m_edge_length = S.m_edge_length;
+        pts[k + 3].m_contour_length = S.m_contour_length;
+        pts[k + 3].m_pre_offset = normal_sign[k] * end_normal;
+        pts[k + 3].m_auxiliary_offset = -delta;
+        pts[k + 3].m_packed_data = pack_data(boundary_values[k], StrokedPoint::offset_sub_edge, current_depth)
+          | StrokedPoint::end_sub_edge_mask;
+      }
+
+    const unsigned int tris[12] =
+      {
+        0, 2, 5,
+        0, 5, 3,
+        2, 1, 4,
+        2, 4, 5
+      };
+
+    for(unsigned int i = 0; i < 12; ++i, ++index_offset)
+      {
+        dst_indices[index_offset] = current_vertex + index_adjust + tris[i];
+      }
+
+    for (unsigned int k = 0; k < 6; ++k, ++current_vertex)
+      {
+        pts[k].pack_point(&dst_attribs[current_vertex]);
+      }
+
+    ++current_depth;
+  }
+
+  void
+  pack_single_segment_chain(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
+                            unsigned int &current_depth,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                            unsigned int &current_vertex,
+                            fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                            unsigned int &current_index,
+                            unsigned int index_adjust)
+  {
+    const fastuidraw::PartitionedTessellatedPath::segment *prev(chain.m_prev_to_start);
+    for (const auto &S : chain.m_segments)
+      {
+        bool has_bevel;
+
+        has_bevel = segment_has_bevel(prev, S);
+        if (has_bevel)
+          {
+            pack_segment_bevel(false, prev, S, current_depth,
+                               dst_attribs, current_vertex,
+                               dst_indices, current_index,
+                               index_adjust);
+          }
+
+        pack_segment(S, current_depth,
+                     dst_attribs, current_vertex,
+                     dst_indices, current_index,
+                     index_adjust);
+
+        if (has_bevel)
+          {
+            pack_segment_bevel(true, prev, S, current_depth,
+                               dst_attribs, current_vertex,
+                               dst_indices, current_index,
+                               index_adjust);
+          }
+
+        prev = &S;
+      }
+  }
 }
 
 //////////////////////////////////////
@@ -575,4 +805,56 @@ pack_cap(enum cap_type_t cp,
       FASTUIDRAWmessaged_assert(false, "Invalid cap style passed to pack_cap()");
       return;
     }
+}
+
+void
+fastuidraw::StrokedPointPacking::
+pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+                        unsigned int *pdepth_range_size,
+                        unsigned int *pnum_attributes,
+                        unsigned int *pnum_indices)
+{
+  unsigned int &depth_range_size(*pdepth_range_size);
+  unsigned int &num_attributes(*pnum_attributes);
+  unsigned int &num_indices(*pnum_indices);
+
+  depth_range_size = 0;
+  num_attributes = 0;
+  num_indices = 0;
+
+  for (const PartitionedTessellatedPath::segment_chain &chain : chains)
+    {
+      unsigned int d, a, i;
+
+      pack_segment_single_chain_size(chain, &d, &a, &i);
+      depth_range_size += d;
+      num_attributes += a;
+      num_indices += i;
+    }
+}
+
+void
+fastuidraw::StrokedPointPacking::
+pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+                   unsigned int depth_start,
+                   c_array<PainterAttribute> dst_attribs,
+                   c_array<PainterIndex> dst_indices,
+                   unsigned int index_adjust)
+{
+  /* pack the segments in the order we get them, incrementing the
+   * depth value as we go. After we are done, then we will reverse
+   * the indices to make it do in depth decreasing order.
+   */
+  unsigned int current_vertex(0), current_index(0), current_depth(depth_start);
+  for (const PartitionedTessellatedPath::segment_chain &chain : chains)
+    {
+      pack_single_segment_chain(chain, current_depth,
+                                dst_attribs, current_vertex,
+                                dst_indices, current_index,
+                                index_adjust);
+    }
+  FASTUIDRAWassert(current_vertex == dst_attribs.size());
+  FASTUIDRAWassert(current_index == dst_indices.size());
+
+  std::reverse(dst_indices.begin(), dst_indices.end());
 }
