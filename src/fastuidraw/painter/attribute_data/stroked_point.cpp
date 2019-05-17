@@ -24,6 +24,26 @@
 namespace
 {
   inline
+  uint32_t
+  stroked_point_pack_bits(int on_boundary,
+                          enum fastuidraw::StrokedPoint::offset_type_t pt,
+                          uint32_t depth)
+  {
+    FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
+
+    uint32_t bb(on_boundary), pp(pt);
+    const uint32_t max_depth(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(fastuidraw::StrokedPoint::depth_num_bits));
+
+    /* clamp depth to maximum allowed value */
+    depth = fastuidraw::t_min(depth, max_depth);
+    return pack_bits(fastuidraw::StrokedPoint::offset_type_bit0,
+                     fastuidraw::StrokedPoint::offset_type_num_bits, pp)
+      | pack_bits(fastuidraw::StrokedPoint::boundary_bit, 1u, bb)
+      | pack_bits(fastuidraw::StrokedPoint::depth_bit0,
+                  fastuidraw::StrokedPoint::depth_num_bits, depth);
+  }
+
+  inline
   void
   set_distance_values(const fastuidraw::TessellatedPath::join &J,
                       fastuidraw::StrokedPoint *pt)
@@ -50,7 +70,7 @@ namespace
             enum fastuidraw::StrokedPoint::offset_type_t pt,
             uint32_t depth)
   {
-    return fastuidraw::detail::stroked_point_pack_bits(on_boundary, pt, depth);
+    return stroked_point_pack_bits(on_boundary, pt, depth);
   }
 
   inline

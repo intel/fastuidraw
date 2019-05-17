@@ -53,26 +53,6 @@ namespace fastuidraw
     number_segments_for_tessellation(float arc_angle, float distance_thresh);
 
     inline
-    uint32_t
-    stroked_point_pack_bits(int on_boundary,
-                            enum StrokedPoint::offset_type_t pt,
-                            uint32_t depth)
-    {
-      FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
-
-      uint32_t bb(on_boundary), pp(pt);
-
-      /* clamp depth to maximum allowed value */
-      depth = t_min(depth,
-                    FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(StrokedPoint::depth_num_bits));
-      return pack_bits(StrokedPoint::offset_type_bit0,
-                       StrokedPoint::offset_type_num_bits, pp)
-        | pack_bits(StrokedPoint::boundary_bit, 1u, bb)
-        | pack_bits(StrokedPoint::depth_bit0,
-                    StrokedPoint::depth_num_bits, depth);
-    }
-
-    inline
     float
     compute_bevel_lambda(bool is_inner_bevel,
                          const TessellatedPath::segment *prev,
