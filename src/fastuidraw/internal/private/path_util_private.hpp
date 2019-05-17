@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include <fastuidraw/util/math.hpp>
 #include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
@@ -162,6 +164,28 @@ namespace fastuidraw
                     make_c_array(dst_pts), vertex_offset,
                     make_c_array(dst_indices), index_offset,
                     is_join);
+    }
+
+    inline
+    float
+    compute_bevel_lambda(bool is_inner_bevel,
+                         const TessellatedPath::segment *prev,
+                         const TessellatedPath::segment &S,
+                         vec2 &start_bevel, vec2 &end_bevel)
+    {
+      float lambda;
+
+      FASTUIDRAWassert(prev);
+      end_bevel.x() = -S.m_enter_segment_unit_vector.y();
+      end_bevel.y() = +S.m_enter_segment_unit_vector.x();
+      start_bevel.x() = -prev->m_leaving_segment_unit_vector.y();
+      start_bevel.y() = +prev->m_leaving_segment_unit_vector.x();
+      lambda = t_sign(dot(end_bevel, prev->m_leaving_segment_unit_vector));
+      if (is_inner_bevel)
+        {
+          lambda *= -1.0f;
+        }
+      return lambda;
     }
 
     void

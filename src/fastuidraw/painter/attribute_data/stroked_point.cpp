@@ -495,7 +495,7 @@ namespace
   }
 
   void
-  pack_segment_bevel(bool is_inner_level,
+  pack_segment_bevel(bool is_inner_bevel,
                      const fastuidraw::PartitionedTessellatedPath::segment *prev,
                      const fastuidraw::PartitionedTessellatedPath::segment &S,
                      unsigned int &current_depth,
@@ -517,17 +517,8 @@ namespace
         dst_indices[index_offset] = k + index_adjust + vertex_offset;
       }
 
-    end_bevel.x() = -S.m_enter_segment_unit_vector.y();
-    end_bevel.y() = +S.m_enter_segment_unit_vector.x();
-
-    start_bevel.x() = -prev->m_leaving_segment_unit_vector.y();
-    start_bevel.y() = +prev->m_leaving_segment_unit_vector.x();
-
-    lambda = t_sign(dot(end_bevel, prev->m_leaving_segment_unit_vector));
-    if (is_inner_level)
-      {
-        lambda *= -1.0f;
-      }
+    lambda = compute_bevel_lambda(is_inner_bevel, prev, S,
+                                  start_bevel, end_bevel);
 
     pt.m_position = S.m_start_pt;
     pt.m_distance_from_edge_start = S.m_distance_from_edge_start;
@@ -551,7 +542,7 @@ namespace
       | StrokedPoint::bevel_edge_mask;
     pt.pack_point(&dst_attribs[vertex_offset++]);
 
-    if (is_inner_level)
+    if (is_inner_bevel)
       {
         ++current_depth;
       }
