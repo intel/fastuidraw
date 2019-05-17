@@ -861,60 +861,6 @@ namespace
     bool m_ready;
   };
 
-  class EdgeAttributeFillerBase:public fastuidraw::PainterAttributeDataFiller
-  {
-  public:
-    explicit
-    EdgeAttributeFillerBase(fastuidraw::PartitionedTessellatedPath::Subset src):
-      m_src(src),
-      m_ready(false)
-    {}
-
-    virtual
-    void
-    compute_sizes(unsigned int &num_attributes,
-                  unsigned int &num_indices,
-                  unsigned int &num_attribute_chunks,
-                  unsigned int &num_index_chunks,
-                  unsigned int &number_z_ranges) const
-    {
-      ready_data();
-      num_attributes = m_attributes.size();
-      num_indices = m_indices.size();
-      num_attribute_chunks = num_index_chunks = number_z_ranges = 1;
-    }
-
-    virtual
-    void
-    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
-              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
-              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
-              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
-              fastuidraw::c_array<int> index_adjusts) const;
-  private:
-    void
-    ready_data(void) const;
-
-    void
-    process_segment_chain(unsigned int &depth,
-                          const fastuidraw::PartitionedTessellatedPath::segment_chain &chain) const;
-
-    virtual
-    void
-    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
-                     std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                     std::vector<fastuidraw::PainterIndex> &index_data) const = 0;
-
-    fastuidraw::PartitionedTessellatedPath::Subset m_src;
-
-    mutable bool m_ready;
-    mutable std::vector<fastuidraw::PainterAttribute> m_attributes;
-    mutable std::vector<fastuidraw::PainterIndex> m_indices;
-    mutable unsigned int m_vertex_count, m_index_count;
-    mutable unsigned int m_depth_count;
-  };
-
   class LineEdgeAttributeFiller:public fastuidraw::PainterAttributeDataFiller
   {
   public:
@@ -972,48 +918,61 @@ namespace
     unsigned int m_num_indices;
   };
 
-  class ArcEdgeAttributeFiller:public EdgeAttributeFillerBase
+  class ArcEdgeAttributeFiller:public fastuidraw::PainterAttributeDataFiller
   {
   public:
     explicit
     ArcEdgeAttributeFiller(fastuidraw::PartitionedTessellatedPath::Subset src):
-      EdgeAttributeFillerBase(src)
-    {}
+      m_chains(src.segment_chains())
+    {
+      using namespace fastuidraw::ArcStrokedPointPacking;
+      pack_segment_chain_size(m_chains,
+                              &m_depth_size,
+                              &m_num_attributes,
+                              &m_num_indices);
+    }
 
-  private:
     virtual
     void
-    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
-                     std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                     std::vector<fastuidraw::PainterIndex> &index_data) const;
+    compute_sizes(unsigned int &num_attributes,
+                  unsigned int &num_indices,
+                  unsigned int &num_attribute_chunks,
+                  unsigned int &num_index_chunks,
+                  unsigned int &number_z_ranges) const override
+    {
+      num_attributes = m_num_attributes;
+      num_indices = m_num_indices;
+      num_attribute_chunks = num_index_chunks = number_z_ranges = 1;
+    }
 
+    virtual
     void
-    build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
-                       std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                       std::vector<fastuidraw::PainterIndex> &index_data) const;
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
+              fastuidraw::c_array<int> index_adjusts) const override
+    {
+      using namespace fastuidraw::ArcStrokedPointPacking;
 
-    void
-    build_arc_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
-                      std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                      std::vector<fastuidraw::PainterIndex> &index_data) const;
+      FASTUIDRAWassert(attribute_data.size() == m_num_attributes);
+      FASTUIDRAWassert(index_data.size() == m_num_indices);
 
-    void
-    build_line_bevel(bool is_inner_bevel,
-                     const SingleSubEdge &sub_edge, unsigned int &depth,
-                     std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                     std::vector<fastuidraw::PainterIndex> &index_data) const;
+      attribute_chunks[0] = attribute_data;
+      index_chunks[0] = index_data;
+      zranges[0].m_begin = 0;
+      zranges[0].m_end = m_depth_size;
+      index_adjusts[0] = 0;
+      pack_segment_chain(m_chains, zranges[0].m_begin,
+                         attribute_data, index_data, index_adjusts[0]);
+    }
 
-    void
-    build_arc_bevel(bool is_inner_bevel,
-                    const SingleSubEdge &sub_edge, unsigned int &depth,
-                    std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                    std::vector<fastuidraw::PainterIndex> &index_data) const;
-
-    void
-    build_dashed_capper(bool for_start_dashed_capper,
-                        const SingleSubEdge &sub_edge, unsigned int &depth,
-                        std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                        std::vector<fastuidraw::PainterIndex> &index_data) const;
+  private:
+    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain> m_chains;
+    unsigned int m_depth_size;
+    unsigned int m_num_attributes;
+    unsigned int m_num_indices;
   };
 
   class StrokedPathPrivate:fastuidraw::noncopyable
@@ -1723,522 +1682,6 @@ set_chunks(const SubsetPrivate *st,
                  attribute_chunks, index_chunks,
                  zranges, index_adjusts);
     }
-}
-
-////////////////////////////////////////
-// EdgeAttributeFillerBase methods
-void
-EdgeAttributeFillerBase::
-process_segment_chain(unsigned int &d,
-                      const fastuidraw::PartitionedTessellatedPath::segment_chain &chain) const
-{
-  const fastuidraw::PartitionedTessellatedPath::segment *prev(chain.m_prev_to_start);
-  for (const fastuidraw::PartitionedTessellatedPath::segment &S : chain.m_segments)
-    {
-      SingleSubEdge sub_edge(S, prev);
-      process_sub_edge(sub_edge, d, m_attributes, m_indices);
-      prev = &S;
-    }
-}
-
-void
-EdgeAttributeFillerBase::
-ready_data(void) const
-{
-  if (m_ready)
-    {
-      return;
-    }
-
-  m_ready = true;
-
-  /* To get it so that the depth values are in non-increasing order
-   * with respect to the triangles, we will reverse the triangle
-   * other AFTER filling the data.
-   */
-  unsigned int d(0);
-  for (fastuidraw::PartitionedTessellatedPath::segment_chain chain : m_src.segment_chains())
-    {
-      process_segment_chain(d, chain);
-    }
-  m_vertex_count = m_attributes.size();
-  m_index_count = m_indices.size();
-  m_depth_count = d;
-
-  /* now reverse the triangles in m_indices. */
-  std::reverse(m_indices.begin(), m_indices.end());
-}
-
-void
-EdgeAttributeFillerBase::
-fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
-          fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
-          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
-          fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
-          fastuidraw::c_array<int> index_adjusts) const
-{
-  using namespace fastuidraw;
-
-  index_adjusts[0] = 0;
-  zranges[0].m_begin = 0;
-  zranges[0].m_end = m_depth_count;
-  attribute_chunks[0] = attribute_data;
-  index_chunks[0] = index_data;
-
-  std::copy(m_attributes.begin(), m_attributes.end(), attribute_data.begin());
-  std::copy(m_indices.begin(), m_indices.end(), index_data.begin());
-}
-
-////////////////////////////////////
-// ArcEdgeAttributeFiller methods
-void
-ArcEdgeAttributeFiller::
-process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
-                 std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                 std::vector<fastuidraw::PainterIndex> &indices) const
-{
-  if (sub_edge.m_has_bevel)
-    {
-      if (sub_edge.m_use_arc_for_bevel)
-        {
-          build_arc_bevel(false, sub_edge, depth, attribute_data, indices);
-        }
-      else
-        {
-          build_line_bevel(false, sub_edge, depth, attribute_data, indices);
-        }
-    }
-
-  if (sub_edge.m_has_start_dashed_capper)
-    {
-      build_dashed_capper(true, sub_edge, depth, attribute_data, indices);
-    }
-
-  if (sub_edge.m_from_line_segment)
-    {
-      build_line_segment(sub_edge, depth, attribute_data, indices);
-    }
-  else
-    {
-      build_arc_segment(sub_edge, depth, attribute_data, indices);
-    }
-
-  if (sub_edge.m_has_bevel)
-    {
-      if (sub_edge.m_use_arc_for_bevel)
-        {
-          build_arc_bevel(true, sub_edge, depth, attribute_data, indices);
-        }
-      else
-        {
-          build_line_bevel(true, sub_edge, depth, attribute_data, indices);
-        }
-    }
-
-  if (sub_edge.m_has_end_dashed_capper)
-    {
-      build_dashed_capper(false, sub_edge, depth, attribute_data, indices);
-    }
-}
-
-void
-ArcEdgeAttributeFiller::
-build_dashed_capper(bool for_start_dashed_capper,
-                    const SingleSubEdge &sub_edge, unsigned int &depth,
-                    std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                    std::vector<fastuidraw::PainterIndex> &indices) const
-{
-  using namespace fastuidraw;
-  using namespace detail;
-
-  unsigned int vert_offset(attribute_data.size());
-  const PainterIndex tris[12] =
-    {
-      0, 3, 4,
-      0, 4, 1,
-      1, 4, 5,
-      1, 5, 2,
-    };
-
-  for (unsigned int i = 0; i < 12; ++i)
-    {
-      indices.push_back(vert_offset + tris[i]);
-    }
-
-  vec2 tangent, normal, pos;
-  uint32_t packed_data, packed_data_mid;
-  float d;
-
-  packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_dashed_capper, depth);
-  packed_data_mid = arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_dashed_capper, depth);
-  if (for_start_dashed_capper)
-    {
-      normal = sub_edge.m_begin_normal;
-      tangent = -sub_edge.unit_vector_into_segment();
-      pos = sub_edge.m_pt0;
-      d = 0.0f;
-    }
-  else
-    {
-      normal = sub_edge.m_end_normal;
-      tangent = sub_edge.unit_vector_leaving_segment();
-      pos = sub_edge.m_pt1;
-      packed_data |= ArcStrokedPoint::end_segment_mask;
-      packed_data_mid |= ArcStrokedPoint::end_segment_mask;
-      d = sub_edge.m_sub_edge_length;
-    }
-
-  ArcStrokedPoint pt;
-  PainterAttribute A;
-
-  pt.m_position = pos;
-  pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + d;
-  pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + d;
-  pt.m_edge_length = sub_edge.m_edge_length;
-  pt.m_contour_length = sub_edge.m_contour_length;
-  pt.m_data = tangent;
-
-  pt.m_packed_data = packed_data;
-  pt.m_offset_direction = normal;
-  pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  pt.m_packed_data = packed_data_mid;
-  pt.m_offset_direction = vec2(0.0f, 0.0f);
-  pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  pt.m_packed_data = packed_data;
-  pt.m_offset_direction = -normal;
-  pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  pt.m_packed_data = packed_data | ArcStrokedPoint::extend_mask;
-  pt.m_offset_direction = normal;
-  pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  pt.m_packed_data = packed_data_mid | ArcStrokedPoint::extend_mask;
-  pt.m_offset_direction = vec2(0.0f, 0.0f);
-  pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  pt.m_packed_data = packed_data | ArcStrokedPoint::extend_mask;
-  pt.m_offset_direction = -normal;
-  pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  ++depth;
-}
-
-void
-ArcEdgeAttributeFiller::
-build_arc_bevel(bool is_inner_bevel,
-                const SingleSubEdge &sub_edge, unsigned int &depth,
-                std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                std::vector<fastuidraw::PainterIndex> &indices) const
-{
-  fastuidraw::vec2 n_start, n_end;
-  fastuidraw::ArcStrokedPoint pt;
-
-  if (is_inner_bevel)
-    {
-      n_start = -sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
-      n_end = -sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
-    }
-  else
-    {
-      n_start = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
-      n_end = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
-    }
-
-  pt.m_position = sub_edge.m_pt0;
-  pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
-  pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
-  pt.m_edge_length = sub_edge.m_edge_length;
-  pt.m_contour_length = sub_edge.m_contour_length;
-
-  fastuidraw::detail::pack_arc_join(pt, 1, n_start, n_end, depth,
-                                    attribute_data, indices, false);
-  ++depth;
-}
-
-void
-ArcEdgeAttributeFiller::
-build_line_bevel(bool is_inner_bevel,
-                 const SingleSubEdge &sub_edge, unsigned int &depth,
-                 std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                 std::vector<fastuidraw::PainterIndex> &indices) const
-{
-  using namespace fastuidraw;
-  using namespace detail;
-
-  vecN<ArcStrokedPoint, 3> pts;
-  float sgn;
-
-  if (is_inner_bevel)
-    {
-      sgn = -sub_edge.m_bevel_lambda;
-    }
-  else
-    {
-      sgn = sub_edge.m_bevel_lambda;
-    }
-
-  unsigned int vert_offset(attribute_data.size());
-  for (unsigned int i = 0; i < 3; ++i)
-    {
-      indices.push_back(vert_offset + i);
-    }
-
-  for(unsigned int k = 0; k < 3; ++k)
-    {
-      pts[k].m_position = sub_edge.m_pt0;
-      pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
-      pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
-      pts[k].m_edge_length = sub_edge.m_edge_length;
-      pts[k].m_contour_length = sub_edge.m_contour_length;
-      pts[k].m_data = vec2(0.0f, 0.0f);
-    }
-
-  pts[0].m_offset_direction = vec2(0.0f, 0.0f);
-  pts[0].m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
-    | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_line_segment, depth);
-
-  pts[1].m_offset_direction = sgn * sub_edge.m_bevel_normal;
-  pts[1].m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
-    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, depth);
-
-  pts[2].m_offset_direction = sgn * sub_edge.m_begin_normal;
-  pts[2].m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
-    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, depth);
-
-  for(unsigned int i = 0; i < 3; ++i)
-    {
-      PainterAttribute A;
-      pts[i].pack_point(&A);
-      attribute_data.push_back(A);
-    }
-
-  if (is_inner_bevel)
-    {
-      ++depth;
-    }
-}
-
-void
-ArcEdgeAttributeFiller::
-build_arc_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
-                  std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                  std::vector<fastuidraw::PainterIndex> &indices) const
-{
-  using namespace fastuidraw;
-  using namespace detail;
-
-  ArcStrokedPoint begin_pt, end_pt;
-  vec2 begin_radial, end_radial;
-  PainterAttribute A;
-  unsigned int vert_offset(attribute_data.size());
-
-  const unsigned int tris[24] =
-    {
-      4, 6, 7,
-      4, 7, 5,
-      2, 4, 5,
-      2, 5, 3,
-      8, 0, 1,
-      9, 2, 3,
-
-      0,  1, 10,
-      1, 10, 11
-    };
-
-  for (unsigned int i = 0; i < 24; ++i)
-    {
-      indices.push_back(tris[i] + vert_offset);
-    }
-
-  begin_pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
-  begin_pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
-  begin_pt.m_edge_length = sub_edge.m_edge_length;
-  begin_pt.m_contour_length = sub_edge.m_contour_length;
-  begin_pt.radius() = sub_edge.m_radius;
-  begin_pt.arc_angle() = sub_edge.m_arc_angle.m_end - sub_edge.m_arc_angle.m_begin;
-
-  end_pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + sub_edge.m_sub_edge_length;
-  end_pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + sub_edge.m_sub_edge_length;
-  end_pt.m_edge_length = sub_edge.m_edge_length;
-  end_pt.m_contour_length = sub_edge.m_contour_length;
-  end_pt.radius() = sub_edge.m_radius;
-  end_pt.arc_angle() = sub_edge.m_arc_angle.m_end - sub_edge.m_arc_angle.m_begin;
-
-  begin_radial = vec2(t_cos(sub_edge.m_arc_angle.m_begin), t_sin(sub_edge.m_arc_angle.m_begin));
-  end_radial = vec2(t_cos(sub_edge.m_arc_angle.m_end), t_sin(sub_edge.m_arc_angle.m_end));
-
-  /* inner stroking boundary points (points 0, 1) */
-  begin_pt.m_packed_data = ArcStrokedPoint::inner_stroking_mask
-    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
-  begin_pt.m_position = sub_edge.m_pt0;
-  begin_pt.m_offset_direction = begin_radial;
-  begin_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
-  end_pt.m_position = sub_edge.m_pt1;
-  end_pt.m_offset_direction = end_radial;
-  end_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  /* the points that are on the arc (points 2, 3) */
-  begin_pt.m_packed_data = arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point, depth);
-  begin_pt.m_position = sub_edge.m_pt0;
-  begin_pt.m_offset_direction = begin_radial;
-  begin_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
-  end_pt.m_position = sub_edge.m_pt1;
-  end_pt.m_offset_direction = end_radial;
-  end_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  /* outer stroking boundary points (points 4, 5) */
-  begin_pt.m_packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
-  begin_pt.m_position = sub_edge.m_pt0;
-  begin_pt.m_offset_direction = begin_radial;
-  begin_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
-  end_pt.m_position = sub_edge.m_pt1;
-  end_pt.m_offset_direction = end_radial;
-  end_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  /* beyond outer stroking boundary points (points 6, 7) */
-  begin_pt.m_packed_data = ArcStrokedPoint::beyond_boundary_mask
-    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
-  begin_pt.m_position = sub_edge.m_pt0;
-  begin_pt.m_offset_direction = begin_radial;
-  begin_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
-  end_pt.m_position = sub_edge.m_pt1;
-  end_pt.m_offset_direction = end_radial;
-  end_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  /* points that move to origin when stroking radius is larger than arc radius (points 8, 9) */
-  begin_pt.m_packed_data = ArcStrokedPoint::move_to_arc_center_mask
-    | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point, depth);
-  begin_pt.m_position = sub_edge.m_pt0;
-  begin_pt.m_offset_direction = begin_radial;
-  begin_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  end_pt.m_packed_data = ArcStrokedPoint::move_to_arc_center_mask
-    | ArcStrokedPoint::end_segment_mask
-    | ArcStrokedPoint::inner_stroking_mask
-    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
-  end_pt.m_position = sub_edge.m_pt1;
-  end_pt.m_offset_direction = end_radial;
-  end_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  /* beyond inner stroking boundary (points 10, 11) */
-  begin_pt.m_packed_data = ArcStrokedPoint::beyond_boundary_mask
-    | ArcStrokedPoint::inner_stroking_mask
-    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
-  begin_pt.m_position = sub_edge.m_pt0;
-  begin_pt.m_offset_direction = begin_radial;
-  begin_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  end_pt.m_packed_data = begin_pt.m_packed_data | ArcStrokedPoint::end_segment_mask;
-  end_pt.m_position = sub_edge.m_pt1;
-  end_pt.m_offset_direction = end_radial;
-  end_pt.pack_point(&A);
-  attribute_data.push_back(A);
-
-  ++depth;
-}
-
-void
-ArcEdgeAttributeFiller::
-build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
-                   std::vector<fastuidraw::PainterAttribute> &attribute_data,
-                   std::vector<fastuidraw::PainterIndex> &indices) const
-{
-  using namespace fastuidraw;
-  using namespace detail;
-
-  const int boundary_values[3] = { 1, 1, 0 };
-  const float normal_sign[3] = { 1.0f, -1.0f, 0.0f };
-  vecN<ArcStrokedPoint, 6> pts;
-
-  /* The quad is:
-   * (p, n, delta,  1),
-   * (p,-n, delta,  1),
-   * (p, 0,     0,  0),
-   * (p_next,  n, -delta, 1),
-   * (p_next, -n, -delta, 1),
-   * (p_next,  0, 0)
-   *
-   * Notice that we are encoding if it is
-   * start or end of edge from the sign of
-   * m_on_boundary.
-   */
-  for(unsigned int k = 0; k < 3; ++k)
-    {
-      pts[k].m_position = sub_edge.m_pt0;
-      pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
-      pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
-      pts[k].m_edge_length = sub_edge.m_edge_length;
-      pts[k].m_contour_length = sub_edge.m_contour_length;
-      pts[k].m_offset_direction = normal_sign[k] * sub_edge.m_begin_normal;
-      pts[k].m_data = sub_edge.m_delta;
-      pts[k].m_packed_data = arc_stroked_point_pack_bits(boundary_values[k],
-                                                         ArcStrokedPoint::offset_line_segment,
-                                                         depth);
-
-      pts[k + 3].m_position = sub_edge.m_pt1;
-      pts[k + 3].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + sub_edge.m_sub_edge_length;
-      pts[k + 3].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + sub_edge.m_sub_edge_length;
-      pts[k + 3].m_edge_length = sub_edge.m_edge_length;
-      pts[k + 3].m_contour_length = sub_edge.m_contour_length;
-      pts[k + 3].m_offset_direction = normal_sign[k] * sub_edge.m_end_normal;
-      pts[k + 3].m_data = -sub_edge.m_delta;
-      pts[k + 3].m_packed_data = arc_stroked_point_pack_bits(boundary_values[k],
-                                                             ArcStrokedPoint::offset_line_segment,
-                                                             depth)
-        | ArcStrokedPoint::end_segment_mask;
-    }
-
-  const unsigned int tris[12] =
-    {
-      0, 2, 5,
-      0, 5, 3,
-      2, 1, 4,
-      2, 4, 5
-    };
-
-  unsigned int vert_offset(attribute_data.size());
-  for(unsigned int i = 0; i < 12; ++i)
-    {
-      indices.push_back(vert_offset + tris[i]);
-    }
-
-  for(unsigned int i = 0; i < 6; ++i)
-    {
-      PainterAttribute A;
-
-      pts[i].pack_point(&A);
-      attribute_data.push_back(A);
-    }
-
-  ++depth;
 }
 
 /////////////////////////////////////////////
