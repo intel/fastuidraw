@@ -73,6 +73,124 @@ namespace
     pt->m_data = fastuidraw::vec2(0.0f, 0.0f);
   }
 
+  /* \param pt gives position of join location and all distance values
+   * \param count how many arc-joins to make
+   * \param n_start normal vector at join start
+   * \param n_end normal vector at join end
+   * \param delta_angle angle difference between n_start and n_end
+   * \param depth depth value to use for all arc-join points
+   * \param is_join points are for a join
+   */
+  void
+  pack_arc_join(unsigned int index_adjust,
+                fastuidraw::ArcStrokedPoint pt, unsigned int count,
+                fastuidraw::vec2 n_start, float delta_angle, fastuidraw::vec2 n_end,
+                unsigned int depth,
+                fastuidraw::c_array<fastuidraw::PainterAttribute> dst_pts,
+                unsigned int &vertex_offset,
+                fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                unsigned int &index_offset,
+                bool is_join)
+  {
+    using namespace fastuidraw;
+    using namespace detail;
+
+    float per_element(delta_angle / static_cast<float>(count));
+    std::complex<float> arc_start(n_start.x(), n_start.y());
+    std::complex<float> da(t_cos(per_element), t_sin(per_element));
+    std::complex<float> theta;
+
+    unsigned int i, center;
+    uint32_t arc_value, beyond_arc_value, join_mask;
+
+    center = vertex_offset;
+    join_mask = is_join ? uint32_t(ArcStrokedPoint::join_mask) : 0u;
+
+    arc_value = join_mask
+      | ArcStrokedPoint::distance_constant_on_primitive_mask
+      | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
+    beyond_arc_value = arc_value | ArcStrokedPoint::beyond_boundary_mask;
+
+    pt.radius() = 0.0f;
+    pt.arc_angle() = per_element;
+    pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
+    pt.m_packed_data = join_mask
+    | ArcStrokedPoint::distance_constant_on_primitive_mask
+      | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point, depth);
+    pt.pack_point(&dst_pts[vertex_offset++]);
+
+    for (theta = arc_start, i = 0; i <= count; ++i, theta *= da)
+      {
+        vec2 n;
+        unsigned int start;
+
+        if (i == 0)
+          {
+            n = n_start;
+          }
+        else if (i == count)
+          {
+            n = n_end;
+          }
+        else
+          {
+            n = vec2(theta.real(), theta.imag());
+          }
+
+        pt.m_offset_direction = n;
+        if (i != 0)
+          {
+            pt.m_packed_data = beyond_arc_value | ArcStrokedPoint::end_segment_mask;
+            pt.pack_point(&dst_pts[vertex_offset++]);
+          }
+
+        start = vertex_offset;
+        pt.m_packed_data = arc_value;
+        pt.pack_point(&dst_pts[vertex_offset++]);
+
+        if (i != count)
+          {
+            pt.m_packed_data = beyond_arc_value;
+            pt.pack_point(&dst_pts[vertex_offset++]);
+
+            add_triangle(index_adjust + center,
+                         index_adjust + start,
+                         index_adjust + vertex_offset + 1,
+                         dst_indices, index_offset);
+            add_triangle(index_adjust + start,
+                         index_adjust + start + 1,
+                         index_adjust + vertex_offset,
+                         dst_indices, index_offset);
+            add_triangle(index_adjust + start,
+                         index_adjust + vertex_offset,
+                         index_adjust + vertex_offset + 1,
+                         dst_indices, index_offset);
+          }
+      }
+  }
+
+  void
+  pack_arc_join(unsigned int index_adjust,
+                fastuidraw::ArcStrokedPoint pt, unsigned int count,
+                fastuidraw::vec2 n0, fastuidraw::vec2 n1, unsigned int depth,
+                fastuidraw::c_array<fastuidraw::PainterAttribute> dst_pts,
+                unsigned int &vertex_offset,
+                fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                unsigned int &index_offset,
+                bool is_join)
+  {
+    std::complex<float> n0z(n0.x(), n0.y());
+    std::complex<float> n1z(n1.x(), n1.y());
+    std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
+    float angle(fastuidraw::t_atan2(n1z_times_conj_n0z.imag(),
+                                    n1z_times_conj_n0z.real()));
+
+    pack_arc_join(index_adjust, pt, count, n0, angle, n1, depth,
+                  dst_pts, vertex_offset,
+                  dst_indices, index_offset,
+                  is_join);
+  }
+
   inline
   bool
   segment_has_bevel(const fastuidraw::TessellatedPath::segment *prev,
@@ -207,7 +325,6 @@ namespace
 
     ArcStrokedPoint pt;
     float lambda;
-    unsigned int start_index(current_index);
     fastuidraw::vec2 start_bevel, end_bevel;
 
     FASTUIDRAWassert(use_arc_bevel(prev, S));
@@ -215,15 +332,11 @@ namespace
     init_start_pt(S, &pt);
     lambda = detail::compute_bevel_lambda(is_inner_bevel, prev, S,
                                           start_bevel, end_bevel);
-    detail::pack_arc_join(pt, 1,
-                          lambda * start_bevel, lambda * end_bevel,
-                          current_depth,
-                          dst_attribs, current_vertex,
-                          dst_indices, current_index, false);
-    for (; start_index < current_index; ++start_index)
-      {
-        dst_indices[start_index] += index_adjust;
-      }
+    pack_arc_join(index_adjust, pt, 1,
+                  lambda * start_bevel, lambda * end_bevel,
+                  current_depth,
+                  dst_attribs, current_vertex,
+                  dst_indices, current_index, false);
 
     if (is_inner_bevel)
       {
@@ -730,16 +843,14 @@ pack_join(const TessellatedPath::join &join,
   ArcStrokedPoint pt;
 
   init(join, &pt);
-  detail::pack_arc_join(pt, count, join.m_lambda * join.enter_join_normal(),
-                        join.m_join_angle, join.m_lambda * join.leaving_join_normal(),
-                        depth, dst_attribs, num_verts_used,
-                        dst_indices, num_indices_used, true);
+  pack_arc_join(index_adjust, pt, count,
+                join.m_lambda * join.enter_join_normal(),
+                join.m_join_angle,
+                join.m_lambda * join.leaving_join_normal(),
+                depth, dst_attribs, num_verts_used,
+                dst_indices, num_indices_used, true);
   FASTUIDRAWassert(num_verts_used == dst_attribs.size());
   FASTUIDRAWassert(num_indices_used == dst_indices.size());
-  for (PainterIndex &idx : dst_indices)
-    {
-      idx += index_adjust;
-    }
 }
 
 void
@@ -758,16 +869,12 @@ pack_cap(const TessellatedPath::cap &C,
   vec2 v(C.m_unit_vector), n(v.y(), -v.x());
 
   init(C, &pt);
-  detail::pack_arc_join(pt, arcs_per_cap,
-                        n, FASTUIDRAW_PI, -n,
-                        depth, dst_attribs, num_verts_used,
-                        dst_indices, num_indices_used, true);
+  pack_arc_join(index_adjust, pt, arcs_per_cap,
+                n, FASTUIDRAW_PI, -n,
+                depth, dst_attribs, num_verts_used,
+                dst_indices, num_indices_used, true);
   FASTUIDRAWassert(num_verts_used == dst_attribs.size());
   FASTUIDRAWassert(num_indices_used == dst_indices.size());
-  for (PainterIndex &idx : dst_indices)
-    {
-      idx += index_adjust;
-    }
 }
 
 void
