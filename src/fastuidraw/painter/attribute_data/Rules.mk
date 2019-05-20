@@ -10,7 +10,8 @@ FASTUIDRAW_SOURCES += $(call filelist, \
 	stroked_path.cpp filled_path.cpp \
 	glyph_sequence.cpp glyph_run.cpp \
 	glyph_attribute_packer.cpp \
-	arc_stroked_point.cpp)
+	arc_stroked_point.cpp \
+	stroking_attribute_writer.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))
