@@ -1337,7 +1337,7 @@ namespace
     fastuidraw::c_array<const unsigned int>
     path_subsets(void) const
     {
-      return fastuidraw::make_c_array(m_path_subsets);
+      return m_selection.subset_ids();
     }
 
     fastuidraw::c_array<const fastuidraw::vec2>
@@ -1368,7 +1368,10 @@ namespace
       };
 
     void
-    set_join_cap_chunks(const std::vector<unsigned int> &subsets);
+    set_cap_chunks(fastuidraw::c_array<const unsigned int> subset_ids);
+
+    void
+    set_join_chunks(fastuidraw::c_array<const unsigned int> subset_ids);
 
     bool
     requires_coverage_buffer(void) const override
@@ -1416,9 +1419,7 @@ namespace
     fastuidraw::vecN<fastuidraw::PainterItemShader*, number_drawing_types> m_shader;
     bool m_requires_coverage_buffer;
 
-    const fastuidraw::StrokedPath *m_path;
-    std::vector<unsigned int> m_path_subsets;
-    std::vector<unsigned int> m_join_cap_subsets;
+    fastuidraw::StrokedPath::SubsetSelection m_selection;
     const fastuidraw::PainterAttributeData *m_join_attribute_data;
     std::vector<unsigned int> m_join_chunks;
     const fastuidraw::PainterAttributeData *m_cap_attribute_data;
@@ -1430,9 +1431,6 @@ namespace
      *  [X][K] <--> amount to increment z-range when drawing K'th chunk of X
      */
     fastuidraw::vecN<std::vector<int>, number_drawing_types> m_z_increments;
-
-    fastuidraw::StrokedPath::ScratchSpace m_path_scratch;
-    fastuidraw::PartitionedTessellatedPath::ScratchSpace m_partioned_path_scratch;
   };
 
   class AntiAliasFillWorkRoom:fastuidraw::noncopyable
@@ -1518,7 +1516,6 @@ namespace
     RoundedRectWorkRoom m_rounded_rect;
     GenericLayeredWorkRoom m_generic_layered;
     ComputeClipIntersectRectWorkRoom m_compute_clip_intersect_rect;
-    fastuidraw::StrokedPath::ScratchSpace m_path_scratch;
   };
 
   class EffectsStackEntry
@@ -1809,10 +1806,11 @@ namespace
     select_subsets(const fastuidraw::FilledPath &path,
                    fastuidraw::c_array<unsigned int> dst);
 
-    unsigned int
+    void
     select_subsets(const fastuidraw::StrokedPath &path,
                    fastuidraw::c_array<const float> geometry_inflation,
-                   fastuidraw::c_array<unsigned int> dst);
+                   bool select_miter_joins,
+                   fastuidraw::StrokedPath::SubsetSelection &dst);
 
     const fastuidraw::StrokedPath*
     select_stroked_path(const fastuidraw::Path &path,
@@ -1983,7 +1981,7 @@ get_src(WriteState *state, unsigned int *chunk) const
   switch (drawing_mode)
     {
     case drawing_edges:
-      src = &m_path->subset(m_path_subsets[idx]).painter_data();
+      src = &m_selection.source()->subset(m_selection.subset_ids()[idx]).painter_data();
       *chunk = 0;
       break;
 
@@ -2013,30 +2011,45 @@ draw(PainterPrivate &painter, fastuidraw::PainterData &data)
 
 void
 StrokingWorkRoom::
-set_join_cap_chunks(const std::vector<unsigned int> &subsets)
+set_join_chunks(fastuidraw::c_array<const unsigned int> subset_ids)
 {
   using namespace fastuidraw;
 
   m_join_chunks.clear();
-  m_cap_chunks.clear();
-
-  if (!m_join_attribute_data && !m_cap_attribute_data)
+  if (!m_join_attribute_data)
     {
       return;
     }
 
-  for (unsigned int I : subsets)
+  for (unsigned int I : subset_ids)
     {
-      StrokedPath::Subset S(m_path->subset(I));
+      StrokedPath::Subset S(m_selection.source()->subset(I));
       int J(S.join_chunk());
-      int K(S.cap_chunk());
 
-      if (J >= 0 && m_join_attribute_data)
+      if (J >= 0)
         {
           m_join_chunks.push_back(J);
         }
+    }
+}
 
-      if (K >= 0 && m_cap_attribute_data)
+void
+StrokingWorkRoom::
+set_cap_chunks(fastuidraw::c_array<const unsigned int> subset_ids)
+{
+  using namespace fastuidraw;
+
+  m_cap_chunks.clear();
+  if (!m_cap_attribute_data)
+    {
+      return;
+    }
+  for (unsigned int I : subset_ids)
+    {
+      StrokedPath::Subset S(m_selection.source()->subset(I));
+      int K(S.cap_chunk());
+
+      if (K >= 0)
         {
           m_cap_chunks.push_back(K);
         }
@@ -2056,9 +2069,9 @@ init_for_stroking(const PainterPrivate &painter,
 {
   using namespace fastuidraw;
 
+  const fastuidraw::PartitionedTessellatedPath &partitioned(path.partitioned_path());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
 
-  m_path = &path;
   m_requires_coverage_buffer = false;
   switch (cp)
     {
@@ -2124,50 +2137,29 @@ init_for_stroking(const PainterPrivate &painter,
   std::fill(additional_room.begin(), additional_room.end(), 0.0f);
   shader.stroking_data_selector()->stroking_distances(item_shader_packed_data, additional_room);
 
-  unsigned int subset_count;
-  m_path_subsets.resize(path.number_subsets());
-  subset_count = path.select_subsets(m_path_scratch,
-                                     painter.m_clip_store.current(),
-                                     painter.m_clip_rect_state.item_matrix(),
-                                     painter.m_one_pixel_width,
-                                     additional_room,
-                                     painter.m_max_attribs_per_block,
-                                     painter.m_max_indices_per_block,
-                                     make_c_array(m_path_subsets));
-
-  FASTUIDRAWassert(subset_count <= m_path_subsets.size());
-  m_path_subsets.resize(subset_count);
+  path.select_subsets(painter.m_clip_store.current(),
+                      painter.m_clip_rect_state.item_matrix(),
+                      painter.m_one_pixel_width,
+                      additional_room,
+                      painter.m_max_attribs_per_block,
+                      painter.m_max_indices_per_block,
+                      PainterEnums::is_miter_join(js),
+                      m_selection);
 
   m_join_positions.clear();
   if (PainterEnums::is_miter_join(js))
     {
-      unsigned int num;
-
-      m_join_cap_subsets.resize(path.number_subsets());
-      num = path.partitioned_path().select_subsets_miter(m_partioned_path_scratch,
-                                                         painter.m_clip_store.current(),
-                                                         painter.m_clip_rect_state.item_matrix(),
-                                                         painter.m_one_pixel_width,
-                                                         additional_room,
-                                                         make_c_array(m_join_cap_subsets));
-      m_join_cap_subsets.resize(num);
-      set_join_cap_chunks(m_join_cap_subsets);
-
-      const PartitionedTessellatedPath &partitioned(path.partitioned_path());
-      for (unsigned int I : m_join_cap_subsets)
+      for (unsigned int I : m_selection.join_subset_ids())
         {
-          PartitionedTessellatedPath::Subset SP(partitioned.subset(I));
-          for (const auto &join : SP.joins())
+          PartitionedTessellatedPath::Subset PS(partitioned.subset(I));
+          for (const auto &join : PS.joins())
             {
               m_join_positions.push_back(join.m_position);
             }
         }
     }
-  else
-    {
-      /* The join positions are only needed for miter-joins */
-      set_join_cap_chunks(m_path_subsets);
-    }
+  set_join_chunks(m_selection.join_subset_ids());
+  set_cap_chunks(m_selection.subset_ids());
 
   if (m_join_chunks.empty())
     {
@@ -2184,7 +2176,7 @@ init_for_stroking(const PainterPrivate &painter,
   m_shader[drawing_caps] = stroke_shader(shader, cap_arc_shader, apply_anti_aliasing);
 
   m_requires_coverage_buffer =
-    (subset_count > 0 && m_shader[drawing_edges]->coverage_shader())
+    (!m_selection.subset_ids().empty() && m_shader[drawing_edges]->coverage_shader())
     || (m_join_attribute_data && m_shader[drawing_joins]->coverage_shader())
     || (m_cap_attribute_data && m_shader[drawing_caps]->coverage_shader());
 
@@ -2214,10 +2206,11 @@ init_for_stroking(const PainterPrivate &painter,
       tmp += R.difference();
     }
 
-  m_z_increments[drawing_edges].resize(m_path_subsets.size());
-  for (int i = m_path_subsets.size() - 1; i >= 0; --i)
+  c_array<const unsigned int> subsets(m_selection.subset_ids());
+  m_z_increments[drawing_edges].resize(subsets.size());
+  for (int i = subsets.size() - 1; i >= 0; --i)
     {
-      range_type<int> R(path.subset(m_path_subsets[i]).painter_data().z_range(0));
+      range_type<int> R(path.subset(subsets[i]).painter_data().z_range(0));
       m_z_increments[drawing_edges][i] = tmp - R.m_begin;
       tmp += R.difference();
     }
@@ -3683,29 +3676,28 @@ select_subsets(const fastuidraw::FilledPath &path,
                              dst);
 }
 
-unsigned int
+void
 PainterPrivate::
 select_subsets(const fastuidraw::StrokedPath &path,
                fastuidraw::c_array<const float> geometry_inflation,
-               fastuidraw::c_array<unsigned int> dst)
+               bool select_miter_joins,
+               fastuidraw::StrokedPath::SubsetSelection &dst)
 {
-  FASTUIDRAWmessaged_assert(dst.size() >= path.number_subsets(),
-                            "Painter::select_subsets(StrokedPath) provided with "
-                            "smaller array than number of subsets of StrokedPath");
   if (m_clip_rect_state.m_all_content_culled)
     {
-      return 0u;
+      dst.clear(&path);
     }
-
-  FASTUIDRAWassert(dst.size() >= path.number_subsets());
-  return path.select_subsets(m_work_room.m_path_scratch,
-                             m_clip_store.current(),
-                             m_clip_rect_state.item_matrix(),
-                             m_one_pixel_width,
-                             geometry_inflation,
-                             m_max_attribs_per_block,
-                             m_max_indices_per_block,
-                             dst);
+  else
+    {
+      path.select_subsets(m_clip_store.current(),
+                          m_clip_rect_state.item_matrix(),
+                          m_one_pixel_width,
+                          geometry_inflation,
+                          m_max_attribs_per_block,
+                          m_max_indices_per_block,
+                          select_miter_joins,
+                          dst);
+    }
 }
 
 const fastuidraw::FilledPath&
@@ -5246,15 +5238,16 @@ select_subsets(const FilledPath &path, c_array<unsigned int> dst)
   return d->select_subsets(path, dst);
 }
 
-unsigned int
+void
 fastuidraw::Painter::
 select_subsets(const StrokedPath &path,
                c_array<const float> geometry_inflation,
-               c_array<unsigned int> dst)
+               bool select_miter_joins,
+               fastuidraw::StrokedPath::SubsetSelection &dst)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->select_subsets(path, geometry_inflation, dst);
+  d->select_subsets(path, geometry_inflation, select_miter_joins, dst);
 }
 
 void

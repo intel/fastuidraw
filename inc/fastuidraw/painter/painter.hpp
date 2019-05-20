@@ -1199,15 +1199,17 @@ namespace fastuidraw
      * \param path \ref StrokedPath from which to compute subset selection
      * \param geometry_inflation amount path geometry is inflated, array
      *                           is indexed by the enumeration \ref
-     *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
+     *                           PathEnums::path_geometry_inflation_index_t
+     * \param select_miter_joins if true, when selecting what joins are in
+     *                           the area, enlarge the join footprint for if
+     *                           the joins are stroked as a type of miter join.
      * \param[out] dst location to which to write the StrokedPath::Subset ID values
-     * \returns the number of Subset object ID's written to dst, that
-     *          number is guaranteed to be no more than StrokedPath::number_subsets().
      */
-    unsigned int
+    void
     select_subsets(const StrokedPath &path,
                    c_array<const float> geometry_inflation,
-                   c_array<unsigned int> dst);
+                   bool select_miter_joins,
+                   fastuidraw::StrokedPath::SubsetSelection &dst);
 
     /*!
      * Stroke a path.
