@@ -812,6 +812,9 @@ pack_cap(enum cap_type_t cp,
       pack_rounded_cap(cap, depth, dst_attribs, dst_indices, index_adjust);
       break;
 
+    case flat_cap:
+      break;
+
     default:
       FASTUIDRAWmessaged_assert(false, "Invalid cap style passed to pack_cap()");
       return;

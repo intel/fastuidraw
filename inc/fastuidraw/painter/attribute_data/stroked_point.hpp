@@ -544,11 +544,33 @@ public:
 namespace StrokedPointPacking
 {
   /*!
+   * Enumeration to specify how to pack attribute and index
+   * data for a cap.
    */
   enum cap_type_t
     {
+      /*!
+       * Pack cap for stroking cap with the style \ref
+       * PainterEnums::flat_caps with non-dashed stroking.
+       */
+      flat_cap,
+
+      /*!
+       * Pack cap for stroking cap with the style \ref
+       * PainterEnums::square_caps with non-dashed stroking.
+       */
       square_cap,
+
+      /*!
+       * Pack cap for stroking cap with dashed stroking
+       * (regardless of \ref PainterEnum::cap_style).
+       */
       adjustable_cap,
+
+      /*!
+       * Pack cap for stroking cap with the style \ref
+       * PainterEnums::rounded_caps with non-dashed stroking.
+       */
       rounded_cap
     };
 
@@ -622,6 +644,17 @@ namespace StrokedPointPacking
       {
         number_attributes = 4,
         number_indices = 6
+      };
+  };
+
+  template<>
+  class packing_size<enum cap_type_t, flat_cap>
+  {
+  public:
+    enum
+      {
+        number_attributes = 0,
+        number_indices = 0
       };
   };
 
@@ -759,6 +792,33 @@ namespace StrokedPointPacking
                           unsigned int *num_indices);
 
   /*!
+   * Computes the number of indices and attributes necessary to pack
+   * a single \ref PartitionedTessellatedPath::segment_chain value.
+   * The \ref PartitionedTessellatedPath::segment of the \ref
+   * \ref PartitionedTessellatedPath::segment_chain must have that
+   * \ref PartitionedTessellatedPath::segment::m_type is the value \ref
+   * TessellatedPath::line_segment.
+   * \param chains segment chain to query amount room needed to pack
+   *               realized by \ref StrokedPoint
+   * \param depth_range_size location to which to write the depth range needed
+   *                         to pack the segment chain.
+   * \param num_attributes location to which to write the needed
+   *                       number of attributes
+   * \param num_indices location to which to write the needed
+   *                       number of indices
+   */
+  inline
+  void
+  pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain &chain,
+                          unsigned int *depth_range_size,
+                          unsigned int *num_attributes,
+                          unsigned int *num_indices)
+  {
+    c_array<const PartitionedTessellatedPath::segment_chain> tmp(&chain, 1);
+    pack_segment_chain_size(tmp, depth_range_size, num_attributes, num_indices);
+  }
+
+  /*!
    * Pack an array of segments chains realized as \ref StrokedPoint
    * \param chains segment chain to pack
    * \param depth_start value the lowest depth value for the attributes;
@@ -782,6 +842,36 @@ namespace StrokedPointPacking
                      c_array<PainterAttribute> dst_attribs,
                      c_array<PainterIndex> dst_indices,
                      unsigned int index_adjust);
+
+  /*!
+   * Pack a single segment chain realized as \ref StrokedPoint
+   * \param chain segment chain to pack
+   * \param depth_start value the lowest depth value for the attributes;
+   *                    the packed \ref StrokedPoint values will have \ref
+   *                    depth_start <= StrokedPoint::depth() and
+   *                    StrokedPoint::depth() < depth_start + depth_range_size
+   *                    where depth_range_size is as indicated by
+   *                    \ref pack_segment_chain_size().
+   * \param dst_attribs location to which to place the attributes, the
+   *                    size of dst_attribs must be as indicated by \ref
+   *                    \ref pack_segment_chain_size().
+   * \param dst_indices location to which to place the indices, the
+   *                    size of dst_indices must be as indicated by \ref
+   *                    \ref pack_segment_chain_size().
+   * \param index_adjust value by which to increment the written
+   *                     index values
+   */
+  inline
+  void
+  pack_segment_chain(const PartitionedTessellatedPath::segment_chain &chain,
+                     unsigned int depth_start,
+                     c_array<PainterAttribute> dst_attribs,
+                     c_array<PainterIndex> dst_indices,
+                     unsigned int index_adjust)
+  {
+    c_array<const PartitionedTessellatedPath::segment_chain> tmp(&chain, 1);
+    pack_segment_chain(tmp, depth_start, dst_attribs, dst_indices, index_adjust);
+  }
 }
 
 /*! @} */
