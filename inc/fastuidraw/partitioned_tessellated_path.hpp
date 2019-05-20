@@ -148,6 +148,9 @@ namespace fastuidraw  {
      */
     class Subset
     {
+    private:
+      typedef bool (Subset::*unspecified_bool_type)(void) const;
+
     public:
       /*!
        * Ctor to initialize value to "null" handle.
@@ -155,6 +158,28 @@ namespace fastuidraw  {
       Subset(void):
         m_d(nullptr)
       {}
+
+      /*!
+       * Allows one to legally write to test if Subset
+       * is a null-handle:
+       * \code
+       * Subset p;
+       *
+       * if (p)
+       *   {
+       *     // p does refers to data
+       *   }
+       *
+       * if (!p)
+       *   {
+       *     // p does not referr to any data
+       *   }
+       * \endcode
+       */
+      operator unspecified_bool_type() const
+      {
+        return m_d ? &Subset::has_children : 0;
+      }
 
       /*!
        * Returns the bounding box.
@@ -212,18 +237,51 @@ namespace fastuidraw  {
     };
 
     /*!
-     * \brief
-     * Opaque object to hold work room needed for functions
-     * of \ref PartitionedTessellatedPath that require scratch
-     * space.
+     * A SubsetSelection represents what \ref Subset
+     * objects intersect a clipped region.
      */
-    class ScratchSpace:fastuidraw::noncopyable
+    class SubsetSelection:fastuidraw::noncopyable
     {
     public:
-      ScratchSpace(void);
-      ~ScratchSpace();
+      /*!
+       * Ctor.
+       */
+      SubsetSelection();
+      ~SubsetSelection();
+
+      /*!
+       * The ID's of what Subset objects are selected.
+       */
+      c_array<const unsigned int>
+      subset_ids(void) const;
+
+      /*!
+       * ID's of what Subset objects are selected for joins.
+       * This value is different from \erf subsets() only
+       * when PartitionedTessellatedPath::select_subset_ids()
+       * was specified to enlarge the join footprints for
+       * miter-join stroking.
+       */
+      c_array<const unsigned int>
+      join_subset_ids(void) const;
+
+      /*!
+       * Returns the source for the data.
+       */
+      const reference_counted_ptr<const PartitionedTessellatedPath>&
+      source(void) const;
+
+      /*!
+       * Clears the SubsetSelection to be empty.
+       * \param src value for \ref source() to return
+       */
+      void
+      clear(const reference_counted_ptr<const PartitionedTessellatedPath> &src =
+            reference_counted_ptr<const PartitionedTessellatedPath>());
+
     private:
       friend class PartitionedTessellatedPath;
+
       void *m_d;
     };
 
@@ -285,46 +343,18 @@ namespace fastuidraw  {
      * \param geometry_inflation amount path geometry is inflated, array
      *                           is indexed by the enumeration \ref
      *                           PathEnums::path_geometry_inflation_index_t
-     * \param[out] dst location to which to write the \ref Subset ID values
-     * \returns the number of Subset object ID's written to dst, that
-     *          number is guaranteed to be no more than number_subsets().
+     * \param select_miter_joins if true, when selecting what joins are in
+     *                           the area, enlarge the join footprint for if
+     *                           the joins are stroked as a type of miter join.
+     * \param[out] location to which to write the subset-selection.
      */
-    unsigned int
-    select_subsets(ScratchSpace &scratch_space,
-                   c_array<const vec3> clip_equations,
+    void
+    select_subsets(c_array<const vec3> clip_equations,
                    const float3x3 &clip_matrix_local,
                    const vec2 &one_pixel_width,
                    c_array<const float> geometry_inflation,
-                   c_array<unsigned int> dst) const;
-
-    /*!
-     * Given a set of clip equations in clip coordinates
-     * and a tranformation from local coordiante to clip
-     * coordinates, compute what Subsets have joins that
-     * when stroked as miter joins are not completely
-     * culled by the clip equations. NOTE! this is only
-     * gauranteed that the joins are not culled.
-     * \param scratch_space scratch space for computations
-     * \param clip_equations array of clip equations
-     * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
-     *                          coordinates to clip coordinates.
-     * \param one_pixel_width holds the size of a single pixel in
-     *                        normalized device coordinates
-     * \param geometry_inflation amount path geometry is inflated, array
-     *                           is indexed by the enumeration \ref
-     *                           PathEnums::path_geometry_inflation_index_t
-     * \param[out] dst location to which to write the \ref Subset ID values
-     * \returns the number of Subset object ID's written to dst, that
-     *          number is guaranteed to be no more than number_subsets().
-     */
-    unsigned int
-    select_subsets_miter(ScratchSpace &scratch_space,
-                         c_array<const vec3> clip_equations,
-                         const float3x3 &clip_matrix_local,
-                         const vec2 &one_pixel_width,
-                         c_array<const float> geometry_inflation,
-                         c_array<unsigned int> dst) const;
-
+                   bool select_miter_joins,
+                   SubsetSelection &dst) const;
   private:
     friend class TessellatedPath;
 

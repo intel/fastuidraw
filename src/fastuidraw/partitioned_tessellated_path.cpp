@@ -97,13 +97,25 @@ namespace
     std::vector<fastuidraw::PartitionedTessellatedPath::cap> m_caps;
   };
 
-  class ScratchSpacePrivate:fastuidraw::noncopyable
+  class ScratchSpace
   {
   public:
     std::vector<fastuidraw::vec3> m_adjusted_clip_eqs;
     fastuidraw::c_array<const fastuidraw::vec2> m_clipped_rect;
-
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clip_scratch_vec2s;
+  };
+
+  class SubsetSelectionPrivate:fastuidraw::noncopyable
+  {
+  public:
+    // data from selection
+    fastuidraw::reference_counted_ptr<const fastuidraw::PartitionedTessellatedPath> m_source;
+    std::vector<unsigned int> m_subset_ids;
+    std::vector<unsigned int> m_join_subset_ids_backing;
+    fastuidraw::c_array<const unsigned int> m_join_subset_ids;
+
+    // work-room for selection
+    ScratchSpace m_scratch;
   };
 
   class SubsetPrivate:fastuidraw::noncopyable
@@ -163,14 +175,14 @@ namespace
       return fastuidraw::make_c_array(m_caps);
     }
 
-    unsigned int
+    void
     select_subsets(bool miter_hunting,
-                   ScratchSpacePrivate &scratch,
+                   ScratchSpace &scratch,
                    fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                    const fastuidraw::float3x3 &clip_matrix_local,
                    const fastuidraw::vec2 &one_pixel_width,
                    fastuidraw::c_array<const float> geometry_inflation,
-                   fastuidraw::c_array<unsigned int> dst);
+                   std::vector<unsigned int> &dst);
 
   private:
     /* creation will steal the vector<> values of
@@ -191,17 +203,11 @@ namespace
                   const segment_chain &chain,
                   SubsetBuilder *before_split, SubsetBuilder *after_split);
 
-    bool //returns true if this is added to dst
+    bool //returns true if this element is added.
     select_subsets_implement(bool miter_hunting,
-                             ScratchSpacePrivate &scratch,
-                             fastuidraw::c_array<unsigned int> dst,
+                             ScratchSpace &scratch,
                              float item_space_additional_room,
-                             unsigned int &current);
-
-    bool //returns true if this is added to dst
-    select_subsets_all_unculled(bool miter_hunting,
-                                fastuidraw::c_array<unsigned int> dst,
-                                unsigned int &current);
+                             std::vector<unsigned int> &dst);
 
     unsigned int m_ID;
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
@@ -532,15 +538,15 @@ make_children(int recursion_depth, std::vector<SubsetPrivate*> &out_values)
   m_children[1]= FASTUIDRAWnew SubsetPrivate(recursion_depth + 1, after_split, out_values);
 }
 
-unsigned int
+void
 SubsetPrivate::
 select_subsets(bool miter_hunting,
-               ScratchSpacePrivate &scratch,
+               ScratchSpace &scratch,
                fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                const fastuidraw::float3x3 &clip_matrix_local,
                const fastuidraw::vec2 &one_pixel_width,
                fastuidraw::c_array<const float> geometry_inflation,
-               fastuidraw::c_array<unsigned int> dst)
+               std::vector<unsigned int> &dst)
 {
   using namespace fastuidraw;
 
@@ -576,21 +582,18 @@ select_subsets(bool miter_hunting,
       scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
     }
 
-  unsigned int return_value(0);
-  select_subsets_implement(miter_hunting, scratch, dst,
+  dst.clear();
+  select_subsets_implement(miter_hunting, scratch,
                            item_space_additional_room,
-                           return_value);
-
-  return return_value;
+                           dst);
 }
 
 bool
 SubsetPrivate::
 select_subsets_implement(bool miter_hunting,
-                         ScratchSpacePrivate &scratch,
-                         fastuidraw::c_array<unsigned int> dst,
+                         ScratchSpace &scratch,
                          float item_space_additional_room,
-                         unsigned int &current)
+                         std::vector<unsigned int> &dst)
 {
   using namespace fastuidraw;
 
@@ -634,8 +637,7 @@ select_subsets_implement(bool miter_hunting,
   //completely unclipped.
   if (unclipped || !has_children())
     {
-      dst[current] = m_ID;
-      ++current;
+      dst.push_back(m_ID);
       return true;
     }
 
@@ -644,21 +646,21 @@ select_subsets_implement(bool miter_hunting,
 
   bool r0, r1;
 
-  r0 = m_children[0]->select_subsets_implement(miter_hunting, scratch, dst, item_space_additional_room, current);
-  r1 = m_children[1]->select_subsets_implement(miter_hunting, scratch, dst, item_space_additional_room, current);
+  r0 = m_children[0]->select_subsets_implement(miter_hunting, scratch, item_space_additional_room, dst);
+  r1 = m_children[1]->select_subsets_implement(miter_hunting, scratch, item_space_additional_room, dst);
 
   if (r0 && r1)
     {
       /* the last two elements added are m_children[0] and m_children[1];
        * remove them and add this instead (if possible).
        */
-      FASTUIDRAWassert(current >= 2);
-      FASTUIDRAWassert(dst[current - 2] == m_children[0]->m_ID);
-      FASTUIDRAWassert(dst[current - 1] == m_children[1]->m_ID);
+      FASTUIDRAWassert(!dst.empty() && dst.back() == m_children[1]->m_ID);
+      dst.pop_back();
 
-      current -= 2;
-      dst[current] = m_ID;
-      ++current;
+      FASTUIDRAWassert(!dst.empty() && dst.back() == m_children[0]->m_ID);
+      dst.pop_back();
+
+      dst.push_back(m_ID);
       return true;
     }
 
@@ -681,20 +683,59 @@ PartitionedTessellatedPathPrivate::
 }
 
 /////////////////////////////////////////////////////////////////
-// fastuidraw::PartitionedTessellatedPath::ScratchSpace methods
-fastuidraw::PartitionedTessellatedPath::ScratchSpace::
-ScratchSpace(void)
+// fastuidraw::PartitionedTessellatedPath::SubsetSelection methods
+fastuidraw::PartitionedTessellatedPath::SubsetSelection::
+SubsetSelection(void)
 {
-  m_d = FASTUIDRAWnew ScratchSpacePrivate();
+  m_d = FASTUIDRAWnew SubsetSelectionPrivate();
 }
 
-fastuidraw::PartitionedTessellatedPath::ScratchSpace::
-~ScratchSpace(void)
+fastuidraw::PartitionedTessellatedPath::SubsetSelection::
+~SubsetSelection(void)
 {
-  ScratchSpacePrivate *d;
-  d = static_cast<ScratchSpacePrivate*>(m_d);
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
+}
+
+fastuidraw::c_array<const unsigned int>
+fastuidraw::PartitionedTessellatedPath::SubsetSelection::
+subset_ids(void) const
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+  return make_c_array(d->m_subset_ids);
+}
+
+fastuidraw::c_array<const unsigned int>
+fastuidraw::PartitionedTessellatedPath::SubsetSelection::
+join_subset_ids(void) const
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+  return d->m_join_subset_ids;
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::PartitionedTessellatedPath>&
+fastuidraw::PartitionedTessellatedPath::SubsetSelection::
+source(void) const
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+  return d->m_source;
+}
+
+void
+fastuidraw::PartitionedTessellatedPath::SubsetSelection::
+clear(const reference_counted_ptr<const PartitionedTessellatedPath> &src)
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+  d->m_source = src;
+  d->m_subset_ids.clear();
+  d->m_join_subset_ids_backing.clear();
+  d->m_join_subset_ids = c_array<const unsigned int>();
 }
 
 /////////////////////////////////
@@ -854,51 +895,43 @@ caps(void) const
   return d->m_root_subset->caps();
 }
 
-unsigned int
+void
 fastuidraw::PartitionedTessellatedPath::
-select_subsets(ScratchSpace &scratch_space,
-               c_array<const vec3> clip_equations,
+select_subsets(c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                const vec2 &one_pixel_width,
                c_array<const float> geometry_inflation,
-               c_array<unsigned int> dst) const
+               bool select_miter_joins,
+               SubsetSelection &dst) const
 {
   PartitionedTessellatedPathPrivate *d;
   d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
 
-  ScratchSpacePrivate *scratch_d;
-  scratch_d = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
+  SubsetSelectionPrivate *dst_d;
+  dst_d = static_cast<SubsetSelectionPrivate*>(dst.m_d);
 
-  FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
-  return d->m_root_subset->select_subsets(false,
-                                          *scratch_d,
-                                          clip_equations,
-                                          clip_matrix_local,
-                                          one_pixel_width,
-                                          geometry_inflation,
-                                          dst);
-}
+  dst_d->m_source = this;
+  d->m_root_subset->select_subsets(false,
+                                   dst_d->m_scratch,
+                                   clip_equations,
+                                   clip_matrix_local,
+                                   one_pixel_width,
+                                   geometry_inflation,
+                                   dst_d->m_subset_ids);
 
-unsigned int
-fastuidraw::PartitionedTessellatedPath::
-select_subsets_miter(ScratchSpace &scratch_space,
-                     c_array<const vec3> clip_equations,
-                     const float3x3 &clip_matrix_local,
-                     const vec2 &one_pixel_width,
-                     c_array<const float> geometry_inflation,
-                     c_array<unsigned int> dst) const
-{
-  PartitionedTessellatedPathPrivate *d;
-  d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
-
-  ScratchSpacePrivate *scratch_d;
-  scratch_d = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
-
-  return d->m_root_subset->select_subsets(true,
-                                          *scratch_d,
-                                          clip_equations,
-                                          clip_matrix_local,
-                                          one_pixel_width,
-                                          geometry_inflation,
-                                          dst);
+  if (select_miter_joins)
+    {
+      d->m_root_subset->select_subsets(true,
+                                       dst_d->m_scratch,
+                                       clip_equations,
+                                       clip_matrix_local,
+                                       one_pixel_width,
+                                       geometry_inflation,
+                                       dst_d->m_join_subset_ids_backing);
+      dst_d->m_join_subset_ids = make_c_array(dst_d->m_join_subset_ids_backing);
+    }
+  else
+    {
+      dst_d->m_join_subset_ids = make_c_array(dst_d->m_subset_ids);
+    }
 }
