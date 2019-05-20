@@ -52,7 +52,10 @@ public:
    * The handle is invalid once the StrokedPath from which it
    * comes goes out of scope. Do not save these handle values
    * without also saving a handle of the StrokedPath from which
-   * they come.
+   * they come. The region of a \ref Subset is the exact same
+   * region as a \ref PartitionedPath::Subset object. Also, the
+   * \ref ID() value for a Subset is the same value as \ref
+   * PartitionedPath::Subset::ID() as well.
    */
   class Subset
   {
@@ -143,8 +146,8 @@ public:
 
     /*!
      * Returns the ID of this Subset, i.e. the value to
-     * feed to \ref PartitionedTessellatedPath::subset()
-     * to get this \ref Subset.
+     * feed to \ref StrokedPath::subset() to get this
+     * \ref Subset.
      */
     unsigned int
     ID(void) const;
@@ -173,17 +176,50 @@ public:
   };
 
   /*!
-   * \brief
-   * Opaque object to hold work room needed for functions
-   * of StrokedPath that require scratch space.
+   * A SubsetSelection represents what \ref Subset
+   * objects intersect a clipped region.
    */
-  class ScratchSpace:fastuidraw::noncopyable
+  class SubsetSelection:fastuidraw::noncopyable
   {
   public:
-    ScratchSpace(void);
-    ~ScratchSpace();
+    /*!
+     * Ctor.
+     */
+    SubsetSelection();
+    ~SubsetSelection();
+
+    /*!
+     * The ID's of what Subset objects are selected.
+     */
+    c_array<const unsigned int>
+    subset_ids(void) const;
+
+    /*!
+     * ID's of what Subset objects are selected for joins.
+     * This value is different from \ref subsets() only
+     * when Stroked::select_subset_ids() was specified to
+     * enlarge the join footprints for miter-join stroking.
+     */
+    c_array<const unsigned int>
+    join_subset_ids(void) const;
+
+    /*!
+     * Returns the source for the data.
+     */
+    const reference_counted_ptr<const StrokedPath>&
+    source(void) const;
+
+    /*!
+     * Clears the SubsetSelection to be empty.
+     * \param src value for \ref source() to return
+     */
+    void
+    clear(const reference_counted_ptr<const StrokedPath> &src =
+          reference_counted_ptr<const StrokedPath>());
+
   private:
     friend class StrokedPath;
+
     void *m_d;
   };
 
@@ -201,10 +237,7 @@ public:
 
   /*!
    * Returns the source \ref PartitionedTessellatedPath of this
-   * \ref StrokedPath. The \ref PartitionedPath::Subset object
-   * returned by \ref PartitionedTessellatedPath::subset() refers
-   * to the exact same region as the \ref Subset object returned
-   * by \ref subset().
+   * \ref StrokedPath.
    */
   const PartitionedTessellatedPath&
   partitioned_path(void) const;
@@ -331,24 +364,25 @@ public:
    *                        normalized device coordinates
    * \param geometry_inflation amount path geometry is inflated, array
    *                           is indexed by the enumeration \ref
-   *                           StrokingDataSelectorBase::path_geometry_inflation_index_t
+   *                           PathEnums::path_geometry_inflation_index_t
    * \param max_attribute_cnt only allow those chunks for which have no more
    *                          than max_attribute_cnt attributes
    * \param max_index_cnt only allow those chunks for which have no more
    *                      than max_index_cnt indices
-   * \param[out] dst location to which to write the \ref Subset ID values
-   * \returns the number of Subset object ID's written to dst, that
-   *          number is guaranteed to be no more than number_subsets().
+   * \param select_miter_joins if true, when selecting what joins are in
+   *                           the area, enlarge the join footprint for if
+   *                           the joins are stroked as a type of miter join.
+   * \param[out] location to which to write the subset-selection.
    */
-  unsigned int
-  select_subsets(ScratchSpace &scratch_space,
-                 c_array<const vec3> clip_equations,
+  void
+  select_subsets(c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  const vec2 &one_pixel_width,
                  c_array<const float> geometry_inflation,
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,
-                 c_array<unsigned int> dst) const;
+                 bool select_miter_joins,
+                 SubsetSelection &dst) const;
 
   /*!
    * In contrast to select_subsets() which performs hierarchical
@@ -360,13 +394,11 @@ public:
    * \param max_index_cnt only allow those chunks for which have no more
    *                      than max_index_cnt indices
    * \param[out] dst location to which to write the \ref Subset ID values
-   * \returns the number of Subset object ID's written to dst, that
-   *          number is guaranteed to be no more than number_subsets().
    */
-  unsigned int
+  void
   select_subsets_no_culling(unsigned int max_attribute_cnt,
                             unsigned int max_index_cnt,
-                            c_array<unsigned int> dst) const;
+                            SubsetSelection &dst) const;
 
 private:
   friend class TessellatedPath;

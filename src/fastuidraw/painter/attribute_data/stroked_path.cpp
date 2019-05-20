@@ -189,11 +189,13 @@ namespace
     }
   };
 
-  class ScratchSpacePrivate
+  class SubsetSelectionPrivate
   {
   public:
-    fastuidraw::PartitionedTessellatedPath::ScratchSpace m_scratch;
-    std::vector<unsigned int> m_partioned_subset_choices;
+    fastuidraw::PartitionedTessellatedPath::SubsetSelection m_selection;
+    std::vector<unsigned int> m_subset_ids;
+    fastuidraw::c_array<const unsigned int> m_join_subset_ids;
+    fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> m_source;
   };
 
   class SubsetPrivate:fastuidraw::noncopyable
@@ -204,8 +206,7 @@ namespace
     void
     select_subsets(unsigned int max_attribute_cnt,
                    unsigned int max_index_cnt,
-                   fastuidraw::c_array<unsigned int> dst,
-                   unsigned int &current);
+                   std::vector<unsigned int> &dst);
 
     void
     make_ready(void);
@@ -1326,8 +1327,7 @@ void
 SubsetPrivate::
 select_subsets(unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,
-               fastuidraw::c_array<unsigned int> dst,
-               unsigned int &current)
+               std::vector<unsigned int> &dst)
 {
 
   if (!m_sizes_ready && !has_children())
@@ -1350,16 +1350,15 @@ select_subsets(unsigned int max_attribute_cnt,
        */
       if (m_painter_data)
         {
-          dst[current] = ID();
-          ++current;
+          dst.push_back(ID());
           return;
         }
     }
 
   if (has_children())
     {
-      m_children[0]->select_subsets(max_attribute_cnt, max_index_cnt, dst, current);
-      m_children[1]->select_subsets(max_attribute_cnt, max_index_cnt, dst, current);
+      m_children[0]->select_subsets(max_attribute_cnt, max_index_cnt, dst);
+      m_children[1]->select_subsets(max_attribute_cnt, max_index_cnt, dst);
       if (!m_sizes_ready)
         {
           ready_sizes_from_children();
@@ -1761,22 +1760,72 @@ fetch_create(float thresh, std::vector<ThreshWithData> &values)
 }
 
 //////////////////////////////////////////////
-// fastuidraw::StrokedPath::ScratchSpace methods
-fastuidraw::StrokedPath::ScratchSpace::
-ScratchSpace(void)
+// fastuidraw::StrokedPath::SubsetSelection methods
+fastuidraw::StrokedPath::SubsetSelection::
+SubsetSelection(void)
 {
-  m_d = FASTUIDRAWnew ScratchSpacePrivate();
+  m_d = FASTUIDRAWnew SubsetSelectionPrivate();
 }
 
-fastuidraw::StrokedPath::ScratchSpace::
-~ScratchSpace(void)
+fastuidraw::StrokedPath::SubsetSelection::
+~SubsetSelection(void)
 {
-  ScratchSpacePrivate *d;
-  d = static_cast<ScratchSpacePrivate*>(m_d);
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
 }
 
+fastuidraw::c_array<const unsigned int>
+fastuidraw::StrokedPath::SubsetSelection::
+subset_ids(void) const
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+  return make_c_array(d->m_subset_ids);
+}
+
+fastuidraw::c_array<const unsigned int>
+fastuidraw::StrokedPath::SubsetSelection::
+join_subset_ids(void) const
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+  return d->m_join_subset_ids;
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath>&
+fastuidraw::StrokedPath::SubsetSelection::
+source(void) const
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+  return d->m_source;
+}
+
+void
+fastuidraw::StrokedPath::SubsetSelection::
+clear(const reference_counted_ptr<const StrokedPath> &src)
+{
+  SubsetSelectionPrivate *d;
+  d = static_cast<SubsetSelectionPrivate*>(m_d);
+
+  d->m_source = src;
+  d->m_subset_ids.clear();
+  d->m_join_subset_ids = c_array<const unsigned int>();
+
+  if (src)
+    {
+      StrokedPathPrivate *path_d;
+
+      path_d = static_cast<StrokedPathPrivate*>(src->m_d);
+      d->m_selection.clear(path_d->m_path_partioned);
+    }
+  else
+    {
+      d->m_selection.clear();
+    }
+}
 /////////////////////////////////
 // fastuidraw::StrokedPath::Subset methods
 fastuidraw::StrokedPath::Subset::
@@ -1932,76 +1981,74 @@ subset(unsigned int I) const
   return Subset(p);
 }
 
-unsigned int
+void
 fastuidraw::StrokedPath::
-select_subsets(ScratchSpace &scratch_space,
-               c_array<const vec3> clip_equations,
+select_subsets(c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                const vec2 &one_pixel_width,
                c_array<const float> geometry_inflation,
                unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,
-               c_array<unsigned int> dst) const
+               bool select_miter_joins,
+               SubsetSelection &dst) const
 {
   StrokedPathPrivate *d;
-  ScratchSpacePrivate *scratch;
-  unsigned int return_value(0);
+  SubsetSelectionPrivate *dst_d;
 
   d = static_cast<StrokedPathPrivate*>(m_d);
-  FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
+  dst_d = static_cast<SubsetSelectionPrivate*>(dst.m_d);
 
+  dst_d->m_source = this;
+  dst_d->m_subset_ids.clear();
+  dst_d->m_join_subset_ids = c_array<const unsigned int>();
   if (d->m_root)
     {
-      unsigned int N;
-      c_array<unsigned int> partitioned_subsets;
+      d->m_path_partioned->select_subsets(clip_equations,
+                                          clip_matrix_local,
+                                          one_pixel_width,
+                                          geometry_inflation,
+                                          select_miter_joins,
+                                          dst_d->m_selection);
 
-      scratch = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
-      scratch->m_partioned_subset_choices.resize(d->m_path_partioned->number_subsets());
-      partitioned_subsets = make_c_array(scratch->m_partioned_subset_choices);
-
-      N = d->m_path_partioned->select_subsets(scratch->m_scratch,
-                                              clip_equations,
-                                              clip_matrix_local,
-                                              one_pixel_width,
-                                              geometry_inflation,
-                                              partitioned_subsets);
-
-      partitioned_subsets = partitioned_subsets.sub_array(0, N);
-      for (unsigned int S : partitioned_subsets)
+      for (unsigned int I : dst_d->m_selection.subset_ids())
         {
-          d->m_subsets[S]->select_subsets(max_attribute_cnt,
+          d->m_subsets[I]->select_subsets(max_attribute_cnt,
                                           max_index_cnt,
-                                          dst, return_value);
+                                          dst_d->m_subset_ids);
+        }
+
+      if (select_miter_joins)
+        {
+          dst_d->m_join_subset_ids = dst_d->m_selection.join_subset_ids();
+        }
+      else
+        {
+          dst_d->m_join_subset_ids = make_c_array(dst_d->m_subset_ids);
         }
     }
-
-  return return_value;
 }
 
-unsigned int
+void
 fastuidraw::StrokedPath::
 select_subsets_no_culling(unsigned int max_attribute_cnt,
                           unsigned int max_index_cnt,
-                          c_array<unsigned int> dst) const
+                          SubsetSelection &dst) const
 {
   StrokedPathPrivate *d;
-  unsigned int return_value(0);
+  SubsetSelectionPrivate *dst_d;
 
   d = static_cast<StrokedPathPrivate*>(m_d);
-  FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
+  dst_d = static_cast<SubsetSelectionPrivate*>(dst.m_d);
 
+  dst_d->m_source = this;
+  dst_d->m_subset_ids.clear();
   if (d->m_root)
     {
       d->m_root->select_subsets(max_attribute_cnt,
                                 max_index_cnt,
-                                dst, return_value);
+                                dst_d->m_subset_ids);
     }
-  else
-    {
-      return_value = 0;
-    }
-
-  return return_value;
+  dst_d->m_join_subset_ids = make_c_array(dst_d->m_subset_ids);
 }
 
 fastuidraw::StrokedPath::Subset
