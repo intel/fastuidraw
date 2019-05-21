@@ -298,6 +298,14 @@ namespace fastuidraw  {
     has_arcs(void) const;
 
     /*!
+     * Returns the maximum across all edges of all contours
+     * of the distance between the tessellation and the actual
+     * path.
+     */
+    float
+    max_distance(void) const;
+
+    /*!
      * Returns the number of Subset objects of the StrokedPath.
      */
     unsigned int
