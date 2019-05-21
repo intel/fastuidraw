@@ -313,6 +313,21 @@ public:
     }
 
     /*!
+     * Split this \ref segment at a time t where the start
+     * of the segment is at t = 0 and the end of the segment
+     * is t = 1.
+     * \param t time to split the segment, must have that 0 <= t <= 1
+     * \param dst_0_t location to which to write the portion of
+     *                this \ref segment on the interval [0, t].
+     * \param dst_t_1 location to which to write the portion of
+     *                this \ref segment on the interval [t, 1].
+     */
+    void
+    split_segment(float t,
+                  segment *dst_0_t,
+                  segment *dst_t_1) const;
+
+    /*!
      * Compute the splitting splitting of this \ref segment
      * against a vertical line with the given x-coordinate
      * \param x_split x-coordinate of vertical splitting line

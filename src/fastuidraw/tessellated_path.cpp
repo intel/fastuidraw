@@ -999,6 +999,72 @@ compute_split(float split,
   return compute_segment_split(splitting_coordinate, *this, split, dst_before_split, dst_after_split);
 }
 
+void
+fastuidraw::TessellatedPath::segment::
+split_segment(float t,
+              segment *dst_0_t,
+              segment *dst_t_1) const
+{
+  float s, mid_angle;
+  vec2 p, mid_unit_vector;
+
+  s = 1.0f - t;
+  mid_angle = s * m_arc_angle.m_begin + t * m_arc_angle.m_end;
+  if (m_type == line_segment)
+    {
+      p = s * m_start_pt + t * m_end_pt;
+      mid_unit_vector = m_enter_segment_unit_vector;
+    }
+  else
+    {
+      float ca, sa;
+
+      ca = t_cos(mid_angle);
+      sa = t_sin(mid_angle);
+      p = m_center + m_radius * vec2(ca, sa);
+    }
+
+  dst_0_t->m_type = m_type;
+  dst_0_t->m_start_pt = m_start_pt;
+  dst_0_t->m_end_pt = p;
+  dst_0_t->m_center = m_center;
+  dst_0_t->m_arc_angle.m_begin = m_arc_angle.m_begin;
+  dst_0_t->m_arc_angle.m_end = mid_angle;
+  dst_0_t->m_radius = m_radius;
+  dst_0_t->m_length = t * m_length;
+  dst_0_t->m_distance_from_edge_start = m_distance_from_edge_start;
+  dst_0_t->m_distance_from_contour_start = m_distance_from_contour_start;
+  dst_0_t->m_edge_length = m_edge_length;
+  dst_0_t->m_contour_length = m_contour_length;
+  dst_0_t->m_enter_segment_unit_vector = m_enter_segment_unit_vector;
+  dst_0_t->m_leaving_segment_unit_vector = mid_unit_vector;
+  dst_0_t->m_continuation_with_predecessor = m_continuation_with_predecessor;
+  dst_0_t->m_contour_id = m_contour_id;
+  dst_0_t->m_edge_id = m_edge_id;
+  dst_0_t->m_first_segment_of_edge = m_first_segment_of_edge;
+  dst_0_t->m_last_segment_of_edge = false;
+
+  dst_t_1->m_type = m_type;
+  dst_t_1->m_start_pt = p;
+  dst_t_1->m_end_pt = m_end_pt;
+  dst_t_1->m_center = m_center;
+  dst_t_1->m_arc_angle.m_begin = mid_angle;
+  dst_t_1->m_arc_angle.m_end = m_arc_angle.m_end;
+  dst_t_1->m_radius = m_radius;
+  dst_t_1->m_length = s * m_length;
+  dst_t_1->m_distance_from_edge_start = dst_0_t->m_distance_from_edge_start + dst_0_t->m_length;
+  dst_t_1->m_distance_from_contour_start = dst_0_t->m_distance_from_contour_start + dst_0_t->m_length;
+  dst_t_1->m_edge_length = m_edge_length;
+  dst_t_1->m_contour_length = m_contour_length;
+  dst_t_1->m_enter_segment_unit_vector = mid_unit_vector;
+  dst_t_1->m_leaving_segment_unit_vector = m_leaving_segment_unit_vector;
+  dst_t_1->m_continuation_with_predecessor = true;
+  dst_t_1->m_contour_id = m_contour_id;
+  dst_t_1->m_edge_id = m_edge_id;
+  dst_t_1->m_first_segment_of_edge = false;
+  dst_t_1->m_last_segment_of_edge = m_last_segment_of_edge;
+}
+
 ///////////////////////////////////////////
 // fastuidraw::TessellatedPath::join methods
 fastuidraw::TessellatedPath::join::
