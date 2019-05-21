@@ -872,3 +872,29 @@ pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chai
 
   std::reverse(dst_indices.begin(), dst_indices.end());
 }
+
+enum fastuidraw::StrokedPointPacking::cap_type_t
+fastuidraw::StrokedPointPacking::
+cap_type(enum PainterEnums::cap_style cp, bool for_dashed_stroking)
+{
+  if (for_dashed_stroking)
+    {
+      return StrokedPointPacking::adjustable_cap;
+    }
+
+  switch (cp)
+    {
+    case PainterEnums::rounded_caps:
+      return StrokedPointPacking::rounded_cap;
+      break;
+
+    case PainterEnums::square_caps:
+      return StrokedPointPacking::square_cap;
+      break;
+
+    default:
+    case PainterEnums::flat_caps:
+      return StrokedPointPacking::flat_cap;
+      break;
+    }
+}

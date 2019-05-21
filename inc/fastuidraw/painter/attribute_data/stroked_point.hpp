@@ -682,6 +682,17 @@ namespace StrokedPointPacking
   ///@endcond
 
   /*!
+   * Returns the value for \ref cap_type_t given a
+   * \ref PainterEnums::cap_style value
+   * \param cp \ref PainterEnums::cap_style value
+   * \param for_dashed_stroking if true, return a cap-value suitable
+   *                            for dashed stroking.
+   */
+  enum cap_type_t
+  cap_type(enum PainterEnums::cap_style cp,
+           bool for_dashed_stroking);
+
+  /*!
    * Returns the number of attributes realized with \ref
    * StrokedPoint needed to pack a rounded join.
    * \param join join to realize a packed data
