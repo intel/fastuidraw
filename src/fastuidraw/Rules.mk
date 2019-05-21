@@ -6,7 +6,7 @@ d		:= $(dir)
 
 FASTUIDRAW_SOURCES += $(call filelist, image.cpp colorstop.cpp \
 	colorstop_atlas.cpp path.cpp tessellated_path.cpp \
-	partitioned_tessellated_path.cpp)
+	partitioned_tessellated_path.cpp path_effect.cpp)
 
 dir := $(d)/util
 include $(dir)/Rules.mk
