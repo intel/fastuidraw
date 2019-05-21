@@ -273,7 +273,7 @@ namespace
       {
         if (segment_has_bevel(prev, S))
           {
-            ++depth_range_size; //only inner increments depth
+            depth_range_size += 2;
             if (use_arc_bevel(prev, S))
               {
                 /* each arc-bevel uses 5 attributes and 9 indices
@@ -354,10 +354,7 @@ namespace
                   dst_attribs, current_vertex,
                   dst_indices, current_index, false);
 
-    if (is_inner_bevel)
-      {
-        ++current_depth;
-      }
+    ++current_depth;
   }
 
   inline
@@ -405,10 +402,7 @@ namespace
       | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, current_depth);
     pt.pack_point(&dst_attribs[vertex_offset++]);
 
-    if (is_inner_bevel)
-      {
-        ++current_depth;
-      }
+    ++current_depth;
   }
 
   inline
