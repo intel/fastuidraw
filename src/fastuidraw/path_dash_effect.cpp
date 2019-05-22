@@ -83,14 +83,18 @@ namespace
     else
       {
         float angle(s * S.m_arc_angle.m_begin + t * S.m_arc_angle.m_end);
-
         fastuidraw::vec2 cs(fastuidraw::t_cos(angle), fastuidraw::t_sin(angle));
+
+        if (S.m_arc_angle.m_begin > S.m_arc_angle.m_end)
+          {
+            n = -n;
+          }
         C.m_position = S.m_center + S.m_radius * cs;
         C.m_unit_vector = n * fastuidraw::vec2(-cs.y(), cs.x());
       }
     C.m_contour_length = S.m_contour_length;
     C.m_edge_length = S.m_edge_length;
-    C.m_is_starting_cap = false;
+    C.m_is_starting_cap = is_start_cap;
     C.m_contour_id = S.m_contour_id;
     dst.add_cap(C);
   }
@@ -191,8 +195,11 @@ find_iterator(float &f, int &N) const
       N = 0;
     }
 
-  return std::lower_bound(m_lengths.begin(), m_lengths.end(),
+  /* iter points to the first element with iter->m_end_distance >= f */
+  iter = std::lower_bound(m_lengths.begin(), m_lengths.end(),
                           f, compare_dash_element_against_distance);
+
+  return iter;
 }
 
 unsigned int
@@ -237,12 +244,12 @@ process_segment(const fastuidraw::TessellatedPath::segment &pS,
 
   for (;;)
     {
-      FASTUIDRAWassert(distance(S) >= P.m_start_distance);
-
+      FASTUIDRAWassert(startS >= P.m_start_distance);
       if (P.end_draw() >= startS && P.end_draw() <= endS)
         {
           /* Draw interval of P ends within S, so add an ending cap. */
           add_cap(S, P.end_draw() - startS, false, dst);
+          S.m_last_segment_of_edge = true;
         }
 
       if (P.end_draw() >= startS && P.m_draw_length > 0.0f)
@@ -253,12 +260,16 @@ process_segment(const fastuidraw::TessellatedPath::segment &pS,
 
               /* add the draw element of S on [0, t] */
               S.split_segment(t, &A, &B);
+              A.m_last_segment_of_edge = true;
               dst.add_segment(A);
 
               /* continue with the S on [t, 1], note that we
                * need to start a new chain
                */
               S = B;
+              S.m_continuation_with_predecessor = false;
+              S.m_first_segment_of_edge = true;
+              startS = distance(S);
               need_to_begin_chain = true;
             }
           else
@@ -288,6 +299,8 @@ process_segment(const fastuidraw::TessellatedPath::segment &pS,
       t = (P.m_end_distance - startS) / S.m_length;
       S.split_segment(t, &A, &B);
       S = B;
+      S.m_first_segment_of_edge = true;
+      S.m_continuation_with_predecessor = false;
       startS = distance(S);
 
       P = proxy(P.m_idx + 1);
@@ -389,7 +402,6 @@ process_cap(const TessellatedPath::cap &cap, Storage &dst) const
   PathDashEffectPrivate *d;
   d = static_cast<PathDashEffectPrivate*>(m_d);
 
-  /* We shall interpret an empty-dash pattern as no dashing at all */
   float dist(d->distance(cap));
   if (d->point_inside_draw_interval(dist))
     {
@@ -409,6 +421,16 @@ process_chain(const segment_chain &chain, Storage &dst) const
       return;
     }
 
+  if (d->m_lengths.empty())
+    {
+      dst.begin_chain(chain.m_prev_to_start);
+      for (const auto &S : chain.m_segments)
+        {
+          dst.add_segment(S);
+        }
+      return;
+    }
+
   const TessellatedPath::segment *prev_segment(chain.m_prev_to_start);
   const TessellatedPath::segment &front(chain.m_segments.front());
   float dist(d->distance(front));
@@ -422,7 +444,7 @@ process_chain(const segment_chain &chain, Storage &dst) const
    */
   if (front.m_edge_id == 0 && front.m_first_segment_of_edge)
     {
-      add_cap(*prev_segment, 0.0f, true, dst);
+      add_cap(front, 0.0f, true, dst);
     }
 
   for (const auto &S : chain.m_segments)
