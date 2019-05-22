@@ -1499,7 +1499,6 @@ namespace
   class ComputeClipIntersectRectWorkRoom:fastuidraw::noncopyable
   {
   public:
-    fastuidraw::vecN<fastuidraw::vec3, 4> m_rect_pts;
     fastuidraw::vecN<std::vector<fastuidraw::vec3>, 2> m_scratch;
   };
 
@@ -1549,9 +1548,17 @@ namespace
     rotate(float angle);
 
     fastuidraw::BoundingBox<float>
+    compute_clip_intersect_rect(const fastuidraw::Painter::NormalizedCoordRect &rect,
+                                float additional_pixel_slack);
+
+    fastuidraw::BoundingBox<float>
     compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
                                 float additional_pixel_slack,
                                 float additional_logical_slack);
+
+    fastuidraw::BoundingBox<float>
+    compute_clip_intersect_polygon(fastuidraw::c_array<const fastuidraw::vec3> polygon,
+                                   float additional_pixel_slack);
 
     void
     begin_coverage_buffer(void);
@@ -3301,43 +3308,15 @@ rotate(float angle)
 
 fastuidraw::BoundingBox<float>
 PainterPrivate::
-compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
-                            float additional_pixel_slack,
-                            float additional_logical_slack)
+compute_clip_intersect_polygon(fastuidraw::c_array<const fastuidraw::vec3> polygon,
+                               float additional_pixel_slack)
 {
   using namespace fastuidraw;
 
-  const float3x3 &transform(m_clip_rect_state.item_matrix());
+  BoundingBox<float> return_value;
   c_array<const vec3> poly;
-  fastuidraw::BoundingBox<float> return_value;
 
-  FASTUIDRAWassert(additional_pixel_slack >= 0.0f);
-  FASTUIDRAWassert(additional_logical_slack >= 0.0f);
-  FASTUIDRAWassert(logical_rect.m_max_point.x() >= logical_rect.m_min_point.x());
-  FASTUIDRAWassert(logical_rect.m_max_point.y() >= logical_rect.m_min_point.y());
-
-  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[0] =
-    transform * vec3(logical_rect.m_min_point.x() - additional_logical_slack,
-                     logical_rect.m_min_point.y() - additional_logical_slack,
-                     1.0f);
-
-  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[1]
-    = transform * vec3(logical_rect.m_min_point.x() - additional_logical_slack,
-                       logical_rect.m_max_point.y() + additional_logical_slack,
-                       1.0f);
-
-  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[2] =
-    transform * vec3(logical_rect.m_max_point.x() + additional_logical_slack,
-                     logical_rect.m_max_point.y() + additional_logical_slack,
-                     1.0f);
-
-  m_work_room.m_compute_clip_intersect_rect.m_rect_pts[3] =
-    transform * vec3(logical_rect.m_max_point.x() + additional_logical_slack,
-                     logical_rect.m_min_point.y() - additional_logical_slack,
-                     1.0f);
-
-  detail::clip_against_planes(m_clip_store.current(),
-                              m_work_room.m_compute_clip_intersect_rect.m_rect_pts,
+  detail::clip_against_planes(m_clip_store.current(), polygon,
                               &poly, m_work_room.m_compute_clip_intersect_rect.m_scratch);
 
   for (const vec3 &clip_pt : poly)
@@ -3355,6 +3334,62 @@ compute_clip_intersect_rect(const fastuidraw::Rect &logical_rect,
   return_value.intersect_against(m_clip_store.current_bb());
 
   return return_value;
+}
+
+fastuidraw::BoundingBox<float>
+PainterPrivate::
+compute_clip_intersect_rect(const fastuidraw::Painter::NormalizedCoordRect &rect,
+                            float additional_pixel_slack)
+{
+  using namespace fastuidraw;
+  vecN<vec3, 4> tmp;
+
+  tmp[0] = vec3(rect.m_rect.m_min_point.x(), rect.m_rect.m_min_point.y(), 1.0f);
+  tmp[1] = vec3(rect.m_rect.m_min_point.x(), rect.m_rect.m_max_point.y(), 1.0f);
+  tmp[2] = vec3(rect.m_rect.m_max_point.x(), rect.m_rect.m_max_point.y(), 1.0f);
+  tmp[3] = vec3(rect.m_rect.m_max_point.x(), rect.m_rect.m_min_point.y(), 1.0f);
+
+  return compute_clip_intersect_polygon(tmp, additional_pixel_slack);
+}
+
+fastuidraw::BoundingBox<float>
+PainterPrivate::
+compute_clip_intersect_rect(const fastuidraw::Rect &plogical_rect,
+                            float additional_pixel_slack,
+                            float additional_logical_slack)
+{
+  using namespace fastuidraw;
+
+  const float3x3 &transform(m_clip_rect_state.item_matrix());
+  BoundingBox<float> logical_rect;
+  vecN<vec3, 4> tmp;
+
+  logical_rect.union_point(plogical_rect.m_min_point);
+  logical_rect.union_point(plogical_rect.m_max_point);
+  logical_rect.enlarge(vec2(additional_logical_slack));
+
+  if (logical_rect.empty())
+    {
+      return BoundingBox<float>();
+    }
+
+  tmp[0] = transform * vec3(logical_rect.min_point().x(),
+                            logical_rect.min_point().y(),
+                            1.0f);
+
+  tmp[1] = transform * vec3(logical_rect.min_point().x(),
+                            logical_rect.max_point().y(),
+                            1.0f);
+
+  tmp[2] = transform * vec3(logical_rect.max_point().x(),
+                            logical_rect.max_point().y(),
+                            1.0f);
+
+  tmp[3] = transform * vec3(logical_rect.max_point().x(),
+                            logical_rect.min_point().y(),
+                            1.0f);
+
+  return compute_clip_intersect_polygon(tmp, additional_pixel_slack);
 }
 
 void
@@ -6029,13 +6064,29 @@ begin_coverage_buffer(void)
 void
 fastuidraw::Painter::
 begin_coverage_buffer(const Rect &logical_rect,
+                      float additional_pixel_slack,
+                      float additional_item_slack)
+{
+  fastuidraw::BoundingBox<float> nr;
+  PainterPrivate *d;
+
+  d = static_cast<PainterPrivate*>(m_d);
+  nr = d->compute_clip_intersect_rect(logical_rect,
+                                      additional_pixel_slack,
+                                      additional_item_slack);
+  d->begin_coverage_buffer_normalized_rect(nr.as_rect(), !nr.empty());
+}
+
+void
+fastuidraw::Painter::
+begin_coverage_buffer(const NormalizedCoordRect &normalized_rect,
                       float additional_pixel_slack)
 {
   fastuidraw::BoundingBox<float> nr;
   PainterPrivate *d;
 
   d = static_cast<PainterPrivate*>(m_d);
-  nr = d->compute_clip_intersect_rect(logical_rect, additional_pixel_slack, 0.0f);
+  nr = d->compute_clip_intersect_rect(normalized_rect, additional_pixel_slack);
   d->begin_coverage_buffer_normalized_rect(nr.as_rect(), !nr.empty());
 }
 

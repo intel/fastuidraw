@@ -189,6 +189,22 @@ namespace fastuidraw
     };
 
     /*!
+     * \brief
+     * A \ref NormalizedCoordRect is used to specify a rectangle
+     * in -normalized- device coordinates. Recall that normalized
+     * device coordinates hae that the bottom-left is (-1, 1) and
+     * the top right is (+1, +1) ALWAYS.
+     */
+    class NormalizedCoordRect
+    {
+    public:
+      /*!
+       * The actual values of the rect.
+       */
+      Rect m_rect;
+    };
+
+    /*!
      * Ctor.
      * \param backend \ref PainterEngine object from which via
      *                \ref PainterEngine::create_backend(), the
@@ -797,6 +813,7 @@ namespace fastuidraw
      * This starts a coverage buffer layer region of the
      * size of the bounding box of the current clip-region.
      * It is strongly suggested to use begin_coverage_buffer(const Rect&)
+     * or \ref begin_coverage_buffer(const NormalizedCoordRect&)
      * to limit the size of the coverage buffer.
      */
     void
@@ -813,9 +830,29 @@ namespace fastuidraw
      * \param additional_pixel_slack inflate the coverage buffer
      *                               region by this many pixels on
      *                               each side
+     * \param additional_item_slack inflate the coverage buffer
+     *                              region by this amount in logical
+     *                              coordinates
      */
     void
     begin_coverage_buffer(const Rect &logical_rect,
+                          float additional_pixel_slack = 0.0f,
+                          float additional_item_slack = 0.0f);
+
+    /*!
+     * Acts the same as begin_coverage_buffer(void), but
+     * limits the coverage buffer to the bounding box
+     * of the intersection of the current clipping region
+     * with the passed rectangle.
+     * \param normalized_rect rectangle in NORMALIZED DEVICE
+     *                        coordinates, i.e. after \ref
+     *                        transformation() is applied.
+     * \param additional_pixel_slack inflate the coverage buffer
+     *                               region by this many pixels on
+     *                               each side
+     */
+    void
+    begin_coverage_buffer(const NormalizedCoordRect &normalized_rect,
                           float additional_pixel_slack = 0.0f);
 
     /*!
