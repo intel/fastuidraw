@@ -96,7 +96,7 @@ namespace
     unsigned int m_depth_range_size;
     unsigned int m_num_attribs;
     unsigned int m_num_indices;
-    const fastuidraw::PathEffect::segment_chain *m_chain;
+    fastuidraw::PathEffect::segment_chain m_chain;
   };
 
   template<>
@@ -391,7 +391,7 @@ DrawnItem<fastuidraw::PathEffect::segment_chain>::
 DrawnItem(const fastuidraw::PathEffect::segment_chain &chain,
           enum fastuidraw::PainterEnums::stroking_method_t tp,
           const StrokingMethod&):
-  m_chain(&chain)
+  m_chain(chain)
 {
   using namespace fastuidraw;
   if (tp == PainterEnums::stroking_method_linear)
@@ -426,7 +426,7 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
 
   if (tp == PainterEnums::stroking_method_linear)
     {
-      StrokedPointPacking::pack_segment_chain(*m_chain,
+      StrokedPointPacking::pack_segment_chain(m_chain,
                                               state->m_state[z_offset],
                                               dst_attribs,
                                               dst_indices,
@@ -434,7 +434,7 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
     }
   else
     {
-      ArcStrokedPointPacking::pack_segment_chain(*m_chain,
+      ArcStrokedPointPacking::pack_segment_chain(m_chain,
                                                  state->m_state[z_offset],
                                                  dst_attribs,
                                                  dst_indices,
