@@ -44,6 +44,21 @@ namespace fastuidraw
     typedef PartitionedTessellatedPath::segment_chain segment_chain;
 
     /*!
+     * Conveniance typedef
+     */
+    typedef TessellatedPath::segment segment;
+
+    /*!
+     * Conveniance typedef
+     */
+    typedef TessellatedPath::join join;
+
+    /*!
+     * Conveniance typedef
+     */
+    typedef TessellatedPath::cap cap;
+
+    /*!
      * \brief
      * A \ref Storage is to where \ref TessellatedPath::segment,
      * \ref TessellatedPath::join and \ref TessellatedPath::cap
@@ -82,14 +97,14 @@ namespace fastuidraw
        * \param join \ref TessellatedPath::join to add
        */
       Storage&
-      add_join(const TessellatedPath::join &join);
+      add_join(const join &join);
 
       /*!
        * Add a cap to the \ref Storage
        * \param cap \ref TessellatedPath::cap to add
        */
       Storage&
-      add_cap(const TessellatedPath::cap &cap);
+      add_cap(const cap &cap);
 
       /*!
        * returns the number of \ref segment_chain the
@@ -109,14 +124,18 @@ namespace fastuidraw
 
       /*!
        * Returns the joins of the \ref Storage added by add_join().
+       * The return value is only guaranteed to be valid until the
+       * next call to add_join().
        */
-      c_array<const TessellatedPath::join>
+      c_array<const join>
       joins(void) const;
 
       /*!
        * Returns the caps of the \ref Storage added by add_cap().
+       * The return value is only guaranteed to be valid until the
+       * next call to add_cap().
        */
-      c_array<const TessellatedPath::cap>
+      c_array<const cap>
       caps(void) const;
 
     private:

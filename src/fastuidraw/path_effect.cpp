@@ -35,9 +35,9 @@ namespace
   class StoragePrivate
   {
   public:
-    std::vector<fastuidraw::TessellatedPath::segment> m_segment_storage;
-    std::vector<fastuidraw::TessellatedPath::join> m_join_storage;
-    std::vector<fastuidraw::TessellatedPath::cap> m_cap_storage;
+    std::vector<fastuidraw::PathEffect::segment> m_segment_storage;
+    std::vector<fastuidraw::PathEffect::join> m_join_storage;
+    std::vector<fastuidraw::PathEffect::cap> m_cap_storage;
     std::vector<Chain> m_chains;
   };
 }
@@ -73,7 +73,7 @@ clear(void)
 
 fastuidraw::PathEffect::Storage&
 fastuidraw::PathEffect::Storage::
-begin_chain(const TessellatedPath::segment *prev_segment)
+begin_chain(const segment *prev_segment)
 {
   StoragePrivate *d;
   Chain C;
@@ -105,7 +105,7 @@ begin_chain(const TessellatedPath::segment *prev_segment)
 
 fastuidraw::PathEffect::Storage&
 fastuidraw::PathEffect::Storage::
-add_segment(const TessellatedPath::segment &segment)
+add_segment(const segment &segment)
 {
   StoragePrivate *d;
   d = static_cast<StoragePrivate*>(m_d);
@@ -115,7 +115,7 @@ add_segment(const TessellatedPath::segment &segment)
 
 fastuidraw::PathEffect::Storage&
 fastuidraw::PathEffect::Storage::
-add_join(const TessellatedPath::join &join)
+add_join(const join &join)
 {
   StoragePrivate *d;
   d = static_cast<StoragePrivate*>(m_d);
@@ -125,7 +125,7 @@ add_join(const TessellatedPath::join &join)
 
 fastuidraw::PathEffect::Storage&
 fastuidraw::PathEffect::Storage::
-add_cap(const TessellatedPath::cap &cap)
+add_cap(const cap &cap)
 {
   StoragePrivate *d;
   d = static_cast<StoragePrivate*>(m_d);
@@ -165,7 +165,7 @@ chain(unsigned int I) const
   return return_value;
 }
 
-fastuidraw::c_array<const fastuidraw::TessellatedPath::join>
+fastuidraw::c_array<const fastuidraw::PathEffect::join>
 fastuidraw::PathEffect::Storage::
 joins(void) const
 {
@@ -174,7 +174,7 @@ joins(void) const
   return make_c_array(d->m_join_storage);
 }
 
-fastuidraw::c_array<const fastuidraw::TessellatedPath::cap>
+fastuidraw::c_array<const fastuidraw::PathEffect::cap>
 fastuidraw::PathEffect::Storage::
 caps(void) const
 {
