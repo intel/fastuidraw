@@ -16,8 +16,16 @@ extract_path_info(const fastuidraw::Path &path,
     {
       reference_counted_ptr<const PathContour> C(path.contour(c));
 
-      str << "[ ";
-      for (unsigned int e = 0, end_e = C->number_points(); e < end_e; ++e)
+      if (C->closed())
+        {
+          str << "[ ";
+        }
+      else
+        {
+          str << "{";
+        }
+
+      for (unsigned int e = 0, end_e = C->number_interpolators(); e < end_e; ++e)
         {
           reference_counted_ptr<const PathContour::interpolator_base> E(C->interpolator(e));
           const PathContour::arc *a;
@@ -50,7 +58,15 @@ extract_path_info(const fastuidraw::Path &path,
               str << "]]";
             }
         }
-      str << "]\n";
+
+      if (C->closed())
+        {
+          str << "]\n";
+        }
+      else
+        {
+          str << C->point(C->number_points() - 1) << "}\n";
+        }
     }
   *path_text = str.str();
 }
