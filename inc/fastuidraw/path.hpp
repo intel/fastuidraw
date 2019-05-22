@@ -96,23 +96,19 @@ public:
   public:
     /*!
      * Ctor.
-     * \param prev interpolator to edge that ends at start of edge
-     *             of this interpolator
+     * \param contour \ref PathContour to which to add the interpolator.
+     *                The interpolator is added to the contour at the
+     *                interpolator's construction. The start point is
+     *                computed from the current state of the \ref
+     *                PathContour.
      * \param end end point of the edge of this interpolator
      * \param tp nature the edge represented by this interpolator_base
      */
-    interpolator_base(const reference_counted_ptr<const interpolator_base> &prev,
+    interpolator_base(PathContour &contour,
                       const vec2 &end, enum PathEnums::edge_type_t tp);
 
     virtual
     ~interpolator_base();
-
-    /*!
-     * Returns the interpolator previous to this interpolator_base
-     * within the PathContour that this object resides.
-     */
-    reference_counted_ptr<const interpolator_base>
-    prev_interpolator(void) const;
 
     /*!
      * Returns the starting point of this interpolator.
@@ -175,7 +171,7 @@ public:
      */
     virtual
     interpolator_base*
-    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const = 0;
+    deep_copy(PathContour &contour) const = 0;
 
     /*!
      * To be optionally implemented by a derived class to add this
@@ -208,14 +204,17 @@ public:
   public:
     /*!
      * Ctor.
-     * \param prev interpolator to edge that ends at start of edge
-     *             of this interpolator
+     * \param contour \ref PathContour to which to add the interpolator.
+     *                The interpolator is added to the contour at the
+     *                interpolator's construction. The start point is
+     *                computed from the current state of the \ref
+     *                PathContour
      * \param end end point of the edge of this interpolator
      * \param tp nature the edge represented by this interpolator_base
      */
-    flat(const reference_counted_ptr<const interpolator_base> &prev,
+    flat(PathContour &contour,
          const vec2 &end, enum PathEnums::edge_type_t tp):
-      interpolator_base(prev, end, tp)
+      interpolator_base(contour, end, tp)
     {}
 
     virtual
@@ -233,7 +232,7 @@ public:
 
     virtual
     interpolator_base*
-    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+    deep_copy(PathContour &contour) const;
 
     virtual
     enum return_code
@@ -284,14 +283,15 @@ public:
 
     /*!
      * Ctor.
-     * \param prev interpolator to edge that ends at start of edge
-     *             of this interpolator
+     * \param contour \ref PathContour to which the interpolator is added,
+     *                the start point of the interpolator will be ending
+     *                point of \ref PathContour::prev_interpolator().
      * \param end end point of the edge of this interpolator
      * \param tp nature the edge represented by this interpolator_base
      */
-    interpolator_generic(const reference_counted_ptr<const interpolator_base> &prev,
+    interpolator_generic(PathContour &contour,
                          const vec2 &end, enum PathEnums::edge_type_t tp):
-      interpolator_base(prev, end, tp)
+      interpolator_base(contour, end, tp)
     {}
 
     virtual
@@ -337,34 +337,45 @@ public:
   public:
     /*!
      * Ctor. One control point, thus interpolation is a quadratic curve.
-     * \param start start of curve
+     * \param contour \ref PathContour to which to add the interpolator.
+     *                The interpolator is added to the contour at the
+     *                interpolator's construction. The start point is
+     *                computed from the current state of the \ref
+     *                PathContour
      * \param ct control point
      * \param end end of curve
      * \param tp nature the edge represented by this interpolator_base
      */
-    bezier(const reference_counted_ptr<const interpolator_base> &start,
+    bezier(PathContour &contour,
            const vec2 &ct, const vec2 &end, enum PathEnums::edge_type_t tp);
 
     /*!
      * Ctor. Two control points, thus interpolation is a cubic curve.
-     * \param start start of curve
+     * \param contour \ref PathContour to which to add the interpolator.
+     *                The interpolator is added to the contour at the
+     *                interpolator's construction. The start point is
+     *                computed from the current state of the \ref
+     *                PathContour
      * \param ct1 1st control point
      * \param ct2 2nd control point
      * \param end end point of curve
      * \param tp nature the edge represented by this interpolator_base
      */
-    bezier(const reference_counted_ptr<const interpolator_base> &start,
+    bezier(PathContour &contour,
            const vec2 &ct1, const vec2 &ct2, const vec2 &end,
            enum PathEnums::edge_type_t tp);
 
     /*!
      * Ctor. Iterator range defines the control points of the bezier curve.
-     * \param start start of curve
-     * \param control_pts control points
+     * \param contour \ref PathContour to which to add the interpolator.
+     *                The interpolator is added to the contour at the
+     *                interpolator's construction. The start point is
+     *                computed from the current state of the \ref
+     *                PathContour
      * \param end end point of curve
      * \param tp nature the edge represented by this interpolator_base
      */
-    bezier(const reference_counted_ptr<const interpolator_base> &start,
+    bezier(PathContour &contour,
            c_array<const vec2> control_pts, const vec2 &end,
            enum PathEnums::edge_type_t tp);
 
@@ -396,7 +407,7 @@ public:
 
     virtual
     interpolator_base*
-    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+    deep_copy(PathContour &contour) const;
 
     virtual
     unsigned int
@@ -407,8 +418,7 @@ public:
     add_to_builder(ShaderFilledPath::Builder *builder, float tol) const;
 
   private:
-    bezier(const bezier &q,
-           const reference_counted_ptr<const interpolator_base> &prev);
+    bezier(const bezier &q, PathContour &contour);
 
     void *m_d;
   };
@@ -423,7 +433,11 @@ public:
   public:
     /*!
      * Ctor.
-     * \param start start of curve
+     * \param contour \ref PathContour to which to add the interpolator.
+     *                The interpolator is added to the contour at the
+     *                interpolator's construction. The start point is
+     *                computed from the current state of the \ref
+     *                PathContour
      * \param angle The angle of the arc in radians, the value must not
      *              be a multiple of 2*FASTUIDRAW_PI. Assuming a coordinate system
      *              where y-increases vertically and x-increases to the right,
@@ -432,7 +446,7 @@ public:
      * \param end end of curve
      * \param tp nature the edge represented by this interpolator_base
      */
-    arc(const reference_counted_ptr<const interpolator_base> &start,
+    arc(PathContour &contour,
         float angle, const vec2 &end, enum PathEnums::edge_type_t tp);
 
     ~arc();
@@ -460,7 +474,7 @@ public:
 
     virtual
     interpolator_base*
-    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+    deep_copy(PathContour &contour) const;
 
     virtual
     reference_counted_ptr<tessellation_state>
@@ -473,7 +487,7 @@ public:
     add_to_builder(ShaderFilledPath::Builder *builder, float tol) const;
 
   private:
-    arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
+    arc(const arc &q, PathContour &contour);
 
     void *m_d;
   };
@@ -490,8 +504,8 @@ public:
    * Start the PathContour, may only be called once in the lifetime
    * of a PathContour() and must be called before adding points
    * (to_point()), adding control points (add_control_point()),
-   * adding arcs (to_arc()), adding generic interpolator (
-   * to_generic()) or closeing the contour (close(), close_generic()).
+   * adding arcs (to_arc()), creating any \ref interpolator_base
+   * objects using this \ref PathContour or closing the contour.
    */
   void
   start(const vec2 &pt);
@@ -521,15 +535,6 @@ public:
 
   /*!
    * Will fail if close() was called of if add_control_point() has been
-   * called more recently than to_point() or if interpolator_base::prev_interpolator()
-   * of the passed interpolator_base is not the same as prev_interpolator().
-   * \param p interpolator describing edge
-   */
-  void
-  to_generic(const reference_counted_ptr<const interpolator_base> &p);
-
-  /*!
-   * Will fail if close() was called of if add_control_point() has been
    * called more recently than to_point().
    * \param angle angle of arc in radians
    * \param pt point where arc ends (and next edge starts)
@@ -541,12 +546,12 @@ public:
   to_arc(float angle, const vec2 &pt, enum PathEnums::edge_type_t etp);
 
   /*!
-   * Closes with the passed interpolator_base. The interpolator
-   * must interpolate to the start point of the PathContour
-   * \param h interpolator describing the closing edge
+   * Closes the \ref PathContour using the last \ref interpolator_base
+   * derived object on the \ref PathContour. That interpolator must
+   * interpolate to the start point of the \ref PathContour
    */
   void
-  close_generic(reference_counted_ptr<const interpolator_base> h);
+  close_generic(void);
 
   /*!
    * Closes with the Bezier curve defined by the current
@@ -565,10 +570,8 @@ public:
   close_arc(float angle, enum PathEnums::edge_type_t etp);
 
   /*!
-   * Returns the last interpolator added to this PathContour.
-   * You MUST use this interpolator in the ctor of
-   * interpolator_base for interpolator passed to
-   * to_generic() and close_generic().
+   * Returns the last interpolator added to this \ref PathContour.
+   * If no contours have been added, returns a null reference.
    */
   const reference_counted_ptr<const interpolator_base>&
   prev_interpolator(void);
@@ -636,7 +639,7 @@ public:
    * Create a deep copy of this PathContour.
    */
   PathContour*
-  deep_copy(void);
+  deep_copy(void) const;
 
 private:
   void *m_d;
@@ -949,23 +952,6 @@ public:
          enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
-   * Returns the last interpolator added to this the current
-   * contour of this Path. When creating custom
-   * interpolator to be added with custom_to(),
-   * You MUST use this interpolator in the ctor of
-   * interpolator_base.
-   */
-  const reference_counted_ptr<const PathContour::interpolator_base>&
-  prev_interpolator(void);
-
-  /*!
-   * Add a custom interpolator. Use prev_interpolator()
-   * to get the last interpolator of the current contour.
-   */
-  Path&
-  custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p);
-
-  /*!
    * Begin a new contour.
    * \param pt point at which the contour begins
    */
@@ -1011,13 +997,11 @@ public:
                       enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
-   * Use a custom interpolator to close the current contour
-   * Use prev_interpolator() to get the last interpolator
-   * of the current contour.
-   * \param p custom interpolator
+   * The current contour of this \ref Path. Use thie value when creating
+   * \ref PathContour::interpolator_base objects.
    */
-  Path&
-  close_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
+  PathContour&
+  current_contour(void);
 
   /*!
    * Adds a PathContour to this Path. The current contour remains
