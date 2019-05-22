@@ -29,6 +29,7 @@
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/path_effect.hpp>
 
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -1261,12 +1262,14 @@ namespace fastuidraw
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to use
+     * \param effect if non-null, apply the given \ref PathEffect on stroking
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
                 bool apply_shader_anti_aliasing = true,
-                enum stroking_method_t stroking_method = stroking_method_fastest);
+                enum stroking_method_t stroking_method = stroking_method_fastest,
+                const PathEffect *effect = nullptr);
 
     /*!
      * Stroke a path using PainterShaderSet::stroke_shader() of default_shaders().
@@ -1275,19 +1278,21 @@ namespace fastuidraw
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to use
+     * \param effect if non-null, apply the given \ref PathEffect on stroking
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
                 const StrokingStyle &stroke_style = StrokingStyle(),
                 bool apply_shader_anti_aliasing = true,
-                enum stroking_method_t stroking_method = stroking_method_fastest);
+                enum stroking_method_t stroking_method = stroking_method_fastest,
+                const PathEffect *effect = nullptr);
 
     /*!
      * Provided as a conveniance, equivalent to
      * \code
      * stroke_path(PainterData(&brush, &stroking_params), path,
      *             stroke_style, apply_shader_anti_aliasing,
-     *             stroking_method);
+     *             stroking_method, effect);
      * \endcode
      * \param brush brush to apply to stroking
      * \param stroking_params stroking parameters to apply to stroking
@@ -1295,17 +1300,19 @@ namespace fastuidraw
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to use
+     * \param effect if non-null, apply the given \ref PathEffect on stroking
      */
     void
     stroke_path(const PainterBrush &brush,
                 const PainterStrokeParams &stroking_params,
                 const Path &path, const StrokingStyle &stroke_style = StrokingStyle(),
                 bool apply_shader_anti_aliasing = true,
-                enum stroking_method_t stroking_method = stroking_method_fastest)
+                enum stroking_method_t stroking_method = stroking_method_fastest,
+                const PathEffect *effect = nullptr)
     {
       stroke_path(PainterData(&brush, &stroking_params), path,
                   stroke_style, apply_shader_anti_aliasing,
-                  stroking_method);
+                  stroking_method, effect);
     }
 
     /*!
@@ -1316,12 +1323,14 @@ namespace fastuidraw
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to use
+     * \param effect if non-null, apply the given \ref PathEffect on stroking
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
                        bool apply_shader_anti_aliasing = true,
-                       enum stroking_method_t stroking_method = stroking_method_fastest);
+                       enum stroking_method_t stroking_method = stroking_method_fastest,
+                       const PathEffect *effect = nullptr);
 
     /*!
      * Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
@@ -1330,19 +1339,21 @@ namespace fastuidraw
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to use
+     * \param effect if non-null, apply the given \ref PathEffect on stroking
      */
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
                        const StrokingStyle &stroke_style = StrokingStyle(),
                        bool apply_shader_anti_aliasing = true,
-                       enum stroking_method_t stroking_method = stroking_method_fastest);
+                       enum stroking_method_t stroking_method = stroking_method_fastest,
+                       const PathEffect *effect = nullptr);
 
     /*!
      * Provided as a conveniance, equivalent to
      * \code
      * stroke_dashed_path(PainterData(&brush, &stroking_params), path,
      *                    stroke_style, apply_shader_anti_aliasing,
-     *                    stroking_method);
+     *                    stroking_method, effect);
      * \endcode
      * \param brush brush to apply to stroking
      * \param stroking_params stroking parameters to apply to stroking
@@ -1350,17 +1361,19 @@ namespace fastuidraw
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
      * \param stroking_method stroking method to use
+     * \param effect if non-null, apply the given \ref PathEffect on stroking
      */
     void
     stroke_dashed_path(const PainterBrush &brush,
                        const PainterDashedStrokeParams &stroking_params,
                        const Path &path, const StrokingStyle &stroke_style = StrokingStyle(),
                        bool apply_shader_anti_aliasing = true,
-                       enum stroking_method_t stroking_method = stroking_method_fastest)
+                       enum stroking_method_t stroking_method = stroking_method_fastest,
+                       const PathEffect *effect = nullptr)
     {
       stroke_dashed_path(PainterData(&brush, &stroking_params), path,
                          stroke_style, apply_shader_anti_aliasing,
-                         stroking_method);
+                         stroking_method, effect);
     }
 
     /*!
