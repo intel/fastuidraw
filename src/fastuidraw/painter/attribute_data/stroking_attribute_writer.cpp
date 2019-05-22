@@ -35,7 +35,6 @@ namespace
   enum offset_t
     {
       drawing_type_offset = 0,
-      subset_offset,
       item_offset,
       z_offset,
 
@@ -49,7 +48,7 @@ namespace
   {};
 
   template<>
-  class DrawnItem<fastuidraw::PartitionedTessellatedPath::segment_chain>
+  class DrawnItem<fastuidraw::PathEffect::segment_chain>
   {
   public:
     enum
@@ -63,7 +62,7 @@ namespace
       m_num_indices(0)
     {}
 
-    DrawnItem(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
+    DrawnItem(const fastuidraw::PathEffect::segment_chain &chain,
               enum fastuidraw::PainterEnums::stroking_method_t tp,
               const StrokingMethod&);
 
@@ -97,11 +96,11 @@ namespace
     unsigned int m_depth_range_size;
     unsigned int m_num_attribs;
     unsigned int m_num_indices;
-    const fastuidraw::PartitionedTessellatedPath::segment_chain *m_chain;
+    const fastuidraw::PathEffect::segment_chain *m_chain;
   };
 
   template<>
-  class DrawnItem<fastuidraw::PartitionedTessellatedPath::join>
+  class DrawnItem<fastuidraw::PathEffect::join>
   {
   public:
     enum
@@ -114,7 +113,7 @@ namespace
       m_num_indices(0)
     {}
 
-    DrawnItem(const fastuidraw::PartitionedTessellatedPath::join &join,
+    DrawnItem(const fastuidraw::PathEffect::join &join,
               enum fastuidraw::PainterEnums::stroking_method_t tp,
               const StrokingMethod &method);
 
@@ -147,11 +146,11 @@ namespace
   private:
     unsigned int m_num_attribs;
     unsigned int m_num_indices;
-    const fastuidraw::PartitionedTessellatedPath::join *m_join;
+    const fastuidraw::PathEffect::join *m_join;
   };
 
   template<>
-  class DrawnItem<fastuidraw::PartitionedTessellatedPath::cap>
+  class DrawnItem<fastuidraw::PathEffect::cap>
   {
   public:
     enum
@@ -164,7 +163,7 @@ namespace
       m_num_indices(0)
     {}
 
-    DrawnItem(const fastuidraw::PartitionedTessellatedPath::cap &cap,
+    DrawnItem(const fastuidraw::PathEffect::cap &cap,
               enum fastuidraw::PainterEnums::stroking_method_t tp,
               const StrokingMethod &method);
 
@@ -197,25 +196,131 @@ namespace
   private:
     unsigned int m_num_attribs;
     unsigned int m_num_indices;
-    const fastuidraw::PartitionedTessellatedPath::cap *m_cap;
+    const fastuidraw::PathEffect::cap *m_cap;
   };
 
   template<typename T>
-  class DrawnItemArray
+  class DrawnItemSourceFetcher
+  {};
+
+  template<>
+  class DrawnItemSourceFetcher<fastuidraw::PathEffect::segment_chain>
   {
   public:
-    typedef fastuidraw::PartitionedTessellatedPath::Subset Subset;
-    typedef fastuidraw::c_array<const T> (Subset::*fetch_function)(void) const;
+    DrawnItemSourceFetcher(void):
+      m_src(nullptr),
+      m_size(0)
+    {}
+
+    void
+    reset(void)
+    {
+      m_src = nullptr;
+      m_size = 0;
+    }
+
+    void
+    set(const fastuidraw::PathEffect::Storage &src)
+    {
+      m_src = &src;
+      m_size = m_src->number_chains();
+    }
+
+    unsigned int
+    size(void) const
+    {
+      return m_size;
+    }
+
+    fastuidraw::PathEffect::segment_chain
+    operator[](unsigned int I) const
+    {
+      return m_src->chain(I);
+    }
+
+  private:
+    const fastuidraw::PathEffect::Storage *m_src;
+    unsigned int m_size;
+  };
+
+  template<>
+  class DrawnItemSourceFetcher<fastuidraw::PathEffect::join>
+  {
+  public:
+    void
+    set(const fastuidraw::PathEffect::Storage &src)
+    {
+      m_src = src.joins();
+    }
+
+    void
+    reset(void)
+    {
+      m_src = fastuidraw::c_array<const fastuidraw::PathEffect::join>();
+    }
+
+    unsigned int
+    size(void) const
+    {
+      return m_src.size();
+    }
+
+    const fastuidraw::PathEffect::join&
+    operator[](unsigned int I) const
+    {
+      return m_src[I];
+    }
+
+  private:
+    fastuidraw::c_array<const fastuidraw::PathEffect::join> m_src;
+  };
+
+  template<>
+  class DrawnItemSourceFetcher<fastuidraw::PathEffect::cap>
+  {
+  public:
+    void
+    set(const fastuidraw::PathEffect::Storage &src)
+    {
+      m_src = src.caps();
+    }
+
+    void
+    reset(void)
+    {
+      m_src = fastuidraw::c_array<const fastuidraw::PathEffect::cap>();
+    }
+
+    unsigned int
+    size(void) const
+    {
+      return m_src.size();
+    }
+
+    const fastuidraw::PathEffect::cap&
+    operator[](unsigned int I) const
+    {
+      return m_src[I];
+    }
+
+  private:
+    fastuidraw::c_array<const fastuidraw::PathEffect::cap> m_src;
+  };
+
+  template<typename T>
+  class DrawnFetchedItems
+  {
+  public:
     enum
       {
         drawing_type = DrawnItem<T>::value
       };
 
     void
-    clear(void)
+    reset(void)
     {
       m_z_size = 0;
-      m_data.clear();
+      m_fetcher.reset();
     }
 
     unsigned int
@@ -224,11 +329,16 @@ namespace
       return m_z_size;
     }
 
+    bool
+    empty(void) const
+    {
+      return m_fetcher.size() == 0;
+    }
+
     void
-    add_elements(const fastuidraw::PartitionedTessellatedPath &path,
-                 fastuidraw::c_array<const unsigned int> subsets,
-                 enum fastuidraw::PainterEnums::stroking_method_t tp,
-                 const StrokingMethod &method, fetch_function f);
+    set(const fastuidraw::PathEffect::Storage &src,
+        enum fastuidraw::PainterEnums::stroking_method_t tp,
+        const StrokingMethod &method);
 
     bool
     update_state(fastuidraw::PainterAttributeWriter::WriteState *state,
@@ -256,7 +366,7 @@ namespace
 
   private:
     unsigned int m_z_size;
-    std::vector<fastuidraw::c_array<const T> > m_data;
+    DrawnItemSourceFetcher<T> m_fetcher;
   };
 
   class StrokingAttributeWriterPrivate
@@ -265,21 +375,20 @@ namespace
     bool
     update_state_values(fastuidraw::PainterAttributeWriter::WriteState *state) const;
 
-    fastuidraw::reference_counted_ptr<const fastuidraw::PartitionedTessellatedPath> m_path;
     fastuidraw::vecN<fastuidraw::PainterItemShader*, number_drawing_types> m_shader;
     fastuidraw::vecN<enum fastuidraw::PainterEnums::stroking_method_t, number_drawing_types> m_stroking_type;
     StrokingMethod m_method;
     bool m_requires_coverage_buffer;
-    DrawnItemArray<fastuidraw::PartitionedTessellatedPath::segment_chain> m_segments;
-    DrawnItemArray<fastuidraw::PartitionedTessellatedPath::join> m_joins;
-    DrawnItemArray<fastuidraw::PartitionedTessellatedPath::cap> m_caps;
+    DrawnFetchedItems<fastuidraw::PathEffect::segment_chain> m_segments;
+    DrawnFetchedItems<fastuidraw::PathEffect::join> m_joins;
+    DrawnFetchedItems<fastuidraw::PathEffect::cap> m_caps;
   };
 }
 
 /////////////////////////////////////////////////////////////
 // DrawnItem<fastuidraw::TessellatedPath::segment_chain> methods
-DrawnItem<fastuidraw::PartitionedTessellatedPath::segment_chain>::
-DrawnItem(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
+DrawnItem<fastuidraw::PathEffect::segment_chain>::
+DrawnItem(const fastuidraw::PathEffect::segment_chain &chain,
           enum fastuidraw::PainterEnums::stroking_method_t tp,
           const StrokingMethod&):
   m_chain(&chain)
@@ -302,7 +411,7 @@ DrawnItem(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
 }
 
 void
-DrawnItem<fastuidraw::PartitionedTessellatedPath::segment_chain>::
+DrawnItem<fastuidraw::PathEffect::segment_chain>::
 write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
            fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
            unsigned int attrib_location,
@@ -334,9 +443,9 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
 }
 
 /////////////////////////////////////////
-// DrawnItem<fastuidraw::PartitionedTessellatedPath::join> methods
-DrawnItem<fastuidraw::PartitionedTessellatedPath::join>::
-DrawnItem(const fastuidraw::PartitionedTessellatedPath::join &join,
+// DrawnItem<fastuidraw::PathEffect::join> methods
+DrawnItem<fastuidraw::PathEffect::join>::
+DrawnItem(const fastuidraw::PathEffect::join &join,
           enum fastuidraw::PainterEnums::stroking_method_t tp,
           const StrokingMethod &method):
   m_join(&join)
@@ -373,7 +482,7 @@ DrawnItem(const fastuidraw::PartitionedTessellatedPath::join &join,
 }
 
 void
-DrawnItem<fastuidraw::PartitionedTessellatedPath::join>::
+DrawnItem<fastuidraw::PathEffect::join>::
 write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
            fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
            unsigned int attrib_location,
@@ -404,8 +513,8 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
 
 /////////////////////////////////////////
 // DrawnItem<fastuidraw::TessellatedPath::cap> methods
-DrawnItem<fastuidraw::PartitionedTessellatedPath::cap>::
-DrawnItem(const fastuidraw::PartitionedTessellatedPath::cap &cap,
+DrawnItem<fastuidraw::PathEffect::cap>::
+DrawnItem(const fastuidraw::PathEffect::cap &cap,
           enum fastuidraw::PainterEnums::stroking_method_t tp,
           const StrokingMethod &method):
   m_cap(&cap)
@@ -438,7 +547,7 @@ DrawnItem(const fastuidraw::PartitionedTessellatedPath::cap &cap,
 }
 
 void
-DrawnItem<fastuidraw::PartitionedTessellatedPath::cap>::
+DrawnItem<fastuidraw::PathEffect::cap>::
 write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
            fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
            unsigned int attrib_location,
@@ -467,56 +576,40 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
 }
 
 /////////////////////////////////////////////////
-// DrawnItemArray methods
+// DrawnFetchedItems methods
 template<typename T>
 void
-DrawnItemArray<T>::
-add_elements(const fastuidraw::PartitionedTessellatedPath &path,
-             fastuidraw::c_array<const unsigned int> subsets,
-             enum fastuidraw::PainterEnums::stroking_method_t tp,
-             const StrokingMethod &method, fetch_function f)
+DrawnFetchedItems<T>::
+set(const fastuidraw::PathEffect::Storage &src,
+    enum fastuidraw::PainterEnums::stroking_method_t tp,
+    const StrokingMethod &method)
 {
-  for (unsigned int I : subsets)
+  m_z_size = 0;
+  m_fetcher.set(src);
+  for (unsigned int i = 0, endi = m_fetcher.size(); i < endi; ++i)
     {
-      fastuidraw::PartitionedTessellatedPath::Subset S(path.subset(I));
-      fastuidraw::c_array<const T> D((S.*f)());
-
-      if (!D.empty())
-        {
-          m_data.push_back(D);
-          for (const T &v : D)
-            {
-              DrawnItem<T> q(v, tp, method);
-              m_z_size += q.depth_range_size();
-            }
-        }
+      DrawnItem<T> q(m_fetcher[i], tp, method);
+      m_z_size += q.depth_range_size();
     }
 }
 
 template<typename T>
 bool
-DrawnItemArray<T>::
+DrawnFetchedItems<T>::
 update_state(fastuidraw::PainterAttributeWriter::WriteState *state,
              enum fastuidraw::PainterEnums::stroking_method_t tp,
              const StrokingMethod &method,
              DrawnItem<T> &Q) const
 {
-  unsigned int &subset(state->m_state[subset_offset]);
-  unsigned int &element(state->m_state[item_offset]);
+  unsigned int &item(state->m_state[item_offset]);
 
   FASTUIDRAWassert(drawing_type == state->m_state[drawing_type_offset]);
-  if (subset < m_data.size() && element >= m_data[subset].size())
-    {
-      element = 0;
-      ++subset;
-    }
-
-  if (subset >= m_data.size())
+  if (item >= m_fetcher.size())
     {
       return false;
     }
 
-  Q = DrawnItem<T>(m_data[subset][element], tp, method);
+  Q = DrawnItem<T>(m_fetcher[item], tp, method);
   state->m_min_attributes_for_next = Q.num_attribs();
   state->m_min_indices_for_next = Q.num_indices();
 
@@ -525,7 +618,7 @@ update_state(fastuidraw::PainterAttributeWriter::WriteState *state,
 
 template<typename T>
 bool
-DrawnItemArray<T>::
+DrawnFetchedItems<T>::
 write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
            fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
            unsigned int attrib_location,
@@ -535,11 +628,10 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
            enum fastuidraw::PainterEnums::stroking_method_t tp,
            const StrokingMethod &method) const
 {
-  unsigned int &subset(state->m_state[subset_offset]);
-  unsigned int &element(state->m_state[item_offset]);
+  unsigned int &item(state->m_state[item_offset]);
   unsigned int &z(state->m_state[z_offset]);
   unsigned int vertex_offset(0), index_offset(0);
-  DrawnItem<T> q(m_data[subset][element], tp, method);
+  DrawnItem<T> q(m_fetcher[item], tp, method);
   bool more_to_draw(true);
 
   while (dst_attribs.size() >= vertex_offset + q.num_attribs()
@@ -549,7 +641,7 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
       fastuidraw::c_array<fastuidraw::PainterAttribute> tmp_attribs;
       fastuidraw::c_array<fastuidraw::PainterIndex> tmp_indices;
 
-      /* The class T relies on ARcStrokedPointPacking and
+      /* The class T relies on ArcStrokedPointPacking and
        * StrokedPointPacking to do the actual attribute
        * packing. Those methods require that the size of the
        * arrays passed to them are exactly the sizes they
@@ -559,7 +651,7 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
       tmp_indices = dst_indices.sub_array(index_offset, q.num_indices());
 
       /* The z-value present is the z-value after the
-       * last element completed. We want the z-value to
+       * last item completed. We want the z-value to
        * START at z - q.depth_range_size(), this is why
        * we decrement z -before- drawing.
        */
@@ -571,7 +663,7 @@ write_data(fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
       vertex_offset += tmp_attribs.size();
       index_offset += tmp_indices.size();
 
-      ++element;
+      ++item;
       more_to_draw = update_state(state, tp, method, q);
     }
 
@@ -588,8 +680,7 @@ StrokingAttributeWriterPrivate::
 update_state_values(fastuidraw::PainterAttributeWriter::WriteState *state) const
 {
   unsigned int &drawing_type(state->m_state[drawing_type_offset]);
-  unsigned int &subset(state->m_state[subset_offset]);
-  unsigned int &element(state->m_state[item_offset]);
+  unsigned int &item(state->m_state[item_offset]);
 
   if (drawing_type == drawing_edges)
     {
@@ -600,8 +691,7 @@ update_state_values(fastuidraw::PainterAttributeWriter::WriteState *state) const
           return true;
         }
       ++drawing_type;
-      subset = 0;
-      element = 0;
+      item = 0;
     }
 
   if (drawing_type == drawing_joins)
@@ -613,8 +703,7 @@ update_state_values(fastuidraw::PainterAttributeWriter::WriteState *state) const
           return true;
         }
       ++drawing_type;
-      subset = 0;
-      element = 0;
+      item = 0;
     }
 
   if (drawing_type == drawing_caps)
@@ -649,7 +738,7 @@ fastuidraw::StrokingAttributeWriter::
 
 void
 fastuidraw::StrokingAttributeWriter::
-set_source(const PartitionedTessellatedPath::SubsetSelection &selection,
+set_source(const PathEffect::Storage &src,
            const PainterStrokeShader &shader,
            const StrokingMethod &method,
            enum PainterEnums::stroking_method_t tp,
@@ -660,18 +749,12 @@ set_source(const PartitionedTessellatedPath::SubsetSelection &selection,
   d = static_cast<StrokingAttributeWriterPrivate*>(m_d);
 
   /* clear previous state */
-  d->m_segments.clear();
-  d->m_joins.clear();
-  d->m_caps.clear();
+  d->m_segments.reset();
+  d->m_joins.reset();
+  d->m_caps.reset();
   d->m_shader[drawing_edges] = nullptr;
   d->m_shader[drawing_joins] = nullptr;
   d->m_shader[drawing_caps] = nullptr;
-
-  d->m_path = selection.source();
-  if (!d->m_path)
-    {
-      return;
-    }
 
   d->m_method = method;
   if (d->m_method.m_cp != StrokedPointPacking::flat_cap)
@@ -680,10 +763,12 @@ set_source(const PartitionedTessellatedPath::SubsetSelection &selection,
 
       /* packing caps as ArcStrokedPoint is only allowed for rounded-caps */
       ctp = (d->m_method.m_cp == StrokedPointPacking::rounded_cap) ? tp : PainterEnums::stroking_method_linear;
-      d->m_caps.add_elements(*d->m_path, selection.subset_ids(), ctp, d->m_method,
-                             &PartitionedTessellatedPath::Subset::caps);
-      d->m_shader[drawing_caps] = shader.shader(ctp, aa).get();
-      d->m_stroking_type[drawing_caps] = ctp;
+      d->m_caps.set(src, ctp, d->m_method);
+      if (!d->m_caps.empty())
+        {
+          d->m_shader[drawing_caps] = shader.shader(ctp, aa).get();
+          d->m_stroking_type[drawing_caps] = ctp;
+        }
     }
 
   if (d->m_method.m_js != PainterEnums::no_joins)
@@ -692,18 +777,22 @@ set_source(const PartitionedTessellatedPath::SubsetSelection &selection,
 
       /* packing caps as ArcStrokedPoint is only allowed for rounded-joins */
       jtp = (d->m_method.m_js == PainterEnums::rounded_joins) ? tp : PainterEnums::stroking_method_linear;
-      d->m_joins.add_elements(*d->m_path, selection.join_subset_ids(), jtp, d->m_method,
-                              &PartitionedTessellatedPath::Subset::joins);
-      d->m_shader[drawing_joins] = shader.shader(jtp, aa).get();
-      d->m_stroking_type[drawing_joins] = jtp;
+      d->m_joins.set(src, jtp, d->m_method);
+      if (!d->m_joins.empty())
+        {
+          d->m_shader[drawing_joins] = shader.shader(jtp, aa).get();
+          d->m_stroking_type[drawing_joins] = jtp;
+        }
     }
 
   if (draw_edges)
     {
-      d->m_segments.add_elements(*d->m_path, selection.subset_ids(), tp, d->m_method,
-                                 &PartitionedTessellatedPath::Subset::segment_chains);
-      d->m_shader[drawing_edges] = shader.shader(tp, aa).get();
-      d->m_stroking_type[drawing_edges] = tp;
+      d->m_segments.set(src, tp, d->m_method);
+      if (!d->m_segments.empty())
+        {
+          d->m_shader[drawing_edges] = shader.shader(tp, aa).get();
+          d->m_stroking_type[drawing_edges] = tp;
+        }
     }
 
   d->m_requires_coverage_buffer =
@@ -740,7 +829,6 @@ initialize_state(WriteState *state) const
     + d->m_joins.z_size() + d->m_caps.z_size();
 
   state->m_state[drawing_type_offset] = drawing_edges;
-  state->m_state[subset_offset] = 0;
   state->m_state[item_offset] = 0;
   state->m_state[z_offset] = z_total;
   state->m_z_range.m_begin = 0;

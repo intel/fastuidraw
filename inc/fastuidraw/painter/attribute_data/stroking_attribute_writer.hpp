@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/partitioned_tessellated_path.hpp>
+#include <fastuidraw/path_effect.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_writer.hpp>
@@ -56,13 +56,11 @@ namespace fastuidraw
     ~StrokingAttributeWriter();
 
     /*!
-     * Change the \ref StrokingAttributeWriter to stroke those subsets visible as
-     * specified by a \ref PartitionedTessellatedPath::SubsetSelection. The data
-     * of the \ref PartitionedTessellatedPath::SubsetSelection is -copied-, thus
-     * the values of it can change and/or the object can go out of scope without
-     * affecting the \ref StrokingAttributeWriter.
-     * \param selection specifies what portion of a \ref PartitionedTessellatedPath
-     *                  to stroke
+     * Change the \ref StrokingAttributeWriter to stroke the results of
+     * \ref PathEffect
+     * \param src the results of a \ref PathEffect. The object given
+     *            must stay in scope and its contents remain unchanged
+     *            until the next call to set_source().
      * \param shader what \ref PainterStrokeShader to use
      * \param js what join style to apply to the joins
      * \param cp what cap style to apply to the caps
@@ -70,7 +68,7 @@ namespace fastuidraw
      *                   caps and joins.
      */
     void
-    set_source(const PartitionedTessellatedPath::SubsetSelection &selection,
+    set_source(const PathEffect::Storage &src,
                const PainterStrokeShader &shader,
                const StrokingMethod &method,
                enum PainterEnums::stroking_method_t tp,
