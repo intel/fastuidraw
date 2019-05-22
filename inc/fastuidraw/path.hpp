@@ -170,7 +170,7 @@ public:
      * return a deep copy of the interpolator object.
      */
     virtual
-    interpolator_base*
+    reference_counted_ptr<interpolator_base>
     deep_copy(PathContour &contour) const = 0;
 
     /*!
@@ -231,7 +231,7 @@ public:
     approximate_bounding_box(Rect *out_bb) const;
 
     virtual
-    interpolator_base*
+    reference_counted_ptr<interpolator_base>
     deep_copy(PathContour &contour) const;
 
     virtual
@@ -386,7 +386,7 @@ public:
      * Returns the control points of the Bezier curve with
      * c_array<const vec2>::front() having the same value as
      * start_pt() and c_array<const vec2>::back() having the
-     * same vale as end_pt().
+     * same value as end_pt().
      */
     c_array<const vec2>
     pts(void) const;
@@ -406,7 +406,7 @@ public:
     approximate_bounding_box(Rect *out_bb) const;
 
     virtual
-    interpolator_base*
+    reference_counted_ptr<interpolator_base>
     deep_copy(PathContour &contour) const;
 
     virtual
@@ -418,8 +418,6 @@ public:
     add_to_builder(ShaderFilledPath::Builder *builder, float tol) const;
 
   private:
-    bezier(const bezier &q, PathContour &contour);
-
     void *m_d;
   };
 
@@ -473,7 +471,7 @@ public:
     approximate_bounding_box(Rect *out_bb) const;
 
     virtual
-    interpolator_base*
+    reference_counted_ptr<interpolator_base>
     deep_copy(PathContour &contour) const;
 
     virtual
@@ -546,6 +544,12 @@ public:
   to_arc(float angle, const vec2 &pt, enum PathEnums::edge_type_t etp);
 
   /*!
+   * End the PathContour without adding a closing edge.
+   */
+  void
+  end(void);
+
+  /*!
    * Closes the \ref PathContour using the last \ref interpolator_base
    * derived object on the \ref PathContour. That interpolator must
    * interpolate to the start point of the \ref PathContour
@@ -581,6 +585,13 @@ public:
    */
   bool
   closed(void) const;
+
+  /*!
+   * Returns true if the PathContour is ended, and thus
+   * no additional interpolator may be added.
+   */
+  bool
+  ended(void) const;
 
   /*!
    * Return the I'th point of this PathContour.
@@ -638,7 +649,7 @@ public:
   /*!
    * Create a deep copy of this PathContour.
    */
-  PathContour*
+  reference_counted_ptr<PathContour>
   deep_copy(void) const;
 
 private:
@@ -725,6 +736,13 @@ public:
    * Tag class to mark the close of a contour
    */
   class contour_close
+  {};
+
+  /*!
+   * \brief
+   * Tag class to mark the end of a contour
+   */
+  class contour_end
   {};
 
   /*!
@@ -870,6 +888,12 @@ public:
   operator<<(contour_close);
 
   /*!
+   * Operator overload to end the current contour
+   */
+  Path&
+  operator<<(contour_end);
+
+  /*!
    * Operator overload to close the current contour
    * \param a specifies the angle of the arc for closing
    *          the current contour
@@ -957,6 +981,12 @@ public:
    */
   Path&
   move(const vec2 &pt);
+
+  /*!
+   * End the current contour without adding a closing edge.
+   */
+  Path&
+  end_contour(void);
 
   /*!
    * Close the current contour with a line segment.
