@@ -1347,7 +1347,7 @@ namespace
     }
 
     void
-    draw(PainterPrivate &painter, fastuidraw::PainterData &data);
+    draw(PainterPrivate &painter, const fastuidraw::PainterData &data);
 
   private:
     enum drawing_type_t
@@ -1616,6 +1616,14 @@ namespace
                            fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
                            fastuidraw::c_array<const int> index_adjusts,
                            fastuidraw::c_array<const int> start_zs, int startz);
+    void
+    stroke_path(const fastuidraw::PainterStrokeShader &shader,
+                const fastuidraw::PainterData &draw,
+                const fastuidraw::Path &path,
+                enum fastuidraw::Painter::cap_style cp,
+                enum fastuidraw::Painter::join_style js,
+                bool apply_anti_aliasing,
+                enum fastuidraw::Painter::stroking_method_t stroking_method);
 
     void
     stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
@@ -1625,8 +1633,10 @@ namespace
                        enum fastuidraw::Painter::join_style js,
                        bool apply_anti_aliasing);
 
+    /* T can be StrokedPath of PartitionedTessellatedPath */
+    template<typename T>
     fastuidraw::BoundingBox<float>
-    compute_bounding_box_of_path(const fastuidraw::StrokedPath &stroked_path,
+    compute_bounding_box_of_path(const T &path,
                                  fastuidraw::c_array<const unsigned int> stroked_subset_ids,
                                  float pixels_additional_room, float item_space_additional_room);
 
@@ -1635,8 +1645,10 @@ namespace
                                         float miter_pixels_additional_room,
                                         float miter_item_space_additional_room);
 
+    /* T can be StrokedPath of PartitionedTessellatedPath */
+    template<typename T>
     fastuidraw::BoundingBox<float>
-    compute_bounding_box_of_stroked_path(const fastuidraw::StrokedPath &stroked_path,
+    compute_bounding_box_of_stroked_path(const T &stroked_path,
                                          fastuidraw::c_array<const unsigned int> stroked_subset_ids,
                                          fastuidraw::c_array<const float> geometry_inflation,
                                          enum fastuidraw::Painter::join_style js,
@@ -1818,6 +1830,12 @@ namespace
                    fastuidraw::c_array<const float> geometry_inflation,
                    bool select_miter_joins,
                    fastuidraw::StrokedPath::SubsetSelection &dst);
+
+    void
+    select_subsets(const fastuidraw::PartitionedTessellatedPath &path,
+                   fastuidraw::c_array<const float> geometry_inflation,
+                   bool select_miter_joins,
+                   fastuidraw::PartitionedTessellatedPath::SubsetSelection &dst);
 
     const fastuidraw::StrokedPath*
     select_stroked_path(const fastuidraw::Path &path,
@@ -2011,7 +2029,7 @@ get_src(WriteState *state, unsigned int *chunk) const
 
 void
 StrokingWorkRoom::
-draw(PainterPrivate &painter, fastuidraw::PainterData &data)
+draw(PainterPrivate &painter, const fastuidraw::PainterData &data)
 {
   painter.draw_generic(nullptr, data, *this);
 }
@@ -2189,7 +2207,7 @@ init_for_stroking(const PainterPrivate &painter,
 
   int tmp(0);
 
-  /* Sighs. Notices that the chunks are walked in reverse order;
+  /* Sighs. Notice that the chunks are walked in reverse order;
    * this is needed to make sure that items drawn first obscure
    * items drawn later. In addition, note that this filling is
    * done in the order: caps, joins, edges and that drawing is
@@ -3735,6 +3753,28 @@ select_subsets(const fastuidraw::StrokedPath &path,
     }
 }
 
+void
+PainterPrivate::
+select_subsets(const fastuidraw::PartitionedTessellatedPath &path,
+               fastuidraw::c_array<const float> geometry_inflation,
+               bool select_miter_joins,
+               fastuidraw::PartitionedTessellatedPath::SubsetSelection &dst)
+{
+  if (m_clip_rect_state.m_all_content_culled)
+    {
+      dst.clear(&path);
+    }
+  else
+    {
+      path.select_subsets(m_clip_store.current(),
+                          m_clip_rect_state.item_matrix(),
+                          m_one_pixel_width,
+                          geometry_inflation,
+                          select_miter_joins,
+                          dst);
+    }
+}
+
 const fastuidraw::FilledPath&
 PainterPrivate::
 select_filled_path(const fastuidraw::Path &path)
@@ -3987,9 +4027,10 @@ draw_generic_z_layered(fastuidraw::PainterItemShader *shader,
     }
 }
 
+template<typename T>
 fastuidraw::BoundingBox<float>
 PainterPrivate::
-compute_bounding_box_of_path(const fastuidraw::StrokedPath &path,
+compute_bounding_box_of_path(const T &path,
                              fastuidraw::c_array<const unsigned int> stroked_subset_ids,
                              float pixels_additional_room, float item_space_additional_room)
 {
@@ -4034,9 +4075,10 @@ compute_bounding_box_of_miter_joins(fastuidraw::c_array<const fastuidraw::vec2> 
   return return_value;
 }
 
+template<typename T>
 fastuidraw::BoundingBox<float>
 PainterPrivate::
-compute_bounding_box_of_stroked_path(const fastuidraw::StrokedPath &stroked_path,
+compute_bounding_box_of_stroked_path(const T &stroked_path,
                                      fastuidraw::c_array<const unsigned int> stroked_subset_ids,
                                      fastuidraw::c_array<const float> additional_room,
                                      enum fastuidraw::Painter::join_style js,
@@ -4064,23 +4106,19 @@ compute_bounding_box_of_stroked_path(const fastuidraw::StrokedPath &stroked_path
 
 void
 PainterPrivate::
-stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
-                   const fastuidraw::PainterData &pdraw,
-                   const fastuidraw::StrokedPath &path, float thresh,
-                   enum fastuidraw::Painter::cap_style cp,
-                   enum fastuidraw::Painter::join_style js,
-                   bool apply_anti_aliasing)
+stroke_path(const fastuidraw::PainterStrokeShader &shader,
+            const fastuidraw::PainterData &pdraw,
+            const fastuidraw::Path &path,
+            enum fastuidraw::Painter::cap_style cp,
+            enum fastuidraw::Painter::join_style js,
+            bool apply_anti_aliasing,
+            enum fastuidraw::Painter::stroking_method_t stroking_method)
 {
   using namespace fastuidraw;
-
   if (m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
-
-  PainterData draw(pdraw);
-  vecN<float, PathEnums::path_geometry_inflation_index_count> additional_room(0.0f);
-  bool requires_coverage_buffer;
 
   /* if any of the data elements of draw are NOT packed state,
    * make them as packed state so that they are reused
@@ -4088,7 +4126,35 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
    * state data. In addition, we need for the PainterItemShaderData
    * to be packed so that we can query it correctly.
    */
+  fastuidraw::PainterData draw(pdraw);
+  const StrokedPath *stroked_path;
+  float thresh;
+
   draw.make_packed(m_pool);
+  stroked_path = select_stroked_path(path, shader, draw,
+                                     apply_anti_aliasing,
+                                     stroking_method, thresh);
+  if (stroked_path)
+    {
+      stroke_path_common(shader, draw, *stroked_path, thresh,
+                         cp, js, apply_anti_aliasing);
+    }
+}
+
+void
+PainterPrivate::
+stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
+                   const fastuidraw::PainterData &draw,
+                   const fastuidraw::StrokedPath &path, float thresh,
+                   enum fastuidraw::Painter::cap_style cp,
+                   enum fastuidraw::Painter::join_style js,
+                   bool apply_anti_aliasing)
+{
+  using namespace fastuidraw;
+
+  vecN<float, PathEnums::path_geometry_inflation_index_count> additional_room(0.0f);
+  bool requires_coverage_buffer;
+
   requires_coverage_buffer = m_work_room.m_stroke.init_for_stroking(*this, shader,
                                                                     draw.m_item_shader_data.m_packed_value.packed_data(),
                                                                     path, thresh, cp, js, apply_anti_aliasing,
@@ -5275,10 +5341,10 @@ select_subsets(const FilledPath &path, c_array<unsigned int> dst)
 
 void
 fastuidraw::Painter::
-select_subsets(const StrokedPath &path,
+select_subsets(const PartitionedTessellatedPath &path,
                c_array<const float> geometry_inflation,
                bool select_miter_joins,
-               fastuidraw::StrokedPath::SubsetSelection &dst)
+               fastuidraw::PartitionedTessellatedPath::SubsetSelection &dst)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -5287,10 +5353,9 @@ select_subsets(const StrokedPath &path,
 
 void
 fastuidraw::Painter::
-stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-            const StrokedPath &path, float thresh,
-            const StrokingStyle &stroke_style,
-            bool apply_shader_anti_aliasing)
+stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
+            const StrokingStyle &stroke_style, bool apply_shader_anti_aliasing,
+            enum stroking_method_t stroking_method)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -5299,34 +5364,11 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                             "Painter::stroke_path: bad cap_style provided");
   FASTUIDRAWmessaged_assert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles,
                             "Painter::stroke_path: bad join_style provided");
-  d->stroke_path_common(shader, draw, path, thresh,
-                        stroke_style.m_cap_style,
-                        stroke_style.m_join_style,
-                        apply_shader_anti_aliasing);
-}
-
-void
-fastuidraw::Painter::
-stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw, const Path &path,
-            const StrokingStyle &stroke_style,
-            bool apply_shader_anti_aliasing,
-            enum stroking_method_t stroking_method)
-{
-  PainterPrivate *d;
-  const StrokedPath *stroked_path;
-  float thresh;
-  PainterData draw(pdraw);
-
-  d = static_cast<PainterPrivate*>(m_d);
-  draw.make_packed(d->m_pool);
-  stroked_path = d->select_stroked_path(path, shader, draw,
-                                        apply_shader_anti_aliasing,
-                                        stroking_method, thresh);
-  if (stroked_path)
-    {
-      stroke_path(shader, draw, *stroked_path, thresh, stroke_style,
-                  apply_shader_anti_aliasing);
-    }
+  d->stroke_path(shader, draw, path,
+                 stroke_style.m_cap_style,
+                 stroke_style.m_join_style,
+                 apply_shader_anti_aliasing,
+                 stroking_method);
 }
 
 void
@@ -5343,9 +5385,9 @@ stroke_path(const PainterData &draw, const Path &path,
 void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
-                   const StrokedPath &path, float thresh,
-                   const StrokingStyle &stroke_style,
-                   bool apply_shader_anti_aliasing)
+                   const Path &path, const StrokingStyle &stroke_style,
+                   bool apply_shader_anti_aliasing,
+                   enum stroking_method_t stroking_method)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
@@ -5354,32 +5396,13 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                             "Painter::stroke_path: bad cap_style provided");
   FASTUIDRAWmessaged_assert(0 <= stroke_style.m_join_style && stroke_style.m_join_style < number_join_styles,
                             "Painter::stroke_path: bad join_style provided");
-  d->stroke_path_common(shader.shader(stroke_style.m_cap_style), draw,
-                        path, thresh,
-                        number_cap_styles,
-                        stroke_style.m_join_style,
-                        apply_shader_anti_aliasing);
-}
 
-void
-fastuidraw::Painter::
-stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &pdraw, const Path &path,
-                   const StrokingStyle &stroke_style,
-                   bool apply_shader_anti_aliasing,
-                   enum stroking_method_t stroking_method)
-{
-  PainterPrivate *d;
-  const StrokedPath *stroked_path;
-  float thresh;
-  PainterData draw(pdraw);
-
-  d = static_cast<PainterPrivate*>(m_d);
-  draw.make_packed(d->m_pool);
-  stroked_path = d->select_stroked_path(path, shader.shader(stroke_style.m_cap_style), draw,
-                                        apply_shader_anti_aliasing,
-                                        stroking_method, thresh);
-  stroke_dashed_path(shader, draw, *stroked_path, thresh,
-                     stroke_style, apply_shader_anti_aliasing);
+  d->stroke_path(shader.shader(stroke_style.m_cap_style),
+                 draw, path,
+                 number_cap_styles,
+                 stroke_style.m_join_style,
+                 apply_shader_anti_aliasing,
+                 stroking_method);
 }
 
 void

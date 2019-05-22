@@ -691,14 +691,14 @@ namespace fastuidraw
 
     /*!
      * Set the curve flatness requirement for TessellatedPath
-     * and StrokedPath selection when stroking or filling paths
-     * when passing to drawing methods a Path object. The value
-     * represents the distance, in pixels, requested for between
-     * the approximated curve (realized in TessellatedPath) and
+     * selection when stroking or filling paths when passing
+     * to drawing methods a Path object. The value represents
+     * the distance, in pixels, requested for between the
+     * approximated curve (realized in TessellatedPath) and
      * the true curve (realized in Path). This value is combined
      * with a value derived from the current transformation
      * matrix to pass to Path::tessellation(float) to fetch a
-     *  \ref TessellatedPath. Default value is 0.5.
+     * \ref TessellatedPath. Default value is 0.5.
      */
     void
     curve_flatness(float thresh);
@@ -1203,8 +1203,7 @@ namespace fastuidraw
 
     /*!
      * Returns what value Painter currently uses for Path::tessellation(float) const
-     * to fetch the \ref TessellatedPath from which it will fetch the \ref StrokedPath
-     * to perform path stroking.
+     * to fetch the \ref TessellatedPath use to perform stroking and filling.
      * \param path \ref Path to choose the thresh for
      * \param shader_data data sent to stroking shader
      * \param selector object (see PainterStrokeShader::stroking_data_selector())
@@ -1231,39 +1230,22 @@ namespace fastuidraw
     select_subsets(const FilledPath &path, c_array<unsigned int> dst);
 
     /*!
-     * Calls StrokedPath::select_subsets() passing arguments derived from the
+     * Calls PartitionedTessellatedPath::select_subsets() passing arguments derived from the
      * current state of the Painter.
-     * \param path \ref StrokedPath from which to compute subset selection
+     * \param path \ref PartitionedTessellatedPath from which to compute subset selection
      * \param geometry_inflation amount path geometry is inflated, array
      *                           is indexed by the enumeration \ref
      *                           PathEnums::path_geometry_inflation_index_t
      * \param select_miter_joins if true, when selecting what joins are in
      *                           the area, enlarge the join footprint for if
      *                           the joins are stroked as a type of miter join.
-     * \param[out] dst location to which to write the StrokedPath::Subset ID values
+     * \param[out] dst location to which to write the selection
      */
     void
-    select_subsets(const StrokedPath &path,
+    select_subsets(const PartitionedTessellatedPath &path,
                    c_array<const float> geometry_inflation,
                    bool select_miter_joins,
-                   fastuidraw::StrokedPath::SubsetSelection &dst);
-
-    /*!
-     * Stroke a path.
-     * \param shader shader with which to stroke the attribute data
-     * \param draw data for how to draw
-     * \param path StrokedPath to stroke
-     * \param rounded_thresh value to feed to StrokedPath::rounded_joins()
-     *                       and/or StrokedPath::rounded_caps() if rounded
-     *                       joins and/or rounded caps are requested
-     * \param stroke_style how to stroke the path
-     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     */
-    void
-    stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-                const StrokedPath &path, float rounded_thresh,
-                const StrokingStyle &stroke_style = StrokingStyle(),
-                bool apply_shader_anti_aliasing = true);
+                   fastuidraw::PartitionedTessellatedPath::SubsetSelection &dst);
 
     /*!
      * Stroke a path.
@@ -1272,7 +1254,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     * \param stroking_method stroking method to use
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
@@ -1286,7 +1268,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     * \param stroking_method stroking method to use
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
@@ -1306,7 +1288,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     * \param stroking_method stroking method to use
      */
     void
     stroke_path(const PainterBrush &brush,
@@ -1324,27 +1306,10 @@ namespace fastuidraw
      * Stroke a path dashed.
      * \param shader shader with which to draw
      * \param draw data for how to draw
-     * \param path StrokedPath to stroke
-     * \param rounded_thresh value to feed to StrokedPath::rounded_joins()
-     *                       and/or StrokedPath::rounded_caps() if rounded
-     *                       joins and/or rounded caps are requested
-     * \param stroke_style how to stroke the path
-     * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     */
-    void
-    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
-                       const StrokedPath &path, float rounded_thresh,
-                       const StrokingStyle &stroke_style = StrokingStyle(),
-                       bool apply_shader_anti_aliasing = true);
-
-    /*!
-     * Stroke a path dashed.
-     * \param shader shader with which to draw
-     * \param draw data for how to draw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     * \param stroking_method stroking method to use
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
@@ -1358,7 +1323,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     * \param stroking_method stroking method to use
      */
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
@@ -1378,7 +1343,7 @@ namespace fastuidraw
      * \param path Path to stroke
      * \param stroke_style how to stroke the path
      * \param apply_shader_anti_aliasing if true, stroke with shader-based anti-aliasing
-     * \param stroking_method stroking method to select what \ref StrokedPath to use
+     * \param stroking_method stroking method to use
      */
     void
     stroke_dashed_path(const PainterBrush &brush,
