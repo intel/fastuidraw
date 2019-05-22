@@ -1230,9 +1230,10 @@ namespace fastuidraw
     select_subsets(const FilledPath &path, c_array<unsigned int> dst);
 
     /*!
-     * Calls PartitionedTessellatedPath::select_subsets() passing arguments derived from the
-     * current state of the Painter.
-     * \param path \ref PartitionedTessellatedPath from which to compute subset selection
+     * Calls PartitionedTessellatedPath::select_subsets() passing arguments
+     * derived from the current state of the Painter.
+     * \param path \ref PartitionedTessellatedPath from which to compute
+     *             subset selection
      * \param geometry_inflation amount path geometry is inflated, array
      *                           is indexed by the enumeration \ref
      *                           PathEnums::path_geometry_inflation_index_t
@@ -1240,12 +1241,17 @@ namespace fastuidraw
      *                           the area, enlarge the join footprint for if
      *                           the joins are stroked as a type of miter join.
      * \param[out] dst location to which to write the selection
+     * \param[out] nrect if non-null, location to which to write the bounding
+     *                   box of the selection. NOTE: if the selection is empty,
+     *                   then the value writen will be an empty-rect point at
+     *                   (0, 0).
      */
     void
     select_subsets(const PartitionedTessellatedPath &path,
                    c_array<const float> geometry_inflation,
                    bool select_miter_joins,
-                   fastuidraw::PartitionedTessellatedPath::SubsetSelection &dst);
+                   fastuidraw::PartitionedTessellatedPath::SubsetSelection &dst,
+                   NormalizedCoordRect *nrect);
 
     /*!
      * Stroke a path.
