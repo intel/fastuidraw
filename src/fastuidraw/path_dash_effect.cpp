@@ -63,6 +63,38 @@ namespace
     return lhs.m_end_distance < rhs;
   }
 
+  void
+  add_cap(const fastuidraw::TessellatedPath::segment &S,
+          float length_from_start_S,
+          bool is_start_cap,
+          fastuidraw::PathEffect::Storage &dst)
+  {
+    fastuidraw::TessellatedPath::cap C;
+    float s, t, n;
+
+    t = length_from_start_S / S.m_length;
+    s = 1.0f - t;
+    n = (is_start_cap) ? -1.0f : +1.0f;
+    if (S.m_type == fastuidraw::TessellatedPath::line_segment)
+      {
+        C.m_position = s * S.m_start_pt + t * S.m_end_pt;
+        C.m_unit_vector = n * S.m_enter_segment_unit_vector;
+      }
+    else
+      {
+        float angle(s * S.m_arc_angle.m_begin + t * S.m_arc_angle.m_end);
+
+        fastuidraw::vec2 cs(fastuidraw::t_cos(angle), fastuidraw::t_sin(angle));
+        C.m_position = S.m_center + S.m_radius * cs;
+        C.m_unit_vector = n * fastuidraw::vec2(-cs.y(), cs.x());
+      }
+    C.m_contour_length = S.m_contour_length;
+    C.m_edge_length = S.m_edge_length;
+    C.m_is_starting_cap = false;
+    C.m_contour_id = S.m_contour_id;
+    dst.add_cap(C);
+  }
+
   class PathDashEffectPrivate
   {
   public:
@@ -84,13 +116,30 @@ namespace
                     fastuidraw::PathEffect::Storage &dst);
 
     DashElementProxy
-    proxy(unsigned int I) const
-    {
-      unsigned int N(I / m_lengths.size());
-      float fN(N);
+    proxy(unsigned int I) const;
 
-      return DashElementProxy(I, N, m_lengths[I - N * m_lengths.size()],
-                              fN * m_lengths.back().m_end_distance);
+    /* TODO: add parameters to PathDashEffect to select if distance
+     * value starts at contour, since the last join or a distance
+     * since the last join.
+     */
+    float
+    distance(const fastuidraw::TessellatedPath::segment &S)
+    {
+      return S.m_distance_from_contour_start;
+    }
+
+    float
+    distance(const fastuidraw::TessellatedPath::join &J)
+    {
+      return J.m_distance_from_contour_start;
+    }
+
+    float
+    distance(const fastuidraw::TessellatedPath::cap &C)
+    {
+      return (C.m_is_starting_cap) ?
+        0.0f:
+        C.m_contour_length;
     }
 
     unsigned int
@@ -109,6 +158,19 @@ namespace
 
 ////////////////////////////////
 // PathDashEffectPrivate methods
+DashElementProxy
+PathDashEffectPrivate::
+proxy(unsigned int I) const
+{
+  unsigned int N(I / m_lengths.size());
+  unsigned int srcI(I - N * m_lengths.size());
+  const DashElement &src(m_lengths[srcI]);
+  float fN(N);
+  DashElementProxy return_value(I, N, src, fN * current_length());
+
+  return return_value;
+}
+
 std::vector<DashElement>::const_iterator
 PathDashEffectPrivate::
 find_iterator(float &f, int &N) const
@@ -169,53 +231,64 @@ process_segment(const fastuidraw::TessellatedPath::segment &pS,
                 fastuidraw::PathEffect::Storage &dst)
 {
   fastuidraw::TessellatedPath::segment S(pS);
-  float end_dist(S.m_distance_from_contour_start + S.m_length);
+  float t, startS(distance(S)), endS(startS + S.m_length);
   bool need_to_begin_chain(true);
+  fastuidraw::TessellatedPath::segment A, B;
 
   for (;;)
     {
-      FASTUIDRAWassert(S.m_distance_from_contour_start >= P.m_start_distance);
-      if (P.end_draw() > S.m_distance_from_contour_start)
-        {
-          if (P.end_draw() < end_dist)
-            {
-              fastuidraw::TessellatedPath::segment A, B;
-              float t;
+      FASTUIDRAWassert(distance(S) >= P.m_start_distance);
 
-              t = (P.end_draw() - S.m_distance_from_contour_start) / S.m_length;
+      if (P.end_draw() >= startS && P.end_draw() <= endS)
+        {
+          /* Draw interval of P ends within S, so add an ending cap. */
+          add_cap(S, P.end_draw() - startS, false, dst);
+        }
+
+      if (P.end_draw() >= startS && P.m_draw_length > 0.0f)
+        {
+          if (P.end_draw() < endS)
+            {
+              t = (P.end_draw() - startS) / S.m_length;
 
               /* add the draw element of S on [0, t] */
               S.split_segment(t, &A, &B);
               dst.add_segment(A);
 
               /* continue with the S on [t, 1], note that we
-               * need to start a new chain to encompas
+               * need to start a new chain
                */
               S = B;
               need_to_begin_chain = true;
             }
           else
             {
+              /* The draw interval extends past the ending of S,
+               * so we are done.
+               */
               dst.add_segment(S);
               return;
             }
         }
-      else if (P.m_end_distance > end_dist)
+
+      if (P.m_end_distance <= endS)
         {
-          /* the current interval extends atleast to the
-           * end of the segment, we are done with it.
+          /* The skip interval ends within S, add a starting cap for
+           * the next draw interval.
            */
-          return;
+          add_cap(S, P.m_end_distance - startS, true, dst);
         }
       else
         {
-          fastuidraw::TessellatedPath::segment A, B;
-          float t;
-
-          t = (P.m_end_distance - S.m_distance_from_contour_start) / S.m_length;
-          S.split_segment(t, &A, &B);
-          S = B;
+          /* the skip interval extends past S, so we are done with S */
+          return;
         }
+
+      /* S extends past the skip interval, take the portion of S that does */
+      t = (P.m_end_distance - startS) / S.m_length;
+      S.split_segment(t, &A, &B);
+      S = B;
+      startS = distance(S);
 
       P = proxy(P.m_idx + 1);
       if (need_to_begin_chain)
@@ -302,12 +375,7 @@ process_join(const TessellatedPath::join &join, Storage &dst) const
   PathDashEffectPrivate *d;
   d = static_cast<PathDashEffectPrivate*>(m_d);
 
-  /* We shall interpret an empty-dash pattern as no dashing at all */
-  /* TODO: add parameters to PathDashEffect to select if distance
-   * value starts at contour, since the last join or a distance
-   * since the last join.
-   */
-  float dist(join.m_distance_from_contour_start);
+  float dist(d->distance(join));
   if (d->point_inside_draw_interval(dist))
     {
       dst.add_join(join);
@@ -322,14 +390,7 @@ process_cap(const TessellatedPath::cap &cap, Storage &dst) const
   d = static_cast<PathDashEffectPrivate*>(m_d);
 
   /* We shall interpret an empty-dash pattern as no dashing at all */
-  /* TODO: add parameters to PathDashEffect to select if distance
-   * value starts at contour, since the last join or a distance
-   * since the last join.
-   */
-  float dist;
-  dist = (cap.m_is_starting_cap) ?
-    0.0f:
-    cap.m_contour_length;
+  float dist(d->distance(cap));
   if (d->point_inside_draw_interval(dist))
     {
       dst.add_cap(cap);
@@ -349,15 +410,21 @@ process_chain(const segment_chain &chain, Storage &dst) const
     }
 
   const TessellatedPath::segment *prev_segment(chain.m_prev_to_start);
-
-  /* TODO: add parameters to PathDashEffect to select if distance
-   * value starts at contour, since the last join or a distance
-   * since the last join.
-   */
-  float dist(chain.m_segments.front().m_distance_from_contour_start);
+  const TessellatedPath::segment &front(chain.m_segments.front());
+  float dist(d->distance(front));
   DashElementProxy P(d->proxy(d->find_index(dist)));
 
   dst.begin_chain(prev_segment);
+
+  /* check if we need to give a starting cap to the
+   * first segment of the chain; this is only needed
+   * for the first segment of the first edge.
+   */
+  if (front.m_edge_id == 0 && front.m_first_segment_of_edge)
+    {
+      add_cap(*prev_segment, 0.0f, true, dst);
+    }
+
   for (const auto &S : chain.m_segments)
     {
       d->process_segment(S, P, dst);
