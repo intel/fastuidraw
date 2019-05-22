@@ -262,6 +262,18 @@ namespace
       return m_subset.segment_chains();
     }
 
+    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+    join_values(void) const
+    {
+      return m_subset.joins();
+    }
+
+    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+    cap_values(void) const
+    {
+      return m_subset.caps();
+    }
+
     const RangeAndChunk&
     joins(void) const
     {
@@ -1872,6 +1884,26 @@ segment_chains(void) const
   d = static_cast<SubsetPrivate*>(m_d);
   FASTUIDRAWassert(d);
   return d->segment_chains();
+}
+
+fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+fastuidraw::StrokedPath::Subset::
+joins(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->join_values();
+}
+
+fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+fastuidraw::StrokedPath::Subset::
+caps(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  FASTUIDRAWassert(d);
+  return d->cap_values();
 }
 
 unsigned int

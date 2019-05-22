@@ -100,6 +100,18 @@ public:
     segment_chains(void) const;
 
     /*!
+     * Returns the joins within this \ref Subset
+     */
+    c_array<const PartitionedTessellatedPath::join>
+    joins(void) const;
+
+    /*!
+     * Returns the caps within this \ref Subset
+     */
+    c_array<const PartitionedTessellatedPath::cap>
+    caps(void) const;
+
+    /*!
      * Returns the PainterAttributeData to draw the triangles
      * for the portion of the StrokedPath the Subset represents.
      * Note: the data is packed with ArcStrokedPoint::pack()
