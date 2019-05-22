@@ -818,16 +818,11 @@ namespace StrokedPointPacking
    * \param num_indices location to which to write the needed
    *                       number of indices
    */
-  inline
   void
   pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain &chain,
                           unsigned int *depth_range_size,
                           unsigned int *num_attributes,
-                          unsigned int *num_indices)
-  {
-    c_array<const PartitionedTessellatedPath::segment_chain> tmp(&chain, 1);
-    pack_segment_chain_size(tmp, depth_range_size, num_attributes, num_indices);
-  }
+                          unsigned int *num_indices);
 
   /*!
    * Pack an array of segments chains realized as \ref StrokedPoint
@@ -872,17 +867,12 @@ namespace StrokedPointPacking
    * \param index_adjust value by which to increment the written
    *                     index values
    */
-  inline
   void
   pack_segment_chain(const PartitionedTessellatedPath::segment_chain &chain,
                      unsigned int depth_start,
                      c_array<PainterAttribute> dst_attribs,
                      c_array<PainterIndex> dst_indices,
-                     unsigned int index_adjust)
-  {
-    c_array<const PartitionedTessellatedPath::segment_chain> tmp(&chain, 1);
-    pack_segment_chain(tmp, depth_start, dst_attribs, dst_indices, index_adjust);
-  }
+                     unsigned int index_adjust);
 }
 
 /*! @} */

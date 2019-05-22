@@ -475,46 +475,6 @@ namespace
   }
 
   void
-  pack_segment_single_chain_size(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
-                                 unsigned int *pdepth_range_size,
-                                 unsigned int *pnum_attributes,
-                                 unsigned int *pnum_indices)
-  {
-    unsigned int &depth_range_size(*pdepth_range_size);
-    unsigned int &num_attributes(*pnum_attributes);
-    unsigned int &num_indices(*pnum_indices);
-    const fastuidraw::TessellatedPath::segment *prev(chain.m_prev_to_start);
-
-    depth_range_size = 0;
-    num_attributes = 0;
-    num_indices = 0;
-
-    for (const auto &S : chain.m_segments)
-      {
-        if (segment_has_bevel(prev, S))
-          {
-            /* there is an inner and outer-bevel, each
-             * needs a single triangle; but only the
-             * inner bevel needs a depth value
-             */
-            num_attributes += 6;
-            num_indices += 6;
-            ++depth_range_size;
-          }
-
-        /* each segment is two quads that share an edge;
-         * thus 6 attributes and 12 indices all sharing
-         * a single depth value.
-         */
-        num_attributes += 6;
-        num_indices += 12;
-        ++depth_range_size;
-
-        prev = &S;
-      }
-  }
-
-  void
   pack_segment_bevel(bool is_inner_bevel,
                      const fastuidraw::TessellatedPath::segment *prev,
                      const fastuidraw::TessellatedPath::segment &S,
@@ -840,10 +800,51 @@ pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain>
     {
       unsigned int d, a, i;
 
-      pack_segment_single_chain_size(chain, &d, &a, &i);
+      pack_segment_chain_size(chain, &d, &a, &i);
       depth_range_size += d;
       num_attributes += a;
       num_indices += i;
+    }
+}
+
+void
+fastuidraw::StrokedPointPacking::
+pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain &chain,
+                        unsigned int *pdepth_range_size,
+                        unsigned int *pnum_attributes,
+                        unsigned int *pnum_indices)
+{
+  unsigned int &depth_range_size(*pdepth_range_size);
+  unsigned int &num_attributes(*pnum_attributes);
+  unsigned int &num_indices(*pnum_indices);
+  const fastuidraw::TessellatedPath::segment *prev(chain.m_prev_to_start);
+
+  depth_range_size = 0;
+  num_attributes = 0;
+  num_indices = 0;
+
+  for (const auto &S : chain.m_segments)
+    {
+      if (segment_has_bevel(prev, S))
+        {
+          /* there is an inner and outer-bevel, each
+           * needs a single triangle; but only the
+           * inner bevel needs a depth value
+           */
+          num_attributes += 6;
+          num_indices += 6;
+          ++depth_range_size;
+        }
+
+      /* each segment is two quads that share an edge;
+       * thus 6 attributes and 12 indices all sharing
+       * a single depth value.
+       */
+      num_attributes += 6;
+      num_indices += 12;
+      ++depth_range_size;
+
+      prev = &S;
     }
 }
 
@@ -867,6 +868,29 @@ pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chai
                                 dst_indices, current_index,
                                 index_adjust);
     }
+  FASTUIDRAWassert(current_vertex == dst_attribs.size());
+  FASTUIDRAWassert(current_index == dst_indices.size());
+
+  std::reverse(dst_indices.begin(), dst_indices.end());
+}
+
+void
+fastuidraw::StrokedPointPacking::
+pack_segment_chain(const PartitionedTessellatedPath::segment_chain &chain,
+                   unsigned int depth_start,
+                   c_array<PainterAttribute> dst_attribs,
+                   c_array<PainterIndex> dst_indices,
+                   unsigned int index_adjust)
+{
+  /* pack the segments in the order we get them, incrementing the
+   * depth value as we go. After we are done, then we will reverse
+   * the indices to make it do in depth decreasing order.
+   */
+  unsigned int current_vertex(0), current_index(0), current_depth(depth_start);
+  pack_single_segment_chain(chain, current_depth,
+                            dst_attribs, current_vertex,
+                            dst_indices, current_index,
+                            index_adjust);
   FASTUIDRAWassert(current_vertex == dst_attribs.size());
   FASTUIDRAWassert(current_index == dst_indices.size());
 

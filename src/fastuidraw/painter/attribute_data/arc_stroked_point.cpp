@@ -254,77 +254,6 @@ namespace
       && S.m_last_segment_of_edge;
   }
 
-  void
-  pack_segment_single_chain_size(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
-                                 unsigned int *pdepth_range_size,
-                                 unsigned int *pnum_attributes,
-                                 unsigned int *pnum_indices)
-  {
-    unsigned int &depth_range_size(*pdepth_range_size);
-    unsigned int &num_attributes(*pnum_attributes);
-    unsigned int &num_indices(*pnum_indices);
-    const fastuidraw::TessellatedPath::segment *prev(chain.m_prev_to_start);
-
-    depth_range_size = 0;
-    num_attributes = 0;
-    num_indices = 0;
-
-    for (const auto &S : chain.m_segments)
-      {
-        if (segment_has_bevel(prev, S))
-          {
-            depth_range_size += 2;
-            if (use_arc_bevel(prev, S))
-              {
-                /* each arc-bevel uses 5 attributes and 9 indices
-                 * (because each is realized in one arc). Since
-                 * there is an inner and outer bevel, then double
-                 * it.
-                 */
-                num_attributes += 10;
-                num_indices += 18;
-              }
-            else
-              {
-                num_attributes += 6;
-                num_indices += 6;
-              }
-          }
-
-        if (has_start_dashed_capper(S))
-          {
-            num_attributes += 6;
-            num_indices += 12;
-            ++depth_range_size;
-          }
-
-        if (has_end_dashed_capper(S))
-          {
-            num_attributes += 6;
-            num_indices += 12;
-            ++depth_range_size;
-          }
-
-        ++depth_range_size;
-        if (S.m_type == fastuidraw::TessellatedPath::arc_segment)
-          {
-            num_attributes += 12;
-            num_indices += 24;
-          }
-        else
-          {
-            /* each segment is two quads that share an edge;
-             * thus 6 attributes and 12 indices all sharing
-             * a single depth value.
-             */
-            num_attributes += 6;
-            num_indices += 12;
-          }
-
-        prev = &S;
-      }
-  }
-
   inline
   void
   pack_arc_bevel(bool is_inner_bevel,
@@ -889,6 +818,78 @@ pack_cap(const TessellatedPath::cap &C,
 
 void
 fastuidraw::ArcStrokedPointPacking::
+pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain& chain,
+                        unsigned int *pdepth_range_size,
+                        unsigned int *pnum_attributes,
+                        unsigned int *pnum_indices)
+{
+  unsigned int &depth_range_size(*pdepth_range_size);
+  unsigned int &num_attributes(*pnum_attributes);
+  unsigned int &num_indices(*pnum_indices);
+  const TessellatedPath::segment *prev(chain.m_prev_to_start);
+
+  depth_range_size = 0;
+  num_attributes = 0;
+  num_indices = 0;
+
+  for (const auto &S : chain.m_segments)
+    {
+      if (segment_has_bevel(prev, S))
+        {
+          depth_range_size += 2;
+          if (use_arc_bevel(prev, S))
+            {
+              /* each arc-bevel uses 5 attributes and 9 indices
+               * (because each is realized in one arc). Since
+               * there is an inner and outer bevel, then double
+               * it.
+               */
+              num_attributes += 10;
+              num_indices += 18;
+            }
+          else
+            {
+              num_attributes += 6;
+              num_indices += 6;
+            }
+        }
+
+      if (has_start_dashed_capper(S))
+        {
+          num_attributes += 6;
+          num_indices += 12;
+          ++depth_range_size;
+        }
+
+      if (has_end_dashed_capper(S))
+        {
+          num_attributes += 6;
+          num_indices += 12;
+          ++depth_range_size;
+        }
+
+      ++depth_range_size;
+      if (S.m_type == TessellatedPath::arc_segment)
+        {
+          num_attributes += 12;
+          num_indices += 24;
+        }
+      else
+        {
+          /* each segment is two quads that share an edge;
+           * thus 6 attributes and 12 indices all sharing
+           * a single depth value.
+           */
+          num_attributes += 6;
+          num_indices += 12;
+        }
+
+      prev = &S;
+    }
+}
+
+void
+fastuidraw::ArcStrokedPointPacking::
 pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain> chains,
                         unsigned int *pdepth_range_size,
                         unsigned int *pnum_attributes,
@@ -906,7 +907,7 @@ pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain>
     {
       unsigned int d, a, i;
 
-      pack_segment_single_chain_size(chain, &d, &a, &i);
+      pack_segment_chain_size(chain, &d, &a, &i);
       depth_range_size += d;
       num_attributes += a;
       num_indices += i;
@@ -933,6 +934,29 @@ pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chai
                                 dst_indices, current_index,
                                 index_adjust);
     }
+  FASTUIDRAWassert(current_vertex == dst_attribs.size());
+  FASTUIDRAWassert(current_index == dst_indices.size());
+
+  std::reverse(dst_indices.begin(), dst_indices.end());
+}
+
+void
+fastuidraw::ArcStrokedPointPacking::
+pack_segment_chain(const PartitionedTessellatedPath::segment_chain &chain,
+                   unsigned int depth_start,
+                   c_array<PainterAttribute> dst_attribs,
+                   c_array<PainterIndex> dst_indices,
+                   unsigned int index_adjust)
+{
+  /* pack the segments in the order we get them, incrementing the
+   * depth value as we go. After we are done, then we will reverse
+   * the indices to make it do in depth decreasing order.
+   */
+  unsigned int current_vertex(0), current_index(0), current_depth(depth_start);
+  pack_single_segment_chain(chain, current_depth,
+                            dst_attribs, current_vertex,
+                            dst_indices, current_index,
+                            index_adjust);
   FASTUIDRAWassert(current_vertex == dst_attribs.size());
   FASTUIDRAWassert(current_index == dst_indices.size());
 
