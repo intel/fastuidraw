@@ -21,7 +21,7 @@
 
 #include <fastuidraw/painter/shader/painter_item_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
-#include <fastuidraw/glsl/varying_list.hpp>
+#include <fastuidraw/glsl/symbol_list.hpp>
 
 namespace fastuidraw
 {
@@ -162,14 +162,14 @@ namespace fastuidraw
        * Ctor.
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param dependencies list of other \ref PainterItemCoverageShaderGLSL
        *                     that are used directly.
        */
       PainterItemCoverageShaderGLSL(const ShaderSource &vertex_src,
                                     const ShaderSource &fragment_src,
-                                    const varying_list &varyings,
+                                    const symbol_list &symbols,
                                     unsigned int num_sub_shaders = 1,
                                     const DependencyList &dependencies = DependencyList());
 
@@ -177,24 +177,36 @@ namespace fastuidraw
        * Ctor.
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param dependencies list of other \ref PainterItemCoverageShaderGLSL
        *                     that are used directly.
        */
       PainterItemCoverageShaderGLSL(const ShaderSource &vertex_src,
                                     const ShaderSource &fragment_src,
-                                    const varying_list &varyings,
+                                    const symbol_list &symbols,
                                     const DependencyList &dependencies,
                                     unsigned int num_sub_shaders = 1);
 
       ~PainterItemCoverageShaderGLSL();
 
       /*!
-       * Returns the varying of the shader
+       * Returns the symbol of the shader
+       */
+      const symbol_list&
+      symbols(void) const;
+
+      /*!
+       * Returns the varyings of the shader, equivalent to
+       * \code
+       * symbols().m_varying_list;
+       * \endcode
        */
       const varying_list&
-      varyings(void) const;
+      varyings(void) const
+      {
+        return symbols().m_varying_list;
+      }
 
       /*!
        * Return the GLSL source of the vertex shader
@@ -372,7 +384,7 @@ namespace fastuidraw
        *                      in the GLSL code via the macro FASTUIDRAW_DISCARD.
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param cvg the coverage shader (if any) to be used by the item shader
        * \param dependencies list of other \ref PainterItemShaderGLSL that are
@@ -381,7 +393,7 @@ namespace fastuidraw
       PainterItemShaderGLSL(bool puses_discard,
                             const ShaderSource &vertex_src,
                             const ShaderSource &fragment_src,
-                            const varying_list &varyings,
+                            const symbol_list &symbols,
                             unsigned int num_sub_shaders = 1,
                             const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg =
                             reference_counted_ptr<PainterItemCoverageShaderGLSL>(),
@@ -394,7 +406,7 @@ namespace fastuidraw
        *                      in the GLSL code via the macro FASTUIDRAW_DISCARD.
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param cvg the coverage shader (if any) to be used by the item shader
        * \param dependencies list of other \ref PainterItemShaderGLSL that are
@@ -403,7 +415,7 @@ namespace fastuidraw
       PainterItemShaderGLSL(bool puses_discard,
                             const ShaderSource &vertex_src,
                             const ShaderSource &fragment_src,
-                            const varying_list &varyings,
+                            const symbol_list &symbols,
                             const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg,
                             const DependencyList &dependencies = DependencyList(),
                             unsigned int num_sub_shaders = 1);
@@ -415,7 +427,7 @@ namespace fastuidraw
        *                      in the GLSL code via the macro FASTUIDRAW_DISCARD.
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param cvg the coverage shader (if any) to be used by the item shader
        * \param dependencies list of other \ref PainterItemShaderGLSL that are
@@ -424,7 +436,7 @@ namespace fastuidraw
       PainterItemShaderGLSL(bool puses_discard,
                             const ShaderSource &vertex_src,
                             const ShaderSource &fragment_src,
-                            const varying_list &varyings,
+                            const symbol_list &symbols,
                             const DependencyList &dependencies,
                             const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg =
                             reference_counted_ptr<PainterItemCoverageShaderGLSL>(),
@@ -437,7 +449,7 @@ namespace fastuidraw
        *                      in the GLSL code via the macro FASTUIDRAW_DISCARD.
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param cvg the coverage shader (if any) to be used by the item shader
        * \param dependencies list of other \ref PainterItemShaderGLSL that are
@@ -446,7 +458,7 @@ namespace fastuidraw
       PainterItemShaderGLSL(bool puses_discard,
                             const ShaderSource &vertex_src,
                             const ShaderSource &fragment_src,
-                            const varying_list &varyings,
+                            const symbol_list &symbols,
                             const DependencyList &dependencies,
                             unsigned int num_sub_shaders,
                             const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg =
@@ -455,10 +467,22 @@ namespace fastuidraw
       ~PainterItemShaderGLSL();
 
       /*!
-       * Returns the varying of the shader
+       * Returns the symbol of the shader
+       */
+      const symbol_list&
+      symbols(void) const;
+
+      /*!
+       * Returns the varyings of the shader, equivalent to
+       * \code
+       * symbols().m_varying_list;
+       * \endcode
        */
       const varying_list&
-      varyings(void) const;
+      varyings(void) const
+      {
+        return symbols().m_varying_list;
+      }
 
       /*!
        * Return the GLSL source of the vertex shader

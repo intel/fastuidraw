@@ -37,22 +37,22 @@ namespace
   class PainterShaderGLSLPrivateCommon
   {
   public:
-    typedef fastuidraw::glsl::detail::DependencyListPrivateT<T> DependencyListPrivate;
+    typedef fastuidraw::glsl::detail::DependencySymbolListPrivate<T> DependencyListPrivate;
 
     PainterShaderGLSLPrivateCommon(const fastuidraw::glsl::ShaderSource &vertex_src,
                                    const fastuidraw::glsl::ShaderSource &fragment_src,
-                                   const fastuidraw::glsl::varying_list &varyings,
+                                   const fastuidraw::glsl::symbol_list &symbols,
                                    const DependencyListPrivate &dependencies):
       m_vertex_src(vertex_src),
       m_fragment_src(fragment_src),
-      m_varyings(dependencies.compute_varyings(varyings)),
+      m_symbols(dependencies.compute_symbols(symbols)),
       m_dependency_shader_names(dependencies.compute_name_list()),
       m_dependent_shaders(dependencies.compute_shader_list())
     {}
 
     fastuidraw::glsl::ShaderSource m_vertex_src;
     fastuidraw::glsl::ShaderSource m_fragment_src;
-    fastuidraw::glsl::varying_list m_varyings;
+    fastuidraw::glsl::symbol_list m_symbols;
     fastuidraw::string_array m_dependency_shader_names;
     std::vector<fastuidraw::reference_counted_ptr<const T> > m_dependent_shaders;
   };
@@ -66,7 +66,7 @@ namespace
     PainterBrushShaderGLSLPrivate(unsigned num_context_textures,
                                   const fastuidraw::glsl::ShaderSource &vertex_src,
                                   const fastuidraw::glsl::ShaderSource &fragment_src,
-                                  const fastuidraw::glsl::varying_list &varyings,
+                                  const fastuidraw::glsl::symbol_list &symbols,
                                   const DependencyListPrivate &dependencies);
 
     unsigned int m_number_context_textures;
@@ -80,9 +80,9 @@ namespace
     PainterItemShaderGLSLPrivate(bool uses_discard,
                                  const fastuidraw::glsl::ShaderSource &vertex_src,
                                  const fastuidraw::glsl::ShaderSource &fragment_src,
-                                 const fastuidraw::glsl::varying_list &varyings,
+                                 const fastuidraw::glsl::symbol_list &symbols,
                                  const DependencyListPrivate &dependencies):
-      PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, varyings, dependencies),
+      PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, symbols, dependencies),
       m_uses_discard(uses_discard)
     {}
 
@@ -96,9 +96,9 @@ PainterBrushShaderGLSLPrivate::
 PainterBrushShaderGLSLPrivate(unsigned num_context_textures,
                               const fastuidraw::glsl::ShaderSource &vertex_src,
                               const fastuidraw::glsl::ShaderSource &fragment_src,
-                              const fastuidraw::glsl::varying_list &varyings,
+                              const fastuidraw::glsl::symbol_list &symbols,
                               const DependencyListPrivate &dependencies):
-  PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, varyings, dependencies),
+  PainterShaderGLSLPrivateCommon(vertex_src, fragment_src, symbols, dependencies),
   m_context_texture_start(0)
 {
   for (unsigned int i = 0, endi = m_dependent_shaders.size(); i < endi; ++i)
@@ -141,7 +141,7 @@ add_shader(c_string name,
 {
   PainterItemShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemShaderGLSLPrivate::DependencyListPrivate*>(m_d);
-  d->add_element(name, shader, &shader->varyings());
+  d->add_element(name, shader, shader->symbols());
   return *this;
 }
 
@@ -151,7 +151,7 @@ fastuidraw::glsl::PainterItemShaderGLSL::
 PainterItemShaderGLSL(bool puses_discard,
                       const ShaderSource &v_src,
                       const ShaderSource &f_src,
-                      const varying_list &varyings,
+                      const symbol_list &symbols,
                       unsigned int num_sub_shaders,
                       const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg,
                       const DependencyList &dependencies):
@@ -159,14 +159,14 @@ PainterItemShaderGLSL(bool puses_discard,
 {
   PainterItemShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, symbols, *d);
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
 PainterItemShaderGLSL(bool puses_discard,
                       const ShaderSource &v_src,
                       const ShaderSource &f_src,
-                      const varying_list &varyings,
+                      const symbol_list &symbols,
                       const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg,
                       const DependencyList &dependencies,
                       unsigned int num_sub_shaders):
@@ -174,14 +174,14 @@ PainterItemShaderGLSL(bool puses_discard,
 {
   PainterItemShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, symbols, *d);
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
 PainterItemShaderGLSL(bool puses_discard,
                       const ShaderSource &v_src,
                       const ShaderSource &f_src,
-                      const varying_list &varyings,
+                      const symbol_list &symbols,
                       const DependencyList &dependencies,
                       const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg,
                       unsigned int num_sub_shaders):
@@ -189,14 +189,14 @@ PainterItemShaderGLSL(bool puses_discard,
 {
   PainterItemShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, symbols, *d);
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
 PainterItemShaderGLSL(bool puses_discard,
                       const ShaderSource &v_src,
                       const ShaderSource &f_src,
-                      const varying_list &varyings,
+                      const symbol_list &symbols,
                       const DependencyList &dependencies,
                       unsigned int num_sub_shaders,
                       const reference_counted_ptr<PainterItemCoverageShaderGLSL> &cvg):
@@ -204,7 +204,7 @@ PainterItemShaderGLSL(bool puses_discard,
 {
   PainterItemShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterItemShaderGLSLPrivate(puses_discard, v_src, f_src, symbols, *d);
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
@@ -236,8 +236,8 @@ dependency_list_names(void) const
 
 get_implement(fastuidraw::glsl::PainterItemShaderGLSL,
               PainterItemShaderGLSLPrivate,
-              const fastuidraw::glsl::varying_list&,
-              varyings)
+              const fastuidraw::glsl::symbol_list&,
+              symbols)
 
 get_implement(fastuidraw::glsl::PainterItemShaderGLSL,
               PainterItemShaderGLSLPrivate,
@@ -287,7 +287,7 @@ add_shader(c_string name,
 {
   PainterItemCoverageShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemCoverageShaderGLSLPrivate::DependencyListPrivate*>(m_d);
-  d->add_element(name, shader, &shader->varyings());
+  d->add_element(name, shader, shader->symbols());
   return *this;
 }
 
@@ -296,27 +296,27 @@ add_shader(c_string name,
 fastuidraw::glsl::PainterItemCoverageShaderGLSL::
 PainterItemCoverageShaderGLSL(const ShaderSource &v_src,
                               const ShaderSource &f_src,
-                              const varying_list &varyings,
+                              const symbol_list &symbols,
                               unsigned int num_sub_shaders,
                               const DependencyList &dependencies):
   PainterItemCoverageShader(num_sub_shaders)
 {
   PainterItemCoverageShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemCoverageShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterItemCoverageShaderGLSLPrivate(v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterItemCoverageShaderGLSLPrivate(v_src, f_src, symbols, *d);
 }
 
 fastuidraw::glsl::PainterItemCoverageShaderGLSL::
 PainterItemCoverageShaderGLSL(const ShaderSource &v_src,
                               const ShaderSource &f_src,
-                              const varying_list &varyings,
+                              const symbol_list &symbols,
                               const DependencyList &dependencies,
                               unsigned int num_sub_shaders):
   PainterItemCoverageShader(num_sub_shaders)
 {
   PainterItemCoverageShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterItemCoverageShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterItemCoverageShaderGLSLPrivate(v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterItemCoverageShaderGLSLPrivate(v_src, f_src, symbols, *d);
 }
 
 fastuidraw::glsl::PainterItemCoverageShaderGLSL::
@@ -348,8 +348,8 @@ dependency_list_names(void) const
 
 get_implement(fastuidraw::glsl::PainterItemCoverageShaderGLSL,
               PainterItemCoverageShaderGLSLPrivate,
-              const fastuidraw::glsl::varying_list&,
-              varyings)
+              const fastuidraw::glsl::symbol_list&,
+              symbols)
 
 get_implement(fastuidraw::glsl::PainterItemCoverageShaderGLSL,
               PainterItemCoverageShaderGLSLPrivate,
@@ -395,7 +395,7 @@ add_shader(c_string name,
 {
   PainterBrushShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterBrushShaderGLSLPrivate::DependencyListPrivate*>(m_d);
-  d->add_element(name, shader, &shader->varyings());
+  d->add_element(name, shader, shader->symbols());
   return *this;
 }
 
@@ -405,27 +405,27 @@ fastuidraw::glsl::PainterBrushShaderGLSL::
 PainterBrushShaderGLSL(unsigned num_context_textures,
                              const ShaderSource &v_src,
                              const ShaderSource &f_src,
-                             const varying_list &varyings,
+                             const symbol_list &symbols,
                              unsigned int num_sub_shaders,
                              const DependencyList &dependencies):
   PainterBrushShader(num_sub_shaders)
 {
   PainterBrushShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterBrushShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterBrushShaderGLSLPrivate(num_context_textures, v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterBrushShaderGLSLPrivate(num_context_textures, v_src, f_src, symbols, *d);
 }
 fastuidraw::glsl::PainterBrushShaderGLSL::
 PainterBrushShaderGLSL(unsigned num_context_textures,
                              const ShaderSource &v_src,
                              const ShaderSource &f_src,
-                             const varying_list &varyings,
+                             const symbol_list &symbols,
                              const DependencyList &dependencies,
                              unsigned int num_sub_shaders):
   PainterBrushShader(num_sub_shaders)
 {
   PainterBrushShaderGLSLPrivate::DependencyListPrivate *d;
   d = static_cast<PainterBrushShaderGLSLPrivate::DependencyListPrivate*>(dependencies.m_d);
-  m_d = FASTUIDRAWnew PainterBrushShaderGLSLPrivate(num_context_textures, v_src, f_src, varyings, *d);
+  m_d = FASTUIDRAWnew PainterBrushShaderGLSLPrivate(num_context_textures, v_src, f_src, symbols, *d);
 }
 
 fastuidraw::glsl::PainterBrushShaderGLSL::
@@ -461,8 +461,8 @@ get_implement(fastuidraw::glsl::PainterBrushShaderGLSL,
 
 get_implement(fastuidraw::glsl::PainterBrushShaderGLSL,
               PainterBrushShaderGLSLPrivate,
-              const fastuidraw::glsl::varying_list&,
-              varyings)
+              const fastuidraw::glsl::symbol_list&,
+              symbols)
 
 get_implement(fastuidraw::glsl::PainterBrushShaderGLSL,
               PainterBrushShaderGLSLPrivate,

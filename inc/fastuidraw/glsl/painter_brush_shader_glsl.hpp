@@ -23,7 +23,7 @@
 #include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
-#include <fastuidraw/glsl/varying_list.hpp>
+#include <fastuidraw/glsl/symbol_list.hpp>
 
 namespace fastuidraw
 {
@@ -99,8 +99,8 @@ namespace fastuidraw
        * on to a previous shader), a DependencyList provides the means to do so.
        *
        * Each such used shader is given a name by which the caller will use it.
-       * In addition, the caller has access to the varyings of the callee as well.
-       * A varying V of an element in the \ref DependencyList is accessed from the
+       * In addition, the caller has access to the symbols of the callee as well.
+       * A symbol V of an element in the \ref DependencyList is accessed from the
        * parent shader with dep::V where dep is the argument value of name to \ref
        * add_shader(). Note that it is accessed with the scope-resolution operator;
        * the uber-shader assember will convert the scope-resolution operator into
@@ -173,7 +173,7 @@ namespace fastuidraw
        *                                use
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param dependencies list of other \ref PainterBrushShaderGLSL
        *                     that are used directly.
@@ -181,7 +181,7 @@ namespace fastuidraw
       PainterBrushShaderGLSL(unsigned int number_context_textures,
                              const ShaderSource &vertex_src,
                              const ShaderSource &fragment_src,
-                             const varying_list &varyings,
+                             const symbol_list &symbols,
                              unsigned int num_sub_shaders = 1,
                              const DependencyList &dependencies = DependencyList());
 
@@ -194,7 +194,7 @@ namespace fastuidraw
        *                                use
        * \param vertex_src GLSL source holding vertex shader routine
        * \param fragment_src GLSL source holding fragment shader routine
-       * \param varyings list of varyings of the shader
+       * \param symbols list of symbols of the shader
        * \param num_sub_shaders the number of sub-shaders it supports
        * \param dependencies list of other \ref PainterBrushShaderGLSL
        *                     that are used directly.
@@ -202,7 +202,7 @@ namespace fastuidraw
       PainterBrushShaderGLSL(unsigned int number_context_textures,
                              const ShaderSource &vertex_src,
                              const ShaderSource &fragment_src,
-                             const varying_list &varyings,
+                             const symbol_list &symbols,
                              const DependencyList &dependencies,
                              unsigned int num_sub_shaders = 1);
 
@@ -224,10 +224,22 @@ namespace fastuidraw
       context_texture_start(void) const;
 
       /*!
-       * Returns the varying of the shader
+       * Returns the symbol of the shader
+       */
+      const symbol_list&
+      symbols(void) const;
+
+      /*!
+       * Returns the varyings of the shader, equivalent to
+       * \code
+       * symbols().m_varying_list;
+       * \endcode
        */
       const varying_list&
-      varyings(void) const;
+      varyings(void) const
+      {
+        return symbols().m_varying_list;
+      }
 
       /*!
        * Return the GLSL source of the vertex shader

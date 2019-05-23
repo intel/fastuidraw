@@ -32,6 +32,42 @@
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
+class CombinedShareableValues
+{
+public:
+  void
+  add_element(c_string name, const shareable_value_list &values)
+  {
+    m_values[name] = values;
+  }
+
+  shareable_value_list
+  compute_value_list(const shareable_value_list &combine_with) const
+  {
+    shareable_value_list return_value(combine_with);
+    for (const auto &v : m_values)
+      {
+        for (unsigned int i = 0; i < shareable_value_list::type_number_types; ++i)
+          {
+            enum shareable_value_list::type_t t;
+
+            t = static_cast<enum shareable_value_list::type_t>(i);
+            for (c_string name : v.second.shareable_values(t))
+              {
+                std::ostringstream str;
+
+                str << v.first << "::" << name;
+                return_value.add_shareable_value(str.str().c_str(), t);
+              }
+          }
+      }
+    return return_value;
+  }
+
+private:
+  std::map<std::string, shareable_value_list> m_values;
+};
+
 template<typename T>
 class DependencyListPrivateT
 {
@@ -104,6 +140,31 @@ private:
   add_varyings(c_string prefix, const varying_list &src, varying_list *dst);
 
   std::map<std::string, PerShader> m_shaders;
+};
+
+template<typename T>
+class DependencySymbolListPrivate:public DependencyListPrivateT<T>
+{
+public:
+  void
+  add_element(c_string name, const reference_counted_ptr<const T> &shader,
+              const symbol_list &symbols)
+  {
+    DependencyListPrivateT<T>::add_element(name, shader, &symbols.m_varying_list);
+    m_vert.add_element(name, symbols.m_vert_shareable_values);
+    m_frag.add_element(name, symbols.m_frag_shareable_values);
+  }
+
+  symbol_list
+  compute_symbols(const symbol_list &combine_with) const
+  {
+    return symbol_list(DependencyListPrivateT<T>::compute_varyings(combine_with.m_varying_list),
+                       m_vert.compute_value_list(combine_with.m_vert_shareable_values),
+                       m_frag.compute_value_list(combine_with.m_frag_shareable_values));
+  }
+
+private:
+  CombinedShareableValues m_vert, m_frag;
 };
 
 //////////////////////////////////////////////
