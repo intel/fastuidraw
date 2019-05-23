@@ -173,8 +173,7 @@ namespace
   class InterpolatorBasePrivate
   {
   public:
-    const fastuidraw::vec2 *m_start;
-    fastuidraw::vec2 m_end;
+    fastuidraw::vec2 m_start, m_end;
     enum fastuidraw::PathEnums::edge_type_t m_type;
   };
 
@@ -625,7 +624,7 @@ interpolator_base(PathContour &contour,
   if (c_d->m_interpolators.empty())
     {
       d->m_type = PathEnums::starts_new_edge;
-      d->m_start = &c_d->m_start_pt;
+      d->m_start = c_d->m_start_pt;
     }
   else
     {
@@ -633,7 +632,7 @@ interpolator_base(PathContour &contour,
       prev_d = static_cast<InterpolatorBasePrivate*>(c_d->m_interpolators.back()->m_d);
 
       d->m_type = tp;
-      d->m_start = &prev_d->m_end;
+      d->m_start = prev_d->m_end;
     }
   c_d->m_interpolators.push_back(this);
 }
@@ -653,7 +652,7 @@ start_pt(void) const
 {
   InterpolatorBasePrivate *d;
   d = static_cast<InterpolatorBasePrivate*>(m_d);
-  return *d->m_start;
+  return d->m_start;
 }
 
 const fastuidraw::vec2&
