@@ -39,7 +39,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vec2 p;
   vec2 position, pre_offset, auxiliary_offset, offset;
   float distance_from_edge_start, distance_from_contour_start;
-  float total_edge_length, total_open_contour_length, total_closed_contour_length;
+  float total_edge_length, contour_length;
   float miter_limit, stroke_radius;
   uint on_boundary, offset_type, point_packed_data, dash_style;
   fastuidraw_dashed_stroking_params_header dashed_stroke_params;
@@ -69,8 +69,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   distance_from_edge_start = secondary_attrib.x;
   distance_from_contour_start = secondary_attrib.y;
   total_edge_length = uintBitsToFloat(in_attrib2.y);
-  total_open_contour_length = uintBitsToFloat(in_attrib2.z);
-  total_closed_contour_length = uintBitsToFloat(in_attrib2.w);
+  contour_length = uintBitsToFloat(in_attrib2.z);
   point_packed_data = in_attrib2.x;
   offset_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_offset_type_bit0,
                                         fastuidraw_stroke_offset_type_num_bits,
@@ -184,7 +183,17 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_stroking_on_contour_boundary = 1.0;
   if (offset_type == fastuidraw_stroke_offset_flat_cap)
     {
-      if ((point_packed_data & fastuidraw_stroke_flat_cap_ending_mask) != 0u)
+      if (contour_length <= 0.0)
+        {
+          /* the purpose of flat-caps is to perform anti-aliasing,
+           * if the contour is empty, then a flat-cap should not
+           * be drawn, The simple way to avoid drawing it is to
+           * make the triangles of it degenerate, i.e. make the
+           * offset-vector values all zero.
+           */
+          pre_offset = vec2(0.0, 0.0);
+        }
+      else if ((point_packed_data & fastuidraw_stroke_flat_cap_ending_mask) != 0u)
         {
           float one_pixel;
           vec3 clip_p, clip_direction;
