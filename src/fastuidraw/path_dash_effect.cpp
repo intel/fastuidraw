@@ -129,21 +129,21 @@ namespace
     float
     distance(const fastuidraw::TessellatedPath::segment &S)
     {
-      return S.m_distance_from_contour_start;
+      return m_dash_offset + S.m_distance_from_contour_start;
     }
 
     float
     distance(const fastuidraw::TessellatedPath::join &J)
     {
-      return J.m_distance_from_contour_start;
+      return m_dash_offset + J.m_distance_from_contour_start;
     }
 
     float
     distance(const fastuidraw::TessellatedPath::cap &C)
     {
       return (C.m_is_starting_cap) ?
-        0.0f:
-        C.m_contour_length;
+        m_dash_offset:
+        m_dash_offset + C.m_contour_length;
     }
 
     unsigned int
