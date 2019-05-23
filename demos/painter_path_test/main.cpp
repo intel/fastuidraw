@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include <fastuidraw/util/util.hpp>
+#include <fastuidraw/path_dash_effect.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
 
@@ -178,13 +179,21 @@ private:
 
 #endif
 
-class PerPath
+class PerPath:public reference_counted<PerPath>::non_concurrent
 {
 public:
-  PerPath(const Path &path, const std::string &label,
+  PerPath(Path &path, const std::string &label,
           int w, int h, bool from_gylph);
 
-  Path m_path;
+  PerPath(const Path *path, const std::string &label,
+          int w, int h, bool from_gylph);
+
+  const Path&
+  path(void) const
+  {
+    return *m_path_ptr;
+  }
+
   std::string m_path_string;
   std::vector<vec2> m_pts, m_ctl_pts, m_arc_center_pts;
   std::string m_label;
@@ -209,6 +218,13 @@ public:
 
   bool m_clipping_window;
   vec2 m_clipping_xy, m_clipping_wh;
+
+private:
+  void
+  common_init(int w, int h);
+
+  Path m_path_v;
+  const Path *m_path_ptr;
 };
 
 class painter_stroke_test:public sdl_painter_demo
@@ -300,133 +316,133 @@ private:
   PanZoomTrackerSDLEvent&
   zoomer(void)
   {
-    return m_paths[m_selected_path].m_path_zoomer;
+    return m_paths[m_selected_path]->m_path_zoomer;
   }
 
   const Path&
   path(void)
   {
-    return m_paths[m_selected_path].m_path;
+    return m_paths[m_selected_path]->path();
   }
 
   unsigned int&
   current_fill_rule(void)
   {
-    return m_paths[m_selected_path].m_fill_rule;
+    return m_paths[m_selected_path]->m_fill_rule;
   }
 
   unsigned int
   current_end_fill_rule(void)
   {
-    return m_paths[m_selected_path].m_end_fill_rule;
+    return m_paths[m_selected_path]->m_end_fill_rule;
   }
 
   vec2&
   shear(void)
   {
-    return m_paths[m_selected_path].m_shear;
+    return m_paths[m_selected_path]->m_shear;
   }
 
   vec2&
   shear2(void)
   {
-    return m_paths[m_selected_path].m_shear2;
+    return m_paths[m_selected_path]->m_shear2;
   }
 
   float&
   angle(void)
   {
-    return m_paths[m_selected_path].m_angle;
+    return m_paths[m_selected_path]->m_angle;
   }
 
   vec2&
   gradient_p0(void)
   {
-    return m_paths[m_selected_path].m_gradient_p0;
+    return m_paths[m_selected_path]->m_gradient_p0;
   }
 
   vec2&
   gradient_p1(void)
   {
-    return m_paths[m_selected_path].m_gradient_p1;
+    return m_paths[m_selected_path]->m_gradient_p1;
   }
 
   float&
   gradient_r0(void)
   {
-    return m_paths[m_selected_path].m_gradient_r0;
+    return m_paths[m_selected_path]->m_gradient_r0;
   }
 
   float&
   gradient_r1(void)
   {
-    return m_paths[m_selected_path].m_gradient_r1;
+    return m_paths[m_selected_path]->m_gradient_r1;
   }
 
   float&
   sweep_repeat_factor(void)
   {
-    return m_paths[m_selected_path].m_sweep_repeat_factor;
+    return m_paths[m_selected_path]->m_sweep_repeat_factor;
   }
 
   enum PainterBrush::spread_type_t&
   gradient_spread_type(void)
   {
-    return m_paths[m_selected_path].m_gradient_spread_type;
+    return m_paths[m_selected_path]->m_gradient_spread_type;
   }
 
   enum PainterBrush::spread_type_t&
   repeat_window_spread_type_x(void)
   {
-    return m_paths[m_selected_path].m_repeat_window_spread_type_x;
+    return m_paths[m_selected_path]->m_repeat_window_spread_type_x;
   }
 
   enum PainterBrush::spread_type_t&
   repeat_window_spread_type_y(void)
   {
-    return m_paths[m_selected_path].m_repeat_window_spread_type_y;
+    return m_paths[m_selected_path]->m_repeat_window_spread_type_y;
   }
 
   bool&
   matrix_brush(void)
   {
-    return m_paths[m_selected_path].m_matrix_brush;
+    return m_paths[m_selected_path]->m_matrix_brush;
   }
 
   bool&
   repeat_window(void)
   {
-    return m_paths[m_selected_path].m_repeat_window;
+    return m_paths[m_selected_path]->m_repeat_window;
   }
 
   vec2&
   repeat_xy(void)
   {
-    return m_paths[m_selected_path].m_repeat_xy;
+    return m_paths[m_selected_path]->m_repeat_xy;
   }
 
   vec2&
   repeat_wh(void)
   {
-    return m_paths[m_selected_path].m_repeat_wh;
+    return m_paths[m_selected_path]->m_repeat_wh;
   }
 
   bool&
   clipping_window(void)
   {
-    return m_paths[m_selected_path].m_clipping_window;
+    return m_paths[m_selected_path]->m_clipping_window;
   }
 
   vec2&
   clipping_xy(void)
   {
-    return m_paths[m_selected_path].m_clipping_xy;
+    return m_paths[m_selected_path]->m_clipping_xy;
   }
 
   vec2&
   clipping_wh(void)
   {
-    return m_paths[m_selected_path].m_clipping_wh;
+    return m_paths[m_selected_path]->m_clipping_wh;
   }
 
   void
@@ -468,7 +484,7 @@ private:
   command_line_argument_value<float> m_initial_pan_x;
   command_line_argument_value<float> m_initial_pan_y;
 
-  std::vector<PerPath> m_paths;
+  std::vector<reference_counted_ptr<PerPath> > m_paths;
   reference_counted_ptr<Image> m_image;
   uvec2 m_image_offset, m_image_size;
   std::vector<named_color_stop> m_color_stops;
@@ -525,6 +541,7 @@ private:
   bool m_draw_stats;
   float m_curve_flatness;
   bool m_draw_path_pts;
+  bool m_use_path_effect;
 
   bool m_wire_frame;
   bool m_stroke_width_in_pixels;
@@ -541,13 +558,14 @@ private:
 
   float3x3 m_pixel_matrix;
   int m_show_surface, m_last_shown_surface;
+
+  PathDashEffect m_current_effect;
 };
 
 ///////////////////////////////////
 // PerPath methods
 PerPath::
-PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylph):
-  m_path(path),
+PerPath(Path &path, const std::string &label, int w, int h, bool from_gylph):
   m_label(label),
   m_from_glyph(from_gylph),
   m_fill_rule(Painter::odd_even_fill_rule),
@@ -560,14 +578,43 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_repeat_window(false),
   m_repeat_window_spread_type_x(PainterBrush::spread_repeat),
   m_repeat_window_spread_type_y(PainterBrush::spread_repeat),
-  m_clipping_window(false)
+  m_clipping_window(false),
+  m_path_ptr(&m_path_v)
+{
+  m_path_v.swap(path);
+  common_init(w, h);
+}
+
+PerPath::
+PerPath(const Path *path, const std::string &label, int w, int h, bool from_gylph):
+  m_label(label),
+  m_from_glyph(from_gylph),
+  m_fill_rule(Painter::odd_even_fill_rule),
+  m_end_fill_rule(Painter::number_fill_rule),
+  m_shear(1.0f, 1.0f),
+  m_shear2(1.0f, 1.0f),
+  m_angle(0.0f),
+  m_matrix_brush(false),
+  m_gradient_spread_type(PainterBrush::spread_repeat),
+  m_repeat_window(false),
+  m_repeat_window_spread_type_x(PainterBrush::spread_repeat),
+  m_repeat_window_spread_type_y(PainterBrush::spread_repeat),
+  m_clipping_window(false),
+  m_path_ptr(path)
+{
+  common_init(w, h);
+}
+
+void
+PerPath::
+common_init(int w, int h)
 {
   m_end_fill_rule =
-    m_path.tessellation().filled().root_subset().winding_numbers().size() + Painter::number_fill_rule;
+    path().tessellation().filled().root_subset().winding_numbers().size() + Painter::number_fill_rule;
 
   /* set transformation to center and contain path. */
   vec2 p0, p1, delta, dsp(w, h), ratio, mid;
-  const Rect &R(m_path.tessellation().bounding_box());
+  const Rect &R(path().tessellation().bounding_box());
   float mm;
 
   p0 = R.m_min_point;
@@ -610,7 +657,7 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_clipping_xy = p0;
   m_clipping_wh = m_repeat_wh;
 
-  extract_path_info(m_path, &m_pts, &m_ctl_pts, &m_arc_center_pts, &m_path_string);
+  extract_path_info(path(), &m_pts, &m_ctl_pts, &m_arc_center_pts, &m_path_string);
 }
 
 //////////////////////////////////////
@@ -690,11 +737,11 @@ painter_stroke_test(void):
   m_initial_pan_y(0.0f, "initial_pan_y", "initial y-offset for view if init_pan_zoom is true", *this),
   m_selected_path(0),
   m_join_style(Painter::rounded_joins),
-  m_cap_style(Painter::square_caps),
+  m_cap_style(Painter::flat_caps),
   m_dash(0),
   m_miter_limit(5.0f),
-  m_stroke_width(0.0f),
-  m_draw_fill(draw_fill_path),
+  m_stroke_width(10.0f),
+  m_draw_fill(dont_draw_fill_path),
   m_aa_stroke_mode(true),
   m_stroking_mode(Painter::stroking_method_fastest),
   m_aa_fill_mode(true),
@@ -704,6 +751,7 @@ painter_stroke_test(void):
   m_apply_mipmapping(false),
   m_draw_stats(false),
   m_draw_path_pts(false),
+  m_use_path_effect(false),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
   m_fill_by_mode(fill_by_filled_path),
@@ -1101,7 +1149,7 @@ item_coordinates(vec2 p)
 
   /* unapply glyph-flip
    */
-  if (m_paths[m_selected_path].m_from_glyph)
+  if (m_paths[m_selected_path]->m_from_glyph)
     {
       p.y() *= -1.0f;
     }
@@ -1159,7 +1207,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_k:
           cycle_value(m_selected_path, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_paths.size());
-          std::cout << "Path " << m_paths[m_selected_path].m_label << " selected\n";
+          std::cout << "Path " << m_paths[m_selected_path]->m_label << " selected\n";
           m_clip_window_path_dirty = true;
           break;
 
@@ -1194,7 +1242,7 @@ handle_event(const SDL_Event &ev)
             }
           else if(ev.key.keysym.mod & KMOD_SHIFT)
             {
-              std::cout << m_paths[m_selected_path].m_path_string;
+              std::cout << m_paths[m_selected_path]->m_path_string;
             }
           else
             {
@@ -1304,6 +1352,11 @@ handle_event(const SDL_Event &ev)
             }
           break;
 
+        case SDLK_x:
+          m_use_path_effect = !m_use_path_effect;
+          std::cout << "Use path effect set to: " << on_off(m_use_path_effect) << "\n";
+          break;
+
         case SDLK_g:
           if (m_draw_fill != dont_draw_fill_path)
             {
@@ -1319,6 +1372,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_d:
           cycle_value(m_dash, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_dash_patterns.size() + 1);
+          m_current_effect.clear();
           if (is_dashed_stroking())
             {
               unsigned int P;
@@ -1333,6 +1387,9 @@ handle_event(const SDL_Event &ev)
                   std::cout << "Draw(" << m_dash_patterns[P][i].m_draw_length
                             << "), Space(" << m_dash_patterns[P][i].m_space_length
                             << ")";
+
+                  m_current_effect.add_dash(m_dash_patterns[P][i].m_draw_length,
+                                            m_dash_patterns[P][i].m_space_length);
                 }
               std::cout << "}\n";
             }
@@ -1448,7 +1505,7 @@ construct_paths(int w, int h)
           read_path(P, buffer.str());
           if (P.number_contours() > 0)
             {
-              m_paths.push_back(PerPath(P, file, w, h, false));
+              m_paths.push_back(FASTUIDRAWnew PerPath(P, file, w, h, false));
             }
         }
     }
@@ -1465,7 +1522,7 @@ construct_paths(int w, int h)
         {
           std::ostringstream str;
           str << "character code:" << character_code;
-          m_paths.push_back(PerPath(g.path(), str.str(), w, h, true));
+          m_paths.push_back(FASTUIDRAWnew PerPath(&g.path(), str.str(), w, h, true));
         }
     }
 
@@ -1493,19 +1550,19 @@ construct_paths(int w, int h)
            << vec2(150.0f, 100.0f)
            << Path::contour_close()
            << vec2(300.0f, 300.0f);
-      m_paths.push_back(PerPath(path, "Default Path", w, h, false));
+      m_paths.push_back(FASTUIDRAWnew PerPath(path, "Default Path", w, h, false));
     }
 
   if (m_init_pan_zoom.value())
     {
-      for (PerPath &P : m_paths)
+      for (const auto &P : m_paths)
         {
           ScaleTranslate<float> v;
 
           v.translation_x(m_initial_pan_x.value());
           v.translation_y(m_initial_pan_y.value());
           v.scale(m_initial_zoom.value());
-          P.m_path_zoomer.transformation(v);
+          P->m_path_zoomer.transformation(v);
         }
     }
 }
@@ -1515,12 +1572,12 @@ painter_stroke_test::
 per_path_processing(void)
 {
   m_miter_limit = 0.0f;
-  for(const PerPath &P : m_paths)
+  for(const auto &P : m_paths)
     {
       c_array<const PartitionedTessellatedPath::join> joins;
       const TessellatedPath *tess;
 
-      tess = &P.m_path.tessellation(-1.0f);
+      tess = &P->path().tessellation(-1.0f);
       joins = tess->partitioned().joins();
       for(const PartitionedTessellatedPath::join &J : joins)
         {
@@ -1536,7 +1593,7 @@ per_path_processing(void)
 
       if (m_print_path.value())
         {
-          std::cout << "Path \"" << P.m_label << "\" tessellated:\n";
+          std::cout << "Path \"" << P->m_label << "\" tessellated:\n";
           for(unsigned int c = 0; c < tess->number_contours(); ++c)
             {
               std::cout << "\tContour #" << c << "\n";
@@ -1635,7 +1692,7 @@ draw_scene(bool drawing_wire_frame)
       m_draw_line_pen = m_painter->packed_value_pool().create_packed_brush(br);
     }
 
-  if (m_paths[m_selected_path].m_from_glyph)
+  if (m_paths[m_selected_path]->m_from_glyph)
     {
       /* Glyphs have y-increasing upwards, rather than
        * downwards; so we reverse the y
@@ -1835,17 +1892,17 @@ draw_scene(bool drawing_wire_frame)
           m_green_pen = m_painter->packed_value_pool().create_packed_brush(PainterBrush().color(0.0, 1.0, 0.0, 1.0));
         }
 
-      for (const vec2 &pt : m_paths[m_selected_path].m_pts)
+      for (const vec2 &pt : m_paths[m_selected_path]->m_pts)
         {
           fill_centered_rect(pt, r, PainterData(m_blue_pen));
         }
 
-      for (const vec2 &pt : m_paths[m_selected_path].m_ctl_pts)
+      for (const vec2 &pt : m_paths[m_selected_path]->m_ctl_pts)
         {
           fill_centered_rect(pt, r, PainterData(m_red_pen));
         }
 
-      for (const vec2 &pt : m_paths[m_selected_path].m_arc_center_pts)
+      for (const vec2 &pt : m_paths[m_selected_path]->m_arc_center_pts)
         {
           fill_centered_rect(pt, r, PainterData(m_green_pen));
         }
@@ -1869,7 +1926,7 @@ draw_scene(bool drawing_wire_frame)
           m_painter->clip_out_path(path(), *fill_rule);
         }
 
-      if (is_dashed_stroking())
+      if (is_dashed_stroking() && !m_use_path_effect)
         {
           PainterDashedStrokeParams st;
 
@@ -1896,6 +1953,7 @@ draw_scene(bool drawing_wire_frame)
       else
         {
           PainterStrokeParams st;
+          PathDashEffect *effect(nullptr);
 
           st.miter_limit(m_miter_limit);
           st.width(m_stroke_width);
@@ -1903,13 +1961,18 @@ draw_scene(bool drawing_wire_frame)
             {
               st.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
+          if (m_use_path_effect)
+            {
+              effect = &m_current_effect;
+            }
 
           m_painter->stroke_path(PainterData(*stroke_pen, &st),
                                  path(),
                                  StrokingStyle()
                                  .join_style(m_join_style)
                                  .cap_style(m_cap_style),
-                                 m_aa_stroke_mode, m_stroking_mode);
+                                 m_aa_stroke_mode, m_stroking_mode,
+                                 effect);
         }
 
       if (m_draw_fill == draw_fill_path_occludes_stroking)
@@ -2072,7 +2135,7 @@ draw_frame(void)
         }
 
       ostr << "\nms = " << us / 1000.0f
-           << "\nDrawing Path: " << m_paths[m_selected_path].m_label;
+           << "\nDrawing Path: " << m_paths[m_selected_path]->m_label;
 
       if (m_stroke_width > 0.0f)
         {
