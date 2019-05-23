@@ -372,6 +372,9 @@ public:
      *                interpolator's construction. The start point is
      *                computed from the current state of the \ref
      *                PathContour
+     * \param control_pts control points of the bezier curve created,
+     *                    can be any size allowing bezier curves of
+     *                    arbitrary degree
      * \param end end point of curve
      * \param tp nature the edge represented by this interpolator_base
      */
@@ -660,14 +663,6 @@ private:
  * \brief
  * A Path represents a collection of PathContour
  * objects.
- *
- * To close a contour in a Path (see
- * \ref close_contour_quadratic(), \ref
- * close_contour_arc(), \ref close_contour_cubic(),
- * \ref close_contour_custom(), \ref contour_close_arc
- * and \ref contour_close) means to specify
- * the edge from the last point of the current
- * contour to the first point of it.
  */
 class Path:noncopyable
 {
@@ -740,15 +735,17 @@ public:
 
   /*!
    * \brief
-   * Tag class to mark the end of a contour
+   * Tag class to mark the end of a contour without
+   * adding a closing edge of the contour and start
+   * a new contour
    */
   class contour_end
   {};
 
   /*!
    * \brief
-   * Indicates to end the existing contour and start
-   * a new contour
+   * Indicates to end the existing contour with adding
+   * a closing edge of the contour and start a new contour
    */
   class contour_start
   {

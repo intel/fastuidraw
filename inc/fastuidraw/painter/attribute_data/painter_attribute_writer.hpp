@@ -110,8 +110,8 @@ namespace fastuidraw
     requires_coverage_buffer(void) const = 0;
 
     /*!
-     * To be implemented by a derived class to return
-     * how large the array \ref WriteState::m_state
+     * To be implemented by a derived class to return how large
+     * the array \ref PainterAttributeWriter::WriteState::m_state
      * should be.
      */
     virtual
@@ -120,10 +120,12 @@ namespace fastuidraw
 
     /*!
      * To be implemented by a derived clas to initialize a
-     * \ref WriteState to indicate the start of writing data
-     * for a subsequence calls to \ref write_data(). Returns
-     * true if there is attribute and index data to upload.
-     * \param state \ref WriteState to initialize.
+     * \ref PainterAttributeWriter::WriteState to indicate the
+     * start of writing data for a subsequence calls to \ref
+     * write_data(). To return true if there is attribute and
+     * index data to upload.
+     * \param state \ref PainterAttributeWriter::WriteState to
+     *              initialize.
      */
     virtual
     bool
@@ -133,7 +135,8 @@ namespace fastuidraw
      * To be implemented by a derived class. Called by the
      * caller of a \ref PainterAttributeWriter to indicate
      * that a new data store has been started.
-     * \param state \ref WriteState to update
+     * \param state \ref PainterAttributeWriter::WriteState
+     *              to update
      */
     virtual
     void

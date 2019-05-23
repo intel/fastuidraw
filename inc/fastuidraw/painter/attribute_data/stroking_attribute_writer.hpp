@@ -39,12 +39,28 @@ namespace fastuidraw
   {
   public:
     /*!
+     * \brief
+     * \ref StrokingMethod specifies how to pack the join
+     * and pack values from the source \ref PathEffect::Storage
      */
     class StrokingMethod
     {
     public:
+      /*!
+       * Specifies how to realize the joins.
+       */
       enum PainterEnums::join_style m_js;
+
+      /*!
+       * Specifies how to realize the caps.
+       */
       enum StrokedPointPacking::cap_type_t m_cp;
+
+      /*!
+       * If rounded joins or rounded caps are realized,
+       * this is the threshhold value used to realize
+       * the rounded joins and caps.
+       */
       float m_thresh;
     };
 
@@ -57,13 +73,14 @@ namespace fastuidraw
 
     /*!
      * Change the \ref StrokingAttributeWriter to stroke the results of
-     * \ref PathEffect
+     * a \ref PathEffect
      * \param src the results of a \ref PathEffect. The object given
      *            must stay in scope and its contents remain unchanged
      *            until the next call to set_source().
      * \param shader what \ref PainterStrokeShader to use
-     * \param js what join style to apply to the joins
-     * \param cp what cap style to apply to the caps
+     * \param method speficies how caps and joins are realized
+     * \param tp determines if linear or arc-stroking are used
+     * \param aa determines if anti-alias shading is applied
      * \param draw_edges if false, do not stroke the edges, i.e. only stroke the
      *                   caps and joins.
      */

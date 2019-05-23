@@ -42,7 +42,7 @@ namespace fastuidraw  {
    * The partitioning creates reectangular regions of the source
    * \ref TessellatedPath that are disjoint. One side effect of
    * that is that a \ref TessellatedPath::segment value from the
-   * \ref source TessellatedPath may be split into multiple \ref
+   * source  \ref  TessellatedPath may be split into multiple \ref
    * TessellatedPath::segment values.
    */
   class PartitionedTessellatedPath:
@@ -257,7 +257,7 @@ namespace fastuidraw  {
 
       /*!
        * ID's of what Subset objects are selected for joins.
-       * This value is different from \erf subsets() only
+       * This value is different from \ref subset_ids() only
        * when PartitionedTessellatedPath::select_subset_ids()
        * was specified to enlarge the join footprints for
        * miter-join stroking.
@@ -288,11 +288,10 @@ namespace fastuidraw  {
     ~PartitionedTessellatedPath();
 
     /*!
-     * Returns true if any of the \ref segment values
-     * of any of the \ref segment_chain values of any
-     * of the \ref Subset::segment_chains() has \ref
-     * \ref segment::m_type equal to \ref
-     * TessellatedPath::arc_segment.
+     * Returns true if any of the \ref segment values of any
+     * of the \ref segment_chain values of any of the \ref
+     * Subset::segment_chains() has \ref segment::m_type equal
+     * to \ref TessellatedPath::arc_segment.
      */
     bool
     has_arcs(void) const;
@@ -342,7 +341,6 @@ namespace fastuidraw  {
      * and a tranformation from local coordiante to clip
      * coordinates, compute what Subset are not completely
      * culled by the clip equations.
-     * \param scratch_space scratch space for computations
      * \param clip_equations array of clip equations
      * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
      *                          coordinates to clip coordinates.
@@ -354,7 +352,7 @@ namespace fastuidraw  {
      * \param select_miter_joins if true, when selecting what joins are in
      *                           the area, enlarge the join footprint for if
      *                           the joins are stroked as a type of miter join.
-     * \param[out] location to which to write the subset-selection.
+     * \param[out] dst location to which to write the subset-selection.
      */
     void
     select_subsets(c_array<const vec3> clip_equations,

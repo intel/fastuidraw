@@ -610,7 +610,7 @@ namespace StrokedPointPacking
 
       /*!
        * Pack cap for stroking cap with dashed stroking
-       * (regardless of \ref PainterEnum::cap_style).
+       * (regardless of \ref PainterEnums::cap_style).
        */
       adjustable_cap,
 
@@ -763,7 +763,7 @@ namespace StrokedPointPacking
    * realized with \ref StrokedPoint.
    * \param js join style to pack for
    * \param join join data to pack
-   * \param depth the value for \ref StrokedPoin::depth() of the
+   * \param depth the value for \ref StrokedPoint::depth() of the
    *              packed \ref StrokedPoint values
    * \param dst_attribs location to which to place the attributes,
    *                    when js is \ref PainterEnums::rounded_joins,
@@ -809,11 +809,11 @@ namespace StrokedPointPacking
    * \param depth the value for \ref StrokedPoint::depth() of
    *               the packed \ref StrokedPoint values
    * \param dst_attribs location to which to place the attributes,
-   *                    when cp is \ref rounded_caps, the size
+   *                    when cp is \ref rounded_cap, the size
    *                    of dst_attribs must be as indicated by
    *                    \ref pack_rounded_cap_size().
    * \param dst_indices location to which to place the indices,
-   *                    when cp is \ref rounded_caps, the size
+   *                    when cp is \ref rounded_cap, the size
    *                    of dst_indices must be as indicated by
    *                    \ref pack_rounded_cap_size().
    * \param index_adjust value by which to increment the written
@@ -831,8 +831,8 @@ namespace StrokedPointPacking
    * Computes the number of indices and attributes necessary to pack
    * an array of \ref PartitionedTessellatedPath::segment_chain values.
    * Each \ref PartitionedTessellatedPath::segment of each \ref
-   * \ref PartitionedTessellatedPath::segment_chain must have that
-   * \ref PartitionedTessellatedPath::segment::m_type is the value \ref
+   * PartitionedTessellatedPath::segment_chain must have that \ref
+   * PartitionedTessellatedPath::segment::m_type is the value \ref
    * TessellatedPath::line_segment.
    * \param chains segment chain to query amount room needed to pack
    *               realized by \ref StrokedPoint
@@ -853,11 +853,11 @@ namespace StrokedPointPacking
    * Computes the number of indices and attributes necessary to pack
    * a single \ref PartitionedTessellatedPath::segment_chain value.
    * The \ref PartitionedTessellatedPath::segment of the \ref
-   * \ref PartitionedTessellatedPath::segment_chain must have that
-   * \ref PartitionedTessellatedPath::segment::m_type is the value \ref
+   * PartitionedTessellatedPath::segment_chain must have that \ref
+   * PartitionedTessellatedPath::segment::m_type is the value \ref
    * TessellatedPath::line_segment.
-   * \param chains segment chain to query amount room needed to pack
-   *               realized by \ref StrokedPoint
+   * \param chain segment chain to query amount room needed to pack
+   *              realized by \ref StrokedPoint
    * \param depth_range_size location to which to write the depth range needed
    *                         to pack the segment chain.
    * \param num_attributes location to which to write the needed
@@ -875,17 +875,17 @@ namespace StrokedPointPacking
    * Pack an array of segments chains realized as \ref StrokedPoint
    * \param chains segment chain to pack
    * \param depth_start value the lowest depth value for the attributes;
-   *                    the packed \ref StrokedPoint values will have \ref
-   *                    depth_start <= StrokedPoint::depth() and
+   *                    the packed \ref StrokedPoint values will have
+   *                    depth_start <= \ref StrokedPoint::depth() and \ref
    *                    StrokedPoint::depth() < depth_start + depth_range_size
    *                    where depth_range_size is as indicated by
    *                    \ref pack_segment_chain_size().
    * \param dst_attribs location to which to place the attributes, the
    *                    size of dst_attribs must be as indicated by \ref
-   *                    \ref pack_segment_chain_size().
+   *                    pack_segment_chain_size().
    * \param dst_indices location to which to place the indices, the
    *                    size of dst_indices must be as indicated by \ref
-   *                    \ref pack_segment_chain_size().
+   *                    pack_segment_chain_size().
    * \param index_adjust value by which to increment the written
    *                     index values
    */
@@ -900,17 +900,17 @@ namespace StrokedPointPacking
    * Pack a single segment chain realized as \ref StrokedPoint
    * \param chain segment chain to pack
    * \param depth_start value the lowest depth value for the attributes;
-   *                    the packed \ref StrokedPoint values will have \ref
-   *                    depth_start <= StrokedPoint::depth() and
+   *                    the packed \ref StrokedPoint values will have
+   *                    depth_start <= \ref StrokedPoint::depth() and \ref
    *                    StrokedPoint::depth() < depth_start + depth_range_size
    *                    where depth_range_size is as indicated by
    *                    \ref pack_segment_chain_size().
    * \param dst_attribs location to which to place the attributes, the
    *                    size of dst_attribs must be as indicated by \ref
-   *                    \ref pack_segment_chain_size().
+   *                    pack_segment_chain_size().
    * \param dst_indices location to which to place the indices, the
    *                    size of dst_indices must be as indicated by \ref
-   *                    \ref pack_segment_chain_size().
+   *                    pack_segment_chain_size().
    * \param index_adjust value by which to increment the written
    *                     index values
    */

@@ -813,8 +813,9 @@ namespace fastuidraw
      * PainterItemShader will read from it for its rendering.
      * This starts a coverage buffer layer region of the
      * size of the bounding box of the current clip-region.
-     * It is strongly suggested to use begin_coverage_buffer(const Rect&)
-     * or \ref begin_coverage_buffer(const NormalizedCoordRect&)
+     * It is strongly suggested to use
+     * begin_coverage_buffer(const Rect&, float, float) or \ref
+     * begin_coverage_buffer(const NormalizedCoordRect&, float)
      * to limit the size of the coverage buffer.
      */
     void

@@ -224,9 +224,10 @@ namespace fastuidraw
 
     /*!
      * To be implemented by a derived class to process a \ref
-     * segment_chain value placing the results onto a \ref Storage
+     * segment_chain value placing the results onto a \ref
+     * PathEffect::Storage
      * \param chain \ref segment_chain value to process
-     * \param dst \ref Storage on which to place values
+     * \param dst \ref PathEffect::Storage on which to place values
      */
     virtual
     void
@@ -235,9 +236,9 @@ namespace fastuidraw
     /*!
      * To be implemented by a derived class to process a \ref
      * TessellatedPath::join value placing the results onto a
-     * \ref Storage
+     * \ref PathEffect::Storage
      * \param join \ref TessellatedPath::join value to process
-     * \param dst \ref Storage on which to place values
+     * \param dst \ref PathEffect::Storage on which to place values
      */
     virtual
     void
@@ -246,9 +247,9 @@ namespace fastuidraw
     /*!
      * To be implemented by a derived class to process a \ref
      * TessellatedPath::cap value placing the results onto a
-     * \ref Storage
+     * \ref PathEffect::Storage
      * \param cap \ref TessellatedPath::cap value to process
-     * \param dst \ref Storage on which to place values
+     * \param dst \ref PathEffect::Storage on which to place values
      */
     virtual
     void

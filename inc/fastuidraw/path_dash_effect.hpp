@@ -36,12 +36,27 @@ namespace fastuidraw
     PathDashEffect(void);
     ~PathDashEffect();
 
+    /*!
+     * Clear the dash pattern.
+     */
     PathDashEffect&
     clear(void);
 
+    /*!
+     * Add an element to the dash pattern. An element in the
+     * dash pattern is a length to draw following by a length
+     * to skip.
+     * \param draw length of draw in element
+     * \param skip length of skip in element
+     */
     PathDashEffect&
     add_dash(float draw, float skip);
 
+    /*!
+     * Distance values from the elements of the path have
+     * this value added to them before having the dash-pattern
+     * applied.
+     */
     PathDashEffect&
     dash_offset(float v);
 

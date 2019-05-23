@@ -53,9 +53,9 @@ public:
    * comes goes out of scope. Do not save these handle values
    * without also saving a handle of the StrokedPath from which
    * they come. The region of a \ref Subset is the exact same
-   * region as a \ref PartitionedPath::Subset object. Also, the
-   * \ref ID() value for a Subset is the same value as \ref
-   * PartitionedPath::Subset::ID() as well.
+   * region as a \ref PartitionedTessellatedPath::Subset object.
+   * Also, the \ref ID() value for a Subset is the same value as
+   * \ref PartitionedTessellatedPath::Subset::ID() as well.
    */
   class Subset
   {
@@ -136,10 +136,10 @@ public:
     /*!
      * Return the join chunk to feed the \ref PainterAttributeData
      * returned by \ref adjustable_caps(), \ref square_caps() \ref
-     * \ref rounded_caps(), \ref arc_rounded_caps() to get the
-     * attribute and index data representing the joins within this
-     * subset. A return value of -1 indicates that there are no
-     * caps within this Subset.
+     * rounded_caps(), \ref flat_caps(), \ref arc_rounded_caps() to
+     * get the attribute and index data representing the caps
+     * within this subset. A return value of -1 indicates that there
+     * are no caps within this Subset.
      */
     int
     cap_chunk(void) const;
@@ -208,7 +208,7 @@ public:
 
     /*!
      * ID's of what Subset objects are selected for joins.
-     * This value is different from \ref subsets() only
+     * This value is different from \ref subset_ids() only
      * when Stroked::select_subset_ids() was specified to
      * enlarge the join footprints for miter-join stroking.
      */
@@ -375,7 +375,6 @@ public:
    * and a tranformation from local coordiante to clip
    * coordinates, compute what Subset are not completely
    * culled by the clip equations.
-   * \param scratch_space scratch space for computations
    * \param clip_equations array of clip equations
    * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
    *                          coordinates to clip coordinates.
@@ -391,7 +390,7 @@ public:
    * \param select_miter_joins if true, when selecting what joins are in
    *                           the area, enlarge the join footprint for if
    *                           the joins are stroked as a type of miter join.
-   * \param[out] location to which to write the subset-selection.
+   * \param[out] dst location to which to write the subset-selection.
    */
   void
   select_subsets(c_array<const vec3> clip_equations,

@@ -427,13 +427,13 @@ namespace ArcStrokedPointPacking
 
       /*!
        * Number of attributes needed for realizing a rounded
-       * cap with packed \ref ArcStrokedPint values.
+       * cap with packed \ref ArcStrokedPoint values.
        */
       num_attributes_per_cap = 3 * arcs_per_cap + 2,
 
       /*!
        * Number of indices needed for realizing a rounded
-       * cap with packed \ref ArcStrokedPint values.
+       * cap with packed \ref ArcStrokedPoint values.
        */
       num_indices_per_cap = 9 * arcs_per_cap
     };
@@ -457,7 +457,7 @@ namespace ArcStrokedPointPacking
    * Pack a join into attribute data and index data
    * realized with \ref ArcStrokedPoint.
    * \param join join data to pack
-   * \param depth the value for \ref ArcStrokedPoin::depth() of the
+   * \param depth the value for \ref ArcStrokedPoint::depth() of the
    *              packed \ref ArcStrokedPoint values
    * \param dst_attribs location to which to place the attributes,
    *                    the size of dst_attribs must be as indicated
@@ -479,7 +479,7 @@ namespace ArcStrokedPointPacking
    * Pack a cap into attribute data and index data
    * realized with \ref ArcStrokedPoint.
    * \param cap cap data to pack
-   * \param depth the value for \ref ArcStrokedPoin::depth() of the
+   * \param depth the value for \ref ArcStrokedPoint::depth() of the
    *              packed \ref ArcStrokedPoint values
    * \param dst_attribs location to which to place the attributes,
    *                    the size of dst_attribs must be \ref
@@ -518,8 +518,8 @@ namespace ArcStrokedPointPacking
   /*!
    * Computes the number of indices and attributes necessary to pack
    * a single \ref PartitionedTessellatedPath::segment_chain value.
-   * \param chains segment chain to query amount room needed to pack
-   *               realized by \ref StrokedPoint
+   * \param chain segment chain to query amount room needed to pack
+   *              realized by \ref StrokedPoint
    * \param depth_range_size location to which to write the depth range needed
    *                         to pack the segment chain.
    * \param num_attributes location to which to write the needed
@@ -537,16 +537,16 @@ namespace ArcStrokedPointPacking
    * Pack an array of segments chains realized as \ref ArcStrokedPoint
    * \param chains segment chain to pack
    * \param depth_start value the lowest depth value for the attributes;
-   *                    the packed \ref ArcStrokedPoint values will have \ref
-   *                    depth_start <= ArcStrokedPoint::depth() and
-   *                    ArcStrokedPoint::depth() < depth_start + depth_range_size
+   *                    the packed \ref ArcStrokedPoint values will have
+   *                    depth_start <= \ref ArcStrokedPoint::depth() and
+   *                    \ref ArcStrokedPoint::depth() < depth_start + depth_range_size
    *                    where depth_range_size is as indicated by
    *                    \ref pack_segment_chain_size().
    * \param dst_attribs location to which to place the attributes, the
    *                    size of dst_attribs must be as indicated by \ref
-   *                    \ref pack_segment_chain_size().
+   *                    pack_segment_chain_size().
    * \param dst_indices location to which to place the indices, the
-   *                    size of dst_indices must be as indicated by \ref
+   *                    size of dst_indices must be as indicated by
    *                    \ref pack_segment_chain_size().
    * \param index_adjust value by which to increment the written
    *                     index values
@@ -562,17 +562,17 @@ namespace ArcStrokedPointPacking
    * Pack a single segment chain realized as \ref ArcStrokedPoint
    * \param chain segment chain to pack
    * \param depth_start value the lowest depth value for the attributes;
-   *                    the packed \ref StrokedPoint values will have \ref
-   *                    depth_start <= StrokedPoint::depth() and
+   *                    the packed \ref StrokedPoint values will have
+   *                    depth_start <= \ref StrokedPoint::depth() and \ref
    *                    StrokedPoint::depth() < depth_start + depth_range_size
    *                    where depth_range_size is as indicated by
    *                    \ref pack_segment_chain_size().
    * \param dst_attribs location to which to place the attributes, the
    *                    size of dst_attribs must be as indicated by \ref
-   *                    \ref pack_segment_chain_size().
+   *                    pack_segment_chain_size().
    * \param dst_indices location to which to place the indices, the
    *                    size of dst_indices must be as indicated by \ref
-   *                    \ref pack_segment_chain_size().
+   *                    pack_segment_chain_size().
    * \param index_adjust value by which to increment the written
    *                     index values
    */
