@@ -86,17 +86,125 @@ namespace
     return !has_double_colon(v);
   }
 
+  void
+  stream_alias_shareables(fastuidraw::glsl::ShaderSource &dst,
+                          const fastuidraw::glsl::shareable_value_list &shareables,
+                          const std::string &shareable_label,
+                          bool add_defines, bool (*filter)(fastuidraw::c_string))
+  {
+    using namespace fastuidraw;
+    using namespace fastuidraw::glsl;
+
+    for (unsigned int ti = 0; ti < shareable_value_list::type_number_types; ++ti)
+      {
+        enum shareable_value_list::type_t t;
+        c_array<const c_string> names;
+
+        t = static_cast<enum shareable_value_list::type_t>(ti);
+        names = shareables.shareable_values(t);
+
+        dst << "// Type #" << t << " has " << names.size() << " elements\n";
+        for (unsigned int k = 0; k < names.size(); ++k)
+          {
+            if (filter(names[k]))
+              {
+                if (add_defines)
+                  {
+                    dst << "#define "
+                        << replace_double_colon_with_double_D(names[k])
+                        << " " << shareable_label << "_type" << t
+                        << "[" << k << "]\n";
+                  }
+                else
+                  {
+                    dst << "#undef " << replace_double_colon_with_double_D(names[k]) << "\n";
+                  }
+              }
+            else
+              {
+                dst << "//Skip " << names[k] << "\n";
+              }
+          }
+      }
+  }
+
+  template<typename T>
+  const fastuidraw::glsl::shareable_value_list&
+  vertex_shareables(const fastuidraw::reference_counted_ptr<const T> &sh)
+  {
+    return sh->symbols().m_vert_shareable_values;
+  }
+
+  template<typename T>
+  const fastuidraw::glsl::shareable_value_list&
+  fragment_shareables(const fastuidraw::reference_counted_ptr<const T> &sh)
+  {
+    return sh->symbols().m_frag_shareable_values;
+  }
+
   template<typename T>
   class StreamVaryingsHelper
   {
   public:
     StreamVaryingsHelper(bool for_fragment_shadering,
                          const fastuidraw::glsl::detail::UberShaderVaryings &src,
-                         const fastuidraw::glsl::detail::AliasVaryingLocation &datum):
+                         const fastuidraw::glsl::detail::AliasVaryingLocation &datum,
+                         const std::string &shareable_label):
       m_src(src),
       m_datum(datum),
-      m_for_fragment_shadering(for_fragment_shadering)
+      m_for_fragment_shadering(for_fragment_shadering),
+      m_shareable_label(shareable_label)
     {}
+
+    void
+    declare_shareables(fastuidraw::glsl::ShaderSource &dst,
+                       fastuidraw::c_array<const fastuidraw::reference_counted_ptr<T> > shaders) const
+    {
+      using namespace fastuidraw;
+      using namespace glsl;
+
+      vecN<unsigned int, shareable_value_list::type_number_types> num_needed(0);
+
+      for (const auto &sh : shaders)
+        {
+          const shareable_value_list &src(fetch_shareables(sh));
+          vecN<unsigned int, shareable_value_list::type_number_types> num_sh(src.number_shareable_values());
+          for (unsigned int i = 0; i < shareable_value_list::type_number_types; ++i)
+            {
+              num_needed[i] = t_max(num_needed[i], num_sh[i]);
+            }
+        }
+
+      c_string types[shareable_value_list::type_number_types] =
+        {
+          [shareable_value_list::type_float] = "float",
+          [shareable_value_list::type_uint] = "uint",
+          [shareable_value_list::type_int] = "int",
+        };
+
+      dst << "// Number needed for shareables: " << typeid(T).name() << ":" << num_needed << "\n";
+      for (unsigned int i = 0; i < shareable_value_list::type_number_types; ++i)
+        {
+          if (num_needed[i] > 0)
+            {
+              dst << types[i] << " " << m_shareable_label << "_type"
+                  << i << "[" << num_needed[i] << "];\n";
+            }
+        }
+    }
+
+    const fastuidraw::glsl::shareable_value_list&
+    fetch_shareables(const fastuidraw::reference_counted_ptr<const T> &sh) const
+    {
+      if (m_for_fragment_shadering)
+        {
+          return fragment_shareables(sh);
+        }
+      else
+        {
+          return vertex_shareables(sh);
+        }
+    }
 
     void
     before_shader(fastuidraw::glsl::ShaderSource &dst,
@@ -104,6 +212,9 @@ namespace
     {
       m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
                                   true, m_datum, has_double_colon);
+
+      stream_alias_shareables(dst, fetch_shareables(sh), m_shareable_label,
+                              true, has_double_colon);
     }
 
     void
@@ -112,6 +223,9 @@ namespace
     {
       m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
                                   false, m_datum, has_double_colon);
+
+      stream_alias_shareables(dst, fetch_shareables(sh), m_shareable_label,
+                              false, has_double_colon);
     }
 
     void
@@ -119,20 +233,26 @@ namespace
                unsigned int depth, fastuidraw::c_string dep_name,
                const fastuidraw::reference_counted_ptr<const T> &sh) const
     {
+      using namespace fastuidraw;
+      using namespace fastuidraw::glsl;
+
       dst << "//PreSource, depth = " << depth << ", dep_name = " << dep_name << "\n";
       if (depth == 0)
         {
           m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
                                       true, m_datum, does_not_have_double_colon);
+
+          stream_alias_shareables(dst, fetch_shareables(sh), m_shareable_label,
+                                  true, does_not_have_double_colon);
         }
       else
         {
-          for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
+          for (unsigned int i = 0; i < varying_list::interpolator_number_types; ++i)
             {
-              enum fastuidraw::glsl::varying_list::interpolator_type_t q;
+              enum varying_list::interpolator_type_t q;
               q = static_cast<enum fastuidraw::glsl::varying_list::interpolator_type_t>(i);
 
-              for (fastuidraw::c_string v : sh->varyings().varyings(q))
+              for (c_string v : sh->varyings().varyings(q))
                 {
                   if (does_not_have_double_colon(v))
                     {
@@ -141,8 +261,8 @@ namespace
                     }
                 }
             }
-          fastuidraw::c_array<const fastuidraw::c_string> names(sh->varyings().alias_varying_names());
-          fastuidraw::c_array<const fastuidraw::c_string> src_names(sh->varyings().alias_varying_source_names());
+          c_array<const c_string> names(sh->varyings().alias_varying_names());
+          c_array<const c_string> src_names(sh->varyings().alias_varying_source_names());
 
           FASTUIDRAWassert(names.size() == src_names.size());
           for (unsigned int i = 0; i < names.size(); ++i)
@@ -154,6 +274,22 @@ namespace
                   dst.add_macro(name.c_str(), src_name.c_str());
                 }
             }
+
+          const shareable_value_list &src(fetch_shareables(sh));
+          for (unsigned int i = 0; i < shareable_value_list::type_number_types; ++i)
+            {
+              enum shareable_value_list::type_t t;
+
+              t = static_cast<enum shareable_value_list::type_t>(i);
+              for (c_string name : src.shareable_values(t))
+                {
+                  if (does_not_have_double_colon(name))
+                    {
+                      std::string nameDD(replace_double_colon_with_double_D(name));
+                      dst << "#define " << nameDD << " " << dep_name << "DD" << nameDD << "\n";
+                    }
+                }
+            }
         }
     }
 
@@ -162,15 +298,21 @@ namespace
                 unsigned int depth, fastuidraw::c_string dep_name,
                 const fastuidraw::reference_counted_ptr<const T> &sh) const
     {
+      using namespace fastuidraw;
+      using namespace fastuidraw::glsl;
+
       dst << "//PostSource, depth = " << depth << ", dep_name = " << dep_name << "\n";
       if (depth == 0)
         {
           m_src.stream_alias_varyings(m_for_fragment_shadering, dst, sh->varyings(),
                                       false, m_datum, does_not_have_double_colon);
+
+          stream_alias_shareables(dst, fetch_shareables(sh), m_shareable_label,
+                                  false, does_not_have_double_colon);
         }
       else
         {
-          fastuidraw::c_array<const fastuidraw::c_string> names(sh->varyings().alias_varying_names());
+          c_array<const c_string> names(sh->varyings().alias_varying_names());
           for (unsigned int i = 0; i < names.size(); ++i)
             {
               if (does_not_have_double_colon(names[i]))
@@ -182,15 +324,31 @@ namespace
 
           for (unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolator_number_types; ++i)
             {
-              enum fastuidraw::glsl::varying_list::interpolator_type_t q;
-              q = static_cast<enum fastuidraw::glsl::varying_list::interpolator_type_t>(i);
+              enum varying_list::interpolator_type_t q;
+              q = static_cast<enum varying_list::interpolator_type_t>(i);
 
-              for (fastuidraw::c_string v : sh->varyings().varyings(q))
+              for (c_string v : sh->varyings().varyings(q))
                 {
                   if (does_not_have_double_colon(v))
                     {
                       std::string vv(replace_double_colon_with_double_D(v));
                       dst << "#undef " << vv << "\n";
+                    }
+                }
+            }
+
+          const shareable_value_list &src(fetch_shareables(sh));
+          for (unsigned int i = 0; i < shareable_value_list::type_number_types; ++i)
+            {
+              enum shareable_value_list::type_t t;
+
+              t = static_cast<enum shareable_value_list::type_t>(i);
+              for (c_string name : src.shareable_values(t))
+                {
+                  if (does_not_have_double_colon(name))
+                    {
+                      std::string nameDD(replace_double_colon_with_double_D(name));
+                      dst << "#undef " << nameDD << "\n";
                     }
                 }
             }
@@ -268,12 +426,18 @@ namespace
     const fastuidraw::glsl::detail::UberShaderVaryings &m_src;
     const fastuidraw::glsl::detail::AliasVaryingLocation &m_datum;
     bool m_for_fragment_shadering;
+    std::string m_shareable_label;
   };
 
   template<>
   class StreamVaryingsHelper<fastuidraw::glsl::PainterBlendShaderGLSL>
   {
   public:
+    void
+    declare_shareables(fastuidraw::glsl::ShaderSource &,
+                       fastuidraw::c_array<const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterBlendShaderGLSL> >) const
+    {}
+
     void
     before_shader(fastuidraw::glsl::ShaderSource&,
                   const fastuidraw::reference_counted_ptr<const fastuidraw::glsl::PainterBlendShaderGLSL> &) const
@@ -622,6 +786,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
   using namespace fastuidraw;
 
   /* first stream all of the shaders with predefined macros. */
+  stream_varyings_helper.declare_shareables(dst, shaders);
   for(const auto &sh : shaders)
     {
       std::ostringstream str;
@@ -1120,7 +1285,8 @@ stream_uber_vert_shader(bool use_switch,
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                          &PainterItemShaderGLSL::vertex_src,
                                                          item_shader_vert_name<PainterItemShaderGLSL>,
-                                                         StreamVaryingsHelper<PainterItemShaderGLSL>(false, declare_varyings, datum),
+                                                         StreamVaryingsHelper<PainterItemShaderGLSL>(false, declare_varyings, datum,
+                                                                                                     "fastuidraw_item_shareables"),
                                                          StreamSurroundSrcHelper<PainterItemShaderGLSL>(),
                                                          "void",
                                                          "fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)",
@@ -1139,7 +1305,8 @@ stream_uber_frag_shader(bool use_switch,
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                          &PainterItemShaderGLSL::fragment_src,
                                                          item_shader_frag_name<PainterItemShaderGLSL>,
-                                                         StreamVaryingsHelper<PainterItemShaderGLSL>(true, declare_varyings, datum),
+                                                         StreamVaryingsHelper<PainterItemShaderGLSL>(true, declare_varyings, datum,
+                                                                                                     "fastuidraw_item_shareables"),
                                                          StreamSurroundSrcHelper<PainterItemShaderGLSL>(),
                                                          "vec4",
                                                          "fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
@@ -1157,7 +1324,8 @@ stream_uber_vert_shader(bool use_switch,
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::vertex_src,
                                                                  item_shader_vert_name<PainterItemCoverageShaderGLSL>,
-                                                                 StreamVaryingsHelper<PainterItemCoverageShaderGLSL>(false, declare_varyings, datum),
+                                                                 StreamVaryingsHelper<PainterItemCoverageShaderGLSL>(false, declare_varyings, datum,
+                                                                                                                     "fastuidraw_item_shareables"),
                                                                  StreamSurroundSrcHelper<PainterItemCoverageShaderGLSL>(),
                                                                  "void",
                                                                  "fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 clip_p)",
@@ -1176,7 +1344,8 @@ stream_uber_frag_shader(bool use_switch,
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::fragment_src,
                                                                  item_shader_frag_name<PainterItemCoverageShaderGLSL>,
-                                                                 StreamVaryingsHelper<PainterItemCoverageShaderGLSL>(true, declare_varyings, datum),
+                                                                 StreamVaryingsHelper<PainterItemCoverageShaderGLSL>(true, declare_varyings, datum,
+                                                                                                                     "fastuidraw_item_shareables"),
                                                                  StreamSurroundSrcHelper<PainterItemCoverageShaderGLSL>(),
                                                                  "float",
                                                                  "fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
@@ -1245,7 +1414,8 @@ stream_uber_brush_vert_shader(bool use_switch,
   UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, vert, brush_shaders,
                                                           &PainterBrushShaderGLSL::vertex_src,
                                                           item_shader_vert_name<PainterBrushShaderGLSL>,
-                                                          StreamVaryingsHelper<PainterBrushShaderGLSL>(false, declare_varyings, datum),
+                                                          StreamVaryingsHelper<PainterBrushShaderGLSL>(false, declare_varyings, datum,
+                                                                                                       "fastuidraw_brush_shareables"),
                                                           StreamSurroundSrcHelper<PainterBrushShaderGLSL>(),
                                                           "void",
                                                           "fastuidraw_run_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
@@ -1263,7 +1433,8 @@ stream_uber_brush_frag_shader(bool use_switch,
   UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, frag, brush_shaders,
                                                           &PainterBrushShaderGLSL::fragment_src,
                                                           item_shader_frag_name<PainterBrushShaderGLSL>,
-                                                          StreamVaryingsHelper<PainterBrushShaderGLSL>(true, declare_varyings, datum),
+                                                          StreamVaryingsHelper<PainterBrushShaderGLSL>(true, declare_varyings, datum,
+                                                                                                       "fastuidraw_brush_shareables"),
                                                           StreamSurroundSrcHelper<PainterBrushShaderGLSL>(),
                                                           "vec4",
                                                           "fastuidraw_run_brush_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
