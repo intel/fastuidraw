@@ -65,6 +65,22 @@ namespace fastuidraw
       }
 
       /*!
+       * Returns an array indexed by \ref type_t that
+       * holds the number of shareable variables for
+       * each type.
+       */
+      vecN<unsigned int, type_number_types>
+      number_shareable_values(void) const
+      {
+        vecN<unsigned int, type_number_types> R;
+        for (unsigned int i = 0; i < type_number_types; ++i)
+          {
+            R[i] = m_data[i].size();
+          }
+        return R;
+      }
+
+      /*!
        * Returns the names of the shareable values of the
        * specified type.
        * \param q type
