@@ -41,7 +41,6 @@ template<typename T, size_t N>
 class vecN
 {
 public:
-
   enum
     {
       /*!
@@ -372,12 +371,25 @@ public:
    */
   vecN(const vecN<T, N-1> &p, const T &d)
   {
-    FASTUIDRAWstatic_assert(N>1);
-    for(size_type i=0;i<N-1;++i)
+    FASTUIDRAWstatic_assert(N > 1);
+    for(size_type i = 0 ; i < N - 1; ++i)
       {
         operator[](i) = p[i];
       }
     operator[](N - 1) = d;
+  }
+
+  /*!
+   * Swap operation
+   * \param obj object with which to swap
+   */
+  void
+  swap(vecN &obj)
+  {
+    for(size_type i = 0; i < N; ++i)
+      {
+        m_data[i].swap(obj.m_data[i]);
+      }
   }
 
   /*!
