@@ -627,7 +627,8 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       std::ostringstream str;
 
       dst << "\n/////////////////////////////////////////\n"
-          << "// Start Shader #" << sh->ID() << "\n";
+          << "// Start Shader #" << sh->ID() << " with "
+          << sh->number_sub_shaders() << " sub-shaers\n";
 
       str << get_main_name(sh) << sh->ID();
       stream_varyings_helper.before_shader(dst, sh);

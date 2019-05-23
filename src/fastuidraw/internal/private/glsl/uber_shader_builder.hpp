@@ -107,8 +107,10 @@ public:
   stream_varying_rw_copies(ShaderSource &dst) const;
 
   /*!
-   * Add or remove aliases that have elements of p
-   * refer to varying declared by a UberShaderVaryings
+   * Add or remove aliases that have elements of a
+   * varying list. Adding means adding to the ShaderSource
+   * add_macro() that will make names from the varying
+   * list be defined as names from AliasVaryingLocation
    * \param shader ShaderSource to which to stream
    * \param p how many varyings of each type along with their names
    * \param add_aliases if true add the aliases by add_macro(),
