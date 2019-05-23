@@ -214,6 +214,11 @@ read_path(fastuidraw::Path &path, const std::string &source,
                   path << fastuidraw::Path::contour_close();
                   cpp_code << "     << fastuidraw::Path::contour_close()\n";
                 }
+              else
+                {
+                  path << fastuidraw::Path::contour_end();
+                  cpp_code << "     << fastuidraw::Path::contour_end()\n";
+                }
             }
           else
             {
