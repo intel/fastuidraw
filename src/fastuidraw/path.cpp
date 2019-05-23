@@ -351,9 +351,7 @@ namespace
   {
   public:
     explicit
-    PathPrivate(fastuidraw::Path *p);
-
-    PathPrivate(fastuidraw::Path *p, const PathPrivate &obj);
+    PathPrivate(void);
 
     const fastuidraw::reference_counted_ptr<fastuidraw::PathContour>&
     current_contour(void);
@@ -379,7 +377,6 @@ namespace
     fastuidraw::BoundingBox<float> m_bb;
     bool m_is_flat;
     fastuidraw::reference_counted_ptr<const fastuidraw::ShaderFilledPath> m_shader_filled_path;
-    fastuidraw::Path *m_p;
   };
 }
 
@@ -1592,41 +1589,12 @@ tessellation(const fastuidraw::Path &path, float max_distance)
 /////////////////////////////////
 // PathPrivate methods
 PathPrivate::
-PathPrivate(fastuidraw::Path *p):
+PathPrivate(void):
   m_next_edge_type(fastuidraw::PathEnums::starts_new_edge),
   m_tess_list(),
   m_start_check_bb(0),
-  m_is_flat(true),
-  m_p(p)
+  m_is_flat(true)
 {
-}
-
-PathPrivate::
-PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
-  m_contours(obj.m_contours),
-  m_next_edge_type(obj.m_next_edge_type),
-  m_tess_list(),
-  m_start_check_bb(obj.m_start_check_bb),
-  m_bb(obj.m_bb),
-  m_is_flat(obj.m_is_flat),
-  m_shader_filled_path(obj.m_shader_filled_path),
-  m_p(p)
-{
-  /* if the last contour is not ended, we need to do a
-   * deep copy on it.
-   */
-  if (!m_contours.empty() && !m_contours.back()->ended())
-    {
-      m_contours.back() = obj.m_contours.back()->deep_copy();
-      m_is_flat = m_is_flat && m_contours.back()->is_flat();
-    }
-
-  /* Sighs. We cannot just copy m_tess_list freely because
-   * it contains a Refiner which has state and that state
-   * depends on the current tessellation state and interpolators
-   * of its source. Perhaps we should kill the abiltiy to
-   * copy Path objects for this reason alone.
-   */
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PathContour>&
@@ -1690,38 +1658,7 @@ start_contour_if_necessary(void)
 fastuidraw::Path::
 Path(void)
 {
-  m_d = FASTUIDRAWnew PathPrivate(this);
-}
-
-fastuidraw::Path::
-Path(const Path &obj)
-{
-  PathPrivate *obj_d;
-  obj_d = static_cast<PathPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew PathPrivate(this, *obj_d);
-}
-
-void
-fastuidraw::Path::
-swap(Path &obj)
-{
-  PathPrivate *obj_d, *d;
-
-  std::swap(obj.m_d, m_d);
-  d = static_cast<PathPrivate*>(m_d);
-  obj_d = static_cast<PathPrivate*>(obj.m_d);
-
-  d->m_p = this;
-  obj_d->m_p = &obj;
-}
-
-const fastuidraw::Path&
-fastuidraw::Path::
-operator=(const Path &rhs)
-{
-  Path temp(rhs);
-  swap(temp);
-  return *this;
+  m_d = FASTUIDRAWnew PathPrivate();
 }
 
 fastuidraw::Path::
@@ -1731,6 +1668,13 @@ fastuidraw::Path::
   d = static_cast<PathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
+}
+
+void
+fastuidraw::Path::
+swap(Path &obj)
+{
+  std::swap(obj.m_d, m_d);
 }
 
 bool

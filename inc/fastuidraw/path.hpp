@@ -669,7 +669,7 @@ private:
  * the edge from the last point of the current
  * contour to the first point of it.
  */
-class Path
+class Path:noncopyable
 {
 public:
   /*!
@@ -805,20 +805,7 @@ public:
   explicit
   Path(void);
 
-  /*!
-   * Copy ctor.
-   * \param obj Path from which to copy path data
-   */
-  Path(const Path &obj);
-
   ~Path();
-
-  /*!
-   * Assignment operator
-   * \param rhs value from which to assign.
-   */
-  const Path&
-  operator=(const Path &rhs);
 
   /*!
    * Clear the path, i.e. remove all PathContour's from the
