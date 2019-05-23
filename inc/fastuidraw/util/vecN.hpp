@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <iterator>
-
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/math.hpp>
 
@@ -105,18 +103,6 @@ public:
    * iterator typedef to const_pointer
    */
   typedef const_pointer const_iterator;
-
-  /*!
-   * \brief
-   * iterator typedef using std::reverse_iterator.
-   */
-  typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
-
-  /*!
-   * \brief
-   * iterator typedef using std::reverse_iterator
-   */
-  typedef std::reverse_iterator<iterator>        reverse_iterator;
 
   /*!
    * Ctor, no intiliaztion on POD types.
@@ -1083,30 +1069,6 @@ public:
    */
   const_iterator
   end(void) const { return const_iterator(c_ptr() + static_cast<difference_type>(size()) ); }
-
-  /*!
-   * STL compliant iterator function.
-   */
-  reverse_iterator
-  rbegin(void) { return reverse_iterator(end()); }
-
-  /*!
-   * STL compliant iterator function.
-   */
-  const_reverse_iterator
-  rbegin(void) const { return const_reverse_iterator(end()); }
-
-  /*!
-   * STL compliant iterator function.
-   */
-  reverse_iterator
-  rend(void) { return reverse_iterator(begin()); }
-
-  /*!
-   * STL compliant iterator function.
-   */
-  const_reverse_iterator
-  rend(void) const { return const_reverse_iterator(begin()); }
 
   /*!
    * STL compliant back() function.

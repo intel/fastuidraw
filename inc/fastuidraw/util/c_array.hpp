@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include <iterator>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 
@@ -107,18 +106,6 @@ public:
    * iterator typedef to const_pointer
    */
   typedef const_pointer const_iterator;
-
-  /*!
-   * \brief
-   * iterator typedef using std::reverse_iterator.
-   */
-  typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
-
-  /*!
-   * \brief
-   * iterator typedef using std::reverse_iterator.
-   */
-  typedef std::reverse_iterator<iterator>        reverse_iterator;
 
   /*!
    * Default ctor, initializing the pointer as nullptr
@@ -316,24 +303,6 @@ public:
   }
 
   /*!
-   * STL compliant function.
-   */
-  reverse_iterator
-  rbegin(void) const
-  {
-    return reverse_iterator(end());
-  }
-
-  /*!
-   * STL compliant function.
-   */
-  reverse_iterator
-  rend(void) const
-  {
-    return reverse_iterator(begin());
-  }
-
-  /*!
    * Returns the range of the c_array as an
    * iterator range.
    */
@@ -341,16 +310,6 @@ public:
   range(void) const
   {
     return range_type<iterator>(begin(), end());
-  }
-
-  /*!
-   * Returns the range of the c_array as a
-   * reverse_iterator range
-   */
-  range_type<reverse_iterator>
-  reverse_range(void) const
-  {
-    return range_type<reverse_iterator>(rbegin(), rend());
   }
 
   /*!

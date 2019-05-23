@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <vector>
+#include <iterator>
 #include <fastuidraw/util/c_array.hpp>
 
 #define FASTUIDRAWwarn_assert(X) do {                           \
@@ -69,6 +70,13 @@ namespace fastuidraw
     T *q;
     q = const_cast<T*>(p.c_ptr());
     return c_array<T>(q, p.size());
+  }
+
+  template<typename iterator>
+  std::reverse_iterator<iterator>
+  reverse_iterator(iterator iter)
+  {
+    return std::reverse_iterator<iterator>(iter);
   }
 }
 

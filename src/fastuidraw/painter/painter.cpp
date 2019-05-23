@@ -20,6 +20,7 @@
 #include <vector>
 #include <bitset>
 #include <algorithm>
+#include <iterator>
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/text/glyph_generate_params.hpp>
@@ -6018,12 +6019,14 @@ begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
   fx_entry.m_state_stack_size = d->m_state_stack.size();;
   d->m_effects_stack.push_back(fx_entry);
 
-  fastuidraw::PainterBlendShader* old_blend(d->packer()->blend_shader());
-  fastuidraw::PainterBlendShader* copy_blend(d->m_default_shaders.blend_shaders().shader(blend_porter_duff_src).get());
+  PainterBlendShader* old_blend(d->packer()->blend_shader());
+  PainterBlendShader* copy_blend(d->m_default_shaders.blend_shaders().shader(blend_porter_duff_src).get());
   BlendMode old_blend_mode(d->packer()->blend_mode());
   BlendMode copy_blend_mode(d->m_default_shaders.blend_shaders().blend_mode(blend_porter_duff_src));
 
-  for (auto ibegin = passes.rbegin(), iend = passes.rend(), i = ibegin;
+  for (auto ibegin = reverse_iterator(passes.begin()),
+         iend = reverse_iterator(passes.end()),
+         i = ibegin;
        i != iend; ++i)
     {
       /* get the EffectsLayer that gives the PainterPacker and what to blit
