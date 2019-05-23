@@ -33,8 +33,8 @@ namespace
   class DashElementProxy
   {
   public:
-    DashElementProxy(unsigned int idx,
-                     unsigned int cycle,
+    DashElementProxy(int idx,
+                     int cycle,
                      const DashElement &d,
                      float increase_by):
       m_idx(idx),
@@ -51,7 +51,7 @@ namespace
       return m_start_distance + m_draw_length;
     }
 
-    unsigned int m_idx, m_cycle;
+    int m_idx, m_cycle;
     float m_start_distance, m_end_distance;
     float m_draw_length, m_skip_length;
   };
@@ -120,7 +120,7 @@ namespace
                     fastuidraw::PathEffect::Storage &dst);
 
     DashElementProxy
-    proxy(unsigned int I) const;
+    proxy(int I) const;
 
     /* TODO: add parameters to PathDashEffect to select if distance
      * value starts at contour, since the last join or a distance
@@ -146,7 +146,7 @@ namespace
         m_dash_offset + C.m_contour_length;
     }
 
-    unsigned int
+    int
     find_index(float f) const;
 
     std::vector<DashElement>::const_iterator
@@ -164,7 +164,7 @@ namespace
 // PathDashEffectPrivate methods
 DashElementProxy
 PathDashEffectPrivate::
-proxy(unsigned int I) const
+proxy(int I) const
 {
   unsigned int N(I / m_lengths.size());
   unsigned int srcI(I - N * m_lengths.size());
@@ -182,13 +182,22 @@ find_iterator(float &f, int &N) const
   float c(current_length());
   std::vector<DashElement>::const_iterator iter;
 
-  if (f >= c)
+  if (f >= c || f < 0.0f)
     {
-      float fN, ff(f / c);
+      /* Compute r, fN so that
+       *  1) f = r + fN * c
+       *  2) 0.0 <= r < c
+       */
+      float ff(f / c), fN, r;
 
-      ff = ::modff(ff, &fN);
-      f = c * ff;
+      r = ::modf(ff, &fN);
+      if (r < 0.0f)
+        {
+          r += 1.0f;
+          fN -= 1.0f;
+        }
       N = fN;
+      f = r * c;
     }
   else
     {
@@ -202,7 +211,7 @@ find_iterator(float &f, int &N) const
   return iter;
 }
 
-unsigned int
+int
 PathDashEffectPrivate::
 find_index(float f) const
 {
