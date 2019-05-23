@@ -6024,8 +6024,8 @@ begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
   BlendMode old_blend_mode(d->packer()->blend_mode());
   BlendMode copy_blend_mode(d->m_default_shaders.blend_shaders().blend_mode(blend_porter_duff_src));
 
-  for (auto ibegin = reverse_iterator(passes.begin()),
-         iend = reverse_iterator(passes.end()),
+  for (auto ibegin = reverse_iterator(passes.end()),
+         iend = reverse_iterator(passes.begin()),
          i = ibegin;
        i != iend; ++i)
     {
