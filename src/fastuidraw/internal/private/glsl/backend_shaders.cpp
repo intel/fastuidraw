@@ -315,6 +315,7 @@ ShaderSetCreatorStrokingConstants(void)
     .add_macro_u32("fastuidraw_stroke_offset_rounded_cap", StrokedPoint::offset_rounded_cap)
     .add_macro_u32("fastuidraw_stroke_offset_square_cap", StrokedPoint::offset_square_cap)
     .add_macro_u32("fastuidraw_stroke_offset_adjustable_cap", StrokedPoint::offset_adjustable_cap)
+    .add_macro_u32("fastuidraw_stroke_offset_flat_cap", StrokedPoint::offset_flat_cap)
 
     /* bit masks for StrokedPoint::m_packed_data */
     .add_macro_u32("fastuidraw_stroke_sin_sign_mask", StrokedPoint::sin_sign_mask)
@@ -327,6 +328,8 @@ ShaderSetCreatorStrokingConstants(void)
     .add_macro_u32("fastuidraw_stroke_end_sub_edge_mask", StrokedPoint::end_sub_edge_mask)
     .add_macro_u32("fastuidraw_stroke_adjustable_cap_ending_mask", StrokedPoint::adjustable_cap_ending_mask)
     .add_macro_u32("fastuidraw_stroke_adjustable_cap_end_contour_mask", StrokedPoint::adjustable_cap_is_end_contour_mask)
+    .add_macro_u32("fastuidraw_stroke_flat_cap_ending_mask", StrokedPoint::flat_cap_ending_mask)
+    .add_macro_u32("fastuidraw_stroke_flat_cap_end_contour_mask", StrokedPoint::flat_cap_is_end_contour_mask)
     .add_macro_u32("fastuidraw_stroke_depth_bit0", StrokedPoint::depth_bit0)
     .add_macro_u32("fastuidraw_stroke_depth_num_bits", StrokedPoint::depth_num_bits)
     .add_macro_u32("fastuidraw_stroke_offset_type_bit0", StrokedPoint::offset_type_bit0)
@@ -469,6 +472,7 @@ build_uber_stroke_varyings(uint32_t flags) const
     {
       return_value
         .add_float("fastuidraw_stroking_on_boundary")
+        .add_float("fastuidraw_stroking_on_contour_boundary")
         .add_float("fastuidraw_stroking_distance")
         .add_float("fastuidraw_stroking_distance_sub_edge_start")
         .add_float("fastuidraw_stroking_distance_sub_edge_end")

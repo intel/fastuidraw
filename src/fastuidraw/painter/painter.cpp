@@ -2086,7 +2086,7 @@ init_for_stroking(PainterPrivate &painter,
   m_requires_coverage_buffer = false;
   switch (cp)
     {
-      case Painter::rounded_caps:
+    case Painter::rounded_caps:
       if (edge_arc_shader)
         {
           m_cap_attribute_data = &path.arc_rounded_caps();
@@ -2103,12 +2103,17 @@ init_for_stroking(PainterPrivate &painter,
       break;
 
     case Painter::flat_caps:
-      m_cap_attribute_data = nullptr;
+      m_cap_attribute_data = (apply_anti_aliasing) ?
+        &path.flat_caps() :
+        nullptr;
       break;
 
     case Painter::number_cap_styles:
       m_cap_attribute_data = &path.adjustable_caps();
       break;
+
+    default:
+      m_cap_attribute_data = nullptr;
     }
 
   switch (js)

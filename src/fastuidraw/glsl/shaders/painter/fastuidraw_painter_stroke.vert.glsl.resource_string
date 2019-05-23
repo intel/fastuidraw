@@ -181,6 +181,34 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
     }
 
+  fastuidraw_stroking_on_contour_boundary = 1.0;
+  if (offset_type == fastuidraw_stroke_offset_flat_cap)
+    {
+      if ((point_packed_data & fastuidraw_stroke_flat_cap_ending_mask) != 0u)
+        {
+          float one_pixel;
+          vec3 clip_p, clip_direction;
+          vec2 tmp;
+
+          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+          if (!stroke_width_pixels)
+            {
+              tmp = fastuidraw_align_normal_to_screen(clip_p, auxiliary_offset);
+              tmp = normalize(tmp);
+            }
+          else
+            {
+              tmp = auxiliary_offset;
+            }
+          clip_direction = fastuidraw_item_matrix * vec3(tmp, 0.0);
+          one_pixel = fastuidraw_local_distance_from_pixel_distance(1.5, clip_p, clip_direction);
+          position += one_pixel * auxiliary_offset;
+          fastuidraw_stroking_on_contour_boundary = 0.0;
+        }
+      auxiliary_offset = vec2(0.0, 0.0);
+      offset_type = fastuidraw_stroke_offset_sub_edge;
+    }
+
   if (on_boundary != 0u)
     {
       if (stroke_width_pixels)

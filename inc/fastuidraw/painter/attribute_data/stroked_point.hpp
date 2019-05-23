@@ -178,6 +178,22 @@ public:
       offset_adjustable_cap,
 
       /*!
+       * The point is a point of a flat cap. These points are for doing
+       * anti-aliasing at the starting and ending of an open contour.
+       * The meanings of \ref m_pre_offset and \ref m_auxiliary_offset
+       * are:
+       * - \ref m_pre_offset is the normal vector to the path by which
+       *                     to move the point; this value can be (0, 0)
+       *                     to indicate to not move perpindicular to the
+       *                     path
+       * - \ref m_auxiliary_offset is the tangent vector to the path
+       *                           by which to move the point; this value
+       *                           can be (0, 0) to indicate to not move
+       *                           parallel to the path
+       */
+      offset_flat_cap,
+
+      /*!
        * Number different point types with respect to rendering
        */
       number_offset_types
@@ -322,6 +338,27 @@ public:
 
   /*!
    * \brief
+   * Enumeration encoding of bits of \ref m_packed_data for
+   * those with offset type \ref offset_flat_cap
+   */
+  enum packed_data_bit_flat_cap_t
+    {
+      /*!
+       * The bit is up if the point is for end of point
+       * of a cap (i.e. the side to be extended to make
+       * sure the entire cap near the end of edge is drawn).
+       */
+      flat_cap_ending_bit = number_common_bits,
+
+      /*!
+       * The bit is up if the point is for cap at the
+       * end of the contour.
+       */
+      flat_cap_is_end_contour_bit
+    };
+
+  /*!
+   * \brief
    * Enumeration holding bit masks.
    */
   enum packed_data_bit_masks_t
@@ -386,6 +423,16 @@ public:
        * Mask generated for \ref adjustable_cap_is_end_contour_bit
        */
       adjustable_cap_is_end_contour_mask = FASTUIDRAW_MASK(adjustable_cap_is_end_contour_bit, 1),
+
+      /*!
+       * Mask generated for \ref flat_cap_ending_bit
+       */
+      flat_cap_ending_mask = FASTUIDRAW_MASK(flat_cap_ending_bit, 1),
+
+      /*!
+       * Mask generated for \ref adjustable_cap_is_end_contour_bit
+       */
+      flat_cap_is_end_contour_mask = FASTUIDRAW_MASK(flat_cap_is_end_contour_bit, 1),
     };
 
   /*!
@@ -653,8 +700,8 @@ namespace StrokedPointPacking
   public:
     enum
       {
-        number_attributes = 0,
-        number_indices = 0
+        number_attributes = 6,
+        number_indices = 12
       };
   };
 

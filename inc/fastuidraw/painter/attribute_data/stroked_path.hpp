@@ -282,6 +282,13 @@ public:
   square_caps(void) const;
 
   /*!
+   * Returns the data to draw the flat caps of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
+   */
+  const PainterAttributeData&
+  flat_caps(void) const;
+
+  /*!
    * Returns the data to draw the caps of a stroked path used
    * when stroking with a dash pattern. The attribute data is
    * packed \ref StrokedPoint data.

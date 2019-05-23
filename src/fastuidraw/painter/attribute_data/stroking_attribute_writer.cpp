@@ -757,7 +757,8 @@ set_source(const PathEffect::Storage &src,
   d->m_shader[drawing_caps] = nullptr;
 
   d->m_method = method;
-  if (d->m_method.m_cp != StrokedPointPacking::flat_cap)
+  if (d->m_method.m_cp != StrokedPointPacking::flat_cap
+      || aa == PainterStrokeShader::aa_shader)
     {
       enum PainterEnums::stroking_method_t ctp;
 

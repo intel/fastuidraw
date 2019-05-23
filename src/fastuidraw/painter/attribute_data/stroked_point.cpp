@@ -334,23 +334,32 @@ namespace
   }
 
   void
-  pack_adjustable_cap(const fastuidraw::TessellatedPath::cap &C,
-                      unsigned int depth,
-                      fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
-                      fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
-                      unsigned int index_adjust)
+  pack_adjustable_or_flat_cap(const enum fastuidraw::StrokedPoint::offset_type_t type,
+                              const fastuidraw::TessellatedPath::cap &C,
+                              unsigned int depth,
+                              fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
+                              fastuidraw::c_array<fastuidraw::PainterIndex> dst_indices,
+                              unsigned int index_adjust)
   {
     using namespace fastuidraw;
 
     vec2 n, v;
     StrokedPoint pt;
-    uint32_t mask;
+    uint32_t mask, end_contour_mask, end_cap_mask;
     unsigned int current_vertex(0);
-    enum StrokedPoint::offset_type_t type;
 
-    mask = (C.m_is_starting_cap) ? 0u :
-      uint32_t(StrokedPoint::adjustable_cap_is_end_contour_mask);
-    type = StrokedPoint::offset_adjustable_cap;
+    FASTUIDRAWassert(type == StrokedPoint::offset_adjustable_cap
+                     || type == StrokedPoint::offset_flat_cap);
+
+    end_contour_mask = (type == StrokedPoint::offset_adjustable_cap) ?
+      StrokedPoint::adjustable_cap_is_end_contour_mask :
+      StrokedPoint::flat_cap_is_end_contour_mask;
+
+    end_cap_mask = (type == StrokedPoint::offset_adjustable_cap) ?
+      StrokedPoint::adjustable_cap_ending_mask :
+      StrokedPoint::flat_cap_ending_mask;
+
+    mask = (C.m_is_starting_cap) ? 0u : end_contour_mask;
 
     v = C.m_unit_vector;
     n = vec2(-v.y(), v.x());
@@ -373,21 +382,21 @@ namespace
     pt.m_position = C.m_position;
     pt.m_pre_offset = n;
     pt.m_auxiliary_offset = v;
-    pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+    pt.m_packed_data = pack_data(1, type, depth) | end_cap_mask | mask;
     pt.pack_point(&dst_attribs[current_vertex]);
     ++current_vertex;
 
     pt.m_position = C.m_position;
     pt.m_pre_offset = vec2(0.0f, 0.0f);
     pt.m_auxiliary_offset = v;
-    pt.m_packed_data = pack_data(0, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+    pt.m_packed_data = pack_data(0, type, depth) | end_cap_mask | mask;
     pt.pack_point(&dst_attribs[current_vertex]);
     ++current_vertex;
 
     pt.m_position = C.m_position;
     pt.m_pre_offset = -n;
     pt.m_auxiliary_offset = v;
-    pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
+    pt.m_packed_data = pack_data(1, type, depth) | end_cap_mask | mask;
     pt.pack_point(&dst_attribs[current_vertex]);
     ++current_vertex;
 
@@ -758,21 +767,32 @@ pack_cap(enum cap_type_t cp,
          c_array<PainterIndex> dst_indices,
          unsigned int index_adjust)
 {
+  typedef packing_size<enum cap_type_t, square_cap> square_cap_sizes;
+  typedef packing_size<enum cap_type_t, flat_cap> flat_cap_sizes;
+  typedef packing_size<enum cap_type_t, adjustable_cap> adjustable_cap_sizes;
+
   switch (cp)
     {
     case square_cap:
+      FASTUIDRAWassert(dst_attribs.size() == square_cap_sizes::number_attributes);
+      FASTUIDRAWassert(dst_indices.size() == square_cap_sizes::number_indices);
       pack_square_cap(cap, depth, dst_attribs, dst_indices, index_adjust);
       break;
 
+    case flat_cap:
+      FASTUIDRAWassert(dst_attribs.size() == flat_cap_sizes::number_attributes);
+      FASTUIDRAWassert(dst_indices.size() == flat_cap_sizes::number_indices);
+      pack_adjustable_or_flat_cap(StrokedPoint::offset_flat_cap, cap, depth, dst_attribs, dst_indices, index_adjust);
+      break;
+
     case adjustable_cap:
-      pack_adjustable_cap(cap, depth, dst_attribs, dst_indices, index_adjust);
+      FASTUIDRAWassert(dst_attribs.size() == adjustable_cap_sizes::number_attributes);
+      FASTUIDRAWassert(dst_indices.size() == adjustable_cap_sizes::number_indices);
+      pack_adjustable_or_flat_cap(StrokedPoint::offset_adjustable_cap, cap, depth, dst_attribs, dst_indices, index_adjust);
       break;
 
     case rounded_cap:
       pack_rounded_cap(cap, depth, dst_attribs, dst_indices, index_adjust);
-      break;
-
-    case flat_cap:
       break;
 
     default:

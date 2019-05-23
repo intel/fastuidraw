@@ -775,6 +775,7 @@ namespace
 
   typedef GenericCapCreator<fastuidraw::StrokedPointPacking::square_cap> SquareCapCreator;
   typedef GenericCapCreator<fastuidraw::StrokedPointPacking::adjustable_cap> AdjustableCapCreator;
+  typedef GenericCapCreator<fastuidraw::StrokedPointPacking::flat_cap> FlatCapCreator;
 
   class ArcRoundedCapCreator:public CapCreatorBase
   {
@@ -1013,6 +1014,7 @@ namespace
     PreparedAttributeData<ArcRoundedJoinCreator> m_arc_rounded_joins;
     PreparedAttributeData<SquareCapCreator> m_square_caps;
     PreparedAttributeData<AdjustableCapCreator> m_adjustable_caps;
+    PreparedAttributeData<FlatCapCreator> m_flat_caps;
     PreparedAttributeData<ArcRoundedCapCreator> m_arc_rounded_caps;
     std::vector<ThreshWithData> m_rounded_joins;
     std::vector<ThreshWithData> m_rounded_caps;
@@ -2117,6 +2119,15 @@ adjustable_caps(void) const
   StrokedPathPrivate *d;
   d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_adjustable_caps.data(d->m_cap_join_tracking, d->m_root);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+flat_caps(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_flat_caps.data(d->m_cap_join_tracking, d->m_root);
 }
 
 const fastuidraw::PainterAttributeData&
