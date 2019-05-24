@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/painter/data/painter_data.hpp>
+#include <fastuidraw/painter/shader_data/painter_data.hpp>
 #include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
 #include <private/painter_backend/painter_packed_value_pool_private.hpp>
 

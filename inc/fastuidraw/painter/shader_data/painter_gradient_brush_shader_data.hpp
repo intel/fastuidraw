@@ -21,7 +21,7 @@
 
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/data/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/shader_data/painter_brush_shader_data.hpp>
 
 namespace fastuidraw
 {

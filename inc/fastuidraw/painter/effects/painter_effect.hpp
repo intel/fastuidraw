@@ -23,7 +23,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/image.hpp>
-#include <fastuidraw/painter/data/painter_data.hpp>
+#include <fastuidraw/painter/shader_data/painter_data.hpp>
 
 namespace fastuidraw
 {

@@ -19,8 +19,8 @@
 #include <iostream>
 #include <string>
 #include <fastuidraw/painter/painter_brush.hpp>
-#include <fastuidraw/painter/data/painter_stroke_params.hpp>
-#include <fastuidraw/painter/data/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/shader_data/painter_stroke_params.hpp>
+#include <fastuidraw/painter/shader_data/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/arc_stroked_point.hpp>
 #include <fastuidraw/painter/attribute_data/filled_path.hpp>

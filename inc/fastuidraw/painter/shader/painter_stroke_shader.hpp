@@ -21,7 +21,7 @@
 
 #include <fastuidraw/path_enums.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/data/painter_shader_data.hpp>
+#include <fastuidraw/painter/shader_data/painter_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_item_shader.hpp>
 #include <fastuidraw/painter/backend/painter_draw.hpp>
 

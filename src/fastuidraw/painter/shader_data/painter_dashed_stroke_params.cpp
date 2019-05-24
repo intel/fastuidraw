@@ -19,8 +19,8 @@
 #include <algorithm>
 #include <cmath>
 #include <fastuidraw/util/pixel_distance_math.hpp>
-#include <fastuidraw/painter/data/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/data/painter_stroke_params.hpp>
+#include <fastuidraw/painter/shader_data/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/shader_data/painter_stroke_params.hpp>
 #include <fastuidraw/painter/attribute_data/stroked_path.hpp>
 #include <private/util_private.hpp>
 #include <private/painter_stroking_data_selector_common.hpp>

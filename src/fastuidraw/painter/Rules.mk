@@ -13,7 +13,7 @@ include $(dir)/Rules.mk
 dir := $(d)/shader
 include $(dir)/Rules.mk
 
-dir := $(d)/data
+dir := $(d)/shader_data
 include $(dir)/Rules.mk
 
 dir := $(d)/effects

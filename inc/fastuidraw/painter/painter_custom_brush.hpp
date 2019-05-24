@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <fastuidraw/painter/data/painter_data_value.hpp>
-#include <fastuidraw/painter/data/painter_brush_shader_data.hpp>
+#include <fastuidraw/painter/shader_data/painter_data_value.hpp>
+#include <fastuidraw/painter/shader_data/painter_brush_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_brush_shader.hpp>
 
 namespace fastuidraw

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/painter/data/painter_shader_data.hpp>
+#include <fastuidraw/painter/shader_data/painter_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
 
 namespace fastuidraw

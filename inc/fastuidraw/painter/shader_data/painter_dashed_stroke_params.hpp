@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <fastuidraw/painter/data/painter_stroke_params.hpp>
-#include <fastuidraw/painter/data/painter_shader_data.hpp>
+#include <fastuidraw/painter/shader_data/painter_stroke_params.hpp>
+#include <fastuidraw/painter/shader_data/painter_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_dashed_stroke_shader_set.hpp>
 
 namespace fastuidraw

@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/painter/shader/painter_image_brush_shader.hpp>
-#include <fastuidraw/painter/data/painter_packed_value_pool.hpp>
+#include <fastuidraw/painter/shader_data/painter_packed_value_pool.hpp>
 
 namespace
 {
