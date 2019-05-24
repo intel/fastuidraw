@@ -1425,7 +1425,7 @@ magnitude_compare(const vecN<T, N> &a,
   typedef vecN<uint64_t, 4> u64vec4;
 
 /*!
- * Pack 4 float values into a vecN<uint32_t, 4>
+ * Pack 4 float values into a uvec4
  * values via pack_float().
  * \param x x-value
  * \param y y-value
@@ -1442,6 +1442,18 @@ pack_vec4(float x, float y, float z, float w)
   return_value.z() = pack_float(z);
   return_value.w() = pack_float(w);
   return return_value;
+}
+
+/*!
+ * Pack a \ref vec4 into a uvec4
+ * values via pack_float().
+ * \param v value to pack
+ */
+inline
+uvec4
+pack_vec4(const vec4 &v)
+{
+  return pack_vec4(v[0], v[1], v[2], v[3]);
 }
 
   /*!
